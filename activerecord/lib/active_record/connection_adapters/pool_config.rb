@@ -6,7 +6,12 @@ module ActiveRecord
       include Mutex_m
 
       attr_reader :db_config, :role, :shard
-      attr_accessor :schema_cache, :connection_class
+      attr_writer :schema_reflection
+      attr_accessor :connection_class
+
+      def schema_reflection
+        @schema_reflection ||= SchemaReflection.new(db_config.lazy_schema_cache_path)
+      end
 
       INSTANCES = ObjectSpace::WeakMap.new
       private_constant :INSTANCES
@@ -14,6 +19,10 @@ module ActiveRecord
       class << self
         def discard_pools!
           INSTANCES.each_key(&:discard_pool!)
+        end
+
+        def disconnect_all!
+          INSTANCES.each_key(&:disconnect!)
         end
       end
 

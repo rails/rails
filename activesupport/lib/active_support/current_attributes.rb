@@ -5,6 +5,8 @@ require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
+  # = Current Attributes
+  #
   # Abstract super class that provides a thread-isolated attributes singleton, which resets automatically
   # before and after each request. This allows you to keep all the per-request attributes easily
   # available to the whole system.
@@ -90,6 +92,8 @@ module ActiveSupport
     include ActiveSupport::Callbacks
     define_callbacks :reset
 
+    INVALID_ATTRIBUTE_NAMES = [:set, :reset, :resets, :instance, :before_reset, :after_reset, :reset_all, :clear_all] # :nodoc:
+
     class << self
       # Returns singleton instance for this class in this thread. If none exists, one is created.
       def instance
@@ -98,6 +102,11 @@ module ActiveSupport
 
       # Declares one or more attributes that will be given both class and instance accessor methods.
       def attribute(*names)
+        invalid_attribute_names = names.map(&:to_sym) & INVALID_ATTRIBUTE_NAMES
+        if invalid_attribute_names.any?
+          raise ArgumentError, "Restricted attribute names: #{invalid_attribute_names.join(", ")}"
+        end
+
         ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |owner|
           names.each do |name|
             owner.define_cached_method(name, namespace: :current_attributes) do |batch|

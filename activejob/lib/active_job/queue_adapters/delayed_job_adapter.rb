@@ -5,7 +5,7 @@ require "active_support/core_ext/string/inflections"
 
 module ActiveJob
   module QueueAdapters
-    # == Delayed Job adapter for Active Job
+    # = Delayed Job adapter for Active Job
     #
     # Delayed::Job (or DJ) encapsulates the common pattern of asynchronously
     # executing longer tasks in the background. Although DJ can have many
@@ -50,6 +50,8 @@ module ActiveJob
         private
           def log_arguments?
             job_data["job_class"].constantize.log_arguments?
+          rescue NameError
+            false
           end
       end
     end

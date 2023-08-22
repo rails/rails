@@ -8,10 +8,10 @@ This guide covers encrypting your database information using Active Record.
 After reading this guide, you will know:
 
 * How to set up database encryption with Active Record.
-* How to migrate unencrypted data
-* How to make different encryption schemes coexist
-* How to use the API
-* How to configure the library and how to extend it
+* How to migrate unencrypted data.
+* How to make different encryption schemes coexist.
+* How to use the API.
+* How to configure the library and how to extend it.
 
 --------------------------------------------------------------------------------
 
@@ -23,7 +23,7 @@ Active Record Encryption exists to protect sensitive information in your applica
 
 As an immediate practical benefit, encrypting sensitive attributes adds an additional security layer. For example, if an attacker gained access to your database, a snapshot of it, or your application logs, they wouldn't be able to make sense of the encrypted information. Additionally, encryption can prevent developers from unintentionally exposing users' sensitive data in application logs.
 
-But more importantly, by using Active Record Encryption, you define what constitutes sensitive information in your application at the code level. Active Record Encryption enables granular control of data access in your application and services consuming data from your application. For example, consider auditable Rails consoles that protect encrypted data or check the built-in system to [filter controller params automatically](#filtering-params-named-as-encrypted-columns).
+But more importantly, by using Active Record Encryption, you define what constitutes sensitive information in your application at the code level. Active Record Encryption enables granular control of data access in your application and services consuming data from your application. For example, consider [auditable Rails consoles that protect encrypted data](https://github.com/basecamp/console1984) or check the built-in system to [filter controller params automatically](#filtering-params-named-as-encrypted-columns).
 
 ## Basic Usage
 
@@ -111,7 +111,7 @@ NOTE: You can disable deterministic encryption by omitting a `deterministic_key`
 
 ### Action Text
 
-You can encrypt action text attributes by passing `encrypted: true` in their declaration.
+You can encrypt Action Text attributes by passing `encrypted: true` in their declaration.
 
 ```ruby
 class Message < ApplicationRecord
@@ -119,7 +119,7 @@ class Message < ApplicationRecord
 end
 ```
 
-NOTE: Passing individual encryption options to action text attributes is not supported yet. It will use non-deterministic encryption with the global encryption options configured.
+NOTE: Passing individual encryption options to Action Text attributes is not supported yet. It will use non-deterministic encryption with the global encryption options configured.
 
 ### Fixtures
 
@@ -133,7 +133,7 @@ When enabled, all the encryptable attributes will be encrypted according to the 
 
 #### Action Text Fixtures
 
-To encrypt action text fixtures, you should place them in `fixtures/action_text/encrypted_rich_texts.yml`.
+To encrypt Action Text fixtures, you should place them in `fixtures/action_text/encrypted_rich_texts.yml`.
 
 ### Supported Types
 
@@ -144,14 +144,14 @@ If you need to support a custom type, the recommended way is using a [serialized
 ```ruby
 # CORRECT
 class Article < ApplicationRecord
-  serialize :title, Title
+  serialize :title, type: Title
   encrypts :title
 end
 
 # INCORRECT
 class Article < ApplicationRecord
   encrypts :title
-  serialize :title, Title
+  serialize :title, type: Title
 end
 ```
 
@@ -179,7 +179,7 @@ end
 
 To ease migrations of unencrypted data, the library includes the option `config.active_record.encryption.support_unencrypted_data`. When set to `true`:
 
-* Trying to read encrypted attributes that are not encrypted will work normally, without raising any error
+* Trying to read encrypted attributes that are not encrypted will work normally, without raising any error.
 * Queries with deterministically-encrypted attributes will include the "clear text" version of them to support finding both encrypted and unencrypted content. You need to set `config.active_record.encryption.extend_queries = true` to enable this.
 
 **This option is meant to be used during transition periods** while clear data and encrypted data must coexist. Both are set to `false` by default, which is the recommended goal for any application: errors will be raised when working with unencrypted data.
@@ -260,12 +260,17 @@ end
 
 By default, encrypted columns are configured to be [automatically filtered in Rails logs](action_controller_overview.html#parameters-filtering). You can disable this behavior by adding the following to your `application.rb`:
 
-When generating the filter parameter, it will use the model name as a prefix. E.g: For `Person#name` the filter parameter will be `person.name`.
-
 ```ruby
 config.active_record.encryption.add_to_filter_parameters = false
 ```
-In case you want exclude specific columns from this automatic filtering, add them to `config.active_record.encryption.excluded_from_filter_parameters`.
+
+If filtering is enabled, but you want to exclude specific columns from automatic filtering, add them to `config.active_record.encryption.excluded_from_filter_parameters`:
+
+```ruby
+config.active_record.encryption.excluded_from_filter_parameters = [:catchphrase]
+```
+
+When generating the filter parameter, Rails will use the model name as a prefix. E.g: For `Person#name`, the filter parameter will be `person.name`.
 
 ### Encoding
 
@@ -475,6 +480,15 @@ The salt used when deriving keys. It's preferred to configure it via the `active
 
 The default encoding for attributes encrypted deterministically. You can disable forced encoding by setting this option to `nil`. It's `Encoding::UTF_8` by default.
 
+#### `config.active_record.encryption.hash_digest_class`
+
+The digest algorithm used to derive keys. `OpenSSL::Digest::SHA1` by default.
+
+#### `config.active_record.encryption.support_sha1_for_non_deterministic_encryption`
+
+Supports decrypting data encrypted non-deterministically with a digest class SHA1. Default is false, which
+means it  will only support the digest algorithm configured in `config.active_record.encryption.hash_digest_class`.
+
 ### Encryption Contexts
 
 An encryption context defines the encryption components that are used in a given moment. There is a default encryption context based on your global configuration, but you can configure a custom context for a given attribute or when running a specific block of code.
@@ -530,6 +544,7 @@ ActiveRecord::Encryption.without_encryption do
    ...
 end
 ```
+
 This means that reading encrypted text will return the ciphertext, and saved content will be stored unencrypted.
 
 ##### Protect Encrypted Data
@@ -541,4 +556,5 @@ ActiveRecord::Encryption.protecting_encrypted_data do
    ...
 end
 ```
+
 This can be handy if you want to protect encrypted data while still running arbitrary code against it (e.g. in a Rails console).

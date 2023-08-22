@@ -108,10 +108,11 @@ module ActiveRecord
             oid = row[4]
             comment = row[5]
             valid = row[6]
-            using, expressions, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: NULLS(?: NOT)? DISTINCT)?(?: WHERE (.+))?\z/m).flatten
+            using, expressions, include, nulls_not_distinct, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: INCLUDE \((.+?)\))?( NULLS NOT DISTINCT)?(?: WHERE (.+))?\z/m).flatten
 
             orders = {}
             opclasses = {}
+            include_columns = include ? include.split(",").map(&:strip) : []
 
             if indkey.include?(0)
               columns = expressions
@@ -122,6 +123,9 @@ module ActiveRecord
                 WHERE a.attrelid = #{oid}
                 AND a.attnum IN (#{indkey.join(",")})
               SQL
+
+              # prevent INCLUDE columns from being matched
+              columns.reject! { |c| include_columns.include?(c) }
 
               # add info on sort order (only desc order is explicitly specified, asc is the default)
               # and non-default opclasses
@@ -144,6 +148,8 @@ module ActiveRecord
               opclasses: opclasses,
               where: where,
               using: using.to_sym,
+              include: include_columns.presence,
+              nulls_not_distinct: nulls_not_distinct.present?,
               comment: comment.presence,
               valid: valid
             )
@@ -513,9 +519,23 @@ module ActiveRecord
           super
         end
 
+        def add_foreign_key(from_table, to_table, **options)
+          if options[:deferrable] == true
+            ActiveRecord.deprecator.warn(<<~MSG)
+              `deferrable: true` is deprecated in favor of `deferrable: :immediate`, and will be removed in Rails 7.2.
+            MSG
+
+            options[:deferrable] = :immediate
+          end
+
+          assert_valid_deferrable(options[:deferrable])
+
+          super
+        end
+
         def foreign_keys(table_name)
           scope = quoted_scope(table_name)
-          fk_info = exec_query(<<~SQL, "SCHEMA", allow_retry: true, uses_transaction: false)
+          fk_info = internal_exec_query(<<~SQL, "SCHEMA", allow_retry: true, materialize_transactions: false)
             SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred
             FROM pg_constraint c
             JOIN pg_class t1 ON c.conrelid = t1.oid
@@ -531,18 +551,19 @@ module ActiveRecord
 
           fk_info.map do |row|
             options = {
-              column: row["column"],
+              column: Utils.unquote_identifier(row["column"]),
               name: row["name"],
               primary_key: row["primary_key"]
             }
 
             options[:on_delete] = extract_foreign_key_action(row["on_delete"])
             options[:on_update] = extract_foreign_key_action(row["on_update"])
-            options[:deferrable] = extract_foreign_key_deferrable(row["deferrable"], row["deferred"])
+            options[:deferrable] = extract_constraint_deferrable(row["deferrable"], row["deferred"])
 
             options[:validate] = row["valid"]
+            to_table = Utils.unquote_identifier(row["to_table"])
 
-            ForeignKeyDefinition.new(table_name, row["to_table"], options)
+            ForeignKeyDefinition.new(table_name, to_table, options)
           end
         end
 
@@ -557,7 +578,7 @@ module ActiveRecord
         def check_constraints(table_name) # :nodoc:
           scope = quoted_scope(table_name)
 
-          check_info = exec_query(<<-SQL, "SCHEMA", allow_retry: true, uses_transaction: false)
+          check_info = internal_exec_query(<<-SQL, "SCHEMA", allow_retry: true, materialize_transactions: false)
             SELECT conname, pg_get_constraintdef(c.oid, true) AS constraintdef, c.convalidated AS valid
             FROM pg_constraint c
             JOIN pg_class t ON c.conrelid = t.oid
@@ -583,8 +604,8 @@ module ActiveRecord
         def exclusion_constraints(table_name)
           scope = quoted_scope(table_name)
 
-          exclusion_info = exec_query(<<-SQL, "SCHEMA")
-            SELECT conname, pg_get_constraintdef(c.oid) AS constraintdef
+          exclusion_info = internal_exec_query(<<-SQL, "SCHEMA")
+            SELECT conname, pg_get_constraintdef(c.oid) AS constraintdef, c.condeferrable, c.condeferred
             FROM pg_constraint c
             JOIN pg_class t ON c.conrelid = t.oid
             JOIN pg_namespace n ON n.oid = c.connamespace
@@ -596,15 +617,53 @@ module ActiveRecord
           exclusion_info.map do |row|
             method_and_elements, predicate = row["constraintdef"].split(" WHERE ")
             method_and_elements_parts = method_and_elements.match(/EXCLUDE(?: USING (?<using>\S+))? \((?<expression>.+)\)/)
+            predicate.remove!(/ DEFERRABLE(?: INITIALLY (?:IMMEDIATE|DEFERRED))?/) if predicate
             predicate = predicate.from(2).to(-3) if predicate # strip 2 opening and closing parentheses
+
+            deferrable = extract_constraint_deferrable(row["condeferrable"], row["condeferred"])
 
             options = {
               name: row["conname"],
               using: method_and_elements_parts["using"].to_sym,
-              where: predicate
+              where: predicate,
+              deferrable: deferrable
             }
 
             ExclusionConstraintDefinition.new(table_name, method_and_elements_parts["expression"], options)
+          end
+        end
+
+        # Returns an array of unique constraints for the given table.
+        # The unique constraints are represented as UniqueKeyDefinition objects.
+        def unique_keys(table_name)
+          scope = quoted_scope(table_name)
+
+          unique_info = internal_exec_query(<<~SQL, "SCHEMA", allow_retry: true, materialize_transactions: false)
+            SELECT c.conname, c.conindid, c.condeferrable, c.condeferred
+            FROM pg_constraint c
+            JOIN pg_class t ON c.conrelid = t.oid
+            JOIN pg_namespace n ON n.oid = c.connamespace
+            WHERE c.contype = 'u'
+              AND t.relname = #{scope[:name]}
+              AND n.nspname = #{scope[:schema]}
+          SQL
+
+          unique_info.map do |row|
+            deferrable = extract_constraint_deferrable(row["condeferrable"], row["condeferred"])
+
+            columns = query_values(<<~SQL, "SCHEMA")
+              SELECT a.attname
+              FROM pg_attribute a
+              WHERE a.attrelid = #{row['conindid']}
+              ORDER BY a.attnum
+            SQL
+
+            options = {
+              name: row["conname"],
+              deferrable: deferrable
+            }
+
+            UniqueKeyDefinition.new(table_name, columns, options)
           end
         end
 
@@ -620,6 +679,8 @@ module ActiveRecord
         # The +options+ hash can include the following keys:
         # [<tt>:name</tt>]
         #   The constraint name. Defaults to <tt>excl_rails_<identifier></tt>.
+        # [<tt>:deferrable</tt>]
+        #   Specify whether or not the exclusion constraint should be deferrable. Valid values are +false+ or +:immediate+ or +:deferred+ to specify the default behavior. Defaults to +false+.
         def add_exclusion_constraint(table_name, expression, **options)
           options = exclusion_constraint_options(table_name, expression, options)
           at = create_alter_table(table_name)
@@ -629,6 +690,8 @@ module ActiveRecord
         end
 
         def exclusion_constraint_options(table_name, expression, options) # :nodoc:
+          assert_valid_deferrable(options[:deferrable])
+
           options = options.dup
           options[:name] ||= exclusion_constraint_name(table_name, expression: expression, **options)
           options
@@ -646,6 +709,61 @@ module ActiveRecord
 
           at = create_alter_table(table_name)
           at.drop_exclusion_constraint(excl_name_to_delete)
+
+          execute schema_creation.accept(at)
+        end
+
+        # Adds a new unique constraint to the table.
+        #
+        #   add_unique_key :sections, [:position], deferrable: :deferred, name: "unique_position"
+        #
+        # generates:
+        #
+        #   ALTER TABLE "sections" ADD CONSTRAINT unique_position UNIQUE (position) DEFERRABLE INITIALLY DEFERRED
+        #
+        # If you want to change an existing unique index to deferrable, you can use :using_index to create deferrable unique constraints.
+        #
+        #   add_unique_key :sections, deferrable: :deferred, name: "unique_position", using_index: "index_sections_on_position"
+        #
+        # The +options+ hash can include the following keys:
+        # [<tt>:name</tt>]
+        #   The constraint name. Defaults to <tt>uniq_rails_<identifier></tt>.
+        # [<tt>:deferrable</tt>]
+        #   Specify whether or not the unique constraint should be deferrable. Valid values are +false+ or +:immediate+ or +:deferred+ to specify the default behavior. Defaults to +false+.
+        # [<tt>:using_index</tt>]
+        #   To specify an existing unique index name. Defaults to +nil+.
+        def add_unique_key(table_name, column_name = nil, **options)
+          options = unique_key_options(table_name, column_name, options)
+          at = create_alter_table(table_name)
+          at.add_unique_key(column_name, options)
+
+          execute schema_creation.accept(at)
+        end
+
+        def unique_key_options(table_name, column_name, options) # :nodoc:
+          assert_valid_deferrable(options[:deferrable])
+
+          if column_name && options[:using_index]
+            raise ArgumentError, "Cannot specify both column_name and :using_index options."
+          end
+
+          options = options.dup
+          options[:name] ||= unique_key_name(table_name, column: column_name, **options)
+          options
+        end
+
+        # Removes the given unique constraint from the table.
+        #
+        #   remove_unique_key :sections, name: "unique_position"
+        #
+        # The +column_name+ parameter will be ignored if present. It can be helpful
+        # to provide this in a migration's +change+ method so it can be reverted.
+        # In that case, +column_name+ will be used by #add_unique_key.
+        def remove_unique_key(table_name, column_name = nil, **options)
+          unique_name_to_delete = unique_key_for!(table_name, column: column_name, **options).name
+
+          at = create_alter_table(table_name)
+          at.drop_unique_key(unique_name_to_delete)
 
           execute schema_creation.accept(at)
         end
@@ -758,6 +876,22 @@ module ActiveRecord
           super
         end
 
+        def add_index_options(table_name, column_name, **options) # :nodoc:
+          if (where = options[:where]) && table_exists?(table_name) && column_exists?(table_name, where)
+            options[:where] = quote_column_name(where)
+          end
+          super
+        end
+
+        def quoted_include_columns_for_index(column_names) # :nodoc:
+          return quote_column_name(column_names) if column_names.is_a?(Symbol)
+
+          quoted_columns = column_names.each_with_object({}) do |name, result|
+            result[name.to_sym] = quote_column_name(name).dup
+          end
+          add_options_for_index_columns(quoted_columns).values.join(", ")
+        end
+
         def schema_creation  # :nodoc:
           PostgreSQL::SchemaCreation.new(self)
         end
@@ -771,7 +905,7 @@ module ActiveRecord
             PostgreSQL::AlterTable.new create_table_definition(name)
           end
 
-          def new_column_from_field(table_name, field)
+          def new_column_from_field(table_name, field, _definitions)
             column_name, type, default, notnull, oid, fmod, collation, comment, attgenerated = field
             type_metadata = fetch_type_metadata(column_name, type, oid.to_i, fmod.to_i)
             default_value = extract_value_from_default(default)
@@ -835,8 +969,14 @@ module ActiveRecord
             end
           end
 
-          def extract_foreign_key_deferrable(deferrable, deferred)
-            deferrable && (deferred ? :deferred : true)
+          def assert_valid_deferrable(deferrable)
+            return if !deferrable || %i(immediate deferred).include?(deferrable)
+
+            raise ArgumentError, "deferrable must be `:immediate` or `:deferred`, got: `#{deferrable.inspect}`"
+          end
+
+          def extract_constraint_deferrable(deferrable, deferred)
+            deferrable && (deferred ? :deferred : :immediate)
           end
 
           def reference_name_for_table(table_name)
@@ -894,6 +1034,26 @@ module ActiveRecord
           def exclusion_constraint_for!(table_name, expression: nil, **options)
             exclusion_constraint_for(table_name, expression: expression, **options) ||
               raise(ArgumentError, "Table '#{table_name}' has no exclusion constraint for #{expression || options}")
+          end
+
+          def unique_key_name(table_name, **options)
+            options.fetch(:name) do
+              column_or_index = Array(options[:column] || options[:using_index]).map(&:to_s)
+              identifier = "#{table_name}_#{column_or_index * '_and_'}_unique"
+              hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
+
+              "uniq_rails_#{hashed_identifier}"
+            end
+          end
+
+          def unique_key_for(table_name, **options)
+            name = unique_key_name(table_name, **options) unless options.key?(:column)
+            unique_keys(table_name).detect { |unique_key| unique_key.defined_for?(name: name, **options) }
+          end
+
+          def unique_key_for!(table_name, column: nil, **options)
+            unique_key_for(table_name, column: column, **options) ||
+              raise(ArgumentError, "Table '#{table_name}' has no unique constraint for #{column || options}")
           end
 
           def data_source_sql(name = nil, type: nil)

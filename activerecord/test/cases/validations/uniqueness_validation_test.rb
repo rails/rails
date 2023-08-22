@@ -12,6 +12,7 @@ require "models/author"
 require "models/person"
 require "models/essay"
 require "models/keyboard"
+require "models/cpk"
 
 class Wizard < ActiveRecord::Base
   self.abstract_class = true
@@ -35,6 +36,7 @@ class ReplyWithTitleObject < Reply
   validates_uniqueness_of :content, scope: :title
 
   def title; ReplyTitle.new; end
+  alias heading title
 end
 
 class TopicWithEvent < Topic
@@ -359,7 +361,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert_not topic1.valid?
     assert_not topic1.save
 
-    if current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       # Case insensitive collation (utf8mb4_0900_ai_ci) by default.
       # Should not allow "David" if "david" exists.
       assert_not topic2.valid?
@@ -440,7 +442,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
       e2 = Event.create(title: "abcdefgh")
       assert_not e2.valid?, "Created an event whose title is not unique"
-    elsif current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter)
+    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter)
       assert_raise(ActiveRecord::ValueTooLong) do
         Event.create(title: "abcdefgh")
       end
@@ -459,7 +461,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
       e2 = Event.create(title: "一二三四五六七八")
       assert_not e2.valid?, "Created an event whose title is not unique"
-    elsif current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter)
+    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter)
       assert_raise(ActiveRecord::ValueTooLong) do
         Event.create(title: "一二三四五六七八")
       end
@@ -809,5 +811,24 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
     assert_queries(1) do
       t.valid?
     end
+  end
+end
+
+class UniquenessWithCompositeKey < ActiveRecord::TestCase
+  class BookWithUniqueRevision < Cpk::Book
+    validates :revision, uniqueness: true
+  end
+
+  def test_uniqueness_validation_for_model_with_composite_key
+    book_one = BookWithUniqueRevision.create!(id: [1, 42], title: "Author 1's book", revision: 36)
+    book_two = BookWithUniqueRevision.create!(id: [2, 42], title: "Author 2's book", revision: 37)
+
+    assert_not_equal book_one.revision, book_two.revision
+
+    assert_changes("book_two.valid?", from: true, to: false) do
+      book_two.revision = book_one.revision
+    end
+  ensure
+    BookWithUniqueRevision.delete_all
   end
 end

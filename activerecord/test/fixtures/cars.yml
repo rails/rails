@@ -2,8 +2,10 @@ honda:
   id: 1
   name: honda
   engines_count: 0
+  person_id: 1
 
 zyke:
   id: 2
   name: zyke
   engines_count: 0
+  person_id: 2

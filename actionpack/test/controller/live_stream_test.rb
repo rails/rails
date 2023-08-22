@@ -168,6 +168,27 @@ module ActionController
         end
       end
 
+      def send_stream_with_inferred_content_type
+        send_stream(filename: "sample.csv") do |stream|
+          stream.writeln "fruit,quantity"
+          stream.writeln "apple,5"
+        end
+      end
+
+      def send_stream_with_implicit_content_type
+        send_stream(filename: "sample.csv", type: :csv) do |stream|
+          stream.writeln "fruit,quantity"
+          stream.writeln "apple,5"
+        end
+      end
+
+      def send_stream_with_explicit_content_type
+        send_stream(filename: "sample.csv", type: "text/csv") do |stream|
+          stream.writeln "fruit,quantity"
+          stream.writeln "apple,5"
+        end
+      end
+
       def blocking_stream
         response.headers["Content-Type"] = "text/event-stream"
         %w{ hello world }.each do |word|
@@ -360,6 +381,36 @@ module ActionController
       assert_match "export", @response.headers["Content-Disposition"]
     end
 
+    def test_send_stream_with_explicit_content_type
+      get :send_stream_with_explicit_content_type
+
+      assert_equal "fruit,quantity\napple,5\n", @response.body
+
+      content_type = @response.headers.fetch("Content-Type")
+      assert_equal String, content_type.class
+      assert_equal "text/csv", content_type
+    end
+
+    def test_send_stream_with_implicit_content_type
+      get :send_stream_with_implicit_content_type
+
+      assert_equal "fruit,quantity\napple,5\n", @response.body
+
+      content_type = @response.headers.fetch("Content-Type")
+      assert_equal String, content_type.class
+      assert_equal "text/csv", content_type
+    end
+
+    def test_send_stream_with_inferred_content_type
+      get :send_stream_with_inferred_content_type
+
+      assert_equal "fruit,quantity\napple,5\n", @response.body
+
+      content_type = @response.headers.fetch("Content-Type")
+      assert_equal String, content_type.class
+      assert_equal "text/csv", content_type
+    end
+
     def test_delayed_autoload_after_write_within_interlock_hook
       # Simulate InterlockHook
       ActiveSupport::Dependencies.interlock.start_running
@@ -544,6 +595,16 @@ module ActionController
       @request.if_none_match = %(W/"#{ActiveSupport::Digest.hexdigest('123')}")
       get :with_stale
       assert_equal 304, response.status.to_i
+    end
+
+    def test_response_buffer_do_not_respond_to_to_ary
+      get :basic_stream
+      # `response.to_a` wraps the response with RackBody.
+      # RackBody is the body we return to Rack.
+      # Therefore we want to assert directly on it.
+      # The Rack spec requires bodies that cannot be
+      # buffered to return false to `respond_to?(:to_ary)`
+      assert_not response.to_a.last.respond_to? :to_ary
     end
   end
 

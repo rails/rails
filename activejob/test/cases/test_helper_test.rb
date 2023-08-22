@@ -509,6 +509,18 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     assert_enqueued_with(job: LoggingJob, queue: "default")
   end
 
+  def test_assert_enqueued_with_when_queue_name_is_symbol
+    assert_enqueued_with(job: LoggingJob, queue: :default) do
+      LoggingJob.set(wait_until: Date.tomorrow.noon).perform_later
+    end
+  end
+
+  def test_assert_no_enqueued_jobs_and_perform_now
+    assert_no_enqueued_jobs do
+      LoggingJob.perform_now(1, 2, 3, keyword: true)
+    end
+  end
+
   def test_assert_enqueued_with_returns
     job = assert_enqueued_with(job: LoggingJob) do
       LoggingJob.set(wait_until: 5.minutes.from_now).perform_later(1, 2, 3, keyword: true)
@@ -1779,6 +1791,12 @@ class PerformedJobsTest < ActiveJob::TestCase
     assert_performed_with(job: NestedJob, queue: "default")
   end
 
+  def test_assert_performed_with_when_queue_name_is_symbol
+    assert_performed_with(job: NestedJob, queue: :default) do
+      NestedJob.perform_later
+    end
+  end
+
   def test_assert_performed_with_returns
     job = assert_performed_with(job: LoggingJob, queue: "default") do
       LoggingJob.perform_later(keyword: :sym)
@@ -2044,6 +2062,20 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
 
     assert_equal 2, queue_adapter.performed_jobs.count
+  end
+end
+
+class AdapterIsNotTestAdapterTest < ActiveJob::TestCase
+  def queue_adapter_for_test
+    ActiveJob::QueueAdapters::InlineAdapter.new
+  end
+
+  def test_perform_enqueued_jobs_just_yields
+    JobBuffer.clear
+    perform_enqueued_jobs do
+      HelloJob.perform_later("kevin")
+    end
+    assert_equal(1, JobBuffer.values.size)
   end
 end
 

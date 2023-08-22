@@ -32,7 +32,9 @@ class DebugLocksTest < ActionDispatch::IntegrationTest
   private
     def build_app
       @app = self.class.build_app do |middleware|
+        middleware.use Rack::Lint
         middleware.use ActionDispatch::DebugLocks
+        middleware.use Rack::Lint
       end
     end
 end

@@ -4,6 +4,7 @@ require "set"
 
 module ActiveRecord
   module AttributeMethods
+    # = Active Record Attribute Methods Primary Key
     module PrimaryKey
       extend ActiveSupport::Concern
 
@@ -16,36 +17,69 @@ module ActiveRecord
 
       # Returns the primary key column's value.
       def id
-        _read_attribute(@primary_key)
+        return _read_attribute(@primary_key) unless @primary_key.is_a?(Array)
+
+        @primary_key.map { |pk| _read_attribute(pk) }
+      end
+
+      def primary_key_values_present? # :nodoc:
+        return id.all? if self.class.composite_primary_key?
+
+        !!id
       end
 
       # Sets the primary key column's value.
       def id=(value)
-        _write_attribute(@primary_key, value)
+        if self.class.composite_primary_key?
+          raise TypeError, "Expected value matching #{self.class.primary_key.inspect}, got #{value.inspect}." unless value.is_a?(Enumerable)
+          @primary_key.zip(value) { |attr, value| _write_attribute(attr, value) }
+        else
+          _write_attribute(@primary_key, value)
+        end
       end
 
       # Queries the primary key column's value.
       def id?
-        query_attribute(@primary_key)
+        if self.class.composite_primary_key?
+          @primary_key.all? { |col| _query_attribute(col) }
+        else
+          _query_attribute(@primary_key)
+        end
       end
 
       # Returns the primary key column's value before type cast.
       def id_before_type_cast
-        attribute_before_type_cast(@primary_key)
+        if self.class.composite_primary_key?
+          @primary_key.map { |col| attribute_before_type_cast(col) }
+        else
+          attribute_before_type_cast(@primary_key)
+        end
       end
 
       # Returns the primary key column's previous value.
       def id_was
-        attribute_was(@primary_key)
+        if self.class.composite_primary_key?
+          @primary_key.map { |col| attribute_was(col) }
+        else
+          attribute_was(@primary_key)
+        end
       end
 
       # Returns the primary key column's value from the database.
       def id_in_database
-        attribute_in_database(@primary_key)
+        if self.class.composite_primary_key?
+          @primary_key.map { |col| attribute_in_database(col) }
+        else
+          attribute_in_database(@primary_key)
+        end
       end
 
       def id_for_database # :nodoc:
-        @attributes[@primary_key].value_for_database
+        if self.class.composite_primary_key?
+          @primary_key.map { |col| @attributes[col].value_for_database }
+        else
+          @attributes[@primary_key].value_for_database
+        end
       end
 
       private
@@ -55,6 +89,7 @@ module ActiveRecord
 
         module ClassMethods
           ID_ATTRIBUTE_METHODS = %w(id id= id? id_before_type_cast id_was id_in_database id_for_database).to_set
+          PRIMARY_KEY_NOT_SET = BasicObject.new
 
           def instance_method_already_implemented?(method_name)
             super || primary_key && ID_ATTRIBUTE_METHODS.include?(method_name)
@@ -68,8 +103,14 @@ module ActiveRecord
           # Overwriting will negate any effect of the +primary_key_prefix_type+
           # setting, though.
           def primary_key
-            @primary_key = reset_primary_key unless defined? @primary_key
+            if PRIMARY_KEY_NOT_SET.equal?(@primary_key)
+              @primary_key = reset_primary_key
+            end
             @primary_key
+          end
+
+          def composite_primary_key? # :nodoc:
+            primary_key.is_a?(Array)
           end
 
           # Returns a quoted version of the primary key name, used to construct
@@ -93,8 +134,7 @@ module ActiveRecord
               base_name.foreign_key
             else
               if ActiveRecord::Base != self && table_exists?
-                pk = connection.schema_cache.primary_keys(table_name)
-                suppress_composite_primary_key(pk)
+                connection.schema_cache.primary_keys(table_name)
               else
                 "id"
               end
@@ -117,20 +157,26 @@ module ActiveRecord
           #
           #   Project.primary_key # => "foo_id"
           def primary_key=(value)
-            @primary_key        = value && -value.to_s
+            @primary_key        = derive_primary_key(value)
             @quoted_primary_key = nil
             @attributes_builder = nil
           end
 
           private
-            def suppress_composite_primary_key(pk)
-              return pk unless pk.is_a?(Array)
+            def derive_primary_key(value)
+              return unless value
 
-              warn <<~WARNING
-                WARNING: Active Record does not support composite primary key.
+              return -value.to_s unless value.is_a?(Array)
 
-                #{table_name} has composite primary key. Composite primary key is ignored.
-              WARNING
+              value.map { |v| -v.to_s }.freeze
+            end
+
+            def inherited(base)
+              super
+              base.class_eval do
+                @primary_key = PRIMARY_KEY_NOT_SET
+                @quoted_primary_key = nil
+              end
             end
         end
     end

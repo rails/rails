@@ -102,7 +102,7 @@ module ActiveRecord
 
     def assert_non_select_columns_wont_be_loaded(post)
       assert_equal "WELCOME TO THE WEBLOG", post.title
-      assert_raise(ActiveModel::MissingAttributeError) do
+      assert_raise(ActiveModel::MissingAttributeError, match: /attribute 'body' for Post/) do
         post.body
       end
     end

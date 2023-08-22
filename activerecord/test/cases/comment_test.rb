@@ -182,7 +182,7 @@ if ActiveRecord::Base.connection.supports_comments?
       column = Commented.columns_hash["id"]
       assert_equal "Edited column comment", column.comment
 
-      if current_adapter?(:Mysql2Adapter)
+      if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
         assert column.auto_increment?
       end
     end

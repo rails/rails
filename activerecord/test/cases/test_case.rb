@@ -27,12 +27,12 @@ module ActiveRecord
     include LoadSchemaHelper
     extend LoadSchemaHelper
 
-    self.fixture_path = FIXTURES_ROOT
+    self.fixture_paths = [FIXTURES_ROOT]
     self.use_instantiated_fixtures = false
     self.use_transactional_tests = true
 
     def create_fixtures(*fixture_set_names, &block)
-      ActiveRecord::FixtureSet.create_fixtures(ActiveRecord::TestCase.fixture_path, fixture_set_names, fixture_class_names, &block)
+      ActiveRecord::FixtureSet.create_fixtures(ActiveRecord::TestCase.fixture_paths, fixture_set_names, fixture_class_names, &block)
     end
 
     def teardown
@@ -113,6 +113,21 @@ module ActiveRecord
         reflection.remove_instance_variable(:@inverse_name) if reflection.instance_variable_defined?(:@inverse_name)
         reflection.remove_instance_variable(:@inverse_of) if reflection.instance_variable_defined?(:@inverse_of)
       end
+    end
+
+    def with_db_warnings_action(action, warnings_to_ignore = [])
+      original_db_warnings_ignore = ActiveRecord.db_warnings_ignore
+
+      ActiveRecord.db_warnings_action = action
+      ActiveRecord.db_warnings_ignore = warnings_to_ignore
+
+      ActiveRecord::Base.connection.disconnect! # Disconnect from the db so that we reconfigure the connection
+
+      yield
+    ensure
+      ActiveRecord.db_warnings_action = @original_db_warnings_action
+      ActiveRecord.db_warnings_ignore = original_db_warnings_ignore
+      ActiveRecord::Base.connection.disconnect!
     end
 
     def reset_callbacks(klass, kind)
@@ -238,11 +253,24 @@ module ActiveRecord
     end
   end
 
+  class AbstractMysqlTestCase < TestCase
+    def self.run(*args)
+      super if current_adapter?(:Mysql2Adapter) || current_adapter?(:TrilogyAdapter)
+    end
+  end
+
   class Mysql2TestCase < TestCase
     def self.run(*args)
       super if current_adapter?(:Mysql2Adapter)
     end
   end
+
+  class TrilogyTestCase < TestCase
+    def self.run(*args)
+      super if current_adapter?(:TrilogyAdapter)
+    end
+  end
+
 
   class SQLite3TestCase < TestCase
     def self.run(*args)

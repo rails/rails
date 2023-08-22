@@ -1,0 +1,14 @@
+Examples:
+    You can run a single test by appending a line number to a filename:
+
+        <%= executable %> test/models/user_test.rb:27
+
+    You can run multiple tests with in a line range by appending the line range to a filename:
+
+        <%= executable %> test/models/user_test.rb:10-20
+
+    You can run multiple files and directories at the same time:
+
+        <%= executable %> test/controllers test/integration/login_test.rb
+
+    By default test failures and errors are reported inline during a run.

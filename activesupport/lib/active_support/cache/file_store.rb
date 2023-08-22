@@ -6,6 +6,8 @@ require "uri/common"
 
 module ActiveSupport
   module Cache
+    # = \File \Cache \Store
+    #
     # A cache store implementation which stores everything on the filesystem.
     class FileStore < Store
       attr_reader :cache_path
@@ -85,6 +87,10 @@ module ActiveSupport
         end
       end
 
+      def inspect # :nodoc:
+        "#<#{self.class.name} cache_path=#{@cache_path}, options=#{@options.inspect}>"
+      end
+
       private
         def read_entry(key, **options)
           if payload = read_serialized_entry(key, **options)
@@ -122,6 +128,8 @@ module ActiveSupport
               raise if File.exist?(key)
               false
             end
+          else
+            false
           end
         end
 

@@ -8,7 +8,7 @@ end
 
 class CurrentMembership < Membership
   belongs_to :member
-  belongs_to :club
+  belongs_to :club, inverse_of: :membership
 end
 
 class SuperMembership < Membership

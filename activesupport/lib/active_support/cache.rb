@@ -8,6 +8,9 @@ require "active_support/core_ext/numeric/bytes"
 require "active_support/core_ext/object/to_param"
 require "active_support/core_ext/object/try"
 require "active_support/core_ext/string/inflections"
+require_relative "cache/coder"
+require_relative "cache/entry"
+require_relative "cache/serializer_with_fallback"
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
@@ -20,14 +23,30 @@ module ActiveSupport
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
-    UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :expire_in, :expired_in, :race_condition_ttl, :coder, :skip_nil]
-
-    DEFAULT_COMPRESS_LIMIT = 1.kilobyte
+    UNIVERSAL_OPTIONS = [
+      :coder,
+      :compress,
+      :compress_threshold,
+      :compressor,
+      :expire_in,
+      :expired_in,
+      :expires_in,
+      :namespace,
+      :race_condition_ttl,
+      :serializer,
+      :skip_nil,
+    ]
 
     # Mapping of canonical option names to aliases that a store will recognize.
     OPTION_ALIASES = {
       expires_in: [:expire_in, :expired_in]
     }.freeze
+
+    DEFAULT_COMPRESS_LIMIT = 1.kilobyte
+
+    # Raised by coders when the cache entry can't be deserialized.
+    # This error is treated as a cache miss.
+    DeserializationError = Class.new(StandardError)
 
     module Strategy
       autoload :LocalCache, "active_support/cache/strategy/local_cache"
@@ -130,6 +149,8 @@ module ActiveSupport
         end
     end
 
+    # = Active Support \Cache \Store
+    #
     # An abstract cache store class. There are multiple cache store
     # implementations, each having its own additional features. See the classes
     # under the ActiveSupport::Cache module, e.g.
@@ -183,35 +204,44 @@ module ActiveSupport
           private_constant :DEFAULT_POOL_OPTIONS
 
           def retrieve_pool_options(options)
-            unless options.key?(:pool) || options.key?(:pool_size) || options.key?(:pool_timeout)
-              options[:pool] = true
-            end
+            if options.key?(:pool)
+              pool_options = options.delete(:pool)
+            elsif options.key?(:pool_size) || options.key?(:pool_timeout)
+              pool_options = {}
 
-            if (pool_options = options.delete(:pool))
-              if Hash === pool_options
-                DEFAULT_POOL_OPTIONS.merge(pool_options)
-              else
-                DEFAULT_POOL_OPTIONS
+              if options.key?(:pool_size)
+                ActiveSupport.deprecator.warn(<<~MSG)
+                  Using :pool_size is deprecated and will be removed in Rails 7.2.
+                  Use `pool: { size: #{options[:pool_size].inspect} }` instead.
+                MSG
+                pool_options[:size] = options.delete(:pool_size)
+              end
+
+              if options.key?(:pool_timeout)
+                ActiveSupport.deprecator.warn(<<~MSG)
+                  Using :pool_timeout is deprecated and will be removed in Rails 7.2.
+                  Use `pool: { timeout: #{options[:pool_timeout].inspect} }` instead.
+                MSG
+                pool_options[:timeout] = options.delete(:pool_timeout)
               end
             else
-              {}.tap do |pool_options|
-                if options[:pool_size]
-                  ActiveSupport.deprecator.warn(<<~MSG)
-                    Using :pool_size is deprecated and will be removed in Rails 7.2.
-                    Use `pool: { size: #{options[:pool_size].inspect} }` instead.
-                  MSG
-                  pool_options[:size] = options.delete(:pool_size)
-                end
-
-                if options[:pool_timeout]
-                  ActiveSupport.deprecator.warn(<<~MSG)
-                    Using :pool_timeout is deprecated and will be removed in Rails 7.2.
-                    Use `pool: { timeout: #{options[:pool_timeout].inspect} }` instead.
-                  MSG
-                  pool_options[:timeout] = options.delete(:pool_timeout)
-                end
-              end
+              pool_options = true
             end
+
+            case pool_options
+            when false, nil
+              return false
+            when true
+              pool_options = DEFAULT_POOL_OPTIONS
+            when Hash
+              pool_options[:size] = Integer(pool_options[:size]) if pool_options.key?(:size)
+              pool_options[:timeout] = Float(pool_options[:timeout]) if pool_options.key?(:timeout)
+              pool_options = DEFAULT_POOL_OPTIONS.merge(pool_options)
+            else
+              raise TypeError, "Invalid :pool argument, expected Hash, got: #{pool_options.inspect}"
+            end
+
+            pool_options unless pool_options.empty?
           end
       end
 
@@ -219,21 +249,90 @@ module ActiveSupport
       #
       # ==== Options
       #
-      # * +:namespace+ - Sets the namespace for the cache. This option is
-      #   especially useful if your application shares a cache with other
-      #   applications.
-      # * +:coder+ - Replaces the default cache entry serialization mechanism
-      #   with a custom one. The +coder+ must respond to +dump+ and +load+.
-      #   Using a custom coder disables automatic compression.
+      # [+:namespace+]
+      #   Sets the namespace for the cache. This option is especially useful if
+      #   your application shares a cache with other applications.
+      #
+      # [+:serializer+]
+      #   The serializer for cached values. Must respond to +dump+ and +load+.
+      #
+      #   The default serializer depends on the cache format version (set via
+      #   +config.active_support.cache_format_version+ when using Rails). The
+      #   default serializer for each format version includes a fallback
+      #   mechanism to deserialize values from any format version. This behavior
+      #   makes it easy to migrate between format versions without invalidating
+      #   the entire cache.
+      #
+      #   You can also specify <tt>serializer: :message_pack</tt> to use a
+      #   preconfigured serializer based on ActiveSupport::MessagePack. The
+      #   +:message_pack+ serializer includes the same deserialization fallback
+      #   mechanism, allowing easy migration from (or to) the default
+      #   serializer. The +:message_pack+ serializer may improve performance,
+      #   but it requires the +msgpack+ gem.
+      #
+      # [+:compressor+]
+      #   The compressor for serialized cache values. Must respond to +deflate+
+      #   and +inflate+.
+      #
+      #   The default compressor is +Zlib+. To define a new custom compressor
+      #   that also decompresses old cache entries, you can check compressed
+      #   values for Zlib's <tt>"\x78"</tt> signature:
+      #
+      #     module MyCompressor
+      #       def self.deflate(dumped)
+      #         # compression logic... (make sure result does not start with "\x78"!)
+      #       end
+      #
+      #       def self.inflate(compressed)
+      #         if compressed.start_with?("\x78")
+      #           Zlib.inflate(compressed)
+      #         else
+      #           # decompression logic...
+      #         end
+      #       end
+      #     end
+      #
+      #     ActiveSupport::Cache.lookup_store(:redis_cache_store, compressor: MyCompressor)
+      #
+      # [+:coder+]
+      #   The coder for serializing and (optionally) compressing cache entries.
+      #   Must respond to +dump+ and +load+.
+      #
+      #   The default coder composes the serializer and compressor, and includes
+      #   some performance optimizations. If you only need to override the
+      #   serializer or compressor, you should specify the +:serializer+ or
+      #   +:compressor+ options instead.
+      #
+      #   If the store can handle cache entries directly, you may also specify
+      #   <tt>coder: nil</tt> to omit the serializer, compressor, and coder. For
+      #   example, if you are using ActiveSupport::Cache::MemoryStore and can
+      #   guarantee that cache values will not be mutated, you can specify
+      #   <tt>coder: nil</tt> to avoid the overhead of safeguarding against
+      #   mutation.
+      #
+      #   The +:coder+ option is mutally exclusive with the +:serializer+ and
+      #   +:compressor+ options. Specifying them together will raise an
+      #   +ArgumentError+.
       #
       # Any other specified options are treated as default options for the
       # relevant cache operations, such as #read, #write, and #fetch.
       def initialize(options = nil)
-        @options = options ? normalize_options(options) : {}
-        @options[:compress] = true unless @options.key?(:compress)
-        @options[:compress_threshold] = DEFAULT_COMPRESS_LIMIT unless @options.key?(:compress_threshold)
+        @options = options ? validate_options(normalize_options(options)) : {}
 
-        @coder = @options.delete(:coder) { default_coder } || NullCoder
+        @options[:compress] = true unless @options.key?(:compress)
+        @options[:compress_threshold] ||= DEFAULT_COMPRESS_LIMIT
+
+        @coder = @options.delete(:coder) do
+          legacy_serializer = Cache.format_version < 7.1 && !@options[:serializer]
+          serializer = @options.delete(:serializer) || default_serializer
+          serializer = Cache::SerializerWithFallback[serializer] if serializer.is_a?(Symbol)
+          compressor = @options.delete(:compressor) { Zlib }
+
+          Cache::Coder.new(serializer, compressor, legacy_serializer: legacy_serializer)
+        end
+
+        @coder ||= Cache::SerializerWithFallback[:passthrough]
+
         @coder_supports_compression = @coder.respond_to?(:dump_compressed)
       end
 
@@ -394,6 +493,7 @@ module ActiveSupport
       #
       # ==== Options
       #
+      # * +:namespace+ - Replace the store namespace for this call.
       # * +:version+ - Specifies a version for the cache entry. If the cached
       #   version does not match the requested version, the read will be treated
       #   as a cache miss. This feature is used to support recyclable cache keys.
@@ -433,10 +533,12 @@ module ActiveSupport
       #
       # Returns a hash mapping the names provided to the values found.
       def read_multi(*names)
+        return {} if names.empty?
+
         options = names.extract_options!
         options = merged_options(options)
 
-        instrument :read_multi, names, options do |payload|
+        instrument_multi :read_multi, names, options do |payload|
           read_multi_entries(names, **options, event: payload).tap do |results|
             payload[:hits] = results.keys
           end
@@ -445,9 +547,11 @@ module ActiveSupport
 
       # Cache Storage API to write multiple values at once.
       def write_multi(hash, options = nil)
+        return hash if hash.empty?
+
         options = merged_options(options)
 
-        instrument :write_multi, hash, options do |payload|
+        instrument_multi :write_multi, hash, options do |payload|
           entries = hash.each_with_object({}) do |(name, value), memo|
             memo[normalize_key(name, options)] = Entry.new(value, **options.merge(version: normalize_version(name, options)))
           end
@@ -487,11 +591,12 @@ module ActiveSupport
       #   # => nil
       def fetch_multi(*names)
         raise ArgumentError, "Missing block: `Cache#fetch_multi` requires a block." unless block_given?
+        return {} if names.empty?
 
         options = names.extract_options!
         options = merged_options(options)
 
-        instrument :read_multi, names, options do |payload|
+        instrument_multi :read_multi, names, options do |payload|
           if options[:force]
             reads = {}
           else
@@ -555,7 +660,8 @@ module ActiveSupport
         end
       end
 
-      # Deletes an entry in the cache. Returns +true+ if an entry is deleted.
+      # Deletes an entry in the cache. Returns +true+ if an entry is deleted
+      # and +false+ otherwise.
       #
       # Options are passed to the underlying cache implementation.
       def delete(name, options = nil)
@@ -566,14 +672,17 @@ module ActiveSupport
         end
       end
 
-      # Deletes multiple entries in the cache.
+      # Deletes multiple entries in the cache. Returns the number of deleted
+      # entries.
       #
       # Options are passed to the underlying cache implementation.
       def delete_multi(names, options = nil)
+        return 0 if names.empty?
+
         options = merged_options(options)
         names.map! { |key| normalize_key(key, options) }
 
-        instrument :delete_multi, names do
+        instrument_multi :delete_multi, names do
           delete_multi_entries(names, **options)
         end
       end
@@ -641,8 +750,23 @@ module ActiveSupport
       end
 
       private
-        def default_coder
-          Coders[Cache.format_version]
+        def default_serializer
+          case Cache.format_version
+          when 6.1
+            ActiveSupport.deprecator.warn <<~EOM
+              Support for `config.active_support.cache_format_version = 6.1` has been deprecated and will be removed in Rails 7.2.
+
+              Check the Rails upgrade guide at https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#new-activesupport-cache-serialization-format
+              for more information on how to upgrade.
+            EOM
+            Cache::SerializerWithFallback[:marshal_6_1]
+          when 7.0
+            Cache::SerializerWithFallback[:marshal_7_0]
+          when 7.1
+            Cache::SerializerWithFallback[:marshal_7_1]
+          else
+            raise ArgumentError, "Unrecognized ActiveSupport::Cache.format_version: #{Cache.format_version.inspect}"
+          end
         end
 
         # Adds the namespace defined in the options to a pattern designed to
@@ -679,7 +803,7 @@ module ActiveSupport
         def serialize_entry(entry, **options)
           options = merged_options(options)
           if @coder_supports_compression && options[:compress]
-            @coder.dump_compressed(entry, options[:compress_threshold] || DEFAULT_COMPRESS_LIMIT)
+            @coder.dump_compressed(entry, options[:compress_threshold])
           else
             @coder.dump(entry)
           end
@@ -687,6 +811,8 @@ module ActiveSupport
 
         def deserialize_entry(payload)
           payload.nil? ? nil : @coder.load(payload)
+        rescue DeserializationError
+          nil
         end
 
         # Reads multiple entries from the cache implementation. Subclasses MAY
@@ -739,15 +865,13 @@ module ActiveSupport
             expires_at = call_options.delete(:expires_at)
             call_options[:expires_in] = (expires_at - Time.now) if expires_at
 
+            if call_options[:expires_in].is_a?(Time)
+              expires_in = call_options[:expires_in]
+              raise ArgumentError.new("expires_in parameter should not be a Time. Did you mean to use expires_at? Got: #{expires_in}")
+            end
             if call_options[:expires_in]&.negative?
               expires_in = call_options.delete(:expires_in)
-              error = ArgumentError.new("Cache expiration time is invalid, cannot be negative: #{expires_in}")
-              if ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
-                raise error
-              else
-                ActiveSupport.error_reporter&.report(error, handled: true, severity: :warning)
-                logger.error("#{error.class}: #{error.message}") if logger
-              end
+              handle_invalid_expires_in("Cache expiration time is invalid, cannot be negative: #{expires_in}")
             end
 
             if options.empty?
@@ -757,6 +881,16 @@ module ActiveSupport
             end
           else
             options
+          end
+        end
+
+        def handle_invalid_expires_in(message)
+          error = ArgumentError.new(message)
+          if ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
+            raise error
+          else
+            ActiveSupport.error_reporter&.report(error, handled: true, severity: :warning)
+            logger.error("#{error.class}: #{error.message}") if logger
           end
         end
 
@@ -772,10 +906,31 @@ module ActiveSupport
           options
         end
 
-        # Expands and namespaces the cache key. May be overridden by
-        # cache stores to do additional normalization.
+        def validate_options(options)
+          if options.key?(:coder) && options[:serializer]
+            raise ArgumentError, "Cannot specify :serializer and :coder options together"
+          end
+
+          if options.key?(:coder) && options[:compressor]
+            raise ArgumentError, "Cannot specify :compressor and :coder options together"
+          end
+
+          if Cache.format_version < 7.1 && !options[:serializer] && options[:compressor]
+            raise ArgumentError, "Cannot specify :compressor option when using" \
+              " default serializer and cache format version is < 7.1"
+          end
+
+          options
+        end
+
+        # Expands and namespaces the cache key.
+        # Raises an exception when the key is +nil+ or an empty string.
+        # May be overridden by cache stores to do additional normalization.
         def normalize_key(key, options = nil)
-          namespace_key expanded_key(key), options
+          str_key = expanded_key(key)
+          raise(ArgumentError, "key cannot be blank") if !str_key || str_key.empty?
+
+          namespace_key str_key, options
         end
 
         # Prefix the key with a namespace string:
@@ -838,14 +993,33 @@ module ActiveSupport
           end
         end
 
-        def instrument(operation, key, options = nil)
+        def instrument(operation, key, options = nil, &block)
+          _instrument(operation, key: key, options: options, &block)
+        end
+
+        def instrument_multi(operation, keys, options = nil, &block)
+          _instrument(operation, multi: true, key: keys, options: options, &block)
+        end
+
+        def _instrument(operation, multi: false, options: nil, **payload, &block)
           if logger && logger.debug? && !silence?
-            logger.debug "Cache #{operation}: #{normalize_key(key, options)}#{options.blank? ? "" : " (#{options.inspect})"}"
+            debug_key =
+              if multi
+                ": #{payload[:key].size} key(s) specified"
+              elsif payload[:key]
+                ": #{normalize_key(payload[:key], options)}"
+              end
+
+            debug_options = " (#{options.inspect})" unless options.blank?
+
+            logger.debug "Cache #{operation}#{debug_key}#{debug_options}"
           end
 
-          payload = { key: key, store: self.class.name }
+          payload[:store] = self.class.name
           payload.merge!(options) if options.is_a?(Hash)
-          ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload) { yield(payload) }
+          ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload) do
+            block&.call(payload)
+          end
         end
 
         def handle_expired_entry(entry, key, options)
@@ -865,7 +1039,7 @@ module ActiveSupport
         end
 
         def get_entry_value(entry, name, options)
-          instrument(:fetch_hit, name, options) { }
+          instrument(:fetch_hit, name, options)
           entry.value
         end
 
@@ -909,219 +1083,6 @@ module ActiveSupport
         @options.delete(:expires_in)
         @options[:expires_at] = expires_at
       end
-    end
-
-    module NullCoder # :nodoc:
-      extend self
-
-      def dump(entry)
-        entry
-      end
-
-      def dump_compressed(entry, threshold)
-        entry.compressed(threshold)
-      end
-
-      def load(payload)
-        payload
-      end
-    end
-
-    module Coders # :nodoc:
-      MARK_61              = "\x04\b".b.freeze # The one set by Marshal.
-      MARK_70_UNCOMPRESSED = "\x00".b.freeze
-      MARK_70_COMPRESSED   = "\x01".b.freeze
-
-      class << self
-        def [](version)
-          case version
-          when 6.1
-            Rails61Coder
-          when 7.0
-            Rails70Coder
-          else
-            raise ArgumentError, "Unknown ActiveSupport::Cache.format_version: #{Cache.format_version.inspect}"
-          end
-        end
-      end
-
-      module Loader
-        extend self
-
-        def load(payload)
-          if !payload.is_a?(String)
-            ActiveSupport::Cache::Store.logger&.warn %{Payload wasn't a string, was #{payload.class.name} - couldn't unmarshal, so returning nil."}
-
-            return nil
-          elsif payload.start_with?(MARK_70_UNCOMPRESSED)
-            members = Marshal.load(payload.byteslice(1..-1))
-          elsif payload.start_with?(MARK_70_COMPRESSED)
-            members = Marshal.load(Zlib::Inflate.inflate(payload.byteslice(1..-1)))
-          elsif payload.start_with?(MARK_61)
-            return Marshal.load(payload)
-          else
-            ActiveSupport::Cache::Store.logger&.warn %{Invalid cache prefix: #{payload.byteslice(0).inspect}, expected "\\x00" or "\\x01"}
-
-            return nil
-          end
-          Entry.unpack(members)
-        end
-      end
-
-      module Rails61Coder
-        include Loader
-        extend self
-
-        def dump(entry)
-          Marshal.dump(entry)
-        end
-
-        def dump_compressed(entry, threshold)
-          Marshal.dump(entry.compressed(threshold))
-        end
-      end
-
-      module Rails70Coder
-        include Loader
-        extend self
-
-        def dump(entry)
-          MARK_70_UNCOMPRESSED + Marshal.dump(entry.pack)
-        end
-
-        def dump_compressed(entry, threshold)
-          payload = Marshal.dump(entry.pack)
-          if payload.bytesize >= threshold
-            compressed_payload = Zlib::Deflate.deflate(payload)
-            if compressed_payload.bytesize < payload.bytesize
-              return MARK_70_COMPRESSED + compressed_payload
-            end
-          end
-
-          MARK_70_UNCOMPRESSED + payload
-        end
-      end
-    end
-
-    # This class is used to represent cache entries. Cache entries have a value, an optional
-    # expiration time, and an optional version. The expiration time is used to support the :race_condition_ttl option
-    # on the cache. The version is used to support the :version option on the cache for rejecting
-    # mismatches.
-    #
-    # Since cache entries in most instances will be serialized, the internals of this class are highly optimized
-    # using short instance variable names that are lazily defined.
-    class Entry # :nodoc:
-      class << self
-        def unpack(members)
-          new(members[0], expires_at: members[1], version: members[2])
-        end
-      end
-
-      attr_reader :version
-
-      # Creates a new cache entry for the specified value. Options supported are
-      # +:compressed+, +:version+, +:expires_at+ and +:expires_in+.
-      def initialize(value, compressed: false, version: nil, expires_in: nil, expires_at: nil, **)
-        @value      = value
-        @version    = version
-        @created_at = 0.0
-        @expires_in = expires_at&.to_f || expires_in && (expires_in.to_f + Time.now.to_f)
-        @compressed = true if compressed
-      end
-
-      def value
-        compressed? ? uncompress(@value) : @value
-      end
-
-      def mismatched?(version)
-        @version && version && @version != version
-      end
-
-      # Checks if the entry is expired. The +expires_in+ parameter can override
-      # the value set when the entry was created.
-      def expired?
-        @expires_in && @created_at + @expires_in <= Time.now.to_f
-      end
-
-      def expires_at
-        @expires_in ? @created_at + @expires_in : nil
-      end
-
-      def expires_at=(value)
-        if value
-          @expires_in = value.to_f - @created_at
-        else
-          @expires_in = nil
-        end
-      end
-
-      # Returns the size of the cached value. This could be less than
-      # <tt>value.bytesize</tt> if the data is compressed.
-      def bytesize
-        case value
-        when NilClass
-          0
-        when String
-          @value.bytesize
-        else
-          @s ||= Marshal.dump(@value).bytesize
-        end
-      end
-
-      def compressed? # :nodoc:
-        defined?(@compressed)
-      end
-
-      def compressed(compress_threshold)
-        return self if compressed?
-
-        case @value
-        when nil, true, false, Numeric
-          uncompressed_size = 0
-        when String
-          uncompressed_size = @value.bytesize
-        else
-          serialized = Marshal.dump(@value)
-          uncompressed_size = serialized.bytesize
-        end
-
-        if uncompressed_size >= compress_threshold
-          serialized ||= Marshal.dump(@value)
-          compressed = Zlib::Deflate.deflate(serialized)
-
-          if compressed.bytesize < uncompressed_size
-            return Entry.new(compressed, compressed: true, expires_at: expires_at, version: version)
-          end
-        end
-        self
-      end
-
-      def local?
-        false
-      end
-
-      # Duplicates the value in a class. This is used by cache implementations that don't natively
-      # serialize entries to protect against accidental cache modifications.
-      def dup_value!
-        if @value && !compressed? && !(@value.is_a?(Numeric) || @value == true || @value == false)
-          if @value.is_a?(String)
-            @value = @value.dup
-          else
-            @value = Marshal.load(Marshal.dump(@value))
-          end
-        end
-      end
-
-      def pack
-        members = [value, expires_at, version]
-        members.pop while !members.empty? && members.last.nil?
-        members
-      end
-
-      private
-        def uncompress(value)
-          Marshal.load(Zlib::Inflate.inflate(value))
-        end
     end
   end
 end

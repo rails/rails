@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2005-2022 David Heinemeier Hansson
+# Copyright (c) David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -31,6 +31,7 @@ require "active_support/logger"
 require "active_support/lazy_load_hooks"
 require "active_support/core_ext/date_and_time/compatibility"
 
+# :include: activesupport/README.rdoc
 module ActiveSupport
   extend ActiveSupport::Autoload
 
@@ -51,7 +52,6 @@ module ActiveSupport
   autoload :IsolatedExecutionState
   autoload :Notifications
   autoload :Reloader
-  autoload :PerThreadRegistry
   autoload :SecureCompareRotator
 
   eager_autoload do
@@ -67,7 +67,6 @@ module ActiveSupport
     autoload :Gzip
     autoload :Inflector
     autoload :JSON
-    autoload :JsonWithMarshalFallback
     autoload :KeyGenerator
     autoload :MessageEncryptor
     autoload :MessageEncryptors

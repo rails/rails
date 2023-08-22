@@ -160,14 +160,26 @@ class ForkTrackerTest < ActiveSupport::TestCase
       3.times { ActiveSupport::ForkTracker.check! }
     end
 
-    Process.stub(:pid, Process.pid + 1) do
+    if Process.respond_to?(:_fork)
+      Process.stub(:pid, Process.pid + 1) do
+        assert_no_difference -> { count } do
+          3.times { ActiveSupport::ForkTracker.check! }
+        end
+
+        assert_no_difference -> { count } do
+          3.times { ActiveSupport::ForkTracker.check! }
+        end
+      end
+    else
+      Process.stub(:pid, Process.pid + 1) do
+        assert_difference -> { count }, +1 do
+          3.times { ActiveSupport::ForkTracker.check! }
+        end
+      end
+
       assert_difference -> { count }, +1 do
         3.times { ActiveSupport::ForkTracker.check! }
       end
-    end
-
-    assert_difference -> { count }, +1 do
-      3.times { ActiveSupport::ForkTracker.check! }
     end
   ensure
     ActiveSupport::ForkTracker.unregister(handler)

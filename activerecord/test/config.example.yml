@@ -40,32 +40,56 @@ connections:
       username: rails
       encoding: utf8mb4
       collation: utf8mb4_unicode_ci
-<% if ENV['MYSQL_PREPARED_STATEMENTS'] %>
+    <% if ENV['MYSQL_PREPARED_STATEMENTS'] %>
       prepared_statements: true
-<% else %>
+    <% else %>
       prepared_statements: false
-<% end %>
-<% if ENV['MYSQL_HOST'] %>
+    <% end %>
+    <% if ENV['MYSQL_HOST'] %>
       host: <%= ENV['MYSQL_HOST'] %>
-<% end %>
-<% if ENV['MYSQL_SOCK'] %>
+    <% end %>
+    <% if ENV['MYSQL_SOCK'] %>
       socket: "<%= ENV['MYSQL_SOCK'] %>"
-<% end %>
+    <% end %>
     arunit2:
       username: rails
       encoding: utf8mb4
       collation: utf8mb4_general_ci
-<% if ENV['MYSQL_PREPARED_STATEMENTS'] %>
+    <% if ENV['MYSQL_PREPARED_STATEMENTS'] %>
       prepared_statements: true
-<% else %>
+    <% else %>
       prepared_statements: false
-<% end %>
-<% if ENV['MYSQL_HOST'] %>
+    <% end %>
+    <% if ENV['MYSQL_HOST'] %>
       host: <%= ENV['MYSQL_HOST'] %>
-<% end %>
-<% if ENV['MYSQL_SOCK'] %>
+    <% end %>
+    <% if ENV['MYSQL_SOCK'] %>
       socket: "<%= ENV['MYSQL_SOCK'] %>"
-<% end %>
+    <% end %>
+
+  trilogy:
+    arunit:
+      username: rails
+      encoding: utf8mb4
+      collation: utf8mb4_unicode_ci
+      prepared_statements: false
+    <% if ENV['MYSQL_HOST'] %>
+      host: <%= ENV['MYSQL_HOST'] %>
+    <% end %>
+    <% if ENV['MYSQL_SOCK'] %>
+      socket: "<%= ENV['MYSQL_SOCK'] %>"
+    <% end %>
+    arunit2:
+      username: rails
+      encoding: utf8mb4
+      collation: utf8mb4_general_ci
+      prepared_statements: false
+    <% if ENV['MYSQL_HOST'] %>
+      host: <%= ENV['MYSQL_HOST'] %>
+    <% end %>
+    <% if ENV['MYSQL_SOCK'] %>
+      socket: "<%= ENV['MYSQL_SOCK'] %>"
+    <% end %>
 
   oracle:
      arunit:

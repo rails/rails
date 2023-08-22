@@ -92,9 +92,17 @@ module Rails
       end
 
     private
+      def actual_method?(key)
+        !@@options.key?(key) && respond_to?(key)
+      end
+
       def method_missing(name, *args, &blk)
         if name.end_with?("=")
-          @@options[:"#{name[0..-2]}"] = args.first
+          key = name[0..-2].to_sym
+          if actual_method?(key)
+            raise NoMethodError.new("Cannot assign to `#{key}`, it is a configuration method")
+          end
+          @@options[key] = args.first
         elsif @@options.key?(name)
           @@options[name]
         else

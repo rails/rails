@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActionDispatch
+  # = Action Dispatch \SSL
+  #
   # This middleware is added to the stack when <tt>config.force_ssl = true</tt>, and is passed
   # the options set in +config.ssl_options+. It does three jobs to enforce secure HTTP
   # requests:
@@ -86,7 +88,7 @@ module ActionDispatch
 
     private
       def set_hsts_header!(headers)
-        headers["Strict-Transport-Security"] ||= @hsts_header
+        headers[Constants::STRICT_TRANSPORT_SECURITY] ||= @hsts_header
       end
 
       def normalize_hsts_options(options)
@@ -112,23 +114,33 @@ module ActionDispatch
       end
 
       def flag_cookies_as_secure!(headers)
-        if cookies = headers["Set-Cookie"]
-          cookies = cookies.split("\n")
+        cookies = headers[Rack::SET_COOKIE]
+        return unless cookies
 
-          headers["Set-Cookie"] = cookies.map { |cookie|
+        if Gem::Version.new(Rack::RELEASE) < Gem::Version.new("3")
+          cookies = cookies.split("\n")
+          headers[Rack::SET_COOKIE] = cookies.map { |cookie|
             if !/;\s*secure\s*(;|$)/i.match?(cookie)
               "#{cookie}; secure"
             else
               cookie
             end
           }.join("\n")
+        else
+          headers[Rack::SET_COOKIE] = Array(cookies).map do |cookie|
+            if !/;\s*secure\s*(;|$)/i.match?(cookie)
+              "#{cookie}; secure"
+            else
+              cookie
+            end
+          end
         end
       end
 
       def redirect_to_https(request)
         [ @redirect.fetch(:status, redirection_status(request)),
-          { "Content-Type" => "text/html",
-            "Location" => https_location_for(request) },
+          { Rack::CONTENT_TYPE => "text/html; charset=utf-8",
+            Constants::LOCATION => https_location_for(request) },
           (@redirect[:body] || []) ]
       end
 

@@ -38,9 +38,7 @@ end
 class ERB
   module Util
     HTML_ESCAPE = { "&" => "&amp;",  ">" => "&gt;",   "<" => "&lt;", '"' => "&quot;", "'" => "&#39;" }
-    JSON_ESCAPE = { "&" => '\u0026', ">" => '\u003e', "<" => '\u003c', "\u2028" => '\u2028', "\u2029" => '\u2029' }
     HTML_ESCAPE_ONCE_REGEXP = /["><']|&(?!([a-zA-Z]+|(#\d+)|(#[xX][\dA-Fa-f]+));)/
-    JSON_ESCAPE_REGEXP = /[\u2028\u2029&><]/u
 
     # Following XML requirements: https://www.w3.org/TR/REC-xml/#NT-Name
     TAG_NAME_START_CODEPOINTS = "@:A-Z_a-z\u{C0}-\u{D6}\u{D8}-\u{F6}\u{F8}-\u{2FF}\u{370}-\u{37D}\u{37F}-\u{1FFF}" \
@@ -63,8 +61,7 @@ class ERB
     #   html_escape_once('&lt;&lt; Accept & Checkout')
     #   # => "&lt;&lt; Accept &amp; Checkout"
     def html_escape_once(s)
-      result = ActiveSupport::Multibyte::Unicode.tidy_bytes(s.to_s).gsub(HTML_ESCAPE_ONCE_REGEXP, HTML_ESCAPE)
-      s.html_safe? ? result.html_safe : result
+      ActiveSupport::Multibyte::Unicode.tidy_bytes(s.to_s).gsub(HTML_ESCAPE_ONCE_REGEXP, HTML_ESCAPE).html_safe
     end
 
     module_function :html_escape_once
@@ -125,7 +122,12 @@ class ERB
     # JSON gem, do not provide this kind of protection by default; also some gems
     # might override +to_json+ to bypass Active Support's encoder).
     def json_escape(s)
-      result = s.to_s.gsub(JSON_ESCAPE_REGEXP, JSON_ESCAPE)
+      result = s.to_s.dup
+      result.gsub!(">", '\u003e')
+      result.gsub!("<", '\u003c')
+      result.gsub!("&", '\u0026')
+      result.gsub!("\u2028", '\u2028')
+      result.gsub!("\u2029", '\u2029')
       s.html_safe? ? result.html_safe : result
     end
 
@@ -167,6 +169,7 @@ class ERB
       while !source.eos?
         pos = source.pos
         source.scan_until(/(?:#{start_re}|#{finish_re})/)
+        raise NotImplementedError if source.matched.nil?
         len = source.pos - source.matched.bytesize - pos
 
         case source.matched
@@ -177,13 +180,13 @@ class ERB
             tokens << [:CODE, source.matched] unless source.matched.empty?
             tokens << [:CLOSE, source.scan(finish_re)] unless source.eos?
           else
-            raise NotImplemented
+            raise NotImplementedError
           end
         when finish_re
           tokens << [:CODE, source.string[pos, len]] if len > 0
           tokens << [:CLOSE, source.matched]
         else
-          raise NotImplemented, source.matched
+          raise NotImplementedError, source.matched
         end
       end
 

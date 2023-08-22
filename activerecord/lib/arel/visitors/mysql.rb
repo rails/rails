@@ -5,8 +5,9 @@ module Arel # :nodoc: all
     class MySQL < Arel::Visitors::ToSql
       private
         def visit_Arel_Nodes_Bin(o, collector)
-          collector << "BINARY "
+          collector << "CAST("
           visit o.expr, collector
+          collector << " AS BINARY)"
         end
 
         def visit_Arel_Nodes_UnqualifiedColumn(o, collector)
@@ -61,6 +62,12 @@ module Arel # :nodoc: all
         # no-op
         def visit_Arel_Nodes_NullsFirst(o, collector)
           visit o.expr, collector
+        end
+
+        def visit_Arel_Nodes_Cte(o, collector)
+          collector << quote_table_name(o.name)
+          collector << " AS "
+          visit o.relation, collector
         end
 
         # In the simple case, MySQL allows us to place JOINs directly into the UPDATE

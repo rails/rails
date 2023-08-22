@@ -9,7 +9,6 @@ class PostgresqlRange < ActiveRecord::Base
 end
 
 class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
-  self.use_transactional_tests = false
   include ConnectionHelper
   include InTimeZone
 
@@ -563,6 +562,20 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_equal 1...Float::INFINITY, record.int4_range
     assert_equal 10...Float::INFINITY, record.int8_range
     assert_equal 0.5...Float::INFINITY, record.float_range
+  end
+
+  def test_empty_string_range_values
+    record = PostgresqlRange.create!(
+      int4_range: "",
+      int8_range: "",
+      float_range: ""
+    )
+
+    record = PostgresqlRange.find(record.id)
+
+    assert_nil record.int4_range
+    assert_nil record.int8_range
+    assert_nil record.float_range
   end
 
   private

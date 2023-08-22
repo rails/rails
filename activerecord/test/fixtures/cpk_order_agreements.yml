@@ -1,0 +1,13 @@
+_fixture:
+  model_class: Cpk::OrderAgreement
+
+order_agreement_one:
+  signature: "abc123"
+
+order_agreement_two:
+  signature: "xyz789"
+
+order_agreement_three:
+  order_id: <%= ActiveRecord::FixtureSet.composite_identify(:cpk_groceries_order_2, Cpk::Order.primary_key)[:id] %>
+  signature: "def321"
+

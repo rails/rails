@@ -12,14 +12,6 @@ module ActionDispatch
         @name = @options.delete(:name) || driver_type
         @capabilities = capabilities
 
-        if [:poltergeist, :webkit].include?(driver_type)
-          ActionDispatch.deprecator.warn <<~MSG.squish
-            Poltergeist and capybara-webkit are not maintained already.
-            Driver registration of :poltergeist or :webkit is deprecated and will be removed in Rails 7.1.
-            You can still use :selenium, and also :cuprite is available for alternative to Poltergeist.
-          MSG
-        end
-
         if driver_type == :selenium
           gem "selenium-webdriver", ">= 4.0.0"
           require "selenium/webdriver"
@@ -38,7 +30,7 @@ module ActionDispatch
 
       private
         def registerable?
-          [:selenium, :poltergeist, :webkit, :cuprite, :rack_test].include?(@driver_type)
+          [:selenium, :cuprite, :rack_test, :playwright].include?(@driver_type)
         end
 
         def register
@@ -47,31 +39,20 @@ module ActionDispatch
           Capybara.register_driver name do |app|
             case @driver_type
             when :selenium then register_selenium(app)
-            when :poltergeist then register_poltergeist(app)
-            when :webkit then register_webkit(app)
             when :cuprite then register_cuprite(app)
             when :rack_test then register_rack_test(app)
+            when :playwright then register_playwright(app)
             end
           end
         end
 
         def browser_options
-          @options.merge(capabilities: @browser.options).compact
+          @options.merge(options: @browser.options).compact
         end
 
         def register_selenium(app)
           Capybara::Selenium::Driver.new(app, browser: @browser.type, **browser_options).tap do |driver|
             driver.browser.manage.window.size = Selenium::WebDriver::Dimension.new(*@screen_size)
-          end
-        end
-
-        def register_poltergeist(app)
-          Capybara::Poltergeist::Driver.new(app, @options.merge(window_size: @screen_size))
-        end
-
-        def register_webkit(app)
-          Capybara::Webkit::Driver.new(app, Capybara::Webkit::Configuration.to_hash.merge(@options)).tap do |driver|
-            driver.resize_window_to(driver.current_window_handle, *@screen_size)
           end
         end
 
@@ -81,6 +62,17 @@ module ActionDispatch
 
         def register_rack_test(app)
           Capybara::RackTest::Driver.new(app, respect_data_method: true, **@options)
+        end
+
+        def register_playwright(app)
+          screen = { width: @screen_size[0], height: @screen_size[1] } if @screen_size
+          options = {
+            screen: screen,
+            viewport: screen,
+            **@options
+          }.compact
+
+          Capybara::Playwright::Driver.new(app, **options)
         end
 
         def setup

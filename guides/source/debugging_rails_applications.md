@@ -238,6 +238,18 @@ Verbose query logs are enabled by default in the development environment logs af
 
 WARNING: We recommend against using this setting in production environments. It relies on Ruby's `Kernel#caller` method which tends to allocate a lot of memory in order to generate stacktraces of method calls. Use query log tags (see below) instead.
 
+### Verbose Enqueue Logs
+
+Similar to the "Verbose Query Logs" above, allows to print source locations of methods that enqueue background jobs.
+
+It is enabled by default in development. To enable in other environments, add in `application.rb` or any environment initializer:
+
+```rb
+config.active_job.verbose_enqueue_logs = true
+```
+
+As verbose query logs, it is not recommended for use in production environments.
+
 SQL Query Comments
 ------------------
 
@@ -303,14 +315,14 @@ only evaluated if the output level is the same as — or included in — the all
 (i.e. lazy loading). The same code rewritten would be:
 
 ```ruby
-logger.debug {"Person attributes hash: #{@person.attributes.inspect}"}
+logger.debug { "Person attributes hash: #{@person.attributes.inspect}" }
 ```
 
 The contents of the block, and therefore the string interpolation, are only
 evaluated if debug is enabled. This performance savings are only really
 noticeable with large amounts of logging, but it's a good practice to employ.
 
-INFO: This section was written by [Jon Cairns at a StackOverflow answer](https://stackoverflow.com/questions/16546730/logging-in-rails-is-there-any-performance-hit/16546935#16546935)
+INFO: This section was written by [Jon Cairns at a Stack Overflow answer](https://stackoverflow.com/questions/16546730/logging-in-rails-is-there-any-performance-hit/16546935#16546935)
 and it is licensed under [cc by-sa 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 
 Debugging with the `debug` Gem
@@ -333,7 +345,7 @@ Please check its [documentation](https://github.com/ruby/debug) for usage.
 
 ### Entering a Debugging Session
 
-By default, a debugging session will start after the `debug` library is required, which happens when your app boots. But don't worry, the session won't interfere your program.
+By default, a debugging session will start after the `debug` library is required, which happens when your app boots. But don't worry, the session won't interfere with your application.
 
 To enter the debugging session, you can use `binding.break` and its aliases: `binding.b` and `debugger`. The following examples will use `debugger`:
 
@@ -371,11 +383,11 @@ Processing by PostsController#index as HTML
 (rdbg)
 ```
 
-You can exit the debugging session at any time and continue your application execution with the `continue` (or `c`) command.  Or, to exit both the debugging session and your application, use the `quit` (or `q`) command.
+You can exit the debugging session at any time and continue your application execution with the `continue` (or `c`) command. Or, to exit both the debugging session and your application, use the `quit` (or `q`) command.
 
 ### The Context
 
-After entering the debugging session, you can type in Ruby code as you're in a Rails console or IRB.
+After entering the debugging session, you can type in Ruby code as if you are in a Rails console or IRB.
 
 ```rb
 (rdbg) @posts    # ruby
@@ -385,7 +397,7 @@ After entering the debugging session, you can type in Ruby code as you're in a R
 (rdbg)
 ```
 
-You can also use `p` or `pp` command to evaluate Ruby expressions (e.g. when a variable name conflicts with a debugger command).
+You can also use the `p` or `pp` command to evaluate Ruby expressions, which is useful when a variable name conflicts with a debugger command.
 
 ```rb
 (rdbg) p headers    # command
@@ -400,7 +412,7 @@ You can also use `p` or `pp` command to evaluate Ruby expressions (e.g. when a v
 (rdbg)
 ```
 
-Besides direct evaluation, debugger also helps you collect rich amount of information through different commands. Just to name a few here:
+Besides direct evaluation, the debugger also helps you collect a rich amount of information through different commands, such as:
 
 - `info` (or `i`) - Information about current frame.
 - `backtrace` (or `bt`) - Backtrace (with additional information).
@@ -408,7 +420,7 @@ Besides direct evaluation, debugger also helps you collect rich amount of inform
 
 #### The `info` Command
 
-It'll give you an overview of the values of local and instance variables that are visible from the current frame.
+`info` provides an overview of the values of local and instance variables that are visible from the current frame.
 
 ```rb
 (rdbg) info    # command
@@ -428,7 +440,7 @@ It'll give you an overview of the values of local and instance variables that ar
 
 #### The `backtrace` Command
 
-When used without any options, it lists all the frames on the stack:
+When used without any options, `backtrace` lists all the frames on the stack:
 
 ```rb
 =>#0    PostsController#index at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:7
@@ -449,21 +461,21 @@ Every frame comes with:
 - Call location
 - Additional information (e.g. block or method arguments)
 
-This will give you a great sense about what's happening in your app. However, you probably will notice that:
+This will give you a great sense about what is happening in your app. However, you probably will notice that:
 
 - There are too many frames (usually 50+ in a Rails app).
 - Most of the frames are from Rails or other libraries you use.
 
-Don't worry, the `backtrace` command provides 2 options to help you filter frames:
+The `backtrace` command provides 2 options to help you filter frames:
 
 - `backtrace [num]` - only show `num` numbers of frames, e.g. `backtrace 10` .
 - `backtrace /pattern/` - only show frames with identifier or location that matches the pattern, e.g. `backtrace /MyModel/`.
 
-It's also possible to use these options together: `backtrace [num] /pattern/`.
+It is also possible to use these options together: `backtrace [num] /pattern/`.
 
 #### The `outline` Command
 
-This command is similar to `pry` and `irb`'s `ls` command. It will show you what's accessible from the current scope, including:
+`outline` is similar to `pry` and `irb`'s `ls` command. It will show you what is accessible from the current scope, including:
 
 - Local variables
 - Instance variables
@@ -558,7 +570,7 @@ And to remove them, you can use:
 Stop by #0  BP - Line  /Users/st0012/projects/rails-guide-example/app/controllers/posts_controller.rb:28 (line)
 ```
 
-**Set a breakpoint on a given method call - e.g. `b @post.save`**
+Set a breakpoint on a given method call - e.g. `b @post.save`.
 
 ```rb
 [20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
@@ -602,7 +614,7 @@ Stop by #0  BP - Method  @post.save at /Users/st0012/.rbenv/versions/3.0.1/lib/r
 
 #### The `catch` Command
 
-**Stop when an exception is raised - e.g. `catch ActiveRecord::RecordInvalid`**
+Stop when an exception is raised - e.g. `catch ActiveRecord::RecordInvalid`.
 
 ```rb
 [20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
@@ -645,7 +657,7 @@ Stop by #1  BP - Catch  "ActiveRecord::RecordInvalid"
 
 #### The `watch` Command
 
-**Stop when the instance variable is changed - e.g. `watch @_response_body`**
+Stop when the instance variable is changed - e.g. `watch @_response_body`.
 
 ```rb
 [20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
@@ -689,7 +701,7 @@ Stop by #0  BP - Watch  #<PostsController:0x00007fce69ca5320> @_response_body = 
 
 #### Breakpoint Options
 
-In addition to different types of breakpoints, you can also specify options to achieve more advanced debugging workflow. Currently, the debugger supports 4 options:
+In addition to different types of breakpoints, you can also specify options to achieve more advanced debugging workflows. Currently, the debugger supports 4 options:
 
 - `do: <cmd or expr>` - when the breakpoint is triggered, execute the given command/expression and continue the program:
   - `break Foo#bar do: bt` - when `Foo#bar` is called, print the stack frames
@@ -827,9 +839,9 @@ do that with `local_variables`.
 ### Settings
 
 * `config.web_console.allowed_ips`: Authorized list of IPv4 or IPv6
-addresses and networks (defaults: `127.0.0.1/8, ::1`).
+  addresses and networks (defaults: `127.0.0.1/8, ::1`).
 * `config.web_console.whiny_requests`: Log a message when a console rendering
-is prevented (defaults: `true`).
+  is prevented (defaults: `true`).
 
 Since `web-console` evaluates plain Ruby code remotely on the server, don't try
 to use it in production.
@@ -869,18 +881,18 @@ There are some Rails plugins to help you to find errors and debug your
 application. Here is a list of useful plugins for debugging:
 
 * [Query Trace](https://github.com/ruckus/active-record-query-trace/tree/master) Adds query
-origin tracing to your logs.
+  origin tracing to your logs.
 * [Exception Notifier](https://github.com/smartinez87/exception_notification/tree/master)
-Provides a mailer object and a default set of templates for sending email
-notifications when errors occur in a Rails application.
+  Provides a mailer object and a default set of templates for sending email
+  notifications when errors occur in a Rails application.
 * [Better Errors](https://github.com/charliesome/better_errors) Replaces the
-standard Rails error page with a new one containing more contextual information,
-like source code and variable inspection.
+  standard Rails error page with a new one containing more contextual information,
+  like source code and variable inspection.
 * [RailsPanel](https://github.com/dejan/rails_panel) Chrome extension for Rails
-development that will end your tailing of development.log. Have all information
-about your Rails app requests in the browser — in the Developer Tools panel.
-Provides insight to db/rendering/total times, parameter list, rendered views and
-more.
+  development that will end your tailing of development.log. Have all information
+  about your Rails app requests in the browser — in the Developer Tools panel.
+  Provides insight to db/rendering/total times, parameter list, rendered views and
+  more.
 * [Pry](https://github.com/pry/pry) An IRB alternative and runtime developer console.
 
 References

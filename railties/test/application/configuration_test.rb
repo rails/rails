@@ -23,6 +23,14 @@ end
 
 class ::MyOtherMailObserver < ::MyMailObserver; end
 
+class ::MySafeListSanitizer < Rails::HTML4::SafeListSanitizer; end
+
+class ::MySanitizerVendor < ::Rails::HTML::Sanitizer
+  def self.safe_list_sanitizer
+    ::MySafeListSanitizer
+  end
+end
+
 class MyLogRecorder < Logger
   def initialize
     @io = StringIO.new
@@ -168,7 +176,7 @@ module ApplicationTests
       add_to_config <<-RUBY
         config.active_record.migration_error    = :page_load
         config.consider_all_requests_local      = true
-        config.action_dispatch.show_exceptions  = true
+        config.action_dispatch.show_exceptions  = :all
       RUBY
 
       app_file "db/migrate/20140708012246_create_user.rb", <<-RUBY
@@ -398,33 +406,24 @@ module ApplicationTests
       assert_not_includes Post.instance_methods, :title
     end
 
-    test "does not eager load attribute methods in production when the schema cache is empty" do
+    test "does not eager load attribute methods in production when the schema cache is empty and check_schema_cache_dump_version=false" do
       app_file "app/models/post.rb", <<-RUBY
         class Post < ActiveRecord::Base
-        end
-      RUBY
-
-      app_file "config/initializers/active_record.rb", <<-RUBY
-        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
-        ActiveRecord::Migration.verbose = false
-        ActiveRecord::Schema.define(version: 1) do
-          create_table :posts do |t|
-            t.string :title
-          end
         end
       RUBY
 
       add_to_config <<-RUBY
         config.enable_reloading = false
         config.eager_load = true
+        config.active_record.check_schema_cache_dump_version = false
       RUBY
 
       app "production"
 
-      assert_not_includes Post.instance_methods, :title
+      assert_not_includes (Post.instance_methods - ActiveRecord::Base.instance_methods), :title
     end
 
-    test "eager loads attribute methods in production when the schema cache is populated" do
+    test "eager loads attribute methods in production when the schema cache is populated and check_schema_cache_dump_version=false" do
       app_file "app/models/post.rb", <<-RUBY
         class Post < ActiveRecord::Base
         end
@@ -443,18 +442,19 @@ module ApplicationTests
       add_to_config <<-RUBY
         config.enable_reloading = false
         config.eager_load = true
+        config.active_record.check_schema_cache_dump_version = false
       RUBY
 
       app_file "config/initializers/schema_cache.rb", <<-RUBY
-        ActiveRecord::Base.connection.schema_cache.add("posts")
+      ActiveRecord::Base.connection.schema_cache.add("posts")
       RUBY
 
       app "production"
 
-      assert_includes Post.instance_methods, :title
+      assert_includes (Post.instance_methods - ActiveRecord::Base.instance_methods), :title
     end
 
-    test "does not attempt to eager load attribute methods for models that aren't connected" do
+    test "does not eager loads attribute methods in production when the schema cache is populated and check_schema_cache_dump_version=true" do
       app_file "app/models/post.rb", <<-RUBY
         class Post < ActiveRecord::Base
         end
@@ -473,17 +473,16 @@ module ApplicationTests
       add_to_config <<-RUBY
         config.enable_reloading = false
         config.eager_load = true
+        config.active_record.check_schema_cache_dump_version = true
       RUBY
 
-      app_file "app/models/comment.rb", <<-RUBY
-        class Comment < ActiveRecord::Base
-          establish_connection(adapter: "mysql2", database: "does_not_exist")
-        end
+      app_file "config/initializers/schema_cache.rb", <<-RUBY
+      ActiveRecord::Base.connection.schema_cache.add("posts")
       RUBY
 
-      assert_nothing_raised do
-        app "production"
-      end
+      app "production"
+
+      assert_not_includes (Post.instance_methods - ActiveRecord::Base.instance_methods), :title
     end
 
     test "application is always added to eager_load namespaces" do
@@ -507,6 +506,47 @@ module ApplicationTests
         app "development"
       end
     end
+
+    test "propagates check_schema_cache_dump_version=true to ActiveRecord::ConnectionAdapters::SchemaReflection" do
+      add_to_config <<-RUBY
+        config.active_record.check_schema_cache_dump_version = true
+      RUBY
+
+      app "development"
+
+      assert ActiveRecord::ConnectionAdapters::SchemaReflection.check_schema_cache_dump_version
+    end
+
+    test "propagates check_schema_cache_dump_version=false to ActiveRecord::ConnectionAdapters::SchemaReflection" do
+      add_to_config <<-RUBY
+        config.active_record.check_schema_cache_dump_version = false
+      RUBY
+
+      app "development"
+
+      assert_not ActiveRecord::ConnectionAdapters::SchemaReflection.check_schema_cache_dump_version
+    end
+
+    test "propagates use_schema_cache_dump=true to ActiveRecord::ConnectionAdapters::SchemaReflection" do
+      add_to_config <<-RUBY
+        config.active_record.use_schema_cache_dump = true
+      RUBY
+
+      app "development"
+
+      assert ActiveRecord::ConnectionAdapters::SchemaReflection.use_schema_cache_dump
+    end
+
+    test "propagates use_schema_cache_dump=false to ActiveRecord::ConnectionAdapters::SchemaReflection" do
+      add_to_config <<-RUBY
+        config.active_record.use_schema_cache_dump = false
+      RUBY
+
+      app "development"
+
+      assert_not ActiveRecord::ConnectionAdapters::SchemaReflection.use_schema_cache_dump
+    end
+
 
     test "filter_parameters should be able to set via config.filter_parameters" do
       add_to_config <<-RUBY
@@ -555,6 +595,21 @@ module ApplicationTests
       app "development"
 
       assert_equal filters, Rails.application.env_config["action_dispatch.parameter_filter"]
+    end
+
+    test "filter_parameters reflects changes to config.filter_parameters after being precompiled" do
+      add_to_config <<~RUBY
+        config.filter_parameters += [/foo/, :bar]
+        config.precompile_filter_parameters = true
+      RUBY
+
+      app "development"
+
+      assert_not_empty Rails.application.env_config["action_dispatch.parameter_filter"]
+
+      Rails.application.config.filter_parameters << "baz.qux"
+
+      assert_includes Rails.application.env_config["action_dispatch.parameter_filter"], "baz.qux"
     end
 
     test "config.precompile_filter_parameters is true by default for new apps" do
@@ -616,45 +671,21 @@ module ApplicationTests
       assert_equal Pathname.new(app_path).join("somewhere"), Rails.public_path
     end
 
-    test "In production mode, config.public_file_server.enabled is off by default" do
+    test "In production mode, config.public_file_server.enabled is on by default" do
       restore_default_config
 
       with_rails_env "production" do
         app "production"
-        assert_not app.config.public_file_server.enabled
+        assert app.config.public_file_server.enabled
       end
     end
 
-    test "In production mode, config.public_file_server.enabled is enabled when RAILS_SERVE_STATIC_FILES is set" do
+    test "In production mode, STDOUT logging is the default" do
       restore_default_config
 
       with_rails_env "production" do
-        switch_env "RAILS_SERVE_STATIC_FILES", "1" do
-          app "production"
-          assert app.config.public_file_server.enabled
-        end
-      end
-    end
-
-    test "In production mode, STDOUT logging is enabled when RAILS_LOG_TO_STDOUT is set" do
-      restore_default_config
-
-      with_rails_env "production" do
-        switch_env "RAILS_LOG_TO_STDOUT", "1" do
-          app "production"
-          assert ActiveSupport::Logger.logger_outputs_to?(app.config.logger, STDOUT)
-        end
-      end
-    end
-
-    test "In production mode, config.public_file_server.enabled is disabled when RAILS_SERVE_STATIC_FILES is blank" do
-      restore_default_config
-
-      with_rails_env "production" do
-        switch_env "RAILS_SERVE_STATIC_FILES", " " do
-          app "production"
-          assert_not app.config.public_file_server.enabled
-        end
+        app "production"
+        assert ActiveSupport::Logger.logger_outputs_to?(app.config.logger, STDOUT)
       end
     end
 
@@ -694,7 +725,9 @@ module ApplicationTests
 
     test "Use key_generator when secret_key_base is set" do
       make_basic_app do |application|
-        application.secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
+        Rails.deprecator.silence do
+          application.secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
+        end
         application.config.session_store :disabled
       end
 
@@ -714,7 +747,9 @@ module ApplicationTests
 
     test "application verifier can be used in the entire application" do
       make_basic_app do |application|
-        application.secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
+        Rails.deprecator.silence do
+          application.secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
+        end
         application.config.session_store :disabled
       end
 
@@ -737,8 +772,22 @@ module ApplicationTests
 
       app "development"
 
-      assert_not_nil app.secrets.secret_key_base
-      assert File.exist?(app_path("tmp/development_secret.txt"))
+      assert_not_nil app.secret_key_base
+      assert File.exist?(app_path("tmp/local_secret.txt"))
+    end
+
+    test "application will generate secret_key_base in tmp file if blank in test" do
+      app_file "config/initializers/secret_token.rb", <<-RUBY
+        Rails.application.credentials.secret_key_base = nil
+      RUBY
+
+      # For test that works even if tmp dir does not exist.
+      Dir.chdir(app_path) { FileUtils.remove_dir("tmp") }
+
+      app "test"
+
+      assert_not_nil app.secret_key_base
+      assert File.exist?(app_path("tmp/local_secret.txt"))
     end
 
     test "application will not generate secret_key_base in tmp file if blank in production" do
@@ -784,6 +833,17 @@ module ApplicationTests
       assert_raise(ArgumentError) do
         app "production"
       end
+    end
+
+    test "don't output secret_key_base when calling inspect" do
+      secret = "b3c631c314c0bbca50c1b2843150fe33"
+      add_to_config <<-RUBY
+        Rails.application.config.secret_key_base = "#{secret}"
+      RUBY
+      app "production"
+
+      assert_no_match(/#{secret}/, Rails.application.config.inspect)
+      assert_match(/\A#<Rails::Application::Configuration:0x[0-9a-f]+>\z/, Rails.application.config.inspect)
     end
 
     test "Rails.application.key_generator supports specifying a secret base" do
@@ -832,6 +892,14 @@ module ApplicationTests
       assert_equal "old message", app.message_verifiers["salt"].verify(old_message)
     end
 
+    test "secrets is deprecated" do
+      app "development"
+
+      assert_deprecated(Rails.deprecator) do
+        Rails.application.secrets.secret_key_base = "3b7cd727ee24e8444053437c36cc66c3"
+      end
+    end
+
     test "secrets.secret_key_base is used when config/secrets.yml is present" do
       app_file "config/secrets.yml", <<-YAML
         development:
@@ -839,18 +907,20 @@ module ApplicationTests
       YAML
 
       app "development"
-      assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secrets.secret_key_base
+      Rails.deprecator.silence do
+        assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secrets.secret_key_base
+      end
       assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secret_key_base
     end
 
-    test "secret_key_base is copied from config to secrets when not set" do
+    test "secret_key_base is copied from config.secret_key_base when set" do
       remove_file "config/secrets.yml"
       app_file "config/initializers/secret_token.rb", <<-RUBY
         Rails.application.config.secret_key_base = "3b7cd727ee24e8444053437c36cc66c3"
       RUBY
 
       app "development"
-      assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secrets.secret_key_base
+      assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secret_key_base
     end
 
     test "custom secrets saved in config/secrets.yml are loaded in app secrets" do
@@ -901,18 +971,14 @@ module ApplicationTests
       assert_nil app.secrets.not_defined
     end
 
-    test "config.secret_key_base over-writes a blank secrets.secret_key_base" do
+    test "config.secret_key_base over-writes a blank app.secret_key_base" do
       app_file "config/initializers/secret_token.rb", <<-RUBY
         Rails.application.config.secret_key_base = "iaminallyoursecretkeybase"
       RUBY
-      app_file "config/secrets.yml", <<-YAML
-        development:
-          secret_key_base:
-      YAML
 
       app "development"
 
-      assert_equal "iaminallyoursecretkeybase", app.secrets.secret_key_base
+      assert_equal "iaminallyoursecretkeybase", app.secret_key_base
     end
 
     test "that nested keys are symbolized the same as parents for hashes more than one level deep" do
@@ -1305,7 +1371,7 @@ module ApplicationTests
       require "mail"
       _ = ActionMailer::Base
 
-      assert_equal "test_default", ActionMailer::Base.class_variable_get(:@@deliver_later_queue_name)
+      assert_equal "test_default", ActionMailer::Base.deliver_later_queue_name
     end
 
     test "ActionMailer::DeliveryJob queue name is :mailers without the Rails defaults" do
@@ -1316,7 +1382,7 @@ module ApplicationTests
       require "mail"
       _ = ActionMailer::Base
 
-      assert_equal :mailers, ActionMailer::Base.class_variable_get(:@@deliver_later_queue_name)
+      assert_equal :mailers, ActionMailer::Base.deliver_later_queue_name
     end
 
     test "ActionMailer::DeliveryJob queue name is nil by default in 6.1" do
@@ -1328,7 +1394,7 @@ module ApplicationTests
       require "mail"
       _ = ActionMailer::Base
 
-      assert_nil ActionMailer::Base.class_variable_get(:@@deliver_later_queue_name)
+      assert_nil ActionMailer::Base.deliver_later_queue_name
     end
 
     test "valid timezone is setup correctly" do
@@ -1500,7 +1566,7 @@ module ApplicationTests
 
     test "config.action_dispatch.show_exceptions is sent in env" do
       make_basic_app do |application|
-        application.config.action_dispatch.show_exceptions = true
+        application.config.action_dispatch.show_exceptions = :all
       end
 
       class ::OmgController < ActionController::Base
@@ -1510,7 +1576,7 @@ module ApplicationTests
       end
 
       get "/"
-      assert_equal "true", last_response.body
+      assert_equal "all", last_response.body
     end
 
     test "config.action_controller.wrap_parameters is set in ActionController::Base" do
@@ -1811,6 +1877,15 @@ module ApplicationTests
       assert_equal Logger::INFO, Rails.logger.level
     end
 
+    test "config.log_level can be overwritten by ENV['RAILS_LOG_LEVEL'] in production" do
+      restore_default_config
+
+      switch_env "RAILS_LOG_LEVEL", "debug" do
+        app "production"
+        assert_equal Logger::DEBUG, Rails.logger.level
+      end
+    end
+
     test "config.log_level with custom logger" do
       make_basic_app do |application|
         application.config.logger = Logger.new(STDOUT)
@@ -1877,6 +1952,23 @@ module ApplicationTests
       app "production"
       assert ActiveRecord.use_yaml_unsafe_load
     end
+
+    test "config.active_record.raise_int_wider_than_64bit is true by default" do
+      app "production"
+      assert ActiveRecord.raise_int_wider_than_64bit
+    end
+
+    test "config.active_record.raise_int_wider_than_64bit can be configured" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/dont_raise.rb", <<-RUBY
+        Rails.application.config.active_record.raise_int_wider_than_64bit = false
+      RUBY
+
+      app "production"
+      assert_not ActiveRecord.raise_int_wider_than_64bit
+    end
+
 
     test "config.active_record.yaml_column_permitted_classes is [Symbol] by default" do
       app "production"
@@ -2066,6 +2158,18 @@ module ApplicationTests
       assert_empty Rails.configuration.paths.load_paths - $LOAD_PATH
     end
 
+    test "lib is added to $LOAD_PATH regardless of config.add_autoload_paths_to_load_path" do
+      # Like Rails::Application.add_lib_to_load_path! does.
+      lib = File.join(app_path, "lib")
+
+      add_to_config "config.autoload_paths << '#{lib}'"
+
+      app "development"
+
+      assert_not Rails.configuration.add_autoload_paths_to_load_path # precondition
+      assert_includes $LOAD_PATH, lib
+    end
+
     test "autoload paths can be set in the config file of the environment" do
       app_dir "custom_autoload_path"
       app_dir "custom_autoload_once_path"
@@ -2084,6 +2188,78 @@ module ApplicationTests
         assert_includes config.autoload_paths, "#{app_path}/custom_autoload_path"
         assert_includes config.autoload_once_paths, "#{app_path}/custom_autoload_once_path"
         assert_includes config.eager_load_paths, "#{app_path}/custom_eager_load_path"
+      end
+    end
+
+    [%w(autoload_lib autoload_paths), %w(autoload_lib_once autoload_once_paths)].each do |method_name, paths|
+      test "config.#{method_name} adds lib to the expected paths (array ignore)" do
+        app_file "lib/x.rb", "X = true"
+        app_file "lib/tasks/x.rb", "Tasks::X = true"
+        app_file "lib/generators/x.rb", "Generators::X = true"
+
+        add_to_config "config.#{method_name}(ignore: %w(tasks generators))"
+
+        app "development"
+
+        Rails.application.config.tap do |config|
+          assert_includes config.send(paths), "#{app_path}/lib"
+          assert_includes config.eager_load_paths, "#{app_path}/lib"
+        end
+
+        assert X
+        assert_raises(NameError) { Tasks }
+        assert_raises(NameError) { Generators }
+      end
+
+      test "config.#{method_name} adds lib to the expected paths (empty array ignore)" do
+        app_file "lib/x.rb", "X = true"
+        app_file "lib/tasks/x.rb", "Tasks::X = true"
+
+        add_to_config "config.#{method_name}(ignore: [])"
+
+        app "development"
+
+        Rails.application.config.tap do |config|
+          assert_includes config.send(paths), "#{app_path}/lib"
+          assert_includes config.eager_load_paths, "#{app_path}/lib"
+        end
+
+        assert X
+        assert Tasks::X
+      end
+
+      test "config.#{method_name} adds lib to the expected paths (scalar ignore)" do
+        app_file "lib/x.rb", "X = true"
+        app_file "lib/tasks/x.rb", "Tasks::X = true"
+
+        add_to_config "config.#{method_name}(ignore: 'tasks')"
+
+        app "development"
+
+        Rails.application.config.tap do |config|
+          assert_includes config.send(paths), "#{app_path}/lib"
+          assert_includes config.eager_load_paths, "#{app_path}/lib"
+        end
+
+        assert X
+        assert_raises(NameError) { Tasks }
+      end
+
+      test "config.#{method_name} adds lib to the expected paths (nil ignore)" do
+        app_file "lib/x.rb", "X = true"
+        app_file "lib/tasks/x.rb", "Tasks::X = true"
+
+        add_to_config "config.#{method_name}(ignore: nil)"
+
+        app "development"
+
+        Rails.application.config.tap do |config|
+          assert_includes config.send(paths), "#{app_path}/lib"
+          assert_includes config.eager_load_paths, "#{app_path}/lib"
+        end
+
+        assert X
+        assert Tasks::X
       end
     end
 
@@ -2176,6 +2352,28 @@ module ApplicationTests
       assert_equal "sqlite3", ar_config["development"]["primary"]["adapter"]
       assert_equal "bobby",   ar_config["development"]["primary"]["username"]
       assert_equal "dev_db",  ar_config["development"]["primary"]["database"]
+    end
+
+    test "loads database.yml using 3-tier shared keys with a 3-tier config" do
+      app_file "config/database.yml", <<-YAML
+        shared:
+          one:
+            migrations_path: "db/one"
+          two:
+            migrations_path: "db/two"
+
+        development:
+          one:
+            adapter: sqlite3
+          two:
+            adapter: sqlite3
+      YAML
+
+      app "development"
+
+      ar_config = Rails.configuration.database_configuration
+      assert_equal "db/one", ar_config["development"]["one"]["migrations_path"]
+      assert_equal "db/two", ar_config["development"]["two"]["migrations_path"]
     end
 
     test "config.action_mailer.show_previews defaults to true in development" do
@@ -2478,6 +2676,36 @@ module ApplicationTests
       assert_equal :default, Rails.configuration.debug_exception_response_format
     end
 
+    test "debug_exception_log_level is :fatal by default for upgraded apps" do
+      make_basic_app
+
+      class ::OmgController < ActionController::Base
+        def index
+          render plain: request.env["action_dispatch.debug_exception_log_level"]
+        end
+      end
+
+      get "/"
+
+      assert_equal "4", last_response.body
+    end
+
+    test "debug_exception_log_level is :error for new apps" do
+      make_basic_app do |app|
+        app.config.load_defaults "7.1"
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          render plain: request.env["action_dispatch.debug_exception_log_level"]
+        end
+      end
+
+      get "/"
+
+      assert_equal "3", last_response.body
+    end
+
     test "ActiveRecord::Base.has_many_inversing is true by default for new apps" do
       app "development"
 
@@ -2769,20 +2997,6 @@ module ApplicationTests
       assert_equal 1234, ActiveSupport.test_parallelization_threshold
     end
 
-    test "Digest::UUID.use_rfc4122_namespaced_uuids is enabled by default for new apps" do
-      app "development"
-
-      assert_equal true, Digest::UUID.use_rfc4122_namespaced_uuids
-    end
-
-    test "Digest::UUID.use_rfc4122_namespaced_uuids is disabled by default for upgraded apps" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app "development"
-
-      assert_equal false, Digest::UUID.use_rfc4122_namespaced_uuids
-    end
-
     test "custom serializers should be able to set via config.active_job.custom_serializers in an initializer" do
       class ::DummySerializer < ActiveJob::Serializers::ObjectSerializer; end
 
@@ -2818,6 +3032,20 @@ module ApplicationTests
       app "development"
 
       assert ActiveJob.use_big_decimal_serializer, "use_big_decimal_serializer should be enabled if set in config"
+    end
+
+    test "config.active_job.verbose_enqueue_logs defaults to true in development" do
+      build_app
+      app "development"
+
+      assert ActiveJob.verbose_enqueue_logs
+    end
+
+    test "config.active_job.verbose_enqueue_logs defaults to false in production" do
+      build_app
+      app "production"
+
+      assert_not ActiveJob.verbose_enqueue_logs
     end
 
     test "active record job queue is set" do
@@ -3686,142 +3914,62 @@ module ApplicationTests
       assert_equal true, Rails.application.config.rake_eager_load
     end
 
-    test "ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization is true by default" do
+    test "ActiveSupport::Messages::Codec.default_serializer is :json_allow_marshal by default for new apps" do
       app "development"
 
-      assert_equal true, ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization
+      assert_equal :json_allow_marshal, ActiveSupport::Messages::Codec.default_serializer
     end
 
-    test "ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization is true by default for upgraded apps" do
+    test "ActiveSupport::Messages::Codec.default_serializer is :marshal by default for upgraded apps" do
       remove_from_config '.*config\.load_defaults.*\n'
 
       app "development"
 
-      assert_equal true, ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization
+      assert_equal :marshal, ActiveSupport::Messages::Codec.default_serializer
     end
 
-    test "ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization can be configured via config.active_support.fallback_to_marshal_deserialization" do
+    test "ActiveSupport::Messages::Codec.default_serializer can be configured via config.active_support.message_serializer" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/fallback_to_marshal_deserialization.rb", <<-RUBY
-        Rails.application.config.active_support.fallback_to_marshal_deserialization = false
+      app_file "config/initializers/new_framework_defaults_7_1.rb", <<~RUBY
+        Rails.application.config.active_support.message_serializer = :json_allow_marshal
       RUBY
 
       app "development"
 
-      assert_equal false, ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization
+      assert_equal :json_allow_marshal, ActiveSupport::Messages::Codec.default_serializer
     end
 
-    test "ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization is true by default" do
+    test "ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata is true by default for new apps" do
       app "development"
 
-      assert_equal true, ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization
+      assert ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata
     end
 
-    test "ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization is true by default for upgraded apps" do
+    test "ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata is false by default for upgraded apps" do
       remove_from_config '.*config\.load_defaults.*\n'
 
       app "development"
 
-      assert_equal true, ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization
+      assert_not ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata
     end
 
-    test "ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization can be configured via config.active_support.use_marshal_serialization" do
+    test "ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata can be configured via config.active_support.use_message_serializer_for_metadata" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/use_marshal_serialization.rb", <<-RUBY
-        Rails.application.config.active_support.use_marshal_serialization = false
+      app_file "config/initializers/new_framework_defaults_7_1.rb", <<~RUBY
+        Rails.application.config.active_support.use_message_serializer_for_metadata = true
       RUBY
 
       app "development"
 
-      assert_equal false, ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization
-    end
-
-    test "ActiveSupport::MessageEncryptor.default_message_encryptor_serializer is :json by default" do
-      app "development"
-
-      assert_equal :json, ActiveSupport::MessageEncryptor.default_message_encryptor_serializer
-    end
-
-    test "ActiveSupport::MessageEncryptor.default_message_encryptor_serializer is :marshal by default for upgraded apps" do
-      remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "6.1"'
-
-      app "development"
-
-      assert_equal :marshal, ActiveSupport::MessageEncryptor.default_message_encryptor_serializer
-    end
-
-    test "ActiveSupport::MessageEncryptor.default_message_encryptor_serializer can be configured via config.active_support.default_message_encryptor_serializer" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/default_message_encryptor_serializer.rb", <<-RUBY
-        Rails.application.config.active_support.default_message_encryptor_serializer = :hybrid
-      RUBY
-
-      app "development"
-
-      assert_equal :hybrid, ActiveSupport::MessageEncryptor.default_message_encryptor_serializer
-    end
-
-    test "ActiveSupport::MessageVerifier.default_message_verifier_serializer is :json by default for new apps" do
-      app "development"
-
-      assert_equal :json, ActiveSupport::MessageVerifier.default_message_verifier_serializer
-    end
-
-    test "ActiveSupport::MessageVerifier.default_message_verifier_serializer is :marshal by default for upgraded apps" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app "development"
-
-      assert_equal :marshal, ActiveSupport::MessageVerifier.default_message_verifier_serializer
-    end
-
-    test "ActiveSupport::MessageVerifier.default_message_verifier_serializer can be configured via config.active_support.default_message_verifier_serializer" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/default_message_verifier_serializer.rb", <<-RUBY
-        Rails.application.config.active_support.default_message_verifier_serializer = :hybrid
-      RUBY
-
-      app "development"
-
-      assert_equal :hybrid, ActiveSupport::MessageVerifier.default_message_verifier_serializer
+      assert ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata
     end
 
     test "unknown_asset_fallback is false by default" do
       app "development"
 
       assert_equal false, Rails.application.config.assets.unknown_asset_fallback
-    end
-
-    test "ActionDispatch::Request.return_only_media_type_on_content_type is false by default" do
-      app "development"
-
-      assert_equal false, ActionDispatch::Request.return_only_media_type_on_content_type
-    end
-
-    test "ActionDispatch::Request.return_only_media_type_on_content_type is true in the 6.1 defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "6.1"'
-
-      app "development"
-
-      assert_equal true, ActionDispatch::Request.return_only_media_type_on_content_type
-    end
-
-    test "ActionDispatch::Request.return_only_media_type_on_content_type can be configured in the new framework defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
-        Rails.application.config.action_dispatch.return_only_request_media_type_on_content_type = false
-      RUBY
-
-      app "development"
-
-      assert_equal false, ActionDispatch::Request.return_only_media_type_on_content_type
     end
 
     test "action_dispatch.log_rescued_responses is true by default" do
@@ -3982,27 +4130,10 @@ module ApplicationTests
       assert_nil Rails.application.config.middleware.map(&:name).index("3rd custom middleware")
     end
 
-    test "ActiveSupport::TimeWithZone.name uses default Ruby implementation by default" do
-      app "development"
-      assert_equal false, ActiveSupport::TimeWithZone.methods(false).include?(:name)
-    end
-
-    test "ActiveSupport::TimeWithZone.name can be configured in the new framework defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
-        Rails.application.config.active_support.remove_deprecated_time_with_zone_name = false
-      RUBY
-
-      app "development"
-
-      assert_equal true, ActiveSupport::TimeWithZone.methods(false).include?(:name)
-    end
-
     test "Rails.application.deprecators includes framework deprecators" do
       app "production"
 
-      assert_includes Rails.application.deprecators.each, ActiveSupport::Deprecation.instance
+      assert_includes Rails.application.deprecators.each, ActiveSupport::Deprecation._instance
       assert_equal ActionCable.deprecator, Rails.application.deprecators[:action_cable]
       assert_equal AbstractController.deprecator, Rails.application.deprecators[:action_controller]
       assert_equal ActionController.deprecator, Rails.application.deprecators[:action_controller]
@@ -4016,7 +4147,7 @@ module ApplicationTests
       assert_equal ActiveRecord.deprecator, Rails.application.deprecators[:active_record]
       assert_equal ActiveStorage.deprecator, Rails.application.deprecators[:active_storage]
       assert_equal ActiveSupport.deprecator, Rails.application.deprecators[:active_support]
-      assert_equal Rails.deprecator, Rails.application.deprecators[:rails]
+      assert_equal Rails.deprecator, Rails.application.deprecators[:railties]
     end
 
     test "can entirely opt out of deprecation warnings" do
@@ -4072,76 +4203,6 @@ module ApplicationTests
       assert_equal [], ActionController::Base._wrapper_options.format
     end
 
-    test "deprecated #to_s with format works with the Rails 6.1 defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "6.1"'
-
-      app "production"
-
-      assert_deprecated(Rails.application.deprecators[:active_support]) do
-        assert_equal "21 Feb", Date.new(2005, 2, 21).to_s(:short)
-      end
-      assert_deprecated(Rails.application.deprecators[:active_support]) do
-        assert_equal "2005-02-21 14:30:00", DateTime.new(2005, 2, 21, 14, 30, 0, 0).to_s(:db)
-      end
-      assert_deprecated(Rails.application.deprecators[:active_support]) do
-        assert_equal "555-1234", 5551234.to_s(:phone)
-      end
-      assert_deprecated(Rails.application.deprecators[:active_support]) do
-        assert_equal "BETWEEN 'a' AND 'z'", ("a".."z").to_s(:db)
-      end
-      assert_deprecated(Rails.application.deprecators[:active_support]) do
-        assert_equal "2005-02-21 17:44:30", Time.utc(2005, 2, 21, 17, 44, 30.12345678901).to_s(:db)
-      end
-    end
-
-    test "deprecated #to_s with format does not work with the Rails 6.1 defaults and the config set" do
-      remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "6.1"'
-
-      add_to_config <<-RUBY
-        config.active_support.disable_to_s_conversion = true
-      RUBY
-
-      app "production"
-
-      assert_raises(ArgumentError) do
-        Date.new(2005, 2, 21).to_s(:short)
-      end
-      assert_raises(ArgumentError) do
-        DateTime.new(2005, 2, 21, 14, 30, 0, 0).to_s(:db)
-      end
-      assert_raises(TypeError) do
-        5551234.to_s(:phone)
-      end
-      assert_raises(ArgumentError) do
-        ("a".."z").to_s(:db)
-      end
-      assert_raises(ArgumentError) do
-        Time.utc(2005, 2, 21, 17, 44, 30.12345678901).to_s(:db)
-      end
-    end
-
-    test "deprecated #to_s with format does not work with the Rails 7.0 defaults" do
-      app "production"
-
-      assert_raises(ArgumentError) do
-        Date.new(2005, 2, 21).to_s(:short)
-      end
-      assert_raises(ArgumentError) do
-        DateTime.new(2005, 2, 21, 14, 30, 0, 0).to_s(:db)
-      end
-      assert_raises(TypeError) do
-        5551234.to_s(:phone)
-      end
-      assert_raises(ArgumentError) do
-        ("a".."z").to_s(:db)
-      end
-      assert_raises(ArgumentError) do
-        Time.utc(2005, 2, 21, 17, 44, 30.12345678901).to_s(:db)
-      end
-    end
-
     test "ActionController::Base.raise_on_missing_callback_actions is false by default for production" do
       app "production"
 
@@ -4189,50 +4250,55 @@ module ApplicationTests
       assert_equal :fiber, ActiveSupport::IsolatedExecutionState.isolation_level
     end
 
-    test "cache_format_version in a new app" do
-      add_to_config <<-RUBY
-        config.cache_store = :null_store
-      RUBY
+    test "ActiveSupport::Cache.format_version is 7.1 by default for new apps" do
       app "development"
 
-      assert_equal ActiveSupport::Cache::Coders::Rails70Coder, Rails.cache.instance_variable_get(:@coder)
+      assert_equal 7.1, ActiveSupport::Cache.format_version
     end
 
-    test "cache_format_version with explicit 7.0 defaults" do
-      add_to_config <<-RUBY
-        config.cache_store = :null_store
-      RUBY
+    test "ActiveSupport::Cache.format_version is 6.1 by default for upgraded apps" do
       remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "7.0"'
+
       app "development"
 
-      assert_equal ActiveSupport::Cache::Coders::Rails70Coder, Rails.cache.instance_variable_get(:@coder)
+      assert_equal 6.1, ActiveSupport::Cache.format_version
     end
 
-    test "cache_format_version with 6.1 defaults" do
-      add_to_config <<-RUBY
-        config.cache_store = :null_store
-      RUBY
+    test "ActiveSupport::Cache.format_version can be configured via config.active_support.cache_format_version" do
       remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "6.1"'
+
+      add_to_config "config.active_support.cache_format_version = 7.0"
+
       app "development"
 
-      assert_equal ActiveSupport::Cache::Coders::Rails61Coder, Rails.cache.instance_variable_get(:@coder)
+      assert_equal 7.0, ActiveSupport::Cache.format_version
     end
 
-    test "cache_format_version **cannot** be set via new framework defaults" do
-      add_to_config <<-RUBY
-        config.cache_store = :null_store
-      RUBY
+    test "config.active_support.cache_format_version affects Rails.cache when set in an environment file (or earlier)" do
       remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "6.1"'
-      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+
+      app_file "config/environments/development.rb", <<~RUBY
         Rails.application.config.active_support.cache_format_version = 7.0
       RUBY
 
       app "development"
 
-      assert_equal ActiveSupport::Cache::Coders::Rails61Coder, Rails.cache.instance_variable_get(:@coder)
+      assert_not_nil Rails.cache.instance_variable_get(:@coder)
+      assert_equal \
+        Marshal.dump(ActiveSupport::Cache::NullStore.new.instance_variable_get(:@coder)),
+        Marshal.dump(Rails.cache.instance_variable_get(:@coder))
+    end
+
+    test "ActiveSupport::Cache.format_version 6.1 is deprecated" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal 6.1, ActiveSupport::Cache.format_version
+
+      assert_deprecated(ActiveSupport.deprecator) do
+        ActiveSupport::Cache::Store.new
+      end
     end
 
     test "raise_on_invalid_cache_expiration_time is false with 7.0 defaults" do
@@ -4316,6 +4382,210 @@ module ApplicationTests
       end
 
       assert_match(/The `legacy_connection_handling` setter was deprecated in 7.0 and removed in 7.1, but is still defined in your configuration. Please remove this call as it no longer has any effect./, error.message)
+    end
+
+    test "raise_on_missing_translations = true" do
+      add_to_config "config.i18n.raise_on_missing_translations = true"
+      app "development"
+
+      assert_equal true, Rails.application.config.i18n.raise_on_missing_translations
+
+      assert_raise(I18n::MissingTranslationData) do
+        I18n.t("translations.missing")
+      end
+    end
+
+    test "raise_on_missing_translations = false" do
+      add_to_config "config.i18n.raise_on_missing_translations = false"
+      app "development"
+
+      assert_equal false, Rails.application.config.i18n.raise_on_missing_translations
+
+      assert_nothing_raised do
+        I18n.t("translations.missing")
+      end
+    end
+
+    test "raise_on_missing_translations = true and custom exception handler in initializer" do
+      add_to_config "config.i18n.raise_on_missing_translations = true"
+      app_file "config/initializers/i18n.rb", <<~RUBY
+        I18n.exception_handler = ->(exception, *) {
+          if exception.is_a?(I18n::MissingTranslation)
+            "handled I18n::MissingTranslation"
+          else
+            raise exception
+          end
+          }
+      RUBY
+      app "development"
+
+      assert_equal true, Rails.application.config.i18n.raise_on_missing_translations
+
+      assert_equal "handled I18n::MissingTranslation", I18n.t("translations.missing")
+      assert_raise(I18n::InvalidLocale) do
+        I18n.t("en.errors.messages.required", locale: "dsafdsafdsa")
+      end
+    end
+
+    test "raise_on_missing_translations = false and custom exception handler in initializer" do
+      add_to_config "config.i18n.raise_on_missing_translations = false"
+      app_file "config/initializers/i18n.rb", <<~RUBY
+        I18n.exception_handler = ->(exception, *) {
+          if exception.is_a?(I18n::MissingTranslation)
+            "handled I18n::MissingTranslation"
+          else
+            raise exception
+          end
+          }
+      RUBY
+      app "development"
+
+      assert_equal false, Rails.application.config.i18n.raise_on_missing_translations
+
+      assert_equal "handled I18n::MissingTranslation", I18n.t("translations.missing")
+      assert_raise(I18n::InvalidLocale) do
+        I18n.t("en.errors.messages.required", locale: "dsafdsafdsa")
+      end
+    end
+
+    test "i18n custom exception handler in initializer and pluralization backend" do
+      app_file "config/initializers/i18n.rb", <<~RUBY
+        I18n.exception_handler = ->(exception, *) {
+          if exception.is_a?(I18n::MissingTranslation)
+            "handled I18n::MissingTranslation"
+          else
+            raise exception
+          end
+          }
+
+        Rails.application.config.after_initialize do
+          I18n.backend.class.include(I18n::Backend::Pluralization)
+          I18n.backend.send(:init_translations)
+          I18n.backend.store_translations :en, i18n: { plural: { rule: lambda { |n| [0, 1].include?(n) ? :one : :other } } }
+          I18n.backend.store_translations :en, apples: { one: 'one or none', other: 'more than one' }
+          I18n.backend.store_translations :en, pears: { pear: "pear", pears: "pears" }
+        end
+      RUBY
+
+      app "development"
+
+      assert I18n.backend.class.include?(I18n::Backend::Pluralization)
+      assert_equal "one or none", I18n.t(:apples, count: 0)
+      assert_raises I18n::InvalidPluralizationData do
+        assert_equal "pears", I18n.t(:pears, count: 0)
+      end
+    end
+
+    test "run_after_transaction_callbacks_in_order_defined is true in new apps" do
+      app "development"
+
+      assert_equal true, ActiveRecord.run_after_transaction_callbacks_in_order_defined
+    end
+
+    test "run_after_transaction_callbacks_in_order_defined is false in upgrading apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+      app "development"
+
+      assert_equal false, ActiveRecord.run_after_transaction_callbacks_in_order_defined
+    end
+
+    test "run_after_transaction_callbacks_in_order_defined can be set via framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+      app_file "config/initializers/new_framework_defaults_7_1.rb", <<-RUBY
+        Rails.application.config.active_record.run_after_transaction_callbacks_in_order_defined = true
+      RUBY
+      app "development"
+
+      assert_equal true, ActiveRecord.run_after_transaction_callbacks_in_order_defined
+    end
+
+    test "raises if configuration tries to assign to an actual method" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults = "7.0"'
+
+      error = assert_raises(NoMethodError) do
+        app "development"
+      end
+
+      assert_match(/Cannot assign to `load_defaults`, it is a configuration method/, error.message)
+    end
+
+    test "allows initializer to set active_record_encryption.configuration" do
+      app_file "config/initializers/active_record_encryption.rb", <<-RUBY
+        Rails.application.config.active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA1
+      RUBY
+
+      app "development"
+
+      assert_equal OpenSSL::Digest::SHA1, ActiveRecord::Encryption.config.hash_digest_class
+    end
+
+    test "sanitizer_vendor is set to best supported vendor in new apps" do
+      app "development"
+
+      assert_equal Rails::HTML::Sanitizer.best_supported_vendor, ActionView::Helpers::SanitizeHelper.sanitizer_vendor
+    end
+
+    test "sanitizer_vendor is set to HTML4 in upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+      app "development"
+
+      assert_equal Rails::HTML4::Sanitizer, ActionView::Helpers::SanitizeHelper.sanitizer_vendor
+    end
+
+    test "sanitizer_vendor is set to a specific vendor" do
+      add_to_config "config.action_view.sanitizer_vendor = ::MySanitizerVendor"
+      app "development"
+
+      assert_equal ::MySanitizerVendor, ActionView::Helpers::SanitizeHelper.sanitizer_vendor
+    end
+
+    test "Action Text uses the best supported safe list sanitizer in new apps" do
+      app "development"
+
+      assert_kind_of(
+        Rails::HTML::Sanitizer.best_supported_vendor.safe_list_sanitizer,
+        ActionText::ContentHelper.sanitizer,
+      )
+    end
+
+    test "Action Text uses the HTML4 safe list sanitizer in upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+      app "development"
+
+      assert_kind_of(
+        Rails::HTML4::Sanitizer.safe_list_sanitizer,
+        ActionText::ContentHelper.sanitizer,
+      )
+    end
+
+    test "Action Text uses the specified vendor's safe list sanitizer" do
+      add_to_config "config.action_text.sanitizer_vendor = ::MySanitizerVendor"
+      app "development"
+
+      assert_kind_of(
+        ::MySafeListSanitizer,
+        ActionText::ContentHelper.sanitizer,
+      )
+    end
+
+    test "dom testing uses the HTML5 parser in new apps if it is supported" do
+      app "development"
+      expected = defined?(Nokogiri::HTML5) ? :html5 : :html4
+
+      assert_equal(expected, Rails.application.config.dom_testing_default_html_version)
+    end
+
+    test "dom testing uses the HTML4 parser in upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+      app "development"
+
+      assert_equal(:html4, Rails.application.config.dom_testing_default_html_version)
     end
 
     private

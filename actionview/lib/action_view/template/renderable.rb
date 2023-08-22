@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module ActionView
-  # = Action View Renderable Template for objects that respond to #render_in
   class Template
+    # = Action View Renderable Template for objects that respond to #render_in
     class Renderable # :nodoc:
       def initialize(renderable)
         @renderable = renderable

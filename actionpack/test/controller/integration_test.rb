@@ -313,12 +313,14 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
+  include CookieAssertions
+
   test "response cookies are added to the cookie jar for the next request" do
     with_test_route_set do
       cookies["cookie_1"] = "sugar"
       cookies["cookie_2"] = "oatmeal"
       get "/cookie_monster"
-      assert_equal "cookie_1=; path=/\ncookie_3=chocolate; path=/", headers["Set-Cookie"]
+      assert_set_cookie_header "cookie_1=; path=/\ncookie_3=chocolate; path=/", headers["Set-Cookie"]
       assert_equal({ "cookie_1" => "", "cookie_2" => "oatmeal", "cookie_3" => "chocolate" }, cookies.to_hash)
     end
   end
@@ -485,7 +487,8 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
       get "/get_with_params", params: { foo: "bar" }
 
-      assert_empty request.env["rack.input"].string
+      input = request.env["rack.input"]
+      assert(input.nil? || input.read == "")
       assert_equal "foo=bar", request.env["QUERY_STRING"]
       assert_equal "foo=bar", request.query_string
       assert_equal "bar", request.parameters["foo"]
@@ -779,7 +782,8 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
     get "bar", to: "application_integration_test/test#index", as: :bar
 
     mount MountedApp => "/mounted", :as => "mounted"
-    get "fooz" => proc { |env| [ 200, { "X-Cascade" => "pass" }, [ "omg" ] ] }, :anchor => false
+    get "fooz" => proc { |env| [ 200, { ActionDispatch::Constants::X_CASCADE => "pass" }, [ "omg" ] ] },
+      :anchor => false
     get "fooz", to: "application_integration_test/test#index"
   end
 
@@ -1098,6 +1102,10 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     def foos_wibble
       render plain: "ok"
     end
+
+    def foos_json_api
+      render plain: "ok"
+    end
   end
 
   def test_standard_json_encoding_works
@@ -1166,6 +1174,26 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     end
   ensure
     Mime::Type.unregister :wibble
+  end
+
+  def test_registering_custom_encoder_including_parameters
+    accept_header = 'application/vnd.api+json; profile="https://jsonapi.org/profiles/ethanresnick/cursor-pagination/"; ext="https://jsonapi.org/ext/atomic"'
+    Mime::Type.register accept_header, :json_api
+
+    ActionDispatch::IntegrationTest.register_encoder(:json_api,
+      param_encoder: -> params { params })
+
+    post_to_foos as: :json_api do
+      assert_response :success
+      assert_equal "/foos_json_api", request.path
+      assert_equal "application/vnd.api+json", request.media_type
+      assert_equal accept_header, request.accepts.first.to_s
+      assert_equal :json_api, request.format.ref
+      assert_equal Hash.new, request.request_parameters # Unregistered MIME Type can't be parsed.
+      assert_equal "ok", response.parsed_body
+    end
+  ensure
+    Mime::Type.unregister :json_api
   end
 
   def test_parsed_body_without_as_option

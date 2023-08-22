@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActionDispatch
+  # = Action Dispatch \PublicExceptions
+  #
   # When called, this middleware renders an error page. By default if an HTML
   # response is expected it will render static error pages from the <tt>/public</tt>
   # directory. For example when this middleware receives a 500 response it will
@@ -42,8 +44,8 @@ module ActionDispatch
       end
 
       def render_format(status, content_type, body)
-        [status, { "Content-Type" => "#{content_type}; charset=#{ActionDispatch::Response.default_charset}",
-                  "Content-Length" => body.bytesize.to_s }, [body]]
+        [status, { Rack::CONTENT_TYPE => "#{content_type}; charset=#{ActionDispatch::Response.default_charset}",
+                  Rack::CONTENT_LENGTH => body.bytesize.to_s }, [body]]
       end
 
       def render_html(status)
@@ -53,7 +55,7 @@ module ActionDispatch
         if found || File.exist?(path)
           render_format(status, "text/html", File.read(path))
         else
-          [404, { "X-Cascade" => "pass" }, []]
+          [404, { Constants::X_CASCADE => "pass" }, []]
         end
       end
   end

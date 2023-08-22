@@ -14,7 +14,7 @@
     "build": "rollup --config rollup.config.js",
     "pretest": "rollup --config rollup.config.test.js",
     "test": "karma start",
-    "lint": "eslint app/javascript"
+    "lint": "eslint app/javascript && eslint test/ujs/public/test"
   },
   "repository": {
     "type": "git",

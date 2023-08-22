@@ -4,6 +4,8 @@ require "bigdecimal/util"
 
 module ActiveModel
   module Type
+    # = Active Model \Decimal \Type
+    #
     # Attribute type for decimal, high-precision floating point numeric
     # representation. It is registered under the +:decimal+ key.
     #

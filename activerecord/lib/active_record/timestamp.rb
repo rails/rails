@@ -78,6 +78,14 @@ module ActiveRecord
         connection.default_timezone == :utc ? Time.now.utc : Time.now
       end
 
+      protected
+        def reload_schema_from_cache(recursive = true)
+          @timestamp_attributes_for_create_in_model = nil
+          @timestamp_attributes_for_update_in_model = nil
+          @all_timestamp_attributes_in_model = nil
+          super
+        end
+
       private
         def timestamp_attributes_for_create
           ["created_at", "created_on"].map! { |name| attribute_aliases[name] || name }
@@ -86,16 +94,14 @@ module ActiveRecord
         def timestamp_attributes_for_update
           ["updated_at", "updated_on"].map! { |name| attribute_aliases[name] || name }
         end
-
-        def reload_schema_from_cache
-          @timestamp_attributes_for_create_in_model = nil
-          @timestamp_attributes_for_update_in_model = nil
-          @all_timestamp_attributes_in_model = nil
-          super
-        end
     end
 
   private
+    def init_internals
+      super
+      @_touch_record = nil
+    end
+
     def _create_record
       if record_timestamps
         current_time = current_time_from_proper_timezone
@@ -109,6 +115,17 @@ module ActiveRecord
     end
 
     def _update_record
+      record_update_timestamps
+
+      super
+    end
+
+    def create_or_update(touch: true, **)
+      @_touch_record = touch
+      super
+    end
+
+    def record_update_timestamps
       if @_touch_record && should_record_timestamps?
         current_time = current_time_from_proper_timezone
 
@@ -118,12 +135,7 @@ module ActiveRecord
         end
       end
 
-      super
-    end
-
-    def create_or_update(touch: true, **)
-      @_touch_record = touch
-      super
+      yield if block_given?
     end
 
     def should_record_timestamps?

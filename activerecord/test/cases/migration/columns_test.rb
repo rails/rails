@@ -64,7 +64,7 @@ module ActiveRecord
         assert_equal "70000", default_after
       end
 
-      if current_adapter?(:Mysql2Adapter)
+      if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
         def test_mysql_rename_column_preserves_auto_increment
           rename_column "test_models", "id", "id_test"
           assert_predicate connection.columns("test_models").find { |c| c.name == "id_test" }, :auto_increment?
@@ -136,7 +136,7 @@ module ActiveRecord
       def test_remove_column_with_multi_column_index
         # MariaDB starting with 10.2.8
         # Dropping a column that is part of a multi-column UNIQUE constraint is not permitted.
-        skip if current_adapter?(:Mysql2Adapter) && connection.mariadb? && connection.database_version >= "10.2.8"
+        skip if current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && connection.mariadb? && connection.database_version >= "10.2.8"
 
         add_column "test_models", :hat_size, :integer
         add_column "test_models", :hat_style, :string, limit: 100
@@ -295,6 +295,20 @@ module ActiveRecord
         connection.change_column_default "test_models", "first_name", from: nil, to: "Tester"
 
         assert_equal "Tester", TestModel.new.first_name
+      end
+
+      def test_change_column_default_preserves_existing_column_default_function
+        skip unless current_adapter?(:SQLite3Adapter)
+
+        connection.change_column_default "test_models", "created_at", -> { "CURRENT_TIMESTAMP" }
+        TestModel.reset_column_information
+        assert_equal "CURRENT_TIMESTAMP", TestModel.columns_hash["created_at"].default_function
+
+        add_column "test_models", "edited_at", :datetime
+        connection.change_column_default "test_models", "edited_at", -> { "CURRENT_TIMESTAMP" }
+        TestModel.reset_column_information
+        assert_equal "CURRENT_TIMESTAMP", TestModel.columns_hash["created_at"].default_function
+        assert_equal "CURRENT_TIMESTAMP", TestModel.columns_hash["edited_at"].default_function
       end
 
       def test_change_column_null_false

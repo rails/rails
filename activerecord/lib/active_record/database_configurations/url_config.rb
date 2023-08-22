@@ -2,7 +2,9 @@
 
 module ActiveRecord
   class DatabaseConfigurations
-    # A UrlConfig object is created for each database configuration
+    # = Active Record Database Url Config
+    #
+    # A +UrlConfig+ object is created for each database configuration
     # entry that is created from a URL. This can either be a URL string
     # or a hash with a URL in place of the config hash.
     #
@@ -17,20 +19,24 @@ module ActiveRecord
     #     @config={adapter: "postgresql", database: "foo", host: "localhost"},
     #     @url="postgres://localhost/foo">
     #
-    # ==== Options
+    # See ActiveRecord::DatabaseConfigurations for more info.
     #
-    # * <tt>:env_name</tt> - The Rails environment, i.e. "development".
-    # * <tt>:name</tt> - The db config name. In a standard two-tier
-    #   database configuration this will default to "primary". In a multiple
-    #   database three-tier database configuration this corresponds to the name
-    #   used in the second tier, for example "primary_readonly".
-    # * <tt>:url</tt> - The database URL.
-    # * <tt>:config</tt> - The config hash. This is the hash that contains the
-    #   database adapter, name, and other important information for database
-    #   connections.
     class UrlConfig < HashConfig
       attr_reader :url
 
+      # Initialize a new +UrlConfig+ object
+      #
+      # ==== Options
+      #
+      # * <tt>:env_name</tt> - The \Rails environment, i.e. "development".
+      # * <tt>:name</tt> - The db config name. In a standard two-tier
+      #   database configuration this will default to "primary". In a multiple
+      #   database three-tier database configuration this corresponds to the name
+      #   used in the second tier, for example "primary_readonly".
+      # * <tt>:url</tt> - The database URL.
+      # * <tt>:config</tt> - The config hash. This is the hash that contains the
+      #   database adapter, name, and other important information for database
+      #   connections.
       def initialize(env_name, name, url, configuration_hash = {})
         super(env_name, name, configuration_hash)
 

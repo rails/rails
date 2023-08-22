@@ -9,6 +9,7 @@ require "models/book"
 require "models/author"
 require "models/post"
 require "models/movie"
+require "models/cpk"
 
 class TransactionTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
@@ -16,6 +17,11 @@ class TransactionTest < ActiveRecord::TestCase
 
   def setup
     @first, @second = Topic.find(1, 2).sort_by(&:id)
+    @commit_transaction_on_non_local_return_was = ActiveRecord.commit_transaction_on_non_local_return
+  end
+
+  def teardown
+    ActiveRecord.commit_transaction_on_non_local_return = @commit_transaction_on_non_local_return_was
   end
 
   def test_rollback_dirty_changes
@@ -76,6 +82,93 @@ class TransactionTest < ActiveRecord::TestCase
       end
 
       assert_equal "The Fifth Topic of the day", topic.reload.title
+    ensure
+      ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
+    end
+
+    def test_connection_removed_from_pool_when_commit_raises_and_rollback_raises
+      connection = Topic.connection
+
+      # Update commit_transaction to raise the first time it is called.
+      Topic.connection.transaction_manager.class_eval do
+        alias :real_commit_transaction :commit_transaction
+        define_method(:commit_transaction) do
+          raise "commit failed"
+        end
+      end
+
+      # Update rollback_transaction to raise.
+      Topic.connection.transaction_manager.class_eval do
+        alias :real_rollback_transaction :rollback_transaction
+        define_method(:rollback_transaction) do |*_args|
+          raise "rollback failed"
+        end
+      end
+
+      # Start a transaction and update a record. The commit and rollback will fail.
+      topic = topics(:fifth)
+      exception = assert_raises(RuntimeError) do
+        ActiveRecord::Base.transaction do
+          topic.update(title: "Updated title")
+        end
+      end
+      assert_equal "rollback failed", exception.message
+      assert_not connection.active?
+      assert_not Topic.connection_pool.connections.include?(connection)
+      assert_equal "The Fifth Topic of the day", topic.reload.title
+    ensure
+      ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
+    end
+
+    def test_connection_removed_from_pool_when_begin_raises_after_successfully_beginning_a_transaction
+      connection = Topic.connection
+      # Disable lazy transactions so that we will begin a transaction before attempting to write.
+      connection.disable_lazy_transactions!
+
+      # Update begin_db_transaction to successfully begin a transaction, then raise.
+      Topic.connection.class_eval do
+        alias :real_begin_db_transaction :begin_db_transaction
+        define_method(:begin_db_transaction) do |*_args|
+          raise "begin failed"
+        end
+      end
+
+      # Attempt to begin a transaction. This will raise, causing a rollback.
+      exception = assert_raises(RuntimeError) do
+        ActiveRecord::Base.transaction { }
+      end
+      assert_equal "begin failed", exception.message
+      assert_not connection.active?
+      assert_not Topic.connection_pool.connections.include?(connection)
+    ensure
+      ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
+    end
+
+    def test_connection_removed_from_pool_when_thread_killed_in_begin_after_successfully_beginning_a_transaction
+      queue = Queue.new
+      connection = nil
+      thread = Thread.new do
+        connection = Topic.connection
+
+        # Disable lazy transactions so that we will begin a transaction before attempting to write.
+        connection.disable_lazy_transactions!
+
+        # Update begin_db_transaction to block.
+        connection.class_eval do
+          alias :real_begin_db_transaction :begin_db_transaction
+          define_method(:begin_db_transaction) do |*_args|
+            queue.push nil
+            sleep
+          end
+        end
+
+        ActiveRecord::Base.transaction { }
+      end
+      queue.pop
+      thread.kill
+      thread.join
+      assert_not connection.active?
+      assert_not Topic.connection_pool.connections.include?(connection)
     ensure
       ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
     end
@@ -211,7 +304,7 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    assert_deprecated(ActiveRecord.deprecator) do
+    assert_not_deprecated(ActiveRecord.deprecator) do
       transaction_with_shallow_return
     end
     assert committed
@@ -226,7 +319,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_deprecation_on_ruby_timeout_outside_inner_transaction
-    assert_deprecated(ActiveRecord.deprecator) do
+    assert_not_deprecated(ActiveRecord.deprecator) do
       catch do |timeout|
         Topic.transaction do
           Topic.transaction(requires_new: true) do
@@ -253,7 +346,9 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    transaction_with_return
+    assert_deprecated(ActiveRecord.deprecator) do
+      transaction_with_return
+    end
     assert_not committed
 
     assert_not_predicate Topic.find(1), :approved?
@@ -266,24 +361,76 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_rollback_on_ruby_timeout
-    catch do |timeout|
-      Topic.transaction do
-        @first.approved = true
-        @first.save!
+    assert_deprecated(ActiveRecord.deprecator) do
+      catch do |timeout|
+        Topic.transaction do
+          @first.approved = true
+          @first.save!
 
-        throw timeout
+          throw timeout
+        end
       end
     end
 
     assert_not_predicate Topic.find(1), :approved?
   end
 
-  def test_early_return_from_transaction
-    assert_not_deprecated(ActiveRecord.deprecator) do
-      @first.with_lock do
-        break
+  def test_break_from_transaction_7_1_behavior
+    ActiveRecord.commit_transaction_on_non_local_return = true
+
+    @first.transaction do
+      assert_not_predicate @first, :approved?
+      @first.update!(approved: true)
+
+      break if true
+
+      # dead code
+      assert_predicate @first, :approved?
+      @first.update!(approved: false)
+    end
+
+    assert_predicate Topic.find(1), :approved?, "First should have been approved"
+    assert_predicate Topic.find(2), :approved?, "Second should have been approved"
+  end
+
+  def test_thow_from_transaction_7_1_behavior
+    ActiveRecord.commit_transaction_on_non_local_return = true
+
+    catch(:not_an_error) do
+      @first.transaction do
+        assert_not_predicate @first, :approved?
+        @first.update!(approved: true)
+
+        throw :not_an_error
+
+        # dead code
+        assert_predicate @first, :approved?
+        @first.update!(approved: false)
       end
     end
+    assert_predicate Topic.find(1), :approved?, "First should have been approved"
+    assert_predicate Topic.find(2), :approved?, "Second should have been approved"
+  end
+
+  def _test_return_from_transaction_7_1_behavior
+    @first.transaction do
+      assert_not_predicate @first, :approved?
+      @first.update!(approved: true)
+
+      return if true
+
+      # dead code
+      assert_predicate @first, :approved?
+      @first.update!(approved: false)
+    end
+  end
+
+  def test_return_from_transaction_7_1_behavior
+    ActiveRecord.commit_transaction_on_non_local_return = true
+
+    _test_return_from_transaction_7_1_behavior
+    assert_predicate Topic.find(1), :approved?, "First should have been approved"
+    assert_predicate Topic.find(2), :approved?, "Second should have been approved"
   end
 
   def test_number_of_transactions_in_commit
@@ -926,6 +1073,32 @@ class TransactionTest < ActiveRecord::TestCase
     assert_predicate topic, :previously_new_record?
   end
 
+  def test_restore_composite_id_after_rollback
+    book = Cpk::Book.create!(id: [1, 2])
+
+    Cpk::Book.transaction do
+      book.update!(id: [42, 42])
+      raise ActiveRecord::Rollback
+    end
+
+    assert_equal [1, 2], book.id
+  ensure
+    Cpk::Book.delete_all
+  end
+
+  def test_rollback_on_composite_key_model
+    Cpk::Book.create!(id: [1, 3], title: "Charlotte's Web")
+    book_two_unpersisted = Cpk::Book.new(id: [1, 3])
+
+    assert_raise(ActiveRecord::RecordNotUnique) do
+      Cpk::Book.transaction do
+        book_two_unpersisted.save!
+      end
+    end
+  ensure
+    Cpk::Book.delete_all
+  end
+
   def test_restore_id_after_rollback
     topic = Topic.new
 
@@ -1346,8 +1519,11 @@ class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
   end
 end if Topic.connection.supports_savepoints?
 
-class ConcurrentTransactionTest < TransactionTest
+class ConcurrentTransactionTest < ActiveRecord::TestCase
   if ActiveRecord::Base.connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)
+    self.use_transactional_tests = false
+    fixtures :topics, :developers
+
     # This will cause transactions to overlap and fail unless they are performed on
     # separate database connections.
     def test_transaction_per_thread

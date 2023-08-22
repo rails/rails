@@ -12,7 +12,7 @@ module ActiveRecord
       :create_or_find_by, :create_or_find_by!,
       :destroy_all, :delete_all, :update_all, :touch_all, :destroy_by, :delete_by,
       :find_each, :find_in_batches, :in_batches,
-      :select, :reselect, :order, :in_order_of, :reorder, :group, :limit, :offset, :joins, :left_joins, :left_outer_joins,
+      :select, :reselect, :order, :regroup, :in_order_of, :reorder, :group, :limit, :offset, :joins, :left_joins, :left_outer_joins,
       :where, :rewhere, :invert_where, :preload, :extract_associated, :eager_load, :includes, :from, :lock, :readonly,
       :and, :or, :annotate, :optimizer_hints, :extending,
       :having, :create_with, :distinct, :references, :none, :unscope, :merge, :except, :only,
@@ -51,7 +51,7 @@ module ActiveRecord
       _load_from_sql(_query_by_sql(sql, binds, preparable: preparable), &block)
     end
 
-    # Same as <tt>#find_by_sql</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    # Same as <tt>#find_by_sql</tt> but perform the query asynchronously and returns an ActiveRecord::Promise
     def async_find_by_sql(sql, binds = [], preparable: nil, &block)
       _query_by_sql(sql, binds, preparable: preparable, async: true).then do |result|
         _load_from_sql(result, &block)
@@ -102,7 +102,7 @@ module ActiveRecord
       connection.select_value(sanitize_sql(sql), "#{name} Count").to_i
     end
 
-    # Same as <tt>#count_by_sql</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    # Same as <tt>#count_by_sql</tt> but perform the query asynchronously and returns an ActiveRecord::Promise
     def async_count_by_sql(sql)
       connection.select_value(sanitize_sql(sql), "#{name} Count", async: true).then(&:to_i)
     end

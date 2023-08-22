@@ -5,6 +5,23 @@ require "active_support/core_ext/module/delegation"
 
 module ActiveRecord
   module Delegation # :nodoc:
+    class << self
+      def delegated_classes
+        [
+          ActiveRecord::Relation,
+          ActiveRecord::Associations::CollectionProxy,
+          ActiveRecord::AssociationRelation,
+          ActiveRecord::DisableJoinsAssociationRelation,
+        ]
+      end
+
+      def uncacheable_methods
+        @uncacheable_methods ||= (
+          delegated_classes.flat_map(&:public_instance_methods) - ActiveRecord::Relation.public_instance_methods
+        ).to_set.freeze
+      end
+    end
+
     module DelegateCache # :nodoc:
       def relation_delegate_class(klass)
         @relation_delegate_cache[klass]
@@ -12,12 +29,7 @@ module ActiveRecord
 
       def initialize_relation_delegate_cache
         @relation_delegate_cache = cache = {}
-        [
-          ActiveRecord::Relation,
-          ActiveRecord::Associations::CollectionProxy,
-          ActiveRecord::AssociationRelation,
-          ActiveRecord::DisableJoinsAssociationRelation
-        ].each do |klass|
+        Delegation.delegated_classes.each do |klass|
           delegate = Class.new(klass) {
             include ClassSpecificRelation
           }
@@ -85,7 +97,7 @@ module ActiveRecord
     # may vary depending on the klass of a relation, so we create a subclass of Relation
     # for each different klass, and the delegations are compiled into that subclass only.
 
-    delegate :to_xml, :encode_with, :length, :each, :join,
+    delegate :to_xml, :encode_with, :length, :each, :join, :intersect?,
              :[], :&, :|, :+, :-, :sample, :reverse, :rotate, :compact, :in_groups, :in_groups_of,
              :to_sentence, :to_fs, :to_formatted_s, :as_json,
              :shuffle, :split, :slice, :index, :rindex, to: :records
@@ -104,7 +116,9 @@ module ActiveRecord
       private
         def method_missing(method, *args, &block)
           if @klass.respond_to?(method)
-            @klass.generate_relation_method(method)
+            unless Delegation.uncacheable_methods.include?(method)
+              @klass.generate_relation_method(method)
+            end
             scoping { @klass.public_send(method, *args, &block) }
           else
             super

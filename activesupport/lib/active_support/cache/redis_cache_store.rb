@@ -10,12 +10,14 @@ rescue LoadError
 end
 
 require "connection_pool"
+require "active_support/core_ext/array/wrap"
+require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/numeric/time"
 require "active_support/digest"
 
 module ActiveSupport
   module Cache
-    # Redis cache store.
+    # = Redis \Cache \Store
     #
     # Deployment note: Take care to use a *dedicated Redis cache* rather
     # than pointing this at your existing Redis server. It won't cope well
@@ -103,8 +105,8 @@ module ActiveSupport
           end
       end
 
-      attr_reader :redis_options
       attr_reader :max_key_bytesize
+      attr_reader :redis
 
       # Creates a new Redis cache store.
       #
@@ -140,34 +142,23 @@ module ActiveSupport
       #   cache.fetch('bar', skip_nil: true) { nil }
       #   cache.exist?('foo') # => true
       #   cache.exist?('bar') # => false
-      def initialize(namespace: nil, compress: true, compress_threshold: 1.kilobyte, coder: default_coder, expires_in: nil, race_condition_ttl: nil, error_handler: DEFAULT_ERROR_HANDLER, skip_nil: false, **redis_options)
-        @redis_options = redis_options
+      def initialize(error_handler: DEFAULT_ERROR_HANDLER, **redis_options)
+        universal_options = redis_options.extract!(*UNIVERSAL_OPTIONS)
+
+        if pool_options = self.class.send(:retrieve_pool_options, redis_options)
+          @redis = ::ConnectionPool.new(pool_options) { self.class.build_redis(**redis_options) }
+        else
+          @redis = self.class.build_redis(**redis_options)
+        end
 
         @max_key_bytesize = MAX_KEY_BYTESIZE
         @error_handler = error_handler
-        @supports_pipelining = true
 
-        super namespace: namespace,
-          compress: compress, compress_threshold: compress_threshold,
-          expires_in: expires_in, race_condition_ttl: race_condition_ttl,
-          coder: coder, skip_nil: skip_nil
-      end
-
-      def redis
-        @redis ||= begin
-          pool_options = self.class.send(:retrieve_pool_options, redis_options)
-
-          if pool_options.any?
-            ::ConnectionPool.new(pool_options) { self.class.build_redis(**redis_options) }
-          else
-            self.class.build_redis(**redis_options)
-          end
-        end
+        super(universal_options)
       end
 
       def inspect
-        instance = @redis || @redis_options
-        "#<#{self.class} options=#{options.inspect} redis=#{instance.inspect}>"
+        "#<#{self.class} options=#{options.inspect} redis=#{redis.inspect}>"
       end
 
       # Cache Store API implementation.
@@ -175,8 +166,10 @@ module ActiveSupport
       # Read multiple values at once. Returns a hash of requested keys ->
       # fetched values.
       def read_multi(*names)
+        return {} if names.empty?
+
         options = names.extract_options!
-        instrument(:read_multi, names, options) do |payload|
+        instrument_multi(:read_multi, names, options) do |payload|
           read_multi_entries(names, **options).tap do |results|
             payload[:hits] = results.keys
           end
@@ -300,15 +293,16 @@ module ActiveSupport
       end
 
       private
-        def pipelined(&block)
-          if @supports_pipelining
-            redis.then { |c| c.pipelined(&block) }
-          else
-            redis.then(&block)
-          end
-        rescue Redis::Distributed::CannotDistribute
-          @supports_pipelining = false
-          retry
+        def pipeline_entries(entries, &block)
+          redis.then { |c|
+            if c.is_a?(Redis::Distributed)
+              entries.group_by { |k, _v| c.node_for(k) }.each do |node, sub_entries|
+                node.pipelined { |pipe| yield(pipe, sub_entries) }
+              end
+            else
+              c.pipelined { |pipe| yield(pipe, entries) }
+            end
+          }
         end
 
         # Store provider interface:
@@ -377,7 +371,7 @@ module ActiveSupport
         # Delete an entry from the cache.
         def delete_entry(key, **options)
           failsafe :delete_entry, returning: false do
-            redis.then { |c| c.del key }
+            redis.then { |c| c.del(key) == 1 }
           end
         end
 
@@ -393,10 +387,10 @@ module ActiveSupport
           return if entries.empty?
 
           failsafe :write_multi_entries do
-            pipelined do |pipeline|
+            pipeline_entries(entries) do |pipeline, sharded_entries|
               options = options.dup
               options[:pipeline] = pipeline
-              entries.each do |key, entry|
+              sharded_entries.each do |key, entry|
                 write_entry key, entry, **options
               end
             end
@@ -462,8 +456,8 @@ module ActiveSupport
         def supports_expire_nx?
           return @supports_expire_nx if defined?(@supports_expire_nx)
 
-          redis_version = redis.then { |c| c.info("server").fetch("redis_version") }
-          @supports_expire_nx = Gem::Version.new(redis_version) >= Gem::Version.new("7.0.0")
+          redis_versions = redis.then { |c| Array.wrap(c.info("server")).pluck("redis_version") }
+          @supports_expire_nx = redis_versions.all? { |v| Gem::Version.new(v) >= Gem::Version.new("7.0.0") }
         end
 
         def failsafe(method, returning: nil)

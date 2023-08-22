@@ -7,6 +7,8 @@ require "azure/storage/blob"
 require "azure/storage/common/core/auth/shared_access_signature"
 
 module ActiveStorage
+  # = Active Storage \Azure Storage \Service
+  #
   # Wraps the Microsoft Azure Storage Blob Service as an Active Storage service.
   # See ActiveStorage::Service for the generic API documentation that applies to all services.
   class Service::AzureStorageService < Service

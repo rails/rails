@@ -59,7 +59,7 @@ exist. Active Record knows how to reverse this migration as well: if we roll
 this migration back, it will remove the table.
 
 On databases that support transactions with statements that change the schema,
-migrations are wrapped in a transaction. If the database does not support this
+each migration is wrapped in a transaction. If the database does not support this
 then when a migration fails the parts of it that succeeded will not be rolled
 back. You will have to rollback the changes that were made by hand.
 
@@ -517,14 +517,14 @@ Column modifiers can be applied when creating or changing a column:
 * `comment`      Adds a comment for the column.
 * `collation`    Specifies the collation for a `string` or `text` column.
 * `default`      Allows to set a default value on the column. Note that if you
-are using a dynamic value (such as a date), the default will only be calculated
-the first time (i.e. on the date the migration is applied). Use `nil` for `NULL`.
+  are using a dynamic value (such as a date), the default will only be calculated
+  the first time (i.e. on the date the migration is applied). Use `nil` for `NULL`.
 * `limit`        Sets the maximum number of characters for a `string` column
-and the maximum number of bytes for `text/binary/integer` columns.
+  and the maximum number of bytes for `text/binary/integer` columns.
 * `null`         Allows or disallows `NULL` values in the column.
 * `precision`    Specifies the precision for `decimal/numeric/datetime/time` columns.
 * `scale`        Specifies the scale for the `decimal` and `numeric` columns,
-representing the number of digits after the decimal point.
+  representing the number of digits after the decimal point.
 
 NOTE: For `add_column` or `change_column` there is no option for adding indexes.
 They need to be added separately using `add_index`.
@@ -724,17 +724,16 @@ class ExampleMigration < ActiveRecord::Migration[7.1]
 
     reversible do |direction|
       direction.up do
-        # add a CHECK constraint
+        # create a distributors view
         execute <<-SQL
-          ALTER TABLE distributors
-            ADD CONSTRAINT zipchk
-              CHECK (char_length(zipcode) = 5) NO INHERIT;
+          CREATE VIEW distributors_view AS
+          SELECT id, zipcode
+          FROM distributors;
         SQL
       end
       direction.down do
         execute <<-SQL
-          ALTER TABLE distributors
-            DROP CONSTRAINT zipchk
+          DROP VIEW distributors_view;
         SQL
       end
     end
@@ -747,7 +746,7 @@ end
 
 Using `reversible` will ensure that the instructions are executed in the right
 order too. If the previous example migration is reverted, the `down` block will
-be run after the `home_page_url` column is removed and right before the table
+be run after the `home_page_url` column is removed and `email_address` column is renamed and right before the table
 `distributors` is dropped.
 
 [`reversible`]: https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-reversible
@@ -774,11 +773,11 @@ class ExampleMigration < ActiveRecord::Migration[7.1]
       t.string :zipcode
     end
 
-    # add a CHECK constraint
+    # create a distributors view
     execute <<-SQL
-      ALTER TABLE distributors
-        ADD CONSTRAINT zipchk
-        CHECK (char_length(zipcode) = 5);
+      CREATE VIEW distributors_view AS
+      SELECT id, zipcode
+      FROM distributors;
     SQL
 
     add_column :users, :home_page_url, :string
@@ -790,8 +789,7 @@ class ExampleMigration < ActiveRecord::Migration[7.1]
     remove_column :users, :home_page_url
 
     execute <<-SQL
-      ALTER TABLE distributors
-        DROP CONSTRAINT zipchk
+      DROP VIEW distributors_view;
     SQL
 
     drop_table :distributors
@@ -832,27 +830,25 @@ The `revert` method also accepts a block of instructions to reverse. This could
 be useful to revert selected parts of previous migrations.
 
 For example, let's imagine that `ExampleMigration` is committed and it is later
-decided it would be best to use Active Record validations, in place of the
-`CHECK` constraint, to verify the zipcode.
+decided that a Distributors view is no longer needed.
 
 ```ruby
-class DontUseConstraintForZipcodeValidationMigration < ActiveRecord::Migration[7.1]
+class DontUseDistributorsViewMigration < ActiveRecord::Migration[7.1]
   def change
     revert do
       # copy-pasted code from ExampleMigration
       reversible do |direction|
         direction.up do
-          # add a CHECK constraint
+          # create a distributors view
           execute <<-SQL
-            ALTER TABLE distributors
-              ADD CONSTRAINT zipchk
-                CHECK (char_length(zipcode) = 5);
+            CREATE VIEW distributors_view AS
+            SELECT id, zipcode
+            FROM distributors;
           SQL
         end
         direction.down do
           execute <<-SQL
-            ALTER TABLE distributors
-              DROP CONSTRAINT zipchk
+            DROP VIEW distributors_view;
           SQL
         end
       end
@@ -975,7 +971,7 @@ If the version specified does not exist, Rails will throw an exception.
 ```bash
 $ bin/rails db:migrate VERSION=zomg
 rails aborted!
-ActiveRecord::UnknownMigrationVersionError: 
+ActiveRecord::UnknownMigrationVersionError:
 
 No migration with version number zomg.
 ```
@@ -1220,13 +1216,18 @@ end
 
 To add initial data after a database is created, Rails has a built-in 'seeds'
 feature that speeds up the process. This is especially useful when reloading the
-database frequently in development and test environments. To get started with
-this feature, fill up `db/seeds.rb` with some Ruby code, and run `bin/rails
-db:seed`:
+database frequently in development and test environments, or when setting up
+initial data for production.
+
+To get started with this feature, open up `db/seeds.rb` and add some Ruby code,
+then run `bin/rails db:seed`.
+
+NOTE: The code here should be idempotent so that it can be executed at any point
+in every environment.
 
 ```ruby
-5.times do |i|
-  Product.create(name: "Product ##{i}", description: "A product.")
+["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
+  MovieGenre.find_or_create_by!(name: genre_name)
 end
 ```
 
@@ -1264,7 +1265,7 @@ to run them again.
 Thus, you generally want to preserve migrations coming from engines. They have a
 special comment like this:
 
-```
+```ruby
 # This migration comes from blorgh (originally 20210621082949)
 ```
 

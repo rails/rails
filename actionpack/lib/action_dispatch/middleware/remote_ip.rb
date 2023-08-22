@@ -3,6 +3,8 @@
 require "ipaddr"
 
 module ActionDispatch
+  # = Action Dispatch \RemoteIp
+  #
   # This middleware calculates the IP address of the remote client that is
   # making the request. It does this by checking various headers that could
   # contain the address, and then picking the last-set address that is not
@@ -20,7 +22,7 @@ module ActionDispatch
   # This middleware assumes that there is at least one proxy sitting around
   # and setting headers with the client's remote IP address. If you don't use
   # a proxy, because you are hosted on e.g. Heroku without SSL, any client can
-  # claim to have any IP address by setting the X-Forwarded-For header. If you
+  # claim to have any IP address by setting the +X-Forwarded-For+ header. If you
   # care about that, then you need to explicitly drop or ignore those headers
   # sometime before this middleware runs. Alternatively, remove this middleware
   # to avoid inadvertently relying on it.
@@ -52,7 +54,7 @@ module ActionDispatch
     #
     # The +custom_proxies+ argument can take an enumerable which will be used
     # instead of +TRUSTED_PROXIES+. Any proxy setup will put the value you
-    # want in the middle (or at the beginning) of the X-Forwarded-For list,
+    # want in the middle (or at the beginning) of the +X-Forwarded-For+ list,
     # with your proxy servers after it. If your proxies aren't removed, pass
     # them in via the +custom_proxies+ parameter. That way, the middleware will
     # ignore those IP addresses, and return the one that you want.
@@ -64,9 +66,9 @@ module ActionDispatch
       elsif custom_proxies.respond_to?(:any?)
         custom_proxies
       else
-        ActionDispatch.deprecator.warn(<<~EOM)
-          Setting config.action_dispatch.trusted_proxies to a single value has
-          been deprecated. Please set this to an enumerable instead. For
+        raise(ArgumentError, <<~EOM)
+          Setting config.action_dispatch.trusted_proxies to a single value isn't
+          supported. Please set this to an enumerable instead. For
           example, instead of:
 
           config.action_dispatch.trusted_proxies = IPAddr.new("10.0.0.0/8")
@@ -75,10 +77,8 @@ module ActionDispatch
 
           config.action_dispatch.trusted_proxies = [IPAddr.new("10.0.0.0/8")]
 
-          Note that unlike passing a single argument, passing an enumerable
-          will *replace* the default set of trusted proxies.
+          Note that passing an enumerable will *replace* the default set of trusted proxies.
         EOM
-        Array(custom_proxies) + TRUSTED_PROXIES
       end
     end
 
@@ -109,9 +109,9 @@ module ActionDispatch
       # REMOTE_ADDR will be correct if the request is made directly against the
       # Ruby process, on e.g. Heroku. When the request is proxied by another
       # server like HAProxy or NGINX, the IP address that made the original
-      # request will be put in an X-Forwarded-For header. If there are multiple
+      # request will be put in an +X-Forwarded-For+ header. If there are multiple
       # proxies, that header may contain a list of IPs. Other proxy services
-      # set the Client-Ip header instead, so we check that too.
+      # set the +Client-Ip+ header instead, so we check that too.
       #
       # As discussed in {this post about Rails IP Spoofing}[https://web.archive.org/web/20170626095448/https://blog.gingerlime.com/2012/rails-ip-spoofing-vulnerabilities-and-protection/],
       # while the first IP in the list is likely to be the "originating" IP,

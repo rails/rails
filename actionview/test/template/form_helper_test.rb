@@ -110,10 +110,10 @@ class FormHelperTest < ActionView::TestCase
     @comment = Comment.new
     def @post.errors
       Class.new {
-        def [](field); field == "author_name" ? ["can't be empty"] : [] end
+        def [](field); field == "author_name" ? ["can’t be empty"] : [] end
         def empty?() false end
         def count() 1 end
-        def full_messages() ["Author name can't be empty"] end
+        def full_messages() ["Author name can’t be empty"] end
       }.new
     end
     def @post.to_key; [123]; end
@@ -1165,6 +1165,11 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, time_field("post", "written_on", value: value))
   end
 
+  def test_time_field_with_value_attr_that_excludes_seconds
+    expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="01:45" />}
+    assert_dom_equal(expected, time_field("post", "written_on", value: "01:45"))
+  end
+
   def test_time_field_with_timewithzone_value
     previous_time_zone, Time.zone = Time.zone, "UTC"
     expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="01:02:03.000" />}
@@ -1269,6 +1274,11 @@ class FormHelperTest < ActionView::TestCase
   def test_datetime_local_field_without_seconds
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00" />}
     assert_dom_equal(expected, datetime_local_field("post", "written_on", include_seconds: false))
+  end
+
+  def test_datetime_local_field_with_value_attr_that_excludes_seconds
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00" />}
+    assert_dom_equal(expected, datetime_local_field("post", "written_on", value: "2004-06-15T00:00"))
   end
 
   def test_month_field
@@ -1879,6 +1889,57 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts", "special_new_post", "new_post") do
       '<input id="special_post_1_title" name="post[1][title]" type="text" aria-describedby="special_post_1_title_error">' \
       '<span id="special_post_1_title_error">is blank</span>'
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
+  def test_form_for_with_nested_attributes_field_id
+    post, comment, tag = Post.new, Comment.new, Tag.new
+    comment.relevances = [tag]
+    post.comments = [comment]
+    form_for(post) do |form|
+      form.fields_for(:comments) do |comment_form|
+        concat comment_form.field_id :relevances_attributes
+      end
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      "post_comments_attributes_0_relevances_attributes"
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
+  def test_form_for_with_nested_attributes_field_name
+    post, comment, tag = Post.new, Comment.new, Tag.new
+    comment.relevances = [tag]
+    post.comments = [comment]
+    form_for(post) do |form|
+      form.fields_for(:comments) do |comment_form|
+        concat comment_form.field_name :relevances_attributes
+      end
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      "post[comments_attributes][0][relevances_attributes]"
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
+  def test_form_for_with_nested_attributes_field_name_multiple
+    post, comment, tag = Post.new, Comment.new, Tag.new
+    comment.relevances = [tag]
+    post.comments = [comment]
+    form_for(post) do |form|
+      form.fields_for(:comments) do |comment_form|
+        concat comment_form.field_name :relevances_attributes, multiple: true
+      end
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      "post[comments_attributes][0][relevances_attributes][]"
     end
 
     assert_dom_equal expected, @rendered

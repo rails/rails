@@ -276,10 +276,10 @@ class FormWithActsLikeFormForTest < FormWithTest
     @comment = Comment.new
     def @post.errors
       Class.new {
-        def [](field); field == "author_name" ? ["can't be empty"] : [] end
+        def [](field); field == "author_name" ? ["can’t be empty"] : [] end
         def empty?() false end
         def count() 1 end
-        def full_messages() ["Author name can't be empty"] end
+        def full_messages() ["Author name can’t be empty"] end
       }.new
     end
     def @post.to_key; [123]; end
@@ -2467,6 +2467,42 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     form_with(model: @post, builder: builder_class) { }
     assert_equal 1, initialization_count, "form builder instantiated more than once"
+  end
+
+  def test_form_with_with_id_option
+    form_with(model: Post.new, id: "new_special_post") do |form|
+      concat form.button(form: form.id)
+    end
+
+    expected = whole_form("/posts", "new_special_post") do
+      '<button name="button" type="submit" form="new_special_post">Create Post</button>'
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
+  def test_form_with_with_id_option_nested_in_html
+    form_with(model: Post.new, html: { id: "new_special_post" }) do |form|
+      concat form.button(form: form.id)
+    end
+
+    expected = whole_form("/posts", "new_special_post") do
+      '<button name="button" type="submit" form="new_special_post">Create Post</button>'
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
+  def test_form_with_with_competing_id_option_nested_in_html
+    form_with(model: Post.new, id: "ignored", html: { id: "new_special_post" }) do |form|
+      concat form.button(form: form.id)
+    end
+
+    expected = whole_form("/posts", "new_special_post") do
+      '<button name="button" type="submit" form="new_special_post">Create Post</button>'
+    end
+
+    assert_dom_equal expected, @rendered
   end
 
   private

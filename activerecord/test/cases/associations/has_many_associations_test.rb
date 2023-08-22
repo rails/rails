@@ -41,6 +41,9 @@ require "models/subscription"
 require "models/zine"
 require "models/interest"
 require "models/human"
+require "models/sharded"
+require "models/cpk"
+require "models/comment_overlapping_counter_cache"
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :posts, :comments
@@ -116,7 +119,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :categories, :companies, :developers, :projects,
            :developers_projects, :topics, :authors, :author_addresses, :comments,
            :posts, :readers, :taggings, :cars, :tags,
-           :categorizations, :zines, :interests, :humans
+           :categorizations, :zines, :interests, :humans,
+           :sharded_blog_posts, :sharded_comments, :cpk_books, :cpk_authors
 
   def setup
     Client.destroyed_client_ids.clear
@@ -385,7 +389,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     speedometer.reload
 
-    assert_equal ["first", "second"], speedometer.minivans.map(&:name)
+    assert_equal ["first", "second"], speedometer.minivans.map(&:name).sort
     assert_equal ["blue", "blue"], speedometer.minivans.map(&:color)
   end
 
@@ -399,7 +403,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     speedometer.reload
 
-    assert_equal ["first", "second"], speedometer.minivans.map(&:name)
+    assert_equal ["first", "second"], speedometer.minivans.map(&:name).sort
     assert_equal ["blue", "blue"], speedometer.minivans.map(&:color)
   end
 
@@ -412,7 +416,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     speedometer.reload
 
-    assert_equal ["first", "second"], speedometer.minivans.map(&:name)
+    assert_equal ["first", "second"], speedometer.minivans.map(&:name).sort
     assert_equal ["blue", "blue"], speedometer.minivans.map(&:color)
   end
 
@@ -425,7 +429,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     speedometer.reload
 
-    assert_equal ["first", "second"], speedometer.minivans.map(&:name)
+    assert_equal ["first", "second"], speedometer.minivans.map(&:name).sort
     assert_equal ["blue", "blue"], speedometer.minivans.map(&:color)
   end
 
@@ -1287,6 +1291,45 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, new_firm.clients_of_firm.size
   end
 
+  def test_deleting_models_with_composite_keys
+    great_author = cpk_authors(:cpk_great_author)
+    books = great_author.books
+
+    assert_equal 2, books.size
+
+    great_author.books.delete(books.first)
+    great_author.reload
+
+    assert_equal 1, great_author.books.size
+  end
+
+  def test_sharded_deleting_models
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    comments = blog_post.delete_comments
+
+    assert_equal 3, comments.size
+
+    comments_to_delete = [comments.first, comments.second]
+
+    sql = capture_sql do
+      blog_post.delete_comments.delete(comments_to_delete)
+    end
+
+    c = Sharded::Comment.connection
+
+    blog_id = Regexp.escape(c.quote_table_name("sharded_comments.blog_id"))
+    id = Regexp.escape(c.quote_table_name("sharded_comments.id"))
+
+    query_constraints = /#{blog_id} = .* AND #{id} = .*/
+    expectation = /DELETE.*WHERE.* \(#{query_constraints} OR #{query_constraints}\)/
+
+    assert_match(expectation, sql.first)
+
+    blog_post.reload
+
+    assert_equal 1, blog_post.comments.size
+  end
+
   def test_has_many_without_counter_cache_option
     # Ship has a conventionally named `treasures_count` column, but the counter_cache
     # option is not given on the association.
@@ -1359,6 +1402,23 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal 2, topic.replies_count
     assert_equal 2, topic.reload.replies_count
+  end
+
+  def test_counter_cache_updates_in_memory_after_create_with_overlapping_counter_cache_columns
+    user = UserCommentsCount.create!
+    post = PostCommentsCount.create!
+
+    assert_difference "user.comments_count", +1 do
+      assert_no_difference "post.comments_count" do
+        post.comments << CommentOverlappingCounterCache.create!(user_comments_count: user)
+      end
+    end
+
+    assert_difference "user.comments_count", +1 do
+      assert_no_difference "post.comments_count" do
+        user.comments << CommentOverlappingCounterCache.create!(post_comments_count: post)
+      end
+    end
   end
 
   def test_counter_cache_updates_in_memory_after_update_with_inverse_of_enabled
@@ -2240,7 +2300,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_not_predicate author.topics_without_type, :loaded?
 
     assert_queries(1) do
-      if current_adapter?(:Mysql2Adapter, :SQLite3Adapter)
+      if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :SQLite3Adapter)
         assert_equal fourth, author.topics_without_type.first
         assert_equal third, author.topics_without_type.second
       end
@@ -2828,7 +2888,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_predicate pirate, :valid?
     assert_not pirate.valid?(:conference)
-    assert_equal "can't be blank", ship.errors[:name].first
+    assert_equal "can’t be blank", ship.errors[:name].first
   end
 
   test "association with instance dependent scope" do
@@ -3071,7 +3131,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     bulb2 = car.bulbs.create!
 
-    assert_equal [bulb.id, bulb2.id], car.bulb_ids
+    assert_equal [bulb.id, bulb2.id], car.bulb_ids.sort
     assert_no_queries { car.bulb_ids }
   end
 
@@ -3130,6 +3190,30 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
       has_many :books, dependent: :destroy_async, ensuring_owner_was: :destroyed?
     end
+  end
+
+  test "composite primary key malformed association class" do
+    error = assert_raises(ActiveRecord::CompositePrimaryKeyMismatchError) do
+      order = Cpk::BrokenOrder.new(id: [1, 2], books: [Cpk::Book.new(title: "Some book")])
+      order.save!
+    end
+
+    assert_equal(<<~MESSAGE.squish, error.message)
+      Association Cpk::BrokenOrder#books primary key ["shop_id", "id"]
+      doesn't match with foreign key broken_order_id. Please specify query_constraints, or primary_key and foreign_key values.
+    MESSAGE
+  end
+
+  test "composite primary key malformed association owner class" do
+    error = assert_raises(ActiveRecord::CompositePrimaryKeyMismatchError) do
+      order = Cpk::BrokenOrderWithNonCpkBooks.new(id: [1, 2], books: [Cpk::NonCpkBook.new(title: "Some book")])
+      order.save!
+    end
+
+    assert_equal(<<~MESSAGE.squish, error.message)
+    Association Cpk::BrokenOrderWithNonCpkBooks#books primary key [\"shop_id\", \"id\"]
+    doesn't match with foreign key broken_order_with_non_cpk_books_id. Please specify query_constraints, or primary_key and foreign_key values.
+    MESSAGE
   end
 
   private

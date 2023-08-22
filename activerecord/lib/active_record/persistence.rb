@@ -122,7 +122,7 @@ module ActiveRecord
       #   clause entirely.
       #
       #   You can also pass an SQL string if you need more control on the return values
-      #   (for example, <tt>returning: "id, name as new_name"</tt>).
+      #   (for example, <tt>returning: Arel.sql("id, name as new_name")</tt>).
       #
       # [:unique_by]
       #   (PostgreSQL and SQLite only) By default rows are considered to be unique
@@ -132,7 +132,7 @@ module ActiveRecord
       #
       #   Consider a Book model where no duplicate ISBNs make sense, but if any
       #   row has an existing id, or is not unique by another unique index,
-      #   <tt>ActiveRecord::RecordNotUnique</tt> is raised.
+      #   ActiveRecord::RecordNotUnique is raised.
       #
       #   Unique indexes can be identified by columns or name:
       #
@@ -194,7 +194,7 @@ module ActiveRecord
       # The +attributes+ parameter is an Array of Hashes. Every Hash determines
       # the attributes for a single row and must have the same keys.
       #
-      # Raises <tt>ActiveRecord::RecordNotUnique</tt> if any rows violate a
+      # Raises ActiveRecord::RecordNotUnique if any rows violate a
       # unique index on the table. In that case, no rows are inserted.
       #
       # To skip duplicate rows, see #insert_all. To replace them, see #upsert_all.
@@ -212,7 +212,7 @@ module ActiveRecord
       #   clause entirely.
       #
       #   You can also pass an SQL string if you need more control on the return values
-      #   (for example, <tt>returning: "id, name as new_name"</tt>).
+      #   (for example, <tt>returning: Arel.sql("id, name as new_name")</tt>).
       #
       # [:record_timestamps]
       #   By default, automatic setting of timestamp columns is controlled by
@@ -278,7 +278,7 @@ module ActiveRecord
       #   clause entirely.
       #
       #   You can also pass an SQL string if you need more control on the return values
-      #   (for example, <tt>returning: "id, name as new_name"</tt>).
+      #   (for example, <tt>returning: Arel.sql("id, name as new_name")</tt>).
       #
       # [:unique_by]
       #   (PostgreSQL and SQLite only) By default rows are considered to be unique
@@ -288,7 +288,7 @@ module ActiveRecord
       #
       #   Consider a Book model where no duplicate ISBNs make sense, but if any
       #   row has an existing id, or is not unique by another unique index,
-      #   <tt>ActiveRecord::RecordNotUnique</tt> is raised.
+      #   ActiveRecord::RecordNotUnique is raised.
       #
       #   Unique indexes can be identified by columns or name:
       #
@@ -463,36 +463,52 @@ module ActiveRecord
       #   end
       #
       #   developer = Developer.first
-      #   SELECT "developers".* FROM "developers" ORDER BY "developers"."company_id" ASC, "developers"."id" ASC LIMIT 1
+      #   # SELECT "developers".* FROM "developers" ORDER BY "developers"."company_id" ASC, "developers"."id" ASC LIMIT 1
       #   developer.inspect # => #<Developer id: 1, company_id: 1, ...>
       #
       #   developer.update!(name: "Nikita")
-      #   # => UPDATE "developers" SET "name" = 'Nikita' WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
+      #   # UPDATE "developers" SET "name" = 'Nikita' WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
       #
       #   It is possible to update attribute used in the query_by clause:
       #   developer.update!(company_id: 2)
-      #   # => UPDATE "developers" SET "company_id" = 2 WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
+      #   # UPDATE "developers" SET "company_id" = 2 WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
       #
       #   developer.name = "Bob"
       #   developer.save!
-      #   # => UPDATE "developers" SET "name" = 'Bob' WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
+      #   # UPDATE "developers" SET "name" = 'Bob' WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
       #
       #   developer.destroy!
-      #   # => DELETE FROM "developers" WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
+      #   # DELETE FROM "developers" WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
       #
       #   developer.delete
-      #   # => DELETE FROM "developers" WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
+      #   # DELETE FROM "developers" WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
       #
       #   developer.reload
-      #   # => SELECT "developers".* FROM "developers" WHERE "developers"."company_id" = 1 AND "developers"."id" = 1 LIMIT 1
+      #   # SELECT "developers".* FROM "developers" WHERE "developers"."company_id" = 1 AND "developers"."id" = 1 LIMIT 1
       def query_constraints(*columns_list)
         raise ArgumentError, "You must specify at least one column to be used in querying" if columns_list.empty?
 
-        @_query_constraints_list = columns_list.map(&:to_s)
+        @query_constraints_list = columns_list.map(&:to_s)
+        @has_query_constraints = @query_constraints_list
+      end
+
+      def has_query_constraints? # :nodoc:
+        @has_query_constraints
       end
 
       def query_constraints_list # :nodoc:
-        @_query_constraints_list ||= query_constraints_list_fallback
+        @query_constraints_list ||= if base_class? || primary_key != base_class.primary_key
+          primary_key if primary_key.is_a?(Array)
+        else
+          base_class.query_constraints_list
+        end
+      end
+
+      # Returns an array of column names to be used in queries. The source of column
+      # names is derived from +query_constraints_list+ or +primary_key+. This method
+      # is for internal use when the primary key is to be treated as an array.
+      def composite_query_constraints_list # :nodoc:
+        @composite_query_constraints_list ||= query_constraints_list || Array(primary_key)
       end
 
       # Destroy an object (or multiple objects) that has the given id. The object is instantiated first,
@@ -515,7 +531,13 @@ module ActiveRecord
       #   todos = [1,2,3]
       #   Todo.destroy(todos)
       def destroy(id)
-        if id.is_a?(Array)
+        multiple_ids = if composite_primary_key?
+          id.first.is_a?(Array)
+        else
+          id.is_a?(Array)
+        end
+
+        if multiple_ids
           find(id).each(&:destroy)
         else
           find(id).destroy
@@ -544,7 +566,7 @@ module ActiveRecord
         delete_by(primary_key => id_or_array)
       end
 
-      def _insert_record(values) # :nodoc:
+      def _insert_record(values, returning) # :nodoc:
         primary_key = self.primary_key
         primary_key_value = nil
 
@@ -563,7 +585,10 @@ module ActiveRecord
           im.insert(values.transform_keys { |name| arel_table[name] })
         end
 
-        connection.insert(im, "#{self} Create", primary_key || false, primary_key_value)
+        connection.insert(
+          im, "#{self} Create", primary_key || false, primary_key_value,
+          returning: returning
+        )
       end
 
       def _update_record(values, constraints) # :nodoc:
@@ -600,6 +625,14 @@ module ActiveRecord
       end
 
       private
+        def inherited(subclass)
+          super
+          subclass.class_eval do
+            @_query_constraints_list = nil
+            @has_query_constraints = false
+          end
+        end
+
         # Given a class, an attributes hash, +instantiate_instance_of+ returns a
         # new instance of the class. Accepts only keys as strings.
         def instantiate_instance_of(klass, attributes, column_types = {}, &block)
@@ -625,17 +658,6 @@ module ActiveRecord
           default_where_clause = default_scoped(all_queries: true).where_clause
           default_where_clause.ast unless default_where_clause.empty?
         end
-
-        # This is a fallback method that is used to determine the query_constraints_list
-        # for cases when the model is not explicitly configured with query_constraints.
-        # For a base class, just use the primary key.
-        # For a child class, use the primary key unless primary key was overridden.
-        # If the child's primary key was not overridden, use the parent's query_constraints_list.
-        def query_constraints_list_fallback # :nodoc:
-          return Array(primary_key) if base_class? || primary_key != base_class.primary_key
-
-          base_class.query_constraints_list
-        end
     end
 
     # Returns true if this object hasn't been saved yet -- that is, a record
@@ -645,7 +667,7 @@ module ActiveRecord
     end
 
     # Returns true if this object was just created -- that is, prior to the last
-    # save, the object didn't exist in the database and new_record? would have
+    # update or delete, the object didn't exist in the database and new_record? would have
     # returned true.
     def previously_new_record?
       @previously_new_record
@@ -744,6 +766,7 @@ module ActiveRecord
     def delete
       _delete_row if persisted?
       @destroyed = true
+      @previously_new_record = false
       freeze
     end
 
@@ -757,8 +780,9 @@ module ActiveRecord
     def destroy
       _raise_readonly_record_error if readonly?
       destroy_associations
-      @_trigger_destroy_callback = persisted? && destroy_row > 0
+      @_trigger_destroy_callback ||= persisted? && destroy_row > 0
       @destroyed = true
+      @previously_new_record = false
       freeze
     end
 
@@ -1113,6 +1137,12 @@ module ActiveRecord
     end
 
   private
+    def init_internals
+      super
+      @_trigger_destroy_callback = @_trigger_update_callback = nil
+      @previously_new_record = false
+    end
+
     def strict_loaded_associations
       @association_cache.find_all do |_, assoc|
         assoc.owner.strict_loading? && !assoc.owner.strict_loading_n_plus_one_only?
@@ -1131,8 +1161,12 @@ module ActiveRecord
     end
 
     def _in_memory_query_constraints_hash
-      self.class.query_constraints_list.index_with do |column_name|
-        attribute(column_name)
+      if self.class.query_constraints_list.nil?
+        { @primary_key => id }
+      else
+        self.class.query_constraints_list.index_with do |column_name|
+          attribute(column_name)
+        end
       end
     end
 
@@ -1142,8 +1176,12 @@ module ActiveRecord
     end
 
     def _query_constraints_hash
-      self.class.query_constraints_list.index_with do |column_name|
-        attribute_in_database(column_name)
+      if self.class.query_constraints_list.nil?
+        { @primary_key => id_in_database }
+      else
+        self.class.query_constraints_list.index_with do |column_name|
+          attribute_in_database(column_name)
+        end
       end
     end
 
@@ -1208,11 +1246,16 @@ module ActiveRecord
     def _create_record(attribute_names = self.attribute_names)
       attribute_names = attributes_for_create(attribute_names)
 
-      new_id = self.class._insert_record(
-        attributes_with_values(attribute_names)
+      returning_columns = self.class._returning_columns_for_insert
+
+      returning_values = self.class._insert_record(
+        attributes_with_values(attribute_names),
+        returning_columns
       )
 
-      self.id ||= new_id if @primary_key
+      returning_columns.zip(returning_values).each do |column, value|
+        _write_attribute(column, value) if !_read_attribute(column)
+      end if returning_values
 
       @new_record = false
       @previously_new_record = true

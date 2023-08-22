@@ -140,12 +140,14 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_migration_detection_without_schema_migration_table
-    ActiveRecord::Base.connection.drop_table "schema_migrations", if_exists: true
+    @schema_migration.drop_table
 
     migrations_path = MIGRATIONS_ROOT + "/valid"
     migrator = ActiveRecord::MigrationContext.new(migrations_path, @schema_migration, @internal_metadata)
 
     assert_equal true, migrator.needs_migration?
+  ensure
+    @schema_migration.create_table
   end
 
   def test_any_migrations
@@ -282,7 +284,7 @@ class MigrationTest < ActiveRecord::TestCase
         migrator.migrate
       end
 
-      if current_adapter?(:Mysql2Adapter)
+      if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
         if ActiveRecord::Base.connection.mariadb?
           assert_match(/Can't DROP COLUMN `last_name`; check that it exists/, error.message)
         else
@@ -956,7 +958,7 @@ class MigrationTest < ActiveRecord::TestCase
     Person.connection.drop_table :test_decimal_scales, if_exists: true
   end
 
-  if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter)
     def test_out_of_range_integer_limit_should_raise
       e = assert_raise(ArgumentError) do
         Person.connection.create_table :test_integer_limits, force: true do |t|
@@ -994,7 +996,7 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
-  if current_adapter?(:Mysql2Adapter)
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     def test_invalid_text_size_should_raise
       e = assert_raise(ArgumentError) do
         Person.connection.create_table :test_text_sizes, force: true do |t|
@@ -1077,20 +1079,6 @@ class MigrationTest < ActiveRecord::TestCase
 
       assert_no_column Person, :last_name,
         "without an advisory lock, the Migrator should not make any changes, but it did."
-    end
-
-    def test_with_advisory_lock_doesnt_release_closed_connections
-      # make sure we have a connection
-      ActiveRecord::Base.establish_connection :arunit
-
-      migration = Class.new(ActiveRecord::Migration::Current).new
-      migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata, 100)
-
-      silence_stream($stderr) do
-        migrator.send(:with_advisory_lock) do
-          ActiveRecord::Base.establish_connection :arunit
-        end
-      end
     end
 
     if current_adapter?(:PostgreSQLAdapter)
@@ -1244,6 +1232,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
       expected_query_count = {
         "Mysql2Adapter"     => 1,
+        "TrilogyAdapter"    => 1,
         "PostgreSQLAdapter" => 2, # one for bulk change, one for comment
       }.fetch(classname) {
         raise "need an expected query count for #{classname}"
@@ -1346,6 +1335,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
       expected_query_count = {
         "Mysql2Adapter"     => 1, # mysql2 supports creating two indexes using one statement
+        "TrilogyAdapter"    => 1, # trilogy supports creating two indexes using one statement
         "PostgreSQLAdapter" => 3,
       }.fetch(classname) {
         raise "need an expected query count for #{classname}"
@@ -1379,6 +1369,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
       expected_query_count = {
         "Mysql2Adapter"     => 1, # mysql2 supports dropping and creating two indexes using one statement
+        "TrilogyAdapter"    => 1, # trilogy supports dropping and creating two indexes using one statement
         "PostgreSQLAdapter" => 2,
       }.fetch(classname) {
         raise "need an expected query count for #{classname}"
@@ -1409,6 +1400,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
       expected_query_count = {
         "Mysql2Adapter"     => 3, # one query for columns, one query for primary key, one query to do the bulk change
+        "TrilogyAdapter"    => 3, # one query for columns, one query for primary key, one query to do the bulk change
         "PostgreSQLAdapter" => 3, # one query for columns, one for bulk change, one for comment
       }.fetch(classname) {
         raise "need an expected query count for #{classname}"
@@ -1439,6 +1431,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
       expected_query_count = {
         "Mysql2Adapter"     => 7, # four queries to retrieve schema info, one for bulk change, one for UPDATE, one for NOT NULL
+        "TrilogyAdapter"    => 7, # four queries to retrieve schema info, one for bulk change, one for UPDATE, one for NOT NULL
         "PostgreSQLAdapter" => 5, # two queries for columns, one for bulk change, one for UPDATE, one for NOT NULL
       }.fetch(classname) {
         raise "need an expected query count for #{classname}"
@@ -1472,18 +1465,17 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         if current_adapter?(:PostgreSQLAdapter)
           assert_equal "gen_random_uuid()", column(:name).default_function
           Person.connection.execute("INSERT INTO delete_me DEFAULT VALUES")
-          person_data = Person.connection.execute("SELECT * FROM delete_me ORDER BY id DESC").to_a.first
         else
           assert_equal "uuid()", column(:name).default_function
           Person.connection.execute("INSERT INTO delete_me () VALUES ()")
-          person_data = Person.connection.execute("SELECT * FROM delete_me ORDER BY id DESC").to_a(as: :hash).first
         end
 
+        person_data = Person.connection.select_one("SELECT * FROM delete_me ORDER BY id DESC")
         assert_match(/\A(.+)-(.+)-(.+)-(.+)\Z/, person_data.fetch("name"))
       end
     end
 
-    if current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       def test_updating_auto_increment
         with_bulk_change_table do |t|
           t.change :id, :bigint, auto_increment: true
@@ -1510,6 +1502,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
       expected_query_count = {
         "Mysql2Adapter"     => 1, # mysql2 supports dropping and creating two indexes using one statement
+        "TrilogyAdapter"    => 1, # trilogy supports dropping and creating two indexes using one statement
         "PostgreSQLAdapter" => 2,
       }.fetch(classname) {
         raise "need an expected query count for #{classname}"

@@ -1,3 +1,88 @@
+*   Add `after_discard` method.
+
+    This method lets job authors define a block which will be run when a job is about to be discarded. For example:
+
+    ```ruby
+      class AfterDiscardJob < ActiveJob::Base
+        after_discard do |job, exception|
+          Rails.logger.info("#{job.class} raised an exception: #{exception}")
+        end
+
+        def perform
+          raise StandardError
+        end
+      end
+    ```
+
+    The above job will run the block passed to `after_discard` after the job is discarded. The exception will
+    still be raised after the block has been run.
+
+    *Rob Cardy*
+
+*   Fix deserialization of ActiveSupport::Duration
+
+    Previously, a deserialized Duration would return an array from Duration#parts.
+    It will now return a hash just like a regular Duration.
+
+    This also fixes an error when trying to add or subtract from a deserialized Duration
+    (eg `duration + 1.year`).
+
+    *Jonathan del Strother*
+
+*   `perform_enqueued_jobs` is now compatible with all Active Job adapters
+
+    This means that methods that depend on it, like Action Mailer's `assert_emails`,
+    will work correctly even if the test adapter is not used.
+
+    *Alex Ghiculescu*
+
+*   Allow queue adapters to provide a custom name by implementing `queue_adapter_name`
+
+    *Sander Verdonschot*
+
+*   Log background job enqueue callers
+
+    Add `verbose_enqueue_logs` configuration option to display the caller
+    of background job enqueue in the log to help with debugging.
+
+    Example log line:
+
+    ```
+    Enqueued AvatarThumbnailsJob (Job ID: ab528951-41fb-4c48-9129-3171791c27d6) to Sidekiq(default) with arguments: 1092412064
+    ↳ app/models/user.rb:421:in `generate_avatar_thumbnails'
+    ```
+
+    Enabled in development only for new and upgraded applications. Not recommended for use
+    in the production environment since it relies on Ruby's `Kernel#caller` which is fairly slow.
+
+    *fatkodima*
+
+*   Set `provider_job_id` for Backburner jobs
+
+    *Cameron Matheson*
+
+*   Add `perform_all_later` to enqueue multiple jobs at once
+
+    This adds the ability to bulk enqueue jobs, without running callbacks, by
+    passing multiple jobs or an array of jobs. For example:
+
+    ```ruby
+    ActiveJob.perform_all_later(MyJob.new("hello", 42), MyJob.new("world", 0))
+
+    user_jobs = User.pluck(:id).map { |id| UserJob.new(user_id: id) }
+    ActiveJob.perform_all_later(user_jobs)
+    ```
+
+    This can greatly reduce the number of round-trips to the queue datastore.
+    For queue adapters that do not implement the new `enqueue_all` method, we
+    fall back to enqueuing jobs individually. The Sidekiq adapter implements
+    `enqueue_all` with `push_bulk`.
+
+    This method does not use the existing `enqueue.active_job` event, but adds a
+    new event `enqueue_all.active_job`.
+
+    *Sander Verdonschot*
+
 *   Don't double log the `job` when using `ActiveRecord::QueryLog`
 
     Previously if you set `config.active_record.query_log_tags` to an array that included

@@ -2,11 +2,11 @@
 
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/delegation"
-require "active_support/core_ext/string/filters"
 require "active_support/parameter_filter"
 require "concurrent/map"
 
 module ActiveRecord
+  # = Active Record \Core
   module Core
     extend ActiveSupport::Concern
     include ActiveModel::Access
@@ -39,10 +39,10 @@ module ActiveRecord
       # :singleton-method:
       #
       # Specifies the maximum number of records that will be destroyed in a
-      # single background job by the +dependent: :destroy_async+ association
-      # option. When +nil+ (default), all dependent records will be destroyed
-      # in a single background job. If specified, the records to be destroyed
-      # will be split into multiple background jobs.
+      # single background job by the <tt>dependent: :destroy_async</tt>
+      # association option. When +nil+ (default), all dependent records will be
+      # destroyed in a single background job. If specified, the records to be
+      # destroyed will be split into multiple background jobs.
       class_attribute :destroy_association_async_batch_size, instance_writer: false, instance_predicate: false, default: nil
 
       ##
@@ -239,19 +239,6 @@ module ActiveRecord
         @find_by_statement_cache = { true => Concurrent::Map.new, false => Concurrent::Map.new }
       end
 
-      def inherited(child_class) # :nodoc:
-        # initialize cache at class definition for thread safety
-        child_class.initialize_find_by_cache
-        unless child_class.base_class?
-          klass = self
-          until klass.base_class?
-            klass.initialize_find_by_cache
-            klass = klass.superclass
-          end
-        end
-        super
-      end
-
       def find(*ids) # :nodoc:
         # We don't have cache keys for this stuff yet
         return super unless ids.length == 1
@@ -301,31 +288,6 @@ module ActiveRecord
         find_by(*args) || where(*args).raise_record_not_found_exception!
       end
 
-      %w(
-        reading_role writing_role default_timezone index_nested_attribute_errors
-        verbose_query_logs queues warn_on_records_fetched_greater_than maintain_test_schema
-        application_record_class action_on_strict_loading_violation schema_format error_on_ignored_order
-        timestamped_migrations dump_schema_after_migration dump_schemas suppress_multiple_database_warning
-      ).each do |attr|
-        module_eval(<<~RUBY, __FILE__, __LINE__ + 1)
-          def #{attr}
-            ActiveRecord.deprecator.warn(<<~MSG)
-              ActiveRecord::Base.#{attr} is deprecated and will be removed in Rails 7.1.
-              Use `ActiveRecord.#{attr}` instead.
-            MSG
-            ActiveRecord.#{attr}
-          end
-
-          def #{attr}=(value)
-            ActiveRecord.deprecator.warn(<<~MSG)
-              ActiveRecord::Base.#{attr}= is deprecated and will be removed in Rails 7.1.
-              Use `ActiveRecord.#{attr}=` instead.
-            MSG
-            ActiveRecord.#{attr} = value
-          end
-        RUBY
-      end
-
       def initialize_generated_modules # :nodoc:
         generated_association_methods
       end
@@ -342,10 +304,10 @@ module ActiveRecord
 
       # Returns columns which shouldn't be exposed while calling +#inspect+.
       def filter_attributes
-        if defined?(@filter_attributes)
-          @filter_attributes
-        else
+        if @filter_attributes.nil?
           superclass.filter_attributes
+        else
+          @filter_attributes
         end
       end
 
@@ -356,13 +318,13 @@ module ActiveRecord
       end
 
       def inspection_filter # :nodoc:
-        if defined?(@filter_attributes)
+        if @filter_attributes.nil?
+          superclass.inspection_filter
+        else
           @inspection_filter ||= begin
             mask = InspectionMask.new(ActiveSupport::ParameterFilter::FILTERED)
             ActiveSupport::ParameterFilter.new(@filter_attributes, mask: mask)
           end
-        else
-          superclass.inspection_filter
         end
       end
 
@@ -387,7 +349,7 @@ module ActiveRecord
         object.is_a?(self)
       end
 
-      # Returns an instance of <tt>Arel::Table</tt> loaded with the current table name.
+      # Returns an instance of +Arel::Table+ loaded with the current table name.
       def arel_table # :nodoc:
         @arel_table ||= Arel::Table.new(table_name, klass: self)
       end
@@ -406,6 +368,28 @@ module ActiveRecord
       end
 
       private
+        def inherited(subclass)
+          super
+
+          # initialize cache at class definition for thread safety
+          subclass.initialize_find_by_cache
+          unless subclass.base_class?
+            klass = self
+            until klass.base_class?
+              klass.initialize_find_by_cache
+              klass = klass.superclass
+            end
+          end
+
+          subclass.class_eval do
+            @arel_table = nil
+            @predicate_builder = nil
+            @inspection_filter = nil
+            @filter_attributes = nil
+            @generated_association_methods = nil
+          end
+        end
+
         def relation
           relation = Relation.create(self)
 
@@ -439,7 +423,7 @@ module ActiveRecord
     # In both instances, valid attribute keys are determined by the column names of the associated table --
     # hence you can't have attributes that aren't part of the table columns.
     #
-    # ==== Example:
+    # ==== Example
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil)
@@ -523,7 +507,11 @@ module ActiveRecord
     ##
     def initialize_dup(other) # :nodoc:
       @attributes = @attributes.deep_dup
-      @attributes.reset(@primary_key)
+      if self.class.composite_primary_key?
+        @primary_key.each { |key| @attributes.reset(key) }
+      else
+        @attributes.reset(@primary_key)
+      end
 
       _run_initialize_callbacks
 
@@ -565,7 +553,7 @@ module ActiveRecord
     def ==(comparison_object)
       super ||
         comparison_object.instance_of?(self.class) &&
-        !id.nil? &&
+        primary_key_values_present? &&
         comparison_object.id == id
     end
     alias :eql? :==
@@ -575,7 +563,7 @@ module ActiveRecord
     def hash
       id = self.id
 
-      if id
+      if primary_key_values_present?
         self.class.hash ^ id.hash
       else
         super
@@ -630,19 +618,24 @@ module ActiveRecord
     #   user.comments
     #   => ActiveRecord::StrictLoadingViolationError
     #
-    # === Parameters:
+    # ==== Parameters
     #
-    # * value - Boolean specifying whether to enable or disable strict loading.
-    # * mode - Symbol specifying strict loading mode. Defaults to :all. Using
-    #          :n_plus_one_only mode will only raise an error if an association
-    #          that will lead to an n plus one query is lazily loaded.
+    # * +value+ - Boolean specifying whether to enable or disable strict loading.
+    # * <tt>:mode</tt> - Symbol specifying strict loading mode. Defaults to :all. Using
+    #   :n_plus_one_only mode will only raise an error if an association that
+    #   will lead to an n plus one query is lazily loaded.
     #
-    # === Example:
+    # ==== Examples
     #
     #   user = User.first
     #   user.strict_loading!(false) # => false
     #   user.comments
     #   => #<ActiveRecord::Associations::CollectionProxy>
+    #
+    #   user.strict_loading!(mode: :n_plus_one_only)
+    #   user.address.city # => "Tatooine"
+    #   user.comments
+    #   => ActiveRecord::StrictLoadingViolationError
     def strict_loading!(value = true, mode: :all)
       unless [:all, :n_plus_one_only].include?(mode)
         raise ArgumentError, "The :mode option must be one of [:all, :n_plus_one_only] but #{mode.inspect} was provided."
@@ -711,6 +704,16 @@ module ActiveRecord
     end
 
     ##
+    # :method: values_at
+    #
+    # :call-seq: values_at(*methods)
+    #
+    # Returns an array of the values returned by the given methods.
+    #
+    #--
+    # Implemented by ActiveModel::Access#values_at.
+
+    ##
     # :method: slice
     #
     # :call-seq: slice(*methods)
@@ -720,16 +723,6 @@ module ActiveRecord
     #
     #--
     # Implemented by ActiveModel::Access#slice.
-
-    ##
-    # :method: values_at
-    #
-    # :call-seq: values_at(*methods)
-    #
-    # Returns an array of the values returned by the given methods.
-    #
-    #--
-    # Implemented by ActiveModel::Access#values_at.
 
     private
       # +Array#flatten+ will call +#to_ary+ (recursively) on each of the elements of
@@ -759,6 +752,7 @@ module ActiveRecord
         @strict_loading_mode = :all
 
         klass.define_attribute_methods
+        klass.generate_alias_attributes
       end
 
       def initialize_internals_callback

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveModel
+  # = Active \Model \Attributes
+  #
   # The Attributes module allows models to define attributes beyond simple Ruby
   # readers and writers. Similar to Active Record attributes, which are
   # typically inferred from the database schema, Active Model Attributes are
@@ -36,7 +38,6 @@ module ActiveModel
 
     module ClassMethods
       ##
-      # :method: attribute
       # :call-seq: attribute(name, cast_type = nil, default: nil, **options)
       #
       # Defines a model attribute. In addition to the attribute name, a cast

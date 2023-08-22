@@ -24,11 +24,12 @@ require "models/rating"
 require "models/too_long_table_name"
 require "support/stubs/strong_parameters"
 require "support/async_helper"
+require "models/cpk"
 
 class CalculationsTest < ActiveRecord::TestCase
   include AsyncHelper
 
-  fixtures :companies, :accounts, :authors, :author_addresses, :topics, :speedometers, :minivans, :books, :posts, :comments
+  fixtures :companies, :accounts, :authors, :author_addresses, :topics, :speedometers, :minivans, :books, :posts, :comments, :cpk_books
 
   def test_should_sum_field
     assert_equal 318, Account.sum(:credit_limit)
@@ -391,6 +392,17 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal({ 6 => 2 }, Account.group(:firm_id).distinct.order("1 DESC").limit(1).count)
   end
 
+  def test_count_for_a_composite_primary_key_model
+    book = cpk_books(:cpk_great_author_first_book)
+    assert_equal(1, Cpk::Book.where(author_id: book.author_id, id: book.id).count)
+  end
+
+  def test_group_by_count_for_a_composite_primary_key_model
+    book = cpk_books(:cpk_great_author_first_book)
+    expected = { book.author_id => Cpk::Book.where(author_id: book.author_id).count }
+    assert_equal(expected, Cpk::Book.where(author_id: book.author_id).group(:author_id).count)
+  end
+
   def test_should_group_by_summed_field_having_condition
     c = Account.group(:firm_id).having("sum(credit_limit) > 50").sum(:credit_limit)
     assert_nil        c[1]
@@ -399,7 +411,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_group_by_summed_field_having_condition_from_select
-    skip unless current_adapter?(:Mysql2Adapter, :SQLite3Adapter)
+    skip unless current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :SQLite3Adapter)
     c = Account.select("MIN(credit_limit) AS min_credit_limit").group(:firm_id).having("min_credit_limit > 50").sum(:credit_limit)
     assert_nil       c[1]
     assert_equal 60, c[2]
@@ -525,8 +537,8 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 6, [1, 2, 3].sum(&:abs)
     assert_equal 15, some_companies.sum(&:id)
     assert_equal 25, some_companies.sum(10, &:id)
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal "LeetsoftJadedpixel", some_companies.sum(&:name)
+    assert_raises(TypeError) do
+      some_companies.sum(&:name)
     end
     assert_equal "companies: LeetsoftJadedpixel", some_companies.sum("companies: ", &:name)
   end
@@ -656,6 +668,14 @@ class CalculationsTest < ActiveRecord::TestCase
     c = Account.group("accounts.firm_id").joins(:firm).count("companies.id")
 
     [1, 6, 2, 9].each { |firm_id| assert_includes c.keys, firm_id }
+  end
+
+  def test_should_count_field_in_joined_table_with_group_by_when_tables_share_column_names
+    assert Company.columns_hash.key?("status")
+    assert Account.columns_hash.key?("status")
+
+    counts = Company.joins(:account).group("accounts.status").count
+    assert_equal({ "active" => 2, "trial" => 2, "suspended" => 1 }, counts)
   end
 
   def test_should_count_field_of_root_table_with_conflicting_group_by_column
@@ -817,9 +837,9 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_without_column_names
     if current_adapter?(:OracleAdapter)
-      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, nil]], Company.order(:id).limit(1).pluck
+      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, nil, "active"]], Company.order(:id).limit(1).pluck
     else
-      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, ""]], Company.order(:id).limit(1).pluck
+      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, "", "active"]], Company.order(:id).limit(1).pluck
     end
   end
 
@@ -932,6 +952,29 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal Company.all.map(&:id).sort, Company.all.ids.sort
   end
 
+  def test_ids_for_a_composite_primary_key
+    assert_equal Cpk::Book.all.map(&:id).sort, Cpk::Book.all.ids.sort
+  end
+
+  def test_pluck_for_a_composite_primary_key
+    assert_equal Cpk::Book.all.pluck([:author_id, :id]).sort, Cpk::Book.all.ids.sort
+  end
+
+  def test_ids_for_a_composite_primary_key_with_scope
+    book = cpk_books(:cpk_great_author_first_book)
+
+    assert_equal [book.id], Cpk::Book.all.where(title: book.title).ids
+  end
+
+  def test_ids_for_a_composite_primary_key_on_loaded_relation
+    book = cpk_books(:cpk_great_author_first_book)
+    relation = Cpk::Book.where(title: book.title)
+    relation.to_a
+
+    assert_predicate relation, :loaded?
+    assert_equal [book.id], relation.ids
+  end
+
   def test_ids_with_scope
     scoped_ids = [1, 2]
     assert_equal Company.where(id: scoped_ids).map(&:id).sort, Company.where(id: scoped_ids).ids.sort
@@ -1004,6 +1047,12 @@ class CalculationsTest < ActiveRecord::TestCase
     company = Company.first
     5.times { company.contracts.create! }
     assert_equal Company.all.map(&:id).sort, Company.all.includes(:contracts).ids.sort
+  end
+
+  def test_ids_with_includes_and_non_primary_key_order
+    rating = 1
+    Company.all.each { |company| company.update!(rating: rating += 1) }
+    assert_equal Company.all.sort_by(&:rating).map(&:id), Company.includes(:comments).order(:rating).ids
   end
 
   def test_ids_with_includes_and_scope

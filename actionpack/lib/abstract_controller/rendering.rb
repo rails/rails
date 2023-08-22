@@ -18,8 +18,10 @@ module AbstractController
     extend ActiveSupport::Concern
     include ActionView::ViewPaths
 
-    # Normalizes arguments, options and then delegates render_to_body and
+    # Normalizes arguments and options, and then delegates to render_to_body and
     # sticks the result in <tt>self.response_body</tt>.
+    #
+    # Supported options depend on the underlying +render_to_body+ implementation.
     def render(*args, &block)
       options = _normalize_render(*args, &block)
       rendered_body = render_to_body(options)
@@ -32,16 +34,12 @@ module AbstractController
       self.response_body = rendered_body
     end
 
-    # Raw rendering of a template to a string.
+    # Similar to #render, but only returns the rendered template as a string,
+    # instead of setting +self.response_body+.
     #
-    # It is similar to render, except that it does not
-    # set the +response_body+ and it should be guaranteed
-    # to always return a string.
-    #
-    # If a component extends the semantics of +response_body+
-    # (as ActionController extends it to be anything that
-    # responds to the method each), this method needs to be
-    # overridden in order to still return a string.
+    # If a component extends the semantics of +response_body+ (as ActionController
+    # extends it to be anything that responds to the method each), this method
+    # needs to be overridden in order to still return a string.
     def render_to_string(*args, &block)
       options = _normalize_render(*args, &block)
       render_to_body(options)
@@ -51,7 +49,7 @@ module AbstractController
     def render_to_body(options = {})
     end
 
-    # Returns Content-Type of rendered content.
+    # Returns +Content-Type+ of rendered content.
     def rendered_format
       Mime[:text]
     end

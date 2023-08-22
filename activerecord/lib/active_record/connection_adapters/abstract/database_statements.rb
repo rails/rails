@@ -15,7 +15,12 @@ module ActiveRecord
       end
 
       def to_sql_and_binds(arel_or_sql_string, binds = [], preparable = nil) # :nodoc:
+        # Arel::TreeManager -> Arel::Node
         if arel_or_sql_string.respond_to?(:ast)
+          arel_or_sql_string = arel_or_sql_string.ast
+        end
+
+        if Arel.arel_node?(arel_or_sql_string) && !(String === arel_or_sql_string)
           unless binds.empty?
             raise "Passing bind parameters with an arel AST is forbidden. " \
               "The values must be stored on the AST directly"
@@ -25,7 +30,7 @@ module ActiveRecord
 
           if prepared_statements
             collector.preparable = true
-            sql, binds = visitor.compile(arel_or_sql_string.ast, collector)
+            sql, binds = visitor.compile(arel_or_sql_string, collector)
 
             if binds.length > bind_params_length
               unprepared_statement do
@@ -34,7 +39,7 @@ module ActiveRecord
             end
             preparable = collector.preparable
           else
-            sql = visitor.compile(arel_or_sql_string.ast, collector)
+            sql = visitor.compile(arel_or_sql_string, collector)
           end
           [sql.freeze, binds, preparable]
         else
@@ -100,7 +105,7 @@ module ActiveRecord
       end
 
       def query(sql, name = nil) # :nodoc:
-        exec_query(sql, name).rows
+        internal_exec_query(sql, name).rows
       end
 
       # Determines whether the SQL statement is a write query.
@@ -115,47 +120,58 @@ module ActiveRecord
       # executing the SQL statement in case of a connection-related exception.
       # This option should only be enabled for known idempotent queries.
       #
+      # Note: the query is assumed to have side effects and the query cache
+      # will be cleared. If the query is read-only, consider using #select_all
+      # instead.
+      #
       # Note: depending on your database connector, the result returned by this
-      # method may be manually memory managed. Consider using the exec_query
+      # method may be manually memory managed. Consider using #exec_query
       # wrapper instead.
       def execute(sql, name = nil, allow_retry: false)
-        raise NotImplementedError
+        internal_execute(sql, name, allow_retry: allow_retry)
       end
 
       # Executes +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
+      #
+      # Note: the query is assumed to have side effects and the query cache
+      # will be cleared. If the query is read-only, consider using #select_all
+      # instead.
       def exec_query(sql, name = "SQL", binds = [], prepare: false)
-        raise NotImplementedError
+        internal_exec_query(sql, name, binds, prepare: prepare)
       end
 
       # Executes insert +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
-      def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil)
-        sql, binds = sql_for_insert(sql, pk, binds)
-        exec_query(sql, name, binds)
+      # Some adapters support the `returning` keyword argument which allows to control the result of the query:
+      # `nil` is the default value and maintains default behavior. If an array of column names is passed -
+      # the result will contain values of the specified columns from the inserted row.
+      def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil, returning: nil)
+        sql, binds = sql_for_insert(sql, pk, binds, returning)
+        internal_exec_query(sql, name, binds)
       end
 
       # Executes delete +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_delete(sql, name = nil, binds = [])
-        exec_query(sql, name, binds)
+        internal_exec_query(sql, name, binds)
       end
 
       # Executes update +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_update(sql, name = nil, binds = [])
-        exec_query(sql, name, binds)
+        internal_exec_query(sql, name, binds)
       end
 
       def exec_insert_all(sql, name) # :nodoc:
-        exec_query(sql, name)
+        internal_exec_query(sql, name)
       end
 
-      def explain(arel, binds = []) # :nodoc:
+      def explain(arel, binds = [], options = []) # :nodoc:
         raise NotImplementedError
       end
 
@@ -167,10 +183,14 @@ module ActiveRecord
       #
       # If the next id was calculated in advance (as in Oracle), it should be
       # passed in as +id_value+.
-      def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
+      # Some adapters support the `returning` keyword argument which allows defining the return value of the method:
+      # `nil` is the default value and maintains default behavior. If an array of column names is passed -
+      # an array of is returned from the method representing values of the specified columns from the inserted row.
+      def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [], returning: nil)
         sql, binds = to_sql_and_binds(arel, binds)
-        value = exec_insert(sql, name, binds, pk, sequence_name)
-        id_value || last_inserted_id(value)
+        value = exec_insert(sql, name, binds, pk, sequence_name, returning: returning)
+        return id_value if id_value
+        returning.nil? ? last_inserted_id(value) : returning_column_values(value)
       end
       alias create insert
 
@@ -309,7 +329,7 @@ module ActiveRecord
       # * You are joining an existing open transaction
       # * You are creating a nested (savepoint) transaction
       #
-      # The mysql2 and postgresql adapters support setting the transaction
+      # The mysql2, trilogy, and postgresql adapters support setting the transaction
       # isolation level.
       #  :args: (requires_new: nil, isolation: nil, &block)
       def transaction(requires_new: nil, isolation: nil, joinable: true, &block)
@@ -485,15 +505,28 @@ module ActiveRecord
         HIGH_PRECISION_CURRENT_TIMESTAMP
       end
 
+      def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false) # :nodoc:
+        raise NotImplementedError
+      end
+
       private
-        def internal_execute(sql, name = "SCHEMA")
-          execute(sql, name)
+        def internal_execute(sql, name = "SCHEMA", allow_retry: false, materialize_transactions: true)
+          sql = transform_query(sql)
+          check_if_write_query(sql)
+
+          mark_transaction_written_if_write(sql)
+
+          raw_execute(sql, name, allow_retry: allow_retry, materialize_transactions: materialize_transactions)
         end
 
         def execute_batch(statements, name = nil)
           statements.each do |statement|
-            execute(statement, name)
+            internal_execute(statement, name)
           end
+        end
+
+        def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
+          raise NotImplementedError
         end
 
         DEFAULT_INSERT_VALUE = Arel.sql("DEFAULT").freeze
@@ -592,7 +625,7 @@ module ActiveRecord
             return future_result
           end
 
-          result = exec_query(sql, name, binds, prepare: prepare)
+          result = internal_exec_query(sql, name, binds, prepare: prepare)
           if async
             FutureResult::Complete.new(result)
           else
@@ -600,12 +633,16 @@ module ActiveRecord
           end
         end
 
-        def sql_for_insert(sql, pk, binds)
+        def sql_for_insert(sql, _pk, binds, _returning)
           [sql, binds]
         end
 
         def last_inserted_id(result)
           single_value_from_rows(result.rows)
+        end
+
+        def returning_column_values(result)
+          [last_inserted_id(result)]
         end
 
         def single_value_from_rows(rows)

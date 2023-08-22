@@ -31,7 +31,7 @@ class SanitizeTest < ActiveRecord::TestCase
   def test_sanitize_sql_array_handles_named_bind_variables
     quoted_bambi = ActiveRecord::Base.connection.quote("Bambi")
     assert_equal "name=#{quoted_bambi}", Binary.sanitize_sql_array(["name=:name", name: "Bambi"])
-    if current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       assert_equal "name=#{quoted_bambi} AND id='1'", Binary.sanitize_sql_array(["name=:name AND id=:id", name: "Bambi", id: 1])
     else
       assert_equal "name=#{quoted_bambi} AND id=1", Binary.sanitize_sql_array(["name=:name AND id=:id", name: "Bambi", id: 1])
@@ -118,7 +118,7 @@ class SanitizeTest < ActiveRecord::TestCase
   end
 
   def test_named_bind_variables
-    if current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       assert_equal "'1'", bind(":a", a: 1) # ' ruby-mode
       assert_equal "'1' '1'", bind(":a :a", a: 1)  # ' ruby-mode
     else
@@ -150,28 +150,28 @@ class SanitizeTest < ActiveRecord::TestCase
   def test_bind_enumerable
     quoted_abc = %(#{ActiveRecord::Base.connection.quote('a')},#{ActiveRecord::Base.connection.quote('b')},#{ActiveRecord::Base.connection.quote('c')})
 
-    if current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       assert_equal "'1','2','3'", bind("?", [1, 2, 3])
     else
       assert_equal "1,2,3", bind("?", [1, 2, 3])
     end
     assert_equal quoted_abc, bind("?", %w(a b c))
 
-    if current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       assert_equal "'1','2','3'", bind(":a", a: [1, 2, 3])
     else
       assert_equal "1,2,3", bind(":a", a: [1, 2, 3])
     end
     assert_equal quoted_abc, bind(":a", a: %w(a b c)) # '
 
-    if current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       assert_equal "'1','2','3'", bind("?", SimpleEnumerable.new([1, 2, 3]))
     else
       assert_equal "1,2,3", bind("?", SimpleEnumerable.new([1, 2, 3]))
     end
     assert_equal quoted_abc, bind("?", SimpleEnumerable.new(%w(a b c)))
 
-    if current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       assert_equal "'1','2','3'", bind(":a", a: SimpleEnumerable.new([1, 2, 3]))
     else
       assert_equal "1,2,3", bind(":a", a: SimpleEnumerable.new([1, 2, 3]))
@@ -188,7 +188,7 @@ class SanitizeTest < ActiveRecord::TestCase
 
   def test_bind_range
     quoted_abc = %(#{ActiveRecord::Base.connection.quote('a')},#{ActiveRecord::Base.connection.quote('b')},#{ActiveRecord::Base.connection.quote('c')})
-    if current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       assert_equal "'0'", bind("?", 0..0)
       assert_equal "'1','2','3'", bind("?", 1..3)
     else
@@ -222,6 +222,11 @@ class SanitizeTest < ActiveRecord::TestCase
     l = Proc.new { bind(":a::integer '2009-01-01'::date", a: "10") }
     assert_nothing_raised(&l)
     assert_equal "#{ActiveRecord::Base.connection.quote('10')}::integer '2009-01-01'::date", l.call
+  end
+
+  def test_named_bind_with_literal_colons
+    assert_equal "TO_TIMESTAMP('2017/08/02 10:59:00', 'YYYY/MM/DD HH12:MI:SS')", bind("TO_TIMESTAMP(:date, 'YYYY/MM/DD HH12\\:MI\\:SS')", date: "2017/08/02 10:59:00")
+    assert_raise(ActiveRecord::PreparedStatementInvalid) { bind "TO_TIMESTAMP(:date, 'YYYY/MM/DD HH12:MI:SS')", date: "2017/08/02 10:59:00" }
   end
 
   private

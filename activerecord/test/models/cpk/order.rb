@@ -1,0 +1,42 @@
+# frozen_string_literal: true
+
+module Cpk
+  class Order < ActiveRecord::Base
+    self.table_name = :cpk_orders
+    # explicit definition is to allow schema definition to be simplified
+    # to be shared between different databases
+    self.primary_key = [:shop_id, :id]
+
+    alias_attribute :id_value, :id
+
+    has_many :order_agreements, primary_key: :id
+    has_many :books, query_constraints: [:shop_id, :order_id]
+    has_one :book, query_constraints: [:shop_id, :order_id]
+  end
+
+  class BrokenOrder < Order
+    has_many :books
+    has_one :book
+  end
+
+  class BrokenOrderWithNonCpkBooks < Order
+    has_many :books, class_name: "Cpk::NonCpkBook"
+    has_one :book, class_name: "Cpk::NonCpkBook"
+  end
+
+  class NonCpkOrder < Order
+    self.primary_key = :id
+  end
+
+  class OrderWithPrimaryKeyAssociatedBook < Order
+    has_one :book, primary_key: :id, foreign_key: :order_id
+  end
+
+  class OrderWithNullifiedBook < Order
+    has_one :book, query_constraints: [:shop_id, :order_id], dependent: :nullify
+  end
+
+  class OrderWithSingularBookChapters < Order
+    has_many :chapters, through: :book
+  end
+end

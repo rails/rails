@@ -75,7 +75,8 @@ module ActiveRecord
           #     default_scope { where(published: true) }
           #   end
           #
-          #   Article.all # => SELECT * FROM articles WHERE published = true
+          #   Article.all
+          #   # SELECT * FROM articles WHERE published = true
           #
           # The #default_scope is also applied while creating/building a record.
           # It is not applied while updating or deleting a record.
@@ -96,7 +97,7 @@ module ActiveRecord
           # queries that return a single object by primary key.
           #
           #   Article.find(1).destroy
-          #   => DELETE ... FROM `articles` where ID = 1 AND blog_id = 1;
+          #   # DELETE ... FROM `articles` where ID = 1 AND blog_id = 1;
           #
           # (You can also pass any object which responds to +call+ to the
           # +default_scope+ macro, and it will be called when building the
@@ -110,7 +111,8 @@ module ActiveRecord
           #     default_scope { where(rating: 'G') }
           #   end
           #
-          #   Article.all # => SELECT * FROM articles WHERE published = true AND rating = 'G'
+          #   Article.all
+          #   # SELECT * FROM articles WHERE published = true AND rating = 'G'
           #
           # This is also the case with inheritance and module includes where the
           # parent or module defines a #default_scope and the child or including

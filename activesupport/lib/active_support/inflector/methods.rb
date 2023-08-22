@@ -3,12 +3,14 @@
 require "active_support/inflections"
 
 module ActiveSupport
+  # = Active Support \Inflector
+  #
   # The Inflector transforms words from singular to plural, class names to table
   # names, modularized class names to ones without, and class names to foreign
   # keys. The default inflections for pluralization, singularization, and
   # uncountable words are kept in inflections.rb.
   #
-  # The Rails core team has stated patches for the inflections library will not
+  # The \Rails core team has stated patches for the inflections library will not
   # be accepted in order to avoid breaking legacy applications which may be
   # relying on errant inflections. If you discover an incorrect inflection and
   # require it for your application or wish to define rules for languages other
@@ -71,7 +73,7 @@ module ActiveSupport
       if !uppercase_first_letter || uppercase_first_letter == :lower
         string = string.sub(inflections.acronyms_camelize_regex) { |match| match.downcase! || match }
       elsif string.match?(/\A[a-z\d]*\z/)
-        return inflections.acronyms[string] || string.capitalize
+        return inflections.acronyms[string]&.dup || string.capitalize
       else
         string = string.sub(/^[a-z\d]*/) { |match| inflections.acronyms[match] || match.capitalize! || match }
       end
@@ -95,10 +97,10 @@ module ActiveSupport
     #
     #   camelize(underscore('SSLError'))  # => "SslError"
     def underscore(camel_cased_word)
-      return camel_cased_word.to_s unless /[A-Z-]|::/.match?(camel_cased_word)
+      return camel_cased_word.to_s.dup unless /[A-Z-]|::/.match?(camel_cased_word)
       word = camel_cased_word.to_s.gsub("::", "/")
       word.gsub!(inflections.acronyms_underscore_regex) { "#{$1 && '_' }#{$2.downcase}" }
-      word.gsub!(/([A-Z]+)(?=[A-Z][a-z])|([a-z\d])(?=[A-Z])/) { ($1 || $2) << "_" }
+      word.gsub!(/(?<=[A-Z])(?=[A-Z][a-z])|(?<=[a-z\d])(?=[A-Z])/, "_")
       word.tr!("-", "_")
       word.downcase!
       word
@@ -137,7 +139,7 @@ module ActiveSupport
 
       result.tr!("_", " ")
       result.lstrip!
-      unless keep_id_suffix
+      if !keep_id_suffix && lower_case_and_underscored_word&.end_with?("_id")
         result.delete_suffix!(" id")
       end
 
@@ -176,13 +178,11 @@ module ActiveSupport
 
     # Capitalizes all the words and replaces some characters in the string to
     # create a nicer looking title. +titleize+ is meant for creating pretty
-    # output. It is not used in the Rails internals.
+    # output. It is not used in the \Rails internals.
     #
     # The trailing '_id','Id'.. can be kept and capitalized by setting the
     # optional parameter +keep_id_suffix+ to true.
     # By default, this parameter is false.
-    #
-    # +titleize+ is also aliased as +titlecase+.
     #
     #   titleize('man from the boondocks')                       # => "Man From The Boondocks"
     #   titleize('x-men: the last stand')                        # => "X Men: The Last Stand"
@@ -195,7 +195,7 @@ module ActiveSupport
       end
     end
 
-    # Creates the name of a table like Rails does for models to table names.
+    # Creates the name of a table like \Rails does for models to table names.
     # This method uses the #pluralize method on the last word in the string.
     #
     #   tableize('RawScaledScorer') # => "raw_scaled_scorers"
@@ -205,9 +205,9 @@ module ActiveSupport
       pluralize(underscore(class_name))
     end
 
-    # Creates a class name from a plural table name like Rails does for table
-    # names to models. Note that this returns a string and not a Class (To
-    # convert to an actual class follow +classify+ with #constantize).
+    # Creates a class name from a plural table name like \Rails does for table
+    # names to models. Note that this returns a string and not a Class. (To
+    # convert to an actual class follow +classify+ with #constantize.)
     #
     #   classify('ham_and_eggs') # => "HamAndEgg"
     #   classify('posts')        # => "Post"

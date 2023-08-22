@@ -34,20 +34,20 @@ module ActionDispatch
           if @raise_on_name_error
             raise
           else
-            [404, { "X-Cascade" => "pass" }, []]
+            [404, { Constants::X_CASCADE => "pass" }, []]
           end
         end
 
-      private
-        def controller(req)
-          req.controller_class
-        rescue NameError => e
-          raise ActionController::RoutingError, e.message, e.backtrace
-        end
+        private
+          def controller(req)
+            req.controller_class
+          rescue NameError => e
+            raise ActionController::RoutingError, e.message, e.backtrace
+          end
 
-        def dispatch(controller, action, req, res)
-          controller.dispatch(action, req, res)
-        end
+          def dispatch(controller, action, req, res)
+            controller.dispatch(action, req, res)
+          end
       end
 
       class StaticDispatcher < Dispatcher
@@ -282,7 +282,7 @@ module ActionDispatch
 
               if args.size < path_params_size
                 path_params -= controller_options.keys
-                path_params -= result.keys
+                path_params -= (result[:path_params] || {}).merge(result).keys
               else
                 path_params = path_params.dup
               end
@@ -884,7 +884,7 @@ module ActionDispatch
 
       def recognize_path(path, environment = {})
         method = (environment[:method] || "GET").to_s.upcase
-        path = Journey::Router::Utils.normalize_path(path) unless %r{://}.match?(path)
+        path = Journey::Router::Utils.normalize_path(path) unless path&.include?("://")
         extras = environment[:extras] || {}
 
         begin

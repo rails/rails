@@ -11,8 +11,13 @@ module ActiveRecord
         when :destroy
           raise ActiveRecord::Rollback unless target.destroy
         when :destroy_async
-          id = owner.public_send(reflection.foreign_key.to_sym)
-          primary_key_column = reflection.active_record_primary_key.to_sym
+          if reflection.foreign_key.is_a?(Array)
+            primary_key_column = reflection.active_record_primary_key.map(&:to_sym)
+            id = reflection.foreign_key.map { |col| owner.public_send(col.to_sym) }
+          else
+            primary_key_column = reflection.active_record_primary_key.to_sym
+            id = owner.public_send(reflection.foreign_key.to_sym)
+          end
 
           enqueue_destroy_association(
             owner_model_name: owner.class.to_s,
@@ -119,10 +124,13 @@ module ActiveRecord
         end
 
         def replace_keys(record, force: false)
-          target_key = record ? record._read_attribute(primary_key(record.class)) : nil
+          target_key_values = record ? Array(primary_key(record.class)).map { |key| record._read_attribute(key) } : []
+          reflection_fk = Array(reflection.foreign_key)
 
-          if force || owner._read_attribute(reflection.foreign_key) != target_key
-            owner[reflection.foreign_key] = target_key
+          if force || reflection_fk.map { |fk| owner._read_attribute(fk) } != target_key_values
+            reflection_fk.zip(target_key_values).each do |key, value|
+              owner[key] = value
+            end
           end
         end
 
@@ -131,7 +139,7 @@ module ActiveRecord
         end
 
         def foreign_key_present?
-          owner._read_attribute(reflection.foreign_key)
+          Array(reflection.foreign_key).all? { |fk| owner._read_attribute(fk) }
         end
 
         def invertible_for?(record)

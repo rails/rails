@@ -37,6 +37,22 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_migration_source_paths
+    template = File.join(Rails.root, "lib", "templates", "active_record", "migration", "create_table_migration.rb.tt")
+
+    # Create template
+    mkdir_p(File.dirname(template))
+    File.open(template, "w") { |f| f.write "custom content" }
+
+    run_generator ["product"]
+
+    assert_migration "db/migrate/create_products.rb" do |m|
+      assert_equal "custom content", m
+    end
+  ensure
+    rm_rf File.dirname(template)
+  end
+
   def test_invokes_default_orm
     run_generator
     assert_file "app/models/account.rb", /class Account < ApplicationRecord/

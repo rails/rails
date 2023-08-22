@@ -2,7 +2,8 @@
 
 require "cases/helper"
 require "active_record/tasks/database_tasks"
-require "models/author"
+require "models/course"
+require "models/college"
 
 module ActiveRecord
   module DatabaseTasksSetupper
@@ -51,92 +52,94 @@ module ActiveRecord
 
   ADAPTERS_TASKS = {
     mysql2:     :mysql_tasks,
+    trilogy:    :mysql_tasks,
     postgresql: :postgresql_tasks,
     sqlite3:    :sqlite_tasks
   }
 
   class DatabaseTasksCheckProtectedEnvironmentsTest < ActiveRecord::TestCase
-    self.use_transactional_tests = false
+    if current_adapter?(:SQLite3Adapter) && !in_memory_db?
+      self.use_transactional_tests = false
 
-    def setup
-      recreate_metadata_tables
-    end
+      def setup
+        recreate_metadata_tables
+      end
 
-    def teardown
-      recreate_metadata_tables
-    end
+      def teardown
+        recreate_metadata_tables
+      end
 
-    def test_raises_an_error_when_called_with_protected_environment
-      protected_environments = ActiveRecord::Base.protected_environments
-      current_env            = ActiveRecord::Base.connection.migration_context.current_environment
+      def test_raises_an_error_when_called_with_protected_environment
+        protected_environments = ActiveRecord::Base.protected_environments
+        current_env            = ActiveRecord::Base.connection.migration_context.current_environment
 
-      ActiveRecord::Base.connection.internal_metadata[:environment] = current_env
+        ActiveRecord::Base.connection.internal_metadata[:environment] = current_env
 
-      assert_called_on_instance_of(
-        ActiveRecord::MigrationContext,
-        :current_version,
-        times: 6,
-        returns: 1
-      ) do
-        assert_not_includes protected_environments, current_env
-        # Assert no error
-        ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
+        assert_called_on_instance_of(
+          ActiveRecord::MigrationContext,
+          :current_version,
+          times: 6,
+          returns: 1
+        ) do
+          assert_not_includes protected_environments, current_env
+          # Assert no error
+          ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
 
-        ActiveRecord::Base.protected_environments = [current_env]
+          ActiveRecord::Base.protected_environments = [current_env]
 
-        assert_raise(ActiveRecord::ProtectedEnvironmentError) do
+          assert_raise(ActiveRecord::ProtectedEnvironmentError) do
+            ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
+          end
+        end
+      ensure
+        ActiveRecord::Base.protected_environments = protected_environments
+      end
+
+      def test_raises_an_error_when_called_with_protected_environment_which_name_is_a_symbol
+        protected_environments = ActiveRecord::Base.protected_environments
+        current_env            = ActiveRecord::Base.connection.migration_context.current_environment
+
+        ActiveRecord::Base.connection.internal_metadata[:environment] = current_env
+
+        assert_called_on_instance_of(
+          ActiveRecord::MigrationContext,
+          :current_version,
+          times: 6,
+          returns: 1
+        ) do
+          assert_not_includes protected_environments, current_env
+          # Assert no error
+          ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
+
+          ActiveRecord::Base.protected_environments = [current_env.to_sym]
+          assert_raise(ActiveRecord::ProtectedEnvironmentError) do
+            ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
+          end
+        end
+      ensure
+        ActiveRecord::Base.protected_environments = protected_environments
+      end
+
+      def test_raises_an_error_if_no_migrations_have_been_made
+        connection = ActiveRecord::Base.connection
+        internal_metadata = connection.internal_metadata
+        schema_migration = connection.schema_migration
+        schema_migration.create_table
+        schema_migration.create_version("1")
+
+        assert_predicate internal_metadata, :table_exists?
+        internal_metadata.drop_table
+        assert_not_predicate internal_metadata, :table_exists?
+
+        assert_raises(ActiveRecord::NoEnvironmentInSchemaError) do
           ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
         end
+      ensure
+        schema_migration.delete_version("1")
+        internal_metadata.create_table
       end
-    ensure
-      ActiveRecord::Base.protected_environments = protected_environments
-    end
 
-    def test_raises_an_error_when_called_with_protected_environment_which_name_is_a_symbol
-      protected_environments = ActiveRecord::Base.protected_environments
-      current_env            = ActiveRecord::Base.connection.migration_context.current_environment
-
-      ActiveRecord::Base.connection.internal_metadata[:environment] = current_env
-
-      assert_called_on_instance_of(
-        ActiveRecord::MigrationContext,
-        :current_version,
-        times: 6,
-        returns: 1
-      ) do
-        assert_not_includes protected_environments, current_env
-        # Assert no error
-        ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
-
-        ActiveRecord::Base.protected_environments = [current_env.to_sym]
-        assert_raise(ActiveRecord::ProtectedEnvironmentError) do
-          ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
-        end
-      end
-    ensure
-      ActiveRecord::Base.protected_environments = protected_environments
-    end
-
-    def test_raises_an_error_if_no_migrations_have_been_made
-      connection = ActiveRecord::Base.connection
-      internal_metadata = connection.internal_metadata
-      schema_migration = connection.schema_migration
-      schema_migration.create_table
-      schema_migration.create_version("1")
-
-      assert_predicate internal_metadata, :table_exists?
-      internal_metadata.drop_table
-      assert_not_predicate internal_metadata, :table_exists?
-
-      assert_raises(ActiveRecord::NoEnvironmentInSchemaError) do
-        ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
-      end
-    ensure
-      schema_migration.delete_version("1")
-      internal_metadata.create_table
-    end
-
-    private
+      private
       def recreate_metadata_tables
         schema_migration = ActiveRecord::Base.connection.schema_migration
         schema_migration.drop_table
@@ -146,6 +149,7 @@ module ActiveRecord
         internal_metadata.drop_table
         internal_metadata.create_table
       end
+    end
   end
 
   class DatabaseTasksCheckProtectedEnvironmentsMultiDatabaseTest < ActiveRecord::TestCase
@@ -207,8 +211,8 @@ module ActiveRecord
         ensure
           [:primary, :secondary].each do |db|
             ActiveRecord::Base.establish_connection(db)
-            ActiveRecord::Base.connection.schema_migration.drop_table
-            ActiveRecord::Base.connection.internal_metadata.drop_table
+            ActiveRecord::Base.connection.schema_migration.delete_all_versions
+            ActiveRecord::Base.connection.internal_metadata.delete_all_entries
           end
           ActiveRecord::Base.configurations = old_configurations
           ActiveRecord::Base.establish_connection(:arunit)
@@ -1142,7 +1146,7 @@ module ActiveRecord
         assert_match(/down    001             Valid people have last names/, output)
         assert_match(/down    002             We need reminders/, output)
         assert_match(/down    003             Innocent jointable/, output)
-        @schema_migration.drop_table
+        @schema_migration.delete_all_versions
       end
 
       private
@@ -1270,14 +1274,15 @@ module ActiveRecord
     unless in_memory_db?
       self.use_transactional_tests = false
 
-      fixtures :authors, :author_addresses
+      fixtures :courses, :colleges
 
       def setup
-        @schema_migration = ActiveRecord::Base.connection.schema_migration
+        connection = ARUnit2Model.connection
+        @schema_migration = connection.schema_migration
         @schema_migration.create_table
         @schema_migration.create_version(@schema_migration.table_name)
 
-        @internal_metadata = ActiveRecord::Base.connection.internal_metadata
+        @internal_metadata = connection.internal_metadata
         @internal_metadata.create_table
         @internal_metadata[@internal_metadata.table_name] = nil
 
@@ -1294,10 +1299,10 @@ module ActiveRecord
       def test_truncate_tables
         assert_operator @schema_migration.count, :>, 0
         assert_operator @internal_metadata.count, :>, 0
-        assert_operator Author.count, :>, 0
-        assert_operator AuthorAddress.count, :>, 0
+        assert_operator Course.count, :>, 0
+        assert_operator College.count, :>, 0
 
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit2", name: "primary")
         configurations = { development: db_config.configuration_hash }
         ActiveRecord::Base.configurations = configurations
 
@@ -1309,8 +1314,8 @@ module ActiveRecord
 
         assert_operator @schema_migration.count, :>, 0
         assert_operator @internal_metadata.count, :>, 0
-        assert_equal 0, Author.count
-        assert_equal 0, AuthorAddress.count
+        assert_equal 0, Course.count
+        assert_equal 0, College.count
       end
     end
 

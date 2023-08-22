@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/string/filters"
 require "active_support/log_subscriber"
 
 module ActiveJob
   class LogSubscriber < ActiveSupport::LogSubscriber # :nodoc:
+    class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
+
     def enqueue(event)
       job = event.payload[:job]
       ex = event.payload[:exception_object]
@@ -44,6 +45,33 @@ module ActiveJob
       end
     end
     subscribe_log_level :enqueue_at, :info
+
+    def enqueue_all(event)
+      info do
+        jobs = event.payload[:jobs]
+        adapter = event.payload[:adapter]
+        enqueued_count = event.payload[:enqueued_count]
+
+        if enqueued_count == jobs.size
+          enqueued_jobs_message(adapter, jobs)
+        elsif jobs.any?(&:successfully_enqueued?)
+          enqueued_jobs = jobs.select(&:successfully_enqueued?)
+
+          failed_enqueue_count = jobs.size - enqueued_count
+          if failed_enqueue_count == 0
+            enqueued_jobs_message(adapter, enqueued_jobs)
+          else
+            "#{enqueued_jobs_message(adapter, enqueued_jobs)}. "\
+              "Failed enqueuing #{failed_enqueue_count} #{'job'.pluralize(failed_enqueue_count)}"
+          end
+        else
+          failed_enqueue_count = jobs.size - enqueued_count
+          "Failed enqueuing #{failed_enqueue_count} #{'job'.pluralize(failed_enqueue_count)} "\
+            "to #{ActiveJob.adapter_name(adapter)}"
+        end
+      end
+    end
+    subscribe_log_level :enqueue_all, :info
 
     def perform_start(event)
       info do
@@ -109,7 +137,7 @@ module ActiveJob
 
     private
       def queue_name(event)
-        event.payload[:adapter].class.name.demodulize.remove("Adapter") + "(#{event.payload[:job].queue_name})"
+        ActiveJob.adapter_name(event.payload[:adapter]) + "(#{event.payload[:job].queue_name})"
       end
 
       def args_info(job)
@@ -140,6 +168,41 @@ module ActiveJob
 
       def logger
         ActiveJob::Base.logger
+      end
+
+      def info(progname = nil, &block)
+        return unless super
+
+        if ActiveJob.verbose_enqueue_logs
+          log_enqueue_source
+        end
+      end
+
+      def error(progname = nil, &block)
+        return unless super
+
+        if ActiveJob.verbose_enqueue_logs
+          log_enqueue_source
+        end
+      end
+
+      def log_enqueue_source
+        source = extract_enqueue_source_location(caller)
+
+        if source
+          logger.info("↳ #{source}")
+        end
+      end
+
+      def extract_enqueue_source_location(locations)
+        backtrace_cleaner.clean(locations.lazy).first
+      end
+
+      def enqueued_jobs_message(adapter, enqueued_jobs)
+        enqueued_count = enqueued_jobs.size
+        job_classes_counts = enqueued_jobs.map(&:class).tally.sort_by { |_k, v| -v }
+        "Enqueued #{enqueued_count} #{'job'.pluralize(enqueued_count)} to #{ActiveJob.adapter_name(adapter)}"\
+          " (#{job_classes_counts.map { |klass, count| "#{count} #{klass}" }.join(', ')})"
       end
   end
 end

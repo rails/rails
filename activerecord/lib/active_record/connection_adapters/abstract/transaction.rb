@@ -2,6 +2,7 @@
 
 module ActiveRecord
   module ConnectionAdapters
+    # = Active Record Connection Adapters Transaction State
     class TransactionState
       def initialize(state = nil)
         @state = state
@@ -83,14 +84,15 @@ module ActiveRecord
       def restartable?; false; end
       def dirty?; false; end
       def dirty!; end
+      def invalidated?; false; end
       def invalidate!; end
     end
 
     class Transaction # :nodoc:
       attr_reader :connection, :state, :savepoint_name, :isolation_level
-      attr_accessor :written, :written_indirectly
+      attr_accessor :written
 
-      delegate :invalidate!, to: :@state
+      delegate :invalidate!, :invalidated?, to: :@state
 
       def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
         @connection = connection
@@ -253,6 +255,7 @@ module ActiveRecord
         end
     end
 
+    # = Active Record Restart Parent \Transaction
     class RestartParentTransaction < Transaction
       def initialize(connection, parent_transaction, **options)
         super(connection, **options)
@@ -280,6 +283,7 @@ module ActiveRecord
       def full_rollback?; false; end
     end
 
+    # = Active Record Savepoint \Transaction
     class SavepointTransaction < Transaction
       def initialize(connection, savepoint_name, parent_transaction, **options)
         super(connection, **options)
@@ -317,6 +321,7 @@ module ActiveRecord
       def full_rollback?; false; end
     end
 
+    # = Active Record Real \Transaction
     class RealTransaction < Transaction
       def materialize!
         if isolation_level
@@ -458,10 +463,6 @@ module ActiveRecord
 
           dirty_current_transaction if transaction.dirty?
 
-          if current_transaction.open?
-            current_transaction.written_indirectly ||= transaction.written || transaction.written_indirectly
-          end
-
           transaction.commit
           transaction.commit_records
         end
@@ -482,47 +483,36 @@ module ActiveRecord
       def within_new_transaction(isolation: nil, joinable: true)
         @connection.lock.synchronize do
           transaction = begin_transaction(isolation: isolation, joinable: joinable)
-          ret = yield
-          completed = true
-          ret
-        rescue Exception => error
-          if transaction
+          begin
+            ret = yield
+            completed = true
+            ret
+          rescue Exception => error
             rollback_transaction
             after_failure_actions(transaction, error)
-          end
 
-          raise
-        ensure
-          if transaction
-            if error
-              # @connection still holds an open or invalid transaction, so we must not
-              # put it back in the pool for reuse.
-              @connection.throw_away! unless transaction.state.rolledback?
-            else
+            raise
+          ensure
+            unless error
+              # In 7.1 we enforce timeout >= 0.4.0 which no longer use throw, so we can
+              # go back to the original behavior of committing on non-local return.
+              # If users are using throw, we assume it's not an error case.
+              completed = true if ActiveRecord.commit_transaction_on_non_local_return
+
               if Thread.current.status == "aborting"
                 rollback_transaction
               elsif !completed && transaction.written
-                # This was deprecated in 6.1, and has now changed to a rollback
-                rollback_transaction
-              elsif !completed && !transaction.written_indirectly
-                # This was a silent commit in 6.1, but now becomes a rollback; we skipped
-                # the warning because (having not been written) the change generally won't
-                # have any effect
+                ActiveRecord.deprecator.warn(<<~EOW)
+                  A transaction is being rolled back because the transaction block was
+                  exited using `return`, `break` or `throw`.
+                  In Rails 7.2 this transaction will be committed instead.
+                  To opt-in to the new behavior now and suppress this warning
+                  you can set:
+
+                    Rails.application.config.active_record.commit_transaction_on_non_local_return = true
+                EOW
                 rollback_transaction
               else
-                if !completed && transaction.written_indirectly
-                  # This is the case that was missed in the 6.1 deprecation, so we have to
-                  # do it now
-                  ActiveRecord.deprecator.warn(<<~EOW)
-                    Using `return`, `break` or `throw` to exit a transaction block is
-                    deprecated without replacement. If the `throw` came from
-                    `Timeout.timeout(duration)`, pass an exception class as a second
-                    argument so it doesn't use `throw` to abort its block. This results
-                    in the transaction being committed, but in the next release of Rails
-                    it will rollback.
-                  EOW
-                end
-
                 begin
                   commit_transaction
                 rescue ActiveRecord::ConnectionFailed
@@ -535,6 +525,8 @@ module ActiveRecord
               end
             end
           end
+        ensure
+          @connection.throw_away! unless transaction&.state&.completed?
         end
       end
 

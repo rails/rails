@@ -21,10 +21,40 @@ require "models/person"
 require "models/ship"
 require "models/admin"
 require "models/admin/user"
+require "models/cpk"
+require "models/chat_message"
+require "models/default"
 
 class PersistenceTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :accounts, :minimalistics, :authors, :author_addresses,
-    :posts, :minivans, :clothing_items
+    :posts, :minivans, :clothing_items, :cpk_books
+
+  def test_populates_non_primary_key_autoincremented_column
+    topic = TitlePrimaryKeyTopic.create!(title: "title pk topic")
+
+    assert_not_nil topic.attributes["id"]
+  end
+
+  def test_populates_non_primary_key_autoincremented_column_for_a_cpk_model
+    order = Cpk::Order.create(shop_id: 111_222)
+
+    _shop_id, order_id = order.id
+
+    assert_not_nil order_id
+  end
+
+  def test_fills_auto_populated_columns_on_creation
+    record_with_defaults = Default.create
+    assert_not_nil record_with_defaults.id
+    assert_equal "Ruby on Rails", record_with_defaults.ruby_on_rails
+    assert_not_nil record_with_defaults.virtual_stored_number
+    assert_not_nil record_with_defaults.rand_number
+    assert_not_nil record_with_defaults.modified_date
+    assert_not_nil record_with_defaults.modified_date_function
+    assert_not_nil record_with_defaults.modified_time
+    assert_not_nil record_with_defaults.modified_time_without_precision
+    assert_not_nil record_with_defaults.modified_time_function
+  end if current_adapter?(:PostgreSQLAdapter)
 
   def test_update_many
     topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
@@ -291,6 +321,40 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal clients, Client.find([2, 3])
   end
 
+  def test_destroy_with_single_composite_primary_key
+    book = cpk_books(:cpk_great_author_first_book)
+
+    assert_difference("Cpk::Book.count", -1) do
+      destroyed = Cpk::Book.destroy(book.id)
+      assert_equal destroyed, book
+    end
+  end
+
+  def test_destroy_with_multiple_composite_primary_keys
+    books = [
+      cpk_books(:cpk_great_author_first_book),
+      cpk_books(:cpk_great_author_second_book),
+    ]
+
+    assert_difference("Cpk::Book.count", -2) do
+      destroyed = Cpk::Book.destroy(books.map(&:id))
+      assert_equal books.sort, destroyed.sort
+      assert destroyed.all?(&:frozen?), "destroyed clients should be frozen"
+    end
+  end
+
+  def test_destroy_with_invalid_ids_for_a_model_that_expects_composite_keys
+    books = [
+      cpk_books(:cpk_great_author_first_book),
+      cpk_books(:cpk_great_author_second_book),
+    ]
+
+    assert_raise(ActiveRecord::RecordNotFound) do
+      ids = books.map { |book| book.id.first }
+      Cpk::Book.destroy(ids)
+    end
+  end
+
   def test_becomes
     assert_kind_of Reply, topics(:first).becomes(Reply)
     assert_equal "The First Topic", topics(:first).becomes(Reply).title
@@ -426,6 +490,23 @@ class PersistenceTest < ActiveRecord::TestCase
     topic_reloaded = Topic.find(topic.id)
     assert_equal("New Topic", topic_reloaded.title)
   end
+
+  def test_create_model_with_uuid_pk_populates_id
+    message = ChatMessage.create(content: "New Message")
+    assert_not_nil message.id
+
+    message_reloaded = ChatMessage.find(message.id)
+    assert_equal "New Message", message_reloaded.content
+  end if current_adapter?(:PostgreSQLAdapter)
+
+
+  def test_create_model_with_custom_named_uuid_pk_populates_id
+    message = ChatMessageCustomPk.create(content: "New Message")
+    assert_not_nil message.message_id
+
+    message_reloaded = ChatMessageCustomPk.find(message.message_id)
+    assert_equal "New Message", message_reloaded.content
+  end if current_adapter?(:PostgreSQLAdapter)
 
   def test_build
     topic = Topic.build(title: "New Topic")
@@ -1439,34 +1520,23 @@ class QueryConstraintsTest < ActiveRecord::TestCase
     assert_equal("id", ClothingItem.primary_key)
   end
 
-  def test_query_constraints_list_is_an_empty_array_if_primary_key_is_nil
+  def test_query_constraints_list_is_nil_if_primary_key_is_nil
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "developers_projects"
     end
 
     assert_nil klass.primary_key
-    assert_empty klass.query_constraints_list
+    assert_nil klass.query_constraints_list
   end
 
-  def test_query_constraints_uses_primary_key_by_default
-    post = posts(:welcome)
-    assert_uses_query_constraints_on_reload(post, "id")
+  def test_query_constraints_list_is_nil_for_non_cpk_model
+    assert_nil Post.query_constraints_list
+    assert_nil Dashboard.query_constraints_list
   end
 
-  def test_query_constraints_uses_manually_configured_primary_key
-    dashboard = dashboards(:cool_first)
-    assert_uses_query_constraints_on_reload(dashboard, "dashboard_id")
-  end
-
-  def test_child_overriden_primary_key_is_used_as_query_constraint
-    topic = topics(:first)
-    assert_uses_query_constraints_on_reload(topic, "id")
-
-    title_pk_topic = topic.becomes(TitlePrimaryKeyTopic)
-    title_pk_topic.author_name = "Nikita"
-
-    sql = capture_sql { title_pk_topic.save }.first
-    assert_match(/WHERE .*title/, sql)
+  def test_query_constraints_list_equals_to_composite_primary_key
+    assert_equal(["shop_id", "id"], Cpk::Order.query_constraints_list)
+    assert_equal(["author_id", "id"], Cpk::Book.query_constraints_list)
   end
 
   def test_child_keeps_parents_query_constraints
@@ -1475,6 +1545,10 @@ class QueryConstraintsTest < ActiveRecord::TestCase
 
     used_clothing_item = clothing_items(:used_blue_jeans)
     assert_uses_query_constraints_on_reload(used_clothing_item, ["clothing_type", "color"])
+  end
+
+  def test_child_keeps_parents_query_contraints_derived_from_composite_pk
+    assert_equal(["author_id", "id"], Cpk::BestSeller.query_constraints_list)
   end
 
   def assert_uses_query_constraints_on_reload(object, columns)
@@ -1493,5 +1567,9 @@ class QueryConstraintsTest < ActiveRecord::TestCase
         query_constraints
       end
     end
+  end
+
+  def test_child_class_with_query_constraints_overrides_parents
+    assert_equal(["clothing_type", "color", "size"], ClothingItem::Sized.query_constraints_list)
   end
 end

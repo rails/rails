@@ -184,6 +184,22 @@ module ActiveRecord
     end
   end
 
+  class CompositePrimaryKeyMismatchError < ActiveRecordError # :nodoc:
+    attr_reader :reflection
+
+    def initialize(reflection = nil)
+      if reflection
+        if reflection.has_one? || reflection.collection?
+          super("Association #{reflection.active_record}##{reflection.name} primary key #{reflection.active_record_primary_key} doesn't match with foreign key #{reflection.foreign_key}. Please specify query_constraints, or primary_key and foreign_key values.")
+        else
+          super("Association #{reflection.active_record}##{reflection.name} primary key #{reflection.association_primary_key} doesn't match with foreign key #{reflection.foreign_key}. Please specify query_constraints, or primary_key and foreign_key values.")
+        end
+      else
+        super("Association primary key doesn't match with foreign key.")
+      end
+    end
+  end
+
   class AmbiguousSourceReflectionForThroughAssociation < ActiveRecordError # :nodoc:
     def initialize(klass, macro, association_name, options, possible_sources)
       example_options = options.dup
@@ -319,8 +335,8 @@ module ActiveRecord
 
     private
       def init_internals
-        @association_cache = {}
         super
+        @association_cache = {}
       end
 
       # Returns the specified association instance if it exists, +nil+ otherwise.
@@ -333,6 +349,8 @@ module ActiveRecord
         @association_cache[name] = association
       end
 
+      # = Active Record \Associations
+      #
       # \Associations are a set of macro-like class methods for tying objects together through
       # foreign keys. They express relationships like "Project has one Project Manager"
       # or "Project belongs to a Portfolio". Each macro adds a number of methods to the
@@ -379,12 +397,12 @@ module ActiveRecord
       # === A word of warning
       #
       # Don't create associations that have the same name as {instance methods}[rdoc-ref:ActiveRecord::Core] of
-      # <tt>ActiveRecord::Base</tt>. Since the association adds a method with that name to
-      # its model, using an association with the same name as one provided by <tt>ActiveRecord::Base</tt> will override the method inherited through <tt>ActiveRecord::Base</tt> and will break things.
-      # For instance, +attributes+ and +connection+ would be bad choices for association names, because those names already exist in the list of <tt>ActiveRecord::Base</tt> instance methods.
+      # +ActiveRecord::Base+. Since the association adds a method with that name to
+      # its model, using an association with the same name as one provided by +ActiveRecord::Base+ will override the method inherited through +ActiveRecord::Base+ and will break things.
+      # For instance, +attributes+ and +connection+ would be bad choices for association names, because those names already exist in the list of +ActiveRecord::Base+ instance methods.
       #
       # == Auto-generated methods
-      # See also Instance Public methods below for more details.
+      # See also "Instance Public methods" below ( from #belongs_to ) for more details.
       #
       # === Singular associations (one-to-one)
       #                                     |            |  belongs_to  |
@@ -605,10 +623,11 @@ module ActiveRecord
       #     has_many :birthday_events, ->(user) { where(starts_on: user.birthday) }, class_name: 'Event'
       #   end
       #
-      # Note: Joining and eager loading of these associations is not possible.
-      # These two operations happen before instance creation and the scope will be called with a +nil+ argument.
-      # It is allowed to be preloaded, but in the case that there's a different scope for each record,
-      # this will perform N+1 queries. (this is essentially the same as preloading polymorphic scopes).
+      # Note: Joining or eager loading such associations is not possible because
+      # those operations happen before instance creation. Such associations
+      # _can_ be preloaded, but doing so will perform N+1 queries because there
+      # will be a different scope for each record (similar to preloading
+      # polymorphic scopes).
       #
       # == Association callbacks
       #
@@ -1044,45 +1063,45 @@ module ActiveRecord
       # Indexes are appended for any more successive uses of the table name.
       #
       #   Post.joins(:comments)
-      #   # => SELECT ... FROM posts INNER JOIN comments ON ...
+      #   # SELECT ... FROM posts INNER JOIN comments ON ...
       #   Post.joins(:special_comments) # STI
-      #   # => SELECT ... FROM posts INNER JOIN comments ON ... AND comments.type = 'SpecialComment'
+      #   # SELECT ... FROM posts INNER JOIN comments ON ... AND comments.type = 'SpecialComment'
       #   Post.joins(:comments, :special_comments) # special_comments is the reflection name, posts is the parent table name
-      #   # => SELECT ... FROM posts INNER JOIN comments ON ... INNER JOIN comments special_comments_posts
+      #   # SELECT ... FROM posts INNER JOIN comments ON ... INNER JOIN comments special_comments_posts
       #
       # Acts as tree example:
       #
       #   TreeMixin.joins(:children)
-      #   # => SELECT ... FROM mixins INNER JOIN mixins childrens_mixins ...
+      #   # SELECT ... FROM mixins INNER JOIN mixins childrens_mixins ...
       #   TreeMixin.joins(children: :parent)
-      #   # => SELECT ... FROM mixins INNER JOIN mixins childrens_mixins ...
-      #                               INNER JOIN parents_mixins ...
+      #   # SELECT ... FROM mixins INNER JOIN mixins childrens_mixins ...
+      #   #                        INNER JOIN parents_mixins ...
       #   TreeMixin.joins(children: {parent: :children})
-      #   # => SELECT ... FROM mixins INNER JOIN mixins childrens_mixins ...
-      #                               INNER JOIN parents_mixins ...
-      #                               INNER JOIN mixins childrens_mixins_2
+      #   # SELECT ... FROM mixins INNER JOIN mixins childrens_mixins ...
+      #   #                        INNER JOIN parents_mixins ...
+      #   #                        INNER JOIN mixins childrens_mixins_2
       #
       # Has and Belongs to Many join tables use the same idea, but add a <tt>_join</tt> suffix:
       #
       #   Post.joins(:categories)
-      #   # => SELECT ... FROM posts INNER JOIN categories_posts ... INNER JOIN categories ...
+      #   # SELECT ... FROM posts INNER JOIN categories_posts ... INNER JOIN categories ...
       #   Post.joins(categories: :posts)
-      #   # => SELECT ... FROM posts INNER JOIN categories_posts ... INNER JOIN categories ...
-      #                              INNER JOIN categories_posts posts_categories_join INNER JOIN posts posts_categories
+      #   # SELECT ... FROM posts INNER JOIN categories_posts ... INNER JOIN categories ...
+      #   #                       INNER JOIN categories_posts posts_categories_join INNER JOIN posts posts_categories
       #   Post.joins(categories: {posts: :categories})
-      #   # => SELECT ... FROM posts INNER JOIN categories_posts ... INNER JOIN categories ...
-      #                              INNER JOIN categories_posts posts_categories_join INNER JOIN posts posts_categories
-      #                              INNER JOIN categories_posts categories_posts_join INNER JOIN categories categories_posts_2
+      #   # SELECT ... FROM posts INNER JOIN categories_posts ... INNER JOIN categories ...
+      #   #                       INNER JOIN categories_posts posts_categories_join INNER JOIN posts posts_categories
+      #   #                       INNER JOIN categories_posts categories_posts_join INNER JOIN categories categories_posts_2
       #
       # If you wish to specify your own custom joins using ActiveRecord::QueryMethods#joins method, those table
       # names will take precedence over the eager associations:
       #
       #   Post.joins(:comments).joins("inner join comments ...")
-      #   # => SELECT ... FROM posts INNER JOIN comments_posts ON ... INNER JOIN comments ...
+      #   # SELECT ... FROM posts INNER JOIN comments_posts ON ... INNER JOIN comments ...
       #   Post.joins(:comments, :special_comments).joins("inner join comments ...")
-      #   # => SELECT ... FROM posts INNER JOIN comments comments_posts ON ...
-      #                              INNER JOIN comments special_comments_posts ...
-      #                              INNER JOIN comments ...
+      #   # SELECT ... FROM posts INNER JOIN comments comments_posts ON ...
+      #   #                       INNER JOIN comments special_comments_posts ...
+      #   #                       INNER JOIN comments ...
       #
       # Table aliases are automatically truncated according to the maximum length of table identifiers
       # according to the specific database.
@@ -1186,7 +1205,7 @@ module ActiveRecord
       # specific association types. When no option is given, the behavior is to do nothing
       # with the associated records when destroying a record.
       #
-      # Note that <tt>:dependent</tt> is implemented using Rails' callback
+      # Note that <tt>:dependent</tt> is implemented using \Rails' callback
       # system, which works by processing callbacks in order. Therefore, other
       # callbacks declared either before or after the <tt>:dependent</tt> option
       # can affect what it does.
@@ -1399,7 +1418,7 @@ module ActiveRecord
         # [:dependent]
         #   Controls what happens to the associated objects when
         #   their owner is destroyed. Note that these are implemented as
-        #   callbacks, and Rails executes callbacks in order. Therefore, other
+        #   callbacks, and \Rails executes callbacks in order. Therefore, other
         #   similar callbacks may affect the <tt>:dependent</tt> behavior, and the
         #   <tt>:dependent</tt> behavior may affect other callbacks.
         #
@@ -1411,7 +1430,7 @@ module ActiveRecord
         #   * <tt>:delete_all</tt> causes all the associated objects to be deleted directly from the database (so callbacks will not be executed).
         #   * <tt>:nullify</tt> causes the foreign keys to be set to +NULL+. Polymorphic type will also be nullified
         #     on polymorphic associations. Callbacks are not executed.
-        #   * <tt>:restrict_with_exception</tt> causes an <tt>ActiveRecord::DeleteRestrictionError</tt> exception to be raised if there are any associated records.
+        #   * <tt>:restrict_with_exception</tt> causes an ActiveRecord::DeleteRestrictionError exception to be raised if there are any associated records.
         #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there are any associated objects.
         #
         #   If using with the <tt>:through</tt> option, the association on the join model must be
@@ -1583,7 +1602,7 @@ module ActiveRecord
         #   * <tt>:delete</tt> causes the associated object to be deleted directly from the database (so callbacks will not execute)
         #   * <tt>:nullify</tt> causes the foreign key to be set to +NULL+. Polymorphic type column is also nullified
         #     on polymorphic associations. Callbacks are not executed.
-        #   * <tt>:restrict_with_exception</tt> causes an <tt>ActiveRecord::DeleteRestrictionError</tt> exception to be raised if there is an associated record
+        #   * <tt>:restrict_with_exception</tt> causes an ActiveRecord::DeleteRestrictionError exception to be raised if there is an associated record
         #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there is an associated object
         #
         #   Note that <tt>:dependent</tt> option is ignored when using <tt>:through</tt> option.

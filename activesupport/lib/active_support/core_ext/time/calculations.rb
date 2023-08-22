@@ -195,6 +195,10 @@ class Time
   #   Time.new(2015, 8, 1, 14, 35, 0).advance(hours: 1)   # => 2015-08-01 15:35:00 -0700
   #   Time.new(2015, 8, 1, 14, 35, 0).advance(days: 1)    # => 2015-08-02 14:35:00 -0700
   #   Time.new(2015, 8, 1, 14, 35, 0).advance(weeks: 1)   # => 2015-08-08 14:35:00 -0700
+  #
+  # Just like Date#advance, increments are applied in order of time units from
+  # largest to smallest. This order can affect the result around the end of a
+  # month.
   def advance(options)
     unless options[:weeks].nil?
       options[:weeks], partial_weeks = options[:weeks].divmod(1)

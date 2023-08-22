@@ -123,11 +123,6 @@ module ActiveRecord
       base.class_attribute(:defined_enums, instance_writer: false, default: {})
     end
 
-    def inherited(base) # :nodoc:
-      base.defined_enums = defined_enums.deep_dup
-      super
-    end
-
     def load_schema! # :nodoc:
       attributes_to_define_after_schema_loads.each do |name, (cast_type, _default)|
         unless columns_hash.key?(name)
@@ -193,6 +188,11 @@ module ActiveRecord
     end
 
     private
+      def inherited(base)
+        base.defined_enums = defined_enums.deep_dup
+        super
+      end
+
       def _enum(name, values, prefix: nil, suffix: nil, scopes: true, instance_methods: true, **options)
         assert_valid_enum_definition_values(values)
         # statuses = { }
@@ -322,6 +322,8 @@ module ActiveRecord
           raise_conflict_error(enum_name, method_name, type: "class")
         elsif klass_method && method_defined_within?(method_name, Relation)
           raise_conflict_error(enum_name, method_name, type: "class", source: Relation.name)
+        elsif klass_method && method_name.to_sym == :id
+          raise_conflict_error(enum_name, method_name)
         elsif !klass_method && dangerous_attribute_method?(method_name)
           raise_conflict_error(enum_name, method_name)
         elsif !klass_method && method_defined_within?(method_name, _enum_methods_module, Module)

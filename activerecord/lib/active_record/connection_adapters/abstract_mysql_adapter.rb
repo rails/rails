@@ -3,6 +3,7 @@
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/mysql/column"
+require "active_record/connection_adapters/mysql/database_statements"
 require "active_record/connection_adapters/mysql/explain_pretty_printer"
 require "active_record/connection_adapters/mysql/quoting"
 require "active_record/connection_adapters/mysql/schema_creation"
@@ -14,6 +15,7 @@ require "active_record/connection_adapters/mysql/type_metadata"
 module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
+      include MySQL::DatabaseStatements
       include MySQL::Quoting
       include MySQL::SchemaStatements
 
@@ -220,44 +222,36 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
       #++
 
-      # Executes the SQL statement in the context of this connection.
-      #
-      # Setting +allow_retry+ to true causes the db to reconnect and retry
-      # executing the SQL statement in case of a connection-related exception.
-      # This option should only be enabled for known idempotent queries.
-      def execute(sql, name = nil, async: false, allow_retry: false)
-        sql = transform_query(sql)
-        check_if_write_query(sql)
-
-        raw_execute(sql, name, async: async, allow_retry: allow_retry)
-      end
-
       # Mysql2Adapter doesn't have to free a result after using it, but we use this method
       # to write stuff in an abstract way without concerning ourselves about whether it
       # needs to be explicitly freed or not.
       def execute_and_free(sql, name = nil, async: false) # :nodoc:
-        yield execute(sql, name, async: async)
+        sql = transform_query(sql)
+        check_if_write_query(sql)
+
+        mark_transaction_written_if_write(sql)
+        yield raw_execute(sql, name, async: async)
       end
 
       def begin_db_transaction # :nodoc:
-        internal_execute("BEGIN", "TRANSACTION")
+        internal_execute("BEGIN", "TRANSACTION", allow_retry: true, materialize_transactions: false)
       end
 
       def begin_isolated_db_transaction(isolation) # :nodoc:
-        internal_execute "SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION"
+        internal_execute("SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         begin_db_transaction
       end
 
       def commit_db_transaction # :nodoc:
-        internal_execute("COMMIT", "TRANSACTION", allow_retry: false, uses_transaction: true)
+        internal_execute("COMMIT", "TRANSACTION", allow_retry: false, materialize_transactions: true)
       end
 
       def exec_rollback_db_transaction # :nodoc:
-        internal_execute("ROLLBACK", "TRANSACTION", allow_retry: false, uses_transaction: true)
+        internal_execute("ROLLBACK", "TRANSACTION", allow_retry: false, materialize_transactions: true)
       end
 
       def exec_restart_db_transaction # :nodoc:
-        internal_execute("ROLLBACK AND CHAIN", "TRANSACTION", allow_retry: false, uses_transaction: true)
+        internal_execute("ROLLBACK AND CHAIN", "TRANSACTION", allow_retry: false, materialize_transactions: true)
       end
 
       def empty_insert_statement_value(primary_key = nil) # :nodoc:
@@ -472,7 +466,7 @@ module ActiveRecord
 
         scope = quoted_scope(table_name)
 
-        fk_info = exec_query(<<~SQL, "SCHEMA")
+        fk_info = internal_exec_query(<<~SQL, "SCHEMA")
           SELECT fk.referenced_table_name AS 'to_table',
                  fk.referenced_column_name AS 'primary_key',
                  fk.column_name AS 'column',
@@ -491,7 +485,7 @@ module ActiveRecord
 
         fk_info.map do |row|
           options = {
-            column: row["column"],
+            column: unquote_identifier(row["column"]),
             name: row["name"],
             primary_key: row["primary_key"]
           }
@@ -499,7 +493,7 @@ module ActiveRecord
           options[:on_update] = extract_foreign_key_action(row["on_update"])
           options[:on_delete] = extract_foreign_key_action(row["on_delete"])
 
-          ForeignKeyDefinition.new(table_name, row["to_table"], options)
+          ForeignKeyDefinition.new(table_name, unquote_identifier(row["to_table"]), options)
         end
       end
 
@@ -519,14 +513,15 @@ module ActiveRecord
           SQL
           sql += " AND cc.table_name = #{scope[:name]}" if mariadb?
 
-          chk_info = exec_query(sql, "SCHEMA")
+          chk_info = internal_exec_query(sql, "SCHEMA")
 
           chk_info.map do |row|
             options = {
               name: row["name"]
             }
             expression = row["expression"]
-            expression = expression[1..-2] unless mariadb? # remove parentheses added by mysql
+            expression = expression[1..-2] if expression.start_with?("(") && expression.end_with?(")")
+            expression = strip_whitespace_characters(expression)
             CheckConstraintDefinition.new(table_name, expression, options)
           end
         else
@@ -661,11 +656,6 @@ module ActiveRecord
           def initialize_type_map(m)
             super
 
-            m.register_type(%r(char)i) do |sql_type|
-              limit = extract_limit(sql_type)
-              Type.lookup(:string, adapter: :mysql2, limit: limit)
-            end
-
             m.register_type %r(tinytext)i,   Type::Text.new(limit: 2**8 - 1)
             m.register_type %r(tinyblob)i,   Type::Binary.new(limit: 2**8 - 1)
             m.register_type %r(text)i,       Type::Text.new(limit: 2**16 - 1)
@@ -685,9 +675,6 @@ module ActiveRecord
 
             m.alias_type %r(year)i, "integer"
             m.alias_type %r(bit)i,  "binary"
-
-            m.register_type %r(^enum)i, Type.lookup(:string, adapter: :mysql2)
-            m.register_type %r(^set)i,  Type.lookup(:string, adapter: :mysql2)
           end
 
           def register_integer_type(mapping, key, **options)
@@ -709,13 +696,14 @@ module ActiveRecord
           end
       end
 
-      TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
       EXTENDED_TYPE_MAPS = Concurrent::Map.new
       EMULATE_BOOLEANS_TRUE = { emulate_booleans: true }.freeze
 
       private
-        def text_type?(type)
-          TYPE_MAP.lookup(type).is_a?(Type::String) || TYPE_MAP.lookup(type).is_a?(Type::Text)
+        def strip_whitespace_characters(expression)
+          expression = expression.gsub(/\\n|\\\\/, "")
+          expression = expression.gsub(/\s{2,}/, " ")
+          expression
         end
 
         def extended_type_map_key
@@ -726,24 +714,26 @@ module ActiveRecord
           end
         end
 
-        def raw_execute(sql, name, async: false, allow_retry: false, uses_transaction: true)
-          mark_transaction_written_if_write(sql)
+        def handle_warnings(sql)
+          return if ActiveRecord.db_warnings_action.nil? || @raw_connection.warning_count == 0
 
-          log(sql, name, async: async) do
-            with_raw_connection(allow_retry: allow_retry, uses_transaction: uses_transaction) do |conn|
-              sync_timezone_changes(conn)
-              conn.query(sql)
-            end
+          @affected_rows_before_warnings = @raw_connection.affected_rows
+          result = @raw_connection.query("SHOW WARNINGS")
+          result.each do |level, code, message|
+            warning = SQLWarning.new(message, code, level, sql, @pool)
+            next if warning_ignored?(warning)
+
+            ActiveRecord.db_warnings_action.call(warning)
           end
+        end
+
+        def warning_ignored?(warning)
+          warning.level == "Note" || super
         end
 
         # Make sure we carry over any changes to ActiveRecord.default_timezone that have been
         # made since we established the connection
         def sync_timezone_changes(raw_connection)
-        end
-
-        def internal_execute(sql, name = "SCHEMA", allow_retry: true, uses_transaction: false)
-          raw_execute(sql, name, allow_retry: allow_retry, uses_transaction: uses_transaction)
         end
 
         # See https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html
@@ -774,40 +764,40 @@ module ActiveRecord
           case error_number(exception)
           when nil
             if exception.message.match?(/MySQL client is not connected/i)
-              ConnectionNotEstablished.new(exception)
+              ConnectionNotEstablished.new(exception, connection_pool: @pool)
             else
               super
             end
           when ER_CONNECTION_KILLED, CR_SERVER_GONE_ERROR, CR_SERVER_LOST, ER_CLIENT_INTERACTION_TIMEOUT
-            ConnectionFailed.new(message, sql: sql, binds: binds)
+            ConnectionFailed.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_DB_CREATE_EXISTS
-            DatabaseAlreadyExists.new(message, sql: sql, binds: binds)
+            DatabaseAlreadyExists.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_DUP_ENTRY
-            RecordNotUnique.new(message, sql: sql, binds: binds)
+            RecordNotUnique.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_NO_REFERENCED_ROW, ER_ROW_IS_REFERENCED, ER_ROW_IS_REFERENCED_2, ER_NO_REFERENCED_ROW_2
-            InvalidForeignKey.new(message, sql: sql, binds: binds)
+            InvalidForeignKey.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_CANNOT_ADD_FOREIGN, ER_FK_INCOMPATIBLE_COLUMNS
-            mismatched_foreign_key(message, sql: sql, binds: binds)
+            mismatched_foreign_key(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_CANNOT_CREATE_TABLE
             if message.include?("errno: 150")
-              mismatched_foreign_key(message, sql: sql, binds: binds)
+              mismatched_foreign_key(message, sql: sql, binds: binds, connection_pool: @pool)
             else
               super
             end
           when ER_DATA_TOO_LONG
-            ValueTooLong.new(message, sql: sql, binds: binds)
+            ValueTooLong.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_OUT_OF_RANGE
-            RangeError.new(message, sql: sql, binds: binds)
+            RangeError.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_NOT_NULL_VIOLATION, ER_DO_NOT_HAVE_DEFAULT
-            NotNullViolation.new(message, sql: sql, binds: binds)
+            NotNullViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_LOCK_DEADLOCK
-            Deadlocked.new(message, sql: sql, binds: binds)
+            Deadlocked.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_LOCK_WAIT_TIMEOUT
-            LockWaitTimeout.new(message, sql: sql, binds: binds)
+            LockWaitTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_QUERY_TIMEOUT, ER_FILSORT_ABORT
-            StatementTimeout.new(message, sql: sql, binds: binds)
+            StatementTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_QUERY_INTERRUPTED
-            QueryCanceled.new(message, sql: sql, binds: binds)
+            QueryCanceled.new(message, sql: sql, binds: binds, connection_pool: @pool)
           else
             super
           end
@@ -829,7 +819,7 @@ module ActiveRecord
             comment: column.comment
           }
 
-          current_type = exec_query("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE #{quote(column_name)}", "SCHEMA").first["Type"]
+          current_type = internal_exec_query("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE #{quote(column_name)}", "SCHEMA").first["Type"]
           td = create_table_definition(table_name)
           cd = td.new_column_definition(new_column_name, current_type, **options)
           schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
@@ -919,7 +909,7 @@ module ActiveRecord
         end
 
         def create_table_info(table_name) # :nodoc:
-          exec_query("SHOW CREATE TABLE #{quote_table_name(table_name)}", "SCHEMA").first["Create Table"]
+          internal_exec_query("SHOW CREATE TABLE #{quote_table_name(table_name)}", "SCHEMA").first["Create Table"]
         end
 
         def arel_visitor
@@ -953,11 +943,12 @@ module ActiveRecord
           options
         end
 
-        def mismatched_foreign_key(message, sql:, binds:)
+        def mismatched_foreign_key(message, sql:, binds:, connection_pool:)
           options = {
             message: message,
             sql: sql,
             binds: binds,
+            connection_pool: connection_pool
           }
 
           if sql
@@ -972,14 +963,6 @@ module ActiveRecord
         def version_string(full_version_string)
           full_version_string.match(/^(?:5\.5\.5-)?(\d+\.\d+\.\d+)/)[1]
         end
-
-        ActiveRecord::Type.register(:immutable_string, adapter: :mysql2) do |_, **args|
-          Type::ImmutableString.new(true: "1", false: "0", **args)
-        end
-        ActiveRecord::Type.register(:string, adapter: :mysql2) do |_, **args|
-          Type::String.new(true: "1", false: "0", **args)
-        end
-        ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql2)
     end
   end
 end

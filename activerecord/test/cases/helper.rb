@@ -11,6 +11,10 @@ require "active_support/logger"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/core_ext/kernel/singleton_class"
 
+if defined?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter)
+  ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables = true
+end
+
 # TODO: Move all these random hacks into the ARTest namespace and into the support/ dir
 
 Thread.abort_on_exception = true

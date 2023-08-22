@@ -26,5 +26,16 @@ class TestResponseTest < ActiveSupport::TestCase
 
     response = ActionDispatch::TestResponse.create(200, { "Content-Type" => "application/json" }, '{ "foo": "fighters" }')
     assert_equal({ "foo" => "fighters" }, response.parsed_body)
+
+    response = ActionDispatch::TestResponse.create(200, { "Content-Type" => "text/html" }, <<~HTML)
+      <html>
+        <head></head>
+        <body>
+          <div>Content</div>
+        </body>
+      </html>
+    HTML
+    assert_kind_of(Nokogiri::XML::Document, response.parsed_body)
+    assert_equal(response.parsed_body.at_xpath("/html/body/div").text, "Content")
   end
 end

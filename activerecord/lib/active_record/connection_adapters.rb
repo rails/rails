@@ -12,6 +12,8 @@ module ActiveRecord
     autoload :PoolConfig
     autoload :PoolManager
     autoload :SchemaCache
+    autoload :BoundSchemaReflection, "active_record/connection_adapters/schema_cache"
+    autoload :SchemaReflection, "active_record/connection_adapters/schema_cache"
     autoload :Deduplicable
 
     autoload_at "active_record/connection_adapters/abstract/schema_definitions" do

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module AbstractController
-  # = Abstract Controller Callbacks
+  # = Abstract Controller \Callbacks
   #
   # Abstract Controller provides hooks during the life cycle of a controller action.
   # Callbacks allow you to trigger logic during this cycle. Available callbacks are:

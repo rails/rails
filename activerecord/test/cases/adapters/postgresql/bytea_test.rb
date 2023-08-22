@@ -118,7 +118,7 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
 
   def test_serialize
     klass = Class.new(ByteaDataType) {
-      serialize :serialized, Serializer.new
+      serialize :serialized, coder: Serializer.new
     }
     obj = klass.new
     obj.serialized = "hello world"

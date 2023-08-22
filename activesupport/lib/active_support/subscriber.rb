@@ -3,7 +3,9 @@
 require "active_support/notifications"
 
 module ActiveSupport
-  # ActiveSupport::Subscriber is an object set to consume
+  # = Active Support \Subscriber
+  #
+  # +ActiveSupport::Subscriber+ is an object set to consume
   # ActiveSupport::Notifications. The subscriber dispatches notifications to
   # a registered object based on its given namespace.
   #
@@ -20,9 +22,9 @@ module ActiveSupport
   #     end
   #   end
   #
-  # After configured, whenever a "sql.active_record" notification is published,
-  # it will properly dispatch the event (ActiveSupport::Notifications::Event) to
-  # the +sql+ method.
+  # After configured, whenever a <tt>"sql.active_record"</tt> notification is
+  # published, it will properly dispatch the event
+  # (ActiveSupport::Notifications::Event) to the +sql+ method.
   #
   # We can detach a subscriber as well:
   #

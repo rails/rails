@@ -152,6 +152,24 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
     assert_match %r|url=artifact://.+?tmp/screenshots/1_x\.png|, display_image_actual
   end
 
+  test "take_failed_screenshot persists the image path in the test metadata" do
+    skip "Older versions of Minitest don't support test metadata." unless Minitest::Runnable.method_defined?(:metadata)
+
+    Rails.stub :root, Pathname.getwd do
+      @new_test.stub :passed?, false do
+        Capybara::Session.stub :instance_created?, true do
+          @new_test.stub :save_image, nil do
+            @new_test.stub :show, -> (_) { } do
+              @new_test.take_failed_screenshot
+
+              assert_equal @new_test.send(:relative_image_path), @new_test.metadata[:failure_screenshot_path]
+            end
+          end
+        end
+      end
+    end
+  end
+
   test "image path returns the absolute path from root" do
     Rails.stub :root, Pathname.getwd.join("..") do
       assert_equal Rails.root.join("tmp/screenshots/0_x.png").to_s, @new_test.send(:image_path)

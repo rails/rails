@@ -219,7 +219,7 @@ module ApplicationTests
     test "can boot with an unhealthy database" do
       rails %w(generate model post title:string)
 
-      switch_env("DATABASE_URL", "mysql2://127.0.0.1:1") do
+      with_unhealthy_database do
         require "#{app_path}/config/environment"
       end
     end
@@ -261,12 +261,19 @@ module ApplicationTests
         config.eager_load = true
       RUBY
 
-      switch_env("DATABASE_URL", "mysql2://127.0.0.1:1") do
-        require "#{app_path}/config/environment"
+      with_unhealthy_database do
+        silence_warnings do
+          require "#{app_path}/config/environment"
+        end
 
-        assert_nil ActiveRecord::Base.connection_pool.schema_cache
+        assert_not_nil ActiveRecord::Base.connection_pool.schema_reflection.instance_variable_get(:@cache)
+
         assert_raises ActiveRecord::ConnectionNotEstablished do
           ActiveRecord::Base.connection.execute("SELECT 1")
+        end
+
+        assert_raises ActiveRecord::ConnectionNotEstablished do
+          ActiveRecord::Base.connection.schema_reflection.columns("posts")
         end
       end
     end
@@ -281,7 +288,7 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/environment"
-      assert ActiveRecord::Base.connection_pool.schema_cache.data_sources("posts")
+      assert ActiveRecord::Base.connection_pool.schema_reflection.data_sources(:__unused__, "posts")
     end
 
     test "does not expire schema cache dump if check_schema_cache_dump_version is false and the database unhealthy" do
@@ -293,10 +300,10 @@ module ApplicationTests
         config.active_record.check_schema_cache_dump_version = false
       RUBY
 
-      switch_env("DATABASE_URL", "mysql2://127.0.0.1:1") do
+      with_unhealthy_database do
         require "#{app_path}/config/environment"
 
-        assert ActiveRecord::Base.connection_pool.schema_cache.data_sources("posts")
+        assert ActiveRecord::Base.connection_pool.schema_reflection.data_sources(:__unused__, "posts")
         assert_raises ActiveRecord::ConnectionNotEstablished do
           ActiveRecord::Base.connection.execute("SELECT 1")
         end
@@ -369,6 +376,42 @@ module ApplicationTests
       ActiveSupport::Dependencies.clear
 
       assert_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(Post)
+    end
+
+    test "filters for Active Record encrypted attributes are added to config.filter_parameters only once" do
+      rails %w(generate model post title:string)
+      rails %w(db:migrate)
+
+      app_file "app/models/post.rb", <<~RUBY
+        class Post < ActiveRecord::Base
+          encrypts :title
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert Post
+      filter_parameters = Rails.application.config.filter_parameters.dup
+
+      reload
+
+      assert Post
+      assert_equal filter_parameters, Rails.application.config.filter_parameters
+    end
+
+    test "ActiveRecord::MessagePack extensions are installed when using ActiveSupport::MessagePack::CacheSerializer" do
+      rails %w(generate model post title:string)
+      rails %w(db:migrate)
+
+      add_to_config <<~RUBY
+        config.cache_store = :file_store, #{app_path("tmp/cache").inspect}, { serializer: :message_pack }
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      post = Post.create!(title: "Hello World")
+      Rails.cache.write("hello", post)
+      assert_equal post, Rails.cache.read("hello")
     end
   end
 end

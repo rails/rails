@@ -227,6 +227,22 @@ module TestHelpers
       YAML
     end
 
+    def with_unhealthy_database(&block)
+      # The existing schema cache dump will contain ActiveRecord::ConnectionAdapters::SQLite3Adapter objects
+      require "active_record/connection_adapters/sqlite3_adapter"
+
+      # We need to change the `database_version` to match what is expected for MySQL
+      dump_path = File.join(app_path, "db/schema_cache.yml")
+      if File.exist?(dump_path)
+        schema_cache = ActiveRecord::ConnectionAdapters::SchemaCache._load_from(dump_path)
+        schema_cache.instance_variable_set(:@database_version, ActiveRecord::ConnectionAdapters::AbstractAdapter::Version.new("8.8.8"))
+        File.write(dump_path, YAML.dump(schema_cache))
+      end
+
+      # We load the app while pointing at a non-existing MySQL server
+      switch_env("DATABASE_URL", "mysql2://127.0.0.1:1", &block)
+    end
+
     # Make a very basic app, without creating the whole directory structure.
     # This is faster and simpler than the method above.
     def make_basic_app
@@ -242,7 +258,7 @@ module TestHelpers
       @app.config.session_store :cookie_store, key: "_myapp_session"
       @app.config.active_support.deprecation = :log
       @app.config.log_level = :info
-      @app.secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
+      @app.config.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
 
       yield @app if block_given?
       @app.initialize!
@@ -465,7 +481,8 @@ module TestHelpers
       $:.reject! { |path| path =~ %r'/(#{to_remove.join('|')})/' }
     end
 
-    def use_postgresql(multi_db: false, database_name: "railties_#{Process.pid}")
+    def use_postgresql(multi_db: false)
+      database_name = "railties_#{Process.pid}"
       if multi_db
         File.open("#{app_path}/config/database.yml", "w") do |f|
           f.puts <<-YAML
@@ -497,6 +514,57 @@ module TestHelpers
           YAML
         end
       end
+      database_name
+    end
+
+    def use_mysql2(multi_db: false)
+      database_name = "railties_#{Process.pid}"
+      if multi_db
+        File.open("#{app_path}/config/database.yml", "w") do |f|
+          f.puts <<-YAML
+          default: &default
+            adapter: mysql2
+            pool: 5
+            username: root
+          <% if ENV['MYSQL_HOST'] %>
+            host: <%= ENV['MYSQL_HOST'] %>
+          <% end %>
+          <% if ENV['MYSQL_SOCK'] %>
+            socket: "<%= ENV['MYSQL_SOCK'] %>"
+          <% end %>
+          development:
+            primary:
+              <<: *default
+              database: #{database_name}_test
+            animals:
+              <<: *default
+              database: #{database_name}_animals_test
+              migrations_paths: db/animals_migrate
+          YAML
+        end
+      else
+        File.open("#{app_path}/config/database.yml", "w") do |f|
+          f.puts <<-YAML
+          default: &default
+            adapter: mysql2
+            pool: 5
+            username: root
+          <% if ENV['MYSQL_HOST'] %>
+            host: <%= ENV['MYSQL_HOST'] %>
+          <% end %>
+          <% if ENV['MYSQL_SOCK'] %>
+            socket: "<%= ENV['MYSQL_SOCK'] %>"
+          <% end %>
+          development:
+            <<: *default
+            database: #{database_name}_development
+          test:
+            <<: *default
+            database: #{database_name}_test
+          YAML
+        end
+      end
+      database_name
     end
   end
 

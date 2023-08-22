@@ -208,30 +208,46 @@ module RenderTestCases
     end
   end
 
-  # rubocop:disable Minitest/SkipEnsure
-  def test_render_runtime_error
-    skip unless RubyVM.respond_to?(:keep_script_lines)
+  if RUBY_VERSION >= "3.2"
+    def test_render_runtime_error
+      ex = assert_raises(ActionView::Template::Error) {
+        @view.render(template: "test/runtime_error")
+      }
+      erb_btl = ex.backtrace_locations.first
 
-    # We need to enable this setting so that when we eval the template
-    # the compiled source is kept around.
-    setting = RubyVM.keep_script_lines
-    RubyVM.keep_script_lines = true
+      # Get the spot information from ErrorHighlight
+      translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
+      translated_spot = translating_frame.spot(ex.cause)
 
-    ex = assert_raises(ActionView::Template::Error) {
-      @view.render(template: "test/runtime_error")
-    }
-    erb_btl = ex.backtrace_locations.first
+      assert_equal 6, translated_spot[:first_column]
+    end
 
-    # Get the spot information from ErrorHighlight
-    spot = erb_btl.spot(ex.cause)
-    translated_spot = ex.template.translate_location(erb_btl, spot)
-    assert_equal 6, translated_spot[:first_column]
-  ensure
-    if RubyVM.respond_to?(:keep_script_lines)
-      RubyVM.keep_script_lines = setting
+    def test_render_location_conditional_append
+      ex = assert_raises(ActionView::Template::Error) {
+        @view.render(template: "test/unparseable_runtime_error")
+      }
+      erb_btl = ex.backtrace_locations.first
+
+      # Get the spot information from ErrorHighlight
+      translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
+      translated_spot = translating_frame.spot(ex.cause)
+
+      assert_equal 8, translated_spot[:first_column]
+    end
+
+    def test_render_location_conditional_append_2
+      ex = assert_raises(ActionView::Template::Error) {
+        @view.render(template: "test/unparseable_runtime_error_2")
+      }
+      erb_btl = ex.backtrace_locations.first
+
+      # Get the spot information from ErrorHighlight
+      translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
+      translated_spot = translating_frame.spot(ex.cause)
+
+      assert_instance_of Integer, translated_spot[:first_column]
     end
   end
-  # rubocop:enable Minitest/SkipEnsure
 
   def test_render_partial
     assert_equal "only partial", @view.render(partial: "test/partial_only")
@@ -350,7 +366,7 @@ module RenderTestCases
 
   def test_undefined_method_error_references_named_class
     e = assert_raises(ActionView::Template::Error) { @view.render(inline: "<%= undefined %>") }
-    assert_match(/`undefined' for #<ActionView::Base:0x[0-9a-f]+>/, e.message)
+    assert_match(/undefined local variable or method `undefined'/, e.message)
   end
 
   def test_render_renderable_object
@@ -954,6 +970,12 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
     assert_raises(NotImplementedError) do
       @controller_view.render(partial: [a, b], cached: true)
     end
+  end
+
+  test "collection caching with empty collection and logger with level debug" do
+    ActionView::PartialRenderer.collection_cache.logger = Logger.new(nil, level: :debug)
+
+    assert_nil @view.render(partial: "test/cached_customer", collection: [], cached: true)
   end
 
   test "collection caching with repeated collection" do

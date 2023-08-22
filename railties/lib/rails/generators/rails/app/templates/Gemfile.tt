@@ -1,7 +1,6 @@
 source "https://rubygems.org"
-git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby <%= "\"#{Gem.ruby_version}\"" -%>
+ruby <%= "\"#{gem_ruby_version}\"" -%>
 
 <% gemfile_entries.each do |gemfile_entry| %>
 <%= gemfile_entry %>
@@ -62,6 +61,8 @@ group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
+<%- if RUBY_VERSION < "3.0" -%>
   gem "webdrivers"
+<% end %>
 end
 <%- end -%>

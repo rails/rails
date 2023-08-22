@@ -72,7 +72,7 @@ module ActiveRecord # :nodoc:
       #   User.exists?(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")         # => true
       #   User.exists?(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]) # => false
       #
-      #   User.normalize(:phone, "+1 (555) 867-5309") # => "5558675309"
+      #   User.normalize_value_for(:phone, "+1 (555) 867-5309") # => "5558675309"
       def normalizes(*names, with:, apply_to_nil: false)
         names.each do |name|
           attribute(name) do |cast_type|
@@ -91,9 +91,9 @@ module ActiveRecord # :nodoc:
       #     normalizes :email, with: -> email { email.strip.downcase }
       #   end
       #
-      #   User.normalize(:email, " CRUISE-CONTROL@EXAMPLE.COM\n")
+      #   User.normalize_value_for(:email, " CRUISE-CONTROL@EXAMPLE.COM\n")
       #   # => "cruise-control@example.com"
-      def normalize(name, value)
+      def normalize_value_for(name, value)
         type_for_attribute(name).cast(value)
       end
     end

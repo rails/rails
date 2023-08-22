@@ -3,7 +3,7 @@
 begin
   require "dalli"
 rescue LoadError => e
-  $stderr.puts "You don't have dalli installed in your application. Please add it to your Gemfile and run bundle install"
+  warn "You don't have dalli installed in your application. Please add it to your Gemfile and run bundle install"
   raise e
 end
 
@@ -15,6 +15,8 @@ require "active_support/core_ext/numeric/time"
 
 module ActiveSupport
   module Cache
+    # = Memcached \Cache \Store
+    #
     # A cache store implementation which stores data in Memcached:
     # https://memcached.org
     #
@@ -28,6 +30,10 @@ module ActiveSupport
     # MemCacheStore implements the Strategy::LocalCache strategy which implements
     # an in-memory cache inside of a block.
     class MemCacheStore < Store
+      # These options represent behavior overridden by this implementation and should
+      # not be allowed to get down to the Dalli client
+      OVERRIDDEN_OPTIONS = UNIVERSAL_OPTIONS
+
       # Advertise cache versioning support.
       def self.supports_cache_versioning?
         true
@@ -93,10 +99,10 @@ module ActiveSupport
         addresses = nil if addresses.compact.empty?
         pool_options = retrieve_pool_options(options)
 
-        if pool_options.empty?
-          Dalli::Client.new(addresses, options)
-        else
+        if pool_options
           ConnectionPool.new(pool_options) { Dalli::Client.new(addresses, options.merge(threadsafe: false)) }
+        else
+          Dalli::Client.new(addresses, options)
         end
       end
 
@@ -108,6 +114,7 @@ module ActiveSupport
       #
       # If no addresses are provided, but <tt>ENV['MEMCACHE_SERVERS']</tt> is defined, it will be used instead. Otherwise,
       # MemCacheStore will connect to localhost:11211 (the default memcached port).
+      # Passing a +Dalli::Client+ instance is deprecated and will be removed. Please pass an address instead.
       def initialize(*addresses)
         addresses = addresses.flatten
         options = addresses.extract_options!
@@ -117,17 +124,26 @@ module ActiveSupport
         super(options)
 
         unless [String, Dalli::Client, NilClass].include?(addresses.first.class)
-          raise ArgumentError, "First argument must be an empty array, an array of hosts or a Dalli::Client instance."
+          raise ArgumentError, "First argument must be an empty array, address, or array of addresses."
         end
         if addresses.first.is_a?(Dalli::Client)
+          ActiveSupport.deprecator.warn(<<~MSG)
+            Initializing MemCacheStore with a Dalli::Client is deprecated and will be removed in Rails 7.2.
+            Use memcached server addresses instead.
+          MSG
           @data = addresses.first
         else
-          mem_cache_options = options.dup
+          @mem_cache_options = options.dup
           # The value "compress: false" prevents duplicate compression within Dalli.
-          mem_cache_options[:compress] = false
-          (UNIVERSAL_OPTIONS - %i(compress)).each { |name| mem_cache_options.delete(name) }
-          @data = self.class.build_mem_cache(*(addresses + [mem_cache_options]))
+          @mem_cache_options[:compress] = false
+          (OVERRIDDEN_OPTIONS - %i(compress)).each { |name| @mem_cache_options.delete(name) }
+          @data = self.class.build_mem_cache(*(addresses + [@mem_cache_options]))
         end
+      end
+
+      def inspect
+        instance = @data || @mem_cache_options
+        "#<#{self.class} options=#{options.inspect} mem_cache=#{instance.inspect}>"
       end
 
       ##
@@ -206,52 +222,18 @@ module ActiveSupport
       end
 
       private
-        module Coders # :nodoc:
-          class << self
-            def [](version)
-              case version
-              when 6.1
-                Rails61Coder
-              when 7.0
-                Rails70Coder
-              else
-                raise ArgumentError, "Unknown ActiveSupport::Cache.format_version #{Cache.format_version.inspect}"
-              end
-            end
+        def default_serializer
+          if Cache.format_version == 6.1
+            ActiveSupport.deprecator.warn <<~EOM
+              Support for `config.active_support.cache_format_version = 6.1` has been deprecated and will be removed in Rails 7.2.
+
+              Check the Rails upgrade guide at https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#new-activesupport-cache-serialization-format
+              for more information on how to upgrade.
+            EOM
+            Cache::SerializerWithFallback[:passthrough]
+          else
+            super
           end
-
-          module Loader
-            def load(payload)
-              if payload.is_a?(Entry)
-                payload
-              else
-                Cache::Coders::Loader.load(payload)
-              end
-            end
-          end
-
-          module Rails61Coder
-            include Loader
-            extend self
-
-            def dump(entry)
-              entry
-            end
-
-            def dump_compressed(entry, threshold)
-              entry.compressed(threshold)
-            end
-          end
-
-          module Rails70Coder
-            include Cache::Coders::Rails70Coder
-            include Loader
-            extend self
-          end
-        end
-
-        def default_coder
-          Coders[Cache.format_version]
         end
 
         # Read an entry from the cache.

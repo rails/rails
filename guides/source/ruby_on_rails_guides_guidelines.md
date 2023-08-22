@@ -27,7 +27,7 @@ Headings
 
 The title of every guide uses an `h1` heading; guide sections use `h2` headings; subsections use `h3` headings; etc. Note that the generated HTML output will use heading tags starting with `<h2>`.
 
-```
+```markdown
 Guide Title
 ===========
 
@@ -39,7 +39,7 @@ Section
 
 When writing headings, capitalize all words except for prepositions, conjunctions, internal articles, and forms of the verb "to be":
 
-```
+```markdown
 #### Assertions and Testing Jobs inside Components
 #### Middleware Stack is an Array
 #### When are Objects Saved?
@@ -47,7 +47,7 @@ When writing headings, capitalize all words except for prepositions, conjunction
 
 Use the same inline formatting as regular text:
 
-```
+```markdown
 ##### The `:content_type` Option
 ```
 
@@ -108,10 +108,9 @@ HTML Guides
 -----------
 
 Before generating the guides, make sure that you have the latest version of
-Bundler installed on your system. You can find the latest Bundler version
-[here](https://rubygems.org/gems/bundler). As of this writing, it's v1.17.1.
+Bundler installed on your system. To install the latest version of Bundler, run `gem install bundler`.
 
-To install the latest version of Bundler, run `gem install bundler`.
+If you already have Bundler installed, you can update with `gem update bundler`.
 
 ### Generation
 

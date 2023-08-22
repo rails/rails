@@ -8,21 +8,22 @@ module ActionDispatch
     module FixtureFile
       # Shortcut for <tt>Rack::Test::UploadedFile.new(File.join(ActionDispatch::IntegrationTest.file_fixture_path, path), type)</tt>:
       #
-      #   post :change_avatar, params: { avatar: fixture_file_upload('david.png', 'image/png') }
+      #   post :change_avatar, params: { avatar: file_fixture_upload('david.png', 'image/png') }
       #
       # Default fixture files location is <tt>test/fixtures/files</tt>.
       #
       # To upload binary files on Windows, pass <tt>:binary</tt> as the last parameter.
       # This will not affect other platforms:
       #
-      #   post :change_avatar, params: { avatar: fixture_file_upload('david.png', 'image/png', :binary) }
-      def fixture_file_upload(path, mime_type = nil, binary = false)
+      #   post :change_avatar, params: { avatar: file_fixture_upload('david.png', 'image/png', :binary) }
+      def file_fixture_upload(path, mime_type = nil, binary = false)
         if self.class.file_fixture_path && !File.exist?(path)
           path = file_fixture(path)
         end
 
         Rack::Test::UploadedFile.new(path, mime_type, binary)
       end
+      alias_method :fixture_file_upload, :file_fixture_upload
     end
 
     include FixtureFile

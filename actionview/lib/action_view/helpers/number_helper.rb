@@ -5,8 +5,9 @@ require "active_support/core_ext/string/output_safety"
 require "active_support/number_helper"
 
 module ActionView
-  # = Action View Number Helpers
   module Helpers # :nodoc:
+    # = Action View Number \Helpers
+    #
     # Provides methods for converting numbers into formatted strings.
     # Methods are provided for phone numbers, currency, percentage,
     # precision, positional notation, file size, and pretty printing.

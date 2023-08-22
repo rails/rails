@@ -362,12 +362,12 @@ module ActiveRecord
   # == Irreversible transformations
   #
   # Some transformations are destructive in a manner that cannot be reversed.
-  # Migrations of that kind should raise an <tt>ActiveRecord::IrreversibleMigration</tt>
+  # Migrations of that kind should raise an ActiveRecord::IrreversibleMigration
   # exception in their +down+ method.
   #
-  # == Running migrations from within Rails
+  # == Running migrations from within \Rails
   #
-  # The Rails package has several tools to help create and apply migrations.
+  # The \Rails package has several tools to help create and apply migrations.
   #
   # To generate a new migration, you can use
   #   bin/rails generate migration MyNewMigration
@@ -401,7 +401,7 @@ module ActiveRecord
   # wish to rollback last few migrations. <tt>bin/rails db:rollback STEP=2</tt> will rollback
   # the latest two migrations.
   #
-  # If any of the migrations throw an <tt>ActiveRecord::IrreversibleMigration</tt> exception,
+  # If any of the migrations throw an ActiveRecord::IrreversibleMigration exception,
   # that step will fail and you'll have some manual work to do.
   #
   # == More examples
@@ -488,7 +488,7 @@ module ActiveRecord
   #
   # == Timestamped Migrations
   #
-  # By default, Rails generates migrations that look like:
+  # By default, \Rails generates migrations that look like:
   #
   #    20080717013526_your_migration_name.rb
   #
@@ -527,11 +527,11 @@ module ActiveRecord
   # as before.
   #
   # If a command cannot be reversed, an
-  # <tt>ActiveRecord::IrreversibleMigration</tt> exception will be raised when
+  # ActiveRecord::IrreversibleMigration exception will be raised when
   # the migration is moving down.
   #
   # For a list of commands that are reversible, please see
-  # <tt>ActiveRecord::Migration::CommandRecorder</tt>.
+  # +ActiveRecord::Migration::CommandRecorder+.
   #
   # == Transactional Migrations
   #
@@ -642,10 +642,38 @@ module ActiveRecord
         delegate || superclass.nearest_delegate
       end
 
-      # Raises <tt>ActiveRecord::PendingMigrationError</tt> error if any migrations are pending.
+      # Raises ActiveRecord::PendingMigrationError error if any migrations are pending.
+      #
+      # This is deprecated in favor of +check_all_pending!+
       def check_pending!(connection = ActiveRecord::Tasks::DatabaseTasks.migration_connection)
-        if pending_migrations = connection.migration_context.pending_migrations
+        ActiveRecord.deprecator.warn(<<-MSG.squish)
+          The `check_pending!` method is deprecated in favor of `check_all_pending!`. The
+          new implementation will loop through all available database configurations and find
+          pending migrations. The prior implementation did not permit this.
+        MSG
+
+        pending_migrations = connection.migration_context.open.pending_migrations
+
+        if pending_migrations.any?
           raise ActiveRecord::PendingMigrationError.new(pending_migrations: pending_migrations)
+        end
+      end
+
+      # Raises ActiveRecord::PendingMigrationError error if any migrations are pending
+      # for all database configurations in an environment.
+      def check_all_pending!
+        pending_migrations = []
+
+        ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection_for_each(env: env) do |connection|
+          if pending = connection.migration_context.open.pending_migrations
+            pending_migrations << pending
+          end
+        end
+
+        migrations = pending_migrations.flatten
+
+        if migrations.any?
+          raise ActiveRecord::PendingMigrationError.new(pending_migrations: migrations)
         end
       end
 
@@ -969,9 +997,7 @@ module ActiveRecord
     end
 
     def method_missing(method, *arguments, &block)
-      arg_list = arguments.map(&:inspect) * ", "
-
-      say_with_time "#{method}(#{arg_list})" do
+      say_with_time "#{method}(#{format_arguments(arguments)})" do
         unless connection.respond_to? :revert
           unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
             arguments[0] = proper_table_name(arguments.first, table_name_options)
@@ -1080,6 +1106,22 @@ module ActiveRecord
         end
       end
 
+      def format_arguments(arguments)
+        arg_list = arguments[0...-1].map(&:inspect)
+        last_arg = arguments.last
+        if last_arg.is_a?(Hash)
+          last_arg = last_arg.reject { |k, _v| internal_option?(k) }
+          arg_list << last_arg.inspect unless last_arg.empty?
+        else
+          arg_list << last_arg.inspect
+        end
+        arg_list.join(", ")
+      end
+
+      def internal_option?(option_name)
+        option_name.start_with?("_")
+      end
+
       def command_recorder
         CommandRecorder.new(connection)
       end
@@ -1112,12 +1154,14 @@ module ActiveRecord
       end
   end
 
+  # = \Migration \Context
+  #
   # MigrationContext sets the context in which a migration is run.
   #
   # A migration context requires the path to the migrations is set
   # in the +migrations_paths+ parameter. Optionally a +schema_migration+
   # class can be provided. Multiple database applications will instantiate
-  # a +SchemaMigration+ object per database. From the Rake tasks, Rails will
+  # a +SchemaMigration+ object per database. From the Rake tasks, \Rails will
   # handle this for you.
   class MigrationContext
     attr_reader :migrations_paths, :schema_migration, :internal_metadata
@@ -1127,7 +1171,7 @@ module ActiveRecord
         ActiveRecord.deprecator.warn(<<-MSG.squish)
           SchemaMigration no longer inherits from ActiveRecord::Base. If you want
           to use the default connection, remove this argument. If you want to use a
-          specific connection, instaniate MigrationContext with the connection's schema
+          specific connection, instantiate MigrationContext with the connection's schema
           migration, for example `MigrationContext.new(path, Dog.connection.schema_migration)`.
         MSG
 
@@ -1138,7 +1182,7 @@ module ActiveRecord
         ActiveRecord.deprecator.warn(<<-MSG.squish)
           SchemaMigration no longer inherits from ActiveRecord::Base. If you want
           to use the default connection, remove this argument. If you want to use a
-          specific connection, instaniate MigrationContext with the connection's internal
+          specific connection, instantiate MigrationContext with the connection's internal
           metadata, for example `MigrationContext.new(path, nil, Dog.connection.internal_metadata)`.
         MSG
 

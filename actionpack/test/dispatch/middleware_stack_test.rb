@@ -200,10 +200,14 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     end
 
     ActiveSupport::Notifications.subscribed(subscriber, "process_middleware.action_dispatch") do
-      app = @stack.build(proc { |env| [200, {}, []] })
+      app = Rack::Lint.new(
+        @stack.build(Rack::Lint.new(proc { |env| [200, {}, []] }))
+      )
 
-      env = {}
-      app.call(env)
+      env = Rack::MockRequest.env_for("", {})
+      assert_nothing_raised do
+        app.call(env)
+      end
     end
 
     assert_equal 2, events.count

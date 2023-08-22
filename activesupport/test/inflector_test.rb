@@ -220,11 +220,21 @@ class InflectorTest < ActiveSupport::TestCase
     ].each do |camel, under, human, title|
       assert_equal(camel, ActiveSupport::Inflector.camelize(under))
       assert_equal(camel, ActiveSupport::Inflector.camelize(camel))
+      assert_not_predicate(ActiveSupport::Inflector.camelize(under), :frozen?)
+      assert_not_predicate(ActiveSupport::Inflector.camelize(camel), :frozen?)
+
       assert_equal(under, ActiveSupport::Inflector.underscore(under))
       assert_equal(under, ActiveSupport::Inflector.underscore(camel))
+      assert_not_predicate(ActiveSupport::Inflector.underscore(under), :frozen?)
+      assert_not_predicate(ActiveSupport::Inflector.underscore(camel), :frozen?)
+
       assert_equal(title, ActiveSupport::Inflector.titleize(under))
       assert_equal(title, ActiveSupport::Inflector.titleize(camel))
+      assert_not_predicate(ActiveSupport::Inflector.titleize(under), :frozen?)
+      assert_not_predicate(ActiveSupport::Inflector.titleize(camel), :frozen?)
+
       assert_equal(human, ActiveSupport::Inflector.humanize(under))
+      assert_not_predicate(ActiveSupport::Inflector.humanize(camel), :frozen?)
     end
   end
 
@@ -368,6 +378,10 @@ class InflectorTest < ActiveSupport::TestCase
     UnderscoreToHuman.each do |underscore, human|
       assert_equal(human, ActiveSupport::Inflector.humanize(underscore))
     end
+  end
+
+  def test_humanize_nil
+    assert_equal("", ActiveSupport::Inflector.humanize(nil))
   end
 
   def test_humanize_without_capitalize
@@ -638,5 +652,11 @@ class InflectorTest < ActiveSupport::TestCase
       inflect.clear(:acronyms)
       assert_equal({}, inflect.acronyms)
     end
+  end
+
+  def test_output_is_not_frozen_even_if_input_is_frozen
+    input = "plurals"
+    assert_predicate input, :frozen?
+    assert_not_predicate ActiveSupport::Inflector.pluralize(input), :frozen?
   end
 end

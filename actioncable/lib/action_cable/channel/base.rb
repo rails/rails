@@ -2,9 +2,12 @@
 
 require "set"
 require "active_support/rescuable"
+require "active_support/parameter_filter"
 
 module ActionCable
   module Channel
+    # = Action Cable \Channel \Base
+    #
     # The channel provides the basic structure of grouping behavior into logical units when communicating over the WebSocket connection.
     # You can think of a channel like a form of controller, but one that's capable of pushing content to the subscriber in addition to simply
     # responding to the subscriber's direct requests.
@@ -209,9 +212,11 @@ module ActionCable
         # Transmit a hash of data to the subscriber. The hash will automatically be wrapped in a JSON envelope with
         # the proper channel identifier marked as the recipient.
         def transmit(data, via: nil) # :doc:
-          status = "#{self.class.name} transmitting #{data.inspect.truncate(300)}"
-          status += " (via #{via})" if via
-          logger.debug(status)
+          logger.debug do
+            status = "#{self.class.name} transmitting #{data.inspect.truncate(300)}"
+            status += " (via #{via})" if via
+            status
+          end
 
           payload = { channel_class: self.class.name, data: data, via: via }
           ActiveSupport::Notifications.instrument("transmit.action_cable", payload) do
@@ -275,10 +280,17 @@ module ActionCable
 
         def action_signature(action, data)
           (+"#{self.class.name}##{action}").tap do |signature|
-            if (arguments = data.except("action")).any?
+            arguments = data.except("action")
+
+            if arguments.any?
+              arguments = parameter_filter.filter(arguments)
               signature << "(#{arguments.inspect})"
             end
           end
+        end
+
+        def parameter_filter
+          @parameter_filter ||= ActiveSupport::ParameterFilter.new(connection.config.filter_parameters)
         end
 
         def transmit_subscription_confirmation

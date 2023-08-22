@@ -45,7 +45,7 @@ class TimePrecisionTest < ActiveRecord::TestCase
       assert_equal 123456000, foo.finish.nsec
     end
 
-    unless current_adapter?(:Mysql2Adapter)
+    unless current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       def test_no_time_precision_isnt_truncated_on_assignment
         @connection.create_table(:foos, force: true)
         @connection.add_column :foos, :start,  :time

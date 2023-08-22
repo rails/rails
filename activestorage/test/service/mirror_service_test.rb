@@ -16,18 +16,25 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
   SERVICE = ActiveStorage::Service.configure :mirror, config
 
   include ActiveStorage::Service::SharedServiceTests
+  include ActiveJob::TestHelper
 
   test "name" do
     assert_equal :mirror, @service.name
   end
 
   test "uploading to all services" do
+    old_service = ActiveStorage::Blob.service
+    ActiveStorage::Blob.service = @service
+
     key      = SecureRandom.base58(24)
     data     = "Something else entirely!"
     io       = StringIO.new(data)
     checksum = OpenSSL::Digest::MD5.base64digest(data)
 
-    @service.upload key, io.tap(&:read), checksum: checksum
+    assert_performed_jobs 1, only: ActiveStorage::MirrorJob do
+      @service.upload key, io.tap(&:read), checksum: checksum
+    end
+
     assert_predicate io, :eof?
 
     assert_equal data, @service.primary.download(key)
@@ -36,6 +43,7 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
     end
   ensure
     @service.delete key
+    ActiveStorage::Blob.service = old_service
   end
 
   test "downloading from primary service" do

@@ -67,7 +67,7 @@ module ActiveRecord
       #
       #     generates_token_for :password_reset, expires_in: 15.minutes do
       #       # Last 10 characters of password salt, which changes when password is updated:
-      #       BCrypt::Password.new(password_digest).salt[-10..]
+      #       password_salt&.last(10)
       #     end
       #   end
       #

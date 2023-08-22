@@ -2,6 +2,8 @@
 
 module ActionDispatch
   module Http
+    # = Action Dispatch HTTP \UploadedFile
+    #
     # Models uploaded files.
     #
     # The actual file is accessible via the +tempfile+ accessor, though some

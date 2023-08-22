@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.email    = "david@loudthinking.com"
   s.homepage = "https://rubyonrails.org"
 
-  s.files        = Dir["CHANGELOG.md", "README.rdoc", "MIT-LICENSE", "RDOC_MAIN.rdoc", "exe/**/*", "lib/**/{*,.[a-z]*}"]
+  s.files        = Dir["CHANGELOG.md", "README.rdoc", "MIT-LICENSE", "RDOC_MAIN.md", "exe/**/*", "lib/**/{*,.[a-z]*}"]
   s.require_path = "lib"
 
   s.bindir      = "exe"
@@ -40,9 +40,11 @@ Gem::Specification.new do |s|
   s.add_dependency "activesupport", version
   s.add_dependency "actionpack",    version
 
+  s.add_dependency "rackup", ">= 1.0.0"
   s.add_dependency "rake", ">= 12.2"
-  s.add_dependency "thor", "~> 1.0"
+  s.add_dependency "thor", "~> 1.0", ">= 1.2.2"
   s.add_dependency "zeitwerk", "~> 2.6"
+  s.add_dependency "irb"
 
   s.add_development_dependency "actionview", version
 end

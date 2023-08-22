@@ -1,30 +1,25 @@
 # frozen_string_literal: true
 
-require "rack/chunked"
-
 module ActionController # :nodoc:
+  # = Action Controller \Streaming
+  #
   # Allows views to be streamed back to the client as they are rendered.
   #
-  # By default, Rails renders views by first rendering the template
+  # By default, \Rails renders views by first rendering the template
   # and then the layout. The response is sent to the client after the whole
   # template is rendered, all queries are made, and the layout is processed.
   #
-  # Streaming inverts the rendering flow by rendering the layout first and
-  # streaming each part of the layout as they are processed. This allows the
+  # \Streaming inverts the rendering flow by rendering the layout first and
+  # subsequently each part of the layout as they are processed. This allows the
   # header of the HTML (which is usually in the layout) to be streamed back
-  # to client very quickly, allowing JavaScripts and stylesheets to be loaded
+  # to client very quickly, enabling JavaScripts and stylesheets to be loaded
   # earlier than usual.
   #
-  # This approach was introduced in Rails 3.1 and is still improving. Several
-  # Rack middlewares may not work and you need to be careful when streaming.
-  # Those points are going to be addressed soon.
+  # Several Rack middlewares may not work and you need to be careful when streaming.
+  # This is covered in more detail below, see the Streaming@Middlewares section.
   #
-  # In order to use streaming, you will need to use a Ruby version that
-  # supports fibers (fibers are supported since version 1.9.2 of the main
-  # Ruby implementation).
-  #
-  # Streaming can be added to a given template easily, all you need to do is
-  # to pass the +:stream+ option.
+  # \Streaming can be added to a given template easily, all you need to do is
+  # to pass the +:stream+ option to +render+.
   #
   #   class PostsController
   #     def index
@@ -35,7 +30,7 @@ module ActionController # :nodoc:
   #
   # == When to use streaming
   #
-  # Streaming may be considered to be overkill for lightweight actions like
+  # \Streaming may be considered to be overkill for lightweight actions like
   # +new+ or +edit+. The real benefit of streaming is on expensive actions
   # that, for example, do a lot of queries on the database.
   #
@@ -59,13 +54,13 @@ module ActionController # :nodoc:
   #     render stream: true
   #   end
   #
-  # Notice that +:stream+ only works with templates. Rendering +:json+
+  # Notice that +:stream+ only works with templates. \Rendering +:json+
   # or +:xml+ with +:stream+ won't work.
   #
   # == Communication between layout and template
   #
   # When streaming, rendering happens top-down instead of inside-out.
-  # Rails starts with the layout, and the template is rendered later,
+  # \Rails starts with the layout, and the template is rendered later,
   # when its +yield+ is reached.
   #
   # This means that, if your application currently relies on instance
@@ -112,7 +107,7 @@ module ActionController # :nodoc:
   # This means that, if you have <code>yield :title</code> in your layout
   # and you want to use streaming, you would have to render the whole template
   # (and eventually trigger all queries) before streaming the title and all
-  # assets, which kills the purpose of streaming. For this purpose, you can use
+  # assets, which defeats the purpose of streaming. Alternatively, you can use
   # a helper called +provide+ that does the same as +content_for+ but tells the
   # layout to stop searching for other entries and continue rendering.
   #
@@ -122,7 +117,7 @@ module ActionController # :nodoc:
   #   Hello
   #   <%= content_for :title, " page" %>
   #
-  # Giving:
+  # Resulting in:
   #
   #   <html>
   #     <head><title>Main</title></head>
@@ -131,6 +126,8 @@ module ActionController # :nodoc:
   #
   # That said, when streaming, you need to properly check your templates
   # and choose when to use +provide+ and +content_for+.
+  #
+  # See also ActionView::Helpers::CaptureHelper for more information.
   #
   # == Headers, cookies, session, and flash
   #
@@ -143,11 +140,11 @@ module ActionController # :nodoc:
   #
   # Middlewares that need to manipulate the body won't work with streaming.
   # You should disable those middlewares whenever streaming in development
-  # or production. For instance, <tt>Rack::Bug</tt> won't work when streaming as it
+  # or production. For instance, +Rack::Bug+ won't work when streaming as it
   # needs to inject contents in the HTML body.
   #
-  # Also <tt>Rack::Cache</tt> won't work with streaming as it does not support
-  # streaming bodies yet. Whenever streaming Cache-Control is automatically
+  # Also +Rack::Cache+ won't work with streaming as it does not support
+  # streaming bodies yet. Whenever streaming +Cache-Control+ is automatically
   # set to "no-cache".
   #
   # == Errors
@@ -156,14 +153,14 @@ module ActionController # :nodoc:
   # happens because part of the template was already rendered and streamed to
   # the client, making it impossible to render a whole exception page.
   #
-  # Currently, when an exception happens in development or production, Rails
+  # Currently, when an exception happens in development or production, \Rails
   # will automatically stream to the client:
   #
   #   "><script>window.location = "/500.html"</script></html>
   #
-  # The first two characters (">) are required in case the exception happens
-  # while rendering attributes for a given tag. You can check the real cause
-  # for the exception in your logger.
+  # The first two characters (<tt>"></tt>) are required in case the exception
+  # happens while rendering attributes for a given tag. You can check the real
+  # cause for the exception in your logger.
   #
   # == Web server support
   #
@@ -183,16 +180,59 @@ module ActionController # :nodoc:
   #   unicorn_rails --config-file unicorn.config.rb
   #
   # You may also want to configure other parameters like <tt>:tcp_nodelay</tt>.
-  # Please check its documentation for more information: https://bogomips.org/unicorn/Unicorn/Configurator.html#method-i-listen
+  #
+  # For more information, please check the
+  # {documentation}[https://bogomips.org/unicorn/Unicorn/Configurator.html#method-i-listen].
   #
   # If you are using Unicorn with NGINX, you may need to tweak NGINX.
-  # Streaming should work out of the box on Rainbows.
+  # \Streaming should work out of the box on Rainbows.
   #
   # ==== Passenger
   #
-  # To be described.
+  # Phusion Passenger with NGINX, offers two streaming mechanisms out of the box.
+  #
+  # 1. NGINX response buffering mechanism which is dependent on the value of
+  #    +passenger_buffer_response+ option (default is "off").
+  # 2. Passenger buffering system which is always 'on' irrespective of the value
+  #    of +passenger_buffer_response+.
+  #
+  # When +passenger_buffer_response+ is turned "on", then streaming would be
+  # done at the NGINX level which waits until the application is done sending
+  # the response back to the client.
+  #
+  # For more information, please check the
+  # {documentation}[https://www.phusionpassenger.com/docs/references/config_reference/nginx/#passenger_buffer_response].
   #
   module Streaming
+    class Body # :nodoc:
+      TERM = "\r\n"
+      TAIL = "0#{TERM}"
+
+      # Store the response body to be chunked.
+      def initialize(body)
+        @body = body
+      end
+
+      # For each element yielded by the response body, yield
+      # the element in chunked encoding.
+      def each(&block)
+        term = TERM
+        @body.each do |chunk|
+          size = chunk.bytesize
+          next if size == 0
+
+          yield [size.to_s(16), term, chunk.b, term].join
+        end
+        yield TAIL
+        yield term
+      end
+
+      # Close the response body if the response body supports it.
+      def close
+        @body.close if @body.respond_to?(:close)
+      end
+    end
+
     private
       # Set proper cache control and transfer encoding when streaming
       def _process_options(options)
@@ -211,7 +251,7 @@ module ActionController # :nodoc:
       # Call render_body if we are streaming instead of usual +render+.
       def _render_template(options)
         if options.delete(:stream)
-          Rack::Chunked::Body.new view_renderer.render_body(view_context, options)
+          Body.new view_renderer.render_body(view_context, options)
         else
           super
         end

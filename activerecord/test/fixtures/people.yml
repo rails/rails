@@ -6,6 +6,7 @@ michael:
   gender: M
   followers_count: 1
   friends_too_count: 1
+  cars_count: 1
 david:
   id: 2
   first_name: David
@@ -14,6 +15,7 @@ david:
   gender: M
   followers_count: 1
   friends_too_count: 1
+  cars_count: 1
 susan:
   id: 3
   first_name: Susan

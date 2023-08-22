@@ -320,7 +320,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
   end
 
   class HstoreWithSerialize < Hstore
-    serialize :tags, TagCollection
+    serialize :tags, coder: TagCollection
   end
 
   def test_hstore_with_serialized_attributes

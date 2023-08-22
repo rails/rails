@@ -25,7 +25,7 @@ module ActiveRecord
         relation = build_relation(finder_class, attribute, value)
         if record.persisted?
           if finder_class.primary_key
-            relation = relation.where.not(finder_class.primary_key => record.id_in_database)
+            relation = relation.where.not(finder_class.primary_key => [record.id_in_database])
           else
             raise UnknownPrimaryKey.new(finder_class, "Cannot validate uniqueness for persisted record without primary key.")
           end
@@ -265,7 +265,7 @@ module ActiveRecord
       # When the database catches such a duplicate insertion,
       # {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] will raise an ActiveRecord::StatementInvalid
       # exception. You can either choose to let this error propagate (which
-      # will result in the default Rails exception page being shown), or you
+      # will result in the default \Rails exception page being shown), or you
       # can catch it and restart the transaction (e.g. by telling the user
       # that the title already exists, and asking them to re-enter the title).
       # This technique is also known as
@@ -280,6 +280,7 @@ module ActiveRecord
       # The following bundled adapters throw the ActiveRecord::RecordNotUnique exception:
       #
       # * ActiveRecord::ConnectionAdapters::Mysql2Adapter.
+      # * ActiveRecord::ConnectionAdapters::TrilogyAdapter.
       # * ActiveRecord::ConnectionAdapters::SQLite3Adapter.
       # * ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.
       def validates_uniqueness_of(*attr_names)

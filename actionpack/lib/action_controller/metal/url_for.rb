@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActionController
+  # = Action Controller \UrlFor
+  #
   # Includes +url_for+ into the host class. The class has to provide a +RouteSet+ by implementing
   # the <tt>_routes</tt> method. Otherwise, an exception will be raised.
   #
@@ -24,6 +26,11 @@ module ActionController
     extend ActiveSupport::Concern
 
     include AbstractController::UrlFor
+
+    def initialize(...)
+      super
+      @_url_options = nil
+    end
 
     def url_options
       @_url_options ||= {

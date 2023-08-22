@@ -9,12 +9,12 @@ require "pathname"
 require "thread"
 
 module Rails
-  # <tt>Rails::Engine</tt> allows you to wrap a specific Rails application or subset of
+  # +Rails::Engine+ allows you to wrap a specific \Rails application or subset of
   # functionality and share it with other applications or within a larger packaged application.
   # Every Rails::Application is just an engine, which allows for simple
   # feature and application sharing.
   #
-  # Any <tt>Rails::Engine</tt> is also a Rails::Railtie, so the same
+  # Any +Rails::Engine+ is also a Rails::Railtie, so the same
   # methods (like <tt>rake_tasks</tt> and +generators+) and configuration
   # options that are available in railties can also be used in engines.
   #
@@ -181,7 +181,7 @@ module Rails
   #   it's used as default <tt>:as</tt> option
   # * rake task for installing migrations <tt>my_engine:install:migrations</tt>
   #
-  # Engine name is set by default based on class name. For <tt>MyEngine::Engine</tt> it will be
+  # Engine name is set by default based on class name. For +MyEngine::Engine+ it will be
   # <tt>my_engine_engine</tt>. You can change it manually using the <tt>engine_name</tt> method:
   #
   #   module MyEngine
@@ -231,14 +231,14 @@ module Rails
   #   end
   #
   # If +MyEngine+ is isolated, the routes above will point to
-  # <tt>MyEngine::ArticlesController</tt>. You also don't need to use longer
+  # +MyEngine::ArticlesController+. You also don't need to use longer
   # URL helpers like +my_engine_articles_path+. Instead, you should simply use
   # +articles_path+, like you would do with your main application.
   #
   # To make this behavior consistent with other parts of the framework,
   # isolated engines also have an effect on ActiveModel::Naming. In a
-  # normal Rails app, when you use a namespaced model such as
-  # <tt>Namespace::Article</tt>, ActiveModel::Naming will generate
+  # normal \Rails app, when you use a namespaced model such as
+  # +Namespace::Article+, ActiveModel::Naming will generate
   # names with the prefix "namespace". In an isolated engine, the prefix will
   # be omitted in URL helpers and form fields, for convenience.
   #
@@ -252,7 +252,7 @@ module Rails
   # Additionally, an isolated engine will set its own name according to its
   # namespace, so <tt>MyEngine::Engine.engine_name</tt> will return
   # "my_engine". It will also set +MyEngine.table_name_prefix+ to "my_engine_",
-  # meaning for example that <tt>MyEngine::Article</tt> will use the
+  # meaning for example that +MyEngine::Article+ will use the
   # +my_engine_articles+ database table by default.
   #
   # == Using Engine's routes outside Engine
@@ -450,7 +450,7 @@ module Rails
       self
     end
 
-    # Load Rails runner and invoke the registered hooks.
+    # Load \Rails runner and invoke the registered hooks.
     # Check Rails::Railtie.runner for more info.
     def load_runner(app = self)
       run_runner_blocks(app)
@@ -465,7 +465,7 @@ module Rails
       self
     end
 
-    # Load Rails generators and invoke the registered hooks.
+    # Load \Rails generators and invoke the registered hooks.
     # Check Rails::Railtie.generators for more info.
     def load_generators(app = self)
       require "rails/generators"
@@ -586,6 +586,7 @@ module Rails
       routing_paths = paths["config/routes.rb"].existent
       external_paths = self.paths["config/routes"].paths
       routes.draw_paths.concat(external_paths)
+      app.routes.draw_paths.concat(external_paths)
 
       if routes? || routing_paths.any?
         app.routes_reloader.paths.unshift(*routing_paths)
@@ -612,6 +613,15 @@ module Rails
       previews = paths["test/mailers/previews"].existent
       unless previews.empty?
         ActiveSupport.on_load(:action_mailer) { self.preview_paths |= previews }
+      end
+    end
+
+    initializer :add_fixture_paths do
+      next if is_a?(Rails::Application)
+
+      fixtures = config.root.join("test", "fixtures")
+      if fixtures_in_root_and_not_in_vendor?(fixtures)
+        ActiveSupport.on_load(:active_record_fixtures) { self.fixture_paths |= ["#{fixtures}/"] }
       end
     end
 
@@ -716,6 +726,11 @@ module Rails
           end
           load_paths.uniq
         end
+      end
+
+      def fixtures_in_root_and_not_in_vendor?(fixtures)
+        fixtures.exist? && fixtures.to_s.start_with?(Rails.root.to_s) &&
+          !fixtures.to_s.start_with?(Rails.root.join("vendor").to_s)
       end
 
       def build_request(env)

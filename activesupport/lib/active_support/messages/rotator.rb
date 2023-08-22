@@ -3,17 +3,16 @@
 module ActiveSupport
   module Messages
     module Rotator # :nodoc:
-      def initialize(*secrets, on_rotation: nil, **options)
-        super(*secrets, **options)
-
-        @secrets = secrets
+      def initialize(*args, on_rotation: nil, **options)
+        super(*args, **options)
+        @args = args
         @options = options
         @rotations = []
         @on_rotation = on_rotation
       end
 
-      def rotate(*secrets, **options)
-        fall_back_to build_rotation(*secrets, **options)
+      def rotate(*args, **options)
+        fall_back_to build_rotation(*args, **options)
       end
 
       def fall_back_to(fallback)
@@ -21,36 +20,39 @@ module ActiveSupport
         self
       end
 
-      module Encryptor # :nodoc:
-        include Rotator
+      def read_message(message, on_rotation: @on_rotation, **options)
+        if @rotations.empty?
+          super(message, **options)
+        else
+          thrown, error = catch_rotation_error do
+            return super(message, **options)
+          end
 
-        def decrypt_and_verify(*args, on_rotation: @on_rotation, **options)
-          super
-        rescue MessageEncryptor::InvalidMessage, MessageVerifier::InvalidSignature
-          run_rotations(on_rotation) { |encryptor| encryptor.decrypt_and_verify(*args, **options) } || raise
-        end
-      end
+          @rotations.each do |rotation|
+            catch_rotation_error do
+              value = rotation.read_message(message, **options)
+              on_rotation&.call
+              return value
+            end
+          end
 
-      module Verifier # :nodoc:
-        include Rotator
-
-        def verified(*args, on_rotation: @on_rotation, **options)
-          super || run_rotations(on_rotation) { |verifier| verifier.verified(*args, **options) }
+          throw thrown, error
         end
       end
 
       private
-        def build_rotation(*secrets, **options)
-          self.class.new(*secrets, *@secrets.drop(secrets.length), **@options, **options)
+        def build_rotation(*args, **options)
+          self.class.new(*args, *@args.drop(args.length), **@options, **options)
         end
 
-        def run_rotations(on_rotation)
-          @rotations.find do |rotation|
-            if message = yield(rotation) rescue next
-              on_rotation&.call
-              return message
+        def catch_rotation_error(&block)
+          error = catch :invalid_message_format do
+            error = catch :invalid_message_serialization do
+              return [nil, block.call]
             end
+            return [:invalid_message_serialization, error]
           end
+          [:invalid_message_format, error]
         end
     end
   end

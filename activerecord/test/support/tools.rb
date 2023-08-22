@@ -11,11 +11,13 @@ require "active_support"
 require "active_support/test_case"
 
 require "rake/testtask"
+
 Rails::TestUnit::Runner.singleton_class.prepend Module.new {
    private
-     def list_tests(argv)
+     def list_tests(patterns)
        tests = super
-       tests.concat FileList["test/cases/adapters/#{adapter_name}/**/*_test.rb"]
+       tests.concat FileList["test/cases/adapters/#{adapter_name}/**/*_test.rb"] if patterns.empty?
+       tests
      end
 
      def default_test_exclude_glob

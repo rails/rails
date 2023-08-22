@@ -205,21 +205,21 @@ irb> p.errors.size
 irb> p.valid?
 => false
 irb> p.errors.objects.first.full_message
-=> "Name can't be blank"
+=> "Name can’t be blank"
 
 irb> p = Person.create
 => #<Person id: nil, name: nil>
 irb> p.errors.objects.first.full_message
-=> "Name can't be blank"
+=> "Name can’t be blank"
 
 irb> p.save
 => false
 
 irb> p.save!
-ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+ActiveRecord::RecordInvalid: Validation failed: Name can’t be blank
 
 irb> Person.create!
-ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+ActiveRecord::RecordInvalid: Validation failed: Name can’t be blank
 ```
 
 [`invalid?`][] is the inverse of `valid?`. It triggers your validations,
@@ -648,7 +648,7 @@ validates :boolean_field_name, exclusion: [nil]
 By using one of these validations, you will ensure the value will NOT be `nil`
 which would result in a `NULL` value in most cases.
 
-The default error message is _"can't be blank"_.
+The default error message is _"can’t be blank"_.
 
 [`Object#blank?`]: https://api.rubyonrails.org/classes/Object.html#method-i-blank-3F
 
@@ -738,9 +738,9 @@ details about multiple column indexes or [the PostgreSQL manual][] for examples
 of unique constraints that refer to a group of columns.
 
 There is also a `:case_sensitive` option that you can use to define whether the
-uniqueness constraint will be case sensitive, case insensitive, or respects
-default database collation. This option defaults to respects default database
-collation.
+uniqueness constraint will be case sensitive, case insensitive, or if it should
+respect the default database collation. This option defaults to respecting the
+default database collation.
 
 ```ruby
 class Person < ApplicationRecord
@@ -804,7 +804,7 @@ lower case.
 ```ruby
 class Person < ApplicationRecord
   validates_each :name, :surname do |record, attr, value|
-    record.errors.add(attr, 'must start with upper case') if value =~ /\A[[:lower:]]/
+    record.errors.add(attr, 'must start with upper case') if /\A[[:lower:]]/.match?(value)
   end
 end
 ```
@@ -1004,6 +1004,7 @@ class Person < ApplicationRecord
   # with the actual value of the attribute. %{attribute} and %{model}
   # are also available.
   validates :age, numericality: { message: "%{value} seems wrong" }
+end
 ```
 
 A `Proc` `:message` value is given two arguments: the object being validated, and
@@ -1073,7 +1074,7 @@ Passing an array of symbols is also acceptable.
 
 ```ruby
 class Book
-  include ActiveModel:Validations
+  include ActiveModel::Validations
 
   validates :title, presence: true, on: [:update, :ensure_title]
 end
@@ -1086,7 +1087,7 @@ irb> book.valid?
 irb> book.valid?(:ensure_title)
 => false
 irb> book.errors.messages
-=> {:title=>["can't be blank"]}
+=> {:title=>["can’t be blank"]}
 ```
 
 When triggered by an explicit context, validations are run for that context,
@@ -1105,8 +1106,10 @@ irb> person = Person.new
 irb> person.valid?(:account_setup)
 => false
 irb> person.errors.messages
-=> {:email=>["has already been taken"], :age=>["is not a number"], :name=>["can't be blank"]}
+=> {:email=>["has already been taken"], :age=>["is not a number"], :name=>["can’t be blank"]}
 ```
+
+We will cover more use-cases for `on:` in the [callbacks guide](active_record_callbacks.html).
 
 Strict Validations
 ------------------
@@ -1122,7 +1125,7 @@ end
 
 ```irb
 irb> Person.new.valid?
-ActiveModel::StrictValidationFailed: Name can't be blank
+ActiveModel::StrictValidationFailed: Name can’t be blank
 ```
 
 There is also the ability to pass a custom exception to the `:strict` option.
@@ -1135,7 +1138,7 @@ end
 
 ```irb
 irb> Person.new.valid?
-TokenGenerationException: Token can't be blank
+TokenGenerationException: Token can’t be blank
 ```
 
 Conditional Validation
@@ -1238,7 +1241,7 @@ the `validates_with` method.
 class MyValidator < ActiveModel::Validator
   def validate(record)
     unless record.name.start_with? 'X'
-      record.errors.add :name, "Need a name starting with X please!"
+      record.errors.add :name, "Provide a name starting with X, please!"
     end
   end
 end
@@ -1258,7 +1261,7 @@ instance.
 ```ruby
 class EmailValidator < ActiveModel::EachValidator
   def validate_each(record, attribute, value)
-    unless value =~ URI::MailTo::EMAIL_REGEXP
+    unless URI::MailTo::EMAIL_REGEXP.match?(value)
       record.errors.add attribute, (options[:message] || "is not an email")
     end
   end
@@ -1392,7 +1395,7 @@ irb> person = Person.new
 irb> person.valid?
 => false
 irb> person.errors.full_messages
-=> ["Name can't be blank", "Name is too short (minimum is 3 characters)"]
+=> ["Name can’t be blank", "Name is too short (minimum is 3 characters)"]
 
 irb> person = Person.new(name: "John Doe")
 irb> person.valid?
@@ -1439,7 +1442,7 @@ irb> person = Person.new
 irb> person.valid?
 => false
 irb> person.errors[:name]
-=> ["can't be blank", "is too short (minimum is 3 characters)"]
+=> ["can’t be blank", "is too short (minimum is 3 characters)"]
 ```
 
 ### `errors.where` and Error Object

@@ -4,8 +4,10 @@ require "active_record/middleware/database_selector/resolver"
 
 module ActiveRecord
   module Middleware
+    # = Database Selector \Middleware
+    #
     # The DatabaseSelector Middleware provides a framework for automatically
-    # swapping from the primary to the replica database connection. Rails
+    # swapping from the primary to the replica database connection. \Rails
     # provides a basic framework to determine when to swap and allows for
     # applications to write custom strategy classes to override the default
     # behavior.
@@ -15,7 +17,7 @@ module ActiveRecord
     # resolver context class that sets a value that helps the resolver class
     # decide when to switch.
     #
-    # Rails default middleware uses the request's session to set a timestamp
+    # \Rails default middleware uses the request's session to set a timestamp
     # that informs the application when to read from a primary or read from a
     # replica.
     #

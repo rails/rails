@@ -197,15 +197,13 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     end
   end
 
-  test "doesn't crash content_type not recognized by mini_mime" do
+  test "content_type not recognized by marcel isn't included as variable" do
     blob = create_file_blob(filename: "racecar.jpg")
 
-    # image/jpg is not recognised by mini_mime (image/jpeg is correct)
-    assert_deprecated(ActiveStorage.deprecator) do
-      blob.update(content_type: "image/jpg")
-    end
+    # image/jpg is not recognized by marcel (image/jpeg is correct)
+    blob.update(content_type: "image/jpg")
 
-    assert_nothing_raised do
+    assert_raises(ActiveStorage::InvariableError) do
       blob.variant(resize_to_limit: [100, 100])
     end
 
@@ -272,6 +270,15 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
       assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingMethod) do
         blob.variant(system: "touch /tmp/dangerous").processed
       end
+    end
+  end
+
+  test "destroy deletes file from service" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = blob.variant(resize_to_limit: [100, 100]).processed
+
+    assert_changes -> { blob.service.exist?(variant.key) }, from: true, to: false do
+      variant.destroy
     end
   end
 

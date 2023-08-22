@@ -3,9 +3,53 @@
 require "active_support/core_ext/object/try"
 
 module ActiveStorage
+  # = Active Storage \Attached \Model
+  #
   # Provides the class-level DSL for declaring an Active Record model's attachments.
   module Attached::Model
     extend ActiveSupport::Concern
+
+    ##
+    # :method: *_attachment
+    #
+    # Returns the attachment for the +has_one_attached+.
+    #
+    #   User.last.avatar_attachment
+
+    ##
+    # :method: *_attachments
+    #
+    # Returns the attachments for the +has_many_attached+.
+    #
+    #   Gallery.last.photos_attachments
+
+    ##
+    # :method: *_blob
+    #
+    # Returns the blob for the +has_one_attached+ attachment.
+    #
+    #   User.last.avatar_blob
+
+    ##
+    # :method: *_blobs
+    #
+    # Returns the blobs for the +has_many_attached+ attachments.
+    #
+    #   Gallery.last.photos_blobs
+
+    ##
+    # :method: with_attached_*
+    #
+    # Includes the attached blobs in your query to avoid N+1 queries.
+    #
+    # If +ActiveStorage.track_variants+ is enabled, it will also include the
+    # variants record and their attached blobs.
+    #
+    #   User.with_attached_avatar
+    #
+    # Use the plural form for +has_many_attached+:
+    #
+    #   Gallery.with_attached_photos
 
     class_methods do
       # Specifies the relation between a single attachment and the model.
@@ -59,7 +103,7 @@ module ActiveStorage
 
           def #{name}=(attachable)
             attachment_changes["#{name}"] =
-              if attachable.nil?
+              if attachable.nil? || attachable == ""
                 ActiveStorage::Attached::Changes::DeleteOne.new("#{name}", self)
               else
                 ActiveStorage::Attached::Changes::CreateOne.new("#{name}", self, attachable)
@@ -70,7 +114,13 @@ module ActiveStorage
         has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record, inverse_of: :record, dependent: :destroy, strict_loading: strict_loading
         has_one :"#{name}_blob", through: :"#{name}_attachment", class_name: "ActiveStorage::Blob", source: :blob, strict_loading: strict_loading
 
-        scope :"with_attached_#{name}", -> { includes("#{name}_attachment": :blob) }
+        scope :"with_attached_#{name}", -> {
+          if ActiveStorage.track_variants
+            includes("#{name}_attachment": { blob: { variant_records: { image_attachment: :blob } } })
+          else
+            includes("#{name}_attachment": :blob)
+          end
+        }
 
         after_save { attachment_changes[name.to_s]&.save }
 
@@ -140,51 +190,15 @@ module ActiveStorage
             attachables = Array(attachables).compact_blank
             pending_uploads = attachment_changes["#{name}"].try(:pending_uploads)
 
-            if ActiveStorage.replace_on_assign_to_many
-              attachment_changes["#{name}"] =
-                if attachables.none?
-                  ActiveStorage::Attached::Changes::DeleteMany.new("#{name}", self)
-                else
-                  ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, attachables, pending_uploads: pending_uploads)
-                end
+            attachment_changes["#{name}"] = if attachables.none?
+              ActiveStorage::Attached::Changes::DeleteMany.new("#{name}", self)
             else
-              ActiveStorage.deprecator.warn \
-                "config.active_storage.replace_on_assign_to_many is deprecated and will be removed in Rails 7.1. " \
-                "Make sure that your code works well with config.active_storage.replace_on_assign_to_many set to true before upgrading. " \
-                "To append new attachables to the Active Storage association, prefer using `attach`. " \
-                "Using association setter would result in purging the existing attached attachments and replacing them with new ones."
-
-              if attachables.any?
-                attachment_changes["#{name}"] =
-                  ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, #{name}.blobs + attachables, pending_uploads: pending_uploads)
-              end
+              ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, attachables, pending_uploads: pending_uploads)
             end
           end
         CODE
 
-        has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record, dependent: :destroy, strict_loading: strict_loading do
-          def purge
-            deprecate(:purge)
-            each(&:purge)
-            reset
-          end
-
-          def purge_later
-            deprecate(:purge_later)
-            each(&:purge_later)
-            reset
-          end
-
-          private
-          def deprecate(action)
-            reflection_name = proxy_association.reflection.name
-            attached_name = reflection_name.to_s.partition("_").first
-            ActiveStorage.deprecator.warn(<<-MSG.squish)
-              Calling `#{action}` from `#{reflection_name}` is deprecated and will be removed in Rails 7.1.
-              To migrate to Rails 7.1's behavior call `#{action}` from `#{attached_name}` instead: `#{attached_name}.#{action}`.
-            MSG
-          end
-        end
+        has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record, dependent: :destroy, strict_loading: strict_loading
         has_many :"#{name}_blobs", through: :"#{name}_attachments", class_name: "ActiveStorage::Blob", source: :blob, strict_loading: strict_loading
 
         scope :"with_attached_#{name}", -> {

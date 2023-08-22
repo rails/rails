@@ -2,7 +2,6 @@
 
 require "isolation/abstract_unit"
 require "rails/command"
-require "rails/commands/routes/routes_command"
 require "io/console/size"
 
 class Rails::Command::RoutesTest < ActiveSupport::TestCase
@@ -377,7 +376,7 @@ rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:i
 
     output = run_routes_command([ "--unused" ])
 
-    assert_equal(output, "No unused routes found.\n")
+    assert_includes(output, "No unused routes found.")
   end
 
   private

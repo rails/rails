@@ -39,6 +39,7 @@ require "models/translation"
 require "models/chef"
 require "models/cake_designer"
 require "models/drink_designer"
+require "models/cpk"
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_works_even_when_other_callbacks_update_the_parent_model
@@ -485,6 +486,12 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert_equal true, squeak.mouse.present?
     assert_equal true, squeak.valid?
   end
+
+  test "composite primary key autosave" do
+    assert_nothing_raised do
+      Cpk::Order.create!(id: [1, 2], book: Cpk::Book.new(title: "Book", id: [3, 4]))
+    end
+  end
 end
 
 class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttributes < ActiveRecord::TestCase
@@ -529,8 +536,8 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_not_predicate invalid_electron, :valid?
     assert_predicate valid_electron, :valid?
     assert_not_predicate molecule, :valid?
-    assert_equal ["can't be blank"], molecule.errors["electrons[1].name"]
-    assert_not_equal ["can't be blank"], molecule.errors["electrons.name"]
+    assert_equal ["can’t be blank"], molecule.errors["electrons[1].name"]
+    assert_not_equal ["can’t be blank"], molecule.errors["electrons.name"]
   ensure
     ActiveRecord.index_nested_attribute_errors = old_attribute_config
   end
@@ -561,6 +568,135 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_not_predicate guitar, :valid?
     assert_equal [{ error: :not_a_number, value: nil }], guitar.errors.details[:"tuning_pegs[1].pitch"]
     assert_equal [], guitar.errors.details[:"tuning_pegs.pitch"]
+  end
+
+  def test_errors_details_with_error_on_base_should_be_indexed_when_passed_as_array
+    reference = Class.new(ActiveRecord::Base) do
+      self.table_name = "references"
+      def self.name; "Reference"; end
+
+      validate :should_be_favorite
+
+      private
+        def should_be_favorite
+          errors.add(:base, "should be favorite") unless favorite?
+        end
+    end
+
+    person = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+      has_many :references, autosave: true, index_errors: true, anonymous_class: reference
+      def self.name; "Person"; end
+    end
+
+    p = person.new
+    reference_valid = reference.new(favorite: true)
+    reference_invalid = reference.new(favorite: false)
+    p.references = [reference_valid, reference_invalid]
+
+    assert_predicate reference_valid, :valid?
+    assert_not_predicate reference_invalid, :valid?
+    assert_not_predicate p, :valid?
+    assert_equal [{ error: "should be favorite" }], p.errors.details[:"references[1].base"]
+    assert_equal "should be favorite", p.errors[:"references[1].base"].first
+    assert_equal ["References[1] should be favorite"], p.errors.full_messages
+  end
+
+  def test_indexed_errors_should_be_properly_translated
+    old_i18n_customize_full_message = ActiveModel::Error.i18n_customize_full_message
+    ActiveModel::Error.i18n_customize_full_message = true
+    I18n.backend.store_translations(
+      :en,
+      activerecord: {
+        errors: {
+          models: {
+            "person/references": {
+              format: "%{message}"
+            }
+          }
+        }
+      }
+    )
+    reference = Class.new(ActiveRecord::Base) do
+      self.table_name = "references"
+      def self.name; "Reference"; end
+
+      validate :should_be_favorite
+      validates_presence_of :job_id
+
+      private
+        def should_be_favorite
+          errors.add(:base, "should be favorite") unless favorite?
+        end
+    end
+
+    person = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+      has_many :references, autosave: true, index_errors: true, anonymous_class: reference
+      def self.name; "Person"; end
+    end
+
+    p = person.new
+    reference_valid = reference.new(favorite: true, job_id: 1)
+    reference_invalid = reference.new(favorite: false)
+    p.references = [reference_valid, reference_invalid]
+
+    assert_predicate reference_valid, :valid?
+    assert_not_predicate reference_invalid, :valid?
+    assert_not_predicate p, :valid?
+    assert_equal ["should be favorite", "can’t be blank"], p.errors.full_messages
+  ensure
+    ActiveModel::Error.i18n_customize_full_message = old_i18n_customize_full_message
+    I18n.backend = I18n::Backend::Simple.new
+  end
+
+  def test_indexed_errors_on_base_attribute_should_be_properly_translated
+    I18n.backend.store_translations(
+      :en,
+      activerecord: {
+        attributes: {
+          person: {
+            reference: "Super reference",
+          },
+          reference: {
+            base: ""
+          }
+        }
+      }
+    )
+    reference = Class.new(ActiveRecord::Base) do
+      self.table_name = "references"
+      def self.name; "Reference"; end
+
+      validate :should_be_favorite
+      validates_presence_of :job_id
+
+      private
+        def should_be_favorite
+          errors.add(:base, "should be favorite") unless favorite?
+        end
+    end
+
+    person = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+      def self.name; "Person"; end
+
+      has_one :reference, autosave: true, anonymous_class: reference
+      validates :reference, presence: true
+    end
+
+    p = person.new
+    assert_not_predicate p, :valid?
+    assert_equal ["Super reference can’t be blank"], p.errors.full_messages
+
+    reference_invalid = reference.new(favorite: false)
+    p.reference = reference_invalid
+
+    assert_not_predicate reference_invalid, :valid?
+    assert_not_predicate p, :valid?
+    assert_equal [" should be favorite", "Reference job can’t be blank"], p.errors.full_messages
+  ensure
+    I18n.backend = I18n::Backend::Simple.new
   end
 
   def test_errors_details_should_be_indexed_when_global_flag_is_set
@@ -596,7 +732,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
 end
 
 class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCase
-  fixtures :companies, :developers
+  fixtures :companies, :developers, :cpk_order_agreements, :cpk_orders, :cpk_books
 
   def test_invalid_adding
     firm = Firm.find(1)
@@ -728,6 +864,44 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     firm.reload
     assert_equal 2, firm.clients.length
     assert_includes firm.clients, companies(:second_client)
+  end
+
+  def test_assign_ids_with_belongs_to_cpk_model
+    order_agreements = [cpk_order_agreements(:order_agreement_one).id, cpk_order_agreements(:order_agreement_two).id]
+    order = cpk_orders(:cpk_groceries_order_1)
+
+    assert_empty order.order_agreements
+
+    order.order_agreement_ids = order_agreements
+    order.save
+    order.reload
+
+    assert_equal order_agreements, order.order_agreement_ids
+    assert_equal 2, order.order_agreements.length
+    assert_includes order.order_agreements, cpk_order_agreements(:order_agreement_two)
+  end
+
+  def test_assign_ids_with_cpk_for_two_models
+    book_ids = [cpk_books(:cpk_great_author_first_book).id, cpk_books(:cpk_great_author_second_book).id]
+    order = cpk_orders(:cpk_groceries_order_1)
+
+    assert_empty order.books
+
+    order.book_ids = book_ids
+    order.save
+    order.reload
+
+    assert_equal book_ids, order.book_ids
+    assert_equal 2, order.books.length
+    assert_includes order.books, cpk_books(:cpk_great_author_first_book)
+    assert_includes order.books, cpk_books(:cpk_great_author_second_book)
+  end
+
+  def test_has_one_cpk_has_one_autosave_with_id
+    book = Cpk::Book.create!(id: [1, 3], shop_id: 2)
+    order = Cpk::OrderWithPrimaryKeyAssociatedBook.create!(book: book, shop_id: 2)
+
+    assert_equal(book.order.id, order.id)
   end
 
   def test_assign_ids_for_through_a_belongs_to
@@ -901,6 +1075,8 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     Parrot.delete_all
     @ship.delete
     @pirate.delete
+    Cpk::Book.delete_all
+    Cpk::Order.delete_all
   end
 
   # reload
@@ -988,6 +1164,18 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     @ship.save
     assert_nil @ship.reload.pirate
     assert_nil Pirate.find_by_id(id)
+  end
+
+  # belongs_to for CPK
+  def test_autosave_cpk_association_should_destroy_parent_association_when_marked_for_destruction
+    book = Cpk::Book.new(title: "Book", id: [1, 2])
+    Cpk::Order.create!(id: [3, 4], book: book)
+
+    book.order.mark_for_destruction
+
+    assert book.save
+    assert_nil book.reload.order
+    assert_nil Cpk::Order.find_by(id: 4, shop_id: 3)
   end
 
   def test_should_skip_validation_on_a_parent_association_if_marked_for_destruction
@@ -1281,8 +1469,6 @@ end
 class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
   fixtures :chefs, :cake_designers, :drink_designers
 
-  self.use_transactional_tests = false unless supports_savepoints?
-
   def setup
     super
     @pirate = Pirate.create(catchphrase: "Don' botharrr talkin' like one, savvy?")
@@ -1339,7 +1525,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     @pirate.ship.name   = ""
     @pirate.catchphrase = nil
     assert_predicate @pirate, :invalid?
-    assert_equal ["can't be blank", "is invalid"], @pirate.errors[:"ship.name"]
+    assert_equal ["can’t be blank", "is invalid"], @pirate.errors[:"ship.name"]
   ensure
     Ship._validators = old_validators if old_validators
     Ship._validate_callbacks = old_callbacks if old_callbacks
@@ -1452,8 +1638,6 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
 end
 
 class TestAutosaveAssociationOnAHasOneThroughAssociation < ActiveRecord::TestCase
-  self.use_transactional_tests = false unless supports_savepoints?
-
   def create_member_with_organization
     organization = Organization.create
     member = Member.create
@@ -1497,8 +1681,6 @@ class TestAutosaveAssociationOnAHasOneThroughAssociation < ActiveRecord::TestCas
 end
 
 class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
-  self.use_transactional_tests = false unless supports_savepoints?
-
   def setup
     super
     @ship = Ship.create(name: "Nights Dirty Lightning")
@@ -1638,7 +1820,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.public_send(@association_name).each { |child| child.name = "" }
 
     assert_not_predicate @pirate, :valid?
-    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
+    assert_equal ["can’t be blank"], @pirate.errors["#{@association_name}.name"]
     assert_empty @pirate.errors[@association_name]
   end
 
@@ -1646,7 +1828,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.public_send(@association_name).build(name: "")
 
     assert_not_predicate @pirate, :valid?
-    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
+    assert_equal ["can’t be blank"], @pirate.errors["#{@association_name}.name"]
     assert_empty @pirate.errors[@association_name]
   end
 
@@ -1670,7 +1852,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.catchphrase = nil
 
     assert_not_predicate @pirate, :valid?
-    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
+    assert_equal ["can’t be blank"], @pirate.errors["#{@association_name}.name"]
     assert_predicate @pirate.errors[:catchphrase], :any?
   end
 
@@ -1770,8 +1952,6 @@ module AutosaveAssociationOnACollectionAssociationTests
 end
 
 class TestAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCase
-  self.use_transactional_tests = false unless supports_savepoints?
-
   def setup
     super
     @association_name = :birds
@@ -1786,8 +1966,6 @@ class TestAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCase
 end
 
 class TestAutosaveAssociationOnAHasAndBelongsToManyAssociation < ActiveRecord::TestCase
-  self.use_transactional_tests = false unless supports_savepoints?
-
   def setup
     super
     @association_name = :autosaved_parrots
@@ -1803,8 +1981,6 @@ class TestAutosaveAssociationOnAHasAndBelongsToManyAssociation < ActiveRecord::T
 end
 
 class TestAutosaveAssociationOnAHasAndBelongsToManyAssociationWithAcceptsNestedAttributes < ActiveRecord::TestCase
-  self.use_transactional_tests = false unless supports_savepoints?
-
   def setup
     super
     @association_name = :parrots
@@ -1820,8 +1996,6 @@ class TestAutosaveAssociationOnAHasAndBelongsToManyAssociationWithAcceptsNestedA
 end
 
 class TestAutosaveAssociationValidationsOnAHasManyAssociation < ActiveRecord::TestCase
-  self.use_transactional_tests = false unless supports_savepoints?
-
   def setup
     super
     @pirate = Pirate.create(catchphrase: "Don' botharrr talkin' like one, savvy?")
@@ -1885,8 +2059,6 @@ class TestAutosaveAssociationValidationsOnAHasManyAssociation < ActiveRecord::Te
 end
 
 class TestAutosaveAssociationValidationsOnAHasOneAssociation < ActiveRecord::TestCase
-  self.use_transactional_tests = false unless supports_savepoints?
-
   def setup
     super
     @pirate = Pirate.create(catchphrase: "Don' botharrr talkin' like one, savvy?")
@@ -1908,8 +2080,6 @@ class TestAutosaveAssociationValidationsOnAHasOneAssociation < ActiveRecord::Tes
 end
 
 class TestAutosaveAssociationValidationsOnABelongsToAssociation < ActiveRecord::TestCase
-  self.use_transactional_tests = false unless supports_savepoints?
-
   def setup
     super
     @pirate = Pirate.create(catchphrase: "Don' botharrr talkin' like one, savvy?")
@@ -1936,8 +2106,6 @@ class TestAutosaveAssociationValidationsOnABelongsToAssociation < ActiveRecord::
 end
 
 class TestAutosaveAssociationValidationsOnAHABTMAssociation < ActiveRecord::TestCase
-  self.use_transactional_tests = false unless supports_savepoints?
-
   def setup
     super
     @pirate = Pirate.create(catchphrase: "Don' botharrr talkin' like one, savvy?")
@@ -1959,8 +2127,6 @@ class TestAutosaveAssociationValidationsOnAHABTMAssociation < ActiveRecord::Test
 end
 
 class TestAutosaveAssociationValidationMethodsGeneration < ActiveRecord::TestCase
-  self.use_transactional_tests = false unless supports_savepoints?
-
   def setup
     super
     @pirate = Pirate.new

@@ -40,18 +40,71 @@ module ActiveRecord
     end
 
     module ClassMethods
-      def inherited(child_class) # :nodoc:
-        child_class.initialize_generated_modules
-        super
-      end
-
       def initialize_generated_modules # :nodoc:
         @generated_attribute_methods = const_set(:GeneratedAttributeMethods, GeneratedAttributeMethods.new)
         private_constant :GeneratedAttributeMethods
         @attribute_methods_generated = false
+        @alias_attributes_mass_generated = false
         include @generated_attribute_methods
 
         super
+      end
+
+      def alias_attribute(new_name, old_name)
+        super
+
+        if @alias_attributes_mass_generated
+          ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
+            generate_alias_attribute_methods(code_generator, new_name, old_name)
+          end
+        end
+      end
+
+      def eagerly_generate_alias_attribute_methods(_new_name, _old_name) # :nodoc:
+        # alias attributes in Active Record are lazily generated
+      end
+
+      def generate_alias_attributes # :nodoc:
+        superclass.generate_alias_attributes unless superclass == Base
+        return if @alias_attributes_mass_generated
+
+        generated_attribute_methods.synchronize do
+          return if @alias_attributes_mass_generated
+          ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
+            local_attribute_aliases.each do |new_name, old_name|
+              generate_alias_attribute_methods(code_generator, new_name, old_name)
+            end
+          end
+
+          @alias_attributes_mass_generated = true
+        end
+      end
+
+      def alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
+        method_name = pattern.method_name(new_name).to_s
+        target_name = pattern.method_name(old_name).to_s
+        parameters = pattern.parameters
+        old_name = old_name.to_s
+
+        method_defined = method_defined?(target_name) || private_method_defined?(target_name)
+        manually_defined = method_defined && self.instance_method(target_name).owner != generated_attribute_methods
+        reserved_method_name = ::ActiveRecord::AttributeMethods.dangerous_attribute_methods.include?(target_name)
+
+        if manually_defined && !reserved_method_name
+          aliased_method_redefined_as_well = method_defined_within?(method_name, self)
+          return if aliased_method_redefined_as_well
+
+          ActiveRecord.deprecator.warn(
+            "#{self} model aliases `#{old_name}` and has a method called `#{target_name}` defined. " \
+            "Starting in Rails 7.2 `#{method_name}` will not be calling `#{target_name}` anymore. " \
+            "You may want to additionally define `#{method_name}` to preserve the current behavior."
+          )
+          super
+        else
+          define_proxy_call(code_generator, method_name, pattern.proxy_target, parameters, old_name,
+            namespace: :proxy_alias_attribute
+          )
+        end
       end
 
       # Generates all the attribute related methods for columns in the database
@@ -72,6 +125,7 @@ module ActiveRecord
         generated_attribute_methods.synchronize do
           super if defined?(@attribute_methods_generated) && @attribute_methods_generated
           @attribute_methods_generated = false
+          @alias_attributes_mass_generated = false
         end
       end
 
@@ -187,6 +241,16 @@ module ActiveRecord
       def _has_attribute?(attr_name) # :nodoc:
         attribute_types.key?(attr_name)
       end
+
+      private
+        def inherited(child_class)
+          super
+          child_class.initialize_generated_modules
+          child_class.class_eval do
+            @alias_attributes_mass_generated = false
+            @attribute_names = nil
+          end
+        end
     end
 
     # A Person object with a name attribute can ask <tt>person.respond_to?(:name)</tt>,
@@ -328,8 +392,8 @@ module ActiveRecord
     #
     #   person = Person.select(:name).first
     #   person[:name]            # => "Francesco"
-    #   person[:date_of_birth]   # => ActiveModel::MissingAttributeError: missing attribute: date_of_birth
-    #   person[:organization_id] # => ActiveModel::MissingAttributeError: missing attribute: organization_id
+    #   person[:date_of_birth]   # => ActiveModel::MissingAttributeError: missing attribute 'date_of_birth' for Person
+    #   person[:organization_id] # => ActiveModel::MissingAttributeError: missing attribute 'organization_id' for Person
     #   person[:id]              # => nil
     def [](attr_name)
       read_attribute(attr_name) { |n| missing_attribute(n, caller) }
@@ -364,10 +428,9 @@ module ActiveRecord
     #     end
     #
     #     private
-    #
-    #     def print_accessed_fields
-    #       p @posts.first.accessed_fields
-    #     end
+    #       def print_accessed_fields
+    #         p @posts.first.accessed_fields
+    #       end
     #   end
     #
     # Which allows you to quickly change your code to:

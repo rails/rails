@@ -2,6 +2,8 @@
 
 module ActiveModel
   module Type
+    # = Active Model \Time \Type
+    #
     # Attribute type for time of day representation. It is registered under the
     # +:time+ key.
     #
@@ -66,7 +68,7 @@ module ActiveModel
       private
         def cast_value(value)
           return apply_seconds_precision(value) unless value.is_a?(::String)
-          return if value.empty?
+          return if value.blank?
 
           dummy_time_value = value.sub(/\A\d{4}-\d\d-\d\d(?:T|\s)|/, "2000-01-01 ")
 

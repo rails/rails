@@ -4,6 +4,8 @@ require "active_support/core_ext/object/deep_dup"
 require "active_support/core_ext/array/wrap"
 
 module ActionDispatch # :nodoc:
+  # = Action Dispatch Content Security Policy
+  #
   # Configures the HTTP
   # {Content-Security-Policy}[https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy]
   # response header to help protect against XSS and injection attacks.
@@ -23,10 +25,6 @@ module ActionDispatch # :nodoc:
   #   end
   class ContentSecurityPolicy
     class Middleware
-      CONTENT_TYPE = "Content-Type"
-      POLICY = "Content-Security-Policy"
-      POLICY_REPORT_ONLY = "Content-Security-Policy-Report-Only"
-
       def initialize(app)
         @app = app
       end
@@ -55,14 +53,15 @@ module ActionDispatch # :nodoc:
       private
         def header_name(request)
           if request.content_security_policy_report_only
-            POLICY_REPORT_ONLY
+            ActionDispatch::Constants::CONTENT_SECURITY_POLICY_REPORT_ONLY
           else
-            POLICY
+            ActionDispatch::Constants::CONTENT_SECURITY_POLICY
           end
         end
 
         def policy_present?(headers)
-          headers[POLICY] || headers[POLICY_REPORT_ONLY]
+          headers[ActionDispatch::Constants::CONTENT_SECURITY_POLICY] ||
+            headers[ActionDispatch::Constants::CONTENT_SECURITY_POLICY_REPORT_ONLY]
         end
     end
 
@@ -124,6 +123,7 @@ module ActionDispatch # :nodoc:
     MAPPINGS = {
       self:             "'self'",
       unsafe_eval:      "'unsafe-eval'",
+      unsafe_hashes:    "'unsafe-hashes'",
       unsafe_inline:    "'unsafe-inline'",
       none:             "'none'",
       http:             "http:",

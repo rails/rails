@@ -83,5 +83,11 @@ module ActiveJob
         end
       end
     end
+
+    initializer "active_job.backtrace_cleaner" do
+      ActiveSupport.on_load(:active_job) do
+        LogSubscriber.backtrace_cleaner = ::Rails.backtrace_cleaner
+      end
+    end
   end
 end

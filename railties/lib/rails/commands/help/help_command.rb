@@ -6,10 +6,18 @@ module Rails
       hide_command!
 
       def help(*)
-        say self.class.desc
+        say self.class.class_usage
+      end
 
-        other_commands = printing_commands_not_in_usage.sort_by(&:first)
-        print_table(other_commands, indent: 1, truncate: true)
+      def help_extended(*)
+        help
+
+        say ""
+        say "In addition to those commands, there are:"
+        say ""
+
+        extended_commands = printing_commands_not_in_usage.sort_by(&:first)
+        print_table(extended_commands, truncate: true)
       end
 
       private

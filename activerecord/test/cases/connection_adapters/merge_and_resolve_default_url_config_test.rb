@@ -67,7 +67,7 @@ module ActiveRecord
         ENV["RAILS_ENV"] = "foo"
         config = { "foo" => { "adapter" => "postgres", "url" => ENV["DATABASE_URL"] } }
         actual = resolve_db_config(:foo, config)
-        expected_config = { adapter: "postgres", url: nil }
+        expected_config = { adapter: "postgres" }
 
         assert_equal expected_config, actual.configuration_hash
       end

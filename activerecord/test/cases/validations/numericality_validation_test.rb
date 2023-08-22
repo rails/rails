@@ -5,6 +5,7 @@ require "models/numeric_data"
 
 class NumericalityValidationTest < ActiveRecord::TestCase
   def setup
+    NumericData.generate_alias_attributes
     @model_class = NumericData.dup
   end
 

@@ -40,6 +40,38 @@ class QueryCacheTest < ActiveRecord::TestCase
     super
   end
 
+  def test_execute_clear_cache
+    assert_cache :off
+
+    mw = middleware { |env|
+      Post.first
+      query_cache = ActiveRecord::Base.connection.query_cache
+      assert_equal 1, query_cache.length, query_cache.keys
+      Post.connection.execute("SELECT 1")
+      query_cache = ActiveRecord::Base.connection.query_cache
+      assert_equal 0, query_cache.length, query_cache.keys
+    }
+    mw.call({})
+
+    assert_cache :off
+  end
+
+  def test_exec_query_clear_cache
+    assert_cache :off
+
+    mw = middleware { |env|
+      Post.first
+      query_cache = ActiveRecord::Base.connection.query_cache
+      assert_equal 1, query_cache.length, query_cache.keys
+      Post.connection.exec_query("SELECT 1")
+      query_cache = ActiveRecord::Base.connection.query_cache
+      assert_equal 0, query_cache.length, query_cache.keys
+    }
+    mw.call({})
+
+    assert_cache :off
+  end
+
   def test_writes_should_always_clear_cache
     assert_cache :off
 
@@ -161,7 +193,7 @@ class QueryCacheTest < ActiveRecord::TestCase
             t.datetime :ending
           end
         end
-        ActiveRecord::FixtureSet.create_fixtures(self.class.fixture_path, ["tasks"], {}, ActiveRecord::Base)
+        ActiveRecord::FixtureSet.create_fixtures(self.class.fixture_paths, ["tasks"], {}, ActiveRecord::Base)
       end
 
       ActiveRecord::Base.connection_pool.connections.each do |conn|
@@ -401,7 +433,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def test_cache_is_flat
     Task.cache do
-      assert_queries(1) { Topic.find(1); Topic.find(1); }
+      assert_queries(1) { Topic.find(1); Topic.find(1) }
     end
 
     ActiveRecord::Base.cache do
@@ -656,7 +688,7 @@ class QueryCacheMutableParamTest < ActiveRecord::TestCase
     attribute :payload, :json
   end
 
-  class HashWithFixedHash < Hash
+  class ObjectFixedHash < Struct.new(:a, :b)
     # this isn't very realistic, but it is the worst case and therefore a good
     # case to test
     def hash
@@ -677,18 +709,72 @@ class QueryCacheMutableParamTest < ActiveRecord::TestCase
   end
 
   def test_query_cache_handles_mutated_binds
-    JsonObj.create(payload: { a: 1 })
+    JsonObj.create(payload: ObjectFixedHash.new({ a: 1 }))
 
-    search = HashWithFixedHash[a: 1]
+    search = ObjectFixedHash.new({ a: 1 })
     JsonObj.where(payload: search).first # populate the cache
 
-    search.merge!(b: 2)
+    search.b = 2
     assert_nil JsonObj.where(payload: search).first, "cache returned a false positive"
   end
 
   def teardown
     ActiveRecord::Base.connection.disable_query_cache!
     ActiveRecord::Base.connection.drop_table("json_objs", if_exists: true)
+  end
+end
+
+class QuerySerializedParamTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  fixtures :topics
+
+  class YAMLObj < ActiveRecord::Base
+    self.table_name = "yaml_objs"
+
+    serialize :payload
+  end
+
+  def setup
+    @use_yaml_unsafe_load_was = ActiveRecord.use_yaml_unsafe_load
+
+    ActiveRecord::Base.connection.create_table("yaml_objs", force: true) do |t|
+      t.text "payload"
+    end
+
+    ActiveRecord::Base.connection.enable_query_cache!
+  end
+
+  def teardown
+    ActiveRecord::Base.connection.disable_query_cache!
+    ActiveRecord::Base.connection.drop_table("yaml_objs", if_exists: true)
+
+    ActiveRecord.use_yaml_unsafe_load = @use_yaml_unsafe_load_was
+  end
+
+  def test_query_serialized_active_record
+    ActiveRecord.use_yaml_unsafe_load = true
+
+    topic = Topic.first
+    assert_not_nil topic
+
+    obj = YAMLObj.create!(payload: { topic: topic })
+
+    # This is absolutely terrible, no-one should ever do this
+    assert_equal obj, YAMLObj.where(payload: { topic: topic }).first
+
+    relation = YAMLObj.where(payload: { topic: topic })
+    topic.title = "New Title"
+    assert_equal obj, relation.first
+
+    assert_nil YAMLObj.where(payload: { topic: topic }).first
+  end
+
+  def test_query_serialized_string
+    ActiveRecord.use_yaml_unsafe_load = false
+
+    obj = YAMLObj.create!(payload: "payload")
+    assert_equal obj, YAMLObj.find_by!(payload: "payload")
   end
 end
 
@@ -807,6 +893,35 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
         p.categories.delete_all
       end
     end
+  end
+
+  def test_query_cache_lru_eviction
+    connection = Post.connection
+    connection.pool.db_config.stub(:query_cache, 2) do
+      connection.send(:configure_query_cache!)
+      Post.cache do
+        assert_queries(2) do
+          connection.select_all("SELECT 1")
+          connection.select_all("SELECT 2")
+          connection.select_all("SELECT 1")
+        end
+
+        assert_queries(1) do
+          connection.select_all("SELECT 3")
+          connection.select_all("SELECT 3")
+        end
+
+        assert_no_queries do
+          connection.select_all("SELECT 1")
+        end
+
+        assert_queries(1) do
+          connection.select_all("SELECT 2")
+        end
+      end
+    end
+  ensure
+    connection.send(:configure_query_cache!)
   end
 
   test "threads use the same connection" do

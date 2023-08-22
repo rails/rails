@@ -1,11 +1,14 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "plugin_helpers"
 
 class Rails::Engine::TestTest < ActiveSupport::TestCase
+  include PluginHelpers
+
   setup do
     @destination_root = Dir.mktmpdir("bukkits")
-    Dir.chdir(@destination_root) { `bundle exec rails plugin new bukkits --mountable` }
+    generate_plugin("#{@destination_root}/bukkits", "--mountable")
   end
 
   teardown do
@@ -13,7 +16,7 @@ class Rails::Engine::TestTest < ActiveSupport::TestCase
   end
 
   test "automatically synchronize test schema" do
-    Dir.chdir(plugin_path) do
+    in_plugin_context(plugin_path) do
       # In order to confirm that migration files are loaded, generate multiple migration files.
       `bin/rails generate model user name:string;
        bin/rails generate model todo name:string;

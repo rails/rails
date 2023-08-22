@@ -1,3 +1,96 @@
+*   Disables the session in `ActiveStorage::Blobs::ProxyController`
+    and `ActiveStorage::Representations::ProxyController`
+    in order to allow caching by default in some CDNs as CloudFlare
+
+    Fixes #44136
+
+    *Bruno Prieto*
+
+*   Add `tags` to `ActiveStorage::Analyzer::AudioAnalyzer` output
+
+    *Keaton Roux*
+
+*   Add an option to preprocess variants
+
+    ActiveStorage variants are processed on the fly when they are needed but
+    sometimes we're sure that they are accessed and want to processed them
+    upfront.
+
+    `preprocessed` option is added when declaring variants.
+
+    ```
+    class User < ApplicationRecord
+      has_one_attached :avatar do |attachable|
+        attachable.variant :thumb, resize_to_limit: [100, 100], preprocessed: true
+      end
+    end
+    ```
+
+    *Shouichi Kamiya*
+
+*   Fix variants not included when eager loading multiple records containing a single attachment
+
+    When using the `with_attached_#{name}` scope for a `has_one_attached` relation,
+    attachment variants were not eagerly loaded.
+
+    *Russell Porter*
+
+*   Allow an ActiveStorage attachment to be removed via a form post
+
+    Attachments can already be removed by updating the attachment to be nil such as:
+    ```ruby
+    User.find(params[:id]).update!(avatar: nil)
+    ```
+
+    However, a form cannot post a nil param, it can only post an empty string. But, posting an
+    empty string would result in an `ActiveSupport::MessageVerifier::InvalidSignature: mismatched digest`
+    error being raised, because it's being treated as a signed blob id.
+
+    Now, nil and an empty string are treated as a delete, which allows attachments to be removed via:
+    ```ruby
+    User.find(params[:id]).update!(params.require(:user).permit(:avatar))
+
+    ```
+
+    *Nate Matykiewicz*
+
+*   Remove mini_mime usage in favour of marcel.
+
+    We have two libraries that are have similar usage. This change removes
+    dependency on mini_mime and makes use of similar methods from marcel.
+
+    *Vipul A M*
+
+*   Allow destroying active storage variants
+
+    ```ruby
+    User.first.avatar.variant(resize_to_limit: [100, 100]).destroy
+    ```
+
+    *Shouichi Kamiya*, *Yuichiro NAKAGAWA*, *Ryohei UEDA*
+
+*   Add `sample_rate` to `ActiveStorage::Analyzer::AudioAnalyzer` output
+
+    *Matija Čupić*
+
+*   Remove deprecated `purge` and `purge_later` methods from the attachments association.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated behavior when assigning to a collection of attachments.
+
+    Instead of appending to the collection, the collection is now replaced.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveStorage::Current#host` and `ActiveStorage::Current#host=` methods.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated invalid default content types in Active Storage configurations.
+
+    *Rafael Mendonça França*
+
 *   Add missing preview event to `ActiveStorage::LogSubscriber`
 
     A `preview` event is being instrumented in `ActiveStorage::Previewer`.
@@ -114,5 +207,13 @@
     streamed.
 
     *Luke Lau*
+
+*   Safe for direct upload on Libraries or Frameworks
+
+    Enable the use of custom headers during direct uploads, which allows for
+    the inclusion of Authorization bearer tokens or other forms of authorization
+    tokens through headers.
+
+    *Radamés Roriz*
 
 Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/activestorage/CHANGELOG.md) for previous changes.

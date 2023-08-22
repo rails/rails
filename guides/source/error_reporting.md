@@ -66,13 +66,14 @@ Rails.error.subscribe(ErrorSubscriber.new)
 
 You can register as many subscribers as you wish. Rails will call them in turn, in the order in which they were registered.
 
-Note: The Rails error-reporter will always call registered subscribers, regardless of your environment. However, many error-reporting services only report errors in production by default. You should configure and test your setup across environments as needed.
+NOTE: The Rails error-reporter will always call registered subscribers, regardless of your environment. However, many error-reporting services only report errors in production by default. You should configure and test your setup across environments as needed.
 
 ### Using the Error Reporter
 
 There are three ways you can use the error reporter:
 
 #### Reporting and Swallowing Errors
+
 [`Rails.error.handle`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-handle) will report any error raised within the block. It will then **swallow** the error, and the rest of your code outside the block will continue as normal.
 
 ```ruby
@@ -92,6 +93,7 @@ end
 ```
 
 #### Reporting and Re-raising Errors
+
 [`Rails.error.record`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-record) will report errors to all registered subscribers and then re-raise the error, meaning that the rest of your code won't execute.
 
 ```ruby
@@ -104,6 +106,7 @@ end
 If no error is raised in the block, `Rails.error.record` will return the result of the block.
 
 #### Manually Reporting Errors
+
 You can also manually report errors by calling [`Rails.error.report`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-report):
 
 ```ruby
@@ -126,7 +129,7 @@ All 3 reporting APIs (`#handle`, `#record`, and `#report`) support the following
 - `source`: a `String` about the source of the error. The default source is `"application"`. Errors reported by internal libraries may set other sources; the Redis cache library may use `"redis_cache_store.active_support"`, for instance. Your subscriber can use the source to ignore errors you aren't interested in.
 
 ```ruby
-Rails.error.handle(context: {user_id: user.id}, severity: :info) do
+Rails.error.handle(context: { user_id: user.id }, severity: :info) do
   # ...
 end
 ```
@@ -169,7 +172,7 @@ Error-reporting libraries can register their subscribers in a `Railtie`:
 ```ruby
 module MySdk
   class Railtie < ::Rails::Railtie
-    initializer "error_subscribe.my_sdk" do
+    initializer "my_sdk.error_subscribe" do
       Rails.error.subscribe(MyErrorSubscriber.new)
     end
   end

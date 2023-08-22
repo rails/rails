@@ -36,14 +36,6 @@ module Arel # :nodoc: all
         attribute.quoted_array(values)
       end
 
-      def table_name
-        attribute.relation.table_alias || attribute.relation.name
-      end
-
-      def column_name
-        attribute.name
-      end
-
       def casted_values
         type = attribute.type_caster
 

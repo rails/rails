@@ -24,6 +24,12 @@ module ActionCable
       ActiveSupport.on_load(:action_cable) { self.logger ||= ::Rails.logger }
     end
 
+    initializer "action_cable.health_check_application" do
+      ActiveSupport.on_load(:action_cable) {
+        self.health_check_application = ->(env) { Rails::HealthController.action(:show).call(env) }
+      }
+    end
+
     initializer "action_cable.asset" do
       config.after_initialize do |app|
         if app.config.respond_to?(:assets) && app.config.action_cable.precompile_assets
@@ -40,11 +46,12 @@ module ActionCable
 
       ActiveSupport.on_load(:action_cable) do
         if (config_path = Pathname.new(app.config.paths["config/cable"].first)).exist?
-          self.cable = Rails.application.config_for(config_path).to_h.with_indifferent_access
+          self.cable = app.config_for(config_path).to_h.with_indifferent_access
         end
 
         previous_connection_class = connection_class
         self.connection_class = -> { "ApplicationCable::Connection".safe_constantize || previous_connection_class.call }
+        self.filter_parameters += app.config.filter_parameters
 
         options.each { |k, v| send("#{k}=", v) }
       end

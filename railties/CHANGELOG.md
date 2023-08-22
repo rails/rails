@@ -14,11 +14,307 @@
 
     *Stephen Margheim*
 
+*   Add an option to start rails console in sandbox mode by default
+
+    `sandbox_by_default` option is added to start rails console in sandbox
+    mode by default. With this option turned on, `--no-sandbox` must be
+    specified to start rails in non-sandbox mode.
+
+    Note that this option is ignored when rails environment is development
+    or test.
+
+    *Shouichi Kamiya*
+
+*   Omit `webdrivers` gem dependency from `Gemfile` template
+
+    *Sean Doyle*
+
+*   Support filtering tests by line ranges
+
+    The new syntax allows you to filter tests by line ranges. For example, the
+    following command runs tests from line 10 to 20.
+
+    ```bash
+    $ rails test test/models/user_test.rb:10-20
+    ```
+
+    *Shouichi Kamiya*, *Seonggi Yang*, *oljfte*, *Ryohei UEDA*
+
+*   Update default scaffold templates to set 303 (See Other) as status code
+    on redirect for the update action for XHR requests other than GET or POST
+    to avoid issues (e.g browsers trying to follow the redirect using the
+    original request method resulting in double PATCH/PUT)
+
+    *Guillermo Iguaran*
+
+*   The new `config.autoload_lib_once` is similar to `config.autoload_lib`,
+    except that it adds `lib` to `config.autoload_once_paths` instead.
+
+    By calling `config.autoload_lib_once`, classes and modules in `lib` can be
+    autoloaded, even from application initializers, but won't be reloaded.
+
+    Please, see further details in the [autoloading
+    guide](https://guides.rubyonrails.org/v7.1/autoloading_and_reloading_constants.html).
+
+    *Xavier Noria*
+
+*   Add `config.action_dispatch.debug_exception_log_level` to configure the log
+    level used by `ActionDispatch::DebugExceptions`.
+
+    The default is `:fatal`, but with `load_defaults "7.1"` the default will be
+    `:error`.
+
+    *Hartley McGuire*
+
+*   Add `DATABASE` option to `railties:install:migrations`
+
+    This allows you to specify which database the migrations should be copied to
+    when running `rails railties:install:migrations`.
+
+    ```bash
+    $ rails railties:install:migrations DATABASE=animals
+    ```
+
+    *Matthew Hirst*
+
+*   The new method `config.autoload_lib(ignore:)` provides a simple way to
+    autoload from `lib`:
+
+    ```ruby
+    # config/application.rb
+    config.autoload_lib(ignore: %w(assets tasks))
+    ```
+
+    Please, see further details in the [autoloading
+    guide](https://guides.rubyonrails.org/v7.1/autoloading_and_reloading_constants.html).
+
+    *Xavier Noria*
+
+*   Don't show secret_key_base for `Rails.application.config#inspect`.
+
+    Before:
+
+    ```ruby
+    Rails.application.config.inspect
+    "#<Rails::Application::Configuration:0x00000001132b02a0 @root=... @secret_key_base=\"b3c631c314c0bbca50c1b2843150fe33\" ... >"
+    ```
+
+    After:
+
+    ```ruby
+    Rails.application.config.inspect
+    "#<Rails::Application::Configuration:0x00000001132b02a0>"
+    ```
+
+    *Petrik de Heus*
+
+*   Deprecate calling `Rails.application.secrets`.
+
+    Rails `secrets` have been deprecated in favor of `credentials`.
+    Calling `Rails.application.secrets` should show a deprecation warning.
+
+    *Petrik de Heus*
+
+*   Store `secret_key_base` in `Rails.config` for local environments.
+
+    Rails `secrets` have been deprecated in favor of `credentials`.
+    For the local environments the `secret_key_base` is now stored in
+    `Rails.config.secret_key_base` instead of the soft deprecated
+    `Rails.application.secrets.secret_key_base`.
+
+    *Petrik de Heus*
+
+*   Enable force_ssl=true in production by default: Force all access to the app over SSL,
+    use Strict-Transport-Security, and use secure cookies
+
+    *Justin Searls*, *Aaron Patterson*, *Guillermo Iguaran*, *Vinícius Bispo*
+
+*   Add engine's draw paths to application route set, so that the application
+    can draw route files defined in engine paths.
+
+    *Gannon McGibbon*
+
+*   Support `VISUAL` environment variable for commands which open an editor,
+    and prefer it over `EDITOR`.
+
+    *Summer ☀️*
+
+*   Add engine's `test/fixtures` path to `fixture_paths` in `on_load` hook if
+    path exists and is under the Rails application root.
+
+    *Chris Salzberg*
+
+*   `bin/rails app:template` now runs `bundle install` and any `after_bundle`
+    blocks after the template is executed.
+
+    *Jonathan Hefner* and *Gerry Caulfield*
+
+*   Enable passing column size to migration generator
+
+    Previously you could pass a limit to the migration generator:
+
+    `rails generate migration CreateAuthor name:text{65535}`
+
+    Now, a size attribute can be passed to the migration generator:
+
+    `rails generate migration CreateAuthor name:text{medium}`
+
+    This generates a migration which includes the size attribute:
+
+    ```ruby
+    class CreateAuthor < ActiveRecord::Migration[7.1]
+      def change
+        create_table :authors do |t|
+          t.text :name, size: :medium
+        end
+      end
+    end
+    ```
+
+    *Josh Broughton*, *Hartley McGuire*
+
+*   Trying to set a config key with the same name of a method now raises:
+
+    ```ruby
+    config.load_defaults = 7.0
+    # NoMethodError: Cannot assign to `load_defaults`, it is a configuration method
+    ```
+
+    *Xavier Noria*
+
+*   Deprecate `secrets:edit/show` and remove `secrets:setup`
+
+    `bin/rails secrets:setup` has been deprecated since Rails 5.2 in favor of
+    credentials. This command has been removed.
+
+    `bin/rails secrets:show` and `bin/rails secrets:edit` have been deprecated
+    in favor of credentials.
+
+    Run `bin/rails credentials:help` for more information
+
+    *Petrik de Heus*
+
+*   `bin/rails --help` will now list only framework and plugin commands. Rake
+    tasks defined in `lib/tasks/*.rake` files will no longer be included. For a
+    list of those tasks, use `rake -T`.
+
+    *Jonathan Hefner*
+
+*   Allow calling `bin/rails restart` outside of app directory.
+
+    The following would previously fail with a "No Rakefile found" error.
+
+    ```bash
+    $ blog/bin/rails restart
+    ```
+
+    *Petrik de Heus*
+
+*   Support prerelease rubies in Gemfile template if RubyGems version is 3.3.13 or higher.
+
+    *Yasuo Honda*, *David Rodríguez*
+
+*   Autoloading setup honors root directories manually set by the user.
+
+    This is relevant for custom namespaces. For example, if you'd like classes
+    and modules under `app/services` to be defined in the `Services` namespace
+    without an extra `app/services/services` directory, this is now enough:
+
+    ```ruby
+    # config/initializers/autoloading.rb
+
+    # The namespace has to exist.
+    #
+    # In this example we define the module on the spot. Could also be created
+    # elsewhere and its definition loaded here with an ordinary `require`. In
+    # any case, `push_dir` expects a class or module object.
+    module Services; end
+
+    Rails.autoloaders.main.push_dir("#{Rails.root}/app/services", namespace: Services)
+    ```
+
+    Check the autoloading guide for further details.
+
+    *Xavier Noria*
+
+*   Railties now requires the irb gem as a dependency, which means when you install Rails, irb will also
+    be installed as a gem. Rails will then use the installed version of irb for its console instead of
+    relying on Ruby's built-in version.
+    This ensures that Rails has access to the most up-to-date and reliable version of irb for its console.
+
+    *Stan Lo*
+
+*   Use infinitive form for all rails command descriptions verbs.
+
+    *Petrik de Heus*
+
+*   Credentials commands (e.g. `bin/rails credentials:edit`) now respect
+    `config.credentials.content_path` and `config.credentials.key_path` when set
+    in `config/application.rb` or `config/environments/#{Rails.env}.rb`.
+
+    Before:
+
+      * `bin/rails credentials:edit` ignored `RAILS_ENV`, and would always edit
+        `config/credentials.yml.enc`.
+
+      * `bin/rails credentials:edit --environment foo` would create and edit
+        `config/credentials/foo.yml.enc`.
+
+      * If `config.credentials.content_path` or `config.credentials.key_path`
+        was set, `bin/rails credentials:edit` could not be used to edit the
+        credentials.  Editing credentials required using `bin/rails
+        encrypted:edit path/to/credentials --key path/to/key`.
+
+    After:
+
+      * `bin/rails credentials:edit` will edit the credentials file that the app
+        would load for the current `RAILS_ENV`.
+
+      * `bin/rails credentials:edit` respects `config.credentials.content_path`
+        and `config.credentials.key_path` when set in `config/application.rb`
+        or `config/environments/#{Rails.env}.rb`.
+
+      * `bin/rails credentials:edit --environment foo` will create and edit
+        `config/credentials/foo.yml.enc` _if_ `config.credentials.content_path`
+        has not been set for the `foo` environment.  Ultimately, it will edit
+        the credentials file that the app would load for the `foo` environment.
+
+    *Jonathan Hefner*
+
+*   Add descriptions for non-Rake commands when running `rails -h`.
+
+    *Petrik de Heus*
+
+*   Show relevant commands when calling help
+
+    When running `rails -h` or just `rails` outside a Rails application,
+    Rails outputs all options for running the `rails new` command. This can be
+    confusing to users when they probably want to see the common Rails commands.
+
+    Instead, we should always show the common commands when running `rails -h`
+    inside or outside a Rails application.
+
+    As the relevant commands inside a Rails application differ from the
+    commands outside an application, the help USAGE file has been split to
+    show the most relevant commands for the context.
+
+    *Petrik de Heus*
+
+*   Add Rails::HealthController#show and map it to /up for newly generated applications.
+    Load balancers and uptime monitors all need a basic endpoint to tell whether the app is up.
+    This is a good starting point that'll work in many situations.
+
+    *DHH*
+
+*   Only use HostAuthorization middleware if `config.hosts` is not empty
+
+    *Hartley McGuire*
+
 *   Raise an exception when a `before_action`'s "only" or "except" filter
     options reference an action that doesn't exist. This will be enabled by
     default but can be overridden via config.
 
-    ```
+    ```ruby
     # config/environments/production.rb
     config.action_controller.raise_on_missing_callback_actions = false
     ```
@@ -31,39 +327,33 @@
 
     *DHH*
 
-*   Bump `required_rubygems_version` from 1.8.11 to 3.3.13 or higher in order to
-    support pre-release versions of Ruby when generating a new Rails app
-    Gemfile.
-
-    *Yasuo Honda*
-
 *   Add Docker files by default to new apps: Dockerfile, .dockerignore, bin/docker-entrypoint.
     These files can be skipped with `--skip-docker`. They're intended as a starting point for
     a production deploy of the application. Not intended for development (see Docked Rails for that).
 
     Example:
 
-    ```
-    docker build -t app .
-    docker volume create app-storage
-    docker run --rm -it -v app-storage:/rails/storage -p 3000:3000 --env RAILS_MASTER_KEY=<see config/master.key> app
+    ```bash
+    $ docker build -t app .
+    $ docker volume create app-storage
+    $ docker run --rm -it -v app-storage:/rails/storage -p 3000:3000 --env RAILS_MASTER_KEY=<see config/master.key> app
     ```
 
     You can also start a console or a runner from this image:
 
-    ```
-    docker run --rm -it -v app-storage:/rails/storage --env RAILS_MASTER_KEY=<see config/master.key> app console
+    ```bash
+    $ docker run --rm -it -v app-storage:/rails/storage --env RAILS_MASTER_KEY=<see config/master.key> app console
     ```
 
     To create a multi-platform image on Apple Silicon to deploy on AMD or Intel and push to Docker Hub for user/app:
 
-    ```
-    docker login -u <user>
-    docker buildx create --use
-    docker buildx build --push --platform=linux/amd64,linux/arm64 -t <user/image> .
+    ```bash
+    $ docker login -u <user>
+    $ docker buildx create --use
+    $ docker buildx build --push --platform=linux/amd64,linux/arm64 -t <user/image> .
     ```
 
-    *DHH*
+    *DHH, Sam Ruby*
 
 *   Add ENV["SECRET_KEY_BASE_DUMMY"] for starting production environment with a generated secret base key,
     which can be used to run tasks like `assets:precompile` without making the RAILS_MASTER_KEY available
@@ -206,8 +496,8 @@
 
     Example:
 
-    ```
-    > bin/rails routes --grep /cats/1
+    ```bash
+    $ bin/rails routes --grep /cats/1
     Prefix Verb   URI Pattern         Controller#Action
        cat GET    /cats/:id(.:format) cats#show
            PATCH  /cats/:id(.:format) cats#update
@@ -232,8 +522,8 @@
 
     Example:
 
-    ```
-    > bin/rails routes --unused
+    ```bash
+    $ bin/rails routes --unused
 
     Found 2 unused routes:
 
@@ -280,7 +570,7 @@
 *   `--no-*` options now work with the app generator's `--minimal` option, and
     are both comprehensive and precise.  For example:
 
-    ```console
+    ```bash
     $ rails new my_cool_app --minimal
     Based on the specified options, the following options will also be activated:
 
@@ -471,5 +761,14 @@
     support Internet Explorer this header should not be a default one.
 
     *Harun Sabljaković*
+
+*   Add .node-version files for Rails apps that use Node.js
+
+    Node version managers that make use of this file:
+      https://github.com/shadowspawn/node-version-usage#node-version-file-usage
+
+    The generated Dockerfile will use the same node version.
+
+    *Sam Ruby*
 
 Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/railties/CHANGELOG.md) for previous changes.

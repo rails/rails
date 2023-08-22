@@ -9,13 +9,13 @@ module ActiveRecord
   # Automatically append comments to SQL queries with runtime information tags. This can be used to trace troublesome
   # SQL statements back to the application code that generated these statements.
   #
-  # Query logs can be enabled via Rails configuration in <tt>config/application.rb</tt> or an initializer:
+  # Query logs can be enabled via \Rails configuration in <tt>config/application.rb</tt> or an initializer:
   #
   #     config.active_record.query_log_tags_enabled = true
   #
   # By default the name of the application, the name and action of the controller, or the name of the job are logged.
   # The default format is {SQLCommenter}[https://open-telemetry.github.io/opentelemetry-sqlcommenter/].
-  # The tags shown in a query comment can be configured via Rails configuration:
+  # The tags shown in a query comment can be configured via \Rails configuration:
   #
   #     config.active_record.query_log_tags = [ :application, :controller, :action, :job ]
   #
@@ -38,9 +38,11 @@ module ActiveRecord
   # * +job+
   #
   # New comment tags can be defined by adding them in a +Hash+ to the tags +Array+. Tags can have dynamic content by
-  # setting a +Proc+ or lambda value in the +Hash+, and can reference any value stored by Rails in the +context+ object.
+  # setting a +Proc+ or lambda value in the +Hash+, and can reference any value stored by \Rails in the +context+ object.
   # ActiveSupport::CurrentAttributes can be used to store application values. Tags with +nil+ values are
   # omitted from the query comment.
+  #
+  # Escaping is performed on the string returned, however untrusted user input should not be used.
   #
   # Example:
   #
@@ -77,12 +79,16 @@ module ActiveRecord
     thread_mattr_accessor :cached_comment, instance_accessor: false
 
     class << self
-      def call(sql) # :nodoc:
-        if prepend_comment
-          "#{self.comment} #{sql}"
+      def call(sql, connection) # :nodoc:
+        comment = self.comment(connection)
+
+        if comment.blank?
+          sql
+        elsif prepend_comment
+          "#{comment} #{sql}"
         else
-          "#{sql} #{self.comment}"
-        end.strip
+          "#{sql} #{comment}"
+        end
       end
 
       def clear_cache # :nodoc:
@@ -107,11 +113,11 @@ module ActiveRecord
       private
         # Returns an SQL comment +String+ containing the query log tags.
         # Sets and returns a cached comment if <tt>cache_query_log_tags</tt> is +true+.
-        def comment
+        def comment(connection)
           if cache_query_log_tags
-            self.cached_comment ||= uncached_comment
+            self.cached_comment ||= uncached_comment(connection)
           else
-            uncached_comment
+            uncached_comment(connection)
           end
         end
 
@@ -119,19 +125,30 @@ module ActiveRecord
           self.tags_formatter || self.update_formatter(:legacy)
         end
 
-        def uncached_comment
-          content = tag_content
+        def uncached_comment(connection)
+          content = tag_content(connection)
+
           if content.present?
             "/*#{escape_sql_comment(content)}*/"
           end
         end
 
         def escape_sql_comment(content)
-          content.to_s.gsub(%r{ (/ (?: | \g<1>) \*) \+? \s* | \s* (\* (?: | \g<2>) /) }x, "")
+          # Sanitize a string to appear within a SQL comment
+          # For compatibility, this also surrounding "/*+", "/*", and "*/"
+          # characters, possibly with single surrounding space.
+          # Then follows that by replacing any internal "*/" or "/ *" with
+          # "* /" or "/ *"
+          comment = content.to_s.dup
+          comment.gsub!(%r{\A\s*/\*\+?\s?|\s?\*/\s*\Z}, "")
+          comment.gsub!("*/", "* /")
+          comment.gsub!("/*", "/ *")
+          comment
         end
 
-        def tag_content
+        def tag_content(connection)
           context = ActiveSupport::ExecutionContext.to_h
+          context[:connection] ||= connection
 
           pairs = tags.flat_map { |i| [*i] }.filter_map do |tag|
             key, handler = tag

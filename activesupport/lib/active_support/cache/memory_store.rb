@@ -4,10 +4,12 @@ require "monitor"
 
 module ActiveSupport
   module Cache
+    # = Memory \Cache \Store
+    #
     # A cache store implementation which stores everything into memory in the
-    # same process. If you're running multiple Ruby on Rails server processes
+    # same process. If you're running multiple Ruby on \Rails server processes
     # (which is the case if you're using Phusion Passenger or puma clustered mode),
-    # then this means that Rails server process instances won't be able
+    # then this means that \Rails server process instances won't be able
     # to share cache data with each other and this may not be the most
     # appropriate cache in that scenario.
     #
@@ -28,25 +30,49 @@ module ActiveSupport
         extend self
 
         def dump(entry)
-          entry.dup_value! unless entry.compressed?
-          entry
+          if entry.value && entry.value != true && !entry.value.is_a?(Numeric)
+            Cache::Entry.new(dump_value(entry.value), expires_at: entry.expires_at, version: entry.version)
+          else
+            entry
+          end
         end
 
         def dump_compressed(entry, threshold)
-          entry = entry.compressed(threshold)
-          entry.dup_value! unless entry.compressed?
-          entry
+          compressed_entry = entry.compressed(threshold)
+          compressed_entry.compressed? ? compressed_entry : dump(entry)
         end
 
         def load(entry)
-          entry = entry.dup
-          entry.dup_value!
-          entry
+          if !entry.compressed? && entry.value.is_a?(String)
+            Cache::Entry.new(load_value(entry.value), expires_at: entry.expires_at, version: entry.version)
+          else
+            entry
+          end
         end
+
+        private
+          MARSHAL_SIGNATURE = "\x04\x08".b.freeze
+
+          def dump_value(value)
+            if value.is_a?(String) && !value.start_with?(MARSHAL_SIGNATURE)
+              value.dup
+            else
+              Marshal.dump(value)
+            end
+          end
+
+          def load_value(string)
+            if string.start_with?(MARSHAL_SIGNATURE)
+              Marshal.load(string)
+            else
+              string.dup
+            end
+          end
       end
 
       def initialize(options = nil)
         options ||= {}
+        options[:coder] = DupCoder unless options.key?(:coder) || options.key?(:serializer)
         # Disable compression by default.
         options[:compress] ||= false
         super(options)
@@ -74,7 +100,7 @@ module ActiveSupport
       # Preemptively iterates through all stored keys and removes the ones which have expired.
       def cleanup(options = nil)
         options = merged_options(options)
-        instrument(:cleanup, size: @data.size) do
+        _instrument(:cleanup, size: @data.size) do
           keys = synchronize { @data.keys }
           keys.each do |key|
             entry = @data[key]
@@ -163,10 +189,6 @@ module ActiveSupport
 
       private
         PER_ENTRY_OVERHEAD = 240
-
-        def default_coder
-          DupCoder
-        end
 
         def cached_size(key, payload)
           key.to_s.bytesize + payload.bytesize + PER_ENTRY_OVERHEAD

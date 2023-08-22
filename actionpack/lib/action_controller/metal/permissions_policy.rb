@@ -5,7 +5,7 @@ module ActionController # :nodoc:
     extend ActiveSupport::Concern
 
     module ClassMethods
-      # Overrides parts of the globally configured Feature-Policy
+      # Overrides parts of the globally configured +Feature-Policy+
       # header:
       #
       #   class PagesController < ApplicationController

@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/topic"
 require "models/customer"
+require "models/comment"
 require "models/company"
 require "models/company_in_module"
 require "models/ship"
@@ -27,6 +28,7 @@ require "models/cake_designer"
 require "models/drink_designer"
 require "models/recipe"
 require "models/user_with_invalid_relation"
+require "models/hardback"
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -44,25 +46,25 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_read_attribute_names
     assert_equal(
-      %w( id title author_name author_email_address bonus_time written_on last_read content important group approved replies_count unique_replies_count parent_id parent_title type created_at updated_at ).sort,
+      %w( id title author_name author_email_address bonus_time written_on last_read content important binary_content group approved replies_count unique_replies_count parent_id parent_title type created_at updated_at ).sort,
       @first.attribute_names.sort
     )
   end
 
   def test_columns
-    assert_equal 18, Topic.columns.length
+    assert_equal 19, Topic.columns.length
   end
 
   def test_columns_are_returned_in_the_order_they_were_declared
     column_names = Topic.columns.map(&:name)
-    assert_equal %w(id title author_name author_email_address written_on bonus_time last_read content important approved replies_count unique_replies_count parent_id parent_title type group created_at updated_at), column_names
+    assert_equal %w(id title author_name author_email_address written_on bonus_time last_read content important binary_content approved replies_count unique_replies_count parent_id parent_title type group created_at updated_at), column_names
   end
 
   def test_content_columns
     content_columns        = Topic.content_columns
     content_column_names   = content_columns.map(&:name)
-    assert_equal 13, content_columns.length
-    assert_equal %w(title author_name author_email_address written_on bonus_time last_read content important group approved parent_title created_at updated_at).sort, content_column_names.sort
+    assert_equal 14, content_columns.length
+    assert_equal %w(title author_name author_email_address written_on bonus_time last_read content important binary_content group approved parent_title created_at updated_at).sort, content_column_names.sort
   end
 
   def test_column_string_type_and_limit
@@ -324,7 +326,7 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal 2, hotel.chefs.count
   end
 
-  def test_scope_chain_does_not_interfere_with_hmt_with_polymorphic_case_and_sti
+  def test_scope_chain_does_not_interfere_with_hmt_with_polymorphic_case_and_subclass_source
     hotel = Hotel.create!
     hotel.mocktail_designers << MocktailDesigner.create!
 
@@ -339,6 +341,20 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal 0, hotel.mocktail_designers.count
     assert_equal 0, hotel.chef_lists.size
     assert_equal 0, hotel.chef_lists.count
+  end
+
+  def test_scope_chain_does_not_interfere_with_hmt_with_polymorphic_and_subclass_source_2
+    author = Author.create!(name: "John Doe")
+    hardback = BestHardback.create!
+    author.best_hardbacks << hardback
+
+    assert_equal [hardback], author.best_hardbacks
+    assert_equal [hardback], author.reload.best_hardbacks
+
+    author.best_hardbacks = []
+
+    assert_empty author.best_hardbacks
+    assert_empty author.reload.best_hardbacks
   end
 
   def test_scope_chain_of_polymorphic_association_does_not_leak_into_other_hmt_associations
@@ -446,6 +462,7 @@ class ReflectionTest < ActiveRecord::TestCase
   def test_foreign_key
     assert_equal "author_id", Author.reflect_on_association(:posts).foreign_key.to_s
     assert_equal "category_id", Post.reflect_on_association(:categorizations).foreign_key.to_s
+    assert_equal "comment_id", FirstPost.reflect_on_association(:comment_with_inverse).foreign_key.to_s
   end
 
   def test_foreign_key_is_inferred_from_model_name

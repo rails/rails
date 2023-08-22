@@ -56,19 +56,26 @@ class ActionText::ContentTest < ActiveSupport::TestCase
   end
 
   test "identifies destroyed attachables as missing" do
-    attachable = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
-    html = %Q(<action-text-attachment sgid="#{attachable.attachable_sgid}"></action-text-attachment>)
-    attachable.destroy!
+    file = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{file.attachable_sgid}"></action-text-attachment>)
+    file.destroy!
     content = content_from_html(html)
     assert_equal 1, content.attachments.size
-    assert_equal ActionText::Attachables::MissingAttachable, content.attachments.first.attachable
+
+    attachable = content.attachments.first.attachable
+    assert_kind_of ActionText::Attachables::MissingAttachable, attachable
+    assert_equal file.class, attachable.model
+    assert_equal ActionText::Attachables::MissingAttachable::DEFAULT_PARTIAL_PATH, attachable.to_partial_path
   end
 
   test "extracts missing attachables" do
     html = '<action-text-attachment sgid="missing"></action-text-attachment>'
     content = content_from_html(html)
     assert_equal 1, content.attachments.size
-    assert_equal ActionText::Attachables::MissingAttachable, content.attachments.first.attachable
+
+    attachable = content.attachments.first.attachable
+    assert_kind_of ActionText::Attachables::MissingAttachable, attachable
+    assert_nil attachable.model
   end
 
   test "converts Trix-formatted attachments" do
@@ -123,6 +130,32 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     assert_includes rendered, html
     assert_match %r/\A#{Regexp.escape '<div class="trix-content">'}/, rendered
     assert_not defined?(::ApplicationController)
+  end
+
+  test "does basic sanitization" do
+    html = "<div onclick='action()'>safe<script>unsafe</script></div>"
+    rendered = content_from_html(html).to_rendered_html_with_layout
+
+    assert_not_includes rendered, "<script>"
+    assert_not_includes rendered, "action"
+  end
+
+  test "does custom tag sanitization" do
+    old_tags = ActionText::ContentHelper.allowed_tags
+    old_attrs = ActionText::ContentHelper.allowed_attributes
+    ActionText::ContentHelper.allowed_tags = ["div"] # not 'span'
+    ActionText::ContentHelper.allowed_attributes = ["size"] # not 'class'
+
+    html = "<div size='large' class='high'>safe<span>unsafe</span></div>"
+    rendered = content_from_html(html).to_rendered_html_with_layout
+
+    assert_includes rendered, "<div"
+    assert_not_includes rendered, "<span"
+    assert_includes rendered, "large"
+    assert_not_includes rendered, "high"
+  ensure
+    ActionText::ContentHelper.allowed_tags = old_tags
+    ActionText::ContentHelper.allowed_attributes = old_attrs
   end
 
   test "renders with layout when in a new thread" do

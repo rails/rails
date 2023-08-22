@@ -1,3 +1,229 @@
+*   Add support for Playwright as a driver for system tests.
+
+    *Yuki Nishijima*
+
+*   Fix `HostAuthorization` potentially displaying the value of the
+    X_FORWARDED_HOST header when the HTTP_HOST header is being blocked.
+
+    *Hartley McGuire*, *Daniel Schlosser*
+
+*   Rename `fixture_file_upload` method to `file_fixture_upload`
+
+    Declare an alias to preserve the backwards compatibility of `fixture_file_upload`
+
+    *Sean Doyle*
+
+*   `ActionDispatch::SystemTesting::TestHelpers::ScreenshotHelper` saves the screenshot path in test metadata on failure.
+
+    *Matija Čupić*
+
+*   `config.dom_testing_default_html_version` controls the HTML parser used by
+    `ActionDispatch::Assertions#html_document`.
+
+    The Rails 7.1 default configuration opts into the HTML5 parser when it is supported, to better
+    represent what the DOM would be in a browser user agent. Previously this test helper always used
+    Nokogiri's HTML4 parser.
+
+    *Mike Dalessio*
+
+*   The `with_routing` helper can now be called at the class level. When called at the class level, the routes will
+    be setup before each test, and reset after every test. For example:
+
+    ```ruby
+    class RoutingTest < ActionController::TestCase
+      with_routing do |routes|
+        routes.draw do
+          resources :articles
+          resources :authors
+        end
+      end
+
+      def test_articles_route
+        assert_routing("/articles", controller: "articles", action: "index")
+      end
+
+       def test_authors_route
+        assert_routing("/authors", controller: "authors", action: "index")
+      end
+    end
+    ```
+
+    *Andrew Novoselac*
+
+*   The `Mime::Type` now supports handling types with parameters and correctly handles quotes.
+    When parsing the accept header, the parameters before the q-parameter are kept and if a matching mime-type exists it is used.
+    To keep the current functionality, a fallback is created to look for the media-type without the parameters.
+
+    This change allows for custom MIME-types that are more complex like `application/vnd.api+json; profile="https://jsonapi.org/profiles/ethanresnick/cursor-pagination/" ext="https://jsonapi.org/ext/atomic"` for the [JSON API](https://jsonapi.org/).
+
+    *Nicolas Erni*
+
+*   The url_for helpers now support a new option called `path_params`.
+    This is very useful in situations where you only want to add a required param that is part of the route's URL but for other route not append an extraneous query param.
+
+    Given the following router...
+    ```ruby
+    Rails.application.routes.draw do
+      scope ":account_id" do
+        get "dashboard" => "pages#dashboard", as: :dashboard
+        get "search/:term" => "search#search", as: :search
+      end
+      delete "signout" => "sessions#destroy", as: :signout
+    end
+    ```
+
+    And given the following `ApplicationController`
+    ```ruby
+      class ApplicationController < ActionController::Base
+        def default_url_options
+          { path_params: { account_id: "foo" } }
+        end
+      end
+    ```
+
+    The standard url_for helper and friends will now behave as follows:
+
+    ```ruby
+    dashboard_path # => /foo/dashboard
+    dashboard_path(account_id: "bar") # => /bar/dashboard
+
+    signout_path # => /signout
+    signout_path(account_id: "bar") # => /signout?account_id=bar
+    signout_path(account_id: "bar", path_params: { account_id: "baz" }) # => /signout?account_id=bar
+    search_path("quin") # => /foo/search/quin
+    ```
+
+    *Jason Meller, Jeremy Beker*
+
+*   Change `action_dispatch.show_exceptions` to one of `:all`, `:rescuable`, or
+    `:none`. `:all` and `:none` behave the same as the previous `true` and
+    `false` respectively. The new `:rescuable` option will only show exceptions
+    that can be rescued (e.g. `ActiveRecord::RecordNotFound`). `:rescuable` is
+    now the default for the test environment.
+
+    *Jon Dufresne*
+
+*   `config.action_dispatch.cookies_serializer` now accepts `:message_pack` and
+    `:message_pack_allow_marshal` as serializers. These serializers require the
+    [`msgpack` gem](https://rubygems.org/gems/msgpack) (>= 1.7.0).
+
+    The Message Pack format can provide improved performance and smaller payload
+    sizes. It also supports roundtripping some Ruby types that are not supported
+    by JSON. For example:
+
+      ```ruby
+      cookies.encrypted[:foo] = [{ a: 1 }, { b: 2 }.with_indifferent_access, 1.to_d, Time.at(0, 123)]
+
+      # BEFORE with config.action_dispatch.cookies_serializer = :json
+      cookies.encrypted[:foo]
+      # => [{"a"=>1}, {"b"=>2}, "1.0", "1969-12-31T18:00:00.000-06:00"]
+      cookies.encrypted[:foo].map(&:class)
+      # => [Hash, Hash, String, String]
+
+      # AFTER with config.action_dispatch.cookies_serializer = :message_pack
+      cookies.encrypted[:foo]
+      # => [{:a=>1}, {"b"=>2}, 0.1e1, 1969-12-31 18:00:00.000123 -0600]
+      cookies.encrypted[:foo].map(&:class)
+      # => [Hash, ActiveSupport::HashWithIndifferentAccess, BigDecimal, Time]
+      ```
+
+    The `:message_pack` serializer can fall back to deserializing with
+    `ActiveSupport::JSON` when necessary, and the `:message_pack_allow_marshal`
+    serializer can fall back to deserializing with `Marshal` as well as
+    `ActiveSupport::JSON`. Additionally, the `:marshal`, `:json`, and
+    `:json_allow_marshal` (AKA `:hybrid`) serializers can now fall back to
+    deserializing with `ActiveSupport::MessagePack` when necessary. These
+    behaviors ensure old cookies can still be read so that migration is easier.
+
+    *Jonathan Hefner*
+
+*   Remove leading dot from domains on cookies set with `domain: :all`, to meet RFC6265 requirements
+
+    *Gareth Adams*
+
+*   Include source location in routes extended view.
+
+    ```bash
+    $ bin/rails routes --expanded
+
+    ...
+    --[ Route 14 ]----------
+    Prefix            | new_gist
+    Verb              | GET
+    URI               | /gist(.:format)
+    Controller#Action | gists/gists#new
+    Source Location   | config/routes/gist.rb:3
+    ```
+
+    *Luan Vieira, John Hawthorn and Daniel Colson*
+
+*   Add `without` as an alias of `except` on `ActiveController::Parameters`.
+
+    *Hidde-Jan Jongsma*
+
+*   Expand search field on `rails/info/routes` to also search **route name**, **http verb** and **controller#action**.
+
+    *Jason Kotchoff*
+
+*   Remove deprecated `poltergeist` and `webkit` (capybara-webkit) driver registration for system testing.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated ability to assign a single value to `config.action_dispatch.trusted_proxies`.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `config.action_dispatch.return_only_request_media_type_on_content_type`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated behavior on `Request#content_type`.
+
+    *Rafael Mendonça França*
+
+*   Change `ActionController::Instrumentation` to pass `filtered_path` instead of `fullpath` in the event payload to filter sensitive query params
+
+    ```ruby
+    get "/posts?password=test"
+    request.fullpath         # => "/posts?password=test"
+    request.filtered_path    # => "/posts?password=[FILTERED]"
+    ```
+
+    *Ritikesh G*
+
+*   Deprecate `AbstractController::Helpers::MissingHelperError`
+
+    *Hartley McGuire*
+
+*   Change `ActionDispatch::Testing::TestResponse#parsed_body` to parse HTML as
+    a Nokogiri document
+
+    ```ruby
+    get "/posts"
+    response.content_type         # => "text/html; charset=utf-8"
+    response.parsed_body.class    # => Nokogiri::HTML5::Document
+    response.parsed_body.to_html  # => "<!DOCTYPE html>\n<html>\n..."
+    ```
+
+    *Sean Doyle*
+
+*   Deprecate `ActionDispatch::IllegalStateError`.
+
+    *Samuel Williams*
+
+*   Add HTTP::Request#route_uri_pattern that returns URI pattern of matched route.
+
+    *Joel Hawksley*, *Kate Higa*
+
+*   Add `ActionDispatch::AssumeSSL` middleware that can be turned on via `config.assume_ssl`.
+    It makes the application believe that all requests are arriving over SSL. This is useful
+    when proxying through a load balancer that terminates SSL, the forwarded request will appear
+    as though its HTTP instead of HTTPS to the application. This makes redirects and cookie
+    security target HTTP instead of HTTPS. This middleware makes the server assume that the
+    proxy already terminated SSL, and that the request really is HTTPS.
+
+    *DHH*
+
 *   Only use HostAuthorization middleware if `config.hosts` is not empty
 
     *Hartley McGuire*
@@ -253,5 +479,17 @@
     Previously `Session#update` would, but `merge!` wouldn't.
 
     *Drew Bragg*
+
+*   Add `:unsafe_hashes` mapping for `content_security_policy`
+
+    ```ruby
+    # Before
+    policy.script_src  :strict_dynamic, "'unsafe-hashes'", "'sha256-rRMdkshZyJlCmDX27XnL7g3zXaxv7ei6Sg+yt4R3svU='"
+
+    # After
+    policy.script_src  :strict_dynamic, :unsafe_hashes, "'sha256-rRMdkshZyJlCmDX27XnL7g3zXaxv7ei6Sg+yt4R3svU='"
+    ```
+
+    *Igor Morozov*
 
 Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/actionpack/CHANGELOG.md) for previous changes.

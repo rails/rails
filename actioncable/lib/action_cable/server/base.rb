@@ -4,6 +4,8 @@ require "monitor"
 
 module ActionCable
   module Server
+    # = Action Cable \Server \Base
+    #
     # A singleton ActionCable::Server instance is available via ActionCable.server. It's used by the Rack process that starts the Action Cable server, but
     # is also used by the user to reach the RemoteConnections object, which is used for finding and disconnecting connections across all servers.
     #
@@ -29,6 +31,7 @@ module ActionCable
 
       # Called by Rack to set up the server.
       def call(env)
+        return config.health_check_application.call(env) if env["PATH_INFO"] == config.health_check_path
         setup_heartbeat_timer
         config.connection_class.call.new(self, env).process
       end

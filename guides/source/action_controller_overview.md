@@ -5,16 +5,17 @@ Action Controller Overview
 
 In this guide, you will learn how controllers work and how they fit into the request cycle in your application.
 
-After reading this guide, you will know:
+After reading this guide, you will know how to:
 
-* How to follow the flow of a request through a controller.
-* How to restrict parameters passed to your controller.
-* How and why to store data in the session or cookies.
-* How to work with filters to execute code during request processing.
-* How to use Action Controller's built-in HTTP authentication.
-* How to stream data directly to the user's browser.
-* How to filter sensitive parameters, so they do not appear in the application's log.
-* How to deal with exceptions that may be raised during request processing.
+* Follow the flow of a request through a controller.
+* Restrict parameters passed to your controller.
+* Store data in the session or cookies, and why.
+* Work with filters to execute code during request processing.
+* Use Action Controller's built-in HTTP authentication.
+* Stream data directly to the user's browser.
+* Filter sensitive parameters, so they do not appear in the application's log.
+* Deal with exceptions that may be raised during request processing.
+* Use the built-in health check end-point for load balancers and uptime monitors.
 
 --------------------------------------------------------------------------------
 
@@ -144,7 +145,7 @@ The `params` object acts like a Hash, but lets you use symbols and strings inter
 
 ### JSON Parameters
 
-If you're writing a web service application, you might find yourself more comfortable accepting parameters in JSON format. If the "Content-Type" header of your request is set to "application/json", Rails will automatically load your parameters into the `params` hash, which you can access as you would normally.
+If your application exposes an API, you are likely to be accepting parameters in JSON format. If the "Content-Type" header of your request is set to "application/json", Rails will automatically load your parameters into the `params` hash, which you can access as you would normally.
 
 So for example, if you are sending this JSON content:
 
@@ -446,17 +447,15 @@ Session values are stored using key/value pairs like a hash:
 
 ```ruby
 class ApplicationController < ActionController::Base
-
   private
-
-  # Finds the User with the ID stored in the session with the key
-  # :current_user_id This is a common way to handle user login in
-  # a Rails application; logging in sets the session value and
-  # logging out removes it.
-  def current_user
-    @_current_user ||= session[:current_user_id] &&
-      User.find_by(id: session[:current_user_id])
-  end
+    # Finds the User with the ID stored in the session with the key
+    # :current_user_id This is a common way to handle user login in
+    # a Rails application; logging in sets the session value and
+    # logging out removes it.
+    def current_user
+      @_current_user ||= session[:current_user_id] &&
+        User.find_by(id: session[:current_user_id])
+    end
 end
 ```
 
@@ -630,33 +629,13 @@ Refer to the [API documentation](https://api.rubyonrails.org/classes/ActionDispa
 for more details.
 
 These special cookie jars use a serializer to serialize the assigned values into
-strings and deserializes them into Ruby objects on read.
+strings and deserialize them into Ruby objects on read. You can specify which
+serializer to use via [`config.action_dispatch.cookies_serializer`][].
 
-You can specify what serializer to use:
-
-```ruby
-Rails.application.config.action_dispatch.cookies_serializer = :json
-```
-
-The default serializer for new applications is `:json`. For compatibility with
-old applications with existing cookies, `:marshal` is used when `serializer`
-option is not specified.
-
-You may also set this option to `:hybrid`, in which case Rails would transparently
-deserialize existing (`Marshal`-serialized) cookies on read and re-write them in
-the `JSON` format. This is useful for migrating existing applications to the
-`:json` serializer.
-
-It is also possible to pass a custom serializer that responds to `load` and
-`dump`:
-
-```ruby
-Rails.application.config.action_dispatch.cookies_serializer = MyCustomSerializer
-```
-
-When using the `:json` or `:hybrid` serializer, you should beware that not all
-Ruby objects can be serialized as JSON. For example, `Date` and `Time` objects
-will be serialized as strings, and `Hash`es will have their keys stringified.
+The default serializer for new applications is `:json`. Be aware that JSON has
+limited support for roundtripping Ruby objects. For example, `Date`, `Time`, and
+`Symbol` objects (including `Hash` keys) will be serialized and deserialized
+into `String`s:
 
 ```ruby
 class CookiesController < ApplicationController
@@ -671,19 +650,19 @@ class CookiesController < ApplicationController
 end
 ```
 
-It's advisable that you only store simple data (strings and numbers) in cookies.
-If you have to store complex objects, you would need to handle the conversion
-manually when reading the values on subsequent requests.
+If you need to store these or more complex objects, you may need to manually
+convert their values when reading them in subsequent requests.
 
-If you use the cookie session store, this would apply to the `session` and
+If you use the cookie session store, the above applies to the `session` and
 `flash` hash as well.
 
+[`config.action_dispatch.cookies_serializer`]: configuring.html#config-action-dispatch-cookies-serializer
 [`cookies`]: https://api.rubyonrails.org/classes/ActionController/Cookies.html#method-i-cookies
 
 Rendering
 ---------
 
-ActionController makes it extremely easy to render `HTML`, `XML` or `JSON` data. If you've generated a controller using scaffolding, it would look something like this:
+ActionController makes rendering HTML, XML, or JSON data effortless. If you've generated a controller using scaffolding, it would look something like this:
 
 ```ruby
 class UsersController < ApplicationController
@@ -717,13 +696,12 @@ class ApplicationController < ActionController::Base
   before_action :require_login
 
   private
-
-  def require_login
-    unless logged_in?
-      flash[:error] = "You must be logged in to access this section"
-      redirect_to new_login_url # halts request cycle
+    def require_login
+      unless logged_in?
+        flash[:error] = "You must be logged in to access this section"
+        redirect_to new_login_url # halts request cycle
+      end
     end
-  end
 end
 ```
 
@@ -760,16 +738,15 @@ class ChangesController < ApplicationController
   around_action :wrap_in_transaction, only: :show
 
   private
-
-  def wrap_in_transaction
-    ActiveRecord::Base.transaction do
-      begin
-        yield
-      ensure
-        raise ActiveRecord::Rollback
+    def wrap_in_transaction
+      ActiveRecord::Base.transaction do
+        begin
+          yield
+        ensure
+          raise ActiveRecord::Rollback
+        end
       end
     end
-  end
 end
 ```
 
@@ -928,7 +905,7 @@ Rails comes with three built-in HTTP authentication mechanisms:
 
 ### HTTP Basic Authentication
 
-HTTP basic authentication is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username, and a password into the browser's HTTP basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, [`http_basic_authenticate_with`][].
+HTTP basic authentication is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username, and a password into the browser's HTTP basic dialog window. Using the built-in authentication only requires you to use one method, [`http_basic_authenticate_with`][].
 
 ```ruby
 class AdminsController < ApplicationController
@@ -942,7 +919,7 @@ With this in place, you can create namespaced controllers that inherit from `Adm
 
 ### HTTP Digest Authentication
 
-HTTP digest authentication is superior to the basic authentication as it does not require the client to send an unencrypted password over the network (though HTTP basic authentication is safe over HTTPS). Using digest authentication with Rails is quite easy and only requires using one method, [`authenticate_or_request_with_http_digest`][].
+HTTP digest authentication is superior to the basic authentication as it does not require the client to send an unencrypted password over the network (though HTTP basic authentication is safe over HTTPS). Using digest authentication with Rails only requires using one method, [`authenticate_or_request_with_http_digest`][].
 
 ```ruby
 class AdminsController < ApplicationController
@@ -967,7 +944,7 @@ As seen in the example above, the `authenticate_or_request_with_http_digest` blo
 
 HTTP token authentication is a scheme to enable the usage of Bearer tokens in the HTTP `Authorization` header. There are many token formats available and describing them is outside the scope of this document.
 
-As an example, suppose you want to use an authentication token that has been issued in advance to perform authentication and access. Implementing token authentication with Rails is quite easy and only requires using one method, [`authenticate_or_request_with_http_token`][].
+As an example, suppose you want to use an authentication token that has been issued in advance to perform authentication and access. Implementing token authentication with Rails only requires using one method, [`authenticate_or_request_with_http_token`][].
 
 ```ruby
 class PostsController < ApplicationController
@@ -1049,7 +1026,7 @@ TIP: It is not recommended that you stream static files through Rails if you can
 
 ### RESTful Downloads
 
-While `send_data` works just fine, if you are creating a RESTful application having separate actions for file downloads is usually not necessary. In REST terminology, the PDF file from the example above can be considered just another representation of the client resource. Rails provides an easy and quite sleek way of doing "RESTful downloads". Here's how you can rewrite the example so that the PDF download is a part of the `show` action, without any streaming:
+While `send_data` works just fine, if you are creating a RESTful application having separate actions for file downloads is usually not necessary. In REST terminology, the PDF file from the example above can be considered just another representation of the client resource. Rails provides a slick way of doing "RESTful" downloads. Here's how you can rewrite the example so that the PDF download is a part of the `show` action, without any streaming:
 
 ```ruby
 class ClientsController < ApplicationController
@@ -1286,3 +1263,25 @@ via HTTPS, you should do so by enabling the [`ActionDispatch::SSL`][] middleware
 
 [`config.force_ssl`]: configuring.html#config-force-ssl
 [`ActionDispatch::SSL`]: https://api.rubyonrails.org/classes/ActionDispatch/SSL.html
+
+Built-in Health Check Endpoint
+------------------------------
+
+Rails also comes with a built-in health check endpoint that is reachable at the `/up` path. This endpoint will return a 200 status code if the app has booted with no exceptions, and a 500 status code otherwise.
+
+In production, many applications are required to report their status upstream, whether it's to an uptime monitor that will page an engineer when things go wrong, or a load balancer or Kubernetes controller used to determine a pod's health. This health check is designed to be a one-size fits all that will work in many situations.
+
+While any newly generated Rails applications will have the health check at `/up`, you can configure the path to be anything you'd like in your "config/routes.rb":
+
+```ruby
+Rails.application.routes.draw do
+  get "healthz" => "rails/health#show", as: :rails_health_check
+end
+```
+
+The health check will now be accessible via the `/healthz` path.
+
+NOTE: This endpoint does not reflect the status of all of your application's dependencies, such as the database or redis cluster. Replace "rails/health#show" with your own controller action if you have application specific needs.
+
+Think carefully about what you want to check as it can lead to situations where your application is being restarted due to a third-party service going bad. Ideally, you should design your application to handle those outages gracefully.
+

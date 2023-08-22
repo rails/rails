@@ -8,8 +8,9 @@ require "action_view/helpers/tag_helper"
 require "action_view/helpers/output_safety_helper"
 
 module ActionView
-  # = Action View Text Helpers
   module Helpers # :nodoc:
+    # = Action View Text \Helpers
+    #
     # The TextHelper module provides a set of methods for filtering, formatting
     # and transforming strings, which can reduce the amount of inline Ruby code in
     # your views. These helper methods extend Action View making them callable
@@ -139,16 +140,19 @@ module ActionView
         if text.blank? || phrases.blank?
           text || ""
         else
-          match = Array(phrases).map do |p|
-            Regexp === p ? p.to_s : Regexp.escape(p)
-          end.join("|")
+          patterns = Array(phrases).map { |phrase| Regexp === phrase ? phrase : Regexp.escape(phrase) }
+          pattern = /(#{patterns.join("|")})/i
+          highlighter = options.fetch(:highlighter, '<mark>\1</mark>') unless block
 
-          if block_given?
-            text.gsub(/(#{match})(?![^<]*?>)/i, &block)
-          else
-            highlighter = options.fetch(:highlighter, '<mark>\1</mark>')
-            text.gsub(/(#{match})(?![^<]*?>)/i, highlighter)
-          end
+          text.scan(/<[^>]*|[^<]+/).each do |segment|
+            if !segment.start_with?("<")
+              if block
+                segment.gsub!(pattern, &block)
+              else
+                segment.gsub!(pattern, highlighter)
+              end
+            end
+          end.join
         end.html_safe
       end
 
@@ -287,6 +291,7 @@ module ActionView
       #
       # ==== Options
       # * <tt>:sanitize</tt> - If +false+, does not sanitize +text+.
+      # * <tt>:sanitize_options</tt> - Any extra options you want appended to the sanitize.
       # * <tt>:wrapper_tag</tt> - String representing the wrapper tag, defaults to <tt>"p"</tt>
       #
       # ==== Examples
@@ -311,10 +316,13 @@ module ActionView
       #
       #   simple_format("<blink>Blinkable!</blink> It's true.", {}, sanitize: false)
       #   # => "<p><blink>Blinkable!</blink> It's true.</p>"
+      #
+      #   simple_format("<a target=\"_blank\" href=\"http://example.com\">Continue</a>", {}, { sanitize_options: { attributes: %w[target href] } })
+      #   # => "<p><a target=\"_blank\" href=\"http://example.com\">Continue</a></p>"
       def simple_format(text, html_options = {}, options = {})
         wrapper_tag = options.fetch(:wrapper_tag, :p)
 
-        text = sanitize(text) if options.fetch(:sanitize, true)
+        text = sanitize(text, options.fetch(:sanitize_options, {})) if options.fetch(:sanitize, true)
         paragraphs = split_paragraphs(text)
 
         if paragraphs.empty?

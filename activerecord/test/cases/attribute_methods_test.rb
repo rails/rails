@@ -13,6 +13,7 @@ require "models/reply"
 require "models/contact"
 require "models/keyboard"
 require "models/numeric_data"
+require "models/cpk"
 
 class AttributeMethodsTest < ActiveRecord::TestCase
   include InTimeZone
@@ -28,6 +29,39 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   teardown do
     ActiveRecord::Base.send(:attribute_method_patterns).clear
     ActiveRecord::Base.send(:attribute_method_patterns).concat(@old_matchers)
+  end
+
+  test "aliasing `id` attribute allows reading the column value" do
+    topic = Topic.create(id: 123_456, title: "title").becomes(TitlePrimaryKeyTopic)
+
+    assert_equal(123_456, topic.id_value)
+  end
+
+  test "aliasing `id` attribute allows reading the column value for a CPK model" do
+    order = ::Cpk::Order.create(id: [1, 123_456])
+
+    assert_not_nil(order.id_value)
+    assert_equal(123_456, order.id_value)
+  end
+
+  test "#id_value alias returns the value in the id column, when id column exists" do
+    topic = Topic.new
+    assert_nil topic.id_value
+
+    topic = Topic.find(1)
+    assert_equal 1, topic.id_value
+  end
+
+  test "#id_value alias is not defined if id column doesn't exist" do
+    keyboard = Keyboard.create!
+
+    assert_empty keyboard.attribute_aliases
+  end
+
+  test "#id_value alias returns id column only for composite primary key models" do
+    order = ::Cpk::Order.create(id: [1, 2])
+
+    assert_equal 2, order.id_value
   end
 
   test "attribute_for_inspect with a string" do
@@ -193,7 +227,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal category_attrs, category.attributes_before_type_cast
   end
 
-  if current_adapter?(:Mysql2Adapter)
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     test "read attributes_before_type_cast on a boolean" do
       bool = Boolean.create!("value" => false)
       assert_equal 0, bool.reload.attributes_before_type_cast["value"]
@@ -230,10 +264,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic.content = { "one" => 1, "two" => 2 }
 
     db_attributes = Topic.instantiate(topic.attributes_for_database).attributes
-    before_type_cast_attributes = Topic.instantiate(topic.attributes_before_type_cast).attributes
-
     assert_equal topic.attributes, db_attributes
-    assert_not_equal topic.attributes, before_type_cast_attributes
   end
 
   test "read attributes after type cast on a date" do
@@ -344,6 +375,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = Topic.first
     assert_raises(ActiveModel::MissingAttributeError) { topic.update_columns(no_column_exists: "Hello!") }
     assert_raises(ActiveModel::UnknownAttributeError) { topic.update(no_column_exists: "Hello!") }
+    assert_raises(ActiveModel::MissingAttributeError) { topic[:no_column_exists] = "Hello!" }
+  end
+
+  test "write_attribute does not raise when the attribute isn't selected" do
+    topic = Topic.select(:id).first
+    assert_nothing_raised { topic[:title] = "Hello!" }
   end
 
   test "write_attribute allows writing to aliased attributes" do
@@ -372,12 +409,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal "Don't change the topic", topic[:heading]
   end
 
-  test "read_attribute raises ActiveModel::MissingAttributeError when the attribute does not exist" do
-    computer = Computer.select("id").first
-    assert_raises(ActiveModel::MissingAttributeError) { computer[:developer] }
-    assert_raises(ActiveModel::MissingAttributeError) { computer[:extendedWarranty] }
-    assert_raises(ActiveModel::MissingAttributeError) { computer[:no_column_exists] = "Hello!" }
-    assert_nothing_raised { computer[:developer] = "Hello!" }
+  test "read_attribute raises ActiveModel::MissingAttributeError when the attribute isn't selected" do
+    computer = Computer.select(:id, :extendedWarranty).first
+    assert_raises(ActiveModel::MissingAttributeError, match: /attribute 'developer' for Computer/) do
+      computer[:developer]
+    end
+    assert_nothing_raised { computer[:extendedWarranty] }
+    assert_nothing_raised { computer[:no_column_exists] }
   end
 
   test "read_attribute when false" do
@@ -1124,6 +1162,120 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "read_attribute_before_type_cast with aliased attribute" do
     model = NumericData.new(new_bank_balance: "abcd")
     assert_equal "abcd", model.read_attribute_before_type_cast("new_bank_balance")
+  end
+
+  ToBeLoadedFirst = Class.new(ActiveRecord::Base) do
+    self.table_name = "topics"
+    alias_attribute :subject, :author_name
+  end
+
+  ToBeLoadedSecond = Class.new(ActiveRecord::Base) do
+    self.table_name = "topics"
+    alias_attribute :subject, :title
+  end
+
+  test "aliases to the same attribute name do not conflict with each other" do
+    first_model_object = ToBeLoadedFirst.new(author_name: "author 1")
+    assert_equal("author 1", first_model_object.subject)
+    second_model_object = ToBeLoadedSecond.new(title: "foo")
+    assert_equal("foo", second_model_object.subject)
+  end
+
+  ClassWithDeprecatedAliasAttributeBehavior = Class.new(ActiveRecord::Base) do
+    self.table_name = "topics"
+    alias_attribute :subject, :title
+
+    def title_was
+      "overridden_title_was"
+    end
+  end
+
+  test "#alias_attribute with an overridden original method issues a deprecation" do
+    message = <<~MESSAGE.gsub("\n", " ")
+    AttributeMethodsTest::ClassWithDeprecatedAliasAttributeBehavior model aliases `title` and has a method called
+    `title_was` defined. Starting in Rails 7.2 `subject_was` will not be calling `title_was` anymore.
+    You may want to additionally define `subject_was` to preserve the current behavior.
+    MESSAGE
+
+    obj = assert_deprecated(message, ActiveRecord.deprecator) do
+      ClassWithDeprecatedAliasAttributeBehavior.new
+    end
+    obj.title = "hey"
+    assert_equal("hey", obj.subject)
+    assert_equal("overridden_title_was", obj.subject_was)
+  end
+
+  TitleWasOverride = Module.new do
+    def title_was
+      "overridden_title_was"
+    end
+  end
+
+  ClassWithDeprecatedAliasAttributeBehaviorFromModule = Class.new(ActiveRecord::Base) do
+    self.table_name = "topics"
+    include TitleWasOverride
+    alias_attribute :subject, :title
+  end
+
+  test "#alias_attribute with an overridden original method from a module issues a deprecation" do
+    message = <<~MESSAGE.gsub("\n", " ")
+    AttributeMethodsTest::ClassWithDeprecatedAliasAttributeBehaviorFromModule model aliases `title` and has a method
+    called `title_was` defined. Starting in Rails 7.2 `subject_was` will not be calling `title_was` anymore.
+    You may want to additionally define `subject_was` to preserve the current behavior.
+    MESSAGE
+
+    obj = assert_deprecated(message, ActiveRecord.deprecator) do
+      ClassWithDeprecatedAliasAttributeBehaviorFromModule.new
+    end
+    obj.title = "hey"
+    assert_equal("hey", obj.subject)
+    assert_equal("overridden_title_was", obj.subject_was)
+  end
+
+  ClassWithDeprecatedAliasAttributeBehaviorResolved = Class.new(ActiveRecord::Base) do
+    self.table_name = "topics"
+    alias_attribute :subject, :title
+
+    def title_was
+      "overridden_title_was"
+    end
+
+    def subject_was
+      "overridden_subject_was"
+    end
+  end
+
+  class ChildWithDeprecatedBehaviorResolved < ClassWithDeprecatedAliasAttributeBehaviorResolved
+  end
+
+  test "#alias_attribute with an overridden original method along with an overridden alias method doesn't issue a deprecation" do
+    obj = assert_not_deprecated(ActiveRecord.deprecator) do
+      ClassWithDeprecatedAliasAttributeBehaviorResolved.new
+    end
+    obj.title = "hey"
+    assert_equal("hey", obj.subject)
+    assert_equal("overridden_subject_was", obj.subject_was)
+  end
+
+  test "#alias_attribute with an overridden original method along with an overridden alias method in a parent class doesn't issue a deprecation" do
+    obj = assert_not_deprecated(ActiveRecord.deprecator) do
+      ChildWithDeprecatedBehaviorResolved.new
+    end
+    obj.title = "hey"
+    assert_equal("hey", obj.subject)
+    assert_equal("overridden_subject_was", obj.subject_was)
+  end
+
+  test "#alias_attribute method on an abstract class is available on subclasses" do
+    superclass = Class.new(ActiveRecord::Base) do
+      self.abstract_class = true
+      alias_attribute :id_value, :id
+    end
+    subclass = Class.new(superclass) { self.table_name = "topics" }
+
+    object = subclass.build(id: 123_456)
+
+    assert_equal 123_456, object.id_value
   end
 
   private

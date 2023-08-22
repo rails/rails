@@ -3,6 +3,8 @@
 require "active_support/core_ext/hash/indifferent_access"
 
 module ActiveRecord
+  # = Active Record \Store
+  #
   # Store gives you a thin wrapper around serialize for the purpose of storing hashes in a single column.
   # It's like a simple key/value store baked into your record when you don't care about being able to
   # query that store outside the context of a single record.
@@ -70,7 +72,7 @@ module ActiveRecord
   #
   # The stored attribute names can be retrieved using {.stored_attributes}[rdoc-ref:rdoc-ref:ClassMethods#stored_attributes].
   #
-  #   User.stored_attributes[:settings] # [:color, :homepage, :two_factor_auth, :login_retry]
+  #   User.stored_attributes[:settings] # => [:color, :homepage, :two_factor_auth, :login_retry]
   #
   # == Overwriting default accessors
   #
@@ -102,7 +104,8 @@ module ActiveRecord
 
     module ClassMethods
       def store(store_attribute, options = {})
-        serialize store_attribute, IndifferentCoder.new(store_attribute, options[:coder])
+        coder = build_column_serializer(store_attribute, options[:coder], Object, options[:yaml])
+        serialize store_attribute, coder: IndifferentCoder.new(store_attribute, coder)
         store_accessor(store_attribute, options[:accessors], **options.slice(:prefix, :suffix)) if options.has_key? :accessors
       end
 
@@ -160,19 +163,19 @@ module ActiveRecord
 
             define_method("saved_change_to_#{accessor_key}?") do
               return false unless saved_change_to_attribute?(store_attribute)
-              prev_store, new_store = saved_change_to_attribute(store_attribute)
+              prev_store, new_store = saved_changes[store_attribute]
               prev_store&.dig(key) != new_store&.dig(key)
             end
 
             define_method("saved_change_to_#{accessor_key}") do
               return unless saved_change_to_attribute?(store_attribute)
-              prev_store, new_store = saved_change_to_attribute(store_attribute)
+              prev_store, new_store = saved_changes[store_attribute]
               [prev_store&.dig(key), new_store&.dig(key)]
             end
 
             define_method("#{accessor_key}_before_last_save") do
               return unless saved_change_to_attribute?(store_attribute)
-              prev_store, _new_store = saved_change_to_attribute(store_attribute)
+              prev_store, _new_store = saved_changes[store_attribute]
               prev_store&.dig(key)
             end
           end

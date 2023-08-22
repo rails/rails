@@ -58,7 +58,7 @@ module ActionCable
         end
 
         def config_options
-          @config_options ||= @server.config.cable.symbolize_keys.merge(id: identifier)
+          @config_options ||= @server.config.cable.deep_symbolize_keys.merge(id: identifier)
         end
 
         class Listener < SubscriberMap
@@ -207,7 +207,7 @@ module ActionCable
             end
 
             if ::Redis::VERSION < "5"
-              ConnectionError = ::Redis::ConnectionError
+              ConnectionError = ::Redis::BaseConnectionError
 
               class SubscribedClient
                 def initialize(raw_client)

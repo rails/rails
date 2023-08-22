@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "models/topic"
+require "models/bulb"
 require "models/car"
 require "models/aircraft"
 require "models/wheel"
@@ -40,9 +41,21 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test "increment counter by specific amount" do
+    assert_difference "@topic.reload.replies_count", +2 do
+      Topic.increment_counter(:replies_count, @topic.id, by: 2)
+    end
+  end
+
   test "decrement counter" do
     assert_difference "@topic.reload.replies_count", -1 do
       Topic.decrement_counter(:replies_count, @topic.id)
+    end
+  end
+
+  test "decrement counter by specific amount" do
+    assert_difference "@topic.reload.replies_count", -2 do
+      Topic.decrement_counter(:replies_count, @topic.id, by: 2)
     end
   end
 
@@ -233,6 +246,15 @@ class CounterCacheTest < ActiveRecord::TestCase
 
     assert_difference "aircraft.reload.wheels_count", -1 do
       aircraft.wheels.first.destroy
+    end
+  end
+
+  test "removing association updates counter" do
+    michael = people(:michael)
+    car = cars(:honda)
+
+    assert_difference -> { michael.reload.cars_count }, -1 do
+      car.destroy
     end
   end
 

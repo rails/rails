@@ -49,7 +49,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
 
   def test_not_compatible_with_serialize_array
     new_klass = Class.new(PgArray) do
-      serialize :tags, Array
+      serialize :tags, type: Array
     end
     assert_raises(ActiveRecord::AttributeMethods::Serialization::ColumnNotSerializableError) do
       new_klass.new
@@ -65,7 +65,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
 
   def test_array_with_serialized_attributes
     new_klass = Class.new(PgArray) do
-      serialize :tags, MyTags
+      serialize :tags, coder: MyTags
     end
 
     new_klass.create!(tags: MyTags.new(["one", "two"]))

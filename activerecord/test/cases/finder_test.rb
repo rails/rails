@@ -18,12 +18,14 @@ require "models/computer"
 require "models/customer"
 require "models/toy"
 require "models/matey"
+require "models/dog_lover"
 require "models/dog"
 require "models/car"
 require "models/tyre"
 require "models/subscriber"
 require "models/non_primary_key"
 require "models/clothing_item"
+require "models/cpk"
 require "support/stubs/strong_parameters"
 require "support/async_helper"
 
@@ -32,7 +34,7 @@ class FinderTest < ActiveRecord::TestCase
 
   fixtures :companies, :topics, :entrants, :developers, :developers_projects,
     :posts, :comments, :accounts, :authors, :author_addresses, :customers,
-    :categories, :categorizations, :cars, :clothing_items
+    :categories, :categorizations, :cars, :clothing_items, :cpk_books
 
   def test_find_by_id_with_hash
     assert_nothing_raised do
@@ -409,6 +411,34 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_include_when_non_AR_object_passed_on_unloaded_relation
+    assert_no_queries do
+      assert_equal false, Customer.where(name: "David").include?("I'm not an AR object")
+    end
+  end
+
+  def test_include_when_non_AR_object_passed_on_loaded_relation
+    customers = Customer.where(name: "David").load
+
+    assert_no_queries do
+      assert_equal false, customers.include?("I'm not an AR object")
+    end
+  end
+
+  def test_member_when_non_AR_object_passed_on_unloaded_relation
+    assert_no_queries do
+      assert_equal false, Customer.where(name: "David").member?("I'm not an AR object")
+    end
+  end
+
+  def test_member_when_non_AR_object_passed_on_loaded_relation
+    customers = Customer.where(name: "David").load
+
+    assert_no_queries do
+      assert_equal false, customers.member?("I'm not an AR object")
+    end
+  end
+
   def test_include_on_unloaded_relation_with_match
     assert_sql(/1 AS one.*LIMIT/) do
       assert_equal true, Customer.where(name: "David").include?(customers(:david))
@@ -473,6 +503,22 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_include_on_unloaded_relation_with_composite_primary_key
+    assert_sql(/1 AS one.*LIMIT/) do
+      book = cpk_books(:cpk_great_author_first_book)
+      assert Cpk::Book.where(title: "The first book").include?(book)
+    end
+  end
+
+  def test_include_on_loaded_relation_with_composite_primary_key
+    books = Cpk::Book.where(title: "The first book").load
+    great_author_book = cpk_books(:cpk_great_author_first_book)
+
+    assert_no_queries do
+      assert books.include?(great_author_book)
+    end
+  end
+
   def test_member_on_unloaded_relation_with_match
     assert_sql(/1 AS one.*LIMIT/) do
       assert_equal true, Customer.where(name: "David").member?(customers(:david))
@@ -525,6 +571,22 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_no_queries do
       assert_equal false, customers.member?(mary)
+    end
+  end
+
+  def test_member_on_unloaded_relation_with_composite_primary_key
+    assert_sql(/1 AS one.*LIMIT/) do
+      book = cpk_books(:cpk_great_author_first_book)
+      assert Cpk::Book.where(title: "The first book").member?(book)
+    end
+  end
+
+  def test_member_on_loaded_relation_with_composite_primary_key
+    books = Cpk::Book.where(title: "The first book").load
+    great_author_book = cpk_books(:cpk_great_author_first_book)
+
+    assert_no_queries do
+      assert books.member?(great_author_book)
     end
   end
 
@@ -665,7 +727,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_take_bang_missing
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.where("title = 'This title does not exist'").take!
     end
   end
@@ -676,19 +738,19 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_sole_failing_none
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.where("title = 'This title does not exist'").sole
     end
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.find_sole_by("title = 'This title does not exist'")
     end
   end
 
   def test_sole_failing_many
-    assert_raises_with_message ActiveRecord::SoleRecordExceeded, "Wanted only one Topic" do
+    assert_raises ActiveRecord::SoleRecordExceeded, match: "Wanted only one Topic" do
       Topic.where("author_name = 'Carl'").sole
     end
-    assert_raises_with_message ActiveRecord::SoleRecordExceeded, "Wanted only one Topic" do
+    assert_raises ActiveRecord::SoleRecordExceeded, match: "Wanted only one Topic" do
       Topic.find_sole_by("author_name = 'Carl'")
     end
   end
@@ -708,7 +770,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_first_bang_missing
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.where("title = 'This title does not exist'").first!
     end
   end
@@ -724,7 +786,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_first_bang
     assert Topic.first!
     Topic.delete_all
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.first!
     end
   end
@@ -748,7 +810,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_second_bang
     assert Topic.second!
     Topic.delete_all
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.second!
     end
   end
@@ -772,7 +834,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_third_bang
     assert Topic.third!
     Topic.delete_all
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.third!
     end
   end
@@ -796,7 +858,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_fourth_bang
     assert Topic.fourth!
     Topic.delete_all
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.fourth!
     end
   end
@@ -820,7 +882,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_fifth_bang
     assert Topic.fifth!
     Topic.delete_all
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.fifth!
     end
   end
@@ -849,7 +911,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_second_to_last_bang
     assert Topic.second_to_last!
     Topic.delete_all
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.second_to_last!
     end
   end
@@ -880,7 +942,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_third_to_last_bang
     assert Topic.third_to_last!
     Topic.delete_all
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.third_to_last!
     end
   end
@@ -903,14 +965,14 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_last_bang_missing
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.where("title = 'This title does not exist'").last!
     end
   end
 
   def test_model_class_responds_to_last_bang
     assert_equal topics(:fifth), Topic.last!
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.delete_all
       Topic.last!
     end
@@ -1388,7 +1450,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_by_one_attribute_bang
     assert_equal topics(:first), Topic.find_by_title!("The First Topic")
-    assert_raises_with_message(ActiveRecord::RecordNotFound, "Couldn't find Topic") do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.find_by_title!("The First Topic!")
     end
   end
@@ -1781,6 +1843,38 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  test "#find with a single composite primary key" do
+    book = cpk_books(:cpk_great_author_first_book)
+
+    assert_equal book, Cpk::Book.find(book.id)
+  end
+
+  test "find with a single composite primary key wrapped in an array" do
+    book = cpk_books(:cpk_great_author_first_book)
+
+    assert_equal [book], Cpk::Book.find([book.id])
+  end
+
+  test "find with a multiple sets of composite primary key" do
+    books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
+    ids = books.map(&:id)
+    result = Cpk::Book.find(*ids)
+
+    assert_equal ids, result.map(&:id)
+  end
+
+  test "find with a multiple sets of composite primary key wrapped in an array" do
+    books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
+
+    assert_equal books.map(&:id), Cpk::Book.where(revision: 1).find(books.map(&:id)).map(&:id)
+  end
+
+  test "find with a multiple sets of composite primary key wrapped in an array ordered" do
+    books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
+
+    assert_equal books.map(&:id), Cpk::Book.order(author_id: :asc).find(books.map(&:id)).map(&:id)
+  end
+
   private
     def table_with_custom_primary_key
       yield(Class.new(Toy) do
@@ -1788,10 +1882,5 @@ class FinderTest < ActiveRecord::TestCase
           "MercedesCar"
         end
       end)
-    end
-
-    def assert_raises_with_message(exception_class, message, &block)
-      err = assert_raises(exception_class) { block.call }
-      assert_match message, err.message
     end
 end

@@ -50,9 +50,11 @@ module ActiveRecord
         assert_equal "foo", coder.load("foo")
       end
 
-      def test_load_handles_other_classes
+      def test_load_raises_on_other_classes
         coder = YAMLColumn.new("attr_name")
-        assert_equal [], coder.load([])
+        assert_raises TypeError do
+          coder.load([])
+        end
       end
 
       def test_load_doesnt_swallow_yaml_exceptions
@@ -94,6 +96,17 @@ module ActiveRecord
         assert_nothing_raised do
           coder.load(time_yaml)
           coder.load(symbol_yaml)
+        end
+      end
+
+      def test_yaml_column_permitted_classes_are_consumed_by_safe_dump
+        if Gem::Version.new(Psych::VERSION) < Gem::Version.new("5.1")
+          skip "YAML.safe_dump is either missing on unavailable on #{Psych::VERSION}"
+        end
+
+        coder = YAMLColumn.new("attr_name")
+        assert_raises(Psych::DisallowedClass) do
+          coder.dump([Time.new])
         end
       end
 

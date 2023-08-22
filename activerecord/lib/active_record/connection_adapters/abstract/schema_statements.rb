@@ -106,8 +106,9 @@ module ActiveRecord
       # Returns an array of +Column+ objects for the table specified by +table_name+.
       def columns(table_name)
         table_name = table_name.to_s
-        column_definitions(table_name).map do |field|
-          new_column_from_field(table_name, field)
+        definitions = column_definitions(table_name)
+        definitions.map do |field|
+          new_column_from_field(table_name, field, definitions)
         end
       end
 
@@ -256,7 +257,7 @@ module ActiveRecord
       #
       # generates:
       #
-      #   CREATE TABLE order (
+      #   CREATE TABLE orders (
       #       product_id bigint NOT NULL,
       #       client_id bigint NOT NULL
       #   );
@@ -576,7 +577,7 @@ module ActiveRecord
       # * The SQL standard says the default scale should be 0, <tt>:scale</tt> <=
       #   <tt>:precision</tt>, and makes no comments about the requirements of
       #   <tt>:precision</tt>.
-      # * MySQL: <tt>:precision</tt> [1..63], <tt>:scale</tt> [0..30].
+      # * MySQL: <tt>:precision</tt> [1..65], <tt>:scale</tt> [0..30].
       #   Default is (10,0).
       # * PostgreSQL: <tt>:precision</tt> [1..infinity],
       #   <tt>:scale</tt> [0..infinity]. No default.
@@ -828,6 +829,16 @@ module ActiveRecord
       #
       # Note: Partial indexes are only supported for PostgreSQL and SQLite.
       #
+      # ====== Creating an index that includes additional columns
+      #
+      #   add_index(:accounts, :branch_id,  include: :party_id)
+      #
+      # generates:
+      #
+      #   CREATE INDEX index_accounts_on_branch_id ON accounts USING btree(branch_id) INCLUDE (party_id)
+      #
+      # Note: only supported by PostgreSQL.
+      #
       # ====== Creating an index with a specific method
       #
       #   add_index(:developers, :name, using: 'btree')
@@ -952,7 +963,7 @@ module ActiveRecord
       def index_name(table_name, options) # :nodoc:
         if Hash === options
           if options[:column]
-            "index_#{table_name}_on_#{Array(options[:column]) * '_and_'}"
+            generate_index_name(table_name, options[:column])
           elsif options[:name]
             options[:name]
           else
@@ -1344,18 +1355,24 @@ module ActiveRecord
       end
 
       def distinct_relation_for_primary_key(relation) # :nodoc:
+        primary_key_columns = Array(relation.primary_key).map do |column|
+          visitor.compile(relation.table[column])
+        end
+
         values = columns_for_distinct(
-          visitor.compile(relation.table[relation.primary_key]),
+          primary_key_columns,
           relation.order_values
         )
 
         limited = relation.reselect(values).distinct!
-        limited_ids = select_rows(limited.arel, "SQL").map(&:last)
+        limited_ids = select_rows(limited.arel, "SQL").map do |results|
+          results.last(Array(relation.primary_key).length) # ignores order values for MySQL and Postgres
+        end
 
         if limited_ids.empty?
           relation.none!
         else
-          relation.where!(relation.primary_key => limited_ids)
+          relation.where!(**Array(relation.primary_key).zip(limited_ids.transpose).to_h)
         end
 
         relation.limit_value = relation.offset_value = nil
@@ -1385,7 +1402,7 @@ module ActiveRecord
       end
 
       def add_index_options(table_name, column_name, name: nil, if_not_exists: false, internal: false, **options) # :nodoc:
-        options.assert_valid_keys(:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm)
+        options.assert_valid_keys(:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :include, :nulls_not_distinct)
 
         column_names = index_column_names(column_name)
 
@@ -1404,6 +1421,8 @@ module ActiveRecord
           where: options[:where],
           type: options[:type],
           using: options[:using],
+          include: options[:include],
+          nulls_not_distinct: options[:nulls_not_distinct],
           comment: options[:comment]
         )
 
@@ -1486,7 +1505,38 @@ module ActiveRecord
         non_combinable_operations.each(&:call)
       end
 
+      def valid_table_definition_options # :nodoc:
+        [:temporary, :if_not_exists, :options, :as, :comment, :charset, :collation]
+      end
+
+      def valid_column_definition_options # :nodoc:
+        ColumnDefinition::OPTION_NAMES
+      end
+
+      def valid_primary_key_options # :nodoc:
+        [:limit, :default, :precision]
+      end
+
+      # Returns the maximum length of an index name in bytes.
+      def max_index_name_size
+        62
+      end
+
       private
+        def generate_index_name(table_name, column)
+          name = "index_#{table_name}_on_#{Array(column) * '_and_'}"
+          return name if name.bytesize <= max_index_name_size
+
+          # Fallback to short version, add hash to ensure uniqueness
+          hashed_identifier = "_" + OpenSSL::Digest::SHA256.hexdigest(name).first(10)
+          name = "idx_on_#{Array(column) * '_'}"
+
+          short_limit = max_index_name_size - hashed_identifier.bytesize
+          short_name = name.mb_chars.limit(short_limit).to_s
+
+          "#{short_name}#{hashed_identifier}"
+        end
+
         def validate_change_column_null_argument!(value)
           unless value == true || value == false
             raise ArgumentError, "change_column_null expects a boolean value (true for NULL, false for NOT NULL). Got: #{value.inspect}"
@@ -1582,14 +1632,6 @@ module ActiveRecord
 
         def create_alter_table(name)
           AlterTable.new create_table_definition(name)
-        end
-
-        def valid_table_definition_options
-          [:temporary, :if_not_exists, :options, :as, :comment, :charset, :collation]
-        end
-
-        def valid_primary_key_options
-          [:limit, :default, :precision]
         end
 
         def validate_create_table_options!(options)

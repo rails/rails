@@ -10,7 +10,7 @@ module ActiveRecord
     included do
       class_attribute :attributes_to_define_after_schema_loads, instance_accessor: false, default: {} # :internal:
     end
-
+    # = Active Record \Attributes
     module ClassMethods
       # Defines an attribute with a type on this model. It will override the
       # type of existing attributes if needed. This allows control over how
@@ -194,10 +194,10 @@ module ActiveRecord
       #   end
       #
       #   Product.where(price_in_bitcoins: Money.new(5, "USD"))
-      #   # => SELECT * FROM products WHERE price_in_bitcoins = 0.02230
+      #   # SELECT * FROM products WHERE price_in_bitcoins = 0.02230
       #
       #   Product.where(price_in_bitcoins: Money.new(5, "GBP"))
-      #   # => SELECT * FROM products WHERE price_in_bitcoins = 0.03412
+      #   # SELECT * FROM products WHERE price_in_bitcoins = 0.03412
       #
       # ==== Dirty Tracking
       #

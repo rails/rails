@@ -57,6 +57,7 @@ module ActiveRecord
         end
       end
 
+      # = Active Record MySQL Adapter \Table Definition
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
 
@@ -94,11 +95,15 @@ module ActiveRecord
           end
 
           def integer_like_primary_key_type(type, options)
-            options[:auto_increment] = true
+            unless options[:auto_increment] == false
+              options[:auto_increment] = true
+            end
+
             type
           end
       end
 
+      # = Active Record MySQL Adapter \Table
       class Table < ActiveRecord::ConnectionAdapters::Table
         include ColumnMethods
       end

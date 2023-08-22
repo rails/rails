@@ -163,7 +163,8 @@ module Rails
 
       # Show help message with available generators.
       def help(command = "generate")
-        puts "Usage: rails #{command} GENERATOR [args] [options]"
+        puts "Usage:"
+        puts "  bin/rails #{command} GENERATOR [args] [options]"
         puts
         puts "General options:"
         puts "  -h, [--help]     # Print generator's options and usage"
@@ -261,16 +262,10 @@ module Rails
           run_after_generate_callback if config[:behavior] == :invoke
         else
           options = sorted_groups.flat_map(&:last)
-          error   = Command::Base::CorrectableError.new("Could not find generator '#{namespace}'.", namespace, options)
-
-          if error.respond_to?(:detailed_message)
-            formatted_message = error.detailed_message
-          else
-            formatted_message = error.message
-          end
+          error = Command::CorrectableNameError.new("Could not find generator '#{namespace}'.", namespace, options)
 
           puts <<~MSG
-            #{formatted_message}
+            #{error.detailed_message}
             Run `bin/rails generate --help` for more options.
           MSG
         end

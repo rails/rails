@@ -3,6 +3,8 @@
 require "active_support/core_ext/object/deep_dup"
 
 module ActionDispatch # :nodoc:
+  # = Action Dispatch \PermissionsPolicy
+  #
   # Configures the HTTP
   # {Feature-Policy}[https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy]
   # response header to specify which browser features the current document and
@@ -19,16 +21,13 @@ module ActionDispatch # :nodoc:
   #     policy.payment     :self, "https://secure.example.com"
   #   end
   #
+  # The Feature-Policy header has been renamed to Permissions-Policy.
+  # The Permissions-Policy requires a different implementation and isn't
+  # yet supported by all browsers. To avoid having to rename this
+  # middleware in the future we use the new name for the middleware but
+  # keep the old header name and implementation for now.
   class PermissionsPolicy
     class Middleware
-      CONTENT_TYPE = "Content-Type"
-      # The Feature-Policy header has been renamed to Permissions-Policy.
-      # The Permissions-Policy requires a different implementation and isn't
-      # yet supported by all browsers. To avoid having to rename this
-      # middleware in the future we use the new name for the middleware but
-      # keep the old header name and implementation for now.
-      POLICY       = "Feature-Policy"
-
       def initialize(app)
         @app = app
       end
@@ -42,11 +41,11 @@ module ActionDispatch # :nodoc:
         request = ActionDispatch::Request.new(env)
 
         if policy = request.permissions_policy
-          headers[POLICY] = policy.build(request.controller_instance)
+          headers[ActionDispatch::Constants::FEATURE_POLICY] = policy.build(request.controller_instance)
         end
 
         if policy_empty?(policy)
-          headers.delete(POLICY)
+          headers.delete(ActionDispatch::Constants::FEATURE_POLICY)
         end
 
         response
@@ -54,13 +53,13 @@ module ActionDispatch # :nodoc:
 
       private
         def html_response?(headers)
-          if content_type = headers[CONTENT_TYPE]
+          if content_type = headers[Rack::CONTENT_TYPE]
             content_type.include?("html")
           end
         end
 
         def policy_present?(headers)
-          headers[POLICY]
+          headers[ActionDispatch::Constants::FEATURE_POLICY]
         end
 
         def policy_empty?(policy)

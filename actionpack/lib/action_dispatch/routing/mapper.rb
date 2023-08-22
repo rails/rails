@@ -12,6 +12,9 @@ module ActionDispatch
     class Mapper
       URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port]
 
+      cattr_accessor :route_source_locations, instance_accessor: false, default: false
+      cattr_accessor :backtrace_cleaner, instance_accessor: false, default: ActiveSupport::BacktraceCleaner.new
+
       class Constraints < Routing::Endpoint # :nodoc:
         attr_reader :app, :constraints
 
@@ -43,7 +46,7 @@ module ActionDispatch
         end
 
         def serve(req)
-          return [ 404, { "X-Cascade" => "pass" }, [] ] unless matches?(req)
+          return [ 404, { Constants::X_CASCADE => "pass" }, [] ] unless matches?(req)
 
           @strategy.call @app, req
         end
@@ -170,7 +173,7 @@ module ActionDispatch
           Journey::Route.new(name: name, app: application, path: path, constraints: conditions,
                              required_defaults: required_defaults, defaults: defaults,
                              request_method_match: request_method, precedence: precedence,
-                             scope_options: scope_options, internal: @internal)
+                             scope_options: scope_options, internal: @internal, source_location: route_source_location)
         end
 
         def application
@@ -306,7 +309,7 @@ module ActionDispatch
           end
 
           def split_to(to)
-            if /#/.match?(to)
+            if to&.include?("#")
               to.split("#").map!(&:-@)
             else
               []
@@ -355,6 +358,15 @@ module ActionDispatch
 
           def dispatcher(raise_on_name_error)
             Routing::RouteSet::Dispatcher.new raise_on_name_error
+          end
+
+          def route_source_location
+            if Mapper.route_source_locations
+              action_dispatch_dir = File.expand_path("..", __dir__)
+              caller_location = caller_locations.find { |location| !location.path.include?(action_dispatch_dir) }
+              cleaned_path = Mapper.backtrace_cleaner.clean([caller_location.path]).first
+              "#{cleaned_path}:#{caller_location.lineno}" if cleaned_path
+            end
           end
       end
 
@@ -748,7 +760,7 @@ module ActionDispatch
       #   end
       #
       # This will create a number of routes for each of the posts and comments
-      # controller. For <tt>Admin::PostsController</tt>, Rails will create:
+      # controller. For +Admin::PostsController+, \Rails will create:
       #
       #   GET       /admin/posts
       #   GET       /admin/posts/new
@@ -759,7 +771,7 @@ module ActionDispatch
       #   DELETE    /admin/posts/1
       #
       # If you want to route /posts (without the prefix /admin) to
-      # <tt>Admin::PostsController</tt>, you could use
+      # +Admin::PostsController+, you could use
       #
       #   scope module: "admin" do
       #     resources :posts
@@ -808,7 +820,7 @@ module ActionDispatch
         #
         # Takes same options as <tt>Base#match</tt> and <tt>Resources#resources</tt>.
         #
-        #   # route /posts (without the prefix /admin) to <tt>Admin::PostsController</tt>
+        #   # route /posts (without the prefix /admin) to +Admin::PostsController+
         #   scope module: "admin" do
         #     resources :posts
         #   end
@@ -917,7 +929,7 @@ module ActionDispatch
         #     resources :posts
         #   end
         #
-        #   # maps to <tt>Sekret::PostsController</tt> rather than <tt>Admin::PostsController</tt>
+        #   # maps to +Sekret::PostsController+ rather than +Admin::PostsController+
         #   namespace :admin, module: "sekret" do
         #     resources :posts
         #   end
@@ -1318,7 +1330,7 @@ module ActionDispatch
           self
         end
 
-        # In Rails, a resourceful route provides a mapping between HTTP verbs
+        # In \Rails, a resourceful route provides a mapping between HTTP verbs
         # and URLs and controller actions. By convention, each action also maps
         # to particular CRUD operations in a database. A single entry in the
         # routing file, such as
@@ -1450,7 +1462,7 @@ module ActionDispatch
         #
         # === Examples
         #
-        #   # routes call <tt>Admin::PostsController</tt>
+        #   # routes call +Admin::PostsController+
         #   resources :posts, module: "admin"
         #
         #   # resource actions are at /admin/posts.
@@ -1493,7 +1505,7 @@ module ActionDispatch
         #     end
         #   end
         #
-        # This will enable Rails to recognize paths such as <tt>/photos/search</tt>
+        # This will enable \Rails to recognize paths such as <tt>/photos/search</tt>
         # with GET, and route to the search action of +PhotosController+. It will also
         # create the <tt>search_photos_url</tt> and <tt>search_photos_path</tt>
         # route helpers.
@@ -1640,7 +1652,7 @@ module ActionDispatch
             when Symbol
               options[:action] = to
             when String
-              if /#/.match?(to)
+              if to.include?("#")
                 options[:to] = to
               else
                 options[:controller] = to
@@ -1663,7 +1675,7 @@ module ActionDispatch
           end
         end
 
-        # You can specify what Rails should route "/" to with the root method:
+        # You can specify what \Rails should route "/" to with the root method:
         #
         #   root to: 'pages#main'
         #
@@ -1675,7 +1687,7 @@ module ActionDispatch
         #
         # You should put the root route at the top of <tt>config/routes.rb</tt>,
         # because this means it will be matched first. As this is the most popular route
-        # of most Rails applications, this is beneficial.
+        # of most \Rails applications, this is beneficial.
         def root(path, options = {})
           if path.is_a?(String)
             options[:to] = path

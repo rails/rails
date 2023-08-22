@@ -116,10 +116,10 @@ a full list of all available options, please have a look further down at the
 Complete List of Action Mailer user-settable attributes section.
 
 * The [`default`][] method sets default values for all emails sent from
-this mailer. In this case, we use it to set the `:from` header value for all
-messages in this class. This can be overridden on a per-email basis.
+  this mailer. In this case, we use it to set the `:from` header value for all
+  messages in this class. This can be overridden on a per-email basis.
 * The [`mail`][] method creates the actual email message. We use it to specify
-the values of headers like `:to` and `:subject` per email.
+  the values of headers like `:to` and `:subject` per email.
 
 [`default`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-c-default
 [`mail`]: https://api.rubyonrails.org/classes/ActionMailer/Base.html#method-i-mail
@@ -246,7 +246,7 @@ action. So `with(user: @user, account: @user.account)` makes `params[:user]` and
 `params[:account]` available in the mailer action. Just like controllers have
 params.
 
-The method `welcome_email` returns an [`ActionMailer::MessageDelivery`][] object which
+The method `weekly_summary` returns an [`ActionMailer::MessageDelivery`][] object which
 can then be told to `deliver_now` or `deliver_later` to send itself out. The
 `ActionMailer::MessageDelivery` object is a wrapper around a [`Mail::Message`][]. If
 you want to inspect, alter, or do anything else with the `Mail::Message` object you can
@@ -697,9 +697,10 @@ Action Mailer Callbacks
 -----------------------
 
 Action Mailer allows for you to specify a [`before_action`][], [`after_action`][] and
-[`around_action`][].
+[`around_action`][] to configure the message, and [`before_deliver`][], [`after_deliver`][] and
+[`around_deliver`][] to control the delivery.
 
-* Filters can be specified with a block or a symbol to a method in the mailer
+* Callbacks can be specified with a block or a symbol to a method in the mailer
   class similar to controllers.
 
 * You could use a `before_action` to set instance variables, populate the mail
@@ -726,11 +727,10 @@ class InvitationsMailer < ApplicationMailer
   end
 
   private
-
-  def set_inviter_and_invitee
-    @inviter = params[:inviter]
-    @invitee = params[:invitee]
-  end
+    def set_inviter_and_invitee
+      @inviter = params[:inviter]
+      @invitee = params[:invitee]
+    end
 end
 ```
 
@@ -755,7 +755,6 @@ class UserMailer < ApplicationMailer
   end
 
   private
-
     def set_delivery_options
       # You have access to the mail instance,
       # @business and @user instance variables here
@@ -778,11 +777,16 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-* Mailer Filters abort further processing if body is set to a non-nil value.
+* You could use an `after_delivery` to record the delivery of the message.
+
+* Mailer callbacks abort further processing if body is set to a non-nil value. `before_deliver` can abort with `throw :abort`.
 
 [`after_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-after_action
+[`after_deliver`]: https://api.rubyonrails.org/classes/ActionMailer/Callbacks/ClassMethods.html#method-i-after_deliver
 [`around_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-around_action
+[`around_deliver`]: https://api.rubyonrails.org/classes/ActionMailer/Callbacks/ClassMethods.html#method-i-around_deliver
 [`before_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-before_action
+[`before_deliver`]: https://api.rubyonrails.org/classes/ActionMailer/Callbacks/ClassMethods.html#method-i-before_deliver
 
 Using Action Mailer Helpers
 ---------------------------
@@ -819,7 +823,7 @@ files (environment.rb, production.rb, etc...)
 |`perform_deliveries`|Determines whether deliveries are actually carried out when the `deliver` method is invoked on the Mail message. By default they are, but this can be turned off to help functional testing. If this value is `false`, `deliveries` array will not be populated even if `delivery_method` is `:test`.|
 |`deliveries`|Keeps an array of all the emails sent out through the Action Mailer with delivery_method :test. Most useful for unit and functional testing.|
 |`delivery_job`|The job class used with `deliver_later`. Defaults to `ActionMailer::MailDeliveryJob`.|
-|`deliver_later_queue_name`|The name of the queue used with `deliver_later`.|
+|`deliver_later_queue_name`|The name of the queue used with the default `delivery_job`. Defaults to the default Active Job queue.|
 |`default_options`|Allows you to set default values for the `mail` method options (`:from`, `:reply_to`, etc.).|
 
 For a complete writeup of possible configurations see the
@@ -843,7 +847,7 @@ config.action_mailer.delivery_method = :sendmail
 # }
 config.action_mailer.perform_deliveries = true
 config.action_mailer.raise_delivery_errors = true
-config.action_mailer.default_options = {from: 'no-reply@example.com'}
+config.action_mailer.default_options = { from: 'no-reply@example.com' }
 ```
 
 ### Action Mailer Configuration for Gmail

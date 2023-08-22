@@ -5,6 +5,8 @@ require "active_job/arguments"
 class DelayedMailerError < StandardError; end
 
 class DelayedMailer < ActionMailer::Base
+  self.deliver_later_queue_name = :delayed_mailers
+
   cattr_accessor :last_error
   cattr_accessor :last_rescue_from_instance
 

@@ -92,10 +92,10 @@ module ActionDispatch
     include RequestCookieMethods
   end
 
-  # Read and write data to cookies through ActionController::Base#cookies.
+  # Read and write data to cookies through ActionController::Cookies#cookies.
   #
   # When reading cookie data, the data is read from the HTTP request header, Cookie.
-  # When writing cookie data, the data is sent out in the HTTP response header, Set-Cookie.
+  # When writing cookie data, the data is sent out in the HTTP response header, +Set-Cookie+.
   #
   # Examples of writing:
   #
@@ -296,20 +296,6 @@ module ActionDispatch
     class CookieJar # :nodoc:
       include Enumerable, ChainedCookieJars
 
-      # This regular expression is used to split the levels of a domain.
-      # The top level domain can be any string without a period or
-      # **.**, ***.** style TLDs like co.uk or com.au
-      #
-      # www.example.co.uk gives:
-      # $& => example.co.uk
-      #
-      # example.com gives:
-      # $& => example.com
-      #
-      # lots.of.subdomains.example.local gives:
-      # $& => example.local
-      DOMAIN_REGEXP = /[^.]*\.([^.]*|..\...|...\...)$/
-
       def self.build(req, cookies)
         jar = new(req)
         jar.update(cookies)
@@ -396,6 +382,8 @@ module ActionDispatch
       # Removes the cookie on the client machine by setting the value to an empty string
       # and the expiration date in the past. Like <tt>[]=</tt>, you can pass in
       # an options hash to delete cookies with extra data such as a <tt>:path</tt>.
+      #
+      # Returns the value of the cookie, or +nil+ if the cookie does not exist.
       def delete(name, options = {})
         return unless @cookies.has_key? name.to_s
 
@@ -421,9 +409,15 @@ module ActionDispatch
         @cookies.each_key { |k| delete(k, options) }
       end
 
-      def write(headers)
-        if header = make_set_cookie_header(headers[HTTP_HEADER])
-          headers[HTTP_HEADER] = header
+      def write(response)
+        @set_cookies.each do |name, value|
+          if write_cookie?(value)
+            response.set_cookie(name, value)
+          end
+        end
+
+        @delete_cookies.each do |name, value|
+          response.delete_cookie(name, value)
         end
       end
 
@@ -432,19 +426,6 @@ module ActionDispatch
       private
         def escape(string)
           ::Rack::Utils.escape(string)
-        end
-
-        def make_set_cookie_header(header)
-          header = @set_cookies.inject(header) { |m, (k, v)|
-            if write_cookie?(v)
-              ::Rack::Utils.add_cookie_to_header(m, k, v)
-            else
-              m
-            end
-          }
-          @delete_cookies.inject(header) { |m, (k, v)|
-            ::Rack::Utils.add_remove_cookie_to_header(m, k, v)
-          }
         end
 
         def write_cookie?(cookie)
@@ -463,13 +444,35 @@ module ActionDispatch
           end
 
           if options[:domain] == :all || options[:domain] == "all"
-            # If there is a provided tld length then we use it otherwise default domain regexp.
-            domain_regexp = options[:tld_length] ? /([^.]+\.?){#{options[:tld_length]}}$/ : DOMAIN_REGEXP
+            cookie_domain = ""
+            dot_splitted_host = request.host.split(".", -1)
 
-            # If host is not ip and matches domain regexp.
-            # (ip confirms to domain regexp so we explicitly check for ip)
-            options[:domain] = if !request.host.match?(/^[\d.]+$/) && (request.host =~ domain_regexp)
-              ".#{$&}"
+            # Case where request.host is not an IP address or it's an invalid domain
+            # (ip confirms to the domain structure we expect so we explicitly check for ip)
+            if request.host.match?(/^[\d.]+$/) || dot_splitted_host.include?("") || dot_splitted_host.length == 1
+              options[:domain] = nil
+              return
+            end
+
+            # If there is a provided tld length then we use it otherwise default domain.
+            if options[:tld_length].present?
+              # Case where the tld_length provided is valid
+              if dot_splitted_host.length >= options[:tld_length]
+                cookie_domain = dot_splitted_host.last(options[:tld_length]).join(".")
+              end
+            # Case where tld_length is not provided
+            else
+              # Regular TLDs
+              if !(/\.[^.]{2,3}\.[^.]{2}\z/.match?(request.host))
+                cookie_domain = dot_splitted_host.last(2).join(".")
+              # **.**, ***.** style TLDs like co.uk and com.au
+              else
+                cookie_domain = dot_splitted_host.last(3).join(".")
+              end
+            end
+
+            options[:domain] = if cookie_domain.present?
+              cookie_domain
             end
           elsif options[:domain].is_a? Array
             # If host matches one of the supplied domains.
@@ -542,75 +545,57 @@ module ActionDispatch
         end
     end
 
-    class MarshalWithJsonFallback # :nodoc:
-      def self.load(value)
-        Marshal.load(value)
-      rescue TypeError => e
-        ActiveSupport::JSON.decode(value) rescue raise e
-      end
-
-      def self.dump(value)
-        Marshal.dump(value)
-      end
-    end
-
-    class JsonSerializer # :nodoc:
-      def self.load(value)
-        ActiveSupport::JSON.decode(value)
-      end
-
-      def self.dump(value)
-        ActiveSupport::JSON.encode(value)
-      end
-    end
-
     module SerializedCookieJars # :nodoc:
-      MARSHAL_SIGNATURE = "\x04\x08"
       SERIALIZER = ActiveSupport::MessageEncryptor::NullSerializer
 
       protected
-        def needs_migration?(value)
-          request.cookies_serializer == :hybrid && value.start_with?(MARSHAL_SIGNATURE)
-        end
-
-        def serialize(value)
-          serializer.dump(value)
-        end
-
-        def deserialize(name)
-          rotate = false
-          value  = yield -> { rotate = true }
-
-          if value
-            case
-            when needs_migration?(value)
-              Marshal.load(value).tap do |v|
-                self[name] = { value: v }
-              end
-            when rotate
-              serializer.load(value).tap do |v|
-                self[name] = { value: v }
-              end
-            else
-              serializer.load(value)
-            end
-          end
-        end
-
-        def serializer
-          serializer = request.cookies_serializer || :marshal
-          case serializer
-          when :marshal
-            MarshalWithJsonFallback
-          when :json, :hybrid
-            JsonSerializer
-          else
-            serializer
-          end
-        end
-
         def digest
           request.cookies_digest || "SHA1"
+        end
+
+      private
+        def serializer
+          @serializer ||=
+            case request.cookies_serializer
+            when nil
+              ActiveSupport::Messages::SerializerWithFallback[:marshal]
+            when :hybrid
+              ActiveSupport::Messages::SerializerWithFallback[:json_allow_marshal]
+            when Symbol
+              ActiveSupport::Messages::SerializerWithFallback[request.cookies_serializer]
+            else
+              request.cookies_serializer
+            end
+        end
+
+        def reserialize?(dumped)
+          serializer.is_a?(ActiveSupport::Messages::SerializerWithFallback) &&
+            serializer != ActiveSupport::Messages::SerializerWithFallback[:marshal] &&
+            !serializer.dumped?(dumped)
+        end
+
+        def parse(name, dumped, force_reserialize: false, **)
+          if dumped
+            begin
+              value = serializer.load(dumped)
+            rescue StandardError
+              return
+            end
+
+            self[name] = { value: value } if force_reserialize || reserialize?(dumped)
+
+            value
+          end
+        end
+
+        def commit(name, options)
+          options[:value] = serializer.dump(options[:value])
+        end
+
+        def check_for_overflow!(name, options)
+          if options[:value].bytesize > MAX_COOKIE_SIZE
+            raise CookieOverflow, "#{name} cookie overflowed with size #{options[:value].bytesize} bytes"
+          end
         end
     end
 
@@ -631,17 +616,15 @@ module ActionDispatch
 
       private
         def parse(name, signed_message, purpose: nil)
-          deserialize(name) do |rotate|
-            @verifier.verified(signed_message, on_rotation: rotate, purpose: purpose)
-          end
+          rotated = false
+          data = @verifier.verified(signed_message, purpose: purpose, on_rotation: -> { rotated = true })
+          super(name, data, force_reserialize: rotated)
         end
 
         def commit(name, options)
-          options[:value] = @verifier.generate(serialize(options[:value]), **cookie_metadata(name, options))
-
-          if options[:value].bytesize > MAX_COOKIE_SIZE
-            raise CookieOverflow, "#{name} cookie overflowed with size #{options[:value].bytesize} bytes"
-          end
+          super
+          options[:value] = @verifier.generate(options[:value], **cookie_metadata(name, options))
+          check_for_overflow!(name, options)
         end
     end
 
@@ -683,19 +666,17 @@ module ActionDispatch
 
       private
         def parse(name, encrypted_message, purpose: nil)
-          deserialize(name) do |rotate|
-            @encryptor.decrypt_and_verify(encrypted_message, on_rotation: rotate, purpose: purpose)
-          end
-        rescue ActiveSupport::MessageEncryptor::InvalidMessage, ActiveSupport::MessageVerifier::InvalidSignature, JSON::ParserError
+          rotated = false
+          data = @encryptor.decrypt_and_verify(encrypted_message, purpose: purpose, on_rotation: -> { rotated = true })
+          super(name, data, force_reserialize: rotated)
+        rescue ActiveSupport::MessageEncryptor::InvalidMessage, ActiveSupport::MessageVerifier::InvalidSignature
           nil
         end
 
         def commit(name, options)
-          options[:value] = @encryptor.encrypt_and_sign(serialize(options[:value]), **cookie_metadata(name, options))
-
-          if options[:value].bytesize > MAX_COOKIE_SIZE
-            raise CookieOverflow, "#{name} cookie overflowed with size #{options[:value].bytesize} bytes"
-          end
+          super
+          options[:value] = @encryptor.encrypt_and_sign(options[:value], **cookie_metadata(name, options))
+          check_for_overflow!(name, options)
         end
     end
 
@@ -704,21 +685,18 @@ module ActionDispatch
     end
 
     def call(env)
-      request = ActionDispatch::Request.new env
-
-      _, headers, _ = response = @app.call(env)
+      request = ActionDispatch::Request.new(env)
+      response = @app.call(env)
 
       if request.have_cookie_jar?
         cookie_jar = request.cookie_jar
         unless cookie_jar.committed?
-          cookie_jar.write(headers)
-          if headers[HTTP_HEADER].respond_to?(:join)
-            headers[HTTP_HEADER] = headers[HTTP_HEADER].join("\n")
-          end
+          response = Rack::Response[*response]
+          cookie_jar.write(response)
         end
       end
 
-      response
+      response.to_a
     end
   end
 end

@@ -187,11 +187,13 @@ class Module
     location = caller_locations(1, 1).first
     file, line = location.path, location.lineno
 
-    to = to.to_s
-    to = "self.#{to}" if DELEGATION_RESERVED_METHOD_NAMES.include?(to)
+    receiver = to.to_s
+    receiver = "self.#{receiver}" if DELEGATION_RESERVED_METHOD_NAMES.include?(receiver)
 
     method_def = []
     method_names = []
+
+    method_def << "self.private" if private
 
     methods.each do |method|
       method_name = prefix ? "#{method_prefix}#{method}" : method
@@ -199,7 +201,35 @@ class Module
 
       # Attribute writer methods only accept one argument. Makes sure []=
       # methods still accept two arguments.
-      definition = /[^\]]=\z/.match?(method) ? "arg" : "..."
+      definition = \
+        if /[^\]]=\z/.match?(method)
+          "arg"
+        else
+          method_object =
+            begin
+              if to.is_a?(Module)
+                to.method(method)
+              elsif receiver == "self.class"
+                method(method)
+              end
+            rescue NameError
+              # Do nothing. Fall back to `"..."`
+            end
+
+          if method_object
+            parameters = method_object.parameters
+
+            if (parameters.map(&:first) & [:opt, :rest, :keyreq, :key, :keyrest]).any?
+              "..."
+            else
+              defn = parameters.filter_map { |type, arg| arg if type == :req }
+              defn << "&block"
+              defn.join(", ")
+            end
+          else
+            "..."
+          end
+        end
 
       # The following generated method calls the target exactly once, storing
       # the returned value in a dummy variable.
@@ -213,7 +243,7 @@ class Module
 
         method_def <<
           "def #{method_name}(#{definition})" <<
-          "  _ = #{to}" <<
+          "  _ = #{receiver}" <<
           "  if !_.nil? || nil.respond_to?(:#{method})" <<
           "    _.#{method}(#{definition})" <<
           "  end" <<
@@ -224,11 +254,11 @@ class Module
 
         method_def <<
           "def #{method_name}(#{definition})" <<
-          "  _ = #{to}" <<
+          "  _ = #{receiver}" <<
           "  _.#{method}(#{definition})" <<
           "rescue NoMethodError => e" <<
           "  if _.nil? && e.name == :#{method}" <<
-          %(   raise DelegationError, "#{self}##{method_name} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}") <<
+          %(   raise DelegationError, "#{self}##{method_name} delegated to #{receiver}.#{method}, but #{receiver} is nil: \#{self.inspect}") <<
           "  else" <<
           "    raise" <<
           "  end" <<
@@ -236,7 +266,6 @@ class Module
       end
     end
     module_eval(method_def.join(";"), file, line)
-    private(*method_names) if private
     method_names
   end
 

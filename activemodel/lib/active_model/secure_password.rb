@@ -57,7 +57,7 @@ module ActiveModel
       #
       #   user.save                                                      # => false, password required
       #   user.password = "vr00m"
-      #   user.save                                                      # => false, confirmation doesn't match
+      #   user.save                                                      # => false, confirmation doesn’t match
       #   user.password_confirmation = "vr00m"
       #   user.save                                                      # => true
       #
@@ -105,7 +105,7 @@ module ActiveModel
         begin
           require "bcrypt"
         rescue LoadError
-          $stderr.puts "You don't have bcrypt installed in your application. Please add it to your Gemfile and run bundle install."
+          warn "You don't have bcrypt installed in your application. Please add it to your Gemfile and run bundle install."
           raise
         end
 
@@ -132,7 +132,14 @@ module ActiveModel
             end
           end
 
-          validates_length_of attribute, maximum: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
+          # Validates that the password does not exceed the maximum allowed bytes for BCrypt (72 bytes).
+          validate do |record|
+            password_value = record.public_send(attribute)
+            if password_value.present? && password_value.bytesize > ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
+              record.errors.add(attribute, :password_too_long)
+            end
+          end
+
           validates_confirmation_of attribute, allow_blank: true
         end
       end
@@ -168,6 +175,12 @@ module ActiveModel
         define_method("authenticate_#{attribute}") do |unencrypted_password|
           attribute_digest = public_send("#{attribute}_digest")
           attribute_digest.present? && BCrypt::Password.new(attribute_digest).is_password?(unencrypted_password) && self
+        end
+
+        # Returns the salt, a small chunk of random data added to the password before it's hashed.
+        define_method("#{attribute}_salt") do
+          attribute_digest = public_send("#{attribute}_digest")
+          attribute_digest.present? ? BCrypt::Password.new(attribute_digest).salt : nil
         end
 
         alias_method :authenticate, :authenticate_password if attribute == :password

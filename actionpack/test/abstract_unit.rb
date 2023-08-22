@@ -368,6 +368,158 @@ class ActiveSupport::TestCase
     end
 end
 
+module CookieAssertions
+  def parse_set_cookie_attributes(fields, attributes = {})
+    if fields.is_a?(String)
+      fields = fields.split(";").map(&:strip)
+    end
+
+    fields.each do |field|
+      key, value = field.split("=", 2)
+
+      # Normalize the key to lowercase:
+      key.downcase!
+
+      if value
+        value.downcase!
+        attributes[key] = value
+      else
+        attributes[key] = true
+      end
+    end
+
+    attributes
+  end
+
+  # Parse the set-cookie header and return a hash of cookie names and values.
+  #
+  # Example:
+  #   set_cookies = headers["set-cookie"]
+  #   parse_set_cookies_headers(set_cookies)
+  def parse_set_cookies_headers(set_cookies)
+    if set_cookies.is_a?(String)
+      set_cookies = set_cookies.split("\n")
+    end
+
+    cookies = {}
+
+    set_cookies&.each do |cookie_string|
+      attributes = {}
+
+      fields = cookie_string.split(";").map(&:strip)
+
+      # The first one is the cookie name:
+      name, value = fields.shift.split("=", 2)
+
+      attributes[:value] = value
+
+      cookies[name] = parse_set_cookie_attributes(fields, attributes)
+    end
+
+    cookies
+  end
+
+  def assert_set_cookie_attributes(name, attributes, header = @response.headers["Set-Cookie"])
+    cookies = parse_set_cookies_headers(header)
+    attributes = parse_set_cookie_attributes(attributes) if attributes.is_a?(String)
+
+    assert cookies.key?(name), "No cookie found with the name '#{name}', found cookies: #{cookies.keys.join(', ')}"
+    cookie = cookies[name]
+
+    attributes.each do |key, value|
+      assert cookie.key?(key), "No attribute '#{key}' found for cookie '#{name}'"
+      assert_equal value, cookie[key]
+    end
+  end
+
+  def assert_not_set_cookie_attributes(name, attributes, header = @response.headers["Set-Cookie"])
+    cookies = parse_set_cookies_headers(header)
+    attributes = parse_set_cookie_attributes(attributes) if attributes.is_a?(String)
+
+    assert cookies.key?(name), "No cookie found with the name '#{name}'"
+    cookie = cookies[name]
+
+    attributes.each do |key, value|
+      if value == true
+        assert_nil cookie[key]
+      else
+        assert_not_equal value, cookie[key]
+      end
+    end
+  end
+
+  def assert_set_cookie_header(expected, header = @response.headers["Set-Cookie"])
+    # In Rack v2, this is newline delimited. In Rack v3, this is an array.
+    # Normalize the comparison so that we can assert equality in both cases.
+
+    if header.is_a?(String)
+      header = header.split("\n").sort
+    end
+
+    if expected.is_a?(String)
+      expected = expected.split("\n").sort
+    end
+
+    # While not strictly speaking correct, this is probably good enough for now:
+    header = parse_set_cookies_headers(header)
+    expected = parse_set_cookies_headers(expected)
+
+    expected.each do |key, value|
+      assert_equal value, header[key]
+    end
+  end
+
+  def assert_not_set_cookie_header(expected, header = @response.headers["Set-Cookie"])
+    if header.is_a?(String)
+      header = header.split("\n").sort
+    end
+
+    if expected.is_a?(String)
+      expected = expected.split("\n").sort
+    end
+
+    # While not strictly speaking correct, this is probably good enough for now:
+    header = parse_set_cookies_headers(header)
+
+    expected.each do |name|
+      assert_not_includes(header, name)
+    end
+  end
+end
+
+module HeadersAssertions
+  def normalize_headers(headers)
+    headers.transform_keys(&:downcase)
+  end
+
+  def assert_headers(expected, actual = @response.headers)
+    actual = normalize_headers(actual)
+    expected.each do |key, value|
+      assert_equal value, actual[key]
+    end
+  end
+
+  def assert_header(key, value, actual = @response.headers)
+    actual = normalize_headers(actual)
+    assert_equal value, actual[key]
+  end
+
+  def assert_not_header(key, actual = @response.headers)
+    actual = normalize_headers(actual)
+    assert_not_includes(actual, key)
+  end
+
+  # This works for most headers, but not all, e.g. `set-cookie`.
+  def normalized_join_header(header)
+    header.is_a?(Array) ? header.join(",") : header
+  end
+
+  def assert_header_value(expected, header)
+    header = normalized_join_header(header)
+    assert_equal header, expected
+  end
+end
+
 class DrivenByRackTest < ActionDispatch::SystemTestCase
   driven_by :rack_test
 end

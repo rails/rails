@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/string/filters"
-
 module ActionDispatch
   # The routing module provides URL rewriting in native Ruby. It's a way to
   # redirect incoming requests to controllers and actions. This replaces
@@ -240,7 +238,7 @@ module ActionDispatch
   #
   # == View a list of all your routes
   #
-  #   rails routes
+  #   bin/rails routes
   #
   # Target a specific controller with <tt>-c</tt>, or grep routes
   # using <tt>-g</tt>. Useful in conjunction with <tt>--expanded</tt>

@@ -151,8 +151,9 @@ module ActiveRecord
 
         name_or_columns = unique_by || model.primary_key
         match = Array(name_or_columns).map(&:to_s)
+        sorted_match = match.sort
 
-        if index = unique_indexes.find { |i| match.include?(i.name) || i.columns == match }
+        if index = unique_indexes.find { |i| match.include?(i.name) || Array(i.columns).sort == sorted_match }
           index
         elsif match == primary_keys
           unique_by.nil? ? nil : ActiveRecord::ConnectionAdapters::IndexDefinition.new(model.table_name, "#{model.table_name}_primary_key", true, match)

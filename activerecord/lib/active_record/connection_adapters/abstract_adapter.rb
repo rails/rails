@@ -13,6 +13,8 @@ require "arel/collectors/substitute_binds"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
+    # = Active Record Abstract Adapter
+    #
     # Active Record supports multiple database systems. AbstractAdapter and
     # related classes form the abstraction layer which makes this possible.
     # An AbstractAdapter represents a connection to a database, and provides an
@@ -39,9 +41,17 @@ module ActiveRecord
       SIMPLE_INT = /\A\d+\z/
       COMMENT_REGEX = %r{(?:--.*\n)|/\*(?:[^*]|\*[^/])*\*/}
 
-      attr_accessor :pool
+      attr_reader :pool
       attr_reader :visitor, :owner, :logger, :lock
       alias :in_use? :owner
+
+      def pool=(value)
+        return if value.eql?(@pool)
+        @schema_cache = nil
+        @pool = value
+
+        @pool.schema_reflection.load!(self) if ActiveRecord.lazily_load_schema_cache
+      end
 
       set_callback :checkin, :after, :enable_lazy_transactions!
 
@@ -80,14 +90,6 @@ module ActiveRecord
         parts += DEFAULT_READ_QUERY
         parts = parts.map { |part| /#{part}/i }
         /\A(?:[(\s]|#{COMMENT_REGEX})*#{Regexp.union(*parts)}/
-      end
-
-      def self.quoted_column_names # :nodoc:
-        @quoted_column_names ||= {}
-      end
-
-      def self.quoted_table_names # :nodoc:
-        @quoted_table_names ||= {}
       end
 
       def self.find_cmd_and_exec(commands, *args) # :doc:
@@ -158,7 +160,7 @@ module ActiveRecord
         @statements = build_statement_pool
         self.lock_thread = nil
 
-        @prepared_statements = self.class.type_cast_config_to_boolean(
+        @prepared_statements = !ActiveRecord.disable_prepared_statements && self.class.type_cast_config_to_boolean(
           @config.fetch(:prepared_statements) { default_prepared_statements }
         )
 
@@ -325,12 +327,7 @@ module ActiveRecord
       end
 
       def schema_cache
-        @pool.get_schema_cache(self)
-      end
-
-      def schema_cache=(cache)
-        cache.connection = self
-        @pool.set_schema_cache(cache)
+        @schema_cache ||= BoundSchemaReflection.new(@pool.schema_reflection, self)
       end
 
       # this method must only be called while holding connection pool's mutex
@@ -444,6 +441,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support including non-key columns?
+      def supports_index_include?
+        false
+      end
+
       # Does this adapter support expression indices?
       def supports_expression_index?
         false
@@ -492,6 +494,11 @@ module ActiveRecord
 
       # Does this adapter support creating exclusion constraints?
       def supports_exclusion_constraints?
+        false
+      end
+
+      # Does this adapter support creating unique constraints?
+      def supports_unique_keys?
         false
       end
 
@@ -568,6 +575,14 @@ module ActiveRecord
         true
       end
 
+      def supports_nulls_not_distinct?
+        false
+      end
+
+      def return_value_after_insert?(column) # :nodoc:
+        column.auto_incremented_by_db?
+      end
+
       def async_enabled? # :nodoc:
         supports_concurrent_connections? &&
           !ActiveRecord.async_query_executor.nil? && !pool.async_executor.nil?
@@ -587,6 +602,18 @@ module ActiveRecord
 
       # This is meant to be implemented by the adapters that support custom enum types
       def drop_enum(*) # :nodoc:
+      end
+
+      # This is meant to be implemented by the adapters that support custom enum types
+      def rename_enum(*) # :nodoc:
+      end
+
+      # This is meant to be implemented by the adapters that support custom enum types
+      def add_enum_value(*) # :nodoc:
+      end
+
+      # This is meant to be implemented by the adapters that support custom enum types
+      def rename_enum_value(*) # :nodoc:
       end
 
       def advisory_locks_enabled? # :nodoc:
@@ -626,7 +653,17 @@ module ActiveRecord
 
       # Override to check all foreign key constraints in a database.
       def all_foreign_keys_valid?
+        check_all_foreign_keys_valid!
         true
+      rescue ActiveRecord::StatementInvalid
+        false
+      end
+      deprecate :all_foreign_keys_valid?, deprecator: ActiveRecord.deprecator
+
+      # Override to check all foreign key constraints in a database.
+      # The adapter should raise a +ActiveRecord::StatementInvalid+ if foreign key
+      # constraints are not met.
+      def check_all_foreign_keys_valid!
       end
 
       # CONNECTION MANAGEMENT ====================================
@@ -691,12 +728,6 @@ module ActiveRecord
       # rid of a connection that belonged to its parent.
       def discard!
         # This should be overridden by concrete adapters.
-        #
-        # Prevent @raw_connection's finalizer from touching the socket, or
-        # otherwise communicating with its server, when it is collected.
-        if schema_cache.connection == self
-          schema_cache.connection = nil
-        end
       end
 
       # Reset the state of this connection, directing the DBMS to clear
@@ -776,6 +807,10 @@ module ActiveRecord
       #
       # This is useful for when you need to call a proprietary method such as
       # PostgreSQL's lo_* methods.
+      #
+      # Active Record cannot track if the database is getting modified using
+      # this client. If that is the case, generally you'll want to invalidate
+      # the query cache using +ActiveRecord::Base.clear_query_cache+.
       def raw_connection
         with_raw_connection do |conn|
           disable_lazy_transactions!
@@ -937,7 +972,7 @@ module ActiveRecord
         # the connection's configured +connection_retries+ setting
         # and the configured +retry_deadline+ limit.
         #
-        # If +uses_transaction+ is false, the block will be run without
+        # If +materialize_transactions+ is false, the block will be run without
         # ensuring virtual transactions have been materialized in the DB
         # server's state. The active transaction will also remain clean
         # (if it is not already dirty), meaning it's able to be restored
@@ -957,11 +992,11 @@ module ActiveRecord
         # still-yielded connection in the outer block), but we currently
         # provide no special enforcement there.
         #
-        def with_raw_connection(allow_retry: false, uses_transaction: true)
+        def with_raw_connection(allow_retry: false, materialize_transactions: true)
           @lock.synchronize do
             connect! if @raw_connection.nil? && reconnect_can_restore_state?
 
-            materialize_transactions if uses_transaction
+            self.materialize_transactions if materialize_transactions
 
             retries_available = allow_retry ? connection_retries : 0
             deadline = retry_deadline && Process.clock_gettime(Process::CLOCK_MONOTONIC) + retry_deadline
@@ -1018,7 +1053,7 @@ module ActiveRecord
 
               raise translated_exception
             ensure
-              dirty_current_transaction if uses_transaction
+              dirty_current_transaction if materialize_transactions
             end
           end
         end
@@ -1035,13 +1070,10 @@ module ActiveRecord
         end
 
         def retryable_query_error?(exception)
-          # We definitely can't retry if we were inside a transaction that was instantly
-          # rolled back by this error
-          if exception.is_a?(TransactionRollbackError) && savepoint_errors_invalidate_transactions? && open_transactions > 0
-            false
-          else
-            exception.is_a?(Deadlocked) || exception.is_a?(LockWaitTimeout)
-          end
+          # We definitely can't retry if we were inside an invalidated transaction.
+          return false if current_transaction.invalidated?
+
+          exception.is_a?(Deadlocked) || exception.is_a?(LockWaitTimeout)
         end
 
         def backoff(counter)
@@ -1069,7 +1101,7 @@ module ActiveRecord
             # `allow_retry: false`, to force verification: the block won't
             # raise, so a retry wouldn't help us get the valid connection we
             # need.
-            with_raw_connection(allow_retry: false, uses_transaction: false) { |conn| conn }
+            with_raw_connection(allow_retry: false, materialize_transactions: false) { |conn| conn }
         end
 
         def extended_type_map_key
@@ -1116,7 +1148,7 @@ module ActiveRecord
 
         def transform_query(sql)
           ActiveRecord.query_transformers.each do |transformer|
-            sql = transformer.call(sql)
+            sql = transformer.call(sql, self)
           end
           sql
         end
@@ -1127,7 +1159,7 @@ module ActiveRecord
           when RuntimeError, ActiveRecord::ActiveRecordError
             exception
           else
-            ActiveRecord::StatementInvalid.new(message, sql: sql, binds: binds)
+            ActiveRecord::StatementInvalid.new(message, sql: sql, binds: binds, connection_pool: @pool)
           end
         end
 
@@ -1187,6 +1219,12 @@ module ActiveRecord
 
         def default_prepared_statements
           true
+        end
+
+        def warning_ignored?(warning)
+          ActiveRecord.db_warnings_ignore.any? do |warning_matcher|
+            warning.message.match?(warning_matcher) || warning.code.to_s.match?(warning_matcher)
+          end
         end
     end
   end

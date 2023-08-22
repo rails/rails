@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# = Active Storage \Blob
+#
 # A blob is a record that contains the metadata about a file and a key for where that file resides on the service.
 # Blobs can be created in two ways:
 #
@@ -29,8 +31,16 @@ class ActiveStorage::Blob < ActiveStorage::Record
   class_attribute :services, default: {}
   class_attribute :service, instance_accessor: false
 
+  ##
+  # :method:
+  #
+  # Returns the associated +ActiveStorage::Attachment+s.
   has_many :attachments
 
+  ##
+  # :singleton-method:
+  #
+  # Returns the blobs that aren't attached to any record.
   scope :unattached, -> { where.missing(:attachments) }
 
   after_initialize do
@@ -153,7 +163,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   # Returns the key pointing to the file on the service that's associated with this blob. The key is the
-  # secure-token format from Rails in lower case. So it'll look like: xtapjjcjiudrlk3tmwyjgpuobabd.
+  # secure-token format from \Rails in lower case. So it'll look like: xtapjjcjiudrlk3tmwyjgpuobabd.
   # This key is not intended to be revealed directly to the user.
   # Always refer to blobs using the signed_id or a verified form of the key.
   def key
@@ -296,7 +306,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   def mirror_later # :nodoc:
-    ActiveStorage::MirrorJob.perform_later(key, checksum: checksum) if service.respond_to?(:mirror)
+    service.mirror_later key, checksum: checksum if service.respond_to?(:mirror_later)
   end
 
   # Deletes the files on the service associated with the blob. This should only be done if the blob is going to be
@@ -326,31 +336,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
   def service
     services.fetch(service_name)
   end
-
-  def content_type=(value)
-    unless ActiveStorage.silence_invalid_content_types_warning
-      if INVALID_VARIABLE_CONTENT_TYPES_DEPRECATED_IN_RAILS_7.include?(value)
-        ActiveStorage.deprecator.warn(<<-MSG.squish)
-          #{value} is not a valid content type, it should not be used when creating a blob, and support for it will be removed in Rails 7.1.
-          If you want to keep supporting this content type past Rails 7.1, add it to `config.active_storage.variable_content_types`.
-          Dismiss this warning by setting `config.active_storage.silence_invalid_content_types_warning = true`.
-        MSG
-      end
-
-      if INVALID_VARIABLE_CONTENT_TYPES_TO_SERVE_AS_BINARY_DEPRECATED_IN_RAILS_7.include?(value)
-        ActiveStorage.deprecator.warn(<<-MSG.squish)
-          #{value} is not a valid content type, it should not be used when creating a blob, and support for it will be removed in Rails 7.1.
-          If you want to keep supporting this content type past Rails 7.1, add it to `config.active_storage.content_types_to_serve_as_binary`.
-          Dismiss this warning by setting `config.active_storage.silence_invalid_content_types_warning = true`.
-        MSG
-      end
-    end
-
-    super
-  end
-
-  INVALID_VARIABLE_CONTENT_TYPES_DEPRECATED_IN_RAILS_7 = ["image/jpg", "image/pjpeg"]
-  INVALID_VARIABLE_CONTENT_TYPES_TO_SERVE_AS_BINARY_DEPRECATED_IN_RAILS_7 = ["text/javascript"]
 
   private
     def compute_checksum_in_chunks(io)

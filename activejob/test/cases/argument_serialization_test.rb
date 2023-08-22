@@ -5,6 +5,8 @@ require "helper"
 require "active_job/arguments"
 require "models/person"
 require "active_support/core_ext/hash/indifferent_access"
+require "active_support/core_ext/integer/time"
+require "active_support/duration"
 require "jobs/kwargs_job"
 require "jobs/arguments_round_trip_job"
 require "support/stubs/strong_parameters"
@@ -15,6 +17,11 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
   end
 
   class ClassArgument; end
+
+  class MyClassWithPermitted
+    def self.permitted?
+    end
+  end
 
   setup do
     @person = Person.find("5")
@@ -112,6 +119,11 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     )
   end
 
+  # Regression test to #48561
+  test "serialize a class with permitted? defined" do
+    assert_arguments_unchanged MyClassWithPermitted
+  end
+
   test "serialize a hash" do
     symbol_key = { a: 1 }
     string_key = { "a" => 1 }
@@ -176,6 +188,12 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
       assert_instance_of ActiveSupport::TimeWithZone, perform_round_trip([time_with_zone]).first
       assert_arguments_unchanged time_with_zone
     end
+  end
+
+  test "should maintain a functional duration" do
+    duration = perform_round_trip([1.year]).first
+    assert_kind_of Hash, duration.parts
+    assert_equal 2.years, duration + 1.year
   end
 
   test "should disallow non-string/symbol hash keys" do

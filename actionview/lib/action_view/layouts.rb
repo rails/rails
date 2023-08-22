@@ -4,6 +4,8 @@ require "action_view/rendering"
 require "active_support/core_ext/module/redefine_method"
 
 module ActionView
+  # = Action View \Layouts
+  #
   # Layouts reverse the common pattern of including shared headers and footers in many templates to isolate changes in
   # repeated setups. The inclusion pattern has pages that look like this:
   #
@@ -210,9 +212,9 @@ module ActionView
       class_attribute :_layout_conditions, instance_accessor: false, default: {}
 
       _write_layout_method
-    end
 
-    delegate :_layout_conditions, to: :class
+      delegate :_layout_conditions, to: :class
+    end
 
     module ClassMethods
       def inherited(klass) # :nodoc:

@@ -304,6 +304,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-active-storage"]
 
     assert_no_gem "image_processing"
+
+    assert_file "Dockerfile" do |content|
+      assert_no_match(/libvips/, content)
+    end
   end
 
   def test_app_update_does_not_generate_active_storage_contents_when_skip_active_storage_is_given
@@ -528,7 +532,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_gem "capybara"
     assert_no_gem "selenium-webdriver"
-    assert_no_gem "webdrivers"
 
     assert_no_directory("test")
   end
@@ -555,7 +558,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-system-test"]
     assert_no_gem "capybara"
     assert_no_gem "selenium-webdriver"
-    assert_no_gem "webdrivers"
 
     assert_directory("test")
 
@@ -603,30 +605,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     else
       assert_gem "debug"
     end
-  end
-
-  def test_template_from_dir_pwd
-    FileUtils.cd(Rails.root)
-    assert_match(/It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"]))
-  end
-
-  def test_template_from_url
-    url = "https://raw.githubusercontent.com/rails/rails/f95c0b7e96/railties/test/fixtures/lib/template.rb"
-    FileUtils.cd(Rails.root)
-    assert_match(/It works from file!/, run_generator([destination_root, "-m", url]))
-  end
-
-  def test_template_from_abs_path
-    absolute_path = File.expand_path(Rails.root, "fixtures")
-    FileUtils.cd(Rails.root)
-    assert_match(/It works from file!/, run_generator([destination_root, "-m", "#{absolute_path}/lib/template.rb"]))
-  end
-
-  def test_template_from_env_var_path
-    ENV["FIXTURES_HOME"] = File.expand_path(Rails.root, "fixtures")
-    FileUtils.cd(Rails.root)
-    assert_match(/It works from file!/, run_generator([destination_root, "-m", "$FIXTURES_HOME/lib/template.rb"]))
-    ENV.delete("FIXTURES_HOME")
   end
 
   def test_usage_read_from_file
@@ -722,6 +700,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_skip_active_job_option
+    run_generator [destination_root, "--skip-active-job"]
+
+    ["production", "development", "test"].each do |env|
+      assert_file "config/environments/#{env}.rb" do |content|
+        assert_no_match(/active_job/, content)
+      end
+    end
+  end
+
   def test_skip_javascript_option
     generator([destination_root], skip_javascript: true)
 
@@ -736,6 +724,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_no_gem "importmap-rails"
+    assert_no_gem "jsbundling-rails"
+    assert_no_node_files
 
     assert_file "config/initializers/content_security_policy.rb" do |content|
       assert_no_match(/policy\.connect_src/, content)
@@ -763,6 +753,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_equal 1, webpacker_called, "`javascript:install:webpack` expected to be called once, but was called #{webpacker_called} times."
     assert_gem "jsbundling-rails"
+    assert_node_files
   end
 
   def test_esbuild_option
@@ -782,6 +773,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_equal 1, esbuild_called, "`javascript:install:esbuild` expected to be called once, but was called #{esbuild_called} times."
     assert_gem "jsbundling-rails"
+    assert_node_files
   end
 
   def test_esbuild_option_with_javacript_argument
@@ -820,13 +812,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_gem "importmap-rails"
   end
 
-  def test_no_skip_javascript_option_with_no_skip_javascript_argument
-    run_generator [destination_root, "--no-skip-javascript"]
-    assert_gem "stimulus-rails"
-    assert_gem "turbo-rails"
-    assert_gem "importmap-rails"
-  end
-
   def test_hotwire
     run_generator_and_bundler [destination_root]
     assert_gem "turbo-rails"
@@ -856,17 +841,39 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_match(/tailwind/, content)
     end
+    assert_no_node_files
+  end
+
+  def test_css_option_with_tailwind_uses_cssbundling_gem_when_using_node
+    run_generator [destination_root, "--css=tailwind", "--javascript=esbuild"]
+    assert_gem "cssbundling-rails"
+    assert_no_gem "tailwindcss-rails"
+  end
+
+  def test_css_option_with_asset_pipeline_sass
+    run_generator_and_bundler [destination_root, "--css=sass"]
+    assert_gem "dartsass-rails"
+    assert_file "app/assets/stylesheets/application.scss"
+    assert_no_node_files
+  end
+
+  def test_css_option_with_sass_uses_cssbundling_gem_when_using_node
+    run_generator [destination_root, "--css=sass", "--javascript=esbuild"]
+    assert_gem "cssbundling-rails"
+    assert_no_gem "dartsass-rails"
   end
 
   def test_css_option_with_cssbundling_gem
     run_generator_and_bundler [destination_root, "--css=postcss"]
     assert_gem "cssbundling-rails"
     assert_file "app/assets/stylesheets/application.postcss.css"
+    assert_node_files
   end
 
-  def test_dev_gems
-    run_generator [destination_root, "--no-skip-dev-gems"]
-    assert_gem "web-console"
+  def test_css_option_with_cssbundling_gem_does_not_force_jsbundling_gem
+    run_generator [destination_root, "--css=postcss"]
+    assert_no_gem "jsbundling-rails"
+    assert_gem "importmap-rails"
   end
 
   def test_skip_dev_gems
@@ -912,7 +919,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file "Gemfile" do |content|
-      assert_match(/ruby "#{Gem.ruby_version}"/, content)
+      assert_match(/ruby "#{Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") ? Gem.ruby_version : RUBY_VERSION}"/, content)
     end
     assert_file ".ruby-version" do |content|
       if ENV["RBENV_VERSION"]
@@ -1001,6 +1008,23 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_equal @bundle_commands_before_callback, @bundle_commands
   end
 
+  def test_apply_rails_template_class_method_runs_bundle_and_after_bundle_callbacks
+    run_generator
+
+    FileUtils.cd(destination_root) do
+      template = "lib/template.rb"
+      File.write(template, "after_bundle { create_file 'after_bundle_callback_ran' }")
+
+      generator_class.no_commands do
+        assert_called_on_instance_of(generator_class, :run_bundle) do
+          quietly { generator_class.apply_rails_template(template, destination_root) }
+        end
+      end
+
+      assert_file "after_bundle_callback_ran"
+    end
+  end
+
   def test_gitignore
     run_generator
 
@@ -1014,6 +1038,28 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file ".dockerignore" do |content|
       assert_match(/config\/master\.key/, content)
+    end
+  end
+
+  def test_dockerfile
+    run_generator
+
+    assert_file "Dockerfile" do |content|
+      assert_match(/assets:precompile/, content)
+      assert_match(/libvips/, content)
+      assert_no_match(/yarn/, content)
+      assert_no_match(/node-gyp/, content)
+    end
+  end
+
+  def test_old_rubies_do_not_use_bullseye_python
+    Gem.stub(:ruby_version, Gem::Version.new("2.7.0")) do
+      run_generator [destination_root, "--js=esbuild"]
+    end
+
+    assert_file "Dockerfile" do |content|
+      assert_match(/python/, content)
+      assert_no_match(/python-is-python3/, content)
     end
   end
 
@@ -1087,6 +1133,26 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   private
+    def assert_node_files
+      assert_file ".node-version" do |content|
+        assert_match %r/\d+\.\d+\.\d+/, content
+      end
+
+      assert_file "Dockerfile" do |content|
+        assert_match "yarn", content
+        assert_match "node-gyp", content
+      end
+    end
+
+    def assert_no_node_files
+      assert_no_file ".node-version"
+
+      assert_file "Dockerfile" do |content|
+        assert_no_match "yarn", content
+        assert_no_match "node-gyp", content
+      end
+    end
+
     def run_generator_and_bundler(args)
       option_args, positional_args = args.partition { |arg| arg.start_with?("--") }
       option_args << "--no-skip-bundle"

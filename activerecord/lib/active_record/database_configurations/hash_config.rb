@@ -2,7 +2,9 @@
 
 module ActiveRecord
   class DatabaseConfigurations
-    # A HashConfig object is created for each database configuration entry that
+    # = Active Record Database Hash Config
+    #
+    # A +HashConfig+ object is created for each database configuration entry that
     # is created from a hash.
     #
     # A hash config:
@@ -14,19 +16,23 @@ module ActiveRecord
     #   #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10
     #     @env_name="development", @name="primary", @config={database: "db_name"}>
     #
-    # ==== Options
-    #
-    # * <tt>:env_name</tt> - The Rails environment, i.e. "development".
-    # * <tt>:name</tt> - The db config name. In a standard two-tier
-    #   database configuration this will default to "primary". In a multiple
-    #   database three-tier database configuration this corresponds to the name
-    #   used in the second tier, for example "primary_readonly".
-    # * <tt>:config</tt> - The config hash. This is the hash that contains the
-    #   database adapter, name, and other important information for database
-    #   connections.
+    # See ActiveRecord::DatabaseConfigurations for more info.
     class HashConfig < DatabaseConfig
       attr_reader :configuration_hash
 
+
+      # Initialize a new +HashConfig+ object
+      #
+      # ==== Options
+      #
+      # * <tt>:env_name</tt> - The \Rails environment, i.e. "development".
+      # * <tt>:name</tt> - The db config name. In a standard two-tier
+      #   database configuration this will default to "primary". In a multiple
+      #   database three-tier database configuration this corresponds to the name
+      #   used in the second tier, for example "primary_readonly".
+      # * <tt>:config</tt> - The config hash. This is the hash that contains the
+      #   database adapter, name, and other important information for database
+      #   connections.
       def initialize(env_name, name, configuration_hash)
         super(env_name, name)
         @configuration_hash = configuration_hash.symbolize_keys.freeze
@@ -72,6 +78,10 @@ module ActiveRecord
 
       def max_threads
         (configuration_hash[:max_threads] || pool).to_i
+      end
+
+      def query_cache
+        configuration_hash[:query_cache]
       end
 
       def max_queue
@@ -122,7 +132,7 @@ module ActiveRecord
       # If +configuration_hash[:schema_dump]+ is set to +false+ or +nil+
       # the schema will not be dumped.
       #
-      # If the config option is set that will be used. Otherwise Rails
+      # If the config option is set that will be used. Otherwise \Rails
       # will generate the filename from the database config name.
       def schema_dump(format = ActiveRecord.schema_format)
         if configuration_hash.key?(:schema_dump)

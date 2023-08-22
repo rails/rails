@@ -3,6 +3,8 @@
 require "tmpdir"
 
 module ActionMailer
+  # = Action Mailer \DeliveryMethods
+  #
   # This module handles everything related to mail delivery, from registering
   # new delivery methods to configuring the mail object to be sent.
   module DeliveryMethods
@@ -12,7 +14,6 @@ module ActionMailer
       # Do not make this inheritable, because we always want it to propagate
       cattr_accessor :raise_delivery_errors, default: true
       cattr_accessor :perform_deliveries, default: true
-      cattr_accessor :deliver_later_queue_name, default: :mailers
 
       class_attribute :delivery_methods, default: {}.freeze
       class_attribute :delivery_method, default: :smtp

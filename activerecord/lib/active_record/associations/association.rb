@@ -19,7 +19,7 @@ module ActiveRecord
     # Associations in Active Record are middlemen between the object that
     # holds the association, known as the <tt>owner</tt>, and the associated
     # result set, known as the <tt>target</tt>. Association metadata is available in
-    # <tt>reflection</tt>, which is an instance of <tt>ActiveRecord::Reflection::AssociationReflection</tt>.
+    # <tt>reflection</tt>, which is an instance of +ActiveRecord::Reflection::AssociationReflection+.
     #
     # For example, given
     #
@@ -336,7 +336,8 @@ module ActiveRecord
 
         # Returns true if record contains the foreign_key
         def foreign_key_for?(record)
-          record._has_attribute?(reflection.foreign_key)
+          foreign_key = Array(reflection.foreign_key)
+          foreign_key.all? { |key| record._has_attribute?(key) }
         end
 
         # This should be implemented to return the values of the relevant key(s) on the owner,

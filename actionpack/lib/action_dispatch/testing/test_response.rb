@@ -19,19 +19,19 @@ module ActionDispatch
     #
     # ==== Examples
     #   get "/posts"
-    #   response.content_type      # => "text/html; charset=utf-8"
-    #   response.parsed_body.class # => String
-    #   response.parsed_body       # => "<!DOCTYPE html>\n<html>\n..."
+    #   response.content_type         # => "text/html; charset=utf-8"
+    #   response.parsed_body.class    # => Nokogiri::HTML5::Document
+    #   response.parsed_body.to_html  # => "<!DOCTYPE html>\n<html>\n..."
     #
     #   get "/posts.json"
-    #   response.content_type      # => "application/json; charset=utf-8"
-    #   response.parsed_body.class # => Array
-    #   response.parsed_body       # => [{"id"=>42, "title"=>"Title"},...
+    #   response.content_type         # => "application/json; charset=utf-8"
+    #   response.parsed_body.class    # => Array
+    #   response.parsed_body          # => [{"id"=>42, "title"=>"Title"},...
     #
     #   get "/posts/42.json"
-    #   response.content_type      # => "application/json; charset=utf-8"
-    #   response.parsed_body.class # => Hash
-    #   response.parsed_body       # => {"id"=>42, "title"=>"Title"}
+    #   response.content_type         # => "application/json; charset=utf-8"
+    #   response.parsed_body.class    # => Hash
+    #   response.parsed_body          # => {"id"=>42, "title"=>"Title"}
     def parsed_body
       @parsed_body ||= response_parser.call(body)
     end

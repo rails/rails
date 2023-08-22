@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# = Active Storage \Variant
+#
 # Image blobs can have variants that are the result of a set of transformations applied to the original.
 # These variants are used to create thumbnails, fixed-size avatars, or any other derivative image from the
 # original.
@@ -72,7 +74,7 @@ class ActiveStorage::Variant
 
   # Returns the URL of the blob variant on the service. See {ActiveStorage::Blob#url} for details.
   #
-  # Use <tt>url_for(variant)</tt> (or the implied form, like +link_to variant+ or +redirect_to variant+) to get the stable URL
+  # Use <tt>url_for(variant)</tt> (or the implied form, like <tt>link_to variant</tt> or <tt>redirect_to variant</tt>) to get the stable URL
   # for a variant that points to the ActiveStorage::RepresentationsController, which in turn will use this +service_call+ method
   # for its redirection.
   def url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline)
@@ -98,6 +100,11 @@ class ActiveStorage::Variant
   # Returns the receiving variant. Allows ActiveStorage::Variant and ActiveStorage::Preview instances to be used interchangeably.
   def image
     self
+  end
+
+  # Deletes variant file from service.
+  def destroy
+    service.delete(key)
   end
 
   private

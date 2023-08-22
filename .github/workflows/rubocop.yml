@@ -22,3 +22,9 @@ jobs:
 
     - name: Run RuboCop
       run: bundle exec rubocop --parallel
+
+    - uses: zzak/action-discord@v4
+      continue-on-error: true
+      if: always() && github.ref_name == 'main'
+      with:
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}

@@ -3,9 +3,10 @@
 require "active_support/core_ext/array/conversions"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/acts_like"
-require "active_support/core_ext/string/filters"
 
 module ActiveSupport
+  # = Active Support \Duration
+  #
   # Provides accurate date and time measurements using Date#advance and
   # Time#advance, respectively. It mainly supports the methods on Numeric.
   #

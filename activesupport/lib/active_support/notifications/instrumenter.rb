@@ -155,7 +155,8 @@ module ActiveSupport
       # Returns the idle time time (in milliseconds) passed since the call to
       # +start!+ and the call to +finish!+
       def idle_time
-        duration - cpu_time
+        diff = duration - cpu_time
+        diff > 0.0 ? diff : 0.0
       end
 
       # Returns the number of allocations made since the call to +start!+ and

@@ -4,6 +4,8 @@ require "weakref"
 require "active_support/ruby_features"
 
 module ActiveSupport
+  # = Active Support Descendants Tracker
+  #
   # This module provides an internal implementation to track descendants
   # which is faster than iterating through +ObjectSpace+.
   #
@@ -154,11 +156,6 @@ module ActiveSupport
 
       @direct_descendants = {}
 
-      def inherited(base) # :nodoc:
-        DescendantsTracker.store_inherited(self, base)
-        super
-      end
-
       class << self
         def subclasses(klass)
           descendants = @direct_descendants[klass]
@@ -184,6 +181,12 @@ module ActiveSupport
       def descendants
         DescendantsTracker.descendants(self)
       end
+
+      private
+        def inherited(base) # :nodoc:
+          DescendantsTracker.store_inherited(self, base)
+          super
+        end
     end
   end
 end

@@ -65,6 +65,7 @@ If you wish to skip some files from being generated or skip some libraries, you 
 | `--skip-test`           | Skip test files                                             |
 | `--skip-system-test`    | Skip system test files                                      |
 | `--skip-bootsnap`       | Skip bootsnap gem                                           |
+| `--skip-dev-gems`       | Skip adding development gems                                |
 
 These are just some of the options that `rails new` accepts. For a full list of options, type `rails new --help`.
 
@@ -93,8 +94,6 @@ Let's see what it put in our `config/database.yml`:
 #   gem install pg
 # On macOS with Homebrew:
 #   gem install pg -- --with-pg-config=/usr/local/bin/pg_config
-# On macOS with MacPorts:
-#   gem install pg -- --with-pg-config=/opt/local/lib/postgresql84/bin/pg_config
 # On Windows:
 #   gem install pg
 #       Choose the win32 build.
@@ -106,6 +105,7 @@ Let's see what it put in our `config/database.yml`:
 default: &default
   adapter: postgresql
   encoding: unicode
+
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
@@ -137,36 +137,38 @@ You can get a list of rails commands available to you, which will often depend o
 
 ```bash
 $ rails --help
-Usage: rails COMMAND [ARGS]
+Usage:
+  bin/rails COMMAND [options]
 
-The most common rails commands are:
- generate    Generate new code (short-cut alias: "g")
- console     Start the Rails console (short-cut alias: "c")
- server      Start the Rails server (short-cut alias: "s")
- ...
+You must specify a command. The most common commands are:
+
+  generate     Generate new code (short-cut alias: "g")
+  console      Start the Rails console (short-cut alias: "c")
+  server       Start the Rails server (short-cut alias: "s")
+  ...
 
 All commands can be run with -h (or --help) for more information.
 
 In addition to those commands, there are:
- about                               List versions of all Rails ...
- assets:clean[keep]                  Remove old compiled assets
- assets:clobber                      Remove compiled assets
- assets:environment                  Load asset compile environment
- assets:precompile                   Compile all the assets ...
- ...
- db:fixtures:load                    Loads fixtures into the ...
- db:migrate                          Migrate the database ...
- db:migrate:status                   Display status of migrations
- db:rollback                         Rolls the schema back to ...
- db:schema:cache:clear               Clears a db/schema_cache.yml file
- db:schema:cache:dump                Creates a db/schema_cache.yml file
- db:schema:dump                      Creates a database schema file (either db/schema.rb or db/structure.sql ...
- db:schema:load                      Loads a database schema file (either db/schema.rb or db/structure.sql ...
- db:seed                             Loads the seed data ...
- db:version                          Retrieves the current schema ...
- ...
- restart                             Restart app by touching ...
- tmp:create                          Creates tmp directories ...
+about                               List versions of all Rails ...
+assets:clean[keep]                  Remove old compiled assets
+assets:clobber                      Remove compiled assets
+assets:environment                  Load asset compile environment
+assets:precompile                   Compile all the assets ...
+...
+db:fixtures:load                    Load fixtures into the ...
+db:migrate                          Migrate the database ...
+db:migrate:status                   Display status of migrations
+db:rollback                         Roll the schema back to ...
+db:schema:cache:clear               Clears a db/schema_cache.yml file
+db:schema:cache:dump                Create a db/schema_cache.yml file
+db:schema:dump                      Create a database schema file (either db/schema.rb or db/structure.sql ...
+db:schema:load                      Load a database schema file (either db/schema.rb or db/structure.sql ...
+db:seed                             Load the seed data ...
+db:version                          Retrieve the current schema ...
+...
+restart                             Restart app by touching ...
+tmp:create                          Create tmp directories ...
 ```
 
 ### `bin/rails server`
@@ -209,7 +211,8 @@ INFO: You can also use the alias "g" to invoke the generator command: `bin/rails
 
 ```bash
 $ bin/rails generate
-Usage: rails generate GENERATOR [args] [options]
+Usage:
+  bin/rails generate GENERATOR [args] [options]
 
 ...
 ...
@@ -235,7 +238,8 @@ INFO: All Rails console utilities have help text. As with most *nix utilities, y
 
 ```bash
 $ bin/rails generate controller
-Usage: bin/rails generate controller NAME [action action] [options]
+Usage:
+  bin/rails generate controller NAME [action action] [options]
 
 ...
 ...
@@ -485,6 +489,7 @@ $ bin/rails generate model Oops
       create      test/models/oops_test.rb
       create      test/fixtures/oops.yml
 ```
+
 ```bash
 $ bin/rails destroy model Oops
       invoke  active_record
@@ -702,4 +707,10 @@ $ bin/rails "task_name[value 1,value2,value3]" # separate multiple args with a c
 $ bin/rails db:nothing
 ```
 
-NOTE: If you need to interact with your application models, perform database queries, and so on, your task should depend on the `environment` task, which will load your application code.
+If you need to interact with your application models, perform database queries, and so on, your task should depend on the `environment` task, which will load your application code.
+
+```ruby
+task task_that_requires_app_code: [:environment] do
+  User.create!
+end
+```

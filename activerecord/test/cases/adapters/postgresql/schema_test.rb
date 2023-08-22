@@ -713,7 +713,6 @@ end
 
 class SchemaWithDotsTest < ActiveRecord::PostgreSQLTestCase
   include PGSchemaHelper
-  self.use_transactional_tests = false
 
   setup do
     @connection = ActiveRecord::Base.connection
@@ -766,5 +765,61 @@ class SchemaJoinTablesTest < ActiveRecord::PostgreSQLTestCase
 
     @connection.drop_join_table("test_schema.posts", "test_schema.comments")
     assert_not @connection.table_exists?("test_schema.comments_posts")
+  end
+end
+
+class SchemaIndexIncludeColumnsTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+
+  def test_schema_dumps_index_included_columns
+    index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_include_index/).first.strip
+    if ActiveRecord::Base.connection.supports_index_include?
+      assert_equal 't.index ["firm_id", "type"], name: "company_include_index", include: ["name", "account_id"]', index_definition
+    else
+      assert_equal 't.index ["firm_ids", "type"], name: "company_include_index"', index_definition
+    end
+  end
+end
+
+class SchemaIndexNullsNotDistinctTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table "trains" do |t|
+      t.string :name
+    end
+  end
+
+  teardown do
+    @connection.drop_table "trains", if_exists: true
+  end
+
+  def test_nulls_not_distinct_is_dumped
+    skip("current adapter doesn't support nulls not distinct") unless supports_nulls_not_distinct?
+
+    @connection.execute "CREATE INDEX trains_name ON trains USING btree(name) NULLS NOT DISTINCT"
+
+    output = dump_table_schema "trains"
+
+    assert_match(/nulls_not_distinct: true/, output)
+  end
+
+  def test_nulls_distinct_is_dumped
+    skip("current adapter doesn't support nulls not distinct") unless supports_nulls_not_distinct?
+
+    @connection.execute "CREATE INDEX trains_name ON trains USING btree(name) NULLS DISTINCT"
+
+    output = dump_table_schema "trains"
+
+    assert_no_match(/nulls_not_distinct/, output)
+  end
+
+  def test_nulls_not_set_is_dumped
+    @connection.execute "CREATE INDEX trains_name ON trains USING btree(name)"
+
+    output = dump_table_schema "trains"
+
+    assert_no_match(/nulls_not_distinct/, output)
   end
 end

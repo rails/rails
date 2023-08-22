@@ -39,7 +39,7 @@ namespace :test do
       listen_host = "localhost"
       listen_port = "4567"
 
-      Dir.mkdir("log")
+      FileUtils.mkdir_p("log")
       pid = File.open("log/test.log", "w") do |f|
         spawn(*%W(rackup test/ujs/config.ru -o #{listen_host} -p #{listen_port} -s puma), out: f, err: f, pgroup: true)
       end

@@ -53,7 +53,7 @@ class RedisAdapterTest < ActionCable::TestCase
       redis_conn.client("kill", "type", "pubsub")
     end
 
-    def wait_pubsub_connection(redis_conn, channel, timeout: 2)
+    def wait_pubsub_connection(redis_conn, channel, timeout: 5)
       wait = timeout
       loop do
         break if redis_conn.pubsub("numsub", channel).last > 0
@@ -120,5 +120,33 @@ class RedisAdapterTest::ConnectorWithExcluded < RedisAdapterTest::ConnectorDefau
 
   def expected_connection
     super.except(:adapter, :channel_prefix)
+  end
+end
+
+class RedisAdapterTest::SentinelConfigAsHash < ActionCable::TestCase
+  def setup
+    server = ActionCable::Server::Base.new
+    server.config.cable = cable_config.merge(adapter: "redis").with_indifferent_access
+    server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
+
+    @adapter = server.config.pubsub_adapter.new(server)
+  end
+
+  def cable_config
+    { url: "redis://test", sentinels: [{ "host" => "localhost", "port" => 26379 }] }
+  end
+
+  def expected_connection
+    { url: "redis://test", sentinels: [{ host: "localhost", port: 26379 }], id: connection_id }
+  end
+
+  def connection_id
+    "ActionCable-PID-#{$$}"
+  end
+
+  test "sets sentinels as array of hashes with keyword arguments" do
+    assert_called_with ::Redis, :new, [ expected_connection ] do
+      @adapter.send(:redis_connection)
+    end
   end
 end

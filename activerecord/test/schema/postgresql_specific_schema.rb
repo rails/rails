@@ -6,6 +6,15 @@ ActiveRecord::Schema.define do
 
   uuid_default = connection.supports_pgcrypto_uuid? ? {} : { default: "uuid_generate_v4()" }
 
+  create_table :chat_messages, id: :uuid, force: true, **uuid_default do |t|
+    t.text :content
+  end
+
+  create_table :chat_messages_custom_pk, id: false, force: true do |t|
+    t.uuid :message_id, primary_key: true, default: "uuid_generate_v4()"
+    t.text :content
+  end
+
   create_table :uuid_parents, id: :uuid, force: true, **uuid_default do |t|
     t.string :name
   end
@@ -16,6 +25,9 @@ ActiveRecord::Schema.define do
   end
 
   create_table :defaults, force: true do |t|
+    t.virtual :virtual_stored_number, type: :integer, as: "rand_number * 10", stored: true
+    t.integer :rand_number, default: -> { "random() * 100" }
+    t.string :ruby_on_rails, default: -> { "concat('Ruby ', 'on ', 'Rails')" }
     t.date :modified_date, default: -> { "CURRENT_DATE" }
     t.date :modified_date_function, default: -> { "now()" }
     t.date :fixed_date, default: "2004-01-01"
@@ -131,8 +143,24 @@ _SQL
   create_table :test_exclusion_constraints, force: true do |t|
     t.date :start_date
     t.date :end_date
+    t.date :valid_from
+    t.date :valid_to
+    t.date :transaction_from
+    t.date :transaction_to
 
     t.exclusion_constraint "daterange(start_date, end_date) WITH &&", using: :gist, where: "start_date IS NOT NULL AND end_date IS NOT NULL", name: "test_exclusion_constraints_date_overlap"
+    t.exclusion_constraint "daterange(valid_from, valid_to) WITH &&", using: :gist, where: "valid_from IS NOT NULL AND valid_to IS NOT NULL", name: "test_exclusion_constraints_valid_overlap", deferrable: :immediate
+    t.exclusion_constraint "daterange(transaction_from, transaction_to) WITH &&", using: :gist, where: "transaction_from IS NOT NULL AND transaction_to IS NOT NULL", name: "test_exclusion_constraints_transaction_overlap", deferrable: :deferred
+  end
+
+  create_table :test_unique_keys, force: true do |t|
+    t.integer :position_1
+    t.integer :position_2
+    t.integer :position_3
+
+    t.unique_key :position_1, name: "test_unique_keys_position_deferrable_false"
+    t.unique_key :position_2, name: "test_unique_keys_position_deferrable_immediate", deferrable: :immediate
+    t.unique_key :position_3, name: "test_unique_keys_position_deferrable_deferred", deferrable: :deferred
   end
 
   if supports_partitioned_indexes?
@@ -147,5 +175,9 @@ _SQL
                                         options: "PARTITION OF measurements FOR VALUES IN (1)")
     create_table(:measurements_concepcion, id: false, force: true,
                                            options: "PARTITION OF measurements FOR VALUES IN (2)")
+  end
+
+  if supports_index_include?
+    add_index(:companies, [:firm_id, :type], name: "company_include_index", include: [:name, :account_id])
   end
 end

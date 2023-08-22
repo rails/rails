@@ -74,11 +74,11 @@ end
 
 or add rich text field while creating a new model using:
 
-```
-bin/rails generate model Message content:rich_text
+```bash
+$ bin/rails generate model Message content:rich_text
 ```
 
-**Note:** you don't need to add a `content` field to your `messages` table.
+NOTE: you don't need to add a `content` field to your `messages` table.
 
 Then use [`rich_text_area`] to refer to this field in the form for the model:
 
@@ -97,6 +97,10 @@ And finally, display the sanitized rich text on a page:
 ```erb
 <%= @message.content %>
 ```
+
+NOTE: If there's an attached resource within `content` field, it might not show properly unless you
+have *libvips/libvips42* package installed locally on your machine.
+Check their [install docs](https://www.libvips.org/install.html) on how to get it.
 
 To accept the rich text content, all you have to do is permit the referenced attribute:
 
@@ -124,7 +128,7 @@ By default, Action Text will render rich text content inside an element with the
 ```
 
 Elements with this class, as well as the Action Text editor, are styled by the
-[`trix` stylesheet](https://raw.githubusercontent.com/basecamp/trix/master/dist/trix.css).
+[`trix` stylesheet](https://unpkg.com/trix/dist/trix.css).
 To provide your own styles instead, remove the `= require trix` line from the
 `app/assets/stylesheets/actiontext.css` stylesheet created by the installer.
 
@@ -201,12 +205,38 @@ partial-local variable:
 <span><%= image_tag user.avatar %> <%= user.name %></span>
 ```
 
+If Action Text is unable to resolve the `User` instance (for example, if the
+record has been deleted), then a default fallback partial will be rendered.
+
+Rails provides a global partial for missing attachments. This partial is installed
+in your application at `views/action_text/attachables/missing_attachable` and can
+be modified if you want to render different HTML.
+
+To render a different missing attachment partial, define a class-level
+`to_missing_attachable_partial_path` method:
+
+```ruby
+class User < ApplicationRecord
+  def self.to_missing_attachable_partial_path
+    "users/missing_attachable"
+  end
+end
+```
+
+Then declare that partial.
+
+```html+erb
+<%# app/views/users/missing_attachable.html.erb %>
+<span>Deleted user</span>
+```
+
 To integrate with Action Text `<action-text-attachment>` element rendering, a
 class must:
 
 * include the `ActionText::Attachable` module
 * implement `#to_sgid(**options)` (made available through the [`GlobalID::Identification` concern][global-id])
 * (optional) declare `#to_attachable_partial_path`
+* (optional) declare a class-level method `#to_missing_attachable_partial_path` for handling missing records
 
 By default, all `ActiveRecord::Base` descendants mix-in
 [`GlobalID::Identification` concern][global-id], and are therefore

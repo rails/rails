@@ -43,7 +43,6 @@ module ActiveRecord
           assert_equal default_pool, @handler.retrieve_connection_pool("primary")
         ensure
           ActiveRecord::Base.configurations = @prev_configs
-          ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
         end
 
@@ -68,7 +67,6 @@ module ActiveRecord
           assert_not_nil @handler.retrieve_connection_pool("primary", shard: :pool_config_two)
         ensure
           ActiveRecord::Base.configurations = @prev_configs
-          ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
         end
 
@@ -94,7 +92,6 @@ module ActiveRecord
           assert_not @handler.connected?("primary", shard: :pool_config_two)
         ensure
           ActiveRecord::Base.configurations = @prev_configs
-          ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
         end
       end

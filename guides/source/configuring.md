@@ -61,19 +61,30 @@ Below are the default values associated with each target version. In cases of co
 #### Default Values for Target Version 7.1
 
 - [`config.action_controller.allow_deprecated_parameters_hash_equality`](#config-action-controller-allow-deprecated-parameters-hash-equality): `false`
+- [`config.action_dispatch.debug_exception_log_level`](#config-action-dispatch-debug-exception-log-level): `:error`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
+- [`config.action_text.sanitizer_vendor`](#config-action-text-sanitizer-vendor): `Rails::HTML::Sanitizer.best_supported_vendor`
+- [`config.action_view.sanitizer_vendor`](#config-action-view-sanitizer-vendor): `Rails::HTML::Sanitizer.best_supported_vendor`
 - [`config.active_job.use_big_decimal_serializer`](#config-active-job-use-big-decimal-serializer): `true`
 - [`config.active_record.allow_deprecated_singular_associations_name`](#config-active-record-allow-deprecated-singular-associations-name): `false`
 - [`config.active_record.before_committed_on_all_records`](#config-active-record-before-committed-on-all-records): `true`
 - [`config.active_record.belongs_to_required_validates_foreign_key`](#config-active-record-belongs-to-required-validates-foreign-key): `false`
+- [`config.active_record.commit_transaction_on_non_local_return`](#config-active-record-commit-transaction-on-non-local-return): `true`
+- [`config.active_record.default_column_serializer`](#config-active-record-default-column-serializer): `nil`
+- [`config.active_record.encryption.hash_digest_class`](#config-active-record-encryption-hash-digest-class): `OpenSSL::Digest::SHA256`
+- [`config.active_record.encryption.support_sha1_for_non_deterministic_encryption`](#config-active-record-encryption-support-sha1-for-non-deterministic-encryption): `false`
+- [`config.active_record.marshalling_format_version`](#config-active-record-marshalling-format-version): `7.1`
 - [`config.active_record.query_log_tags_format`](#config-active-record-query-log-tags-format): `:sqlcommenter`
 - [`config.active_record.raise_on_assign_to_attr_readonly`](#config-active-record-raise-on-assign-to-attr-readonly): `true`
+- [`config.active_record.run_after_transaction_callbacks_in_order_defined`](#config-active-record-run-after-transaction-callbacks-in-order-defined): `true`
 - [`config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`](#config-active-record-run-commit-callbacks-on-first-saved-instances-in-transaction): `false`
 - [`config.active_record.sqlite3_adapter_strict_strings_by_default`](#config-active-record-sqlite3-adapter-strict-strings-by-default): `true`
-- [`config.active_support.default_message_encryptor_serializer`](#config-active-support-default-message-encryptor-serializer): `:json`
-- [`config.active_support.default_message_verifier_serializer`](#config-active-support-default-message-verifier-serializer): `:json`
+- [`config.active_support.cache_format_version`](#config-active-support-cache-format-version): `7.1`
+- [`config.active_support.message_serializer`](#config-active-support-message-serializer): `:json_allow_marshal`
 - [`config.active_support.raise_on_invalid_cache_expiration_time`](#config-active-support-raise-on-invalid-cache-expiration-time): `true`
+- [`config.active_support.use_message_serializer_for_metadata`](#config-active-support-use-message-serializer-for-metadata): `true`
 - [`config.add_autoload_paths_to_load_path`](#config-add-autoload-paths-to-load-path): `false`
+- [`config.dom_testing_default_html_version`](#config-dom-testing-default-html-version): `defined?(Nokogiri::HTML5) ? :html5 : :html4`
 - [`config.log_file_size`](#config-log-file-size): `100 * 1024 * 1024`
 - [`config.precompile_filter_parameters`](#config-precompile-filter-parameters): `true`
 
@@ -83,7 +94,6 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_controller.wrap_parameters_by_default`](#config-action-controller-wrap-parameters-by-default): `true`
 - [`config.action_dispatch.cookies_serializer`](#config-action-dispatch-cookies-serializer): `:json`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Download-Options" => "noopen", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
-- [`config.action_dispatch.return_only_request_media_type_on_content_type`](#config-action-dispatch-return-only-request-media-type-on-content-type): `false`
 - [`config.action_mailer.smtp_timeout`](#config-action-mailer-smtp-timeout): `5`
 - [`config.action_view.apply_stylesheet_media_default`](#config-action-view-apply-stylesheet-media-default): `false`
 - [`config.action_view.button_to_generates_button_tag`](#config-action-view-button-to-generates-button-tag): `true`
@@ -94,13 +104,9 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_storage.variant_processor`](#config-active-storage-variant-processor): `:vips`
 - [`config.active_storage.video_preview_arguments`](#config-active-storage-video-preview-arguments): `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2"`
 - [`config.active_support.cache_format_version`](#config-active-support-cache-format-version): `7.0`
-- [`config.active_support.disable_to_s_conversion`](#config-active-support-disable-to-s-conversion): `true`
 - [`config.active_support.executor_around_test_case`](#config-active-support-executor-around-test-case): `true`
 - [`config.active_support.hash_digest_class`](#config-active-support-hash-digest-class): `OpenSSL::Digest::SHA256`
-- [`config.active_support.isolation_level`](#config-active-support-isolation-level): `:thread`
 - [`config.active_support.key_generator_hash_digest_class`](#config-active-support-key-generator-hash-digest-class): `OpenSSL::Digest::SHA256`
-- [`config.active_support.remove_deprecated_time_with_zone_name`](#config-active-support-remove-deprecated-time-with-zone-name): `true`
-- [`config.active_support.use_rfc4122_namespaced_uuids`](#config-active-support-use-rfc4122-namespaced-uuids): `true`
 
 #### Default Values for Target Version 6.1
 
@@ -126,7 +132,6 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.collection_cache_versioning`](#config-active-record-collection-cache-versioning): `true`
 - [`config.active_storage.queues.analysis`](#config-active-storage-queues-analysis): `:active_storage_analysis`
 - [`config.active_storage.queues.purge`](#config-active-storage-queues-purge): `:active_storage_purge`
-- [`config.active_storage.replace_on_assign_to_many`](#config-active-storage-replace-on-assign-to-many): `true`
 
 #### Default Values for Target Version 5.2
 
@@ -165,6 +170,8 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `true`               |
 | 7.1                   | `false`              |
 
+The `lib` directory is not affected by this flag, it is added to `$LOAD_PATH` always.
+
 #### `config.after_initialize`
 
 Takes a block which will be run _after_ Rails has finished initializing the application. That includes the initialization of the framework itself, engines, and all the application's initializers in `config/initializers`. Note that this block _will_ be run for rake tasks. Useful for configuring values set up by other initializers:
@@ -175,7 +182,7 @@ config.after_initialize do
 end
 ```
 
-### `config.after_routes_loaded`
+#### `config.after_routes_loaded`
 
 Takes a block which will be run after Rails has finished loading the application routes. This block will also be run whenever routes are reloaded.
 
@@ -194,6 +201,10 @@ be set to `false` if application code is not thread safe. Defaults to `true`.
 
 Sets the host for the assets. Useful when CDNs are used for hosting assets, or when you want to work around the concurrency constraints built-in in browsers using different domain aliases. Shorter version of `config.action_controller.asset_host`.
 
+#### `config.assume_ssl`
+
+Makes application believe that all requests are arriving over SSL. This is useful when proxying through a load balancer that terminates SSL, the forwarded request will appear as though its HTTP instead of HTTPS to the application. This makes redirects and cookie security target HTTP instead of HTTPS. This middleware makes the server assume that the proxy already terminated SSL, and that the request really is HTTPS.
+
 #### `config.autoflush_log`
 
 Enables writing log file output immediately instead of buffering. Defaults to
@@ -206,6 +217,24 @@ Accepts an array of paths from which Rails will autoload constants that won't be
 #### `config.autoload_paths`
 
 Accepts an array of paths from which Rails will autoload constants. Default is an empty array. Since [Rails 6](upgrading_ruby_on_rails.html#autoloading), it is not recommended to adjust this. See [Autoloading and Reloading Constants](autoloading_and_reloading_constants.html#autoload-paths).
+
+#### `config.autoload_lib(ignore:)`
+
+This method adds `lib` to `config.autoload_paths` and `config.eager_load_paths`.
+
+Normally, the `lib` directory has subdirectories that should not be autoloaded or eager loaded. Please, pass their name relative to `lib` in the required `ignore` keyword argument. For example,
+
+```ruby
+config.autoload_lib(ignore: %w(assets tasks generators))
+```
+
+Please, see more details in the [autoloading guide](autoloading_and_reloading_constants.html).
+
+#### `config.autoload_lib_once(ignore:)`
+
+The method `config.autoload_lib_once` is similar to `config.autoload_lib`, except that it adds `lib` to `config.autoload_once_paths` instead.
+
+By calling `config.autoload_lib_once`, classes and modules in `lib` can be autoloaded, even from application initializers, but won't be reloaded.
 
 #### `config.beginning_of_week`
 
@@ -256,11 +285,23 @@ Guide
 
 #### `config.credentials.content_path`
 
-Configures lookup path for encrypted credentials.
+The path of the encrypted credentials file.
+
+Defaults to `config/credentials/#{Rails.env}.yml.enc` if it exists, or
+`config/credentials.yml.enc` otherwise.
+
+NOTE: In order for the `bin/rails credentials` commands to recognize this value,
+it must be set in `config/application.rb` or `config/environments/#{Rails.env}.rb`.
 
 #### `config.credentials.key_path`
 
-Configures lookup path for encryption key.
+The path of the encrypted credentials key file.
+
+Defaults to `config/credentials/#{Rails.env}.key` if it exists, or
+`config/master.key` otherwise.
+
+NOTE: In order for the `bin/rails credentials` commands to recognize this value,
+it must be set in `config/application.rb` or `config/environments/#{Rails.env}.rb`.
 
 #### `config.debug_exception_response_format`
 
@@ -269,6 +310,23 @@ Sets the format used in responses when errors occur in the development environme
 #### `config.disable_sandbox`
 
 Controls whether or not someone can start a console in sandbox mode. This is helpful to avoid a long running session of sandbox console, that could lead a database server to run out of memory. Defaults to `false`.
+
+#### `config.sandbox_by_default`
+
+When `true`, rails console starts in sandbox mode. To start rails console in non-sandbox mode, `--no-sandbox` must be specified. This is helpful to avoid accidental writing to the production database. Defaults to `false`.
+
+#### `config.dom_testing_default_html_version`
+
+Controls whether an HTML4 parser or an HTML5 parser is used by default by the test helpers in Action View, Action Dispatch, and `rails-dom-testing`.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:html4`             |
+| 7.1                   | `:html5` (see NOTE)  |
+
+NOTE: Nokogiri's HTML5 parser is not supported on JRuby, so on JRuby platforms Rails will fall back to `:html4`.
 
 #### `config.eager_load`
 
@@ -294,7 +352,42 @@ Sets up the application-wide encoding. Defaults to UTF-8.
 
 #### `config.exceptions_app`
 
-Sets the exceptions application invoked by the `ShowException` middleware when an exception happens. Defaults to `ActionDispatch::PublicExceptions.new(Rails.public_path)`.
+Sets the exceptions application invoked by the `ShowException` middleware when an exception happens.
+Defaults to `ActionDispatch::PublicExceptions.new(Rails.public_path)`.
+
+Exceptions applications need to handle `ActionDispatch::Http::MimeNegotiation::InvalidType` errors, which are raised when a client sends an invalid `Accept` or `Content-Type` header.
+The default `ActionDispatch::PublicExceptions` application does this automatically, setting `Content-Type` to `text/html` and returning a `406 Not Acceptable` status.
+Failure to handle this error will result in a `500 Internal Server Error`.
+
+Using the `Rails.application.routes` `RouteSet` as the exceptions application also requires this special handling.
+It might look something like this:
+
+```ruby
+# config/application.rb
+config.exceptions_app = CustomExceptionsAppWrapper.new(exceptions_app: routes)
+
+# lib/custom_exceptions_app_wrapper.rb
+class CustomExceptionsAppWrapper
+  def initialize(exceptions_app:)
+    @exceptions_app = exceptions_app
+  end
+
+  def call(env)
+    request = ActionDispatch::Request.new(env)
+
+    fallback_to_html_format_if_invalid_mime_type(request)
+
+    @exceptions_app.call(env)
+  end
+
+  private
+    def fallback_to_html_format_if_invalid_mime_type(request)
+      request.formats
+    rescue ActionDispatch::Http::MimeNegotiation::InvalidType
+      request.set_header "CONTENT_TYPE", "text/html"
+    end
+end
+```
 
 #### `config.file_watcher`
 
@@ -530,7 +623,7 @@ Contains the paths which are used to look for assets. Appending paths to this co
 
 #### `config.assets.precompile`
 
-Allows you to specify additional assets (other than `application.css` and `application.js`) which are to be precompiled when `rake assets:precompile` is run.
+Allows you to specify additional assets (other than `application.css` and `application.js`) which are to be precompiled when `bin/rails assets:precompile` is run.
 
 #### `config.assets.unknown_asset_fallback`
 
@@ -655,7 +748,7 @@ You can exclude certain requests from Host Authorization checks by setting
 ```ruby
 # Exclude requests for the /healthcheck/ path from host checking
 Rails.application.config.host_authorization = {
-  exclude: ->(request) { request.path =~ /healthcheck/ }
+  exclude: ->(request) { request.path.include?('healthcheck') }
 }
 ```
 
@@ -702,7 +795,7 @@ Notifies the logs that the request has begun. After request is complete, flushes
 
 #### `ActionDispatch::ShowExceptions`
 
-Rescues any exception returned by the application and renders nice exception pages if the request is local or if `config.consider_all_requests_local` is set to `true`. If `config.action_dispatch.show_exceptions` is set to `false`, exceptions will be raised regardless.
+Rescues any exception returned by the application and renders nice exception pages if the request is local or if `config.consider_all_requests_local` is set to `true`. If `config.action_dispatch.show_exceptions` is set to `:none`, exceptions will be raised regardless.
 
 #### `ActionDispatch::RequestId`
 
@@ -813,8 +906,7 @@ Sets the path Rails uses to look for locale files. Defaults to `config/locales/*
 
 #### `config.i18n.raise_on_missing_translations`
 
-Determines whether an error should be raised for missing translations
-in controllers and views. This defaults to `false`.
+Determines whether an error should be raised for missing translations. This defaults to `false`.
 
 #### `config.i18n.fallbacks`
 
@@ -878,13 +970,13 @@ irb> person = Person.new.tap(&:valid?)
 
 irb> person.errors.full_messages
 => [
-  "Invalid Name (can't be blank)",
+  "Invalid Name (can’t be blank)",
   "Please fill in your Age"
 ]
 
 irb> person.errors.messages
 => {
-  :name => ["can't be blank"],
+  :name => ["can’t be blank"],
   :age  => ["Please fill in your Age"]
 }
 ```
@@ -945,6 +1037,47 @@ Specifies if an error should be raised if the order of a query is ignored during
 #### `config.active_record.timestamped_migrations`
 
 Controls whether migrations are numbered with serial integers or with timestamps. The default is `true`, to use timestamps, which are preferred if there are multiple developers working on the same application.
+
+#### `config.active_record.db_warnings_action`
+
+Controls the action to be taken when a SQL query produces a warning. The following options are available:
+
+  * `:ignore` - Database warnings wil be ignored. This is the default.
+
+  * `:log` - Database warnings will be logged via `ActiveRecord.logger` at the `:warn` level.
+
+  * `:raise` - Database warnings will be raised as `ActiveRecord::SQLWarning`.
+
+  * `:report` - Database warnings be will reported to subscribers of Rails' error reporter.
+
+  * Custom proc - A custom proc can be provided. It should accept a `SQLWarning` error object.
+
+    For example:
+
+    ```ruby
+    config.active_record.db_warnings_action = ->(warning) do
+      # Report to custom exception reporting service
+      Bugsnag.notify(warning.message) do |notification|
+        notification.add_metadata(:warning_code, warning.code)
+        notification.add_metadata(:warning_level, warning.level)
+      end
+    end
+    ```
+
+#### `config.active_record.db_warnings_ignore`
+
+Specifies an allowlist of warning codes and messages that will be ignored, regardless of the configured `db_warnings_action`.
+The default behavior is to report all warnings. Warnings to ignore can be specified as Strings or Regexps. For example:
+
+  ```ruby
+  config.active_record.db_warnings_action = :raise
+  # The following warnings will not be raised
+  config.active_record.db_warnings_ignore = [
+    /Invalid utf8mb4 character string/,
+    "An exact warning message",
+    "1062", # MySQL Error 1062: Duplicate entry
+  ]
+  ```
 
 #### `config.active_record.migration_strategy`
 
@@ -1040,6 +1173,20 @@ to get the parent every time the child record was updated, even when parent has 
 | --------------------- | -------------------- |
 | (original)            | `true`               |
 | 7.1                   | `false`              |
+
+#### `config.active_record.marshalling_format_version`
+
+When set to `7.1`, enables a more efficient serialization of Active Record instance with `Marshal.dump`.
+
+This changes the serialization format, so models serialized this
+way cannot be read by older (< 7.1) versions of Rails. However, messages that
+use the old format can still be read, regardless of whether this optimization is
+enabled.
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `6.1`                |
+| 7.1                   | `7.1`                |
 
 #### `config.active_record.action_on_strict_loading_violation`
 
@@ -1145,6 +1292,39 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `false`              |
 | 7.0                   | `true`               |
 
+#### `config.active_record.commit_transaction_on_non_local_return`
+
+Defines whether `return`, `break` and `throw` inside a `transaction` block cause the transaction to be
+committed or rolled back. e.g.:
+
+```ruby
+Model.transaction do
+  model.save
+  return
+  other_model.save # not executed
+end
+```
+
+If set to `false`, it will be rolled back.
+
+If set to `true`, the above transaction will be committed.
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.1                   | `true`               |
+
+Historically only raised errors would trigger a rollback, but in Ruby `2.3`, the `timeout` library
+started using `throw` to interrupt execution which had the adverse effect of committing open transactions.
+
+To solve this, in Active Record 6.1 the behavior was changed to instead rollback the transaction as it was safer
+than to potentially commit an incomplete transaction.
+
+Using `return`, `break` or `throw` inside a `transaction` block was essentially deprecated from Rails 6.1 onwards.
+
+However with the release of `timeout 0.4.0`, `Timeout.timeout` now raises an error again, and Active Record is able
+to return to its original, less surprising, behavior.
+
 #### `config.active_record.raise_on_assign_to_attr_readonly`
 
 Enable raising on assignment to attr_readonly attributes. The previous
@@ -1176,10 +1356,48 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `true`               |
 | 7.1                   | `false`              |
 
+#### `config.active_record.default_column_serializer`
+
+The serializer implementation to use if none is explicitly specified for a given
+column.
+
+Historically `serialize` and `store` while allowing to use alternative serializer
+implementations, would use `YAML` by default, but it's not a very efficient format
+and can be the source of security vulnerabilities if not carefully employed.
+
+As such it is recommended to prefer stricter, more limited formats for database
+serialization.
+
+Unfortunately there isn't really any suitable defaults available in Ruby's standard
+library. `JSON` could work as a format, but the `json` gems will cast unsupported
+types to strings which may lead to bugs.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `YAML`               |
+| 7.1                   | `nil`                |
+
+#### `config.active_record.run_after_transaction_callbacks_in_order_defined`
+
+If true, `after_commit` callbacks are executed in the order they are defined in a model. If false, they are executed in reverse order.
+
+All other callbacks are always executed in the order they are defined in a model (unless you use `prepend: true`).
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.1                   | `true`               |
+
 #### `config.active_record.query_log_tags_enabled`
 
 Specifies whether or not to enable adapter-level query comments. Defaults to
 `false`.
+
+NOTE: When this is set to `true` database prepared statements will be automatically disabled.
 
 #### `config.active_record.query_log_tags`
 
@@ -1289,7 +1507,13 @@ Defaults to `[Symbol]`. Allows applications to include additional permitted clas
 
 Defaults to `false`. Allows applications to opt into using `unsafe_load` on the `ActiveRecord::Coders::YAMLColumn`.
 
-#### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans`
+#### `config.active_record.raise_int_wider_than_64bit`
+
+Defaults to `true`. Determines whether to raise an exception or not when
+the PostgreSQL adapter is provided an integer that is wider than signed
+64bit representation.
+
+#### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` and `ActiveRecord::ConnectionAdapters::TrilogyAdapter.emulate_booleans`
 
 Controls whether the Active Record MySQL adapter will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
 
@@ -1339,6 +1563,29 @@ Allows setting a different regular expression that will be used to decide
 whether a foreign key's name should be dumped to db/schema.rb or not. By
 default, foreign key names starting with `fk_rails_` are not exported to the
 database schema dump. Defaults to `/^fk_rails_[0-9a-f]{10}$/`.
+
+#### `config.active_record.encryption.hash_digest_class`
+
+ Sets the digest algorithm used by Active Record Encryption.
+
+ The default value depends on the `config.load_defaults` target version:
+
+ | Starting with version | The default value is      |
+ |-----------------------|---------------------------|
+ | (original)            | `OpenSSL::Digest::SHA1`   |
+ | 7.1                   | `OpenSSL::Digest::SHA256` |
+
+#### `config.active_record.encryption.support_sha1_for_non_deterministic_encryption`
+
+Enables support for decrypting existing data encrypted using a SHA-1 digest class. When `false`,
+it will only support the digest configured in `config.active_record.encryption.hash_digest_class`.
+
+ The default value depends on the `config.load_defaults` target version:
+
+ | Starting with version | The default value is |
+ |-----------------------|----------------------|
+ | (original)            | `true`               |
+ | 7.1                   | `false`              |
 
 ### Configuring Action Controller
 
@@ -1494,7 +1741,9 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.action_dispatch.cookies_serializer`
 
-Specifies which serializer to use for cookies. For more information, see [Action Controller Cookies](action_controller_overview.html#cookies).
+Specifies which serializer to use for cookies. Accepts the same values as
+[`config.active_support.message_serializer`](#config-active-support-message-serializer),
+plus `:hybrid` which is an alias for `:json_allow_marshal`.
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -1502,6 +1751,18 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `:marshal`           |
 | 7.0                   | `:json`              |
+
+#### `config.action_dispatch.debug_exception_log_level`
+
+Configure the log level used by the DebugExceptions middleware when logging
+uncaught exceptions during requests
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:fatal`             |
+| 7.1                   | `:error`             |
 
 #### `config.action_dispatch.default_headers`
 
@@ -1641,18 +1902,6 @@ config.action_dispatch.rescue_responses = {
 ```
 
 Any exceptions that are not configured will be mapped to 500 Internal Server Error.
-
-#### `config.action_dispatch.return_only_request_media_type_on_content_type`
-
-Change the return value of `ActionDispatch::Request#content_type` to the
-Content-Type header without modification.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `true`               |
-| 7.0                   | `false`              |
 
 #### `config.action_dispatch.cookies_same_site_protection`
 
@@ -1846,6 +2095,17 @@ The default value depends on the `config.load_defaults` target version:
 
 Determines whether or not the `form_tag` and `button_to` helpers will produce HTML tags prepended with browser-safe (but technically invalid) HTML that guarantees their contents cannot be captured by any preceding unclosed tags. The default value is `false`.
 
+#### `config.action_view.sanitizer_vendor`
+
+Configures the set of HTML sanitizers used by Action View by setting `ActionView::Helpers::SanitizeHelper.sanitizer_vendor`. The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is                 | Which parses markup as |
+|-----------------------|--------------------------------------|------------------------|
+| (original)            | `Rails::HTML4::Sanitizer`            | HTML4                  |
+| 7.1                   | `Rails::HTML5::Sanitizer` (see NOTE) | HTML5                  |
+
+NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms Rails will fall back to `Rails::HTML4::Sanitizer`.
+
 ### Configuring Action Mailbox
 
 `config.action_mailbox` provides the following configuration options:
@@ -2014,9 +2274,17 @@ Enable or disable mailer previews. By default this is `true` in development.
 config.action_mailer.show_previews = false
 ```
 
+#### `config.action_mailer.perform_caching`
+
+Specifies whether the mailer templates should perform fragment caching or not. If it's not specified, the default will be `true`.
+
 #### `config.action_mailer.deliver_later_queue_name`
 
-Specifies the Active Job queue to use for delivery jobs. When this option is set to `nil`, delivery jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). Make sure that your Active Job adapter is also configured to process the specified queue, otherwise delivery jobs may be silently ignored.
+Specifies the Active Job queue to use for the default delivery job (see `config.action_mailer.delivery_job`). When this option is set to `nil`, delivery jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
+
+Mailer classes can override this to use a different queue. Note that this only applies when using the default delivery job. If your mailer is using a custom job, its queue will be used.
+
+Ensure that your Active Job adapter is also configured to process the specified queue, otherwise delivery jobs may be silently ignored.
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -2024,10 +2292,6 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `:mailers`           |
 | 6.1                   | `nil`                |
-
-#### `config.action_mailer.perform_caching`
-
-Specifies whether the mailer templates should perform fragment caching or not. If it's not specified, the default will be `true`.
 
 #### `config.action_mailer.delivery_job`
 
@@ -2098,9 +2362,81 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `false`              |
 | 5.2                   | `true`               |
 
+#### `config.active_support.message_serializer`
+
+Specifies the default serializer used by [`ActiveSupport::MessageEncryptor`][]
+and [`ActiveSupport::MessageVerifier`][] instances. To make migrating between
+serializers easier, the provided serializers include a fallback mechanism to
+support multiple deserialization formats:
+
+| Serializer | Serialize and deserialize | Fallback deserialize |
+| ---------- | ------------------------- | -------------------- |
+| `:marshal` | `Marshal` | `ActiveSupport::JSON`, `ActiveSupport::MessagePack` |
+| `:json` | `ActiveSupport::JSON` | `ActiveSupport::MessagePack` |
+| `:json_allow_marshal` | `ActiveSupport::JSON` | `ActiveSupport::MessagePack`, `Marshal` |
+| `:message_pack` | `ActiveSupport::MessagePack` | `ActiveSupport::JSON` |
+| `:message_pack_allow_marshal` | `ActiveSupport::MessagePack` | `ActiveSupport::JSON`, `Marshal` |
+
+WARNING: `Marshal` is a potential vector for deserialization attacks in cases
+where a message signing secret has been leaked. _If possible, choose a
+serializer that does not support `Marshal`._
+
+INFO: The `:message_pack` and `:message_pack_allow_marshal` serializers support
+roundtripping some Ruby types that are not supported by JSON, such as `Symbol`.
+They can also provide improved performance and smaller payload sizes. However,
+they require the [`msgpack` gem](https://rubygems.org/gems/msgpack).
+
+Each of the above serializers will emit a [`message_serializer_fallback.active_support`][]
+event notification when they fall back to an alternate deserialization format,
+allowing you to track how often such fallbacks occur.
+
+Alternatively, you can specify any serializer object that responds to `dump` and
+`load` methods. For example:
+
+```ruby
+config.active_job.message_serializer = YAML
+```
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:marshal`           |
+| 7.1                   | `:json_allow_marshal` |
+
+[`ActiveSupport::MessageEncryptor`]: https://api.rubyonrails.org/classes/ActiveSupport/MessageEncryptor.html
+[`ActiveSupport::MessageVerifier`]: https://api.rubyonrails.org/classes/ActiveSupport/MessageVerifier.html
+[`message_serializer_fallback.active_support`]: active_support_instrumentation.html#message-serializer-fallback-active-support
+
+#### `config.active_support.use_message_serializer_for_metadata`
+
+When `true`, enables a performance optimization that serializes message data and
+metadata together. This changes the message format, so messages serialized this
+way cannot be read by older (< 7.1) versions of Rails. However, messages that
+use the old format can still be read, regardless of whether this optimization is
+enabled.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.1                   | `true`               |
+
 #### `config.active_support.cache_format_version`
 
-Specifies which version of the cache serializer to use. Possible values are `6.1` and `7.0`.
+Specifies which serialization format to use for the cache. Possible values are
+`6.1`, `7.0`, and `7.1`.
+
+`7.0` serializes cache entries more efficiently.
+
+`7.1` further improves efficiency, and allows expired and version-mismatched
+cache entries to be detected without deserializing their values. It also
+includes an optimization for bare string values such as view fragments.
+
+All formats are backward and forward compatible, meaning cache entries written
+in one format can be read when using another format. This behavior makes it
+easy to migrate between formats without invalidating the entire cache.
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -2108,6 +2444,7 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `6.1`                |
 | 7.0                   | `7.0`                |
+| 7.1                   | `7.1`                |
 
 #### `config.active_support.deprecation`
 
@@ -2127,49 +2464,13 @@ Configures deprecation warnings that the Application considers disallowed. This 
 
 #### `config.active_support.report_deprecations`
 
-When `false`, disables all deprecation warnings, including disallowed deprecations, making `ActiveSupport::Deprecation.warn` a no-op.
+When `false`, disables all deprecation warnings, including disallowed deprecations, from the [application’s deprecators](https://api.rubyonrails.org/classes/Rails/Application.html#method-i-deprecators). This includes all the deprecations from Rails and other gems that may add their deprecator to the collection of deprecators, but may not prevent all deprecation warnings emitted from ActiveSupport::Deprecation.
 
 In the default generated `config/environments` files, this is set to `false` for production.
-
-#### `config.active_support.remove_deprecated_time_with_zone_name`
-
-Specifies whether to remove the deprecated override of the [`ActiveSupport::TimeWithZone.name`](https://api.rubyonrails.org/classes/ActiveSupport/TimeWithZone.html#method-c-name) method, to avoid triggering its deprecation warning.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `nil`                |
-| 7.0                   | `true`               |
 
 #### `config.active_support.isolation_level`
 
 Configures the locality of most of Rails internal state. If you use a fiber based server or job processor (e.g. `falcon`), you should set it to `:fiber`. Otherwise it is best to use `:thread` locality. Defaults to `:thread`.
-
-#### `config.active_support.use_rfc4122_namespaced_uuids`
-
-Specifies whether generated namespaced UUIDs follow the RFC 4122 standard for namespace IDs provided as a `String` to `Digest::UUID.uuid_v3` or `Digest::UUID.uuid_v5` method calls.
-
-If set to `true`:
-
-* Only UUIDs are allowed as namespace IDs. If a namespace ID value provided is not allowed, an `ArgumentError` will be raised.
-* No deprecation warning will be generated, no matter if the namespace ID used is one of the constants defined on `Digest::UUID` or a `String`.
-* Namespace IDs are case-insensitive.
-* All generated namespaced UUIDs should be compliant to the standard.
-
-If set to `false`:
-
-* Any `String` value can be used as namespace ID (although not recommended). No `ArgumentError` will be raised in this case in order to preserve backwards-compatibility.
-* A deprecation warning will be generated if the namespace ID provided is not one of the constants defined on `Digest::UUID`.
-* Namespace IDs are case-sensitive.
-* Only namespaced UUIDs generated using one of the namespace ID constants defined on `Digest::UUID` are compliant to the standard.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `false`              |
-| 7.0                   | `true`               |
 
 #### `config.active_support.executor_around_test_case`
 
@@ -2177,20 +2478,6 @@ Configure the test suite to call `Rails.application.executor.wrap` around test c
 This makes test cases behave closer to an actual request or job.
 Several features that are normally disabled in test, such as Active Record query cache
 and asynchronous queries will then be enabled.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `false`              |
-| 7.0                   | `true`               |
-
-#### `config.active_support.disable_to_s_conversion`
-
-Disables the override of the `#to_s` methods in some Ruby core classes. This config is for applications that want to
-take advantage early of a [Ruby 3.1 optimization](https://github.com/ruby/ruby/commit/b08dacfea39ad8da3f1fd7fdd0e4538cc892ec44).
-This configuration needs to be set in `config/application.rb` inside the application class, otherwise it will not take
-effect.
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -2230,48 +2517,6 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `false`              |
 | 6.1                   | `true`               |
 
-#### `config.active_support.default_message_encryptor_serializer`
-
-Specifies what serializer the `MessageEncryptor` class will use by default.
-
-Options are `:json`, `:hybrid`, and `:marshal`. `:hybrid` uses the `JsonWithMarshalFallback` class.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `:marshal`           |
-| 7.1                   | `:json`              |
-
-#### `config.active_support.fallback_to_marshal_deserialization`
-
-Specifies if the `ActiveSupport::JsonWithMarshalFallback` class will fallback to `Marshal` when it encounters a `::JSON::ParserError`.
-
-Defaults to `true`.
-
-#### `config.active_support.use_marshal_serialization`
-
-Specifies if the `ActiveSupport::JsonWithMarshalFallback` class will use `Marshal` to serialize payloads.
-
-If this is set to `false`, it will use `JSON` to serialize payloads.
-
-Used to help migrate apps from `Marshal` to `JSON` as the default serializer for the `MessageEncryptor` class.
-
-Defaults to `true`.
-
-#### `config.active_support.default_message_verifier_serializer`
-
-Specifies what serializer the `MessageVerifier` class will use by default.
-
-Options are `:json`, `:hybrid`, and `:marshal`. `:hybrid` uses the `JsonWithMarshalFallback` class.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `:marshal`           |
-| 7.1                   | `:json`              |
-
 #### `config.active_support.raise_on_invalid_cache_expiration_time`
 
 Specifies if an `ArgumentError` should be raised if `Rails.cache` `fetch` or
@@ -2284,7 +2529,7 @@ The default value depends on the `config.load_defaults` target version:
 
 | Starting with version | The default value is |
 | --------------------- | -------------------- |
-| 7.0                   | `false`              |
+| (original)            | `false`              |
 | 7.1                   | `true`               |
 
 ### Configuring Active Job
@@ -2357,6 +2602,10 @@ Allows to set custom argument serializers. Defaults to `[]`.
 #### `config.active_job.log_arguments`
 
 Controls if the arguments of a job are logged. Defaults to `true`.
+
+#### `config.active_job.verbose_enqueue_logs`
+
+Specifies if source locations of methods that enqueue background jobs should be logged below relevant enqueue log lines. By default, the flag is `true` in development and `false` in all other environments.
 
 #### `config.active_job.retry_jitter`
 
@@ -2503,14 +2752,6 @@ By default, this is defined as:
 config.active_storage.content_types_allowed_inline` = %w(image/png image/gif image/jpeg image/tiff image/vnd.adobe.photoshop image/vnd.microsoft.icon application/pdf)
 ```
 
-#### `config.active_storage.silence_invalid_content_types_warning`
-
-Since Rails 7, Active Storage will warn if you use an invalid content type that was incorrectly supported in Rails 6. You can use this config to turn the warning off.
-
-```ruby
-config.active_storage.silence_invalid_content_types_warning = false
-```
-
 #### `config.active_storage.queues.analysis`
 
 Accepts a symbol indicating the Active Job queue to use for analysis jobs. When this option is `nil`, analysis jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
@@ -2568,17 +2809,6 @@ config.active_storage.routes_prefix = '/files'
 ```
 
 The default is `/rails/active_storage`.
-
-#### `config.active_storage.replace_on_assign_to_many`
-
-Determines whether assigning to a collection of attachments declared with `has_many_attached` replaces any existing attachments or appends to them.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `false`              |
-| 6.0                   | `true`               |
 
 #### `config.active_storage.track_variants`
 
@@ -2644,6 +2874,17 @@ has no effect if Sprockets is not used. The default value is `true`.
 #### `config.action_text.attachment_tag_name`
 
 Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action-text-attachment"`.
+
+#### `config.action_text.sanitizer_vendor`
+
+Configures the HTML sanitizer used by Action Text by setting `ActionText::ContentHelper.sanitizer` to an instance of the class returned from the vendor's `.safe_list_sanitizer` method. The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is                 | Which parses markup as |
+|-----------------------|--------------------------------------|------------------------|
+| (original)            | `Rails::HTML4::Sanitizer`            | HTML4                  |
+| 7.1                   | `Rails::HTML5::Sanitizer` (see NOTE) | HTML5                  |
+
+NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms Rails will fall back to `Rails::HTML4::Sanitizer`.
 
 ### Configuring a Database
 
@@ -2947,11 +3188,43 @@ development:
   retry_deadline: 5 # Stop retrying queries after 5 seconds
 ```
 
+#### Configuring Query Cache
+
+By default, Rails automatically caches the result sets returned by queries. If Rails encounters the same query
+again for that request or job, it will use the cached result set as opposed to running the query against
+the database again.
+
+The query cache is stored in memory, and to avoid using too much memory, it automatically evicts the least recently
+used queries when reaching a threshold. By default the threshold is `100`, but can be configured in the `database.yml`.
+
+```yaml
+development:
+  adapter: mysql2
+  query_cache: 200
+```
+
+To entirely disable query caching, it can be set to `false`
+
+```yaml
+development:
+  adapter: mysql2
+  query_cache: false
+```
+
 ### Creating Rails Environments
 
 By default Rails ships with three environments: "development", "test", and "production". While these are sufficient for most use cases, there are circumstances when you want more environments.
 
-Imagine you have a server which mirrors the production environment but is only used for testing. Such a server is commonly called a "staging server". To define an environment called "staging" for this server, just create a file called `config/environments/staging.rb`. Please use the contents of any existing file in `config/environments` as a starting point and make the necessary changes from there.
+Imagine you have a server which mirrors the production environment but is only used for testing. Such a server is commonly called a "staging server". To define an environment called "staging" for this server, just create a file called `config/environments/staging.rb`. Since this is a production-like environment, you could copy the contents of `config/environments/production.rb` as a starting point and make the necessary changes from there. It's also possible to require and extend other environment configurations like this:
+
+```ruby
+# config/environments/staging.rb
+require_relative "production"
+
+Rails.application.configure do
+  # Staging overrides
+end
+```
 
 That environment is no different than the default ones, start a server with `bin/rails server -e staging`, a console with `bin/rails console -e staging`, `Rails.env.staging?` works, etc.
 
@@ -3356,7 +3629,7 @@ evented file system monitor to detect changes when reloading is enabled:
 
 ```ruby
 group :development do
-  gem 'listen', '~> 3.3'
+  gem 'listen', '~> 3.5'
 end
 ```
 

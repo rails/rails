@@ -28,22 +28,24 @@ class SecurePasswordTest < ActiveRecord::TestCase
     # Warm-up (mostly to ensure the DB connection is established)
     User.authenticate_by(token: @user.token, password: @user.password)
 
-    # Benchmark.realtime returns fractional seconds.  Thus, summing over 1000
-    # iterations is equivalent to averaging over 1000 iterations and then
-    # multiplying by 1000 to convert to milliseconds.
-    found_average_time_in_ms = 1000.times.sum do
-      Benchmark.realtime do
-        User.authenticate_by(token: @user.token, password: @user.password)
+    retry_flaky_test do
+      # Benchmark.realtime returns fractional seconds.  Thus, summing over 1000
+      # iterations is equivalent to averaging over 1000 iterations and then
+      # multiplying by 1000 to convert to milliseconds.
+      found_average_time_in_ms = 1000.times.sum do
+        Benchmark.realtime do
+          User.authenticate_by(token: @user.token, password: @user.password)
+        end
       end
-    end
 
-    not_found_average_time_in_ms = 1000.times.sum do
-      Benchmark.realtime do
-        User.authenticate_by(token: "wrong", password: @user.password)
+      not_found_average_time_in_ms = 1000.times.sum do
+        Benchmark.realtime do
+          User.authenticate_by(token: "wrong", password: @user.password)
+        end
       end
-    end
 
-    assert_in_delta found_average_time_in_ms, not_found_average_time_in_ms, 0.5
+      assert_in_delta found_average_time_in_ms, not_found_average_time_in_ms, 0.5
+    end
   end
 
   test "authenticate_by short circuits when password is nil" do
@@ -91,4 +93,16 @@ class SecurePasswordTest < ActiveRecord::TestCase
       assert_nil User.authenticate_by(params)
     end
   end
+
+  private
+    def retry_flaky_test(retry_count: 3)
+      yield
+    rescue Minitest::Assertion
+      if retry_count > 0
+        retry_count -= 1
+        retry
+      else
+        raise
+      end
+    end
 end

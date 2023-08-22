@@ -298,6 +298,11 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<p>\n  <b>Hello</b>\n</p>", view.render("test/builder_tag_nested_in_content_tag")
   end
 
+  def test_content_tag_nested_in_content_tag_with_data_attributes_out_of_erb
+    assert_equal "<div data-controller=\"read-more\" data-read-more-more-text-value=\"Read more\" data-read-more-less-text-value=\"Read less\"\>\n  <p class=\"content-class\" data-test-name=\"content\">Content text</p>\n  <button class=\"expand-button\" data-action=\"read-more#toggle\">Read more</button>\n</div>",
+                  view.render("test/content_tag_nested_in_content_tag_with_data_attributes_out_of_erb")
+  end
+
   def test_content_tag_with_escaped_array_class
     str = content_tag("p", "limelight", class: ["song", "play>"])
     assert_equal "<p class=\"song play&gt;\">limelight</p>", str
@@ -445,6 +450,29 @@ class TagHelperTest < ActionView::TestCase
       assert_equal "song", helper.("song", "song")
       assert_equal "song", helper.("song song")
       assert_equal "song", helper.("song\nsong")
+    end
+  end
+
+  def test_token_list_and_class_names_returns_an_html_safe_string
+    assert_predicate token_list("a value"), :html_safe?
+    assert_predicate class_names("a value"), :html_safe?
+  end
+
+  def test_token_list_and_class_names_only_html_escape_once
+    [:token_list, :class_names].each do |helper_method|
+      helper = ->(*arguments) { public_send(helper_method, *arguments) }
+
+      tokens = %w[
+        click->controller#action1
+        click->controller#action2
+        click->controller#action3
+        click->controller#action4
+      ]
+
+      token_list = tokens.reduce(&helper)
+
+      assert_predicate token_list, :html_safe?
+      assert_equal tokens, (CGI.unescape_html(token_list)).split
     end
   end
 

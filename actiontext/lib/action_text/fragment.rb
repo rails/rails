@@ -7,7 +7,7 @@ module ActionText
         case fragment_or_html
         when self
           fragment_or_html
-        when Nokogiri::HTML::DocumentFragment
+        when Nokogiri::XML::DocumentFragment # base class for all fragments
           new(fragment_or_html)
         else
           from_html(fragment_or_html)
@@ -30,7 +30,7 @@ module ActionText
     end
 
     def update
-      yield source = self.source.clone
+      yield source = self.source.dup
       self.class.new(source)
     end
 

@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "models/pirate"
+require "models/developer"
 require "models/ship"
 require "models/ship_part"
 require "models/bird"
@@ -1104,7 +1105,7 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
     part = ShipPart.new(name: "Stern", ship_attributes: { name: nil })
 
     assert_not_predicate part, :valid?
-    assert_equal ["Ship name can't be blank"], part.errors.full_messages
+    assert_equal ["Ship name can’t be blank"], part.errors.full_messages
   end
 end
 

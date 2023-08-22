@@ -11,7 +11,6 @@ module ActionView
   # = Action View Resolver
   class Resolver
     include ActiveSupport::Deprecation::DeprecatedConstantAccessor
-    deprecate_constant "Path", "ActionView::TemplatePath", deprecator: ActionView.deprecator
 
     class PathParser # :nodoc:
       ParsedPath = Struct.new(:path, :details)

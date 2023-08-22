@@ -113,6 +113,7 @@ en:
           tb: "TB"
           pb: "PB"
           eb: "EB"
+          zb: "ZB"
       # Used in NumberHelper.number_to_human()
       decimal_units:
         format: "%n %u"

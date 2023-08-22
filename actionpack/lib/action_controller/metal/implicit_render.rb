@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActionController
+  # = Action Controller Implicit Render
+  #
   # Handles implicit rendering for a controller action that does not
   # explicitly respond with +render+, +respond_to+, +redirect+, or +head+.
   #
@@ -17,12 +19,12 @@ module ActionController
   # Second, if we DON'T find a template but the controller action does have
   # templates for other formats, variants, etc., then we trust that you meant
   # to provide a template for this response, too, and we raise
-  # <tt>ActionController::UnknownFormat</tt> with an explanation.
+  # ActionController::UnknownFormat with an explanation.
   #
   # Third, if we DON'T find a template AND the request is a page load in a web
   # browser (technically, a non-XHR GET request for an HTML response) where
   # you reasonably expect to have rendered a template, then we raise
-  # <tt>ActionController::MissingExactTemplate</tt> with an explanation.
+  # ActionController::MissingExactTemplate with an explanation.
   #
   # Finally, if we DON'T find a template AND the request isn't a browser page
   # load, then we implicitly respond with <tt>204 No Content</tt>.

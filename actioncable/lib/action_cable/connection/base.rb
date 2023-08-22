@@ -5,6 +5,8 @@ require "active_support/rescuable"
 
 module ActionCable
   module Connection
+    # = Action Cable \Connection \Base
+    #
     # For every WebSocket connection the Action Cable server accepts, a Connection object will be instantiated. This instance becomes the parent
     # of all of the channel subscriptions that are created from there on. Incoming messages are then routed to these channel subscriptions
     # based on an identifier sent by the Action Cable consumer. The Connection itself does not deal with any specific application logic beyond
@@ -51,7 +53,7 @@ module ActionCable
       include ActiveSupport::Rescuable
 
       attr_reader :server, :env, :subscriptions, :logger, :worker_pool, :protocol
-      delegate :event_loop, :pubsub, to: :server
+      delegate :event_loop, :pubsub, :config, to: :server
 
       def initialize(server, env, coder: ActiveSupport::JSON)
         @server, @env, @coder = server, env, coder
@@ -150,6 +152,10 @@ module ActionCable
         send_async :handle_close
       end
 
+      def inspect # :nodoc:
+        "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+      end
+
       private
         attr_reader :websocket
         attr_reader :message_buffer
@@ -229,7 +235,7 @@ module ActionCable
 
           logger.error invalid_request_message
           logger.info finished_request_message
-          [ 404, { "Content-Type" => "text/plain" }, [ "Page not found" ] ]
+          [ 404, { Rack::CONTENT_TYPE => "text/plain; charset=utf-8" }, [ "Page not found" ] ]
         end
 
         # Tags are declared in the server but computed in the connection. This allows us per-connection tailored tags.

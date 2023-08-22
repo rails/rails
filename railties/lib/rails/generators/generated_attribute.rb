@@ -107,6 +107,8 @@ module Rails
             case
             when column_options.blank?
               [ type, {} ]
+            when %w[text binary].include?(type) && column_options.match?(/^[a-z]+$/)
+              [ type, size: column_options.to_sym ]
             when %w[string text binary integer].include?(type) && column_options.match?(/^\d+$/)
               [ type, limit: column_options.to_i ]
             when %w[decimal numeric].include?(type) && column_options.match?(/^(\d+)[,.-](\d+)$/)

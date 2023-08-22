@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveModel
-  # == Active \Model \Basic \Model
+  # = Active \Model \Basic \Model
   #
   # Allows implementing models similar to ActiveRecord::Base.
   # Includes ActiveModel::API for the required interface for an
@@ -37,7 +37,7 @@ module ActiveModel
   #   person.omg # => true
   #
   # For more detailed information on other functionalities available, please
-  # refer to the specific modules included in <tt>ActiveModel::Model</tt>
+  # refer to the specific modules included in +ActiveModel::Model+
   # (see below).
   module Model
     extend ActiveSupport::Concern
@@ -65,4 +65,6 @@ module ActiveModel
     #--
     # Implemented by ActiveModel::Access#values_at.
   end
+
+  ActiveSupport.run_load_hooks(:active_model, Model)
 end

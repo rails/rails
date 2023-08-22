@@ -14,20 +14,20 @@ module AdapterHelper
   end
 
   def mysql_enforcing_gtid_consistency?
-    current_adapter?(:Mysql2Adapter) && "ON" == ActiveRecord::Base.connection.show_variable("enforce_gtid_consistency")
+    current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && "ON" == ActiveRecord::Base.connection.show_variable("enforce_gtid_consistency")
   end
 
   def supports_default_expression?
     if current_adapter?(:PostgreSQLAdapter)
       true
-    elsif current_adapter?(:Mysql2Adapter)
+    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       conn = ActiveRecord::Base.connection
       !conn.mariadb? && conn.database_version >= "8.0.13"
     end
   end
 
   def supports_non_unique_constraint_name?
-    if current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       conn = ActiveRecord::Base.connection
       conn.mariadb?
     else
@@ -36,7 +36,7 @@ module AdapterHelper
   end
 
   def supports_text_column_with_default?
-    if current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       conn = ActiveRecord::Base.connection
       conn.mariadb? && conn.database_version >= "10.2.1"
     else
@@ -55,6 +55,7 @@ module AdapterHelper
     supports_insert_conflict_target?
     supports_optimizer_hints?
     supports_datetime_with_precision?
+    supports_nulls_not_distinct?
   ].each do |method_name|
     define_method method_name do
       ActiveRecord::Base.connection.public_send(method_name)

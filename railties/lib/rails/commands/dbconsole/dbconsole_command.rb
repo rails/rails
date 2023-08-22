@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/string/filters"
-require "active_support/deprecation"
 require "rails/command/environment_argument"
 
 module Rails
@@ -81,20 +80,16 @@ module Rails
         desc: "Automatically provide the password from database.yml"
 
       class_option :mode, enum: %w( html list line column ), type: :string,
-        desc: "Automatically put the sqlite3 database in the specified mode (html, list, line, column)."
+        desc: "Automatically put the sqlite3 database in the specified mode"
 
       class_option :header, type: :boolean
 
       class_option :database, aliases: "--db", type: :string,
-        desc: "Specifies the database to use."
+        desc: "Specify the database to use."
 
+      desc "dbconsole", "Start a console for the database specified in config/database.yml"
       def perform
-        extract_environment_option_from_argument
-
-        # RAILS_ENV needs to be set before config/application is required.
-        ENV["RAILS_ENV"] = options[:environment]
-
-        require_application_and_environment!
+        boot_application!
         Rails::DBConsole.start(options)
       end
     end

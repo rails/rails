@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "mini_mime"
+require "marcel"
 
 module ActiveStorage::Blob::Representable
   extend ActiveSupport::Concern
@@ -98,6 +98,10 @@ module ActiveStorage::Blob::Representable
     variable? || previewable?
   end
 
+  def preprocessed(transformations) # :nodoc:
+    ActiveStorage::TransformJob.perform_later(self, transformations)
+  end
+
   private
     def default_variant_transformations
       { format: default_variant_format }
@@ -112,10 +116,10 @@ module ActiveStorage::Blob::Representable
     end
 
     def format
-      if filename.extension.present? && MiniMime.lookup_by_extension(filename.extension)&.content_type == content_type
+      if filename.extension.present? && Marcel::MimeType.for(extension: filename.extension) == content_type
         filename.extension
       else
-        MiniMime.lookup_by_content_type(content_type)&.extension
+        Marcel::Magic.new(content_type.to_s).extensions.first
       end
     end
 

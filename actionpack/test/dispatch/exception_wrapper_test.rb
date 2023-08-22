@@ -185,5 +185,75 @@ module ActionDispatch
         ]
       }.inspect, wrapper.traces.inspect)
     end
+
+    test "#show? returns false when using :rescuable and the exceptions is not rescuable" do
+      exception = RuntimeError.new("")
+      wrapper = ExceptionWrapper.new(nil, exception)
+
+      env = { "action_dispatch.show_exceptions" => :rescuable }
+      request = ActionDispatch::Request.new(env)
+
+      assert_equal false, wrapper.show?(request)
+    end
+
+    test "#show? returns true when using :rescuable and the exceptions is rescuable" do
+      exception = AbstractController::ActionNotFound.new("")
+      wrapper = ExceptionWrapper.new(nil, exception)
+
+      env = { "action_dispatch.show_exceptions" => :rescuable }
+      request = ActionDispatch::Request.new(env)
+
+      assert_equal true, wrapper.show?(request)
+    end
+
+    test "#show? returns false when using :none and the exceptions is rescuable" do
+      exception = AbstractController::ActionNotFound.new("")
+      wrapper = ExceptionWrapper.new(nil, exception)
+
+      env = { "action_dispatch.show_exceptions" => :none }
+      request = ActionDispatch::Request.new(env)
+
+      assert_equal false, wrapper.show?(request)
+    end
+
+    test "#show? returns true when using :all and the exceptions is not rescuable" do
+      exception = RuntimeError.new("")
+      wrapper = ExceptionWrapper.new(nil, exception)
+
+      env = { "action_dispatch.show_exceptions" => :all }
+      request = ActionDispatch::Request.new(env)
+
+      assert_equal true, wrapper.show?(request)
+    end
+
+    test "#show? emits a deprecation when show_exceptions is true" do
+      exception = RuntimeError.new("")
+      wrapper = ExceptionWrapper.new(nil, exception)
+
+      env = { "action_dispatch.show_exceptions" => true }
+      request = ActionDispatch::Request.new(env)
+
+      msg = "Setting action_dispatch.show_exceptions to true is deprecated. Set to :all instead."
+      result = assert_deprecated(msg, ActionDispatch.deprecator) do
+        wrapper.show?(request)
+      end
+
+      assert_equal true, result
+    end
+
+    test "#show? emits a deprecation when show_exceptions is false" do
+      exception = RuntimeError.new("")
+      wrapper = ExceptionWrapper.new(nil, exception)
+
+      env = { "action_dispatch.show_exceptions" => false }
+      request = ActionDispatch::Request.new(env)
+
+      msg = "Setting action_dispatch.show_exceptions to false is deprecated. Set to :none instead."
+      result = assert_deprecated(msg, ActionDispatch.deprecator) do
+        wrapper.show?(request)
+      end
+
+      assert_equal false, result
+    end
   end
 end

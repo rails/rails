@@ -18,7 +18,7 @@
 <% end %>
 
 <% documents_by_section.each do |section| %>
-  <h3><%= section['name'] %></h3>
+  <h2><%= section['name'] %></h2>
   <dl>
     <% section['documents'].each do |document| %>
       <%= guide(document['name'], document['url'], work_in_progress: document['work_in_progress']) do %>

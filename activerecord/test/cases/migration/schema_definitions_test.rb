@@ -63,7 +63,7 @@ module ActiveRecord
         connection.drop_table(:test) if connection.table_exists?(:test)
       end
 
-      if current_adapter?(:Mysql2Adapter)
+      if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
         def test_build_create_index_definition_for_existing_index
           connection.create_table(:test) do |t|
             t.column :foo, :string

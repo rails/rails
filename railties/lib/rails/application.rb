@@ -71,6 +71,8 @@ module Rails
       def inherited(base)
         super
         Rails.app_class = base
+        # lib has to be added to $LOAD_PATH unconditionally, even if it's in the
+        # autoload paths and config.add_autoload_paths_to_load_path is false.
         add_lib_to_load_path!(find_root(base.called_from))
         ActiveSupport.run_load_hooks(:before_configuration, base)
       end
@@ -225,17 +227,13 @@ module Rails
     # The collection's configuration methods affect all deprecators in the
     # collection. Additionally, the collection's +silence+ method silences all
     # deprecators in the collection for the duration of a given block.
-    #
-    # The collection is prepopulated with a default deprecator, which can be
-    # accessed via <tt>deprecators[:rails]</tt>. More deprecators can be added
-    # via <tt>deprecators[name] = deprecator</tt>.
     def deprecators
       @deprecators ||= ActiveSupport::Deprecation::Deprecators.new.tap do |deprecators|
-        deprecators[:rails] = Rails.deprecator
+        deprecators[:railties] = Rails.deprecator
       end
     end
 
-    # Convenience for loading config/foo.yml for the current Rails env.
+    # Convenience for loading config/foo.yml for the current \Rails env.
     #
     # Examples:
     #
@@ -297,7 +295,7 @@ module Rails
       end
     end
 
-    # Stores some of the Rails initial environment parameters which
+    # Stores some of the \Rails initial environment parameters which
     # will be used by middlewares and engines to configure themselves.
     def env_config
       @app_env_config ||= super.merge(
@@ -307,6 +305,7 @@ module Rails
           "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
           "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
           "action_dispatch.log_rescued_responses" => config.action_dispatch.log_rescued_responses,
+          "action_dispatch.debug_exception_log_level" => ActiveSupport::Logger.const_get(config.action_dispatch.debug_exception_log_level.to_s.upcase),
           "action_dispatch.logger" => Rails.logger,
           "action_dispatch.backtrace_cleaner" => Rails.backtrace_cleaner,
           "action_dispatch.key_generator" => key_generator,
@@ -389,7 +388,7 @@ module Rails
     # Rails application, you will need to add lib to $LOAD_PATH on your own in case
     # you need to load files in lib/ during the application configuration as well.
     def self.add_lib_to_load_path!(root) # :nodoc:
-      path = File.join root, "lib"
+      path = File.join(root, "lib")
       if File.exist?(path) && !$LOAD_PATH.include?(path)
         $LOAD_PATH.unshift(path)
       end
@@ -439,6 +438,9 @@ module Rails
     attr_writer :config
 
     def secrets
+      Rails.deprecator.warn(<<~MSG.squish)
+        `Rails.application.secrets` is deprecated in favor of `Rails.application.credentials` and will be removed in Rails 7.2.
+      MSG
       @secrets ||= begin
         secrets = ActiveSupport::OrderedOptions.new
         files = config.paths["config/secrets"].existent
@@ -459,7 +461,7 @@ module Rails
     # including the ones that sign and encrypt cookies.
     #
     # In development and test, this is randomly generated and stored in a
-    # temporary file in <tt>tmp/development_secret.txt</tt>.
+    # temporary file in <tt>tmp/local_secret.txt</tt>.
     #
     # You can also set <tt>ENV["SECRET_KEY_BASE_DUMMY"]</tt> to trigger the use of a randomly generated
     # secret_key_base that's stored in a temporary file. This is useful when precompiling assets for
@@ -472,7 +474,7 @@ module Rails
     # the correct place to store it is in the encrypted credentials file.
     def secret_key_base
       if Rails.env.local? || ENV["SECRET_KEY_BASE_DUMMY"]
-        secrets.secret_key_base ||= generate_development_secret
+        config.secret_key_base ||= generate_local_secret
       else
         validate_secret_key_base(
           ENV["SECRET_KEY_BASE"] || credentials.secret_key_base || secrets.secret_key_base
@@ -480,44 +482,39 @@ module Rails
       end
     end
 
-    # Decrypts the credentials hash as kept in +config/credentials.yml.enc+. This file is encrypted with
-    # the Rails master key, which is either taken from <tt>ENV["RAILS_MASTER_KEY"]</tt> or from loading
-    # +config/master.key+.
-    # If specific credentials file exists for current environment, it takes precedence, thus for +production+
-    # environment look first for +config/credentials/production.yml.enc+ with master key taken
-    # from <tt>ENV["RAILS_MASTER_KEY"]</tt> or from loading +config/credentials/production.key+.
-    # Default behavior can be overwritten by setting +config.credentials.content_path+ and +config.credentials.key_path+.
+    # Returns an ActiveSupport::EncryptedConfiguration instance for the
+    # credentials file specified by +config.credentials.content_path+.
+    #
+    # By default, +config.credentials.content_path+ will point to either
+    # <tt>config/credentials/#{environment}.yml.enc</tt> for the current
+    # environment (for example, +config/credentials/production.yml.enc+ for the
+    # +production+ environment), or +config/credentials.yml.enc+ if that file
+    # does not exist.
+    #
+    # The encryption key is taken from either <tt>ENV["RAILS_MASTER_KEY"]</tt>,
+    # or from the file specified by +config.credentials.key_path+. By default,
+    # +config.credentials.key_path+ will point to either
+    # <tt>config/credentials/#{environment}.key</tt> for the current
+    # environment, or +config/master.key+ if that file does not exist.
     def credentials
       @credentials ||= encrypted(config.credentials.content_path, key_path: config.credentials.key_path)
     end
 
-    # Shorthand to decrypt any encrypted configurations or files.
+    # Returns an ActiveSupport::EncryptedConfiguration instance for an encrypted
+    # file. By default, the encryption key is taken from either
+    # <tt>ENV["RAILS_MASTER_KEY"]</tt>, or from the +config/master.key+ file.
     #
-    # For any file added with <tt>rails encrypted:edit</tt> call +read+ to decrypt
-    # the file with the master key.
-    # The master key is either stored in +config/master.key+ or <tt>ENV["RAILS_MASTER_KEY"]</tt>.
+    #   my_config = Rails.application.encrypted("config/my_config.enc")
     #
-    #   Rails.application.encrypted("config/mystery_man.txt.enc").read
-    #   # => "We've met before, haven't we?"
+    #   my_config.read
+    #   # => "foo:\n  bar: 123\n"
     #
-    # It's also possible to interpret encrypted YAML files with +config+.
+    #   my_config.foo.bar
+    #   # => 123
     #
-    #   Rails.application.encrypted("config/credentials.yml.enc").config
-    #   # => { next_guys_line: "I don't think so. Where was it you think we met?" }
-    #
-    # Any top-level configs are also accessible directly on the return value:
-    #
-    #   Rails.application.encrypted("config/credentials.yml.enc").next_guys_line
-    #   # => "I don't think so. Where was it you think we met?"
-    #
-    # The files or configs can also be encrypted with a custom key. To decrypt with
-    # a key in the +ENV+, use:
-    #
-    #   Rails.application.encrypted("config/special_tokens.yml.enc", env_key: "SPECIAL_TOKENS")
-    #
-    # Or to decrypt with a file, that should be version control ignored, relative to +Rails.root+:
-    #
-    #   Rails.application.encrypted("config/special_tokens.yml.enc", key_path: "config/special_tokens.key")
+    # Encrypted files can be edited with the <tt>bin/rails encrypted:edit</tt>
+    # command. (See the output of <tt>bin/rails encrypted:edit --help</tt> for
+    # more information.)
     def encrypted(path, key_path: "config/master.key", env_key: "RAILS_MASTER_KEY")
       ActiveSupport::EncryptedConfiguration.new(
         config_path: Rails.root.join(path),
@@ -651,20 +648,29 @@ module Rails
     end
 
     private
-      def generate_development_secret
-        if secrets.secret_key_base.nil?
-          key_file = Rails.root.join("tmp/development_secret.txt")
+      def generate_local_secret
+        if config.secret_key_base.nil?
+          key_file = Rails.root.join("tmp/local_secret.txt")
 
-          if !File.exist?(key_file)
+          if File.exist?(key_file)
+            config.secret_key_base = File.binread(key_file)
+          elsif secrets_secret_key_base
+            config.secret_key_base = secrets_secret_key_base
+          else
             random_key = SecureRandom.hex(64)
             FileUtils.mkdir_p(key_file.dirname)
             File.binwrite(key_file, random_key)
+            config.secret_key_base = File.binread(key_file)
           end
-
-          secrets.secret_key_base = File.binread(key_file)
         end
 
-        secrets.secret_key_base
+        config.secret_key_base
+      end
+
+      def secrets_secret_key_base
+        Rails.deprecator.silence do
+          secrets.secret_key_base
+        end
       end
 
       def build_request(env)
@@ -684,10 +690,11 @@ module Rails
 
       def filter_parameters
         if config.precompile_filter_parameters
-          ActiveSupport::ParameterFilter.precompile_filters(config.filter_parameters)
-        else
-          config.filter_parameters
+          config.filter_parameters.replace(
+            ActiveSupport::ParameterFilter.precompile_filters(config.filter_parameters)
+          )
         end
+        config.filter_parameters
       end
   end
 end

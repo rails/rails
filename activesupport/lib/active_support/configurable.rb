@@ -4,6 +4,8 @@ require "active_support/concern"
 require "active_support/ordered_options"
 
 module ActiveSupport
+  # = Active Support \Configurable
+  #
   # Configurable provides a <tt>config</tt> method to store and retrieve
   # configuration options as an OrderedOptions.
   module Configurable
@@ -125,6 +127,14 @@ module ActiveSupport
         end
       end
       private :config_accessor
+
+      private
+        def inherited(subclass)
+          super
+          subclass.class_eval do
+            @_config = nil
+          end
+        end
     end
 
     # Reads and writes attributes from a configuration OrderedOptions.
