@@ -1,3 +1,11 @@
+*   Parse JSON `response.parsed_body` with `ActiveSupport::HashWithIndifferentAccess`
+
+    Integrate with Minitest's new `assert_pattern` by parsing the JSON contents
+    of `response.parsed_body` with `ActiveSupport::HashWithIndifferentAccess`, so
+    that it's pattern-matching compatible.
+
+    *Sean Doyle*
+
 *   Add support for Playwright as a driver for system tests.
 
     *Yuki Nishijima*
