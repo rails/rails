@@ -65,6 +65,72 @@ TODO: https://github.com/rails/rails/pull/45602
 
 TODO: https://github.com/rails/rails/pull/46049
 
+### Support pattern matching for JSON `response.parsed_body`
+
+When `ActionDispatch::IntegrationTest` tests blocks invoke
+`response.parsed_body` for JSON responses, their payloads will be available with
+indifferent access. This enables integration with [Ruby's Pattern
+Matching][pattern-matching], and built-in [Minitest support for pattern
+matching][minitest-pattern-matching]:
+
+```ruby
+get "/posts.json"
+
+response.content_type         # => "application/json; charset=utf-8"
+response.parsed_body.class    # => Array
+response.parsed_body          # => [{"id"=>42, "title"=>"Title"},...
+
+assert_pattern { response.parsed_body => [{ id: 42 }] }
+
+get "/posts/42.json"
+
+response.content_type         # => "application/json; charset=utf-8"
+response.parsed_body.class    # => ActiveSupport::HashWithIndifferentAccess
+response.parsed_body          # => {"id"=>42, "title"=>"Title"}
+
+assert_pattern { response.parsed_body => [{ title: /title/i }] }
+```
+
+[pattern-matching]: https://docs.ruby-lang.org/en/master/syntax/pattern_matching_rdoc.html
+[minitest-pattern-matching]: https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-assert_pattern
+
+### Extend `response.parsed_body` to parse HTML with Nokogiri
+
+[Extend the `ActionDispatch::Testing` module][#47144] to support parsing the
+value of an HTML `response.body` into a `Nokogiri::HTML5::Document` instance:
+
+```ruby
+get "/posts"
+
+response.content_type         # => "text/html; charset=utf-8"
+response.parsed_body.class    # => Nokogiri::HTML5::Document
+response.parsed_body.to_html  # => "<!DOCTYPE html>\n<html>\n..."
+```
+
+Newly added [Nokogiri support for pattern matching][nokogiri-pattern-matching],
+along with built-in [Minitest support for pattern
+matching][minitest-pattern-matching] presents opportunities to make test
+assertions about the structure and content of the HTML response:
+
+```ruby
+get "/posts"
+
+html = response.parsed_body # => <html>
+                            #      <head></head>
+                            #        <body>
+                            #          <main><h1>Some main content</h1></main>
+                            #        </body>
+                            #     </html>
+
+assert_pattern { html.at("main") => { content: "Some main content" } }
+assert_pattern { html.at("main") => { content: /content/ } }
+assert_pattern { html.at("main") => { children: [{ name: "h1", content: /content/ }] } }
+```
+
+[#47144]: https://github.com/rails/rails/pull/47144
+[nokogiri-pattern-matching]: https://nokogiri.org/rdoc/Nokogiri/XML/Attr.html#method-i-deconstruct_keys
+[minitest-pattern-matching]: https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-assert_pattern
+
 Railties
 --------
 
