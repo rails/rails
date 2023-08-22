@@ -12,7 +12,7 @@ module ActiveRecord
       # available.
       def to_key
         key = id
-        [key] if key
+        Array(key) if key
       end
 
       # Returns the primary key column's value.
