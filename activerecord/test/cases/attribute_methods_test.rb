@@ -1266,6 +1266,28 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal("overridden_subject_was", obj.subject_was)
   end
 
+  ParentWithAlias = Class.new(ActiveRecord::Base) do
+    self.table_name = "topics"
+    alias_attribute :parents_subject, :title
+  end
+
+  AbstractClassInBetween = Class.new(ParentWithAlias) do
+    self.abstract_class = true
+    alias_attribute :parents_subject, :title
+  end
+
+  ChildWithAnAliasFromAbstractClass = Class.new(AbstractClassInBetween) do
+  end
+
+  test "#alias_attribute with the same alias as parent doesn't issue a deprecation" do
+    ParentWithAlias.new # eagerly generate parents alias methods
+    obj = assert_not_deprecated(ActiveRecord.deprecator) do
+      ChildWithAnAliasFromAbstractClass.new
+    end
+    obj.title = "hey"
+    assert_equal("hey", obj.parents_subject)
+  end
+
   test "#alias_attribute method on an abstract class is available on subclasses" do
     superclass = Class.new(ActiveRecord::Base) do
       self.abstract_class = true
