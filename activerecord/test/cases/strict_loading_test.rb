@@ -284,6 +284,20 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_strict_loading_with_has_one_through_does_not_prevent_creation_of_association
+    firm = Firm.new(name: "SuperFirm").tap(&:strict_loading!)
+    computer = Computer.new(extendedWarranty: 1).tap(&:strict_loading!)
+
+    computer.firm = firm
+    computer.developer.name = "Joe"
+    firm.lead_developer = computer.developer
+
+    assert_nothing_raised do
+      computer.save!
+    end
+  end
+
+
   def test_preload_audit_logs_are_strict_loading_because_parent_is_strict_loading
     developer = Developer.first
 
