@@ -26,7 +26,7 @@
 
     ```ruby
     class User < ActiveRecord::Base
-      has_secure_password :algorithm: :my_algo
+      has_secure_password algorithm: :my_algo
     end
     ```
 
