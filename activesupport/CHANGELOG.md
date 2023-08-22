@@ -1,3 +1,10 @@
+## Rails 6.1.7.5 (August 22, 2023) ##
+
+*   Use a temporary file for storing unencrypted files while editing
+
+    [CVE-2023-38037]
+
+
 ## Rails 6.1.7.4 (June 26, 2023) ##
 
 *   No changes.

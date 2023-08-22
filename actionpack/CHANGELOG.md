@@ -1,3 +1,8 @@
+## Rails 6.1.7.5 (August 22, 2023) ##
+
+*   No changes.
+
+
 ## Rails 6.1.7.4 (June 26, 2023) ##
 
 *   Raise an exception if illegal characters are provide to redirect_to
