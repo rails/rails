@@ -13,16 +13,8 @@ class ActiveStorage::VariantWithRecord
   end
 
   def processed
-    process
+    process unless processed?
     self
-  end
-
-  def process
-    transform_blob { |image| create_or_find_record(image: image) } unless processed?
-  end
-
-  def processed?
-    record.present?
   end
 
   def image
@@ -37,6 +29,14 @@ class ActiveStorage::VariantWithRecord
   delegate :key, :url, :download, to: :image, allow_nil: true
 
   private
+    def processed?
+      record.present?
+    end
+
+    def process
+      transform_blob { |image| create_or_find_record(image: image) }
+    end
+
     def transform_blob
       blob.open do |input|
         variation.transform(input) do |output|
