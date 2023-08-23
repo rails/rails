@@ -2,11 +2,17 @@
 
 if RUBY_VERSION < "3"
   require "webdrivers"
+elsif RUBY_VERSION > "3.2"
+  require "selenium-webdriver"
 end
 require_relative "test_run"
 
 driver = if ARGV[1]
-  capability = ::Selenium::WebDriver::Remote::Capabilities.chrome
+  capability = if RUBY_VERSION > "3.2"
+    ::Selenium::WebDriver::Options.chrome
+  else
+    ::Selenium::WebDriver::Remote::Capabilities.chrome
+  end
 
   ::Selenium::WebDriver.for(:remote, url: ARGV[1], capabilities: [capability])
 else
