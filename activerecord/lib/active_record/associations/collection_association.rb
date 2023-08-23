@@ -333,11 +333,7 @@ module ActiveRecord
             if mem_record = memory.delete(record)
 
               ((record.attribute_names & mem_record.attribute_names) - mem_record.changed_attribute_names_to_save - mem_record.class._attr_readonly).each do |name|
-                if name == "id" && mem_record.class.composite_primary_key?
-                  mem_record.class.primary_key.zip(record[name]) { |attr, value| mem_record._write_attribute(attr, value) }
-                else
-                  mem_record._write_attribute(name, record[name])
-                end
+                mem_record._write_attribute(name, record[name])
               end
 
               mem_record

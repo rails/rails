@@ -36,22 +36,32 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal [1, 2], order.to_key
   end
 
+  def test_read_attribute_id
+    topic = Topic.find(1)
+    id = assert_not_deprecated(ActiveRecord.deprecator) do
+      topic.read_attribute(:id)
+    end
+
+    assert_equal 1, id
+  end
+
   def test_read_attribute_with_custom_primary_key
     keyboard = Keyboard.create!
-    assert_equal keyboard.key_number, keyboard.read_attribute(:id)
+    msg = "Using read_attribute(:id) to read the primary key value is deprecated. Use #id instead."
+    id = assert_deprecated(msg, ActiveRecord.deprecator) do
+      keyboard.read_attribute(:id)
+    end
+
+    assert_equal keyboard.key_number, id
   end
 
   def test_read_attribute_with_composite_primary_key
     book = Cpk::Book.new(id: [1, 2])
-    assert_equal [1, 2], book.read_attribute(:id)
-  end
+    id = assert_not_deprecated(ActiveRecord.deprecator) do
+      book.read_attribute(:id)
+    end
 
-  def test_read_attribute_with_composite_primary_key_and_column_named_id
-    order = Cpk::Order.new
-    order.id = [1, 2]
-
-    assert_equal [1, 2], order.read_attribute(:id)
-    assert_equal 2, order.attributes["id"]
+    assert_equal 2, id
   end
 
   def test_to_key_with_primary_key_after_destroy
