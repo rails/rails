@@ -91,15 +91,12 @@ module AbstractController
       def action_methods
         @action_methods ||= begin
           # All public instance methods of this class, including ancestors
-          methods = (public_instance_methods(true) -
+          Set.new(public_instance_methods(true))
             # Except for public instance methods of Base and its ancestors
-            internal_methods +
+            .subtract(internal_methods)
             # Be sure to include shadowed public instance methods of this class
-            public_instance_methods(false))
-
-          methods.map!(&:to_s)
-
-          methods.to_set
+            .merge(public_instance_methods(false))
+            .map!(&:to_s)
         end
       end
 
