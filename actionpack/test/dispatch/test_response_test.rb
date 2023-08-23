@@ -25,6 +25,7 @@ class TestResponseTest < ActiveSupport::TestCase
     assert_equal response.body, response.parsed_body
 
     response = ActionDispatch::TestResponse.create(200, { "Content-Type" => "application/json" }, '{ "foo": "fighters" }')
+    assert_kind_of ActiveSupport::HashWithIndifferentAccess, response.parsed_body
     assert_equal({ "foo" => "fighters" }, response.parsed_body)
 
     response = ActionDispatch::TestResponse.create(200, { "Content-Type" => "text/html" }, <<~HTML)
@@ -37,5 +38,11 @@ class TestResponseTest < ActiveSupport::TestCase
     HTML
     assert_kind_of(Nokogiri::XML::Document, response.parsed_body)
     assert_equal(response.parsed_body.at_xpath("/html/body/div").text, "Content")
+  end
+
+  if RUBY_VERSION >= "3.1"
+    require_relative "./test_response_test/pattern_matching_test_cases"
+
+    include PatternMatchingTestCases
   end
 end
