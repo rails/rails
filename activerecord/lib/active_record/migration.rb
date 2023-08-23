@@ -559,6 +559,38 @@ module ActiveRecord
 
     # This must be defined before the inherited hook, below
     class Current < Migration # :nodoc:
+      def create_table(table_name, **options)
+        if block_given?
+          super { |t| yield compatible_table_definition(t) }
+        else
+          super
+        end
+      end
+
+      def change_table(table_name, **options)
+        if block_given?
+          super { |t| yield compatible_table_definition(t) }
+        else
+          super
+        end
+      end
+
+      def create_join_table(table_1, table_2, **options)
+        if block_given?
+          super { |t| yield compatible_table_definition(t) }
+        else
+          super
+        end
+      end
+
+      def drop_table(table_name, **options)
+        if block_given?
+          super { |t| yield compatible_table_definition(t) }
+        else
+          super
+        end
+      end
+
       def compatible_table_definition(t)
         t
       end
