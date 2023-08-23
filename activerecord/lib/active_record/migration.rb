@@ -551,6 +551,41 @@ module ActiveRecord
 
     # This must be defined before the inherited hook, below
     class Current < Migration # :nodoc:
+      def create_table(table_name, **options)
+        if block_given?
+          super { |t| yield compatible_table_definition(t) }
+        else
+          super
+        end
+      end
+
+      def change_table(table_name, **options)
+        if block_given?
+          super { |t| yield compatible_table_definition(t) }
+        else
+          super
+        end
+      end
+
+      def create_join_table(table_1, table_2, **options)
+        if block_given?
+          super { |t| yield compatible_table_definition(t) }
+        else
+          super
+        end
+      end
+
+      def drop_table(table_name, **options)
+        if block_given?
+          super { |t| yield compatible_table_definition(t) }
+        else
+          super
+        end
+      end
+
+      def compatible_table_definition(t)
+        t
+      end
     end
 
     def self.inherited(subclass) # :nodoc:
@@ -916,9 +951,7 @@ module ActiveRecord
     end
 
     def method_missing(method, *arguments, &block)
-      arg_list = arguments.map(&:inspect) * ", "
-
-      say_with_time "#{method}(#{arg_list})" do
+      say_with_time "#{method}(#{format_arguments(arguments)})" do
         unless connection.respond_to? :revert
           unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
             arguments[0] = proper_table_name(arguments.first, table_name_options)
@@ -1024,6 +1057,22 @@ module ActiveRecord
         else
           yield
         end
+      end
+
+      def format_arguments(arguments)
+        arg_list = arguments[0...-1].map(&:inspect)
+        last_arg = arguments.last
+        if last_arg.is_a?(Hash)
+          last_arg = last_arg.reject { |k, _v| internal_option?(k) }
+          arg_list << last_arg.inspect unless last_arg.empty?
+        else
+          arg_list << last_arg.inspect
+        end
+        arg_list.join(", ")
+      end
+
+      def internal_option?(option_name)
+        option_name.start_with?("_")
       end
 
       def command_recorder
