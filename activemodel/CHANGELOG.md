@@ -1,3 +1,13 @@
+## Rails 7.0.7.2 (August 22, 2023) ##
+
+*   No changes.
+
+
+## Rails 7.0.7.1 (August 22, 2023) ##
+
+*   No changes.
+
+
 ## Rails 7.0.7 (August 09, 2023) ##
 
 *   Error.full_message now strips ":base" from the message.

@@ -5,6 +5,18 @@
     *Jonathan del Strother*
 
 
+## Rails 7.0.7.2 (August 22, 2023) ##
+
+*   No changes.
+
+
+## Rails 7.0.7.1 (August 22, 2023) ##
+
+*   Use a temporary file for storing unencrypted files while editing
+
+    [CVE-2023-38037]
+
+
 ## Rails 7.0.7 (August 09, 2023) ##
 
 *   Fix `Cache::NullStore` with local caching for repeated reads.
