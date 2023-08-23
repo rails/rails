@@ -1022,6 +1022,22 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert subklass.method_defined?(:id), "subklass is missing id method"
   end
 
+  test "#undefine_attribute_methods undefines alias attribute methods" do
+    topic_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+
+      alias_attribute :subject_to_be_undefined, :title
+    end
+
+    topic = topic_class.new(title: "New topic")
+    assert_equal("New topic", topic.subject_to_be_undefined)
+    topic_class.undefine_attribute_methods
+
+    assert_raises(NoMethodError, match: /undefined method `subject_to_be_undefined'/) do
+      topic.subject_to_be_undefined
+    end
+  end
+
   test "define_attribute_method works with both symbol and string" do
     klass = Class.new(ActiveRecord::Base)
     klass.table_name = "foo"

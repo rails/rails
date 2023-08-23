@@ -215,6 +215,30 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert_raises(NoMethodError) { ModelWithAttributes.new.foo }
   end
 
+  test "#undefine_attribute_methods undefines alias attribute methods" do
+    topic_class = Class.new do
+      include ActiveModel::AttributeMethods
+      define_attribute_methods :title
+      alias_attribute :subject_to_be_undefined, :title
+
+      def attributes
+        { title: "Active Model Topic" }
+      end
+
+      private
+        def attribute(name)
+          attributes[name.to_sym]
+        end
+    end
+
+    assert_equal("Active Model Topic", topic_class.new.subject_to_be_undefined)
+    topic_class.undefine_attribute_methods
+
+    assert_raises(NoMethodError, match: /undefined method `subject_to_be_undefined'/) do
+      topic_class.new.subject_to_be_undefined
+    end
+  end
+
   test "accessing a suffixed attribute" do
     m = ModelWithAttributes2.new
     m.attributes = { "foo" => "bar" }
