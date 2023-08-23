@@ -33,8 +33,14 @@ module ActiveRecord
         return @attributes.fetch_value(name, &block) unless name == "id" && @primary_key
 
         if self.class.composite_primary_key?
-          @primary_key.map { |col| @attributes.fetch_value(col, &block) }
+          @attributes.fetch_value("id", &block)
         else
+          if @primary_key != "id"
+            ActiveRecord.deprecator.warn(<<-MSG.squish)
+              Using read_attribute(:id) to read the primary key value is deprecated.
+              Use #id instead.
+            MSG
+          end
           @attributes.fetch_value(@primary_key, &block)
         end
       end

@@ -1,3 +1,11 @@
+*   Deprecate `read_attribute(:id)` returning the primary key if the primary key is not `:id`.
+
+    Starting in Rails 7.2, `read_attribute(:id)` will return the value of the id column, regardless of the model's
+    primary key. To retrieve the value of the primary key, use `#id` instead. `read_attribute(:id)` for composite
+    primary key models will now return the value of the id column.
+
+    *Adrianna Chang*
+
 *   Fix `change_table` setting datetime precision for 6.1 Migrations
 
     *Hartley McGuire*
