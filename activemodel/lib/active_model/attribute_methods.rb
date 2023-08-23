@@ -333,7 +333,7 @@ module ActiveModel
         end
       end
 
-      # Removes all the previously dynamically defined methods from the class.
+      # Removes all the previously dynamically defined methods from the class, including alias attribute methods.
       #
       #   class Person
       #     include ActiveModel::AttributeMethods
@@ -341,6 +341,7 @@ module ActiveModel
       #     attr_accessor :name
       #     attribute_method_suffix '_short?'
       #     define_attribute_method :name
+      #     alias_attribute :first_name, :name
       #
       #     private
       #       def attribute_short?(attr)
@@ -350,11 +351,13 @@ module ActiveModel
       #
       #   person = Person.new
       #   person.name = 'Bob'
+      #   person.first_name  # => "Bob"
       #   person.name_short? # => true
       #
       #   Person.undefine_attribute_methods
       #
       #   person.name_short? # => NoMethodError
+      #   person.first_name  # => NoMethodError
       def undefine_attribute_methods
         generated_attribute_methods.module_eval do
           undef_method(*instance_methods)
