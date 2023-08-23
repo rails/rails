@@ -17,7 +17,12 @@ gem "rake", ">= 13"
 gem "sprockets-rails", ">= 2.0.0"
 gem "propshaft", ">= 0.1.7"
 gem "capybara", ">= 3.26"
-gem "selenium-webdriver", ">= 4.0.0"
+if RUBY_VERSION < "3"
+  gem "selenium-webdriver", "<= 4.9.0"
+  gem "webdrivers"
+else
+  gem "selenium-webdriver", ">= 4.11.0"
+end
 
 gem "rack-cache", "~> 1.2"
 gem "stimulus-rails"
@@ -108,10 +113,6 @@ end
 # Action Mailbox
 gem "aws-sdk-sns", require: false
 gem "webmock"
-
-group :ujs do
-  gem "webdrivers"
-end
 
 # Action View
 group :view do

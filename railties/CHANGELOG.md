@@ -1,3 +1,7 @@
+*   Omit `webdrivers` gem dependency from `Gemfile` template
+
+    *Sean Doyle*
+
 ## Rails 7.0.7.2 (August 22, 2023) ##
 
 *   No changes.
