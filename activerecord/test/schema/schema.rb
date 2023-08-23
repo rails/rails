@@ -1448,6 +1448,14 @@ ActiveRecord::Schema.define do
     t.bigint :toooooooo_long_a_id, null: false
     t.bigint :toooooooo_long_b_id, null: false
   end
+
+  create_table :goals, force: true do |t|
+  end
+
+  create_table :goal_states, force: true do |t|
+    t.integer :goal_id
+    t.string :state
+  end
 end
 
 Course.connection.create_table :courses, force: true do |t|

@@ -45,6 +45,10 @@ module ActiveRecord
         if left.empty? || right.empty?
           common
         else
+          if left.predicates[0].methods.include?(:left) && left.predicates[0].left.relation.class == Arel::Nodes::TableAlias
+            right.predicates[0].left.relation = Arel::Nodes::TableAlias.new(right.predicates[0].left.relation, left.predicates[0].left.relation.name)
+          end
+
           left = left.ast
           left = left.expr if left.is_a?(Arel::Nodes::Grouping)
 
