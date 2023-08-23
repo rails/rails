@@ -14,9 +14,8 @@ case ARGV.first
 when Rails::Command::HELP_MAPPINGS, "help", nil
   ARGV.shift
   Rails::Command.invoke :gem_help, ARGV
-when "plugin"
-  ARGV.shift
-  Rails::Command.invoke :plugin, ARGV
+when "plugin", "binstubs:change"
+  Rails::Command.invoke ARGV.shift, ARGV
 else
   Rails::Command.invoke :application, ARGV
 end
