@@ -53,4 +53,25 @@ class ConversionTest < ActiveModel::TestCase
   test "to_partial_path handles namespaced models" do
     assert_equal "helicopter/comanches/comanche", Helicopter::Comanche.new.to_partial_path
   end
+
+  test "#to_param_delimiter allows redefining the delimiter used in #to_param" do
+    old_delimiter = Contact.param_delimiter
+    Contact.param_delimiter = "_"
+    assert_equal("abc_xyz", Contact.new(id: ["abc", "xyz"]).to_param)
+  ensure
+    Contact.param_delimiter = old_delimiter
+  end
+
+  test "#to_param_delimiter is defined per class" do
+    old_contact_delimiter = Contact.param_delimiter
+    custom_contract = Class.new(Contact)
+
+    Contact.param_delimiter = "_"
+    custom_contract.param_delimiter = ";"
+
+    assert_equal("abc_xyz", Contact.new(id: ["abc", "xyz"]).to_param)
+    assert_equal("abc;xyz", custom_contract.new(id: ["abc", "xyz"]).to_param)
+  ensure
+    Contact.param_delimiter = old_contact_delimiter
+  end
 end
