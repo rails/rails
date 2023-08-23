@@ -65,14 +65,6 @@ module ActiveRecord
           super
         end
 
-        def create_table(table_name, **options)
-          if block_given?
-            super { |t| yield compatible_table_definition(t) }
-          else
-            super
-          end
-        end
-
         module TableDefinition
           def new_column_definition(name, type, **options)
             type = PostgreSQLCompat.compatible_timestamp_type(type, @conn)
@@ -110,30 +102,6 @@ module ActiveRecord
 
           def column(name, type, index: nil, **options)
             options[:precision] ||= nil
-            super
-          end
-        end
-
-        def create_table(table_name, **options)
-          if block_given?
-            super { |t| yield compatible_table_definition(t) }
-          else
-            super
-          end
-        end
-
-        def change_table(table_name, **options)
-          if block_given?
-            super { |t| yield compatible_table_definition(t) }
-          else
-            super
-          end
-        end
-
-        def create_join_table(table_1, table_2, **options)
-          if block_given?
-            super { |t| yield compatible_table_definition(t) }
-          else
             super
           end
         end
@@ -188,30 +156,6 @@ module ActiveRecord
 
           def invert_change_table_comment(args)
             [:change_table_comment, args]
-          end
-        end
-
-        def create_table(table_name, **options)
-          if block_given?
-            super { |t| yield compatible_table_definition(t) }
-          else
-            super
-          end
-        end
-
-        def change_table(table_name, **options)
-          if block_given?
-            super { |t| yield compatible_table_definition(t) }
-          else
-            super
-          end
-        end
-
-        def create_join_table(table_1, table_2, **options)
-          if block_given?
-            super { |t| yield compatible_table_definition(t) }
-          else
-            super
           end
         end
 
