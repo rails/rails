@@ -24,6 +24,14 @@ module ActiveModel
   module Conversion
     extend ActiveSupport::Concern
 
+    included do
+      ##
+      # :singleton-method:
+      #
+      # Accepts a string that will be used as a delimiter of object's key values in the `to_param` method.
+      class_attribute :param_delimiter, instance_reader: false, default: "-"
+    end
+
     # If your object is already designed to implement all of the \Active \Model
     # you can use the default <tt>:to_model</tt> implementation, which simply
     # returns +self+.
@@ -80,7 +88,7 @@ module ActiveModel
     #   person = Person.new(1)
     #   person.to_param # => "1"
     def to_param
-      (persisted? && key = to_key) ? key.join("-") : nil
+      (persisted? && key = to_key) ? key.join(self.class.param_delimiter) : nil
     end
 
     # Returns a +string+ identifying the path associated with the object.

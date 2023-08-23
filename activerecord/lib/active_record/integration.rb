@@ -55,8 +55,8 @@ module ActiveRecord
     #   user = User.find_by(name: 'Phusion')
     #   user_path(user)  # => "/users/Phusion"
     def to_param
-      # We can't use alias_method here, because method 'id' optimizes itself on the fly.
-      id && id.to_s # Be sure to stringify the id for routes
+      return unless id
+      Array(id).join(self.class.param_delimiter)
     end
 
     # Returns a stable cache key that can be used to identify this record.
