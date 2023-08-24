@@ -1,3 +1,11 @@
+*   Add `ActiveModel::Conversion.param_delimiter` to configure delimiter being used in `to_param`
+
+    *Nikita Vasilevsky*
+
+*   `undefine_attribute_methods` undefines alias attribute methods along with attribute methods.
+
+    *Nikita Vasilevsky*
+
 *   Error.full_message now strips ":base" from the message.
 
     *zzak*

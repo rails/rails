@@ -714,7 +714,20 @@ Once a file has been uploaded, there are a multitude of potential tasks, ranging
 Customizing Form Builders
 -------------------------
 
-The object yielded by `form_with` and `fields_for` is an instance of [`ActionView::Helpers::FormBuilder`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html). Form builders encapsulate the notion of displaying form elements for a single object. While you can write helpers for your forms in the usual way, you can also create a subclass of `ActionView::Helpers::FormBuilder`, and add the helpers there. For example,
+The object yielded by `form_with` and `fields_for` is an instance of
+[`ActionView::Helpers::FormBuilder`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html).
+Form builders encapsulate the notion of displaying form elements for a single object. While you can write helpers for
+your forms in the usual way, you can also create a subclass of `ActionView::Helpers::FormBuilder`, and add the helpers
+there. For example, assuming you have a helper method defined in your application called `text_field_with_label` as the
+following
+
+```ruby
+module ApplicationHelper
+  def text_field_with_label(form, attribute)
+    form.label(attribute) + form.text_field(attribute)
+  end
+end
+```
 
 ```erb
 <%= form_with model: @person do |form| %>
@@ -743,9 +756,11 @@ end
 If you reuse this frequently you could define a `labeled_form_with` helper that automatically applies the `builder: LabellingFormBuilder` option:
 
 ```ruby
-def labeled_form_with(model: nil, scope: nil, url: nil, format: nil, **options, &block)
-  options[:builder] = LabellingFormBuilder
-  form_with model: model, scope: scope, url: url, format: format, **options, &block
+module ApplicationHelper
+  def labeled_form_with(model: nil, scope: nil, url: nil, format: nil, **options, &block)
+    options[:builder] = LabellingFormBuilder
+    form_with model: model, scope: scope, url: url, format: format, **options, &block
+  end
 end
 ```
 

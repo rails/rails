@@ -48,8 +48,9 @@ jobs:
     - run: bin/check-changelogs ./rails
     - run: bin/check-config-docs ./rails
 
-    - uses: zzak/action-discord@v4
+    - uses: zzak/action-discord@v8
       continue-on-error: true
-      if: always() && github.ref_name == 'main'
+      if: failure() && github.ref_name == 'main'
       with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
         webhook: ${{ secrets.DISCORD_WEBHOOK }}

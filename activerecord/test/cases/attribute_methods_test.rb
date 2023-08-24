@@ -1022,6 +1022,22 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert subklass.method_defined?(:id), "subklass is missing id method"
   end
 
+  test "#undefine_attribute_methods undefines alias attribute methods" do
+    topic_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+
+      alias_attribute :subject_to_be_undefined, :title
+    end
+
+    topic = topic_class.new(title: "New topic")
+    assert_equal("New topic", topic.subject_to_be_undefined)
+    topic_class.undefine_attribute_methods
+
+    assert_raises(NoMethodError, match: /undefined method `subject_to_be_undefined'/) do
+      topic.subject_to_be_undefined
+    end
+  end
+
   test "define_attribute_method works with both symbol and string" do
     klass = Class.new(ActiveRecord::Base)
     klass.table_name = "foo"
@@ -1264,6 +1280,28 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     obj.title = "hey"
     assert_equal("hey", obj.subject)
     assert_equal("overridden_subject_was", obj.subject_was)
+  end
+
+  ParentWithAlias = Class.new(ActiveRecord::Base) do
+    self.table_name = "topics"
+    alias_attribute :parents_subject, :title
+  end
+
+  AbstractClassInBetween = Class.new(ParentWithAlias) do
+    self.abstract_class = true
+    alias_attribute :parents_subject, :title
+  end
+
+  ChildWithAnAliasFromAbstractClass = Class.new(AbstractClassInBetween) do
+  end
+
+  test "#alias_attribute with the same alias as parent doesn't issue a deprecation" do
+    ParentWithAlias.new # eagerly generate parents alias methods
+    obj = assert_not_deprecated(ActiveRecord.deprecator) do
+      ChildWithAnAliasFromAbstractClass.new
+    end
+    obj.title = "hey"
+    assert_equal("hey", obj.parents_subject)
   end
 
   test "#alias_attribute method on an abstract class is available on subclasses" do

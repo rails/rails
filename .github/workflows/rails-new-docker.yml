@@ -34,8 +34,9 @@ jobs:
     - name: Test container
       run: ruby -r ./.github/workflows/scripts/test-container.rb
 
-    - uses: zzak/action-discord@v4
+    - uses: zzak/action-discord@v8
       continue-on-error: true
-      if: always() && github.ref_name == 'main'
+      if: failure() && github.ref_name == 'main'
       with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
         webhook: ${{ secrets.DISCORD_WEBHOOK }}

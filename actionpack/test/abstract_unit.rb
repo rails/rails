@@ -26,6 +26,8 @@ require "active_support/dependencies"
 require "active_model"
 require "zeitwerk"
 
+ActiveSupport::Cache.format_version = 7.1
+
 module Rails
   class << self
     def env

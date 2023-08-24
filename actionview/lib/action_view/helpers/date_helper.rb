@@ -320,6 +320,10 @@ module ActionView
       #   # You can set :ampm option to true which will show the hours as: 12 PM, 01 AM .. 11 PM.
       #   time_select 'game', 'game_time', { ampm: true }
       #
+      #   # You can set :ignore_date option to true which will remove the hidden inputs for day,
+      #   # month, and year that are set by default on this helper when you only want the time inputs
+      #   time_select 'game', 'game_time', { ignore_date: true }
+      #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       #
       # Note: If the day is not included as an option but the month is, the day will be set to the 1st to ensure that

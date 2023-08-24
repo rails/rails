@@ -23,15 +23,29 @@ module ActionDispatch
     #   response.parsed_body.class    # => Nokogiri::HTML5::Document
     #   response.parsed_body.to_html  # => "<!DOCTYPE html>\n<html>\n..."
     #
+    #   assert_pattern { response.parsed_body.at("main") => { content: "Hello, world" } }
+    #
+    #   response.parsed_body.at("main") => {name:, content:}
+    #   assert_equal "main", name
+    #   assert_equal "Some main content", content
+    #
     #   get "/posts.json"
     #   response.content_type         # => "application/json; charset=utf-8"
     #   response.parsed_body.class    # => Array
     #   response.parsed_body          # => [{"id"=>42, "title"=>"Title"},...
     #
+    #   assert_pattern { response.parsed_body => [{ id: 42 }] }
+    #
     #   get "/posts/42.json"
     #   response.content_type         # => "application/json; charset=utf-8"
-    #   response.parsed_body.class    # => Hash
+    #   response.parsed_body.class    # => ActiveSupport::HashWithIndifferentAccess
     #   response.parsed_body          # => {"id"=>42, "title"=>"Title"}
+    #
+    #   assert_pattern { response.parsed_body => [{ title: /title/i }] }
+    #
+    #   response.parsed_body => {id:, title:}
+    #   assert_equal 42, id
+    #   assert_equal "Title", title
     def parsed_body
       @parsed_body ||= response_parser.call(body)
     end

@@ -21,9 +21,40 @@ guide.
 Major Features
 --------------
 
-### Add default Dockerfiles for Rails applications
+### Generate Dockerfiles for new Rails applications
 
-TODO: Add description https://github.com/rails/rails/pull/46762
+[Default Docker support](https://github.com/rails/rails/pull/46762) to new rails applications.
+When generating a new application, Rails will now include Docker-related files in the application.
+
+These files serve as a foundational setup for deploying your Rails application in a
+production environment using Docker. It's important to note that these files are not
+meant for development purposes.
+
+Here's a quick example of how to build and run your Rails app using these Docker files:
+
+```bash
+docker build -t app .
+docker volume create app-storage
+docker run --rm -it -v app-storage:/rails/storage -p 3000:3000 --env RAILS_MASTER_KEY=<your-config-master-key> app
+```
+
+You can also start a console or runner from this Docker image:
+
+```bash
+docker run --rm -it -v app-storage:/rails/storage --env RAILS_MASTER_KEY=<your-config-master-key> app console
+```
+
+For those looking to create a multi-platform image (e.g., Apple Silicon for AMD or Intel deployment),
+and push it to Docker Hub, follow these steps:
+
+```bash
+docker login -u <your-user>
+docker buildx create --use
+docker buildx build --push --platform=linux/amd64,linux/arm64 -t <your-user/image-name> .
+```
+
+This enhancement simplifies the deployment process, providing a convenient starting point for
+getting your Rails application up and running in a production environment.
 
 ### Add `ActiveRecord::Base.normalizes`
 
@@ -65,6 +96,72 @@ TODO: https://github.com/rails/rails/pull/45602
 
 TODO: https://github.com/rails/rails/pull/46049
 
+### Support pattern matching for JSON `response.parsed_body`
+
+When `ActionDispatch::IntegrationTest` tests blocks invoke
+`response.parsed_body` for JSON responses, their payloads will be available with
+indifferent access. This enables integration with [Ruby's Pattern
+Matching][pattern-matching], and built-in [Minitest support for pattern
+matching][minitest-pattern-matching]:
+
+```ruby
+get "/posts.json"
+
+response.content_type         # => "application/json; charset=utf-8"
+response.parsed_body.class    # => Array
+response.parsed_body          # => [{"id"=>42, "title"=>"Title"},...
+
+assert_pattern { response.parsed_body => [{ id: 42 }] }
+
+get "/posts/42.json"
+
+response.content_type         # => "application/json; charset=utf-8"
+response.parsed_body.class    # => ActiveSupport::HashWithIndifferentAccess
+response.parsed_body          # => {"id"=>42, "title"=>"Title"}
+
+assert_pattern { response.parsed_body => [{ title: /title/i }] }
+```
+
+[pattern-matching]: https://docs.ruby-lang.org/en/master/syntax/pattern_matching_rdoc.html
+[minitest-pattern-matching]: https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-assert_pattern
+
+### Extend `response.parsed_body` to parse HTML with Nokogiri
+
+[Extend the `ActionDispatch::Testing` module][#47144] to support parsing the
+value of an HTML `response.body` into a `Nokogiri::HTML5::Document` instance:
+
+```ruby
+get "/posts"
+
+response.content_type         # => "text/html; charset=utf-8"
+response.parsed_body.class    # => Nokogiri::HTML5::Document
+response.parsed_body.to_html  # => "<!DOCTYPE html>\n<html>\n..."
+```
+
+Newly added [Nokogiri support for pattern matching][nokogiri-pattern-matching],
+along with built-in [Minitest support for pattern
+matching][minitest-pattern-matching] presents opportunities to make test
+assertions about the structure and content of the HTML response:
+
+```ruby
+get "/posts"
+
+html = response.parsed_body # => <html>
+                            #      <head></head>
+                            #        <body>
+                            #          <main><h1>Some main content</h1></main>
+                            #        </body>
+                            #     </html>
+
+assert_pattern { html.at("main") => { content: "Some main content" } }
+assert_pattern { html.at("main") => { content: /content/ } }
+assert_pattern { html.at("main") => { children: [{ name: "h1", content: /content/ }] } }
+```
+
+[#47144]: https://github.com/rails/rails/pull/47144
+[nokogiri-pattern-matching]: https://nokogiri.org/rdoc/Nokogiri/XML/Attr.html#method-i-deconstruct_keys
+[minitest-pattern-matching]: https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-assert_pattern
+
 Railties
 --------
 
@@ -72,9 +169,22 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `bin/rails secrets:setup` command.
+
 ### Deprecations
 
+*   Deprecated usage of `Rails.application.secrets`.
+
+*   Deprecated `secrets:show` and `secrets:edit` commands in favor of `credentials`.
+
 ### Notable changes
+
+*   Add `sandbox_by_default` option to start rails console in sandbox mode by default.
+
+*   Add new syntax for support filtering tests by line ranges.
+
+*   Add `DATABASE` option that enables the specification of the target database when executing the
+    `rails railties:install:migrations` command to copy migrations.
 
 Action Cable
 ------------

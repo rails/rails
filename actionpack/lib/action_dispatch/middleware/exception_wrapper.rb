@@ -241,7 +241,7 @@ module ActionDispatch
     end
 
     private
-      class SourceMapLocation < DelegateClass(Thread::Backtrace::Location)
+      class SourceMapLocation < DelegateClass(Thread::Backtrace::Location) # :nodoc:
         def initialize(location, template)
           super(location)
           @template = template
