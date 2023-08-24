@@ -703,8 +703,8 @@
 
     Previously, when running this command:
 
-    ``` sh
-    bin/rails generate scaffold_controller Admin/Post --model-name Post
+    ```bash
+    $ bin/rails generate scaffold_controller Admin/Post --model-name Post
     ```
 
     the comments above the controller action would look like:
