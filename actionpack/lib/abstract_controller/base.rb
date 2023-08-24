@@ -89,15 +89,15 @@ module AbstractController
       # ==== Returns
       # * <tt>Set</tt> - A set of all methods that should be considered actions.
       def action_methods
-        # All public instance methods of this class, including ancestors
         @action_methods ||= begin
-                              # Except for public instance methods of Base and its ancestors
-                              methods = public_instance_methods(true) - internal_methods
-                              # Except for public instance methods of Base and its ancestors
-                              methods.concat(public_instance_methods(false))
-                              methods.map!(&:to_s)
-                              methods.to_set
-                            end
+          # All public instance methods of this class, including ancestors
+          # except for public instance methods of Base and its ancestors.
+          methods = public_instance_methods(true) - internal_methods
+          # Be sure to include shadowed public instance methods of this class.
+          methods.concat(public_instance_methods(false))
+          methods.map!(&:to_s)
+          methods.to_set
+        end
       end
 
       # action_methods are cached and there is sometimes a need to refresh
