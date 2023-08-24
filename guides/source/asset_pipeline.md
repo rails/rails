@@ -155,18 +155,18 @@ All of the configured import maps should be attached in `<head>` element of your
 
 ### Using npm packages via JavaScript CDNs
 
-You can use the `./bin/importmap` command that's added as part of the `importmap-rails` install to pin, unpin, or update npm packages in your import map. The binstub uses [`JSPM.org`](https://jspm.org/).
+You can use the `bin/importmap` command that's added as part of the `importmap-rails` install to pin, unpin, or update npm packages in your import map. The binstub uses [`JSPM.org`](https://jspm.org/).
 
 It works like so:
 
-```sh
-./bin/importmap pin react react-dom
+```bash
+$ bin/importmap pin react react-dom
 Pinning "react" to https://ga.jspm.io/npm:react@17.0.2/index.js
 Pinning "react-dom" to https://ga.jspm.io/npm:react-dom@17.0.2/index.js
 Pinning "object-assign" to https://ga.jspm.io/npm:object-assign@4.1.1/index.js
 Pinning "scheduler" to https://ga.jspm.io/npm:scheduler@0.20.2/index.js
 
-./bin/importmap json
+bin/importmap json
 
 {
   "imports": {
@@ -190,38 +190,38 @@ import ReactDOM from "react-dom"
 
 You can also designate a specific version to pin:
 
-```sh
-./bin/importmap pin react@17.0.1
+```bash
+$ bin/importmap pin react@17.0.1
 Pinning "react" to https://ga.jspm.io/npm:react@17.0.1/index.js
 Pinning "object-assign" to https://ga.jspm.io/npm:object-assign@4.1.1/index.js
 ```
 
 Or even remove pins:
 
-```sh
-./bin/importmap unpin react
+```bash
+$ bin/importmap unpin react
 Unpinning "react"
 Unpinning "object-assign"
 ```
 
 You can control the environment of the package for packages with separate "production" (the default) and "development" builds:
 
-```sh
-./bin/importmap pin react --env development
+```bash
+$ bin/importmap pin react --env development
 Pinning "react" to https://ga.jspm.io/npm:react@17.0.2/dev.index.js
 Pinning "object-assign" to https://ga.jspm.io/npm:object-assign@4.1.1/index.js
 ```
 
 You can also pick an alternative, supported CDN provider when pinning, like [`unpkg`](https://unpkg.com/) or [`jsdelivr`](https://www.jsdelivr.com/) ([`jspm`](https://jspm.org/) is the default):
 
-```sh
-./bin/importmap pin react --from jsdelivr
+```bash
+$ bin/importmap pin react --from jsdelivr
 Pinning "react" to https://cdn.jsdelivr.net/npm/react@17.0.2/index.js
 ```
 
 Remember, though, that if you switch a pin from one provider to another, you may have to clean up dependencies added by the first provider that isn't used by the second provider.
 
-Run `./bin/importmap` to see all options.
+Run `bin/importmap` to see all options.
 
 Note that this command is merely a convenience wrapper to resolving logical package names to CDN URLs. You can also just lookup the CDN URLs yourself, and then pin those. For example, if you wanted to use Skypack for React, you could just add the following to `config/importmap.rb`:
 
