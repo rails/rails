@@ -584,6 +584,8 @@ class QueryCacheTest < ActiveRecord::TestCase
       Thread.new {
         assert_not ActiveRecord::Base.connection_pool.query_cache_enabled
         assert_not ActiveRecord::Base.connection.query_cache_enabled
+
+        ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
       }.join
     }.call({})
   end
