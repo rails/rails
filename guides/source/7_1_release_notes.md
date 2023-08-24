@@ -138,9 +138,22 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `bin/rails secrets:setup` command.
+
 ### Deprecations
 
+*   Deprecated usage of `Rails.application.secrets`.
+
+*   Deprecated `secrets:show` and `secrets:edit` commands in favor of `credentials`.
+
 ### Notable changes
+
+*   Add `sandbox_by_default` option to start rails console in sandbox mode by default.
+
+*   Add new syntax for support filtering tests by line ranges.
+
+*   Add `DATABASE` option that enables the specification of the target database when executing the
+    `rails railties:install:migrations` command to copy migrations.
 
 Action Cable
 ------------
