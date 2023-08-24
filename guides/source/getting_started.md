@@ -1917,7 +1917,7 @@ Our blog has <%= Article.public_count %> articles and counting!
 <%= link_to "New Article", new_article_path %>
 ```
 
-To finish up, we will add a select box to the forms, and let the user select the status when they create a new article or post a new comment. We can also specify the default status as `public`. One problem with simply selecting a default status, though, is that some articles may have already been created with a different status, or none at all (`nil`). Those will show up as `public` in the `edit` form. To solve this, in the article version, we can select the existing status, but if there is none yet, _then_ we select `public`, though this will only become true if the form is submitted. In `app/views/articles/_form.html.erb`, we can add:
+To finish up, we will add a select box to the forms, and let the user select the status when they create a new article or post a new comment. We can also select the status of the object, or a default of `public` if it hasn't been set yet. In `app/views/articles/_form.html.erb`, we can add:
 
 ```html+erb
 <div>
