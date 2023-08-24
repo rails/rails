@@ -451,6 +451,204 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_add_migration_with_key_value_attribute_options
+    migration = "add_fields_to_messages"
+    run_generator [
+      migration,
+      "title:string{null:false}",
+      "published:boolean{default:true}",
+      "description:text{default:'hello, world!'}",
+      "tags:string{array,default:[]}",
+      "priority:float{default:0.1}"
+    ]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_column :messages, :title, :string, null: false/, change)
+        assert_match(/add_column :messages, :published, :boolean, default: true/, change)
+        assert_match(/add_column :messages, :description, :text, default: "hello, world!"/, change)
+        assert_match(/add_column :messages, :tags, :string, array: true, default: \[\]/, change)
+        assert_match(/add_column :messages, :priority, :float, default: 0.1/, change)
+      end
+    end
+  end
+
+  def test_create_table_migration_with_key_value_attribute_options
+    run_generator [
+      "create_messages",
+      "title:string{null:false}",
+      "published:boolean{default:true}",
+      "description:text{default:'hello, world!'}",
+      "tags:string{array,default:[]}",
+      "priority:float{default:0.1}"
+    ]
+    assert_migration "db/migrate/create_messages.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :messages/, change)
+        assert_match(/  t\.string :title, null: false/, change)
+        assert_match(/  t\.boolean :published, default: true/, change)
+        assert_match(/  t\.text :description, default: "hello, world!"/, change)
+        assert_match(/  t\.string :tags, array: true, default: \[\]/, change)
+        assert_match(/  t\.float :priority, default: 0.1/, change)
+      end
+    end
+  end
+
+  def test_remove_migration_with_key_value_attribute_options
+    migration = "remove_content_from_messages"
+    run_generator [
+      migration,
+      "title:string{null:false}",
+      "published:boolean{default:true}",
+      "description:text{default:'hello, world!'}",
+      "tags:string{array,default:[]}",
+      "priority:float{default:0.1}"
+    ]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/remove_column :messages, :title, :string, null: false/, change)
+        assert_match(/remove_column :messages, :published, :boolean, default: true/, change)
+        assert_match(/remove_column :messages, :description, :text, default: "hello, world!"/, change)
+        assert_match(/remove_column :messages, :tags, :string, array: true, default: \[\]/, change)
+        assert_match(/remove_column :messages, :priority, :float, default: 0.1/, change)
+      end
+    end
+  end
+
+  def test_add_migration_ignores_unknown_key_value_attribute_options
+    migration = "add_title_to_messages"
+    run_generator [migration, "title:string{null:false,foo:bar}"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_column :messages, :title, :string, null: false/, change)
+      end
+    end
+  end
+
+  def test_create_table_migration_ignores_unknown_key_value_attribute_options
+    run_generator ["create_messages", "title:string{null:false,foo:bar}"]
+    assert_migration "db/migrate/create_messages.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :messages/, change)
+        assert_match(/  t\.string :title, null: false/, change)
+      end
+    end
+  end
+
+  def test_remove_migration_ignores_unknown_key_value_attribute_options
+    migration = "remove_content_from_messages"
+    run_generator [migration, "title:string{null:false,foo:bar}"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/remove_column :messages, :title, :string, null: false/, change)
+      end
+    end
+  end
+
+  def test_add_migration_with_attributes_index_declaration_and_key_value_attribute_options
+    migration = "add_fields_to_coupons"
+    run_generator [
+      migration,
+      "name:string{limit:40,null:false,default:''}:index",
+      "discount:decimal{precision:3,scale:4}:uniq",
+    ]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_column :coupons, :name, :string, limit: 40, null: false, default: ""/, change)
+        assert_match(/add_column :coupons, :discount, :decimal, precision: 3, scale: 4/, change)
+      end
+      assert_match(/add_index :coupons, :name/, content)
+      assert_match(/add_index :coupons, :discount, unique: true/, content)
+    end
+  end
+
+  def test_create_table_migration_with_attributes_index_declaration_and_key_value_attribute_options
+    migration = "create_coupons"
+    run_generator [
+      migration,
+      "name:string{limit:40,null:false,default:''}:index",
+      "discount:decimal{precision:3,scale:4}:uniq",
+    ]
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :coupons/, change)
+        assert_match(/  t\.string :name, limit: 40, null: false, default: ""/, change)
+        assert_match(/  t\.decimal :discount, precision: 3, scale: 4/, change)
+      end
+      assert_match(/add_index :coupons, :name/, content)
+      assert_match(/add_index :coupons, :discount, unique: true/, content)
+    end
+  end
+
+  def test_remove_migration_with_attributes_index_declaration_and_key_value_attribute_options
+    migration = "remove_fields_from_coupons"
+    run_generator [
+      migration,
+      "title:string{limit:40,null:false,default:''}:index",
+      "discount:decimal{precision:3,scale:4}:uniq",
+    ]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/remove_column :coupons, :title, :string, limit: 40, null: false, default: ""/, change)
+        assert_match(/remove_column :coupons, :discount, :decimal, precision: 3, scale: 4/, change)
+
+        assert_match(/remove_index :coupons, :title/, change)
+        assert_match(/remove_index :coupons, :discount, unique: true/, change)
+      end
+    end
+  end
+
+  def test_add_migration_with_references_type_ignores_index_options
+    migration = "add_owner_to_messages"
+    run_generator [migration, "owner:references{foreign_key:{table_name:users}}:uniq{name:'will_be_ignored'}"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_reference :messages, :owner, foreign_key: {:table_name=>"users"}, null: false/, change)
+      end
+      assert_no_match(/add_index :messages, :owner, unique: true, name: "will_be_ignored"/, content)
+    end
+  end
+
+  def test_create_table_migration_with_references_type_ignores_index_options
+    run_generator ["create_messages", "owner:references{foreign_key:{table_name:users}}:uniq{name:'will_be_ignored'}"]
+    assert_migration "db/migrate/create_messages.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :messages/, change)
+        assert_match(/  t\.references :owner, foreign_key: {:table_name=>"users"}, null: false/, change)
+      end
+      assert_no_match(/add_index :messages, :owner, unique: true, name: "will_be_ignored"/, content)
+    end
+  end
+
+  def test_remove_migration_with_references_type_ignores_index_options
+    migration = "remove_content_from_messages"
+    run_generator [migration, "owner:references{foreign_key:{table_name:users}}:uniq{name:'will_be_ignored'}"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/remove_reference :messages, :owner, foreign_key: {:table_name=>"users"}, null: false/, change)
+      end
+    end
+  end
+
+  def test_add_migration_with_key_value_index_options
+    migration = "add_title_to_messages"
+    run_generator [migration, "title:string:uniq{name:by_title}"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_column :messages, :title, :string/, change)
+      end
+      assert_match(/add_index :messages, :title, name: "by_title", unique: true/, content)
+    end
+  end
+
   private
     def with_singular_table_name
       old_state = ActiveRecord::Base.pluralize_table_names
