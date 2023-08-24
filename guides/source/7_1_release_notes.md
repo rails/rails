@@ -21,9 +21,40 @@ guide.
 Major Features
 --------------
 
-### Add default Dockerfiles for Rails applications
+### Generate Dockerfiles for new Rails applications
 
-TODO: Add description https://github.com/rails/rails/pull/46762
+[Default Docker support](https://github.com/rails/rails/pull/46762) to new rails applications.
+When generating a new application, Rails will now include Docker-related files in the application.
+
+These files serve as a foundational setup for deploying your Rails application in a
+production environment using Docker. It's important to note that these files are not
+meant for development purposes.
+
+Here's a quick example of how to build and run your Rails app using these Docker files:
+
+```bash
+docker build -t app .
+docker volume create app-storage
+docker run --rm -it -v app-storage:/rails/storage -p 3000:3000 --env RAILS_MASTER_KEY=<your-config-master-key> app
+```
+
+You can also start a console or runner from this Docker image:
+
+```bash
+docker run --rm -it -v app-storage:/rails/storage --env RAILS_MASTER_KEY=<your-config-master-key> app console
+```
+
+For those looking to create a multi-platform image (e.g., Apple Silicon for AMD or Intel deployment),
+and push it to Docker Hub, follow these steps:
+
+```bash
+docker login -u <your-user>
+docker buildx create --use
+docker buildx build --push --platform=linux/amd64,linux/arm64 -t <your-user/image-name> .
+```
+
+This enhancement simplifies the deployment process, providing a convenient starting point for
+getting your Rails application up and running in a production environment.
 
 ### Add `ActiveRecord::Base.normalizes`
 
