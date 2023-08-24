@@ -12,7 +12,7 @@ module ActiveSupport
       parse_message_for_trace + super
     end
 
-    class BacktraceLocation < Struct.new(:path, :lineno, :to_s)
+    class BacktraceLocation < Struct.new(:path, :lineno, :to_s) # :nodoc:
       def spot(_)
       end
 
@@ -20,7 +20,7 @@ module ActiveSupport
       end
     end
 
-    class BacktraceLocationProxy < DelegateClass(Thread::Backtrace::Location)
+    class BacktraceLocationProxy < DelegateClass(Thread::Backtrace::Location) # :nodoc:
       def initialize(loc, ex)
         super(loc)
         @ex = ex
