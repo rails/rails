@@ -17,6 +17,7 @@ module ActionText
   autoload :AttachmentGallery
   autoload :Attachment
   autoload :Attribute
+  autoload :Column
   autoload :Content
   autoload :Encryption
   autoload :Fragment

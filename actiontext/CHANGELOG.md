@@ -1,3 +1,9 @@
+*   Added the possibility to use ActionText while storing HTML data in a string column of the
+    model table, instead using a separate table with polymorphism.
+    Use the macro `rich_text_column :column_name` in the model.
+
+    *Bruno Enten*
+
 *   Use `Rails::HTML5::SafeListSanitizer` by default in the Rails 7.1 configuration if it is
     supported.
 
