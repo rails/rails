@@ -21,7 +21,6 @@ module Arel # :nodoc: all
       private
         def visit_Arel_Nodes_DeleteStatement(o, collector)
           o = prepare_delete_statement(o)
-
           if has_join_sources?(o)
             collector << "DELETE "
             visit o.relation.left, collector
@@ -50,7 +49,12 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_InsertStatement(o, collector)
           collector << "INSERT INTO "
-          collector = visit o.relation, collector
+
+          if o.relation.table_alias
+            collector << "#{o.relation.name }"
+          else
+            collector = visit o.relation, collector
+          end
 
           unless o.columns.empty?
             collector << " ("
@@ -575,7 +579,7 @@ module Arel # :nodoc: all
           end
 
           if o.table_alias
-            collector << " " << quote_table_name(o.table_alias)
+            collector << " AS " << quote_table_name(o.table_alias)
           end
 
           collector
@@ -911,6 +915,15 @@ module Arel # :nodoc: all
 
         def has_join_sources?(o)
           o.relation.is_a?(Nodes::JoinSource) && !o.relation.right.empty?
+        end
+
+        def has_table_alias(o)
+          return o.relation.table_alias if o.relation.class == Arel::Table
+          nil
+        end
+
+        def has_mysql_adapter(connection)
+          connection&.instance_values["config"]&.keys&.respond_to?(:adapter) && connection.instance_values["config"][:adapter] == "mysql2"
         end
 
         def has_limit_or_offset_or_orders?(o)
