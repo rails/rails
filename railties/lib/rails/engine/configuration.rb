@@ -50,6 +50,9 @@ module Rails
           paths.add "app/mailers",         eager_load: true
           paths.add "app/views"
 
+          # If you add more lib subdirectories here that should not be managed
+          # by the main autoloader, please update the config.autoload_lib call
+          # in the template that generates config/application.rb accordingly.
           paths.add "lib",                 load_path: true
           paths.add "lib/assets",          glob: "*"
           paths.add "lib/tasks",           glob: "**/*.rake"
