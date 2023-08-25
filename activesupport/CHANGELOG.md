@@ -1,3 +1,8 @@
+*   Fix `TimeWithZone` still using deprecated `#to_s` when `ENV` or `config` to
+    disable it are set.
+
+    *Hartley McGuire*
+
 *   Fix CacheStore#write_multi when using a distributed Redis cache with a connection pool.
 
     Fixes [#48938](https://github.com/rails/rails/issues/48938).
