@@ -121,7 +121,7 @@ class IntegrationTest < ActiveRecord::TestCase
     assert_equal("1;123", Cpk::Book.new(id: [1, 123]).to_param)
   ensure
     Cpk::Order.param_delimiter = old_order_delimiter
-    Cpk::Order.param_delimiter = old_book_delimiter
+    Cpk::Book.param_delimiter = old_book_delimiter
   end
 
   def test_cache_key_for_existing_record_is_not_timezone_dependent
