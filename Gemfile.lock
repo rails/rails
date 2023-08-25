@@ -94,6 +94,7 @@ PATH
       mini_mime (>= 1.1.0)
     activesupport (7.0.8)
       base64
+      bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
       drb
       i18n (>= 1.6, < 2)
@@ -164,6 +165,7 @@ GEM
     bcrypt (3.1.18)
     beaneater (1.1.3)
     benchmark-ips (2.10.0)
+    bigdecimal (3.1.5)
     blade (0.7.3)
       activesupport (>= 3.0.0)
       blade-qunit_adapter (>= 2.0.1)
