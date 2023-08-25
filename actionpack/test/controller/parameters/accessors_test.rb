@@ -421,4 +421,14 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     @params.dig(:person, :addresses)[0] = { city: "Boston", state: "Massachusetts" }
     assert_equal "Boston", @params.dig(:person, :addresses, 0, :city)
   end
+
+  test "#extract_value splits param by delimiter" do
+    params = ActionController::Parameters.new(
+      id: "1_123",
+      tags: "ruby,rails,web"
+    )
+
+    assert_equal(["1", "123"], params.extract_value(:id))
+    assert_equal(["ruby", "rails", "web"], params.extract_value(:tags, delimiter: ","))
+  end
 end

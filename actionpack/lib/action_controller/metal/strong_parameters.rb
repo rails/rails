@@ -926,6 +926,15 @@ module ActionController
       end
     end
 
+    # Returns parameter value for the given +key+ separated by +delimiter+.
+    #
+    #   params = ActionController::Parameters.new(id: "1_123", tags: "ruby,rails")
+    #   params.extract_value(:id) # => ["1", "123"]
+    #   params.extract_value(:tags, delimiter: ",") # => ["ruby", "rails"]
+    def extract_value(key, delimiter: "_")
+      @parameters[key].split(delimiter)
+    end
+
     protected
       attr_reader :parameters
 
