@@ -71,6 +71,16 @@ module ActionMailer
     initializer "action_mailer.set_autoload_paths", before: :set_autoload_paths do |app|
       options = app.config.action_mailer
       app.config.paths["test/mailers/previews"].concat(options.preview_paths)
+
+      # Preview paths configuration needs a pass.
+      #
+      # config.paths is cached as soon as it is accessed. Therefore, mutating
+      # paths["test/mailers/previews"] does not guarantee config.autoload_paths
+      # is going to include them.
+      #
+      # If config.paths was accessed before, config.autoload_paths is going to
+      # have whatever paths["test/mailers/previews"] had when cached.
+      app.config.autoload_paths.concat(options.preview_paths)
     end
 
     initializer "action_mailer.compile_config_methods" do
