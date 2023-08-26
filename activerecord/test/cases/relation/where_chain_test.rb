@@ -8,6 +8,8 @@ require "models/essay"
 require "models/comment"
 require "models/categorization"
 require "models/book"
+require "models/goal"
+require "models/goal_state"
 
 module ActiveRecord
   class WhereChainTest < ActiveRecord::TestCase
@@ -165,6 +167,11 @@ module ActiveRecord
 
     def test_missing_with_enum_extended_late
       assert_equal Author.find(2), Author.order(id: :desc).joins(:reading_listing).where.missing(:unread_listing).extending(Author::NamedExtension).first
+    end
+
+    def test_missing_merge_or
+      Goal.create!
+      assert_equal Goal.find(1), Goal.no_state.first
     end
 
     def test_not_inverts_where_clause
