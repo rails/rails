@@ -2002,6 +2002,10 @@ module ActiveRecord
           case columns_aliases
           when Hash
             columns_aliases.map do |column, column_alias|
+              if values[:joins]&.include?(key)
+                references = PredicateBuilder.references({ key.to_s => fields[key] })
+                self.references_values |= references unless references.empty?
+              end
               arel_column("#{key}.#{column}") do
                 predicate_builder.resolve_arel_attribute(key.to_s, column)
               end.as(column_alias.to_s)

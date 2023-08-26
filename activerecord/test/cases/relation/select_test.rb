@@ -45,6 +45,21 @@ module ActiveRecord
       end
     end
 
+    def test_select_with_hash_and_table_alias
+      post = Post.joins(:comments, :comments_with_extend)
+        .select(
+          :title,
+          posts: { title: :post_title },
+          comments: { body: :comment_body },
+          comments_with_extend: { body: :comment_body_2 }
+        )
+        .take
+
+      assert_equal post.title, post.post_title
+      assert_not_nil post.comment_body
+      assert_not_nil post.comment_body_2
+    end
+
     def test_select_with_invalid_nested_field
       assert_raises(ActiveRecord::StatementInvalid) do
         Post.select(posts: { "UPPER(title)" => :post_title }).take
