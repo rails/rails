@@ -107,8 +107,16 @@ module ActiveRecord
       def missing(*associations)
         associations.each do |association|
           reflection = scope_association_reflection(association)
+          alias_table_names = []
+          alias_table_names.push(@scope.table_name)
+          if @scope.values[:joins]
+            @scope.values[:joins].each do |join|
+              current_join = scope_association_reflection(join)
+              alias_table_names.push(current_join.table_name)
+            end
+          end
           @scope.left_outer_joins!(association)
-          if reflection.options[:class_name]
+          if reflection.options[:class_name] && alias_table_names.include?(reflection.table_name)
             @scope.where!(association => { reflection.association_primary_key => nil })
           else
             @scope.where!(reflection.table_name => { reflection.association_primary_key => nil })
@@ -1516,7 +1524,7 @@ module ActiveRecord
           end
           references = PredicateBuilder.references(opts)
           self.references_values |= references unless references.empty?
-
+          # debugger
           parts = predicate_builder.build_from_hash(opts) do |table_name|
             lookup_table_klass_from_join_dependencies(table_name)
           end
@@ -1645,6 +1653,7 @@ module ActiveRecord
       end
 
       def build_join_buckets
+        # debugger
         buckets = Hash.new { |h, k| h[k] = [] }
 
         unless left_outer_joins_values.empty?
@@ -2002,6 +2011,10 @@ module ActiveRecord
           case columns_aliases
           when Hash
             columns_aliases.map do |column, column_alias|
+              if values[:joins]&.include?(key)
+                references = PredicateBuilder.references({ key.to_s => fields[key] })
+                self.references_values |= references unless references.empty?
+              end
               arel_column("#{key}.#{column}") do
                 predicate_builder.resolve_arel_attribute(key.to_s, column)
               end.as(column_alias.to_s)
