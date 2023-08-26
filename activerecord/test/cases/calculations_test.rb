@@ -1202,27 +1202,30 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_functions_without_alias
-    expected = if current_adapter?(:PostgreSQLAdapter)
-      # PostgreSQL returns the same name for each column in the given query, so each column is named "coalesce"
-      # As a result Rails cannot accurately type cast each value.
-      # To work around this, you should use aliases in your select statement (see test_pluck_functions_with_alias).
-      [
-        ["1", "The First Topic"], ["2", "The Second Topic of the day"],
-        ["3", "The Third Topic of the day"], ["4", "The Fourth Topic of the day"],
-        ["5", "The Fifth Topic of the day"]
-      ]
-    else
-      [
-        [1, "The First Topic"], [2, "The Second Topic of the day"],
-        [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"],
-        [5, "The Fifth Topic of the day"]
-      ]
-    end
+    expected = [
+      [1, "The First Topic"], [2, "The Second Topic of the day"],
+      [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"],
+      [5, "The Fifth Topic of the day"]
+    ]
 
     assert_equal expected, Topic.order(:id).pluck(
       Arel.sql("COALESCE(id, 0)"),
       Arel.sql("COALESCE(title, 'untitled')")
     )
+  end
+
+  def test_column_types_typecast_with_duplicate_column_names
+    NumericData.create!(temperature: 1.0, decimal_number_big_precision: 5.23)
+    NumericData.create!(temperature: 2.0, decimal_number_big_precision: 4.56)
+    result = NumericData.pluck("sum(temperature)", "sum(decimal_number_big_precision)")
+
+    if current_adapter?(:PostgreSQLAdapter)
+      assert_equal Float, result.first.first.class
+      assert_equal BigDecimal, result.first.second.class
+    else
+      assert_equal Float, result.first.first.class
+      assert_equal Integer, result.first.second.class
+    end
   end
 
   def test_calculation_with_polymorphic_relation
