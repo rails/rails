@@ -28,6 +28,15 @@ module ActionText
       #   Message.all.with_all_rich_text # Loads all rich text associations.
       #
       # If a column: parameter is passed with the name of a column, it will be used instead of a separate model to hold data.
+      # Example:
+      #
+      #   create_table :messages do |t|
+      #     t.string   :content
+      #   end
+      #
+      #   class Message < ActiveRecord::Base
+      #     rich_text_column :content
+      #   end
       #
       # ==== Options
       #
@@ -51,6 +60,7 @@ module ActionText
         end
       end
 
+      # Associated model storage
       def rich_text_table(name, encrypted: false, strict_loading: strict_loading_by_default)
         class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}
@@ -75,28 +85,6 @@ module ActionText
         scope :"with_rich_text_#{name}_and_embeds", -> { includes("rich_text_#{name}": { embeds_attachments: :blob }) }
       end
 
-      # Enable rich text support for a column of the model's table, instead of using an association.
-      # Example:
-      #
-      #   create_table :messages do |t|
-      #     t.string   :content
-      #   end
-      #
-      #   class Message < ActiveRecord::Base
-      #     rich_text_column :content
-      #   end
-      #
-      #   message = Message.create!(content: "<h1>Funny times!</h1>")
-      #   message.content? #=> true
-      #   message.content.to_s # => "<h1>Funny times!</h1>"
-      #   message.content.to_plain_text # => "Funny times!"
-      #
-      # Attachments links sent via the Trix-powered editor will be processed and associated with the model using Active Storage.
-      #
-      # ==== Parameters
-      #
-      # * <tt>:column</tt> - The name of the model table column to use for storage. Required.
-      #
       def rich_text_column(name, column:)
         class_eval <<-CODE, __FILE__, __LINE__ + 1
           has_many_attached :#{name}_rich_text_embeds
