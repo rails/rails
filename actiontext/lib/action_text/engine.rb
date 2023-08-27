@@ -30,12 +30,6 @@ module ActionText
       end
     end
 
-    initializer "action_text.column" do
-      ActiveSupport.on_load(:active_record) do
-        include ActionText::Column
-      end
-    end
-
     initializer "action_text.asset" do
       if Rails.application.config.respond_to?(:assets)
         Rails.application.config.assets.precompile += %w( actiontext.js trix.js trix.css )

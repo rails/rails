@@ -1,6 +1,6 @@
 *   Added the possibility to use ActionText while storing HTML data in a string column of the
     model table, instead using a separate table with polymorphism.
-    Use the macro `rich_text_column :column_name` in the model.
+    Use `has_rich_text :body, column: true` in the model.
 
     *Bruno Enten*
 

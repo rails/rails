@@ -37,7 +37,6 @@ module ActionText
       else
         @body = ActionText::Content.new(content)
       end
-
     end
 
     # Returns the +body+ attribute as plain text with all HTML tags removed.
