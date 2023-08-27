@@ -8,6 +8,13 @@ class BacktraceCleanerTest < ActiveSupport::TestCase
     @cleaner = Rails::BacktraceCleaner.new
   end
 
+  test "should filter '\tfrom' before processing" do
+    backtrace = ["\tfrom /Path/to/railsapp/app/models/user.rb:22:in `bar'"]
+    result = @cleaner.clean(backtrace, :all)
+    assert_equal "/Path/to/railsapp/app/models/user.rb:22:in `bar'", result[0]
+    assert_equal 1, result.length
+  end
+
   test "#clean should consider traces from irb lines as User code" do
     backtrace = [ "(irb):1",
                   "/Path/to/rails/railties/lib/rails/commands/console.rb:77:in `start'",
