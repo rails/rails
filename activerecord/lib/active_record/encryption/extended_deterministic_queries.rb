@@ -28,7 +28,6 @@ module ActiveRecord
         ActiveRecord::Relation.prepend(RelationQueries)
         ActiveRecord::Base.include(CoreQueries)
         ActiveRecord::Encryption::EncryptedAttributeType.prepend(ExtendedEncryptableType)
-        Arel::Nodes::HomogeneousIn.prepend(InWithAdditionalValues)
       end
 
       # When modifying this file run performance tests in
@@ -150,20 +149,6 @@ module ActiveRecord
             data.value
           else
             super
-          end
-        end
-      end
-
-      module InWithAdditionalValues
-        def proc_for_binds
-          -> value { ActiveModel::Attribute.with_cast_value(attribute.name, value, encryption_aware_type_caster) }
-        end
-
-        def encryption_aware_type_caster
-          if attribute.type_caster.is_a?(ActiveRecord::Encryption::EncryptedAttributeType)
-            attribute.type_caster.cast_type
-          else
-            attribute.type_caster
           end
         end
       end
