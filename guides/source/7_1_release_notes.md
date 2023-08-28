@@ -268,7 +268,19 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
 
 ### Deprecations
 
+*   Deprecated `config.action_mailer.preview_path`.
+
+*   Deprecated passing params to `assert_enqueued_email_with` via the `:args` kwarg.
+    Now supports a `:params` kwarg, so use that to pass params.
+
 ### Notable changes
+
+*   Add `config.action_mailer.preview_paths` to support multiple preview paths.
+
+*   Add `capture_emails` in the test helper to capture all emails sent in a block.
+
+*   Add `deliver_enqueued_emails` to `ActionMailer::TestHelper` to deliver all enqueued email jobs.
+
 
 Active Record
 -------------
@@ -281,7 +293,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `ActiveRecord::Base` config accessors
 
-* Remove support for `:include_replicas` on `configs_for`. Use `:include_hidden` instead.
+*   Remove support for `:include_replicas` on `configs_for`. Use `:include_hidden` instead.
 
 *   Remove deprecated `config.active_record.partial_writes`.
 
