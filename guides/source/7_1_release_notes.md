@@ -64,9 +64,28 @@ TODO: Add description https://github.com/rails/rails/pull/43945
 
 TODO: Add description https://github.com/rails/rails/pull/44189
 
-### Add `perform_all_later`` to enqueue multiple jobs at once
+### Add `perform_all_later` to enqueue multiple jobs at once
 
-TODO: Add description https://github.com/rails/rails/pull/46603
+This adds the ability to bulk enqueue jobs, without running callbacks,
+by passing multiple jobs or an array of jobs.
+
+For example:
+
+```ruby
+ActiveJob.perform_all_later(MyJob.new("hello", 42), MyJob.new("world", 0))
+
+user_jobs = User.pluck(:id).map { |id| UserJob.new(user_id: id) }
+ActiveJob.perform_all_later(user_jobs)
+```
+
+This can greatly reduce the number of round-trips to the queue datastore.
+
+For queue adapters that do not implement the new `enqueue_all` method,
+we fall back to enqueuing jobs individually.
+The Sidekiq adapter implements `enqueue_all` with `push_bulk`.
+
+This method does not use the existing `enqueue.active_job event`,
+but adds a new event `enqueue_all.active_job`.
 
 ### Composite primary keys
 
