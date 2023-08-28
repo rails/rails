@@ -221,6 +221,12 @@ Please refer to the [Changelog][action-cable] for detailed changes.
 
 ### Notable changes
 
+*   Add `capture_broadcasts` test helper to capture all messages broadcasted in a block.
+
+*   Add the ability to Redis pub/sub adapter to automatically reconnect when Redis connection is lost.
+
+*   Add command callbacks `before_command`, `after_command`, and `around_command` to `ActionCable::Connection::Base`.
+
 Action Pack
 -----------
 
