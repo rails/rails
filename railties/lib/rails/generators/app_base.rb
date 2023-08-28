@@ -554,7 +554,7 @@ module Rails
       end
 
       def dockerfile_deploy_packages
-        # Add curl to work with the default healthcheck strategy in MRSK
+        # Add curl to work with the default healthcheck strategy in Kamal
         packages = ["curl"]
 
         # ActiveRecord databases
