@@ -104,9 +104,29 @@ TODO: Add description https://github.com/rails/rails/pull/47880
 
 TODO: Add description https://github.com/rails/rails/pull/47770
 
-### Introduce `config.autoload_lib`
+### Introducing `config.autoload_lib` and `config.autoload_lib_once` for Enhanced Autoloading
 
-TODO: Add description https://github.com/rails/rails/pull/48572
+A [new configuration method, `config.autoload_lib(ignore:)`](https://github.com/rails/rails/pull/48572),
+has been introduced. This method is used to enhance the autoload paths of applications by including the
+`lib` directory, which is not included by default. Also, `config.autoload_lib(ignore: %w(assets tasks))`
+is generated for new applications.
+
+When invoked from either `config/application.rb` or `config/environments/*.rb`, this method adds the
+`lib` directory to both `config.autoload_paths` and `config.eager_load_paths`. It's important to note
+that this feature is not available for engines.
+
+To ensure flexibility, the `ignore` keyword argument can be used to specify subdirectories within the
+`lib` directory that should not be managed by the autoloaders. For instance, you can exclude directories
+like `assets`, `tasks`, and `generators` by passing them to the `ignore` argument:
+
+```ruby
+config.autoload_lib(ignore: %w(assets tasks generators))
+```
+
+The [`config.autoload_lib_once` method](https://github.com/rails/rails/pull/48610) is similar to
+`config.autoload_lib`, except that it adds `lib` to `config.autoload_once_paths` instead.
+
+Please, see more details in the [autoloading guide](autoloading_and_reloading_constants.html#config-autoload-lib-ignore)
 
 ### Active Record API for general async queries
 
