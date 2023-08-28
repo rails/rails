@@ -465,12 +465,13 @@ module ActionView
 
         as = options[:as]
         namespace = options[:namespace]
-        action = object.respond_to?(:persisted?) && object.persisted? ? :edit : :new
+        action, method = object.respond_to?(:persisted?) && object.persisted? ? [:edit, :patch] : [:new, :post]
         options[:html] ||= {}
         options[:html].reverse_merge!(
           class:  as ? "#{action}_#{as}" : dom_class(object, action),
           id:     (as ? [namespace, action, as] : [namespace, dom_id(object, action)]).compact.join("_").presence,
         )
+        options[:method] ||= method
       end
       private :apply_form_for_options!
 

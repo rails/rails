@@ -1,3 +1,8 @@
+*   Fix `form_for` missing the hidden `_method` input for models with a
+    namespaced route.
+
+    *Hartley McGuire*
+
 *   Fix `render collection: @records, cache: true` inside `jbuilder` templates
 
     The previous fix that shipped in `7.0.7` assumed template fragments are always strings,

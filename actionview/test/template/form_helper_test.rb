@@ -2148,6 +2148,26 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, @rendered
   end
 
+  def test_form_for_with_nested_persisted_to_model
+    post_form = RecordForm.new(to_model: @post)
+
+    form_for([:admin, post_form]) { }
+
+    expected = whole_form("/admin/posts/123", "edit_post_123", "edit_post", method: :patch) { "" }
+
+    assert_dom_equal expected, @rendered
+  end
+
+  def test_form_for_with_nested_new_record_to_model
+    post_form = RecordForm.new(to_model: Post.new)
+
+    form_for([:admin, post_form]) { }
+
+    expected = whole_form("/admin/posts", "new_post", "new_post", method: :post) { "" }
+
+    assert_dom_equal expected, @rendered
+  end
+
   def test_form_for_with_file_field_generate_multipart
     form_for(@post, html: { id: "create-post" }) do |f|
       concat f.file_field(:file)
