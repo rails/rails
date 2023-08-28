@@ -112,7 +112,7 @@ module ActionView
     # make sure yourself that your dom ids are valid, in case you override this method.
     def record_key_for_dom_id(record) # :doc:
       key = convert_to_model(record).to_key
-      key ? key.join(JOIN) : key
+      key && key.all? ? key.join(JOIN) : nil
     end
   end
 end
