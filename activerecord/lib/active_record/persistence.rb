@@ -249,8 +249,8 @@ module ActiveRecord
       # go through Active Record's type casting and serialization.
       #
       # See #upsert_all for documentation.
-      def upsert(attributes, on_duplicate: :update, returning: nil, unique_by: nil, record_timestamps: nil)
-        upsert_all([ attributes ], on_duplicate: on_duplicate, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps)
+      def upsert(attributes, **kwargs)
+        upsert_all([ attributes ], **kwargs)
       end
 
       # Updates or inserts (upserts) multiple records into the database in a
