@@ -1,3 +1,9 @@
+*   Raise an `ArgumentError` when `#accepts_nested_attributes_for` is declared more than once for an association in
+    the same class. Previously, the last declaration would silently override the previous one. Overriding in a subclass
+    is still allowed.
+
+    *Joshua Young*
+
 *   Deprecate `rewhere` argument on `#merge`.
 
     The `rewhere` argument on `#merge`is deprecated without replacement and
