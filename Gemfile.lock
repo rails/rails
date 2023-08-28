@@ -15,6 +15,16 @@ GIT
       event_emitter
       websocket
 
+GIT
+  remote: https://github.com/rails/sdoc.git
+  revision: 947abf9d928f37b9cb91c8139e051b834265724a
+  branch: main
+  specs:
+    sdoc (3.0.0.alpha)
+      nokogiri
+      rdoc (>= 5.0)
+      rouge
+
 PATH
   remote: .
   specs:
@@ -465,8 +475,6 @@ GEM
     rubyzip (2.3.2)
     rufus-scheduler (3.8.2)
       fugit (~> 1.1, >= 1.1.6)
-    sdoc (2.6.1)
-      rdoc (>= 5.0)
     selenium-webdriver (4.11.0)
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 3.0)
@@ -621,7 +629,7 @@ DEPENDENCIES
   rubocop-performance
   rubocop-rails
   rubyzip (~> 2.0)
-  sdoc (>= 2.6.0)
+  sdoc!
   selenium-webdriver (>= 4.11.0)
   sidekiq
   sneakers
