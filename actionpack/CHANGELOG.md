@@ -1,3 +1,13 @@
+*   Add `ActionController::Parameters#extract_value` method to allow extracting serialized values from params
+
+    ```ruby
+    params = ActionController::Parameters.new(id: "1_123", tags: "ruby,rails")
+    params.extract_value(:id) # => ["1", "123"]
+    params.extract_value(:tags, delimiter: ",") # => ["ruby", "rails"]
+    ```
+
+    *Nikita Vasilevsky*
+
 *   Parse JSON `response.parsed_body` with `ActiveSupport::HashWithIndifferentAccess`
 
     Integrate with Minitest's new `assert_pattern` by parsing the JSON contents
