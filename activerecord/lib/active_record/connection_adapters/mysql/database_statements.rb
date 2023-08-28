@@ -5,7 +5,7 @@ module ActiveRecord
     module MySQL
       module DatabaseStatements
         READ_QUERY = AbstractAdapter.build_read_query_regexp(
-          :desc, :describe, :set, :show, :use
+          :desc, :describe, :set, :show, :use, :kill
         ) # :nodoc:
         private_constant :READ_QUERY
 
