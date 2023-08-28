@@ -742,7 +742,7 @@ becomes:
 <ul>
   <% @articles.each do |article| %>
     <li>
-      <%= link_to article.title, article %>
+      <%= link_to article.title, article_path %>
     </li>
   <% end %>
 </ul>
