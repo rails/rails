@@ -58,7 +58,31 @@ getting your Rails application up and running in a production environment.
 
 ### Add `ActiveRecord::Base.normalizes`
 
-TODO: Add description https://github.com/rails/rails/pull/43945
+Normalizations can be declared for attribute values. The normalization
+takes place when the attribute is assigned or updated, and will be persisted to the database.
+Normalization is also applied to corresponding keyword arguments in finder methods,
+allowing records to be queried using unnormalized values.
+
+For example:
+
+```ruby
+class User < ActiveRecord::Base
+  normalizes :email, with: -> email { email.strip.downcase }
+  normalizes :phone, with: -> phone { phone.delete("^0-9").delete_prefix("1") }
+end
+
+user = User.create(email: " CRUISE-CONTROL@EXAMPLE.COM\n")
+user.email                  # => "cruise-control@example.com"
+
+user = User.find_by(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")
+user.email                  # => "cruise-control@example.com"
+user.email_before_type_cast # => "cruise-control@example.com"
+
+User.exists?(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")         # => true
+User.exists?(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]) # => false
+
+User.normalize(:phone, "+1 (555) 867-5309") # => "5558675309"
+```
 
 ### Add `ActiveRecord::Base.generates_token_for`
 
