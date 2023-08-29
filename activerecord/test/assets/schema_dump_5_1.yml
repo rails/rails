@@ -342,4 +342,6 @@ data_sources:
   test_with_keyword_column_name: true
   fk_test_has_pk: true
   fk_test_has_fk: true
+  goals: true
+  goal_states: true
 version: 0
