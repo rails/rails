@@ -354,6 +354,13 @@ module ActiveJob
     #     assert_enqueued_with(at: Date.tomorrow.noon, queue: "my_queue")
     #   end
     #
+    # For keyword arguments, specify them as a hash inside an array:
+    #
+    #   def test_assert_enqueued_with_keyword_arguments
+    #     MyJob.perform_later(arg1: 'value1', arg2: 'value2')
+    #     assert_enqueued_with(job: MyJob, args: [{ arg1: 'value1', arg2: 'value2' }])
+    #   end
+    #
     # The given arguments may also be specified as matcher procs that return a
     # boolean value indicating whether a job's attribute meets certain criteria.
     #
