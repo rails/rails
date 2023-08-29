@@ -12,7 +12,7 @@ module ActiveSupport
   # = \XmlMini
   #
   # To use the much faster libxml parser:
-  #   gem 'libxml-ruby', '=0.9.7'
+  #   gem 'libxml-ruby'
   #   XmlMini.backend = 'LibXML'
   module XmlMini
     extend self
