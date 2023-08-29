@@ -215,11 +215,15 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 *   Remove deprecated `bin/rails secrets:setup` command.
 
+*   Remove default `X-Download-Options` header since it is used only by Internet Explorer.
+
 ### Deprecations
 
 *   Deprecated usage of `Rails.application.secrets`.
 
 *   Deprecated `secrets:show` and `secrets:edit` commands in favor of `credentials`.
+
+*   Deprecated `Rails::Generators::Testing::Behaviour` in favor of `Rails::Generators::Testing::Behavior`.
 
 ### Notable changes
 
@@ -268,7 +272,17 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   Deprecate `ActionDispatch::IllegalStateError`.
 
+*   Deprecate `speaker`, `vibrate`, and `vr` permissions policy directives.
+
 ### Notable changes
+
+*   Add `exclude?` method to `ActionController::Parameters`. It is the inverse of `include?` method.
+
+*   Add `ActionController::Parameters#extract_value` method to allow extracting serialized values from params.
+
+*   Add the ability to use custom logic for storing and retrieving CSRF tokens.
+
+*   Add `html` and `screenshot` kwargs for system test screenshot helper.
 
 Action View
 -----------
