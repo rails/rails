@@ -363,6 +363,19 @@ Please refer to the [Changelog][active-storage] for detailed changes.
 
 ### Notable changes
 
+*   `ActiveStorage::Analyzer::AudioAnalyzer` now outputs `sample_rate` and `tags` in the output `metadata` hash.
+
+*   Add the option to utilize predefined variants when invoking the `preview` or `representation` methods on an
+    attachment.
+
+*   `preprocessed` option is added when declaring variants to preprocess variants.
+
+*   Add the ability to destroy active storage variants.
+
+    ```ruby
+    User.first.avatar.variant(resize_to_limit: [100, 100]).destroy
+    ```
+
 Active Model
 ------------
 
