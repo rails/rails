@@ -88,7 +88,7 @@ module ActiveModel
     #   person = Person.new(1)
     #   person.to_param # => "1"
     def to_param
-      (persisted? && key = to_key) ? key.join(self.class.param_delimiter) : nil
+      (persisted? && (key = to_key) && key.all?) ? key.join(self.class.param_delimiter) : nil
     end
 
     # Returns a +string+ identifying the path associated with the object.
