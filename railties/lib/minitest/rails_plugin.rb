@@ -25,6 +25,46 @@ module Minitest
     end
   end
 
+  class ProfileReporter < StatisticsReporter
+    def initialize(io = $stdout, options = {})
+      super
+      @results = []
+      @count = options[:profile]
+    end
+
+    def record(result)
+      @results << result
+    end
+
+    def report
+      total_time = @results.sum(&:time)
+
+      @results.sort! { |a, b| b.time <=> a.time }
+      slow_results = @results.take(@count)
+      slow_tests_total_time = slow_results.sum(&:time)
+
+      ratio = (total_time == 0) ? 0.0 : (slow_tests_total_time / total_time) * 100
+
+      io.puts("\nTop %d slowest tests (%.2f seconds, %.1f%% of total time):\n" % [slow_results.size, slow_tests_total_time, ratio])
+      slow_results.each do |result|
+        io.puts("  %s\n    %.4f seconds %s\n" % [result.location, result.time, source_location(result)])
+      end
+      io.puts("\n")
+    end
+
+    private
+      def source_location(result)
+        filename, line = result.source_location
+        return "" unless filename
+
+        pwd = Dir.pwd
+        if filename.start_with?(pwd)
+          filename = Pathname.new(filename).relative_path_from(pwd)
+        end
+        "#{filename}:#{line}"
+      end
+  end
+
   def self.plugin_rails_options(opts, options)
     ::Rails::TestUnit::Runner.attach_before_load_options(opts)
 
@@ -42,6 +82,24 @@ module Minitest
 
     opts.on("-c", "--[no-]color", "Enable color in the output") do |value|
       options[:color] = value
+    end
+
+    opts.on("--profile [COUNT]", "Enable profiling of tests and list the slowest test cases (default: 10)") do |value|
+      default_count = 10
+
+      if value.nil?
+        count = default_count
+      else
+        count = Integer(value, exception: false)
+        if count.nil?
+          warn("Non integer specified as profile count, separate " \
+               "your path from options with -- e.g. " \
+               "`bin/test --profile -- #{value}`")
+          count = default_count
+        end
+      end
+
+      options[:profile] = count
     end
 
     options[:color] = true
@@ -66,6 +124,11 @@ module Minitest
     # Replace progress reporter for colors.
     if reporter.reporters.reject! { |reporter| reporter.kind_of?(ProgressReporter) }
       reporter << ::Rails::TestUnitReporter.new(options[:io], options)
+    end
+
+    # Add slowest tests reporter at the end.
+    if options[:profile]
+      reporter << ProfileReporter.new(options[:io], options)
     end
   end
 
