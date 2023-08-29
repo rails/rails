@@ -31,8 +31,8 @@ class RecordIdentifierTest < ActiveSupport::TestCase
   end
 
   def test_dom_id_with_composite_primary_key_record
-    record = CompositePrimaryKeyRecord.new([1, 123])
-    assert_equal("composite_primary_key_record_1_123", dom_id(record))
+    record = Cpk::Book.new(id: [1, 123])
+    assert_equal("cpk_book_1_123", dom_id(record))
   end
 
   def test_dom_id_with_prefix
