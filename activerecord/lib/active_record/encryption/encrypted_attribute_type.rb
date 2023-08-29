@@ -54,6 +54,10 @@ module ActiveRecord
         @previous_types[support_unencrypted_data?] ||= build_previous_types_for(previous_schemes_including_clean_text)
       end
 
+      def support_unencrypted_data?
+        ActiveRecord::Encryption.config.support_unencrypted_data && scheme.support_unencrypted_data? && !previous_type?
+      end
+
       private
         def previous_schemes_including_clean_text
           previous_schemes.including((clean_text_scheme if support_unencrypted_data?)).compact
@@ -129,10 +133,6 @@ module ActiveRecord
 
         def encryptor
           ActiveRecord::Encryption.encryptor
-        end
-
-        def support_unencrypted_data?
-          ActiveRecord::Encryption.config.support_unencrypted_data && !previous_type?
         end
 
         def encryption_options

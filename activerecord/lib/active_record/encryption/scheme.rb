@@ -10,7 +10,7 @@ module ActiveRecord
     class Scheme
       attr_accessor :previous_schemes
 
-      def initialize(key_provider: nil, key: nil, deterministic: nil, downcase: nil, ignore_case: nil,
+      def initialize(key_provider: nil, key: nil, deterministic: nil, support_unencrypted_data: nil, downcase: nil, ignore_case: nil,
                      previous_schemes: nil, **context_properties)
         # Initializing all attributes to +nil+ as we want to allow a "not set" semantics so that we
         # can merge schemes without overriding values with defaults. See +#merge+
@@ -18,6 +18,7 @@ module ActiveRecord
         @key_provider_param = key_provider
         @key = key
         @deterministic = deterministic
+        @support_unencrypted_data = support_unencrypted_data
         @downcase = downcase || ignore_case
         @ignore_case = ignore_case
         @previous_schemes_param = previous_schemes
@@ -37,6 +38,10 @@ module ActiveRecord
 
       def deterministic?
         !!@deterministic
+      end
+
+      def support_unencrypted_data?
+        @support_unencrypted_data.nil? ? ActiveRecord::Encryption.config.support_unencrypted_data : @support_unencrypted_data
       end
 
       def fixed?

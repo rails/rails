@@ -22,3 +22,17 @@ class EncryptedBookThatIgnoresCase < ActiveRecord::Base
 
   encrypts :name, deterministic: true, ignore_case: true
 end
+
+class EncryptedBookWithUnencryptedDataOptedOut < ActiveRecord::Base
+  self.table_name = "encrypted_books"
+
+  validates :name, uniqueness: true
+  encrypts :name, deterministic: true, support_unencrypted_data: false
+end
+
+class EncryptedBookWithUnencryptedDataOptedIn < ActiveRecord::Base
+  self.table_name = "encrypted_books"
+
+  validates :name, uniqueness: true
+  encrypts :name, deterministic: true, support_unencrypted_data: true
+end

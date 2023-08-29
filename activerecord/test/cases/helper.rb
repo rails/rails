@@ -70,5 +70,7 @@ ActiveRecord::Encryption.configure \
   deterministic_key: "test deterministic key",
   key_derivation_salt: "testing key derivation salt"
 
+# Simulate https://github.com/rails/rails/blob/735cba5bed7a54c7397dfeec1bed16033ae286f8/activerecord/lib/active_record/railtie.rb#L392
+ActiveRecord::Encryption.config.extend_queries = true
 ActiveRecord::Encryption::ExtendedDeterministicQueries.install_support
 ActiveRecord::Encryption::ExtendedDeterministicUniquenessValidator.install_support
