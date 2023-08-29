@@ -1,3 +1,10 @@
+*   Allow batching methods to use already loaded relation if available
+
+    Calling batch methods on already loaded relations will use the records previously loaded instead of retrieving
+    them from the database again.
+
+    *Adam Hess*
+
 *   Deprecate `read_attribute(:id)` returning the primary key if the primary key is not `:id`.
 
     Starting in Rails 7.2, `read_attribute(:id)` will return the value of the id column, regardless of the model's
