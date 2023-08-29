@@ -402,6 +402,8 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 ### Removals
 
+*   Remove `QueAdapter`.
+
 ### Deprecations
 
 ### Notable changes
