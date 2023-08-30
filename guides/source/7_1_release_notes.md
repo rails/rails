@@ -533,6 +533,11 @@ Please refer to the [Changelog][action-mailbox] for detailed changes.
 
 ### Notable changes
 
+*   Add `X-Forwarded-To` addresses to recipients.
+
+*   Add `bounce_now_with` method to `ActionMailbox::Base` to send the bounce email without going through a
+    mailer queue.
+
 Ruby on Rails Guides
 --------------------
 
