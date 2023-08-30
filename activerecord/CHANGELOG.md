@@ -1,3 +1,8 @@
+*   Fix `change_column` not setting `precision: 6` on `datetime` columns when
+    using 7.0+ Migrations and SQLite.
+
+    *Hartley McGuire*
+
 *   Fix unscope is not working in specific case
 
     Before:
