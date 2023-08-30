@@ -91,7 +91,18 @@ module ActiveRecord
           !self.instance_method(target_name).owner.is_a?(GeneratedAttributeMethods)
         reserved_method_name = ::ActiveRecord::AttributeMethods.dangerous_attribute_methods.include?(target_name)
 
-        if manually_defined && !reserved_method_name
+        if !abstract_class? && !has_attribute?(old_name)
+          # We only need to issue this deprecation warning once, so we issue it when defining the original reader method.
+          should_warn = target_name == old_name
+          if should_warn
+            ActiveRecord.deprecator.warn(
+              "#{self} model aliases `#{old_name}`, but #{old_name} is not an attribute. " \
+              "Starting in Rails 7.2 `, alias_attribute with non-attribute targets will raise. " \
+              "Use `alias_method :#{new_name}`, :#{old_name} or define the method manually."
+            )
+          end
+          super
+        elsif manually_defined && !reserved_method_name
           aliased_method_redefined_as_well = method_defined_within?(method_name, self)
           return if aliased_method_redefined_as_well
 
