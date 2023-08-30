@@ -160,9 +160,38 @@ TODO: Add description https://github.com/rails/rails/pull/44446
 
 TODO: https://github.com/rails/rails/pull/45602
 
-### Add Rails.application.deprecators
+### Add `Rails.application.deprecators`
 
-TODO: https://github.com/rails/rails/pull/46049
+The new [`Rails.application.deprecators` method](https://github.com/rails/rails/pull/46049) returns a
+collection of managed deprecators within your application, and allows you to add and retrieve individual
+deprecators with ease:
+
+```ruby
+Rails.application.deprecators[:my_gem] = ActiveSupport::Deprecation.new("2.0", "MyGem")
+Rails.application.deprecators[:other_gem] = ActiveSupport::Deprecation.new("3.0", "OtherGem")
+```
+
+The collection's configuration settings affect all deprecators in the collection.
+
+```ruby
+Rails.application.deprecators.debug = true
+
+puts Rails.application.deprecators[:my_gem].debug
+# true
+
+puts Rails.application.deprecators[:other_gem].debug
+# true
+```
+
+There are scenarios where you might want to mute all deprecator warnings for a specific block of code.
+With the deprecators collection, you can easily silence all deprecator warnings within a block:
+
+```ruby
+Rails.application.deprecators.silence do
+  Rails.application.deprecators[:my_gem].warn    # No warning (silenced)
+  Rails.application.deprecators[:other_gem].warn # No warning (silenced)
+end
+```
 
 ### Support pattern matching for JSON `response.parsed_body`
 
