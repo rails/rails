@@ -328,10 +328,7 @@ module ActiveRecord
 
       def change_column(table_name, column_name, type, **options) # :nodoc:
         alter_table(table_name) do |definition|
-          definition[column_name].instance_eval do
-            self.type = aliased_types(type.to_s, type)
-            self.options.merge!(options)
-          end
+          definition.change_column(column_name, type, **options)
         end
       end
 
