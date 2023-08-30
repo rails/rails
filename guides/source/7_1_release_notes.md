@@ -392,9 +392,32 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `Tasks::DatabaseTasks.schema_file_type`.
 
+*   Remove `--no-comments` flag in structure dumps for PostgreSQL.
+
 ### Deprecations
 
+*   Deprecate `name` argument on `#remove_connection`.
+
+*   Deprecate `check_pending!` in favor of `check_all_pending!`.
+
+*   Deprecate `deferrable: true` option of `add_foreign_key` in favor of `deferrable: :immediate`.
+
+*   Deprecate `TestFixtures#fixture_path` in favor of `TestFixtures#fixture_paths`.
+
+*   Deprecate delegation from `Base` to `connection_handler`.
+
+*   Deprecate `config.active_record.suppress_multiple_database_warning`.
+
+*   Deprecate using `ActiveSupport::Duration` as an interpolated bind parameter in a SQL
+    string template.
+
+*   Deprecate `all_connection_pools` and make `connection_pool_list` more explicit.
+
+*   Deprecate `read_attribute(:id)` returning the primary key if the primary key is not `:id`.
+
 ### Notable changes
+
+*   Add `TestFixtures#fixture_paths` to support multiple fixture paths.
 
 Active Storage
 --------------
