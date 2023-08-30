@@ -532,6 +532,8 @@ module ActiveRecord
           primary_key_options
         elsif reflection.options[:query_constraints] && (query_constraints = record.class.query_constraints_list)
           query_constraints
+        elsif record.class.has_query_constraints? && !reflection.options[:foreign_key]
+          record.class.query_constraints_list
         else
           record.class.primary_key
         end
