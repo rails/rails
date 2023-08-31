@@ -502,8 +502,16 @@ module ActiveRecord
         @foreign_key ||= if options[:query_constraints]
           # composite foreign keys support
           options[:query_constraints].map { |fk| fk.to_s.freeze }.freeze
+        elsif options[:foreign_key]
+          options[:foreign_key].to_s
         else
-          -(options[:foreign_key]&.to_s || derive_foreign_key(infer_from_inverse_of: infer_from_inverse_of))
+          derived_fk = derive_foreign_key(infer_from_inverse_of: infer_from_inverse_of)
+
+          if active_record.has_query_constraints?
+            derived_fk = derive_fk_query_constraints(active_record, derived_fk)
+          end
+
+          derived_fk
         end
       end
 
@@ -756,6 +764,50 @@ module ActiveRecord
             inverse_of.foreign_key(infer_from_inverse_of: false)
           else
             active_record.model_name.to_s.foreign_key
+          end
+        end
+
+        def derive_fk_query_constraints(klass, foreign_key)
+          primary_query_constraints = klass.query_constraints_list
+          owner_pk = klass.primary_key
+
+          if primary_query_constraints.size != 2
+            raise ArgumentError, <<~MSG.squish
+              The query constraints list on the `#{klass}` model has more than 2
+              attributes. Active Record is unable to derive the query constraints
+              for the association. You need to explicitly define the query constraints
+              for this association.
+            MSG
+          end
+
+          if !primary_query_constraints.include?(owner_pk)
+            raise ArgumentError, <<~MSG.squish
+              The query constraints on the `#{klass}` model does not include the primary
+              key so Active Record is unable to derive the foreign key constraints for
+              the association. You need to explicitly define the query constraints for this
+              association.
+            MSG
+          end
+
+          # The primary key and foreign key are both already in the query constraints
+          # so we don't want to derive the key. In this case we want a single key.
+          if primary_query_constraints.include?(owner_pk) && primary_query_constraints.include?(foreign_key)
+            return foreign_key
+          end
+
+          first_key, last_key = primary_query_constraints
+
+          if first_key == owner_pk
+            [foreign_key, last_key.to_s]
+          elsif last_key == owner_pk
+            [first_key.to_s, foreign_key]
+          else
+            raise ArgumentError, <<~MSG.squish
+              Active Record couldn't correctly interpret the query constraints
+              for the `#{klass}` model. The query constraints on `#{klass}` are
+              `#{primary_query_constraints}` and the foreign key is `#{foreign_key}`.
+              You need to explicitly set the query constraints for this association.
+            MSG
           end
         end
 
