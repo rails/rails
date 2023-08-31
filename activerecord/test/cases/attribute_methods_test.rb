@@ -1209,9 +1209,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "#alias_attribute with an overridden original method issues a deprecation" do
     message = <<~MESSAGE.gsub("\n", " ")
-    AttributeMethodsTest::ClassWithDeprecatedAliasAttributeBehavior model aliases `title` and has a method called
-    `title_was` defined. Starting in Rails 7.2 `subject_was` will not be calling `title_was` anymore.
-    You may want to additionally define `subject_was` to preserve the current behavior.
+      AttributeMethodsTest::ClassWithDeprecatedAliasAttributeBehavior model aliases
+      `title` and has a method called `title_was` defined.
+      Starting in Rails 7.2 `subject_was` will not be calling `title_was` anymore.
+      You may want to additionally define `subject_was` to preserve the current behavior.
     MESSAGE
 
     obj = assert_deprecated(message, ActiveRecord.deprecator) do
@@ -1236,9 +1237,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "#alias_attribute with an overridden original method from a module issues a deprecation" do
     message = <<~MESSAGE.gsub("\n", " ")
-    AttributeMethodsTest::ClassWithDeprecatedAliasAttributeBehaviorFromModule model aliases `title` and has a method
-    called `title_was` defined. Starting in Rails 7.2 `subject_was` will not be calling `title_was` anymore.
-    You may want to additionally define `subject_was` to preserve the current behavior.
+      AttributeMethodsTest::ClassWithDeprecatedAliasAttributeBehaviorFromModule model aliases
+      `title` and has a method called `title_was` defined.
+      Starting in Rails 7.2 `subject_was` will not be calling `title_was` anymore.
+      You may want to additionally define `subject_was` to preserve the current behavior.
     MESSAGE
 
     obj = assert_deprecated(message, ActiveRecord.deprecator) do
@@ -1324,8 +1326,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "#alias_attribute with an _in_database method issues a deprecation warning" do
     message = <<~MESSAGE.gsub("\n", " ")
-    AttributeMethodsTest::ClassWithGeneratedAttributeMethodTarget model aliases `title_in_database`, but title_in_database is not an attribute.
-    Starting in Rails 7.2 `, alias_attribute with non-attribute targets will raise. Use `alias_method :saved_title`, :title_in_database or define the method manually.
+      AttributeMethodsTest::ClassWithGeneratedAttributeMethodTarget model aliases
+      `title_in_database`, but `title_in_database` is not an attribute.
+      Starting in Rails 7.2, alias_attribute with non-attribute targets will raise.
+      Use `alias_method :saved_title, :title_in_database` or define the method manually.
     MESSAGE
 
     obj = assert_deprecated(message, ActiveRecord.deprecator) do
@@ -1350,9 +1354,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "#alias_attribute with enum method issues a deprecation warning" do
     message = <<~MESSAGE.gsub("\n", " ")
-    AttributeMethodsTest::ClassWithEnumMethodTarget model aliases `pending?`, but pending? is not an attribute.
-    Starting in Rails 7.2 `, alias_attribute with non-attribute targets will raise.
-    Use `alias_method :is_pending?`, :pending? or define the method manually.
+    AttributeMethodsTest::ClassWithEnumMethodTarget model aliases `pending?`, but `pending?` is not an attribute. Starting in Rails 7.2, alias_attribute with non-attribute targets will raise. Use `alias_method :is_pending?, :pending?` or define the method manually.
     MESSAGE
 
     obj = assert_deprecated(message, ActiveRecord.deprecator) do
@@ -1372,9 +1374,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "#alias_attribute with an association method issues a deprecation warning" do
     message = <<~MESSAGE.gsub("\n", " ")
-    AttributeMethodsTest::ClassWithAssociationTarget model aliases `author`, but author is not an attribute.
-    Starting in Rails 7.2 `, alias_attribute with non-attribute targets will raise.
-    Use `alias_method :written_by`, :author or define the method manually.
+    AttributeMethodsTest::ClassWithAssociationTarget model aliases `author`, but `author` is not an attribute. Starting in Rails 7.2, alias_attribute with non-attribute targets will raise. Use `alias_method :written_by, :author` or define the method manually.
     MESSAGE
 
     obj = assert_deprecated(message, ActiveRecord.deprecator) do
@@ -1395,9 +1395,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "#alias_attribute with a manually defined method issues a deprecation warning" do
     message = <<~MESSAGE.gsub("\n", " ")
-    AttributeMethodsTest::ClassWithAliasedManuallyDefinedMethod model aliases `publish`, but publish is not an attribute.
-    Starting in Rails 7.2 `, alias_attribute with non-attribute targets will raise.
-    Use `alias_method :print`, :publish or define the method manually.
+      AttributeMethodsTest::ClassWithAliasedManuallyDefinedMethod model aliases `publish`,
+      but `publish` is not an attribute.
+      Starting in Rails 7.2, alias_attribute with non-attribute targets will raise.
+      Use `alias_method :print, :publish` or define the method manually.
     MESSAGE
 
     assert_deprecated(message, ActiveRecord.deprecator) do
