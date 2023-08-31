@@ -777,7 +777,7 @@ when using the same Redis server for multiple applications. See the [Redis Pub/S
 
 The Redis adapter also supports SSL/TLS connections. The required SSL/TLS parameters can be passed in `ssl_params` key in the configuration YAML file.
 
-```
+```yaml
 production:
   adapter: redis
   url: rediss://10.10.3.153:tls_port
@@ -916,8 +916,8 @@ run ActionCable.server
 
 Then to start the server:
 
-```
-bundle exec puma -p 28080 cable/config.ru
+```bash
+$ bundle exec puma -p 28080 cable/config.ru
 ```
 
 This starts a cable server on port 28080. To tell Rails to use this

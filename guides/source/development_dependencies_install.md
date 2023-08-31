@@ -100,7 +100,7 @@ If both `openssl@1.1` and `openssl@3` are installed, you will need to tell Ruby 
 
 In your `.bash_profile` set the `PATH` and `RUBY_CONFIGURE_OPTS` to point to `openssl@1.1`:
 
-```
+```sh
 export PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
 export RUBY_CONFIGURE_OPTS="--with-openssl-dir=$(brew --prefix openssl@1.1)"
 ```

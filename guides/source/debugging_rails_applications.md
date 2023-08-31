@@ -208,7 +208,7 @@ Adding extra logging like this makes it easy to search for unexpected or unusual
 
 When looking at database query output in logs, it may not be immediately clear why multiple database queries are triggered when a single method is called:
 
-```
+```irb
 irb(main):001:0> Article.pamplemousse
   Article Load (0.4ms)  SELECT "articles".* FROM "articles"
   Comment Load (0.2ms)  SELECT "comments".* FROM "comments" WHERE "comments"."article_id" = ?  [["article_id", 1]]
@@ -219,7 +219,7 @@ irb(main):001:0> Article.pamplemousse
 
 After running `ActiveRecord.verbose_query_logs = true` in the `bin/rails console` session to enable verbose query logs and running the method again, it becomes obvious what single line of code is generating all these discrete database calls:
 
-```
+```irb
 irb(main):003:0> Article.pamplemousse
   Article Load (0.2ms)  SELECT "articles".* FROM "articles"
   ↳ app/models/article.rb:5
