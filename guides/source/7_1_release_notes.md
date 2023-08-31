@@ -120,9 +120,25 @@ and reporting of the bulk enqueuing process.
 
 TODO: Add description
 
-### Introduce adapter for Trilogy
+### Introduce adapter for `Trilogy`
 
-TODO: Add description https://github.com/rails/rails/pull/47880
+A [new adapter has been introduced](https://github.com/rails/rails/pull/47880) to facilitate the
+seamless integration of `Trilogy`, a MySQL-compatible database client, with Rails applications.
+Now, Rails applications have the option to incorporate `Trilogy` functionality by configuring their
+`config/database.yml` file. For instance:
+
+```yaml
+development:
+  adapter: trilogy
+  database: blog_development
+  pool: 5
+```
+
+Alternatively, integration can be achieved using the `DATABASE_URL` environment variable:
+
+```ruby
+ENV['DATABASE_URL'] # => "trilogy://localhost/blog_development?pool=5"
+```
 
 ### Add `ActiveSupport::MessagePack`
 
