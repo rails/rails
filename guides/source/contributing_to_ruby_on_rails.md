@@ -530,7 +530,7 @@ You should add an entry **to the top** of the CHANGELOG of the framework you mod
 
 A CHANGELOG entry should summarize what was changed and should end with the author's name. You can use multiple lines if you need more space, and you can attach code examples indented with 4 spaces. If a change is related to a specific issue, you should attach the issue's number. Here is an example CHANGELOG entry:
 
-```
+```markdown
 *   Summary of a change that briefly describes what was changed. You can use multiple
     lines and wrap them at around 80 characters. Code examples are ok, too, if needed:
 
@@ -668,7 +668,7 @@ understanding why the change was made, so please take the time to write it.
 
 A good commit message looks like this:
 
-```
+```markdown
 Short summary (ideally 50 characters or less)
 
 More detailed description, if necessary. Each line should wrap at

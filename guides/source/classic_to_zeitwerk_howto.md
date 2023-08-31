@@ -88,8 +88,8 @@ How to Verify The Application Runs in `zeitwerk` Mode?
 
 To verify the application is running in `zeitwerk` mode, execute
 
-```
-bin/rails runner 'p Rails.autoloaders.zeitwerk_enabled?'
+```bash
+$ bin/rails runner 'p Rails.autoloaders.zeitwerk_enabled?'
 ```
 
 If that prints `true`, `zeitwerk` mode is enabled.
@@ -119,14 +119,14 @@ config.eager_load_paths << "#{Rails.root}/extras"
 
 Once `zeitwerk` mode is enabled and the configuration of eager load paths double-checked, please run:
 
-```
-bin/rails zeitwerk:check
+```bash
+$ bin/rails zeitwerk:check
 ```
 
 A successful check looks like this:
 
-```
-% bin/rails zeitwerk:check
+```bash
+$ bin/rails zeitwerk:check
 Hold on, I am eager loading the application.
 All is good!
 ```
@@ -141,8 +141,8 @@ If there's one constant reported, fix that particular one and run the task again
 
 Take for example:
 
-```
-% bin/rails zeitwerk:check
+```bash
+$ bin/rails zeitwerk:check
 Hold on, I am eager loading the application.
 expected file app/models/vat.rb to define constant Vat
 ```
@@ -177,8 +177,8 @@ With this option you have more control, because only files called exactly `vat.r
 
 With that in place, the check passes!
 
-```
-% bin/rails zeitwerk:check
+```bash
+$ bin/rails zeitwerk:check
 Hold on, I am eager loading the application.
 All is good!
 ```

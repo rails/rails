@@ -2463,7 +2463,7 @@ Customer.where(id: 1).joins(:orders).explain
 
 may yield
 
-```
+```sql
 EXPLAIN SELECT `customers`.* FROM `customers` INNER JOIN `orders` ON `orders`.`customer_id` = `customers`.`id` WHERE `customers`.`id` = 1
 +----+-------------+------------+-------+---------------+
 | id | select_type | table      | type  | possible_keys |
@@ -2487,7 +2487,7 @@ Active Record performs a pretty printing that emulates that of the
 corresponding database shell. So, the same query running with the
 PostgreSQL adapter would yield instead
 
-```
+```sql
 EXPLAIN SELECT "customers".* FROM "customers" INNER JOIN "orders" ON "orders"."customer_id" = "customers"."id" WHERE "customers"."id" = $1 [["id", 1]]
                                   QUERY PLAN
 ------------------------------------------------------------------------------
@@ -2511,7 +2511,7 @@ Customer.where(id: 1).includes(:orders).explain
 
 may yield this for MySQL and MariaDB:
 
-```
+```sql
 EXPLAIN SELECT `customers`.* FROM `customers`  WHERE `customers`.`id` = 1
 +----+-------------+-----------+-------+---------------+
 | id | select_type | table     | type  | possible_keys |
@@ -2544,7 +2544,7 @@ EXPLAIN SELECT `orders`.* FROM `orders`  WHERE `orders`.`customer_id` IN (1)
 
 and may yield this for PostgreSQL:
 
-```
+```sql
   Customer Load (0.3ms)  SELECT "customers".* FROM "customers" WHERE "customers"."id" = $1  [["id", 1]]
   Order Load (0.3ms)  SELECT "orders".* FROM "orders" WHERE "orders"."customer_id" = $1  [["customer_id", 1]]
 => EXPLAIN SELECT "customers".* FROM "customers" WHERE "customers"."id" = $1 [["id", 1]]

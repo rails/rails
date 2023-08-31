@@ -603,8 +603,8 @@ When Rails boots, engine directories are added to the autoload paths, and from t
 
 For example, this application uses [Devise](https://github.com/heartcombo/devise):
 
-```
-% bin/rails runner 'pp ActiveSupport::Dependencies.autoload_paths'
+```bash
+$ bin/rails runner 'pp ActiveSupport::Dependencies.autoload_paths'
 [".../app/controllers",
  ".../app/controllers/concerns",
  ".../app/helpers",
@@ -632,8 +632,8 @@ Testing
 
 The task `zeitwerk:check` checks if the project tree follows the expected naming conventions and it is handy for manual checks. For example, if you're migrating from `classic` to `zeitwerk` mode, or if you're fixing something:
 
-```
-% bin/rails zeitwerk:check
+```bash
+$ bin/rails zeitwerk:check
 Hold on, I am eager loading the application.
 All is good!
 ```
