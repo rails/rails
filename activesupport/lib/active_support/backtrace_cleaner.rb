@@ -54,6 +54,24 @@ module ActiveSupport
     end
     alias :filter :clean
 
+    # Returns the frame with all filters applied.
+    # returns +nil+ if the frame was silenced.
+    def clean_frame(frame, kind = :silent)
+      frame = frame.to_s
+      @filters.each do |f|
+        frame = f.call(frame.to_s)
+      end
+
+      case kind
+      when :silent
+        frame unless @silencers.any? { |s| s.call(frame) }
+      when :noise
+        frame if @silencers.any? { |s| s.call(frame) }
+      else
+        frame
+      end
+    end
+
     # Adds a filter from the block provided. Each line in the backtrace will be
     # mapped against this filter.
     #
