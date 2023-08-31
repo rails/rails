@@ -352,6 +352,18 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Notable changes
 
+*   `check_box_tag` and `radio_button_tag` now accept `checked` as a keyword argument.
+
+*   Add `picture_tag` helper to generate HTML `<picture>` tags.
+
+*   The `simple_format` helper now handles a `:sanitize_options` feature, allowing the addition of extra
+    options for the sanitize process.
+
+    ```ruby
+      simple_format("<a target=\"_blank\" href=\"http://example.com\">Continue</a>", {}, { sanitize_options: { attributes: %w[target href] } })
+      # => "<p><a target=\"_blank\" href=\"http://example.com\">Continue</a></p>"
+    ```
+
 Action Mailer
 -------------
 
