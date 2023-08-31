@@ -1,3 +1,13 @@
+*   Ensure autosave validations are run regardless of changes.
+
+    Before, autosave validations were only run if the record had changes to save. This was inconsistent with how
+    validations are run when saving a record directly, which also resulted in inconsistent behaviour when using
+    `#accepts_nested_attributes_for`.
+    Now, autosave validations are always run, regardless of whether the record has changes to save, while still
+    taking into account association options like `:validate` and custom validation context.
+
+    *Joshua Young*
+
 *   Allow batching methods to use already loaded relation if available
 
     Calling batch methods on already loaded relations will use the records previously loaded instead of retrieving
