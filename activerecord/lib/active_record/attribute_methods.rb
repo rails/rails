@@ -96,9 +96,9 @@ module ActiveRecord
           should_warn = target_name == old_name
           if should_warn
             ActiveRecord.deprecator.warn(
-              "#{self} model aliases `#{old_name}`, but #{old_name} is not an attribute. " \
-              "Starting in Rails 7.2 `, alias_attribute with non-attribute targets will raise. " \
-              "Use `alias_method :#{new_name}`, :#{old_name} or define the method manually."
+              "#{self} model aliases `#{old_name}`, but `#{old_name}` is not an attribute. " \
+              "Starting in Rails 7.2, alias_attribute with non-attribute targets will raise. " \
+              "Use `alias_method :#{new_name}, :#{old_name}` or define the method manually."
             )
           end
           super
