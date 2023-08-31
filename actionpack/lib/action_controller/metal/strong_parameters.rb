@@ -931,8 +931,9 @@ module ActionController
     #   params = ActionController::Parameters.new(id: "1_123", tags: "ruby,rails")
     #   params.extract_value(:id) # => ["1", "123"]
     #   params.extract_value(:tags, delimiter: ",") # => ["ruby", "rails"]
+    #   params.extract_value(:non_existent_key) # => nil
     def extract_value(key, delimiter: "_")
-      @parameters[key].split(delimiter)
+      @parameters[key]&.split(delimiter)
     end
 
     protected

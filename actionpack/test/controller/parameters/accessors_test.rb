@@ -430,5 +430,6 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
     assert_equal(["1", "123"], params.extract_value(:id))
     assert_equal(["ruby", "rails", "web"], params.extract_value(:tags, delimiter: ","))
+    assert_nil(params.extract_value(:non_existent_key))
   end
 end
