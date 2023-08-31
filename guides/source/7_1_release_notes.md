@@ -523,6 +523,14 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 ### Notable changes
 
+*   Add `perform_all_later` to enqueue multiple jobs at once.
+
+*   Add `--parent` option to job generator to specify parent class of job.
+
+*   Add `after_discard` method to `ActiveJob::Base` to run a callback when a job is about to be discarded.
+
+*   Add support for logging background job enqueue callers.
+
 Action Text
 ----------
 
