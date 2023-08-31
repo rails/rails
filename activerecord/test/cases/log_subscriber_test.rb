@@ -204,7 +204,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
     ActiveRecord.verbose_query_logs = true
 
     logger = TestDebugLogSubscriber.new
-    def logger.extract_query_source_location(*); nil; end
+    def logger.query_source_location; nil; end
 
     logger.sql(Event.new(0, sql: "hi mom!"))
     assert_equal 1, @logger.logged(:debug).size
