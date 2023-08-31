@@ -1902,7 +1902,7 @@ SELECT books.* FROM books
 
 ```irb
 irb> Book.unscoped { Book.out_of_print }
-SELECT books.* FROM books WHERE books.out_of_print
+SELECT books.* FROM books WHERE books.out_of_print = true
 ```
 
 [`unscoped`]: https://api.rubyonrails.org/classes/ActiveRecord/Scoping/Default/ClassMethods.html#method-i-unscoped
