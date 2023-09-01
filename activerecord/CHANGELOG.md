@@ -9,6 +9,26 @@
 
     *Nikita Vasilevsky*
 
+*   Add validation option for `enum`
+
+    ```ruby
+    class Contract < ApplicationRecord
+      enum :status, %w[in_progress completed], validate: true
+    end
+    Contract.new(status: "unknown").valid? # => false
+    Contract.new(status: nil).valid? # => false
+    Contract.new(status: "completed").valid? # => true
+
+    class Contract < ApplicationRecord
+      enum :status, %w[in_progress completed], validate: { allow_nil: true }
+    end
+    Contract.new(status: "unknown").valid? # => false
+    Contract.new(status: nil).valid? # => true
+    Contract.new(status: "completed").valid? # => true
+    ```
+
+    *Edem Topuzov*
+
 *   Allow batching methods to use already loaded relation if available
 
     Calling batch methods on already loaded relations will use the records previously loaded instead of retrieving
