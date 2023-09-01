@@ -13,7 +13,7 @@ module Cpk
   end
 
   class BrokenBook < Book
-    belongs_to :order
+    belongs_to :order, class_name: "Cpk::OrderWithSpecialPrimaryKey"
   end
 
   class BrokenBookWithNonCpkOrder < Book

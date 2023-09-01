@@ -9,17 +9,28 @@ module Cpk
 
     alias_attribute :id_value, :id
 
-    has_many :order_agreements, primary_key: :id
+    has_many :order_agreements
     has_many :books, query_constraints: [:shop_id, :order_id]
     has_one :book, query_constraints: [:shop_id, :order_id]
   end
 
   class BrokenOrder < Order
+    self.primary_key = [:shop_id, :status]
+
     has_many :books
     has_one :book
   end
 
+  class OrderWithSpecialPrimaryKey < Order
+    self.primary_key = [:shop_id, :status]
+
+    has_many :books, query_constraints: [:shop_id, :status]
+    has_one :book, query_constraints: [:shop_id, :status]
+  end
+
   class BrokenOrderWithNonCpkBooks < Order
+    self.primary_key = [:shop_id, :status]
+
     has_many :books, class_name: "Cpk::NonCpkBook"
     has_one :book, class_name: "Cpk::NonCpkBook"
   end
@@ -29,7 +40,7 @@ module Cpk
   end
 
   class OrderWithPrimaryKeyAssociatedBook < Order
-    has_one :book, primary_key: :id, foreign_key: :order_id
+    has_one :book, foreign_key: :order_id
   end
 
   class OrderWithNullifiedBook < Order

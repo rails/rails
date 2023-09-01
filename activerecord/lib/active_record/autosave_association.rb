@@ -449,12 +449,16 @@ module ActiveRecord
           if autosave && record.marked_for_destruction?
             record.destroy
           elsif autosave != false
-            key = reflection.options[:primary_key] ? _read_attribute(reflection.options[:primary_key].to_s) : id
+            primary_key = Array(compute_primary_key(reflection, self)).map(&:to_s)
+            primary_key_value = primary_key.map { |key| _read_attribute(key) }
 
-            if (autosave && record.changed_for_autosave?) || _record_changed?(reflection, record, key)
+            if (autosave && record.changed_for_autosave?) || _record_changed?(reflection, record, primary_key_value)
               unless reflection.through_reflection
-                Array(key).zip(Array(reflection.foreign_key)).each do |primary_key, foreign_key_column|
-                  record[foreign_key_column] = primary_key
+                foreign_key = Array(reflection.foreign_key)
+                primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
+
+                primary_key_foreign_key_pairs.each do |primary_key, foreign_key|
+                  record[foreign_key] = _read_attribute(primary_key)
                 end
                 association.set_inverse_instance(record)
               end
@@ -534,6 +538,10 @@ module ActiveRecord
           query_constraints
         elsif record.class.has_query_constraints? && !reflection.options[:foreign_key]
           record.class.query_constraints_list
+        elsif record.class.composite_primary_key?
+          # If record has composite primary key of shape [:<tenant_key>, :id], infer primary_key as :id
+          primary_key = record.class.primary_key
+          primary_key.include?("id") ? "id" : primary_key
         else
           record.class.primary_key
         end

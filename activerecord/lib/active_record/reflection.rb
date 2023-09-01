@@ -500,7 +500,6 @@ module ActiveRecord
 
       def foreign_key(infer_from_inverse_of: true)
         @foreign_key ||= if options[:query_constraints]
-          # composite foreign keys support
           options[:query_constraints].map { |fk| fk.to_s.freeze }.freeze
         elsif options[:foreign_key]
           options[:foreign_key].to_s
@@ -533,6 +532,10 @@ module ActiveRecord
           end
         elsif active_record.has_query_constraints? || options[:query_constraints]
           active_record.query_constraints_list
+        elsif active_record.composite_primary_key?
+          # If active_record has composite primary key of shape [:<tenant_key>, :id], infer primary_key as :id
+          primary_key = primary_key(active_record)
+          primary_key.include?("id") ? "id" : primary_key.freeze
         else
           primary_key(active_record).freeze
         end
@@ -863,6 +866,10 @@ module ActiveRecord
           (klass || self.klass).composite_query_constraints_list
         elsif primary_key = options[:primary_key]
           @association_primary_key ||= -primary_key.to_s
+        elsif (klass || self.klass).composite_primary_key?
+          # If klass has composite primary key of shape [:<tenant_key>, :id], infer primary_key as :id
+          primary_key = (klass || self.klass).primary_key
+          primary_key.include?("id") ? "id" : primary_key
         else
           primary_key(klass || self.klass)
         end
