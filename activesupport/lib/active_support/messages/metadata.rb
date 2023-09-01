@@ -32,7 +32,7 @@ module ActiveSupport
 
           if has_metadata && !use_message_serializer_for_metadata?
             data_string = serialize_to_json_safe_string(data)
-            envelope = wrap_in_metadata_envelope({ "message" => data_string }, **metadata)
+            envelope = wrap_in_metadata_legacy_envelope({ "message" => data_string }, **metadata)
             serialize_to_json(envelope)
           else
             data = wrap_in_metadata_envelope({ "data" => data }, **metadata) if has_metadata
@@ -65,6 +65,13 @@ module ActiveSupport
           expiry = pick_expiry(expires_at, expires_in)
           hash["exp"] = expiry if expiry
           hash["pur"] = purpose.to_s if purpose
+          { "_rails" => hash }
+        end
+
+        def wrap_in_metadata_legacy_envelope(hash, expires_at: nil, expires_in: nil, purpose: nil)
+          expiry = pick_expiry(expires_at, expires_in)
+          hash["exp"] = expiry
+          hash["pur"] = purpose
           { "_rails" => hash }
         end
 
