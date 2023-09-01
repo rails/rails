@@ -69,6 +69,8 @@ module ActiveRecord # :nodoc:
       #   user.email                  # => "cruise-control@example.com"
       #   user.email_before_type_cast # => "cruise-control@example.com"
       #
+      #   User.where(email: "\tCRUISE-CONTROL@EXAMPLE.COM ").count # => 1
+      #
       #   User.exists?(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")         # => true
       #   User.exists?(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]) # => false
       #

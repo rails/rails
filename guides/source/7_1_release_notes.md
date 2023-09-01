@@ -78,10 +78,12 @@ user = User.find_by(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")
 user.email                  # => "cruise-control@example.com"
 user.email_before_type_cast # => "cruise-control@example.com"
 
+User.where(email: "\tCRUISE-CONTROL@EXAMPLE.COM ").count # => 1
+
 User.exists?(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")         # => true
 User.exists?(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]) # => false
 
-User.normalize(:phone, "+1 (555) 867-5309") # => "5558675309"
+User.normalize_value_for(:phone, "+1 (555) 867-5309") # => "5558675309"
 ```
 
 ### Add `ActiveRecord::Base.generates_token_for`
