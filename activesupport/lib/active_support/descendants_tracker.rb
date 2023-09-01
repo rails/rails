@@ -107,7 +107,7 @@ module ActiveSupport
       end
 
       def descendants
-        subclasses = self.subclasses
+        subclasses = DescendantsTracker.reject!(self.subclasses)
         subclasses.concat(subclasses.flat_map(&:descendants))
       end
     else
