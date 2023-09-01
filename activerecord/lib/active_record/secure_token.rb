@@ -40,9 +40,10 @@ module ActiveRecord
       #   The callback when the value is generated. When called with <tt>on:
       #   :initialize</tt>, the value is generated in an
       #   <tt>after_initialize</tt> callback, otherwise the value will be used
-      #   in a <tt>before_</tt> callback. It will default to <tt>:create</tt>.
-      #
-      def has_secure_token(attribute = :token, length: MINIMUM_TOKEN_LENGTH, on: :create)
+      #   in a <tt>before_</tt> callback. When not specified, +:on+ will use the value of
+      #   <tt>config.active_record.generate_secure_token_on</tt>, which defaults to +:initialize+
+      #   starting in \Rails 7.1.
+      def has_secure_token(attribute = :token, length: MINIMUM_TOKEN_LENGTH, on: ActiveRecord.generate_secure_token_on)
         if length < MINIMUM_TOKEN_LENGTH
           raise MinimumLengthError, "Token requires a minimum length of #{MINIMUM_TOKEN_LENGTH} characters."
         end

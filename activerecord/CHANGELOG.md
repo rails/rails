@@ -1,3 +1,16 @@
+*   Change `has_secure_token` default to `on: :initialize`
+
+    Change the new default value from `on: :create` to `on: :initialize`
+
+    Can be controlled by the `config.active_record.generate_secure_token_on`
+    configuration:
+
+    ```ruby
+    config.active_record.generate_secure_token_on = :create
+    ```
+
+    *Sean Doyle*
+
 *   Fix `change_column` not setting `precision: 6` on `datetime` columns when
     using 7.0+ Migrations and SQLite.
 
