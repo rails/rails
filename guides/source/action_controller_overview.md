@@ -186,6 +186,34 @@ In this case, when a user opens the URL `/clients/active`, `params[:status]` wil
 [`controller_name`]: https://api.rubyonrails.org/classes/ActionController/Metal.html#method-i-controller_name
 [`action_name`]: https://api.rubyonrails.org/classes/AbstractController/Base.html#method-i-action_name
 
+### Composite Key Parameters
+
+Composite key parameters contain multiple values in one parameter. For this reason, we need to be able to extract each value and pass them to Active Record. We can leverage the `extract_value` method for this use-case.
+
+Given the following controller:
+
+```ruby
+class BooksController < ApplicationController
+  def show
+    # Extract the composite ID value from URL parameters.
+    id = params.extract_value(:id)
+    # Find the book using the composite ID.
+    @book = Book.find(id)
+    # use the default rendering behaviour to render the show view.
+  end
+end
+```
+
+And the following route:
+
+```ruby
+get '/books/:id', to: 'books#show'
+```
+
+When a user opens the URL `/books/4_2`, the controller will extract the composite
+key value `["4", "2"]` and pass it to `Book.find` to render the right record in the view.
+The `extract_value` method may be used to extract arrays out of any delimited parameters.
+
 ### `default_url_options`
 
 You can set global default parameters for URL generation by defining a method called `default_url_options` in your controller. Such a method must return a hash with the desired defaults, whose keys must be symbols:

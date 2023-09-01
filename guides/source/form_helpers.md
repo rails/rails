@@ -236,6 +236,43 @@ There are several things to notice here:
 
 TIP: Conventionally your inputs will mirror model attributes. However, they don't have to! If there is other information you need you can include it in your form just as with attributes and access it via `params[:article][:my_nifty_non_attribute_input]`.
 
+#### Composite primary key forms
+
+Forms may also be built with composite primary key models. In this case, the form
+building syntax is the same with slightly different output.
+
+Given a `@book` model object with a composite key `[:author_id, :id]`:
+
+```ruby
+@book = Book.find([2, 25])
+# => #<Book id: 25, title: "Some book", author_id: 2>
+```
+
+The following form:
+
+```erb
+<%= form_with model: @book do |form| %>
+  <%= form.text_field :title %>
+  <%= form.submit %>
+<% end %>
+```
+
+Outputs:
+
+```html
+<form action="/books/2_25" method="post" accept-charset="UTF-8" >
+  <input name="authenticity_token" type="hidden" value="..." />
+  <input type="text" name="book[title]" id="book_title" value="My book" />
+  <input type="submit" name="commit" value="Update Book" data-disable-with="Update Book">
+</form>
+```
+
+Note the generated URL contains the `author_id` and `id` delimited by an underscore.
+Once submitted, the controller can [extract each primary key value][] from parameters
+and update the record as it would with a singular primary key.
+
+[extract each primary key value]: action_controller_overview.html#composite-key-parameters
+
 #### The `fields_for` Helper
 
 The [`fields_for`][] helper creates a similar binding but without rendering a
