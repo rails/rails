@@ -6,7 +6,9 @@ module ActiveRecord
   module FinderMethods
     ONE_AS_ONE = "1 AS one"
 
-    # Find by id - This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
+    # Find by id - This can either be a specific id (ID), a list of ids (ID, ID, ID), or an array of ids ([ID, ID, ID]).
+    # `ID` refers to an "identifier". For models with a single-column primary key, `ID` will be a single value,
+    # and for models with a composite primary key, it will be an array of values.
     # If one or more records cannot be found for the requested ids, then ActiveRecord::RecordNotFound will be raised.
     # If the primary key is an integer, find by id coerces its arguments by using +to_i+.
     #
@@ -17,6 +19,27 @@ module ActiveRecord
     #   Person.find([7, 17])    # returns an array for objects with IDs in (7, 17)
     #   Person.find([1])        # returns an array for the object with ID = 1
     #   Person.where("administrator = 1").order("created_on DESC").find(1)
+    #
+    # ==== Find a record for a composite primary key model
+    #   TravelRoute.primary_key = [:origin, :destination]
+    #
+    #   TravelRoute.find(["Ottawa", "London"])
+    #   => #<TravelRoute origin: "Ottawa", destination: "London">
+    #
+    #   TravelRoute.find([["Paris", "Montreal"]])
+    #   => [#<TravelRoute origin: "Paris", destination: "Montreal">]
+    #
+    #   TravelRoute.find(["New York", "Las Vegas"], ["New York", "Portland"])
+    #   => [
+    #        #<TravelRoute origin: "New York", destination: "Las Vegas">,
+    #        #<TravelRoute origin: "New York", destination: "Portland">
+    #      ]
+    #
+    #   TravelRoute.find([["Berlin", "London"], ["Barcelona", "Lisbon"]])
+    #   => [
+    #        #<TravelRoute origin: "Berlin", destination: "London">,
+    #        #<TravelRoute origin: "Barcelona", destination: "Lisbon">
+    #      ]
     #
     # NOTE: The returned records are in the same order as the ids you provide.
     # If you want the results to be sorted by database, you can use ActiveRecord::QueryMethods#where
