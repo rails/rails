@@ -856,6 +856,7 @@
       ```ruby
       class User < ActiveRecord::Base
         normalizes :email, with: -> email { email.strip.downcase }
+        normalizes :phone, with: -> phone { phone.delete("^0-9").delete_prefix("1") }
       end
 
       user = User.create(email: " CRUISE-CONTROL@EXAMPLE.COM\n")
@@ -865,8 +866,12 @@
       user.email                  # => "cruise-control@example.com"
       user.email_before_type_cast # => "cruise-control@example.com"
 
+      User.where(email: "\tCRUISE-CONTROL@EXAMPLE.COM ").count # => 1
+
       User.exists?(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")         # => true
       User.exists?(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]) # => false
+
+      User.normalize_value_for(:phone, "+1 (555) 867-5309") # => "5558675309"
       ```
 
     *Jonathan Hefner*
