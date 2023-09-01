@@ -7,6 +7,13 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     ##
+    # :method: id_value
+    # :call-seq: id_valiue
+    #
+    # Returns the underlying column value for a column named "id". Useful when defining
+    # a composite primary key including an "id" column so that the value is readable.
+
+    ##
     # :singleton-method: primary_key_prefix_type
     # :call-seq: primary_key_prefix_type
     #

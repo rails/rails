@@ -15,7 +15,8 @@ module ActiveRecord
         Array(key) if key
       end
 
-      # Returns the primary key column's value.
+      # Returns the primary key column's value. If the primary key is composite,
+      # returns an array of the primary key column values.
       def id
         return _read_attribute(@primary_key) unless @primary_key.is_a?(Array)
 
@@ -28,7 +29,8 @@ module ActiveRecord
         !!id
       end
 
-      # Sets the primary key column's value.
+      # Sets the primary key column's value. If the primary key is composite,
+      # raises TypeError when the set value not enumerable.
       def id=(value)
         if self.class.composite_primary_key?
           raise TypeError, "Expected value matching #{self.class.primary_key.inspect}, got #{value.inspect}." unless value.is_a?(Enumerable)
@@ -38,7 +40,8 @@ module ActiveRecord
         end
       end
 
-      # Queries the primary key column's value.
+      # Queries the primary key column's value. If the primary key is composite,
+      # all primary key column values must be queryable.
       def id?
         if self.class.composite_primary_key?
           @primary_key.all? { |col| _query_attribute(col) }
@@ -47,7 +50,8 @@ module ActiveRecord
         end
       end
 
-      # Returns the primary key column's value before type cast.
+      # Returns the primary key column's value before type cast. If the primary key is composite,
+      # returns an array of primary key column values before type cast.
       def id_before_type_cast
         if self.class.composite_primary_key?
           @primary_key.map { |col| attribute_before_type_cast(col) }
@@ -56,7 +60,8 @@ module ActiveRecord
         end
       end
 
-      # Returns the primary key column's previous value.
+      # Returns the primary key column's previous value. If the primary key is composite,
+      # returns an array of primary key column previous values.
       def id_was
         if self.class.composite_primary_key?
           @primary_key.map { |col| attribute_was(col) }
@@ -65,7 +70,8 @@ module ActiveRecord
         end
       end
 
-      # Returns the primary key column's value from the database.
+      # Returns the primary key column's value from the database. If the primary key is composite,
+      # returns an array of primary key column values from database.
       def id_in_database
         if self.class.composite_primary_key?
           @primary_key.map { |col| attribute_in_database(col) }
