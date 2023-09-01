@@ -66,8 +66,6 @@ module ActiveSupport
       end
     end
 
-    include ReloadedClassesFiltering
-
     class << self
       def disable_clear! # :nodoc:
         unless @clear_disabled
