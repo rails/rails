@@ -174,7 +174,31 @@ TODO: Add description https://github.com/rails/rails/pull/44446
 
 ### Allow templates to set strict `locals`.
 
-TODO: https://github.com/rails/rails/pull/45602
+Introduce a new feature that [allows templates to set explicit `locals`](https://github.com/rails/rails/pull/45602).
+This enhancement provides greater control and clarity when passing variables to your templates.
+
+By default, templates will accept any `locals` as keyword arguments. However, now you can define what `locals` a
+template should accept by adding a `locals` magic comment at the beginning of your template file.
+
+Here's how it works:
+
+```erb
+<%# locals: (message:) -%>
+<%= message %>
+```
+
+You can also set default values for these locals:
+
+```erb
+<%# locals: (message: "Hello, world!") -%>
+<%= message %>
+```
+
+If you want to disable the use of locals entirely, you can do so like this:
+
+```erb
+<%# locals: () %>
+```
 
 ### Add `Rails.application.deprecators`
 
