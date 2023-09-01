@@ -58,6 +58,10 @@ class ConversionTest < ActiveModel::TestCase
     assert_equal "helicopter/comanches/comanche", Helicopter::Comanche.new.to_partial_path
   end
 
+  test "to_partial_path handles non-standard model_name" do
+    assert_equal "attack_helicopters/ah-64", Helicopter::Apache.new.to_partial_path
+  end
+
   test "#to_param_delimiter allows redefining the delimiter used in #to_param" do
     old_delimiter = Contact.param_delimiter
     Contact.param_delimiter = "_"
