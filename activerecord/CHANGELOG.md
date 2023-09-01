@@ -1,3 +1,30 @@
+*   Fix associations to a STI model including a `class_name` parameter
+
+    ```ruby
+    class Product < ApplicationRecord
+      has_many :requests, as: :requestable, class_name: "ProductRequest", dependent: :destroy
+    end
+
+    # STI tables
+    class Request < ApplicationRecord
+      belongs_to :requestable, polymorphic: true
+
+      validate :request_type, presence: true
+    end
+
+    class ProductRequest < Request
+      belongs_to :user
+    end
+    ```
+
+    Accessing such association would lead to:
+
+    ```
+    table_metadata.rb:22:in `has_column?': undefined method `key?' for nil:NilClass (NoMethodError)
+    ```
+
+    *Romain Filinto*
+
 *   Fix `change_table` setting datetime precision for 6.1 Migrations
 
     *Hartley McGuire*
