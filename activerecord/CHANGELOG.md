@@ -1,3 +1,9 @@
+*   Support composite identifiers in `to_key`
+
+    `to_key` avoids wrapping `#id` value into an `Array` if `#id` already an array
+
+    *Nikita Vasilevsky*
+
 *   Allow batching methods to use already loaded relation if available
 
     Calling batch methods on already loaded relations will use the records previously loaded instead of retrieving

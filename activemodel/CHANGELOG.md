@@ -1,3 +1,9 @@
+*   Support composite identifiers in `to_key`
+
+    `to_key` avoids wrapping `#id` value into an `Array` if `#id` already an array
+
+    *Nikita Vasilevsky*
+
 *   Add `ActiveModel::Conversion.param_delimiter` to configure delimiter being used in `to_param`
 
     *Nikita Vasilevsky*
