@@ -1502,6 +1502,10 @@ module ActiveRecord
         # [:ensuring_owner_was]
         #   Specifies an instance method to be called on the owner. The method must return true in order for the
         #   associated records to be deleted in a background job.
+        # [:query_constraints]
+        #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
+        #   This is an optional option. By default Rails will attempt to derive the value automatically.
+        #   When the value is set the Array size must match associated model's primary key or `query_constraints` size.
         #
         # Option examples:
         #   has_many :comments, -> { order("posted_on") }
@@ -1514,6 +1518,7 @@ module ActiveRecord
         #   has_many :subscribers, through: :subscriptions, source: :user
         #   has_many :subscribers, through: :subscriptions, disable_joins: true
         #   has_many :comments, strict_loading: true
+        #   has_many :comments, query_constraints: [:blog_id, :post_id]
         def has_many(name, scope = nil, **options, &extension)
           reflection = Builder::HasMany.build(self, name, scope, options, &extension)
           Reflection.add_reflection self, name, reflection
@@ -1681,6 +1686,10 @@ module ActiveRecord
         # [:ensuring_owner_was]
         #   Specifies an instance method to be called on the owner. The method must return true in order for the
         #   associated records to be deleted in a background job.
+        # [:query_constraints]
+        #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
+        #   This is an optional option. By default Rails will attempt to derive the value automatically.
+        #   When the value is set the Array size must match associated model's primary key or `query_constraints` size.
         #
         # Option examples:
         #   has_one :credit_card, dependent: :destroy  # destroys the associated credit card
@@ -1695,6 +1704,7 @@ module ActiveRecord
         #   has_one :primary_address, -> { where(primary: true) }, through: :addressables, source: :addressable
         #   has_one :credit_card, required: true
         #   has_one :credit_card, strict_loading: true
+        #   has_one :employment_record_book, query_constraints: [:organization_id, :employee_id]
         def has_one(name, scope = nil, **options)
           reflection = Builder::HasOne.build(self, name, scope, options)
           Reflection.add_reflection self, name, reflection
@@ -1853,6 +1863,10 @@ module ActiveRecord
         # [:ensuring_owner_was]
         #   Specifies an instance method to be called on the owner. The method must return true in order for the
         #   associated records to be deleted in a background job.
+        # [:query_constraints]
+        #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
+        #   This is an optional option. By default Rails will attempt to derive the value automatically.
+        #   When the value is set the Array size must match associated model's primary key or `query_constraints` size.
         #
         # Option examples:
         #   belongs_to :firm, foreign_key: "client_of"
@@ -1868,6 +1882,7 @@ module ActiveRecord
         #   belongs_to :user, optional: true
         #   belongs_to :account, default: -> { company.account }
         #   belongs_to :account, strict_loading: true
+        #   belong_to  :note, query_constraints: [:organization_id, :note_id]
         def belongs_to(name, scope = nil, **options)
           reflection = Builder::BelongsTo.build(self, name, scope, options)
           Reflection.add_reflection self, name, reflection
