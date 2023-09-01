@@ -1,3 +1,8 @@
+*   Fix `change_column` not setting `precision: 6` on `datetime` columns when
+    using 7.0+ Migrations and SQLite.
+
+    *Hartley McGuire*
+
 *   Support composite identifiers in `to_key`
 
     `to_key` avoids wrapping `#id` value into an `Array` if `#id` already an array
