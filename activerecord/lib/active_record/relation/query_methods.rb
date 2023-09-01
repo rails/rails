@@ -883,6 +883,12 @@ module ActiveRecord
     #    PriceEstimate.where(estimate_of: treasure)
     #    PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: treasure)
     #
+    # Hash conditions may also be specified in a tuple-like syntax. Hash keys may be
+    # an array of columns with an array of tuples as values.
+    #
+    #   Article.where([:author_id, :id] => [[15, 1], [15, 2]])
+    #   # SELECT * FROM articles WHERE author_id = 15 AND id = 1 OR author_id = 15 AND id = 2
+    #
     # === Joins
     #
     # If the relation is the result of a join, you may create a condition which uses any of the
