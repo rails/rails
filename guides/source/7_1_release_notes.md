@@ -515,6 +515,31 @@ Please refer to the [Changelog][active-model] for detailed changes.
 
 ### Notable changes
 
+*   Add support for infinite ranges to `LengthValidator`s `:in`/`:within` options.
+
+    ```ruby
+    validates_length_of :first_name, in: ..30
+    ```
+
+*   Add support for beginless ranges to `inclusivity/exclusivity` validators.
+
+     ```ruby
+    validates_inclusion_of :birth_date, in: -> { (..Date.today) }
+    ```
+
+*   Add support for password challenges to `has_secure_password`. When set, validate that the password
+    challenge matches the persisted `password_digest`.
+
+*   Allow validators to accept lambdas without record argument.
+
+    ```ruby
+    # Before
+    validates_comparison_of :birth_date, less_than_or_equal_to: ->(_record) { Date.today }
+
+    # After
+    validates_comparison_of :birth_date, less_than_or_equal_to: -> { Date.today }
+    ```
+
 Active Support
 --------------
 
