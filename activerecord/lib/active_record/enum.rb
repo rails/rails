@@ -118,6 +118,50 @@ module ActiveRecord
   #   class Conversation < ActiveRecord::Base
   #     enum :status, [ :active, :archived ], instance_methods: false
   #   end
+  #
+  # If you want the enum value to be validated before saving, use the option +:validate+:
+  #
+  #   class Conversation < ActiveRecord::Base
+  #     enum :status, [ :active, :archived ], validate: true
+  #   end
+  #
+  #   conversation = Conversation.new
+  #
+  #   conversation.status = :unknown
+  #   conversation.valid? # => false
+  #
+  #   conversation.status = nil
+  #   conversation.valid? # => false
+  #
+  #   conversation.status = :active
+  #   conversation.valid? # => true
+  #
+  # It is also possible to pass additional validation options:
+  #
+  #   class Conversation < ActiveRecord::Base
+  #     enum :status, [ :active, :archived ], validate: { allow_nil: true }
+  #   end
+  #
+  #   conversation = Conversation.new
+  #
+  #   conversation.status = :unknown
+  #   conversation.valid? # => false
+  #
+  #   conversation.status = nil
+  #   conversation.valid? # => true
+  #
+  #   conversation.status = :active
+  #   conversation.valid? # => true
+  #
+  # Otherwise +ArgumentError+ will raise:
+  #
+  #   class Conversation < ActiveRecord::Base
+  #     enum :status, [ :active, :archived ]
+  #   end
+  #
+  #   conversation = Conversation.new
+  #
+  #   conversation.status = :unknown # 'unknown' is not a valid status (ArgumentError)
   module Enum
     def self.extended(base) # :nodoc:
       base.class_attribute(:defined_enums, instance_writer: false, default: {})
@@ -135,10 +179,11 @@ module ActiveRecord
     class EnumType < Type::Value # :nodoc:
       delegate :type, to: :subtype
 
-      def initialize(name, mapping, subtype)
+      def initialize(name, mapping, subtype, raise_on_invalid_values: true)
         @name = name
         @mapping = mapping
         @subtype = subtype
+        @_raise_on_invalid_values = raise_on_invalid_values
       end
 
       def cast(value)
@@ -164,6 +209,8 @@ module ActiveRecord
       end
 
       def assert_valid_value(value)
+        return unless @_raise_on_invalid_values
+
         unless value.blank? || mapping.has_key?(value) || mapping.has_value?(value)
           raise ArgumentError, "'#{value}' is not a valid #{name}"
         end
@@ -193,7 +240,7 @@ module ActiveRecord
         super
       end
 
-      def _enum(name, values, prefix: nil, suffix: nil, scopes: true, instance_methods: true, **options)
+      def _enum(name, values, prefix: nil, suffix: nil, scopes: true, instance_methods: true, validate: false, **options)
         assert_valid_enum_definition_values(values)
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
@@ -209,7 +256,7 @@ module ActiveRecord
 
         attribute(name, **options) do |subtype|
           subtype = subtype.subtype if EnumType === subtype
-          EnumType.new(name, enum_values, subtype)
+          EnumType.new(name, enum_values, subtype, raise_on_invalid_values: !validate)
         end
 
         value_method_names = []
@@ -241,6 +288,12 @@ module ActiveRecord
           end
         end
         detect_negative_enum_conditions!(value_method_names) if scopes
+
+        if validate
+          validate = {} unless Hash === validate
+          validates_inclusion_of name, in: enum_values.keys, **validate
+        end
+
         enum_values.freeze
       end
 
