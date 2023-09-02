@@ -1,3 +1,14 @@
+*   Adds the ability to enable or disable frontend cache
+    in `ActiveStorage::Blobs::RedirectController`
+    and `ActiveStorage::Representations::RedirectController`
+    by default cache is set to true, to disable it set config.active_storage.cache_service_urls to false
+
+    ```ruby
+    config.active_storage.cache_service_urls = false
+    ```
+
+    *Omar Abdo*
+
 *   Disables the session in `ActiveStorage::Blobs::ProxyController`
     and `ActiveStorage::Representations::ProxyController`
     in order to allow caching by default in some CDNs as CloudFlare

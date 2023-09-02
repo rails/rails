@@ -353,6 +353,7 @@ module ActiveStorage
   ]
   mattr_accessor :unsupported_image_processing_arguments
 
+  mattr_accessor :cache_service_urls, default: true
   mattr_accessor :service_urls_expire_in, default: 5.minutes
   mattr_accessor :urls_expire_in
 
