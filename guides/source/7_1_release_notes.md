@@ -88,7 +88,37 @@ User.normalize_value_for(:phone, "+1 (555) 867-5309") # => "5558675309"
 
 ### Add `ActiveRecord::Base.generates_token_for`
 
-TODO: Add description https://github.com/rails/rails/pull/44189
+A new [method `generates_token_for`](https://github.com/rails/rails/pull/44189) has been introduced
+to `ActiveRecord::Base`. This feature allows you to generate tokens that can embed data from a record.
+These tokens are particularly useful for tasks like password resets.
+
+With `generates_token_for`, tokens can be designed to reflect record state, making it possible to embed
+specific record data within the token itself. When utilizing the token to retrieve the associated record,
+a comparison is performed between the data in the token and the current data in the record. If the two
+sets of data do not match, the token is considered invalid, similar to an expired token.
+
+Here's an example of how this feature can be used:
+
+```ruby
+class User < ActiveRecord::Base
+    has_secure_password
+
+    generates_token_for :password_reset, expires_in: 15.minutes do
+        # A password's BCrypt salt changes when the password is updated.
+        # By embedding (part of) the salt in a token, the token will
+        # expire when the password is updated.
+        BCrypt::Password.new(password_digest).salt[-10..]
+    end
+end
+
+user = User.first
+token = user.generate_token_for(:password_reset)
+
+User.find_by_token_for(:password_reset, token) # => user
+
+user.update!(password: "new password")
+User.find_by_token_for(:password_reset, token) # => nil
+```
 
 ### Add `perform_all_later` to enqueue multiple jobs at once
 
