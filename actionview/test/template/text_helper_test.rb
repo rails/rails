@@ -68,6 +68,7 @@ class TextHelperTest < ActionView::TestCase
 
   def test_simple_format_with_custom_wrapper
     assert_equal "<div></div>", simple_format(nil, {}, { wrapper_tag: "div" })
+    assert_equal "<p></p>", simple_format(nil, {}, { wrapper_tag: nil })
   end
 
   def test_simple_format_with_custom_wrapper_and_multi_line_breaks
