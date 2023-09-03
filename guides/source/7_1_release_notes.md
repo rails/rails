@@ -172,7 +172,38 @@ Please, see more details in the [autoloading guide](autoloading_and_reloading_co
 
 ### Active Record API for general async queries
 
-TODO: Add description https://github.com/rails/rails/pull/44446
+A significant enhancement has been introduced to the Active Record API, expanding its
+[support for asynchronous queries](https://github.com/rails/rails/pull/44446). This enhancement
+addresses the need for more efficient handling of not-so-fast queries, particularly focusing on
+aggregates (such as `count`, `sum`, etc.) and all methods returning a single record or anything
+other than a `Relation`.
+
+The new API includes the following asynchronous methods:
+
+- `async_count`
+- `async_sum`
+- `async_minimum`
+- `async_maximum`
+- `async_average`
+- `async_pluck`
+- `async_pick`
+- `async_find_by_sql`
+- `async_count_by_sql`
+
+Here's a brief example of how to use one of these methods, `async_count`, to count the number of published
+posts in an asynchronous manner:
+
+```ruby
+# Synchronous count
+published_count = Post.where(published: true).count # => 10
+
+# Asynchronous count
+promise = Post.where(published: true).async_count # => #<ActiveRecord::Promise status=pending>
+promise.value # => 10
+```
+
+These methods allow for the execution of these operations in an asynchronous manner, which can significantly
+improve performance for certain types of database queries.
 
 ### Allow templates to set strict `locals`.
 
