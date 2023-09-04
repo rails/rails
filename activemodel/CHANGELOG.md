@@ -1,3 +1,7 @@
+*   Include `ActiveModel::Attributes` in `ActiveModel::Model`
+
+    *Niklas Häusele*
+
 *   Support composite identifiers in `to_key`
 
     `to_key` avoids wrapping `#id` value into an `Array` if `#id` already an array

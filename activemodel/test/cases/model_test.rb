@@ -33,6 +33,11 @@ class ModelTest < ActiveModel::TestCase
     attr_accessor :attr
   end
 
+  class AttributeModel
+    include ActiveModel::Model
+    attribute :attr, :string
+  end
+
   def setup
     @model = BasicModel.new
   end
@@ -75,6 +80,11 @@ class ModelTest < ActiveModel::TestCase
     assert_raises(ActiveModel::UnknownAttributeError) do
       SimpleModel.new(hello: "world")
     end
+  end
+
+  def test_attributes_work
+    object = AttributeModel.new(attr: "world")
+    assert_equal "world", object.attr
   end
 
   def test_load_hook_is_called

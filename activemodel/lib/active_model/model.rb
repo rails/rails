@@ -43,6 +43,7 @@ module ActiveModel
     extend ActiveSupport::Concern
     include ActiveModel::API
     include ActiveModel::Access
+    include ActiveModel::Attributes
 
     ##
     # :method: slice
