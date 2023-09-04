@@ -238,7 +238,7 @@ GEM
     fugit (1.8.0)
       et-orbi (~> 1, >= 1.2.7)
       raabro (~> 1.4)
-    globalid (1.0.0)
+    globalid (1.1.0)
       activesupport (>= 5.0)
     google-apis-core (0.9.4)
       addressable (~> 2.5, >= 2.5.1)
@@ -582,6 +582,7 @@ DEPENDENCIES
   delayed_job
   delayed_job_active_record
   error_highlight (>= 0.4.0)
+  globalid (< 1.2.0)
   google-cloud-storage (~> 1.11)
   image_processing (~> 1.2)
   importmap-rails
