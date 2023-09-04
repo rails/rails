@@ -1,3 +1,11 @@
+*   Deprecate `require_dependency`.
+
+    This method is obsolete. The semantics of the autoloader match Ruby's and
+    you do not need to be defensive with load order anymore. Just refer to
+    classes and modules normally.
+
+    *Petrik de Heus*
+
 *   Add `drb`, `mutex_m` and `base64` that are bundled gem candidates for Ruby 3.4
 
     *Yasuo Honda*

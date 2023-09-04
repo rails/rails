@@ -24,6 +24,7 @@ class RequireDependencyTest < ActiveSupport::TestCase
     @root_dir = Dir.mktmpdir
     File.write("#{@root_dir}/x.rb", "X = :X")
     ActiveSupport::Dependencies.autoload_paths << @root_dir
+    ActiveSupport.deprecator.begin_silence
   end
 
   teardown do
@@ -32,6 +33,7 @@ class RequireDependencyTest < ActiveSupport::TestCase
 
     FileUtils.rm_rf(@root_dir)
     Object.send(:remove_const, :X) if Object.const_defined?(:X)
+    ActiveSupport.deprecator.end_silence
   end
 
   test "require_dependency looks autoload paths up" do

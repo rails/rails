@@ -9,6 +9,12 @@ module ActiveSupport::Dependencies::RequireDependency
   # should call +require_dependency+ where needed in case the runtime mode is
   # +:classic+.
   def require_dependency(filename)
+    ActiveSupport.deprecator.warn(<<-MSG.squish)
+      `require_dependency` is deprecated and will be removed in Rails 7.2.
+      This method is obsolete. The semantics of the autoloader match Ruby's and
+      you do not need to be defensive with load order anymore. Just refer to
+      classes and modules normally.
+    MSG
     filename = filename.to_path if filename.respond_to?(:to_path)
 
     unless filename.is_a?(String)
