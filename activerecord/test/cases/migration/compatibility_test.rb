@@ -270,7 +270,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
 
         assert connection.table_exists?(:tests)
       ensure
@@ -287,7 +287,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
 
         column = connection.columns(:tests).find { |column| column.name == "some_id" }
         assert_equal :string, column.type
@@ -369,7 +369,7 @@ module ActiveRecord
           end
         }.new(nil, 1)
 
-        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration, @internal_metadata).migrate
+        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration).migrate
 
         assert connection.column_exists?(:more_testings, :published_at, **precision_implicit_default)
       ensure
