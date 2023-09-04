@@ -1,3 +1,20 @@
+*   Fix unscope is not working in specific case
+
+    Before:
+    ```ruby
+    Post.where(id: 1...3).unscope(where: :id).to_sql # "SELECT `posts`.* FROM `posts` WHERE `posts`.`id` >= 1 AND `posts`.`id` < 3"
+
+    ```
+
+    After:
+    ```ruby
+    Post.where(id: 1...3).unscope(where: :id).to_sql # "SELECT `posts`.* FROM `posts`"
+    ```
+
+    Fixes #48094.
+
+    *Kazuya Hatanaka*
+
 *   Fix associations to a STI model including a `class_name` parameter
 
     ```ruby
