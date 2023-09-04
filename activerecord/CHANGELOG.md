@@ -40,7 +40,7 @@
     Contract.new(status: "completed").valid? # => true
     ```
 
-    *Edem Topuzov*
+    *Edem Topuzov*, *Ryuta Kamizono*
 
 *   Allow batching methods to use already loaded relation if available
 
