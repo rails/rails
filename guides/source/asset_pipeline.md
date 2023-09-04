@@ -1058,7 +1058,7 @@ The gem provides `yarn build --watch` process to automatically generate output i
 
 ### Webpacker/Shakapacker
 
-[`Webpacker`](webpacker.html) was the default JavaScript pre-processor and bundler for Rails 5 and 6. It has now been retired. A successor called [`shakapacker`](https://github.com/shakacode/shakapacker) exists, but is not maintained by the Rails team or project.
+[`Webpacker`](https://github.com/rails/webpacker) was the default JavaScript pre-processor and bundler for Rails 5 and 6. It has now been retired. A successor called [`shakapacker`](https://github.com/shakacode/shakapacker) exists, but is not maintained by the Rails team or project.
 
 Unlike other libraries in this list `webpacker`/`shakapacker` is completely independent of Sprockets and could process both JavaScript and CSS files.
 
