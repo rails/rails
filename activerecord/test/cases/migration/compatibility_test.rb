@@ -783,8 +783,6 @@ module DefaultPrecisionSixTestCases
       end
     }.new(nil, 0)
 
-    $global = true
-
     change_migration = Class.new(migration_class) {
       def migrate(x)
         change_column :more_testings, :published_at, :datetime
