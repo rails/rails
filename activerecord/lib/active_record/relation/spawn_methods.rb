@@ -42,6 +42,21 @@ module ActiveRecord
 
     def merge!(other, *rest) # :nodoc:
       options = rest.extract_options!
+
+      if options.key?(:rewhere)
+        if options[:rewhere]
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Specifying `Relation#merge(rewhere: true)` is deprecated, as that has now been
+            the default since Rails 7.0. Setting the rewhere option will error in Rails 7.2
+          MSG
+        else
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            `Relation#merge(rewhere: false)` is deprecated without replacement,
+            and will be removed in Rails 7.2
+          MSG
+        end
+      end
+
       if other.is_a?(Hash)
         Relation::HashMerger.new(self, other, options[:rewhere]).merge
       elsif other.is_a?(Relation)
