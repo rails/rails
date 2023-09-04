@@ -18,6 +18,10 @@ module Arel # :nodoc: all
         children[1]
       end
 
+      def fetch_attribute(&block)
+        children.any? && children.all? { |child| child.fetch_attribute(&block) }
+      end
+
       def hash
         children.hash
       end

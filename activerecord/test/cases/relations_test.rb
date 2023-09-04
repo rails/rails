@@ -2329,6 +2329,20 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Post.count, posts.unscope(where: :title).count
   end
 
+  def test_unscope_with_double_dot_where
+    posts = Post.where(id: 1..2)
+
+    assert_equal 2, posts.count
+    assert_equal Post.count, posts.unscope(where: :id).count
+  end
+
+  def test_unscope_with_triple_dot_where
+    posts = Post.where(id: 1...3)
+
+    assert_equal 2, posts.count
+    assert_equal Post.count, posts.unscope(where: :id).count
+  end
+
   def test_locked_should_not_build_arel
     posts = Post.locked
     assert_predicate posts, :locked?
