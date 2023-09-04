@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/topic"
 require "models/bulb"
+require "models/person"
 require "models/car"
 require "models/aircraft"
 require "models/wheel"
@@ -12,7 +13,6 @@ require "models/category"
 require "models/categorization"
 require "models/dog"
 require "models/dog_lover"
-require "models/person"
 require "models/friendship"
 require "models/subscriber"
 require "models/subscription"
@@ -395,6 +395,11 @@ class CounterCacheTest < ActiveRecord::TestCase
     assert_touching @topic, :updated_at, :written_on do
       Topic.decrement_counter(:replies_count, @topic.id, touch: %i( updated_at written_on ))
     end
+  end
+
+  test "counter_cache_column?" do
+    assert Person.counter_cache_column?("cars_count")
+    assert_not Car.counter_cache_column?("cars_count")
   end
 
   private
