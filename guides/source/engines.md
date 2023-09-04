@@ -238,28 +238,6 @@ NOTE: The `ApplicationController` class inside an engine is named just like a
 Rails application in order to make it easier for you to convert your
 applications into engines.
 
-NOTE: If the parent application runs in `classic` mode, you may run into a
-situation where your engine controller is inheriting from the main application
-controller and not your engine's application controller. The best way to prevent
-this is to switch to `zeitwerk` mode in the parent application. Otherwise, use
-`require_dependency` to ensure that the engine's application controller is
-loaded. For example:
-
-```ruby
-# ONLY NEEDED IN `classic` MODE.
-require_dependency "blorgh/application_controller"
-
-module Blorgh
-  class ArticlesController < ApplicationController
-    # ...
-  end
-end
-```
-
-WARNING: Don't use `require` because it will break the automatic reloading of
-classes in the development environment - using `require_dependency` ensures that
-classes are loaded and unloaded in the correct manner.
-
 Just like for `app/controllers`, you will find a `blorgh` subdirectory under
 the `app/helpers`, `app/jobs`, `app/mailers` and `app/models` directories
 containing the associated `application_*.rb` file for gathering common
