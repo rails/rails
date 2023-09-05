@@ -6,8 +6,6 @@ require "support/connection_helper"
 class ConnectionTest < ActiveRecord::AbstractMysqlTestCase
   include ConnectionHelper
 
-  fixtures :comments
-
   def setup
     super
     @subscriber = SQLSubscriber.new
