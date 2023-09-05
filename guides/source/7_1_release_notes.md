@@ -638,6 +638,14 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Deprecate `config.active_support.use_rfc4122_namespaced_uuids`.
 
+*   Deprecate `SafeBuffer#clone_empty`.
+
+*   Deprecate usage of the singleton `ActiveSupport::Deprecation`.
+
+*   Deprecate initializing a `ActiveSupport::Cache::MemCacheStore` with an instance of `Dalli::Client`.
+
+*   Deprecate `Notification::Event`'s `#children` and `#parent_of?` methods.
+
 ### Notable changes
 
 Active Job
