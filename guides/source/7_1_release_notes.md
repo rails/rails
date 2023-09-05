@@ -579,7 +579,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Deprecate usage of the singleton `ActiveSupport::Deprecation`.
 
-*   Deprecated initializing a `ActiveSupport::Cache::MemCacheStore` with an instance of `Dalli::Client`.
+*   Deprecate initializing a `ActiveSupport::Cache::MemCacheStore` with an instance of `Dalli::Client`.
 
 *   Deprecate `Notification::Event`'s `#children` and `#parent_of?` methods.
 
