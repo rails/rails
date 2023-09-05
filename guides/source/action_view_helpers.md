@@ -468,6 +468,9 @@ url_for @profile
 
 url_for [ @hotel, @booking, page: 2, line: 3 ]
 # => /hotels/1/bookings/1?line=3&page=2
+
+url_for @post # given a composite primary key [:blog_id, :id]
+# => /posts/1_2
 ```
 
 #### link_to
@@ -481,6 +484,9 @@ when passing models to `link_to`.
 ```ruby
 link_to "Profile", @profile
 # => <a href="/profiles/1">Profile</a>
+
+link_to "Book", @book # given a composite primary key [:author_id, :id]
+# => <a href="/books/2_1">Book</a>
 ```
 
 You can use a block as well if your link target can't fit in the name parameter. ERB example:
