@@ -245,6 +245,20 @@ class LoggingTest < ActiveSupport::TestCase
     skip
   end
 
+  def test_enqueue_log_when_enqueue_error_is_set
+    EnqueueErrorJob.disable_test_adapter
+
+    EnqueueErrorJob.perform_later
+    assert_match(/Failed enqueuing EnqueueErrorJob to EnqueueError\(default\): ActiveJob::EnqueueError \(There was an error enqueuing the job\)/, @logger.messages)
+  end
+
+  def test_enqueue_at_log_when_enqueue_error_is_set
+    EnqueueErrorJob.disable_test_adapter
+
+    EnqueueErrorJob.set(wait: 1.hour).perform_later
+    assert_match(/Failed enqueuing EnqueueErrorJob to EnqueueError\(default\): ActiveJob::EnqueueError \(There was an error enqueuing the job\)/, @logger.messages)
+  end
+
   def test_for_tagged_logger_support_is_consistent
     set_logger ::Logger.new(nil)
     OverriddenLoggingJob.perform_later "Dummy"
