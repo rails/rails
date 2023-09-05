@@ -93,6 +93,14 @@ module ActionDispatch
         assert_equal("awesome", s["rails"])
       end
 
+      def test_changed?
+        s = Session.create(store, req, {})
+
+        assert_equal(false, s.changed?)
+        s["rails"] = "ftw"
+        assert_equal(true, s.changed?)
+      end
+
       def test_delete
         s = Session.create(store, req, {})
         s["rails"] = "ftw"

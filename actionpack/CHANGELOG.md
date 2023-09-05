@@ -1,3 +1,7 @@
+*   Add `changed?` to `ActionDispatch::Request::Session` to allow commit session only if it changed
+
+    *ardevelop*
+
 *   Add `ActionController::Parameters#extract_value` method to allow extracting serialized values from params
 
     ```ruby

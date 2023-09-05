@@ -77,6 +77,7 @@ module ActionDispatch
         @delegate = {}
         @loaded   = false
         @exists   = nil # We haven't checked yet.
+        @changed  = false
         @enabled  = enabled
         @id_was = nil
         @id_was_initialized = false
@@ -88,6 +89,10 @@ module ActionDispatch
 
       def enabled?
         @enabled
+      end
+
+      def changed?
+        @changed
       end
 
       def options
@@ -256,6 +261,7 @@ module ActionDispatch
         def load_for_write!
           if enabled?
             load! unless loaded?
+            @changed = true
           else
             raise DisabledSessionError, "Your application has sessions disabled. To write to the session you must first configure a session store"
           end
