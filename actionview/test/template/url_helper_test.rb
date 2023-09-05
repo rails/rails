@@ -402,6 +402,18 @@ class UrlHelperTest < ActiveSupport::TestCase
     ActionView::Helpers::UrlHelper.button_to_generates_button_tag = old_value
   end
 
+  def test_button_to_generates_button_when_button_to_generates_button_tag_false_but_argument_is_provided
+    old_value = ActionView::Helpers::UrlHelper.button_to_generates_button_tag
+    ActionView::Helpers::UrlHelper.button_to_generates_button_tag = false
+
+    assert_dom_equal(
+      %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit">Save</button></form>},
+      button_to("Save", "http://www.example.com", button_tag: true)
+    )
+  ensure
+    ActionView::Helpers::UrlHelper.button_to_generates_button_tag = old_value
+  end
+
   def test_button_to_with_content_exfiltration_prevention
     with_prepend_content_exfiltration_prevention(true) do
       assert_dom_equal(

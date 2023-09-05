@@ -1,3 +1,21 @@
+*   `button_to` now accepts a `button_tag:` option, to override the `button_to_generates_button_tag` config
+
+    ```ruby
+    # With config.action_view.button_to_generates_button_tag = false
+
+    button_to("Save", "http://www.example.com", button_tag: true) # renders <button>
+    button_to("Save", "http://www.example.com", button_tag: false) # renders <input>
+    button_to("Save", "http://www.example.com") # renders <input>
+
+    # With config.action_view.button_to_generates_button_tag = true
+
+    button_to("Save", "http://www.example.com", button_tag: true) # renders <button>
+    button_to("Save", "http://www.example.com", button_tag: false) # renders <input>
+    button_to("Save", "http://www.example.com") # renders <button>
+    ```
+
+    *Alex Ghiculescu*
+
 *   Don't double-encode nested `field_id` and `field_name` index values
 
     Pass `index: @options` as a default keyword argument to `field_id` and

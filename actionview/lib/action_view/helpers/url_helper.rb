@@ -274,6 +274,13 @@ module ActionView
       #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #    </form>"
       #
+      # By default, `config.action_view.button_to_generates_button_tag` is `true`, and a `<button>`
+      # is always returned. If `config.action_view.button_to_generates_button_tag` is `false`, an `<input>`
+      # will be returned if a block is not given. To set this per-invocation, pass the `button` option:
+      #
+      #   <%= button_to "New", new_article_path, button: true %> # Renders a button
+      #   <%= button_to "New", new_article_path, button: false %> # Renders an input
+      #
       # Most values in +html_options+ are passed through to the button element,
       # but there are a few special options:
       #
@@ -387,12 +394,13 @@ module ActionView
           ""
         end
 
+        use_button = html_options.key?("button_tag") ? html_options.delete("button_tag") : button_to_generates_button_tag
         html_options = convert_options_to_data_attributes(options, html_options)
         html_options["type"] = "submit"
 
         button = if block_given?
           content_tag("button", html_options, &block)
-        elsif button_to_generates_button_tag
+        elsif use_button
           content_tag("button", name || url, html_options, &block)
         else
           html_options["value"] = name || url
