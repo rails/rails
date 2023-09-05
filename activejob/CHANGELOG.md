@@ -1,3 +1,9 @@
+*   Fix Active Job log message to correctly report a job failed to enqueue
+    when the adapter raises an `ActiveJob::EnqueueError`.
+
+    *Ben Sheldon*
+
+
 ## Rails 7.0.7.2 (August 22, 2023) ##
 
 *   No changes.
