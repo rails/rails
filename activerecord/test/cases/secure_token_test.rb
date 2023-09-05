@@ -31,6 +31,22 @@ class SecureTokenTest < ActiveRecord::TestCase
     assert_equal token, model.find(user.id).token
   end
 
+  def test_generating_token_on_initialize_happens_only_once
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "users"
+      has_secure_token on: :initialize
+    end
+
+    token = "    "
+
+    user = model.new
+    user.update!(token: token)
+
+    assert_equal token, user.token
+    assert_equal token, user.reload.token
+    assert_equal token, model.find(user.id).token
+  end
+
   def test_generating_token_on_initialize_is_skipped_if_column_was_not_selected
     model = Class.new(ActiveRecord::Base) do
       self.table_name = "users"
