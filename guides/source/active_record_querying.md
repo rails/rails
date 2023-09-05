@@ -199,7 +199,33 @@ SELECT * FROM customers WHERE (customers.id IN (1,10))
 
 WARNING: The `find` method will raise an `ActiveRecord::RecordNotFound` exception unless a matching record is found for **all** of the supplied primary keys.
 
-If your table uses a composite primary key, you'll need to pass an array to find a single item. You can also pass an array of arrays to find multiple records.
+If your table uses a composite primary key, you'll need to pass find an array to find a single item. For instance, if customers were defined with [:store_id, :id] as a primary key:
+
+```irb
+# Find the customer with store_id 3 and id 17
+irb> customers = Customer.find([3, 17])
+=> #<Customer store_id: 3, id: 17, first_name: "Magda">
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM customers WHERE store_id = 3 AND id = 17
+```
+
+To find multiple customers with composite IDs, you would pass an array of arrays:
+
+```irb
+# Find the customers with primary keys [1, 8] and [7, 15].
+irb> customers = Customer.find([[1, 8], [7, 15]]) # OR Customer.find([1, 8], [7, 15])
+=> [#<Customer store_id: 1, id: 8, first_name: "Pat">, #<Customer store_id: 7, id: 15, first_name: "Chris">]
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM customers WHERE (store_id = 1 AND id = 8 OR store_id = 7 AND id = 15)
+```
 
 #### `take`
 
