@@ -4,6 +4,12 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLite3
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
+        def change_column(column_name, type, **options)
+          name = column_name.to_s
+          @columns_hash[name] = nil
+          column(name, type, **options)
+        end
+
         def references(*args, **options)
           super(*args, type: :integer, **options)
         end
