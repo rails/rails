@@ -101,14 +101,14 @@ Here's an example of how this feature can be used:
 
 ```ruby
 class User < ActiveRecord::Base
-    has_secure_password
+  has_secure_password
 
-    generates_token_for :password_reset, expires_in: 15.minutes do
-        # A password's BCrypt salt changes when the password is updated.
-        # By embedding (part of) the salt in a token, the token will
-        # expire when the password is updated.
-        BCrypt::Password.new(password_digest).salt[-10..]
-    end
+  generates_token_for :password_reset, expires_in: 15.minutes do
+    # A password's BCrypt salt changes when the password is updated.
+    # By embedding (part of) the salt in a token, the token will
+    # expire when the password is updated.
+    BCrypt::Password.new(password_digest).salt[-10..]
+  end
 end
 
 user = User.first
