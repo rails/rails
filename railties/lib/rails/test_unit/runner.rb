@@ -52,7 +52,7 @@ module Rails
         end
 
         def compose_filter(runnable, filter)
-          filter = escape_declarative_test_filter(filter)
+          filter = normalize_declarative_test_filter(filter)
 
           if filters.any? { |_, lines| lines.any? }
             CompositeFilter.new(runnable, filter, filters)
@@ -104,12 +104,12 @@ module Rails
             tests
           end
 
-          def escape_declarative_test_filter(filter)
-            # NOTE: This method may be applied multiple times, so any
-            # transformations MUST BE idempotent.
+          def normalize_declarative_test_filter(filter)
             if filter.is_a?(String)
               if regexp_filter?(filter)
-                filter = filter.gsub(/\s+/, '[\s_]+')
+                # Minitest::Spec::DSL#it does not replace whitespace in method
+                # names, so match unmodified method names as well.
+                filter = filter.gsub(/\s+/, "_").delete_suffix("/") + "|" + filter.delete_prefix("/")
               elsif !filter.start_with?("test_")
                 filter = "test_#{filter.gsub(/\s+/, "_")}"
               end

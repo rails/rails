@@ -693,7 +693,7 @@ module ApplicationTests
         end
       RUBY
 
-      run_test_command("test/models/post_test.rb -n '/greets foo|greets .  . bar/'").tap do |output|
+      run_test_command("test/models/post_test.rb -n '/greets foo|greets .  .\\ bar/'").tap do |output|
         assert_match "hello foo", output
         assert_match "hello again foo", output
         assert_match "hello bar", output
@@ -703,9 +703,12 @@ module ApplicationTests
 
     def test_declarative_style_regexp_filter_with_minitest_spec
       app_file "test/models/post_test.rb", <<~RUBY
+        require "test_helper"
         require "minitest/spec"
 
-        class PostTest < Minitest::Spec
+        class PostTest < ActiveSupport::TestCase
+          extend Minitest::Spec::DSL
+
           it "greets foo" do
             puts "hello foo"
             assert true
@@ -727,7 +730,7 @@ module ApplicationTests
         end
       RUBY
 
-      run_test_command("test/models/post_test.rb -n '/greets foo|greets .  . bar/'").tap do |output|
+      run_test_command("test/models/post_test.rb -n '/greets foo|greets .  .\\ bar/'").tap do |output|
         assert_match "hello foo", output
         assert_match "hello again foo", output
         assert_match "hello bar", output
