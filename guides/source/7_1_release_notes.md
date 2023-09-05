@@ -249,11 +249,11 @@ The collection's configuration settings affect all deprecators in the collection
 ```ruby
 Rails.application.deprecators.debug = true
 
-puts Rails.application.deprecators[:my_gem].debug
-# true
+Rails.application.deprecators[:my_gem].debug
+# => true
 
-puts Rails.application.deprecators[:other_gem].debug
-# true
+Rails.application.deprecators[:other_gem].debug
+# => true
 ```
 
 There are scenarios where you might want to mute all deprecator warnings for a specific block of code.
@@ -433,8 +433,8 @@ Please refer to the [Changelog][action-view] for detailed changes.
     options for the sanitize process.
 
     ```ruby
-      simple_format("<a target=\"_blank\" href=\"http://example.com\">Continue</a>", {}, { sanitize_options: { attributes: %w[target href] } })
-      # => "<p><a target=\"_blank\" href=\"http://example.com\">Continue</a></p>"
+    simple_format("<a target=\"_blank\" href=\"http://example.com\">Continue</a>", {}, { sanitize_options: { attributes: %w[target href] } })
+    # => "<p><a target=\"_blank\" href=\"http://example.com\">Continue</a></p>"
     ```
 
 Action Mailer
