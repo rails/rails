@@ -500,8 +500,10 @@ module ActiveRecord
 
       def foreign_key(infer_from_inverse_of: true)
         @foreign_key ||= if options[:query_constraints]
-          # composite foreign keys support
           options[:query_constraints].map { |fk| fk.to_s.freeze }.freeze
+        elsif options[:foreign_key].is_a?(Array)
+          # composite foreign keys support
+          options[:foreign_key].map { |fk| fk.to_s.freeze }.freeze
         elsif options[:foreign_key]
           options[:foreign_key].to_s
         else

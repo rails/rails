@@ -1,3 +1,11 @@
+*   Support composite foreign key
+    The `foreign_key` parameter of relations can now take an array to specify a composite key:
+
+    ```ruby
+    belongs_to :post, foreign_key: [:author, :number]
+    ```
+    *Bruno Enten*
+
 *   Fix unscope is not working in specific case
 
     Before:
