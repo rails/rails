@@ -1,3 +1,10 @@
+*   Deprecate `rewhere` argument on `#merge`.
+
+    The `rewhere` argument on `#merge`is deprecated without replacement and
+    will be removed in Rails 7.2.
+
+    *Adam Hess*
+
 *   Fix unscope is not working in specific case
 
     Before:

@@ -500,6 +500,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Deprecate `read_attribute(:id)` returning the primary key if the primary key is not `:id`.
 
+*   Deprecate `rewhere` argument on `#merge`.
+
 ### Notable changes
 
 *   Add `TestFixtures#fixture_paths` to support multiple fixture paths.
