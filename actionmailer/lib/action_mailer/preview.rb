@@ -144,7 +144,7 @@ module ActionMailer
       private
         def load_previews
           preview_paths.each do |preview_path|
-            Dir["#{preview_path}/**/*_preview.rb"].sort.each { |file| require_dependency file }
+            Dir["#{preview_path}/**/*_preview.rb"].sort.each { |file| require file }
           end
         end
 
