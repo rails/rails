@@ -320,7 +320,7 @@ module ActionView
       #   simple_format("<a target=\"_blank\" href=\"http://example.com\">Continue</a>", {}, { sanitize_options: { attributes: %w[target href] } })
       #   # => "<p><a target=\"_blank\" href=\"http://example.com\">Continue</a></p>"
       def simple_format(text, html_options = {}, options = {})
-        wrapper_tag = options.fetch(:wrapper_tag, :p)
+        wrapper_tag = options[:wrapper_tag] || "p"
 
         text = sanitize(text, options.fetch(:sanitize_options, {})) if options.fetch(:sanitize, true)
         paragraphs = split_paragraphs(text)
