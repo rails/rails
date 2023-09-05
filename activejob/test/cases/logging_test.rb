@@ -11,6 +11,7 @@ require "jobs/rescue_job"
 require "jobs/retry_job"
 require "jobs/disable_log_job"
 require "jobs/abort_before_enqueue_job"
+require "jobs/enqueue_error_job"
 require "models/person"
 
 class LoggingTest < ActiveSupport::TestCase
