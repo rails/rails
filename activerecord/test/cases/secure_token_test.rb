@@ -24,8 +24,7 @@ class SecureTokenTest < ActiveRecord::TestCase
 
     token = "abc123"
 
-    user = model.new
-    user = model.update!(token: token)
+    user = model.create!(token: token)
 
     assert_equal token, user.token
     assert_equal token, user.reload.token
