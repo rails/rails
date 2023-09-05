@@ -52,7 +52,9 @@ module ActiveRecord
         require "active_support/core_ext/securerandom"
         define_method("regenerate_#{attribute}") { update! attribute => self.class.generate_unique_secure_token(length: length) }
         set_callback on, on == :initialize ? :after : :before do
-          send("#{attribute}=", self.class.generate_unique_secure_token(length: length)) if has_attribute?(attribute) && !send("#{attribute}?")
+          if new_record? && !query_attribute(attribute)
+            write_attribute(attribute, self.class.generate_unique_secure_token(length: length))
+          end
         end
       end
 
