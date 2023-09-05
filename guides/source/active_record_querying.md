@@ -199,6 +199,8 @@ SELECT * FROM customers WHERE (customers.id IN (1,10))
 
 WARNING: The `find` method will raise an `ActiveRecord::RecordNotFound` exception unless a matching record is found for **all** of the supplied primary keys.
 
+If your table uses a composite primary key, you'll need to pass an array to find a single item. You can also pass an array of arrays to find multiple records.
+
 #### `take`
 
 The [`take`][] method retrieves a record without any implicit ordering. For example:
