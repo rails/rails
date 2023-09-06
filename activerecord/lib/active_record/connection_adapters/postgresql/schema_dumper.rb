@@ -28,6 +28,17 @@ module ActiveRecord
             end
           end
 
+          def schemas(stream)
+            schema_names = @connection.schema_names - ["public"]
+
+            if schema_names.any?
+              schema_names.sort.each do |name|
+                stream.puts "  create_schema #{name.inspect}"
+              end
+              stream.puts
+            end
+          end
+
           def exclusion_constraints_in_create(table, stream)
             if (exclusion_constraints = @connection.exclusion_constraints(table)).any?
               add_exclusion_constraint_statements = exclusion_constraints.map do |exclusion_constraint|

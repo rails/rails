@@ -1,3 +1,7 @@
+*   Dump PostgreSQL schemas as part of the schema dump.
+
+    *Lachlan Sylvester*
+
 ## Rails 7.1.0.beta1 (September 13, 2023) ##
 
 *   Encryption now supports `support_unencrypted_data` being set per-attribute.

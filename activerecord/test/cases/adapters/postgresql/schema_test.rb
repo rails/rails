@@ -17,6 +17,7 @@ end
 
 class SchemaTest < ActiveRecord::PostgreSQLTestCase
   include PGSchemaHelper
+  include SchemaDumpingHelper
   self.use_transactional_tests = false
 
   SCHEMA_NAME = "test_schema"
@@ -485,6 +486,14 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     @connection.rename_index("#{SCHEMA_NAME}.#{TABLE_NAME}", old_name, new_name)
     assert_not @connection.index_name_exists?("#{SCHEMA_NAME}.#{TABLE_NAME}", old_name)
     assert @connection.index_name_exists?("#{SCHEMA_NAME}.#{TABLE_NAME}", new_name)
+  end
+
+  def test_dumping_schemas
+    output = dump_all_table_schema(/./)
+
+    assert_no_match %r{create_schema "public"}, output
+    assert_match %r{create_schema "test_schema"}, output
+    assert_match %r{create_schema "test_schema2"}, output
   end
 
   private
