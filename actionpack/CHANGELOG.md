@@ -80,6 +80,7 @@
     This is very useful in situations where you only want to add a required param that is part of the route's URL but for other route not append an extraneous query param.
 
     Given the following router...
+
     ```ruby
     Rails.application.routes.draw do
       scope ":account_id" do
@@ -91,12 +92,13 @@
     ```
 
     And given the following `ApplicationController`
+
     ```ruby
-      class ApplicationController < ActionController::Base
-        def default_url_options
-          { path_params: { account_id: "foo" } }
-        end
+    class ApplicationController < ActionController::Base
+      def default_url_options
+        { path_params: { account_id: "foo" } }
       end
+    end
     ```
 
     The standard url_for helper and friends will now behave as follows:

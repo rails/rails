@@ -102,7 +102,7 @@ View Timings from Instrumentation in Your Browser
 Rails implements the [Server Timing](https://www.w3.org/TR/server-timing/) standard to make timing information available in the web browser. To enable, edit your environment configuration (usually `development.rb` as this is most-used in development) to include the following:
 
 ```ruby
-  config.server_timing = true
+config.server_timing = true
 ```
 
 Once configured (including restarting your server), you can go to the Developer Tools pane of your browser, then select Network and reload your page. You can then select any request to your Rails server, and will see server timings in the timings tab. For an example of doing this, see the [Firefox Documentation](https://firefox-source-docs.mozilla.org/devtools-user/network_monitor/request_details/index.html#server-timing).

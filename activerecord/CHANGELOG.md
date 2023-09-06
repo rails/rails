@@ -788,15 +788,15 @@
     Before:
 
     ```ruby
-      serialize :content, JSON
-      serialize :backtrace, Array
+    serialize :content, JSON
+    serialize :backtrace, Array
     ```
 
     After:
 
     ```ruby
-      serialize :content, coder: JSON
-      serialize :backtrace, type: Array
+    serialize :content, coder: JSON
+    serialize :backtrace, type: Array
     ```
 
     *Jean Boussier*

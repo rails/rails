@@ -144,21 +144,21 @@
 
     In the following example, the code failed to upload all but the last file to the configured service.
     ```ruby
-      ActiveRecord::Base.transaction do
-        user.attachments.attach({
-          content_type: "text/plain",
-          filename: "dummy.txt",
-          io: ::StringIO.new("dummy"),
-        })
-        user.attachments.attach({
-          content_type: "text/plain",
-          filename: "dummy2.txt",
-          io: ::StringIO.new("dummy2"),
-        })
-      end
+    ActiveRecord::Base.transaction do
+      user.attachments.attach({
+        content_type: "text/plain",
+        filename: "dummy.txt",
+        io: ::StringIO.new("dummy"),
+      })
+      user.attachments.attach({
+        content_type: "text/plain",
+        filename: "dummy2.txt",
+        io: ::StringIO.new("dummy2"),
+      })
+    end
 
-      assert_equal 2, user.attachments.count
-      assert user.attachments.first.service.exist?(user.attachments.first.key)  # Fails
+    assert_equal 2, user.attachments.count
+    assert user.attachments.first.service.exist?(user.attachments.first.key)  # Fails
     ```
 
     This was addressed by keeping track of the subchanges pending upload, and uploading them
