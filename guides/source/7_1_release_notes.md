@@ -588,7 +588,7 @@ Please refer to the [Changelog][active-model] for detailed changes.
 
 *   Add support for beginless ranges to `inclusivity/exclusivity` validators.
 
-     ```ruby
+    ```ruby
     validates_inclusion_of :birth_date, in: -> { (..Date.today) }
     ```
 

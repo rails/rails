@@ -2292,10 +2292,10 @@ Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must rep
 * Rails 4.0 requires that scopes use a callable object such as a Proc or lambda:
 
     ```ruby
-      scope :active, where(active: true)
+    scope :active, where(active: true)
 
-      # becomes
-      scope :active, -> { where active: true }
+    # becomes
+    scope :active, -> { where active: true }
     ```
 
 * Rails 4.0 has deprecated `ActiveRecord::Fixtures` in favor of `ActiveRecord::FixtureSet`.
@@ -2356,9 +2356,9 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 * Rails 4.0 introduces `ActiveSupport::KeyGenerator` and uses this as a base from which to generate and verify signed cookies (among other things). Existing signed cookies generated with Rails 3.x will be transparently upgraded if you leave your existing `secret_token` in place and add the new `secret_key_base`.
 
     ```ruby
-      # config/initializers/secret_token.rb
-      Myapp::Application.config.secret_token = 'existing secret token'
-      Myapp::Application.config.secret_key_base = 'new secret key base'
+    # config/initializers/secret_token.rb
+    Myapp::Application.config.secret_token = 'existing secret token'
+    Myapp::Application.config.secret_key_base = 'new secret key base'
     ```
 
     Please note that you should wait to set `secret_key_base` until you have 100% of your userbase on Rails 4.x and are reasonably sure you will not need to rollback to Rails 3.x. This is because cookies signed based on the new `secret_key_base` in Rails 4.x are not backwards compatible with Rails 3.x. You are free to leave your existing `secret_token` in place, not set the new `secret_key_base`, and ignore the deprecation warnings until you are reasonably sure that your upgrade is otherwise complete.
@@ -2422,14 +2422,14 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 * Rails 4.0 requires that routes using `match` must specify the request method. For example:
 
     ```ruby
-      # Rails 3.x
-      match '/' => 'root#index'
+    # Rails 3.x
+    match '/' => 'root#index'
 
-      # becomes
-      match '/' => 'root#index', via: :get
+    # becomes
+    match '/' => 'root#index', via: :get
 
-      # or
-      get '/' => 'root#index'
+    # or
+    get '/' => 'root#index'
     ```
 
 * Rails 4.0 has removed `ActionDispatch::BestStandardsSupport` middleware, `<!DOCTYPE html>` already triggers standards mode per https://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx and ChromeFrame header has been moved to `config.action_dispatch.default_headers`.
@@ -2446,10 +2446,10 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 * Rails 4.0 allows configuration of HTTP headers by setting `config.action_dispatch.default_headers`. The defaults are as follows:
 
     ```ruby
-      config.action_dispatch.default_headers = {
-        'X-Frame-Options' => 'SAMEORIGIN',
-        'X-XSS-Protection' => '1; mode=block'
-      }
+    config.action_dispatch.default_headers = {
+      'X-Frame-Options' => 'SAMEORIGIN',
+      'X-XSS-Protection' => '1; mode=block'
+    }
     ```
 
     Please note that if your application is dependent on loading certain pages in a `<frame>` or `<iframe>`, then you may need to explicitly set `X-Frame-Options` to `ALLOW-FROM ...` or `ALLOWALL`.
