@@ -342,7 +342,7 @@ module ActiveRecord
         # Dump it. It should get populated before dumping.
         cache.dump_to(tempfile_a.path)
         digest_a = Digest::MD5.file(tempfile_a).hexdigest
-        sleep(1)
+        sleep(1) # ensure timestamp changes
         tempfile_b = Tempfile.new(["schema_cache-", ".dump.gz"])
         # Dump it. It should get populated before dumping.
         cache.dump_to(tempfile_b.path)
