@@ -1,3 +1,39 @@
+*   `define_attribute_methods` defines alias attribute methods along with actual attribute methods
+
+    `define_attribute_methods` can and should be used to bring back previously undefined alias attribute methods
+
+    ```ruby
+      class Topic
+        include ActiveModel::AttributeMethods
+
+        define_attribute_methods :title
+        alias_attribute :subject, :title
+
+        def attributes
+          { title: "Active Model Topic" }
+        end
+
+        private
+        def attribute(name)
+          attributes[name.to_sym]
+        end
+      end
+
+      topic = Topic.new
+      topic.title # => "Active Model Topic"
+      topic.subject # => "Active Model Topic"
+
+      Topic.undefine_attribute_methods
+      topic.title # => NoMethodError
+      topic.subject # => NoMethodError
+
+      Topic.define_attribute_methods(:title)
+      topic.title # => "Active Model Topic"
+      topic.subject # => "Active Model Topic"
+    ```
+
+    *Nikita Vasilevsky*
+
 *   Support composite identifiers in `to_key`
 
     `to_key` avoids wrapping `#id` value into an `Array` if `#id` already an array
