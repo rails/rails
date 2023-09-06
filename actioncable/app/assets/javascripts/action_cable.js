@@ -236,6 +236,7 @@
         return;
       }
       const {identifier: identifier, message: message, reason: reason, reconnect: reconnect, type: type} = JSON.parse(event.data);
+      this.monitor.recordPing();
       switch (type) {
        case message_types.welcome:
         if (this.triedToReconnect()) {
