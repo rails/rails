@@ -71,8 +71,10 @@ module ActiveRecord
         generated_attribute_methods.synchronize do
           return if @alias_attributes_mass_generated
           ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
-            local_attribute_aliases.each do |new_name, old_name|
-              generate_alias_attribute_methods(code_generator, new_name, old_name)
+            aliases_by_attribute_name.each do |old_name, new_names|
+              new_names.each do |new_name|
+                generate_alias_attribute_methods(code_generator, new_name, old_name)
+              end
             end
           end
 

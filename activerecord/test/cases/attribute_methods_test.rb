@@ -1039,6 +1039,25 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  test "#define_attribute_methods brings back undefined aliases" do
+    topic_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+
+      alias_attribute :title_alias_to_be_undefined, :title
+    end
+
+    topic = topic_class.new(title: "New topic")
+    assert_equal("New topic", topic.title_alias_to_be_undefined)
+    topic_class.undefine_attribute_methods
+
+    assert_not_respond_to topic, :title_alias_to_be_undefined
+
+    topic_class.define_attribute_methods
+
+    assert_respond_to topic, :title_alias_to_be_undefined
+    assert_equal "New topic", topic.title_alias_to_be_undefined
+  end
+
   test "define_attribute_method works with both symbol and string" do
     klass = Class.new(ActiveRecord::Base)
     klass.table_name = "foo"
