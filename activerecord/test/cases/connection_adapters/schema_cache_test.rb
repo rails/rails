@@ -334,6 +334,27 @@ module ActiveRecord
         tempfile.unlink
       end
 
+      def test_gzip_dumps_identical
+        # Create an empty cache.
+        cache = new_bound_reflection
+
+        tempfile_a = Tempfile.new(["schema_cache-", ".dump.gz"])
+        # Dump it. It should get populated before dumping.
+        cache.dump_to(tempfile_a.path)
+        digest_a = Digest::MD5.file(tempfile_a).hexdigest
+        sleep(1) # ensure timestamp changes
+        tempfile_b = Tempfile.new(["schema_cache-", ".dump.gz"])
+        # Dump it. It should get populated before dumping.
+        cache.dump_to(tempfile_b.path)
+        digest_b = Digest::MD5.file(tempfile_b).hexdigest
+
+
+        assert_equal digest_a, digest_b
+      ensure
+        tempfile_a.unlink
+        tempfile_b.unlink
+      end
+
       def test_data_source_exist
         assert @cache.data_source_exists?("courses")
         assert_not @cache.data_source_exists?("foo")

@@ -471,6 +471,7 @@ module ActiveRecord
           File.atomic_write(filename) do |file|
             if File.extname(filename) == ".gz"
               zipper = Zlib::GzipWriter.new file
+              zipper.mtime = 0
               yield zipper
               zipper.flush
               zipper.close
