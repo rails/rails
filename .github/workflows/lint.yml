@@ -12,7 +12,7 @@ jobs:
       BUNDLE_WITHOUT: db:job:cable:storage:ujs
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Set up Ruby 3.2
       uses: ruby/setup-ruby@v1
@@ -34,7 +34,7 @@ jobs:
     - name: Check spelling with codespell
       run: codespell --ignore-words=codespell.txt --skip="./vendor/bundle,./actionview/test/ujs/public/vendor/qunit.js,./actiontext/app/assets/javascripts/trix.js,./yarn.lock" || exit 1
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         repository: skipkayhil/rails-bin
         ref: 748f4673a5fe5686b5859e89f814166280e51781
@@ -42,7 +42,7 @@ jobs:
       with:
         ruby-version: 3.2
         bundler-cache: true
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         path: rails
     - run: bin/check-changelogs ./rails
