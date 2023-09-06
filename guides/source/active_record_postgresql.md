@@ -633,11 +633,11 @@ ActiveRecord::Base.connection.transaction do
 end
 ```
 
-When the `:deferrable` option is set to `:immediate`, let the foreign keys keep the default behavior of checking the constraint immediately, but allow manually deferring the checks using `SET CONSTRAINTS ALL DEFERRED` within a transaction. This will cause the foreign keys to be checked when the transaction is committed:
+When the `:deferrable` option is set to `:immediate`, let the foreign keys keep the default behavior of checking the constraint immediately, but allow manually deferring the checks using `set_constraints` within a transaction. This will cause the foreign keys to be checked when the transaction is committed:
 
 ```ruby
-ActiveRecord::Base.transaction do
-  ActiveRecord::Base.connection.execute("SET CONSTRAINTS ALL DEFERRED")
+ActiveRecord::Base.connection.transaction do
+  ActiveRecord::Base.connection.set_constraints(:deferred)
   person = Person.create(alias_id: SecureRandom.uuid, name: "John Doe")
   Alias.create(id: person.alias_id, person_id: person.id, name: "jaydee")
 end

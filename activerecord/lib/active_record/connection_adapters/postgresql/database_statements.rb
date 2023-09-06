@@ -132,6 +132,27 @@ module ActiveRecord
           "EXPLAIN (#{options.join(", ").upcase})"
         end
 
+        # Set when constraints will be checked for the current transaction.
+        #
+        # Not passing any specific constraint names will set the value for all deferrable constraints.
+        #
+        # [<tt>deferred</tt>]
+        #   Valid values are +:deferred+ or +:immediate+.
+        #
+        # See https://www.postgresql.org/docs/current/sql-set-constraints.html
+        def set_constraints(deferred, *constraints)
+          unless %i[deferred immediate].include?(deferred)
+            raise ArgumentError, "deferred must be :deferred or :immediate"
+          end
+
+          constraints = if constraints.empty?
+            "ALL"
+          else
+            constraints.map { |c| quote_table_name(c) }.join(", ")
+          end
+          execute("SET CONSTRAINTS #{constraints} #{deferred.to_s.upcase}")
+        end
+
         private
           IDLE_TRANSACTION_STATUSES = [PG::PQTRANS_IDLE, PG::PQTRANS_INTRANS, PG::PQTRANS_INERROR]
           private_constant :IDLE_TRANSACTION_STATUSES
