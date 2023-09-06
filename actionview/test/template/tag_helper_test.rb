@@ -8,6 +8,7 @@ class TagHelperTest < ActionView::TestCase
   tests ActionView::Helpers::TagHelper
 
   COMMON_DANGEROUS_CHARS = "&<>\"' %*+,/;=^|"
+  INVALID_TAG_CHARS = "> /"
 
   def test_tag
     assert_equal "<br />", tag("br")
@@ -122,20 +123,21 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_with_dangerous_name
-    assert_equal "<#{"_" * COMMON_DANGEROUS_CHARS.size} />",
-                 tag(COMMON_DANGEROUS_CHARS)
-
-    assert_equal "<#{COMMON_DANGEROUS_CHARS} />",
-                 tag(COMMON_DANGEROUS_CHARS, nil, false, false)
+    INVALID_TAG_CHARS.each_char do |char|
+      tag_name = "asdf-#{char}"
+      assert_raise(ArgumentError, "expected #{tag_name.inspect} to be invalid") do
+        tag(tag_name)
+      end
+    end
   end
 
   def test_tag_builder_with_dangerous_name
-    escaped_dangerous_chars = "_" * COMMON_DANGEROUS_CHARS.size
-    assert_equal "<#{escaped_dangerous_chars}></#{escaped_dangerous_chars}>",
-                 tag.public_send(COMMON_DANGEROUS_CHARS.to_sym)
-
-    assert_equal "<#{COMMON_DANGEROUS_CHARS}></#{COMMON_DANGEROUS_CHARS}>",
-                 tag.public_send(COMMON_DANGEROUS_CHARS.to_sym, nil, escape: false)
+    INVALID_TAG_CHARS.each_char do |char|
+      tag_name = "asdf-#{char}".to_sym
+      assert_raise(ArgumentError, "expected #{tag_name.inspect} to be invalid") do
+        tag.public_send(tag_name)
+      end
+    end
   end
 
   def test_tag_with_dangerous_aria_attribute_name
@@ -424,6 +426,24 @@ class TagHelperTest < ActionView::TestCase
 
     str = content_tag("p", "limelight", { class: ["song", { "play>": true }] }, false)
     assert_equal "<p class=\"song play>\">limelight</p>", str
+  end
+
+  def test_content_tag_with_invalid_html_tag
+    invalid_tags = ["12p", "", "image file", "div/", "my>element", "_header"]
+    invalid_tags.each do |tag_name|
+      assert_raise(ArgumentError, "expected #{tag_name.inspect} to be invalid") do
+        content_tag(tag_name)
+      end
+    end
+  end
+
+  def test_tag_with_invalid_html_tag
+    invalid_tags = ["12p", "", "image file", "div/", "my>element", "_header"]
+    invalid_tags.each do |tag_name|
+      assert_raise(ArgumentError, "expected #{tag_name.inspect} to be invalid") do
+        tag(tag_name)
+      end
+    end
   end
 
   def test_tag_builder_with_unescaped_conditional_hash_classes
