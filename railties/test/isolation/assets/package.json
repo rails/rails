@@ -4,7 +4,6 @@
   "dependencies": {
     "@rails/actioncable": "file:../../../../actioncable",
     "@rails/activestorage": "file:../../../../activestorage",
-    "@rails/ujs": "file:../../../../actionview",
-    "@rails/webpacker": "^6.0.0-rc.5"
+    "@rails/ujs": "file:../../../../actionview"
   }
 }

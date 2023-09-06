@@ -739,11 +739,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_webpack_option
     generator([destination_root], javascript: "webpack")
 
-    webpacker_called = 0
+    webpack_called = 0
     command_check = -> command, *_ do
       case command
       when "javascript:install:webpack"
-        webpacker_called += 1
+        webpack_called += 1
       end
     end
 
@@ -751,7 +751,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       run_generator_instance
     end
 
-    assert_equal 1, webpacker_called, "`javascript:install:webpack` expected to be called once, but was called #{webpacker_called} times."
+    assert_equal 1, webpack_called, "`javascript:install:webpack` expected to be called once, but was called #{webpack_called} times."
     assert_gem "jsbundling-rails"
     assert_node_files
   end
