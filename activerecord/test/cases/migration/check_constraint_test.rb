@@ -123,6 +123,14 @@ if ActiveRecord::Base.connection.supports_check_constraints?
           end
         end
 
+        def test_add_check_constraint_with_if_not_exists_options
+          @connection.add_check_constraint :trades, "quantity > 0"
+
+          assert_nothing_raised do
+            @connection.add_check_constraint :trades, "quantity > 0", if_not_exists: true
+          end
+        end
+
         if supports_non_unique_constraint_name?
           def test_add_constraint_with_same_name_to_different_table
             @connection.add_check_constraint :trades, "quantity > 0", name: "greater_than_zero"
