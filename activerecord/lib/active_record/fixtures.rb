@@ -456,6 +456,41 @@ module ActiveRecord
   # In the above example, 'base' will be ignored when creating fixtures.
   # This can be used for common attributes inheriting.
   #
+  # == Composite Primary Key Fixtures
+  #
+  # Fixtures for composite primary key tables are fairly similar to normal tables.
+  # When using an id column, the column may be omitted as usual:
+  #
+  #   # app/models/book.rb
+  #   class Book < ApplicationRecord
+  #     self.primary_key = [:author_id, :id]
+  #     belongs_to :author
+  #   end
+  #
+  #   # books.yml
+  #   alices_adventure_in_wonderland:
+  #     author_id: <%= ActiveRecord::FixtureSet.identify(:lewis_carroll) %>
+  #     title: "Alice's Adventures in Wonderland"
+  #
+  # However, in order to support composite primary key relationships,
+  # you must use the `composite_identify` method:
+  #
+  #   # app/models/book_orders.rb
+  #   class BookOrder < ApplicationRecord
+  #     self.primary_key = [:shop_id, :id]
+  #     belongs_to :order, query_constraints: [:shop_id, :order_id]
+  #     belongs_to :book, query_constraints: [:author_id, :book_id]
+  #   end
+  #
+  #   # book_orders.yml
+  #   alices_adventure_in_wonderland_in_books:
+  #     author: lewis_carroll
+  #     book_id: <%= ActiveRecord::FixtureSet.composite_identify(
+  #                  :alices_adventure_in_wonderland, Book.primary_key)[:id] %>
+  #     shop: book_store
+  #     order_id: <%= ActiveRecord::FixtureSet.composite_identify(
+  #                  :books, Order.primary_key)[:id] %>
+  #
   # == Configure the fixture model class
   #
   # It's possible to set the fixture's model class directly in the YAML file.
