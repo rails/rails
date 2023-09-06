@@ -270,6 +270,7 @@
         return this.subscriptions.reject(identifier);
 
        default:
+        this.monitor.recordPing();
         return this.subscriptions.notify(identifier, "received", message);
       }
     },
