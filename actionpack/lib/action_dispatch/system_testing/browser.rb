@@ -26,10 +26,9 @@ module ActionDispatch
         yield options if block_given? && options
       end
 
-      # driver_path can be configured as a proc.
-      # proc to update web drivers. Running this proc early allows us to only
-      # update the webdriver once and avoid race conditions when using
-      # parallel tests.
+      # driver_path can be configured as a proc. Running this proc early allows
+      # us to only update the webdriver once and avoid race conditions when
+      # using parallel tests.
       def preload
         case type
         when :chrome
