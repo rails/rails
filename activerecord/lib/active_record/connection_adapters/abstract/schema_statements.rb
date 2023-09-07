@@ -629,12 +629,13 @@ module ActiveRecord
         add_column_def = build_add_column_definition(table_name, column_name, type, **options)
         return unless add_column_def
 
-        execute schema_creation.accept(add_column_def)
+        output = execute schema_creation.accept(add_column_def)
 
         if index
           index_options = index.is_a?(Hash) ? index : {}
           add_index(table_name, column_name, **index_options)
         end
+        output
       end
 
       def add_columns(table_name, *column_names, type:, **options) # :nodoc:
