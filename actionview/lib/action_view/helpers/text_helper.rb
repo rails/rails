@@ -303,6 +303,9 @@ module ActionView
       #   simple_format(my_text, {}, wrapper_tag: "div")
       #   # => "<div>Here is some basic text...\n<br />...with a line break.</div>"
       #
+      #   simple_format(my_text, {}, wrapper_tag: nil)
+      #   # => "<p>Here is some basic text...\n<br />...with a line break.</p>"
+      #
       #   more_text = "We want to put a paragraph...\n\n...right there."
       #
       #   simple_format(more_text)
