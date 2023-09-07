@@ -199,7 +199,7 @@ SELECT * FROM customers WHERE (customers.id IN (1,10))
 
 WARNING: The `find` method will raise an `ActiveRecord::RecordNotFound` exception unless a matching record is found for **all** of the supplied primary keys.
 
-If your table uses a composite primary key, you'll need to pass find an array to find a single item. For instance, if customers were defined with [:store_id, :id] as a primary key:
+If your table uses a composite primary key, you'll need to pass find an array to find a single item. For instance, if customers were defined with `[:store_id, :id]` as a primary key:
 
 ```irb
 # Find the customer with store_id 3 and id 17
@@ -296,6 +296,20 @@ The SQL equivalent of the above is:
 SELECT * FROM customers ORDER BY customers.id ASC LIMIT 3
 ```
 
+Models with composite primary keys will use the full composite primary key for ordering.
+For instance, if customers were defined with `[:store_id, :id]` as a primary key:
+
+```irb
+irb> customer = Customer.first
+=> #<Customer id: 2, store_id: 1, first_name: "Lifo">
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM customers ORDER BY customers.store_id ASC, customers.id ASC LIMIT 1
+```
+
 On a collection that is ordered using `order`, `first` will return the first record ordered by the specified attribute for `order`.
 
 ```irb
@@ -330,6 +344,20 @@ SELECT * FROM customers ORDER BY customers.id DESC LIMIT 1
 ```
 
 The `last` method returns `nil` if no matching record is found and no exception will be raised.
+
+Models with composite primary keys will use the full composite primary key for ordering.
+For instance, if customers were defined with `[:store_id, :id]` as a primary key:
+
+```irb
+irb> customer = Customer.last
+=> #<Customer id: 221, store_id: 1, first_name: "Lifo">
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM customers ORDER BY customers.store_id DESC, customers.id DESC LIMIT 1
+```
 
 If your [default scope](active_record_querying.html#applying-a-default-scope) contains an order method, `last` will return the last record according to this ordering.
 
@@ -405,6 +433,36 @@ Customer.where(first_name: 'does not exist').take!
 
 [`find_by`]: https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-find_by
 [`find_by!`]: https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-find_by-21
+
+##### Conditions with `:id`
+
+When specifying conditions on methods like [`find_by`][] and [`where`][], the use of `id` will match against
+an `:id` attribute on the model. This is different from [`find`][], where the ID passed in should be a primary key value.
+
+Take caution when using `find_by(id:)` on models where `:id` is not the primary key, such as composite primary key models.
+For example, if customers were defined with `[:store_id, :id]` as a primary key:
+
+```irb
+irb> customer = Customer.last
+=> #<Customer id: 10, store_id: 5, first_name: "Joe">
+irb> Customer.find_by(id: customer.id) # Customer.find_by(id: [5, 10])
+=> #<Customer id: 5, store_id: 3, first_name: "Bob">
+```
+
+Here, we might intend to search for a single record with the composite primary key `[5, 10]`, but Active Record will
+search for a record with an `:id` column of _either_ 5 or 10, and may return the wrong record.
+
+TIP: The [`id_value`][] method can be used to fetch the value of the `:id` column for a record, for use in finder
+methods such as `find_by` and `where`. See example below:
+
+```irb
+irb> customer = Customer.last
+=> #<Customer id: 10, store_id: 5, first_name: "Joe">
+irb> Customer.find_by(id: customer.id_value) # Customer.find_by(id: 10)
+=> #<Customer id: 10, store_id: 5, first_name: "Joe">
+```
+
+[`id_value`]: https://api.rubyonrails.org/classes/ActiveRecord/ModelSchema.html#method-i-id_value
 
 ### Retrieving Multiple Objects in Batches
 
@@ -681,6 +739,23 @@ In the case of a belongs_to relationship, an association key can be used to spec
 author = Author.first
 Book.where(author: author)
 Author.joins(:books).where(books: { author: author })
+```
+
+Hash conditions may also be specified in a tuple-like syntax, where the key is an array of columns and the value is
+an array of tuples:
+
+```ruby
+Book.where([:author_id, :id] => [[15, 1], [15, 2]])
+```
+
+This syntax can be useful for querying relations where the table uses a composite primary key:
+
+```ruby
+class Book < ApplicationRecord
+  self.primary_key = [:author_id, :id]
+end
+
+Book.where(Book.primary_key => [[2, 1], [3, 1]])
 ```
 
 #### Range Conditions
