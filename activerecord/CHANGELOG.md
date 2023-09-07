@@ -1,3 +1,30 @@
+*   Add support for `index` option with `add_column`
+
+    Before:
+    ```ruby
+    class AddEmailAndPhoneNumberToUsers < ActiveRecord::Migration[7.1]
+      def change
+        add_column :users, :email, :string
+        add_column :users, :phone_number, :string
+
+        add_index :users, :email, unique: true
+        add_index :users, :phone_number
+      end
+    end
+    ```
+
+    After:
+    ```ruby
+    class AddEmailAndPhoneNumberToUsers < ActiveRecord::Migration[7.1]
+      def change
+        add_column :users, :email, :string, index: { unique: true }
+        add_column :users, :phone_number, :string, index: true
+      end
+    end
+    ```
+
+    *Deepak Mahakale*
+
 *   Raise an `ArgumentError` when `#accepts_nested_attributes_for` is declared more than once for an association in
     the same class. Previously, the last declaration would silently override the previous one. Overriding in a subclass
     is still allowed.

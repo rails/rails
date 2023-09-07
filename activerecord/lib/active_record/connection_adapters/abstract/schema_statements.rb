@@ -617,11 +617,24 @@ module ActiveRecord
       #
       #  # Ignores the method call if the column exists
       #  add_column(:shapes, :triangle, 'polygon', if_not_exists: true)
+      #
+      #  # Adds an index along with the column
+      #  add_column(:users, :email, :string, index: true)
+      #
+      #  # Adds a unique index along with the column
+      #  add_column(:users, :email, :string, index: { unique: true })
       def add_column(table_name, column_name, type, **options)
+        index = options.delete(:index)
+
         add_column_def = build_add_column_definition(table_name, column_name, type, **options)
         return unless add_column_def
 
         execute schema_creation.accept(add_column_def)
+
+        if index
+          index_options = index.is_a?(Hash) ? index : {}
+          add_index(table_name, column_name, **index_options)
+        end
       end
 
       def add_columns(table_name, *column_names, type:, **options) # :nodoc:
