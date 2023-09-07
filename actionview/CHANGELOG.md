@@ -1,3 +1,21 @@
+*   Introduce `ActionView::TestCase.register_parser`
+
+    ```ruby
+    register_parser :rss, -> rendered { RSS::Parser.parse(rendered) }
+
+    test "renders RSS" do
+      article = Article.create!(title: "Hello, world")
+
+      render formats: :rss, partial: article
+
+      assert_equal "Hello, world", rendered.rss.items.last.title
+    end
+    ```
+
+    By default, register parsers for `:html` and `:json`.
+
+    *Sean Doyle*
+
 ## Rails 7.1.0.beta1 (September 13, 2023) ##
 
 *   Fix `simple_format` with blank `wrapper_tag` option returns plain html tag
