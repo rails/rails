@@ -596,6 +596,14 @@ module ActiveRecord
       def enable_extension(name, **)
       end
 
+      # This is meant to be implemented by the adapters that support extensions
+      def update_extension(name, **)
+      end
+
+      # This is meant to be implemented by the adapters that support extensions
+      def change_extension_schema(name)
+      end
+
       # This is meant to be implemented by the adapters that support custom enum types
       def create_enum(*) # :nodoc:
       end

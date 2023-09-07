@@ -596,7 +596,7 @@ module ActiveRecord
       end
 
       if current_adapter?(:PostgreSQLAdapter)
-        def test_disable_extension_on_7_0
+        def test_disable_extension_on_7_0_cascade
           enable_extension!(:hstore, connection)
 
           migration = Class.new(ActiveRecord::Migration[7.0]) do
@@ -608,6 +608,36 @@ module ActiveRecord
 
           ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
           assert_not connection.extension_enabled?(:hstore)
+        ensure
+          disable_extension!(:hstore, connection)
+        end
+
+        def test_disable_extension_on_7_0_idempotence
+          disable_extension!(:hstore, connection)
+
+          migration = Class.new(ActiveRecord::Migration[7.0]) do
+            def up
+              disable_extension :hstore
+            end
+          end
+
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+          assert_not connection.extension_enabled?(:hstore)
+        ensure
+          disable_extension!(:hstore, connection)
+        end
+
+        def test_enable_extension_on_7_0_idempotence
+          enable_extension!(:hstore, connection)
+
+          migration = Class.new(ActiveRecord::Migration[7.0]) do
+            def up
+              enable_extension :hstore
+            end
+          end
+
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+          assert connection.extension_enabled?(:hstore)
         ensure
           disable_extension!(:hstore, connection)
         end

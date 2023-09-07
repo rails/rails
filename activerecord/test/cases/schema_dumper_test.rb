@@ -18,6 +18,12 @@ class SchemaDumperTest < ActiveRecord::TestCase
     @@standard_dump ||= dump_all_table_schema
   end
 
+  ExtensionDefinition = Struct.new(:name) do
+    def quoted
+      name.inspect
+    end
+  end
+
   def test_dump_schema_information_with_empty_versions
     @schema_migration.delete_all_versions
     schema_info = ActiveRecord::Base.connection.dump_schema_information
@@ -382,10 +388,10 @@ class SchemaDumperTest < ActiveRecord::TestCase
     def test_schema_dump_includes_extensions
       connection = ActiveRecord::Base.connection
 
-      connection.stub(:extensions, ["hstore"]) do
+      connection.stub(:extensions, [ExtensionDefinition.new("hstore")]) do
         output = dump_all_table_schema(/./)
         assert_match "# These are extensions that must be enabled", output
-        assert_match %r{enable_extension "hstore"}, output
+        assert_match %r{enable_extension "hstore", if_not_exists: true}, output
       end
 
       connection.stub(:extensions, []) do
@@ -398,13 +404,18 @@ class SchemaDumperTest < ActiveRecord::TestCase
     def test_schema_dump_includes_extensions_in_alphabetic_order
       connection = ActiveRecord::Base.connection
 
-      connection.stub(:extensions, ["hstore", "uuid-ossp", "xml2"]) do
+      extensions = [
+        ExtensionDefinition.new("hstore"),
+        ExtensionDefinition.new("uuid-ossp"),
+        ExtensionDefinition.new("xml2")
+      ]
+      connection.stub(:extensions, extensions) do
         output = dump_all_table_schema(/./)
         enabled_extensions = output.scan(%r{enable_extension "(.+)"}).flatten
         assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
       end
 
-      connection.stub(:extensions, ["uuid-ossp", "xml2", "hstore"]) do
+      connection.stub(:extensions, extensions.rotate) do
         output = dump_all_table_schema(/./)
         enabled_extensions = output.scan(%r{enable_extension "(.+)"}).flatten
         assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions

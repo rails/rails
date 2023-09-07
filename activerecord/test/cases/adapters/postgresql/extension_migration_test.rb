@@ -23,6 +23,20 @@ class PostgresqlExtensionMigrationTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  class ChangeHstoreSchema < ActiveRecord::Migration::Current
+    def change
+      enable_extension "hstore"
+      change_extension_schema "other_schema.hstore"
+    end
+  end
+
+  class UpdateHstore < ActiveRecord::Migration::Current
+    def change
+      enable_extension "hstore"
+      update_extension "hstore"
+    end
+  end
+
   def setup
     super
 
@@ -36,9 +50,13 @@ class PostgresqlExtensionMigrationTest < ActiveRecord::PostgreSQLTestCase
 
     @connection.schema_migration.delete_all_versions rescue nil
     ActiveRecord::Migration.verbose = false
+
+    @connection.disable_extension("hstore", if_exists: true)
   end
 
   def teardown
+    @connection.disable_extension("hstore", if_exists: true)
+
     @connection.schema_migration.delete_all_versions rescue nil
     ActiveRecord::Migration.verbose = true
 
@@ -49,25 +67,40 @@ class PostgresqlExtensionMigrationTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_enable_extension_migration_ignores_prefix_and_suffix
-    @connection.disable_extension("hstore")
-
     migrations = [EnableHstore.new(nil, 1)]
     ActiveRecord::Migrator.new(:up, migrations, @connection.schema_migration, @connection.internal_metadata).migrate
     assert @connection.extension_enabled?("hstore"), "extension hstore should be enabled"
   end
 
   def test_enable_extension_migration_with_schema
-    @connection.disable_extension("hstore")
     @connection.create_schema "other_schema"
 
     migrations = [EnableHstoreInSchema.new(nil, 1)]
     ActiveRecord::Migrator.new(:up, migrations, @connection.schema_migration, @connection.internal_metadata).migrate
 
     assert @connection.extension_enabled?("hstore"), "extension hstore should be enabled"
+    assert_equal "other_schema", @connection.extension_enabled?("hstore").schema, "extension hstore should be in the other_schema schema"
   ensure
     @connection.drop_schema "other_schema", if_exists: true
   end
 
+  def test_update_extension_migration
+    migrations = [UpdateHstore.new(nil, 1)]
+    ActiveRecord::Migrator.new(:up, migrations, @connection.schema_migration, @connection.internal_metadata).migrate
+    assert @connection.extension_enabled?("hstore"), "extension hstore should be enabled"
+  end
+
+  def test_change_extension_schema
+    @connection.create_schema "other_schema"
+
+    migrations = [ChangeHstoreSchema.new(nil, 1)]
+    ActiveRecord::Migrator.new(:up, migrations, @connection.schema_migration, @connection.internal_metadata).migrate
+
+    assert @connection.extension_enabled?("hstore"), "extension hstore should be enabled"
+    assert_equal "other_schema", @connection.extension_enabled?("hstore").schema, "extension hstore should be in the other_schema schema"
+  ensure
+    @connection.drop_schema "other_schema", if_exists: true
+  end
 
   def test_disable_extension_migration_ignores_prefix_and_suffix
     @connection.enable_extension("hstore")

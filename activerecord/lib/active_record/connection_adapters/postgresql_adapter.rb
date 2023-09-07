@@ -462,35 +462,116 @@ module ActiveRecord
         query_value("SELECT pg_advisory_unlock(#{lock_id})")
       end
 
-      def enable_extension(name, **)
-        schema, name = name.to_s.split(".").values_at(-2, -1)
-        sql = +"CREATE EXTENSION IF NOT EXISTS \"#{name}\""
-        sql << " SCHEMA #{schema}" if schema
+      # Add an extension to the database.
+      #
+      # The +name+ parameter can either be a single extension name, or a schema qualified
+      # name to indicate which schema to install the extension into. For example:
+      #
+      # enable_extension "heroku_ext.hstore"
+      #
+      # [<tt>:if_not_exists</tt>]
+      #   Don't throw an error if an extension with the same name is already in the database.
+      # [<tt>:version</tt>]
+      #   Set to a version string to install a specific version of an extension.
+      def enable_extension(name, if_not_exists: false, version: nil, force: false, **)
+        name = PostgreSQL::Utils.extract_schema_qualified_name(name.to_s)
+        sql = +"CREATE EXTENSION "
+        sql << "IF NOT EXISTS " if if_not_exists
+        sql << quote_column_name(name.identifier)
+        sql << " SCHEMA #{quote_schema_name(name.schema)}" if name.schema
+        sql << " VERSION #{quote(version)}" if version
+        sql << " CASCADE" if force == :cascade
 
-        internal_exec_query(sql).tap { reload_type_map }
+        internal_exec_query(sql).tap do
+          reload_type_map
+          schema_cache.clear_extensions_cache!
+        end
+      end
+
+      # Updates an extension in the database.
+      #
+      # [<tt>:version</tt>]
+      #  Set to a version string to update the extension to a specific version.
+      #  Otherwise updates to the latest available version.
+      def update_extension(name, version: nil)
+        # ignore any schema portion of the name
+        name = PostgreSQL::Utils.extract_schema_qualified_name(name.to_s)
+
+        sql = +"ALTER EXTENSION #{quote_column_name(name.identifier)} UPDATE"
+        sql << " TO #{quote(version)}" if version
+
+        internal_exec_query(sql).tap do
+          reload_type_map
+          schema_cache.clear_extensions_cache!
+        end
+      end
+
+      # Change the schema an extension lives in.
+      #
+      # The +name+ parameter must be a schema qualified name, with the schema
+      # portion being the schema the extension will be moved to. For example:
+      #
+      # change_extension_schema "heroku_ext.hstore"
+      def change_extension_schema(name)
+        name = PostgreSQL::Utils.extract_schema_qualified_name(name.to_s)
+        raise ArgumentError, "Must specify a schema" unless name.schema
+
+        sql = +"ALTER EXTENSION #{quote_column_name(name.identifier)}"
+        sql << " SET SCHEMA #{quote_schema_name(name.schema)}"
+
+        internal_exec_query(sql).tap do
+          reload_type_map
+          schema_cache.clear_extensions_cache!
+        end
       end
 
       # Removes an extension from the database.
       #
+      # [<tt>:if_exists</tt>]
+      #   Don't throw an error if an extension with this name is not in the database.
       # [<tt>:force</tt>]
       #   Set to +:cascade+ to drop dependent objects as well.
       #   Defaults to false.
-      def disable_extension(name, force: false)
-        internal_exec_query("DROP EXTENSION IF EXISTS \"#{name}\"#{' CASCADE' if force == :cascade}").tap {
-          reload_type_map
-        }
+      def disable_extension(name, if_exists: false, force: false)
+        # ignore any schema portion of the name
+        name = PostgreSQL::Utils.extract_schema_qualified_name(name.to_s)
+
+        sql = +"DROP EXTENSION "
+        sql << "IF EXISTS " if if_exists
+        sql << quote_column_name(name.identifier)
+        sql << " CASCADE" if force == :cascade
+
+        internal_exec_query(sql).tap { reload_type_map }
       end
 
       def extension_available?(name)
-        query_value("SELECT true FROM pg_available_extensions WHERE name = #{quote(name)}", "SCHEMA")
+        # ignore any schema portion of the name
+        name = PostgreSQL::Utils.extract_schema_qualified_name(name.to_s)
+
+        query_value("SELECT true FROM pg_available_extensions WHERE name = #{quote(name.identifier)}", "SCHEMA")
       end
 
       def extension_enabled?(name)
-        query_value("SELECT installed_version IS NOT NULL FROM pg_available_extensions WHERE name = #{quote(name)}", "SCHEMA")
+        # ignore any schema portion of the name
+        name = PostgreSQL::Utils.extract_schema_qualified_name(name.to_s)
+
+        extensions = internal_exec_query(<<~SQL, "SCHEMA", allow_retry: true, materialize_transactions: false).cast_values.map do |row|
+          SELECT nspname, extname, extversion FROM pg_extension
+            INNER JOIN pg_namespace ON extnamespace=pg_namespace.oid
+            WHERE extname = #{quote(name.identifier)}
+        SQL
+          PostgreSQL::ExtensionDefinition.new(PostgreSQL::Name.new(row[0], row[1]), row[2])
+        end
+        extensions.first
       end
 
       def extensions
-        internal_exec_query("SELECT extname FROM pg_extension", "SCHEMA", allow_retry: true, materialize_transactions: false).cast_values
+        internal_exec_query(<<~SQL, "SCHEMA", allow_retry: true, materialize_transactions: false).cast_values.map do |row|
+          SELECT nspname, extname, extversion FROM pg_extension
+            INNER JOIN pg_namespace ON extnamespace=pg_namespace.oid
+        SQL
+          PostgreSQL::ExtensionDefinition.new(PostgreSQL::Name.new(row[0], row[1]), row[2])
+        end
       end
 
       # Returns a list of defined enum types, and their values.
@@ -938,7 +1019,7 @@ module ActiveRecord
         # ActiveRecord::PreparedStatementCacheExpired
         #
         # Check here for more details:
-        # https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/utils/cache/plancache.c#l573
+        # https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/PostgreSQL::Utils/cache/plancache.c#l573
         def is_cached_plan_failure?(e)
           pgerror = e.cause
           pgerror.result.result_error_field(PG::PG_DIAG_SQLSTATE) == FEATURE_NOT_SUPPORTED &&

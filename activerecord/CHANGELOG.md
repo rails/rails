@@ -1,3 +1,25 @@
+*   Allow access to the full set of options when managing PostgreSQL extensions
+
+    ```ruby
+    enable_extension("heroku_ext.hstore", if_not_exists: true, version: "2.0", force: :cascade)
+    update_extension("hstore") # updates to the latest version
+    update_extension("hstore", "3.0") # update to a specific version
+    change_extension_schema("hstore_ext.hstore")
+    disable_extension("hstore", if_exists: true, force: :cascade)
+    extension_available?("hstore") # => `ExtensionDefinition` object
+    extensions # => Array of `ExtensionDefinition` objects
+    ```
+
+    Note that `if_not_exists` and `if_exists` are new options that default to `false`, contrary
+    to their prior assumed value of true. Migration compatibility is maintainedd when using tagged
+    migrations.
+
+    `#extensions` and `#extension_enabled?` are also now available on `#schema_cache`, in case your
+    application can handle an optional extension, to avoid re-querying the database for that
+    extension every time you need to check.
+
+    *Cody Cutrer*
+
 *   Raise an `ArgumentError` when `#accepts_nested_attributes_for` is declared more than once for an association in
     the same class. Previously, the last declaration would silently override the previous one. Overriding in a subclass
     is still allowed.

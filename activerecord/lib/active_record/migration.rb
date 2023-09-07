@@ -1031,7 +1031,7 @@ module ActiveRecord
     def method_missing(method, *arguments, &block)
       say_with_time "#{method}(#{format_arguments(arguments)})" do
         unless connection.respond_to? :revert
-          unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
+          unless arguments.empty? || [:execute, :enable_extension, :update_extension, :change_extension_schema, :disable_extension].include?(method)
             arguments[0] = proper_table_name(arguments.first, table_name_options)
             if method == :rename_table ||
               (method == :remove_foreign_key && !arguments.second.is_a?(Hash))
