@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "rails/engine"
+require "capybara/minitest"
 
 module ActionView
   module ATestHelper
@@ -352,6 +353,35 @@ module ActionView
     end
   end
 
+  class PlaceholderAssertionsTest < ActionView::TestCase
+    helper_method def render_from_helper
+      content_tag "a", "foo", href: "/bar"
+    end
+
+    test "supports placeholders in assert_select calls" do
+      render(partial: "test/from_helper")
+
+      assert_select "a[href=?]", "/bar", text: "foo"
+    end
+  end
+
+  class CapybaraHTMLEncoderTest < ActionView::TestCase
+    include ::Capybara::Minitest::Assertions
+
+    def page
+      Capybara.string(document_root_element)
+    end
+
+    test "document_root_element can be configured to utilize Capybara" do
+      developer = DeveloperStruct.new("Eloy")
+
+      render "developers/developer_with_h1", developer: developer
+
+      assert_kind_of Capybara::Node::Simple, page
+      assert_css "h1", text: developer.name
+    end
+  end
+
   module AHelperWithInitialize
     def initialize(*)
       super
@@ -364,4 +394,8 @@ module ActionView
       assert @called_initialize
     end
   end
+end
+
+if RUBY_VERSION >= "3.1"
+  require_relative "./test_case_test/pattern_matching_test_cases"
 end

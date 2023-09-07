@@ -9,6 +9,9 @@ require "rails-dom-testing"
 
 module ActionView
   # = Action View Test Case
+  #
+  # Read more about <tt>ActionView::TestCase</tt> in {Testing Rails Applications}[https://guides.rubyonrails.org/testing.html#testing-view-partials]
+  # in the guides.
   class TestCase < ActiveSupport::TestCase
     class TestController < ActionController::Base
       include ActionDispatch::TestProcess
