@@ -275,9 +275,11 @@ ActiveRecord::Schema.define do
     t.string :status
   end
 
-  create_table :cpk_order_tags, force: true do |t|
+  create_table :cpk_order_tags, primary_key: [:order_id, :tag_id], force: true do |t|
     t.integer :order_id
     t.integer :tag_id
+    t.string :attached_by
+    t.string :attached_reason
   end
 
   create_table :cpk_tags, force: true do |t|

@@ -452,6 +452,21 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_empty(tag.orders.reload)
   end
 
+  def test_composite_primary_key_join_table
+    order = Cpk::Order.create(shop_id: 1, status: "open")
+    tag = cpk_tags(:cpk_tag_loyal_customer)
+
+    order_tag = Cpk::OrderTag.create(order_id: order.id_value, tag_id: tag.id, attached_by: "Nikita")
+
+    assert_equal(order, order_tag.order)
+    assert_equal(tag, order_tag.tag)
+    order_tag.update(attached_reason: "This is our loyal customer")
+
+    order_tag = order.order_tags.find { |order_tag| order_tag.tag_id == tag.id }
+
+    assert_equal("This is our loyal customer", order_tag.attached_reason)
+  end
+
   def test_destroy_all_on_association_clears_scope
     post = Post.create!(title: "Rails 6", body: "")
     people = post.people
