@@ -119,8 +119,16 @@ module ActiveRecord
           super(table_name, column_name, !!null, default)
         end
 
+        def enable_extension(name, **options)
+          if connection.adapter_name == "PostgreSQL"
+            options[:if_not_exists] = true
+          end
+          super
+        end
+
         def disable_extension(name, **options)
           if connection.adapter_name == "PostgreSQL"
+            options[:if_exists] = true
             options[:force] = :cascade
           end
           super

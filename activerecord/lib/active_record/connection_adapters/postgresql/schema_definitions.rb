@@ -293,6 +293,14 @@ module ActiveRecord
           end
       end
 
+      ExtensionDefinition = Struct.new(:qualified_name, :version) do
+        delegate :quoted, :schema, to: :qualified_name
+
+        def name
+          qualified_name.identifier
+        end
+      end
+
       # = Active Record PostgreSQL Adapter \Table
       class Table < ActiveRecord::ConnectionAdapters::Table
         include ColumnMethods

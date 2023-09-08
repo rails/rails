@@ -618,7 +618,7 @@ class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_opclass_class_parsing_on_non_reserved_and_cannot_be_function_or_type_keyword
-    @connection.enable_extension("pg_trgm")
+    @connection.enable_extension("pg_trgm", if_not_exists: true)
     @connection.execute "CREATE INDEX trains_position ON trains USING gin(position gin_trgm_ops)"
     @connection.execute "CREATE INDEX trains_name_and_position ON trains USING btree(name, position text_pattern_ops)"
 

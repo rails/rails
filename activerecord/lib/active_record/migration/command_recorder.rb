@@ -55,6 +55,7 @@ module ActiveRecord
         :add_exclusion_constraint, :remove_exclusion_constraint,
         :add_unique_key, :remove_unique_key,
         :create_enum, :drop_enum, :rename_enum, :add_enum_value, :rename_enum_value,
+        :update_extension, :change_extension_schema,
       ]
       include JoinTable
 
@@ -163,7 +164,7 @@ module ActiveRecord
               add_exclusion_constraint: :remove_exclusion_constraint,
               add_unique_key: :remove_unique_key,
               enable_extension:  :disable_extension,
-              create_enum:       :drop_enum
+              create_enum:       :drop_enum,
             }.each do |cmd, inv|
               [[inv, cmd], [cmd, inv]].uniq.each do |method, inverse|
                 class_eval <<-EOV, __FILE__, __LINE__ + 1
@@ -360,6 +361,20 @@ module ActiveRecord
           end
 
           [:rename_enum_value, [type_name, from: options[:to], to: options[:from]]]
+        end
+
+        def invert_enable_extension(args)
+          if (options = args.last).is_a?(Hash)
+            options[:if_exists] = options.delete(:if_not_exists) if options.key?(:if_not_exists)
+          end
+          super
+        end
+
+        def invert_disable_extension(args)
+          if (options = args.last).is_a?(Hash)
+            options[:if_not_exists] = options.delete(:if_exists) if options.key?(:if_exists)
+          end
+          super
         end
 
         def respond_to_missing?(method, _)

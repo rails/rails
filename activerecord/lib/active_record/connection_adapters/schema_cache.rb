@@ -78,10 +78,24 @@ module ActiveRecord
         cache(connection).size
       end
 
+      def extensions(connection)
+        cache(connection).extensions(connection)
+      end
+
+      def extension_enabled?(connection, extension)
+        cache(connection).extension_enabled?(connection, extension)
+      end
+
       def clear_data_source_cache!(connection, name)
         return if @cache.nil? && !possible_cache_available?
 
         cache(connection).clear_data_source_cache!(connection, name)
+      end
+
+      def clear_extensions_cache!(connection)
+        return if @cache.nil? && !possible_cache_available?
+
+        cache(connection).clear_extensions_cache!(connection)
       end
 
       def cached?(table_name)
@@ -208,8 +222,20 @@ module ActiveRecord
         @schema_reflection.size(@connection)
       end
 
+      def extensions
+        @schema_reflection.extensions(@connection)
+      end
+
+      def extension_enabled?(extension)
+        @schema_reflection.extension_enabled?(@connection, extension)
+      end
+
       def clear_data_source_cache!(name)
         @schema_reflection.clear_data_source_cache!(@connection, name)
+      end
+
+      def clear_extensions_cache!
+        @schema_reflection.clear_extensions_cache!(@connection)
       end
 
       def dump_to(filename)
@@ -266,6 +292,7 @@ module ActiveRecord
         @indexes      = {}
         @database_version = nil
         @version = nil
+        @extensions = nil
       end
 
       def initialize_dup(other) # :nodoc:
@@ -275,6 +302,7 @@ module ActiveRecord
         @primary_keys = @primary_keys.dup
         @data_sources = @data_sources.dup
         @indexes      = @indexes.dup
+        @extensions   = @extensions&.dup
       end
 
       def encode_with(coder) # :nodoc:
@@ -284,6 +312,7 @@ module ActiveRecord
         coder["indexes"]          = @indexes.sort.to_h
         coder["version"]          = @version
         coder["database_version"] = @database_version
+        coder["extensions"]       = @extensions
       end
 
       def init_with(coder)
@@ -294,6 +323,7 @@ module ActiveRecord
         @indexes          = coder["indexes"] || {}
         @version          = coder["version"]
         @database_version = coder["database_version"]
+        @extensions       = coder["extensions"]
 
         unless coder["deduplicated"]
           derive_columns_hash_and_deduplicate_values
@@ -382,6 +412,16 @@ module ActiveRecord
         @version
       end
 
+      def extensions(connection)
+        cache_extensions(connection)
+        @extensions.values
+      end
+
+      def extension_enabled?(connection, extension)
+        cache_extensions(connection)
+        @extensions[extension]
+      end
+
       def size
         [@columns, @columns_hash, @primary_keys, @data_sources].sum(&:size)
       end
@@ -395,6 +435,10 @@ module ActiveRecord
         @indexes.delete name
       end
 
+      def clear_extensions_cache!(_connection)
+        @extensions = nil
+      end
+
       def add_all(connection) # :nodoc:
         tables_to_cache(connection).each do |table|
           add(connection, table)
@@ -402,6 +446,7 @@ module ActiveRecord
 
         version(connection)
         database_version(connection)
+        extensions(connection)
       end
 
       def dump_to(filename)
@@ -415,11 +460,11 @@ module ActiveRecord
       end
 
       def marshal_dump # :nodoc:
-        [@version, @columns, {}, @primary_keys, @data_sources, @indexes, @database_version]
+        [@version, @columns, {}, @primary_keys, @data_sources, @indexes, @database_version, @extensions]
       end
 
       def marshal_load(array) # :nodoc:
-        @version, @columns, _columns_hash, @primary_keys, @data_sources, @indexes, @database_version = array
+        @version, @columns, _columns_hash, @primary_keys, @data_sources, @indexes, @database_version, @extensions = array
         @indexes ||= {}
 
         derive_columns_hash_and_deduplicate_values
@@ -463,6 +508,10 @@ module ActiveRecord
           tables_to_cache(connection).each do |source|
             @data_sources[source] = true
           end
+        end
+
+        def cache_extensions(connection)
+          @extensions ||= connection.extensions.index_by(&:name)
         end
 
         def open(filename)

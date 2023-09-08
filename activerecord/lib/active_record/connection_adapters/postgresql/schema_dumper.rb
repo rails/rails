@@ -9,8 +9,8 @@ module ActiveRecord
             extensions = @connection.extensions
             if extensions.any?
               stream.puts "  # These are extensions that must be enabled in order to support this database"
-              extensions.sort.each do |extension|
-                stream.puts "  enable_extension #{extension.inspect}"
+              extensions.sort_by(&:name).each do |extension|
+                stream.puts "  enable_extension #{extension.quoted}, if_not_exists: true"
               end
               stream.puts
             end

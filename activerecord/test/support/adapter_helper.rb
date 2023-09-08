@@ -66,7 +66,7 @@ module AdapterHelper
     return false unless connection.supports_extensions?
     return connection.reconnect! if connection.extension_enabled?(extension)
 
-    connection.enable_extension extension
+    connection.enable_extension extension, if_not_exists: true
     connection.commit_db_transaction if connection.transaction_open?
     connection.reconnect!
   end
@@ -75,7 +75,7 @@ module AdapterHelper
     return false unless connection.supports_extensions?
     return true unless connection.extension_enabled?(extension)
 
-    connection.disable_extension(extension, force: :cascade)
+    connection.disable_extension(extension, if_exists: true, force: :cascade)
     connection.reconnect!
   end
 end

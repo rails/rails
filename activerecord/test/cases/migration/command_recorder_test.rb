@@ -378,9 +378,19 @@ module ActiveRecord
         assert_equal [:disable_extension, ["uuid-ossp"], nil], disable
       end
 
+      def test_invert_enable_extension_if_not_exists
+        disable = @recorder.inverse_of :enable_extension, ["uuid-ossp", { if_not_exists: true }]
+        assert_equal [:disable_extension, ["uuid-ossp", { if_exists: true }], nil], disable
+      end
+
       def test_invert_disable_extension
         enable = @recorder.inverse_of :disable_extension, ["uuid-ossp"]
         assert_equal [:enable_extension, ["uuid-ossp"], nil], enable
+      end
+
+      def test_invert_disable_extension_if_exists
+        enable = @recorder.inverse_of :disable_extension, ["uuid-ossp", { if_exists: true }]
+        assert_equal [:enable_extension, ["uuid-ossp", { if_not_exists: true }], nil], enable
       end
 
       def test_invert_add_foreign_key

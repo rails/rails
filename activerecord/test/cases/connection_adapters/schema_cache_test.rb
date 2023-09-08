@@ -201,6 +201,15 @@ module ActiveRecord
         end
       end
 
+      def test_caches_extensions
+        @cache.extensions
+
+        assert_no_queries do
+          @cache.extensions
+          @cache.extension_enabled?("hstore")
+        end
+      end
+
       def test_clearing
         @cache.columns("courses")
         @cache.columns_hash("courses")
