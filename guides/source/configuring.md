@@ -443,7 +443,8 @@ attacks.
 
 #### `config.javascript_path`
 
-Sets the path where your app's JavaScript lives relative to the `app` directory. The default is `javascript`, used by [webpacker](https://github.com/rails/webpacker). An app's configured `javascript_path` will be excluded from `autoload_paths`.
+Sets the path where your app's JavaScript lives relative to the `app` directory and the default value is `javascript`.
+An app's configured `javascript_path` will be excluded from `autoload_paths`.
 
 #### `config.log_file_size`
 
