@@ -21,6 +21,8 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     end
 
     assert_match(/racecar\.jpg/, variant.url)
+    assert_equal "racecar.jpg", variant.filename.to_s
+    assert_equal "image/jpeg", variant.content_type
 
     image = read_image(variant.image)
     assert_equal 100, image.width
