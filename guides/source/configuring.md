@@ -73,6 +73,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.default_column_serializer`](#config-active-record-default-column-serializer): `nil`
 - [`config.active_record.encryption.hash_digest_class`](#config-active-record-encryption-hash-digest-class): `OpenSSL::Digest::SHA256`
 - [`config.active_record.encryption.support_sha1_for_non_deterministic_encryption`](#config-active-record-encryption-support-sha1-for-non-deterministic-encryption): `false`
+- [`config.active_record.error_saving_destroyed`](#config-active-record-error-saving-destroyed): `true`
 - [`config.active_record.generate_secure_token_on`](#config-active-record-generate-secure-token-on): `:initialize`
 - [`config.active_record.marshalling_format_version`](#config-active-record-marshalling-format-version): `7.1`
 - [`config.active_record.query_log_tags_format`](#config-active-record-query-log-tags-format): `:sqlcommenter`
@@ -1551,6 +1552,15 @@ record.token # => "fwZcXX6SkJBJRogzMdciS7wf"
 | --------------------- | -------------------- |
 | (original)            | `:create`            |
 | 7.1                   | `:initialize`        |
+
+#### `config.active_record.error_saving_destroyed`
+
+Configures whether to add or not add an error when attempting to save an object that was previously destroyed.
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.1                   | `true`               |
 
 #### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` and `ActiveRecord::ConnectionAdapters::TrilogyAdapter.emulate_booleans`
 

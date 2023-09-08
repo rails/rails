@@ -292,6 +292,7 @@ module Rails
             active_record.marshalling_format_version = 7.1
             active_record.run_after_transaction_callbacks_in_order_defined = true
             active_record.generate_secure_token_on = :initialize
+            active_record.error_saving_destroyed = true
           end
 
           if respond_to?(:action_dispatch)

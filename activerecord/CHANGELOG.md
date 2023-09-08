@@ -1,3 +1,27 @@
+*   Add configuration and logic to add an error when saving a destroyed object
+
+    Before:
+    ```ruby
+    post = Post.find(1)
+    post.destroy
+    post.save
+    # => false
+    post.errors.inspect
+    # => #<ActiveModel::Errors []>
+    ```
+    After:
+    ```ruby
+    post = Post.find(1)
+    post.destroy
+    post.save
+    # => false
+    post.errors.inspect
+    # => #<ActiveModel::Errors [#<ActiveModel::Error attribute=base, type=The record was previously destroyed., options={}>]>
+    ```
+    This can be configured with the new `active_record.error_saving_destroyed` setting.
+
+    *Ariel Juodziukynas*
+
 *   Raise an `ArgumentError` when `#accepts_nested_attributes_for` is declared more than once for an association in
     the same class. Previously, the last declaration would silently override the previous one. Overriding in a subclass
     is still allowed.
