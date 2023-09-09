@@ -1,3 +1,11 @@
+*   Adds support for `if_not_exists` when adding a check constraint.
+
+    ```ruby
+    add_check_constraint :posts, "post_type IN ('blog', 'comment', 'share')", if_not_exists: true
+    ```
+
+    *Cody Cutrer*
+
 *   Raise an `ArgumentError` when `#accepts_nested_attributes_for` is declared more than once for an association in
     the same class. Previously, the last declaration would silently override the previous one. Overriding in a subclass
     is still allowed.

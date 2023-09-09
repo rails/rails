@@ -308,12 +308,19 @@ module ActiveRecord
         end
 
         def invert_add_check_constraint(args)
-          args.last.delete(:validate) if args.last.is_a?(Hash)
+          if (options = args.last).is_a?(Hash)
+            options.delete(:validate)
+            options[:if_exists] = options.delete(:if_not_exists) if options.key?(:if_not_exists)
+          end
           super
         end
 
         def invert_remove_check_constraint(args)
           raise ActiveRecord::IrreversibleMigration, "remove_check_constraint is only reversible if given an expression." if args.size < 2
+
+          if (options = args.last).is_a?(Hash)
+            options[:if_not_exists] = options.delete(:if_exists) if options.key?(:if_exists)
+          end
           super
         end
 
