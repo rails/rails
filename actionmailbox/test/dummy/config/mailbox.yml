@@ -1,0 +1,5 @@
+test:
+  amazon_ses:
+    subscribed_topics:
+    - arn:aws:sns:eu-west-1:111111111111:example-topic
+    - arn:aws:sns:eu-west-1:111111111111:recognized-topic
