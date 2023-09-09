@@ -283,7 +283,7 @@ module ActiveRecord
               remove_prefix_and_suffix(foreign_key.to_table).inspect,
             ]
 
-            if foreign_key.column != @connection.foreign_key_column_for(foreign_key.to_table)
+            if foreign_key.column != @connection.foreign_key_column_for(foreign_key.to_table, "id")
               parts << "column: #{foreign_key.column.inspect}"
             end
 

@@ -1207,7 +1207,7 @@ module ActiveRecord
         foreign_key_for(from_table, to_table: to_table, **options).present?
       end
 
-      def foreign_key_column_for(table_name, column_name = "id") # :nodoc:
+      def foreign_key_column_for(table_name, column_name) # :nodoc:
         name = strip_table_name_prefix_and_suffix(table_name)
         "#{name.singularize}_#{column_name}"
       end

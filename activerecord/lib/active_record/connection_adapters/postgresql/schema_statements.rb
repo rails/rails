@@ -877,7 +877,7 @@ module ActiveRecord
           validate_constraint table_name, chk_name_to_validate
         end
 
-        def foreign_key_column_for(table_name, column_name = "id") # :nodoc:
+        def foreign_key_column_for(table_name, column_name) # :nodoc:
           _schema, table_name = extract_schema_qualified_name(table_name)
           super
         end
