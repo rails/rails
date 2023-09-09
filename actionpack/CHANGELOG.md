@@ -1,3 +1,10 @@
+*   `AbstractController::Translation.raise_on_missing_translations` removed
+
+    This was a private API, and has been removed in favour of a more broadly applicable
+    `config.i18n.raise_on_missing_translations`. See the upgrading guide for more information.
+
+    *Alex Ghiculescu*
+
 *   Add `ActionController::Parameters#extract_value` method to allow extracting serialized values from params
 
     ```ruby

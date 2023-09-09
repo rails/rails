@@ -4,8 +4,6 @@ require "active_support/html_safe_translation"
 
 module AbstractController
   module Translation
-    mattr_accessor :raise_on_missing_translations, default: false
-
     # Delegates to <tt>I18n.translate</tt>.
     #
     # When the given key starts with a period, it will be scoped by the current
@@ -23,9 +21,7 @@ module AbstractController
         key = "#{path}.#{action_name}#{key}"
       end
 
-      i18n_raise = options.fetch(:raise, self.raise_on_missing_translations)
-
-      ActiveSupport::HtmlSafeTranslation.translate(key, **options, raise: i18n_raise)
+      ActiveSupport::HtmlSafeTranslation.translate(key, **options)
     end
     alias :t :translate
 
