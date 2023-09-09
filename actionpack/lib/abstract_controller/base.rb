@@ -75,9 +75,14 @@ module AbstractController
       # (ActionController::Metal and ActionController::Base are defined as abstract)
       def internal_methods
         controller = self
+        methods = []
 
-        controller = controller.superclass until controller.abstract?
-        controller.public_instance_methods(true)
+        until controller.abstract?
+          methods += controller.public_instance_methods(false)
+          controller = controller.superclass
+        end
+
+        controller.public_instance_methods(true) - methods
       end
 
       # A list of method names that should be considered actions. This
