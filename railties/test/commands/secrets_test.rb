@@ -63,8 +63,4 @@ class Rails::Command::SecretsTest < ActiveSupport::TestCase
     def run_show_command
       rails "secrets:show", allow_failure: true
     end
-
-    def run_setup_command
-      rails "secrets:setup", allow_failure: true
-    end
 end
