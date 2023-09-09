@@ -1219,9 +1219,10 @@ module ActiveRecord
           options[:column] ||= options[:primary_key].map do |pk_column|
             foreign_key_column_for(to_table, pk_column)
           end
+        else
+          options[:column] ||= foreign_key_column_for(to_table, "id")
         end
 
-        options[:column] ||= foreign_key_column_for(to_table)
         options[:name]   ||= foreign_key_name(from_table, options)
 
         if options[:column].is_a?(Array) || options[:primary_key].is_a?(Array)
