@@ -1,3 +1,5 @@
+## Rails 7.0.8 (September 09, 2023) ##
+
 *   Fix `TimeWithZone` still using deprecated `#to_s` when `ENV` or `config` to
     disable it are set.
 

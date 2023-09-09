@@ -1,3 +1,5 @@
+## Rails 7.0.8 (September 09, 2023) ##
+
 *   Fix `HostAuthorization` potentially displaying the value of the
     X_FORWARDED_HOST header when the HTTP_HOST header is being blocked.
 

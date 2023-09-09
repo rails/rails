@@ -1,3 +1,5 @@
+## Rails 7.0.8 (September 09, 2023) ##
+
 *   Fix `change_column` not setting `precision: 6` on `datetime` columns when
     using 7.0+ Migrations and SQLite.
 
