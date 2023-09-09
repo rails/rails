@@ -1256,10 +1256,10 @@ module ActiveRecord
       # The +expression+ parameter will be ignored if present. It can be helpful
       # to provide this in a migration's +change+ method so it can be reverted.
       # In that case, +expression+ will be used by #add_check_constraint.
-      def remove_check_constraint(table_name, expression = nil, **options)
+      def remove_check_constraint(table_name, expression = nil, if_exists: false, **options)
         return unless supports_check_constraints?
 
-        return if options[:if_exists] && !check_constraint_exists?(table_name, **options)
+        return if if_exists && !check_constraint_exists?(table_name, **options)
 
         chk_name_to_delete = check_constraint_for!(table_name, expression: expression, **options).name
 
