@@ -80,10 +80,12 @@ module ActiveRecord
         end
 
         def visit_ForeignKeyDefinition(o)
+          quoted_columns = Array(o.column).map { |c| quote_column_name(c) }
+          quoted_primary_keys = Array(o.primary_key).map { |c| quote_column_name(c) }
           sql = +<<~SQL
             CONSTRAINT #{quote_column_name(o.name)}
-            FOREIGN KEY (#{quote_column_name(o.column)})
-              REFERENCES #{quote_table_name(o.to_table)} (#{quote_column_name(o.primary_key)})
+            FOREIGN KEY (#{quoted_columns.join(", ")})
+              REFERENCES #{quote_table_name(o.to_table)} (#{quoted_primary_keys.join(", ")})
           SQL
           sql << " #{action_sql('DELETE', o.on_delete)}" if o.on_delete
           sql << " #{action_sql('UPDATE', o.on_update)}" if o.on_update

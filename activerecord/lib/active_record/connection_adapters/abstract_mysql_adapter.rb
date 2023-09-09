@@ -466,11 +466,13 @@ module ActiveRecord
 
         scope = quoted_scope(table_name)
 
+        # MySQL returns 1 row for each column of composite foreign keys.
         fk_info = internal_exec_query(<<~SQL, "SCHEMA")
           SELECT fk.referenced_table_name AS 'to_table',
                  fk.referenced_column_name AS 'primary_key',
                  fk.column_name AS 'column',
                  fk.constraint_name AS 'name',
+                 fk.ordinal_position AS 'position',
                  rc.update_rule AS 'on_update',
                  rc.delete_rule AS 'on_delete'
           FROM information_schema.referential_constraints rc
@@ -483,15 +485,22 @@ module ActiveRecord
             AND rc.table_name = #{scope[:name]}
         SQL
 
-        fk_info.map do |row|
+        grouped_fk = fk_info.group_by { |row| row["name"] }.values.each { |group| group.sort_by! { |row| row["position"] } }
+        grouped_fk.map do |group|
+          row = group.first
           options = {
-            column: unquote_identifier(row["column"]),
             name: row["name"],
-            primary_key: row["primary_key"]
+            on_update: extract_foreign_key_action(row["on_update"]),
+            on_delete: extract_foreign_key_action(row["on_delete"])
           }
 
-          options[:on_update] = extract_foreign_key_action(row["on_update"])
-          options[:on_delete] = extract_foreign_key_action(row["on_delete"])
+          if group.one?
+            options[:column] = unquote_identifier(row["column"])
+            options[:primary_key] = row["primary_key"]
+          else
+            options[:column] = group.map { |row| unquote_identifier(row["column"]) }
+            options[:primary_key] = group.map { |row| row["primary_key"] }
+          end
 
           ForeignKeyDefinition.new(table_name, unquote_identifier(row["to_table"]), options)
         end

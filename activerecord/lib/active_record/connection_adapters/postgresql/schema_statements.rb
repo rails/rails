@@ -117,12 +117,7 @@ module ActiveRecord
             if indkey.include?(0)
               columns = expressions
             else
-              columns = Hash[query(<<~SQL, "SCHEMA")].values_at(*indkey).compact
-                SELECT a.attnum, a.attname
-                FROM pg_attribute a
-                WHERE a.attrelid = #{oid}
-                AND a.attnum IN (#{indkey.join(",")})
-              SQL
+              columns = column_names_from_column_numbers(oid, indkey)
 
               # prevent INCLUDE columns from being matched
               columns.reject! { |c| include_columns.include?(c) }
@@ -536,7 +531,7 @@ module ActiveRecord
         def foreign_keys(table_name)
           scope = quoted_scope(table_name)
           fk_info = internal_exec_query(<<~SQL, "SCHEMA", allow_retry: true, materialize_transactions: false)
-            SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred
+            SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred, c.conkey, c.confkey, c.conrelid, c.confrelid
             FROM pg_constraint c
             JOIN pg_class t1 ON c.conrelid = t1.oid
             JOIN pg_class t2 ON c.confrelid = t2.oid
@@ -550,10 +545,22 @@ module ActiveRecord
           SQL
 
           fk_info.map do |row|
+            to_table = Utils.unquote_identifier(row["to_table"])
+            conkey = row["conkey"].scan(/\d+/).map(&:to_i)
+            confkey = row["confkey"].scan(/\d+/).map(&:to_i)
+
+            if conkey.size > 1
+              column = column_names_from_column_numbers(row["conrelid"], conkey)
+              primary_key = column_names_from_column_numbers(row["confrelid"], confkey)
+            else
+              column = Utils.unquote_identifier(row["column"])
+              primary_key = row["primary_key"]
+            end
+
             options = {
-              column: Utils.unquote_identifier(row["column"]),
+              column: column,
               name: row["name"],
-              primary_key: row["primary_key"]
+              primary_key: primary_key
             }
 
             options[:on_delete] = extract_foreign_key_action(row["on_delete"])
@@ -561,7 +568,6 @@ module ActiveRecord
             options[:deferrable] = extract_constraint_deferrable(row["deferrable"], row["deferred"])
 
             options[:validate] = row["valid"]
-            to_table = Utils.unquote_identifier(row["to_table"])
 
             ForeignKeyDefinition.new(table_name, to_table, options)
           end
@@ -871,7 +877,7 @@ module ActiveRecord
           validate_constraint table_name, chk_name_to_validate
         end
 
-        def foreign_key_column_for(table_name) # :nodoc:
+        def foreign_key_column_for(table_name, column_name) # :nodoc:
           _schema, table_name = extract_schema_qualified_name(table_name)
           super
         end
@@ -1088,6 +1094,15 @@ module ActiveRecord
           def extract_schema_qualified_name(string)
             name = Utils.extract_schema_qualified_name(string.to_s)
             [name.schema, name.identifier]
+          end
+
+          def column_names_from_column_numbers(table_oid, column_numbers)
+            Hash[query(<<~SQL, "SCHEMA")].values_at(*column_numbers).compact
+              SELECT a.attnum, a.attname
+              FROM pg_attribute a
+              WHERE a.attrelid = #{table_oid}
+              AND a.attnum IN (#{column_numbers.join(", ")})
+            SQL
           end
       end
     end

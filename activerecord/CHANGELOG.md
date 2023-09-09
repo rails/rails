@@ -1,3 +1,16 @@
+*   Support composite foreign keys via migration helpers.
+
+    ```ruby
+    # Assuming "carts" table has "(shop_id, user_id)" as a primary key.
+
+    add_foreign_key(:orders, :carts, primary_key: [:shop_id, :user_id])
+
+    remove_foreign_key(:orders, :carts, primary_key: [:shop_id, :user_id])
+    foreign_key_exists?(:orders, :carts, primary_key: [:shop_id, :user_id])
+    ```
+
+    *fatkodima*
+
 *   Adds support for `if_not_exists` when adding a check constraint.
 
     ```ruby

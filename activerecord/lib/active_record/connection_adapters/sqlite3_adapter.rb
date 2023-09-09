@@ -357,14 +357,23 @@ module ActiveRecord
       alias :add_belongs_to :add_reference
 
       def foreign_keys(table_name)
+        # SQLite returns 1 row for each column of composite foreign keys.
         fk_info = internal_exec_query("PRAGMA foreign_key_list(#{quote(table_name)})", "SCHEMA")
-        fk_info.map do |row|
+        grouped_fk = fk_info.group_by { |row| row["id"] }.values.each { |group| group.sort_by! { |row| row["seq"] } }
+        grouped_fk.map do |group|
+          row = group.first
           options = {
-            column: row["from"],
-            primary_key: row["to"],
             on_delete: extract_foreign_key_action(row["on_delete"]),
             on_update: extract_foreign_key_action(row["on_update"])
           }
+
+          if group.one?
+            options[:column] = row["from"]
+            options[:primary_key] = row["to"]
+          else
+            options[:column] = group.map { |row| row["from"] }
+            options[:primary_key] = group.map { |row| row["to"] }
+          end
           ForeignKeyDefinition.new(table_name, row["table"], options)
         end
       end

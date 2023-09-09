@@ -162,7 +162,7 @@ module ActiveRecord
       def defined_for?(to_table: nil, validate: nil, **options)
         (to_table.nil? || to_table.to_s == self.to_table) &&
           (validate.nil? || validate == self.options.fetch(:validate, validate)) &&
-          options.all? { |k, v| self.options[k].to_s == v.to_s }
+          options.all? { |k, v| Array(self.options[k]).map(&:to_s) == Array(v).map(&:to_s) }
       end
 
       private
