@@ -221,3 +221,12 @@
 # In previous versions of Rails, these test helpers always used an HTML4 parser.
 #
 # Rails.application.config.dom_testing_default_html_version = :html5
+
+# Configure whether to add or not add an error for Active Record objects
+# if a save is performed after the object was already destroyed.
+#
+# In previous versions of Rails, saving an object that was destroyed fails but
+# no information about the reason is present in the errors. Turn this to `true`
+# to use the new behavior (an error message is added to the `:base` errors).
+#
+# Rails.application.config.active_record.error_saving_destroyed = true

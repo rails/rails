@@ -554,13 +554,60 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal "Validation failed: Content Empty", error.message
   end
 
-  def test_save_destroyed_object
+  def test_save_with_bang_destroyed_object_with_error_message
+    original = ActiveRecord.error_saving_destroyed
+    ActiveRecord.error_saving_destroyed = true
+
     topic = Topic.create!(title: "New Topic")
     topic.destroy!
 
     error = assert_raise(ActiveRecord::RecordNotSaved) { topic.save! }
 
     assert_equal "Failed to save the record", error.message
+    assert_includes topic.errors[:base], "The record was previously destroyed."
+  ensure
+    ActiveRecord.error_saving_destroyed = original
+  end
+
+  def test_save_with_bang_destroyed_object_without_error_message
+    original = ActiveRecord.error_saving_destroyed
+    ActiveRecord.error_saving_destroyed = false
+    topic = Topic.create!(title: "New Topic")
+    topic.destroy!
+
+    error = assert_raise(ActiveRecord::RecordNotSaved) { topic.save! }
+
+    assert_equal "Failed to save the record", error.message
+    assert_empty topic.errors[:base]
+  ensure
+    ActiveRecord.error_saving_destroyed = original
+  end
+
+  def test_save_destroyed_object_with_error_message
+    original = ActiveRecord.error_saving_destroyed
+    ActiveRecord.error_saving_destroyed = true
+
+    topic = Topic.create!(title: "New Topic")
+    topic.destroy!
+
+    assert_not topic.save
+
+    assert_includes topic.errors[:base], "The record was previously destroyed."
+  ensure
+    ActiveRecord.error_saving_destroyed = original
+  end
+
+  def test_save_destroyed_object_without_error_message
+    original = ActiveRecord.error_saving_destroyed
+    ActiveRecord.error_saving_destroyed = false
+    topic = Topic.create!(title: "New Topic")
+    topic.destroy!
+
+    assert_not topic.save
+
+    assert_empty topic.errors[:base]
+  ensure
+    ActiveRecord.error_saving_destroyed = original
   end
 
   def test_save_null_string_attributes

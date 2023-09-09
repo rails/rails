@@ -1216,7 +1216,10 @@ module ActiveRecord
 
     def create_or_update(**, &block)
       _raise_readonly_record_error if readonly?
-      return false if destroyed?
+      if destroyed?
+        errors.add(:base, "The record was previously destroyed.") if ActiveRecord.error_saving_destroyed
+        return false
+      end
       result = new_record? ? _create_record(&block) : _update_record(&block)
       result != false
     end
