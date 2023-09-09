@@ -12,6 +12,8 @@ module Cpk
     has_many :order_agreements
     has_many :books, query_constraints: [:shop_id, :order_id]
     has_one :book, query_constraints: [:shop_id, :order_id]
+    has_many :order_tags
+    has_many :tags, through: :order_tags
   end
 
   class BrokenOrder < Order

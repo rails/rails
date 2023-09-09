@@ -92,6 +92,10 @@ https://api.rubyonrails.org/v5.1.0/classes/ActionDispatch/Response.html
 
 Please don't link to `edgeapi.rubyonrails.org` manually.
 
+Column Wrapping
+---------------
+
+Do not reformat old guides just to wrap columns. But new sections and guides should wrap at 80 columns.
 
 API Documentation Guidelines
 ----------------------------

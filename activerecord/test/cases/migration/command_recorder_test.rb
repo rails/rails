@@ -460,6 +460,16 @@ module ActiveRecord
         end
       end
 
+      def test_invert_add_check_constraint
+        enable = @recorder.inverse_of :add_check_constraint, [:dogs, "speed > 0", name: "speed_check"]
+        assert_equal [:remove_check_constraint, [:dogs, "speed > 0", name: "speed_check"], nil], enable
+      end
+
+      def test_invert_add_check_constraint_if_not_exists
+        enable = @recorder.inverse_of :add_check_constraint, [:dogs, "speed > 0", name: "speed_check", if_not_exists: true]
+        assert_equal [:remove_check_constraint, [:dogs, "speed > 0", name: "speed_check", if_exists: true], nil], enable
+      end
+
       def test_invert_remove_check_constraint
         enable = @recorder.inverse_of :remove_check_constraint, [:dogs, "speed > 0", name: "speed_check"]
         assert_equal [:add_check_constraint, [:dogs, "speed > 0", name: "speed_check"], nil], enable
@@ -469,6 +479,11 @@ module ActiveRecord
         assert_raises(ActiveRecord::IrreversibleMigration) do
           @recorder.inverse_of :remove_check_constraint, [:dogs]
         end
+      end
+
+      def test_invert_remove_check_constraint_if_exists
+        enable = @recorder.inverse_of :remove_check_constraint, [:dogs, "speed > 0", name: "speed_check", if_exists: true]
+        assert_equal [:add_check_constraint, [:dogs, "speed > 0", name: "speed_check", if_not_exists: true], nil], enable
       end
 
       def test_invert_add_unique_key_constraint_with_using_index

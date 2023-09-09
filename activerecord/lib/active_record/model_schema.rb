@@ -8,7 +8,7 @@ module ActiveRecord
 
     ##
     # :method: id_value
-    # :call-seq: id_valiue
+    # :call-seq: id_value
     #
     # Returns the underlying column value for a column named "id". Useful when defining
     # a composite primary key including an "id" column so that the value is readable.

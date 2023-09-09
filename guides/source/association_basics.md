@@ -537,6 +537,70 @@ end
 
 ![Polymorphic Association Diagram](images/association_basics/polymorphic.png)
 
+### Associations between Models with Composite Primary Keys
+
+Rails is often able to infer the primary key - foreign key information between associated models with composite
+primary keys without needing extra information. Take the following example:
+
+```ruby
+class Order < ApplicationRecord
+  self.primary_key = [:shop_id, :id]
+  has_many :books
+end
+
+class Book < ApplicationRecord
+  belongs_to :order
+end
+```
+
+Here, Rails assumes that the `:id` column should be used as the primary key for the association between an order
+and its books, just as with a regular `has_many` / `belongs_to` association. It will infer that the foreign key column
+on the `books` table is `:order_id`. Accessing a book's order:
+
+```ruby
+order = Order.create!(id: [1, 2], status: "pending")
+book = order.books.create!(title: "A Cool Book")
+
+book.reload.order
+```
+
+will generate the following SQL to access the order:
+
+```sql
+SELECT * FROM orders WHERE id = 2
+```
+
+This only works if the model's composite primary key contains the `:id` column, _and_ the column is unique for
+all records. In order to use the full composite primary key in associations, set the `query_constraints` option on
+the association. This option specifies a composite foreign key on the association: all columns in the foreign key will
+be used when querying the associated record(s). For example:
+
+```ruby
+class Author < ApplicationRecord
+  self.primary_key = [:first_name, :last_name]
+  has_many :books, query_constraints: [:first_name, :last_name]
+end
+
+class Book < ApplicationRecord
+  belongs_to :author, query_constraints: [:author_first_name, :author_last_name]
+end
+```
+
+Accessing a book's author:
+
+```ruby
+author = Author.create!(first_name: "Jane", last_name: "Doe")
+book = author.books.create!(title: "A Cool Book")
+
+book.reload.author
+```
+
+will use `:first_name` _and_ `:last_name` in the SQL query:
+
+```sql
+SELECT * FROM authors WHERE first_name = 'Jane' AND last_name = 'Doe'
+```
+
 ### Self Joins
 
 In designing a data model, you will sometimes find a model that should have a relation to itself. For example, you may want to store all employees in a single database model, but be able to trace relationships such as between manager and subordinates. This situation can be modeled with self-joining associations:

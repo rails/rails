@@ -1239,12 +1239,16 @@ module ActiveRecord
       # The +options+ hash can include the following keys:
       # [<tt>:name</tt>]
       #   The constraint name. Defaults to <tt>chk_rails_<identifier></tt>.
+      # [<tt>:if_not_exists</tt>]
+      #   Silently ignore if the constraint already exists, rather than raise an error.
       # [<tt>:validate</tt>]
       #   (PostgreSQL only) Specify whether or not the constraint should be validated. Defaults to +true+.
-      def add_check_constraint(table_name, expression, **options)
+      def add_check_constraint(table_name, expression, if_not_exists: false, **options)
         return unless supports_check_constraints?
 
         options = check_constraint_options(table_name, expression, options)
+        return if if_not_exists && check_constraint_exists?(table_name, **options)
+
         at = create_alter_table(table_name)
         at.add_check_constraint(expression, options)
 
@@ -1270,10 +1274,10 @@ module ActiveRecord
       # The +expression+ parameter will be ignored if present. It can be helpful
       # to provide this in a migration's +change+ method so it can be reverted.
       # In that case, +expression+ will be used by #add_check_constraint.
-      def remove_check_constraint(table_name, expression = nil, **options)
+      def remove_check_constraint(table_name, expression = nil, if_exists: false, **options)
         return unless supports_check_constraints?
 
-        return if options[:if_exists] && !check_constraint_exists?(table_name, **options)
+        return if if_exists && !check_constraint_exists?(table_name, **options)
 
         chk_name_to_delete = check_constraint_for!(table_name, expression: expression, **options).name
 
