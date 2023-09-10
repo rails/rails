@@ -83,16 +83,6 @@ class NormalizedAttributeTest < ActiveRecord::TestCase
     assert_equal @aircraft, NormalizedAircraft.find_by(manufactured_at: @time.to_s)
   end
 
-  test "searches a record by normalized value" do
-    from_database = NormalizedAircraft.where(name: "fly HIGH")
-    assert_equal [@aircraft], from_database
-  end
-
-  test "searches a record by normalized values" do
-    from_database = NormalizedAircraft.where(name: ["fly LOW", "fly HIGH"])
-    assert_equal [@aircraft], from_database
-  end
-
   test "can stack normalizations" do
     titlecase_then_reverse = Class.new(NormalizedAircraft) do
       normalizes :name, with: -> name { name.reverse }

@@ -944,7 +944,7 @@
 
     A normalization is applied when the attribute is assigned or updated, and
     the normalized value will be persisted to the database.  The normalization
-    is also applied to the corresponding keyword argument of finder methods.
+    is also applied to the corresponding keyword argument of query methods.
     This allows a record to be created and later queried using unnormalized
     values.  For example:
 
@@ -961,7 +961,8 @@
       user.email                  # => "cruise-control@example.com"
       user.email_before_type_cast # => "cruise-control@example.com"
 
-      User.where(email: "\tCRUISE-CONTROL@EXAMPLE.COM ").count # => 1
+      User.where(email: "\tCRUISE-CONTROL@EXAMPLE.COM ").count         # => 1
+      User.where(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]).count # => 0
 
       User.exists?(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")         # => true
       User.exists?(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]) # => false

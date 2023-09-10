@@ -60,7 +60,7 @@ getting your Rails application up and running in a production environment.
 
 Normalizations can be declared for attribute values. The normalization
 takes place when the attribute is assigned or updated, and will be persisted to the database.
-Normalization is also applied to corresponding keyword arguments in finder methods,
+Normalization is also applied to corresponding keyword arguments in query methods,
 allowing records to be queried using unnormalized values.
 
 For example:
@@ -78,7 +78,8 @@ user = User.find_by(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")
 user.email                  # => "cruise-control@example.com"
 user.email_before_type_cast # => "cruise-control@example.com"
 
-User.where(email: "\tCRUISE-CONTROL@EXAMPLE.COM ").count # => 1
+User.where(email: "\tCRUISE-CONTROL@EXAMPLE.COM ").count         # => 1
+User.where(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]).count # => 0
 
 User.exists?(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")         # => true
 User.exists?(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]) # => false
