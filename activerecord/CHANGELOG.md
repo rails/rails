@@ -940,13 +940,14 @@
 
     *George Claghorn*
 
-*   Add `ActiveRecord::Base::normalizes` to declare attribute normalizations.
+*   Add `ActiveRecord::Base.normalizes` for declaring attribute normalizations.
 
-    A normalization is applied when the attribute is assigned or updated, and
-    the normalized value will be persisted to the database.  The normalization
-    is also applied to the corresponding keyword argument of query methods.
-    This allows a record to be created and later queried using unnormalized
-    values.  For example:
+    An attribute normalization is applied when the attribute is assigned or
+    updated, and the normalized value will be persisted to the database.  The
+    normalization is also applied to the corresponding keyword argument of query
+    methods, allowing records to be queried using unnormalized values.
+
+    For example:
 
       ```ruby
       class User < ActiveRecord::Base

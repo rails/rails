@@ -58,10 +58,11 @@ getting your Rails application up and running in a production environment.
 
 ### Add `ActiveRecord::Base.normalizes`
 
-Normalizations can be declared for attribute values. The normalization
-takes place when the attribute is assigned or updated, and will be persisted to the database.
-Normalization is also applied to corresponding keyword arguments in query methods,
-allowing records to be queried using unnormalized values.
+[`ActiveRecord::Base.normalizes`][] declares an attribute normalization. The
+normalization is applied when the attribute is assigned or updated, and the
+normalized value will be persisted to the database. The normalization is also
+applied to the corresponding keyword argument of query methods, allowing records
+to be queried using unnormalized values.
 
 For example:
 
@@ -86,6 +87,8 @@ User.exists?(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]) # => false
 
 User.normalize_value_for(:phone, "+1 (555) 867-5309") # => "5558675309"
 ```
+
+[`ActiveRecord::Base.normalizes`]: https://api.rubyonrails.org/v7.1/classes/ActiveRecord/Normalization/ClassMethods.html#method-i-normalizes
 
 ### Add `ActiveRecord::Base.generates_token_for`
 
