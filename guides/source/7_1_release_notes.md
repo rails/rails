@@ -92,26 +92,23 @@ User.normalize_value_for(:phone, "+1 (555) 867-5309") # => "5558675309"
 
 ### Add `ActiveRecord::Base.generates_token_for`
 
-A new [method `generates_token_for`](https://github.com/rails/rails/pull/44189) has been introduced
-to `ActiveRecord::Base`. This feature allows you to generate tokens that can embed data from a record.
-These tokens are particularly useful for tasks like password resets.
+[`ActiveRecord::Base.generates_token_for`][] defines the generation of tokens
+for a specific purpose. Generated tokens can expire and can also embed record
+data. When using a token to fetch a record, the data from the token and the
+current data from the record will be compared. If the two do not match, the
+token will be treated as invalid, the same as if it had expired.
 
-With `generates_token_for`, tokens can be designed to reflect record state, making it possible to embed
-specific record data within the token itself. When utilizing the token to retrieve the associated record,
-a comparison is performed between the data in the token and the current data in the record. If the two
-sets of data do not match, the token is considered invalid, similar to an expired token.
-
-Here's an example of how this feature can be used:
+Here is an example implementing a single-use password reset token:
 
 ```ruby
 class User < ActiveRecord::Base
   has_secure_password
 
   generates_token_for :password_reset, expires_in: 15.minutes do
-    # A password's BCrypt salt changes when the password is updated.
-    # By embedding (part of) the salt in a token, the token will
-    # expire when the password is updated.
-    BCrypt::Password.new(password_digest).salt[-10..]
+    # `password_salt` (defined by `has_secure_password`) returns the salt for
+    # the password. The salt changes when the password is changed, so the token
+    # will expire when the password is changed.
+    password_salt&.last(10)
   end
 end
 
@@ -123,6 +120,8 @@ User.find_by_token_for(:password_reset, token) # => user
 user.update!(password: "new password")
 User.find_by_token_for(:password_reset, token) # => nil
 ```
+
+[`ActiveRecord::Base.generates_token_for`]: https://api.rubyonrails.org/v7.1/classes/ActiveRecord/TokenFor/ClassMethods.html#method-i-generates_token_for
 
 ### Add `perform_all_later` to enqueue multiple jobs at once
 

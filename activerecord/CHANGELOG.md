@@ -1581,7 +1581,7 @@
 
     *Alex Ghiculescu*
 
-*   Add new `ActiveRecord::Base::generates_token_for` API.
+*   Add new `ActiveRecord::Base.generates_token_for` API.
 
     Currently, `signed_id` fulfills the role of generating tokens for e.g.
     resetting a password.  However, signed IDs cannot reflect record state, so
@@ -1589,9 +1589,9 @@
     least until it expires.
 
     With `generates_token_for`, a token can embed data from a record.  When
-    using the token to fetch the record, the data from the token and the data
-    from the record will be compared.  If the two do not match, the token will
-    be treated as invalid, the same as if it had expired.  For example:
+    using the token to fetch the record, the data from the token and the current
+    data from the record will be compared.  If the two do not match, the token
+    will be treated as invalid, the same as if it had expired.  For example:
 
     ```ruby
     class User < ActiveRecord::Base
