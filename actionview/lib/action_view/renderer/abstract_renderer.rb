@@ -134,7 +134,7 @@ module ActionView
           @format = format
         end
 
-        def body; nil; end
+        def body; " "; end
       end
     end
 

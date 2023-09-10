@@ -42,7 +42,10 @@ class RenderersMetalTest < ActionController::TestCase
   end
 
   def test_render_xml
-    get :two
+    assert_deprecated(ActionController.deprecator) do
+      get :two
+    end
+
     assert_response :success
     assert_equal(" ", @response.body)
     assert_equal "text/plain", @response.media_type

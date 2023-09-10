@@ -25,6 +25,10 @@ class RenderersApiController < ActionController::API
   def plain
     render plain: "Hi from plain", status: 500
   end
+
+  def no_arguments
+    render
+  end
 end
 
 class RenderersApiTest < ActionController::TestCase
@@ -46,5 +50,14 @@ class RenderersApiTest < ActionController::TestCase
     get :plain
     assert_response :internal_server_error
     assert_equal("Hi from plain", @response.body)
+  end
+
+  def test_render_no_arguments
+    assert_deprecated(ActionController.deprecator) do
+      get :no_arguments
+    end
+
+    assert_response :success
+    assert_equal " ", @response.body
   end
 end
