@@ -198,7 +198,43 @@ ENV['DATABASE_URL'] # => "trilogy://localhost/blog_development?pool=5"
 
 ### Add `ActiveSupport::MessagePack`
 
-TODO: Add description https://github.com/rails/rails/pull/47770
+[`ActiveSupport::MessagePack`][] is a serializer that integrates with the
+[`msgpack` gem][]. `ActiveSupport::MessagePack` can serialize the basic Ruby
+types supported by `msgpack`, as well as several additional types such as `Time`,
+`ActiveSupport::TimeWithZone`, and `ActiveSupport::HashWithIndifferentAccess`.
+Compared to `JSON` and `Marshal`, `ActiveSupport::MessagePack` can reduce
+payload size and improve performance.
+
+`ActiveSupport::MessagePack` can be used as a [message serializer](
+https://guides.rubyonrails.org/v7.1/configuring.html#config-active-support-message-serializer):
+
+```ruby
+config.active_support.message_serializer = :message_pack
+
+# Or individually:
+ActiveSupport::MessageEncryptor.new(secret, serializer: :message_pack)
+ActiveSupport::MessageVerifier.new(secret, serializer: :message_pack)
+```
+
+As the [cookies serializer](
+https://guides.rubyonrails.org/v7.1/configuring.html#config-action-dispatch-cookies-serializer):
+
+```ruby
+config.action_dispatch.cookies_serializer = :message_pack
+```
+
+And as a [cache serializer](
+https://guides.rubyonrails.org/v7.1/caching_with_rails.html#configuration):
+
+```ruby
+config.cache_store = :file_store, "tmp/cache", { serializer: :message_pack }
+
+# Or individually:
+ActiveSupport::Cache.lookup_store(:file_store, "tmp/cache", serializer: :message_pack)
+```
+
+[`ActiveSupport::MessagePack`]: https://api.rubyonrails.org/v7.1/classes/ActiveSupport/MessagePack.html
+[`msgpack` gem]: https://github.com/msgpack/msgpack-ruby
 
 ### Introducing `config.autoload_lib` and `config.autoload_lib_once` for Enhanced Autoloading
 
