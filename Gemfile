@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 source "https://rubygems.org"
+git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 gemspec
 
 if RUBY_VERSION < "3"
@@ -25,7 +26,7 @@ end
 gem "rack-cache", "~> 1.2"
 gem "stimulus-rails"
 gem "turbo-rails"
-gem "jsbundling-rails"
+gem "jsbundling-rails", github: "rails/jsbundling-rails", ref: "e308e76" # WARNING: Do not merge until release that contains this ref is merged and this line corrected.
 gem "cssbundling-rails"
 gem "importmap-rails"
 gem "tailwindcss-rails"

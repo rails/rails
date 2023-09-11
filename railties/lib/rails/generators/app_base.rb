@@ -466,9 +466,17 @@ module Rails
         [ turbo_rails_entry, stimulus_rails_entry ]
       end
 
-      def using_node?
+      def using_js_runtime?
         (options[:javascript] && !%w[importmap].include?(options[:javascript])) ||
           (options[:css] && !%w[tailwind sass].include?(options[:css]))
+      end
+
+      def using_node?
+        using_js_runtime? && !%w[bun].include?(options[:javascript])
+      end
+
+      def using_bun?
+        using_js_runtime? && %w[bun].include?(options[:javascript])
       end
 
       def node_version
@@ -483,6 +491,12 @@ module Rails
 
       def dockerfile_yarn_version
         using_node? and `yarn --version`[/\d+\.\d+\.\d+/]
+      rescue
+        "latest"
+      end
+
+      def dockerfile_bun_version
+        using_bun? and `bun --version`[/\d+\.\d+\.\d+/]
       rescue
         "latest"
       end
