@@ -482,7 +482,8 @@ The simplest rule of thumb is that you should set up a `has_many :through` relat
 
 You should use `has_many :through` if you need validations, callbacks, or extra attributes on the join model.
 
-While `has_and_belongs_to_many` suggests creating join table with no primary key - `id: false`, consider using composite primary key for the join table in the `has_many :through` relationship. For example its recommended to use `create_table :manifests, primary_key: []:assembly_id, :part_id]` for the example above.
+While `has_and_belongs_to_many` suggests creating a join table with no primary key via `id: false`, consider using a composite primary key for the join table in the `has_many :through` relationship.
+For example, it's recommended to use `create_table :manifests, primary_key: [:assembly_id, :part_id]` in the example above.
 
 ### Polymorphic Associations
 
