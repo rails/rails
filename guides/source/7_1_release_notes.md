@@ -480,8 +480,6 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   Remove deprecated `poltergeist` and `webkit` (capybara-webkit) driver registration for system testing.
 
-*   Remove `AbstractController::Translation.raise_on_missing_translations` in favor of `config.i18n.raise_on_missing_translations`.
-
 ### Deprecations
 
 *   Deprecate `config.action_dispatch.return_only_request_media_type_on_content_type`.
