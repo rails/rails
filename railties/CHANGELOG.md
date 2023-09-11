@@ -1,3 +1,11 @@
+*   Add Bun support to `rails new --javascript` generator
+
+    ```bash
+    rails new my_new_app --javascript=bun
+    ```
+
+    *Jason Meller*
+
 *   Trying to set a config key with the same name of a method now raises:
 
     ```ruby
@@ -508,7 +516,7 @@
 
     `--js` alias to `rails new --javascript ...`
 
-    Same as `-j`, e.g. `rails new --js esbuild ...`
+    Same as `-j`, e.g. `rails new --js bun ...`
 
     `--skip-js` alias to `rails new --skip-javascript ...`
 
