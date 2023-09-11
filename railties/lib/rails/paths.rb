@@ -36,6 +36,15 @@ module Rails
     # The +add+ method accepts the following options as arguments:
     # eager_load, autoload, autoload_once, and glob.
     #
+    # It is possible that the controllers or other Rails components are
+    # in multiple directories. With the +add+ method it can be specified as:
+    #
+    #   root.add "app/helpers", with: ["app/helpers", "lib/helpers"]
+    #
+    #  This form lets Rails load all helper if a controller contains:
+    #
+    #   helper :all
+    #
     # Finally, the +Path+ object also provides a few helpers:
     #
     #   root = Root.new "/rails"
@@ -59,7 +68,9 @@ module Rails
       end
 
       def add(path, options = {})
-        with = Array(options.fetch(:with, path))
+        with = options.fetch(:with, path)
+        with = Array(with) unless with.instance_of?(Array)
+
         @root[path] = Path.new(self, path, with, options)
       end
 
