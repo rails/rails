@@ -212,7 +212,11 @@ class Product < ApplicationRecord
 end
 ```
 
-NOTE: **Active Record does not support using non-primary key columns named `id`.**
+NOTE: **Active Record does not recommend using non-primary key columns named `id`.**
+Using a column named `id` which is not a single-column primary key complicates the access to the column value.
+The application will have to use the [`id_value`][] alias attribute to access the value of the non-PK `id` column.
+
+[`id_value`]: https://api.rubyonrails.org/classes/ActiveRecord/ModelSchema.html#method-i-id_value
 
 NOTE: If you try to create a column named `id` which is not the primary key,
 Rails will throw an error during migrations such as:
