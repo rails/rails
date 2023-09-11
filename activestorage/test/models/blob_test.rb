@@ -143,6 +143,12 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_not_predicate blob, :audio?
   end
 
+  test "pdf?" do
+    blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
+    assert_predicate blob, :pdf?
+    assert_not_predicate blob, :audio?
+  end
+
   test "download yields chunks" do
     blob   = create_blob data: "a" * 5.0625.megabytes
     chunks = []

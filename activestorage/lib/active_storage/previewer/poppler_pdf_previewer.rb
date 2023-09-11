@@ -4,7 +4,7 @@ module ActiveStorage
   class Previewer::PopplerPDFPreviewer < Previewer
     class << self
       def accept?(blob)
-        blob.content_type == "application/pdf" && pdftoppm_exists?
+        blob.pdf? && pdftoppm_exists?
       end
 
       def pdftoppm_path

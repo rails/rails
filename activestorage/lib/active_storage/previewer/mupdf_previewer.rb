@@ -4,7 +4,7 @@ module ActiveStorage
   class Previewer::MuPDFPreviewer < Previewer
     class << self
       def accept?(blob)
-        blob.content_type == "application/pdf" && mutool_exists?
+        blob.pdf? && mutool_exists?
       end
 
       def mutool_path
