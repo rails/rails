@@ -103,7 +103,7 @@ module ActionMailer
       # Returns all mailer preview classes.
       def all
         load_previews if descendants.empty?
-        descendants
+        descendants.sort_by { |mailer| mailer.name.titleize }
       end
 
       # Returns the mail object for the given email name. The registered preview
@@ -144,7 +144,7 @@ module ActionMailer
       private
         def load_previews
           preview_paths.each do |preview_path|
-            Dir["#{preview_path}/**/*_preview.rb"].sort.each { |file| require_dependency file }
+            Dir["#{preview_path}/**/*_preview.rb"].sort.each { |file| require file }
           end
         end
 

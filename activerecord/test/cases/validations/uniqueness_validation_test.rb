@@ -36,6 +36,7 @@ class ReplyWithTitleObject < Reply
   validates_uniqueness_of :content, scope: :title
 
   def title; ReplyTitle.new; end
+  alias heading title
 end
 
 class TopicWithEvent < Topic
@@ -819,8 +820,8 @@ class UniquenessWithCompositeKey < ActiveRecord::TestCase
   end
 
   def test_uniqueness_validation_for_model_with_composite_key
-    book_one = BookWithUniqueRevision.create!(author_id: 1, number: 42, title: "Author 1's book", revision: 36)
-    book_two = BookWithUniqueRevision.create!(author_id: 2, number: 42, title: "Author 2's book", revision: 37)
+    book_one = BookWithUniqueRevision.create!(id: [1, 42], title: "Author 1's book", revision: 36)
+    book_two = BookWithUniqueRevision.create!(id: [2, 42], title: "Author 2's book", revision: 37)
 
     assert_not_equal book_one.revision, book_two.revision
 

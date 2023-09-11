@@ -10,7 +10,7 @@ that makes it easy to turn any mailing into a job for running later. That's
 one of the most common jobs in a modern web application: sending emails outside
 the request-response cycle, so the user doesn't have to wait on it.
 
-The main point is to ensure that all Rails apps will have a job infrastructure
+The main point is to ensure that all \Rails apps will have a job infrastructure
 in place, even if it's in the form of an "immediate runner". We can then have
 framework features and other gems build on top of that, without having to worry
 about API differences between Delayed Job and Resque. Picking your queuing
@@ -104,7 +104,7 @@ The latest version of Active Job can be installed with RubyGems:
   $ gem install activejob
 ```
 
-Source code can be downloaded as part of the Rails project on GitHub:
+Source code can be downloaded as part of the \Rails project on GitHub:
 
 * https://github.com/rails/rails/tree/main/activejob
 
@@ -122,7 +122,7 @@ API documentation is at:
 
 * https://api.rubyonrails.org
 
-Bug reports for the Ruby on Rails project can be filed here:
+Bug reports for the Ruby on \Rails project can be filed here:
 
 * https://github.com/rails/rails/issues
 

@@ -316,7 +316,7 @@ module ActionController
       # of this document.
       #
       # The nonce is opaque to the client. Composed of Time, and hash of Time with secret
-      # key from the Rails session secret generated upon creation of project. Ensures
+      # key from the \Rails session secret generated upon creation of project. Ensures
       # the time cannot be modified by client.
       def nonce(secret_key, time = Time.now)
         t = time.to_i
@@ -513,6 +513,7 @@ module ActionController
       # delimiters defined in +AUTHN_PAIR_DELIMITERS+.
       def raw_params(auth)
         _raw_params = auth.sub(TOKEN_REGEX, "").split(WHITESPACED_AUTHN_PAIR_DELIMITERS)
+        _raw_params.reject!(&:empty?)
 
         if !_raw_params.first&.start_with?(TOKEN_KEY)
           _raw_params[0] = "#{TOKEN_KEY}#{_raw_params.first}"

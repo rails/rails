@@ -4,13 +4,20 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLite3
       class Column < ConnectionAdapters::Column # :nodoc:
-        def initialize(*, auto_increment: nil, **)
+        attr_reader :rowid
+
+        def initialize(*, auto_increment: nil, rowid: false, **)
           super
           @auto_increment = auto_increment
+          @rowid = rowid
         end
 
         def auto_increment?
           @auto_increment
+        end
+
+        def auto_incremented_by_db?
+          auto_increment? || rowid
         end
 
         def init_with(coder)
@@ -33,7 +40,8 @@ module ActiveRecord
         def hash
           Column.hash ^
             super.hash ^
-            auto_increment?.hash
+            auto_increment?.hash ^
+            rowid.hash
         end
       end
     end

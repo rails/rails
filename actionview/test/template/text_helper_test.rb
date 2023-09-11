@@ -53,12 +53,22 @@ class TextHelperTest < ActionView::TestCase
       simple_format("<b> test with unsafe string </b><script>code!</script>", {}, { sanitize: true })
   end
 
+  def test_simple_format_should_sanitize_input_when_sanitize_options_is_specified
+    assert_equal "<p><a target=\"_blank\" href=\"http://example.com\">Continue</a></p>",
+      simple_format("<a target=\"_blank\" href=\"http://example.com\">Continue</a>", {}, { sanitize_options: { attributes: %w[target href] } })
+  end
+
+  def test_simple_format_should_sanitize_input_when_sanitize_options_is_not_specified
+    assert_equal "<p><a href=\"http://example.com\">Continue</a></p>", simple_format("<a target=\"_blank\" href=\"http://example.com\">Continue</a>")
+  end
+
   def test_simple_format_should_not_sanitize_input_when_sanitize_option_is_false
     assert_equal "<p><b> test with unsafe string </b><script>code!</script></p>", simple_format("<b> test with unsafe string </b><script>code!</script>", {}, { sanitize: false })
   end
 
   def test_simple_format_with_custom_wrapper
     assert_equal "<div></div>", simple_format(nil, {}, { wrapper_tag: "div" })
+    assert_equal "<p></p>", simple_format(nil, {}, { wrapper_tag: nil })
   end
 
   def test_simple_format_with_custom_wrapper_and_multi_line_breaks

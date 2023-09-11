@@ -96,7 +96,7 @@ module ActionView
       # ==== Examples
       #
       # Because it relies on +url_for+, +link_to+ supports both older-style controller/action/id arguments
-      # and newer RESTful routes. Current Rails style favors RESTful routes whenever possible, so base
+      # and newer RESTful routes. Current \Rails style favors RESTful routes whenever possible, so base
       # your application on resources and use
       #
       #   link_to "Profile", profile_path(@profile)
@@ -173,9 +173,31 @@ module ActionView
       #   link_to "External link", "http://www.rubyonrails.org/", target: "_blank", rel: "nofollow"
       #   # => <a href="http://www.rubyonrails.org/" target="_blank" rel="nofollow">External link</a>
       #
-      # ==== Deprecated: Rails UJS Attributes
+      # ==== Turbo
       #
-      # Prior to Rails 7, Rails shipped with a JavaScript library called <tt>@rails/ujs</tt> on by default. Following Rails 7,
+      # Rails 7 ships with Turbo enabled by default. Turbo provides the following +:data+ options:
+      #
+      # * <tt>turbo_method: symbol of HTTP verb</tt> - Performs a Turbo link visit
+      #   with the given HTTP verb. Forms are recommended when performing non-+GET+ requests.
+      #   Only use <tt>data-turbo-method</tt> where a form is not possible.
+      #
+      # * <tt>turbo_confirm: "question?"</tt> - Adds a confirmation dialog to the link with the
+      #   given value.
+      #
+      # {Consult the Turbo Handbook for more information on the options
+      # above.}[https://turbo.hotwired.dev/handbook/drive#performing-visits-with-a-different-method]
+      #
+      # ===== \Examples
+      #
+      #   link_to "Delete profile", @profile, data: { turbo_method: :delete }
+      #   # => <a href="/profiles/1" data-turbo-method="delete">Delete profile</a>
+      #
+      #   link_to "Visit Other Site", "https://rubyonrails.org/", data: { turbo_confirm: "Are you sure?" }
+      #   # => <a href="https://rubyonrails.org/" data-turbo-confirm="Are you sure?">Visit Other Site</a>
+      #
+      # ==== Deprecated: \Rails UJS Attributes
+      #
+      # Prior to \Rails 7, \Rails shipped with a JavaScript library called <tt>@rails/ujs</tt> on by default. Following \Rails 7,
       # this library is no longer on by default. This library integrated with the following options:
       #
       # * <tt>method: symbol of HTTP verb</tt> - This modifier will dynamically
@@ -201,7 +223,7 @@ module ActionView
       # * <tt>:disable_with</tt> - Value of this parameter will be used as the
       #   name for a disabled version of the link.
       #
-      # ===== Rails UJS Examples
+      # ===== \Rails UJS Examples
       #
       #   link_to "Remove Profile", profile_path(@profile), method: :delete
       #   # => <a href="/profiles/1" rel="nofollow" data-method="delete">Remove Profile</a>
@@ -224,9 +246,6 @@ module ActionView
       # Generates a form containing a single button that submits to the URL created
       # by the set of +options+. This is the safest method to ensure links that
       # cause changes to your data are not triggered by search bots or accelerators.
-      # If the HTML button does not work with your layout, you can also consider
-      # using the +link_to+ method with the <tt>:method</tt> modifier as described in
-      # the +link_to+ documentation.
       #
       # You can control the form and button behavior with +html_options+. Most
       # values in +html_options+ are passed through to the button element. For
@@ -239,6 +258,10 @@ module ActionView
       #
       # The form submits a POST request by default. You can specify a different
       # HTTP verb via the +:method+ option within +html_options+.
+      #
+      # If the HTML button generated from +button_to+ does not work with your layout, you can
+      # consider using the +link_to+ method with the +data-turbo-method+
+      # attribute as described in the +link_to+ documentation.
       #
       # ==== Options
       # The +options+ hash accepts the same options as +url_for+. To generate a
@@ -305,9 +328,9 @@ module ActionView
       #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"  autocomplete="off"/>
       #   #    </form>"
       #
-      # ==== Deprecated: Rails UJS Attributes
+      # ==== Deprecated: \Rails UJS Attributes
       #
-      # Prior to Rails 7, Rails shipped with a JavaScript library called <tt>@rails/ujs</tt> on by default. Following Rails 7,
+      # Prior to \Rails 7, \Rails shipped with a JavaScript library called <tt>@rails/ujs</tt> on by default. Following \Rails 7,
       # this library is no longer on by default. This library integrated with the following options:
       #
       # * <tt>:remote</tt> -  If set to true, will allow <tt>@rails/ujs</tt> to control the
@@ -323,7 +346,7 @@ module ActionView
       #   used as the value for a disabled version of the submit
       #   button when the form is submitted.
       #
-      # ===== Rails UJS Examples
+      # ===== \Rails UJS Examples
       #
       #   <%= button_to "Create", { action: "create" }, remote: true, form: { "data-type" => "json" } %>
       #   # => "<form method="post" action="/images/create" class="button_to" data-remote="true" data-type="json">
@@ -499,7 +522,7 @@ module ActionView
       # * <tt>:reply_to</tt> - Preset the +Reply-To+ field of the email.
       #
       # ==== Obfuscation
-      # Prior to Rails 4.0, +mail_to+ provided options for encoding the address
+      # Prior to \Rails 4.0, +mail_to+ provided options for encoding the address
       # in order to hinder email harvesters.  To take advantage of these options,
       # install the +actionview-encoded_mail_to+ gem.
       #

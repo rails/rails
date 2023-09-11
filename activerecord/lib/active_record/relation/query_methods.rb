@@ -9,7 +9,7 @@ module ActiveRecord
   module QueryMethods
     include ActiveModel::ForbiddenAttributesProtection
 
-    # WhereChain objects act as placeholder for queries in which +where+ does not have any parameter.
+    # +WhereChain+ objects act as placeholder for queries in which +where+ does not have any parameter.
     # In this case, +where+ can be chained to return a new relation.
     class WhereChain
       def initialize(scope) # :nodoc:
@@ -76,7 +76,11 @@ module ActiveRecord
         associations.each do |association|
           reflection = scope_association_reflection(association)
           @scope.joins!(association)
-          self.not(association => { reflection.association_primary_key => nil })
+          if reflection.options[:class_name]
+            self.not(association => { reflection.association_primary_key => nil })
+          else
+            self.not(reflection.table_name => { reflection.association_primary_key => nil })
+          end
         end
 
         @scope
@@ -104,7 +108,11 @@ module ActiveRecord
         associations.each do |association|
           reflection = scope_association_reflection(association)
           @scope.left_outer_joins!(association)
-          @scope.where!(association => { reflection.association_primary_key => nil })
+          if reflection.options[:class_name]
+            @scope.where!(association => { reflection.association_primary_key => nil })
+          else
+            @scope.where!(reflection.table_name => { reflection.association_primary_key => nil })
+          end
         end
 
         @scope
@@ -204,7 +212,7 @@ module ActiveRecord
     #   #   LEFT OUTER JOIN "posts" ON "posts"."user_id" = "users"."id"
     #   #   WHERE "posts"."name" = ?  [["name", "example"]]
     #
-    # As the LEFT OUTER JOIN already contains the posts, the second query for
+    # As the <tt>LEFT OUTER JOIN</tt> already contains the posts, the second query for
     # the posts is no longer performed.
     #
     # Note that #includes works with association names while #references needs
@@ -312,7 +320,7 @@ module ActiveRecord
     end
 
     # Use to indicate that the given +table_names+ are referenced by an SQL string,
-    # and should therefore be JOINed in any query rather than loaded separately.
+    # and should therefore be +JOIN+ed in any query rather than loaded separately.
     # This method only works in conjunction with #includes.
     # See #includes for more details.
     #
@@ -411,7 +419,7 @@ module ActiveRecord
     #   # )
     #   # SELECT * FROM posts
     #
-    # Once you define Common Table Expression you can use custom `FROM` value or `JOIN` to reference it.
+    # Once you define Common Table Expression you can use custom +FROM+ value or +JOIN+ to reference it.
     #
     #   Post.with(posts_with_tags: Post.where("tags_count > ?", 0)).from("posts_with_tags AS posts")
     #   # => ActiveRecord::Relation
@@ -639,7 +647,7 @@ module ActiveRecord
     #
     #   User.order('email DESC').reorder('id ASC').order('name ASC')
     #
-    # generates a query with 'ORDER BY id ASC, name ASC'.
+    # generates a query with <tt>ORDER BY id ASC, name ASC</tt>.
     def reorder(*args)
       check_if_method_has_arguments!(__callee__, args) do
         sanitize_order_arguments(args)
@@ -789,7 +797,7 @@ module ActiveRecord
     # SQL is given as an illustration; the actual query generated may be different depending
     # on the database adapter.
     #
-    # === string
+    # === \String
     #
     # A single string, without additional arguments, is passed to the query
     # constructor as an SQL fragment, and used in the where clause of the query.
@@ -801,7 +809,7 @@ module ActiveRecord
     # to injection attacks if not done properly. As an alternative, it is recommended
     # to use one of the following methods.
     #
-    # === array
+    # === \Array
     #
     # If an array is passed, then the first element of the array is treated as a template, and
     # the remaining elements are inserted into the template to generate the condition.
@@ -841,7 +849,7 @@ module ActiveRecord
     # dependencies on the underlying database. If your code is intended for general consumption,
     # test with multiple database backends.
     #
-    # === hash
+    # === \Hash
     #
     # #where will also accept a hash condition, in which the keys are fields and the values
     # are values to be searched for.
@@ -875,6 +883,12 @@ module ActiveRecord
     #    PriceEstimate.where(estimate_of: treasure)
     #    PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: treasure)
     #
+    # Hash conditions may also be specified in a tuple-like syntax. Hash keys may be
+    # an array of columns with an array of tuples as values.
+    #
+    #   Article.where([:author_id, :id] => [[15, 1], [15, 2]])
+    #   # SELECT * FROM articles WHERE author_id = 15 AND id = 1 OR author_id = 15 AND id = 2
+    #
     # === Joins
     #
     # If the relation is the result of a join, you may create a condition which uses any of the
@@ -887,7 +901,7 @@ module ActiveRecord
     #    User.joins(:posts).where("posts.published" => true)
     #    User.joins(:posts).where(posts: { published: true })
     #
-    # === no argument
+    # === No Argument
     #
     # If no argument is passed, #where returns a new instance of WhereChain, that
     # can be chained with WhereChain#not, WhereChain#missing, or WhereChain#associated.
@@ -911,7 +925,7 @@ module ActiveRecord
     #    # LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
     #    # WHERE "authors"."id" IS NULL
     #
-    # === blank condition
+    # === Blank Condition
     #
     # If the condition is any blank-ish object, then #where is a no-op and returns
     # the current relation.
@@ -944,6 +958,8 @@ module ActiveRecord
     # This is short-hand for <tt>unscope(where: conditions.keys).where(conditions)</tt>.
     # Note that unlike reorder, we're only unscoping the named conditions -- not the entire where statement.
     def rewhere(conditions)
+      return unscope(:where) if conditions.nil?
+
       scope = spawn
       where_clause = scope.build_where_clause(conditions)
 
@@ -1305,7 +1321,7 @@ module ActiveRecord
     #
     # The object returned is a relation, which can be further extended.
     #
-    # === Using a module
+    # === Using a \Module
     #
     #   module Pagination
     #     def page(number)
@@ -1320,7 +1336,7 @@ module ActiveRecord
     #
     #   scope = Model.all.extending(Pagination, SomethingElse)
     #
-    # === Using a block
+    # === Using a Block
     #
     #   scope = Model.all.extending do
     #     def page(number)
@@ -1992,6 +2008,10 @@ module ActiveRecord
           case columns_aliases
           when Hash
             columns_aliases.map do |column, column_alias|
+              if values[:joins]&.include?(key)
+                references = PredicateBuilder.references({ key.to_s => fields[key] })
+                self.references_values |= references unless references.empty?
+              end
               arel_column("#{key}.#{column}") do
                 predicate_builder.resolve_arel_attribute(key.to_s, column)
               end.as(column_alias.to_s)

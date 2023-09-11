@@ -11,9 +11,6 @@ module ActionDispatch
       def response_parser; -> body { body }; end
     end
 
-    # :nodoc:
-    HTMLResponseParser = defined?(::Nokogiri::HTML5) ? ::Nokogiri::HTML5 : ::Nokogiri::HTML
-
     @encoders = { identity: IdentityEncoder.new }
 
     attr_reader :response_parser
@@ -55,7 +52,7 @@ module ActionDispatch
       @encoders[mime_name] = new(mime_name, param_encoder, response_parser)
     end
 
-    register_encoder :html, response_parser: -> body { HTMLResponseParser.parse(body) }
-    register_encoder :json, response_parser: -> body { JSON.parse(body) }
+    register_encoder :html, response_parser: -> body { Rails::Dom::Testing.html_document.parse(body) }
+    register_encoder :json, response_parser: -> body { JSON.parse(body, object_class: ActiveSupport::HashWithIndifferentAccess) }
   end
 end

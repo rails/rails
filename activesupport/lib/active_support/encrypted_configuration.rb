@@ -4,6 +4,7 @@ require "yaml"
 require "active_support/encrypted_file"
 require "active_support/ordered_options"
 require "active_support/core_ext/object/inclusion"
+require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
@@ -42,7 +43,6 @@ module ActiveSupport
       end
     end
 
-    delegate :[], :fetch, to: :config
     delegate_missing_to :options
 
     def initialize(config_path:, key_path:, env_key:, raise_if_missing_key:)
@@ -76,11 +76,15 @@ module ActiveSupport
       @config ||= deserialize(read).deep_symbolize_keys
     end
 
+    def inspect # :nodoc:
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+    end
+
     private
       def deep_transform(hash)
         return hash unless hash.is_a?(Hash)
 
-        h = ActiveSupport::InheritableOptions.new
+        h = ActiveSupport::OrderedOptions.new
         hash.each do |k, v|
           h[k] = deep_transform(v)
         end
@@ -88,7 +92,7 @@ module ActiveSupport
       end
 
       def options
-        @options ||= ActiveSupport::InheritableOptions.new(deep_transform(config))
+        @options ||= deep_transform(config)
       end
 
       def deserialize(content)

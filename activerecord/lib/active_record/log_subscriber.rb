@@ -140,15 +140,25 @@ module ActiveRecord
       end
 
       def log_query_source
-        source = extract_query_source_location(caller)
+        source = query_source_location
 
         if source
           logger.debug("  ↳ #{source}")
         end
       end
 
-      def extract_query_source_location(locations)
-        backtrace_cleaner.clean(locations.lazy).first
+      if Thread.respond_to?(:each_caller_location)
+        def query_source_location
+          Thread.each_caller_location do |location|
+            frame = backtrace_cleaner.clean_frame(location)
+            return frame if frame
+          end
+          nil
+        end
+      else
+        def query_source_location
+          backtrace_cleaner.clean(caller(1).lazy).first
+        end
       end
 
       def filter(name, value)

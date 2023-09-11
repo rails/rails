@@ -30,7 +30,7 @@ module ActionDispatch
 
       private
         def registerable?
-          [:selenium, :cuprite, :rack_test].include?(@driver_type)
+          [:selenium, :cuprite, :rack_test, :playwright].include?(@driver_type)
         end
 
         def register
@@ -41,6 +41,7 @@ module ActionDispatch
             when :selenium then register_selenium(app)
             when :cuprite then register_cuprite(app)
             when :rack_test then register_rack_test(app)
+            when :playwright then register_playwright(app)
             end
           end
         end
@@ -61,6 +62,17 @@ module ActionDispatch
 
         def register_rack_test(app)
           Capybara::RackTest::Driver.new(app, respect_data_method: true, **@options)
+        end
+
+        def register_playwright(app)
+          screen = { width: @screen_size[0], height: @screen_size[1] } if @screen_size
+          options = {
+            screen: screen,
+            viewport: screen,
+            **@options
+          }.compact
+
+          Capybara::Playwright::Driver.new(app, **options)
         end
 
         def setup

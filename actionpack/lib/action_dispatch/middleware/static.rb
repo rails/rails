@@ -8,7 +8,7 @@ module ActionDispatch
   # This middleware serves static files from disk, if available.
   # If no file is found, it hands off to the main app.
   #
-  # In Rails apps, this middleware is configured to serve assets from
+  # In \Rails apps, this middleware is configured to serve assets from
   # the +public/+ directory.
   #
   # Only GET and HEAD requests are served. POST and other HTTP methods
@@ -108,7 +108,7 @@ module ActionDispatch
       end
 
       def try_files(filepath, content_type, accept_encoding:)
-        headers = { "content-type" => content_type }
+        headers = { Rack::CONTENT_TYPE => content_type }
 
         if compressible? content_type
           try_precompressed_files filepath, headers, accept_encoding: accept_encoding
@@ -128,10 +128,10 @@ module ActionDispatch
             if content_encoding == "identity"
               return precompressed_filepath, headers
             else
-              headers["vary"] = "accept-encoding"
+              headers[ActionDispatch::Constants::VARY] = "accept-encoding"
 
               if accept_encoding.any? { |enc, _| /\b#{content_encoding}\b/i.match?(enc) }
-                headers["content-encoding"] = content_encoding
+                headers[ActionDispatch::Constants::CONTENT_ENCODING] = content_encoding
                 return precompressed_filepath, headers
               end
             end

@@ -169,7 +169,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     def build_app(console)
       mocked_console = Class.new do
         attr_accessor :sandbox
-        attr_reader :console, :disable_sandbox
+        attr_reader :console, :disable_sandbox, :sandbox_by_default
 
         def initialize(console)
           @console = console

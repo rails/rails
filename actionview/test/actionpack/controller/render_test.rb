@@ -1083,7 +1083,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_should_render_formatted_html_erb_template_with_bad_accepts_header
-    @request.env["HTTP_ACCEPT"] = "; a=dsf"
+    @request.env["HTTP_ACCEPT"] = "; q=dsf"
     get :formatted_xml_erb
     assert_equal "<test>passed formatted HTML erb</test>", @response.body
   end

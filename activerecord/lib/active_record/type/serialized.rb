@@ -55,6 +55,10 @@ module ActiveRecord
         coder.respond_to?(:object_class) && value.is_a?(coder.object_class)
       end
 
+      def serialized? # :nodoc:
+        true
+      end
+
       private
         def default_value?(value)
           value == coder.load(nil)
@@ -63,11 +67,11 @@ module ActiveRecord
         def encoded(value)
           return if default_value?(value)
           payload = coder.dump(value)
-          if payload && binary? && payload.encoding != Encoding::BINARY
-            payload = payload.dup if payload.frozen?
-            payload.force_encoding(Encoding::BINARY)
+          if payload && @subtype.binary?
+            ActiveModel::Type::Binary::Data.new(payload)
+          else
+            payload
           end
-          payload
         end
     end
   end

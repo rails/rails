@@ -6,6 +6,15 @@ ActiveRecord::Schema.define do
 
   uuid_default = connection.supports_pgcrypto_uuid? ? {} : { default: "uuid_generate_v4()" }
 
+  create_table :chat_messages, id: :uuid, force: true, **uuid_default do |t|
+    t.text :content
+  end
+
+  create_table :chat_messages_custom_pk, id: false, force: true do |t|
+    t.uuid :message_id, primary_key: true, default: "uuid_generate_v4()"
+    t.text :content
+  end
+
   create_table :uuid_parents, id: :uuid, force: true, **uuid_default do |t|
     t.string :name
   end
@@ -16,6 +25,9 @@ ActiveRecord::Schema.define do
   end
 
   create_table :defaults, force: true do |t|
+    t.virtual :virtual_stored_number, type: :integer, as: "rand_number * 10", stored: true
+    t.integer :rand_number, default: -> { "random() * 100" }
+    t.string :ruby_on_rails, default: -> { "concat('Ruby ', 'on ', 'Rails')" }
     t.date :modified_date, default: -> { "CURRENT_DATE" }
     t.date :modified_date_function, default: -> { "now()" }
     t.date :fixed_date, default: "2004-01-01"

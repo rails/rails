@@ -238,28 +238,6 @@ NOTE: The `ApplicationController` class inside an engine is named just like a
 Rails application in order to make it easier for you to convert your
 applications into engines.
 
-NOTE: If the parent application runs in `classic` mode, you may run into a
-situation where your engine controller is inheriting from the main application
-controller and not your engine's application controller. The best way to prevent
-this is to switch to `zeitwerk` mode in the parent application. Otherwise, use
-`require_dependency` to ensure that the engine's application controller is
-loaded. For example:
-
-```ruby
-# ONLY NEEDED IN `classic` MODE.
-require_dependency "blorgh/application_controller"
-
-module Blorgh
-  class ArticlesController < ApplicationController
-    # ...
-  end
-end
-```
-
-WARNING: Don't use `require` because it will break the automatic reloading of
-classes in the development environment - using `require_dependency` ensures that
-classes are loaded and unloaded in the correct manner.
-
 Just like for `app/controllers`, you will find a `blorgh` subdirectory under
 the `app/helpers`, `app/jobs`, `app/mailers` and `app/models` directories
 containing the associated `application_*.rb` file for gathering common
@@ -697,6 +675,18 @@ If you have multiple engines that need migrations copied over, use
 
 ```bash
 $ bin/rails railties:install:migrations
+```
+
+You can specify a custom path in the source engine for the migrations by specifying MIGRATIONS_PATH.
+
+```bash
+$ bin/rails railties:install:migrations MIGRATIONS_PATH=db_blourgh
+```
+
+If you have multiple databases you can also specify the target database by specifying DATABASE.
+
+```bash
+$ bin/rails railties:install:migrations DATABASE=animals
 ```
 
 This command, when run for the first time, will copy over all the migrations
@@ -1493,10 +1483,12 @@ These are the load hooks you can use in your own code. To hook into the initiali
 | `ActionView::TestCase`               | `action_view_test_case`              |
 | `ActiveJob::Base`                    | `active_job`                         |
 | `ActiveJob::TestCase`                | `active_job_test_case`               |
+| `ActiveModel::Model`                 | `active_model`                       |
 | `ActiveRecord::Base`                 | `active_record`                      |
 | `ActiveRecord::TestFixtures`         | `active_record_fixtures`             |
 | `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter`    | `active_record_postgresqladapter`    |
 | `ActiveRecord::ConnectionAdapters::Mysql2Adapter`        | `active_record_mysql2adapter`        |
+| `ActiveRecord::ConnectionAdapters::TrilogyAdapter`       | `active_record_trilogyadapter`       |
 | `ActiveRecord::ConnectionAdapters::SQLite3Adapter`       | `active_record_sqlite3adapter`       |
 | `ActiveStorage::Attachment`          | `active_storage_attachment`          |
 | `ActiveStorage::VariantRecord`       | `active_storage_variant_record`      |

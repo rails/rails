@@ -95,6 +95,15 @@ class AdapterPreventWritesTest < ActiveRecord::AbstractMysqlTestCase
     end
   end
 
+  def test_doesnt_error_when_a_kill_query_is_called_while_preventing_writes
+    ActiveRecord::Base.while_preventing_writes do
+      conn_id = @conn.execute("SELECT CONNECTION_ID() as connection_id").to_a[0][0]
+      assert_raises(ActiveRecord::QueryCanceled) do
+        @conn.execute("KILL QUERY #{conn_id}")
+      end
+    end
+  end
+
   private
     def with_example_table(definition = "id int auto_increment primary key, number int, data varchar(255)", &block)
       super(@conn, "ex", definition, &block)

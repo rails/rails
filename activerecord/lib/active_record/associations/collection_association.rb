@@ -16,7 +16,7 @@ module ActiveRecord
     #
     # The CollectionAssociation class provides common methods to the collections
     # defined by +has_and_belongs_to_many+, +has_many+ or +has_many+ with
-    # the +:through association+ option.
+    # the <tt>:through association</tt> option.
     #
     # You need to be careful with assumptions regarding the target: The proxy
     # does not fetch records from the database until it needs them, but new
@@ -61,22 +61,22 @@ module ActiveRecord
         primary_key = reflection.association_primary_key
         pk_type = klass.type_for_attribute(primary_key)
         ids = Array(ids).compact_blank
-        ids.map! { |i| pk_type.cast(i) }
+        ids.map! { |id| pk_type.cast(id) }
 
         records = if klass.composite_primary_key?
           query_records = ids.map { |values_set| klass.where(primary_key.zip(values_set).to_h) }.inject(&:or)
 
-          query_records.index_by do |r|
-            primary_key.map { |pk| r.public_send(pk) }
+          query_records.index_by do |record|
+            primary_key.map { |primary_key| record._read_attribute(primary_key) }
           end
         else
-          klass.where(primary_key => ids).index_by do |r|
-            r.public_send(primary_key)
+          klass.where(primary_key => ids).index_by do |record|
+            record._read_attribute(primary_key)
           end
         end.values_at(*ids).compact
 
         if records.size != ids.size
-          found_ids = records.map { |record| record.public_send(primary_key) }
+          found_ids = records.map { |record| record._read_attribute(primary_key) }
           not_found_ids = ids - found_ids
           klass.all.raise_record_not_found_exception!(ids, records.size, ids.size, primary_key, not_found_ids)
         else
@@ -87,7 +87,7 @@ module ActiveRecord
       def reset
         super
         @target = []
-        @replaced_or_added_targets = Set.new
+        @replaced_or_added_targets = Set.new.compare_by_identity
         @association_ids = nil
       end
 

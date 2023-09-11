@@ -354,6 +354,13 @@ module ActiveJob
     #     assert_enqueued_with(at: Date.tomorrow.noon, queue: "my_queue")
     #   end
     #
+    # For keyword arguments, specify them as a hash inside an array:
+    #
+    #   def test_assert_enqueued_with_keyword_arguments
+    #     MyJob.perform_later(arg1: 'value1', arg2: 'value2')
+    #     assert_enqueued_with(job: MyJob, args: [{ arg1: 'value1', arg2: 'value2' }])
+    #   end
+    #
     # The given arguments may also be specified as matcher procs that return a
     # boolean value indicating whether a job's attribute meets certain criteria.
     #
@@ -595,8 +602,13 @@ module ActiveJob
     #
     # If the +:at+ option is specified, then only run jobs enqueued to run
     # immediately or before the given time
+    #
+    # If an adapter other than the test adapter is in use, this method just yields.
+    # See queue_adapter_for_test for more information.
     def perform_enqueued_jobs(only: nil, except: nil, queue: nil, at: nil, &block)
       return flush_enqueued_jobs(only: only, except: except, queue: queue, at: at) unless block_given?
+
+      return _assert_nothing_raised_or_warn("perform_enqueued_jobs", &block) unless using_test_adapter?
 
       validate_option(only: only, except: except)
 
@@ -636,12 +648,16 @@ module ActiveJob
     end
 
     private
+      def using_test_adapter?
+        queue_adapter.is_a?(ActiveJob::QueueAdapters::TestAdapter)
+      end
+
       def clear_enqueued_jobs
-        enqueued_jobs.clear
+        enqueued_jobs.clear if using_test_adapter?
       end
 
       def clear_performed_jobs
-        performed_jobs.clear
+        performed_jobs.clear if using_test_adapter?
       end
 
       def jobs_with(jobs, only: nil, except: nil, queue: nil, at: nil)

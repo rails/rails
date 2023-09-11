@@ -432,8 +432,7 @@ Simply pass a file name like "../../../etc/passwd" to download the server's logi
 ```ruby
 basename = File.expand_path('../../files', __dir__)
 filename = File.expand_path(File.join(basename, @file.public_filename))
-raise if basename !=
-     File.expand_path(File.join(File.dirname(filename), '../../../'))
+raise if basename != File.expand_path(File.dirname(filename))
 send_file filename, disposition: 'inline'
 ```
 
@@ -528,7 +527,7 @@ INFO: _A common pitfall in Ruby's regular expressions is to match the string's b
 Ruby uses a slightly different approach than many other languages to match the end and the beginning of a string. That is why even many Ruby and Rails books get this wrong. So how is this a security threat? Say you wanted to loosely validate a URL field and you used a simple regular expression like this:
 
 ```ruby
-  /^https?:\/\/[^\n]+$/i
+/^https?:\/\/[^\n]+$/i
 ```
 
 This may work fine in some languages. However, _in Ruby `^` and `$` match the **line** beginning and line end_. And thus a URL like this passes the filter without problems:
@@ -542,7 +541,7 @@ http://hi.com
 This URL passes the filter because the regular expression matches - the second line, the rest does not matter. Now imagine we had a view that showed the URL like this:
 
 ```ruby
-  link_to "Homepage", @user.homepage
+link_to "Homepage", @user.homepage
 ```
 
 The link looks innocent to visitors, but when it's clicked, it will execute the JavaScript function "exploit_code" or any other JavaScript the attacker provides.
@@ -550,14 +549,14 @@ The link looks innocent to visitors, but when it's clicked, it will execute the 
 To fix the regular expression, `\A` and `\z` should be used instead of `^` and `$`, like so:
 
 ```ruby
-  /\Ahttps?:\/\/[^\n]+\z/i
+/\Ahttps?:\/\/[^\n]+\z/i
 ```
 
 Since this is a frequent mistake, the format validator (validates_format_of) now raises an exception if the provided regular expression starts with ^ or ends with $. If you do need to use ^ and $ instead of \A and \z (which is rare), you can set the :multiline option to true, like so:
 
 ```ruby
-  # content should include a line "Meanwhile" anywhere in the string
-  validates :content, format: { with: /^Meanwhile$/, multiline: true }
+# content should include a line "Meanwhile" anywhere in the string
+validates :content, format: { with: /^Meanwhile$/, multiline: true }
 ```
 
 Note that this only protects you against the most common mistake when using the format validator - you always need to keep in mind that ^ and $ match the **line** beginning and line end in Ruby, and not the beginning and end of a string.
@@ -1144,7 +1143,7 @@ browser automatically upgrades to HTTPS for current and future connections.
 The header is added to the response when enabling the `force_ssl` option:
 
 ```ruby
-  config.force_ssl = true
+config.force_ssl = true
 ```
 
 [`Strict-Transport-Security`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
@@ -1456,6 +1455,5 @@ Additional Resources
 The security landscape shifts and it is important to keep up to date, because missing a new vulnerability can be catastrophic. You can find additional resources about (Rails) security here:
 
 * Subscribe to the Rails security [mailing list](https://discuss.rubyonrails.org/c/security-announcements/9).
-* [Brakeman - Rails Security Scanner](https://brakemanscanner.org/) - To perform static security analysis for Rails applications.
 * [Mozilla's Web Security Guidelines](https://infosec.mozilla.org/guidelines/web_security.html) - Recommendations on topics covering Content Security Policy, HTTP headers, Cookies, TLS configuration, etc.
 * A [good security blog](https://owasp.org/) including the [Cross-Site scripting Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md).

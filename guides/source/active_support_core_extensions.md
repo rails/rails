@@ -2197,47 +2197,6 @@ BigDecimal(5.00, 6).to_s("e")  # => "0.5E1"
 Extensions to `Enumerable`
 --------------------------
 
-### `sum`
-
-The method [`sum`][Enumerable#sum] adds the elements of an enumerable:
-
-```ruby
-[1, 2, 3].sum # => 6
-(1..100).sum  # => 5050
-```
-
-Addition only assumes the elements respond to `+`:
-
-```ruby
-[[1, 2], [2, 3], [3, 4]].sum    # => [1, 2, 2, 3, 3, 4]
-%w(foo bar baz).sum             # => "foobarbaz"
-{ a: 1, b: 2, c: 3 }.sum          # => [:a, 1, :b, 2, :c, 3]
-```
-
-The sum of an empty collection is zero by default, but this is customizable:
-
-```ruby
-[].sum    # => 0
-[].sum(1) # => 1
-```
-
-If a block is given, `sum` becomes an iterator that yields the elements of the collection and sums the returned values:
-
-```ruby
-(1..5).sum { |n| n * 2 } # => 30
-[2, 4, 6, 8, 10].sum    # => 30
-```
-
-The sum of an empty receiver can be customized in this form as well:
-
-```ruby
-[].sum(1) { |n| n**3 } # => 1
-```
-
-NOTE: Defined in `active_support/core_ext/enumerable.rb`.
-
-[Enumerable#sum]: https://api.rubyonrails.org/classes/Enumerable.html#method-i-sum
-
 ### `index_by`
 
 The method [`index_by`][Enumerable#index_by] generates a hash with the elements of an enumerable indexed by some key.
@@ -3198,19 +3157,19 @@ Active Support extends these methods so that the argument may be another range i
 
 NOTE: Defined in `active_support/core_ext/range/compare_range.rb`.
 
-### `overlaps?`
+### `overlap?`
 
-The method [`Range#overlaps?`][Range#overlaps?] says whether any two given ranges have non-void intersection:
+The method [`Range#overlap?`][Range#overlap?] says whether any two given ranges have non-void intersection:
 
 ```ruby
-(1..10).overlaps?(7..11)  # => true
-(1..10).overlaps?(0..7)   # => true
-(1..10).overlaps?(11..27) # => false
+(1..10).overlap?(7..11)  # => true
+(1..10).overlap?(0..7)   # => true
+(1..10).overlap?(11..27) # => false
 ```
 
-NOTE: Defined in `active_support/core_ext/range/overlaps.rb`.
+NOTE: Defined in `active_support/core_ext/range/overlap.rb`.
 
-[Range#overlaps?]: https://api.rubyonrails.org/classes/Range.html#method-i-overlaps-3F
+[Range#overlap?]: https://api.rubyonrails.org/classes/Range.html#method-i-overlaps-3F
 
 Extensions to `Date`
 --------------------

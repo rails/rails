@@ -22,10 +22,39 @@ require "models/ship"
 require "models/admin"
 require "models/admin/user"
 require "models/cpk"
+require "models/chat_message"
+require "models/default"
 
 class PersistenceTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :accounts, :minimalistics, :authors, :author_addresses,
     :posts, :minivans, :clothing_items, :cpk_books
+
+  def test_populates_non_primary_key_autoincremented_column
+    topic = TitlePrimaryKeyTopic.create!(title: "title pk topic")
+
+    assert_not_nil topic.attributes["id"]
+  end
+
+  def test_populates_non_primary_key_autoincremented_column_for_a_cpk_model
+    order = Cpk::Order.create(shop_id: 111_222)
+
+    _shop_id, order_id = order.id
+
+    assert_not_nil order_id
+  end
+
+  def test_fills_auto_populated_columns_on_creation
+    record_with_defaults = Default.create
+    assert_not_nil record_with_defaults.id
+    assert_equal "Ruby on Rails", record_with_defaults.ruby_on_rails
+    assert_not_nil record_with_defaults.virtual_stored_number
+    assert_not_nil record_with_defaults.rand_number
+    assert_not_nil record_with_defaults.modified_date
+    assert_not_nil record_with_defaults.modified_date_function
+    assert_not_nil record_with_defaults.modified_time
+    assert_not_nil record_with_defaults.modified_time_without_precision
+    assert_not_nil record_with_defaults.modified_time_function
+  end if current_adapter?(:PostgreSQLAdapter)
 
   def test_update_many
     topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
@@ -461,6 +490,23 @@ class PersistenceTest < ActiveRecord::TestCase
     topic_reloaded = Topic.find(topic.id)
     assert_equal("New Topic", topic_reloaded.title)
   end
+
+  def test_create_model_with_uuid_pk_populates_id
+    message = ChatMessage.create(content: "New Message")
+    assert_not_nil message.id
+
+    message_reloaded = ChatMessage.find(message.id)
+    assert_equal "New Message", message_reloaded.content
+  end if current_adapter?(:PostgreSQLAdapter)
+
+
+  def test_create_model_with_custom_named_uuid_pk_populates_id
+    message = ChatMessageCustomPk.create(content: "New Message")
+    assert_not_nil message.message_id
+
+    message_reloaded = ChatMessageCustomPk.find(message.message_id)
+    assert_equal "New Message", message_reloaded.content
+  end if current_adapter?(:PostgreSQLAdapter)
 
   def test_build
     topic = Topic.build(title: "New Topic")
@@ -1490,7 +1536,7 @@ class QueryConstraintsTest < ActiveRecord::TestCase
 
   def test_query_constraints_list_equals_to_composite_primary_key
     assert_equal(["shop_id", "id"], Cpk::Order.query_constraints_list)
-    assert_equal(["author_id", "number"], Cpk::Book.query_constraints_list)
+    assert_equal(["author_id", "id"], Cpk::Book.query_constraints_list)
   end
 
   def test_child_keeps_parents_query_constraints
@@ -1502,7 +1548,7 @@ class QueryConstraintsTest < ActiveRecord::TestCase
   end
 
   def test_child_keeps_parents_query_contraints_derived_from_composite_pk
-    assert_equal(["author_id", "number"], Cpk::BestSeller.query_constraints_list)
+    assert_equal(["author_id", "id"], Cpk::BestSeller.query_constraints_list)
   end
 
   def assert_uses_query_constraints_on_reload(object, columns)

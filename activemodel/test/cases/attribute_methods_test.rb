@@ -119,6 +119,34 @@ class AttributeMethodsTest < ActiveModel::TestCase
     ModelWithAttributes.undefine_attribute_methods
   end
 
+  test "#define_attribute_methods defines alias attribute methods after undefining" do
+    topic_class = Class.new do
+      include ActiveModel::AttributeMethods
+      define_attribute_methods :title
+      alias_attribute :aliased_title_to_be_redefined, :title
+
+      def attributes
+        { title: "Active Model Topic" }
+      end
+
+      private
+        def attribute(name)
+          attributes[name.to_sym]
+        end
+    end
+
+    topic = topic_class.new
+    assert_equal("Active Model Topic", topic.aliased_title_to_be_redefined)
+    topic_class.undefine_attribute_methods
+
+    assert_not_respond_to topic, :aliased_title_to_be_redefined
+
+    topic_class.define_attribute_methods :title
+
+    assert_respond_to topic, :aliased_title_to_be_redefined
+    assert_equal "Active Model Topic", topic.aliased_title_to_be_redefined
+  end
+
   test "#define_attribute_method does not generate attribute method if already defined in attribute module" do
     klass = Class.new(ModelWithAttributes)
     klass.send(:generated_attribute_methods).module_eval do
@@ -213,6 +241,30 @@ class AttributeMethodsTest < ActiveModel::TestCase
 
     assert_not_respond_to ModelWithAttributes.new, :foo
     assert_raises(NoMethodError) { ModelWithAttributes.new.foo }
+  end
+
+  test "#undefine_attribute_methods undefines alias attribute methods" do
+    topic_class = Class.new do
+      include ActiveModel::AttributeMethods
+      define_attribute_methods :title
+      alias_attribute :subject_to_be_undefined, :title
+
+      def attributes
+        { title: "Active Model Topic" }
+      end
+
+      private
+        def attribute(name)
+          attributes[name.to_sym]
+        end
+    end
+
+    assert_equal("Active Model Topic", topic_class.new.subject_to_be_undefined)
+    topic_class.undefine_attribute_methods
+
+    assert_raises(NoMethodError, match: /undefined method `subject_to_be_undefined'/) do
+      topic_class.new.subject_to_be_undefined
+    end
   end
 
   test "accessing a suffixed attribute" do

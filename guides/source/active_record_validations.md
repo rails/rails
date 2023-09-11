@@ -738,9 +738,9 @@ details about multiple column indexes or [the PostgreSQL manual][] for examples
 of unique constraints that refer to a group of columns.
 
 There is also a `:case_sensitive` option that you can use to define whether the
-uniqueness constraint will be case sensitive, case insensitive, or respects
-default database collation. This option defaults to respects default database
-collation.
+uniqueness constraint will be case sensitive, case insensitive, or if it should
+respect the default database collation. This option defaults to respecting the
+default database collation.
 
 ```ruby
 class Person < ApplicationRecord

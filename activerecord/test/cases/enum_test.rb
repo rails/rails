@@ -313,6 +313,44 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "'unknown' is not a valid status", e.message
   end
 
+  test "validation with 'validate: true' option" do
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; "Book"; end
+      enum :status, [:proposed, :written], validate: true
+    end
+
+    valid_book = klass.new(status: "proposed")
+    assert_predicate valid_book, :valid?
+
+    valid_book = klass.new(status: "written")
+    assert_predicate valid_book, :valid?
+
+    invalid_book = klass.new(status: nil)
+    assert_not_predicate invalid_book, :valid?
+
+    invalid_book = klass.new(status: "unknown")
+    assert_not_predicate invalid_book, :valid?
+  end
+
+  test "validation with 'validate: hash' option" do
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; "Book"; end
+      enum :status, [:proposed, :written], validate: { allow_nil: true }
+    end
+
+    valid_book = klass.new(status: "proposed")
+    assert_predicate valid_book, :valid?
+
+    valid_book = klass.new(status: "written")
+    assert_predicate valid_book, :valid?
+
+    valid_book = klass.new(status: nil)
+    assert_predicate valid_book, :valid?
+
+    invalid_book = klass.new(status: "unknown")
+    assert_not_predicate invalid_book, :valid?
+  end
+
   test "NULL values from database should be casted to nil" do
     Book.where(id: @book.id).update_all("status = NULL")
     assert_nil @book.reload.status
@@ -497,7 +535,8 @@ class EnumTest < ActiveRecord::TestCase
       :save,     # generates #save!, which conflicts with an AR method
       :proposed, # same value as an existing enum
       :public, :private, :protected, # some important methods on Module and Class
-      :name, :parent, :superclass
+      :name, :parent, :superclass,
+      :id        # conflicts with AR querying
     ]
 
     conflicts.each_with_index do |value, i|
@@ -505,6 +544,16 @@ class EnumTest < ActiveRecord::TestCase
         klass.class_eval { enum "status_#{i}" => [value] }
       end
       assert_match(/You tried to define an enum named .* on the model/, e.message)
+    end
+  end
+
+  test "can use id as a value with a prefix or suffix" do
+    assert_nothing_raised do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum status_1: [:id], _prefix: true
+        enum status_2: [:id], _suffix: true
+      end
     end
   end
 

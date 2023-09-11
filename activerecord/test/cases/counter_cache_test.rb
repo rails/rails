@@ -2,6 +2,8 @@
 
 require "cases/helper"
 require "models/topic"
+require "models/bulb"
+require "models/person"
 require "models/car"
 require "models/aircraft"
 require "models/wheel"
@@ -11,7 +13,6 @@ require "models/category"
 require "models/categorization"
 require "models/dog"
 require "models/dog_lover"
-require "models/person"
 require "models/friendship"
 require "models/subscriber"
 require "models/subscription"
@@ -40,9 +41,21 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test "increment counter by specific amount" do
+    assert_difference "@topic.reload.replies_count", +2 do
+      Topic.increment_counter(:replies_count, @topic.id, by: 2)
+    end
+  end
+
   test "decrement counter" do
     assert_difference "@topic.reload.replies_count", -1 do
       Topic.decrement_counter(:replies_count, @topic.id)
+    end
+  end
+
+  test "decrement counter by specific amount" do
+    assert_difference "@topic.reload.replies_count", -2 do
+      Topic.decrement_counter(:replies_count, @topic.id, by: 2)
     end
   end
 
@@ -236,6 +249,15 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test "removing association updates counter" do
+    michael = people(:michael)
+    car = cars(:honda)
+
+    assert_difference -> { michael.reload.cars_count }, -1 do
+      car.destroy
+    end
+  end
+
   test "update counters doesn't touch timestamps by default" do
     @topic.update_column :updated_at, 5.minutes.ago
     previously_updated_at = @topic.updated_at
@@ -373,6 +395,11 @@ class CounterCacheTest < ActiveRecord::TestCase
     assert_touching @topic, :updated_at, :written_on do
       Topic.decrement_counter(:replies_count, @topic.id, touch: %i( updated_at written_on ))
     end
+  end
+
+  test "counter_cache_column?" do
+    assert Person.counter_cache_column?("cars_count")
+    assert_not Car.counter_cache_column?("cars_count")
   end
 
   private

@@ -4,13 +4,14 @@ module ActiveSupport
   class Deprecation
     module InstanceDelegator # :nodoc:
       def self.included(base)
-        base.singleton_class.alias_method(:_instance, :instance)
         base.extend(ClassMethods)
         base.singleton_class.prepend(OverrideDelegators)
-        base.public_class_method :new
       end
 
       module ClassMethods # :nodoc:
+        MUTEX = Mutex.new
+        private_constant :MUTEX
+
         def include(included_module)
           included_module.instance_methods.each { |m| method_added(m) }
           super
@@ -40,7 +41,11 @@ module ActiveSupport
 
         def instance
           ActiveSupport.deprecator.warn("ActiveSupport::Deprecation.instance is deprecated (use your own Deprecation object)")
-          super
+          _instance
+        end
+
+        def _instance
+          @_instance ||= MUTEX.synchronize { @_instance ||= new }
         end
       end
 

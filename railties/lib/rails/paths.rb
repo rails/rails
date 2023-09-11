@@ -4,7 +4,7 @@ require "pathname"
 
 module Rails
   module Paths
-    # This object is an extended hash that behaves as root of the <tt>Rails::Paths</tt> system.
+    # This object is an extended hash that behaves as root of the +Rails::Paths+ system.
     # It allows you to collect information about how you want to structure your application
     # paths through a Hash-like API. It requires you to give a physical path on initialization.
     #
@@ -44,7 +44,7 @@ module Rails
     #   root["app/controllers"].expanded # => ["/rails/app/controllers"]
     #   root["app/controllers"].existent # => ["/rails/app/controllers"]
     #
-    # Check the <tt>Rails::Paths::Path</tt> documentation for more information.
+    # Check the +Rails::Paths::Path+ documentation for more information.
     class Root
       attr_accessor :path
 

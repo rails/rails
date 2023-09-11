@@ -22,11 +22,18 @@ module ActiveRecord
           config.deterministic_key = deterministic_key
           config.key_derivation_salt = key_derivation_salt
 
+          # Set the default for this property here instead of in +Config#set_defaults+ as this needs
+          # to happen *after* the keys have been set.
+          properties[:support_sha1_for_non_deterministic_encryption] = true if properties[:support_sha1_for_non_deterministic_encryption].nil?
+
           properties.each do |name, value|
-            [:context, :config].each do |configurable_object_name|
-              configurable_object = ActiveRecord::Encryption.send(configurable_object_name)
-              configurable_object.send "#{name}=", value if configurable_object.respond_to?("#{name}=")
-            end
+            ActiveRecord::Encryption.config.send "#{name}=", value if ActiveRecord::Encryption.config.respond_to?("#{name}=")
+          end
+
+          ActiveRecord::Encryption.reset_default_context
+
+          properties.each do |name, value|
+            ActiveRecord::Encryption.context.send "#{name}=", value if ActiveRecord::Encryption.context.respond_to?("#{name}=")
           end
         end
 
@@ -47,21 +54,6 @@ module ActiveRecord
             block.call(klass, name)
           end
         end
-
-        def install_auto_filtered_parameters_hook(application) # :nodoc:
-          ActiveRecord::Encryption.on_encrypted_attribute_declared do |klass, encrypted_attribute_name|
-            filter_parameter = [("#{klass.model_name.element}" if klass.name), encrypted_attribute_name.to_s].compact.join(".")
-            unless excluded_from_filter_parameters?(filter_parameter)
-              application.config.filter_parameters << filter_parameter
-              klass.filter_attributes += [encrypted_attribute_name]
-            end
-          end
-        end
-
-        private
-          def excluded_from_filter_parameters?(filter_parameter)
-            ActiveRecord::Encryption.config.excluded_from_filter_parameters.find { |excluded_filter| excluded_filter.to_s == filter_parameter }
-          end
       end
     end
   end

@@ -125,6 +125,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
 
   def spawn_console(options, wait_for_prompt: true)
     pid = Process.spawn(
+      { "TERM" => "dumb" },
       "#{app_path}/bin/rails console #{options}",
       in: @replica, out: @replica, err: @replica
     )
@@ -137,7 +138,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   end
 
   def test_sandbox
-    options = "--sandbox -- --singleline --nocolorize"
+    options = "--sandbox -- --nocolorize"
     spawn_console(options)
 
     write_prompt "Post.count", "=> 0"
@@ -164,8 +165,44 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     assert_equal 1, $?.exitstatus
   end
 
+  def test_sandbox_by_default
+    add_to_config <<-RUBY
+      config.sandbox_by_default = true
+    RUBY
+
+    options = "-e production -- --verbose --nocolorize"
+    spawn_console(options)
+
+    write_prompt "puts Rails.application.sandbox", "puts Rails.application.sandbox\r\ntrue"
+    @primary.puts "quit"
+  end
+
+  def test_sandbox_by_default_with_no_sandbox
+    add_to_config <<-RUBY
+      config.sandbox_by_default = true
+    RUBY
+
+    options = "-e production --no-sandbox -- --verbose --nocolorize"
+    spawn_console(options)
+
+    write_prompt "puts Rails.application.sandbox", "puts Rails.application.sandbox\r\nfalse"
+    @primary.puts "quit"
+  end
+
+  def test_sandbox_by_default_with_development_environment
+    add_to_config <<-RUBY
+      config.sandbox_by_default = true
+    RUBY
+
+    options = "-- --verbose --nocolorize"
+    spawn_console(options)
+
+    write_prompt "puts Rails.application.sandbox", "puts Rails.application.sandbox\r\nfalse"
+    @primary.puts "quit"
+  end
+
   def test_environment_option_and_irb_option
-    options = "-e test -- --verbose --singleline --nocolorize"
+    options = "-e test -- --verbose --nocolorize"
     spawn_console(options)
 
     write_prompt "a = 1", "a = 1"

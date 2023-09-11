@@ -6,6 +6,8 @@ require "action_dispatch/testing/assertions/routing"
 
 module ActionDispatch
   module Assertions
+    extend ActiveSupport::Concern
+
     include ResponseAssertions
     include RoutingAssertions
     include Rails::Dom::Testing::Assertions
@@ -14,7 +16,7 @@ module ActionDispatch
       @html_document ||= if @response.media_type&.end_with?("xml")
         Nokogiri::XML::Document.parse(@response.body)
       else
-        Nokogiri::HTML::Document.parse(@response.body)
+        Rails::Dom::Testing.html_document.parse(@response.body)
       end
     end
   end

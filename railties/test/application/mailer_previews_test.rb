@@ -3,12 +3,14 @@
 require "isolation/abstract_unit"
 require "rack/test"
 require "base64"
+require "rails-dom-testing"
 
 module ApplicationTests
   class MailerPreviewsTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
     include ERB::Util
+    include Rails::Dom::Testing::Assertions
 
     def setup
       build_app
@@ -26,14 +28,14 @@ module ApplicationTests
 
     test "/rails/mailers is not accessible in production" do
       app("production")
-      get "/rails/mailers"
+      get("/rails/mailers", {}, { "HTTPS" => "on" })
       assert_equal 404, last_response.status
     end
 
     test "/rails/mailers is accessible with correct configuration" do
       add_to_config "config.action_mailer.show_previews = true"
       app("production")
-      get "/rails/mailers", {}, { "REMOTE_ADDR" => "4.2.42.42" }
+      get "/rails/mailers", {}, { "REMOTE_ADDR" => "4.2.42.42", "HTTPS" => "on" }
       assert_equal 200, last_response.status
     end
 
@@ -53,6 +55,18 @@ module ApplicationTests
       app("development")
       get "/rails/mailers"
       assert_equal 200, last_response.status
+    end
+
+    test "request without mailer previews links to documentation" do
+      app("development")
+
+      get "/rails/mailers"
+      assert_select "title", text: "Action Mailer Previews"
+      assert_select "h1", text: "Action Mailer Previews"
+      assert_select "p", text: "You have not defined any Action Mailer Previews."
+      assert_select "p", text: "Read Action Mailer Basics to learn how to define your first." do
+        assert_select "a[href=?]", "https://guides.rubyonrails.org/action_mailer_basics.html#previewing-emails", text: "Action Mailer Basics"
+      end
     end
 
     test "mailer previews are loaded from the default preview_paths" do
@@ -81,6 +95,8 @@ module ApplicationTests
       app("development")
 
       get "/rails/mailers"
+      assert_select "title", text: "Action Mailer Previews"
+      assert_select "h1", text: "Action Mailer Previews"
       assert_match '<h3><a href="/rails/mailers/notifier">Notifier</a></h3>', last_response.body
       assert_match '<li><a href="/rails/mailers/notifier/foo">foo</a></li>', last_response.body
     end
@@ -318,6 +334,54 @@ module ApplicationTests
 
       get "/rails/mailers"
       assert_no_match '<h3><a href="/rails/mailers/notifier">Notifier</a></h3>', last_response.body
+    end
+
+    test "mailer without previews" do
+      mailer "notifier", <<-RUBY
+        class Notifier < ActionMailer::Base
+        end
+      RUBY
+
+      mailer_preview "notifier", <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+        end
+      RUBY
+
+      app("development")
+      get "/rails/mailers/notifier"
+
+      assert_predicate last_response, :ok?
+      assert_select "title", text: "Action Mailer Previews for notifier"
+      assert_select "h1", text: "Action Mailer Previews for notifier"
+      assert_select "p", text: "You have not defined any actions for NotifierPreview."
+      assert_select "p", text: "Read Action Mailer Basics to learn how to define your first." do
+        assert_select "a[href=?]", "https://guides.rubyonrails.org/action_mailer_basics.html#previewing-emails", text: "Action Mailer Basics"
+      end
+    end
+
+    test "mailer with previews" do
+      mailer "notifier", <<-RUBY
+        class Notifier < ActionMailer::Base
+          def foo
+          end
+        end
+      RUBY
+
+      mailer_preview "notifier", <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app("development")
+      get "/rails/mailers/notifier"
+
+      assert_predicate last_response, :ok?
+      assert_select "title", text: "Action Mailer Previews for notifier"
+      assert_select "h1", text: "Action Mailer Previews for notifier"
+      assert_select "ul li a[href=?]", "/rails/mailers/notifier/foo"
     end
 
     test "mailer preview not found" do
@@ -965,6 +1029,10 @@ module ApplicationTests
         super
         app_file "config/routes.rb", "Rails.application.routes.draw do; end"
         app_dir "test/mailers/previews"
+      end
+
+      def document_root_element
+        Nokogiri::HTML5.parse(last_response.body)
       end
 
       def mailer(name, contents)

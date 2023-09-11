@@ -16,17 +16,12 @@ class MemoryStoreTest < ActiveSupport::TestCase
   include CacheStoreBehavior
   include CacheStoreVersionBehavior
   include CacheStoreCoderBehavior
+  include CacheStoreCompressionBehavior
+  include CacheStoreSerializerBehavior
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
-
-  def test_large_string_with_default_compression_settings
-    assert_uncompressed(LARGE_STRING)
-  end
-
-  def test_large_object_with_default_compression_settings
-    assert_uncompressed(LARGE_OBJECT)
-  end
+  include CacheLoggingBehavior
 
   def test_increment_preserves_expiry
     @cache = lookup_store
@@ -44,6 +39,32 @@ class MemoryStoreTest < ActiveSupport::TestCase
       assert_nil @cache.read("counter", raw: true)
     end
   end
+
+  def test_cleanup_instrumentation
+    size = 3
+    size.times { |i| @cache.write(i.to_s, i) }
+
+    events = with_instrumentation "cleanup" do
+      @cache.cleanup
+    end
+
+    assert_equal %w[cache_cleanup.active_support], events.map(&:name)
+    assert_equal size, events[0].payload[:size]
+    assert_equal @cache.class.name, events[0].payload[:store]
+  end
+
+  def test_nil_coder_bypasses_mutation_safeguard
+    @cache = lookup_store(coder: nil)
+    value = {}
+    @cache.write("key", value)
+
+    assert_same value, @cache.read("key")
+  end
+
+  private
+    def compression_always_disabled_by_default?
+      true
+    end
 end
 
 class MemoryStorePruningTest < ActiveSupport::TestCase

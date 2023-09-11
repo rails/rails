@@ -26,6 +26,8 @@ require "active_support/dependencies"
 require "active_model"
 require "zeitwerk"
 
+ActiveSupport::Cache.format_version = 7.1
+
 module Rails
   class << self
     def env
@@ -381,6 +383,7 @@ module CookieAssertions
       key.downcase!
 
       if value
+        value.downcase!
         attributes[key] = value
       else
         attributes[key] = true
@@ -416,6 +419,35 @@ module CookieAssertions
     end
 
     cookies
+  end
+
+  def assert_set_cookie_attributes(name, attributes, header = @response.headers["Set-Cookie"])
+    cookies = parse_set_cookies_headers(header)
+    attributes = parse_set_cookie_attributes(attributes) if attributes.is_a?(String)
+
+    assert cookies.key?(name), "No cookie found with the name '#{name}', found cookies: #{cookies.keys.join(', ')}"
+    cookie = cookies[name]
+
+    attributes.each do |key, value|
+      assert cookie.key?(key), "No attribute '#{key}' found for cookie '#{name}'"
+      assert_equal value, cookie[key]
+    end
+  end
+
+  def assert_not_set_cookie_attributes(name, attributes, header = @response.headers["Set-Cookie"])
+    cookies = parse_set_cookies_headers(header)
+    attributes = parse_set_cookie_attributes(attributes) if attributes.is_a?(String)
+
+    assert cookies.key?(name), "No cookie found with the name '#{name}'"
+    cookie = cookies[name]
+
+    attributes.each do |key, value|
+      if value == true
+        assert_nil cookie[key]
+      else
+        assert_not_equal value, cookie[key]
+      end
+    end
   end
 
   def assert_set_cookie_header(expected, header = @response.headers["Set-Cookie"])

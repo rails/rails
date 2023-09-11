@@ -297,6 +297,20 @@ module ActiveRecord
         assert_equal "Tester", TestModel.new.first_name
       end
 
+      def test_change_column_default_preserves_existing_column_default_function
+        skip unless current_adapter?(:SQLite3Adapter)
+
+        connection.change_column_default "test_models", "created_at", -> { "CURRENT_TIMESTAMP" }
+        TestModel.reset_column_information
+        assert_equal "CURRENT_TIMESTAMP", TestModel.columns_hash["created_at"].default_function
+
+        add_column "test_models", "edited_at", :datetime
+        connection.change_column_default "test_models", "edited_at", -> { "CURRENT_TIMESTAMP" }
+        TestModel.reset_column_information
+        assert_equal "CURRENT_TIMESTAMP", TestModel.columns_hash["created_at"].default_function
+        assert_equal "CURRENT_TIMESTAMP", TestModel.columns_hash["edited_at"].default_function
+      end
+
       def test_change_column_null_false
         add_column "test_models", "first_name", :string
         connection.change_column_null "test_models", "first_name", false

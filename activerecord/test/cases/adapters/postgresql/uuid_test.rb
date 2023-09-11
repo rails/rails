@@ -39,6 +39,7 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
   end
 
   teardown do
+    UUIDType.reset_column_information
     drop_table "uuid_data_type"
   end
 

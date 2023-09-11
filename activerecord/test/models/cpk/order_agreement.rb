@@ -5,6 +5,6 @@ module Cpk
   class OrderAgreement < ActiveRecord::Base
     self.table_name = :cpk_order_agreements
 
-    belongs_to :order, primary_key: :id # foreign key is derived as `order_id`
+    belongs_to :order
   end
 end

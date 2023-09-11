@@ -49,6 +49,7 @@ module ActiveRecord
   autoload :Encryption
   autoload :Enum
   autoload :Explain
+  autoload :FixtureSet, "active_record/fixtures"
   autoload :Inheritance
   autoload :Integration
   autoload :InternalMetadata
@@ -172,6 +173,9 @@ module ActiveRecord
     autoload :PostgreSQLDatabaseTasks, "active_record/tasks/postgresql_database_tasks"
     autoload :SQLiteDatabaseTasks, "active_record/tasks/sqlite_database_tasks"
   end
+
+  singleton_class.attr_accessor :disable_prepared_statements
+  self.disable_prepared_statements = false
 
   # Lazily load the schema cache. This option will load the schema cache
   # when a connection is established rather than on boot. If set,
@@ -316,6 +320,9 @@ module ActiveRecord
   singleton_class.attr_accessor :run_after_transaction_callbacks_in_order_defined
   self.run_after_transaction_callbacks_in_order_defined = false
 
+  singleton_class.attr_accessor :commit_transaction_on_non_local_return
+  self.commit_transaction_on_non_local_return = false
+
   ##
   # :singleton-method:
   # Specify a threshold for the size of query result sets. If the number of
@@ -440,6 +447,13 @@ module ActiveRecord
   singleton_class.attr_accessor :yaml_column_permitted_classes
   self.yaml_column_permitted_classes = [Symbol]
 
+  ##
+  # :singleton-method:
+  # Controls when to generate a value for <tt>has_secure_token</tt>
+  # declarations. Defaults to <tt>:create</tt>.
+  singleton_class.attr_accessor :generate_secure_token_on
+  self.generate_secure_token_on = :create
+
   def self.marshalling_format_version
     Marshalling.format_version
   end
@@ -456,6 +470,11 @@ module ActiveRecord
     ActiveRecord::AttributeMethods.eager_load!
     ActiveRecord::ConnectionAdapters.eager_load!
     ActiveRecord::Encryption.eager_load!
+  end
+
+  # Explicitly closes all database connections in all pools.
+  def self.disconnect_all!
+    ConnectionAdapters::PoolConfig.disconnect_all!
   end
 end
 

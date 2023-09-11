@@ -8,7 +8,7 @@ module ActiveSupport
   #
   # KeyGenerator is a simple wrapper around OpenSSL's implementation of PBKDF2.
   # It can be used to derive a number of keys for various purposes from a given secret.
-  # This lets Rails applications have a single secure secret, but avoid reusing that
+  # This lets \Rails applications have a single secure secret, but avoid reusing that
   # key in multiple incompatible contexts.
   class KeyGenerator
     class << self
@@ -40,6 +40,10 @@ module ActiveSupport
     # i.e. <tt>OpenSSL::Digest::SHA1#block_length</tt>
     def generate_key(salt, key_size = 64)
       OpenSSL::PKCS5.pbkdf2_hmac(@secret, salt, @iterations, key_size, @hash_digest_class.new)
+    end
+
+    def inspect # :nodoc:
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
     end
   end
 

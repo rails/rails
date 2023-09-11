@@ -1,22 +1,22 @@
-= Active Model -- model interfaces for Rails
+= Active Model -- model interfaces for \Rails
 
 Active Model provides a known set of interfaces for usage in model classes.
 They allow for Action Pack helpers to interact with non-Active Record models,
 for example. Active Model also helps with building custom ORMs for use outside of
-the Rails framework.
+the \Rails framework.
 
 You can read more about Active Model in the {Active Model Basics}[https://guides.rubyonrails.org/active_model_basics.html] guide.
 
-Prior to Rails 3.0, if a plugin or gem developer wanted to have an object
+Prior to \Rails 3.0, if a plugin or gem developer wanted to have an object
 interact with Action Pack helpers, it was required to either copy chunks of
-code from Rails, or monkey patch entire helpers to make them handle objects
+code from \Rails, or monkey patch entire helpers to make them handle objects
 that did not exactly conform to the Active Record interface. This would result
 in code duplication and fragile applications that broke on upgrades. Active
 Model solves this by defining an explicit API. You can read more about the
-API in <tt>ActiveModel::Lint::Tests</tt>.
+API in +ActiveModel::Lint::Tests+.
 
 Active Model provides a default module that implements the basic API required
-to integrate with Action Pack out of the box: <tt>ActiveModel::API</tt>.
+to integrate with Action Pack out of the box: ActiveModel::API.
 
     class Person
       include ActiveModel::API
@@ -32,7 +32,7 @@ to integrate with Action Pack out of the box: <tt>ActiveModel::API</tt>.
 
 It includes model name introspections, conversions, translations and
 validations, resulting in a class suitable to be used with Action Pack.
-See <tt>ActiveModel::API</tt> for more examples.
+See ActiveModel::API for more examples.
 
 Active Model also provides the following functionality to have ORM-like
 behavior out of the box:
@@ -156,7 +156,7 @@ behavior out of the box:
 
 * Making objects serializable
 
-  <tt>ActiveModel::Serialization</tt> provides a standard interface for your object
+  ActiveModel::Serialization provides a standard interface for your object
   to provide +to_json+ serialization.
 
     class SerialPerson
@@ -239,7 +239,7 @@ The latest version of Active Model can be installed with RubyGems:
 
   $ gem install activemodel
 
-Source code can be downloaded as part of the Rails project on GitHub
+Source code can be downloaded as part of the \Rails project on GitHub
 
 * https://github.com/rails/rails/tree/main/activemodel
 
@@ -257,7 +257,7 @@ API documentation is at:
 
 * https://api.rubyonrails.org
 
-Bug reports for the Ruby on Rails project can be filed here:
+Bug reports for the Ruby on \Rails project can be filed here:
 
 * https://github.com/rails/rails/issues
 

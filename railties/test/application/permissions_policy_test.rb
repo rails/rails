@@ -5,6 +5,8 @@ require "rack/test"
 
 module ApplicationTests
   class PermissionsPolicyTest < ActiveSupport::TestCase
+    POLICY = ActionDispatch::Constants::FEATURE_POLICY
+
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
 
@@ -34,7 +36,7 @@ module ApplicationTests
       app("development")
 
       get "/"
-      assert_nil last_response.headers["Feature-Policy"]
+      assert_nil last_response.headers[POLICY]
     end
 
     test "global permissions policy in an initializer" do
@@ -124,7 +126,7 @@ module ApplicationTests
 
       get "/"
       assert_equal 200, last_response.status
-      assert_nil last_response.headers["Feature-Policy"]
+      assert_nil last_response.headers[POLICY]
     end
 
     test "override permissions policy using different directives in a controller" do
@@ -170,7 +172,7 @@ module ApplicationTests
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           app = ->(env) {
-            [200, { "Content-Type" => "text/html" }, ["<p>Hello, World!</p>"]]
+            [200, { Rack::CONTENT_TYPE => "text/html" }, ["<p>Hello, World!</p>"]]
           }
           root to: app
         end
@@ -185,7 +187,7 @@ module ApplicationTests
     private
       def assert_policy(expected)
         assert_equal 200, last_response.status
-        assert_equal expected, last_response.headers["Feature-Policy"]
+        assert_equal expected, last_response.headers[POLICY]
       end
   end
 end

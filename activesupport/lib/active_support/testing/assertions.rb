@@ -36,6 +36,7 @@ module ActiveSupport
         assert_match(match, error.message) if match
         error
       end
+      alias :assert_raise :assert_raises
 
       # Assertion that the block should not raise an exception.
       #

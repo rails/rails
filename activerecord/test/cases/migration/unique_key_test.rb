@@ -30,15 +30,15 @@ if ActiveRecord::Base.connection.supports_unique_keys?
             {
               name: "test_unique_keys_position_deferrable_false",
               deferrable: false,
-              columns: ["position_1"]
+              column: ["position_1"]
             }, {
               name: "test_unique_keys_position_deferrable_immediate",
               deferrable: :immediate,
-              columns: ["position_2"]
+              column: ["position_2"]
             }, {
               name: "test_unique_keys_position_deferrable_deferred",
               deferrable: :deferred,
-              columns: ["position_3"]
+              column: ["position_3"]
             }
           ]
 
@@ -48,7 +48,7 @@ if ActiveRecord::Base.connection.supports_unique_keys?
             constraint = unique_keys.find { |constraint| constraint.name == expected_constraint[:name] }
             assert_equal "test_unique_keys", constraint.table_name
             assert_equal expected_constraint[:name], constraint.name
-            assert_equal expected_constraint[:columns], constraint.columns
+            assert_equal expected_constraint[:column], constraint.column
             assert_equal expected_constraint[:deferrable], constraint.deferrable
           end
         end
@@ -75,7 +75,7 @@ if ActiveRecord::Base.connection.supports_unique_keys?
 
           constraint = unique_keys.first
           assert_equal "sections", constraint.table_name
-          assert_equal "uniq_rails_3d89d7e853", constraint.name
+          assert_equal "uniq_rails_1e07660b77", constraint.name
           assert_equal false, constraint.deferrable
         end
 
@@ -87,7 +87,7 @@ if ActiveRecord::Base.connection.supports_unique_keys?
 
           constraint = unique_keys.first
           assert_equal "sections", constraint.table_name
-          assert_equal "uniq_rails_3d89d7e853", constraint.name
+          assert_equal "uniq_rails_1e07660b77", constraint.name
           assert_equal false, constraint.deferrable
         end
 
@@ -99,7 +99,7 @@ if ActiveRecord::Base.connection.supports_unique_keys?
 
           constraint = unique_keys.first
           assert_equal "sections", constraint.table_name
-          assert_equal "uniq_rails_3d89d7e853", constraint.name
+          assert_equal "uniq_rails_1e07660b77", constraint.name
           assert_equal :immediate, constraint.deferrable
         end
 
@@ -111,7 +111,7 @@ if ActiveRecord::Base.connection.supports_unique_keys?
 
           constraint = unique_keys.first
           assert_equal "sections", constraint.table_name
-          assert_equal "uniq_rails_3d89d7e853", constraint.name
+          assert_equal "uniq_rails_1e07660b77", constraint.name
           assert_equal :deferred, constraint.deferrable
         end
 
@@ -157,7 +157,7 @@ if ActiveRecord::Base.connection.supports_unique_keys?
           constraint = unique_keys.first
           assert_equal "sections", constraint.table_name
           assert_equal "unique_constraint", constraint.name
-          assert_equal ["position"], constraint.columns
+          assert_equal ["position"], constraint.column
           assert_equal :immediate, constraint.deferrable
         end
 
@@ -171,7 +171,7 @@ if ActiveRecord::Base.connection.supports_unique_keys?
           constraint = unique_keys.first
           assert_equal "sections", constraint.table_name
           assert_equal "uniq_rails_79b901ffb4", constraint.name
-          assert_equal ["position"], constraint.columns
+          assert_equal ["position"], constraint.column
           assert_equal false, constraint.deferrable
         end
 
@@ -184,16 +184,21 @@ if ActiveRecord::Base.connection.supports_unique_keys?
         end
 
         def test_remove_unique_key
-          assert_equal 0, @connection.unique_keys("sections").size
-
-          @connection.add_unique_key :sections, [:position], name: "unique_section_position"
+          @connection.add_unique_key :sections, [:position], name: :unique_section_position
           assert_equal 1, @connection.unique_keys("sections").size
-          @connection.remove_unique_key :sections, name: "unique_section_position"
-          assert_equal 0, @connection.unique_keys("sections").size
+          @connection.remove_unique_key :sections, name: :unique_section_position
+          assert_empty @connection.unique_keys("sections")
+        end
+
+        def test_remove_unique_key_by_column
+          @connection.add_unique_key :sections, [:position]
+          assert_equal 1, @connection.unique_keys("sections").size
+          @connection.remove_unique_key :sections, [:position]
+          assert_empty @connection.unique_keys("sections")
         end
 
         def test_remove_non_existing_unique_key
-          assert_raises(ArgumentError) do
+          assert_raises(ArgumentError, match: /Table 'sections' has no unique constraint/) do
             @connection.remove_unique_key :sections, name: "nonexistent"
           end
         end

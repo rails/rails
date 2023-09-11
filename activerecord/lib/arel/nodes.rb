@@ -39,6 +39,7 @@ require "arel/nodes/unary_operation"
 require "arel/nodes/over"
 require "arel/nodes/matches"
 require "arel/nodes/regexp"
+require "arel/nodes/cte"
 
 # nary
 require "arel/nodes/and"

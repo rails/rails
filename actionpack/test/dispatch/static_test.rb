@@ -3,16 +3,22 @@
 require "abstract_unit"
 require "zlib"
 
-module StaticTests
+class StaticTest < ActiveSupport::TestCase
   DummyApp = lambda { |env|
-    [200, { "Content-Type" => "text/plain" }, ["Hello, World!"]]
+    [200, { Rack::CONTENT_TYPE => "text/plain" }, ["Hello, World!"]]
   }
+
+  def public_path
+    "public"
+  end
 
   def setup
     silence_warnings do
       @default_internal_encoding = Encoding.default_internal
       @default_external_encoding = Encoding.default_external
     end
+    @root = "#{FIXTURE_LOAD_PATH}/#{public_path}"
+    @app = build_app(DummyApp, @root, headers: { "cache-control" => "public, max-age=60" })
   end
 
   def teardown
@@ -78,9 +84,9 @@ module StaticTests
     response = get("/foo/%E3%81%95%E3%82%88%E3%81%86%E3%81%AA%E3%82%89.html", "HTTP_ACCEPT_ENCODING" => "gzip")
 
     assert_gzip  "/foo/さようなら.html", response
-    assert_equal "text/html",          response.headers["Content-Type"]
-    assert_equal "accept-encoding",    response.headers["Vary"]
-    assert_equal "gzip",               response.headers["Content-Encoding"]
+    assert_equal "text/html",          response.headers["content-type"]
+    assert_equal "accept-encoding",    response.headers["vary"]
+    assert_equal "gzip",               response.headers["content-encoding"]
   end
 
   def test_serves_static_file_with_exclamation_mark_in_filename
@@ -146,13 +152,15 @@ module StaticTests
     end
   end
 
+  JAVASCRIPT_MIME_TYPE = Rack::Mime::MIME_TYPES[".js"]
+
   def test_serves_gzip_files_when_header_set
     file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
     response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip")
     assert_gzip  file_name, response
-    assert_equal "application/javascript", response.headers["Content-Type"]
-    assert_equal "accept-encoding",        response.headers["Vary"]
-    assert_equal "gzip",                   response.headers["Content-Encoding"]
+    assert_equal JAVASCRIPT_MIME_TYPE, response.headers["content-type"]
+    assert_equal "accept-encoding", response.headers["vary"]
+    assert_equal "gzip", response.headers["content-encoding"]
 
     response = get(file_name, "HTTP_ACCEPT_ENCODING" => "Gzip")
     assert_gzip file_name, response
@@ -164,39 +172,51 @@ module StaticTests
     assert_gzip file_name, response
 
     response = get(file_name, "HTTP_ACCEPT_ENCODING" => "")
-    assert_not_equal "gzip", response.headers["Content-Encoding"]
+    assert_not_equal "gzip", response.headers["content-encoding"]
   end
 
   def test_set_vary_when_origin_compressed_but_client_cant_accept
     file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
     response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "None")
-    assert_equal "accept-encoding", response.headers["Vary"]
+    assert_equal "accept-encoding", response.headers["vary"]
   end
 
   def test_serves_brotli_files_when_header_set
     file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
     response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "br")
-    assert_equal "application/javascript", response.headers["Content-Type"]
-    assert_equal "accept-encoding",        response.headers["Vary"]
-    assert_equal "br",                     response.headers["Content-Encoding"]
+    assert_equal JAVASCRIPT_MIME_TYPE, response.headers["content-type"]
+    assert_equal "accept-encoding", response.headers["vary"]
+    assert_equal "br", response.headers["content-encoding"]
 
     response = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip")
-    assert_not_equal "br", response.headers["Content-Encoding"]
+    assert_not_equal "br", response.headers["content-encoding"]
   end
 
   def test_serves_brotli_files_before_gzip_files
     file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
     response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip, deflate, sdch, br")
-    assert_equal "application/javascript", response.headers["Content-Type"]
-    assert_equal "accept-encoding",        response.headers["Vary"]
-    assert_equal "br",                     response.headers["Content-Encoding"]
+    assert_equal JAVASCRIPT_MIME_TYPE, response.headers["content-type"]
+    assert_equal "accept-encoding", response.headers["vary"]
+    assert_equal "br", response.headers["content-encoding"]
   end
 
   def test_does_not_modify_path_info
     file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
-    env = { "PATH_INFO" => file_name, "HTTP_ACCEPT_ENCODING" => "gzip", "REQUEST_METHOD" => "POST" }
+    env = Rack::MockRequest.env_for(file_name, { "PATH_INFO" => file_name, "HTTP_ACCEPT_ENCODING" => "gzip", "REQUEST_METHOD" => "POST" })
     @app.call(env)
     assert_equal file_name, env["PATH_INFO"]
+  end
+
+  def test_only_set_one_content_type
+    file_name = "/gzip/foo.zoo"
+    gzip_env = Rack::MockRequest.env_for(file_name, { "PATH_INFO" => file_name, "HTTP_ACCEPT_ENCODING" => "gzip", "REQUEST_METHOD" => "GET" })
+    response = @app.call(gzip_env)
+
+    env = Rack::MockRequest.env_for(file_name, { "PATH_INFO" => file_name, "REQUEST_METHOD" => "GET" })
+    default_response = @app.call(env)
+
+    assert_equal 1, response[1].slice("Content-Type", "content-type").size
+    assert_equal 1, default_response[1].slice("Content-Type", "content-type").size
   end
 
   def test_serves_gzip_with_proper_content_type_fallback
@@ -205,7 +225,7 @@ module StaticTests
     assert_gzip file_name, response
 
     default_response = get(file_name) # no gzip
-    assert_equal default_response.headers["Content-Type"], response.headers["Content-Type"]
+    assert_equal default_response.headers["content-type"], response.headers["content-type"]
   end
 
   def test_serves_gzip_files_with_not_modified
@@ -213,30 +233,60 @@ module StaticTests
     last_modified = File.mtime(File.join(@root, "#{file_name}.gz"))
     response = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip", "HTTP_IF_MODIFIED_SINCE" => last_modified.httpdate)
     assert_equal 304, response.status
-    assert_nil response.headers["Content-Type"]
-    assert_nil response.headers["Content-Encoding"]
-    assert_nil response.headers["Vary"]
+    assert_nil response.headers["content-type"]
+    assert_nil response.headers["content-encoding"]
+    assert_nil response.headers["vary"]
   end
 
   def test_serves_files_with_headers
     headers = {
-      "Access-Control-Allow-Origin" => "http://rubyonrails.org",
-      "Cache-Control"               => "public, max-age=60",
-      "X-Custom-Header"             => "I'm a teapot"
+      "access-control-allow-origin" => "http://rubyonrails.org",
+      "cache-control"               => "public, max-age=60",
+      "x-custom-header"             => "I'm a teapot"
     }
 
-    app      = ActionDispatch::Static.new(DummyApp, @root, headers: headers)
-    response = Rack::MockRequest.new(app).request("GET", "/foo/bar.html")
+    @app = build_app(DummyApp, @root, headers: headers)
 
-    assert_equal "http://rubyonrails.org", response.headers["Access-Control-Allow-Origin"]
-    assert_equal "public, max-age=60",     response.headers["Cache-Control"]
-    assert_equal "I'm a teapot",           response.headers["X-Custom-Header"]
+    response = get("/foo/bar.html")
+
+    assert_equal "http://rubyonrails.org", response.headers["access-control-allow-origin"]
+    assert_equal "public, max-age=60",     response.headers["cache-control"]
+    assert_equal "I'm a teapot",           response.headers["x-custom-header"]
   end
 
   def test_ignores_unknown_http_methods
-    app = ActionDispatch::Static.new(DummyApp, @root)
+    response = Rack::MockRequest.new(@app).request("BAD_METHOD", "/foo/bar.html")
+    assert_equal 200, response.status
+  end
 
-    assert_nothing_raised { Rack::MockRequest.new(app).request("BAD_METHOD", "/foo/bar.html") }
+  def test_custom_handler_called_when_file_is_outside_root
+    filename = "shared.html.erb"
+    assert File.exist?(File.join(@root, "..", filename))
+    env = Rack::MockRequest.env_for("", {
+      "REQUEST_METHOD" => "GET",
+      "REQUEST_PATH" => "/..%2F#{filename}",
+      "PATH_INFO" => "/..%2F#{filename}",
+      "REQUEST_URI" => "/..%2F#{filename}",
+    })
+
+    dummy_response = DummyApp.call(nil)
+    app_response = @app.call(env)
+
+    assert_equal dummy_response[0], app_response[0]
+    assert_equal dummy_response[1], app_response[1]
+    assert_equal dummy_response[2].to_a, app_response[2].enum_for.to_a
+  end
+
+  def test_non_default_static_index
+    @app = build_app(DummyApp, @root, index: "other-index")
+    assert_html "/other-index.html", get("/other-index.html")
+    assert_html "/other-index.html", get("/other-index")
+    assert_html "/other-index.html", get("/")
+    assert_html "/other-index.html", get("")
+    assert_html "/foo/other-index.html", get("/foo/other-index.html")
+    assert_html "/foo/other-index.html", get("/foo/other-index")
+    assert_html "/foo/other-index.html", get("/foo/")
+    assert_html "/foo/other-index.html", get("/foo")
   end
 
   # Windows doesn't allow \ / : * ? " < > | in filenames
@@ -257,6 +307,14 @@ module StaticTests
   end
 
   private
+    def build_app(app, path, index: "index", headers: {})
+      Rack::Lint.new(
+        ActionDispatch::Static.new(
+          Rack::Lint.new(app), path, index: index, headers: headers,
+        ),
+      )
+    end
+
     def assert_gzip(file_name, response)
       expected = File.read("#{FIXTURE_LOAD_PATH}/#{public_path}" + file_name)
       actual   = ActiveSupport::Gzip.decompress(response.body)
@@ -265,8 +323,8 @@ module StaticTests
 
     def assert_html(body, response)
       assert_equal body, response.body
-      assert_equal "text/html", response.headers["Content-Type"]
-      assert_nil response.headers["Vary"]
+      assert_equal "text/html", response.headers["content-type"]
+      assert_nil response.headers["vary"]
     end
 
     def get(path, headers = {})
@@ -287,55 +345,7 @@ module StaticTests
     end
 end
 
-class StaticTest < ActiveSupport::TestCase
-  def setup
-    super
-    @root = "#{FIXTURE_LOAD_PATH}/public"
-    @app = ActionDispatch::Static.new(DummyApp, @root, headers: { "Cache-Control" => "public, max-age=60" })
-  end
-
-  def public_path
-    "public"
-  end
-
-  include StaticTests
-
-  def test_custom_handler_called_when_file_is_outside_root
-    filename = "shared.html.erb"
-    assert File.exist?(File.join(@root, "..", filename))
-    env = {
-      "REQUEST_METHOD" => "GET",
-      "REQUEST_PATH" => "/..%2F#{filename}",
-      "PATH_INFO" => "/..%2F#{filename}",
-      "REQUEST_URI" => "/..%2F#{filename}",
-      "HTTP_VERSION" => "HTTP/1.1",
-      "SERVER_NAME" => "localhost",
-      "SERVER_PORT" => "8080",
-      "QUERY_STRING" => ""
-    }
-    assert_equal(DummyApp.call(nil), @app.call(env))
-  end
-
-  def test_non_default_static_index
-    @app = ActionDispatch::Static.new(DummyApp, @root, index: "other-index")
-    assert_html "/other-index.html", get("/other-index.html")
-    assert_html "/other-index.html", get("/other-index")
-    assert_html "/other-index.html", get("/")
-    assert_html "/other-index.html", get("")
-    assert_html "/foo/other-index.html", get("/foo/other-index.html")
-    assert_html "/foo/other-index.html", get("/foo/other-index")
-    assert_html "/foo/other-index.html", get("/foo/")
-    assert_html "/foo/other-index.html", get("/foo")
-  end
-end
-
 class StaticEncodingTest < StaticTest
-  def setup
-    super
-    @root = "#{FIXTURE_LOAD_PATH}/公共"
-    @app = ActionDispatch::Static.new(DummyApp, @root, headers: { "Cache-Control" => "public, max-age=60" })
-  end
-
   def public_path
     "公共"
   end

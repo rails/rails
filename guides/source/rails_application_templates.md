@@ -60,11 +60,7 @@ gem "bj"
 gem "nokogiri"
 ```
 
-Please note that this will NOT install the gems for you and you will have to run `bundle install` to do that.
-
-```bash
-$ bundle install
-```
+Note that this method only adds the gem to the `Gemfile`; it does not install the gem.
 
 ### gem_group(*names, &block)
 

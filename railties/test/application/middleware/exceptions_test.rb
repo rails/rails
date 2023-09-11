@@ -26,7 +26,7 @@ module ApplicationTests
       RUBY
 
       log = capture(:stdout) do
-        get "/foo"
+        get("/foo", {}, "HTTPS" => "on")
         assert_equal 500, last_response.status
       end
 
@@ -43,12 +43,12 @@ module ApplicationTests
         end
       RUBY
 
-      get "/foo"
+      get "/foo", {}, { "HTTPS" => "on" }
       assert_equal 404, last_response.status
     end
 
     test "renders unknown http methods as 405" do
-      request "/", { "REQUEST_METHOD" => "NOT_AN_HTTP_METHOD" }
+      request("/", { "REQUEST_METHOD" => "NOT_AN_HTTP_METHOD", "HTTPS" => "on" })
       assert_equal 405, last_response.status
     end
 
@@ -60,9 +60,9 @@ module ApplicationTests
 
       add_to_config "config.exceptions_app = self.routes"
 
-      app.config.action_dispatch.show_exceptions = true
+      app.config.action_dispatch.show_exceptions = :all
 
-      request "/", { "REQUEST_METHOD" => "NOT_AN_HTTP_METHOD" }
+      request "/", { "REQUEST_METHOD" => "NOT_AN_HTTP_METHOD", "HTTPS" => "on" }
       assert_equal 405, last_response.status
     end
 
@@ -87,10 +87,10 @@ module ApplicationTests
       RUBY
 
       add_to_config "config.exceptions_app = self.routes"
-      add_to_config "config.action_dispatch.show_exceptions = true"
+      add_to_config "config.action_dispatch.show_exceptions = :all"
       add_to_config "config.consider_all_requests_local = false"
 
-      get "/foo", {}, { "HTTP_ACCEPT" => "invalid" }
+      get "/foo", {}, { "HTTP_ACCEPT" => "invalid", "HTTPS" => "on" }
       assert_equal 406, last_response.status
       assert_not_equal "rendering index!", last_response.body
     end
@@ -102,9 +102,9 @@ module ApplicationTests
         end
       RUBY
 
-      app.config.action_dispatch.show_exceptions = true
+      app.config.action_dispatch.show_exceptions = :all
 
-      get "/foo"
+      get("/foo", {}, "HTTPS" => "on")
       assert_equal 404, last_response.status
       assert_equal "YOU FAILED", last_response.body
     end
@@ -118,35 +118,35 @@ module ApplicationTests
         end
       RUBY
 
-      app.config.action_dispatch.show_exceptions = true
+      app.config.action_dispatch.show_exceptions = :all
 
-      get "/foo"
+      get("/foo", {}, "HTTPS" => "on")
       assert_equal 500, last_response.status
     end
 
     test "unspecified route when action_dispatch.show_exceptions is not set raises an exception" do
-      app.config.action_dispatch.show_exceptions = false
+      app.config.action_dispatch.show_exceptions = :none
 
       assert_raise(ActionController::RoutingError) do
-        get "/foo"
+        get("/foo", {}, "HTTPS" => "on")
       end
     end
 
     test "unspecified route when action_dispatch.show_exceptions is set shows 404" do
-      app.config.action_dispatch.show_exceptions = true
+      app.config.action_dispatch.show_exceptions = :all
 
       assert_nothing_raised do
-        get "/foo"
+        get("/foo", {}, "HTTPS" => "on")
         assert_match "The page you were looking for doesn't exist.", last_response.body
       end
     end
 
     test "unspecified route when action_dispatch.show_exceptions and consider_all_requests_local are set shows diagnostics" do
-      app.config.action_dispatch.show_exceptions = true
+      app.config.action_dispatch.show_exceptions = :all
       app.config.consider_all_requests_local = true
 
       assert_nothing_raised do
-        get "/foo"
+        get("/foo", {}, "HTTPS" => "on")
         assert_match "No route matches", last_response.body
       end
     end
@@ -158,10 +158,10 @@ module ApplicationTests
         end
       RUBY
 
-      app.config.action_dispatch.show_exceptions = true
+      app.config.action_dispatch.show_exceptions = :all
       app.config.consider_all_requests_local = true
 
-      get "/articles"
+      get("/articles", {}, "HTTPS" => "on")
       assert_match "<title>Action Controller: Exception caught</title>", last_response.body
     end
 
@@ -173,7 +173,7 @@ module ApplicationTests
         end
       RUBY
 
-      app.config.action_dispatch.show_exceptions = true
+      app.config.action_dispatch.show_exceptions = :all
       app.config.consider_all_requests_local = true
 
       app_file "app/views/foo/index.html.erb", <<-ERB
@@ -181,7 +181,7 @@ module ApplicationTests
         ✓測試テスト시험
       ERB
 
-      get "/foo", utf8: "✓"
+      get("/foo", { utf8: "✓" }, { "HTTPS" => "on" })
       assert_match(/boooom/, last_response.body)
       assert_match(/測試テスト시험/, last_response.body)
     end
@@ -194,10 +194,10 @@ module ApplicationTests
         end
       RUBY
 
-      app.config.action_dispatch.show_exceptions = true
+      app.config.action_dispatch.show_exceptions = :all
       app.config.consider_all_requests_local = true
 
-      get "/foo?x[y]=1&x[y][][w]=2"
+      get "/foo?x[y]=1&x[y][][w]=2", {}, "HTTPS" => "on"
       assert_equal 400, last_response.status
       assert_match "Invalid query parameters", last_response.body
     end
@@ -210,13 +210,13 @@ module ApplicationTests
         end
       RUBY
 
-      app.config.action_dispatch.show_exceptions = true
+      app.config.action_dispatch.show_exceptions = :all
       app.config.consider_all_requests_local = true
 
       limit = Rack::Utils.param_depth_limit + 1
       malicious_url = "/foo?#{'[test]' * limit}=test"
 
-      get malicious_url
+      get(malicious_url, {}, "HTTPS" => "on")
       assert_equal 400, last_response.status
       assert_match "Invalid query parameters", last_response.body
     end
@@ -229,19 +229,49 @@ module ApplicationTests
           end
         end
       RUBY
-      app.config.action_dispatch.show_exceptions = true
+      app.config.action_dispatch.show_exceptions = :all
       app.config.consider_all_requests_local = true
       app.config.action_dispatch.ignore_accept_header = false
 
-      get "/foo"
+      get("/foo", {}, "HTTPS" => "on")
       assert_equal 500, last_response.status
       assert_match "<title>Action Controller: Exception caught</title>", last_response.body
       assert_match "ActiveRecord::StatementInvalid", last_response.body
 
-      get "/foo", {}, { "HTTP_ACCEPT" => "text/plain", "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest" }
+      get "/foo", {}, { "HTTP_ACCEPT" => "text/plain", "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest", "HTTPS" => "on" }
       assert_equal 500, last_response.status
       assert_equal "text/plain", last_response.media_type
       assert_match "ActiveRecord::StatementInvalid", last_response.body
+    end
+
+    test "show_exceptions :rescubale with a rescuable error" do
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          def index
+            raise AbstractController::ActionNotFound
+          end
+        end
+      RUBY
+
+      app.config.action_dispatch.show_exceptions = :rescuable
+
+      get "/foo", {}, { "HTTPS" => "on" }
+      assert_equal 404, last_response.status
+    end
+
+    test "show_exceptions :rescubale with a non-rescuable error" do
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          def index
+            raise 'oops'
+          end
+        end
+      RUBY
+
+      app.config.action_dispatch.show_exceptions = :rescuable
+
+      error = assert_raises(RuntimeError) { get("/foo", {}, { "HTTPS" => "on" }) }
+      assert_equal "oops", error.message
     end
   end
 end

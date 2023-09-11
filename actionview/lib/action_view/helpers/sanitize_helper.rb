@@ -9,15 +9,17 @@ module ActionView
     # The SanitizeHelper module provides a set of methods for scrubbing text of undesired HTML elements.
     # These helper methods extend Action View making them callable within your template files.
     module SanitizeHelper
+      mattr_accessor :sanitizer_vendor, default: Rails::HTML4::Sanitizer
+
       extend ActiveSupport::Concern
+
       # Sanitizes HTML input, stripping all but known-safe tags and attributes.
       #
-      # It also strips href/src attributes with unsafe protocols like
-      # <tt>javascript:</tt>, while also protecting against attempts to use Unicode,
-      # ASCII, and hex character references to work around these protocol filters.
-      # All special characters will be escaped.
+      # It also strips href/src attributes with unsafe protocols like <tt>javascript:</tt>, while
+      # also protecting against attempts to use Unicode, ASCII, and hex character references to work
+      # around these protocol filters.
       #
-      # The default sanitizer is Rails::Html::SafeListSanitizer. See {Rails HTML
+      # The default sanitizer is Rails::HTML5::SafeListSanitizer. See {Rails HTML
       # Sanitizers}[https://github.com/rails/rails-html-sanitizer] for more information.
       #
       # Custom sanitization rules can also be provided.
@@ -29,7 +31,7 @@ module ActionView
       #
       # * <tt>:tags</tt> - An array of allowed tags.
       # * <tt>:attributes</tt> - An array of allowed attributes.
-      # * <tt>:scrubber</tt> - A {Rails::Html scrubber}[https://github.com/rails/rails-html-sanitizer]
+      # * <tt>:scrubber</tt> - A {Rails::HTML scrubber}[https://github.com/rails/rails-html-sanitizer]
       #   or {Loofah::Scrubber}[https://github.com/flavorjones/loofah] object that
       #   defines custom sanitization rules. A custom scrubber takes precedence over
       #   custom tags and attributes.
@@ -44,9 +46,9 @@ module ActionView
       #
       #   <%= sanitize @comment.body, tags: %w(strong em a), attributes: %w(href) %>
       #
-      # Providing a custom Rails::Html scrubber:
+      # Providing a custom Rails::HTML scrubber:
       #
-      #   class CommentScrubber < Rails::Html::PermitScrubber
+      #   class CommentScrubber < Rails::HTML::PermitScrubber
       #     def initialize
       #       super
       #       self.tags = %w( form script comment blockquote )
@@ -61,7 +63,7 @@ module ActionView
       #   <%= sanitize @comment.body, scrubber: CommentScrubber.new %>
       #
       # See {Rails HTML Sanitizer}[https://github.com/rails/rails-html-sanitizer] for
-      # documentation about Rails::Html scrubbers.
+      # documentation about Rails::HTML scrubbers.
       #
       # Providing a custom Loofah::Scrubber:
       #
@@ -79,6 +81,22 @@ module ActionView
       #   # In config/application.rb
       #   config.action_view.sanitized_allowed_tags = ['strong', 'em', 'a']
       #   config.action_view.sanitized_allowed_attributes = ['href', 'title']
+      #
+      # The default, starting in \Rails 7.1, is to use an HTML5 parser for sanitization (if it is
+      # available, see NOTE below). If you wish to revert back to the previous HTML4 behavior, you
+      # can do so by setting the following in your application configuration:
+      #
+      #   # In config/application.rb
+      #   config.action_view.sanitizer_vendor = Rails::HTML4::Sanitizer
+      #
+      # Or, if you're upgrading from a previous version of \Rails and wish to opt into the HTML5
+      # behavior:
+      #
+      #   # In config/application.rb
+      #   config.action_view.sanitizer_vendor = Rails::HTML5::Sanitizer
+      #
+      # NOTE: Rails::HTML5::Sanitizer is not supported on JRuby, so on JRuby platforms \Rails will
+      # fall back to use Rails::HTML4::Sanitizer.
       def sanitize(html, options = {})
         self.class.safe_list_sanitizer.sanitize(html, options)&.html_safe
       end
@@ -126,7 +144,7 @@ module ActionView
         attr_writer :full_sanitizer, :link_sanitizer, :safe_list_sanitizer
 
         def sanitizer_vendor
-          Rails::Html::Sanitizer
+          ActionView::Helpers::SanitizeHelper.sanitizer_vendor
         end
 
         def sanitized_allowed_tags
@@ -137,7 +155,7 @@ module ActionView
           sanitizer_vendor.safe_list_sanitizer.allowed_attributes
         end
 
-        # Gets the Rails::Html::FullSanitizer instance used by +strip_tags+. Replace with
+        # Gets the Rails::HTML::FullSanitizer instance used by +strip_tags+. Replace with
         # any object that responds to +sanitize+.
         #
         #   class Application < Rails::Application
@@ -147,7 +165,7 @@ module ActionView
           @full_sanitizer ||= sanitizer_vendor.full_sanitizer.new
         end
 
-        # Gets the Rails::Html::LinkSanitizer instance used by +strip_links+.
+        # Gets the Rails::HTML::LinkSanitizer instance used by +strip_links+.
         # Replace with any object that responds to +sanitize+.
         #
         #   class Application < Rails::Application
@@ -157,7 +175,7 @@ module ActionView
           @link_sanitizer ||= sanitizer_vendor.link_sanitizer.new
         end
 
-        # Gets the Rails::Html::SafeListSanitizer instance used by sanitize and +sanitize_css+.
+        # Gets the Rails::HTML::SafeListSanitizer instance used by sanitize and +sanitize_css+.
         # Replace with any object that responds to +sanitize+.
         #
         #   class Application < Rails::Application

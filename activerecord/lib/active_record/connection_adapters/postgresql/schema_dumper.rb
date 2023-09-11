@@ -54,7 +54,7 @@ module ActiveRecord
             if (unique_keys = @connection.unique_keys(table)).any?
               add_unique_key_statements = unique_keys.map do |unique_key|
                 parts = [
-                  "t.unique_key #{unique_key.columns.inspect}"
+                  "t.unique_key #{unique_key.column.inspect}"
                 ]
 
                 parts << "deferrable: #{unique_key.deferrable.inspect}" if unique_key.deferrable

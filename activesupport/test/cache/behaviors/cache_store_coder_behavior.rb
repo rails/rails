@@ -77,4 +77,10 @@ module CacheStoreCoderBehavior
     @store.read("foo")
     assert_equal 0, coder.loaded_entries.size
   end
+
+  def test_nil_coder_bypasses_serialization
+    @store = lookup_store(coder: nil)
+    entry = ActiveSupport::Cache::Entry.new("value")
+    assert_same entry, @store.send(:serialize_entry, entry)
+  end
 end

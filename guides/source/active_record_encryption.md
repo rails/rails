@@ -23,13 +23,13 @@ Active Record Encryption exists to protect sensitive information in your applica
 
 As an immediate practical benefit, encrypting sensitive attributes adds an additional security layer. For example, if an attacker gained access to your database, a snapshot of it, or your application logs, they wouldn't be able to make sense of the encrypted information. Additionally, encryption can prevent developers from unintentionally exposing users' sensitive data in application logs.
 
-But more importantly, by using Active Record Encryption, you define what constitutes sensitive information in your application at the code level. Active Record Encryption enables granular control of data access in your application and services consuming data from your application. For example, consider auditable Rails consoles that protect encrypted data or check the built-in system to [filter controller params automatically](#filtering-params-named-as-encrypted-columns).
+But more importantly, by using Active Record Encryption, you define what constitutes sensitive information in your application at the code level. Active Record Encryption enables granular control of data access in your application and services consuming data from your application. For example, consider [auditable Rails consoles that protect encrypted data](https://github.com/basecamp/console1984) or check the built-in system to [filter controller params automatically](#filtering-params-named-as-encrypted-columns).
 
 ## Basic Usage
 
 ### Setup
 
-First, you need to add some keys to your [Rails credentials](/security.html#custom-credentials). Run `bin/rails db:encryption:init` to generate a random key set:
+Run `bin/rails db:encryption:init` to generate a random key set:
 
 ```bash
 $ bin/rails db:encryption:init
@@ -39,6 +39,14 @@ active_record_encryption:
   primary_key: EGY8WhulUOXixybod7ZWwMIL68R9o5kC
   deterministic_key: aPA5XyALhf75NNnMzaspW7akTfZp0lPY
   key_derivation_salt: xEY0dt6TZcAMg52K7O84wYzkjvbA62Hz
+```
+
+These values can be stored by copying and pasting the generated values into your existing [Rails credentials](/security.html#custom-credentials). Alternatively, these values can be configured from other sources, such as environment variables:
+
+```ruby
+config.active_record.encryption.primary_key = ENV['ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY']
+config.active_record.encryption.deterministic_key = ENV['ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY']
+config.active_record.encryption.key_derivation_salt = ENV['ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT']
 ```
 
 NOTE: These generated values are 32 bytes in length. If you generate these yourself, the minimum lengths you should use are 12 bytes for the primary key (this will be used to derive the AES 32 bytes key) and 20 bytes for the salt.
@@ -260,13 +268,17 @@ end
 
 By default, encrypted columns are configured to be [automatically filtered in Rails logs](action_controller_overview.html#parameters-filtering). You can disable this behavior by adding the following to your `application.rb`:
 
-When generating the filter parameter, it will use the model name as a prefix. E.g: For `Person#name` the filter parameter will be `person.name`.
-
 ```ruby
 config.active_record.encryption.add_to_filter_parameters = false
 ```
 
-In case you want exclude specific columns from this automatic filtering, add them to `config.active_record.encryption.excluded_from_filter_parameters`.
+If filtering is enabled, but you want to exclude specific columns from automatic filtering, add them to `config.active_record.encryption.excluded_from_filter_parameters`:
+
+```ruby
+config.active_record.encryption.excluded_from_filter_parameters = [:catchphrase]
+```
+
+When generating the filter parameter, Rails will use the model name as a prefix. E.g: For `Person#name`, the filter parameter will be `person.name`.
 
 ### Encoding
 
@@ -479,6 +491,11 @@ The default encoding for attributes encrypted deterministically. You can disable
 #### `config.active_record.encryption.hash_digest_class`
 
 The digest algorithm used to derive keys. `OpenSSL::Digest::SHA1` by default.
+
+#### `config.active_record.encryption.support_sha1_for_non_deterministic_encryption`
+
+Supports decrypting data encrypted non-deterministically with a digest class SHA1. Default is false, which
+means it  will only support the digest algorithm configured in `config.active_record.encryption.hash_digest_class`.
 
 ### Encryption Contexts
 

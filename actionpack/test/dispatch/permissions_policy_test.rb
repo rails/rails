@@ -51,6 +51,62 @@ class PermissionsPolicyTest < ActiveSupport::TestCase
   end
 end
 
+class PermissionsPolicyMiddlewareTest < ActionDispatch::IntegrationTest
+  APP = ->(env) { [200, {}, []] }
+
+  POLICY = ActionDispatch::PermissionsPolicy.new do |p|
+    p.gyroscope :self
+  end
+
+  class PolicyConfigMiddleware
+    def initialize(app)
+      @app = app
+    end
+
+    def call(env)
+      env["action_dispatch.permissions_policy"] = POLICY
+      env["action_dispatch.show_exceptions"] = :none
+
+      @app.call(env)
+    end
+  end
+
+  test "html requests will set a policy" do
+    @app = build_app(->(env) { [200, { Rack::CONTENT_TYPE => "text/html" }, []] })
+
+    get "/index"
+
+    assert_equal "gyroscope 'self'", response.headers[ActionDispatch::Constants::FEATURE_POLICY]
+  end
+
+  test "non-html requests will not set a policy" do
+    @app = build_app(->(env) { [200, { Rack::CONTENT_TYPE => "application/json" }, []] })
+
+    get "/index"
+
+    assert_nil response.headers[ActionDispatch::Constants::FEATURE_POLICY]
+  end
+
+  test "existing policies will not be overwritten" do
+    @app = build_app(->(env) { [200, { ActionDispatch::Constants::FEATURE_POLICY => "gyroscope 'none'" }, []] })
+
+    get "/index"
+
+    assert_equal "gyroscope 'none'", response.headers[ActionDispatch::Constants::FEATURE_POLICY]
+  end
+
+  private
+    def build_app(app)
+      PolicyConfigMiddleware.new(
+        Rack::Lint.new(
+          ActionDispatch::PermissionsPolicy::Middleware.new(
+            Rack::Lint.new(app),
+          ),
+        ),
+      )
+    end
+end
+
 class PermissionsPolicyIntegrationTest < ActionDispatch::IntegrationTest
   class PolicyController < ActionController::Base
     permissions_policy only: :index do |f|
@@ -102,7 +158,7 @@ class PermissionsPolicyIntegrationTest < ActionDispatch::IntegrationTest
 
     def call(env)
       env["action_dispatch.permissions_policy"] = POLICY
-      env["action_dispatch.show_exceptions"] = false
+      env["action_dispatch.show_exceptions"] = :none
 
       @app.call(env)
     end
@@ -110,7 +166,9 @@ class PermissionsPolicyIntegrationTest < ActionDispatch::IntegrationTest
 
   APP = build_app(ROUTES) do |middleware|
     middleware.use PolicyConfigMiddleware
+    middleware.use Rack::Lint
     middleware.use ActionDispatch::PermissionsPolicy::Middleware
+    middleware.use Rack::Lint
   end
 
   def app
@@ -194,7 +252,7 @@ class PermissionsPolicyWithHelpersIntegrationTest < ActionDispatch::IntegrationT
 
     def call(env)
       env["action_dispatch.permissions_policy"] = POLICY
-      env["action_dispatch.show_exceptions"] = false
+      env["action_dispatch.show_exceptions"] = :none
 
       @app.call(env)
     end
@@ -202,7 +260,9 @@ class PermissionsPolicyWithHelpersIntegrationTest < ActionDispatch::IntegrationT
 
   APP = build_app(ROUTES) do |middleware|
     middleware.use PolicyConfigMiddleware
+    middleware.use Rack::Lint
     middleware.use ActionDispatch::PermissionsPolicy::Middleware
+    middleware.use Rack::Lint
   end
 
   def app
@@ -229,6 +289,6 @@ class PermissionsPolicyWithHelpersIntegrationTest < ActionDispatch::IntegrationT
 
     def assert_policy(expected)
       assert_response :success
-      assert_equal expected, response.headers["Feature-Policy"]
+      assert_equal expected, response.headers[ActionDispatch::Constants::FEATURE_POLICY]
     end
 end

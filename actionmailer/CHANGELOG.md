@@ -1,3 +1,39 @@
+*   Mailers are listed in alphabetical order on the mailer preview page now.
+
+    *Martin Spickermann*
+
+*   Deprecate passing params to `assert_enqueued_email_with` via the `:args`
+    kwarg. `assert_enqueued_email_with` now supports a `:params` kwarg, so use
+    that to pass params:
+
+    ```ruby
+    # BEFORE
+    assert_enqueued_email_with MyMailer, :my_method, args: { my_param: "value" }
+
+    # AFTER
+    assert_enqueued_email_with MyMailer, :my_method, params: { my_param: "value" }
+    ```
+
+    To specify named mailer args as a Hash, wrap the Hash in an array:
+
+    ```ruby
+    assert_enqueued_email_with MyMailer, :my_method, args: [{ my_arg: "value" }]
+    # OR
+    assert_enqueued_email_with MyMailer, :my_method, args: [my_arg: "value"]
+    ```
+
+    *Jonathan Hefner*
+
+*   Accept procs for args and params in `assert_enqueued_email_with`
+
+    ```ruby
+    assert_enqueued_email_with DeliveryJob, params: -> p { p[:token] =~ /\w+/ } do
+      UserMailer.with(token: user.generate_token).email_verification.deliver_later
+    end
+    ```
+
+    *Max Chernyak*
+
 *   Added `*_deliver` callbacks to `ActionMailer::Base` that wrap mail message delivery.
 
     Example:
@@ -54,18 +90,13 @@
 
     *Sean Doyle*
 
-*   `assert_emails` now returns the emails that were sent.
+*   Introduce the `capture_emails` test helper.
 
-    This makes it easier to do further analysis on those emails:
+    Returns all emails that are sent in a block.
 
     ```ruby
-    def test_emails_more_thoroughly
-      email = assert_emails 1 do
-        ContactMailer.welcome.deliver_now
-      end
-      assert_email "Hi there", email.subject
-
-      emails = assert_emails 2 do
+    def test_emails
+      emails = capture_emails do
         ContactMailer.welcome.deliver_now
         ContactMailer.welcome.deliver_later
       end

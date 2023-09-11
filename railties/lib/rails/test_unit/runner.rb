@@ -4,6 +4,7 @@ require "shellwords"
 require "rake/file_list"
 require "active_support"
 require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/range"
 require "rails/test_unit/test_parser"
 
 module Rails
@@ -51,7 +52,7 @@ module Rails
         end
 
         def compose_filter(runnable, filter)
-          filter = escape_declarative_test_filter(filter)
+          filter = normalize_declarative_test_filter(filter)
 
           if filters.any? { |_, lines| lines.any? }
             CompositeFilter.new(runnable, filter, filters)
@@ -68,7 +69,7 @@ module Rails
 
               path = path.tr("\\", "/")
               case
-              when /(:\d+)+$/.match?(path)
+              when /(:\d+(-\d+)?)+$/.match?(path)
                 file, *lines = path.split(":")
                 filters << [ file, lines ]
                 file
@@ -103,12 +104,12 @@ module Rails
             tests
           end
 
-          def escape_declarative_test_filter(filter)
-            # NOTE: This method may be applied multiple times, so any
-            # transformations MUST BE idempotent.
+          def normalize_declarative_test_filter(filter)
             if filter.is_a?(String)
               if regexp_filter?(filter)
-                filter = filter.gsub(/\s+/, '[\s_]+')
+                # Minitest::Spec::DSL#it does not replace whitespace in method
+                # names, so match unmodified method names as well.
+                filter = filter.gsub(/\s+/, "_").delete_suffix("/") + "|" + filter.delete_prefix("/")
               elsif !filter.start_with?("test_")
                 filter = "test_#{filter.gsub(/\s+/, "_")}"
               end
@@ -155,17 +156,21 @@ module Rails
     end
 
     class Filter # :nodoc:
-      def initialize(runnable, file, line)
+      def initialize(runnable, file, line_or_range)
         @runnable, @file = runnable, File.expand_path(file)
-        @line = line.to_i if line
+        if line_or_range
+          first, last = line_or_range.split("-").map(&:to_i)
+          last ||= first
+          @line_range = Range.new(first, last)
+        end
       end
 
       def ===(method)
         return unless @runnable.method_defined?(method)
 
-        if @line
+        if @line_range
           test_file, test_range = definition_for(@runnable.instance_method(method))
-          test_file == @file && test_range.include?(@line)
+          test_file == @file && @line_range.overlaps?(test_range)
         else
           @runnable.instance_method(method).source_location.first == @file
         end

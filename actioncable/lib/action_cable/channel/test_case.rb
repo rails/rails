@@ -47,9 +47,12 @@ module ActionCable
     end
 
     class ConnectionStub
-      attr_reader :transmissions, :identifiers, :subscriptions, :logger, :config
+      attr_reader :server, :transmissions, :identifiers, :subscriptions, :logger
+
+      delegate :pubsub, :config, to: :server
 
       def initialize(identifiers = {})
+        @server = ActionCable.server
         @transmissions = []
 
         identifiers.each do |identifier, val|
@@ -59,7 +62,6 @@ module ActionCable
         @subscriptions = ActionCable::Connection::Subscriptions.new(self)
         @identifiers = identifiers.keys
         @logger = ActiveSupport::TaggedLogging.new ActiveSupport::Logger.new(StringIO.new)
-        @config = ActionCable::Server::Configuration.new
       end
 
       def transmit(cable_message)

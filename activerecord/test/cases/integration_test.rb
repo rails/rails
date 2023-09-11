@@ -6,6 +6,7 @@ require "models/developer"
 require "models/computer"
 require "models/owner"
 require "models/pet"
+require "models/cpk"
 
 class IntegrationTest < ActiveRecord::TestCase
   fixtures :companies, :developers, :owners, :pets
@@ -95,6 +96,25 @@ class IntegrationTest < ActiveRecord::TestCase
 
   def test_to_param_with_no_arguments
     assert_equal "Firm", Firm.to_param
+  end
+
+  def test_to_param_for_a_composite_primary_key_model
+    assert_equal "1_123", Cpk::Order.new(id: [1, 123]).to_param
+  end
+
+  def test_param_delimiter_changes_delimiter_used_in_to_param
+    Cpk::Order.with(param_delimiter: ",") do
+      assert_equal("1,123", Cpk::Order.new(id: [1, 123]).to_param)
+    end
+  end
+
+  def test_param_delimiter_is_defined_per_class
+    Cpk::Order.with(param_delimiter: ",") do
+      Cpk::Book.with(param_delimiter: ";") do
+        assert_equal("1,123", Cpk::Order.new(id: [1, 123]).to_param)
+        assert_equal("1;123", Cpk::Book.new(id: [1, 123]).to_param)
+      end
+    end
   end
 
   def test_cache_key_for_existing_record_is_not_timezone_dependent

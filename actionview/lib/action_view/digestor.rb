@@ -11,7 +11,7 @@ module ActionView
       #
       # * <tt>name</tt>         - Template name
       # * <tt>format</tt>       - Template format
-      # * <tt>finder</tt>       - An instance of <tt>ActionView::LookupContext</tt>
+      # * +finder+              - An instance of ActionView::LookupContext
       # * <tt>dependencies</tt> - An array of dependent views
       def digest(name:, format: nil, finder:, dependencies: nil)
         if dependencies.nil? || dependencies.empty?

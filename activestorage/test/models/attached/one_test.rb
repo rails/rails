@@ -289,7 +289,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
   end
 
-  test "updating an existing record to remove a dependent attachment" do
+  test "updating an existing record to nil to remove a dependent attachment" do
     create_blob(filename: "funky.jpg").tap do |blob|
       @user.avatar.attach blob
 
@@ -301,12 +301,36 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
   end
 
-  test "updating an existing record to remove an independent attachment" do
+  test "updating an existing record to an empty string to remove a dependent attachment" do
+    create_blob(filename: "funky.jpg").tap do |blob|
+      @user.avatar.attach blob
+
+      assert_enqueued_with job: ActiveStorage::PurgeJob, args: [ blob ] do
+        @user.update! avatar: ""
+      end
+
+      assert_not @user.avatar.attached?
+    end
+  end
+
+  test "updating an existing record to nil to remove an independent attachment" do
     create_blob(filename: "funky.jpg").tap do |blob|
       @user.cover_photo.attach blob
 
       assert_no_enqueued_jobs only: ActiveStorage::PurgeJob do
         @user.update! cover_photo: nil
+      end
+
+      assert_not @user.cover_photo.attached?
+    end
+  end
+
+  test "updating an existing record to an empty string to remove an independent attachment" do
+    create_blob(filename: "funky.jpg").tap do |blob|
+      @user.cover_photo.attach blob
+
+      assert_no_enqueued_jobs only: ActiveStorage::PurgeJob do
+        @user.update! cover_photo: ""
       end
 
       assert_not @user.cover_photo.attached?
@@ -736,7 +760,9 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   end
 
   test "creating preview by variation name" do
-    @user.avatar_with_variants.attach fixture_file_upload("report.pdf")
+    assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
+      @user.avatar_with_variants.attach fixture_file_upload("report.pdf")
+    end
     preview = @user.avatar_with_variants.preview(:thumb).processed
 
     image = read_image(preview.send(:variant))
@@ -773,5 +799,39 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
 
     assert_match(/Cannot find variant :unknown for User#avatar_with_variants/, error.message)
+  end
+
+  test "transforms variants later" do
+    blob = create_blob(filename: "funky.jpg")
+
+    assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [1, 1]] do
+      @user.avatar_with_preprocessed.attach blob
+    end
+  end
+
+  test "transforms variants later conditionally via proc" do
+    assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
+      @user.avatar_with_conditional_preprocessed.attach create_blob(filename: "funky.jpg")
+    end
+
+    blob = create_blob(filename: "funky.jpg")
+    @user.update(name: "transform via proc")
+
+    assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [2, 2]] do
+      @user.avatar_with_conditional_preprocessed.attach blob
+    end
+  end
+
+  test "transforms variants later conditionally via method" do
+    assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
+      @user.avatar_with_conditional_preprocessed.attach create_blob(filename: "funky.jpg")
+    end
+
+    blob = create_blob(filename: "funky.jpg")
+    @user.update(name: "transform via method")
+
+    assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [3, 3]] do
+      @user.avatar_with_conditional_preprocessed.attach blob
+    end
   end
 end

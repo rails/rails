@@ -199,6 +199,34 @@ SELECT * FROM customers WHERE (customers.id IN (1,10))
 
 WARNING: The `find` method will raise an `ActiveRecord::RecordNotFound` exception unless a matching record is found for **all** of the supplied primary keys.
 
+If your table uses a composite primary key, you'll need to pass find an array to find a single item. For instance, if customers were defined with `[:store_id, :id]` as a primary key:
+
+```irb
+# Find the customer with store_id 3 and id 17
+irb> customers = Customer.find([3, 17])
+=> #<Customer store_id: 3, id: 17, first_name: "Magda">
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM customers WHERE store_id = 3 AND id = 17
+```
+
+To find multiple customers with composite IDs, you would pass an array of arrays:
+
+```irb
+# Find the customers with primary keys [1, 8] and [7, 15].
+irb> customers = Customer.find([[1, 8], [7, 15]]) # OR Customer.find([1, 8], [7, 15])
+=> [#<Customer store_id: 1, id: 8, first_name: "Pat">, #<Customer store_id: 7, id: 15, first_name: "Chris">]
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM customers WHERE (store_id = 1 AND id = 8 OR store_id = 7 AND id = 15)
+```
+
 #### `take`
 
 The [`take`][] method retrieves a record without any implicit ordering. For example:
@@ -268,6 +296,20 @@ The SQL equivalent of the above is:
 SELECT * FROM customers ORDER BY customers.id ASC LIMIT 3
 ```
 
+Models with composite primary keys will use the full composite primary key for ordering.
+For instance, if customers were defined with `[:store_id, :id]` as a primary key:
+
+```irb
+irb> customer = Customer.first
+=> #<Customer id: 2, store_id: 1, first_name: "Lifo">
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM customers ORDER BY customers.store_id ASC, customers.id ASC LIMIT 1
+```
+
 On a collection that is ordered using `order`, `first` will return the first record ordered by the specified attribute for `order`.
 
 ```irb
@@ -302,6 +344,20 @@ SELECT * FROM customers ORDER BY customers.id DESC LIMIT 1
 ```
 
 The `last` method returns `nil` if no matching record is found and no exception will be raised.
+
+Models with composite primary keys will use the full composite primary key for ordering.
+For instance, if customers were defined with `[:store_id, :id]` as a primary key:
+
+```irb
+irb> customer = Customer.last
+=> #<Customer id: 221, store_id: 1, first_name: "Lifo">
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM customers ORDER BY customers.store_id DESC, customers.id DESC LIMIT 1
+```
 
 If your [default scope](active_record_querying.html#applying-a-default-scope) contains an order method, `last` will return the last record according to this ordering.
 
@@ -377,6 +433,36 @@ Customer.where(first_name: 'does not exist').take!
 
 [`find_by`]: https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-find_by
 [`find_by!`]: https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-find_by-21
+
+##### Conditions with `:id`
+
+When specifying conditions on methods like [`find_by`][] and [`where`][], the use of `id` will match against
+an `:id` attribute on the model. This is different from [`find`][], where the ID passed in should be a primary key value.
+
+Take caution when using `find_by(id:)` on models where `:id` is not the primary key, such as composite primary key models.
+For example, if customers were defined with `[:store_id, :id]` as a primary key:
+
+```irb
+irb> customer = Customer.last
+=> #<Customer id: 10, store_id: 5, first_name: "Joe">
+irb> Customer.find_by(id: customer.id) # Customer.find_by(id: [5, 10])
+=> #<Customer id: 5, store_id: 3, first_name: "Bob">
+```
+
+Here, we might intend to search for a single record with the composite primary key `[5, 10]`, but Active Record will
+search for a record with an `:id` column of _either_ 5 or 10, and may return the wrong record.
+
+TIP: The [`id_value`][] method can be used to fetch the value of the `:id` column for a record, for use in finder
+methods such as `find_by` and `where`. See example below:
+
+```irb
+irb> customer = Customer.last
+=> #<Customer id: 10, store_id: 5, first_name: "Joe">
+irb> Customer.find_by(id: customer.id_value) # Customer.find_by(id: 10)
+=> #<Customer id: 10, store_id: 5, first_name: "Joe">
+```
+
+[`id_value`]: https://api.rubyonrails.org/classes/ActiveRecord/ModelSchema.html#method-i-id_value
 
 ### Retrieving Multiple Objects in Batches
 
@@ -653,6 +739,23 @@ In the case of a belongs_to relationship, an association key can be used to spec
 author = Author.first
 Book.where(author: author)
 Author.joins(:books).where(books: { author: author })
+```
+
+Hash conditions may also be specified in a tuple-like syntax, where the key is an array of columns and the value is
+an array of tuples:
+
+```ruby
+Book.where([:author_id, :id] => [[15, 1], [15, 2]])
+```
+
+This syntax can be useful for querying relations where the table uses a composite primary key:
+
+```ruby
+class Book < ApplicationRecord
+  self.primary_key = [:author_id, :id]
+end
+
+Book.where(Book.primary_key => [[2, 1], [3, 1]])
 ```
 
 #### Range Conditions
@@ -1382,7 +1485,7 @@ Author.joins(books: [{ reviews: { customer: :orders } }, :supplier])
 This produces:
 
 ```sql
-SELECT * FROM authors
+SELECT authors.* FROM authors
   INNER JOIN books ON books.author_id = authors.id
   INNER JOIN reviews ON reviews.book_id = books.id
   INNER JOIN customers ON customers.id = reviews.customer_id
@@ -1902,10 +2005,65 @@ SELECT books.* FROM books
 
 ```irb
 irb> Book.unscoped { Book.out_of_print }
-SELECT books.* FROM books WHERE books.out_of_print
+SELECT books.* FROM books WHERE books.out_of_print = true
 ```
 
 [`unscoped`]: https://api.rubyonrails.org/classes/ActiveRecord/Scoping/Default/ClassMethods.html#method-i-unscoped
+
+### New Chains Inside Scope Block
+
+Unlike class methods, [`scope`][] can easily start a new clean chain against the
+model it is defined on.
+
+```ruby
+class Topic < ApplicationRecord
+  scope :toplevel, -> { where(parent_id: nil) }
+  scope :children, -> { where.not(parent_id: nil) }
+  scope :has_children, -> {
+    where(id: Topic.children.select(:parent_id))
+  }
+end
+
+Topic.toplevel.has_children
+```
+
+Inside `has_children` the `Topic` chain generates a subquery like this:
+
+```sql
+SELECT "topics"."parent_id" FROM "topics" WHERE "topics"."parent_id" IS NOT NULL
+```
+
+Class methods have different behavior which can be surprising if you expect them
+to work exactly like scopes.
+
+```ruby
+class Topic < ApplicationRecord
+  def self.toplevel
+    where(parent_id: nil)
+  end
+
+  def self.children
+    where.not(parent_id: nil)
+  end
+
+  def self.has_children
+    where(id: Topic.children.select(:parent_id))
+  end
+end
+
+Topic.toplevel.has_children
+```
+
+`Topic` inside `has_children` will implicitly include `toplevel` from the outer
+chain resulting in a subquery of:
+
+```sql
+SELECT "topics"."parent_id" FROM "topics" WHERE "topics"."parent_id" IS NULL AND "topics"."parent_id" IS NOT NULL
+```
+
+NOTE: In class methods, `self` refers back to the model. In scope, `self` acts as
+a chained relation. For the example above, `self` and `Topic` are interchangeable
+within the class method definition.
 
 Dynamic Finders
 ---------------
@@ -2167,7 +2325,7 @@ irb> Customer.connection.select_all("SELECT first_name, created_at FROM customer
 
 ### `pluck`
 
-[`pluck`][] can be used to query single or multiple columns from the underlying table of a model. It accepts a list of column names as an argument and returns an array of values of the specified columns with the corresponding data type.
+[`pluck`][] can be used to pick the value(s) from the named column(s) in the current relation. It accepts a list of column names as an argument and returns an array of values of the specified columns with the corresponding data type.
 
 ```irb
 irb> Book.where(out_of_print: true).pluck(:id)
@@ -2255,6 +2413,25 @@ irb> assoc.unscope(:includes).pluck(:id)
 ```
 
 [`pluck`]: https://api.rubyonrails.org/classes/ActiveRecord/Calculations.html#method-i-pluck
+
+### `pick`
+
+[`pick`][] can be used to pick the value(s) from the named column(s) in the current relation. It accepts a list of column names as an argument and returns the first row of the specified column values ​​with corresponding data type.
+`pick` is an short-hand for `relation.limit(1).pluck(*column_names).first`, which is primarily useful when you already have a relation that is limited to one row.
+
+`pick` makes it possible to replace code like:
+
+```ruby
+Customer.where(id: 1).pluck(:id).first
+```
+
+with:
+
+```ruby
+Customer.where(id: 1).pick(:id)
+```
+
+[`pick`]: https://api.rubyonrails.org/classes/ActiveRecord/Calculations.html#method-i-pick
 
 ### `ids`
 
@@ -2444,7 +2621,7 @@ Customer.where(id: 1).joins(:orders).explain
 
 may yield
 
-```
+```sql
 EXPLAIN SELECT `customers`.* FROM `customers` INNER JOIN `orders` ON `orders`.`customer_id` = `customers`.`id` WHERE `customers`.`id` = 1
 +----+-------------+------------+-------+---------------+
 | id | select_type | table      | type  | possible_keys |
@@ -2468,7 +2645,7 @@ Active Record performs a pretty printing that emulates that of the
 corresponding database shell. So, the same query running with the
 PostgreSQL adapter would yield instead
 
-```
+```sql
 EXPLAIN SELECT "customers".* FROM "customers" INNER JOIN "orders" ON "orders"."customer_id" = "customers"."id" WHERE "customers"."id" = $1 [["id", 1]]
                                   QUERY PLAN
 ------------------------------------------------------------------------------
@@ -2492,7 +2669,7 @@ Customer.where(id: 1).includes(:orders).explain
 
 may yield this for MySQL and MariaDB:
 
-```
+```sql
 EXPLAIN SELECT `customers`.* FROM `customers`  WHERE `customers`.`id` = 1
 +----+-------------+-----------+-------+---------------+
 | id | select_type | table     | type  | possible_keys |
@@ -2525,7 +2702,7 @@ EXPLAIN SELECT `orders`.* FROM `orders`  WHERE `orders`.`customer_id` IN (1)
 
 and may yield this for PostgreSQL:
 
-```
+```sql
   Customer Load (0.3ms)  SELECT "customers".* FROM "customers" WHERE "customers"."id" = $1  [["id", 1]]
   Order Load (0.3ms)  SELECT "orders".* FROM "orders" WHERE "orders"."customer_id" = $1  [["customer_id", 1]]
 => EXPLAIN SELECT "customers".* FROM "customers" WHERE "customers"."id" = $1 [["id", 1]]

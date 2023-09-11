@@ -1,18 +1,42 @@
-*   Improve password length validation in ActiveModel::SecurePassword to consider byte size for BCrypt compatibility.
+*   Support composite identifiers in `to_key`
+
+    `to_key` avoids wrapping `#id` value into an `Array` if `#id` already an array
+
+    *Nikita Vasilevsky*
+
+*   Add `ActiveModel::Conversion.param_delimiter` to configure delimiter being used in `to_param`
+
+    *Nikita Vasilevsky*
+
+*   `undefine_attribute_methods` undefines alias attribute methods along with attribute methods.
+
+    *Nikita Vasilevsky*
+
+*   Error.full_message now strips ":base" from the message.
+
+    *zzak*
+
+*   Add a load hook for `ActiveModel::Model` (named `active_model`) to match the load hook for
+    `ActiveRecord::Base` and allow for overriding aspects of the `ActiveModel::Model` class.
+
+    *Lewis Buckley*
+
+*   Improve password length validation in ActiveModel::SecurePassword to consider byte size for BCrypt
+    compatibility.
 
     The previous password length validation only considered the character count, which may not
     accurately reflect the 72-byte size limit imposed by BCrypt. This change updates the validation
     to consider both character count and byte size while keeping the character length validation in place.
 
     ```ruby
-      user = User.new(password: "a" * 73)  # 73 characters
-      user.valid? # => false
-      user.errors[:password] # => ["is too long"]
+    user = User.new(password: "a" * 73)  # 73 characters
+    user.valid? # => false
+    user.errors[:password] # => ["is too long"]
 
 
-      user = User.new(password: "あ" * 25)  # 25 characters, 75 bytes
-      user.valid? # => false
-      user.errors[:password] # => ["is too long"]
+    user = User.new(password: "あ" * 25)  # 25 characters, 75 bytes
+    user.valid? # => false
+    user.errors[:password] # => ["is too long"]
     ```
 
     *ChatGPT*, *Guillermo Iguaran*

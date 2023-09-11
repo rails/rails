@@ -39,7 +39,7 @@ module ActionDispatch
     #   # => "/users/new?message=Welcome%21"
     #
     # Notice the <tt>only_path: true</tt> part. This is because UrlFor has no
-    # information about the website hostname that your Rails app is serving. So if you
+    # information about the website hostname that your \Rails app is serving. So if you
     # want to include the hostname as well, then you must also pass the <tt>:host</tt>
     # argument:
     #
@@ -136,6 +136,8 @@ module ActionDispatch
       # * <tt>:port</tt> - Optionally specify the port to connect to.
       # * <tt>:anchor</tt> - An anchor name to be appended to the path.
       # * <tt>:params</tt> - The query parameters to be appended to the path.
+      # * <tt>:path_params</tt> - The query parameters that will only be used
+      #   for the named dynamic segments of path. If unused, they will be discarded.
       # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in <tt>"/archive/2009/"</tt>.
       # * <tt>:script_name</tt> - Specifies application path relative to domain root. If provided, prepends application path.
       #

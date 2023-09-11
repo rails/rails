@@ -29,8 +29,8 @@ module ActiveRecord
       attributes.each_with_object([]) do |(key, value), result|
         if value.is_a?(Hash)
           result << Arel.sql(key)
-        elsif key.include?(".")
-          result << Arel.sql(key.split(".").first)
+        elsif (idx = key.rindex("."))
+          result << Arel.sql(key[0, idx])
         end
       end
     end
@@ -65,8 +65,7 @@ module ActiveRecord
     end
 
     def build_bind_attribute(column_name, value)
-      type = table.type(column_name)
-      Relation::QueryAttribute.new(column_name, type.immutable_value(value), type)
+      Relation::QueryAttribute.new(column_name, value, table.type(column_name))
     end
 
     def resolve_arel_attribute(table_name, column_name, &block)
@@ -149,19 +148,25 @@ module ActiveRecord
       end
 
       def convert_dot_notation_to_hash(attributes)
-        dot_notation = attributes.select do |k, v|
-          k.include?(".") && !v.is_a?(Hash)
+        attributes.each_with_object({}) do |(key, value), converted|
+          if value.is_a?(Hash)
+            if (existing = converted[key])
+              existing.merge!(value)
+            else
+              converted[key] = value.dup
+            end
+          elsif (idx = key.rindex("."))
+            table_name, column_name = key[0, idx], key[idx + 1, key.length]
+
+            if (existing = converted[table_name])
+              existing[column_name] = value
+            else
+              converted[table_name] = { column_name => value }
+            end
+          else
+            converted[key] = value
+          end
         end
-
-        dot_notation.each_key do |key|
-          table_name, column_name = key.split(".")
-          value = attributes.delete(key)
-          attributes[table_name] ||= {}
-
-          attributes[table_name] = attributes[table_name].merge(column_name => value)
-        end
-
-        attributes
       end
 
       def handler_for(object)

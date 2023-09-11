@@ -2,7 +2,6 @@
 
 require "cases/encryption/helper"
 require "models/author_encrypted"
-require "models/book"
 
 class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::EncryptionTestCase
   test "can decrypt encrypted_value encrypted with a different encryption scheme" do
@@ -102,7 +101,7 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
   test "deterministic encryption is fixed by default: it will always use the oldest scheme to encrypt data" do
     ActiveRecord::Encryption.config.support_unencrypted_data = false
     ActiveRecord::Encryption.config.deterministic_key = "12345"
-    ActiveRecord::Encryption.config.previous = [{ downcase: true }, { downcase: false }]
+    ActiveRecord::Encryption.config.previous = [{ downcase: true, deterministic: true }, { downcase: false, deterministic: true }]
 
     encrypted_author_class = Class.new(Author) do
       self.table_name = "authors"
@@ -114,10 +113,25 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
     assert_equal "stephen king", author.name
   end
 
+  test "don't use global previous schemes with a different deterministic nature" do
+    ActiveRecord::Encryption.config.support_unencrypted_data = false
+    ActiveRecord::Encryption.config.deterministic_key = "12345"
+    ActiveRecord::Encryption.config.previous = [{ downcase: true, deterministic: false }, { downcase: false, deterministic: true }]
+
+    encrypted_author_class = Class.new(Author) do
+      self.table_name = "authors"
+
+      encrypts :name, deterministic: true, downcase: false
+    end
+
+    author = encrypted_author_class.create!(name: "STEPHEN KING")
+    assert_equal "STEPHEN KING", author.name
+  end
+
   test "deterministic encryption will use the newest encryption scheme to encrypt data when setting it to { fixed: false }" do
     ActiveRecord::Encryption.config.support_unencrypted_data = false
     ActiveRecord::Encryption.config.deterministic_key = "12345"
-    ActiveRecord::Encryption.config.previous = [{ downcase: true }, { downcase: false }]
+    ActiveRecord::Encryption.config.previous = [{ downcase: true, deterministic: true }, { downcase: false, deterministic: true }]
 
     encrypted_author_class = Class.new(Author) do
       self.table_name = "authors"
@@ -127,6 +141,38 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
 
     author = encrypted_author_class.create!(name: "STEPHEN KING")
     assert_equal "STEPHEN KING", author.name
+  end
+
+  test "use global previous schemes when performing queries" do
+    ActiveRecord::Encryption.config.support_unencrypted_data = false
+    ActiveRecord::Encryption.config.deterministic_key = "12345"
+    ActiveRecord::Encryption.config.previous = [{ downcase: true, deterministic: true }, { downcase: false, deterministic: true }]
+
+    encrypted_author_class = Class.new(Author) do
+      self.table_name = "authors"
+
+      encrypts :name, deterministic: true, downcase: false
+    end
+
+    author = encrypted_author_class.create!(name: "STEPHEN KING")
+    assert_equal author, encrypted_author_class.find_by_name("STEPHEN KING")
+    assert_equal author, encrypted_author_class.find_by_name("stephen king")
+  end
+
+  test "don't use global previous schemes with a different deterministic nature when performing queries" do
+    ActiveRecord::Encryption.config.support_unencrypted_data = false
+    ActiveRecord::Encryption.config.deterministic_key = "12345"
+    ActiveRecord::Encryption.config.previous = [{ downcase: true, deterministic: false }, { downcase: false, deterministic: true }]
+
+    encrypted_author_class = Class.new(Author) do
+      self.table_name = "authors"
+
+      encrypts :name, deterministic: true, downcase: false
+    end
+
+    author = encrypted_author_class.create!(name: "STEPHEN KING")
+    assert_equal author, encrypted_author_class.find_by_name("STEPHEN KING")
+    assert_nil encrypted_author_class.find_by_name("stephen king")
   end
 
   private
@@ -179,6 +225,6 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
         self.table_name = "authors"
 
         encrypts :name
-      end
+      end.tap { |klass| klass.type_for_attribute(:name) }
     end
 end

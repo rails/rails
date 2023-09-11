@@ -309,6 +309,14 @@ module Rails
 
       META_OPTIONS = [:minimal] # :nodoc:
 
+      def self.apply_rails_template(template, destination) # :nodoc:
+        generator = new([destination], { template: template }, { destination_root: destination })
+        generator.set_default_accessors!
+        generator.apply_rails_template
+        generator.run_bundle
+        generator.run_after_bundle_callbacks
+      end
+
       def initialize(*args)
         super
 
@@ -537,7 +545,8 @@ module Rails
         build(:leftovers)
       end
 
-      public_task :apply_rails_template, :run_bundle
+      public_task :apply_rails_template
+      public_task :run_bundle
       public_task :generate_bundler_binstub
       public_task :run_javascript
       public_task :run_hotwire

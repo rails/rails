@@ -35,49 +35,27 @@ module ActiveSupport
 
         # Encode the given object into a JSON string
         def encode(value)
-          stringify jsonify value.as_json(options.dup)
-        end
+          unless options.empty?
+            value = value.as_json(options.dup)
+          end
+          json = stringify(jsonify(value))
 
-        private
           # Rails does more escaping than the JSON gem natively does (we
           # escape \u2028 and \u2029 and optionally >, <, & to work around
           # certain browser problems).
-          ESCAPED_CHARS = {
-            "\u2028" => '\u2028',
-            "\u2029" => '\u2029',
-            ">"      => '\u003e',
-            "<"      => '\u003c',
-            "&"      => '\u0026',
-            }
-
-          ESCAPE_REGEX_WITH_HTML_ENTITIES = /[\u2028\u2029><&]/u
-          ESCAPE_REGEX_WITHOUT_HTML_ENTITIES = /[\u2028\u2029]/u
-
-          # This class wraps all the strings we see and does the extra escaping
-          class EscapedString < String # :nodoc:
-            def to_json(*)
-              if Encoding.escape_html_entities_in_json
-                s = super
-                s.gsub! ESCAPE_REGEX_WITH_HTML_ENTITIES, ESCAPED_CHARS
-                s
-              else
-                s = super
-                s.gsub! ESCAPE_REGEX_WITHOUT_HTML_ENTITIES, ESCAPED_CHARS
-                s
-              end
-            end
-
-            def to_s
-              self
-            end
+          if Encoding.escape_html_entities_in_json
+            json.gsub!(">", '\u003e')
+            json.gsub!("<", '\u003c')
+            json.gsub!("&", '\u0026')
           end
+          json.gsub!("\u2028", '\u2028')
+          json.gsub!("\u2029", '\u2029')
+          json
+        end
 
-          # Mark these as private so we don't leak encoding-specific constructs
-          private_constant :ESCAPED_CHARS, :ESCAPE_REGEX_WITH_HTML_ENTITIES,
-            :ESCAPE_REGEX_WITHOUT_HTML_ENTITIES, :EscapedString
-
+        private
           # Convert an object into a "JSON-ready" representation composed of
-          # primitives like Hash, Array, String, Numeric,
+          # primitives like Hash, Array, String, Symbol, Numeric,
           # and +true+/+false+/+nil+.
           # Recursively calls #as_json to the object to recursively build a
           # fully JSON-ready object.
@@ -91,14 +69,15 @@ module ActiveSupport
           # calls.
           def jsonify(value)
             case value
-            when String
-              EscapedString.new(value)
-            when Numeric, NilClass, TrueClass, FalseClass
+            when String, Integer, Symbol, nil, true, false
+              value
+            when Numeric
               value.as_json
             when Hash
               result = {}
               value.each do |k, v|
-                result[jsonify(k)] = jsonify(v)
+                k = k.to_s unless Symbol === k || String === k
+                result[k] = jsonify(v)
               end
               result
             when Array
@@ -127,7 +106,7 @@ module ActiveSupport
         # Defaults to 3 (equivalent to millisecond precision)
         attr_accessor :time_precision
 
-        # Sets the encoder used by Rails to encode Ruby objects into JSON strings
+        # Sets the encoder used by \Rails to encode Ruby objects into JSON strings
         # in +Object#to_json+ and +ActiveSupport::JSON.encode+.
         attr_accessor :json_encoder
       end

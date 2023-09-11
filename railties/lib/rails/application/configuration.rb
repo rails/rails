@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "ipaddr"
+require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/file_update_checker"
 require "active_support/configuration_file"
@@ -20,8 +21,9 @@ module Rails
                     :beginning_of_week, :filter_redirect, :x,
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
-                    :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
-                    :rake_eager_load, :server_timing, :log_file_size
+                    :require_master_key, :credentials, :disable_sandbox, :sandbox_by_default,
+                    :add_autoload_paths_to_load_path, :rake_eager_load, :server_timing, :log_file_size,
+                    :dom_testing_default_html_version
 
       attr_reader :encoding, :api_only, :loaded_config_version
 
@@ -75,10 +77,12 @@ module Rails
         @loaded_config_version                   = nil
         @credentials                             = ActiveSupport::InheritableOptions.new(credentials_defaults)
         @disable_sandbox                         = false
+        @sandbox_by_default                      = false
         @add_autoload_paths_to_load_path         = true
         @permissions_policy                      = nil
         @rake_eager_load                         = false
         @server_timing                           = false
+        @dom_testing_default_html_version        = :html4
       end
 
       # Loads default configuration values for a target version. This includes
@@ -96,7 +100,7 @@ module Rails
         #    configure the default value.
         # 5. Add a commented out section in the `new_framework_defaults` to
         #    configure the default value again.
-        # 6. Update the guide in `configuration.md`.
+        # 6. Update the guide in `configuring.md`.
 
         # To remove configurable deprecated behavior, follow these steps:
         # 1. Update or remove the entry in the guides.
@@ -237,7 +241,6 @@ module Rails
             active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA256
             active_support.cache_format_version = 7.0
             active_support.executor_around_test_case = true
-            active_support.isolation_level = :thread
           end
 
           if respond_to?(:action_mailer)
@@ -268,6 +271,7 @@ module Rails
 
           self.add_autoload_paths_to_load_path = false
           self.precompile_filter_parameters = true
+          self.dom_testing_default_html_version = defined?(Nokogiri::HTML5) ? :html5 : :html4
 
           if Rails.env.local?
             self.log_file_size = 100 * 1024 * 1024
@@ -275,6 +279,7 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.run_commit_callbacks_on_first_saved_instances_in_transaction = false
+            active_record.commit_transaction_on_non_local_return = true
             active_record.allow_deprecated_singular_associations_name = false
             active_record.sqlite3_adapter_strict_strings_by_default = true
             active_record.query_log_tags_format = :sqlcommenter
@@ -283,8 +288,10 @@ module Rails
             active_record.before_committed_on_all_records = true
             active_record.default_column_serializer = nil
             active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA256
+            active_record.encryption.support_sha1_for_non_deterministic_encryption = false
             active_record.marshalling_format_version = 7.1
             active_record.run_after_transaction_callbacks_in_order_defined = true
+            active_record.generate_secure_token_on = :initialize
           end
 
           if respond_to?(:action_dispatch)
@@ -295,6 +302,7 @@ module Rails
               "X-Permitted-Cross-Domain-Policies" => "none",
               "Referrer-Policy" => "strict-origin-when-cross-origin"
             }
+            action_dispatch.debug_exception_log_level = :error
           end
 
           if respond_to?(:active_job)
@@ -302,14 +310,24 @@ module Rails
           end
 
           if respond_to?(:active_support)
-            active_support.default_message_encryptor_serializer = :json
-            active_support.default_message_verifier_serializer = :json
+            active_support.cache_format_version = 7.1
+            active_support.message_serializer = :json_allow_marshal
             active_support.use_message_serializer_for_metadata = true
             active_support.raise_on_invalid_cache_expiration_time = true
           end
 
           if respond_to?(:action_controller)
             action_controller.allow_deprecated_parameters_hash_equality = false
+          end
+
+          if defined?(Rails::HTML::Sanitizer) # nested ifs to avoid linter errors
+            if respond_to?(:action_view)
+              action_view.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
+            end
+
+            if respond_to?(:action_text)
+              action_text.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
+            end
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
@@ -443,6 +461,30 @@ module Rails
         raise e, "Cannot load database configuration:\n#{e.message}", e.backtrace
       end
 
+      def autoload_lib(ignore:)
+        lib = root.join("lib")
+
+        # Set as a string to have the same type as default autoload paths, for
+        # consistency.
+        autoload_paths << lib.to_s
+        eager_load_paths << lib.to_s
+
+        ignored_abspaths = Array.wrap(ignore).map { lib.join(_1) }
+        Rails.autoloaders.main.ignore(ignored_abspaths)
+      end
+
+      def autoload_lib_once(ignore:)
+        lib = root.join("lib")
+
+        # Set as a string to have the same type as default autoload paths, for
+        # consistency.
+        autoload_once_paths << lib.to_s
+        eager_load_paths << lib.to_s
+
+        ignored_abspaths = Array.wrap(ignore).map { lib.join(_1) }
+        Rails.autoloaders.once.ignore(ignored_abspaths)
+      end
+
       def colorize_logging
         ActiveSupport::LogSubscriber.colorize_logging
       end
@@ -519,6 +561,10 @@ module Rails
         f.binmode
         f.sync = autoflush_log # if true make sure every write flushes
         f
+      end
+
+      def inspect # :nodoc:
+        "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
       end
 
       class Custom # :nodoc:

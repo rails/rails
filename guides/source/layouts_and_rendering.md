@@ -291,6 +291,12 @@ render MyRenderable.new
 
 This calls `render_in` on the provided object with the current view context.
 
+You can also provide the object by using the `:renderable` option to `render`:
+
+```ruby
+render renderable: MyRenderable.new
+```
+
 #### Options for `render`
 
 Calls to the [`render`][controller.render] method generally accept six options:

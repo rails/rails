@@ -423,6 +423,72 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_in_batches_when_loaded_runs_no_queries
+    posts = Post.all
+    posts.load
+    batch_count = 0
+    last_id = posts.map(&:id).min
+    assert_queries(0) do
+      posts.in_batches(of: 1) do |relation|
+        batch_count += 1
+        assert_kind_of ActiveRecord::Relation, relation
+        assert_operator last_id, :<=, relation.map(&:id).min
+        last_id = relation.map(&:id).min
+      end
+    end
+
+    assert_equal posts.size, batch_count
+  end
+
+  def test_in_batches_when_loaded_runs_no_queries_with_order_argument
+    posts = Post.all.order(id: :asc)
+    posts.load
+    batch_count = 0
+    last_id = posts.map(&:id).max
+    assert_queries(0) do
+      posts.in_batches(of: 1, order: :desc) do |relation|
+        batch_count += 1
+        assert_kind_of ActiveRecord::Relation, relation
+        assert_operator last_id, :>=, relation.map(&:id).max
+        last_id = relation.map(&:id).max
+      end
+    end
+
+    assert_equal posts.size, batch_count
+  end
+
+  def test_in_batches_when_loaded_runs_no_queries_with_start_and_end_arguments
+    posts = Post.all.order(id: :asc)
+    posts.load
+    batch_count = 0
+
+    start_id = posts.map(&:id)[1]
+    finish_id = posts.map(&:id)[-2]
+    assert_queries(0) do
+      posts.in_batches(of: 1, start: start_id, finish: finish_id) do |relation|
+        batch_count += 1
+        assert_kind_of ActiveRecord::Relation, relation
+      end
+    end
+
+    assert_equal posts.size - 2, batch_count
+  end
+
+  def test_in_batches_when_loaded_can_return_an_enum
+    posts = Post.all
+    posts.load
+    batch_count = 0
+
+    assert_queries(0) do
+      posts.in_batches(of: 1).each do |relation|
+        batch_count += 1
+        assert_kind_of ActiveRecord::Relation, relation
+      end
+    end
+
+    assert_equal posts.size, batch_count
+  end
+
   def test_in_batches_should_return_relations
     assert_queries(@total + 1) do
       Post.in_batches(of: 1) do |relation|
@@ -773,9 +839,13 @@ class EachTest < ActiveRecord::TestCase
 
   test ".find_each iterates over composite primary key" do
     orders = Cpk::Order.order(*Cpk::Order.primary_key).to_a
-    Cpk::Order.find_each(batch_size: 1).with_index do |order, index|
+
+    index = 0
+    Cpk::Order.find_each(batch_size: 1) do |order|
       assert_equal orders[index], order
+      index += 1
     end
+    assert_equal orders.size, index
   end
 
   test ".in_batches should start from the start option when using composite primary key" do
@@ -795,5 +865,55 @@ class EachTest < ActiveRecord::TestCase
     shop_id, id = order1.id
     relation = Cpk::Order.where("shop_id > ? OR shop_id = ? AND id > ?", shop_id, shop_id, id).in_batches(of: 1).first
     assert_equal order2, relation.first
+  end
+
+  test ".find_each with multiple column ordering and using composite primary key" do
+    Cpk::Book.insert_all!([
+      { author_id: 1, id: 1 },
+      { author_id: 2, id: 1 },
+      { author_id: 2, id: 2 }
+    ])
+    books = Cpk::Book.order(author_id: :asc, id: :desc).to_a
+
+    index = 0
+    Cpk::Book.find_each(batch_size: 1, order: [:asc, :desc]) do |book|
+      assert_equal books[index], book
+      index += 1
+    end
+    assert_equal books.size, index
+  end
+
+  test ".in_batches should start from the start option when using composite primary key with multiple column ordering" do
+    Cpk::Book.insert_all!([
+      { author_id: 1, id: 1 },
+      { author_id: 1, id: 2 },
+      { author_id: 1, id: 3 }
+    ])
+    second_book = Cpk::Book.order(author_id: :asc, id: :desc).second
+    relation = Cpk::Book.in_batches(of: 1, start: second_book.id, order: [:asc, :desc]).first
+    assert_equal second_book, relation.first
+  end
+
+  test ".in_batches should end at the finish option when using composite primary key with multiple column ordering" do
+    Cpk::Book.insert_all!([
+      { author_id: 1, id: 1 },
+      { author_id: 1, id: 2 },
+      { author_id: 1, id: 3 }
+    ])
+    second_book = Cpk::Book.order(author_id: :asc, id: :desc).second
+    relation = Cpk::Book.in_batches(of: 1, finish: second_book.id, order: [:asc, :desc]).to_a.last
+    assert_equal second_book, relation.first
+  end
+
+  test ".in_batches with scope and multiple column ordering and using composite primary key" do
+    Cpk::Book.insert_all!([
+      { author_id: 1, id: 1 },
+      { author_id: 1, id: 2 },
+      { author_id: 1, id: 3 }
+    ])
+    book1, book2 = Cpk::Book.order(author_id: :asc, id: :desc).first(2)
+    author_id, id = book1.id
+    relation = Cpk::Book.where("author_id >= ? AND id < ?", author_id, id).in_batches(of: 1, order: [:asc, :desc]).first
+    assert_equal book2, relation.first
   end
 end

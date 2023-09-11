@@ -72,7 +72,7 @@ module ActionDispatch
 
     PASS_NOT_FOUND = Class.new { # :nodoc:
       def self.action(_); self; end
-      def self.call(_); [404, { "X-Cascade" => "pass" }, []]; end
+      def self.call(_); [404, { Constants::X_CASCADE => "pass" }, []]; end
       def self.action_encoding_template(action); false; end
     }
 
@@ -189,13 +189,6 @@ module ActionDispatch
 
     def http_auth_salt
       get_header "action_dispatch.http_auth_salt"
-    end
-
-    def show_exceptions? # :nodoc:
-      # We're treating `nil` as "unset", and we want the default setting to be
-      # `true`. This logic should be extracted to `env_config` and calculated
-      # once.
-      !(get_header("action_dispatch.show_exceptions") == false)
     end
 
     # Returns a symbol form of the #request_method.

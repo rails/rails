@@ -138,11 +138,11 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
   test "creating new direct upload" do
     checksum = OpenSSL::Digest::MD5.base64digest("Hello")
     metadata = {
-      "foo": "bar",
-      "my_key_1": "my_value_1",
-      "my_key_2": "my_value_2",
-      "platform": "my_platform",
-      "library_ID": "12345"
+      "foo" => "bar",
+      "my_key_1" => "my_value_1",
+      "my_key_2" => "my_value_2",
+      "platform" => "my_platform",
+      "library_ID" => "12345"
     }
 
     post rails_direct_uploads_url, params: { blob: {
@@ -153,7 +153,7 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
       assert_equal "hello.txt", details["filename"]
       assert_equal 6, details["byte_size"]
       assert_equal checksum, details["checksum"]
-      assert_equal metadata, details["metadata"].deep_transform_keys(&:to_sym)
+      assert_equal metadata, details["metadata"]
       assert_equal "text/plain", details["content_type"]
       assert_match(/rails\/active_storage\/disk/, details["direct_upload"]["url"])
       assert_equal({ "Content-Type" => "text/plain" }, details["direct_upload"]["headers"])

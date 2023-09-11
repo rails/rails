@@ -116,7 +116,7 @@ module ActiveRecord
               Dir.mkdir(dirname)
             rescue Errno::ENOENT => error
               if error.message.include?("No such file or directory")
-                raise ActiveRecord::NoDatabaseError
+                raise ActiveRecord::NoDatabaseError.new(connection_pool: @pool)
               else
                 raise
               end
@@ -328,10 +328,7 @@ module ActiveRecord
 
       def change_column(table_name, column_name, type, **options) # :nodoc:
         alter_table(table_name) do |definition|
-          definition[column_name].instance_eval do
-            self.type = aliased_types(type.to_s, type)
-            self.options.merge!(options)
-          end
+          definition.change_column(column_name, type, **options)
         end
       end
 
@@ -360,14 +357,23 @@ module ActiveRecord
       alias :add_belongs_to :add_reference
 
       def foreign_keys(table_name)
+        # SQLite returns 1 row for each column of composite foreign keys.
         fk_info = internal_exec_query("PRAGMA foreign_key_list(#{quote(table_name)})", "SCHEMA")
-        fk_info.map do |row|
+        grouped_fk = fk_info.group_by { |row| row["id"] }.values.each { |group| group.sort_by! { |row| row["seq"] } }
+        grouped_fk.map do |group|
+          row = group.first
           options = {
-            column: row["from"],
-            primary_key: row["to"],
             on_delete: extract_foreign_key_action(row["on_delete"]),
             on_update: extract_foreign_key_action(row["on_update"])
           }
+
+          if group.one?
+            options[:column] = row["from"]
+            options[:primary_key] = row["to"]
+          else
+            options[:column] = group.map { |row| row["from"] }
+            options[:primary_key] = group.map { |row| row["to"] }
+          end
           ForeignKeyDefinition.new(table_name, row["table"], options)
         end
       end
@@ -534,6 +540,7 @@ module ActiveRecord
               if column.has_default?
                 type = lookup_cast_type_from_column(column)
                 default = type.deserialize(column.default)
+                default = -> { column.default_function } if default.nil?
               end
 
               column_options = {
@@ -608,13 +615,13 @@ module ActiveRecord
           # Older versions of SQLite return:
           #   column *column_name* is not unique
           if exception.message.match?(/(column(s)? .* (is|are) not unique|UNIQUE constraint failed: .*)/i)
-            RecordNotUnique.new(message, sql: sql, binds: binds)
+            RecordNotUnique.new(message, sql: sql, binds: binds, connection_pool: @pool)
           elsif exception.message.match?(/(.* may not be NULL|NOT NULL constraint failed: .*)/i)
-            NotNullViolation.new(message, sql: sql, binds: binds)
+            NotNullViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
           elsif exception.message.match?(/FOREIGN KEY constraint failed/i)
-            InvalidForeignKey.new(message, sql: sql, binds: binds)
+            InvalidForeignKey.new(message, sql: sql, binds: binds, connection_pool: @pool)
           elsif exception.message.match?(/called on a closed database/i)
-            ConnectionNotEstablished.new(exception)
+            ConnectionNotEstablished.new(exception, connection_pool: @pool)
           else
             super
           end
@@ -678,6 +685,8 @@ module ActiveRecord
 
         def connect
           @raw_connection = self.class.new_client(@connection_parameters)
+        rescue ConnectionNotEstablished => ex
+          raise ex.set_pool(@pool)
         end
 
         def reconnect

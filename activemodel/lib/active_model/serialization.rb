@@ -33,8 +33,8 @@ module ActiveModel
   # at the private method +read_attribute_for_serialization+.
   #
   # ActiveModel::Serializers::JSON module automatically includes
-  # the <tt>ActiveModel::Serialization</tt> module, so there is no need to
-  # explicitly include <tt>ActiveModel::Serialization</tt>.
+  # the +ActiveModel::Serialization+ module, so there is no need to
+  # explicitly include +ActiveModel::Serialization+.
   #
   # A minimal implementation including JSON would be:
   #

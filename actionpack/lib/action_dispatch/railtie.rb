@@ -9,7 +9,7 @@ module ActionDispatch
     config.action_dispatch = ActiveSupport::OrderedOptions.new
     config.action_dispatch.x_sendfile_header = nil
     config.action_dispatch.ip_spoofing_check = true
-    config.action_dispatch.show_exceptions = true
+    config.action_dispatch.show_exceptions = :all
     config.action_dispatch.tld_length = 1
     config.action_dispatch.ignore_accept_header = false
     config.action_dispatch.rescue_templates = {}
@@ -24,8 +24,9 @@ module ActionDispatch
     config.action_dispatch.use_authenticated_cookie_encryption = false
     config.action_dispatch.use_cookies_with_metadata = false
     config.action_dispatch.perform_deep_munge = true
-    config.action_dispatch.request_id_header = "X-Request-Id"
+    config.action_dispatch.request_id_header = ActionDispatch::Constants::X_REQUEST_ID
     config.action_dispatch.log_rescued_responses = true
+    config.action_dispatch.debug_exception_log_level = :fatal
 
     config.action_dispatch.default_headers = {
       "X-Frame-Options" => "SAMEORIGIN",

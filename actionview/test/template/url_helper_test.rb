@@ -1302,7 +1302,7 @@ class PolymorphicControllerTest < ActionController::TestCase
     @routes = WorkshopsController::ROUTES
   end
 
-  def test_new_resource
+  def test_index_resource
     @controller = WorkshopsController.new
 
     get :index
@@ -1314,6 +1314,13 @@ class PolymorphicControllerTest < ActionController::TestCase
 
     get :show, params: { id: 1 }
     assert_equal %{/workshops/1\n<a href="/workshops/1">Workshop</a>}, @response.body
+  end
+
+  def test_existing_cpk_resource
+    @controller = WorkshopsController.new
+
+    get :show, params: { id: "1-27" }
+    assert_equal %{/workshops/1-27\n<a href="/workshops/1-27">Workshop</a>}, @response.body
   end
 
   def test_current_page_when_options_does_not_respond_to_to_hash

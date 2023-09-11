@@ -1,10 +1,179 @@
-*   Add Bun support to `rails new --javascript` generator
+*   `rails new --javascript` generator now supports Bun
 
     ```bash
     rails new my_new_app --javascript=bun
     ```
 
     *Jason Meller*
+
+*   `config/application.rb` now includes
+
+    ```ruby
+    config.autoload_lib(ignore: %w(assets tasks))
+    ```
+
+    In practice, this means that new 7.1 applications autoload from `lib` out of the box.
+
+    *Xavier Noria*
+
+*   Add an option to start rails console in sandbox mode by default
+
+    `sandbox_by_default` option is added to start rails console in sandbox
+    mode by default. With this option turned on, `--no-sandbox` must be
+    specified to start rails in non-sandbox mode.
+
+    Note that this option is ignored when rails environment is development
+    or test.
+
+    *Shouichi Kamiya*
+
+*   Omit `webdrivers` gem dependency from `Gemfile` template
+
+    *Sean Doyle*
+
+*   Support filtering tests by line ranges
+
+    The new syntax allows you to filter tests by line ranges. For example, the
+    following command runs tests from line 10 to 20.
+
+    ```bash
+    $ rails test test/models/user_test.rb:10-20
+    ```
+
+    *Shouichi Kamiya*, *Seonggi Yang*, *oljfte*, *Ryohei UEDA*
+
+*   Update default scaffold templates to set 303 (See Other) as status code
+    on redirect for the update action for XHR requests other than GET or POST
+    to avoid issues (e.g browsers trying to follow the redirect using the
+    original request method resulting in double PATCH/PUT)
+
+    *Guillermo Iguaran*
+
+*   The new `config.autoload_lib_once` is similar to `config.autoload_lib`,
+    except that it adds `lib` to `config.autoload_once_paths` instead.
+
+    By calling `config.autoload_lib_once`, classes and modules in `lib` can be
+    autoloaded, even from application initializers, but won't be reloaded.
+
+    Please, see further details in the [autoloading
+    guide](https://guides.rubyonrails.org/v7.1/autoloading_and_reloading_constants.html).
+
+    *Xavier Noria*
+
+*   Add `config.action_dispatch.debug_exception_log_level` to configure the log
+    level used by `ActionDispatch::DebugExceptions`.
+
+    The default is `:fatal`, but with `load_defaults "7.1"` the default will be
+    `:error`.
+
+    *Hartley McGuire*
+
+*   Add `DATABASE` option to `railties:install:migrations`
+
+    This allows you to specify which database the migrations should be copied to
+    when running `rails railties:install:migrations`.
+
+    ```bash
+    $ rails railties:install:migrations DATABASE=animals
+    ```
+
+    *Matthew Hirst*
+
+*   The new method `config.autoload_lib(ignore:)` provides a simple way to
+    autoload from `lib`:
+
+    ```ruby
+    # config/application.rb
+    config.autoload_lib(ignore: %w(assets tasks))
+    ```
+
+    Please, see further details in the [autoloading
+    guide](https://guides.rubyonrails.org/v7.1/autoloading_and_reloading_constants.html).
+
+    *Xavier Noria*
+
+*   Don't show secret_key_base for `Rails.application.config#inspect`.
+
+    Before:
+
+    ```ruby
+    Rails.application.config.inspect
+    "#<Rails::Application::Configuration:0x00000001132b02a0 @root=... @secret_key_base=\"b3c631c314c0bbca50c1b2843150fe33\" ... >"
+    ```
+
+    After:
+
+    ```ruby
+    Rails.application.config.inspect
+    "#<Rails::Application::Configuration:0x00000001132b02a0>"
+    ```
+
+    *Petrik de Heus*
+
+*   Deprecate calling `Rails.application.secrets`.
+
+    Rails `secrets` have been deprecated in favor of `credentials`.
+    Calling `Rails.application.secrets` should show a deprecation warning.
+
+    *Petrik de Heus*
+
+*   Store `secret_key_base` in `Rails.config` for local environments.
+
+    Rails `secrets` have been deprecated in favor of `credentials`.
+    For the local environments the `secret_key_base` is now stored in
+    `Rails.config.secret_key_base` instead of the soft deprecated
+    `Rails.application.secrets.secret_key_base`.
+
+    *Petrik de Heus*
+
+*   Enable force_ssl=true in production by default: Force all access to the app over SSL,
+    use Strict-Transport-Security, and use secure cookies
+
+    *Justin Searls*, *Aaron Patterson*, *Guillermo Iguaran*, *Vinícius Bispo*
+
+*   Add engine's draw paths to application route set, so that the application
+    can draw route files defined in engine paths.
+
+    *Gannon McGibbon*
+
+*   Support `VISUAL` environment variable for commands which open an editor,
+    and prefer it over `EDITOR`.
+
+    *Summer ☀️*
+
+*   Add engine's `test/fixtures` path to `fixture_paths` in `on_load` hook if
+    path exists and is under the Rails application root.
+
+    *Chris Salzberg*
+
+*   `bin/rails app:template` now runs `bundle install` and any `after_bundle`
+    blocks after the template is executed.
+
+    *Jonathan Hefner* and *Gerry Caulfield*
+
+*   Enable passing column size to migration generator
+
+    Previously you could pass a limit to the migration generator:
+
+    `rails generate migration CreateAuthor name:text{65535}`
+
+    Now, a size attribute can be passed to the migration generator:
+
+    `rails generate migration CreateAuthor name:text{medium}`
+
+    This generates a migration which includes the size attribute:
+
+    ```ruby
+    class CreateAuthor < ActiveRecord::Migration[7.1]
+      def change
+        create_table :authors do |t|
+          t.text :name, size: :medium
+        end
+      end
+    end
+    ```
+
+    *Josh Broughton*, *Hartley McGuire*
 
 *   Trying to set a config key with the same name of a method now raises:
 
@@ -22,6 +191,7 @@
 
     `bin/rails secrets:show` and `bin/rails secrets:edit` have been deprecated
     in favor of credentials.
+
     Run `bin/rails credentials:help` for more information
 
     *Petrik de Heus*
@@ -37,7 +207,7 @@
     The following would previously fail with a "No Rakefile found" error.
 
     ```bash
-    blog/bin/rails restart
+    $ blog/bin/rails restart
     ```
 
     *Petrik de Heus*
@@ -146,7 +316,7 @@
     options reference an action that doesn't exist. This will be enabled by
     default but can be overridden via config.
 
-    ```
+    ```ruby
     # config/environments/production.rb
     config.action_controller.raise_on_missing_callback_actions = false
     ```
@@ -165,24 +335,24 @@
 
     Example:
 
-    ```
-    docker build -t app .
-    docker volume create app-storage
-    docker run --rm -it -v app-storage:/rails/storage -p 3000:3000 --env RAILS_MASTER_KEY=<see config/master.key> app
+    ```bash
+    $ docker build -t app .
+    $ docker volume create app-storage
+    $ docker run --rm -it -v app-storage:/rails/storage -p 3000:3000 --env RAILS_MASTER_KEY=<see config/master.key> app
     ```
 
     You can also start a console or a runner from this image:
 
-    ```
-    docker run --rm -it -v app-storage:/rails/storage --env RAILS_MASTER_KEY=<see config/master.key> app console
+    ```bash
+    $ docker run --rm -it -v app-storage:/rails/storage --env RAILS_MASTER_KEY=<see config/master.key> app console
     ```
 
     To create a multi-platform image on Apple Silicon to deploy on AMD or Intel and push to Docker Hub for user/app:
 
-    ```
-    docker login -u <user>
-    docker buildx create --use
-    docker buildx build --push --platform=linux/amd64,linux/arm64 -t <user/image> .
+    ```bash
+    $ docker login -u <user>
+    $ docker buildx create --use
+    $ docker buildx build --push --platform=linux/amd64,linux/arm64 -t <user/image> .
     ```
 
     *DHH, Sam Ruby*
@@ -328,8 +498,8 @@
 
     Example:
 
-    ```
-    > bin/rails routes --grep /cats/1
+    ```bash
+    $ bin/rails routes --grep /cats/1
     Prefix Verb   URI Pattern         Controller#Action
        cat GET    /cats/:id(.:format) cats#show
            PATCH  /cats/:id(.:format) cats#update
@@ -354,8 +524,8 @@
 
     Example:
 
-    ```
-    > bin/rails routes --unused
+    ```bash
+    $ bin/rails routes --unused
 
     Found 2 unused routes:
 
@@ -402,7 +572,7 @@
 *   `--no-*` options now work with the app generator's `--minimal` option, and
     are both comprehensive and precise.  For example:
 
-    ```console
+    ```bash
     $ rails new my_cool_app --minimal
     Based on the specified options, the following options will also be activated:
 
@@ -516,7 +686,7 @@
 
     `--js` alias to `rails new --javascript ...`
 
-    Same as `-j`, e.g. `rails new --js bun ...`
+    Same as `-j`, e.g. `rails new --js esbuild ...`
 
     `--skip-js` alias to `rails new --skip-javascript ...`
 
@@ -551,8 +721,8 @@
 
     Previously, when running this command:
 
-    ``` sh
-    bin/rails generate scaffold_controller Admin/Post --model-name Post
+    ```bash
+    $ bin/rails generate scaffold_controller Admin/Post --model-name Post
     ```
 
     the comments above the controller action would look like:

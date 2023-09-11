@@ -12,6 +12,7 @@ After reading this guide, you will know:
 * How to include non-key columns in indexes.
 * How to use deferrable foreign keys.
 * How to use unique constraints.
+* How to implement exclusion constraints.
 * How to implement full text search with PostgreSQL.
 * How to back your Active Record models with database views.
 
@@ -313,25 +314,39 @@ irb> article.status = "deleted"
 ArgumentError: 'deleted' is not a valid status
 ```
 
-To add a new value (before or after an existing one) or to rename a value you should use [ALTER TYPE](https://www.postgresql.org/docs/current/static/sql-altertype.html):
+To rename the enum you can use `rename_enum` along with updating any model
+usage:
 
 ```ruby
-# db/migrate/20150720144913_add_new_state_to_articles.rb
-disable_ddl_transaction!
-
-def up
-  execute <<-SQL
-    ALTER TYPE article_status ADD VALUE IF NOT EXISTS 'deleted' AFTER 'archived';
-    ALTER TYPE article_status RENAME VALUE 'archived' TO 'hidden';
-  SQL
+# db/migrate/20150718144917_rename_article_status.rb
+def change
+  rename_enum :article_status, to: :article_state
 end
 ```
 
-NOTE: `ALTER TYPE ... ADD VALUE` cannot be executed inside of a transaction block so here we are using `disable_ddl_transaction!`
+To add a new value you can use `add_enum_value`:
 
-WARNING. Enum values [can't be dropped or reordered](https://www.postgresql.org/docs/current/datatype-enum.html). Adding a value is not easily reversed.
+```ruby
+# db/migrate/20150720144913_add_new_state_to_articles.rb
+def up
+  add_enum_value :article_state, "archived", # will be at the end after published
+  add_enum_value :article_state, "in review", before: "published"
+  add_enum_value :article_state, "approved", after: "in review"
+end
+```
 
-Hint: to show all the values of the all enums you have, you should call this query in `bin/rails db` or `psql` console:
+NOTE: Enum values can't be dropped, which also means add_enum_value is irreversible. You can read why [here](https://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com).
+
+To rename a value you can use `rename_enum_value`:
+
+```ruby
+# db/migrate/20150722144915_rename_article_state.rb
+def change
+  rename_enum_value :article_state, from: "archived", to: "deleted"
+end
+```
+
+Hint: to show all the values of the all enums you have, you can call this query in `bin/rails db` or `psql` console:
 
 ```sql
 SELECT n.nspname AS enum_schema,
@@ -618,7 +633,7 @@ ActiveRecord::Base.connection.transaction do
 end
 ```
 
-The `:deferrable` option can also be set to `true` or `:immediate`, which has the same effect. Both options let the foreign keys keep the default behavior of checking the constraint immediately, but allow manually deferring the checks using `SET CONSTRAINTS ALL DEFERRED` within a transaction. This will cause the foreign keys to be checked when the transaction is committed:
+When the `:deferrable` option is set to `:immediate`, let the foreign keys keep the default behavior of checking the constraint immediately, but allow manually deferring the checks using `SET CONSTRAINTS ALL DEFERRED` within a transaction. This will cause the foreign keys to be checked when the transaction is committed:
 
 ```ruby
 ActiveRecord::Base.transaction do
@@ -650,6 +665,23 @@ add_unique_key :items, deferrable: :deferred, using_index: "index_items_on_posit
 ```
 
 Like foreign keys, unique constraints can be deferred by setting `:deferrable` to either `:immediate` or `:deferred`. By default, `:deferrable` is `false` and the constraint is always checked immediately.
+
+Exclusion Constraints
+---------------------
+
+* [exclusion constraints](https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-EXCLUSION)
+
+```ruby
+# db/migrate/20131220144913_create_products.rb
+create_table :products do |t|
+  t.integer :price, null: false
+  t.daterange :availability_range, null: false
+
+  t.exclusion_constraint "price WITH =, availability_range WITH &&", using: :gist, name: "price_check"
+end
+```
+
+Like foreign keys, exclusion constraints can be deferred by setting `:deferrable` to either `:immediate` or `:deferred`. By default, `:deferrable` is `false` and the constraint is always checked immediately.
 
 Full Text Search
 ----------------

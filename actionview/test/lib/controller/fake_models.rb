@@ -217,3 +217,28 @@ class Plane
     @to_key = [1]
   end
 end
+
+module Cpk
+  class Book < Struct.new(:author_id, :id, :title)
+    extend ActiveModel::Naming
+    include ActiveModel::Conversion
+
+    def initialize(author_id: nil, id: nil, title: nil)
+      self.author_id = author_id
+      self.title = title
+      self.id = id
+    end
+
+    def persisted?
+      id.all?
+    end
+
+    def id
+      [@author_id, @id]
+    end
+
+    def id=(id)
+      @author_id, @id = Array(id)
+    end
+  end
+end

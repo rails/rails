@@ -117,7 +117,7 @@ module ActiveRecord
       ##
       # :singleton-method:
       # PostgreSQL supports multiple types for DateTimes. By default, if you use +datetime+
-      # in migrations, Rails will translate this to a PostgreSQL "timestamp without time zone".
+      # in migrations, \Rails will translate this to a PostgreSQL "timestamp without time zone".
       # Change this in an initializer to use another NATIVE_DATABASE_TYPES. For example, to
       # store DateTimes as "timestamp with time zone":
       #
@@ -277,8 +277,16 @@ module ActiveRecord
         database_version >= 12_00_00 # >= 12.0
       end
 
+      def supports_nulls_not_distinct?
+        database_version >= 15_00_00 # >= 15.0
+      end
+
       def index_algorithms
         { concurrently: "CONCURRENTLY" }
+      end
+
+      def return_value_after_insert?(column) # :nodoc:
+        column.auto_populated?
       end
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
@@ -546,6 +554,43 @@ module ActiveRecord
         internal_exec_query(query)
       end
 
+      # Rename an existing enum type to something else.
+      def rename_enum(name, options = {})
+        to = options.fetch(:to) { raise ArgumentError, ":to is required" }
+
+        exec_query("ALTER TYPE #{quote_table_name(name)} RENAME TO #{to}").tap { reload_type_map }
+      end
+
+      # Add enum value to an existing enum type.
+      def add_enum_value(type_name, value, options = {})
+        before, after = options.values_at(:before, :after)
+        sql = +"ALTER TYPE #{quote_table_name(type_name)} ADD VALUE '#{value}'"
+
+        if before && after
+          raise ArgumentError, "Cannot have both :before and :after at the same time"
+        elsif before
+          sql << " BEFORE '#{before}'"
+        elsif after
+          sql << " AFTER '#{after}'"
+        end
+
+        execute(sql).tap { reload_type_map }
+      end
+
+      # Rename enum value on an existing enum type.
+      def rename_enum_value(type_name, options = {})
+        unless database_version >= 10_00_00 # >= 10.0
+          raise ArgumentError, "Renaming enum values is only supported in PostgreSQL 10 or later"
+        end
+
+        from = options.fetch(:from) { raise ArgumentError, ":from is required" }
+        to = options.fetch(:to) { raise ArgumentError, ":to is required" }
+
+        execute("ALTER TYPE #{quote_table_name(type_name)} RENAME VALUE '#{from}' TO '#{to}'").tap {
+          reload_type_map
+        }
+      end
+
       # Returns the configured supported identifier length supported by PostgreSQL
       def max_identifier_length
         @max_identifier_length ||= query_value("SHOW max_identifier_length", "SCHEMA").to_i
@@ -738,7 +783,7 @@ module ActiveRecord
           case exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE)
           when nil
             if exception.message.match?(/connection is closed/i)
-              ConnectionNotEstablished.new(exception)
+              ConnectionNotEstablished.new(exception, connection_pool: @pool)
             elsif exception.is_a?(PG::ConnectionBad)
               # libpq message style always ends with a newline; the pg gem's internal
               # errors do not. We separate these cases because a pg-internal
@@ -746,33 +791,33 @@ module ActiveRecord
               # whereas a libpq failure could have occurred at any time (meaning the
               # server may have already executed part or all of the query).
               if exception.message.end_with?("\n")
-                ConnectionFailed.new(exception)
+                ConnectionFailed.new(exception, connection_pool: @pool)
               else
-                ConnectionNotEstablished.new(exception)
+                ConnectionNotEstablished.new(exception, connection_pool: @pool)
               end
             else
               super
             end
           when UNIQUE_VIOLATION
-            RecordNotUnique.new(message, sql: sql, binds: binds)
+            RecordNotUnique.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when FOREIGN_KEY_VIOLATION
-            InvalidForeignKey.new(message, sql: sql, binds: binds)
+            InvalidForeignKey.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when VALUE_LIMIT_VIOLATION
-            ValueTooLong.new(message, sql: sql, binds: binds)
+            ValueTooLong.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when NUMERIC_VALUE_OUT_OF_RANGE
-            RangeError.new(message, sql: sql, binds: binds)
+            RangeError.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when NOT_NULL_VIOLATION
-            NotNullViolation.new(message, sql: sql, binds: binds)
+            NotNullViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when SERIALIZATION_FAILURE
-            SerializationFailure.new(message, sql: sql, binds: binds)
+            SerializationFailure.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when DEADLOCK_DETECTED
-            Deadlocked.new(message, sql: sql, binds: binds)
+            Deadlocked.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when DUPLICATE_DATABASE
-            DatabaseAlreadyExists.new(message, sql: sql, binds: binds)
+            DatabaseAlreadyExists.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when LOCK_NOT_AVAILABLE
-            LockWaitTimeout.new(message, sql: sql, binds: binds)
+            LockWaitTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when QUERY_CANCELED
-            QueryCanceled.new(message, sql: sql, binds: binds)
+            QueryCanceled.new(message, sql: sql, binds: binds, connection_pool: @pool)
           else
             super
           end
@@ -936,6 +981,8 @@ module ActiveRecord
         # connected server's characteristics.
         def connect
           @raw_connection = self.class.new_client(@connection_parameters)
+        rescue ConnectionNotEstablished => ex
+          raise ex.set_pool(@pool)
         end
 
         def reconnect
@@ -962,7 +1009,7 @@ module ActiveRecord
               message = result.error_field(PG::Result::PG_DIAG_MESSAGE_PRIMARY)
               code = result.error_field(PG::Result::PG_DIAG_SQLSTATE)
               level = result.error_field(PG::Result::PG_DIAG_SEVERITY)
-              @notice_receiver_sql_warnings << SQLWarning.new(message, code, level)
+              @notice_receiver_sql_warnings << SQLWarning.new(message, code, level, nil, @pool)
             end
           end
 

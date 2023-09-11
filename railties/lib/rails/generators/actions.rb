@@ -12,13 +12,58 @@ module Rails
         @indentation = 0
       end
 
-      # Adds an entry into +Gemfile+ for the supplied gem.
+      # Adds a +gem+ declaration to the +Gemfile+ for the specified gem.
       #
       #   gem "rspec", group: :test
       #   gem "technoweenie-restful-authentication", lib: "restful-authentication", source: "http://gems.github.com/"
       #   gem "rails", "3.0", git: "https://github.com/rails/rails"
       #   gem "RedCloth", ">= 4.1.0", "< 4.2.0"
       #   gem "rspec", comment: "Put this comment above the gem declaration"
+      #
+      # Note that this method only adds the gem to the +Gemfile+; it does not
+      # install the gem.
+      #
+      # ==== Options
+      #
+      # [+:version+]
+      #   The version constraints for the gem, specified as a string or an
+      #   array of strings:
+      #
+      #     gem "my_gem", version: "~> 1.1"
+      #     gem "my_gem", version: [">= 1.1", "< 2.0"]
+      #
+      #   Alternatively, can be specified as one or more arguments following the
+      #   gem name:
+      #
+      #     gem "my_gem", ">= 1.1", "< 2.0"
+      #
+      # [+:comment+]
+      #   Outputs a comment above the +gem+ declaration in the +Gemfile+.
+      #
+      #     gem "my_gem", comment: "First line.\nSecond line."
+      #
+      #   Outputs:
+      #
+      #     # First line.
+      #     # Second line.
+      #     gem "my_gem"
+      #
+      # [+:group+]
+      #   The gem group in the +Gemfile+ that the gem belongs to.
+      #
+      # [+:git+]
+      #   The URL of the git repository for the gem.
+      #
+      # Any additional options passed to this method will be appended to the
+      # +gem+ declaration in the +Gemfile+. For example:
+      #
+      #   gem "my_gem", comment: "Edge my_gem", git: "https://example.com/my_gem.git", branch: "master"
+      #
+      # Outputs:
+      #
+      #   # Edge my_gem
+      #   gem "my_gem", git: "https://example.com/my_gem.git", branch: "master"
+      #
       def gem(*args)
         options = args.extract_options!
         name, *versions = args
@@ -117,18 +162,47 @@ module Rails
         end
       end
 
-      # Adds a line inside the Application class for <tt>config/application.rb</tt>.
+      # Adds configuration code to a \Rails runtime environment.
       #
-      # If options <tt>:env</tt> is specified, the line is appended to the corresponding
-      # file in <tt>config/environments</tt>.
+      # By default, adds code inside the +Application+ class in
+      # +config/application.rb+ so that it applies to all environments.
+      #
+      #   environment %(config.asset_host = "cdn.provider.com")
+      #
+      # Results in:
+      #
+      #   # config/application.rb
+      #   class Application < Rails::Application
+      #     config.asset_host = "cdn.provider.com"
+      #     # ...
+      #   end
+      #
+      # If the +:env+ option is specified, the code will be added to the
+      # corresponding file in +config/environments+ instead.
+      #
+      #   environment %(config.asset_host = "localhost:3000"), env: "development"
+      #
+      # Results in:
+      #
+      #   # config/environments/development.rb
+      #   Rails.application.configure do
+      #     config.asset_host = "localhost:3000"
+      #     # ...
+      #   end
+      #
+      # +:env+ can also be an array. In which case, the code is added to each
+      # corresponding file in +config/environments+.
+      #
+      # The code can also be specified as the return value of the block:
       #
       #   environment do
-      #     "config.asset_host = 'cdn.provider.com'"
+      #     %(config.asset_host = "cdn.provider.com")
       #   end
       #
       #   environment(nil, env: "development") do
-      #     "config.asset_host = 'localhost:3000'"
+      #     %(config.asset_host = "localhost:3000")
       #   end
+      #
       def environment(data = nil, options = {})
         sentinel = "class Application < Rails::Application\n"
         env_file_sentinel = "Rails.application.configure do\n"
@@ -146,11 +220,20 @@ module Rails
       end
       alias :application :environment
 
-      # Run a command in git.
+      # Runs one or more git commands.
       #
       #   git :init
+      #   # => runs `git init`
+      #
       #   git add: "this.file that.rb"
-      #   git add: "onefile.rb", rm: "badfile.cxx"
+      #   # => runs `git add this.file that.rb`
+      #
+      #   git commit: "-m 'First commit'"
+      #   # => runs `git commit -m 'First commit'`
+      #
+      #   git add: "good.rb", rm: "bad.cxx"
+      #   # => runs `git add good.rb; git rm bad.cxx`
+      #
       def git(commands = {})
         if commands.is_a?(Symbol)
           run "git #{commands}"
@@ -161,80 +244,91 @@ module Rails
         end
       end
 
-      # Create a new file in the <tt>vendor/</tt> directory. Code can be specified
-      # in a block or a data string can be given.
+      # Creates a file in +vendor/+. The contents can be specified as an
+      # argument or as the return value of the block.
       #
-      #   vendor("sekrit.rb") do
-      #     sekrit_salt = "#{Time.now}--#{3.years.ago}--#{rand}--"
-      #     "salt = '#{sekrit_salt}'"
+      #   vendor "foreign.rb", <<~RUBY
+      #     # Foreign code is fun
+      #   RUBY
+      #
+      #   vendor "foreign.rb" do
+      #     "# Foreign code is fun"
       #   end
       #
-      #   vendor("foreign.rb", "# Foreign code is fun")
       def vendor(filename, data = nil)
         log :vendor, filename
         data ||= yield if block_given?
         create_file("vendor/#{filename}", optimize_indentation(data), verbose: false)
       end
 
-      # Create a new file in the <tt>lib/</tt> directory. Code can be specified
-      # in a block or a data string can be given.
+      # Creates a file in +lib/+. The contents can be specified as an argument
+      # or as the return value of the block.
       #
-      #   lib("crypto.rb") do
-      #     "crypted_special_value = '#{rand}--#{Time.now}--#{rand(1337)}--'"
+      #   lib "foreign.rb", <<~RUBY
+      #     # Foreign code is fun
+      #   RUBY
+      #
+      #   lib "foreign.rb" do
+      #     "# Foreign code is fun"
       #   end
       #
-      #   lib("foreign.rb", "# Foreign code is fun")
       def lib(filename, data = nil)
         log :lib, filename
         data ||= yield if block_given?
         create_file("lib/#{filename}", optimize_indentation(data), verbose: false)
       end
 
-      # Create a new +Rakefile+ with the provided code (either in a block or a string).
+      # Creates a Rake tasks file in +lib/tasks/+. The code can be specified as
+      # an argument or as the return value of the block.
       #
-      #   rakefile("bootstrap.rake") do
+      #   rakefile "bootstrap.rake", <<~RUBY
+      #     task :bootstrap do
+      #       puts "Boots! Boots! Boots!"
+      #     end
+      #   RUBY
+      #
+      #   rakefile "bootstrap.rake" do
       #     project = ask("What is the UNIX name of your project?")
       #
-      #     <<-TASK
+      #     <<~RUBY
       #       namespace :#{project} do
       #         task :bootstrap do
-      #           puts "I like boots!"
+      #           puts "Boots! Boots! Boots!"
       #         end
       #       end
-      #     TASK
+      #     RUBY
       #   end
       #
-      #   rakefile('seed.rake', 'puts "Planting seeds"')
       def rakefile(filename, data = nil)
         log :rakefile, filename
         data ||= yield if block_given?
         create_file("lib/tasks/#{filename}", optimize_indentation(data), verbose: false)
       end
 
-      # Create a new initializer with the provided code (either in a block or a string).
+      # Creates an initializer file in +config/initializers/+. The code can be
+      # specified as an argument or as the return value of the block.
       #
-      #   initializer("globals.rb") do
-      #     data = ""
+      #   initializer "api.rb", <<~RUBY
+      #     API_KEY = "123456"
+      #   RUBY
       #
-      #     ['MY_WORK', 'ADMINS', 'BEST_COMPANY_EVAR'].each do |const|
-      #       data << "#{const} = :entp\n"
-      #     end
-      #
-      #     data
+      #   initializer "api.rb" do
+      #     %(API_KEY = "123456")
       #   end
       #
-      #   initializer("api.rb", "API_KEY = '123456'")
       def initializer(filename, data = nil)
         log :initializer, filename
         data ||= yield if block_given?
         create_file("config/initializers/#{filename}", optimize_indentation(data), verbose: false)
       end
 
-      # Generate something using a generator from Rails or a plugin.
-      # The second parameter is the argument string that is passed to
-      # the generator or an Array that is joined.
+      # Runs another generator.
       #
-      #   generate(:authenticated, "user session")
+      #   generate "scaffold", "Post title:string body:text"
+      #   generate "scaffold", "Post", "title:string", "body:text"
+      #
+      # The first argument is the generator name, and the remaining arguments
+      # are joined together and passed to the generator.
       def generate(what, *args)
         log :generate, what
 
@@ -244,22 +338,56 @@ module Rails
         rails_command "generate #{what} #{args.join(" ")}", options
       end
 
-      # Runs the supplied rake task (invoked with 'rake ...')
+      # Runs the specified Rake task.
       #
-      #   rake("db:migrate")
-      #   rake("db:migrate", env: "production")
-      #   rake("gems:install", sudo: true)
-      #   rake("gems:install", capture: true)
+      #   rake "db:migrate"
+      #   rake "db:migrate", env: "production"
+      #   rake "db:migrate", abort_on_failure: true
+      #   rake "stats", capture: true
+      #   rake "gems:install", sudo: true
+      #
+      # ==== Options
+      #
+      # [+:env+]
+      #   The \Rails environment in which to run the task. Defaults to
+      #   <tt>ENV["RAILS_ENV"] || "development"</tt>.
+      #
+      # [+:abort_on_failure+]
+      #   Whether to halt the generator if the task exits with a non-success
+      #   exit status.
+      #
+      # [+:capture+]
+      #   Whether to capture and return the output of the task.
+      #
+      # [+:sudo+]
+      #   Whether to run the task using +sudo+.
       def rake(command, options = {})
         execute_command :rake, command, options
       end
 
-      # Runs the supplied rake task (invoked with 'rails ...')
+      # Runs the specified \Rails command.
       #
-      #   rails_command("db:migrate")
-      #   rails_command("db:migrate", env: "production")
-      #   rails_command("gems:install", sudo: true)
-      #   rails_command("gems:install", capture: true)
+      #   rails_command "db:migrate"
+      #   rails_command "db:migrate", env: "production"
+      #   rails_command "db:migrate", abort_on_failure: true
+      #   rails_command "stats", capture: true
+      #   rails_command "gems:install", sudo: true
+      #
+      # ==== Options
+      #
+      # [+:env+]
+      #   The \Rails environment in which to run the command. Defaults to
+      #   <tt>ENV["RAILS_ENV"] || "development"</tt>.
+      #
+      # [+:abort_on_failure+]
+      #   Whether to halt the generator if the command exits with a non-success
+      #   exit status.
+      #
+      # [+:capture+]
+      #   Whether to capture and return the output of the command.
+      #
+      # [+:sudo+]
+      #   Whether to run the command using +sudo+.
       def rails_command(command, options = {})
         if options[:inline]
           log :rails, command
@@ -274,7 +402,7 @@ module Rails
         end
       end
 
-      # Make an entry in Rails routing file <tt>config/routes.rb</tt>
+      # Make an entry in \Rails routing file <tt>config/routes.rb</tt>
       #
       #   route "root 'welcome#index'"
       #   route "root 'admin#index'", namespace: :admin

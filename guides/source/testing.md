@@ -152,7 +152,7 @@ test "should not save article without title" do
 end
 ```
 
-Let us run this newly added test (where `6` is the number of line where the test is defined).
+Let us run this newly added test (where `6` is the line number where the test is defined).
 
 ```bash
 $ bin/rails test test/models/article_test.rb:6
@@ -421,6 +421,12 @@ You can also run a test at a specific line by providing the line number.
 $ bin/rails test test/models/article_test.rb:6 # run specific test and line
 ```
 
+You can also run a range of tests by providing the line range.
+
+```bash
+$ bin/rails test test/models/article_test.rb:6-20 # runs tests from line 6 to 20
+```
+
 You can also run an entire directory of tests by providing the path to the directory.
 
 ```bash
@@ -437,6 +443,10 @@ Usage: rails test [options] [files or directories]
 You can run a single test by appending a line number to a filename:
 
     bin/rails test test/models/user_test.rb:27
+
+You can run multiple tests with in a line range by appending the line range to a filename:
+
+    bin/rails test test/models/user_test.rb:10-20
 
 You can run multiple files and directories at the same time:
 
@@ -875,24 +885,19 @@ end
 
 If you want to use a remote browser, e.g.
 [Headless Chrome in Docker](https://github.com/SeleniumHQ/docker-selenium),
-you have to add remote `url` through `options`.
+you have to add remote `url`  and set `browser` as remote through `options`.
 
 ```ruby
 require "test_helper"
 
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-  options = ENV["SELENIUM_REMOTE_URL"].present? ? { url: ENV["SELENIUM_REMOTE_URL"] } : {}
+  url = ENV.fetch("SELENIUM_REMOTE_URL", nil)
+  options = if url
+    { browser: :remote, url }
+  else
+    { browser: :chrome }
+  end
   driven_by :selenium, using: :headless_chrome, options: options
-end
-```
-
-In such a case, the gem `webdrivers` is no longer required. You could remove it
-completely or add `require:` option in `Gemfile`.
-
-```ruby
-# ...
-group :test do
-  gem "webdrivers", require: !ENV["SELENIUM_REMOTE_URL"] || ENV["SELENIUM_REMOTE_URL"].empty?
 end
 ```
 
@@ -1023,7 +1028,7 @@ that the text from the new article's title is on the articles index page.
 #### Testing for Multiple Screen Sizes
 
 If you want to test for mobile sizes on top of testing for desktop,
-you can create another class that inherits from SystemTestCase and use in your
+you can create another class that inherits from `ActionDispatch::SystemTestCase` and use it in your
 test suite. In this example a file called `mobile_system_test_case.rb` is created
 in the `/test` directory with the following configuration.
 
@@ -1092,6 +1097,8 @@ In addition to the standard testing helpers, inheriting from `ActionDispatch::In
 For dealing with the integration test runner, see [`ActionDispatch::Integration::Runner`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/Runner.html).
 
 When performing requests, we will have [`ActionDispatch::Integration::RequestHelpers`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/RequestHelpers.html) available for our use.
+
+If we need to upload files, take a look at [`ActionDispatch::TestProcess::FixtureFile`](https://api.rubyonrails.org/classes/ActionDispatch/TestProcess/FixtureFile.html) to help.
 
 If we need to modify the session, or state of our integration test, take a look at [`ActionDispatch::Integration::Session`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/Session.html) to help.
 
@@ -1927,19 +1934,15 @@ require "test_helper"
 
 class BillingJobTest < ActiveJob::TestCase
   test "that account is charged" do
-    BillingJob.perform_now(account, product)
+    perform_enqueued_jobs do
+      BillingJob.perform_later(account, product)
+    end
     assert account.reload.charged_for?(product)
   end
 end
 ```
 
-This test is pretty simple and only asserts that the job got the work done
-as expected.
-
-By default, `ActiveJob::TestCase` will set the queue adapter to `:test` so that
-your jobs are performed inline. It will also ensure that all previously performed
-and enqueued jobs are cleared before any test run so you can safely assume that
-no jobs have already been executed in the scope of each test.
+This test is pretty simple and only asserts that the job did work that was expected. You can also use `perform_now` to run the job inline, but if you have retries configured, any exceptions raised by the job will be silently ignored, whereas `perform_enqueued_jobs` will fail the test and print the exception information.
 
 ### Custom Assertions and Testing Jobs inside Other Components
 
@@ -1948,7 +1951,7 @@ Active Job ships with a bunch of custom assertions that can be used to lessen th
 It's a good practice to ensure that your jobs correctly get enqueued or performed
 wherever you invoke them (e.g. inside your controllers). This is precisely where
 the custom assertions provided by Active Job are pretty useful. For instance,
-within a model:
+within a model, you could confirm that a job was enqueued:
 
 ```ruby
 require "test_helper"
@@ -1960,9 +1963,50 @@ class ProductTest < ActiveSupport::TestCase
     assert_enqueued_with(job: BillingJob) do
       product.charge(account)
     end
+    assert_not account.reload.charged_for?(product)
   end
 end
 ```
+
+The default adapter, `:test`, does not perform jobs when they are enqueued.
+You have to tell it when you want jobs to be performed:
+
+```ruby
+require "test_helper"
+
+class ProductTest < ActiveSupport::TestCase
+  include ActiveJob::TestHelper
+
+  test "billing job scheduling" do
+    perform_enqueued_jobs(only: BillingJob) do
+      product.charge(account)
+    end
+    assert account.reload.charged_for?(product)
+  end
+end
+```
+
+All previously performed and enqueued jobs are cleared before any test runs,
+so you can safely assume that no jobs have already been executed in the scope of each test.
+
+### Testing that Exceptions are Raised
+
+Testing that your job raises an exception in certain cases can be tricky, especially when you have retries configured. The `perform_enqueued_jobs` helper fails any test where a job raises an exception, so to have the test succeed when the exception is raised you have call the job's `perform` method directly.
+
+```ruby
+require "test_helper"
+
+class BillingJobTest < ActiveJob::TestCase
+  test "does not charge accounts with insufficient funds" do
+    assert_raises(InsufficientFundsError) do
+      BillingJob.new(empty_account, product).perform
+    end
+    refute account.reload.charged_for?(product)
+  end
+end
+```
+
+This method is not recommended in general, as it circumvents some parts of the framework, such as argument serialization.
 
 Testing Action Cable
 --------------------

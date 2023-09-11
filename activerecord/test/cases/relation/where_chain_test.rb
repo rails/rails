@@ -7,10 +7,11 @@ require "models/human"
 require "models/essay"
 require "models/comment"
 require "models/categorization"
+require "models/book"
 
 module ActiveRecord
   class WhereChainTest < ActiveRecord::TestCase
-    fixtures :posts, :comments, :authors, :humans, :essays, :author_addresses
+    fixtures :posts, :comments, :authors, :humans, :essays, :author_addresses, :books
 
     def test_associated_with_association
       Post.where.associated(:author).tap do |relation|
@@ -43,6 +44,54 @@ module ActiveRecord
       assert_match(/An association named `:cars` does not exist on the model `Post`\./, e.message)
     end
 
+    def test_associated_merged_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.where.associated(:author).merge(Author.where(id: 1)).count
+    end
+
+    def test_associated_unscoped_merged_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.unscope(:where).where.associated(:author).merge(Author.where(id: 1)).count
+    end
+
+    def test_associated_unscoped_merged_joined_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.joins(:author).unscope(:where).where.associated(:author).merge(Author.where(id: 1)).count
+    end
+
+    def test_associated_unscoped_merged_joined_extended_early_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.extending(Post::NamedExtension).joins(:author).unscope(:where).where.associated(:author).merge(Author.where(id: 1)).count
+    end
+
+    def test_associated_unscoped_merged_joined_extended_late_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.joins(:author).unscope(:where).where.associated(:author).merge(Author.where(id: 1)).extending(Post::NamedExtension).count
+    end
+
+    def test_associated_ordered_merged_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.order(created_at: :desc).where.associated(:author).merge(Author.where(id: 1)).count
+    end
+
+    def test_associated_ordered_merged_joined_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.joins(:author).order(created_at: :desc).where.associated(:author).merge(Author.where(id: 1)).count
+    end
+
+    def test_associated_with_enum
+      assert_equal Author.find(2), Author.joins(:reading_listing).where.associated(:reading_listing).first
+    end
+
+    def test_associated_with_enum_ordered
+      assert_equal Author.find(2), Author.order(id: :desc).joins(:reading_listing).where.associated(:reading_listing).first
+    end
+
+    def test_associated_with_enum_unscoped
+      assert_equal Author.find(2), Author.unscope(:where).joins(:reading_listing).where.associated(:reading_listing).first
+    end
+
+    def test_associated_with_enum_extended_early
+      assert_equal Author.find(2), Author.extending(Author::NamedExtension).order(id: :desc).joins(:reading_listing).where.associated(:reading_listing).first
+    end
+
+    def test_associated_with_enum_extended_late
+      assert_equal Author.find(2), Author.order(id: :desc).joins(:reading_listing).where.associated(:reading_listing).extending(Author::NamedExtension).first
+    end
+
     def test_missing_with_association
       assert posts(:authorless).author.blank?
       assert_equal [posts(:authorless)], Post.where.missing(:author).to_a
@@ -66,6 +115,56 @@ module ActiveRecord
     def test_missing_with_multiple_association
       assert posts(:authorless).comments.empty?
       assert_equal [posts(:authorless)], Post.where.missing(:author, :comments).to_a
+    end
+
+    def test_missing_merged_with_scope_on_association
+      # This query does not make much logical sense, but it is testing
+      # that the generated SQL query is valid.
+      assert_equal Author.find(1).posts.count, Post.where.missing(:author).merge(Author.where(id: 1)).count
+    end
+
+    def test_missing_unscoped_merged_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.joins(:author).unscope(:where).where.missing(:author).merge(Author.where(id: 1)).count
+    end
+
+    def test_missing_unscoped_merged_joined_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.unscope(:where).where.missing(:author).merge(Author.where(id: 1)).count
+    end
+
+    def test_missing_ordered_merged_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.order(created_at: :desc).where.missing(:author).merge(Author.where(id: 1)).count
+    end
+
+    def test_missing_ordered_merged_joined_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.joins(:author).order(created_at: :desc).where.missing(:author).merge(Author.where(id: 1)).count
+    end
+
+    def test_missing_unscoped_merged_joined_extended_early_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.extending(Post::NamedExtension).joins(:author).unscope(:where).where.missing(:author).merge(Author.where(id: 1)).count
+    end
+
+    def test_missing_unscoped_merged_joined_extended_late_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.joins(:author).unscope(:where).where.missing(:author).merge(Author.where(id: 1)).extending(Post::NamedExtension).count
+    end
+
+    def test_missing_with_enum
+      assert_equal Author.find(2), Author.joins(:reading_listing).where.missing(:unread_listing).first
+    end
+
+    def test_missing_with_enum_ordered
+      assert_equal Author.find(2), Author.order(id: :desc).joins(:reading_listing).where.missing(:unread_listing).first
+    end
+
+    def test_missing_with_enum_unscoped
+      assert_equal Author.find(2), Author.unscope(:where).joins(:reading_listing).where.missing(:unread_listing).first
+    end
+
+    def test_missing_with_enum_extended_early
+      assert_equal Author.find(2), Author.extending(Author::NamedExtension).order(id: :desc).joins(:reading_listing).where.missing(:unread_listing).first
+    end
+
+    def test_missing_with_enum_extended_late
+      assert_equal Author.find(2), Author.order(id: :desc).joins(:reading_listing).where.missing(:unread_listing).extending(Author::NamedExtension).first
     end
 
     def test_not_inverts_where_clause
@@ -180,6 +279,13 @@ module ActiveRecord
     def test_rewhere_with_infinite_range
       relation = Post.where(comments_count: -Float::INFINITY..Float::INFINITY).rewhere(comments_count: 3..5)
       expected = Post.where(comments_count: 3..5)
+
+      assert_equal expected.to_a, relation.to_a
+    end
+
+    def test_rewhere_with_nil
+      relation = Post.where(comments_count: 16).rewhere(nil)
+      expected = Post.all
 
       assert_equal expected.to_a, relation.to_a
     end

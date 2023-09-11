@@ -247,15 +247,13 @@ module Rails
 
       def set_default_accessors! # :doc:
         self.destination_root = File.expand_path(app_path, destination_root)
-        self.rails_template = \
-          case options[:template]
-          when /^https?:\/\//
-            options[:template]
-          when String
-            File.expand_path(`echo #{options[:template]}`.strip)
-          else
-            options[:template]
-          end
+
+        if options[:template].is_a?(String) && !options[:template].match?(/^https?:\/\//)
+          interpolated = options[:template].gsub(/\$(\w+)|\$\{\g<1>\}|%\g<1>%/) { |m| ENV[$1] || m }
+          self.rails_template = File.expand_path(interpolated)
+        else
+          self.rails_template = options[:template]
+        end
       end
 
       def database_gemfile_entry # :doc:
@@ -449,7 +447,7 @@ module Rails
       def javascript_gemfile_entry
         return if options[:skip_javascript]
 
-        if adjusted_javascript_option == "importmap"
+        if options[:javascript] == "importmap"
           GemfileEntry.floats "importmap-rails", "Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]"
         else
           GemfileEntry.floats "jsbundling-rails", "Bundle and transpile JavaScript [https://github.com/rails/jsbundling-rails]"
@@ -469,7 +467,8 @@ module Rails
       end
 
       def using_node?
-        options[:javascript] && options[:javascript] != "importmap"
+        (options[:javascript] && !%w[importmap].include?(options[:javascript])) ||
+          (options[:css] && !%w[tailwind sass].include?(options[:css]))
       end
 
       def node_version
@@ -555,7 +554,8 @@ module Rails
       end
 
       def dockerfile_deploy_packages
-        packages = []
+        # Add curl to work with the default healthcheck strategy in Kamal
+        packages = ["curl"]
 
         # ActiveRecord databases
         packages << deploy_package_for_database unless skip_active_record?
@@ -564,16 +564,6 @@ module Rails
         packages << "libvips" unless skip_active_storage?
 
         packages.compact.sort
-      end
-
-      # CSS processors other than Tailwind and Sass require a node-based JavaScript environment. So overwrite the normal JS default
-      # if one such processor has been specified.
-      def adjusted_javascript_option
-        if options[:css] && options[:css] != "tailwind" && options[:css] != "sass" && options[:javascript] == "importmap"
-          "esbuild"
-        else
-          options[:javascript]
-        end
       end
 
       def css_gemfile_entry
@@ -679,9 +669,9 @@ module Rails
       def run_javascript
         return if options[:skip_javascript] || !bundle_install?
 
-        case adjusted_javascript_option
+        case options[:javascript]
         when "importmap"                           then rails_command "importmap:install"
-        when "webpack", "bun", "esbuild", "rollup" then rails_command "javascript:install:#{adjusted_javascript_option}"
+        when "webpack", "bun", "esbuild", "rollup" then rails_command "javascript:install:#{options[:javascript]}"
         end
       end
 

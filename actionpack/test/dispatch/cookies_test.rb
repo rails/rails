@@ -80,6 +80,22 @@ class CookieJarTest < ActiveSupport::TestCase
   end
 end
 
+class CookiesMiddlewareTest < ActiveSupport::TestCase
+  def test_sets_expected_cookie_header
+    request = ActionDispatch::Request.empty
+    request.cookie_jar[:foo] = "bar"
+    env = Rack::MockRequest.env_for("", request.env)
+
+    _status, headers, _body = Rack::Lint.new(
+      ActionDispatch::Cookies.new(
+        Rack::Lint.new(lambda { |_env| [ 200, {}, [] ] })
+      )
+    ).call(env)
+
+    assert_equal "foo=bar; path=/", headers["set-cookie"]
+  end
+end
+
 class CookiesTest < ActionController::TestCase
   include CookieAssertions
 
@@ -424,7 +440,7 @@ class CookiesTest < ActionController::TestCase
     error = assert_raise ArgumentError do
       get :authenticate
     end
-    assert_match "Invalid SameSite value: :funky", error.message
+    assert_match(/Invalid :?Same_?Site value: :funky/i, error.message)
   end
 
   def test_setting_cookie_with_same_site_strict
@@ -554,6 +570,17 @@ class CookiesTest < ActionController::TestCase
     assert_set_cookie_header "user_name=; path=/beaten; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
   end
 
+  def test_delete_cookie_return_value
+    request.cookies[:user_name] = "Joe"
+    return_value = request.cookies.delete(:user_name)
+    assert_equal "Joe", return_value
+  end
+
+  def test_delete_unexisting_cookie_return_value
+    return_value = request.cookies.delete(:no_such_cookie)
+    assert_nil return_value
+  end
+
   def test_delete_unexisting_cookie
     request.cookies.clear
     get :delete_cookie
@@ -678,6 +705,14 @@ class CookiesTest < ActionController::TestCase
     assert_equal "wrapped: 45", cookies.signed[:user_id]
   end
 
+  def test_signed_cookie_using_message_pack_serializer
+    @request.env["action_dispatch.cookies_serializer"] = :message_pack
+    get :set_signed_cookie
+    cookies = @controller.send :cookies
+    assert_not_equal 45, cookies[:user_id]
+    assert_equal 45, cookies.signed[:user_id]
+  end
+
   def test_signed_cookie_using_custom_serializer
     @request.env["action_dispatch.cookies_serializer"] = CustomSerializer
     get :set_signed_cookie
@@ -758,6 +793,25 @@ class CookiesTest < ActionController::TestCase
     assert_nil @response.cookies["foo"]
   end
 
+  def test_signed_cookie_using_message_pack_serializer_can_migrate_json_dumped_value_to_message_pack
+    @request.env["action_dispatch.cookies_serializer"] = :message_pack
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
+
+    json_value = ActiveSupport::MessageVerifier.new(secret, serializer: JSON).generate(45)
+    @request.headers["Cookie"] = "user_id=#{json_value}"
+
+    get :get_signed_cookie
+
+    cookies = @controller.send :cookies
+    assert_not_equal 45, cookies[:user_id]
+    assert_equal 45, cookies.signed[:user_id]
+
+    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: ActiveSupport::MessagePack)
+    assert_equal 45, verifier.verify(@response.cookies["user_id"])
+  end
+
   def test_accessing_nonexistent_signed_cookie_should_not_raise_an_invalid_signature
     get :set_signed_cookie
     assert_nil @controller.send(:cookies).signed[:non_existent_attribute]
@@ -796,6 +850,15 @@ class CookiesTest < ActionController::TestCase
     assert_not_equal "wrapped: bar", cookies[:foo]
     assert_nil cookies.signed[:foo]
     assert_equal "wrapped: bar", cookies.encrypted[:foo]
+  end
+
+  def test_encrypted_cookie_using_message_pack_serializer
+    @request.env["action_dispatch.cookies_serializer"] = :message_pack
+    get :set_encrypted_cookie
+    cookies = @controller.send :cookies
+    assert_not_equal "bar", cookies[:foo]
+    assert_nil cookies.signed[:foo]
+    assert_equal "bar", cookies.encrypted[:foo]
   end
 
   def test_encrypted_cookie_using_custom_serializer
@@ -861,6 +924,27 @@ class CookiesTest < ActionController::TestCase
     assert_not_equal "bar", cookies[:foo]
     assert_nil cookies.encrypted[:foo] # #parse rescues JSON::ParserError and returns nil
     assert_nil @response.cookies["foo"]
+  end
+
+  def test_encrypted_cookie_using_message_pack_serializer_can_migrate_json_dumped_value_to_message_pack
+    @request.env["action_dispatch.cookies_serializer"] = :message_pack
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    secret = key_generator.generate_key(@request.env["action_dispatch.authenticated_encrypted_cookie_salt"], 32)
+
+    encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: "aes-256-gcm", serializer: JSON)
+    marshal_value = encryptor.encrypt_and_sign("bar")
+    @request.headers["Cookie"] = "foo=#{::Rack::Utils.escape marshal_value}"
+
+    get :get_encrypted_cookie
+
+    cookies = @controller.send :cookies
+    assert_not_equal "bar", cookies[:foo]
+    assert_equal "bar", cookies.encrypted[:foo]
+
+    json_encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: "aes-256-gcm", serializer: ActiveSupport::MessagePack)
+    assert_not_nil @response.cookies["foo"]
+    assert_equal "bar", json_encryptor.decrypt_and_verify(@response.cookies["foo"])
   end
 
   def test_accessing_nonexistent_encrypted_cookie_should_not_raise_invalid_message

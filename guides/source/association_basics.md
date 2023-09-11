@@ -5,18 +5,22 @@ Active Record Associations
 
 This guide covers the association features of Active Record.
 
-After reading this guide, you will know:
+After reading this guide, you will know how to:
 
-* How to declare associations between Active Record models.
-* How to understand the various types of Active Record associations.
-* How to use the methods added to your models by creating associations.
+* Declare associations between Active Record models.
+* Understand the various types of Active Record associations.
+* Use the methods added to your models by creating associations.
 
 --------------------------------------------------------------------------------
 
 Why Associations?
 -----------------
 
-In Rails, an _association_ is a connection between two Active Record models. Why do we need associations between models? Because they make common operations simpler and easier in your code. For example, consider a simple Rails application that includes a model for authors and a model for books. Each author can have many books. Without associations, the model declarations would look like this:
+In Rails, an _association_ is a connection between two Active Record models. Why do we need associations between models? Because they make common operations simpler and easier in your code.
+
+For example, consider a simple Rails application that includes a model for authors and a model for books. Each author can have many books.
+
+Without associations, the model declarations would look like this:
 
 ```ruby
 class Author < ApplicationRecord
@@ -71,7 +75,9 @@ To learn more about the different types of associations, read the next section o
 The Types of Associations
 -------------------------
 
-Rails supports six types of associations:
+Rails supports six types of associations, each with a particular use-case in mind.
+
+Here is a list of all of the supported types with a link to their API docs for more detailed information on how to use them, their method parameters, etc.
 
 * [`belongs_to`][]
 * [`has_one`][]
@@ -123,7 +129,7 @@ end
 ```
 
 When used alone, `belongs_to` produces a one-directional one-to-one connection. Therefore each book in the above example "knows" its author, but the authors don't know about their books.
-To setup a [bi-directional association](#bi-directional-associations) - use `belongs_to` in combination with a `has_one` or `has_many` on the other model.
+To setup a [bi-directional association](#bi-directional-associations) - use `belongs_to` in combination with a `has_one` or `has_many` on the other model, in this case the Author model.
 
 `belongs_to` does not ensure reference consistency if `optional` is set to true, so depending on the use case, you might also need to add a database-level foreign key constraint on the reference column, like this:
 
@@ -476,6 +482,9 @@ The simplest rule of thumb is that you should set up a `has_many :through` relat
 
 You should use `has_many :through` if you need validations, callbacks, or extra attributes on the join model.
 
+While `has_and_belongs_to_many` suggests creating a join table with no primary key via `id: false`, consider using a composite primary key for the join table in the `has_many :through` relationship.
+For example, it's recommended to use `create_table :manifests, primary_key: [:assembly_id, :part_id]` in the example above.
+
 ### Polymorphic Associations
 
 A slightly more advanced twist on associations is the _polymorphic association_. With polymorphic associations, a model can belong to more than one other model, on a single association. For example, you might have a picture model that belongs to either an employee model or a product model. Here's how this could be declared:
@@ -531,6 +540,70 @@ end
 
 ![Polymorphic Association Diagram](images/association_basics/polymorphic.png)
 
+### Associations between Models with Composite Primary Keys
+
+Rails is often able to infer the primary key - foreign key information between associated models with composite
+primary keys without needing extra information. Take the following example:
+
+```ruby
+class Order < ApplicationRecord
+  self.primary_key = [:shop_id, :id]
+  has_many :books
+end
+
+class Book < ApplicationRecord
+  belongs_to :order
+end
+```
+
+Here, Rails assumes that the `:id` column should be used as the primary key for the association between an order
+and its books, just as with a regular `has_many` / `belongs_to` association. It will infer that the foreign key column
+on the `books` table is `:order_id`. Accessing a book's order:
+
+```ruby
+order = Order.create!(id: [1, 2], status: "pending")
+book = order.books.create!(title: "A Cool Book")
+
+book.reload.order
+```
+
+will generate the following SQL to access the order:
+
+```sql
+SELECT * FROM orders WHERE id = 2
+```
+
+This only works if the model's composite primary key contains the `:id` column, _and_ the column is unique for
+all records. In order to use the full composite primary key in associations, set the `query_constraints` option on
+the association. This option specifies a composite foreign key on the association: all columns in the foreign key will
+be used when querying the associated record(s). For example:
+
+```ruby
+class Author < ApplicationRecord
+  self.primary_key = [:first_name, :last_name]
+  has_many :books, query_constraints: [:first_name, :last_name]
+end
+
+class Book < ApplicationRecord
+  belongs_to :author, query_constraints: [:author_first_name, :author_last_name]
+end
+```
+
+Accessing a book's author:
+
+```ruby
+author = Author.create!(first_name: "Jane", last_name: "Doe")
+book = author.books.create!(title: "A Cool Book")
+
+book.reload.author
+```
+
+will use `:first_name` _and_ `:last_name` in the SQL query:
+
+```sql
+SELECT * FROM authors WHERE first_name = 'Jane' AND last_name = 'Doe'
+```
+
 ### Self Joins
 
 In designing a data model, you will sometimes find a model that should have a relation to itself. For example, you may want to store all employees in a single database model, but be able to trace relationships such as between manager and subordinates. This situation can be modeled with self-joining associations:
@@ -558,6 +631,10 @@ class CreateEmployees < ActiveRecord::Migration[7.1]
   end
 end
 ```
+
+NOTE: The `to_table` option passed to `foreign_key` and more are explained in [`SchemaStatements#add_reference`][connection.add_reference].
+
+[connection.add_reference]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_reference
 
 Tips, Tricks, and Warnings
 --------------------------
@@ -640,7 +717,9 @@ class AddAuthorToBooks < ActiveRecord::Migration[7.1]
 end
 ```
 
-NOTE: If you wish to [enforce referential integrity at the database level](/active_record_migrations.html#foreign-keys), add the `foreign_key: true` option to the ‘reference’ column declarations above.
+NOTE: If you wish to [enforce referential integrity at the database level][foreign_keys], add the `foreign_key: true` option to the ‘reference’ column declarations above.
+
+[foreign_keys]: active_record_migrations.html#foreign-keys
 
 #### Creating Join Tables for `has_and_belongs_to_many` Associations
 
@@ -678,7 +757,7 @@ end
 
 We pass `id: false` to `create_table` because that table does not represent a model. That's required for the association to work properly. If you observe any strange behavior in a `has_and_belongs_to_many` association like mangled model IDs, or exceptions about conflicting IDs, chances are you forgot that bit.
 
-You can also use the method `create_join_table`
+For simplicity, you can also use the method `create_join_table`:
 
 ```ruby
 class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[7.1]
@@ -765,7 +844,7 @@ Active Record will attempt to automatically identify that these two models share
 a bi-directional association based on the association name. This information
 allows Active Record to:
 
-* Prevent needless queries for already-loaded data
+* Prevent needless queries for already-loaded data:
 
     ```irb
     irb> author = Author.first
@@ -776,7 +855,7 @@ allows Active Record to:
     ```
 
 * Prevent inconsistent data (since there is only one copy of the `Author` object
-  loaded)
+  loaded):
 
     ```irb
     irb> author = Author.first
@@ -788,7 +867,7 @@ allows Active Record to:
     => true
     ```
 
-* Autosave associations in more cases
+* Autosave associations in more cases:
 
     ```irb
     irb> author = Author.new
@@ -802,7 +881,7 @@ allows Active Record to:
 
 * Validate the [presence](active_record_validations.html#presence) and
   [absence](active_record_validations.html#absence) of associations in more
-  cases
+  cases:
 
     ```irb
     irb> book = Book.new
@@ -816,13 +895,9 @@ allows Active Record to:
     => true
     ```
 
-Active Record supports automatic identification for most associations with
-standard names. However, Active Record will not automatically identify
-bi-directional associations that contain the `:through` or `:foreign_key`
-options. Custom scopes on the opposite association also prevent automatic
-identification, as do custom scopes on the association itself unless
-[`config.active_record.automatic_scope_inversing`][] is set to true (the default for
-new applications).
+Active Record supports automatic identification for most associations with standard names. However, bi-directional associations that contain the `:through` or `:foreign_key` options will not be automatically identified.
+
+Custom scopes on the opposite association also prevent automatic identification, as do custom scopes on the association itself unless [`config.active_record.automatic_scope_inversing`][] is set to true (the default for new applications).
 
 For example, consider the following model declarations:
 
@@ -839,7 +914,7 @@ end
 Because of the `:foreign_key` option, Active Record will no longer automatically
 recognize the bi-directional association. This can cause your application to:
 
-* Execute needless queries for the same data (in this example causing N+1 queries)
+* Execute needless queries for the same data (in this example causing N+1 queries):
 
     ```irb
     irb> author = Author.first
@@ -849,7 +924,7 @@ recognize the bi-directional association. This can cause your application to:
     => false
     ```
 
-* Reference multiple copies of a model with inconsistent data
+* Reference multiple copies of a model with inconsistent data:
 
     ```irb
     irb> author = Author.first
@@ -861,7 +936,7 @@ recognize the bi-directional association. This can cause your application to:
     => false
     ```
 
-* Fail to autosave associations
+* Fail to autosave associations:
 
     ```irb
     irb> author = Author.new
@@ -873,7 +948,7 @@ recognize the bi-directional association. This can cause your application to:
     => false
     ```
 
-* Fail to validate presence or absence
+* Fail to validate presence or absence:
 
     ```irb
     irb> author = Author.new
@@ -2877,13 +2952,13 @@ Entry.create! entryable: Message.new(subject: "hello!")
 
 ### Adding further delegation
 
-We can expand our `Entry` delegator and enhance further by defining `delegates` and use polymorphism to the subclasses.
+We can expand our `Entry` delegator and enhance it further by defining `delegate` and using polymorphism on the subclasses.
 For example, to delegate the `title` method from `Entry` to it's subclasses:
 
 ```ruby
 class Entry < ApplicationRecord
   delegated_type :entryable, types: %w[ Message Comment ]
-  delegates :title, to: :entryable
+  delegate :title, to: :entryable
 end
 
 class Message < ApplicationRecord

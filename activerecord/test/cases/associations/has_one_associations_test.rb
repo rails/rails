@@ -7,6 +7,7 @@ require "models/project"
 require "models/company"
 require "models/ship"
 require "models/pirate"
+require "models/person"
 require "models/car"
 require "models/bulb"
 require "models/author"
@@ -18,6 +19,7 @@ require "models/department"
 require "models/club"
 require "models/membership"
 require "models/parrot"
+require "models/cpk"
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
@@ -139,6 +141,17 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     ship.destroy
     assert_not_predicate ship, :persisted?
     assert_not_predicate developer, :persisted?
+  end
+
+  def test_nullification_on_cpk_association
+    book = Cpk::Book.create!(id: [1, 2])
+    other_book = Cpk::Book.create!(id: [3, 4])
+    order = Cpk::OrderWithNullifiedBook.create!(book: book)
+
+    order.book = other_book
+
+    assert_nil book.order_id
+    assert_nil book.shop_id
   end
 
   def test_natural_assignment_to_nil_after_destroy
@@ -901,5 +914,28 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
       car.build_special_bulb
       car.build_special_bulb
     end
+  end
+  test "composite primary key malformed association class" do
+    error = assert_raises(ActiveRecord::CompositePrimaryKeyMismatchError) do
+      order = Cpk::BrokenOrder.new(id: [1, 2], book: Cpk::Book.new(title: "Some book"))
+      order.save!
+    end
+
+    assert_equal(<<~MESSAGE.squish, error.message)
+      Association Cpk::BrokenOrder#book primary key ["shop_id", "status"]
+      doesn't match with foreign key broken_order_id. Please specify query_constraints, or primary_key and foreign_key values.
+    MESSAGE
+  end
+
+  test "composite primary key malformed association owner class" do
+    error = assert_raises(ActiveRecord::CompositePrimaryKeyMismatchError) do
+      order = Cpk::BrokenOrderWithNonCpkBooks.new(id: [1, 2], book: Cpk::NonCpkBook.new(title: "Some book"))
+      order.save!
+    end
+
+    assert_equal(<<~MESSAGE.squish, error.message)
+      Association Cpk::BrokenOrderWithNonCpkBooks#book primary key [\"shop_id\", \"status\"]
+      doesn't match with foreign key broken_order_with_non_cpk_books_id. Please specify query_constraints, or primary_key and foreign_key values.
+    MESSAGE
   end
 end

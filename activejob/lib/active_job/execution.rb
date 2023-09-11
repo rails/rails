@@ -4,6 +4,12 @@ require "active_support/rescuable"
 require "active_job/arguments"
 
 module ActiveJob
+  # = Active Job \Execution
+  #
+  # Provides methods to execute jobs immediately, and wraps job execution so
+  # that exceptions configured with
+  # {rescue_from}[rdoc-ref:ActiveSupport::Rescuable::ClassMethods#rescue_from]
+  # are handled.
   module Execution
     extend ActiveSupport::Concern
     include ActiveSupport::Rescuable
@@ -45,7 +51,11 @@ module ActiveJob
 
       _perform_job
     rescue Exception => exception
-      rescue_with_handler(exception) || raise
+      handled = rescue_with_handler(exception)
+      return handled if handled
+
+      run_after_discard_procs(exception)
+      raise
     end
 
     def perform(*)

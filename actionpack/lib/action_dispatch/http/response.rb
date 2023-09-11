@@ -81,7 +81,6 @@ module ActionDispatch # :nodoc:
 
     CONTENT_TYPE = "Content-Type"
     SET_COOKIE   = "Set-Cookie"
-    LOCATION     = "Location"
     NO_CONTENT_CODES = [100, 101, 102, 103, 204, 205, 304]
 
     cattr_accessor :default_charset, default: "utf-8"
@@ -292,7 +291,7 @@ module ActionDispatch # :nodoc:
       @status
     end
 
-    # Returns a string to ensure compatibility with <tt>Net::HTTPResponse</tt>.
+    # Returns a string to ensure compatibility with +Net::HTTPResponse+.
     def code
       @status.to_s
     end
@@ -462,7 +461,6 @@ module ActionDispatch # :nodoc:
       # our last chance.
       commit! unless committed?
 
-      @headers.freeze
       @request.commit_cookie_jar! unless committed?
     end
 

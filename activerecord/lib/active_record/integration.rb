@@ -10,7 +10,7 @@ module ActiveRecord
       ##
       # :singleton-method:
       # Indicates the format used to generate the timestamp in the cache key, if
-      # versioning is off. Accepts any of the symbols in <tt>Time::DATE_FORMATS</tt>.
+      # versioning is off. Accepts any of the symbols in +Time::DATE_FORMATS+.
       #
       # This is +:usec+, by default.
       class_attribute :cache_timestamp_format, instance_writer: false, default: :usec
@@ -20,7 +20,7 @@ module ActiveRecord
       # Indicates whether to use a stable #cache_key method that is accompanied
       # by a changing version in the #cache_version method.
       #
-      # This is +true+, by default on Rails 5.2 and above.
+      # This is +true+, by default on \Rails 5.2 and above.
       class_attribute :cache_versioning, instance_writer: false, default: false
 
       ##
@@ -28,7 +28,7 @@ module ActiveRecord
       # Indicates whether to use a stable #cache_key method that is accompanied
       # by a changing version in the #cache_version method on collections.
       #
-      # This is +false+, by default until Rails 6.1.
+      # This is +false+, by default until \Rails 6.1.
       class_attribute :collection_cache_versioning, instance_writer: false, default: false
     end
 
@@ -55,8 +55,8 @@ module ActiveRecord
     #   user = User.find_by(name: 'Phusion')
     #   user_path(user)  # => "/users/Phusion"
     def to_param
-      # We can't use alias_method here, because method 'id' optimizes itself on the fly.
-      id && id.to_s # Be sure to stringify the id for routes
+      return unless id
+      Array(id).join(self.class.param_delimiter)
     end
 
     # Returns a stable cache key that can be used to identify this record.
@@ -64,7 +64,7 @@ module ActiveRecord
     #   Product.new.cache_key     # => "products/new"
     #   Product.find(5).cache_key # => "products/5"
     #
-    # If ActiveRecord::Base.cache_versioning is turned off, as it was in Rails 5.1 and earlier,
+    # If ActiveRecord::Base.cache_versioning is turned off, as it was in \Rails 5.1 and earlier,
     # the cache key will also include a version.
     #
     #   Product.cache_versioning = false

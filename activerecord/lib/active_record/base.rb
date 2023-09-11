@@ -331,6 +331,8 @@ module ActiveRecord # :nodoc:
     include Suppressor
     include Normalization
     include Marshalling::Methods
+
+    self.param_delimiter = "_"
   end
 
   ActiveSupport.run_load_hooks(:active_record, Base)

@@ -18,6 +18,7 @@ Mime::Type.register "image/gif", :gif, [], %w(gif)
 Mime::Type.register "image/bmp", :bmp, [], %w(bmp)
 Mime::Type.register "image/tiff", :tiff, [], %w(tif tiff)
 Mime::Type.register "image/svg+xml", :svg
+Mime::Type.register "image/webp", :webp, [], %w(webp)
 
 Mime::Type.register "video/mpeg", :mpeg, [], %w(mpg mpeg mpe)
 

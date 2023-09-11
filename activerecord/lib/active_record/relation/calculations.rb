@@ -93,7 +93,7 @@ module ActiveRecord
       end
     end
 
-    # Same as <tt>#count</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    # Same as <tt>#count</tt> but perform the query asynchronously and returns an ActiveRecord::Promise
     def async_count(column_name = nil)
       async.count(column_name)
     end
@@ -106,7 +106,7 @@ module ActiveRecord
       calculate(:average, column_name)
     end
 
-    # Same as <tt>#average</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    # Same as <tt>#average</tt> but perform the query asynchronously and returns an ActiveRecord::Promise
     def async_average(column_name)
       async.average(column_name)
     end
@@ -120,7 +120,7 @@ module ActiveRecord
       calculate(:minimum, column_name)
     end
 
-    # Same as <tt>#minimum</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    # Same as <tt>#minimum</tt> but perform the query asynchronously and returns an ActiveRecord::Promise
     def async_minimum(column_name)
       async.minimum(column_name)
     end
@@ -134,7 +134,7 @@ module ActiveRecord
       calculate(:maximum, column_name)
     end
 
-    # Same as <tt>#maximum</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    # Same as <tt>#maximum</tt> but perform the query asynchronously and returns an ActiveRecord::Promise
     def async_maximum(column_name)
       async.maximum(column_name)
     end
@@ -152,7 +152,7 @@ module ActiveRecord
       end
     end
 
-    # Same as <tt>#sum</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    # Same as <tt>#sum</tt> but perform the query asynchronously and returns an ActiveRecord::Promise
     def async_sum(identity_or_column = nil)
       async.sum(identity_or_column)
     end
@@ -287,7 +287,7 @@ module ActiveRecord
       end
     end
 
-    # Same as <tt>#pluck</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    # Same as <tt>#pluck</tt> but perform the query asynchronously and returns an ActiveRecord::Promise
     def async_pluck(*column_names)
       async.pluck(*column_names)
     end
@@ -315,7 +315,7 @@ module ActiveRecord
       limit(1).pluck(*column_names).then(&:first)
     end
 
-    # Same as <tt>#pick</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    # Same as <tt>#pick</tt> but perform the query asynchronously and returns an ActiveRecord::Promise
     def async_pick(*column_names)
       async.pick(*column_names)
     end
@@ -325,19 +325,28 @@ module ActiveRecord
     #   Person.ids # SELECT people.id FROM people
     #   Person.joins(:companies).ids # SELECT people.id FROM people INNER JOIN companies ON companies.id = people.company_id
     def ids
+      primary_key_array = Array(primary_key)
+
       if loaded?
-        result = records.pluck(*Array(primary_key))
+        result = records.map do |record|
+          if primary_key_array.one?
+            record._read_attribute(primary_key_array.first)
+          else
+            primary_key_array.map { |column| record._read_attribute(column) }
+          end
+        end
         return @async ? Promise::Complete.new(result) : result
       end
 
       if has_include?(primary_key)
-        relation = apply_join_dependency.distinct
+        relation = apply_join_dependency.group(*primary_key_array)
         return relation.ids
       end
 
-      columns = arel_columns(Array(primary_key))
+      columns = arel_columns(primary_key_array)
       relation = spawn
       relation.select_values = columns
+
       result = if relation.where_clause.contradiction?
         ActiveRecord::Result.empty
       else
@@ -349,7 +358,7 @@ module ActiveRecord
       result.then { |result| type_cast_pluck_values(result, columns) }
     end
 
-    # Same as <tt>#ids</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    # Same as <tt>#ids</tt> but perform the query asynchronously and returns an ActiveRecord::Promise
     def async_ids
       async.ids
     end

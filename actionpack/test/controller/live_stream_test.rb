@@ -596,6 +596,16 @@ module ActionController
       get :with_stale
       assert_equal 304, response.status.to_i
     end
+
+    def test_response_buffer_do_not_respond_to_to_ary
+      get :basic_stream
+      # `response.to_a` wraps the response with RackBody.
+      # RackBody is the body we return to Rack.
+      # Therefore we want to assert directly on it.
+      # The Rack spec requires bodies that cannot be
+      # buffered to return false to `respond_to?(:to_ary)`
+      assert_not response.to_a.last.respond_to? :to_ary
+    end
   end
 
   class BufferTest < ActionController::TestCase

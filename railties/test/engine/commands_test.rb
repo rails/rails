@@ -35,8 +35,8 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
   if available_pty?
     def test_console_command_work_inside_engine
       primary, replica = PTY.open
-      cmd = "console --singleline"
-      spawn_command(cmd, replica)
+      cmd = "console"
+      spawn_command(cmd, replica, env: { "TERM" => "dumb" })
       assert_output(">", primary)
     ensure
       primary.puts "quit"
@@ -64,9 +64,9 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
       "#{@destination_root}/bukkits"
     end
 
-    def spawn_command(command, fd)
+    def spawn_command(command, fd, env: {})
       in_plugin_context(plugin_path) do
-        Process.spawn("bin/rails #{command}", in: fd, out: fd, err: fd)
+        Process.spawn(env, "bin/rails #{command}", in: fd, out: fd, err: fd)
       end
     end
 

@@ -3,7 +3,7 @@
 begin
   require "dalli"
 rescue LoadError => e
-  $stderr.puts "You don't have dalli installed in your application. Please add it to your Gemfile and run bundle install"
+  warn "You don't have dalli installed in your application. Please add it to your Gemfile and run bundle install"
   raise e
 end
 
@@ -99,10 +99,10 @@ module ActiveSupport
         addresses = nil if addresses.compact.empty?
         pool_options = retrieve_pool_options(options)
 
-        if pool_options.empty?
-          Dalli::Client.new(addresses, options)
-        else
+        if pool_options
           ConnectionPool.new(pool_options) { Dalli::Client.new(addresses, options.merge(threadsafe: false)) }
+        else
+          Dalli::Client.new(addresses, options)
         end
       end
 
@@ -222,52 +222,18 @@ module ActiveSupport
       end
 
       private
-        module Coders # :nodoc:
-          class << self
-            def [](version)
-              case version
-              when 6.1
-                Rails61Coder
-              when 7.0
-                Rails70Coder
-              else
-                raise ArgumentError, "Unknown ActiveSupport::Cache.format_version #{Cache.format_version.inspect}"
-              end
-            end
+        def default_serializer
+          if Cache.format_version == 6.1
+            ActiveSupport.deprecator.warn <<~EOM
+              Support for `config.active_support.cache_format_version = 6.1` has been deprecated and will be removed in Rails 7.2.
+
+              Check the Rails upgrade guide at https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#new-activesupport-cache-serialization-format
+              for more information on how to upgrade.
+            EOM
+            Cache::SerializerWithFallback[:passthrough]
+          else
+            super
           end
-
-          module Loader
-            def load(payload)
-              if payload.is_a?(Entry)
-                payload
-              else
-                Cache::Coders::Loader.load(payload)
-              end
-            end
-          end
-
-          module Rails61Coder
-            include Loader
-            extend self
-
-            def dump(entry)
-              entry
-            end
-
-            def dump_compressed(entry, threshold)
-              entry.compressed(threshold)
-            end
-          end
-
-          module Rails70Coder
-            include Cache::Coders::Rails70Coder
-            include Loader
-            extend self
-          end
-        end
-
-        def default_coder
-          Coders[Cache.format_version]
         end
 
         # Read an entry from the cache.

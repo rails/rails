@@ -12,7 +12,7 @@ jobs:
       BUNDLE_ONLY: rubocop
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Set up Ruby 3.2
       uses: ruby/setup-ruby@v1
@@ -23,12 +23,11 @@ jobs:
     - name: Run RuboCop
       run: bundle exec rubocop --parallel
 
-  notify:
-    runs-on: ubuntu-latest
-    if: always() && github.ref_name == 'main'
-    continue-on-error: true
-    needs: build
-    steps:
-      - uses: zzak/action-discord@v4
-        with:
-          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+    - uses: zzak/action-discord@v8
+      env:
+        BUNDLE_ONLY: ""
+      continue-on-error: true
+      if: failure() && github.ref_name == 'main'
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}

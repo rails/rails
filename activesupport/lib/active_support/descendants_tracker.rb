@@ -66,8 +66,6 @@ module ActiveSupport
       end
     end
 
-    include ReloadedClassesFiltering
-
     class << self
       def disable_clear! # :nodoc:
         unless @clear_disabled
@@ -109,7 +107,7 @@ module ActiveSupport
       end
 
       def descendants
-        subclasses = self.subclasses
+        subclasses = DescendantsTracker.reject!(self.subclasses)
         subclasses.concat(subclasses.flat_map(&:descendants))
       end
     else

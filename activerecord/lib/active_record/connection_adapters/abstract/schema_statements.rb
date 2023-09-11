@@ -106,8 +106,9 @@ module ActiveRecord
       # Returns an array of +Column+ objects for the table specified by +table_name+.
       def columns(table_name)
         table_name = table_name.to_s
-        column_definitions(table_name).map do |field|
-          new_column_from_field(table_name, field)
+        definitions = column_definitions(table_name)
+        definitions.map do |field|
+          new_column_from_field(table_name, field, definitions)
         end
       end
 
@@ -576,7 +577,7 @@ module ActiveRecord
       # * The SQL standard says the default scale should be 0, <tt>:scale</tt> <=
       #   <tt>:precision</tt>, and makes no comments about the requirements of
       #   <tt>:precision</tt>.
-      # * MySQL: <tt>:precision</tt> [1..63], <tt>:scale</tt> [0..30].
+      # * MySQL: <tt>:precision</tt> [1..65], <tt>:scale</tt> [0..30].
       #   Default is (10,0).
       # * PostgreSQL: <tt>:precision</tt> [1..infinity],
       #   <tt>:scale</tt> [0..infinity]. No default.
@@ -1099,6 +1100,16 @@ module ActiveRecord
       #
       #   ALTER TABLE "articles" ADD CONSTRAINT fk_rails_58ca3d3a82 FOREIGN KEY ("author_id") REFERENCES "users" ("lng_id")
       #
+      # ====== Creating a composite foreign key
+      #
+      #   Assuming "carts" table has "(shop_id, user_id)" as a primary key.
+      #
+      #   add_foreign_key :orders, :carts, primary_key: [:shop_id, :user_id]
+      #
+      # generates:
+      #
+      #   ALTER TABLE "orders" ADD CONSTRAINT fk_rails_6f5e4cb3a4 FOREIGN KEY ("cart_shop_id", "cart_user_id") REFERENCES "carts" ("shop_id", "user_id")
+      #
       # ====== Creating a cascading foreign key
       #
       #   add_foreign_key :articles, :authors, on_delete: :cascade
@@ -1109,9 +1120,11 @@ module ActiveRecord
       #
       # The +options+ hash can include the following keys:
       # [<tt>:column</tt>]
-      #   The foreign key column name on +from_table+. Defaults to <tt>to_table.singularize + "_id"</tt>
+      #   The foreign key column name on +from_table+. Defaults to <tt>to_table.singularize + "_id"</tt>.
+      #   Pass an array to create a composite foreign key.
       # [<tt>:primary_key</tt>]
       #   The primary key column name on +to_table+. Defaults to +id+.
+      #   Pass an array to create a composite foreign key.
       # [<tt>:name</tt>]
       #   The constraint name. Defaults to <tt>fk_rails_<identifier></tt>.
       # [<tt>:on_delete</tt>]
@@ -1194,15 +1207,33 @@ module ActiveRecord
         foreign_key_for(from_table, to_table: to_table, **options).present?
       end
 
-      def foreign_key_column_for(table_name) # :nodoc:
+      def foreign_key_column_for(table_name, column_name) # :nodoc:
         name = strip_table_name_prefix_and_suffix(table_name)
-        "#{name.singularize}_id"
+        "#{name.singularize}_#{column_name}"
       end
 
       def foreign_key_options(from_table, to_table, options) # :nodoc:
         options = options.dup
-        options[:column] ||= foreign_key_column_for(to_table)
+
+        if options[:primary_key].is_a?(Array)
+          options[:column] ||= options[:primary_key].map do |pk_column|
+            foreign_key_column_for(to_table, pk_column)
+          end
+        else
+          options[:column] ||= foreign_key_column_for(to_table, "id")
+        end
+
         options[:name]   ||= foreign_key_name(from_table, options)
+
+        if options[:column].is_a?(Array) || options[:primary_key].is_a?(Array)
+          if Array(options[:primary_key]).size != Array(options[:column]).size
+            raise ArgumentError, <<~MSG.squish
+              For composite primary keys, specify :column and :primary_key, where
+              :column must reference all the :primary_key columns from #{to_table.inspect}
+            MSG
+          end
+        end
+
         options
       end
 
@@ -1224,12 +1255,16 @@ module ActiveRecord
       # The +options+ hash can include the following keys:
       # [<tt>:name</tt>]
       #   The constraint name. Defaults to <tt>chk_rails_<identifier></tt>.
+      # [<tt>:if_not_exists</tt>]
+      #   Silently ignore if the constraint already exists, rather than raise an error.
       # [<tt>:validate</tt>]
       #   (PostgreSQL only) Specify whether or not the constraint should be validated. Defaults to +true+.
-      def add_check_constraint(table_name, expression, **options)
+      def add_check_constraint(table_name, expression, if_not_exists: false, **options)
         return unless supports_check_constraints?
 
         options = check_constraint_options(table_name, expression, options)
+        return if if_not_exists && check_constraint_exists?(table_name, **options)
+
         at = create_alter_table(table_name)
         at.add_check_constraint(expression, options)
 
@@ -1255,10 +1290,10 @@ module ActiveRecord
       # The +expression+ parameter will be ignored if present. It can be helpful
       # to provide this in a migration's +change+ method so it can be reverted.
       # In that case, +expression+ will be used by #add_check_constraint.
-      def remove_check_constraint(table_name, expression = nil, **options)
+      def remove_check_constraint(table_name, expression = nil, if_exists: false, **options)
         return unless supports_check_constraints?
 
-        return if options[:if_exists] && !check_constraint_exists?(table_name, **options)
+        return if if_exists && !check_constraint_exists?(table_name, **options)
 
         chk_name_to_delete = check_constraint_for!(table_name, expression: expression, **options).name
 
@@ -1354,18 +1389,24 @@ module ActiveRecord
       end
 
       def distinct_relation_for_primary_key(relation) # :nodoc:
+        primary_key_columns = Array(relation.primary_key).map do |column|
+          visitor.compile(relation.table[column])
+        end
+
         values = columns_for_distinct(
-          visitor.compile(relation.table[relation.primary_key]),
+          primary_key_columns,
           relation.order_values
         )
 
         limited = relation.reselect(values).distinct!
-        limited_ids = select_rows(limited.arel, "SQL").map(&:last)
+        limited_ids = select_rows(limited.arel, "SQL").map do |results|
+          results.last(Array(relation.primary_key).length) # ignores order values for MySQL and Postgres
+        end
 
         if limited_ids.empty?
           relation.none!
         else
-          relation.where!(relation.primary_key => limited_ids)
+          relation.where!(**Array(relation.primary_key).zip(limited_ids.transpose).to_h)
         end
 
         relation.limit_value = relation.offset_value = nil
@@ -1395,7 +1436,7 @@ module ActiveRecord
       end
 
       def add_index_options(table_name, column_name, name: nil, if_not_exists: false, internal: false, **options) # :nodoc:
-        options.assert_valid_keys(:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :include)
+        options.assert_valid_keys(:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :include, :nulls_not_distinct)
 
         column_names = index_column_names(column_name)
 
@@ -1415,6 +1456,7 @@ module ActiveRecord
           type: options[:type],
           using: options[:using],
           include: options[:include],
+          nulls_not_distinct: options[:nulls_not_distinct],
           comment: options[:comment]
         )
 
@@ -1674,7 +1716,8 @@ module ActiveRecord
 
         def foreign_key_name(table_name, options)
           options.fetch(:name) do
-            identifier = "#{table_name}_#{options.fetch(:column)}_fk"
+            columns = Array(options.fetch(:column)).map(&:to_s)
+            identifier = "#{table_name}_#{columns * '_and_'}_fk"
             hashed_identifier = OpenSSL::Digest::SHA256.hexdigest(identifier).first(10)
 
             "fk_rails_#{hashed_identifier}"

@@ -163,6 +163,23 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal "Dallas", @john.partner_name_before_last_save
   end
 
+  test "saved changes tracking for accessors with json column" do
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && ActiveRecord::Base.connection.mariadb?
+      skip "MariaDB doesn't support JSON store_accessor"
+    end
+    @john.enable_friend_requests = true
+    assert @john.enable_friend_requests_changed?
+
+    @john.save!
+    assert_not @john.enable_friend_requests_change
+    assert @john.saved_change_to_enable_friend_requests?
+    assert_equal [nil, true], @john.saved_change_to_enable_friend_requests
+    # Make a second change to test key_before_last_save
+    @john.enable_friend_requests = false
+    @john.save
+    assert_equal true, @john.enable_friend_requests_before_last_save
+  end
+
   test "object initialization with not nullable column" do
     assert_equal true, @john.remember_login
   end

@@ -84,9 +84,8 @@ module ActionDispatch
     # multiple sessions and run them side-by-side, you can also mimic (to some
     # limited extent) multiple simultaneous users interacting with your system.
     #
-    # Typically, you will instantiate a new session using
-    # IntegrationTest#open_session, rather than instantiating
-    # Integration::Session directly.
+    # Typically, you will instantiate a new session using Runner#open_session,
+    # rather than instantiating a \Session directly.
     class Session
       DEFAULT_HOST = "www.example.com"
 
@@ -128,7 +127,7 @@ module ActionDispatch
 
       include ActionDispatch::Routing::UrlFor
 
-      # Create and initialize a new Session instance.
+      # Create and initialize a new \Session instance.
       def initialize(app)
         super()
         @app = app
@@ -212,9 +211,10 @@ module ActionDispatch
       #   Supports +:json+ by default and will set the appropriate request headers.
       #   The headers will be merged into the Rack env hash.
       #
-      # This method is rarely used directly. Use +#get+, +#post+, or other standard
-      # HTTP methods in integration tests. +#process+ is only required when using a
-      # request method that doesn't have a method defined in the integration tests.
+      # This method is rarely used directly. Use RequestHelpers#get,
+      # RequestHelpers#post, or other standard HTTP methods in integration
+      # tests. +#process+ is only required when using a request method that
+      # doesn't have a method defined in the integration tests.
       #
       # This method returns the response status, after performing the request.
       # Furthermore, if this method was called from an ActionDispatch::IntegrationTest object,
@@ -449,8 +449,9 @@ module ActionDispatch
   # more completely than either unit or functional tests do, exercising the
   # entire stack, from the dispatcher to the database.
   #
-  # At its simplest, you simply extend <tt>IntegrationTest</tt> and write your tests
-  # using the get/post methods:
+  # At its simplest, you simply extend <tt>IntegrationTest</tt> and write your
+  # tests using the Integration::RequestHelpers#get and/or
+  # Integration::RequestHelpers#post methods:
   #
   #   require "test_helper"
   #
@@ -621,7 +622,7 @@ module ActionDispatch
   # the request format to JSON unless overridden), sets the content type to
   # "application/json" and encodes the parameters as JSON.
   #
-  # Calling +parsed_body+ on the response parses the response body based on the
+  # Calling TestResponse#parsed_body on the response parses the response body based on the
   # last response MIME type.
   #
   # Out of the box, only <tt>:json</tt> is supported. But for any custom MIME
@@ -633,9 +634,9 @@ module ActionDispatch
   #
   # Where +param_encoder+ defines how the params should be encoded and
   # +response_parser+ defines how the response body should be parsed through
-  # +parsed_body+.
+  # TestResponse#parsed_body.
   #
-  # Consult the Rails Testing Guide for more.
+  # Consult the {Rails Testing Guide}[https://guides.rubyonrails.org/testing.html] for more.
 
   class IntegrationTest < ActiveSupport::TestCase
     include TestProcess::FixtureFile

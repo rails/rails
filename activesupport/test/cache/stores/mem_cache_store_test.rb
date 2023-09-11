@@ -50,6 +50,8 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     cache
   end
 
+  parallelize(workers: 1)
+
   def setup
     skip "memcache server is not up" unless MEMCACHE_UP
 
@@ -77,12 +79,32 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   include CacheStoreBehavior
   include CacheStoreVersionBehavior
   include CacheStoreCoderBehavior
+  include CacheStoreCompressionBehavior
+  include CacheStoreSerializerBehavior
+  include CacheStoreFormatVersionBehavior
   include LocalCacheBehavior
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
+  include CacheLoggingBehavior
   include EncodedKeyCacheBehavior
   include ConnectionPoolBehavior
   include FailureSafetyBehavior
+
+  test "validate pool arguments" do
+    assert_raises TypeError do
+      ActiveSupport::Cache::MemCacheStore.new(pool: { size: [] })
+    end
+
+    assert_raises TypeError do
+      ActiveSupport::Cache::MemCacheStore.new(pool: { timeout: [] })
+    end
+
+    ActiveSupport::Cache::MemCacheStore.new(pool: { size: "12", timeout: "1.5" })
+  end
+
+  test "instantiating the store doesn't connect to Memcache" do
+    ActiveSupport::Cache::MemCacheStore.new("memcached://localhost:1")
+  end
 
   # Overrides test from LocalCacheBehavior in order to stub out the cache clear
   # and replace it with a delete.
@@ -252,7 +274,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     compressed = Zlib::Deflate.deflate(val)
 
     assert_called(
-      Zlib::Deflate,
+      Zlib,
       :deflate,
       "Memcached writes should not perform duplicate compression.",
       times: 1,
@@ -307,14 +329,6 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
       assert_equal ["custom_host"], servers(cache)
     end
-  end
-
-  def test_large_string_with_default_compression_settings
-    assert_compressed(LARGE_STRING)
-  end
-
-  def test_large_object_with_default_compression_settings
-    assert_compressed(LARGE_OBJECT)
   end
 
   def test_can_load_raw_values_from_dalli_store
@@ -430,37 +444,4 @@ class MemCacheStoreTest < ActiveSupport::TestCase
         ENV["MEMCACHE_SERVERS"] = original_value
       end
     end
-end
-
-class OptimizedMemCacheStoreTest < MemCacheStoreTest
-  def setup
-    @previous_format = ActiveSupport::Cache.format_version
-    ActiveSupport::Cache.format_version = 7.0
-    super
-  end
-
-  def teardown
-    super
-    ActiveSupport::Cache.format_version = @previous_format
-  end
-
-  def test_forward_compatibility
-    previous_format = ActiveSupport::Cache.format_version
-    ActiveSupport::Cache.format_version = 6.1
-    @old_store = lookup_store
-    ActiveSupport::Cache.format_version = previous_format
-
-    @old_store.write("foo", "bar")
-    assert_equal "bar", @cache.read("foo")
-  end
-
-  def test_backward_compatibility
-    previous_format = ActiveSupport::Cache.format_version
-    ActiveSupport::Cache.format_version = 6.1
-    @old_store = lookup_store
-    ActiveSupport::Cache.format_version = previous_format
-
-    @cache.write("foo", "bar")
-    assert_equal "bar", @old_store.read("foo")
-  end
 end

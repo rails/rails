@@ -41,6 +41,11 @@ module MessagePackSharedSerializerTests
       assert_not serializer.signature?("{}")
     end
 
+    test "#signature? handles non-ASCII-only non-binary-encoded strings" do
+      assert serializer.signature?(dump("ümlaut").force_encoding(Encoding::UTF_8))
+      assert_not serializer.signature?("ümlaut")
+    end
+
     test "roundtrips Symbol" do
       assert_roundtrip :some_symbol
     end

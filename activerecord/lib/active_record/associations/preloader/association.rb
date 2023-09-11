@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :enddoc:
+
 module ActiveRecord
   module Associations
     class Preloader
@@ -37,8 +39,15 @@ module ActiveRecord
 
           def load_records_for_keys(keys, &block)
             if association_key_name.is_a?(Array)
-              or_scope = keys.map { |values_set| scope.klass.where(association_key_name.zip(values_set).to_h) }.inject(&:or)
-              scope.merge(or_scope)
+              query_constraints = Hash.new { |hsh, key| hsh[key] = Set.new }
+
+              keys.each_with_object(query_constraints) do |values_set, constraints|
+                association_key_name.zip(values_set).each do |key_name, value|
+                  constraints[key_name] << value
+                end
+              end
+
+              scope.where(query_constraints)
             else
               scope.where(association_key_name => keys)
             end.load(&block)
@@ -252,9 +261,9 @@ module ActiveRecord
 
           def derive_key(owner, key)
             if key.is_a?(Array)
-              key.map { |k| convert_key(owner[k]) }
+              key.map { |k| convert_key(owner._read_attribute(k)) }
             else
-              convert_key(owner[key])
+              convert_key(owner._read_attribute(key))
             end
           end
 

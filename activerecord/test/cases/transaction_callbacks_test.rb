@@ -795,6 +795,19 @@ class CallbacksOnDestroyUpdateActionRaceTest < ActiveRecord::TestCase
     assert_equal [:commit_on_destroy], TopicWithCallbacksOnDestroy.history
   end
 
+  def test_trigger_once_on_multiple_deletions_in_a_transaction
+    TopicWithCallbacksOnDestroy.clear_history
+    topic = TopicWithCallbacksOnDestroy.new
+    topic.save
+
+    TopicWithCallbacksOnDestroy.transaction do
+      topic.destroy
+      topic.destroy
+    end
+
+    assert_equal [:commit_on_destroy], TopicWithCallbacksOnDestroy.history
+  end
+
   def test_rollback_on_multiple_deletions
     TopicWithCallbacksOnDestroy.clear_history
     topic = TopicWithCallbacksOnDestroy.new

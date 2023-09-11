@@ -16,8 +16,6 @@ class PostgresqlLtree < ActiveRecord::Base
 end
 
 class PostgresqlDataTypeTest < ActiveRecord::PostgreSQLTestCase
-  self.use_transactional_tests = false
-
   def setup
     @connection = ActiveRecord::Base.connection
 

@@ -83,6 +83,13 @@ module ActionView::Helpers
   end
 
   class FormBuilder
+    # Wraps ActionView::Helpers::FormHelper#rich_text_area for form builders:
+    #
+    #   <%= form_with model: @message do |f| %>
+    #     <%= f.rich_text_area :content %>
+    #   <% end %>
+    #
+    # Please refer to the documentation of the base helper for details.
     def rich_text_area(method, options = {})
       @template.rich_text_area(@object_name, method, objectify_options(options))
     end

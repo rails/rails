@@ -3,7 +3,7 @@
 require "ripper"
 
 module Rails
-  # Implements the logic behind <tt>Rails::Command::NotesCommand</tt>. See <tt>rails notes --help</tt> for usage information.
+  # Implements the logic behind +Rails::Command::NotesCommand+. See <tt>rails notes --help</tt> for usage information.
   #
   # Annotation objects are triplets <tt>:line</tt>, <tt>:tag</tt>, <tt>:text</tt> that
   # represent the line where the annotation lives, its tag, and its text. Note

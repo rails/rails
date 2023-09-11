@@ -9,13 +9,17 @@ require "active_record/database_configurations/connection_url_resolver"
 module ActiveRecord
   # = Active Record Database Configurations
   #
-  # ActiveRecord::DatabaseConfigurations returns an array of DatabaseConfig
+  # +ActiveRecord::DatabaseConfigurations+ returns an array of +DatabaseConfig+
   # objects that are constructed from the application's database
   # configuration hash or URL string.
   #
-  # The array of +DatabaseConfig+ objects in an application default to
-  # either a +HashConfig+ or +UrlConfig+. If you register a custom handler,
-  # objects will be created according to the conditions of the handler.
+  # The array of +DatabaseConfig+ objects in an application default to either a
+  # HashConfig or UrlConfig. You can retrieve your application's config by using
+  # ActiveRecord::Base.configurations.
+  #
+  # If you register a custom handler, objects will be created according to the
+  # conditions of the handler. See ::register_db_config_handler for more on
+  # registering custom handlers.
   class DatabaseConfigurations
     class InvalidConfigurationError < StandardError; end
 
@@ -73,8 +77,8 @@ module ActiveRecord
     # Collects the configs for the environment and optionally the specification
     # name passed in. To include replica configurations pass <tt>include_hidden: true</tt>.
     #
-    # If a name is provided a single DatabaseConfig object will be
-    # returned, otherwise an array of DatabaseConfig objects will be
+    # If a name is provided a single +DatabaseConfig+ object will be
+    # returned, otherwise an array of +DatabaseConfig+ objects will be
     # returned that corresponds with the environment and type requested.
     #
     # ==== Options
@@ -88,7 +92,7 @@ module ActiveRecord
     #   hash. Useful for selecting configs that use a custom db config handler or finding
     #   configs with hashes that contain a particular key.
     # * <tt>include_hidden:</tt> Determines whether to include replicas and configurations
-    #   hidden by +database_tasks: false+ in the returned list. Most of the time we're only
+    #   hidden by <tt>database_tasks: false</tt> in the returned list. Most of the time we're only
     #   iterating over the primary connections (i.e. migrations don't need to run for the
     #   write and read connection). Defaults to +false+.
     def configs_for(env_name: nil, name: nil, config_key: nil, include_hidden: false)
@@ -116,10 +120,10 @@ module ActiveRecord
       end
     end
 
-    # Returns a single DatabaseConfig object based on the requested environment.
+    # Returns a single +DatabaseConfig+ object based on the requested environment.
     #
     # If the application has multiple databases +find_db_config+ will return
-    # the first DatabaseConfig for the environment.
+    # the first +DatabaseConfig+ for the environment.
     def find_db_config(env)
       env = env.to_s
       configurations.find do |db_config|
@@ -143,8 +147,6 @@ module ActiveRecord
     end
 
     # Checks if the application's configurations are empty.
-    #
-    # Aliased to blank?
     def empty?
       configurations.empty?
     end

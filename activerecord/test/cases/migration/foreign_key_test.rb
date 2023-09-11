@@ -519,13 +519,13 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
         if ActiveRecord::Base.connection.supports_deferrable_constraints?
           def test_deferrable_foreign_key
-            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", deferrable: true
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", deferrable: :immediate
 
             foreign_keys = @connection.foreign_keys("astronauts")
             assert_equal 1, foreign_keys.size
 
             fk = foreign_keys.first
-            assert_equal true, fk.options[:deferrable]
+            assert_equal :immediate, fk.deferrable
           end
 
           def test_not_deferrable_foreign_key
@@ -535,7 +535,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             assert_equal 1, foreign_keys.size
 
             fk = foreign_keys.first
-            assert_equal false, fk.options[:deferrable]
+            assert_equal false, fk.deferrable
           end
 
           def test_deferrable_initially_deferred_foreign_key
@@ -545,7 +545,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             assert_equal 1, foreign_keys.size
 
             fk = foreign_keys.first
-            assert_equal :deferred, fk.options[:deferrable]
+            assert_equal :deferred, fk.deferrable
           end
 
           def test_deferrable_initially_immediate_foreign_key
@@ -555,15 +555,15 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             assert_equal 1, foreign_keys.size
 
             fk = foreign_keys.first
-            assert_equal true, fk.options[:deferrable]
+            assert_equal :immediate, fk.deferrable
           end
 
           def test_schema_dumping_with_defferable
-            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", deferrable: true
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", deferrable: :immediate
 
             output = dump_table_schema "astronauts"
 
-            assert_match %r{\s+add_foreign_key "astronauts", "rockets", deferrable: true$}, output
+            assert_match %r{\s+add_foreign_key "astronauts", "rockets", deferrable: :immediate$}, output
           end
 
           def test_schema_dumping_with_disabled_defferable
@@ -587,7 +587,19 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
             output = dump_table_schema "astronauts"
 
-            assert_match %r{\s+add_foreign_key "astronauts", "rockets", deferrable: true$}, output
+            assert_match %r{\s+add_foreign_key "astronauts", "rockets", deferrable: :immediate$}, output
+          end
+
+          def test_deferrable_true_foreign_key
+            assert_deprecated(ActiveRecord.deprecator) do
+              @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", deferrable: true
+            end
+
+            foreign_keys = @connection.foreign_keys("astronauts")
+            assert_equal 1, foreign_keys.size
+
+            fk = foreign_keys.first
+            assert_equal :immediate, fk.deferrable
           end
         end
 
@@ -784,6 +796,96 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           def column_for(table_name, column_name)
             @connection.columns(table_name).find { |column| column.name == column_name.to_s }
           end
+      end
+
+      class CompositeForeignKeyTest < ActiveRecord::TestCase
+        include SchemaDumpingHelper
+
+        setup do
+          @connection = ActiveRecord::Base.connection
+          @connection.create_table :rockets, primary_key: [:tenant_id, :id], force: true do |t|
+            t.integer :tenant_id
+            t.integer :id
+          end
+          @connection.create_table :astronauts, force: true do |t|
+            t.integer :rocket_id
+            t.integer :rocket_tenant_id
+          end
+        end
+
+        teardown do
+          @connection.drop_table :astronauts, if_exists: true rescue nil
+          @connection.drop_table :rockets, if_exists: true rescue nil
+        end
+
+        def test_add_composite_foreign_key_raises_without_options
+          error = assert_raises(ActiveRecord::StatementInvalid) do
+            @connection.add_foreign_key :astronauts, :rockets
+          end
+
+          if current_adapter?(:PostgreSQLAdapter)
+            assert_match(/there is no unique constraint matching given keys for referenced table "rockets"/, error.message)
+          elsif current_adapter?(:SQLite3Adapter)
+            assert_match(/foreign key mismatch - "astronauts" referencing "rockets"/, error.message)
+          else
+            # MariaDB and different versions of MySQL generate different error messages.
+            [
+              /Foreign key constraint is incorrectly formed/i,
+              /Failed to add the foreign key constraint/i,
+              /Cannot add foreign key constraint/i
+            ].any? { |message| error.message.match?(message) }
+          end
+        end
+
+        def test_add_composite_foreign_key_infers_column
+          @connection.add_foreign_key :astronauts, :rockets, primary_key: [:tenant_id, :id]
+
+          foreign_keys = @connection.foreign_keys(:astronauts)
+          assert_equal 1, foreign_keys.size
+
+          fk = foreign_keys.first
+          assert_equal ["rocket_tenant_id", "rocket_id"], fk.column
+        end
+
+        def test_add_composite_foreign_key_raises_if_column_and_primary_key_sizes_mismatch
+          assert_raises(ArgumentError, match: ":column must reference all the :primary_key columns") do
+            @connection.add_foreign_key :astronauts, :rockets, column: :rocket_id, primary_key: [:tenant_id, :id]
+          end
+        end
+
+        def test_foreign_key_exists
+          @connection.add_foreign_key :astronauts, :rockets, primary_key: [:tenant_id, :id]
+
+          assert @connection.foreign_key_exists?(:astronauts, :rockets)
+          assert_not @connection.foreign_key_exists?(:astronauts, :stars)
+        end
+
+        def test_foreign_key_exists_by_options
+          @connection.add_foreign_key :astronauts, :rockets, primary_key: [:tenant_id, :id]
+
+          assert @connection.foreign_key_exists?(:astronauts, :rockets, primary_key: [:tenant_id, :id])
+          assert @connection.foreign_key_exists?(:astronauts, :rockets, column: [:rocket_tenant_id, :rocket_id], primary_key: [:tenant_id, :id])
+
+          assert_not @connection.foreign_key_exists?(:astronauts, :rockets, primary_key: [:id, :tenant_id])
+          assert_not @connection.foreign_key_exists?(:astronauts, :rockets, primary_key: :id)
+          assert_not @connection.foreign_key_exists?(:astronauts, :rockets, column: :rocket_id)
+        end
+
+        def test_remove_foreign_key
+          @connection.add_foreign_key :astronauts, :rockets, primary_key: [:tenant_id, :id]
+          assert_equal 1, @connection.foreign_keys(:astronauts).size
+
+          @connection.remove_foreign_key :astronauts, :rockets
+          assert_empty @connection.foreign_keys(:astronauts)
+        end
+
+        def test_schema_dumping
+          @connection.add_foreign_key :astronauts, :rockets, primary_key: [:tenant_id, :id]
+
+          output = dump_table_schema "astronauts"
+
+          assert_match %r{\s+add_foreign_key "astronauts", "rockets", column: \["rocket_tenant_id", "rocket_id"\], primary_key: \["tenant_id", "id"\]$}, output
+        end
       end
     end
   end

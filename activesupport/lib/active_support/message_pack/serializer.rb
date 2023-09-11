@@ -5,7 +5,7 @@ require_relative "extensions"
 module ActiveSupport
   module MessagePack
     module Serializer # :nodoc:
-      SIGNATURE = (+"\xCC\x80").force_encoding("ASCII-8BIT").freeze # == 128.to_msgpack
+      SIGNATURE = "\xCC\x80".b.freeze # == 128.to_msgpack
       SIGNATURE_INT = 128
 
       def dump(object)
@@ -25,7 +25,7 @@ module ActiveSupport
       end
 
       def signature?(dumped)
-        dumped.start_with?(SIGNATURE)
+        dumped.getbyte(0) == SIGNATURE.getbyte(0) && dumped.getbyte(1) == SIGNATURE.getbyte(1)
       end
 
       def message_pack_factory

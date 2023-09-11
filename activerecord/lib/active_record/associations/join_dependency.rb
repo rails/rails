@@ -253,22 +253,24 @@ module ActiveRecord
             end
 
             if node.primary_key
-              key = aliases.column_alias(node, node.primary_key)
-              id = row[key]
+              keys = Array(node.primary_key).map { |column| aliases.column_alias(node, column) }
+              ids = keys.map { |key| row[key] }
             else
-              key = aliases.column_alias(node, node.reflection.join_primary_key.to_s)
-              id = nil # Avoid id-based model caching.
+              keys = Array(node.reflection.join_primary_key).map { |column| aliases.column_alias(node, column.to_s) }
+              ids = keys.map { nil } # Avoid id-based model caching.
             end
 
-            if row[key].nil?
+            if keys.any? { |key| row[key].nil? }
               nil_association = ar_parent.association(node.reflection.name)
               nil_association.loaded!
               next
             end
 
-            unless model = seen[ar_parent][node][id]
-              model = construct_model(ar_parent, node, row, model_cache, id, strict_loading_value)
-              seen[ar_parent][node][id] = model if id
+            ids.each do |id|
+              unless model = seen[ar_parent][node][id]
+                model = construct_model(ar_parent, node, row, model_cache, id, strict_loading_value)
+                seen[ar_parent][node][id] = model if id
+              end
             end
 
             construct(model, node, row, seen, model_cache, strict_loading_value)

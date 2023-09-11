@@ -19,10 +19,10 @@ class Time
     #
     # This method accepts any of the following:
     #
-    # * A Rails TimeZone object.
-    # * An identifier for a Rails TimeZone object (e.g., "Eastern Time (US & Canada)", <tt>-5.hours</tt>).
-    # * A <tt>TZInfo::Timezone</tt> object.
-    # * An identifier for a <tt>TZInfo::Timezone</tt> object (e.g., "America/New_York").
+    # * A \Rails TimeZone object.
+    # * An identifier for a \Rails TimeZone object (e.g., "Eastern Time (US & Canada)", <tt>-5.hours</tt>).
+    # * A +TZInfo::Timezone+ object.
+    # * An identifier for a +TZInfo::Timezone+ object (e.g., "America/New_York").
     #
     # Here's an example of how you might set <tt>Time.zone</tt> on a per request basis and reset it when the request is done.
     # <tt>current_user.time_zone</tt> just needs to return a string identifying the user's preferred time zone:

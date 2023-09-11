@@ -11,7 +11,7 @@ module ActiveModel
   # Like the Active Record methods, the callback chain is aborted as soon as
   # one of the methods throws +:abort+.
   #
-  # First, extend <tt>ActiveModel::Callbacks</tt> from the class you are creating:
+  # First, extend +ActiveModel::Callbacks+ from the class you are creating:
   #
   #   class MyModel
   #     extend ActiveModel::Callbacks

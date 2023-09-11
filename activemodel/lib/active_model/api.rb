@@ -4,7 +4,7 @@ module ActiveModel
   # = Active \Model \API
   #
   # Includes the required interface for an object to interact with
-  # Action Pack and Action View, using different Active Model modules.
+  # Action Pack and Action View, using different Active \Model modules.
   # It includes model name introspections, conversions, translations, and
   # validations. Besides that, it allows you to initialize the object with a
   # hash of attributes, pretty much like Active Record does.
@@ -20,7 +20,7 @@ module ActiveModel
   #   person.name # => "bob"
   #   person.age  # => "18"
   #
-  # Note that, by default, <tt>ActiveModel::API</tt> implements <tt>persisted?</tt>
+  # Note that, by default, +ActiveModel::API+ implements #persisted?
   # to return +false+, which is the most common case. You may want to override
   # it in your class to simulate a different scenario:
   #
@@ -36,7 +36,7 @@ module ActiveModel
   #   person = Person.new(id: 1, name: 'bob')
   #   person.persisted? # => true
   #
-  # Also, if for some reason you need to run code on <tt>initialize</tt>, make
+  # Also, if for some reason you need to run code on initialize ( ::new ), make
   # sure you call +super+ if you want the attributes hash initialization to
   # happen.
   #
@@ -54,7 +54,7 @@ module ActiveModel
   #   person.omg # => true
   #
   # For more detailed information on other functionalities available, please
-  # refer to the specific modules included in <tt>ActiveModel::API</tt>
+  # refer to the specific modules included in +ActiveModel::API+
   # (see below).
   module API
     extend ActiveSupport::Concern

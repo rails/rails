@@ -14,9 +14,10 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_connection_error
-    assert_raises ActiveRecord::ConnectionNotEstablished do
+    error = assert_raises ActiveRecord::ConnectionNotEstablished do
       ActiveRecord::Base.mysql2_connection(socket: File::NULL, prepared_statements: false).connect!
     end
+    assert_kind_of ActiveRecord::ConnectionAdapters::NullPool, error.connection_pool
   end
 
   def test_reconnection_error
@@ -37,41 +38,11 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
       nil,
       { socket: File::NULL, prepared_statements: false }
     )
-    assert_raises ActiveRecord::ConnectionNotEstablished do
+    error = assert_raises ActiveRecord::ConnectionNotEstablished do
       @conn.reconnect!
     end
-  end
 
-  def test_mysql2_prepared_statements_default_deprecation_warning
-    fake_connection = Class.new do
-      def query_options
-        {}
-      end
-
-      def query(*)
-      end
-
-      def close
-      end
-    end.new
-
-    assert_deprecated(ActiveRecord.deprecator) do
-      ActiveRecord::ConnectionAdapters::Mysql2Adapter.new(
-        fake_connection,
-        ActiveRecord::Base.logger,
-        nil,
-        { socket: File::NULL }
-      )
-    end
-
-    assert_not_deprecated(ActiveRecord.deprecator) do
-      ActiveRecord::ConnectionAdapters::Mysql2Adapter.new(
-        fake_connection,
-        ActiveRecord::Base.logger,
-        nil,
-        { socket: File::NULL, prepared_statements: false }
-      )
-    end
+    assert_equal @conn.pool, error.connection_pool
   end
 
   def test_mysql2_default_prepared_statements
@@ -176,6 +147,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
       error.message
     )
     assert_not_nil error.cause
+    assert_equal @conn.pool, error.connection_pool
   ensure
     @conn.execute("ALTER TABLE engines DROP COLUMN old_car_id") rescue nil
   end
@@ -201,6 +173,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
         error.message
       )
       assert_not_nil error.cause
+      assert_equal @conn.pool, error.connection_pool
     ensure
       @conn.remove_reference(:engines, :person)
       @conn.remove_reference(:engines, :old_car)
@@ -230,6 +203,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
       error.message
     )
     assert_not_nil error.cause
+    assert_equal @conn.pool, error.connection_pool
   ensure
     @conn.drop_table :foos, if_exists: true
   end
@@ -257,6 +231,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
       error.message
     )
     assert_not_nil error.cause
+    assert_equal @conn.pool, error.connection_pool
   ensure
     @conn.drop_table :foos, if_exists: true
   end
@@ -281,6 +256,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
       column on `foos` to be :string. (For example `t.string :subscriber_id`).
     MSG
     assert_not_nil error.cause
+    assert_equal @conn.pool, error.connection_pool
   ensure
     @conn.drop_table :foos, if_exists: true
   end
@@ -291,30 +267,33 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     ActiveRecord::Base.establish_connection(
       db_config.configuration_hash.merge("read_timeout" => 1)
     )
+    connection = ActiveRecord::Base.connection
 
     error = assert_raises(ActiveRecord::AdapterTimeout) do
-      ActiveRecord::Base.connection.execute("SELECT SLEEP(2)")
+      connection.execute("SELECT SLEEP(2)")
     end
     assert_kind_of ActiveRecord::QueryAborted, error
-
     assert_equal Mysql2::Error::TimeoutError, error.cause.class
+    assert_equal connection.pool, error.connection_pool
   ensure
     ActiveRecord::Base.establish_connection :arunit
   end
 
   def test_statement_timeout_error_codes
     raw_conn = @conn.raw_connection
-    assert_raises(ActiveRecord::StatementTimeout) do
+    error = assert_raises(ActiveRecord::StatementTimeout) do
       raw_conn.stub(:query, ->(_sql) { raise Mysql2::Error.new("fail", 50700, ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::ER_FILSORT_ABORT) }) {
         @conn.execute("SELECT 1")
       }
     end
+    assert_equal @conn.pool, error.connection_pool
 
-    assert_raises(ActiveRecord::StatementTimeout) do
+    error = assert_raises(ActiveRecord::StatementTimeout) do
       raw_conn.stub(:query, ->(_sql) { raise Mysql2::Error.new("fail", 50700, ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::ER_QUERY_TIMEOUT) }) {
         @conn.execute("SELECT 1")
       }
     end
+    assert_equal @conn.pool, error.connection_pool
   end
 
   def test_database_timezone_changes_synced_to_connection
@@ -344,9 +323,11 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
 
   def test_raises_warnings_when_behaviour_raise
     with_db_warnings_action(:raise) do
-      assert_raises(ActiveRecord::SQLWarning) do
+      error = assert_raises(ActiveRecord::SQLWarning) do
         @conn.execute('SELECT 1 + "foo"')
       end
+
+      assert_equal @conn.pool, error.connection_pool
     end
   end
 

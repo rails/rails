@@ -95,16 +95,17 @@ class TestHelperMailerTest < ActionMailer::TestCase
     end
   end
 
-  def test_assert_emails_returns_the_emails_that_were_sent_if_a_block_is_given
+  def test_capture_emails
     assert_nothing_raised do
-      email = assert_emails 1 do
+      emails = capture_emails do
         TestHelperMailer.test.deliver_now
       end
+      email = emails.first
       assert_instance_of Mail::Message, email
       assert_equal "Hello, Earth", email.body.to_s
       assert_equal "Hi!", email.subject
 
-      emails = assert_emails 2 do
+      emails = capture_emails do
         TestHelperMailer.test.deliver_now
         TestHelperMailer.test.deliver_now
       end
@@ -431,9 +432,11 @@ class TestHelperMailerTest < ActionMailer::TestCase
 
   def test_assert_enqueued_email_with_with_parameterized_args
     assert_nothing_raised do
-      assert_enqueued_email_with TestHelperMailer, :test_parameter_args, args: { all: "good" } do
-        silence_stream($stdout) do
-          TestHelperMailer.with(all: "good").test_parameter_args.deliver_later
+      assert_deprecated(ActionMailer.deprecator) do
+        assert_enqueued_email_with TestHelperMailer, :test_parameter_args, args: { all: "good" } do
+          silence_stream($stdout) do
+            TestHelperMailer.with(all: "good").test_parameter_args.deliver_later
+          end
         end
       end
     end
@@ -483,9 +486,67 @@ class TestHelperMailerTest < ActionMailer::TestCase
     assert_nothing_raised do
       silence_stream($stdout) do
         TestHelperMailer.with(all: "good").test_parameter_args.deliver_later
+      end
+      assert_deprecated(ActionMailer.deprecator) do
         assert_enqueued_email_with TestHelperMailer, :test_parameter_args, args: { all: "good" }
       end
     end
+  end
+
+  def test_assert_enqueued_email_with_supports_params_matcher_proc
+    mail_params = { all: "good" }
+
+    silence_stream($stdout) do
+      TestHelperMailer.with(mail_params).test_parameter_args.deliver_later
+    end
+
+    matcher_params = nil
+
+    assert_nothing_raised do
+      assert_enqueued_email_with TestHelperMailer, :test_parameter_args, params: ->(params) { matcher_params = params }
+    end
+
+    assert_equal mail_params, matcher_params
+
+    assert_raises ActiveSupport::TestCase::Assertion do
+      assert_enqueued_email_with TestHelperMailer, :test_parameter_args, params: ->(_) { false }
+    end
+  end
+
+  def test_assert_enqueued_email_with_supports_args_matcher_proc
+    mail_args = ["some_email", "some_name"]
+
+    silence_stream($stdout) do
+      TestHelperMailer.test_args(*mail_args).deliver_later
+    end
+
+    matcher_args = nil
+
+    assert_nothing_raised do
+      assert_enqueued_email_with TestHelperMailer, :test_args, args: ->(args) { matcher_args = args }
+    end
+
+    assert_equal mail_args, matcher_args
+
+    assert_raises ActiveSupport::TestCase::Assertion do
+      assert_enqueued_email_with TestHelperMailer, :test_args, args: ->(_) { false }
+    end
+  end
+
+  def test_assert_enqueued_email_with_supports_named_args_matcher_proc
+    mail_args = [{ email: "some_email", name: "some_name" }]
+
+    silence_stream($stdout) do
+      TestHelperMailer.test_named_args(**mail_args[0]).deliver_later
+    end
+
+    matcher_args = nil
+
+    assert_nothing_raised do
+      assert_enqueued_email_with TestHelperMailer, :test_named_args, args: ->(args) { matcher_args = args }
+    end
+
+    assert_equal mail_args, matcher_args
   end
 
   def test_deliver_enqueued_emails_with_no_block
@@ -561,5 +622,19 @@ class AnotherTestHelperMailerTest < ActionMailer::TestCase
   def test_setup_shouldnt_conflict_with_mailer_setup
     assert_kind_of Mail::Message, @expected
     assert_equal "a value", @test_var
+  end
+end
+
+class AdapterIsNotTestAdapterTest < ActionMailer::TestCase
+  def queue_adapter_for_test
+    ActiveJob::QueueAdapters::InlineAdapter.new
+  end
+
+  def test_can_send_email_using_any_active_job_adapter
+    assert_nothing_raised do
+      assert_emails 1 do
+        TestHelperMailer.test.deliver_now
+      end
+    end
   end
 end

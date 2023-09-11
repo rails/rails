@@ -734,6 +734,20 @@ module Arel # :nodoc: all
           collector << quote_column_name(o.name)
         end
 
+        def visit_Arel_Nodes_Cte(o, collector)
+          collector << quote_table_name(o.name)
+          collector << " AS "
+
+          case o.materialized
+          when true
+            collector << "MATERIALIZED "
+          when false
+            collector << "NOT MATERIALIZED "
+          end
+
+          visit o.relation, collector
+        end
+
         def visit_Arel_Attributes_Attribute(o, collector)
           join_name = o.relation.table_alias || o.relation.name
           collector << quote_table_name(join_name) << "." << quote_column_name(o.name)
@@ -995,19 +1009,7 @@ module Arel # :nodoc: all
         def collect_ctes(children, collector)
           children.each_with_index do |child, i|
             collector << ", " unless i == 0
-
-            case child
-            when Arel::Nodes::As
-              name = child.left.name
-              relation = child.right
-            when Arel::Nodes::TableAlias
-              name = child.name
-              relation = child.relation
-            end
-
-            collector << quote_table_name(name)
-            collector << " AS "
-            visit relation, collector
+            visit child.to_cte, collector
           end
 
           collector

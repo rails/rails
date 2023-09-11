@@ -92,15 +92,15 @@ This section details some of the potential issues you may run into with native e
 
 In order to compile the `mysql2` gem on macOS you will need the following:
 
-1) `openssl@1.1` installed (not `openssl@3`)
-2) Ruby compiled with  `openssl@1.1`
-3) Set compiler flags in the bundle config for `mysql2`.
+1. `openssl@1.1` installed (not `openssl@3`)
+2. Ruby compiled with  `openssl@1.1`
+3. Set compiler flags in the bundle config for `mysql2`.
 
 If both `openssl@1.1` and `openssl@3` are installed, you will need to tell Ruby to use `openssl@1.1` in order for Rails to bundle `mysql2`.
 
 In your `.bash_profile` set the `PATH` and `RUBY_CONFIGURE_OPTS` to point to `openssl@1.1`:
 
-```
+```sh
 export PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
 export RUBY_CONFIGURE_OPTS="--with-openssl-dir=$(brew --prefix openssl@1.1)"
 ```

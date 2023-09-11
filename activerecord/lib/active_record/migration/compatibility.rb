@@ -99,19 +99,7 @@ module ActiveRecord
           options[:_uses_legacy_table_name] = true
           options[:_skip_validate_options] = true
 
-          if block_given?
-            super { |t| yield compatible_table_definition(t) }
-          else
-            super
-          end
-        end
-
-        def change_table(table_name, **options)
-          if block_given?
-            super { |t| yield compatible_table_definition(t) }
-          else
-            super
-          end
+          super
         end
 
         def rename_table(table_name, new_name, **options)
@@ -122,7 +110,7 @@ module ActiveRecord
         def change_column(table_name, column_name, type, **options)
           options[:_skip_validate_options] = true
           if connection.adapter_name == "Mysql2" || connection.adapter_name == "Trilogy"
-            options[:collation] = :no_collation
+            options[:collation] ||= :no_collation
           end
           super
         end
@@ -134,6 +122,13 @@ module ActiveRecord
         def disable_extension(name, **options)
           if connection.adapter_name == "PostgreSQL"
             options[:force] = :cascade
+          end
+          super
+        end
+
+        def add_foreign_key(from_table, to_table, **options)
+          if connection.adapter_name == "PostgreSQL" && options[:deferrable] == true
+            options[:deferrable] = :immediate
           end
           super
         end
@@ -171,25 +166,23 @@ module ActiveRecord
           super
         end
 
-        def create_table(table_name, **options)
-          if block_given?
-            super { |t| yield compatible_table_definition(t) }
-          else
-            super
+        def change_column(table_name, column_name, type, **options)
+          if type == :datetime
+            options[:precision] ||= nil
           end
-        end
 
-        def change_table(table_name, **options)
-          if block_given?
-            super { |t| yield compatible_table_definition(t) }
-          else
-            super
-          end
+          type = PostgreSQLCompat.compatible_timestamp_type(type, connection)
+          super
         end
 
         module TableDefinition
           def new_column_definition(name, type, **options)
             type = PostgreSQLCompat.compatible_timestamp_type(type, @conn)
+            super
+          end
+
+          def change(name, type, index: nil, **options)
+            options[:precision] ||= nil
             super
           end
 
@@ -234,30 +227,6 @@ module ActiveRecord
           private
             def raise_on_if_exist_options(options)
             end
-        end
-
-        def create_table(table_name, **options)
-          if block_given?
-            super { |t| yield compatible_table_definition(t) }
-          else
-            super
-          end
-        end
-
-        def change_table(table_name, **options)
-          if block_given?
-            super { |t| yield compatible_table_definition(t) }
-          else
-            super
-          end
-        end
-
-        def create_join_table(table_1, table_2, **options)
-          if block_given?
-            super { |t| yield compatible_table_definition(t) }
-          else
-            super
-          end
         end
 
         def add_reference(table_name, ref_name, **options)
@@ -310,30 +279,6 @@ module ActiveRecord
 
           def invert_change_table_comment(args)
             [:change_table_comment, args]
-          end
-        end
-
-        def create_table(table_name, **options)
-          if block_given?
-            super { |t| yield compatible_table_definition(t) }
-          else
-            super
-          end
-        end
-
-        def change_table(table_name, **options)
-          if block_given?
-            super { |t| yield compatible_table_definition(t) }
-          else
-            super
-          end
-        end
-
-        def create_join_table(table_1, table_2, **options)
-          if block_given?
-            super { |t| yield compatible_table_definition(t) }
-          else
-            super
           end
         end
 

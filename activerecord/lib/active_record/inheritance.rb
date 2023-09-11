@@ -94,14 +94,24 @@ module ActiveRecord
         :true == (@finder_needs_type_condition ||= descends_from_active_record? ? :false : :true)
       end
 
-      # Returns the class descending directly from ActiveRecord::Base, or
-      # an abstract class, if any, in the inheritance hierarchy.
+      # Returns the first class in the inheritance hierarchy that descends from either an
+      # abstract class or from <tt>ActiveRecord::Base</tt>.
       #
-      # If A extends ActiveRecord::Base, A.base_class will return A. If B descends from A
-      # through some arbitrarily deep hierarchy, B.base_class will return A.
+      # Consider the following behaviour:
       #
-      # If B < A and C < B and if A is an abstract_class then both B.base_class
-      # and C.base_class would return B as the answer since A is an abstract_class.
+      #   class ApplicationRecord < ActiveRecord::Base
+      #     self.abstract_class = true
+      #   end
+      #   class Shape < ApplicationRecord
+      #     self.abstract_class = true
+      #   end
+      #   Polygon = Class.new(Shape)
+      #   Square = Class.new(Polygon)
+      #
+      #   ApplicationRecord.base_class # => ApplicationRecord
+      #   Shape.base_class # => Shape
+      #   Polygon.base_class # => Polygon
+      #   Square.base_class # => Polygon
       attr_reader :base_class
 
       # Returns whether the class is a base class.

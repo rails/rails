@@ -264,6 +264,22 @@ body {
   background: #ccc;
 }
 
+a.back-to-top {
+  visibility: hidden;
+  position: fixed;
+  right: 1em;
+  bottom: 1em;
+  padding: 2.5em;
+  border-radius: 3em;
+  box-shadow: 2px 2px 4px 0px black;
+  background: url('../images/up_white_arrow.png') no-repeat center center, #c52f24;
+  background-size: 2em;
+}
+
+a.back-to-top.show {
+  visibility: visible;
+}
+
 #header {
   background: #c52f24 url(../images/header_tile.gif) repeat-x;
   color: #FFF;

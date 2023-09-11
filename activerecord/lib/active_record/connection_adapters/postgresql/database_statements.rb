@@ -64,7 +64,7 @@ module ActiveRecord
             fields.each_with_index do |fname, i|
               ftype = result.ftype i
               fmod  = result.fmod i
-              types[fname] = get_oid_type(ftype, fmod, fname)
+              types[fname] = types[i] = get_oid_type(ftype, fmod, fname)
             end
             build_result(columns: fields, rows: result.values, column_types: types)
           end
@@ -75,22 +75,23 @@ module ActiveRecord
         end
         alias :exec_update :exec_delete
 
-        def sql_for_insert(sql, pk, binds) # :nodoc:
+        def sql_for_insert(sql, pk, binds, returning) # :nodoc:
           if pk.nil?
             # Extract the table from the insert sql. Yuck.
             table_ref = extract_table_ref_from_insert_sql(sql)
             pk = primary_key(table_ref) if table_ref
           end
 
-          if pk = suppress_composite_primary_key(pk)
-            sql = "#{sql} RETURNING #{quote_column_name(pk)}"
-          end
+          returning_columns = returning || Array(pk)
+
+          returning_columns_statement = returning_columns.map { |c| quote_column_name(c) }.join(", ")
+          sql = "#{sql} RETURNING #{returning_columns_statement}" if returning_columns.any?
 
           super
         end
         private :sql_for_insert
 
-        def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil) # :nodoc:
+        def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil, returning: nil) # :nodoc:
           if use_insert_returning? || pk == false
             super
           else
@@ -170,6 +171,10 @@ module ActiveRecord
           # Returns the current ID of a table's sequence.
           def last_insert_id_result(sequence_name)
             internal_exec_query("SELECT currval(#{quote(sequence_name)})", "SQL")
+          end
+
+          def returning_column_values(result)
+            result.rows.first
           end
 
           def suppress_composite_primary_key(pk)

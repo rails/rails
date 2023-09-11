@@ -43,7 +43,7 @@ module ActionView
       # source, and include other JavaScript or CoffeeScript files inside the manifest.
       #
       # If the server supports HTTP Early Hints, and the +defer+ option is not
-      # enabled, Rails will push a <tt>103 Early Hints</tt> response that links
+      # enabled, \Rails will push a <tt>103 Early Hints</tt> response that links
       # to the assets.
       #
       # ==== Options
@@ -112,6 +112,7 @@ module ActionView
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
         preload_links = []
+        use_preload_links_header = options["preload_links_header"].nil? ? preload_links_header : options.delete("preload_links_header")
         nopush = options["nopush"].nil? ? true : options.delete("nopush")
         crossorigin = options.delete("crossorigin")
         crossorigin = "anonymous" if crossorigin == true
@@ -120,7 +121,7 @@ module ActionView
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_javascript(source, path_options)
-          if preload_links_header && !options["defer"] && href.present? && !href.start_with?("data:")
+          if use_preload_links_header && !options["defer"] && href.present? && !href.start_with?("data:")
             preload_link = "<#{href}>; rel=#{rel}; as=script"
             preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
             preload_link += "; integrity=#{integrity}" unless integrity.nil?
@@ -137,7 +138,7 @@ module ActionView
           content_tag("script", "", tag_options)
         }.join("\n").html_safe
 
-        if preload_links_header
+        if use_preload_links_header
           send_preload_links_header(preload_links)
         end
 
@@ -152,7 +153,7 @@ module ActionView
       # set <tt>extname: false</tt> in the options.
       # You can modify the link attributes by passing a hash as the last argument.
       #
-      # If the server supports HTTP Early Hints, Rails will push a <tt>103 Early
+      # If the server supports HTTP Early Hints, \Rails will push a <tt>103 Early
       # Hints</tt> response that links to the assets.
       #
       # ==== Options
@@ -192,6 +193,7 @@ module ActionView
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
+        use_preload_links_header = options["preload_links_header"].nil? ? preload_links_header : options.delete("preload_links_header")
         preload_links = []
         crossorigin = options.delete("crossorigin")
         crossorigin = "anonymous" if crossorigin == true
@@ -200,7 +202,7 @@ module ActionView
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_stylesheet(source, path_options)
-          if preload_links_header && href.present? && !href.start_with?("data:")
+          if use_preload_links_header && href.present? && !href.start_with?("data:")
             preload_link = "<#{href}>; rel=preload; as=style"
             preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
             preload_link += "; integrity=#{integrity}" unless integrity.nil?
@@ -220,7 +222,7 @@ module ActionView
           tag(:link, tag_options)
         }.join("\n").html_safe
 
-        if preload_links_header
+        if use_preload_links_header
           send_preload_links_header(preload_links)
         end
 
@@ -435,6 +437,67 @@ module ActionView
         tag("img", options)
       end
 
+      # Returns an HTML picture tag for the +sources+. If +sources+ is a string,
+      # a single picture tag will be returned. If +sources+ is an array, a picture
+      # tag with nested source tags for each source will be returned. The
+      # +sources+ can be full paths, files that exist in your public images
+      # directory, or Active Storage attachments. Since the picture tag requires
+      # an img tag, the last element you provide will be used for the img tag.
+      # For complete control over the picture tag, a block can be passed, which
+      # will populate the contents of the tag accordingly.
+      #
+      # ==== Options
+      #
+      # When the last parameter is a hash you can add HTML attributes using that
+      # parameter. Apart from all the HTML supported options, the following are supported:
+      #
+      # * <tt>:image</tt> - Hash of options that are passed directly to the +image_tag+ helper.
+      #
+      # ==== Examples
+      #
+      #   picture_tag("picture.webp")
+      #   # => <picture><img src="/images/picture.webp" /></picture>
+      #   picture_tag("gold.png", :image => { :size => "20" })
+      #   # => <picture><img height="20" src="/images/gold.png" width="20" /></picture>
+      #   picture_tag("gold.png", :image => { :size => "45x70" })
+      #   # => <picture><img height="70" src="/images/gold.png" width="45" /></picture>
+      #   picture_tag("picture.webp", "picture.png")
+      #   # => <picture><source srcset="/images/picture.webp" /><source srcset="/images/picture.png" /><img src="/images/picture.png" /></picture>
+      #   picture_tag("picture.webp", "picture.png", :image => { alt: "Image" })
+      #   # => <picture><source srcset="/images/picture.webp" /><source srcset="/images/picture.png" /><img alt="Image" src="/images/picture.png" /></picture>
+      #   picture_tag(["picture.webp", "picture.png"], :image => { alt: "Image" })
+      #   # => <picture><source srcset="/images/picture.webp" /><source srcset="/images/picture.png" /><img alt="Image" src="/images/picture.png" /></picture>
+      #   picture_tag(:class => "my-class") { tag(:source, :srcset => image_path("picture.webp")) + image_tag("picture.png", :alt => "Image") }
+      #   # => <picture class="my-class"><source srcset="/images/picture.webp" /><img alt="Image" src="/images/picture.png" /></picture>
+      #   picture_tag { tag(:source, :srcset => image_path("picture-small.webp"), :media => "(min-width: 600px)") + tag(:source, :srcset => image_path("picture-big.webp")) + image_tag("picture.png", :alt => "Image") }
+      #   # => <picture><source srcset="/images/picture-small.webp" media="(min-width: 600px)" /><source srcset="/images/picture-big.webp" /><img alt="Image" src="/images/picture.png" /></picture>
+      #
+      # Active Storage blobs (images that are uploaded by the users of your app):
+      #
+      #   picture_tag(user.profile_picture)
+      #   # => <picture><img src="/rails/active_storage/blobs/.../profile_picture.webp" /></picture>
+      def picture_tag(*sources, &block)
+        sources.flatten!
+        options = sources.extract_options!.symbolize_keys
+        image_options = options.delete(:image) || {}
+        skip_pipeline = options.delete(:skip_pipeline)
+
+        content_tag("picture", options) do
+          if block.present?
+            capture(&block).html_safe
+          elsif sources.size <= 1
+            image_tag(sources.last, image_options)
+          else
+            source_tags = sources.map do |source|
+              tag("source",
+               srcset: resolve_asset_source("image", source, skip_pipeline),
+               type: Template::Types[File.extname(source)[1..]]&.to_s)
+            end
+            safe_join(source_tags << image_tag(sources.last, image_options))
+          end
+        end
+      end
+
       # Returns an HTML video tag for the +sources+. If +sources+ is a string,
       # a single video tag will be returned. If +sources+ is an array, a video
       # tag with nested source tags for each source will be returned. The
@@ -572,7 +635,10 @@ module ActionView
           end
         end
 
-        MAX_HEADER_SIZE = 8_000 # Some HTTP client and proxies have a 8kiB header limit
+        # Some HTTP client and proxies have a 4kiB header limit, but more importantly
+        # including preload links has diminishing returns so it's best to not go overboard
+        MAX_HEADER_SIZE = 1_000 # :nodoc:
+
         def send_preload_links_header(preload_links, max_header_size: MAX_HEADER_SIZE)
           return if preload_links.empty?
           response_present = respond_to?(:response) && response
@@ -583,30 +649,15 @@ module ActionView
           end
 
           if response_present
-            header = response.headers["Link"]
-            header = header ? header.dup : +""
-
-            # rindex count characters not bytes, but we assume non-ascii characters
-            # are rare in urls, and we have a 192 bytes margin.
-            last_line_offset = header.rindex("\n")
-            last_line_size = if last_line_offset
-              header.bytesize - last_line_offset
-            else
-              header.bytesize
-            end
-
+            header = +response.headers["Link"].to_s
             preload_links.each do |link|
-              if link.bytesize + last_line_size + 1 < max_header_size
-                unless header.empty?
-                  header << ","
-                  last_line_size += 1
-                end
+              break if header.bytesize + link.bytesize > max_header_size
+
+              if header.empty?
+                header << link
               else
-                header << "\n"
-                last_line_size = 0
+                header << "," << link
               end
-              header << link
-              last_line_size += link.bytesize
             end
 
             response.headers["Link"] = header

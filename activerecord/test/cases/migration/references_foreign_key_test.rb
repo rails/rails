@@ -62,6 +62,48 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           assert_equal([["testings", "testing_parents", "parent_id"]],
                        fks.map { |fk| [fk.from_table, fk.to_table, fk.column] })
         end
+
+        if current_adapter?(:PostgreSQLAdapter)
+          test "deferrable: false option can be passed" do
+            @connection.create_table :testings do |t|
+              t.references :testing_parent, foreign_key: { deferrable: false }
+            end
+
+            fks = @connection.foreign_keys("testings")
+            assert_equal([["testings", "testing_parents", "testing_parent_id", false]],
+                         fks.map { |fk| [fk.from_table, fk.to_table, fk.column, fk.deferrable] })
+          end
+
+          test "deferrable: :immediate option can be passed" do
+            @connection.create_table :testings do |t|
+              t.references :testing_parent, foreign_key: { deferrable: :immediate }
+            end
+
+            fks = @connection.foreign_keys("testings")
+            assert_equal([["testings", "testing_parents", "testing_parent_id", :immediate]],
+                         fks.map { |fk| [fk.from_table, fk.to_table, fk.column, fk.deferrable] })
+          end
+
+          test "deferrable: :deferred option can be passed" do
+            @connection.create_table :testings do |t|
+              t.references :testing_parent, foreign_key: { deferrable: :deferred }
+            end
+
+            fks = @connection.foreign_keys("testings")
+            assert_equal([["testings", "testing_parents", "testing_parent_id", :deferred]],
+                         fks.map { |fk| [fk.from_table, fk.to_table, fk.column, fk.deferrable] })
+          end
+
+          test "deferrable and on_(delete|update) option can be passed" do
+            @connection.create_table :testings do |t|
+              t.references :testing_parent, foreign_key: { on_update: :cascade, on_delete: :cascade, deferrable: :immediate }
+            end
+
+            fks = @connection.foreign_keys("testings")
+            assert_equal([["testings", "testing_parents", "testing_parent_id", :cascade, :cascade, :immediate]],
+                         fks.map { |fk| [fk.from_table, fk.to_table, fk.column, fk.on_delete, fk.on_update, fk.deferrable] })
+          end
+        end
       end
     end
   end

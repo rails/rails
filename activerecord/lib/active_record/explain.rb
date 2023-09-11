@@ -52,7 +52,7 @@ module ActiveRecord
       end
 
       def build_explain_clause(options = [])
-        if connection.respond_to?(:build_explain_clause)
+        if connection.respond_to?(:build_explain_clause, true)
           connection.build_explain_clause(options)
         else
           "EXPLAIN for:"

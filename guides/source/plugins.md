@@ -146,7 +146,7 @@ end
 
 To test that your method does what it says it does, run the unit tests with `bin/test` from your plugin directory.
 
-```
+```bash
 $ bin/test
 ...
 2 runs, 2 assertions, 0 failures, 0 errors, 0 skips

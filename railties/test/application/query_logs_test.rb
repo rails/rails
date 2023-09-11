@@ -10,6 +10,7 @@ module ApplicationTests
 
     def setup
       build_app(multi_db: true)
+      add_to_config "config.active_record.sqlite3_production_warning = false"
       rails("generate", "scaffold", "Pet", "name:string", "--database=animals")
       app_file "app/models/user.rb", <<-RUBY
         class User < ActiveRecord::Base
@@ -78,8 +79,20 @@ module ApplicationTests
       assert_includes ActiveRecord.query_transformers, ActiveRecord::QueryLogs
     end
 
+    test "disables prepared statements when enabled" do
+      add_to_config "config.active_record.query_log_tags_enabled = true"
+
+      boot_app
+
+      assert_predicate ActiveRecord, :disable_prepared_statements
+    end
+
     test "controller and job tags are defined by default" do
       add_to_config "config.active_record.query_log_tags_enabled = true"
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        raise "Expected prepared_statements to be enabled" unless ActiveRecord::Base.connection.prepared_statements
+        ActiveRecord::Base.connection.execute("SELECT 1")
+      RUBY
 
       boot_app
 
@@ -92,7 +105,7 @@ module ApplicationTests
 
       boot_app
 
-      get "/"
+      get "/", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
 
       assert_includes comment, "controller:users"
@@ -106,7 +119,7 @@ module ApplicationTests
 
       boot_app
 
-      get "/"
+      get "/", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
 
       assert_match(/pid='\d+'/, comment)
@@ -119,7 +132,7 @@ module ApplicationTests
 
       boot_app
 
-      get "/"
+      get "/", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
 
       assert_not_includes comment, "controller:users"
@@ -131,7 +144,7 @@ module ApplicationTests
 
       boot_app
 
-      get "/"
+      get "/", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
 
       assert_equal("/*action='index',controller='users',database='storage%2Fproduction_animals.sqlite3'*/", comment)
@@ -143,7 +156,7 @@ module ApplicationTests
 
       boot_app
 
-      get "/"
+      get "/", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
 
       assert_match(/\/\*action='index',controller='users',pid='\d+'\*\//, comment)
@@ -155,7 +168,7 @@ module ApplicationTests
 
       boot_app
 
-      get "/"
+      get "/", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
 
       assert_match(/\/\*action='index',namespaced_controller='users',pid='\d+'\*\//, comment)
@@ -200,11 +213,11 @@ module ApplicationTests
 
       boot_app
 
-      get "/"
+      get "/", {}, { "HTTPS" => "on" }
 
       first_tags = last_response.body
 
-      get "/"
+      get "/", {}, { "HTTPS" => "on" }
 
       second_tags = last_response.body
 
@@ -230,11 +243,11 @@ module ApplicationTests
 
       boot_app
 
-      get "/"
+      get "/", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
       assert_equal %(/*action='index',controller='users',namespaced_controller='users'*/), comment
 
-      get "/namespaced/users"
+      get "/namespaced/users", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
       assert_equal %(/*action='index',controller='users',namespaced_controller='name_spaced%2Fusers'*/), comment
     end
@@ -246,11 +259,11 @@ module ApplicationTests
 
       boot_app
 
-      get "/"
+      get "/", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
       assert_equal %(/*action:index,namespaced_controller:users,controller:users*/), comment
 
-      get "/namespaced/users"
+      get "/namespaced/users", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
       assert_equal %(/*action:index,namespaced_controller:name_spaced/users,controller:users*/), comment
     end

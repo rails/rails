@@ -299,6 +299,20 @@ module ActiveRecord
           connection.remove_index("testings", "last_name")
           assert_not connection.index_exists?("testings", "last_name", include: :foo, where: "first_name = 'john doe'")
         end
+
+        def test_add_index_with_nulls_not_distinct_assert_exists_with_same_values
+          skip("current adapter doesn't support nulls not distinct") unless supports_nulls_not_distinct?
+
+          connection.add_index("testings", "last_name", nulls_not_distinct: true)
+          assert connection.index_exists?("testings", "last_name", nulls_not_distinct: true)
+        end
+
+        def test_add_index_with_nulls_not_distinct_assert_exists_with_different_values
+          skip("current adapter doesn't support nulls not distinct") unless supports_nulls_not_distinct?
+
+          connection.add_index("testings", "last_name", nulls_not_distinct: false)
+          assert_not connection.index_exists?("testings", "last_name", nulls_not_distinct: true)
+        end
       end
 
       private

@@ -92,7 +92,7 @@ module ActionDispatch
     include RequestCookieMethods
   end
 
-  # Read and write data to cookies through ActionController::Base#cookies.
+  # Read and write data to cookies through ActionController::Cookies#cookies.
   #
   # When reading cookie data, the data is read from the HTTP request header, Cookie.
   # When writing cookie data, the data is sent out in the HTTP response header, +Set-Cookie+.
@@ -382,6 +382,8 @@ module ActionDispatch
       # Removes the cookie on the client machine by setting the value to an empty string
       # and the expiration date in the past. Like <tt>[]=</tt>, you can pass in
       # an options hash to delete cookies with extra data such as a <tt>:path</tt>.
+      #
+      # Returns the value of the cookie, or +nil+ if the cookie does not exist.
       def delete(name, options = {})
         return unless @cookies.has_key? name.to_s
 
@@ -543,77 +545,57 @@ module ActionDispatch
         end
     end
 
-    class MarshalWithJsonFallback # :nodoc:
-      def self.load(value)
-        Marshal.load(value)
-      rescue TypeError => e
-        ActiveSupport::JSON.decode(value) rescue raise e
-      end
-
-      def self.dump(value)
-        Marshal.dump(value)
-      end
-    end
-
-    class JsonSerializer # :nodoc:
-      def self.load(value)
-        ActiveSupport::JSON.decode(value)
-      rescue JSON::ParserError
-        nil
-      end
-
-      def self.dump(value)
-        ActiveSupport::JSON.encode(value)
-      end
-    end
-
     module SerializedCookieJars # :nodoc:
-      MARSHAL_SIGNATURE = "\x04\x08"
       SERIALIZER = ActiveSupport::MessageEncryptor::NullSerializer
 
       protected
-        def needs_migration?(value)
-          request.cookies_serializer == :hybrid && value.start_with?(MARSHAL_SIGNATURE)
-        end
-
-        def serialize(value)
-          serializer.dump(value)
-        end
-
-        def deserialize(name)
-          rotate = false
-          value  = yield -> { rotate = true }
-
-          if value
-            case
-            when needs_migration?(value)
-              Marshal.load(value).tap do |v|
-                self[name] = { value: v }
-              end
-            when rotate
-              serializer.load(value).tap do |v|
-                self[name] = { value: v }
-              end
-            else
-              serializer.load(value)
-            end
-          end
-        end
-
-        def serializer
-          serializer = request.cookies_serializer || :marshal
-          case serializer
-          when :marshal
-            MarshalWithJsonFallback
-          when :json, :hybrid
-            JsonSerializer
-          else
-            serializer
-          end
-        end
-
         def digest
           request.cookies_digest || "SHA1"
+        end
+
+      private
+        def serializer
+          @serializer ||=
+            case request.cookies_serializer
+            when nil
+              ActiveSupport::Messages::SerializerWithFallback[:marshal]
+            when :hybrid
+              ActiveSupport::Messages::SerializerWithFallback[:json_allow_marshal]
+            when Symbol
+              ActiveSupport::Messages::SerializerWithFallback[request.cookies_serializer]
+            else
+              request.cookies_serializer
+            end
+        end
+
+        def reserialize?(dumped)
+          serializer.is_a?(ActiveSupport::Messages::SerializerWithFallback) &&
+            serializer != ActiveSupport::Messages::SerializerWithFallback[:marshal] &&
+            !serializer.dumped?(dumped)
+        end
+
+        def parse(name, dumped, force_reserialize: false, **)
+          if dumped
+            begin
+              value = serializer.load(dumped)
+            rescue StandardError
+              return
+            end
+
+            self[name] = { value: value } if force_reserialize || reserialize?(dumped)
+
+            value
+          end
+        end
+
+        def commit(name, options)
+          options[:value] = serializer.dump(options[:value])
+        end
+
+        def check_for_overflow!(name, options)
+          if options[:value].bytesize > MAX_COOKIE_SIZE
+            raise CookieOverflow, "#{name} cookie overflowed with size #{options[:value].bytesize} bytes"
+          end
         end
     end
 
@@ -634,17 +616,15 @@ module ActionDispatch
 
       private
         def parse(name, signed_message, purpose: nil)
-          deserialize(name) do |rotate|
-            @verifier.verified(signed_message, on_rotation: rotate, purpose: purpose)
-          end
+          rotated = false
+          data = @verifier.verified(signed_message, purpose: purpose, on_rotation: -> { rotated = true })
+          super(name, data, force_reserialize: rotated)
         end
 
         def commit(name, options)
-          options[:value] = @verifier.generate(serialize(options[:value]), **cookie_metadata(name, options))
-
-          if options[:value].bytesize > MAX_COOKIE_SIZE
-            raise CookieOverflow, "#{name} cookie overflowed with size #{options[:value].bytesize} bytes"
-          end
+          super
+          options[:value] = @verifier.generate(options[:value], **cookie_metadata(name, options))
+          check_for_overflow!(name, options)
         end
     end
 
@@ -686,19 +666,17 @@ module ActionDispatch
 
       private
         def parse(name, encrypted_message, purpose: nil)
-          deserialize(name) do |rotate|
-            @encryptor.decrypt_and_verify(encrypted_message, on_rotation: rotate, purpose: purpose)
-          end
+          rotated = false
+          data = @encryptor.decrypt_and_verify(encrypted_message, purpose: purpose, on_rotation: -> { rotated = true })
+          super(name, data, force_reserialize: rotated)
         rescue ActiveSupport::MessageEncryptor::InvalidMessage, ActiveSupport::MessageVerifier::InvalidSignature
           nil
         end
 
         def commit(name, options)
-          options[:value] = @encryptor.encrypt_and_sign(serialize(options[:value]), **cookie_metadata(name, options))
-
-          if options[:value].bytesize > MAX_COOKIE_SIZE
-            raise CookieOverflow, "#{name} cookie overflowed with size #{options[:value].bytesize} bytes"
-          end
+          super
+          options[:value] = @encryptor.encrypt_and_sign(options[:value], **cookie_metadata(name, options))
+          check_for_overflow!(name, options)
         end
     end
 

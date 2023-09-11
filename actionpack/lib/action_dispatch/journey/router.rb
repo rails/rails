@@ -50,7 +50,7 @@ module ActionDispatch
 
           _, headers, _ = response = route.app.serve(req)
 
-          if "pass" == headers["X-Cascade"]
+          if "pass" == headers[Constants::X_CASCADE]
             req.script_name     = script_name
             req.path_info       = path_info
             req.path_parameters = set_params
@@ -60,7 +60,7 @@ module ActionDispatch
           return response
         end
 
-        [404, { "X-Cascade" => "pass" }, ["Not Found"]]
+        [404, { Constants::X_CASCADE => "pass" }, ["Not Found"]]
       end
 
       def recognize(rails_req)

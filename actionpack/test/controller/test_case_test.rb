@@ -49,6 +49,7 @@ class TestCaseTest < ActionController::TestCase
     end
 
     def render_body
+      request.body.rewind
       render plain: request.body.read
     end
 
@@ -604,6 +605,13 @@ class TestCaseTest < ActionController::TestCase
     parsed_env = ActiveSupport::JSON.decode(@response.body)
     assert_equal "http://example.com/about", parsed_env["HTTP_REFERER"]
     assert_equal "application/json", parsed_env["CONTENT_TYPE"]
+  end
+
+  test "blank Content-Type header" do
+    @request.headers["Content-Type"] = ""
+    assert_raises(ActionDispatch::Http::MimeNegotiation::InvalidType) do
+      get :test_headers
+    end
   end
 
   def test_using_as_json_sets_request_content_type_to_json

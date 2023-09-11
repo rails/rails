@@ -30,6 +30,11 @@ class RecordIdentifierTest < ActiveSupport::TestCase
     assert_equal "#{@singular}_1", dom_id(@record)
   end
 
+  def test_dom_id_with_composite_primary_key_record
+    record = Cpk::Book.new(id: [1, 123])
+    assert_equal("cpk_book_1_123", dom_id(record))
+  end
+
   def test_dom_id_with_prefix
     @record.save
     assert_equal "edit_#{@singular}_1", dom_id(@record, :edit)
@@ -81,6 +86,12 @@ class RecordIdentifierWithoutActiveModelTest < ActiveSupport::TestCase
   def test_dom_id_with_prefix
     @record.save
     assert_equal "edit_airplane_1", dom_id(@record, :edit)
+  end
+
+  def test_dom_id_raises_useful_error_when_passed_nil
+    assert_raises ArgumentError do
+      ActionView::RecordIdentifier.dom_id(nil)
+    end
   end
 
   def test_dom_class

@@ -30,11 +30,12 @@ require "models/citation"
 require "models/tree"
 require "models/node"
 require "models/club"
+require "models/cpk"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
            :developers_projects, :computers, :authors, :author_addresses,
-           :essays, :posts, :tags, :taggings, :comments, :sponsors, :members, :nodes
+           :essays, :posts, :tags, :taggings, :comments, :sponsors, :members, :nodes, :cpk_books
 
   def test_belongs_to
     client = Client.find(3)
@@ -353,6 +354,36 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     apple    = citibank.build_firm("name" => "Apple")
     citibank.save
     assert_equal apple.id, citibank.firm_id
+  end
+
+  def test_building_the_belonging_object_for_composite_primary_key
+    cpk_book = cpk_books(:cpk_great_author_first_book)
+    order = cpk_book.build_order
+    cpk_book.save
+
+    _shop_id, id = order.id
+    assert_equal id, cpk_book.order_id
+  end
+
+  def test_belongs_to_with_inverse_association_for_composite_primary_key
+    author = Cpk::Author.new(name: "John")
+    book = author.books.build(id: [nil, 1], title: "The Rails Way")
+    order = Cpk::Order.new(book: book, status: "paid")
+    author.save!
+
+    _order_shop_id, order_id = order.id
+    assert order_id
+    assert_equal order_id, book.order_id
+  end
+
+  def test_should_set_composite_foreign_key_on_association_when_key_changes_on_associated_record
+    book = Cpk::Book.create!(id: [1, 2], title: "The Well-Grounded Rubyist")
+    order = Cpk::Order.create!(id: [1, 2], book: book)
+
+    order.shop_id = 3
+    order.save!
+
+    assert_equal 3, book.shop_id
   end
 
   def test_building_the_belonging_object_with_implicit_sti_base_class
@@ -1744,6 +1775,38 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
   ensure
     ActiveRecord.belongs_to_required_validates_foreign_key = original_value
+  end
+
+  test "composite primary key malformed association class" do
+    error = assert_raises(ActiveRecord::CompositePrimaryKeyMismatchError) do
+      book = Cpk::BrokenBook.new(title: "Some book", order: Cpk::Order.new(id: [1, 2]))
+      book.save!
+    end
+
+    assert_equal(<<~MESSAGE.squish, error.message)
+      Association Cpk::BrokenBook#order primary key ["shop_id", "status"]
+      doesn't match with foreign key order_id. Please specify query_constraints, or primary_key and foreign_key values.
+    MESSAGE
+  end
+
+  test "composite primary key malformed association owner class" do
+    error = assert_raises(ActiveRecord::CompositePrimaryKeyMismatchError) do
+      book = Cpk::BrokenBookWithNonCpkOrder.new(title: "Some book", order: Cpk::NonCpkOrder.new(id: 1))
+      book.save!
+    end
+
+    assert_equal(<<~MESSAGE.squish, error.message)
+      Association Cpk::BrokenBookWithNonCpkOrder#order primary key ["id"]
+      doesn't match with foreign key ["shop_id", "order_id"]. Please specify query_constraints, or primary_key and foreign_key values.
+    MESSAGE
+  end
+
+  test "association with query constraints assigns id on replacement" do
+    book = Cpk::NonCpkBook.create!(id: 1, author_id: 2, non_cpk_order: Cpk::NonCpkOrder.new)
+    other_order = Cpk::NonCpkOrder.create!
+    book.non_cpk_order = other_order
+
+    assert_equal(other_order.id, book.order_id)
   end
 end
 

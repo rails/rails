@@ -10,8 +10,6 @@ module ActiveRecord
     class NonExistentTable < ActiveRecord::Base
     end
 
-    fixtures :comments
-
     def setup
       super
       @subscriber = SQLSubscriber.new

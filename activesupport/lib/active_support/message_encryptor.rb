@@ -27,7 +27,7 @@ module ActiveSupport
   #   crypt.decrypt_and_verify(encrypted_data)                                    # => "my secret data"
   #
   # The +decrypt_and_verify+ method will raise an
-  # <tt>ActiveSupport::MessageEncryptor::InvalidMessage</tt> exception if the data
+  # +ActiveSupport::MessageEncryptor::InvalidMessage+ exception if the data
   # provided cannot be decrypted or verified.
   #
   #   crypt.decrypt_and_verify('not encrypted data') # => ActiveSupport::MessageEncryptor::InvalidMessage
@@ -91,7 +91,6 @@ module ActiveSupport
     prepend Messages::Rotator
 
     cattr_accessor :use_authenticated_message_encryption, instance_accessor: false, default: false
-    cattr_accessor :default_message_encryptor_serializer, instance_accessor: false, default: :marshal
 
     class << self
       def default_cipher # :nodoc:
@@ -142,10 +141,30 @@ module ActiveSupport
     #   'aes-256-gcm'.
     #
     # [+:serializer+]
-    #   By default, MessageEncryptor uses JSON to serialize the message. If
-    #   you want to use another serialization method, you can pass an object
-    #   that responds to +load+ and +dump+, like +Marshal+ or +YAML+.
-    #   +:marshal+, +:hybrid+, and +:json+ are also supported.
+    #   The serializer used to serialize message data. You can specify any
+    #   object that responds to +dump+ and +load+, or you can choose from
+    #   several preconfigured serializers: +:marshal+, +:json_allow_marshal+,
+    #   +:json+, +:message_pack_allow_marshal+, +:message_pack+.
+    #
+    #   The preconfigured serializers include a fallback mechanism to support
+    #   multiple deserialization formats. For example, the +:marshal+ serializer
+    #   will serialize using +Marshal+, but can deserialize using +Marshal+,
+    #   ActiveSupport::JSON, or ActiveSupport::MessagePack. This makes it easy
+    #   to migrate between serializers.
+    #
+    #   The +:marshal+, +:json_allow_marshal+, and +:message_pack_allow_marshal+
+    #   serializers support deserializing using +Marshal+, but the others do
+    #   not. Beware that +Marshal+ is a potential vector for deserialization
+    #   attacks in cases where a message signing secret has been leaked. <em>If
+    #   possible, choose a serializer that does not support +Marshal+.</em>
+    #
+    #   The +:message_pack+ and +:message_pack_allow_marshal+ serializers use
+    #   ActiveSupport::MessagePack, which can roundtrip some Ruby types that are
+    #   not supported by JSON, and may provide improved performance. However,
+    #   these require the +msgpack+ gem.
+    #
+    #   When using \Rails, the default depends on +config.active_support.message_serializer+.
+    #   Otherwise, the default is +:marshal+.
     #
     # [+:url_safe+]
     #   By default, MessageEncryptor generates RFC 4648 compliant strings
@@ -161,17 +180,13 @@ module ActiveSupport
     #
     #   If you don't pass a truthy value, the default is set using
     #   +config.active_support.use_message_serializer_for_metadata+.
-    def initialize(secret, sign_secret = nil, cipher: nil, digest: nil, serializer: nil, url_safe: false, force_legacy_metadata_serializer: false)
-      super(
-        serializer: serializer || @@default_message_encryptor_serializer,
-        url_safe: url_safe,
-        force_legacy_metadata_serializer: force_legacy_metadata_serializer,
-      )
+    def initialize(secret, sign_secret = nil, **options)
+      super(**options)
       @secret = secret
-      @cipher = cipher || self.class.default_cipher
+      @cipher = options[:cipher] || self.class.default_cipher
       @aead_mode = new_cipher.authenticated?
       @verifier = if !@aead_mode
-        MessageVerifier.new(sign_secret || secret, digest: digest || "SHA1", serializer: NullSerializer, url_safe: url_safe)
+        MessageVerifier.new(sign_secret || secret, **options, serializer: NullSerializer)
       end
     end
 
@@ -244,6 +259,10 @@ module ActiveSupport
 
     def read_message(message, **options) # :nodoc:
       deserialize_with_metadata(decrypt(verify(message)), **options)
+    end
+
+    def inspect # :nodoc:
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
     end
 
     private

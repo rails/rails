@@ -11,8 +11,7 @@ module ActiveRecord
       class_attribute :generated_token_verifier, instance_accessor: false, instance_predicate: false
     end
 
-    # :nodoc:
-    TokenDefinition = Struct.new(:defining_class, :purpose, :expires_in, :block) do
+    TokenDefinition = Struct.new(:defining_class, :purpose, :expires_in, :block) do # :nodoc:
       def full_purpose
         @full_purpose ||= [defining_class.name, purpose, expires_in].join("\n")
       end
@@ -56,9 +55,9 @@ module ActiveRecord
       # JSON. Later, when fetching the record with #find_by_token_for, the block
       # will be evaluated again in the context of the fetched record. If the two
       # JSON values do not match, the token will be treated as invalid. Note
-      # that the value returned by the block <strong>should not contain
-      # sensitive information</strong> because it will be embedded in the token
-      # as <strong>human-readable plaintext JSON</strong>.
+      # that the value returned by the block <b>should not contain sensitive
+      # information</b> because it will be embedded in the token as
+      # <b>human-readable plaintext JSON</b>.
       #
       # ==== Examples
       #
@@ -105,7 +104,7 @@ module ActiveRecord
 
     # Generates a token for a predefined +purpose+.
     #
-    # Use ClassMethods::generates_token_for to define a token purpose and
+    # Use ClassMethods#generates_token_for to define a token purpose and
     # behavior.
     def generate_token_for(purpose)
       self.class.token_definitions.fetch(purpose).generate_token(self)

@@ -5,6 +5,20 @@ require "active_model/attribute"
 module ActiveRecord
   class Relation
     class QueryAttribute < ActiveModel::Attribute # :nodoc:
+      def initialize(...)
+        super
+
+        # The query attribute value may be mutated before we actually "compile" the query.
+        # To avoid that if the type uses a serializer we eagerly compute the value for database
+        if value_before_type_cast.is_a?(StatementCache::Substitute)
+          # we don't need to serialize StatementCache::Substitute
+        elsif @type.serialized?
+          value_for_database
+        elsif @type.mutable? # If the type is simply mutable, we deep_dup it.
+          @value_before_type_cast = @value_before_type_cast.deep_dup
+        end
+      end
+
       def type_cast(value)
         value
       end
@@ -34,6 +48,15 @@ module ActiveRecord
           serializable? { |value| @_unboundable = value <=> 0 } && @_unboundable = nil
         end
         @_unboundable
+      end
+
+      def ==(other)
+        super && value_for_database == other.value_for_database
+      end
+      alias eql? ==
+
+      def hash
+        [self.class, name, value_for_database, type].hash
       end
 
       private

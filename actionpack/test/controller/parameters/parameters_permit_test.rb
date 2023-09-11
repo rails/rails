@@ -190,7 +190,8 @@ class ParametersPermitTest < ActiveSupport::TestCase
         tabstops:   [4, 8, 12, 16],
         suspicious: [true, Object.new, false, /yo!/],
         dubious:    [{ a: :a, b: /wtf!/ }, { c: :c }],
-        injected:   Object.new
+        injected:   Object.new,
+        nested:     [[1, 2], [3, 4]]
       },
       hacked: 1 # not a hash
     )
@@ -205,6 +206,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal [true, false],     permitted[:preferences][:suspicious]
     assert_equal :a,                permitted[:preferences][:dubious][0][:a]
     assert_equal :c,                permitted[:preferences][:dubious][1][:c]
+    assert_equal [[1, 2], [3, 4]],  permitted[:preferences][:nested]
 
     assert_filtered_out permitted[:preferences][:dubious][0], :b
     assert_filtered_out permitted[:preferences], :injected

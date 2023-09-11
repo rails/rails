@@ -34,10 +34,6 @@ module ActiveRecord
       assert_equal [authors(:bob)], Author.joins(:categories).where(categories: categories(:technology))
     end
 
-    def test_where_with_aliased_association
-      assert_equal [comments(:does_it_hurt)], Comment.where(entry: posts(:thinking))
-    end
-
     def test_type_cast_is_not_evaluated_at_relation_build_time
       posts = nil
 
@@ -112,12 +108,12 @@ module ActiveRecord
     end
 
     def test_where_with_tuple_syntax_on_composite_models
-      book_one = Cpk::Book.create!(author_id: 1, number: 2)
-      book_two = Cpk::Book.create!(author_id: 3, number: 4)
+      book_one = Cpk::Book.create!(id: [1, 2])
+      book_two = Cpk::Book.create!(id: [3, 4])
 
-      assert_equal [book_one], Cpk::Book.where([:author_id, :number] => [[1, 2]])
+      assert_equal [book_one], Cpk::Book.where([:author_id, :id] => [[1, 2]])
       assert_equal [book_one, book_two].sort, Cpk::Book.where(Cpk::Book.primary_key => [[1, 2], [3, 4]]).sort
-      assert_empty Cpk::Book.where([:author_id, :number] => [[1, 4], [3, 2]])
+      assert_empty Cpk::Book.where([:author_id, :id] => [[1, 4], [3, 2]])
     end
 
     def test_where_with_tuple_syntax_with_incorrect_arity
@@ -135,12 +131,12 @@ module ActiveRecord
     end
 
     def test_where_with_tuple_syntax_and_regular_syntax_combined
-      book_one = Cpk::Book.create!(author_id: 1, number: 2, title: "The Alchemist")
-      book_two = Cpk::Book.create!(author_id: 3, number: 4, title: "The Alchemist")
+      book_one = Cpk::Book.create!(id: [1, 2], title: "The Alchemist")
+      book_two = Cpk::Book.create!(id: [3, 4], title: "The Alchemist")
 
       assert_equal [book_one, book_two].sort, Cpk::Book.where(title: "The Alchemist").sort
-      assert_equal [book_one, book_two].sort, Cpk::Book.where(title: "The Alchemist", [:author_id, :number] => [[1, 2], [3, 4]]).sort
-      assert_equal [book_two], Cpk::Book.where(title: "The Alchemist", [:author_id, :number] => [[3, 4]])
+      assert_equal [book_one, book_two].sort, Cpk::Book.where(title: "The Alchemist", [:author_id, :id] => [[1, 2], [3, 4]]).sort
+      assert_equal [book_two], Cpk::Book.where(title: "The Alchemist", [:author_id, :id] => [[3, 4]])
     end
 
     def test_belongs_to_shallow_where
@@ -456,6 +452,11 @@ module ActiveRecord
     def test_where_on_association_with_select_relation
       essay = Essay.where(author: Author.where(name: "David").select(:name)).take
       assert_equal essays(:david_modest_proposal), essay
+    end
+
+    def test_where_on_association_with_collection_polymorphic_relation
+      treasures = Treasure.where(name: ["diamond", "emerald"], price_estimates: PriceEstimate.all)
+      assert_equal [treasures(:diamond)], treasures
     end
 
     def test_where_with_strong_parameters

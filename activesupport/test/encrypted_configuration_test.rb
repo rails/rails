@@ -45,6 +45,7 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     assert_not @credentials.something.bad
     assert_equal "bar", @credentials.dig(:something, :nested, :foo)
     assert_equal "bar", @credentials.something.nested.foo
+    assert_equal [:something], @credentials.keys
     assert_equal [:good, :bad, :nested], @credentials.something.keys
     assert_equal ({ good: true, bad: false, nested: { foo: "bar" } }), @credentials.something
   end
@@ -53,6 +54,16 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     @credentials.write("# comment")
 
     assert_equal @credentials.config, {}
+  end
+
+  test "writing with element assignment and reading with element reference" do
+    @credentials[:foo] = 42
+    assert_equal 42, @credentials[:foo]
+  end
+
+  test "writing with dynamic accessor and reading with element reference" do
+    @credentials.foo = 42
+    assert_equal 42, @credentials[:foo]
   end
 
   test "change configuration by key file" do
@@ -84,5 +95,14 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
 
   test "raises key error when accessing config via bang method" do
     assert_raise(KeyError) { @credentials.something! }
+  end
+
+  test "inspect does not show unencrypted attributes" do
+    secret = "something secret"
+    @credentials.write({ secret: secret }.to_yaml)
+    @credentials.config
+
+    assert_no_match(/#{secret}/, @credentials.inspect)
+    assert_match(/\A#<ActiveSupport::EncryptedConfiguration:0x[0-9a-f]+>\z/, @credentials.inspect)
   end
 end

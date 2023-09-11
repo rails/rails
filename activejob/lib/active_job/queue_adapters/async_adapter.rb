@@ -95,7 +95,7 @@ module ActiveJob
 
         def enqueue_at(job, timestamp, queue_name:)
           delay = timestamp - Time.current.to_f
-          if delay > 0
+          if !immediate && delay > 0
             Concurrent::ScheduledTask.execute(delay, args: [job], executor: executor, &:perform)
           else
             enqueue(job, queue_name: queue_name)

@@ -18,6 +18,8 @@ module ActiveRecord
       :in_groups, :in_groups_of, :to_sentence, :to_formatted_s, :to_fs, :as_json
     ]
 
+    ARRAY_DELEGATES << :intersect? if RUBY_VERSION >= "3.1.0"
+
     ARRAY_DELEGATES.each do |method|
       define_method "test_delegates_#{method}_to_Array" do
         assert_respond_to target, method
@@ -42,6 +44,14 @@ module ActiveRecord
 
     def target
       Comment.all
+    end
+  end
+
+  class DelegationRecordsTest < ActiveRecord::TestCase
+    include DelegationTests
+
+    def target
+      Comment.all.records
     end
   end
 

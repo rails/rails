@@ -92,6 +92,10 @@ https://api.rubyonrails.org/v5.1.0/classes/ActionDispatch/Response.html
 
 Please don't link to `edgeapi.rubyonrails.org` manually.
 
+Column Wrapping
+---------------
+
+Do not reformat old guides just to wrap columns. But new sections and guides should wrap at 80 columns.
 
 API Documentation Guidelines
 ----------------------------
@@ -108,10 +112,9 @@ HTML Guides
 -----------
 
 Before generating the guides, make sure that you have the latest version of
-Bundler installed on your system. You can find the latest Bundler version
-[here](https://rubygems.org/gems/bundler). As of this writing, it's v1.17.1.
+Bundler installed on your system. To install the latest version of Bundler, run `gem install bundler`.
 
-To install the latest version of Bundler, run `gem install bundler`.
+If you already have Bundler installed, you can update with `gem update bundler`.
 
 ### Generation
 

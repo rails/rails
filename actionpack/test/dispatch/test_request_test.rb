@@ -14,13 +14,11 @@ class TestRequestTest < ActiveSupport::TestCase
     assert_equal "/", env.delete("PATH_INFO")
     assert_equal "", env.delete("SCRIPT_NAME")
     assert_equal "", env.delete("QUERY_STRING")
-    assert_equal "0", env.delete("CONTENT_LENGTH")
 
     assert_equal "test.host", env.delete("HTTP_HOST")
     assert_equal "0.0.0.0", env.delete("REMOTE_ADDR")
     assert_equal "Rails Testing", env.delete("HTTP_USER_AGENT")
 
-    assert_equal "", env.delete("rack.input").string
     assert_kind_of StringIO, env.delete("rack.errors")
   end
 
@@ -93,25 +91,28 @@ class TestRequestTest < ActiveSupport::TestCase
     assert_equal "POST", req.request_method
   end
 
-  test "setter methods" do
+  test "setter methods work and do not change Rack SPEC conformity" do
     req = ActionDispatch::TestRequest.create({})
     get = "GET"
 
     [
-      "request_method=", "host=", "request_uri=", "path=", "if_modified_since=", "if_none_match=",
+      "request_method=", "host=", "request_uri=", "if_modified_since=", "if_none_match=",
       "remote_addr=", "user_agent=", "accept="
     ].each do |method|
       req.send(method, get)
     end
 
-    req.port = 8080
+    req.path = "/get"
+    req.port = "8080"
     req.accept = "hello goodbye"
+
+    Rack::Lint.new(->(_) { [200, {}, []] }).call(req.env)
 
     assert_equal(get, req.get_header("REQUEST_METHOD"))
     assert_equal(get, req.get_header("HTTP_HOST"))
-    assert_equal(8080, req.get_header("SERVER_PORT"))
+    assert_equal("8080", req.get_header("SERVER_PORT"))
     assert_equal(get, req.get_header("REQUEST_URI"))
-    assert_equal(get, req.get_header("PATH_INFO"))
+    assert_equal("/get", req.get_header("PATH_INFO"))
     assert_equal(get, req.get_header("HTTP_IF_MODIFIED_SINCE"))
     assert_equal(get, req.get_header("HTTP_IF_NONE_MATCH"))
     assert_equal(get, req.get_header("REMOTE_ADDR"))

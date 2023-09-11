@@ -84,6 +84,12 @@ module ActiveSupport
   #   h = ActiveSupport::InheritableOptions.new({ girl: 'Mary', boy: 'John' })
   #   h.girl # => 'Mary'
   #   h.boy  # => 'John'
+  #
+  # If the existing hash has string keys, call Hash#symbolize_keys on it.
+  #
+  #   h = ActiveSupport::InheritableOptions.new({ 'girl' => 'Mary', 'boy' => 'John' }.symbolize_keys)
+  #   h.girl # => 'Mary'
+  #   h.boy  # => 'John'
   class InheritableOptions < OrderedOptions
     def initialize(parent = nil)
       if parent.kind_of?(OrderedOptions)

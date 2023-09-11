@@ -2,7 +2,7 @@
 
 module ActiveRecord
   class TableMetadata # :nodoc:
-    delegate :join_primary_key, :join_foreign_key, :join_foreign_type, to: :reflection
+    delegate :join_primary_key, :join_primary_type, :join_foreign_key, :join_foreign_type, to: :reflection
 
     def initialize(klass, arel_table, reflection = nil)
       @klass = klass
@@ -19,7 +19,7 @@ module ActiveRecord
     end
 
     def has_column?(column_name)
-      klass&.columns_hash.key?(column_name)
+      klass&.columns_hash&.key?(column_name)
     end
 
     def associated_with?(table_name)
@@ -61,6 +61,10 @@ module ActiveRecord
 
     def polymorphic_association?
       reflection&.polymorphic?
+    end
+
+    def polymorphic_name_association
+      reflection&.polymorphic_name
     end
 
     def through_association?

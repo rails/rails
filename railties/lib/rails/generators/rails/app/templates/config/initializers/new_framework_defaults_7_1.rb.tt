@@ -30,13 +30,18 @@
 # Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality = false
 
 # Active Record Encryption now uses SHA-256 as its hash digest algorithm. Important: If you have
-# data encrypted with previous versions, you should not set the new default or the existing data
-# will fail to decrypt. In this case, if you load the new 7.1 defaults, you need to configure the
-# previous algorithm SHA-1:
+# data encrypted with previous Rails versions, there are two scenarios to consider:
+#
+# 1. If you have +config.active_support.key_generator_hash_digest_class+ configured as SHA1 (the default
+# before Rails 7.0), you need to configure SHA-1 for Active Record Encryption too:
 # Rails.application.config.active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA1
-# Alternatively, if you don't have data encrypted previously, you can configure the new digest for
-# Active Record Encryption with:
+# 2. If you have +config.active_support.key_generator_hash_digest_class+ configured as SHA256 (the new default
+# in 7.0), then you need to configure SHA-256 for Active Record Encryption:
 # Rails.application.config.active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA256
+#
+# If you don't currently have data encrypted with Active Record encryption, you can disable this setting to
+# configure the default behavior starting 7.1+:
+# Rails.application.config.active_record.encryption.support_sha1_for_non_deterministic_encryption = false
 
 # No longer run after_commit callbacks on the first of multiple Active Record
 # instances to save changes to the same database row within a transaction.
@@ -78,35 +83,33 @@
 # Options are `:legacy` and `:sqlcommenter`.
 # Rails.application.config.active_record.query_log_tags_format = :sqlcommenter
 
-# Specify the serializer used by `MessageEncryptor` by default.
-# Options are `:json`, `:hybrid`, and `:marshal`.
+# Specify the default serializer used by `MessageEncryptor` and `MessageVerifier`
+# instances.
 #
-# New apps by default will use `:json`.
+# The legacy default is `:marshal`, which is a potential vector for
+# deserialization attacks in cases where a message signing secret has been
+# leaked.
 #
-# Rails.application.config.active_support.default_message_encryptor_serializer = :json
+# In Rails 7.1, the new default is `:json_allow_marshal` which serializes and
+# deserializes with `ActiveSupport::JSON`, but can fall back to deserializing
+# with `Marshal` so that legacy messages can still be read.
 #
-# However, if you are upgrading an app, you will likely want to start with
-# `:hybrid`. If you switch to `:json` before existing messages have expired or
-# been converted, those messages will no longer be readable.
+# In Rails 7.2, the default will become `:json` which serializes and
+# deserializes with `ActiveSupport::JSON` only.
 #
-# Rails.application.config.active_support.default_message_encryptor_serializer = :hybrid
+# Alternatively, you can choose `:message_pack` or `:message_pack_allow_marshal`,
+# which serialize with `ActiveSupport::MessagePack`. `ActiveSupport::MessagePack`
+# can roundtrip some Ruby types that are not supported by JSON, and may provide
+# improved performance, but it requires the `msgpack` gem.
 #
-# For detailed migration steps, check out https://guides.rubyonrails.org/v7.1/upgrading_ruby_on_rails.html#new-activesupport-messageencryptor-default-serializer
-
-# Specify the serializer used by `MessageVerifier` by default.
-# Options are `:json`, `:hybrid`, and `:marshal`.
+# For more information, see
+# https://guides.rubyonrails.org/v7.1/configuring.html#config-active-support-message-serializer
 #
-# New apps by default will use `:json`.
-#
-# Rails.application.config.active_support.default_message_verifier_serializer = :json
-#
-# However, if you are upgrading an app, you will likely want to start with
-# `:hybrid`. If you switch to `:json` before existing messages have expired or
-# been converted, those messages will no longer be readable.
-#
-# Rails.application.config.active_support.default_message_verifier_serializer = :hybrid
-#
-# For detailed migration steps, check out https://guides.rubyonrails.org/v7.1/upgrading_ruby_on_rails.html#new-activesupport-messageverifier-default-serializer
+# If you are performing a rolling deploy of a Rails 7.1 upgrade, wherein servers
+# that have not yet been upgraded must be able to read messages from upgraded
+# servers, first deploy without changing the serializer, then set the serializer
+# in a subsequent deploy.
+# Rails.application.config.active_support.message_serializer = :json_allow_marshal
 
 # Enable a performance optimization that serializes message data and metadata
 # together. This changes the message format, so messages serialized this way
@@ -166,3 +169,55 @@
 # This matches the behaviour of all other callbacks.
 # In previous versions of Rails, they ran in the inverse order.
 # Rails.application.config.active_record.run_after_transaction_callbacks_in_order_defined = true
+
+# Whether a `transaction` block is committed or rolled back when exited via `return`, `break` or `throw`.
+#
+# Rails.application.config.active_record.commit_transaction_on_non_local_return = true
+
+# Controls when to generate a value for <tt>has_secure_token</tt> declarations.
+#
+# Rails.application.config.active_record.generate_secure_token_on = :initialize
+
+# ** Please read carefully, this must be configured in config/application.rb **
+# Change the format of the cache entry.
+# Changing this default means that all new cache entries added to the cache
+# will have a different format that is not supported by Rails 7.0
+# applications.
+# Only change this value after your application is fully deployed to Rails 7.1
+# and you have no plans to rollback.
+# When you're ready to change format, add this to `config/application.rb` (NOT
+# this file):
+#   config.active_support.cache_format_version = 7.1
+
+# Configure Action View to use HTML5 standards-compliant sanitizers when they are supported on your
+# platform.
+#
+# `Rails::HTML::Sanitizer.best_supported_vendor` will cause Action View to use HTML5-compliant
+# sanitizers if they are supported, else fall back to HTML4 sanitizers.
+#
+# In previous versions of Rails, Action View always used `Rails::HTML4::Sanitizer` as its vendor.
+#
+# Rails.application.config.action_view.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
+
+# Configure Action Text to use an HTML5 standards-compliant sanitizer when it is supported on your
+# platform.
+#
+# `Rails::HTML::Sanitizer.best_supported_vendor` will cause Action Text to use HTML5-compliant
+# sanitizers if they are supported, else fall back to HTML4 sanitizers.
+#
+# In previous versions of Rails, Action Text always used `Rails::HTML4::Sanitizer` as its vendor.
+#
+# Rails.application.config.action_text.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
+
+# Configure the log level used by the DebugExceptions middleware when logging
+# uncaught exceptions during requests
+# Rails.application.config.action_dispatch.debug_exception_log_level = :error
+
+# Configure the test helpers in Action View, Action Dispatch, and rails-dom-testing to use HTML5
+# parsers.
+#
+# Nokogiri::HTML5 isn't supported on JRuby, so JRuby applications must set this to :html4.
+#
+# In previous versions of Rails, these test helpers always used an HTML4 parser.
+#
+# Rails.application.config.dom_testing_default_html_version = :html5

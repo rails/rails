@@ -1,3 +1,449 @@
+*   Support composite foreign keys via migration helpers.
+
+    ```ruby
+    # Assuming "carts" table has "(shop_id, user_id)" as a primary key.
+
+    add_foreign_key(:orders, :carts, primary_key: [:shop_id, :user_id])
+
+    remove_foreign_key(:orders, :carts, primary_key: [:shop_id, :user_id])
+    foreign_key_exists?(:orders, :carts, primary_key: [:shop_id, :user_id])
+    ```
+
+    *fatkodima*
+
+*   Adds support for `if_not_exists` when adding a check constraint.
+
+    ```ruby
+    add_check_constraint :posts, "post_type IN ('blog', 'comment', 'share')", if_not_exists: true
+    ```
+
+    *Cody Cutrer*
+
+*   Raise an `ArgumentError` when `#accepts_nested_attributes_for` is declared more than once for an association in
+    the same class. Previously, the last declaration would silently override the previous one. Overriding in a subclass
+    is still allowed.
+
+    *Joshua Young*
+
+*   Deprecate `rewhere` argument on `#merge`.
+
+    The `rewhere` argument on `#merge`is deprecated without replacement and
+    will be removed in Rails 7.2.
+
+    *Adam Hess*
+
+*   Fix unscope is not working in specific case
+
+    Before:
+    ```ruby
+    Post.where(id: 1...3).unscope(where: :id).to_sql # "SELECT `posts`.* FROM `posts` WHERE `posts`.`id` >= 1 AND `posts`.`id` < 3"
+
+    ```
+
+    After:
+    ```ruby
+    Post.where(id: 1...3).unscope(where: :id).to_sql # "SELECT `posts`.* FROM `posts`"
+    ```
+
+    Fixes #48094.
+
+    *Kazuya Hatanaka*
+
+*   Change `has_secure_token` default to `on: :initialize`
+
+    Change the new default value from `on: :create` to `on: :initialize`
+
+    Can be controlled by the `config.active_record.generate_secure_token_on`
+    configuration:
+
+    ```ruby
+    config.active_record.generate_secure_token_on = :create
+    ```
+
+    *Sean Doyle*
+
+*   Fix `change_column` not setting `precision: 6` on `datetime` columns when
+    using 7.0+ Migrations and SQLite.
+
+    *Hartley McGuire*
+
+*   Support composite identifiers in `to_key`
+
+    `to_key` avoids wrapping `#id` value into an `Array` if `#id` already an array
+
+    *Nikita Vasilevsky*
+
+*   Add validation option for `enum`
+
+    ```ruby
+    class Contract < ApplicationRecord
+      enum :status, %w[in_progress completed], validate: true
+    end
+    Contract.new(status: "unknown").valid? # => false
+    Contract.new(status: nil).valid? # => false
+    Contract.new(status: "completed").valid? # => true
+
+    class Contract < ApplicationRecord
+      enum :status, %w[in_progress completed], validate: { allow_nil: true }
+    end
+    Contract.new(status: "unknown").valid? # => false
+    Contract.new(status: nil).valid? # => true
+    Contract.new(status: "completed").valid? # => true
+    ```
+
+    *Edem Topuzov*, *Ryuta Kamizono*
+
+*   Allow batching methods to use already loaded relation if available
+
+    Calling batch methods on already loaded relations will use the records previously loaded instead of retrieving
+    them from the database again.
+
+    *Adam Hess*
+
+*   Deprecate `read_attribute(:id)` returning the primary key if the primary key is not `:id`.
+
+    Starting in Rails 7.2, `read_attribute(:id)` will return the value of the id column, regardless of the model's
+    primary key. To retrieve the value of the primary key, use `#id` instead. `read_attribute(:id)` for composite
+    primary key models will now return the value of the id column.
+
+    *Adrianna Chang*
+
+*   Fix `change_table` setting datetime precision for 6.1 Migrations
+
+    *Hartley McGuire*
+
+*   Fix change_column setting datetime precision for 6.1 Migrations
+
+    *Hartley McGuire*
+
+*   Add `ActiveRecord::Base#id_value` alias to access the raw value of a record's id column.
+
+    This alias is only provided for models that declare an `:id` column.
+
+    *Adrianna Chang*
+
+*   Fix previous change tracking for `ActiveRecord::Store` when using a column with JSON structured database type
+
+    Before, the methods to access the changes made during the last save `#saved_change_to_key?`, `#saved_change_to_key`, and `#key_before_last_save` did not work if the store was defined as a `store_accessor` on a column with a JSON structured database type
+
+    *Robert DiMartino*
+
+*   Fully support `NULLS [NOT] DISTINCT` for PostgreSQL 15+ indexes.
+
+    Previous work was done to allow the index to be created in a migration, but it was not
+    supported in schema.rb. Additionally, the matching for `NULLS [NOT] DISTINCT` was not
+    in the correct order, which could have resulted in inconsistent schema detection.
+
+    *Gregory Jones*
+
+*   Allow escaping of literal colon characters in `sanitize_sql_*` methods when named bind variables are used
+
+    *Justin Bull*
+
+*   Fix `#previously_new_record?` to return true for destroyed records.
+
+    Before, if a record was created and then destroyed, `#previously_new_record?` would return true.
+    Now, any UPDATE or DELETE to a record is considered a change, and will result in `#previously_new_record?`
+    returning false.
+
+    *Adrianna Chang*
+
+*   Specify callback in `has_secure_token`
+
+    ```ruby
+    class User < ApplicationRecord
+      has_secure_token on: :initialize
+    end
+
+    User.new.token # => "abc123...."
+    ```
+
+    *Sean Doyle*
+
+*   Fix incrementation of in memory counter caches when associations overlap
+
+    When two associations had a similarly named counter cache column, Active Record
+    could sometime increment the wrong one.
+
+    *Jacopo Beschi*, *Jean Boussier*
+
+*   Don't show secrets for Active Record's `Cipher::Aes256Gcm#inspect`.
+
+    Before:
+
+    ```ruby
+    ActiveRecord::Encryption::Cipher::Aes256Gcm.new(secret).inspect
+    "#<ActiveRecord::Encryption::Cipher::Aes256Gcm:0x0000000104888038 ... @secret=\"\\xAF\\bFh]LV}q\\nl\\xB2U\\xB3 ... >"
+    ```
+
+    After:
+
+    ```ruby
+    ActiveRecord::Encryption::Cipher::Aes256Gcm(secret).inspect
+    "#<ActiveRecord::Encryption::Cipher::Aes256Gcm:0x0000000104888038>"
+    ```
+
+    *Petrik de Heus*
+
+*   Bring back the historical behavior of committing transaction on non-local return.
+
+    ```ruby
+    Model.transaction do
+      model.save
+      return
+      other_model.save # not executed
+    end
+    ```
+
+    Historically only raised errors would trigger a rollback, but in Ruby `2.3`, the `timeout` library
+    started using `throw` to interrupt execution which had the adverse effect of committing open transactions.
+
+    To solve this, in Active Record 6.1 the behavior was changed to instead rollback the transaction as it was safer
+    than to potentially commit an incomplete transaction.
+
+    Using `return`, `break` or `throw` inside a `transaction` block was essentially deprecated from Rails 6.1 onwards.
+
+    However with the release of `timeout 0.4.0`, `Timeout.timeout` now raises an error again, and Active Record is able
+    to return to its original, less surprising, behavior.
+
+    This historical behavior can now be opt-ed in via:
+
+    ```
+    Rails.application.config.active_record.commit_transaction_on_non_local_return = true
+    ```
+
+    And is the default for new applications created in Rails 7.1.
+
+    *Jean Boussier*
+
+*   Deprecate `name` argument on `#remove_connection`.
+
+    The `name` argument is deprecated on `#remove_connection` without replacement. `#remove_connection` should be called directly on the class that established the connection.
+
+    *Eileen M. Uchitelle*
+
+*   Fix has_one through singular building with inverse.
+
+    Allows building of records from an association with a has_one through a
+    singular association with inverse. For belongs_to through associations,
+    linking the foreign key to the primary key model isn't needed.
+    For has_one, we cannot build records due to the association not being mutable.
+
+    *Gannon McGibbon*
+
+*   Disable database prepared statements when query logs are enabled
+
+    Prepared Statements and Query Logs are incompatible features due to query logs making every query unique.
+
+    *zzak, Jean Boussier*
+
+*   Support decrypting data encrypted non-deterministically with a SHA1 hash digest.
+
+    This adds a new Active Record encryption option to support decrypting data encrypted
+    non-deterministically with a SHA1 hash digest:
+
+    ```
+    Rails.application.config.active_record.encryption.support_sha1_for_non_deterministic_encryption = true
+    ```
+
+    The new option addresses a problem when upgrading from 7.0 to 7.1. Due to a bug in how Active Record
+    Encryption was getting initialized, the key provider used for non-deterministic encryption were using
+    SHA-1 as its digest class, instead of the one configured globally by Rails via
+    `Rails.application.config.active_support.key_generator_hash_digest_class`.
+
+    *Cadu Ribeiro and Jorge Manrubia*
+
+*   Added PostgreSQL migration commands for enum rename, add value, and rename value.
+
+    `rename_enum` and `rename_enum_value` are reversible. Due to Postgres
+    limitation, `add_enum_value` is not reversible since you cannot delete enum
+    values. As an alternative you should drop and recreate the enum entirely.
+
+    ```ruby
+    rename_enum :article_status, to: :article_state
+    ```
+
+    ```ruby
+    add_enum_value :article_state, "archived" # will be at the end of existing values
+    add_enum_value :article_state, "in review", before: "published"
+    add_enum_value :article_state, "approved", after: "in review"
+    ```
+
+    ```ruby
+    rename_enum_value :article_state, from: "archived", to: "deleted"
+    ```
+
+    *Ray Faddis*
+
+*   Allow composite primary key to be derived from schema
+
+    Booting an application with a schema that contains composite primary keys
+    will not issue warning and won't `nil`ify the `ActiveRecord::Base#primary_key` value anymore.
+
+    Given a `travel_routes` table definition and a `TravelRoute` model like:
+    ```ruby
+    create_table :travel_routes, primary_key: [:origin, :destination], force: true do |t|
+      t.string :origin
+      t.string :destination
+    end
+
+    class TravelRoute < ActiveRecord::Base; end
+    ```
+    The `TravelRoute.primary_key` value will be automatically derived to `["origin", "destination"]`
+
+    *Nikita Vasilevsky*
+
+*   Include the `connection_pool` with exceptions raised from an adapter.
+
+    The `connection_pool` provides added context such as the connection used
+    that led to the exception as well as which role and shard.
+
+    *Luan Vieira*
+
+*   Support multiple column ordering for `find_each`, `find_in_batches` and `in_batches`.
+
+    When find_each/find_in_batches/in_batches are performed on a table with composite primary keys, ascending or descending order can be selected for each key.
+
+    ```ruby
+    Person.find_each(order: [:desc, :asc]) do |person|
+      person.party_all_night!
+    end
+    ```
+
+    *Takuya Kurimoto*
+
+*   Fix where on association with has_one/has_many polymorphic relations.
+
+    Before:
+    ```ruby
+    Treasure.where(price_estimates: PriceEstimate.all)
+    #=> SELECT (...) WHERE "treasures"."id" IN (SELECT "price_estimates"."estimate_of_id" FROM "price_estimates")
+    ```
+
+    Later:
+    ```ruby
+    Treasure.where(price_estimates: PriceEstimate.all)
+    #=> SELECT (...) WHERE "treasures"."id" IN (SELECT "price_estimates"."estimate_of_id" FROM "price_estimates" WHERE "price_estimates"."estimate_of_type" = 'Treasure')
+    ```
+
+    *Lázaro Nixon*
+
+*   Assign auto populated columns on Active Record record creation.
+
+    Changes record creation logic to allow for the `auto_increment` column to be assigned
+    immediately after creation regardless of it's relation to the model's primary key.
+
+    The PostgreSQL adapter benefits the most from the change allowing for any number of auto-populated
+    columns to be assigned on the object immediately after row insertion utilizing the `RETURNING` statement.
+
+    *Nikita Vasilevsky*
+
+*   Use the first key in the `shards` hash from `connected_to` for the `default_shard`.
+
+    Some applications may not want to use `:default` as a shard name in their connection model. Unfortunately Active Record expects there to be a `:default` shard because it must assume a shard to get the right connection from the pool manager. Rather than force applications to manually set this, `connects_to` can infer the default shard name from the hash of shards and will now assume that the first shard is your default.
+
+    For example if your model looked like this:
+
+    ```ruby
+    class ShardRecord < ApplicationRecord
+      self.abstract_class = true
+
+      connects_to shards: {
+        shard_one: { writing: :shard_one },
+        shard_two: { writing: :shard_two }
+      }
+    ```
+
+    Then the `default_shard` for this class would be set to `shard_one`.
+
+    Fixes: #45390
+
+    *Eileen M. Uchitelle*
+
+*   Fix mutation detection for serialized attributes backed by binary columns.
+
+    *Jean Boussier*
+
+*   Add `ActiveRecord.disconnect_all!` method to immediately close all connections from all pools.
+
+    *Jean Boussier*
+
+*   Discard connections which may have been left in a transaction.
+
+    There are cases where, due to an error, `within_new_transaction` may unexpectedly leave a connection in an open transaction. In these cases the connection may be reused, and the following may occur:
+    - Writes appear to fail when they actually succeed.
+    - Writes appear to succeed when they actually fail.
+    - Reads return stale or uncommitted data.
+
+    Previously, the following case was detected:
+    - An error is encountered during the transaction, then another error is encountered while attempting to roll it back.
+
+    Now, the following additional cases are detected:
+    - An error is encountered just after successfully beginning a transaction.
+    - An error is encountered while committing a transaction, then another error is encountered while attempting to roll it back.
+    - An error is encountered while rolling back a transaction.
+
+    *Nick Dower*
+
+*   Active Record query cache now evicts least recently used entries
+
+    By default it only keeps the `100` most recently used queries.
+
+    The cache size can be configured via `database.yml`
+
+    ```yaml
+    development:
+      adapter: mysql2
+      query_cache: 200
+    ```
+
+    It can also be entirely disabled:
+
+    ```yaml
+    development:
+      adapter: mysql2
+      query_cache: false
+    ```
+
+    *Jean Boussier*
+
+*   Deprecate `check_pending!` in favor of `check_all_pending!`.
+
+    `check_pending!` will only check for pending migrations on the current database connection or the one passed in. This has been deprecated in favor of `check_all_pending!` which will find all pending migrations for the database configurations in a given environment.
+
+    *Eileen M. Uchitelle*
+
+*   Make `increment_counter`/`decrement_counter` accept an amount argument
+
+    ```ruby
+    Post.increment_counter(:comments_count, 5, by: 3)
+    ```
+
+    *fatkodima*
+
+*   Add support for `Array#intersect?` to `ActiveRecord::Relation`.
+
+    `Array#intersect?` is only available on Ruby 3.1 or later.
+
+    This allows the Rubocop `Style/ArrayIntersect` cop to work with `ActiveRecord::Relation` objects.
+
+    *John Harry Kelly*
+
+*   The deferrable foreign key can be passed to `t.references`.
+
+    *Hiroyuki Ishii*
+
+*   Deprecate `deferrable: true` option of `add_foreign_key`.
+
+    `deferrable: true` is deprecated in favor of `deferrable: :immediate`, and
+    will be removed in Rails 7.2.
+
+    Because `deferrable: true` and `deferrable: :deferred` are hard to understand.
+    Both true and :deferred are truthy values.
+    This behavior is the same as the deferrable option of the add_unique_key method, added in #46192.
+
+    *Hiroyuki Ishii*
+
 *   `AbstractAdapter#execute` and `#exec_query` now clear the query cache
 
     If you need to perform a read only SQL query without clearing the query
@@ -363,15 +809,15 @@
     Before:
 
     ```ruby
-      serialize :content, JSON
-      serialize :backtrace, Array
+    serialize :content, JSON
+    serialize :backtrace, Array
     ```
 
     After:
 
     ```ruby
-      serialize :content, coder: JSON
-      serialize :backtrace, type: Array
+    serialize :content, coder: JSON
+    serialize :backtrace, type: Array
     ```
 
     *Jean Boussier*
@@ -397,6 +843,19 @@
     `ActiveRecord::QueryLogs` no longer depend on the query to be properly encoded.
 
     *Jean Boussier*
+
+*   Fix a bug where `ActiveRecord::Generators::ModelGenerator` would not respect create_table_migration template overrides.
+
+    ```
+    rails g model create_books title:string content:text
+    ```
+    will now read from the create_table_migration.rb.tt template in the following locations in order:
+    ```
+    lib/templates/active_record/model/create_table_migration.rb
+    lib/templates/active_record/migration/create_table_migration.rb
+    ```
+
+    *Spencer Neste*
 
 *   `ActiveRecord::Relation#explain` now accepts options.
 
@@ -481,17 +940,19 @@
 
     *George Claghorn*
 
-*   Add `ActiveRecord::Base::normalizes` to declare attribute normalizations.
+*   Add `ActiveRecord::Base.normalizes` for declaring attribute normalizations.
 
-    A normalization is applied when the attribute is assigned or updated, and
-    the normalized value will be persisted to the database.  The normalization
-    is also applied to the corresponding keyword argument of finder methods.
-    This allows a record to be created and later queried using unnormalized
-    values.  For example:
+    An attribute normalization is applied when the attribute is assigned or
+    updated, and the normalized value will be persisted to the database.  The
+    normalization is also applied to the corresponding keyword argument of query
+    methods, allowing records to be queried using unnormalized values.
+
+    For example:
 
       ```ruby
       class User < ActiveRecord::Base
         normalizes :email, with: -> email { email.strip.downcase }
+        normalizes :phone, with: -> phone { phone.delete("^0-9").delete_prefix("1") }
       end
 
       user = User.create(email: " CRUISE-CONTROL@EXAMPLE.COM\n")
@@ -501,8 +962,13 @@
       user.email                  # => "cruise-control@example.com"
       user.email_before_type_cast # => "cruise-control@example.com"
 
+      User.where(email: "\tCRUISE-CONTROL@EXAMPLE.COM ").count         # => 1
+      User.where(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]).count # => 0
+
       User.exists?(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")         # => true
       User.exists?(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]) # => false
+
+      User.normalize_value_for(:phone, "+1 (555) 867-5309") # => "5558675309"
       ```
 
     *Jonathan Hefner*
@@ -1115,7 +1581,7 @@
 
     *Alex Ghiculescu*
 
-*   Add new `ActiveRecord::Base::generates_token_for` API.
+*   Add new `ActiveRecord::Base.generates_token_for` API.
 
     Currently, `signed_id` fulfills the role of generating tokens for e.g.
     resetting a password.  However, signed IDs cannot reflect record state, so
@@ -1123,9 +1589,9 @@
     least until it expires.
 
     With `generates_token_for`, a token can embed data from a record.  When
-    using the token to fetch the record, the data from the token and the data
-    from the record will be compared.  If the two do not match, the token will
-    be treated as invalid, the same as if it had expired.  For example:
+    using the token to fetch the record, the data from the token and the current
+    data from the record will be compared.  If the two do not match, the token
+    will be treated as invalid, the same as if it had expired.  For example:
 
     ```ruby
     class User < ActiveRecord::Base
@@ -1624,11 +2090,6 @@
     bigint instead of integer for the SQLite Adapter.
 
     *Marcelo Lauxen*
-
-*   Add a deprecation warning when `prepared_statements` configuration is not
-    set for the mysql2 adapter.
-
-    *Thiago Araujo and Stefanni Brasil*
 
 *   Fix `QueryMethods#in_order_of` to handle empty order list.
 

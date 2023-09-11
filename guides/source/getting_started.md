@@ -1917,12 +1917,12 @@ Our blog has <%= Article.public_count %> articles and counting!
 <%= link_to "New Article", new_article_path %>
 ```
 
-To finish up, we will add a select box to the forms, and let the user select the status when they create a new article or post a new comment. We can also specify the default status as `public`. In `app/views/articles/_form.html.erb`, we can add:
+To finish up, we will add a select box to the forms, and let the user select the status when they create a new article or post a new comment. We can also select the status of the object, or a default of `public` if it hasn't been set yet. In `app/views/articles/_form.html.erb`, we can add:
 
 ```html+erb
 <div>
   <%= form.label :status %><br>
-  <%= form.select :status, ['public', 'private', 'archived'], selected: 'public' %>
+  <%= form.select :status, Visible::VALID_STATUSES, selected: article.status || 'public' %>
 </div>
 ```
 
@@ -1931,7 +1931,7 @@ and in `app/views/comments/_form.html.erb`:
 ```html+erb
 <p>
   <%= form.label :status %><br>
-  <%= form.select :status, ['public', 'private', 'archived'], selected: 'public' %>
+  <%= form.select :status, Visible::VALID_STATUSES, selected: 'public' %>
 </p>
 ```
 

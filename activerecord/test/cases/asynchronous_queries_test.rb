@@ -131,8 +131,6 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
 end
 
 class AsynchronousQueriesWithTransactionalTest < ActiveRecord::TestCase
-  self.use_transactional_tests = true
-
   include AsynchronousQueriesSharedTests
 
   def setup

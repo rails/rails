@@ -36,10 +36,10 @@ module ActionController # :nodoc:
   #
   # Subclasses of ActionController::Base are protected by default with the
   # <tt>:exception</tt> strategy, which raises an
-  # <tt>ActionController::InvalidAuthenticityToken</tt> error on unverified requests.
+  # ActionController::InvalidAuthenticityToken error on unverified requests.
   #
   # APIs may want to disable this behavior since they are typically designed to be
-  # state-less: that is, the request API client handles the session instead of Rails.
+  # state-less: that is, the request API client handles the session instead of \Rails.
   # One way to achieve this is to use the <tt>:null_session</tt> strategy instead,
   # which allows unverified requests to be handled, but with an empty session:
   #
@@ -147,7 +147,7 @@ module ActionController # :nodoc:
       #      end
       #    end
       #
-      #    class ApplicationController < ActionController:x:Base
+      #    class ApplicationController < ActionController::Base
       #      protect_from_forgery with: CustomStrategy
       #    end
       # * <tt>:store</tt> - Set the strategy to store and retrieve CSRF tokens.
@@ -172,7 +172,7 @@ module ActionController # :nodoc:
       #     end
       #   end
       #
-      #   class ApplicationController < ActionController:x:Base
+      #   class ApplicationController < ActionController::Base
       #     protect_from_forgery store: CustomStore.new
       #   end
       def protect_from_forgery(options = {})

@@ -15,6 +15,7 @@ module ActiveRecord
         def serial?
           @serial
         end
+        alias_method :auto_incremented_by_db?, :serial?
 
         def virtual?
           # We assume every generated column is virtual, no matter the concrete type

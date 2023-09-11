@@ -72,12 +72,17 @@ module AbstractController
       # instance methods on that abstract class. Public instance methods of
       # a controller would normally be considered action methods, so methods
       # declared on abstract classes are being removed.
-      # (<tt>ActionController::Metal</tt> and ActionController::Base are defined as abstract)
+      # (ActionController::Metal and ActionController::Base are defined as abstract)
       def internal_methods
         controller = self
+        methods = []
 
-        controller = controller.superclass until controller.abstract?
-        controller.public_instance_methods(true)
+        until controller.abstract?
+          methods += controller.public_instance_methods(false)
+          controller = controller.superclass
+        end
+
+        controller.public_instance_methods(true) - methods
       end
 
       # A list of method names that should be considered actions. This
@@ -91,14 +96,11 @@ module AbstractController
       def action_methods
         @action_methods ||= begin
           # All public instance methods of this class, including ancestors
-          methods = (public_instance_methods(true) -
-            # Except for public instance methods of Base and its ancestors
-            internal_methods +
-            # Be sure to include shadowed public instance methods of this class
-            public_instance_methods(false))
-
+          # except for public instance methods of Base and its ancestors.
+          methods = public_instance_methods(true) - internal_methods
+          # Be sure to include shadowed public instance methods of this class.
+          methods.concat(public_instance_methods(false))
           methods.map!(&:to_s)
-
           methods.to_set
         end
       end

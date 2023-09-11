@@ -1,14 +1,24 @@
-*   `assert_broadcasts` now returns the messages that were broadcast.
+*   Add a `@server` instance variable referencing the `ActionCable.server`
+    singleton to `ActionCable::Channel::ConnectionStub`
 
-    This makes it easier to do further analysis on those messages:
+    This lets us delegate the `pubsub` and `config` method calls
+    to the server. This fixes `NoMethodError` errors when testing
+    channel logic that call `pubsub` (e.g. `stop_stream_for`).
+
+    *Julian Foo*
+
+*   Added `health_check_path` and `health_check_application` config to
+    mount a given health check rack app on a given path.
+    Useful when mounting Action Cable standalone.
+
+    *Joé Dupuis*
+
+*   Introduce the `capture_broadcasts` test helper.
+
+    Returns all messages broadcast in a block.
 
     ```ruby
-    message = assert_broadcasts("test", 1) do
-      ActionCable.server.broadcast "test", "message"
-    end
-    assert_equal "message", message
-
-    messages = assert_broadcasts("test", 2) do
+    messages = capture_broadcasts("test") do
       ActionCable.server.broadcast "test", { message: "one" }
       ActionCable.server.broadcast "test", { message: "two" }
     end

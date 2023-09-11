@@ -6,8 +6,6 @@ gem "trilogy", "~> 2.4"
 require "trilogy"
 
 require "active_record/connection_adapters/trilogy/database_statements"
-require "active_record/connection_adapters/trilogy/lost_connection_exception_translator"
-require "active_record/connection_adapters/trilogy/errors"
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
@@ -41,6 +39,7 @@ module ActiveRecord
       ER_BAD_DB_ERROR = 1049
       ER_DBACCESS_DENIED_ERROR = 1044
       ER_ACCESS_DENIED_ERROR = 1045
+      ER_SERVER_SHUTDOWN = 1053
 
       ADAPTER_NAME = "Trilogy"
 
@@ -66,7 +65,6 @@ module ActiveRecord
           return mode if mode.is_a? Integer
 
           m = mode.to_s.upcase
-          # enable Mysql2 client compatibility
           m = "SSL_MODE_#{m}" unless m.start_with? "SSL_MODE_"
 
           SSL_MODES.fetch(m.to_sym, mode)
@@ -79,14 +77,29 @@ module ActiveRecord
           when ER_ACCESS_DENIED_ERROR
             ActiveRecord::DatabaseConnectionError.username_error(config[:username])
           else
-            if error.message.include?(/TRILOGY_DNS_ERROR/)
+            if error.message.include?("TRILOGY_DNS_ERROR")
               ActiveRecord::DatabaseConnectionError.hostname_error(config[:host])
             else
               ActiveRecord::ConnectionNotEstablished.new(error.message)
             end
           end
         end
+
+        private
+          def initialize_type_map(m)
+            super
+
+            m.register_type(%r(char)i) do |sql_type|
+              limit = extract_limit(sql_type)
+              Type.lookup(:string, adapter: :trilogy, limit: limit)
+            end
+
+            m.register_type %r(^enum)i, Type.lookup(:string, adapter: :trilogy)
+            m.register_type %r(^set)i,  Type.lookup(:string, adapter: :trilogy)
+          end
       end
+
+      TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
 
       def supports_json?
         !mariadb? && database_version >= "5.7.8"
@@ -143,6 +156,10 @@ module ActiveRecord
       end
 
       private
+        def text_type?(type)
+          TYPE_MAP.lookup(type).is_a?(Type::String) || TYPE_MAP.lookup(type).is_a?(Type::Text)
+        end
+
         def each_hash(result)
           return to_enum(:each_hash, result) unless block_given?
 
@@ -174,76 +191,14 @@ module ActiveRecord
 
         def connect
           self.connection = self.class.new_client(@config)
+        rescue ConnectionNotEstablished => ex
+          raise ex.set_pool(@pool)
         end
 
         def reconnect
           connection&.close
           self.connection = nil
           connect
-        end
-
-        def sync_timezone_changes(conn)
-          # Sync any changes since connection last established.
-          if default_timezone == :local
-            conn.query_flags |= ::Trilogy::QUERY_FLAGS_LOCAL_TIMEZONE
-          else
-            conn.query_flags &= ~::Trilogy::QUERY_FLAGS_LOCAL_TIMEZONE
-          end
-        end
-
-        def execute_batch(statements, name = nil)
-          statements = statements.map { |sql| transform_query(sql) }
-          combine_multi_statements(statements).each do |statement|
-            with_raw_connection do |conn|
-              raw_execute(statement, name)
-              conn.next_result while conn.more_results_exist?
-            end
-          end
-        end
-
-        def multi_statements_enabled?
-          !!@config[:multi_statement]
-        end
-
-        def with_multi_statements
-          if multi_statements_enabled?
-            return yield
-          end
-
-          with_raw_connection do |conn|
-            conn.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_ON)
-
-            yield
-          ensure
-            conn.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_OFF)
-          end
-        end
-
-        def combine_multi_statements(total_sql)
-          total_sql.each_with_object([]) do |sql, total_sql_chunks|
-            previous_packet = total_sql_chunks.last
-            if max_allowed_packet_reached?(sql, previous_packet)
-              total_sql_chunks << +sql
-            else
-              previous_packet << ";\n"
-              previous_packet << sql
-            end
-          end
-        end
-
-        def max_allowed_packet_reached?(current_packet, previous_packet)
-          if current_packet.bytesize > max_allowed_packet
-            raise ActiveRecordError,
-              "Fixtures set is too large #{current_packet.bytesize}. Consider increasing the max_allowed_packet variable."
-          elsif previous_packet.nil?
-            true
-          else
-            (current_packet.bytesize + previous_packet.bytesize + 2) > max_allowed_packet
-          end
-        end
-
-        def max_allowed_packet
-          @max_allowed_packet ||= show_variable("max_allowed_packet")
         end
 
         def full_version
@@ -257,23 +212,43 @@ module ActiveRecord
         end
 
         def translate_exception(exception, message:, sql:, binds:)
+          if exception.is_a?(::Trilogy::TimeoutError) && !exception.error_code
+            return ActiveRecord::AdapterTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
+          end
           error_code = exception.error_code if exception.respond_to?(:error_code)
 
-          Trilogy::LostConnectionExceptionTranslator.new(exception, message, error_code).translate || super
+          case error_code
+          when ER_SERVER_SHUTDOWN
+            return ConnectionFailed.new(message, connection_pool: @pool)
+          end
+
+          case exception
+          when Errno::EPIPE, SocketError, IOError
+            return ConnectionFailed.new(message, connection_pool: @pool)
+          when ::Trilogy::Error
+            if /Connection reset by peer|TRILOGY_CLOSED_CONNECTION|TRILOGY_INVALID_SEQUENCE_ID|TRILOGY_UNEXPECTED_PACKET/.match?(exception.message)
+              return ConnectionFailed.new(message, connection_pool: @pool)
+            end
+          end
+
+          super
         end
 
         def default_prepared_statements
           false
         end
 
-        def default_insert_value(column)
-          super unless column.auto_increment?
+        ActiveRecord::Type.register(:immutable_string, adapter: :trilogy) do |_, **args|
+          Type::ImmutableString.new(true: "1", false: "0", **args)
         end
 
-        # https://mariadb.com/kb/en/analyze-statement/
-        def analyze_without_explain?
-          mariadb? && database_version >= "10.1.0"
+        ActiveRecord::Type.register(:string, adapter: :trilogy) do |_, **args|
+          Type::String.new(true: "1", false: "0", **args)
         end
+
+        ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :trilogy)
     end
+
+    ActiveSupport.run_load_hooks(:active_record_trilogyadapter, TrilogyAdapter)
   end
 end

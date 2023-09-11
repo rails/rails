@@ -31,8 +31,16 @@ class ActiveStorage::Blob < ActiveStorage::Record
   class_attribute :services, default: {}
   class_attribute :service, instance_accessor: false
 
+  ##
+  # :method:
+  #
+  # Returns the associated +ActiveStorage::Attachment+s.
   has_many :attachments
 
+  ##
+  # :singleton-method:
+  #
+  # Returns the blobs that aren't attached to any record.
   scope :unattached, -> { where.missing(:attachments) }
 
   after_initialize do
@@ -155,7 +163,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   # Returns the key pointing to the file on the service that's associated with this blob. The key is the
-  # secure-token format from Rails in lower case. So it'll look like: xtapjjcjiudrlk3tmwyjgpuobabd.
+  # secure-token format from \Rails in lower case. So it'll look like: xtapjjcjiudrlk3tmwyjgpuobabd.
   # This key is not intended to be revealed directly to the user.
   # Always refer to blobs using the signed_id or a verified form of the key.
   def key
@@ -298,7 +306,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   def mirror_later # :nodoc:
-    ActiveStorage::MirrorJob.perform_later(key, checksum: checksum) if service.respond_to?(:mirror)
+    service.mirror_later key, checksum: checksum if service.respond_to?(:mirror_later)
   end
 
   # Deletes the files on the service associated with the blob. This should only be done if the blob is going to be

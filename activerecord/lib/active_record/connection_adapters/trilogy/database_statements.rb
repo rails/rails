@@ -4,36 +4,12 @@ module ActiveRecord
   module ConnectionAdapters
     module Trilogy
       module DatabaseStatements
-        READ_QUERY = AbstractAdapter.build_read_query_regexp(
-          :desc, :describe, :set, :show, :use
-        ) # :nodoc:
-        private_constant :READ_QUERY
-
-        HIGH_PRECISION_CURRENT_TIMESTAMP = Arel.sql("CURRENT_TIMESTAMP(6)").freeze # :nodoc:
-        private_constant :HIGH_PRECISION_CURRENT_TIMESTAMP
-
         def select_all(*, **) # :nodoc:
-          result = nil
+          result = super
           with_raw_connection do |conn|
-            result = super
             conn.next_result while conn.more_results_exist?
           end
           result
-        end
-
-        def write_query?(sql) # :nodoc:
-          !READ_QUERY.match?(sql)
-        rescue ArgumentError # Invalid encoding
-          !READ_QUERY.match?(sql.b)
-        end
-
-        def explain(arel, binds = [], options = [])
-          sql     = build_explain_clause(options) + " " + to_sql(arel, binds)
-          start   = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          result  = internal_exec_query(sql, "EXPLAIN", binds)
-          elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
-
-          MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
         end
 
         def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false) # :nodoc:
@@ -45,7 +21,7 @@ module ActiveRecord
           ActiveRecord::Result.new(result.fields, result.to_a)
         end
 
-        def exec_insert(sql, name, binds, pk = nil, sequence_name = nil) # :nodoc:
+        def exec_insert(sql, name, binds, pk = nil, sequence_name = nil, returning: nil) # :nodoc:
           sql = transform_query(sql)
           check_if_write_query(sql)
           mark_transaction_written_if_write(sql)
@@ -64,22 +40,6 @@ module ActiveRecord
 
         alias :exec_update :exec_delete # :nodoc:
 
-        def high_precision_current_timestamp
-          HIGH_PRECISION_CURRENT_TIMESTAMP
-        end
-
-        def build_explain_clause(options = [])
-          return "EXPLAIN" if options.empty?
-
-          explain_clause = "EXPLAIN #{options.join(" ").upcase}"
-
-          if analyze_without_explain? && explain_clause.include?("ANALYZE")
-            explain_clause.sub("EXPLAIN ", "")
-          else
-            explain_clause
-          end
-        end
-
         private
           def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
             log(sql, name, async: async) do
@@ -94,6 +54,43 @@ module ActiveRecord
 
           def last_inserted_id(result)
             result.last_insert_id
+          end
+
+          def sync_timezone_changes(conn)
+            # Sync any changes since connection last established.
+            if default_timezone == :local
+              conn.query_flags |= ::Trilogy::QUERY_FLAGS_LOCAL_TIMEZONE
+            else
+              conn.query_flags &= ~::Trilogy::QUERY_FLAGS_LOCAL_TIMEZONE
+            end
+          end
+
+          def execute_batch(statements, name = nil)
+            statements = statements.map { |sql| transform_query(sql) }
+            combine_multi_statements(statements).each do |statement|
+              with_raw_connection do |conn|
+                raw_execute(statement, name)
+                conn.next_result while conn.more_results_exist?
+              end
+            end
+          end
+
+          def multi_statements_enabled?
+            !!@config[:multi_statement]
+          end
+
+          def with_multi_statements
+            if multi_statements_enabled?
+              return yield
+            end
+
+            with_raw_connection do |conn|
+              conn.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_ON)
+
+              yield
+            ensure
+              conn.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_OFF)
+            end
           end
       end
     end

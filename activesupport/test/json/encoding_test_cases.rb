@@ -36,6 +36,26 @@ module JSONTest
     end
   end
 
+  class RomanNumeral < Numeric
+    def initialize(str)
+      @str = str
+    end
+
+    def as_json(options = nil)
+      @str
+    end
+  end
+
+  class CustomNumeric < Numeric
+    def initialize(str)
+      @str = str
+    end
+
+    def to_json(options = nil)
+      @str
+    end
+  end
+
   module EncodingTestCases
     TrueTests     = [[ true,  %(true)  ]]
     FalseTests    = [[ false, %(false) ]]
@@ -46,7 +66,10 @@ module JSONTest
                      [ 1.0 / 0.0,   %(null) ],
                      [ -1.0 / 0.0,  %(null) ],
                      [ BigDecimal("0.0") / BigDecimal("0.0"),  %(null) ],
-                     [ BigDecimal("2.5"), %("#{BigDecimal('2.5')}") ]]
+                     [ BigDecimal("2.5"), %("#{BigDecimal('2.5')}") ],
+                     [ RomanNumeral.new("MCCCXXXVII"), %("MCCCXXXVII") ],
+                     [ [CustomNumeric.new("123")], %([123]) ]
+    ]
 
     StringTests   = [[ "this is the <string>",     %("this is the \\u003cstring\\u003e")],
                      [ 'a "string" with quotes & an ampersand', %("a \\"string\\" with quotes \\u0026 an ampersand") ],

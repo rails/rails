@@ -108,25 +108,25 @@ module ApplicationTests
 
     test "rails/welcome in production" do
       app("production")
-      get "/"
+      get("/", {}, "HTTPS" => "on")
       assert_equal 404, last_response.status
     end
 
     test "rails/info in production" do
       app("production")
-      get "/rails/info"
+      get("/rails/info", {}, "HTTPS" => "on")
       assert_equal 404, last_response.status
     end
 
     test "rails/info/routes in production" do
       app("production")
-      get "/rails/info/routes"
+      get("/rails/info/routes", {}, "HTTPS" => "on")
       assert_equal 404, last_response.status
     end
 
     test "rails/info/properties in production" do
       app("production")
-      get "/rails/info/properties"
+      get("/rails/info/properties", {}, "HTTPS" => "on")
       assert_equal 404, last_response.status
     end
 
@@ -139,12 +139,14 @@ module ApplicationTests
         end
       RUBY
 
-      get "/up"
+      get("/up", {}, "HTTPS" => "on")
       assert_equal 200, last_response.status
     end
 
     test "simple controller" do
       simple_controller
+
+      app "development"
 
       get "/foo"
       assert_equal "foo", last_response.body
@@ -173,6 +175,8 @@ module ApplicationTests
         end
       RUBY
 
+      app "development"
+
       get "/foo"
       assert_equal "bar", last_response.body
     end
@@ -186,6 +190,8 @@ module ApplicationTests
           resource :user
         end
       RUBY
+
+      app "development"
 
       get "/blog/archives"
       assert_equal "/archives", last_response.body
@@ -206,6 +212,8 @@ module ApplicationTests
           get '/foo' => 'foo#index'
         end
       RUBY
+
+      app "development"
 
       get "/foo"
       assert_equal "/blog", last_response.body
@@ -233,6 +241,8 @@ module ApplicationTests
           get ':controller(/:action)'
         end
       RUBY
+
+      app "development"
 
       get "/foo"
       assert_equal "foo", last_response.body
@@ -266,6 +276,8 @@ module ApplicationTests
           get 'foo', to: 'foo#index'
         end
       RUBY
+
+      app "development"
 
       get "/foo"
       assert_equal "foo", last_response.body
@@ -383,13 +395,15 @@ module ApplicationTests
 
         app(mode)
 
-        get "/foo"
+        https = (mode == "production" ? "on" : "off")
+
+        get("/foo", {}, "HTTPS" => https)
         assert_equal "bar", last_response.body
 
-        get "/custom"
+        get("/custom", {}, "HTTPS" => https)
         assert_equal "http://www.microsoft.com", last_response.body
 
-        get "/mapping"
+        get("/mapping", {}, "HTTPS" => https)
         assert_equal "/profile", last_response.body
 
         app_file "config/routes.rb", <<-RUBY
@@ -409,13 +423,13 @@ module ApplicationTests
 
         sleep 0.1
 
-        get "/foo"
+        get("/foo", {}, "HTTPS" => https)
         assert_equal expected_action, last_response.body
 
-        get "/custom"
+        get("/custom", {}, "HTTPS" => https)
         assert_equal expected_url, last_response.body
 
-        get "/mapping"
+        get("/mapping", {}, "HTTPS" => https)
         assert_equal expected_mapping, last_response.body
       end
     end
@@ -663,6 +677,8 @@ module ApplicationTests
     end
 
     test "resource routing with irregular inflection" do
+      app("development")
+
       app_file "config/initializers/inflection.rb", <<-RUBY
         ActiveSupport::Inflector.inflections do |inflect|
           inflect.irregular 'yazi', 'yazilar'
@@ -691,6 +707,8 @@ module ApplicationTests
     end
 
     test "reloading routes removes methods and doesn't undefine them" do
+      app("development")
+
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/url', to: 'url#index'
@@ -751,7 +769,7 @@ module ApplicationTests
     test "request to rails/welcome for api_only app is successful" do
       add_to_config <<-RUBY
         config.api_only = true
-        config.action_dispatch.show_exceptions = false
+        config.action_dispatch.show_exceptions = :none
         config.action_controller.allow_forgery_protection = true
       RUBY
 
@@ -763,7 +781,7 @@ module ApplicationTests
 
     test "request to rails/welcome is successful when default_protect_from_forgery is false" do
       add_to_config <<-RUBY
-        config.action_dispatch.show_exceptions = false
+        config.action_dispatch.show_exceptions = :none
         config.action_controller.default_protect_from_forgery = false
       RUBY
 

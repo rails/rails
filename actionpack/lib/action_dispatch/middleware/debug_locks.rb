@@ -99,8 +99,8 @@ module ActionDispatch
           msg << "\n#{info[:backtrace].join("\n")}\n" if info[:backtrace]
         end.join("\n\n---\n\n\n")
 
-        [200, { "Content-Type" => "text/plain; charset=#{ActionDispatch::Response.default_charset}",
-          "Content-Length" => str.size }, [str]]
+        [200, { Rack::CONTENT_TYPE => "text/plain; charset=#{ActionDispatch::Response.default_charset}",
+                Rack::CONTENT_LENGTH => str.size.to_s }, [str]]
       end
 
       def blocked_by?(victim, blocker, all_threads)

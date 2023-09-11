@@ -9,6 +9,48 @@ module ActiveStorage
   module Attached::Model
     extend ActiveSupport::Concern
 
+    ##
+    # :method: *_attachment
+    #
+    # Returns the attachment for the +has_one_attached+.
+    #
+    #   User.last.avatar_attachment
+
+    ##
+    # :method: *_attachments
+    #
+    # Returns the attachments for the +has_many_attached+.
+    #
+    #   Gallery.last.photos_attachments
+
+    ##
+    # :method: *_blob
+    #
+    # Returns the blob for the +has_one_attached+ attachment.
+    #
+    #   User.last.avatar_blob
+
+    ##
+    # :method: *_blobs
+    #
+    # Returns the blobs for the +has_many_attached+ attachments.
+    #
+    #   Gallery.last.photos_blobs
+
+    ##
+    # :method: with_attached_*
+    #
+    # Includes the attached blobs in your query to avoid N+1 queries.
+    #
+    # If +ActiveStorage.track_variants+ is enabled, it will also include the
+    # variants record and their attached blobs.
+    #
+    #   User.with_attached_avatar
+    #
+    # Use the plural form for +has_many_attached+:
+    #
+    #   Gallery.with_attached_photos
+
     class_methods do
       # Specifies the relation between a single attachment and the model.
       #
@@ -61,7 +103,7 @@ module ActiveStorage
 
           def #{name}=(attachable)
             attachment_changes["#{name}"] =
-              if attachable.nil?
+              if attachable.nil? || attachable == ""
                 ActiveStorage::Attached::Changes::DeleteOne.new("#{name}", self)
               else
                 ActiveStorage::Attached::Changes::CreateOne.new("#{name}", self, attachable)
@@ -72,7 +114,13 @@ module ActiveStorage
         has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record, inverse_of: :record, dependent: :destroy, strict_loading: strict_loading
         has_one :"#{name}_blob", through: :"#{name}_attachment", class_name: "ActiveStorage::Blob", source: :blob, strict_loading: strict_loading
 
-        scope :"with_attached_#{name}", -> { includes("#{name}_attachment": :blob) }
+        scope :"with_attached_#{name}", -> {
+          if ActiveStorage.track_variants
+            includes("#{name}_attachment": { blob: { variant_records: { image_attachment: :blob } } })
+          else
+            includes("#{name}_attachment": :blob)
+          end
+        }
 
         after_save { attachment_changes[name.to_s]&.save }
 

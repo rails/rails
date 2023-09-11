@@ -14,8 +14,13 @@ gem "rake", ">= 13"
 
 gem "sprockets-rails", ">= 2.0.0"
 gem "propshaft", ">= 0.1.7"
-gem "capybara", ">= 3.38"
-gem "selenium-webdriver", ">= 4.0.0"
+gem "capybara", ">= 3.39"
+if RUBY_VERSION < "3"
+  gem "selenium-webdriver", "<= 4.9.0"
+  gem "webdrivers"
+else
+  gem "selenium-webdriver", ">= 4.11.0"
+end
 
 gem "rack-cache", "~> 1.2"
 gem "stimulus-rails"
@@ -54,7 +59,7 @@ group :mdl do
 end
 
 group :doc do
-  gem "sdoc", ">= 2.6.0"
+  gem "sdoc", git: "https://github.com/rails/sdoc.git", branch: "main"
   gem "rdoc", "~> 6.5"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
@@ -77,8 +82,12 @@ gem "jbuilder", require: false
 gem "web-console", require: false
 
 # Action Pack and railties
-rack_version = ENV.fetch("RACK", "~> 2.0") # Change to ~> 3 after #46594 is merged.
-gem "rack", rack_version
+rack_version = ENV.fetch("RACK", "~> 3.0")
+if rack_version != "head"
+  gem "rack", rack_version
+else
+  gem "rack", git: "https://github.com/rack/rack.git", branch: "main"
+end
 
 # Active Job
 group :job do
@@ -117,10 +126,6 @@ end
 gem "aws-sdk-sns", require: false
 gem "webmock"
 
-group :ujs do
-  gem "webdrivers"
-end
-
 # Add your own local bundler stuff.
 local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile
@@ -145,12 +150,12 @@ platforms :ruby, :windows do
   gem "racc", ">=1.4.6", require: false
 
   # Active Record.
-  gem "sqlite3", "~> 1.4"
+  gem "sqlite3", "< 1.6.4"
 
   group :db do
     gem "pg", "~> 1.3"
     gem "mysql2", "~> 0.5"
-    gem "trilogy", github: "github/trilogy", branch: "main", glob: "contrib/ruby/*.gemspec"
+    gem "trilogy", ">= 2.5.0"
   end
 end
 

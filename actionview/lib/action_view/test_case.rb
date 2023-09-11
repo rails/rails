@@ -179,7 +179,7 @@ module ActionView
     private
       # Need to experiment if this priority is the best one: rendered => output_buffer
       def document_root_element
-        Nokogiri::HTML::Document.parse(@rendered.blank? ? @output_buffer.to_str : @rendered).root
+        Rails::Dom::Testing.html_document.parse(@rendered.blank? ? @output_buffer.to_str : @rendered).root
       end
 
       module Locals
@@ -279,6 +279,7 @@ module ActionView
           super
         end
       end
+      ruby2_keywords(:method_missing)
 
       def respond_to_missing?(name, include_private = false)
         begin

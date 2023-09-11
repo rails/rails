@@ -117,25 +117,6 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal expected, translate(:"translations.missing", year: "2015", scope: %i(scoped))
   end
 
-  def test_raises_missing_translation_message_with_raise_config_option
-    ActionView::Helpers::TranslationHelper.raise_on_missing_translations = true
-
-    assert_raise(I18n::MissingTranslationData) do
-      translate("translations.missing")
-    end
-  ensure
-    ActionView::Helpers::TranslationHelper.raise_on_missing_translations = false
-  end
-
-  def test_raise_arg_overrides_raise_config_option
-    ActionView::Helpers::TranslationHelper.raise_on_missing_translations = true
-
-    expected = "translation missing: en.translations.missing"
-    assert_equal expected, translate(:"translations.missing", raise: false)
-  ensure
-    ActionView::Helpers::TranslationHelper.raise_on_missing_translations = false
-  end
-
   def test_raises_missing_translation_message_with_raise_option
     assert_raise(I18n::MissingTranslationData) do
       translate(:"translations.missing", raise: true)

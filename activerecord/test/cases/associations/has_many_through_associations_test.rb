@@ -37,13 +37,15 @@ require "models/section"
 require "models/seminar"
 require "models/session"
 require "models/sharded"
+require "models/cpk"
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
            :owners, :pets, :toys, :jobs, :references, :companies, :members, :author_addresses,
            :subscribers, :books, :subscriptions, :developers, :categorizations, :essays,
            :categories_posts, :clubs, :memberships, :organizations, :author_favorites,
-           :sharded_blog_posts, :sharded_tags, :sharded_blog_posts_tags
+           :sharded_blog_posts, :sharded_tags, :sharded_blog_posts_tags, :cpk_orders, :cpk_tags,
+           :cpk_order_tags
 
   # Dummies to force column loads so query counts are clean.
   def setup
@@ -438,6 +440,31 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_empty posts(:welcome).reload.people
     assert_empty posts(:welcome).people.reload
+  end
+
+  def test_destroy_all_on_composite_primary_key_model
+    tag = cpk_tags(:cpk_tag_loyal_customer)
+
+    assert_not_empty(tag.orders.to_a)
+
+    tag.orders.destroy_all
+    assert_empty(tag.orders)
+    assert_empty(tag.orders.reload)
+  end
+
+  def test_composite_primary_key_join_table
+    order = Cpk::Order.create(shop_id: 1, status: "open")
+    tag = cpk_tags(:cpk_tag_loyal_customer)
+
+    order_tag = Cpk::OrderTag.create(order_id: order.id_value, tag_id: tag.id, attached_by: "Nikita")
+
+    assert_equal(order, order_tag.order)
+    assert_equal(tag, order_tag.tag)
+    order_tag.update(attached_reason: "This is our loyal customer")
+
+    order_tag = order.order_tags.find { |order_tag| order_tag.tag_id == tag.id }
+
+    assert_equal("This is our loyal customer", order_tag.attached_reason)
   end
 
   def test_destroy_all_on_association_clears_scope
@@ -1617,6 +1644,33 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_not_empty(blog_post_ids)
     assert_equal(expected_blog_post_ids.sort, blog_post_ids.sort)
+  end
+
+  def test_loading_cpk_association_with_unpersisted_owner
+    order = Cpk::Order.create!(shop_id: 1)
+    book = Cpk::BookWithOrderAgreements.new(id: [1, 2], order: order)
+    order_agreement = Cpk::OrderAgreement.create!(order: order)
+
+    assert_equal([order_agreement], book.order_agreements.to_a)
+  end
+
+  def test_cpk_stale_target
+    order = Cpk::Order.create!(shop_id: 1)
+    book = Cpk::BookWithOrderAgreements.create!(id: [1, 2], order: order)
+    Cpk::OrderAgreement.create!(order: order)
+
+    book.order_agreements.load
+    book.order = Cpk::Order.new
+
+    assert_predicate(book.association(:order_agreements), :stale_target?)
+  end
+
+  def test_cpk_association_build_through_singular
+    order = Cpk::OrderWithSingularBookChapters.create!(id: [1, 2])
+    book = order.create_book!(id: [3, 4])
+    chapter = order.chapters.build
+
+    assert_equal(chapter.book, book)
   end
 
   private

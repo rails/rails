@@ -4,8 +4,6 @@ require "cases/helper"
 require "cases/migration/helper"
 
 class MultiDbMigratorTest < ActiveRecord::TestCase
-  self.use_transactional_tests = false
-
   # Use this class to sense if migrations have gone
   # up or down.
   class Sensor < ActiveRecord::Migration::Current

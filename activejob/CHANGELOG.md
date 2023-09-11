@@ -1,3 +1,46 @@
+*   Fix Active Job log message to correctly report a job failed to enqueue
+    when the adapter raises an `ActiveJob::EnqueueError`.
+
+    *Ben Sheldon*
+
+*   Add `after_discard` method.
+
+    This method lets job authors define a block which will be run when a job is about to be discarded. For example:
+
+    ```ruby
+    class AfterDiscardJob < ActiveJob::Base
+      after_discard do |job, exception|
+        Rails.logger.info("#{job.class} raised an exception: #{exception}")
+      end
+
+      def perform
+        raise StandardError
+      end
+    end
+    ```
+
+    The above job will run the block passed to `after_discard` after the job is discarded. The exception will
+    still be raised after the block has been run.
+
+    *Rob Cardy*
+
+*   Fix deserialization of ActiveSupport::Duration
+
+    Previously, a deserialized Duration would return an array from Duration#parts.
+    It will now return a hash just like a regular Duration.
+
+    This also fixes an error when trying to add or subtract from a deserialized Duration
+    (eg `duration + 1.year`).
+
+    *Jonathan del Strother*
+
+*   `perform_enqueued_jobs` is now compatible with all Active Job adapters
+
+    This means that methods that depend on it, like Action Mailer's `assert_emails`,
+    will work correctly even if the test adapter is not used.
+
+    *Alex Ghiculescu*
+
 *   Allow queue adapters to provide a custom name by implementing `queue_adapter_name`
 
     *Sander Verdonschot*
@@ -37,7 +80,7 @@
 
     This can greatly reduce the number of round-trips to the queue datastore.
     For queue adapters that do not implement the new `enqueue_all` method, we
-    fall back to enqueuing jobs indvidually. The Sidekiq adapter implements
+    fall back to enqueuing jobs individually. The Sidekiq adapter implements
     `enqueue_all` with `push_bulk`.
 
     This method does not use the existing `enqueue.active_job` event, but adds a

@@ -416,6 +416,56 @@ module ApplicationTests
       end
     end
 
+    def test_line_range_filter_syntax
+      app_file "test/models/post_test.rb", <<-RUBY
+        require "test_helper"
+
+        class PostTest < ActiveSupport::TestCase
+          test "first" do # 4
+            puts 'PostTest:FirstFilter'
+            assert true
+          end
+
+          test "second" do # 9
+            puts 'PostTest:Second'
+            assert true
+          end
+
+          test "third" do # 14
+            puts 'PostTest:Third'
+            assert true
+          end
+
+          test "fourth" do # 19
+            puts 'PostTest:Fourth'
+            assert true
+          end
+        end
+      RUBY
+
+      run_test_command("test/models/post_test.rb:4-14").tap do |output|
+        assert_match "PostTest:First", output
+        assert_match "PostTest:Second", output
+        assert_match "PostTest:Third", output
+        assert_match "3 runs, 3 assertions", output
+      end
+
+      run_test_command("test/models/post_test.rb:4-9:19").tap do |output|
+        assert_match "PostTest:First", output
+        assert_match "PostTest:Second", output
+        assert_match "PostTest:Fourth", output
+        assert_match "3 runs, 3 assertions", output
+      end
+
+      run_test_command("test/models/post_test.rb:4-9:14-19").tap do |output|
+        assert_match "PostTest:First", output
+        assert_match "PostTest:Second", output
+        assert_match "PostTest:Third", output
+        assert_match "PostTest:Fourth", output
+        assert_match "4 runs, 4 assertions", output
+      end
+    end
+
     def test_more_than_one_line_filter_test_method_syntax
       app_file "test/models/post_test.rb", <<-RUBY
         require "test_helper"
@@ -643,7 +693,7 @@ module ApplicationTests
         end
       RUBY
 
-      run_test_command("test/models/post_test.rb -n '/greets foo|greets .  . bar/'").tap do |output|
+      run_test_command("test/models/post_test.rb -n '/greets foo|greets .  .\\ bar/'").tap do |output|
         assert_match "hello foo", output
         assert_match "hello again foo", output
         assert_match "hello bar", output
@@ -653,9 +703,12 @@ module ApplicationTests
 
     def test_declarative_style_regexp_filter_with_minitest_spec
       app_file "test/models/post_test.rb", <<~RUBY
+        require "test_helper"
         require "minitest/spec"
 
-        class PostTest < Minitest::Spec
+        class PostTest < ActiveSupport::TestCase
+          extend Minitest::Spec::DSL
+
           it "greets foo" do
             puts "hello foo"
             assert true
@@ -677,7 +730,7 @@ module ApplicationTests
         end
       RUBY
 
-      run_test_command("test/models/post_test.rb -n '/greets foo|greets .  . bar/'").tap do |output|
+      run_test_command("test/models/post_test.rb -n '/greets foo|greets .  .\\ bar/'").tap do |output|
         assert_match "hello foo", output
         assert_match "hello again foo", output
         assert_match "hello bar", output
@@ -767,6 +820,24 @@ module ApplicationTests
       assert_match(/Finished in.*2 runs, 2 assertions, 0 failures, 0 errors, 0 skips/m, output)
       assert_match %r{Running \d+ tests in parallel using \d+ processes}, output
       assert_no_match "create_table(:users)", output
+    end
+
+    def test_parallel_testing_when_schema_is_not_up_to_date
+      require "#{app_path}/config/environment"
+      Dir.chdir(app_path) do
+        use_mysql2
+
+        exercise_parallelization_regardless_of_machine_core_count(with: :processes)
+
+        rails "generate", "scaffold", "User", "name:string"
+        rails "db:create"
+        rails "db:migrate"
+
+        output = rails "test"
+
+        assert_match(/Finished in.*7 runs, 11 assertions, 0 failures, 0 errors, 0 skips/m, output)
+        assert_match %r{Running \d+ tests in parallel using \d+ processes}, output
+      end
     end
 
     def test_parallelization_is_disabled_when_number_of_tests_is_below_threshold
@@ -879,7 +950,7 @@ module ApplicationTests
       app_file "config/environments/test.rb", <<-RUBY
         Rails.application.configure do
           config.action_controller.allow_forgery_protection = true
-          config.action_dispatch.show_exceptions = false
+          config.action_dispatch.show_exceptions = :none
         end
       RUBY
 

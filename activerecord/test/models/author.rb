@@ -15,6 +15,7 @@ class Author < ActiveRecord::Base
   has_many :posts_with_special_categorizations, class_name: "PostWithSpecialCategorization"
   has_one  :post_about_thinking, -> { where("posts.title like '%thinking%'") }, class_name: "Post"
   has_one  :post_about_thinking_with_last_comment, -> { where("posts.title like '%thinking%'").includes(:last_comment) }, class_name: "Post"
+
   has_many :comments, through: :posts do
     def ratings
       Rating.joins(:comment).merge(self)
@@ -171,6 +172,8 @@ class Author < ActiveRecord::Base
   has_many :best_hardbacks, through: :books, source: :format_record, source_type: "BestHardback"
   has_many :published_books, class_name: "PublishedBook"
   has_many :unpublished_books, -> { where(status: [:proposed, :written]) }, class_name: "Book"
+  has_one :unread_listing, -> { unread }, class_name: "Book", foreign_key: :last_read
+  has_one :reading_listing, -> { reading }, class_name: "Book", foreign_key: :last_read
   has_many :subscriptions,        through: :books
   has_many :subscribers, -> { order("subscribers.nick") }, through: :subscriptions
   has_many :distinct_subscribers, -> { select("DISTINCT subscribers.*").order("subscribers.nick") }, through: :subscriptions, source: :subscriber
@@ -235,6 +238,16 @@ class Author < ActiveRecord::Base
 
   attr_accessor :post_log
   after_initialize :set_post_log
+
+  module NamedExtension
+    def author
+      "lifo"
+    end
+
+    def greeting
+      super + " :)"
+    end
+  end
 
   def set_post_log
     @post_log = []

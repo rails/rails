@@ -92,172 +92,6 @@ size of the `bootsnap` cache for the others.
 
 Application controllers that inherit from `ActiveStorage::BaseController` and use streaming to implement custom file serving logic must now explicitly include the `ActiveStorage::Streaming` module.
 
-### New `ActiveSupport::MessageEncryptor` default serializer
-
-As of Rails 7.1, the default serializer in use by the `MessageEncryptor` is `JSON`.
-This offers a more secure alternative to the current default serializer.
-
-The `MessageEncryptor` offers the ability to migrate the default serializer from `Marshal` to `JSON`.
-
-If you would like to ignore this change in existing applications, set the following: `config.active_support.default_message_encryptor_serializer = :marshal`.
-
-In order to roll out the new default when upgrading from `7.0` to `7.1`, there are three configuration variables to keep in mind.
-
-```ruby
-config.active_support.default_message_encryptor_serializer
-config.active_support.fallback_to_marshal_deserialization
-config.active_support.use_marshal_serialization
-```
-
-`default_message_encryptor_serializer` defaults to `:json` as of `7.1` but it offers both a `:hybrid` and `:marshal` option.
-
-In order to migrate an older deployment to `:json`, first ensure that the `default_message_encryptor_serializer` is set to `:marshal`.
-
-```ruby
-# config/application.rb
-config.load_defaults 7.0
-config.active_support.default_message_encryptor_serializer = :marshal
-```
-
-Once this is deployed on all Rails processes, set `default_message_encryptor_serializer` to `:hybrid` to begin using the
-`ActiveSupport::JsonWithMarshalFallback` class as the serializer. The defaults for this class are to use `Marshal`
-as the serializer and to allow the deserialisation of both `Marshal` and `JSON` serialized payloads.
-
-```ruby
-config.load_defaults 7.0
-config.active_support.default_message_encryptor_serializer = :hybrid
-```
-
-Once this is deployed on all Rails processes, set the following configuration options in order to stop the
-`ActiveSupport::JsonWithMarshalFallback` class from using `Marshal` to serialize new payloads.
-
-```ruby
-# config/application.rb
-config.load_defaults 7.0
-config.active_support.default_message_encryptor_serializer = :hybrid
-config.active_support.use_marshal_serialization = false
-```
-
-Allow this configuration to run on all processes for a considerable amount of time.
-`ActiveSupport::JsonWithMarshalFallback` logs the following each time the `Marshal` fallback
-is used:
-
-```
-JsonWithMarshalFallback: Marshal load fallback occurred.
-```
-
-Once those message stop appearing in your logs and you're confident that all `MessageEncryptor`
-payloads in transit are `JSON` serialized, the following configuration options will disable the
-Marshal fallback in `ActiveSupport::JsonWithMarshalFallback`.
-
-```ruby
-# config/application.rb
-config.load_defaults 7.0
-config.active_support.default_message_encryptor_serializer = :hybrid
-config.active_support.use_marshal_serialization = false
-config.active_support.fallback_to_marshal_deserialization = false
-```
-
-If all goes well, you should now be safe to migrate the Message Encryptor from
-`ActiveSupport::JsonWithMarshalFallback` to `ActiveSupport::JSON`.
-To do so, simply swap the `:hybrid` serializer for the `:json` serializer.
-
-```ruby
-# config/application.rb
-config.load_defaults 7.0
-config.active_support.default_message_encryptor_serializer = :json
-```
-
-Alternatively, you could load defaults for 7.1
-
-```ruby
-# config/application.rb
-config.load_defaults 7.1
-```
-
-### New `ActiveSupport::MessageVerifier` default serializer
-
-As of Rails 7.1, the default serializer in use by the `MessageVerifier` is `JSON`.
-This offers a more secure alternative to the current default serializer.
-
-The `MessageVerifier` offers the ability to migrate the default serializer from `Marshal` to `JSON`.
-
-If you would like to ignore this change in existing applications, set the following: `config.active_support.default_message_verifier_serializer = :marshal`.
-
-In order to roll out the new default when upgrading from `7.0` to `7.1`, there are three configuration variables to keep in mind.
-
-```ruby
-config.active_support.default_verifier_serializer
-config.active_support.fallback_to_marshal_deserialization
-config.active_support.use_marshal_serialization
-```
-
-`default_message_verifier_serializer` defaults to `:json` as of `7.1` but it offers both a `:hybrid` and `:marshal` option.
-
-In order to migrate an older deployment to `:json`, first ensure that the `default_message_verifier_serializer` is set to `:marshal`.
-
-```ruby
-# config/application.rb
-config.load_defaults 7.0
-config.active_support.default_message_verifier_serializer = :marshal
-```
-
-Once this is deployed on all Rails processes, set `default_message_verifier_serializer` to `:hybrid` to begin using the
-`ActiveSupport::JsonWithMarshalFallback` class as the serializer. The defaults for this class are to use `Marshal`
-as the serializer and to allow the deserialisation of both `Marshal` and `JSON` serialized payloads.
-
-```ruby
-config.load_defaults 7.0
-config.active_support.default_message_verifier_serializer = :hybrid
-```
-
-Once this is deployed on all Rails processes, set the following configuration options in order to stop the
-`ActiveSupport::JsonWithMarshalFallback` class from using `Marshal` to serialize new payloads.
-
-```ruby
-# config/application.rb
-config.load_defaults 7.0
-config.active_support.default_message_verifier_serializer = :hybrid
-config.active_support.use_marshal_serialization = false
-```
-
-Allow this configuration to run on all processes for a considerable amount of time.
-`ActiveSupport::JsonWithMarshalFallback` logs the following each time the `Marshal` fallback
-is used:
-
-```
-JsonWithMarshalFallback: Marshal load fallback occurred.
-```
-
-Once those message stop appearing in your logs and you're confident that all `MessageVerifier`
-payloads in transit are `JSON` serialized, the following configuration options will disable the
-Marshal fallback in `ActiveSupport::JsonWithMarshalFallback`.
-
-```ruby
-# config/application.rb
-config.load_defaults 7.0
-config.active_support.default_message_verifier_serializer = :hybrid
-config.active_support.use_marshal_serialization = false
-config.active_support.fallback_to_marshal_deserialization = false
-```
-
-If all goes well, you should now be safe to migrate the Message Verifier from
-`ActiveSupport::JsonWithMarshalFallback` to `ActiveSupport::JSON`.
-To do so, simply swap the `:hybrid` serializer for the `:json` serializer.
-
-```ruby
-# config/application.rb
-config.load_defaults 7.0
-config.active_support.default_message_verifier_serializer = :json
-```
-
-Alternatively, you could load defaults for 7.1
-
-```ruby
-# config/application.rb
-config.load_defaults 7.1
-```
-
 ### `MemCacheStore` and `RedisCacheStore` now use connection pooling by default
 
 The `connection_pool` gem has been added as a dependency of the `activesupport` gem,
@@ -327,6 +161,9 @@ I18n.t("missing.key") # didn't raise in 7.0, doesn't raise in 7.1
 
 Alternatively, you can customise the `I18n.exception_handler`.
 See the [i18n guide](https://guides.rubyonrails.org/v7.1/i18n.html#using-different-exception-handlers) for more information.
+
+`AbstractController::Translation.raise_on_missing_translations` has been removed. This was a private API, if you were
+relying on it you should migrate to `config.i18n.raise_on_missing_translations` or to a custom exception handler.
 
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
@@ -2458,10 +2295,10 @@ Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must rep
 * Rails 4.0 requires that scopes use a callable object such as a Proc or lambda:
 
     ```ruby
-      scope :active, where(active: true)
+    scope :active, where(active: true)
 
-      # becomes
-      scope :active, -> { where active: true }
+    # becomes
+    scope :active, -> { where active: true }
     ```
 
 * Rails 4.0 has deprecated `ActiveRecord::Fixtures` in favor of `ActiveRecord::FixtureSet`.
@@ -2522,9 +2359,9 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 * Rails 4.0 introduces `ActiveSupport::KeyGenerator` and uses this as a base from which to generate and verify signed cookies (among other things). Existing signed cookies generated with Rails 3.x will be transparently upgraded if you leave your existing `secret_token` in place and add the new `secret_key_base`.
 
     ```ruby
-      # config/initializers/secret_token.rb
-      Myapp::Application.config.secret_token = 'existing secret token'
-      Myapp::Application.config.secret_key_base = 'new secret key base'
+    # config/initializers/secret_token.rb
+    Myapp::Application.config.secret_token = 'existing secret token'
+    Myapp::Application.config.secret_key_base = 'new secret key base'
     ```
 
     Please note that you should wait to set `secret_key_base` until you have 100% of your userbase on Rails 4.x and are reasonably sure you will not need to rollback to Rails 3.x. This is because cookies signed based on the new `secret_key_base` in Rails 4.x are not backwards compatible with Rails 3.x. You are free to leave your existing `secret_token` in place, not set the new `secret_key_base`, and ignore the deprecation warnings until you are reasonably sure that your upgrade is otherwise complete.
@@ -2588,14 +2425,14 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 * Rails 4.0 requires that routes using `match` must specify the request method. For example:
 
     ```ruby
-      # Rails 3.x
-      match '/' => 'root#index'
+    # Rails 3.x
+    match '/' => 'root#index'
 
-      # becomes
-      match '/' => 'root#index', via: :get
+    # becomes
+    match '/' => 'root#index', via: :get
 
-      # or
-      get '/' => 'root#index'
+    # or
+    get '/' => 'root#index'
     ```
 
 * Rails 4.0 has removed `ActionDispatch::BestStandardsSupport` middleware, `<!DOCTYPE html>` already triggers standards mode per https://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx and ChromeFrame header has been moved to `config.action_dispatch.default_headers`.
@@ -2612,10 +2449,10 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 * Rails 4.0 allows configuration of HTTP headers by setting `config.action_dispatch.default_headers`. The defaults are as follows:
 
     ```ruby
-      config.action_dispatch.default_headers = {
-        'X-Frame-Options' => 'SAMEORIGIN',
-        'X-XSS-Protection' => '1; mode=block'
-      }
+    config.action_dispatch.default_headers = {
+      'X-Frame-Options' => 'SAMEORIGIN',
+      'X-XSS-Protection' => '1; mode=block'
+    }
     ```
 
     Please note that if your application is dependent on loading certain pages in a `<frame>` or `<iframe>`, then you may need to explicitly set `X-Frame-Options` to `ALLOW-FROM ...` or `ALLOWALL`.

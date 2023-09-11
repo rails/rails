@@ -2,16 +2,16 @@
 
 require "generators/plugin_test_helper"
 require "env_helpers"
+require "plugin_helpers"
 
 class PluginTestRunnerTest < ActiveSupport::TestCase
   include PluginTestHelper
   include EnvHelpers
+  include PluginHelpers
 
   def setup
     @destination_root = Dir.mktmpdir("bukkits")
-    Dir.chdir(@destination_root) { `bundle exec rails plugin new bukkits --skip-bundle` }
-    fill_in_gemspec_fields
-    resolve_rails_gem_to_repository
+    generate_plugin("#{@destination_root}/bukkits")
     plugin_file "test/dummy/db/schema.rb", ""
   end
 

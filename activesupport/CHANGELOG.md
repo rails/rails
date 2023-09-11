@@ -1,3 +1,264 @@
+*   Add `drb`, `mutex_m` and `base64` that are bundled gem candidates for Ruby 3.4
+
+    *Yasuo Honda*
+
+*   When using cache format version >= 7.1 or a custom serializer, expired and
+    version-mismatched cache entries can now be detected without deserializing
+    their values.
+
+    *Jonathan Hefner*
+
+*   Make all cache stores return a boolean for `#delete`
+
+    Previously the `RedisCacheStore#delete` would return `1` if the entry
+    exists and `0` otherwise. Now it returns true if the entry exists and false
+    otherwise, just like the other stores.
+
+    The `FileStore` would return `nil` if the entry doesn't exists and returns
+    `false` now as well.
+
+    *Petrik de Heus*
+
+*   Active Support cache stores now support replacing the default compressor via
+    a `:compressor` option. The specified compressor must respond to `deflate`
+    and `inflate`. For example:
+
+      ```ruby
+      module MyCompressor
+        def self.deflate(string)
+          # compression logic...
+        end
+
+        def self.inflate(compressed)
+          # decompression logic...
+        end
+      end
+
+      config.cache_store = :redis_cache_store, { compressor: MyCompressor }
+      ```
+
+    *Jonathan Hefner*
+
+*   Active Support cache stores now support a `:serializer` option. Similar to
+    the `:coder` option, serializers must respond to `dump` and `load`. However,
+    serializers are only responsible for serializing a cached value, whereas
+    coders are responsible for serializing the entire `ActiveSupport::Cache::Entry`
+    instance.  Additionally, the output from serializers can be automatically
+    compressed, whereas coders are responsible for their own compression.
+
+    Specifying a serializer instead of a coder also enables performance
+    optimizations, including the bare string optimization introduced by cache
+    format version 7.1.
+
+    The `:serializer` and `:coder` options are mutually exclusive. Specifying
+    both will raise an `ArgumentError`.
+
+    *Jonathan Hefner*
+
+*   Fix `ActiveSupport::Inflector.humanize(nil)` raising ``NoMethodError: undefined method `end_with?' for nil:NilClass``.
+
+    *James Robinson*
+
+*   Don't show secrets for `ActiveSupport::KeyGenerator#inspect`.
+
+    Before:
+
+    ```ruby
+    ActiveSupport::KeyGenerator.new(secret).inspect
+    "#<ActiveSupport::KeyGenerator:0x0000000104888038 ... @secret=\"\\xAF\\bFh]LV}q\\nl\\xB2U\\xB3 ... >"
+    ```
+
+    After:
+
+    ```ruby
+    ActiveSupport::KeyGenerator::Aes256Gcm(secret).inspect
+    "#<ActiveSupport::KeyGenerator:0x0000000104888038>"
+    ```
+
+    *Petrik de Heus*
+
+*   Improve error message when EventedFileUpdateChecker is used without a
+    compatible version of the Listen gem
+
+    *Hartley McGuire*
+
+*   Add `:report` behavior for Deprecation
+
+    Setting `config.active_support.deprecation = :report` uses the error
+    reporter to report deprecation warnings to `ActiveSupport::ErrorReporter`.
+
+    Deprecations are reported as handled errors, with a severity of `:warning`.
+
+    Useful to report deprecations happening in production to your bug tracker.
+
+    *Étienne Barrié*
+
+*   Rename `Range#overlaps?` to `#overlap?` and add alias for backwards compatibility
+
+    *Christian Schmidt*
+
+*   Fix `EncryptedConfiguration` returning incorrect values for some `Hash`
+    methods
+
+    *Hartley McGuire*
+
+*   Don't show secrets for `MessageEncryptor#inspect`.
+
+    Before:
+
+    ```ruby
+    ActiveSupport::MessageEncryptor.new(secret, cipher: "aes-256-gcm").inspect
+    "#<ActiveSupport::MessageEncryptor:0x0000000104888038 ... @secret=\"\\xAF\\bFh]LV}q\\nl\\xB2U\\xB3 ... >"
+    ```
+
+    After:
+
+    ```ruby
+    ActiveSupport::MessageEncryptor.new(secret, cipher: "aes-256-gcm").inspect
+    "#<ActiveSupport::MessageEncryptor:0x0000000104888038>"
+    ```
+
+    *Petrik de Heus*
+
+*   Don't show contents for `EncryptedConfiguration#inspect`.
+
+    Before:
+    ```ruby
+    Rails.application.credentials.inspect
+    "#<ActiveSupport::EncryptedConfiguration:0x000000010d2b38e8 ... @config={:secret=>\"something secret\"} ... @key_file_contents=\"915e4ea054e011022398dc242\" ...>"
+    ```
+
+    After:
+    ```ruby
+    Rails.application.credentials.inspect
+    "#<ActiveSupport::EncryptedConfiguration:0x000000010d2b38e8>"
+    ```
+
+    *Petrik de Heus*
+
+*   `ERB::Util.html_escape_once` always returns an `html_safe` string.
+
+    This method previously maintained the `html_safe?` property of a string on the return
+    value. Because this string has been escaped, however, not marking it as `html_safe` causes
+    entities to be double-escaped.
+
+    As an example, take this view snippet:
+
+      ```html
+      <p><%= html_escape_once("this & that &amp; the other") %></p>
+      ```
+
+    Before this change, that would be double-escaped and render as:
+
+      ```html
+      <p>this &amp;amp; that &amp;amp; the other</p>
+      ```
+
+    After this change, it renders correctly as:
+
+      ```html
+      <p>this &amp; that &amp; the other</p>
+      ```
+
+    Fixes #48256
+
+    *Mike Dalessio*
+
+*   Deprecate `SafeBuffer#clone_empty`.
+
+    This method has not been used internally since Rails 4.2.0.
+
+    *Mike Dalessio*
+
+*   `MessageEncryptor`, `MessageVerifier`, and `config.active_support.message_serializer`
+    now accept `:message_pack` and `:message_pack_allow_marshal` as serializers.
+    These serializers require the [`msgpack` gem](https://rubygems.org/gems/msgpack)
+    (>= 1.7.0).
+
+    The Message Pack format can provide improved performance and smaller payload
+    sizes. It also supports round-tripping some Ruby types that are not supported
+    by JSON. For example:
+
+      ```ruby
+      verifier = ActiveSupport::MessageVerifier.new("secret")
+      data = [{ a: 1 }, { b: 2 }.with_indifferent_access, 1.to_d, Time.at(0, 123)]
+      message = verifier.generate(data)
+
+      # BEFORE with config.active_support.message_serializer = :json
+      verifier.verified(message)
+      # => [{"a"=>1}, {"b"=>2}, "1.0", "1969-12-31T18:00:00.000-06:00"]
+      verifier.verified(message).map(&:class)
+      # => [Hash, Hash, String, String]
+
+      # AFTER with config.active_support.message_serializer = :message_pack
+      verifier.verified(message)
+      # => [{:a=>1}, {"b"=>2}, 0.1e1, 1969-12-31 18:00:00.000123 -0600]
+      verifier.verified(message).map(&:class)
+      # => [Hash, ActiveSupport::HashWithIndifferentAccess, BigDecimal, Time]
+      ```
+
+    The `:message_pack` serializer can fall back to deserializing with
+    `ActiveSupport::JSON` when necessary, and the `:message_pack_allow_marshal`
+    serializer can fall back to deserializing with `Marshal` as well as
+    `ActiveSupport::JSON`. Additionally, the `:marshal`, `:json`, and
+    `:json_allow_marshal` serializers can now fall back to deserializing with
+    `ActiveSupport::MessagePack` when necessary. These behaviors ensure old
+    messages can still be read so that migration is easier.
+
+    *Jonathan Hefner*
+
+*   A new `7.1` cache format is available which includes an optimization for
+    bare string values such as view fragments.
+
+    The `7.1` cache format is used by default for new apps, and existing apps
+    can enable the format by setting `config.load_defaults 7.1` or by setting
+    `config.active_support.cache_format_version = 7.1` in `config/application.rb`
+    or a `config/environments/*.rb` file.
+
+    Cache entries written using the `6.1` or `7.0` cache formats can be read
+    when using the `7.1` format. To perform a rolling deploy of a Rails 7.1
+    upgrade, wherein servers that have not yet been upgraded must be able to
+    read caches from upgraded servers, leave the cache format unchanged on the
+    first deploy, then enable the `7.1` cache format on a subsequent deploy.
+
+    *Jonathan Hefner*
+
+*   Active Support cache stores can now use a preconfigured serializer based on
+    `ActiveSupport::MessagePack` via the `:serializer` option:
+
+      ```ruby
+      config.cache_store = :redis_cache_store, { serializer: :message_pack }
+      ```
+
+    The `:message_pack` serializer can reduce cache entry sizes and improve
+    performance, but requires the [`msgpack` gem](https://rubygems.org/gems/msgpack)
+    (>= 1.7.0).
+
+    The `:message_pack` serializer can read cache entries written by the default
+    serializer, and the default serializer can now read entries written by the
+    `:message_pack` serializer. These behaviors make it easy to migrate between
+    serializer without invalidating the entire cache.
+
+    *Jonathan Hefner*
+
+*   `Object#deep_dup` no longer duplicate named classes and modules.
+
+    Before:
+
+    ```ruby
+    hash = { class: Object, module: Kernel }
+    hash.deep_dup # => {:class=>#<Class:0x00000001063ffc80>, :module=>#<Module:0x00000001063ffa00>}
+    ```
+
+    After:
+
+    ```ruby
+    hash = { class: Object, module: Kernel }
+    hash.deep_dup # => {:class=>Object, :module=>Kernel}
+    ```
+
+    *Jean Boussier*
+
 *   Consistently raise an `ArgumentError` if the `ActiveSupport::Cache` key is blank.
 
     *Joshua Young*
@@ -705,11 +966,23 @@
 
     *John Hawthorn*
 
-*   Change default serialization format of `MessageEncryptor` from `Marshal` to `JSON` for Rails 7.1.
+*   Change the default serializer of `ActiveSupport::MessageVerifier` from
+    `Marshal` to `ActiveSupport::JSON` when using `config.load_defaults 7.1`.
 
-    Existing apps are provided with an upgrade path to migrate to `JSON` as described in `guides/source/upgrading_ruby_on_rails.md`
+    Messages serialized with `Marshal` can still be read, but new messages will
+    be serialized with `ActiveSupport::JSON`. For more information, see
+    https://guides.rubyonrails.org/v7.1/configuring.html#config-active-support-message-serializer.
 
-    *Zack Deveau* and *Martin Gingras*
+    *Saba Kiaei*, *David Buckley*, and *Jonathan Hefner*
+
+*   Change the default serializer of `ActiveSupport::MessageEncryptor` from
+    `Marshal` to `ActiveSupport::JSON` when using `config.load_defaults 7.1`.
+
+    Messages serialized with `Marshal` can still be read, but new messages will
+    be serialized with `ActiveSupport::JSON`. For more information, see
+    https://guides.rubyonrails.org/v7.1/configuring.html#config-active-support-message-serializer.
+
+    *Zack Deveau*, *Martin Gingras*, and *Jonathan Hefner*
 
 *   Add `ActiveSupport::TestCase#stub_const` to stub a constant for the duration of a yield.
 

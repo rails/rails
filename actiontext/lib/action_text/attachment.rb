@@ -3,6 +3,17 @@
 require "active_support/core_ext/object/try"
 
 module ActionText
+  # = Action Text \Attachment
+  #
+  # Attachments serialize attachables to HTML or plain text.
+  #
+  #   class Person < ApplicationRecord
+  #     include ActionText::Attachable
+  #   end
+  #
+  #   attachable = Person.create! name: "Javan"
+  #   attachment = ActionText::Attachment.from_attachable(attachable)
+  #   attachment.to_html # => "<action-text-attachment sgid=\"BAh7CEk..."
   class Attachment
     include Attachments::TrixConversion, Attachments::Minification, Attachments::Caching
 
@@ -69,6 +80,31 @@ module ActionText
       self.class.from_attributes(full_attributes, attachable)
     end
 
+    # Converts the attachment to plain text.
+    #
+    #   attachable = ActiveStorage::Blob.find_by filename: "racecar.jpg"
+    #   attachment = ActionText::Attachment.from_attachable(attachable)
+    #   attachment.to_plain_text # => "[racecar.jpg]"
+    #
+    # Use the +caption+ when set:
+    #
+    #   attachment = ActionText::Attachment.from_attachable(attachable, caption: "Vroom vroom")
+    #   attachment.to_plain_text # => "[Vroom vroom]"
+    #
+    # The presentation can be overridden by implementing the
+    # +attachable_plain_text_representation+ method:
+    #
+    #   class Person < ApplicationRecord
+    #     include ActionText::Attachable
+    #
+    #     def attachable_plain_text_representation
+    #       "[#{name}]"
+    #     end
+    #   end
+    #
+    #   attachable = Person.create! name: "Javan"
+    #   attachment = ActionText::Attachment.from_attachable(attachable)
+    #   attachment.to_plain_text # => "[Javan]"
     def to_plain_text
       if respond_to?(:attachable_plain_text_representation)
         attachable_plain_text_representation(caption)
@@ -77,6 +113,11 @@ module ActionText
       end
     end
 
+    # Converts the attachment to HTML.
+    #
+    #   attachable = Person.create! name: "Javan"
+    #   attachment = ActionText::Attachment.from_attachable(attachable)
+    #   attachment.to_html # => "<action-text-attachment sgid=\"BAh7CEk...
     def to_html
       HtmlConversion.node_to_html(node)
     end

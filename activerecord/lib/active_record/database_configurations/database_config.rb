@@ -3,7 +3,7 @@
 module ActiveRecord
   class DatabaseConfigurations
     # ActiveRecord::Base.configurations will return either a HashConfig or
-    # UrlConfig respectively. It will never return a DatabaseConfig object,
+    # UrlConfig respectively. It will never return a +DatabaseConfig+ object,
     # as this is the parent class for the types of database configuration objects.
     class DatabaseConfig # :nodoc:
       attr_reader :env_name, :name
@@ -50,6 +50,10 @@ module ActiveRecord
       end
 
       def max_queue
+        raise NotImplementedError
+      end
+
+      def query_cache
         raise NotImplementedError
       end
 

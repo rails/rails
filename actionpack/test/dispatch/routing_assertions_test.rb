@@ -223,4 +223,46 @@ class RoutingAssertionsTest < ActionController::TestCase
       end
     end
   end
+
+  class WithRoutingTest < ActionController::TestCase
+    def before_setup
+      @routes = ActionDispatch::Routing::RouteSet.new
+      @routes.draw do
+        resources :articles
+      end
+
+      super
+    end
+
+    with_routing do |routes|
+      routes.draw do
+        resources :articles, path: "artikel"
+      end
+    end
+
+    def test_with_routing_for_the_entire_test_file
+      assert_routing("/artikel", controller: "articles", action: "index")
+      assert_raise(Assertion) do
+        assert_routing("/articles", controller: "articles", action: "index")
+      end
+    end
+
+    def test_with_routing_for_entire_test_file_can_be_overwritten_for_individual_test
+      with_routing do |routes|
+        routes.draw do
+          resources :articles, path: "articolo"
+        end
+
+        assert_routing("/articolo", controller: "articles", action: "index")
+        assert_raise(Assertion) do
+          assert_routing("/artikel", controller: "articles", action: "index")
+        end
+      end
+
+      assert_routing("/artikel", controller: "articles", action: "index")
+      assert_raise(Assertion) do
+        assert_routing("/articolo", controller: "articles", action: "index")
+      end
+    end
+  end
 end

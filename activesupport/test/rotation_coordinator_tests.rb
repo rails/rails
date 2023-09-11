@@ -97,20 +97,20 @@ module RotationCoordinatorTests
     test "#transitional swaps the first two rotations when enabled" do
       coordinator = make_coordinator.rotate(digest: "SHA1")
       coordinator.rotate(digest: "MD5")
-      coordinator.rotate(digest: "MD4")
+      coordinator.rotate(digest: "SHA256")
       coordinator.transitional = true
 
       codec = coordinator["salt"]
       sha1_codec = (make_coordinator.rotate(digest: "SHA1"))["salt"]
       md5_codec = (make_coordinator.rotate(digest: "MD5"))["salt"]
-      md4_codec = (make_coordinator.rotate(digest: "MD4"))["salt"]
+      sha256_codec = (make_coordinator.rotate(digest: "SHA256"))["salt"]
 
       assert_equal "message", roundtrip("message", codec, md5_codec)
       assert_nil roundtrip("message", codec, sha1_codec)
 
       assert_equal "message", roundtrip("message", sha1_codec, codec)
       assert_equal "message", roundtrip("message", md5_codec, codec)
-      assert_equal "message", roundtrip("message", md4_codec, codec)
+      assert_equal "message", roundtrip("message", sha256_codec, codec)
     end
 
     test "#transitional works with a single rotation" do
@@ -131,17 +131,17 @@ module RotationCoordinatorTests
         { digest: "SHA1" } if salt == "salt"
       end
       coordinator.rotate(digest: "MD5")  # (2) Then, everything upgraded to MD5
-      coordinator.rotate(digest: "MD4")  # (1) Originally, everything used MD4
+      coordinator.rotate(digest: "SHA256")  # (1) Originally, everything used SHA256
       coordinator.transitional = true
 
       sha1_coordinator = make_coordinator.rotate(digest: "SHA1")
       md5_coordinator = make_coordinator.rotate(digest: "MD5")
 
-      # "salt" encodes with MD5 and can decode SHA1 (i.e. [SHA1, MD5, MD4] => [MD5, SHA1, MD4])
+      # "salt" encodes with MD5 and can decode SHA1 (i.e. [SHA1, MD5, SHA256] => [MD5, SHA1, SHA256])
       assert_equal "message", roundtrip("message", coordinator["salt"], md5_coordinator["salt"])
       assert_equal "message", roundtrip("message", sha1_coordinator["salt"], coordinator["salt"])
 
-      # "other salt" encodes with MD5 and cannot decode SHA1 (i.e. [nil, MD5, MD4] => [MD5, MD4])
+      # "other salt" encodes with MD5 and cannot decode SHA1 (i.e. [nil, MD5, SHA256] => [MD5, SHA256])
       assert_equal "message", roundtrip("message", coordinator["other salt"], md5_coordinator["other salt"])
       assert_nil roundtrip("message", sha1_coordinator["other salt"], coordinator["other salt"])
     end

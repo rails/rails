@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "erb"
 require "uri"
 require "active_support/actionable_error"
 
@@ -32,13 +31,13 @@ module ActionDispatch
         if uri.relative? || uri.scheme == "http" || uri.scheme == "https"
           body = ""
         else
-          return [400, { "Content-Type" => "text/plain; charset=utf-8" }, ["Invalid redirection URI"]]
+          return [400, { Rack::CONTENT_TYPE => "text/plain; charset=utf-8" }, ["Invalid redirection URI"]]
         end
 
         [302, {
-          "Content-Type" => "text/html; charset=#{Response.default_charset}",
-          "Content-Length" => body.bytesize.to_s,
-          "Location" => location,
+          Rack::CONTENT_TYPE => "text/html; charset=#{Response.default_charset}",
+          Rack::CONTENT_LENGTH => body.bytesize.to_s,
+          ActionDispatch::Constants::LOCATION => location,
         }, [body]]
       end
   end

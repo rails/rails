@@ -17,6 +17,7 @@ require "models/company"
 require "models/computer"
 require "models/course"
 require "models/developer"
+require "models/dog_lover"
 require "models/dog"
 require "models/doubloon"
 require "models/essay"
@@ -955,6 +956,16 @@ class SetFixtureClassPrevailsTest < ActiveRecord::TestCase
   end
 end
 
+class FixtureWithSetModelClassPrevailsOverNamingConventionTest < ActiveRecord::TestCase
+  def test_model_class_in_fixture_file_is_respected
+    Object.const_set(:OtherPost, Class.new(ActiveRecord::Base))
+    other_posts = create_fixtures("other_posts").first
+    assert_kind_of Post, other_posts["second_welcome"].find
+  ensure
+    Object.send(:remove_const, :OtherPost)
+  end
+end
+
 class CheckSetTableNameFixturesTest < ActiveRecord::TestCase
   set_fixture_class funny_jokes: Joke
   fixtures :funny_jokes
@@ -1690,15 +1701,16 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
       alice_cpk_book = cpk_books(:cpk_great_author_first_book)
 
       assert_not_empty(alice_cpk_book.id.compact)
-      assert_equal alice.id, alice_cpk_book.author_id
-      assert_not_nil alice_cpk_book.number
+      assert_equal alice_cpk_book.id.first, alice.id
+      assert_not_nil alice_cpk_book.id.last
     end
 
     def test_generates_composite_primary_key_ids
       assert_not_empty(cpk_orders(:cpk_groceries_order_1).id.compact)
 
-      assert_not_nil(cpk_books(:cpk_great_author_first_book).author_id)
-      assert_not_nil(cpk_books(:cpk_great_author_first_book).number)
+      cpk_books(:cpk_great_author_first_book).id.each do |id_column|
+        assert_not_nil(id_column)
+      end
     end
 
     def test_generates_composite_primary_key_with_unique_components

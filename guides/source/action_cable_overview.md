@@ -385,11 +385,11 @@ ActionCable.server.broadcast("chat_Best Room", { body: "This Room is Best Room."
 If you have a stream that is related to a model, then the broadcasting name
 can be generated from the channel and model. For example, the following code
 uses [`stream_for`][] to subscribe to a broadcasting like
-`comments:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE`, where `Z2lkOi8vVGVzdEFwcC9Qb3N0LzE` is
+`posts:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE`, where `Z2lkOi8vVGVzdEFwcC9Qb3N0LzE` is
 the GlobalID of the Post model.
 
 ```ruby
-class CommentsChannel < ApplicationCable::Channel
+class PostsChannel < ApplicationCable::Channel
   def subscribed
     post = Post.find(params[:id])
     stream_for post
@@ -400,7 +400,7 @@ end
 You can then broadcast to this channel by calling [`broadcast_to`][]:
 
 ```ruby
-CommentsChannel.broadcast_to(@post, @comment)
+PostsChannel.broadcast_to(@post, @comment)
 ```
 
 [`broadcast`]: https://api.rubyonrails.org/classes/ActionCable/Server/Broadcasting.html#method-i-broadcast
@@ -531,7 +531,7 @@ const chatChannel = consumer.subscriptions.create({ channel: "ChatChannel", room
   received(data) {
     // data => { sent_by: "Paul", body: "This is a cool chat app." }
   }
-}
+})
 
 chatChannel.send({ sent_by: "Paul", body: "This is a cool chat app." })
 ```
@@ -777,7 +777,7 @@ when using the same Redis server for multiple applications. See the [Redis Pub/S
 
 The Redis adapter also supports SSL/TLS connections. The required SSL/TLS parameters can be passed in `ssl_params` key in the configuration YAML file.
 
-```
+```yaml
 production:
   adapter: redis
   url: rediss://10.10.3.153:tls_port
@@ -916,8 +916,8 @@ run ActionCable.server
 
 Then to start the server:
 
-```
-bundle exec puma -p 28080 cable/config.ru
+```bash
+$ bundle exec puma -p 28080 cable/config.ru
 ```
 
 This starts a cable server on port 28080. To tell Rails to use this

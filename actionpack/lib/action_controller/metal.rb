@@ -62,7 +62,7 @@ module ActionController
 
   # = Action Controller \Metal
   #
-  # <tt>ActionController::Metal</tt> is the simplest possible controller, providing a
+  # +ActionController::Metal+ is the simplest possible controller, providing a
   # valid Rack interface without the additional niceties provided by
   # ActionController::Base.
   #
@@ -82,9 +82,9 @@ module ActionController
   # The +action+ method returns a valid Rack application for the \Rails
   # router to dispatch to.
   #
-  # == Rendering Helpers
+  # == \Rendering \Helpers
   #
-  # <tt>ActionController::Metal</tt> by default provides no utilities for rendering
+  # +ActionController::Metal+ by default provides no utilities for rendering
   # views, partials, or other responses aside from explicitly calling of
   # <tt>response_body=</tt>, <tt>content_type=</tt>, and <tt>status=</tt>. To
   # add the render helpers you're used to having in a normal controller, you
@@ -100,7 +100,7 @@ module ActionController
   #     end
   #   end
   #
-  # == Redirection Helpers
+  # == Redirection \Helpers
   #
   # To add redirection helpers to your metal controller, do the following:
   #
@@ -113,7 +113,7 @@ module ActionController
   #     end
   #   end
   #
-  # == Other Helpers
+  # == Other \Helpers
   #
   # You can refer to the modules included in ActionController::Base to see
   # other features you can bring into your metal controller.
@@ -122,8 +122,8 @@ module ActionController
     abstract!
 
     # Returns the last part of the controller's name, underscored, without the ending
-    # <tt>Controller</tt>. For instance, PostsController returns <tt>posts</tt>.
-    # Namespaces are left out, so Admin::PostsController returns <tt>posts</tt> as well.
+    # <tt>Controller</tt>. For instance, +PostsController+ returns <tt>posts</tt>.
+    # Namespaces are left out, so +Admin::PostsController+ returns <tt>posts</tt> as well.
     #
     # ==== Returns
     # * <tt>string</tt>
@@ -169,6 +169,10 @@ module ActionController
     # The ActionDispatch::Response instance for the current response.
     attr_internal_reader :response
 
+    ##
+    # The ActionDispatch::Request::Session instance for the current request.
+    # See further details in the
+    # {Active Controller Session guide}[https://guides.rubyonrails.org/action_controller_overview.html#session].
     delegate :session, to: "@_request"
 
     ##
@@ -197,7 +201,7 @@ module ActionController
 
     alias :response_code :status # :nodoc:
 
-    # Basic url_for that can be overridden for more robust functionality.
+    # Basic \url_for that can be overridden for more robust functionality.
     def url_for(string)
       string
     end
@@ -265,7 +269,18 @@ module ActionController
       end
     end
 
-    # Alias for +middleware_stack+.
+    # The middleware stack used by this controller.
+    #
+    # By default uses a variation of ActionDispatch::MiddlewareStack which
+    # allows for the following syntax:
+    #
+    #   class PostsController < ApplicationController
+    #     use AuthenticationMiddleware, except: [:index, :show]
+    #   end
+    #
+    # Read more about {Rails middleware
+    # stack}[https://guides.rubyonrails.org/rails_on_rack.html#action-dispatcher-middleware-stack]
+    # in the guides.
     def self.middleware
       middleware_stack
     end

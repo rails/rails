@@ -2,9 +2,11 @@
 
 require "abstract_unit"
 require "mailers/callback_mailer"
+require "active_support/testing/stream"
 
 class ActionMailerCallbacksTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
+  include ActiveSupport::Testing::Stream
 
   setup do
     @previous_delivery_method = ActionMailer::Base.delivery_method
@@ -53,7 +55,11 @@ class ActionMailerCallbacksTest < ActiveSupport::TestCase
   end
 
   test "deliver_later should call after_deliver callback and can access sent message" do
-    perform_enqueued_jobs { CallbackMailer.test_message.deliver_later }
+    perform_enqueued_jobs do
+      silence_stream($stdout) do
+        CallbackMailer.test_message.deliver_later
+      end
+    end
     assert_kind_of CallbackMailer, CallbackMailer.after_deliver_instance
     assert_not_empty CallbackMailer.after_deliver_instance.message.message_id
   end

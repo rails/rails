@@ -2,7 +2,6 @@
 
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/delegation"
-require "active_support/core_ext/string/filters"
 require "active_support/parameter_filter"
 require "concurrent/map"
 
@@ -40,10 +39,10 @@ module ActiveRecord
       # :singleton-method:
       #
       # Specifies the maximum number of records that will be destroyed in a
-      # single background job by the +dependent: :destroy_async+ association
-      # option. When +nil+ (default), all dependent records will be destroyed
-      # in a single background job. If specified, the records to be destroyed
-      # will be split into multiple background jobs.
+      # single background job by the <tt>dependent: :destroy_async</tt>
+      # association option. When +nil+ (default), all dependent records will be
+      # destroyed in a single background job. If specified, the records to be
+      # destroyed will be split into multiple background jobs.
       class_attribute :destroy_association_async_batch_size, instance_writer: false, instance_predicate: false, default: nil
 
       ##
@@ -350,7 +349,7 @@ module ActiveRecord
         object.is_a?(self)
       end
 
-      # Returns an instance of <tt>Arel::Table</tt> loaded with the current table name.
+      # Returns an instance of +Arel::Table+ loaded with the current table name.
       def arel_table # :nodoc:
         @arel_table ||= Arel::Table.new(table_name, klass: self)
       end
@@ -705,6 +704,16 @@ module ActiveRecord
     end
 
     ##
+    # :method: values_at
+    #
+    # :call-seq: values_at(*methods)
+    #
+    # Returns an array of the values returned by the given methods.
+    #
+    #--
+    # Implemented by ActiveModel::Access#values_at.
+
+    ##
     # :method: slice
     #
     # :call-seq: slice(*methods)
@@ -714,16 +723,6 @@ module ActiveRecord
     #
     #--
     # Implemented by ActiveModel::Access#slice.
-
-    ##
-    # :method: values_at
-    #
-    # :call-seq: values_at(*methods)
-    #
-    # Returns an array of the values returned by the given methods.
-    #
-    #--
-    # Implemented by ActiveModel::Access#values_at.
 
     private
       # +Array#flatten+ will call +#to_ary+ (recursively) on each of the elements of
@@ -753,6 +752,7 @@ module ActiveRecord
         @strict_loading_mode = :all
 
         klass.define_attribute_methods
+        klass.generate_alias_attributes
       end
 
       def initialize_internals_callback

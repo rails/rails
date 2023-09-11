@@ -5,7 +5,7 @@ require "singleton"
 module ActiveSupport
   # = Active Support \Deprecation
   #
-  # \Deprecation specifies the API used by Rails to deprecate methods, instance variables, objects, and constants. It's
+  # \Deprecation specifies the API used by \Rails to deprecate methods, instance variables, objects, and constants. It's
   # also available for gems or applications.
   #
   # For a gem, use Deprecation.new to create a Deprecation object and store it in your module or class (in order for
@@ -22,7 +22,7 @@ module ActiveSupport
   #
   #   module MyLibrary
   #     class Railtie < Rails::Railtie
-  #       initializer "deprecator" do |app|
+  #       initializer "my_library.deprecator" do |app|
   #         app.deprecators[:my_library] = MyLibrary.deprecator
   #       end
   #     end
@@ -52,7 +52,6 @@ module ActiveSupport
     require "active_support/core_ext/module/deprecation"
     require "concurrent/atomic/thread_local_var"
 
-    include Singleton # :nodoc:
     include InstanceDelegator
     include Behavior
     include Reporting

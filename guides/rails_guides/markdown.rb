@@ -94,7 +94,7 @@ module RailsGuides
       def generate_structure
         @headings_for_index = []
         if @body.present?
-          document = Nokogiri::HTML.fragment(@body).tap do |doc|
+          document = html_fragment(@body).tap do |doc|
             hierarchy = []
 
             doc.children.each do |node|
@@ -136,7 +136,7 @@ module RailsGuides
             end
           end
 
-          @index = Nokogiri::HTML.fragment(engine.render(raw_index)).tap do |doc|
+          @index = html_fragment(engine.render(raw_index)).tap do |doc|
             doc.at("ol")[:class] = "chapters"
           end.to_html
 
@@ -150,7 +150,7 @@ module RailsGuides
       end
 
       def generate_title
-        if heading = Nokogiri::HTML.fragment(@header).at(:h1)
+        if heading = html_fragment(@header).at(:h1)
           @title = "#{heading.text} — Ruby on Rails Guides"
         else
           @title = "Ruby on Rails Guides"
@@ -179,6 +179,14 @@ module RailsGuides
         @view.content_for(:page_title) { @title }
         @view.content_for(:index_section) { @index }
         @view.render(layout: @layout, html: @body.html_safe)
+      end
+
+      def html_fragment(html)
+        if defined?(Nokogiri::HTML5)
+          Nokogiri::HTML5.fragment(html)
+        else
+          Nokogiri::HTML4.fragment(html)
+        end
       end
   end
 end

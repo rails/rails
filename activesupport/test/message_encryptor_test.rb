@@ -4,8 +4,11 @@ require_relative "abstract_unit"
 require "openssl"
 require "active_support/time"
 require "active_support/json"
+require_relative "messages/message_codec_tests"
 
 class MessageEncryptorTest < ActiveSupport::TestCase
+  include MessageCodecTests
+
   class JSONSerializer
     def dump(value)
       ActiveSupport::JSON.encode(value)
@@ -149,8 +152,16 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_equal "Ruby on Rails", encryptor.decrypt_and_verify(encrypted_message)
   end
 
+  def test_inspect_does_not_show_secrets
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
+    assert_match(/\A#<ActiveSupport::MessageEncryptor:0x[0-9a-f]+>\z/, encryptor.inspect)
+  end
 
   private
+    def make_codec(**options)
+      ActiveSupport::MessageEncryptor.new(@secret, **options)
+    end
+
     def assert_aead_not_decrypted(encryptor, value)
       assert_raise(ActiveSupport::MessageEncryptor::InvalidMessage) do
         encryptor.decrypt_and_verify(value)
@@ -178,93 +189,4 @@ class MessageEncryptorTest < ActiveSupport::TestCase
       bits.reverse!
       ::Base64.strict_encode64(bits)
     end
-end
-
-class MessageEncryptorWithHybridSerializerAndMarshalDumpTest < MessageEncryptorTest
-  def setup
-    @secret    = SecureRandom.random_bytes(32)
-    @verifier  = ActiveSupport::MessageVerifier.new(@secret, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
-    @data      = { some: "data", now: Time.local(2010) }
-    @encryptor = ActiveSupport::MessageEncryptor.new(@secret)
-    @default_message_encryptor_serializer        = ActiveSupport::MessageEncryptor.default_message_encryptor_serializer
-    @default_fallback_to_marshal_deserialization = ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization
-    ActiveSupport::MessageEncryptor.default_message_encryptor_serializer = :hybrid
-  end
-
-  def teardown
-    ActiveSupport::MessageEncryptor.default_message_encryptor_serializer       = @default_message_encryptor_serializer
-    ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization = @default_fallback_to_marshal_deserialization
-    super
-  end
-
-  def test_backwards_compatibility_decrypt_previously_marshal_serialized_messages_when_fallback_to_marshal_deserialization_is_true
-    secret = "\xB7\xF0\xBCW\xB1\x18`\xAB\xF0\x81\x10\xA4$\xF44\xEC\xA1\xDC\xC1\xDDD\xAF\xA9\xB8\x14\xCD\x18\x9A\x99 \x80)"
-    data = "this_is_data"
-    marshal_message = ActiveSupport::MessageEncryptor.new(secret, cipher: "aes-256-gcm", serializer: Marshal).encrypt_and_sign(data)
-    assert_equal data, ActiveSupport::MessageEncryptor.new(secret, cipher: "aes-256-gcm").decrypt_and_verify(marshal_message)
-  end
-
-  def test_failure_to_decrypt_marshal_serialized_messages_when_fallback_to_marshal_deserialization_is_false
-    ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization = false
-    secret = "\xB7\xF0\xBCW\xB1\x18`\xAB\xF0\x81\x10\xA4$\xF44\xEC\xA1\xDC\xC1\xDDD\xAF\xA9\xB8\x14\xCD\x18\x9A\x99 \x80)"
-    data = "this_is_data"
-    marshal_message = ActiveSupport::MessageEncryptor.new(secret, cipher: "aes-256-gcm", serializer: Marshal).encrypt_and_sign(data)
-    assert_raise(ActiveSupport::MessageEncryptor::InvalidMessage) do
-      ActiveSupport::MessageEncryptor.new(secret, cipher: "aes-256-gcm").decrypt_and_verify(marshal_message)
-    end
-  end
-end
-
-class MessageEncryptorWithJsonSerializerTest < MessageEncryptorTest
-  def setup
-    @secret    = SecureRandom.random_bytes(32)
-    @verifier  = ActiveSupport::MessageVerifier.new(@secret, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
-    @data      = { "some" => "data", "now" => Time.local(2010) }
-    @encryptor = ActiveSupport::MessageEncryptor.new(@secret)
-    @default_message_encryptor_serializer = ActiveSupport::MessageEncryptor.default_message_encryptor_serializer
-    ActiveSupport::MessageEncryptor.default_message_encryptor_serializer = :json
-  end
-
-  def teardown
-    ActiveSupport::MessageEncryptor.default_message_encryptor_serializer = @default_message_encryptor_serializer
-    super
-  end
-
-  def test_backwards_compat_for_64_bytes_key
-    # 64 bit key
-    secret = ["3942b1bf81e622559ed509e3ff274a780784fe9e75b065866bd270438c74da822219de3156473cc27df1fd590e4baf68c95eeb537b6e4d4c5a10f41635b5597e"].pack("H*")
-    # Encryptor with 32 bit key, 64 bit secret for verifier
-    encryptor = ActiveSupport::MessageEncryptor.new(secret[0..31], secret)
-    # Message generated with 64 bit key using the JSON serializer
-    message = "YWZPOVBzcS8ycGZpVWpjWWU5NXZoanRtRGkzTVRjZk16UUpuRE9wa0pNNGI0dGxMRU5RdC94ZVhiQzUwYktFL2NEUjBnUm1QSlRDQ1RrMGlvakVZcGc9PS0tbXROMVdDUnNxWlRxMXA4dEtjWi9oZz09--3489b03e85aa14d8ed8cdd455507246f2e2884ae"
-    assert_equal "data", encryptor.decrypt_and_verify(message)["some"]
-  end
-
-  def test_backwards_compatibility_decrypt_previously_encrypted_messages_without_metadata
-    secret = "\xB7\xF0\xBCW\xB1\x18`\xAB\xF0\x81\x10\xA4$\xF44\xEC\xA1\xDC\xC1\xDDD\xAF\xA9\xB8\x14\xCD\x18\x9A\x99 \x80)"
-    encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: "aes-256-gcm")
-    # Message generated with MessageEncryptor given JSON as the serializer.
-    encrypted_message = "NIevxlF4gFUETmYTm3GJ--SIlwA5xxwpqNtiiv--woA9eLuVMbmapIDGDj7HQQ=="
-
-    assert_equal "Ruby on Rails", encryptor.decrypt_and_verify(encrypted_message)
-  end
-end
-
-class MessageEncryptorWithHybridSerializerAndWithoutMarshalDumpTest < MessageEncryptorWithJsonSerializerTest
-  def setup
-    @secret    = SecureRandom.random_bytes(32)
-    @verifier  = ActiveSupport::MessageVerifier.new(@secret, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
-    @data      = { "some" => "data", "now" => Time.local(2010) }
-    @encryptor = ActiveSupport::MessageEncryptor.new(@secret)
-    @default_message_encryptor_serializer = ActiveSupport::MessageEncryptor.default_message_encryptor_serializer
-    @default_use_marshal_serialization    = ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization
-    ActiveSupport::MessageEncryptor.default_message_encryptor_serializer = :hybrid
-    ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization     = false
-  end
-
-  def teardown
-    ActiveSupport::MessageEncryptor.default_message_encryptor_serializer = @default_message_encryptor_serializer
-    ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization     = @default_use_marshal_serialization
-    super
-  end
 end

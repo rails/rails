@@ -1,3 +1,140 @@
+*   Fix `simple_format` with blank `wrapper_tag` option returns plain html tag
+
+    By default `simple_format` method returns the text wrapped with `<p>`. But if we explicitly specify
+    the `wrapper_tag: nil` in the options, it returns the text wrapped with `<></>` tag.
+
+    Before:
+
+    ```ruby
+    simple_format("Hello World", {},  { wrapper_tag: nil })
+    # <>Hello World</>
+    ```
+
+    After:
+
+    ```ruby
+    simple_format("Hello World", {},  { wrapper_tag: nil })
+    # <p>Hello World</p>
+    ```
+
+    *Akhil G Krishnan*, *Junichi Ito*
+
+*   Don't double-encode nested `field_id` and `field_name` index values
+
+    Pass `index: @options` as a default keyword argument to `field_id` and
+    `field_name` view helper methods.
+
+    *Sean Doyle*
+
+*   Allow opting in/out of `Link preload` headers when calling `stylesheet_link_tag` or `javascript_include_tag`
+
+    ```ruby
+    # will exclude header, even if setting is enabled:
+    javascript_include_tag("http://example.com/all.js", preload_links_header: false)
+
+    # will include header, even if setting is disabled:
+    stylesheet_link_tag("http://example.com/all.js", preload_links_header: true)
+    ```
+
+    *Alex Ghiculescu*
+
+*   Stop generating `Link preload` headers once it has reached 1KB.
+
+    Some proxies have trouble handling large headers, but more importantly preload links
+    have diminishing returns so it's preferable not to go overboard with them.
+
+    If tighter control is needed, it's recommended to disable automatic generation of preloads
+    and to generate them manually from the controller or from a middleware.
+
+    *Jean Boussier*
+
+*   `simple_format` helper now handles a `:sanitize_options` - any extra options you want appending to the sanitize.
+
+    Before:
+    ```ruby
+      simple_format("<a target=\"_blank\" href=\"http://example.com\">Continue</a>")
+      # => "<p><a href=\"http://example.com\">Continue</a></p>"
+    ```
+
+    After:
+    ```ruby
+      simple_format("<a target=\"_blank\" href=\"http://example.com\">Continue</a>", {}, { sanitize_options: { attributes: %w[target href] } })
+      # => "<p><a target=\"_blank\" href=\"http://example.com\">Continue</a></p>"
+    ```
+
+    *Andrei Andriichuk*
+
+*   Add support for HTML5 standards-compliant sanitizers, and default to `Rails::HTML5::Sanitizer`
+    in the Rails 7.1 configuration if it is supported.
+
+    Action View's HTML sanitizers can be configured by setting
+    `config.action_view.sanitizer_vendor`. Supported values are `Rails::HTML4::Sanitizer` or
+    `Rails::HTML5::Sanitizer`.
+
+    The Rails 7.1 configuration will set this to `Rails::HTML5::Sanitizer` when it is supported, and
+    fall back to `Rails::HTML4::Sanitizer`. Previous configurations default to
+    `Rails::HTML4::Sanitizer`.
+
+    *Mike Dalessio*
+
+*   `config.dom_testing_default_html_version` controls the HTML parser used by
+    `ActionView::TestCase#document_root_element`, which creates the DOM used by the assertions in
+    Rails::Dom::Testing.
+
+    The Rails 7.1 default configuration opts into the HTML5 parser when it is supported, to better
+    represent what the DOM would be in a browser user agent. Previously this test helper always used
+    Nokogiri's HTML4 parser.
+
+    *Mike Dalessio*
+
+*   Add support for the HTML picture tag. It supports passing a String, an Array or a Block.
+    Supports passing properties directly to the img tag via the `:image` key.
+    Since the picture tag requires an img tag, the last element you provide will be used for the img tag.
+    For complete control over the picture tag, a block can be passed, which will populate the contents of the tag accordingly.
+
+    Can be used like this for a single source:
+    ```erb
+    <%= picture_tag("picture.webp") %>
+    ```
+    which will generate the following:
+    ```html
+    <picture>
+        <img src="/images/picture.webp" />
+    </picture>
+    ```
+
+    For multiple sources:
+    ```erb
+    <%= picture_tag("picture.webp", "picture.png", :class => "mt-2", :image => { alt: "Image", class: "responsive-img" }) %>
+    ```
+    will generate:
+    ```html
+    <picture class="mt-2">
+        <source srcset="/images/picture.webp" />
+        <source srcset="/images/picture.png" />
+        <img alt="Image" class="responsive-img" src="/images/picture.png" />
+    </picture>
+    ```
+
+    Full control via a block:
+    ```erb
+    <%= picture_tag(:class => "my-class") do %>
+        <%= tag(:source, :srcset => image_path("picture.webp")) %>
+        <%= tag(:source, :srcset => image_path("picture.png")) %>
+        <%= image_tag("picture.png", :alt => "Image") %>
+    <% end %>
+    ```
+    will generate:
+    ```html
+    <picture class="my-class">
+        <source srcset="/images/picture.webp" />
+        <source srcset="/images/picture.png" />
+        <img alt="Image" src="/images/picture.png" />
+    </picture>
+    ```
+
+    *Juan Pablo Balarini*
+
 *   Remove deprecated support to passing instance variables as locals to partials.
 
     *Rafael Mendonça França*

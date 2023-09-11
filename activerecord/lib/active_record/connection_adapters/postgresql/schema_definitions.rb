@@ -211,7 +211,7 @@ module ActiveRecord
         end
       end
 
-      UniqueKeyDefinition = Struct.new(:table_name, :columns, :options) do
+      UniqueKeyDefinition = Struct.new(:table_name, :column, :options) do
         def name
           options[:name]
         end
@@ -226,6 +226,12 @@ module ActiveRecord
 
         def export_name_on_schema_dump?
           !ActiveRecord::SchemaDumper.unique_ignore_pattern.match?(name) if name
+        end
+
+        def defined_for?(name: nil, column: nil, **options)
+          (name.nil? || self.name == name.to_s) &&
+            (column.nil? || Array(self.column) == Array(column).map(&:to_s)) &&
+            options.all? { |k, v| self.options[k].to_s == v.to_s }
         end
       end
 

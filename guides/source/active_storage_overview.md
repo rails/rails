@@ -424,11 +424,11 @@ user.avatar.attached?
 ```
 
 In some cases you might want to override a default service for a specific attachment.
-You can configure specific services per attachment using the `service` option:
+You can configure specific services per attachment using the `service` option with the name of your service:
 
 ```ruby
 class User < ApplicationRecord
-  has_one_attached :avatar, service: :s3
+  has_one_attached :avatar, service: :google
 end
 ```
 
@@ -572,6 +572,38 @@ You can bypass the content type inference from the data by passing in
 If you donâ€™t provide a content type and Active Storage canâ€™t determine the
 fileâ€™s content type automatically, it defaults to application/octet-stream.
 
+### Replacing vs Adding Attachments
+
+By default in Rails, attaching files to a `has_many_attached` association will replace
+any existing attachments.
+
+To keep existing attachments, you can use hidden form fields with the [`signed_id`][ActiveStorage::Blob#signed_id]
+of each attached file:
+
+```erb
+<% @message.images.each do |image| %>
+  <%= form.hidden_field :images, multiple: true, value: image.signed_id %>
+<% end %>
+
+<%= form.file_field :images, multiple: true %>
+```
+
+This has the advantage of making it possible to remove existing attachments
+selectively, e.g. by using JavaScript to remove individual hidden fields.
+
+[ActiveStorage::Blob#signed_id]: https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-signed_id
+
+### Form Validation
+
+Attachments aren't sent to the storage service until a successful `save` on the
+associated record. This means that if a form submission fails validation, any new
+attachment(s) will be lost and must be uploaded again. Since [direct uploads](#direct-uploads)
+are stored before the form is submitted, they can be used to retain uploads when validation fails:
+
+```erb
+<%= form.hidden_field :avatar, value: @user.avatar.signed_id if @user.avatar.attached? %>
+<%= form.file_field :avatar, direct_upload: true %>
+```
 
 Removing Files
 --------------
@@ -994,7 +1026,6 @@ Take care to allow:
 * All origins from which your app is accessed
 * The `PUT` request method
 * The following headers:
-  * `Origin`
   * `Content-Type`
   * `Content-MD5`
   * `Content-Disposition` (except for Azure Storage)
@@ -1010,19 +1041,15 @@ No CORS configuration is required for the Disk service since it shares your appâ
 [
   {
     "AllowedHeaders": [
-      "*"
+      "Content-Type",
+      "Content-MD5",
+      "Content-Disposition"
     ],
     "AllowedMethods": [
       "PUT"
     ],
     "AllowedOrigins": [
       "https://www.example.com"
-    ],
-    "ExposeHeaders": [
-      "Origin",
-      "Content-Type",
-      "Content-MD5",
-      "Content-Disposition"
     ],
     "MaxAgeSeconds": 3600
   }
@@ -1036,7 +1063,7 @@ No CORS configuration is required for the Disk service since it shares your appâ
   {
     "origin": ["https://www.example.com"],
     "method": ["PUT"],
-    "responseHeader": ["Origin", "Content-Type", "Content-MD5", "Content-Disposition"],
+    "responseHeader": ["Content-Type", "Content-MD5", "Content-Disposition"],
     "maxAgeSeconds": 3600
   }
 ]
@@ -1049,7 +1076,7 @@ No CORS configuration is required for the Disk service since it shares your appâ
   <CorsRule>
     <AllowedOrigins>https://www.example.com</AllowedOrigins>
     <AllowedMethods>PUT</AllowedMethods>
-    <AllowedHeaders>Origin, Content-Type, Content-MD5, x-ms-blob-content-disposition, x-ms-blob-type</AllowedHeaders>
+    <AllowedHeaders>Content-Type, Content-MD5, x-ms-blob-content-disposition, x-ms-blob-type</AllowedHeaders>
     <MaxAgeInSeconds>3600</MaxAgeInSeconds>
   </CorsRule>
 </Cors>
@@ -1293,7 +1320,7 @@ the Rails application, similar to the following:
 
 ```ruby
 class DirectUploadsController < ActiveStorage::DirectUploadsController
-  skip_before_action :verify_authenticity_token
+  skip_forgery_protection
   before_action :authenticate!
 
   def authenticate!
@@ -1309,7 +1336,7 @@ NOTE: Using [Direct Uploads](#direct-uploads) can sometimes result in a file tha
 Testing
 -------------------------------------------
 
-Use [`fixture_file_upload`][] to test uploading a file in an integration or controller test.
+Use [`file_fixture_upload`][] to test uploading a file in an integration or controller test.
 Rails handles files like any other parameter.
 
 ```ruby
@@ -1317,7 +1344,7 @@ class SignupController < ActionDispatch::IntegrationTest
   test "can sign up" do
     post signup_path, params: {
       name: "David",
-      avatar: fixture_file_upload("david.png", "image/png")
+      avatar: file_fixture_upload("david.png", "image/png")
     }
 
     user = User.order(:created_at).last
@@ -1326,7 +1353,7 @@ class SignupController < ActionDispatch::IntegrationTest
 end
 ```
 
-[`fixture_file_upload`]: https://api.rubyonrails.org/classes/ActionDispatch/TestProcess/FixtureFile.html
+[`file_fixture_upload`]: https://api.rubyonrails.org/classes/ActionDispatch/TestProcess/FixtureFile.html#method-i-file_fixture_upload
 
 ### Discarding Files Created During Tests
 

@@ -291,6 +291,7 @@ module ActionView
       #
       # ==== Options
       # * <tt>:sanitize</tt> - If +false+, does not sanitize +text+.
+      # * <tt>:sanitize_options</tt> - Any extra options you want appended to the sanitize.
       # * <tt>:wrapper_tag</tt> - String representing the wrapper tag, defaults to <tt>"p"</tt>
       #
       # ==== Examples
@@ -315,10 +316,13 @@ module ActionView
       #
       #   simple_format("<blink>Blinkable!</blink> It's true.", {}, sanitize: false)
       #   # => "<p><blink>Blinkable!</blink> It's true.</p>"
+      #
+      #   simple_format("<a target=\"_blank\" href=\"http://example.com\">Continue</a>", {}, { sanitize_options: { attributes: %w[target href] } })
+      #   # => "<p><a target=\"_blank\" href=\"http://example.com\">Continue</a></p>"
       def simple_format(text, html_options = {}, options = {})
-        wrapper_tag = options.fetch(:wrapper_tag, :p)
+        wrapper_tag = options[:wrapper_tag] || "p"
 
-        text = sanitize(text) if options.fetch(:sanitize, true)
+        text = sanitize(text, options.fetch(:sanitize_options, {})) if options.fetch(:sanitize, true)
         paragraphs = split_paragraphs(text)
 
         if paragraphs.empty?

@@ -34,6 +34,7 @@ require "models/pirate"
 require "models/matey"
 require "models/parrot"
 require "models/sharded"
+require "models/cpk"
 
 class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
   fixtures :citations
@@ -378,7 +379,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   # Regression test for 21c75e5
   def test_nested_loading_does_not_raise_exception_when_association_does_not_exist
     assert_nothing_raised do
-      Post.all.merge!(includes: { author: :author_addresss }).find(posts(:authorless).id)
+      Post.all.merge!(includes: { author: :non_existing_association }).find(posts(:authorless).id)
     end
   end
 
@@ -1687,6 +1688,22 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal(post.comments.sort, expected_comments.sort)
   end
 
+  test "preloading belongs_to association SQL" do
+    blog_ids = [sharded_blogs(:sharded_blog_one).id, sharded_blogs(:sharded_blog_two).id]
+    posts = Sharded::BlogPost.where(blog_id: blog_ids).includes(:comments)
+
+    sql = capture_sql do
+      comments_collection = posts.map(&:comments)
+      assert_equal 3, comments_collection.size
+    end.last
+
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      assert_match(/WHERE `sharded_comments`.`blog_id` IN \(.+\) AND `sharded_comments`.`blog_post_id` IN \(.+\)/, sql)
+    else
+      assert_match(/WHERE "sharded_comments"."blog_id" IN \(.+\) AND "sharded_comments"."blog_post_id" IN \(.+\)/, sql)
+    end
+  end
+
   test "preloading has_many association associated by a composite query_constraints" do
     blog_ids = [sharded_blogs(:sharded_blog_one).id, sharded_blogs(:sharded_blog_two).id]
     comments = Sharded::Comment.where(blog_id: blog_ids).includes(:blog_post).to_a
@@ -1711,6 +1728,24 @@ class EagerAssociationTest < ActiveRecord::TestCase
     blog_post = blog_posts.find { |post| post.id == expected_blog_post.id }
 
     assert_equal(expected_tag_ids.sort, blog_post.tags.map(&:id).sort)
+  end
+
+  test "preloading belongs_to with cpk" do
+    order = Cpk::Order.create!(shop_id: 2)
+    order_agreement = Cpk::OrderAgreement.create!(order: order)
+    assert_equal order, Cpk::OrderAgreement.eager_load(:order).find_by(id: order_agreement.id).order
+  end
+
+  test "preloading has_many with cpk" do
+    order = Cpk::Order.create!(shop_id: 2)
+    order_agreement = Cpk::OrderAgreement.create!(order: order)
+    assert_equal [order_agreement], Cpk::Order.eager_load(:order_agreements).find_by(id: order.id).order_agreements
+  end
+
+  test "preloading has_one with cpk" do
+    order = Cpk::Order.create!(shop_id: 2)
+    book = Cpk::Book.create!(order: order, id: [1, 3])
+    assert_equal book, Cpk::Order.eager_load(:book).find_by(id: order.id).book
   end
 
   private
