@@ -3,7 +3,7 @@
 require "service/shared_service_tests"
 
 class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
-  tmp_config = { tmp: { service: "Disk", root: File.join(Dir.tmpdir, "active_storage") } }
+  tmp_config = { tmp: { service: "Disk", root: File.join(Dir.tmpdir, "active_storage"), url_options: { protocol: "https://", host: "example.com", port: nil } } }
   SERVICE = ActiveStorage::Service.configure(:tmp, tmp_config)
 
   include ActiveStorage::Service::SharedServiceTests
@@ -39,27 +39,14 @@ class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
     end
   end
 
-  test "URL generation without ActiveStorage::Current.url_options set" do
-    ActiveStorage::Current.url_options = nil
+  test "URL generation without url_options set" do
+    SERVICE.instance_variable_set("@url_options", {})
 
     error = assert_raises ArgumentError do
       @service.url(@key, expires_in: 5.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png")
     end
 
-    assert_equal("Cannot generate URL for avatar.png using Disk service, please set ActiveStorage::Current.url_options.", error.message)
-  end
-
-  test "URL generation keeps working with ActiveStorage::Current.host set" do
-    ActiveStorage::Current.url_options = { host: "https://example.com" }
-
-    original_url_options = Rails.application.routes.default_url_options.dup
-    Rails.application.routes.default_url_options.merge!(protocol: "http", host: "test.example.com", port: 3001)
-    begin
-      assert_match(/^http:\/\/example.com:3001\/rails\/active_storage\/disk\/.*\/avatar\.png$/,
-        @service.url(@key, expires_in: 5.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png"))
-    ensure
-      Rails.application.routes.default_url_options = original_url_options
-    end
+    assert_equal("Cannot generate URL for avatar.png using Disk service, please set url_options in config/storage.yml.", error.message)
   end
 
   test "headers_for_direct_upload generation" do

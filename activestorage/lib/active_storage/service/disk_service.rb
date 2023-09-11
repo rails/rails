@@ -11,11 +11,12 @@ module ActiveStorage
   # Wraps a local disk path as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
   class Service::DiskService < Service
-    attr_accessor :root
+    attr_accessor :root, :url_options
 
-    def initialize(root:, public: false, **options)
+    def initialize(root:, public: false, url_options: {},  **options)
       @root = root
       @public = public
+      @url_options = url_options
     end
 
     def upload(key, io, checksum: nil, **)
@@ -135,7 +136,7 @@ module ActiveStorage
         )
 
         if url_options.blank?
-          raise ArgumentError, "Cannot generate URL for #{filename} using Disk service, please set ActiveStorage::Current.url_options."
+          raise ArgumentError, "Cannot generate URL for #{filename} using Disk service, please set url_options in config/storage.yml."
         end
 
         url_helpers.rails_disk_service_url(verified_key_with_expiration, filename: filename, **url_options)
@@ -169,10 +170,6 @@ module ActiveStorage
 
       def url_helpers
         @url_helpers ||= Rails.application.routes.url_helpers
-      end
-
-      def url_options
-        ActiveStorage::Current.url_options
       end
   end
 end

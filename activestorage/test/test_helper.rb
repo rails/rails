@@ -27,14 +27,6 @@ class ActiveSupport::TestCase
 
   self.fixture_paths = [File.expand_path("fixtures", __dir__)]
 
-  setup do
-    ActiveStorage::Current.url_options = { protocol: "https://", host: "example.com", port: nil }
-  end
-
-  teardown do
-    ActiveStorage::Current.reset
-  end
-
   def assert_queries(expected_count, matcher: nil, &block)
     ActiveRecord::Base.connection.materialize_transactions
 
