@@ -1006,6 +1006,35 @@ module ActiveRecord
       self
     end
 
+    # Allows query methods to be called when an optional value is present.
+    #
+    #   # before
+    #   users = User
+    #     .where(active: true)
+    #     .order(created_at: :desc)
+    #
+    #   if params[:name].present?
+    #     users = User.where(name: params[:name])
+    #   end
+    #
+    #   # after
+    #   users = User
+    #     .where(active: true)
+    #
+    #     # if params[:name] is present, then call on our instance
+    #     .when(params[:name], -> (name) { where(name: name) })
+    #
+    #     # or pass a hash directly
+    #     # .when(params[:name], name: params[:name])
+    #
+    #     .order(created_at: :desc)
+    #
+    def when(value, proc_or_hash)
+      return self if value.blank?
+      return self.instance_exec(value, &proc_or_hash) if proc_or_hash.respond_to?(:call)
+      self.where(proc_or_hash)
+    end
+
     # Checks whether the given relation is structurally compatible with this relation, to determine
     # if it's possible to use the #and and #or methods without raising an error. Structurally
     # compatible is defined as: they must be scoping the same model, and they must differ only by

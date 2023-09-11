@@ -1,3 +1,30 @@
+*   Add `when` to query methods.
+
+    ```ruby
+    # before
+    users = User
+      .where(active: true)
+      .order(created_at: :desc)
+
+    if params[:name].present?
+      users = User.where(name: params[:name])
+    end
+
+    # after
+    users = User
+      .where(active: true)
+
+      # if params[:name] is present, then call on our instance
+      .when(params[:name], -> (name) { where(name: name) })
+
+      # or pass a hash directly
+      # .when(params[:name], name: params[:name])
+
+      .order(created_at: :desc)
+    ```
+
+    *Baylor Weathers*
+
 *   Support composite foreign keys via migration helpers.
 
     ```ruby
