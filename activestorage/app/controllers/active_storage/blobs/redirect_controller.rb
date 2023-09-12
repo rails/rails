@@ -10,7 +10,7 @@ class ActiveStorage::Blobs::RedirectController < ActiveStorage::BaseController
   include ActiveStorage::SetBlob
 
   def show
-    expires_in ActiveStorage.service_urls_expire_in
+    ActiveStorage.cache_service_urls ? expires_in(ActiveStorage.service_urls_expire_in) : no_store
     redirect_to @blob.url(disposition: params[:disposition]), allow_other_host: true
   end
 end

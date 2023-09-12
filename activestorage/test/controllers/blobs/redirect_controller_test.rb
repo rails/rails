@@ -32,6 +32,23 @@ class ActiveStorage::Blobs::RedirectControllerTest < ActionDispatch::Integration
   end
 end
 
+class ActiveStorage::Blobs::NoCachingRedirectControllerTest < ActionDispatch::IntegrationTest
+  setup do
+    @blob = create_file_blob filename: "racecar.jpg"
+    ActiveStorage.cache_service_urls = false
+  end
+
+  teardown do
+    ActiveStorage.cache_service_urls = true
+  end
+
+  test "HTTP no caching" do
+    get rails_storage_redirect_url(@blob)
+    assert_redirected_to(/racecar\.jpg/)
+    assert_equal "no-store", response.headers["Cache-Control"]
+  end
+end
+
 class ActiveStorage::Blobs::ExpiringRedirectControllerTest < ActionDispatch::IntegrationTest
   setup do
     @blob = create_file_blob filename: "racecar.jpg"
