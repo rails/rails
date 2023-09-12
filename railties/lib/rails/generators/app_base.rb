@@ -495,6 +495,12 @@ module Rails
         "latest"
       end
 
+      def dockerfile_bun_version
+        using_bun? and "bun-v#{`bun --version`[/\d+\.\d+\.\d+/]}"
+      rescue
+        nil # Use latest
+      end
+
       def dockerfile_binfile_fixups
         # binfiles may have OS specific paths to ruby.  Normalize them.
         shebangs = Dir["bin/*"].map { |file| IO.read(file).lines.first }.join
