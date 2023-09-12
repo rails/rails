@@ -450,7 +450,7 @@ module Rails
         if options[:javascript] == "importmap"
           GemfileEntry.floats "importmap-rails", "Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]"
         else
-          GemfileEntry.github "jsbundling-rails", "rails/jsbundling-rails", nil, "Bundle and transpile JavaScript [https://github.com/rails/jsbundling-rails]"
+          GemfileEntry.floats "jsbundling-rails", "Bundle and transpile JavaScript [https://github.com/rails/jsbundling-rails]"
         end
       end
 
@@ -458,10 +458,10 @@ module Rails
         return if options[:skip_hotwire]
 
         turbo_rails_entry =
-          GemfileEntry.github "turbo-rails", "terracatta/turbo-rails", "add_bun_support", "Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]"
+          GemfileEntry.github "turbo-rails", "terracatta/turbo-rails", "add_bun_support", "Hotwire's SPA-like page accelerator"
 
         stimulus_rails_entry =
-          GemfileEntry.github "stimulus-rails", "terracatta/stimulus-rails", "jem_add_bun_support", "Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]"
+          GemfileEntry.floats "stimulus-rails", "Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]"
 
         [ turbo_rails_entry, stimulus_rails_entry ]
       end
@@ -592,7 +592,7 @@ module Rails
         elsif !using_js_runtime? && options[:css] == "sass"
           GemfileEntry.floats "dartsass-rails", "Use Dart SASS [https://github.com/rails/dartsass-rails]"
         else
-          GemfileEntry.github "cssbundling-rails", "terracatta/cssbundling-rails", "add_bun_support", "Bundle and process CSS [https://github.com/rails/cssbundling-rails]"
+          GemfileEntry.floats "cssbundling-rails", "Bundle and process CSS [https://github.com/rails/cssbundling-rails]"
         end
       end
 
