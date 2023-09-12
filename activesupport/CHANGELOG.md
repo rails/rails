@@ -1,3 +1,34 @@
+*   Deprecate method_missing and implicit conversions of `ActiveSupport::Duration`
+
+    The following methods were previously available on `Duration` through
+    `method_missing` but are now deprecated:
+
+    ```
+    byte bytes day days exabyte exabytes fortnight fortnights gigabyte
+    gigabytes hour hours kilobyte kilobytes megabyte megabytes minute
+    minutes month months petabyte petabytes second seconds terabyte terabytes
+    week weeks year years
+
+    & ** << >> [] ^ abs2 allbits? angle anybits? arg bit_length ceil chr conj
+    conjugate denominator digits downto even? finite? floor gcd gcdlcm i imag
+    imaginary infinite? lcm magnitude multiple_of? next nobits? numerator odd?
+    ord ordinal ordinalize phase polar pow pred rationalize real real? rect
+    rectangular round size step succ times to_bn to_c to_int truncate upto | ~
+    ```
+
+    In addition, the following combinations are also deprecated:
+
+    - equality of Duration and Numeric (`1.minute == 1 # => false`)
+    - comparing Durations and Numerics (`5 > 2.minutes # => false`)
+    - adding/subtracting Durations and Numerics (`5 + 2.minutes # => 2 minutes and 5 seconds`)
+    - Numeric / Duration (`3 / 2.seconds # => 1` but should have a unit of `second^-1`)
+    - Numeric % Duration (`3 % 2.minutes # => 3 seconds`)
+    - Duration * Duration (`3.days * 2.days # => 518400 days` but should really be `6 days^2`)
+    - Duration#is_a? returning true for value's class
+    - Duration#instance_of? returning true for value's class
+
+    *Hartley McGuire*
+
 *   Add `drb`, `mutex_m` and `base64` that are bundled gem candidates for Ruby 3.4
 
     *Yasuo Honda*
