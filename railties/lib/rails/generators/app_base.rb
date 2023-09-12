@@ -16,6 +16,7 @@ module Rails
       include AppName
 
       NODE_LTS_VERSION = "18.15.0"
+      BUN_VERSION = "1.0.1"
 
       attr_accessor :rails_template
       add_shebang_option!
@@ -498,7 +499,7 @@ module Rails
       def dockerfile_bun_version
         using_bun? and "bun-v#{`bun --version`[/\d+\.\d+\.\d+/]}"
       rescue
-        nil # Use latest
+        BUN_VERSION
       end
 
       def dockerfile_binfile_fixups
