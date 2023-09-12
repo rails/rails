@@ -503,10 +503,10 @@ GEM
       actionpack (>= 5.2)
       activesupport (>= 5.2)
       sprockets (>= 3.0.0)
-    sqlite3 (1.6.3)
+    sqlite3 (1.6.6)
       mini_portile2 (~> 2.8.0)
-    sqlite3 (1.6.3-x86_64-darwin)
-    sqlite3 (1.6.3-x86_64-linux)
+    sqlite3 (1.6.6-x86_64-darwin)
+    sqlite3 (1.6.6-x86_64-linux)
     stackprof (0.2.23)
     stimulus-rails (1.2.1)
       railties (>= 6.0.0)
@@ -627,7 +627,7 @@ DEPENDENCIES
   sidekiq
   sneakers
   sprockets-rails (>= 2.0.0)
-  sqlite3 (< 1.6.4)
+  sqlite3 (~> 1.6, >= 1.6.6)
   stackprof
   stimulus-rails
   sucker_punch
