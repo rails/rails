@@ -5,17 +5,17 @@ require "test_helper"
 class ActionText::ModelTest < ActiveSupport::TestCase
   include QueryHelpers
 
-  test "html conversion" do
+  test "table html conversion" do
     message = Message.new(subject: "Greetings", content: "<h1>Hello world</h1>")
     assert_equal %Q(<div class="trix-content">\n  <h1>Hello world</h1>\n</div>\n), "#{message.content}"
   end
 
-  test "plain text conversion" do
+  test "table plain text conversion" do
     message = Message.new(subject: "Greetings", content: "<h1>Hello world</h1>")
     assert_equal "Hello world", message.content.to_plain_text
   end
 
-  test "without content" do
+  test "table without content" do
     message = Message.create!(subject: "Greetings")
     assert message.content.nil?
     assert message.content.blank?
@@ -24,7 +24,7 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     assert_not message.content.present?
   end
 
-  test "with blank content" do
+  test "table with blank content" do
     message = Message.create!(subject: "Greetings", content: "")
     assert_not message.content.nil?
     assert message.content.blank?
@@ -33,13 +33,13 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     assert_not message.content.present?
   end
 
-  test "embed extraction" do
+  test "table embed extraction" do
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     message = Message.create!(subject: "Greetings", content: ActionText::Content.new("Hello world").append_attachables(blob))
     assert_equal "racecar.jpg", message.content.embeds.first.filename.to_s
   end
 
-  test "embed extraction only extracts file attachments" do
+  test "table embed extraction only extracts file attachments" do
     remote_image_html = '<action-text-attachment content-type="image" url="http://example.com/cat.jpg"></action-text-attachment>'
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     content = ActionText::Content.new(remote_image_html).append_attachables(blob)
@@ -48,7 +48,7 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     assert_equal [ActiveStorage::Attachment], message.content.embeds.map(&:class)
   end
 
-  test "embed extraction deduplicates file attachments" do
+  test "table embed extraction deduplicates file attachments" do
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     content = ActionText::Content.new("Hello world").append_attachables([ blob, blob ])
 
@@ -57,30 +57,30 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     end
   end
 
-  test "saving content" do
+  test "table saving content" do
     message = Message.create!(subject: "Greetings", content: "<h1>Hello world</h1>")
     assert_equal "Hello world", message.content.to_plain_text
   end
 
-  test "duplicating content" do
+  test "table duplicating content" do
     message = Message.create!(subject: "Greetings", content: "<b>Hello!</b>")
     other_message = Message.create!(subject: "Greetings", content: message.content)
 
     assert_equal message.content.body.to_html, other_message.content.body.to_html
   end
 
-  test "saving body" do
+  test "table saving body" do
     message = Message.create(subject: "Greetings", body: "<h1>Hello world</h1>")
     assert_equal "Hello world", message.body.to_plain_text
   end
 
-  test "saving content via nested attributes" do
+  test "table saving content via nested attributes" do
     message = Message.create! subject: "Greetings", content: "<h1>Hello world</h1>",
       review_attributes: { author_name: "Marcia", content: "Nice work!" }
     assert_equal "Nice work!", message.review.content.to_plain_text
   end
 
-  test "updating content via nested attributes" do
+  test "table updating content via nested attributes" do
     message = Message.create! subject: "Greetings", content: "<h1>Hello world</h1>",
       review_attributes: { author_name: "Marcia", content: "Nice work!" }
 
@@ -88,7 +88,7 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     assert_equal "Great work!", message.review.reload.content.to_plain_text
   end
 
-  test "building content lazily on existing record" do
+  test "table building content lazily on existing record" do
     message = Message.create!(subject: "Greetings")
 
     assert_no_difference -> { ActionText::RichText.count } do
@@ -96,7 +96,7 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     end
   end
 
-  test "eager loading" do
+  test "table eager loading" do
     Message.create!(subject: "Subject", content: "<h1>Content</h1>")
 
     message = assert_queries(2) { Message.with_rich_text_content.last }
@@ -105,7 +105,7 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     end
   end
 
-  test "eager loading all rich text" do
+  test "table eager loading all rich text" do
     Message.create!(subject: "Subject", content: "<h1>Content</h1>", body: "<h2>Body</h2>")
 
     message = assert_queries(1) { Message.with_all_rich_text.last }
