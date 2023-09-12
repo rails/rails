@@ -8,14 +8,6 @@ GIT
       websocket
 
 GIT
-  remote: https://github.com/rails/jsbundling-rails.git
-  revision: e308e76e22ae923990f8bb64b442a8fb6cdb6ce8
-  ref: e308e76
-  specs:
-    jsbundling-rails (1.1.2)
-      railties (>= 6.0.0)
-
-GIT
   remote: https://github.com/rails/sdoc.git
   revision: 947abf9d928f37b9cb91c8139e051b834265724a
   branch: main
@@ -24,14 +16,6 @@ GIT
       nokogiri
       rdoc (>= 5.0)
       rouge
-
-GIT
-  remote: https://github.com/terracatta/cssbundling-rails.git
-  revision: 2673455f3f25e0d29f5286caed739726bee5253b
-  ref: 2673455
-  specs:
-    cssbundling-rails (1.2.0)
-      railties (>= 6.0.0)
 
 PATH
   remote: .
@@ -199,6 +183,8 @@ GEM
     crack (0.4.5)
       rexml
     crass (1.0.6)
+    cssbundling-rails (1.1.2)
+      railties (>= 6.0.0)
     dalli (3.2.3)
     dante (0.2.0)
     dartsass-rails (0.4.1)
@@ -305,6 +291,8 @@ GEM
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
     jmespath (1.6.2)
+    jsbundling-rails (1.1.1)
+      railties (>= 6.0.0)
     json (2.6.3)
     jwt (2.6.0)
     kramdown (2.4.0)
@@ -587,7 +575,7 @@ DEPENDENCIES
   capybara (>= 3.39)
   cgi (>= 0.3.6)
   connection_pool
-  cssbundling-rails!
+  cssbundling-rails
   dalli (>= 3.0.1)
   dartsass-rails
   debug (>= 1.1.0)
@@ -598,7 +586,7 @@ DEPENDENCIES
   image_processing (~> 1.2)
   importmap-rails
   jbuilder
-  jsbundling-rails!
+  jsbundling-rails
   json (>= 2.0.0)
   libxml-ruby
   listen (~> 3.3)
