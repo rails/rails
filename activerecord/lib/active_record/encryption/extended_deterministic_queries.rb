@@ -38,82 +38,69 @@ module ActiveRecord
         Arel::Nodes::HomogeneousIn.prepend(InWithAdditionalValues)
       end
 
-      module EncryptedQueryArgumentProcessor
-        extend ActiveSupport::Concern
+      module EncryptedQuery # :nodoc:
+        class << self
+          def process_arguments(owner, args, check_for_additional_values)
+            return args if owner.deterministic_encrypted_attributes&.empty?
 
-        private
-          def process_encrypted_query_arguments(args, check_for_additional_values)
             if args.is_a?(Array) && (options = args.first).is_a?(Hash)
-              self.deterministic_encrypted_attributes&.each do |attribute_name|
-                type = type_for_attribute(attribute_name)
+              options = options.dup
+              args[0] = options
+
+              owner.deterministic_encrypted_attributes&.each do |attribute_name|
+                type = owner.type_for_attribute(attribute_name)
                 if !type.previous_types.empty? && value = options[attribute_name]
                   options[attribute_name] = process_encrypted_query_argument(value, check_for_additional_values, type)
                 end
               end
             end
+
+            args
           end
 
-          def process_encrypted_query_argument(value, check_for_additional_values, type)
-            return value if check_for_additional_values && value.is_a?(Array) && value.last.is_a?(AdditionalValue)
+          private
+            def process_encrypted_query_argument(value, check_for_additional_values, type)
+              return value if check_for_additional_values && value.is_a?(Array) && value.last.is_a?(AdditionalValue)
 
-            case value
-            when String, Array
-              list = Array(value)
-              list + list.flat_map do |each_value|
-                if check_for_additional_values && each_value.is_a?(AdditionalValue)
-                  each_value
-                else
-                  additional_values_for(each_value, type)
+              case value
+              when String, Array
+                list = Array(value)
+                list + list.flat_map do |each_value|
+                  if check_for_additional_values && each_value.is_a?(AdditionalValue)
+                    each_value
+                  else
+                    additional_values_for(each_value, type)
+                  end
                 end
+              else
+                value
               end
-            else
-              value
             end
-          end
 
-          def additional_values_for(value, type)
-            type.previous_types.collect do |additional_type|
-              AdditionalValue.new(value, additional_type)
+            def additional_values_for(value, type)
+              type.previous_types.collect do |additional_type|
+                AdditionalValue.new(value, additional_type)
+              end
             end
-          end
+        end
       end
 
       module RelationQueries
-        include EncryptedQueryArgumentProcessor
-
         def where(*args)
-          process_encrypted_query_arguments_if_needed(args)
-          super
+          super(*EncryptedQuery.process_arguments(self, args, true))
         end
 
         def exists?(*args)
-          process_encrypted_query_arguments_if_needed(args)
-          super
+          super(*EncryptedQuery.process_arguments(self, args, true))
         end
-
-        def find_or_create_by(attributes, &block)
-          find_by(attributes.dup) || create(attributes, &block)
-        end
-
-        def find_or_create_by!(attributes, &block)
-          find_by(attributes.dup) || create!(attributes, &block)
-        end
-
-        private
-          def process_encrypted_query_arguments_if_needed(args)
-            process_encrypted_query_arguments(args, true) unless self.deterministic_encrypted_attributes&.empty?
-          end
       end
 
       module CoreQueries
         extend ActiveSupport::Concern
 
         class_methods do
-          include EncryptedQueryArgumentProcessor
-
           def find_by(*args)
-            process_encrypted_query_arguments(args, false) unless self.deterministic_encrypted_attributes&.empty?
-            super
+            super(*EncryptedQuery.process_arguments(self, args, false))
           end
         end
       end
