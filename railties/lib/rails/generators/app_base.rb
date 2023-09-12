@@ -593,6 +593,10 @@ module Rails
           GemfileEntry.floats "dartsass-rails", "Use Dart SASS [https://github.com/rails/dartsass-rails]"
         else
           GemfileEntry.floats "cssbundling-rails", "Bundle and process CSS [https://github.com/rails/cssbundling-rails]"
+        elsif options[:css] == "tailwind"
+          GemfileEntry.floats "tailwindcss-rails", "Use Tailwind CSS [https://github.com/rails/tailwindcss-rails]"
+        elsif options[:css] == "sass"
+          GemfileEntry.floats "dartsass-rails", "Use Dart SASS [https://github.com/rails/dartsass-rails]"
         end
       end
 
@@ -708,6 +712,10 @@ module Rails
           rails_command "dartsass:install"
         else
           rails_command "css:install:#{options[:css]}"
+        elsif options[:css] == "tailwind"
+          rails_command "tailwindcss:install"
+        elsif options[:css] == "sass"
+          rails_command "dartsass:install"
         end
       end
 

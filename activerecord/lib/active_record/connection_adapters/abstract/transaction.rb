@@ -74,6 +74,29 @@ module ActiveRecord
       end
     end
 
+    class TransactionInstrumenter
+      def initialize(payload = {})
+        @handle = nil
+        @started = false
+        @payload = payload
+      end
+
+      def start
+        return if @started
+        @started = true
+
+        @handle = ActiveSupport::Notifications.instrumenter.build_handle("transaction.active_record", @payload)
+        @handle.start
+      end
+
+      def finish
+        return unless @started
+        @started = false
+
+        @handle.finish
+      end
+    end
+
     class NullTransaction # :nodoc:
       def initialize; end
       def state; end
@@ -104,6 +127,7 @@ module ActiveRecord
         @run_commit_callbacks = run_commit_callbacks
         @lazy_enrollment_records = nil
         @dirty = false
+        @instrumenter = TransactionInstrumenter.new(connection: connection)
       end
 
       def dirty!
@@ -138,8 +162,13 @@ module ActiveRecord
         joinable? && !dirty?
       end
 
+      def incomplete!
+        @instrumenter.finish
+      end
+
       def materialize!
         @materialized = true
+        @instrumenter.start
       end
 
       def materialized?
@@ -303,7 +332,12 @@ module ActiveRecord
       end
 
       def restart
-        connection.rollback_to_savepoint(savepoint_name) if materialized?
+        return unless materialized?
+
+        @instrumenter.finish
+        @instrumenter.start
+
+        connection.rollback_to_savepoint(savepoint_name)
       end
 
       def rollback
@@ -311,11 +345,13 @@ module ActiveRecord
           connection.rollback_to_savepoint(savepoint_name) if materialized?
         end
         @state.rollback!
+        @instrumenter.finish
       end
 
       def commit
         connection.release_savepoint(savepoint_name) if materialized?
         @state.commit!
+        @instrumenter.finish
       end
 
       def full_rollback?; false; end
@@ -336,7 +372,10 @@ module ActiveRecord
       def restart
         return unless materialized?
 
+        @instrumenter.finish
+
         if connection.supports_restart_db_transaction?
+          @instrumenter.start
           connection.restart_db_transaction
         else
           connection.rollback_db_transaction
@@ -347,11 +386,13 @@ module ActiveRecord
       def rollback
         connection.rollback_db_transaction if materialized?
         @state.full_rollback!
+        @instrumenter.finish
       end
 
       def commit
         connection.commit_db_transaction if materialized?
         @state.full_commit!
+        @instrumenter.finish
       end
     end
 
@@ -526,7 +567,10 @@ module ActiveRecord
             end
           end
         ensure
-          @connection.throw_away! unless transaction&.state&.completed?
+          unless transaction&.state&.completed?
+            @connection.throw_away!
+            transaction&.incomplete!
+          end
         end
       end
 
