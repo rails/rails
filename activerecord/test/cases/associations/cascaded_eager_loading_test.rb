@@ -12,6 +12,7 @@ require "models/reply"
 require "models/person"
 require "models/vertex"
 require "models/edge"
+require "models/essay"
 
 class CascadedEagerLoadingTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :mixins, :companies, :posts, :topics, :accounts, :comments,

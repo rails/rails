@@ -7,6 +7,7 @@ require "models/computer"
 require "models/owner"
 require "models/pet"
 require "models/cpk"
+require "models/mentor"
 
 class IntegrationTest < ActiveRecord::TestCase
   fixtures :companies, :developers, :owners, :pets
