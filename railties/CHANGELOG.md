@@ -1,3 +1,9 @@
+*   bin/setup uses `bun` instead of `yarn` when generated an app with bun
+
+    Use `bun install` on `bin/setup` when using `bun`.
+
+    *Cadu Ribeiro*
+
 *   `config/application.rb` now includes
 
     ```ruby

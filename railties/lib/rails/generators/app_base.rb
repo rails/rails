@@ -467,8 +467,14 @@ module Rails
       end
 
       def using_node?
+        return if using_bun?
+
         (options[:javascript] && !%w[importmap].include?(options[:javascript])) ||
           (options[:css] && !%w[tailwind sass].include?(options[:css]))
+      end
+
+      def using_bun?
+        options[:javascript] == "bun"
       end
 
       def node_version
@@ -569,12 +575,12 @@ module Rails
       def css_gemfile_entry
         return unless options[:css]
 
-        if !using_node? && options[:css] == "tailwind"
-          GemfileEntry.floats "tailwindcss-rails", "Use Tailwind CSS [https://github.com/rails/tailwindcss-rails]"
-        elsif !using_node? && options[:css] == "sass"
-          GemfileEntry.floats "dartsass-rails", "Use Dart SASS [https://github.com/rails/dartsass-rails]"
-        else
+        if using_node? || using_bun?
           GemfileEntry.floats "cssbundling-rails", "Bundle and process CSS [https://github.com/rails/cssbundling-rails]"
+        elsif options[:css] == "tailwind"
+          GemfileEntry.floats "tailwindcss-rails", "Use Tailwind CSS [https://github.com/rails/tailwindcss-rails]"
+        elsif options[:css] == "sass"
+          GemfileEntry.floats "dartsass-rails", "Use Dart SASS [https://github.com/rails/dartsass-rails]"
         end
       end
 
@@ -684,12 +690,12 @@ module Rails
       def run_css
         return if !options[:css] || !bundle_install?
 
-        if !using_node? && options[:css] == "tailwind"
-          rails_command "tailwindcss:install"
-        elsif !using_node? && options[:css] == "sass"
-          rails_command "dartsass:install"
-        else
+        if using_bun? || using_node?
           rails_command "css:install:#{options[:css]}"
+        elsif options[:css] == "tailwind"
+          rails_command "tailwindcss:install"
+        elsif options[:css] == "sass"
+          rails_command "dartsass:install"
         end
       end
 
