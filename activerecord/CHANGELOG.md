@@ -1,3 +1,17 @@
+*   Add instrumentation for Active Record transactions
+
+    Allows subscribing to transaction events for tracking/instrumentation. The event payload contains the connection, as well as timing details.
+
+    ```ruby
+    ActiveSupport::Notifications.subscribe("transaction.active_record") do |event|
+      puts "Transaction event occurred!"
+      connection = event.payload[:connection]
+      puts "Connection: #{connection.inspect}"
+    end
+    ```
+
+    *Daniel Colson*, *Ian Candy*
+
 *   Support composite foreign keys via migration helpers.
 
     ```ruby
