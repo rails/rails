@@ -2,8 +2,6 @@
 
 require "pp"
 require "cases/helper"
-require "models/mentor"
-require "models/member_type"
 require "models/computer"
 require "models/developer"
 require "models/project"
@@ -228,27 +226,15 @@ class AssociationsTest < ActiveRecord::TestCase
   end
 
   def test_query_constraints_over_three_without_defining_explicit_foreign_key_query_constraints_raises
-    original = Sharded::BlogPost.instance_variable_get(:@query_constraints_list)
-    original_comments = Sharded::Comment.instance_variable_get(:@query_constraints_list)
-    Sharded::BlogPost.query_constraints :blog_id, :revision, :id
-    Sharded::Comment.query_constraints :blog_id, :revision, :id
-    Sharded::BlogPost.has_many :comments_over_three, class_name: "Comment"
+    Sharded::BlogPostWithRevision.has_many :comments_without_query_constraints, primary_key: [:blog_id, :id], class_name: "Comment"
     blog_post = sharded_blog_posts(:great_post_blog_one)
+    blog_post = Sharded::BlogPostWithRevision.find(blog_post.id)
 
     error = assert_raises ArgumentError do
-      blog_post.comments_over_three.to_a
+      blog_post.comments_without_query_constraints.to_a
     end
 
-    assert_equal "The query constraints list on the `Sharded::BlogPost` model has more than 2 attributes. Active Record is unable to derive the query constraints for the association. You need to explicitly define the query constraints for this association.", error.message
-
-    Sharded::BlogPost.has_many :comments_fix_over_three, class_name: "Comment", query_constraints: [:blog_id, :id]
-
-    assert_nothing_raised do
-      blog_post.comments_fix_over_three.to_a
-    end
-  ensure
-    Sharded::BlogPost.instance_variable_set(:@query_constraints_list, original)
-    Sharded::Comment.instance_variable_set(:@query_constraints_list, original_comments)
+    assert_equal "The query constraints list on the `Sharded::BlogPostWithRevision` model has more than 2 attributes. Active Record is unable to derive the query constraints for the association. You need to explicitly define the query constraints for this association.", error.message
   end
 
   def test_model_with_composite_query_constraints_has_many_association_sql
@@ -343,50 +329,17 @@ class AssociationsTest < ActiveRecord::TestCase
 
   def test_query_constraints_that_dont_include_the_primary_key_raise
     original = Sharded::BlogPost.instance_variable_get(:@query_constraints_list)
-    original_comments = Sharded::Comment.instance_variable_get(:@query_constraints_list)
-    Sharded::BlogPost.query_constraints :blog_id, :revision
-    Sharded::Comment.query_constraints :blog_id, :revision
-    Sharded::BlogPost.has_many :comments_no_pk, class_name: "Comment"
+    Sharded::BlogPost.query_constraints :title, :revision
+    Sharded::BlogPost.has_many :comments_without_query_constraints, primary_key: [:blog_id, :id], class_name: "Comment"
     blog_post = sharded_blog_posts(:great_post_blog_one)
 
     error = assert_raises ArgumentError do
-      blog_post.comments_no_pk.to_a
+      blog_post.comments_without_query_constraints.to_a
     end
 
     assert_equal "The query constraints on the `Sharded::BlogPost` model does not include the primary key so Active Record is unable to derive the foreign key constraints for the association. You need to explicitly define the query constraints for this association.", error.message
-
-    Sharded::BlogPost.has_many :comments_fix_qc_no_pk, class_name: "Comment", query_constraints: [:blog_id, :revision]
-
-    assert_nothing_raised do
-      blog_post.comments_fix_qc_no_pk.to_a
-    end
   ensure
     Sharded::BlogPost.instance_variable_set(:@query_constraints_list, original)
-    Sharded::Comment.instance_variable_set(:@query_constraints_list, original_comments)
-  end
-
-  def test_query_constraints_raise_when_they_dont_match
-    original = Sharded::BlogPost.instance_variable_get(:@query_constraints_list)
-    original_comments = Sharded::Comment.instance_variable_get(:@query_constraints_list)
-    Sharded::BlogPost.query_constraints :blog_id, :id
-    Sharded::Comment.query_constraints :blog_id, :body
-    Sharded::BlogPost.has_many :comments_dont_match, class_name: "Comment"
-    blog_post = sharded_blog_posts(:great_post_blog_one)
-
-    error = assert_raises ArgumentError do
-      blog_post.comments_dont_match.to_a
-    end
-
-    assert_equal "The query constraints list on the `Sharded::Comment` model doesn't match the query constraints on the `Sharded::BlogPost` model so Active Record is unable to derive the query constraints for the association. You need to explicitly define the query constraints for this association.", error.message
-
-    Sharded::BlogPost.has_many :comments_fix_qc_no_match, class_name: "Comment", query_constraints: [:blog_id, :body]
-
-    assert_nothing_raised do
-      blog_post.comments_fix_qc_no_match.to_a
-    end
-  ensure
-    Sharded::BlogPost.instance_variable_set(:@query_constraints_list, original)
-    Sharded::Comment.instance_variable_set(:@query_constraints_list, original_comments)
   end
 
   def test_assign_belongs_to_cpk_model_by_id_attribute

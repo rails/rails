@@ -4,8 +4,6 @@ require "cases/helper"
 require "models/account"
 require "models/company"
 require "models/toy"
-require "models/owner"
-require "models/pet"
 require "models/matey"
 
 SIGNED_ID_VERIFIER_TEST_SECRET = -> { "This is normally set by the railtie initializer when used with Rails!" }

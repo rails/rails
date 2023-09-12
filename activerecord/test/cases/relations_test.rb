@@ -28,9 +28,6 @@ require "models/categorization"
 require "models/edge"
 require "models/subscriber"
 require "models/cpk"
-require "models/essay"
-require "models/mentor"
-require "models/speedometer"
 
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :topics, :entrants, :developers, :people, :companies, :developers_projects, :accounts, :categories, :categorizations, :categories_posts, :posts, :comments, :tags, :taggings, :cars, :minivans, :cpk_orders

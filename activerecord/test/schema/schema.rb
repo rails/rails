@@ -321,7 +321,6 @@ ActiveRecord::Schema.define do
     t.string :body
     t.integer :blog_post_id
     t.integer :blog_id
-    t.integer :revision
   end
 
   create_table :sharded_tags, force: true do |t|
