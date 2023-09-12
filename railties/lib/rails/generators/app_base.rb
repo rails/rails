@@ -458,7 +458,7 @@ module Rails
         return if options[:skip_hotwire]
 
         turbo_rails_entry =
-          GemfileEntry.github "turbo-rails", "terracatta/turbo-rails", "add_bun_support", "Hotwire's SPA-like page accelerator"
+          GemfileEntry.floats "turbo-rails", "Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]"
 
         stimulus_rails_entry =
           GemfileEntry.floats "stimulus-rails", "Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]"
