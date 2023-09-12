@@ -105,7 +105,7 @@ like `1.0.0`, Bun has been installed correctly.
 
 #### Installing Node.js and Yarn
 
-If you are using esbuild, rollup.js or Webpack you will need Node.js and Yar.
+If you are using esbuild, rollup.js or Webpack you will need Node.js and Yarn.
 
 Find the installation instructions at the [Node.js website](https://nodejs.org/en/download/) and
 verify it’s installed correctly with the following command:
