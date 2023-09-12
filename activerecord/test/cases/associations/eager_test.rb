@@ -35,6 +35,7 @@ require "models/matey"
 require "models/parrot"
 require "models/sharded"
 require "models/cpk"
+require "models/member_type"
 
 class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
   fixtures :citations

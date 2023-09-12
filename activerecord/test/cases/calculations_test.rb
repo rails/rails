@@ -25,6 +25,8 @@ require "models/too_long_table_name"
 require "support/stubs/strong_parameters"
 require "support/async_helper"
 require "models/cpk"
+require "models/essay"
+require "models/dashboard"
 
 class CalculationsTest < ActiveRecord::TestCase
   include AsyncHelper
