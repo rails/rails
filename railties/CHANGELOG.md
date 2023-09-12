@@ -1,3 +1,9 @@
+*   The "Started GET "/session/new" for 127.0.0.1 at 2012-09-26 14:51:42 -0700"
+    log has been moved from `Rails::Rack::Logger` to the
+    `start_processing.action_controller` event.
+
+    *Hartley McGuire*
+
 *   `rails new --javascript` generator now supports Bun
 
     ```bash

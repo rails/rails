@@ -33,7 +33,6 @@ module Rails
           handle = instrumenter.build_handle("request.action_dispatch", { request: request })
           handle.start
 
-          logger.info { started_request_message(request) }
           status, headers, body = response = @app.call(env)
           body = ::Rack::BodyProxy.new(body, &handle.method(:finish))
 
@@ -48,15 +47,6 @@ module Rails
           raise
         ensure
           ActiveSupport::LogSubscriber.flush_all!
-        end
-
-        # Started GET "/session/new" for 127.0.0.1 at 2012-09-26 14:51:42 -0700
-        def started_request_message(request) # :doc:
-          sprintf('Started %s "%s" for %s at %s',
-            request.raw_request_method,
-            request.filtered_path,
-            request.remote_ip,
-            Time.now)
         end
 
         def compute_tags(request) # :doc:
