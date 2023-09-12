@@ -676,8 +676,8 @@ module Rails
         return if options[:skip_javascript] || !bundle_install?
 
         case options[:javascript]
-        when "importmap"                    then rails_command "importmap:install"
-        when "webpack", "esbuild", "rollup" then rails_command "javascript:install:#{options[:javascript]}"
+        when "importmap"                           then rails_command "importmap:install"
+        when "webpack", "esbuild", "rollup", "bun" then rails_command "javascript:install:#{options[:javascript]}"
         end
       end
 
