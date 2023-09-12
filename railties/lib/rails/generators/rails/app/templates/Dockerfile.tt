@@ -34,10 +34,9 @@ RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz
 <% end -%>
 
 <% if using_bun? -%>
-ARG BUN_VERSION=<%= dockerfile_bun_version %>
 ENV BUN_INSTALL=/usr/local/bun
 ENV PATH=/usr/local/bun/bin:$PATH
-RUN curl -fsSL https://bun.sh/install | bash -s -- "${BUN_VERSION}"
+RUN curl -fsSL https://bun.sh/install | bash -s
 
 <% end -%>
 
