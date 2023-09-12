@@ -450,7 +450,7 @@ module Rails
         if options[:javascript] == "importmap"
           GemfileEntry.floats "importmap-rails", "Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]"
         else
-          GemfileEntry.floats "jsbundling-rails", "Bundle and transpile JavaScript [https://github.com/rails/jsbundling-rails]"
+          GemfileEntry.github "jsbundling-rails", "rails/jsbundling-rails", nil, "Bundle and transpile JavaScript [https://github.com/rails/jsbundling-rails]"
         end
       end
 
@@ -458,10 +458,10 @@ module Rails
         return if options[:skip_hotwire]
 
         turbo_rails_entry =
-          GemfileEntry.floats "turbo-rails", "Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]"
+          GemfileEntry.github "turbo-rails", "terracatta/turbo-rails", "add_bun_support", "Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]"
 
         stimulus_rails_entry =
-          GemfileEntry.floats "stimulus-rails", "Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]"
+          GemfileEntry.github "stimulus-rails", "terracatta/stimulus-rails", "jem_add_bun_support", "Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]"
 
         [ turbo_rails_entry, stimulus_rails_entry ]
       end
@@ -496,7 +496,7 @@ module Rails
       end
 
       def dockerfile_bun_version
-        using_bun? and `bun --version`[/\d+\.\d+\.\d+/]
+        using_bun? and "bun-v#{`bun --version`[/\d+\.\d+\.\d+/]}"
       rescue
         "latest"
       end
@@ -540,9 +540,13 @@ module Rails
         # ActiveStorage preview support
         packages << "libvips" unless skip_active_storage?
 
+        packages << "curl" if using_js_runtime?
+
+        packages << "unzip" if using_bun?
+
         # node support, including support for building native modules
         if using_node?
-          packages += %w(curl node-gyp) # pkg-config already listed above
+          packages << "node-gyp" # pkg-config already listed above
 
           # module build process depends on Python, and debian changed
           # how python is installed with the bullseye release.  Below
@@ -583,12 +587,12 @@ module Rails
       def css_gemfile_entry
         return unless options[:css]
 
-        if !using_node? && options[:css] == "tailwind"
+        if !using_js_runtime? && options[:css] == "tailwind"
           GemfileEntry.floats "tailwindcss-rails", "Use Tailwind CSS [https://github.com/rails/tailwindcss-rails]"
-        elsif !using_node? && options[:css] == "sass"
+        elsif !using_js_runtime? && options[:css] == "sass"
           GemfileEntry.floats "dartsass-rails", "Use Dart SASS [https://github.com/rails/dartsass-rails]"
         else
-          GemfileEntry.floats "cssbundling-rails", "Bundle and process CSS [https://github.com/rails/cssbundling-rails]"
+          GemfileEntry.github "cssbundling-rails", "terracatta/cssbundling-rails", "add_bun_support", "Bundle and process CSS [https://github.com/rails/cssbundling-rails]"
         end
       end
 
@@ -698,9 +702,9 @@ module Rails
       def run_css
         return if !options[:css] || !bundle_install?
 
-        if !using_node? && options[:css] == "tailwind"
+        if !using_js_runtime? && options[:css] == "tailwind"
           rails_command "tailwindcss:install"
-        elsif !using_node? && options[:css] == "sass"
+        elsif !using_js_runtime? && options[:css] == "sass"
           rails_command "dartsass:install"
         else
           rails_command "css:install:#{options[:css]}"

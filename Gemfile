@@ -27,7 +27,7 @@ gem "rack-cache", "~> 1.2"
 gem "stimulus-rails"
 gem "turbo-rails"
 gem "jsbundling-rails", github: "rails/jsbundling-rails", ref: "e308e76" # WARNING: Do not merge until release that contains this ref is merged and this line corrected.
-gem "cssbundling-rails"
+gem "cssbundling-rails", github: "terracatta/cssbundling-rails", ref: "2673455"
 gem "importmap-rails"
 gem "tailwindcss-rails"
 gem "dartsass-rails"
