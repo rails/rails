@@ -1050,9 +1050,9 @@ We are aware that there are no one-size-fits-it-all solutions for the various Ja
 
 ### jsbundling-rails
 
-[`jsbundling-rails`](https://github.com/rails/jsbundling-rails) is a Node.js dependent alternative to the `importmap-rails` way of bundling JavaScript with [esbuild](https://esbuild.github.io/), [rollup.js](https://rollupjs.org/), or [Webpack](https://webpack.js.org/).
+[`jsbundling-rails`](https://github.com/rails/jsbundling-rails) is a JavaScript run-time dependent alternative to the `importmap-rails` way of bundling JS with [Bun](https://bun.sh), [esbuild](https://esbuild.github.io/), [rollup.js](https://rollupjs.org/), or [Webpack](https://webpack.js.org/).
 
-The gem provides `yarn build --watch` process to automatically generate output in development. For production, it automatically hooks `javascript:build` task into `assets:precompile` task to ensure that all your package dependencies have been installed and JavaScript has been built for all entry points.
+The gem provides a build task in `package.json` to watch for changes and automatically generate output in development. For production, it automatically hooks `javascript:build` task into `assets:precompile` task to ensure that all your package dependencies have been installed and JavaScript has been built for all entry points.
 
 **When to use instead of `importmap-rails`?** If your JavaScript code depends on transpiling so if you are using [Babel](https://babeljs.io/), [TypeScript](https://www.typescriptlang.org/) or React `JSX` format then `jsbundling-rails` is the correct way to go.
 

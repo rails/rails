@@ -791,6 +791,40 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "jsbundling-rails"
   end
 
+  def test_bun_option
+    generator([destination_root], javascript: "bun")
+
+    bun_called = 0
+    command_check = -> command, *_ do
+      case command
+      when "javascript:install:bun"
+        bun_called += 1
+      end
+    end
+
+    generator.stub(:rails_command, command_check) do
+      run_generator_instance
+    end
+
+    assert_equal 1, bun_called, "`javascript:install:bun` expected to be called once, but was called #{bun_called} times."
+    assert_gem "jsbundling-rails"
+  end
+
+  def test_bun_option_with_javacript_argument
+    run_generator [destination_root, "--javascript", "bun"]
+    assert_gem "jsbundling-rails"
+  end
+
+  def test_bun_option_with_j_argument
+    run_generator [destination_root, "-j", "bun"]
+    assert_gem "jsbundling-rails"
+  end
+
+  def test_bun_option_with_js_argument
+    run_generator [destination_root, "--js", "bun"]
+    assert_gem "jsbundling-rails"
+  end
+
   def test_skip_javascript_option_with_skip_javascript_argument
     run_generator [destination_root, "--skip-javascript"]
     assert_no_gem "stimulus-rails"

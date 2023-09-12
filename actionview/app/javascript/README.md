@@ -15,6 +15,9 @@ Note that the `data` attributes this library adds are a feature of HTML5. If you
 
 ## Installation
 
+### Bun
+    bun add @rails/ujs
+
 ### npm
 
     npm install @rails/ujs --save
@@ -37,7 +40,7 @@ In a conventional Rails application that uses the asset pipeline, require `rails
 
 ### ES2015+
 
-If you're using the Webpacker gem or some other JavaScript bundler, add the following to your main JS file:
+If you're using a JavaScript bundler, add the following to your main JS file:
 
 ```javascript
 import Rails from "@rails/ujs"

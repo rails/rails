@@ -1,3 +1,11 @@
+*   `rails new --javascript` generator now supports Bun
+
+    ```bash
+    rails new my_new_app --javascript=bun
+    ```
+
+    *Jason Meller*
+
 *   bin/setup uses `bun` instead of `yarn` when generated an app with bun
 
     Use `bun install` on `bin/setup` when using `bun`.

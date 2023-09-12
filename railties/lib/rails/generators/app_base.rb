@@ -16,6 +16,7 @@ module Rails
       include AppName
 
       NODE_LTS_VERSION = "18.15.0"
+      BUN_VERSION = "1.0.1"
 
       attr_accessor :rails_template
       add_shebang_option!
@@ -466,15 +467,17 @@ module Rails
         [ turbo_rails_entry, stimulus_rails_entry ]
       end
 
-      def using_node?
-        return if using_bun?
-
+      def using_js_runtime?
         (options[:javascript] && !%w[importmap].include?(options[:javascript])) ||
           (options[:css] && !%w[tailwind sass].include?(options[:css]))
       end
 
+      def using_node?
+        using_js_runtime? && !%w[bun].include?(options[:javascript])
+      end
+
       def using_bun?
-        options[:javascript] == "bun"
+        using_js_runtime? && %w[bun].include?(options[:javascript])
       end
 
       def node_version
@@ -491,6 +494,12 @@ module Rails
         using_node? and `yarn --version`[/\d+\.\d+\.\d+/]
       rescue
         "latest"
+      end
+
+      def dockerfile_bun_version
+        using_bun? and "bun-v#{`bun --version`[/\d+\.\d+\.\d+/]}"
+      rescue
+        BUN_VERSION
       end
 
       def dockerfile_binfile_fixups
@@ -532,9 +541,13 @@ module Rails
         # ActiveStorage preview support
         packages << "libvips" unless skip_active_storage?
 
+        packages << "curl" if using_js_runtime?
+
+        packages << "unzip" if using_bun?
+
         # node support, including support for building native modules
         if using_node?
-          packages += %w(curl node-gyp) # pkg-config already listed above
+          packages << "node-gyp" # pkg-config already listed above
 
           # module build process depends on Python, and debian changed
           # how python is installed with the bullseye release.  Below
@@ -575,12 +588,12 @@ module Rails
       def css_gemfile_entry
         return unless options[:css]
 
-        if using_node? || using_bun?
-          GemfileEntry.floats "cssbundling-rails", "Bundle and process CSS [https://github.com/rails/cssbundling-rails]"
-        elsif options[:css] == "tailwind"
+        if !using_js_runtime? && options[:css] == "tailwind"
           GemfileEntry.floats "tailwindcss-rails", "Use Tailwind CSS [https://github.com/rails/tailwindcss-rails]"
-        elsif options[:css] == "sass"
+        elsif !using_js_runtime? && options[:css] == "sass"
           GemfileEntry.floats "dartsass-rails", "Use Dart SASS [https://github.com/rails/dartsass-rails]"
+        else
+          GemfileEntry.floats "cssbundling-rails", "Bundle and process CSS [https://github.com/rails/cssbundling-rails]"
         end
       end
 
@@ -676,8 +689,8 @@ module Rails
         return if options[:skip_javascript] || !bundle_install?
 
         case options[:javascript]
-        when "importmap"                    then rails_command "importmap:install"
-        when "webpack", "esbuild", "rollup" then rails_command "javascript:install:#{options[:javascript]}"
+        when "importmap"                           then rails_command "importmap:install"
+        when "webpack", "bun", "esbuild", "rollup" then rails_command "javascript:install:#{options[:javascript]}"
         end
       end
 
@@ -690,12 +703,12 @@ module Rails
       def run_css
         return if !options[:css] || !bundle_install?
 
-        if using_bun? || using_node?
-          rails_command "css:install:#{options[:css]}"
-        elsif options[:css] == "tailwind"
+        if !using_js_runtime? && options[:css] == "tailwind"
           rails_command "tailwindcss:install"
-        elsif options[:css] == "sass"
+        elsif !using_js_runtime? && options[:css] == "sass"
           rails_command "dartsass:install"
+        else
+          rails_command "css:install:#{options[:css]}"
         end
       end
 

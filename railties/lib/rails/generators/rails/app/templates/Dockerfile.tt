@@ -32,6 +32,15 @@ RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz
     rm -rf /tmp/node-build-master
 
 <% end -%>
+
+<% if using_bun? -%>
+ENV BUN_INSTALL=/usr/local/bun
+ENV PATH=/usr/local/bun/bin:$PATH
+ARG BUN_VERSION=<%= dockerfile_bun_version %>
+RUN curl -fsSL https://bun.sh/install | bash -s -- "${BUN_VERSION}"
+
+<% end -%>
+
 # Install application gems
 COPY Gemfile Gemfile.lock ./
 RUN bundle install && \
@@ -43,6 +52,13 @@ RUN bundle install && \
 # Install node modules
 COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile
+
+<% end -%>
+
+<% if using_bun? -%>
+# Install node modules
+COPY package.json bun.lockb ./
+RUN bun install --frozen-lockfile
 
 <% end -%>
 # Copy application code

@@ -10,7 +10,7 @@ Rails.
 After reading this guide, you will know:
 
 * How to use Rails without the need for a Node.js, Yarn, or a JavaScript bundler.
-* How to create a new Rails application using import maps, esbuild, rollup, or webpack to bundle
+* How to create a new Rails application using import maps, bun, esbuild, rollup, or webpack to bundle
   your JavaScript.
 * What Turbo is, and how to use it.
 * How to use the Turbo HTML helpers provided by Rails.
@@ -67,16 +67,16 @@ Adding NPM Packages with JavaScript Bundlers
 
 Import maps are the default for new Rails applications, but if you prefer traditional JavaScript
 bundling, you can create new Rails applications with your choice of
-[esbuild](https://esbuild.github.io/), [webpack](https://webpack.js.org/), or
-[rollup.js](https://rollupjs.org/guide/en/).
+[Bun](https://bun.sh), [esbuild](https://esbuild.github.io/),
+[webpack](https://webpack.js.org/), or [rollup.js](https://rollupjs.org/guide/en/).
 
 To use a bundler instead of import maps in a new Rails application, pass the `—javascript` or `-j`
 option to `rails new`:
 
 ```bash
-$ rails new my_new_app --javascript=webpack
+$ rails new my_new_app --javascript=bun
 OR
-$ rails new my_new_app -j webpack
+$ rails new my_new_app -j bun
 ```
 
 These bundling options each come with a simple configuration and integration with the asset
@@ -85,10 +85,27 @@ pipeline via the [jsbundling-rails](https://github.com/rails/jsbundling-rails) g
 When using a bundling option, use `bin/dev` to start the Rails server and build JavaScript for
 development.
 
-### Installing Node.js and Yarn
+### Installing a JavaScript Runtime
 
-If you are using a JavaScript bundler in your Rails application, Node.js and Yarn must be
-installed.
+If you are using a esbuild, rollup.js or Webpack, to bundle your JavaScript in
+your Rails application, Node.js and Yarn must be installed. If you are using
+Bun, then you just need to install Bun as it is both a JavaScript runtime and a bundler.
+
+#### Installing Bun
+
+Find the installation instructions at the [Bun website](https://bun.sh) and
+verify it’s installed correctly with the following command:
+
+```bash
+$ bun --version
+```
+
+The version of your Bun runtime should be printed out. If it says something
+like `1.0.0`, Bun has been installed correctly.
+
+#### Installing Node.js and Yarn
+
+If you are using esbuild, rollup.js or Webpack you will need Node.js and Yarn.
 
 Find the installation instructions at the [Node.js website](https://nodejs.org/en/download/) and
 verify it’s installed correctly with the following command:
