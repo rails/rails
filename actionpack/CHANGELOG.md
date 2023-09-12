@@ -1,3 +1,10 @@
+*   Deprecate calling `render` with no arguments in API controllers
+
+    Calling `render` without any arguments in API controllers was returning a
+    200 OK with a body of " ". In Rails 7.2, this will raise an error.
+
+    *Nick Holden*
+
 *   `AbstractController::Translation.raise_on_missing_translations` removed
 
     This was a private API, and has been removed in favour of a more broadly applicable

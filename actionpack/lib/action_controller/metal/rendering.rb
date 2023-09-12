@@ -155,7 +155,15 @@ module ActionController
     end
 
     def render_to_body(options = {}) # :nodoc:
-      super || _render_in_priorities(options) || " "
+      result = super || _render_in_priorities(options)
+      return result if result
+
+      ActionController.deprecator.warn <<~MSG
+        ActionController found no valid render format for #{self.class.name}\##{action_name}
+        In Rails 7.2, this will raise an error instead of returning " ".
+      MSG
+
+      " "
     end
 
     private

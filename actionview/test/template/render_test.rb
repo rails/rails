@@ -411,12 +411,12 @@ module RenderTestCases
     assert_equal "local-variable\nlocal-variable", @controller_view.render([a, b])
   end
 
-  def test_render_partial_with_empty_collection_should_return_nil
-    assert_nil @view.render(partial: "test/customer", collection: [])
+  def test_render_partial_with_empty_collection
+    assert_equal " ", @view.render(partial: "test/customer", collection: [])
   end
 
-  def test_render_partial_with_nil_collection_should_return_nil
-    assert_nil @view.render(partial: "test/customer", collection: nil)
+  def test_render_partial_with_nil_collection
+    assert_equal " ", @view.render(partial: "test/customer", collection: nil)
   end
 
   def test_render_partial_collection_for_non_array
@@ -465,8 +465,8 @@ module RenderTestCases
       @view.render(partial: "test/customer", layout: "test/b_layout_for_partial_with_object", object: Customer.new("Amazon"))
   end
 
-  def test_render_partial_with_empty_array_should_return_nil
-    assert_nil @view.render(partial: [])
+  def test_render_partial_with_empty_array
+    assert_equal " ", @view.render(partial: [])
   end
 
   def test_render_partial_using_string
@@ -975,7 +975,7 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
   test "collection caching with empty collection and logger with level debug" do
     ActionView::PartialRenderer.collection_cache.logger = Logger.new(nil, level: :debug)
 
-    assert_nil @view.render(partial: "test/cached_customer", collection: [], cached: true)
+    assert_equal " ", @view.render(partial: "test/cached_customer", collection: [], cached: true)
   end
 
   test "collection caching with repeated collection" do
