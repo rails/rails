@@ -86,11 +86,13 @@ When using a bundling option, use `bin/dev` to start the Rails server and build 
 development.
 
 ### Installing a JavaScript Runtime
+
 If you are using a esbuild, rollup.js or Webpack, to bundle your JavaScript in
 your Rails application, Node.js and Yarn must be installed. If you are using
 Bun, then you just need to install Bun as it is both a JavaScript runtime and a bundler.
 
 #### Installing Bun
+
 Find the installation instructions at the [Bun website](https://bun.sh) and
 verify it’s installed correctly with the following command:
 
@@ -102,6 +104,7 @@ The version of your Bun runtime should be printed out. If it says something
 like `1.0.0`, Bun has been installed correctly.
 
 #### Installing Node.js and Yarn
+
 If you are using esbuild, rollup.js or Webpack you will need Node.js and Yar.
 
 Find the installation instructions at the [Node.js website](https://nodejs.org/en/download/) and
