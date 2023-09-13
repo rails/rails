@@ -1,5 +1,15 @@
 ## Rails 7.1.0.beta1 (September 13, 2023) ##
 
+*   Add ability to show slow tests to the test runner
+
+    ```bash
+    bin/test --profile # additionally prints 10 (default) slowest tests
+    # or
+    bin/test --profile 20 # prints 20 slowest tests
+    ```
+
+    *fatkodima*
+
 *   `rails new --javascript` generator now supports Bun
 
     ```bash
