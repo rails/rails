@@ -1,3 +1,9 @@
+*   Add `ActiveStorage::Blob#pdf?`
+
+    Returns true if the content type is "application/pdf".
+
+    *Petrik de Heus*
+
 *   Disables the session in `ActiveStorage::Blobs::ProxyController`
     and `ActiveStorage::Representations::ProxyController`
     in order to allow caching by default in some CDNs as CloudFlare

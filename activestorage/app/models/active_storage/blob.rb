@@ -206,6 +206,11 @@ class ActiveStorage::Blob < ActiveStorage::Record
     content_type.start_with?("text")
   end
 
+  # Returns true if the content_type of this blob is application/pdf.
+  def pdf?
+    content_type == "application/pdf"
+  end
+
   # Returns the URL of the blob on the service. This returns a permanent URL for public files, and returns a
   # short-lived URL for private files. Private files are signed, and not for public use. Instead,
   # the URL should only be exposed as a redirect from a stable, possibly authenticated URL. Hiding the
