@@ -115,6 +115,11 @@ module RailInspector
 
       def parse
         until @buffer.eos?
+          if peek_release_header?
+            pop_entry
+            next parse_release_header
+          end
+
           if peek_footer?
             pop_entry
             next parse_footer
@@ -135,6 +140,18 @@ module RailInspector
         end
 
         FOOTER_TEXT = "Please check"
+
+        RELEASE_HEADER = "## Rails"
+
+        def peek_release_header?
+          @buffer.peek(RELEASE_HEADER.length) == RELEASE_HEADER
+        end
+
+        def parse_release_header
+          @buffer.scan(
+            /#{RELEASE_HEADER} .*##\n\n/o
+          )
+        end
 
         def parse_footer
           @buffer.scan(

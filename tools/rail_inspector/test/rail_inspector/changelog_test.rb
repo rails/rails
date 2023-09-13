@@ -48,6 +48,12 @@ class TestChangelog < Minitest::Test
     assert_equal 0, offenses.length
   end
 
+  def test_release_header_is_not_treated_as_offense
+    @changelog = changelog_fixture("action_view.md")
+
+    assert_equal 0, offenses.length
+  end
+
   def test_validate_authors
     assert_offense(<<~CHANGELOG)
       *   Fix issue in CHANGELOG linting
