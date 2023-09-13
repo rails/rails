@@ -576,7 +576,7 @@ module ApplicationTests
         assert_match(/"geese"/, tables)
 
         columns = rails("runner", "p ActiveRecord::Base.connection.columns('geese').map(&:name)").strip
-        assert_equal columns, '["gooseid", "name"]'
+        assert_equal '["gooseid", "name"]', columns
       end
 
       test "db:schema:load fails if schema.rb doesn't exist yet" do

@@ -21,14 +21,14 @@ module ActiveRecord
 
       def test_create_table_without_id
         testing_table_with_only_foo_attribute do
-          assert_equal connection.columns(:testings).size, 1
+          assert_equal 1, connection.columns(:testings).size
         end
       end
 
       def test_add_column_with_primary_key_attribute
         testing_table_with_only_foo_attribute do
           connection.add_column :testings, :id, :primary_key
-          assert_equal connection.columns(:testings).size, 2
+          assert_equal 2, connection.columns(:testings).size
         end
       end
 

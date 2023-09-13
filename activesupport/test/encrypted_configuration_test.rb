@@ -53,7 +53,7 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
   test "reading comment-only configuration" do
     @credentials.write("# comment")
 
-    assert_equal @credentials.config, {}
+    assert_equal({}, @credentials.config)
   end
 
   test "writing with element assignment and reading with element reference" do

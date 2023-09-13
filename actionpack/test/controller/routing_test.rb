@@ -1694,7 +1694,7 @@ class RouteSetTest < ActiveSupport::TestCase
     end
     assert_equal({ controller: "pages", action: "show", name: "mypage" },
       set.recognize_path("http://subdomain.example.org/page/mypage"))
-    assert_equal(name_param, "mypage")
+    assert_equal("mypage", name_param)
   end
 
   def test_route_requirement_recognize_with_ignore_case

@@ -138,7 +138,7 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
   def test_size_option_can_be_passed_to_string_text_and_binary
     %w(text binary).each do |attribute_type|
       generated_attribute = create_generated_attribute("#{attribute_type}{medium}")
-      assert_equal generated_attribute.attr_options[:size], :medium
+      assert_equal :medium, generated_attribute.attr_options[:size]
     end
   end
 
@@ -155,7 +155,7 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
   def test_limit_option_can_be_passed_to_string_text_integer_and_binary
     %w(string text binary integer).each do |attribute_type|
       generated_attribute = create_generated_attribute("#{attribute_type}{65535}")
-      assert_equal generated_attribute.attr_options[:limit], 65535
+      assert_equal 65535, generated_attribute.attr_options[:limit]
     end
   end
 

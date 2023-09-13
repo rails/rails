@@ -402,7 +402,7 @@ class ResponseTest < ActiveSupport::TestCase
   test "[response.to_a].flatten does not recurse infinitely" do
     Timeout.timeout(1) do # use a timeout to prevent it stalling indefinitely
       status, headers, body = [@response.to_a].flatten
-      assert_equal status, 200
+      assert_equal 200, status
       assert_equal headers, @response.headers
       assert_nil body
     end

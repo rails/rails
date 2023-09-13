@@ -79,7 +79,7 @@ class ActiveRecord::Encryption::ConfigurableTest < ActiveRecord::EncryptionTestC
       end
     end
 
-    assert_equal application.config.filter_parameters, []
+    assert_equal [], application.config.filter_parameters
 
     ActiveRecord::Encryption.config.excluded_from_filter_parameters = []
   end

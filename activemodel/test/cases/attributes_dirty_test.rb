@@ -134,7 +134,7 @@ class AttributesDirtyTest < ActiveModel::TestCase
     @model.name = "DudeFella ManGuy"
     @model.name = "Mr. Manfredgensonton"
     assert_equal ["Otto", "Mr. Manfredgensonton"], @model.name_change
-    assert_equal @model.name_was, "Otto"
+    assert_equal "Otto", @model.name_was
   end
 
   test "using attribute_will_change! with a symbol" do

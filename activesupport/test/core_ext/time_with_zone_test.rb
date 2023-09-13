@@ -101,7 +101,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     with_zone = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Hawaii"], local)
 
     assert_equal local.nsec, with_zone.nsec
-    assert_equal with_zone.nsec, 999999999
+    assert_equal 999999999, with_zone.nsec
   end
 
   def test_strftime

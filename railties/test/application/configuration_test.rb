@@ -3807,16 +3807,16 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal ActiveStorage.video_preview_arguments,
-        "-y -vframes 1 -f image2"
+      assert_equal "-y -vframes 1 -f image2",
+        ActiveStorage.video_preview_arguments
     end
 
     test "ActiveStorage.video_preview_arguments uses the new arguments by default" do
       app "development"
 
-      assert_equal ActiveStorage.video_preview_arguments,
-        "-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1'" \
-        " -frames:v 1 -f image2"
+      assert_equal \
+        "-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2",
+        ActiveStorage.video_preview_arguments
     end
 
     test "ActiveStorage.variant_processor uses mini_magick without Rails 7 defaults" do

@@ -181,7 +181,7 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
     params = ActionController::Parameters.new(name: "Alex", age: "40", location: "Beijing")
     params.permit!
     params_hash = params.to_h { |key, value| [:"#{key}_modified", value] }
-    assert_equal params_hash.keys, %w(name_modified age_modified location_modified)
+    assert_equal %w(name_modified age_modified location_modified), params_hash.keys
   end
   # rubocop:enable Style/HashTransformKeys
 
@@ -190,7 +190,7 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
     params = ActionController::Parameters.new(name: "Alex", age: "40", location: "Beijing")
     params.permit!
     params_hash = params.to_h { |key, value| [key, value.is_a?(String) ? "#{value}_modified" : value] }
-    assert_equal params_hash.values, %w(Alex_modified 40_modified Beijing_modified)
+    assert_equal %w(Alex_modified 40_modified Beijing_modified), params_hash.values
   end
   # rubocop:enable Style/HashTransformValues
 

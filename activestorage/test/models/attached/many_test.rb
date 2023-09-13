@@ -20,7 +20,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal "town.jpg", @user.highlights.second.filename.to_s
 
     assert_not_empty @user.highlights_attachments
-    assert_equal @user.highlights_blobs.count, 2
+    assert_equal 2, @user.highlights_blobs.count
   end
 
   test "attaching existing blobs from signed IDs to an existing record" do

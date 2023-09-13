@@ -504,14 +504,14 @@ class AssociationProxyTest < ActiveRecord::TestCase
 
   def test_create_via_association_with_block
     post = authors(:david).posts.create(title: "New on Edge") { |p| p.body = "More cool stuff!" }
-    assert_equal post.title, "New on Edge"
-    assert_equal post.body, "More cool stuff!"
+    assert_equal "New on Edge", post.title
+    assert_equal "More cool stuff!", post.body
   end
 
   def test_create_with_bang_via_association_with_block
     post = authors(:david).posts.create!(title: "New on Edge") { |p| p.body = "More cool stuff!" }
-    assert_equal post.title, "New on Edge"
-    assert_equal post.body, "More cool stuff!"
+    assert_equal "New on Edge", post.title
+    assert_equal "More cool stuff!", post.body
   end
 
   def test_reload_returns_association

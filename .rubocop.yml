@@ -350,6 +350,9 @@ Minitest/AssertRaisesWithRegexpArgument:
 Minitest/AssertWithExpectedArgument:
   Enabled: true
 
+Minitest/LiteralAsActualArgument:
+  Enabled: true
+
 Minitest/SkipEnsure:
   Enabled: true
 
