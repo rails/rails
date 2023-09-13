@@ -82,6 +82,20 @@ module ActiveStorage
           )
         when String
           ActiveStorage::Blob.find_signed!(attachable, record: record)
+        when File
+          ActiveStorage::Blob.build_after_unfurling(
+            io: attachable,
+            filename: File.basename(attachable),
+            record: record,
+            service_name: attachment_service_name
+          )
+        when Pathname
+          ActiveStorage::Blob.build_after_unfurling(
+            io: attachable.open,
+            filename: File.basename(attachable),
+            record: record,
+            service_name: attachment_service_name
+          )
         else
           raise ArgumentError, "Could not find or build blob: expected attachable, got #{attachable.inspect}"
         end

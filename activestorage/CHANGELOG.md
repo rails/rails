@@ -1,3 +1,12 @@
+*   Allow attaching File and Pathname when assigning attributes, e.g.
+
+    ```ruby
+    User.create!(avatar: File.open("image.jpg"))
+    User.create!(avatar: file_fixture("image.jpg"))
+    ```
+
+    *Dorian Marié*
+
 ## Rails 7.1.0.beta1 (September 13, 2023) ##
 
 *   Disables the session in `ActiveStorage::Blobs::ProxyController`
