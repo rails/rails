@@ -9,19 +9,19 @@ class ActiveRecord::Encryption::ExtendedDeterministicQueriesTest < ActiveRecord:
   end
 
   test "Finds records when data is unencrypted" do
-    ActiveRecord::Encryption.without_encryption { UnencryptedBook.create! name: "Dune" }
+    UnencryptedBook.create!(name: "Dune")
     assert EncryptedBook.find_by(name: "Dune") # core
     assert EncryptedBook.where("id > 0").find_by(name: "Dune") # relation
   end
 
   test "Finds records when data is encrypted" do
-    UnencryptedBook.create! name: "Dune"
+    EncryptedBook.create!(name: "Dune")
     assert EncryptedBook.find_by(name: "Dune") # core
     assert EncryptedBook.where("id > 0").find_by(name: "Dune") # relation
   end
 
   test "Works well with downcased attributes" do
-    ActiveRecord::Encryption.without_encryption { EncryptedBookWithDowncaseName.create! name: "Dune" }
+    EncryptedBookWithDowncaseName.create! name: "Dune"
     assert EncryptedBookWithDowncaseName.find_by(name: "DUNE")
   end
 
@@ -51,7 +51,31 @@ class ActiveRecord::Encryption::ExtendedDeterministicQueriesTest < ActiveRecord:
   end
 
   test "exists?(...) works" do
-    ActiveRecord::Encryption.without_encryption { EncryptedBook.create! name: "Dune" }
+    EncryptedBook.create! name: "Dune"
     assert EncryptedBook.exists?(name: "Dune")
+  end
+
+  test "If support_unencrypted_data is opted out at the attribute level, cannot find unencrypted data" do
+    UnencryptedBook.create! name: "Dune"
+    assert_nil EncryptedBookWithUnencryptedDataOptedOut.find_by(name: "Dune") # core
+    assert_nil EncryptedBookWithUnencryptedDataOptedOut.where("id > 0").find_by(name: "Dune") # relation
+  end
+
+  test "If support_unencrypted_data is opted out at the attribute level, can find encrypted data" do
+    EncryptedBook.create! name: "Dune"
+    assert EncryptedBookWithUnencryptedDataOptedOut.find_by(name: "Dune") # core
+    assert EncryptedBookWithUnencryptedDataOptedOut.where("id > 0").find_by(name: "Dune") # relation
+  end
+
+  test "If support_unencrypted_data is opted in at the attribute level, can find unencrypted data" do
+    UnencryptedBook.create! name: "Dune"
+    assert EncryptedBookWithUnencryptedDataOptedIn.find_by(name: "Dune") # core
+    assert EncryptedBookWithUnencryptedDataOptedIn.where("id > 0").find_by(name: "Dune") # relation
+  end
+
+  test "If support_unencrypted_data is opted in at the attribute level, can find encrypted data" do
+    EncryptedBook.create! name: "Dune"
+    assert EncryptedBookWithUnencryptedDataOptedIn.find_by(name: "Dune") # core
+    assert EncryptedBookWithUnencryptedDataOptedIn.where("id > 0").find_by(name: "Dune") # relation
   end
 end

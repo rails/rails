@@ -19,24 +19,25 @@ module ActiveRecord
     # * ActiveRecord::Base - Used in <tt>Contact.find_by_email_address(...)</tt>
     # * ActiveRecord::Relation - Used in <tt>Contact.internal.find_by_email_address(...)</tt>
     #
-    # ActiveRecord::Base relies on ActiveRecord::Relation (ActiveRecord::QueryMethods) but it does
-    # some prepared statements caching. That's why we need to intercept +ActiveRecord::Base+ as soon
-    # as it's invoked (so that the proper prepared statement is cached).
-    #
-    # When modifying this file run performance tests in +test/performance/extended_deterministic_queries_performance_test.rb+ to
-    #   make sure performance overhead is acceptable.
-    #
-    # We will extend this to support previous "encryption context" versions in future iterations
-    #
-    # @TODO Experimental. Support for every kind of query is pending
-    # @TODO It should not patch anything if not needed (no previous schemes or no support for previous encryption schemes)
+    # This module is included if `config.active_record.encryption.extend_queries` is `true`.
     module ExtendedDeterministicQueries
       def self.install_support
+        # ActiveRecord::Base relies on ActiveRecord::Relation (ActiveRecord::QueryMethods) but it does
+        # some prepared statements caching. That's why we need to intercept +ActiveRecord::Base+ as soon
+        # as it's invoked (so that the proper prepared statement is cached).
         ActiveRecord::Relation.prepend(RelationQueries)
         ActiveRecord::Base.include(CoreQueries)
         ActiveRecord::Encryption::EncryptedAttributeType.prepend(ExtendedEncryptableType)
         Arel::Nodes::HomogeneousIn.prepend(InWithAdditionalValues)
       end
+
+      # When modifying this file run performance tests in
+      # +activerecord/test/cases/encryption/performance/extended_deterministic_queries_performance_test.rb+
+      # to make sure performance overhead is acceptable.
+      #
+      # @TODO We will extend this to support previous "encryption context" versions in future iterations
+      # @TODO Experimental. Support for every kind of query is pending
+      # @TODO It should not patch anything if not needed (no previous schemes or no support for previous encryption schemes)
 
       module EncryptedQuery # :nodoc:
         class << self

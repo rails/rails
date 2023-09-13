@@ -15,10 +15,27 @@ class ActiveRecord::Encryption::UniquenessValidationsTest < ActiveRecord::Encryp
   test "uniqueness validations work when mixing encrypted an unencrypted data" do
     ActiveRecord::Encryption.config.support_unencrypted_data = true
 
-    ActiveRecord::Encryption.without_encryption { EncryptedBookWithDowncaseName.create! name: "dune" }
-
+    UnencryptedBook.create! name: "dune"
     assert_raises ActiveRecord::RecordInvalid do
-      EncryptedBookWithDowncaseName.create!(name: "dune")
+      EncryptedBookWithDowncaseName.create!(name: "DUNE")
+    end
+  end
+
+  test "uniqueness validations do not work when mixing encrypted an unencrypted data and unencrypted data is opted out per-attribute" do
+    ActiveRecord::Encryption.config.support_unencrypted_data = true
+
+    UnencryptedBook.create! name: "dune"
+    assert_nothing_raised do
+      EncryptedBookWithUnencryptedDataOptedOut.create!(name: "dune")
+    end
+  end
+
+  test "uniqueness validations work when mixing encrypted an unencrypted data and unencrypted data is opted in per-attribute" do
+    ActiveRecord::Encryption.config.support_unencrypted_data = true
+
+    UnencryptedBook.create! name: "dune"
+    assert_raises ActiveRecord::RecordInvalid do
+      EncryptedBookWithUnencryptedDataOptedIn.create!(name: "dune")
     end
   end
 
