@@ -202,6 +202,18 @@ if ActiveRecord::Base.connection.supports_unique_keys?
             @connection.remove_unique_key :sections, name: "nonexistent"
           end
         end
+
+        def test_renamed_unique_key
+          @connection.add_unique_key :sections, [:position]
+          @connection.rename_column :sections, :position, :new_position
+
+          unique_keys = @connection.unique_keys("sections")
+          assert_equal 1, unique_keys.size
+
+          constraint = unique_keys.first
+          assert_equal "sections", constraint.table_name
+          assert_equal ["new_position"], constraint.column
+        end
       end
     end
   end

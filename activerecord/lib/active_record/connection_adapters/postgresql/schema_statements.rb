@@ -645,7 +645,7 @@ module ActiveRecord
           scope = quoted_scope(table_name)
 
           unique_info = internal_exec_query(<<~SQL, "SCHEMA", allow_retry: true, materialize_transactions: false)
-            SELECT c.conname, c.conindid, c.condeferrable, c.condeferred
+            SELECT c.conname, c.conrelid, c.conkey, c.condeferrable, c.condeferred
             FROM pg_constraint c
             JOIN pg_class t ON c.conrelid = t.oid
             JOIN pg_namespace n ON n.oid = c.connamespace
@@ -655,14 +655,10 @@ module ActiveRecord
           SQL
 
           unique_info.map do |row|
-            deferrable = extract_constraint_deferrable(row["condeferrable"], row["condeferred"])
+            conkey = row["conkey"].delete("{}").split(",").map(&:to_i)
+            columns = column_names_from_column_numbers(row["conrelid"], conkey)
 
-            columns = query_values(<<~SQL, "SCHEMA")
-              SELECT a.attname
-              FROM pg_attribute a
-              WHERE a.attrelid = #{row['conindid']}
-              ORDER BY a.attnum
-            SQL
+            deferrable = extract_constraint_deferrable(row["condeferrable"], row["condeferred"])
 
             options = {
               name: row["conname"],
