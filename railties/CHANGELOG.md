@@ -1,3 +1,5 @@
+## Rails 7.1.0.beta1 (September 13, 2023) ##
+
 *   `rails new --javascript` generator now supports Bun
 
     ```bash

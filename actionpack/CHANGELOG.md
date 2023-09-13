@@ -1,3 +1,5 @@
+## Rails 7.1.0.beta1 (September 13, 2023) ##
+
 *   `AbstractController::Translation.raise_on_missing_translations` removed
 
     This was a private API, and has been removed in favour of a more broadly applicable

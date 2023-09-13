@@ -1,3 +1,5 @@
+## Rails 7.1.0.beta1 (September 13, 2023) ##
+
 *   Encryption now supports `support_unencrypted_data` being set per-attribute.
 
     You can now opt out of `support_unencrypted_data` on a specific encrypted attribute.

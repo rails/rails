@@ -1,3 +1,5 @@
+## Rails 7.1.0.beta1 (September 13, 2023) ##
+
 *   Mailers are listed in alphabetical order on the mailer preview page now.
 
     *Martin Spickermann*

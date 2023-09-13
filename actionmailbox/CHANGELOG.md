@@ -1,3 +1,5 @@
+## Rails 7.1.0.beta1 (September 13, 2023) ##
+
 *   Added `bounce_now_with` to send the bounce email without going through a mailer queue.
 
     *Ronan Limon Duparcmeur*

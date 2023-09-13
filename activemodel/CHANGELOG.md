@@ -1,3 +1,5 @@
+## Rails 7.1.0.beta1 (September 13, 2023) ##
+
 *   Support composite identifiers in `to_key`
 
     `to_key` avoids wrapping `#id` value into an `Array` if `#id` already an array

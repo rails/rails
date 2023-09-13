@@ -1,3 +1,5 @@
+## Rails 7.1.0.beta1 (September 13, 2023) ##
+
 *   Disables the session in `ActiveStorage::Blobs::ProxyController`
     and `ActiveStorage::Representations::ProxyController`
     in order to allow caching by default in some CDNs as CloudFlare

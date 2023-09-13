@@ -1,3 +1,5 @@
+## Rails 7.1.0.beta1 (September 13, 2023) ##
+
 *   Use `Rails::HTML5::SafeListSanitizer` by default in the Rails 7.1 configuration if it is
     supported.
 

@@ -1,3 +1,5 @@
+## Rails 7.1.0.beta1 (September 13, 2023) ##
+
 *   Add a `@server` instance variable referencing the `ActionCable.server`
     singleton to `ActionCable::Channel::ConnectionStub`
 

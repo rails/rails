@@ -1,3 +1,5 @@
+## Rails 7.1.0.beta1 (September 13, 2023) ##
+
 *   Add `drb`, `mutex_m` and `base64` that are bundled gem candidates for Ruby 3.4
 
     *Yasuo Honda*

@@ -1,3 +1,5 @@
+## Rails 7.1.0.beta1 (September 13, 2023) ##
+
 *   Fix `simple_format` with blank `wrapper_tag` option returns plain html tag
 
     By default `simple_format` method returns the text wrapped with `<p>`. But if we explicitly specify
