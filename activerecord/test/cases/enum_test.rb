@@ -615,7 +615,6 @@ class EnumTest < ActiveRecord::TestCase
       enum status: [:proposed, :written]
       validates_inclusion_of :status, in: ["written"]
     end
-    klass.delete_all
     invalid_book = klass.new(status: "proposed")
     assert_not_predicate invalid_book, :valid?
     valid_book = klass.new(status: "written")
