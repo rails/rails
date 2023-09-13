@@ -96,7 +96,7 @@ module ApplicationTests
 
       boot_app
 
-      assert_equal ActiveRecord::QueryLogs.tags, [ :application, :controller, :action, :job ]
+      assert_equal [ :application, :controller, :action, :job ], ActiveRecord::QueryLogs.tags
     end
 
     test "controller actions have tagging filters enabled by default" do

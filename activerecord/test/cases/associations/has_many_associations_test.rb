@@ -1338,7 +1338,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_not_predicate Ship.reflect_on_association(:treasures), :has_cached_counter?
 
     # Count should come from sql count() of treasures rather than treasures_count attribute
-    assert_equal ship.treasures.size, 0
+    assert_equal 0, ship.treasures.size
 
     assert_no_difference lambda { ship.reload.treasures_count }, "treasures_count should not be changed" do
       ship.treasures.create(name: "Gold")
@@ -2545,13 +2545,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_attributes_are_being_set_when_initialized_from_has_many_association_with_where_clause
     new_comment = posts(:welcome).comments.where(body: "Some content").build
-    assert_equal new_comment.body, "Some content"
+    assert_equal "Some content", new_comment.body
   end
 
   def test_attributes_are_being_set_when_initialized_from_has_many_association_with_multiple_where_clauses
     new_comment = posts(:welcome).comments.where(body: "Some content").where(type: "SpecialComment").build
-    assert_equal new_comment.body, "Some content"
-    assert_equal new_comment.type, "SpecialComment"
+    assert_equal "Some content", new_comment.body
+    assert_equal "SpecialComment", new_comment.type
     assert_equal new_comment.post_id, posts(:welcome).id
   end
 

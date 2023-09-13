@@ -241,8 +241,8 @@ class ErrorTest < ActiveModel::TestCase
     )
 
     assert_equal(
-      error.details,
-      { error: :too_short, foo: :bar }
+      { error: :too_short, foo: :bar },
+      error.details
     )
   end
 
@@ -250,6 +250,6 @@ class ErrorTest < ActiveModel::TestCase
     person = Person.new
     error = ActiveModel::Error.new(person, :name, foo: :bar)
 
-    assert_equal(error.details, { error: :invalid, foo: :bar })
+    assert_equal({ error: :invalid, foo: :bar }, error.details)
   end
 end

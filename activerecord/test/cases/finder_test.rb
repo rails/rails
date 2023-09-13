@@ -149,8 +149,8 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_with_ids_with_no_id_passed
     exception = assert_raises(ActiveRecord::RecordNotFound) { Topic.find }
-    assert_equal exception.model, "Topic"
-    assert_equal exception.primary_key, "id"
+    assert_equal "Topic", exception.model
+    assert_equal "id", exception.primary_key
   end
 
   def test_find_with_ids_with_id_out_of_range
@@ -158,8 +158,8 @@ class FinderTest < ActiveRecord::TestCase
       Topic.find("9999999999999999999999999999999")
     end
 
-    assert_equal exception.model, "Topic"
-    assert_equal exception.primary_key, "id"
+    assert_equal "Topic", exception.model
+    assert_equal "id", exception.primary_key
   end
 
   def test_find_passing_active_record_object_is_not_permitted

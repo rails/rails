@@ -581,7 +581,7 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   test "disallowed_warnings is empty by default" do
-    assert_equal @deprecator.disallowed_warnings, []
+    assert_equal [], @deprecator.disallowed_warnings
   end
 
   test "disallowed_warnings can be configured" do

@@ -70,7 +70,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
       request = Net::HTTP::Put.new uri.request_uri
       request.body = data
       headers = service.headers_for_direct_upload(key, checksum: checksum, filename: ActiveStorage::Filename.new("test.txt"), disposition: :attachment)
-      assert_equal(headers["Cache-Control"], "public, max-age=1800")
+      assert_equal("public, max-age=1800", headers["Cache-Control"])
 
       headers.each do |k, v|
         request.add_field k, v

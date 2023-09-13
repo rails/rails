@@ -1497,7 +1497,7 @@ class RenderTest < ActionController::TestCase
     end
 
     assert_not_includes @response.body, "BEGIN"
-    assert_equal @response.body.split("\n").length, 1
+    assert_equal 1, @response.body.split("\n").length
   end
 
   def test_line_offset_with_annotations_enabled

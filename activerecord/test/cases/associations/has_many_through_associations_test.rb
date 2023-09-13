@@ -1068,13 +1068,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_attributes_are_being_set_when_initialized_from_hm_through_association_with_where_clause
     new_subscriber = books(:awdr).subscribers.where(nick: "marklazz").build
-    assert_equal new_subscriber.nick, "marklazz"
+    assert_equal "marklazz", new_subscriber.nick
   end
 
   def test_attributes_are_being_set_when_initialized_from_hm_through_association_with_multiple_where_clauses
     new_subscriber = books(:awdr).subscribers.where(nick: "marklazz").where(name: "Marcelo Giorgi").build
-    assert_equal new_subscriber.nick, "marklazz"
-    assert_equal new_subscriber.name, "Marcelo Giorgi"
+    assert_equal "marklazz", new_subscriber.nick
+    assert_equal "Marcelo Giorgi", new_subscriber.name
   end
 
   def test_include_method_in_association_through_should_return_true_for_instance_added_with_build
@@ -1345,8 +1345,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     active_persons = Person.joins(:readers).joins(:posts).distinct(true).where("posts.title" => "active")
 
-    assert_equal active_persons.map(&:followers_count).reduce(:+), 10
-    assert_equal active_persons.sum(:followers_count), 10
+    assert_equal 10, active_persons.map(&:followers_count).reduce(:+)
+    assert_equal 10, active_persons.sum(:followers_count)
     assert_equal active_persons.sum(:followers_count), active_persons.map(&:followers_count).reduce(:+)
   end
 

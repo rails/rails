@@ -1180,7 +1180,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     error = assert_raise ArgumentError do
       Class.new(Author).belongs_to :special_author_address, dependent: :nullify
     end
-    assert_equal error.message, "The :dependent option must be one of [:destroy, :delete, :destroy_async], but is :nullify"
+    assert_equal "The :dependent option must be one of [:destroy, :delete, :destroy_async], but is :nullify", error.message
   end
 
   class EssayDestroy < ActiveRecord::Base
@@ -1225,7 +1225,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_attributes_are_being_set_when_initialized_from_belongs_to_association_with_where_clause
     new_firm = accounts(:signals37).build_firm(name: "Apple")
-    assert_equal new_firm.name, "Apple"
+    assert_equal "Apple", new_firm.name
   end
 
   def test_attributes_are_set_without_error_when_initialized_from_belongs_to_association_with_array_in_where_clause

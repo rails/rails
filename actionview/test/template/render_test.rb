@@ -151,7 +151,7 @@ module RenderTestCases
     buffer = ActiveSupport::SafeBuffer.new
     buffer << @view.render(template: "plain_text")
     assert_equal true, buffer.html_safe?
-    assert_equal buffer, "<%= hello_world %>\n"
+    assert_equal "<%= hello_world %>\n", buffer
   end
 
   def test_render_ruby_template_with_handlers

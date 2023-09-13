@@ -1561,8 +1561,8 @@ class RelationTest < ActiveRecord::TestCase
       record.color = "blue"
     end
     assert_predicate bird, :persisted?
-    assert_equal bird.name, "bob"
-    assert_equal bird.color, "blue"
+    assert_equal "bob", bird.name
+    assert_equal "blue", bird.color
 
     assert_equal bird, Bird.find_or_create_by(name: "bob", color: "blue")
   end
@@ -1669,8 +1669,8 @@ class RelationTest < ActiveRecord::TestCase
       record.color = "blue"
     end
     assert_predicate bird, :new_record?
-    assert_equal bird.name, "bob"
-    assert_equal bird.color, "blue"
+    assert_equal "bob", bird.name
+    assert_equal "blue", bird.color
     bird.save!
 
     assert_equal bird, Bird.find_or_initialize_by(name: "bob", color: "blue")

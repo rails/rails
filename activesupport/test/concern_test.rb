@@ -193,7 +193,7 @@ class ConcernTest < ActiveSupport::TestCase
     @klass.include included
     @klass.prepend prepended
 
-    assert_equal @klass.new.foo, [:included, :class, :prepended]
+    assert_equal [:included, :class, :prepended], @klass.new.foo
   end
 
   def test_prepended_and_included_class_methods
@@ -208,6 +208,6 @@ class ConcernTest < ActiveSupport::TestCase
     @klass.include included
     @klass.prepend prepended
 
-    assert_equal @klass.foo, [:included, :class, :prepended]
+    assert_equal [:included, :class, :prepended], @klass.foo
   end
 end

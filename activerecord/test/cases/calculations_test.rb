@@ -812,10 +812,10 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_distinct_is_honored_when_used_with_count_operation_after_group
     # Count the number of authors for approved topics
     approved_topics_count = Topic.group(:approved).count(:author_name)[true]
-    assert_equal approved_topics_count, 4
+    assert_equal 4, approved_topics_count
     # Count the number of distinct authors for approved Topics
     distinct_authors_for_approved_count = Topic.group(:approved).distinct.count(:author_name)[true]
-    assert_equal distinct_authors_for_approved_count, 3
+    assert_equal 3, distinct_authors_for_approved_count
   end
 
   def test_pluck

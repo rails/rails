@@ -11,9 +11,9 @@ class ActiveStorage::FixtureSetTest < ActiveSupport::TestCase
 
     avatar = user.avatar
 
-    assert_equal avatar.blob.content_type, "image/jpeg+override"
-    assert_equal avatar.blob.filename.to_s, "racecar.jpg"
-    assert_equal avatar.blob.service.name, :local
+    assert_equal "image/jpeg+override", avatar.blob.content_type
+    assert_equal "racecar.jpg", avatar.blob.filename.to_s
+    assert_equal :local, avatar.blob.service.name
     avatar.blob.open { |file| assert FileUtils.identical?(file, file_fixture("racecar.jpg")) }
   end
 

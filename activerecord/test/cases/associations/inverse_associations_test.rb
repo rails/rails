@@ -631,8 +631,8 @@ class InverseHasManyTests < ActiveRecord::TestCase
 
     exception = assert_raise(ActiveRecord::RecordNotFound) { human.interests.load.find() }
 
-    assert_equal exception.model, "Interest"
-    assert_equal exception.primary_key, "id"
+    assert_equal "Interest", exception.model
+    assert_equal "id", exception.primary_key
   end
 
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error

@@ -798,7 +798,7 @@ module ApplicationTests
       matches = @test_output.match(/(\d+) runs, (\d+) assertions, (\d+) failures/)
 
       assert_match %r{Interrupt}, @error_output
-      assert_equal matches[3].to_i, 1
+      assert_equal 1, matches[3].to_i
       assert matches[1].to_i < 11
     end
 

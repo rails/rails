@@ -93,7 +93,7 @@ class AssertionsTest < ActiveSupport::TestCase
       @object.increment
     end
 
-    assert_equal incremented, 1
+    assert_equal 1, incremented
   end
 
   def test_assert_difference_with_implicit_difference

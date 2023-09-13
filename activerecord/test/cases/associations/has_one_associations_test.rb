@@ -54,8 +54,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_with_select
-    assert_equal Firm.find(1).account_with_select.attributes.size, 2
-    assert_equal Firm.all.merge!(includes: :account_with_select).find(1).account_with_select.attributes.size, 2
+    assert_equal 2, Firm.find(1).account_with_select.attributes.size
+    assert_equal 2, Firm.all.merge!(includes: :account_with_select).find(1).account_with_select.attributes.size
   end
 
   def test_finding_using_primary_key
@@ -528,7 +528,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_attributes_are_being_set_when_initialized_from_has_one_association_with_where_clause
     new_account = companies(:first_firm).build_account(firm_name: "Account")
-    assert_equal new_account.firm_name, "Account"
+    assert_equal "Account", new_account.firm_name
   end
 
   def test_create_association_replaces_existing_without_dependent_option

@@ -564,12 +564,12 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_yml_file_in_subdirectory
-    assert_equal(categories(:sub_special_1).name, "A special category in a subdir file")
+    assert_equal("A special category in a subdir file", categories(:sub_special_1).name)
     assert_equal(categories(:sub_special_1).class, SpecialCategory)
   end
 
   def test_subsubdir_file_with_arbitrary_name
-    assert_equal(categories(:sub_special_3).name, "A special category in an arbitrarily named subsubdir file")
+    assert_equal("A special category in an arbitrarily named subsubdir file", categories(:sub_special_3).name)
     assert_equal(categories(:sub_special_3).class, SpecialCategory)
   end
 

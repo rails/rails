@@ -137,12 +137,12 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
   def test_validate_uniqueness_when_integer_out_of_range
     entry = BigIntTest.create(engines_count: INT_MAX_VALUE + 1)
-    assert_equal entry.errors[:engines_count], ["is not included in the list"]
+    assert_equal ["is not included in the list"], entry.errors[:engines_count]
   end
 
   def test_validate_uniqueness_when_integer_out_of_range_show_order_does_not_matter
     entry = BigIntReverseTest.create(engines_count: INT_MAX_VALUE + 1)
-    assert_equal entry.errors[:engines_count], ["is not included in the list"]
+    assert_equal ["is not included in the list"], entry.errors[:engines_count]
   end
 
   def test_validates_uniqueness_with_newline_chars

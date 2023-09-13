@@ -299,7 +299,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     second_category = Category.create! name: "Second!", posts: [post]
 
     categories = Category.where(id: [first_category.id, second_category.id]).includes(posts: :special_comments)
-    assert_equal categories.map { |category| category.posts.first.special_comments.loaded? }, [true, true]
+    assert_equal [true, true], categories.map { |category| category.posts.first.special_comments.loaded? }
   end
 
   def test_finding_with_includes_on_has_many_association_with_same_include_includes_only_once

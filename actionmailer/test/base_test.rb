@@ -832,8 +832,8 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "proc default values can have arity of 1 where arg is a mailer instance" do
-    assert_equal(ProcMailer.welcome["X-Lambda-Arity-1-arg"].to_s, "complex_value")
-    assert_equal(ProcMailer.welcome["X-Lambda-Arity-1-self"].to_s, "complex_value")
+    assert_equal("complex_value", ProcMailer.welcome["X-Lambda-Arity-1-arg"].to_s)
+    assert_equal("complex_value", ProcMailer.welcome["X-Lambda-Arity-1-self"].to_s)
   end
 
   test "proc default values with fixed arity of 0 can be called" do
