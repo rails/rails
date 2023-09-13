@@ -305,6 +305,8 @@ GEM
     kramdown-parser-gfm (1.1.0)
       kramdown (~> 2.0)
     language_server-protocol (3.17.0.3)
+    launchy (2.5.2)
+      addressable (~> 2.8)
     libxml-ruby (5.0.3)
     listen (3.8.0)
       rb-fsevent (~> 0.10, >= 0.10.3)
@@ -613,6 +615,7 @@ DEPENDENCIES
   jbuilder
   jsbundling-rails
   json (>= 2.0.0, != 2.7.0)
+  launchy
   libxml-ruby
   listen (~> 3.3)
   mdl (!= 0.13.0)

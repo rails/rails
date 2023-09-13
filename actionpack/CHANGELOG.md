@@ -1,3 +1,9 @@
+*   Add `save_and_open_page` helper to IntegrationTest
+    `save_and_open_page` is a helpful helper to keep a short feedback loop when working on system tests.
+    A similar helper with matching signature has been added to integration tests.
+
+    *Joé Dupuis*
+
 *   Fix a regression in 7.1.3 passing a `to:` option without a controller when the controller is already defined by a scope.
 
     ```ruby
