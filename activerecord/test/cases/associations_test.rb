@@ -260,6 +260,13 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal(blog_post, comment.blog_post_by_id)
   end
 
+  def test_preloads_model_with_query_constraints_by_explicitly_configured_fk_and_pk
+    comment = sharded_comments(:great_comment_blog_post_one)
+    comments = Sharded::Comment.where(id: comment.id).preload(:blog_post_by_id).to_a
+    comment = comments.first
+    assert_equal(comment.blog_post_by_id, comment.blog_post)
+  end
+
   def test_append_composite_foreign_key_has_many_association
     blog_post = sharded_blog_posts(:great_post_blog_one)
     comment = Sharded::Comment.new(body: "Great post! :clap:")
