@@ -196,3 +196,4 @@ gem "wdm", ">= 0.1.0", platforms: [:windows]
 if RUBY_VERSION < "3.2"
   gem "error_highlight", ">= 0.4.0", platforms: [:ruby]
 end
+gem "launchy"

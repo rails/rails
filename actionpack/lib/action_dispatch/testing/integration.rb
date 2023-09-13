@@ -8,6 +8,7 @@ require "rack/test"
 require "active_support/test_case"
 
 require "action_dispatch/testing/request_encoder"
+require "action_dispatch/testing/test_helpers/page_dump_helper"
 
 module ActionDispatch
   module Integration # :nodoc:
@@ -651,6 +652,7 @@ module ActionDispatch
 
       include Integration::Runner
       include ActionController::TemplateAssertions
+      include TestHelpers::PageDumpHelper
 
       included do
         include ActionDispatch::Routing::UrlFor
