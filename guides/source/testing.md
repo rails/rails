@@ -1691,6 +1691,110 @@ assert_select_email do
 end
 ```
 
+Testing View Partials
+---------------------
+
+Partial templates - usually called "partials" - are another device for breaking the rendering process into more manageable chunks. With partials, you can extract pieces of code from your templates to separate files and reuse them throughout your templates.
+
+View tests provide an opportunity to test that partials render content the way you expect. View partial tests reside in `test/views/` and inherit from `ActionView::TestCase`.
+
+To render a partial, call `render` like you would in a template. The content is
+available through the test-local `rendered` method:
+
+```ruby
+class ArticlePartialTest < ActionView::TestCase
+  test "renders a link to itself" do
+    article = Article.create! title: "Hello, world"
+
+    render "articles/article", article: article
+
+    assert_includes rendered, article.title
+  end
+end
+```
+
+Tests that inherit from `ActionView::TestCase` also have access to [`assert_select`](#Testing-Views) and the [other additional view-based assertions](#Additional-View-Based-Assertions) provided by [rails-dom-testing][]:
+
+```ruby
+test "renders a link to itself" do
+  article = Article.create! title: "Hello, world"
+
+  render "articles/article", article: article
+
+  assert_select "a[href=?]", article_url(article), text: article.title
+end
+```
+
+In order to integrate with [rails-dom-testing][], tests that inherit from
+`ActionView::TestCase` declare a `document_root_element` method that returns the
+rendered content as an instance of a
+[Nokogiri::XML::Node](https://www.rubydoc.info/github/sparklemotion/nokogiri/Nokogiri/XML/Node):
+
+```ruby
+test "renders a link to itself" do
+  article = Article.create! title: "Hello, world"
+
+  render "articles/article", article: article
+  anchor = document_root_element.at("a")
+
+  assert_equal article.name, anchor.text
+  assert_equal article_url(article), anchor["href"]
+end
+```
+
+If your application uses Ruby >= 3.0 or higher, depends on [Nokogiri >= 1.14.0](https://github.com/sparklemotion/nokogiri/releases/tag/v1.14.0) or
+higher, and depends on [Minitest >= >5.18.0](https://github.com/minitest/minitest/blob/v5.18.0/History.rdoc#5180--2023-03-04-),
+`document_root_element` supports [Ruby's Pattern Matching](https://docs.ruby-lang.org/en/master/syntax/pattern_matching_rdoc.html):
+
+```ruby
+test "renders a link to itself" do
+  article = Article.create! title: "Hello, world"
+
+  render "articles/article", article: article
+  anchor = document_root_element.at("a")
+
+  assert_pattern do
+    anchor => { content: article.title, attributes: [{ name: "href", value: article_url(article) }] }
+  end
+end
+```
+
+If you'd like to access the same [Capybara-powered Assertions](https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Minitest/Assertions)
+that your [Functional and System Testing](#Functional-and-System-Testing) tests
+utilize, you can define a base class that inherits from `ActionView::TestCase`
+and transforms the `document_root_element` into a `page` method:
+
+```ruby
+# test/view_partial_test_case.rb
+
+require "test_helper"
+require "capybara/minitest"
+
+class ViewPartialTestCase < ActionView::TestCase
+  include Capybara::Minitest::Assertions
+
+  def page
+    Capybara.string(document_root_element)
+  end
+end
+
+# test/views/article_partial_test.rb
+
+require "view_partial_test_case"
+
+class ArticlePartialTest < ViewPartialTestCase
+  test "renders a link to itself" do
+    article = Article.create! title: "Hello, world"
+
+    render "articles/article", article: article
+
+    assert_link article.title, href: article_url(article)
+  end
+end
+```
+
+[rails-dom-testing]: https://github.com/rails/rails-dom-testing
+
 Testing Helpers
 ---------------
 
