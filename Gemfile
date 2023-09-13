@@ -45,6 +45,10 @@ gem "json", ">= 2.0.0"
 # Workaround until Ruby ships with cgi version 0.3.6 or higher.
 gem "cgi", ">= 0.3.6", require: false
 
+group :lint do
+  gem "syntax_tree", "6.1.1", require: false
+end
+
 group :rubocop do
   gem "rubocop", ">= 1.25.1", require: false
   gem "rubocop-minitest", require: false
