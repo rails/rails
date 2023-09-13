@@ -16,6 +16,10 @@ module ActionController
       format  = format.to_s.upcase if format.is_a?(Symbol)
       format  = "*/*" if format.nil?
 
+      request = payload[:request]
+
+      # Started GET "/session/new" for 127.0.0.1 at 2012-09-26 14:51:42 -0700
+      info "Started #{request.raw_request_method} #{payload[:path].inspect} for #{request.remote_ip} at #{Time.now}"
       info "Processing by #{payload[:controller]}##{payload[:action]} as #{format}"
       info "  Parameters: #{params.inspect}" unless params.empty?
     end

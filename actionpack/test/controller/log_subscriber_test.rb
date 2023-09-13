@@ -118,38 +118,64 @@ class ACLogSubscriberTest < ActionController::TestCase
     ActionController::Base.logger = logger
   end
 
+  test "logger logs proper HTTP GET verb and path" do
+    get :show
+    wait
+    assert_match 'Started GET "/another/log_subscribers/show"', logs[0]
+  end
+
+  test "logger logs proper HTTP HEAD verb and path" do
+    head :show
+    wait
+    assert_match 'Started HEAD "/another/log_subscribers/show"', logs[0]
+  end
+
+  test "logger logs HTTP verb override" do
+    put :show
+    wait
+    assert_match 'Started PUT "/another/log_subscribers/show"', logs[0]
+  end
+
+  test "logger logs correct remote IP address" do
+    @request.env["REMOTE_ADDR"] = "127.0.0.1"
+    @request.env["HTTP_X_FORWARDED_FOR"] = "1.2.3.4"
+    get :show
+    wait
+    assert_match 'Started GET "/another/log_subscribers/show" for 1.2.3.4', logs[0]
+  end
+
   def test_start_processing
     get :show
     wait
-    assert_equal 2, logs.size
-    assert_equal "Processing by Another::LogSubscribersController#show as HTML", logs.first
+    assert_equal 3, logs.size
+    assert_equal "Processing by Another::LogSubscribersController#show as HTML", logs[1]
   end
 
   def test_start_processing_as_json
     get :show, format: "json"
     wait
-    assert_equal 2, logs.size
-    assert_equal "Processing by Another::LogSubscribersController#show as JSON", logs.first
+    assert_equal 3, logs.size
+    assert_equal "Processing by Another::LogSubscribersController#show as JSON", logs[1]
   end
 
   def test_start_processing_as_non_exten
     get :show, format: "noext"
     wait
-    assert_equal 2, logs.size
-    assert_equal "Processing by Another::LogSubscribersController#show as */*", logs.first
+    assert_equal 3, logs.size
+    assert_equal "Processing by Another::LogSubscribersController#show as */*", logs[1]
   end
 
   def test_halted_callback
     get :never_executed
     wait
-    assert_equal 4, logs.size
-    assert_equal "Filter chain halted as :redirector rendered or redirected", logs.third
+    assert_equal 5, logs.size
+    assert_equal "Filter chain halted as :redirector rendered or redirected", logs[3]
   end
 
   def test_process_action
     get :show
     wait
-    assert_equal 2, logs.size
+    assert_equal 3, logs.size
     assert_match(/Completed/, logs.last)
     assert_match(/200 OK/, logs.last)
   end
@@ -164,8 +190,8 @@ class ACLogSubscriberTest < ActionController::TestCase
     get :show, params: { id: "10" }
     wait
 
-    assert_equal 3, logs.size
-    assert_equal 'Parameters: {"id"=>"10"}', logs[1]
+    assert_equal 4, logs.size
+    assert_equal 'Parameters: {"id"=>"10"}', logs[2]
   end
 
   def test_multiple_process_with_parameters
@@ -174,9 +200,9 @@ class ACLogSubscriberTest < ActionController::TestCase
 
     wait
 
-    assert_equal 6, logs.size
-    assert_equal 'Parameters: {"id"=>"10"}', logs[1]
-    assert_equal 'Parameters: {"id"=>"20"}', logs[4]
+    assert_equal 8, logs.size
+    assert_equal 'Parameters: {"id"=>"10"}', logs[2]
+    assert_equal 'Parameters: {"id"=>"20"}', logs[6]
   end
 
   def test_process_action_with_wrapped_parameters
@@ -184,14 +210,14 @@ class ACLogSubscriberTest < ActionController::TestCase
     post :show, params: { id: "10", name: "jose" }
     wait
 
-    assert_equal 3, logs.size
-    assert_match '"person"=>{"name"=>"jose"}', logs[1]
+    assert_equal 4, logs.size
+    assert_match '"person"=>{"name"=>"jose"}', logs[2]
   end
 
   def test_process_action_with_view_runtime
     get :show
     wait
-    assert_match(/Completed 200 OK in \d+ms/, logs[1])
+    assert_match(/Completed 200 OK in \d+ms/, logs[2])
   end
 
   def test_process_action_with_path
@@ -206,7 +232,7 @@ class ACLogSubscriberTest < ActionController::TestCase
       get :with_throw
       wait
     end
-    assert_match(/Completed   in \d+ms/, logs[1])
+    assert_match(/Completed   in \d+ms/, logs[2])
   end
 
   def test_append_info_to_payload_is_called_even_with_exception
@@ -233,7 +259,7 @@ class ACLogSubscriberTest < ActionController::TestCase
     }
     wait
 
-    params = logs[1]
+    params = logs[2]
     assert_match(/"amount"=>"\[FILTERED\]"/, params)
     assert_match(/"lifo"=>"\[FILTERED\]"/, params)
     assert_match(/"step"=>"1"/, params)
@@ -243,8 +269,8 @@ class ACLogSubscriberTest < ActionController::TestCase
     get :redirector
     wait
 
-    assert_equal 3, logs.size
-    assert_equal "Redirected to http://foo.bar/", logs[1]
+    assert_equal 4, logs.size
+    assert_equal "Redirected to http://foo.bar/", logs[2]
     assert_match(/Completed 302/, logs.last)
   end
 
@@ -253,8 +279,8 @@ class ACLogSubscriberTest < ActionController::TestCase
     get :filterable_redirector
     wait
 
-    assert_equal 3, logs.size
-    assert_equal "Redirected to [FILTERED]", logs[1]
+    assert_equal 4, logs.size
+    assert_equal "Redirected to [FILTERED]", logs[2]
   end
 
   def test_filter_redirect_url_by_regexp
@@ -262,34 +288,34 @@ class ACLogSubscriberTest < ActionController::TestCase
     get :filterable_redirector
     wait
 
-    assert_equal 3, logs.size
-    assert_equal "Redirected to [FILTERED]", logs[1]
+    assert_equal 4, logs.size
+    assert_equal "Redirected to [FILTERED]", logs[2]
   end
 
   def test_send_data
     get :data_sender
     wait
 
-    assert_equal 3, logs.size
-    assert_match(/Sent data file\.txt/, logs[1])
+    assert_equal 4, logs.size
+    assert_match(/Sent data file\.txt/, logs[2])
   end
 
   def test_send_file
     get :file_sender
     wait
 
-    assert_equal 3, logs.size
-    assert_match(/Sent file/, logs[1])
-    assert_match(/test\/fixtures\/company\.rb/, logs[1])
+    assert_equal 4, logs.size
+    assert_match(/Sent file/, logs[2])
+    assert_match(/test\/fixtures\/company\.rb/, logs[2])
   end
 
   def test_with_fragment_cache
     get :with_fragment_cache
     wait
 
-    assert_equal 4, logs.size
-    assert_match(/Read fragment views\/foo/, logs[1])
-    assert_match(/Write fragment views\/foo/, logs[2])
+    assert_equal 5, logs.size
+    assert_match(/Read fragment views\/foo/, logs[2])
+    assert_match(/Write fragment views\/foo/, logs[3])
   end
 
   def test_with_fragment_cache_when_log_disabled
@@ -297,9 +323,9 @@ class ACLogSubscriberTest < ActionController::TestCase
     get :with_fragment_cache
     wait
 
-    assert_equal 2, logs.size
-    assert_equal "Processing by Another::LogSubscribersController#with_fragment_cache as HTML", logs[0]
-    assert_match(/Completed 200 OK in \d+ms/, logs[1])
+    assert_equal 3, logs.size
+    assert_equal "Processing by Another::LogSubscribersController#with_fragment_cache as HTML", logs[1]
+    assert_match(/Completed 200 OK in \d+ms/, logs[2])
     ActionController::Base.enable_fragment_cache_logging = true
   end
 
@@ -307,45 +333,45 @@ class ACLogSubscriberTest < ActionController::TestCase
     get :with_fragment_cache_if_with_true_condition
     wait
 
-    assert_equal 4, logs.size
-    assert_match(/Read fragment views\/foo/, logs[1])
-    assert_match(/Write fragment views\/foo/, logs[2])
+    assert_equal 5, logs.size
+    assert_match(/Read fragment views\/foo/, logs[2])
+    assert_match(/Write fragment views\/foo/, logs[3])
   end
 
   def test_with_fragment_cache_if_with_false
     get :with_fragment_cache_if_with_false_condition
     wait
 
-    assert_equal 2, logs.size
-    assert_no_match(/Read fragment views\/foo/, logs[1])
-    assert_no_match(/Write fragment views\/foo/, logs[2])
+    assert_equal 3, logs.size
+    assert_no_match(/Read fragment views\/foo/, logs[2])
+    assert_no_match(/Write fragment views\/foo/, logs[3])
   end
 
   def test_with_fragment_cache_unless_with_true
     get :with_fragment_cache_unless_with_true_condition
     wait
 
-    assert_equal 2, logs.size
-    assert_no_match(/Read fragment views\/foo/, logs[1])
-    assert_no_match(/Write fragment views\/foo/, logs[2])
+    assert_equal 3, logs.size
+    assert_no_match(/Read fragment views\/foo/, logs[2])
+    assert_no_match(/Write fragment views\/foo/, logs[3])
   end
 
   def test_with_fragment_cache_unless_with_false
     get :with_fragment_cache_unless_with_false_condition
     wait
 
-    assert_equal 4, logs.size
-    assert_match(/Read fragment views\/foo/, logs[1])
-    assert_match(/Write fragment views\/foo/, logs[2])
+    assert_equal 5, logs.size
+    assert_match(/Read fragment views\/foo/, logs[2])
+    assert_match(/Write fragment views\/foo/, logs[3])
   end
 
   def test_with_fragment_cache_and_percent_in_key
     get :with_fragment_cache_and_percent_in_key
     wait
 
-    assert_equal 4, logs.size
-    assert_match(/Read fragment views\/foo/, logs[1])
-    assert_match(/Write fragment views\/foo/, logs[2])
+    assert_equal 5, logs.size
+    assert_match(/Read fragment views\/foo/, logs[2])
+    assert_match(/Write fragment views\/foo/, logs[3])
   end
 
   def test_process_action_with_exception_includes_http_status_code
@@ -354,7 +380,7 @@ class ACLogSubscriberTest < ActionController::TestCase
       wait
     rescue Exception
     end
-    assert_equal 2, logs.size
+    assert_equal 3, logs.size
     assert_match(/Completed 500/, logs.last)
   end
 
@@ -362,7 +388,7 @@ class ACLogSubscriberTest < ActionController::TestCase
     get :with_rescued_exception
     wait
 
-    assert_equal 2, logs.size
+    assert_equal 3, logs.size
     assert_match(/Completed 406/, logs.last)
   end
 
@@ -373,7 +399,7 @@ class ACLogSubscriberTest < ActionController::TestCase
     rescue AbstractController::ActionNotFound
     end
 
-    assert_equal 2, logs.size
+    assert_equal 3, logs.size
     assert_match(/Completed 404/, logs.last)
   end
 
