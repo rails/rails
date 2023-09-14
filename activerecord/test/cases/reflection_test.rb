@@ -29,6 +29,7 @@ require "models/drink_designer"
 require "models/recipe"
 require "models/user_with_invalid_relation"
 require "models/hardback"
+require "models/sharded/comment"
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -612,6 +613,11 @@ class ReflectionTest < ActiveRecord::TestCase
       assert_no_match "NotAClass", error.message
       assert_no_match "not_a_class", error.message
     end
+  end
+
+  def test_association_primary_key_uses_explicit_primary_key_option_as_first_priority
+    actual = Sharded::Comment.reflect_on_association(:blog_post_by_id).association_primary_key
+    assert_equal "id", actual
   end
 
   private
