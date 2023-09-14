@@ -13,6 +13,7 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
     notified = false
     subscriber = ActiveSupport::Notifications.subscribe("transaction.active_record") do |event|
       assert event.payload[:connection]
+      assert_equal :commit, event.payload[:outcome]
       notified = true
     end
 
@@ -31,6 +32,7 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
     notified = false
     subscriber = ActiveSupport::Notifications.subscribe("transaction.active_record") do |event|
       assert event.payload[:connection]
+      assert_equal :rollback, event.payload[:outcome]
       notified = true
     end
 
@@ -60,6 +62,9 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
     end
 
     assert_equal 2, events.count
+    savepoint, real = events
+    assert_equal :commit, savepoint.payload[:outcome]
+    assert_equal :commit, real.payload[:outcome]
   ensure
     ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
   end
@@ -100,6 +105,9 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
     end
 
     assert_equal 2, events.count
+    restart, real = events
+    assert_equal :restart, restart.payload[:outcome]
+    assert_equal :rollback, real.payload[:outcome]
   ensure
     ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
   end
@@ -140,6 +148,10 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
     end
 
     assert_equal 3, events.count
+    restart, savepoint, real = events
+    assert_equal :restart, restart.payload[:outcome]
+    assert_equal :commit, savepoint.payload[:outcome]
+    assert_equal :commit, real.payload[:outcome]
   ensure
     ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
   end
@@ -239,6 +251,7 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
 
       notified = false
       subscriber = ActiveSupport::Notifications.subscribe("transaction.active_record") do |event|
+        assert_equal :incomplete, event.payload[:outcome]
         notified = true
       end
 

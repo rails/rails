@@ -16,7 +16,7 @@
 
 *   Add instrumentation for Active Record transactions
 
-    Allows subscribing to transaction events for tracking/instrumentation. The event payload contains the connection, as well as timing details.
+    Allows subscribing to transaction events for tracking/instrumentation. The event payload contains the connection and the outcome (commit, rollback, restart, incomplete), as well as timing details.
 
     ```ruby
     ActiveSupport::Notifications.subscribe("transaction.active_record") do |event|
