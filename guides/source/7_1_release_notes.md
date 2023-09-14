@@ -33,24 +33,24 @@ meant for development purposes.
 Here's a quick example of how to build and run your Rails app using these Docker files:
 
 ```bash
-docker build -t app .
-docker volume create app-storage
-docker run --rm -it -v app-storage:/rails/storage -p 3000:3000 --env RAILS_MASTER_KEY=<your-config-master-key> app
+$ docker build -t app .
+$ docker volume create app-storage
+$ docker run --rm -it -v app-storage:/rails/storage -p 3000:3000 --env RAILS_MASTER_KEY=<your-config-master-key> app
 ```
 
 You can also start a console or runner from this Docker image:
 
 ```bash
-docker run --rm -it -v app-storage:/rails/storage --env RAILS_MASTER_KEY=<your-config-master-key> app console
+$ docker run --rm -it -v app-storage:/rails/storage --env RAILS_MASTER_KEY=<your-config-master-key> app console
 ```
 
 For those looking to create a multi-platform image (e.g., Apple Silicon for AMD or Intel deployment),
 and push it to Docker Hub, follow these steps:
 
 ```bash
-docker login -u <your-user>
-docker buildx create --use
-docker buildx build --push --platform=linux/amd64,linux/arm64 -t <your-user/image-name> .
+$ docker login -u <your-user>
+$ docker buildx create --use
+$ docker buildx build --push --platform=linux/amd64,linux/arm64 -t <your-user/image-name> .
 ```
 
 This enhancement simplifies the deployment process, providing a convenient starting point for
