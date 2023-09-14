@@ -450,6 +450,14 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Add `DATABASE` option that enables the specification of the target database when executing the
     `rails railties:install:migrations` command to copy migrations.
 
+*   Add support for Bun in `rails new --javascript` generator.
+
+    ```bash
+    $ rails new my_new_app --javascript=bun
+    ```
+
+*   Add ability to show slow tests to the test runner.
+
 Action Cable
 ------------
 
