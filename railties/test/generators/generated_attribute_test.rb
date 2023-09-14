@@ -17,6 +17,14 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     Rails.application.config.active_record.belongs_to_required_by_default = @old_belongs_to_required_by_default
   end
 
+  def test_field_name_with_dangerous_attribute_raises_error
+    e = assert_raise Rails::Generators::Error do
+      create_generated_attribute :string, :save
+    end
+    message = "Could not generate field 'save', as it is already defined by Active Record."
+    assert_match message, e.message
+  end
+
   def test_field_type_returns_number_field
     assert_field_type :integer, :number_field
   end

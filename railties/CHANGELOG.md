@@ -1,3 +1,15 @@
+*   Raise error when generating attribute with dangerous name.
+
+    The following will now raise an error as `save` and `hash` are already
+    defined by Active Record.
+
+    ```bash
+    bin/rails generate model Post save
+    bin/rails generate model Post hash
+    ```
+
+    *Petrik de Heus*
+
 ## Rails 7.1.0.beta1 (September 13, 2023) ##
 
 *   Add ability to show slow tests to the test runner
