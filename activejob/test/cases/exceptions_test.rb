@@ -94,7 +94,7 @@ class ExceptionsTest < ActiveSupport::TestCase
   end
 
   test "long wait job" do
-    travel_to Time.now
+    freeze_time
     random_amount = 1
     delay_for_jitter = random_amount * 3600 * ActiveJob::Base.retry_jitter
 
@@ -109,8 +109,7 @@ class ExceptionsTest < ActiveSupport::TestCase
   end
 
   test "exponentially retrying job includes jitter" do
-    travel_to Time.now
-
+    freeze_time
     random_amount = 2
     delay_for_jitter = -> (delay) { random_amount * delay * ActiveJob::Base.retry_jitter }
 
@@ -132,10 +131,9 @@ class ExceptionsTest < ActiveSupport::TestCase
   end
 
   test "retry jitter uses value from ActiveJob::Base.retry_jitter by default" do
+    freeze_time
     old_jitter = ActiveJob::Base.retry_jitter
     ActiveJob::Base.retry_jitter = 4.0
-
-    travel_to Time.now
 
     random_amount = 1
 
@@ -159,10 +157,10 @@ class ExceptionsTest < ActiveSupport::TestCase
   end
 
   test "random wait time for default job when retry jitter delay multiplier value is between 1 and 2" do
+    freeze_time
     old_jitter = ActiveJob::Base.retry_jitter
     ActiveJob::Base.retry_jitter = 0.6
 
-    travel_to Time.now
 
     RetryJob.perform_later "DefaultsError", 2, :log_scheduled_at
 
@@ -176,10 +174,9 @@ class ExceptionsTest < ActiveSupport::TestCase
   end
 
   test "random wait time for exponentially retrying job when retry jitter delay multiplier value is between 1 and 2" do
+    freeze_time
     old_jitter = ActiveJob::Base.retry_jitter
     ActiveJob::Base.retry_jitter = 1.2
-
-    travel_to Time.now
 
     RetryJob.perform_later "ExponentialWaitTenAttemptsError", 2, :log_scheduled_at
 
@@ -192,25 +189,35 @@ class ExceptionsTest < ActiveSupport::TestCase
     ActiveJob::Base.retry_jitter = old_jitter
   end
 
-  test "random wait time for negative jitter value" do
+  test "random wait time for exponentially long wait and negative jitter value" do
+    freeze_time
     old_jitter = ActiveJob::Base.retry_jitter
-    ActiveJob::Base.retry_jitter = -1.2
+    ActiveJob::Base.retry_jitter = -1.4
 
-    travel_to Time.now
+    assert_raises ArgumentError, "Invalid jitter value -1.4. Expected value is a positive numeric or zero" do
+      RetryJob.perform_later "ExponentialWaitTenAttemptsError", 2, :log_scheduled_at
+    end
+  ensure
+    ActiveJob::Base.retry_jitter = old_jitter
+  end
 
-    RetryJob.perform_later "ExponentialWaitTenAttemptsError", 2, :log_scheduled_at
+  test "random wait time for invalid jitter value" do
+    freeze_time
+    old_jitter = ActiveJob::Base.retry_jitter
+    [-3.4, false, "string"].each do |invalid_jitter|
+      ActiveJob::Base.retry_jitter = invalid_jitter
 
-    assert_not_equal [
-      "Raised ExponentialWaitTenAttemptsError for the 1st time",
-      "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
-      "Successfully completed job"
-    ], JobBuffer.values
+
+      assert_raises ArgumentError, "Invalid jitter value #{invalid_jitter.inspect}. Expected value is a positive numeric or zero" do
+        RetryJob.perform_later "DefaultsError", 2, :log_scheduled_at
+      end
+    end
   ensure
     ActiveJob::Base.retry_jitter = old_jitter
   end
 
   test "retry jitter disabled with nil" do
-    travel_to Time.now
+    freeze_time
 
     RetryJob.perform_later "DisabledJitterError", 3, :log_scheduled_at
 
@@ -224,7 +231,7 @@ class ExceptionsTest < ActiveSupport::TestCase
   end
 
   test "retry jitter disabled with zero" do
-    travel_to Time.now
+    freeze_time
 
     RetryJob.perform_later "ZeroJitterError", 3, :log_scheduled_at
 
@@ -238,7 +245,7 @@ class ExceptionsTest < ActiveSupport::TestCase
   end
 
   test "custom wait retrying job" do
-    travel_to Time.now
+    freeze_time
 
     RetryJob.perform_later "CustomWaitTenAttemptsError", 5, :log_scheduled_at
 
@@ -256,10 +263,8 @@ class ExceptionsTest < ActiveSupport::TestCase
   end
 
   test "use individual execution timers when calculating retry delay" do
-    travel_to Time.now
-
+    freeze_time
     exceptions_to_raise = %w(ExponentialWaitTenAttemptsError CustomWaitTenAttemptsError ExponentialWaitTenAttemptsError CustomWaitTenAttemptsError)
-
     random_amount = 1
 
     Kernel.stub(:rand, random_amount) do

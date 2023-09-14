@@ -173,8 +173,14 @@ module ActiveJob
       end
 
       def determine_jitter_for_delay(delay, jitter)
+        raise ArgumentError, "Invalid jitter value #{jitter.inspect}. Expected value is a positive numeric or zero" unless valid_jitter?(jitter)
+
         return 0.0 if jitter.zero?
         Kernel.rand * delay * jitter
+      end
+
+      def valid_jitter?(jitter)
+        jitter.is_a?(Numeric) && !jitter.negative?
       end
 
       def executions_for(exceptions)
