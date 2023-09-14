@@ -16,7 +16,7 @@ module ActiveRecord
     #   Person.find("1")        # returns the object for ID = 1
     #   Person.find("31-sarah") # returns the object for ID = 31
     #   Person.find(1, 2, 6)    # returns an array for objects with IDs in (1, 2, 6)
-    #   Person.find([7, 17])    # returns an array for objects with IDs in (7, 17)
+    #   Person.find([7, 17])    # returns an array for objects with IDs in (7, 17), or with composite primary key [7, 17]
     #   Person.find([1])        # returns an array for the object with ID = 1
     #   Person.where("administrator = 1").order("created_on DESC").find(1)
     #

@@ -253,6 +253,10 @@
       work_in_progress: true
       url: active_record_encryption.html
       description: This guide covers encrypting your database information using Active Record.
+    -
+      name: Composite Primary Keys in Active Record
+      url: active_record_composite_primary_keys.html
+      description: This guide is an introduction to composite primary keys for database tables.
 
 -
   name: Extending Rails
