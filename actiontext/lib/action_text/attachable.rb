@@ -98,11 +98,6 @@ module ActionText
       false
     end
 
-    # Returns the attachable as JSON with the +attachable_sgid+ included.
-    def as_json(*)
-      super.merge("attachable_sgid" => persisted? ? attachable_sgid : nil)
-    end
-
     # Returns the path to the partial that is used for rendering the attachable
     # in Trix. Defaults to +to_partial_path+.
     #
@@ -142,5 +137,18 @@ module ActionText
         attrs[:height] = attachable_metadata[:height]
       end.compact
     end
+
+    private
+      def attribute_names_for_serialization
+        super + ["attachable_sgid"]
+      end
+
+      def read_attribute_for_serialization(key)
+        if key == "attachable_sgid"
+          persisted? ? super : nil
+        else
+          super
+        end
+      end
   end
 end
