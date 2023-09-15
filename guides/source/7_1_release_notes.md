@@ -492,11 +492,13 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   Deprecate `config.action_dispatch.return_only_request_media_type_on_content_type`.
 
-*   Deprecate `AbstractController::Helpers::MissingHelperError`
+*   Deprecate `AbstractController::Helpers::MissingHelperError`.
 
 *   Deprecate `ActionDispatch::IllegalStateError`.
 
 *   Deprecate `speaker`, `vibrate`, and `vr` permissions policy directives.
+
+*   Deprecate `true` and `false` values for `config.action_dispatch.show_exceptions` in favor of `:all`, `:rescuable`, or `:none`.
 
 ### Notable changes
 
