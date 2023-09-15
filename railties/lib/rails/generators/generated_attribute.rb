@@ -62,6 +62,7 @@ module Rails
 
         def valid_type?(type)
           DEFAULT_TYPES.include?(type.to_s) ||
+            !defined?(ActiveRecord::Base) ||
             ActiveRecord::Base.connection.valid_type?(type)
         end
 
