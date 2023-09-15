@@ -101,6 +101,53 @@ module ActionView
     # You can use +local_assigns+ in the sub templates to access the local variables:
     #
     #   local_assigns[:headline] # => "Welcome"
+    #
+    # Each key in +local_assigns+ is available as a partial-local variable:
+    #
+    #   local_assigns[:headline] # => "Welcome"
+    #   headline                 # => "Welcome"
+    #
+    # Since +local_assigns+ is a +Hash+, it's compatible with Ruby 3.1's pattern
+    # matching assignment operator:
+    #
+    #   local_assigns => { headline:, **options }
+    #   headline                 # => "Welcome"
+    #   options                  # => {}
+    #
+    # Pattern matching assignment also supports variable renaming:
+    #
+    #   local_assigns => { headline: title }
+    #   title                    # => "Welcome"
+    #
+    # If a template refers to a variable that isn't passed into the view as part
+    # of the <tt>locals: { ... }</tt> Hash, the template will raise an
+    # +ActionView::Template::Error+:
+    #
+    #   <%# => raises ActionView::Template::Error %>
+    #   <% alerts.each do |alert| %>
+    #     <p><%= alert %></p>
+    #   <% end %>
+    #
+    # Since +local_assigns+ returns a +Hash+ instance, you can conditionally
+    # read a variable, then fall back to a default value when
+    # the key isn't part of the <tt>locals: { ... }</tt> options:
+    #
+    #   <% local_assigns.fetch(:alerts, []).each do |alert| %>
+    #     <p><%= alert %></p>
+    #   <% end %>
+    #
+    # Combining Ruby 3.1's pattern matching assignment with calls to
+    # +Hash#with_defaults+ enables compact partial-local variable
+    # assignments:
+    #
+    #   <% local_assigns.with_defaults(alerts: []) => { headline:, alerts: } %>
+    #
+    #   <h1><%= headline %></h1>
+    #
+    #   <% alerts.each do |alert| %>
+    #     <p><%= alert %></p>
+    #   <% end %>
+    #
 
     eager_autoload do
       autoload :Error
