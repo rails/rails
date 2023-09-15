@@ -451,10 +451,10 @@ module ActiveRecord
           when /^null$/i
             nil
           # Quoted types
-          when /^'(.*)'$/m
+          when /^'([^|]*)'$/m
             $1.gsub("''", "'")
           # Quoted types
-          when /^"(.*)"$/m
+          when /^"([^|]*)"$/m
             $1.gsub('""', '"')
           # Numeric types
           when /\A-?\d+(\.\d*)?\z/
@@ -474,7 +474,7 @@ module ActiveRecord
         end
 
         def has_default_function?(default_value, default)
-          !default_value && %r{\w+\(.*\)|CURRENT_TIME|CURRENT_DATE|CURRENT_TIMESTAMP}.match?(default)
+          !default_value && %r{\w+\(.*\)|CURRENT_TIME|CURRENT_DATE|CURRENT_TIMESTAMP|\|\|}.match?(default)
         end
 
         # See: https://www.sqlite.org/lang_altertable.html
