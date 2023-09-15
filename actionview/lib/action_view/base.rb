@@ -44,9 +44,9 @@ module ActionView # :nodoc:
   # Using sub templates allows you to sidestep tedious replication and extract common display structures in shared templates. The
   # classic example is the use of a header and footer (even though the Action Pack-way would be to use Layouts):
   #
-  #   <%= render "shared/header" %>
+  #   <%= render "application/header" %>
   #   Something really specific and terrific
-  #   <%= render "shared/footer" %>
+  #   <%= render "application/footer" %>
   #
   # As you see, we use the output embeddings for the render methods. The render call itself will just return a string holding the
   # result of the rendering. The output embedding writes it to the current template.
@@ -55,7 +55,7 @@ module ActionView # :nodoc:
   # variables defined using the regular embedding tags. Like this:
   #
   #   <% @page_title = "A Wonderful Hello" %>
-  #   <%= render "shared/header" %>
+  #   <%= render "application/header" %>
   #
   # Now the header can pick up on the <tt>@page_title</tt> variable and use it for outputting a title tag:
   #
@@ -65,9 +65,9 @@ module ActionView # :nodoc:
   #
   # You can pass local variables to sub templates by using a hash with the variable names as keys and the objects as values:
   #
-  #   <%= render "shared/header", { headline: "Welcome", person: person } %>
+  #   <%= render "application/header", { headline: "Welcome", person: person } %>
   #
-  # These can now be accessed in <tt>shared/header</tt> with:
+  # These can now be accessed in <tt>application/header</tt> with:
   #
   #   Headline: <%= headline %>
   #   First name: <%= person.first_name %>

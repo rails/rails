@@ -197,17 +197,17 @@ To render a partial as part of a view, you use the `render` method within the vi
 This will render a file named `_menu.html.erb` at that point within the view that is being rendered. Note the leading underscore character: partials are named with a leading underscore to distinguish them from regular views, even though they are referred to without the underscore. This holds true even when you're pulling in a partial from another folder:
 
 ```erb
-<%= render "shared/menu" %>
+<%= render "application/menu" %>
 ```
 
-That code will pull in the partial from `app/views/shared/_menu.html.erb`.
+That code will pull in the partial from `app/views/application/_menu.html.erb`.
 
 ### Using Partials to Simplify Views
 
 One way to use partials is to treat them as the equivalent of subroutines; a way to move details out of a view so that you can grasp what's going on more easily. For example, you might have a view that looks like this:
 
 ```html+erb
-<%= render "shared/ad_banner" %>
+<%= render "application/ad_banner" %>
 
 <h1>Products</h1>
 
@@ -216,7 +216,7 @@ One way to use partials is to treat them as the equivalent of subroutines; a way
   <%= render partial: "product", locals: { product: product } %>
 <% end %>
 
-<%= render "shared/footer" %>
+<%= render "application/footer" %>
 ```
 
 Here, the `_ad_banner.html.erb` and `_footer.html.erb` partials could contain content that is shared among many pages in your application. You don't need to see the details of these sections when you're concentrating on a particular page.

@@ -1371,11 +1371,11 @@ en:
       controller "main", <<-RUBY
         class MainController < ActionController::Base
           def foo
-            render inline: '<%= render partial: "shared/foo" %>'
+            render inline: '<%= render partial: "application/foo" %>'
           end
 
           def bar
-            render inline: '<%= render partial: "shared/bar" %>'
+            render inline: '<%= render partial: "application/bar" %>'
           end
         end
       RUBY
@@ -1387,19 +1387,19 @@ en:
         end
       RUBY
 
-      @plugin.write "app/views/shared/_foo.html.erb", <<-RUBY
+      @plugin.write "app/views/application/_foo.html.erb", <<-RUBY
         Bukkit's foo partial
       RUBY
 
-      app_file "app/views/shared/_foo.html.erb", <<-RUBY
+      app_file "app/views/application/_foo.html.erb", <<-RUBY
         App's foo partial
       RUBY
 
-      @blog.write "app/views/shared/_bar.html.erb", <<-RUBY
+      @blog.write "app/views/application/_bar.html.erb", <<-RUBY
         Blog's bar partial
       RUBY
 
-      app_file "app/views/shared/_bar.html.erb", <<-RUBY
+      app_file "app/views/application/_bar.html.erb", <<-RUBY
         App's bar partial
       RUBY
 
@@ -1471,7 +1471,7 @@ en:
       controller "main", <<-RUBY
         class MainController < ActionController::Base
           def foo
-            render inline: '<%= render partial: "shared/foo" %>'
+            render inline: '<%= render partial: "application/foo" %>'
           end
         end
       RUBY
@@ -1482,11 +1482,11 @@ en:
         end
       RUBY
 
-      @plugin.write "app/views/shared/_foo.html.erb", <<-RUBY
+      @plugin.write "app/views/application/_foo.html.erb", <<-RUBY
         Bukkit's foo partial
       RUBY
 
-      app_file "app/views/shared/_foo.html.erb", <<-RUBY
+      app_file "app/views/application/_foo.html.erb", <<-RUBY
         App's foo partial
       RUBY
 

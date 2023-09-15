@@ -1099,10 +1099,11 @@ To render a partial as part of a view, you use the [`render`][view.render] metho
 This will render a file named `_menu.html.erb` at that point within the view being rendered. Note the leading underscore character: partials are named with a leading underscore to distinguish them from regular views, even though they are referred to without the underscore. This holds true even when you're pulling in a partial from another folder:
 
 ```html+erb
-<%= render "shared/menu" %>
+<%= render "application/menu" %>
 ```
 
-That code will pull in the partial from `app/views/shared/_menu.html.erb`.
+Since view partials rely on the same [Template Inheritance](#template-inheritance)
+as templates and layouts, that code will pull in the partial from `app/views/application/_menu.html.erb`.
 
 [view.render]: https://api.rubyonrails.org/classes/ActionView/Helpers/RenderingHelper.html#method-i-render
 
@@ -1111,14 +1112,14 @@ That code will pull in the partial from `app/views/shared/_menu.html.erb`.
 One way to use partials is to treat them as the equivalent of subroutines: as a way to move details out of a view so that you can grasp what's going on more easily. For example, you might have a view that looked like this:
 
 ```erb
-<%= render "shared/ad_banner" %>
+<%= render "application/ad_banner" %>
 
 <h1>Products</h1>
 
 <p>Here are a few of our fine products:</p>
-...
+<%# ... %>
 
-<%= render "shared/footer" %>
+<%= render "application/footer" %>
 ```
 
 Here, the `_ad_banner.html.erb` and `_footer.html.erb` partials could contain
@@ -1133,7 +1134,7 @@ definitions for several similar resources:
 * `users/index.html.erb`
 
     ```html+erb
-    <%= render "shared/search_filters", search: @q do |form| %>
+    <%= render "application/search_filters", search: @q do |form| %>
       <p>
         Name contains: <%= form.text_field :name_contains %>
       </p>
@@ -1143,14 +1144,14 @@ definitions for several similar resources:
 * `roles/index.html.erb`
 
     ```html+erb
-    <%= render "shared/search_filters", search: @q do |form| %>
+    <%= render "application/search_filters", search: @q do |form| %>
       <p>
         Title contains: <%= form.text_field :title_contains %>
       </p>
     <% end %>
     ```
 
-* `shared/_search_filters.html.erb`
+* `application/_search_filters.html.erb`
 
     ```html+erb
     <%= form_with model: search do |form| %>
