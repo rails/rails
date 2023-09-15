@@ -125,14 +125,14 @@ module SharedTrackerTests
 
   def test_finds_multiple_unrelated_odd_dependencies
     template = FakeTemplate.new("
-      <%= render('shared/header', title: 'Title') %>
+      <%= render('application/header', title: 'Title') %>
       <h2>Section title</h2>
       <%= render@section %>
     ", :erb)
 
     tracker = make_tracker("multiple/_dependencies", template)
 
-    assert_equal ["shared/header", "sections/section"], tracker.dependencies
+    assert_equal ["application/header", "sections/section"], tracker.dependencies
   end
 
   def test_finds_dependencies_for_all_kinds_of_identifiers

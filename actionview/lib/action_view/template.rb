@@ -96,7 +96,7 @@ module ActionView
     #
     # Given this sub template rendering:
     #
-    #   <%= render "shared/header", { headline: "Welcome", person: person } %>
+    #   <%= render "application/header", { headline: "Welcome", person: person } %>
     #
     # You can use +local_assigns+ in the sub templates to access the local variables:
     #

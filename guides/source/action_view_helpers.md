@@ -192,7 +192,7 @@ A method for caching fragments of a view rather than an entire action or page. T
 
 ```erb
 <% cache do %>
-  <%= render "shared/footer" %>
+  <%= render "application/footer" %>
 <% end %>
 ```
 
