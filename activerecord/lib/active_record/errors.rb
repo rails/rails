@@ -483,6 +483,19 @@ module ActiveRecord
   # TransactionRollbackError will be raised when a transaction is rolled
   # back by the database due to a serialization failure or a deadlock.
   #
+  # These exceptions should not be generally rescued in nested transaction
+  # blocks, because they have side-effects in the actual enclosing transaction
+  # and internal Active Record state. They can be rescued if you are above the
+  # root transaction block, though.
+  #
+  # In that case, beware of transactional tests, however, because they run test
+  # cases in their own umbrella transaction. If you absolutely need to handle
+  # these exceptions in tests please consider disabling transactional tests in
+  # the affected test class (<tt>self.use_transactional_tests = false</tt>).
+  #
+  # Due to the aforementioned side-effects, this exception should not be raised
+  # manually by users.
+  #
   # See the following:
   #
   # * https://www.postgresql.org/docs/current/static/transaction-iso.html
@@ -497,11 +510,17 @@ module ActiveRecord
 
   # SerializationFailure will be raised when a transaction is rolled
   # back by the database due to a serialization failure.
+  #
+  # This is a subclass of TransactionRollbackError, please make sure to check
+  # its documentation to be aware of its caveats.
   class SerializationFailure < TransactionRollbackError
   end
 
   # Deadlocked will be raised when a transaction is rolled
   # back by the database when a deadlock is encountered.
+  #
+  # This is a subclass of TransactionRollbackError, please make sure to check
+  # its documentation to be aware of its caveats.
   class Deadlocked < TransactionRollbackError
   end
 
