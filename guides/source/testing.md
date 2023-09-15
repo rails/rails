@@ -1713,7 +1713,7 @@ class ArticlePartialTest < ActionView::TestCase
 end
 ```
 
-Tests that inherit from `ActionView::TestCase` also have access to [`assert_select`](#Testing-Views) and the [other additional view-based assertions](#Additional-View-Based-Assertions) provided by [rails-dom-testing][]:
+Tests that inherit from `ActionView::TestCase` also have access to [`assert_select`](#testing-views) and the [other additional view-based assertions](#additional-view-based-assertions) provided by [rails-dom-testing][]:
 
 ```ruby
 test "renders a link to itself" do
@@ -1760,7 +1760,7 @@ end
 ```
 
 If you'd like to access the same [Capybara-powered Assertions](https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Minitest/Assertions)
-that your [Functional and System Testing](#Functional-and-System-Testing) tests
+that your [Functional and System Testing](#functional-and-system-testing) tests
 utilize, you can define a base class that inherits from `ActionView::TestCase`
 and transforms the `document_root_element` into a `page` method:
 
