@@ -38,13 +38,14 @@ module ActiveRecord
           @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
 
           ActiveRecord::Base.connects_to(shards: {
-            default: { writing: :primary },
-            shard_one: { writing: :primary_shard_one }
+            default: { writing: :primary, reading: :primary },
+            shard_one: { writing: :primary_shard_one, reading: :primary_shard_one }
           })
 
           base_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool("ActiveRecord::Base")
           default_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool("ActiveRecord::Base", shard: :default)
 
+          assert_equal [:default, :shard_one], ActiveRecord::Base.connection_handler.send(:get_pool_manager, "ActiveRecord::Base").shard_names
           assert_equal base_pool, default_pool
           assert_equal "test/db/primary.sqlite3", default_pool.db_config.database
           assert_equal "primary", default_pool.db_config.name
