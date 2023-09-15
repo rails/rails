@@ -490,7 +490,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   Deprecate `speaker`, `vibrate`, and `vr` permissions policy directives.
 
-*   Deprecate `true` and `false` values for `action_dispatch.show_exceptions` in favor of `:all`, `:rescuable`, or `:none`.
+*   Deprecate `true` and `false` values for `config.action_dispatch.show_exceptions` in favor of `:all`, `:rescuable`, or `:none`.
 
 ### Notable changes
 
