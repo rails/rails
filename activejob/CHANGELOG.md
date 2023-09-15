@@ -1,3 +1,9 @@
+*   Clarify the backoff strategy for the recommended `:wait` option when retrying jobs
+
+    `wait: :exponentially_longer` is waiting polynomially longer, so it is now recommended to use `wait: :polynomially_longer` to keep the same behavior.
+
+    *Victor Mours*
+
 ## Rails 7.1.0.beta1 (September 13, 2023) ##
 
 *   Fix Active Job log message to correctly report a job failed to enqueue
