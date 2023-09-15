@@ -138,10 +138,6 @@ module ActiveRecord
             end
           end
 
-          def last_inserted_id(result)
-            @raw_connection.last_insert_row_id
-          end
-
           def build_fixture_statements(fixture_set)
             fixture_set.flat_map do |table_name, fixtures|
               next if fixtures.empty?
@@ -151,6 +147,10 @@ module ActiveRecord
 
           def build_truncate_statement(table_name)
             "DELETE FROM #{quote_table_name(table_name)}"
+          end
+
+          def returning_column_values(result)
+            result.rows.first
           end
       end
     end

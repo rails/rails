@@ -14,7 +14,7 @@ class DefaultTest < ActiveRecord::TestCase
     end
   end
 
-  if current_adapter?(:PostgreSQLAdapter)
+  if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:SQLite3Adapter)
     def test_multiline_default_text
       record = Default.new
       # older postgres versions represent the default with escapes ("\\012" for a newline)
@@ -309,7 +309,7 @@ class Sqlite3DefaultExpressionTest < ActiveRecord::TestCase
       assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
       assert_match %r/t\.datetime\s+"modified_time_without_precision",\s+precision: nil,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
       assert_match %r/t\.datetime\s+"modified_time_with_precision_0",\s+precision: 0,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
-      assert_match %r/t\.integer\s+"random_number",\s+default: -> { "random\(\)" }/, output
+      assert_match %r/t\.integer\s+"random_number",\s+default: -> { "ABS\(RANDOM\(\)\)" }/, output
     end
   end
 end

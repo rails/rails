@@ -25,8 +25,8 @@ ActiveRecord::Schema.define do
   end
 
   create_table :defaults, force: true do |t|
-    t.virtual :virtual_stored_number, type: :integer, as: "rand_number * 10", stored: true
-    t.integer :rand_number, default: -> { "random() * 100" }
+    t.virtual :virtual_stored_number, type: :integer, as: "random_number * 10", stored: true
+    t.integer :random_number, default: -> { "random() * 100" }
     t.string :ruby_on_rails, default: -> { "concat('Ruby ', 'on ', 'Rails')" }
     t.date :modified_date, default: -> { "CURRENT_DATE" }
     t.date :modified_date_function, default: -> { "now()" }

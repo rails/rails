@@ -1089,11 +1089,6 @@ module ActiveRecord
           SQL
         end
 
-        def extract_table_ref_from_insert_sql(sql)
-          sql[/into\s("[A-Za-z0-9_."\[\]\s]+"|[A-Za-z0-9_."\[\]]+)\s*/im]
-          $1.strip if $1
-        end
-
         def arel_visitor
           Arel::Visitors::PostgreSQL.new(self)
         end

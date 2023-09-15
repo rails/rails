@@ -1,3 +1,9 @@
+*   The SQLite3 adapter now supports `supports_insert_returning?`
+
+    Implementing the full `supports_insert_returning?` contract means the SQLite3 adapter supports auto-populated columns (#48241) as well as custom primary keys.
+
+    *Stephen Margheim*
+
 *   Ensure the SQLite3 adapter handles default functions with the `||` concatenation operator
 
     Previously, this default function would produce the static string `"'Ruby ' || 'on ' || 'Rails'"`.
