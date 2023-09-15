@@ -65,11 +65,13 @@ module Rails
         end
 
         def dangerous_name?(name)
-          ActiveRecord::Base.dangerous_attribute_method?(name)
+          defined?(ActiveRecord::Base) &&
+            ActiveRecord::Base.dangerous_attribute_method?(name)
         end
 
         def valid_type?(type)
           DEFAULT_TYPES.include?(type.to_s) ||
+            !defined?(ActiveRecord::Base) ||
             ActiveRecord::Base.connection.valid_type?(type)
         end
 
