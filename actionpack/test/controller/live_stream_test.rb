@@ -373,6 +373,19 @@ module ActionController
       assert_match "my.csv", @response.headers["Content-Disposition"]
     end
 
+    def test_send_stream_instrumentation
+      payload = nil
+      subscriber = proc { |event| payload = event.payload }
+
+      ActiveSupport::Notifications.subscribed(subscriber, "send_stream.action_controller") do
+        get :send_stream_with_explicit_content_type
+      end
+
+      assert_equal "sample.csv", payload[:filename]
+      assert_equal "attachment", payload[:disposition]
+      assert_equal "text/csv", payload[:type]
+    end
+
     def test_send_stream_with_options
       get :send_stream_with_options
       assert_equal %[{ name: "David", age: 41 }], @response.body

@@ -343,15 +343,18 @@ module ActionController
     #      end
     #    end
     def send_stream(filename:, disposition: "attachment", type: nil)
-      response.headers["Content-Type"] =
-        (type.is_a?(Symbol) ? Mime[type].to_s : type) ||
-        Mime::Type.lookup_by_extension(File.extname(filename).downcase.delete("."))&.to_s ||
-        "application/octet-stream"
+      payload = { filename: filename, disposition: disposition, type: type }
+      ActiveSupport::Notifications.instrument("send_stream.action_controller", payload) do
+        response.headers["Content-Type"] =
+          (type.is_a?(Symbol) ? Mime[type].to_s : type) ||
+          Mime::Type.lookup_by_extension(File.extname(filename).downcase.delete("."))&.to_s ||
+          "application/octet-stream"
 
-      response.headers["Content-Disposition"] =
-        ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: filename)
+        response.headers["Content-Disposition"] =
+          ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: filename)
 
-      yield response.stream
+        yield response.stream
+      end
     ensure
       response.stream.close
     end
