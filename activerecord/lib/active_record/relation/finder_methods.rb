@@ -527,12 +527,7 @@ module ActiveRecord
       def find_some(ids)
         return find_some_ordered(ids) unless order_values.present?
 
-        relation = if klass.composite_primary_key?
-          ids.map { |values_set| where(primary_key.zip(values_set).to_h) }.inject(&:or)
-        else
-          where(primary_key => ids)
-        end
-
+        relation = where(primary_key => ids)
         relation = relation.select(table[primary_key]) unless select_values.empty?
         result = relation.to_a
 
@@ -559,11 +554,7 @@ module ActiveRecord
         ids = ids.slice(offset_value || 0, limit_value || ids.size) || []
 
         relation = except(:limit, :offset)
-        relation = if klass.composite_primary_key?
-          ids.map { |values_set| relation.where(primary_key.zip(values_set).to_h) }.inject(&:or)
-        else
-          relation.where(primary_key => ids)
-        end
+        relation = relation.where(primary_key => ids)
         relation = relation.select(table[primary_key]) unless select_values.empty?
         result = relation.records
 

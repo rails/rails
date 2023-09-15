@@ -64,9 +64,7 @@ module ActiveRecord
         ids.map! { |id| pk_type.cast(id) }
 
         records = if klass.composite_primary_key?
-          query_records = ids.map { |values_set| klass.where(primary_key.zip(values_set).to_h) }.inject(&:or)
-
-          query_records.index_by do |record|
+          klass.where(primary_key => ids).index_by do |record|
             primary_key.map { |primary_key| record._read_attribute(primary_key) }
           end
         else
