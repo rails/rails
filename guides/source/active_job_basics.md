@@ -122,7 +122,11 @@ GuestsCleanupJob.set(wait: 1.week).perform_later(guest)
 GuestsCleanupJob.perform_later(guest1, guest2, filter: 'some_filter')
 ```
 
-That's it!
+NOTE: Jobs are meant to be run with the `perform_later`
+wrapper. Running the job's `perform` method directly is possible but
+removes the benefits of using a queue and skips all the logic provided
+by the Active Job wrappers like callbacks or exception rescuing,
+described later in this guide.
 
 [`perform_later`]: https://api.rubyonrails.org/classes/ActiveJob/Enqueuing/ClassMethods.html#method-i-perform_later
 [`set`]: https://api.rubyonrails.org/classes/ActiveJob/Core/ClassMethods.html#method-i-set
