@@ -497,7 +497,7 @@ module Rails
       end
 
       def dockerfile_bun_version
-        using_bun? and "bun-v#{`bun --version`[/\d+\.\d+\.\d+/]}"
+        using_bun? and `bun --version`[/\d+\.\d+\.\d+/]
       rescue
         BUN_VERSION
       end
