@@ -24,7 +24,7 @@ module ActiveJob
       # ==== Options
       # * <tt>:wait</tt> - Re-enqueues the job with a delay specified either in seconds (default: 3 seconds),
       #   as a computing proc that takes the number of executions so far as an argument, or as a symbol reference of
-      #   <tt>:exponentially_longer</tt>, which applies the wait algorithm of <tt>((executions**4) + (Kernel.rand * (executions**4) * jitter)) + 2</tt>
+      #   <tt>:polynomially_longer</tt>, which applies the wait algorithm of <tt>((executions**4) + (Kernel.rand * (executions**4) * jitter)) + 2</tt>
       #   (first wait ~3s, then ~18s, then ~83s, etc)
       # * <tt>:attempts</tt> - Re-enqueues the job the specified number of times (default: 5 attempts) or a symbol reference of <tt>:unlimited</tt>
       #   to retry the job until it succeeds
@@ -40,11 +40,11 @@ module ActiveJob
       #    retry_on CustomInfrastructureException, wait: 5.minutes, attempts: :unlimited
       #
       #    retry_on ActiveRecord::Deadlocked, wait: 5.seconds, attempts: 3
-      #    retry_on Net::OpenTimeout, Timeout::Error, wait: :exponentially_longer, attempts: 10 # retries at most 10 times for Net::OpenTimeout and Timeout::Error combined
+      #    retry_on Net::OpenTimeout, Timeout::Error, wait: :polynomially_longer, attempts: 10 # retries at most 10 times for Net::OpenTimeout and Timeout::Error combined
       #    # To retry at most 10 times for each individual exception:
-      #    # retry_on Net::OpenTimeout, wait: :exponentially_longer, attempts: 10
+      #    # retry_on Net::OpenTimeout, wait: :polynomially_longer, attempts: 10
       #    # retry_on Net::ReadTimeout, wait: 5.seconds, jitter: 0.30, attempts: 10
-      #    # retry_on Timeout::Error, wait: :exponentially_longer, attempts: 10
+      #    # retry_on Timeout::Error, wait: :polynomially_longer, attempts: 10
       #
       #    retry_on(YetAnotherCustomAppException) do |job, error|
       #      ExceptionNotifier.caught(error)
@@ -57,6 +57,12 @@ module ActiveJob
       #    end
       #  end
       def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil, jitter: JITTER_DEFAULT)
+        if wait == :exponentially_longer
+          ActiveJob.deprecator.warn(<<~MSG.squish)
+            `wait: :exponentially_longer` will actually wait polynomially longer and is therefore deprecated.
+            Prefer `wait: :polynomially_longer` to avoid confusion and keep the same behavior.
+          MSG
+        end
         rescue_from(*exceptions) do |error|
           executions = executions_for(exceptions)
           if attempts == :unlimited || executions < attempts
@@ -156,7 +162,8 @@ module ActiveJob
         jitter = jitter == JITTER_DEFAULT ? self.class.retry_jitter : (jitter || 0.0)
 
         case seconds_or_duration_or_algorithm
-        when :exponentially_longer
+        when :exponentially_longer, :polynomially_longer
+          # This delay uses a polynomial backoff strategy, which was previously misnamed as exponential
           delay = executions**4
           delay_jitter = determine_jitter_for_delay(delay, jitter)
           delay + delay_jitter + 2

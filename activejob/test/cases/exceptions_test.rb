@@ -108,23 +108,23 @@ class ExceptionsTest < ActiveSupport::TestCase
     end
   end
 
-  test "exponentially retrying job includes jitter" do
+  test "polynomially retrying job includes jitter" do
     travel_to Time.now
 
     random_amount = 2
     delay_for_jitter = -> (delay) { random_amount * delay * ActiveJob::Base.retry_jitter }
 
     Kernel.stub(:rand, random_amount) do
-      RetryJob.perform_later "ExponentialWaitTenAttemptsError", 5, :log_scheduled_at
+      RetryJob.perform_later "PolynomialWaitTenAttemptsError", 5, :log_scheduled_at
 
       assert_equal [
-        "Raised ExponentialWaitTenAttemptsError for the 1st time",
+        "Raised PolynomialWaitTenAttemptsError for the 1st time",
         "Next execution scheduled at #{(Time.now + 3.seconds + delay_for_jitter.(1)).to_f}",
-        "Raised ExponentialWaitTenAttemptsError for the 2nd time",
+        "Raised PolynomialWaitTenAttemptsError for the 2nd time",
         "Next execution scheduled at #{(Time.now + 18.seconds + delay_for_jitter.(16)).to_f}",
-        "Raised ExponentialWaitTenAttemptsError for the 3rd time",
+        "Raised PolynomialWaitTenAttemptsError for the 3rd time",
         "Next execution scheduled at #{(Time.now + 83.seconds + delay_for_jitter.(81)).to_f}",
-        "Raised ExponentialWaitTenAttemptsError for the 4th time",
+        "Raised PolynomialWaitTenAttemptsError for the 4th time",
         "Next execution scheduled at #{(Time.now + 258.seconds + delay_for_jitter.(256)).to_f}",
         "Successfully completed job"
       ], JobBuffer.values
@@ -140,16 +140,16 @@ class ExceptionsTest < ActiveSupport::TestCase
     random_amount = 1
 
     Kernel.stub(:rand, random_amount) do
-      RetryJob.perform_later "ExponentialWaitTenAttemptsError", 5, :log_scheduled_at
+      RetryJob.perform_later "PolynomialWaitTenAttemptsError", 5, :log_scheduled_at
 
       assert_equal [
-        "Raised ExponentialWaitTenAttemptsError for the 1st time",
+        "Raised PolynomialWaitTenAttemptsError for the 1st time",
         "Next execution scheduled at #{(Time.now + 7.seconds).to_f}",
-        "Raised ExponentialWaitTenAttemptsError for the 2nd time",
+        "Raised PolynomialWaitTenAttemptsError for the 2nd time",
         "Next execution scheduled at #{(Time.now + 82.seconds).to_f}",
-        "Raised ExponentialWaitTenAttemptsError for the 3rd time",
+        "Raised PolynomialWaitTenAttemptsError for the 3rd time",
         "Next execution scheduled at #{(Time.now + 407.seconds).to_f}",
-        "Raised ExponentialWaitTenAttemptsError for the 4th time",
+        "Raised PolynomialWaitTenAttemptsError for the 4th time",
         "Next execution scheduled at #{(Time.now + 1282.seconds).to_f}",
         "Successfully completed job"
       ], JobBuffer.values
@@ -175,16 +175,16 @@ class ExceptionsTest < ActiveSupport::TestCase
     ActiveJob::Base.retry_jitter = old_jitter
   end
 
-  test "random wait time for exponentially retrying job when retry jitter delay multiplier value is between 1 and 2" do
+  test "random wait time for polynomially retrying job when retry jitter delay multiplier value is between 1 and 2" do
     old_jitter = ActiveJob::Base.retry_jitter
     ActiveJob::Base.retry_jitter = 1.2
 
     travel_to Time.now
 
-    RetryJob.perform_later "ExponentialWaitTenAttemptsError", 2, :log_scheduled_at
+    RetryJob.perform_later "PolynomialWaitTenAttemptsError", 2, :log_scheduled_at
 
     assert_not_equal [
-      "Raised ExponentialWaitTenAttemptsError for the 1st time",
+      "Raised PolynomialWaitTenAttemptsError for the 1st time",
       "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
       "Successfully completed job"
     ], JobBuffer.values
@@ -198,10 +198,10 @@ class ExceptionsTest < ActiveSupport::TestCase
 
     travel_to Time.now
 
-    RetryJob.perform_later "ExponentialWaitTenAttemptsError", 2, :log_scheduled_at
+    RetryJob.perform_later "PolynomialWaitTenAttemptsError", 2, :log_scheduled_at
 
     assert_not_equal [
-      "Raised ExponentialWaitTenAttemptsError for the 1st time",
+      "Raised PolynomialWaitTenAttemptsError for the 1st time",
       "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
       "Successfully completed job"
     ], JobBuffer.values
@@ -258,7 +258,7 @@ class ExceptionsTest < ActiveSupport::TestCase
   test "use individual execution timers when calculating retry delay" do
     travel_to Time.now
 
-    exceptions_to_raise = %w(ExponentialWaitTenAttemptsError CustomWaitTenAttemptsError ExponentialWaitTenAttemptsError CustomWaitTenAttemptsError)
+    exceptions_to_raise = %w(PolynomialWaitTenAttemptsError CustomWaitTenAttemptsError PolynomialWaitTenAttemptsError CustomWaitTenAttemptsError)
 
     random_amount = 1
 
@@ -268,11 +268,11 @@ class ExceptionsTest < ActiveSupport::TestCase
       delay_for_jitter = -> (delay) { random_amount * delay * ActiveJob::Base.retry_jitter }
 
       assert_equal [
-        "Raised ExponentialWaitTenAttemptsError for the 1st time",
+        "Raised PolynomialWaitTenAttemptsError for the 1st time",
         "Next execution scheduled at #{(Time.now + 3.seconds + delay_for_jitter.(1)).to_f}",
         "Raised CustomWaitTenAttemptsError for the 2nd time",
         "Next execution scheduled at #{(Time.now + 2.seconds).to_f}",
-        "Raised ExponentialWaitTenAttemptsError for the 3rd time",
+        "Raised PolynomialWaitTenAttemptsError for the 3rd time",
         "Next execution scheduled at #{(Time.now + 18.seconds + delay_for_jitter.(16)).to_f}",
         "Raised CustomWaitTenAttemptsError for the 4th time",
         "Next execution scheduled at #{(Time.now + 4.seconds).to_f}",
@@ -368,6 +368,30 @@ class ExceptionsTest < ActiveSupport::TestCase
       "Ran after_discard for job. Message: AfterDiscardRetryJob::CustomDiscardableError"
     ]
     assert_equal expected_array, JobBuffer.values.last(2)
+  end
+
+  class ::LegacyExponentialNamingError < StandardError; end
+  test "wait: :exponentially_longer is deprecated but still works" do
+    assert_deprecated(ActiveJob.deprecator) do
+      class LegacyRetryJob < RetryJob
+        retry_on LegacyExponentialNamingError, wait: :exponentially_longer, attempts: 10, jitter: nil
+      end
+    end
+
+    travel_to Time.now
+    LegacyRetryJob.perform_later "LegacyExponentialNamingError", 5, :log_scheduled_at
+
+    assert_equal [
+      "Raised LegacyExponentialNamingError for the 1st time",
+      "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
+      "Raised LegacyExponentialNamingError for the 2nd time",
+      "Next execution scheduled at #{(Time.now + 18.seconds).to_f}",
+      "Raised LegacyExponentialNamingError for the 3rd time",
+      "Next execution scheduled at #{(Time.now + 83.seconds).to_f}",
+      "Raised LegacyExponentialNamingError for the 4th time",
+      "Next execution scheduled at #{(Time.now + 258.seconds).to_f}",
+      "Successfully completed job"
+    ], JobBuffer.values
   end
 
   private
