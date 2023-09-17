@@ -51,7 +51,8 @@ module ActiveRecord # :nodoc:
       #
       # ==== Options
       #
-      # * +:with+ - The normalization to apply.
+      # * +:with+ - Any callable object that accepts the attribute's value as
+      #   its sole argument, and returns it normalized.
       # * +:apply_to_nil+ - Whether to apply the normalization to +nil+ values.
       #   Defaults to +false+.
       #
