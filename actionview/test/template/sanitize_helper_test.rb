@@ -8,6 +8,8 @@
 
 require "abstract_unit"
 
+require "rails-dom-testing"
+
 #
 #  Unit test SanitizeHelper behavior. We use a mock vendor to ensure we're testing behavior that is
 #  independent of sanitizer vendors.
@@ -184,6 +186,8 @@ end
 #  for now we should make sure everything works as expected by testing it.
 #
 module SanitizeHelperVendorTests
+  include Rails::Dom::Testing::Assertions
+
   def setup
     super
     @saved_vendor = ActionView::Helpers::SanitizeHelper.sanitizer_vendor
@@ -294,15 +298,15 @@ module SanitizeHelperVendorTests
   def test_sanitize_with_tags_option
     input = %(<b>bold</b> <i>italic</i> <div>hello</div>)
 
-    assert_equal("<b>bold</b> <i>italic</i> hello", @subject.sanitize(input, tags: %w(b i)))
-    assert_equal("bold italic <div>hello</div>", @subject.sanitize(input, tags: %w(div)))
+    assert_dom_equal("<b>bold</b> <i>italic</i> hello", @subject.sanitize(input, tags: %w(b i)))
+    assert_dom_equal("bold italic <div>hello</div>", @subject.sanitize(input, tags: %w(div)))
   end
 
   def test_sanitize_with_attributes_option
     input = %(<div a="1" b="2" c="3">hello</div>)
 
-    assert_equal(%(<div a="1" b="2">hello</div>), @subject.sanitize(input, attributes: %w(a b)))
-    assert_equal(%(<div b="2" c="3">hello</div>), @subject.sanitize(input, attributes: %w(b c)))
+    assert_dom_equal(%(<div a="1" b="2">hello</div>), @subject.sanitize(input, attributes: %w(a b)))
+    assert_dom_equal(%(<div b="2" c="3">hello</div>), @subject.sanitize(input, attributes: %w(b c)))
   end
 
   def test_sanitize_with_loofah_scrubber_option
@@ -311,7 +315,7 @@ module SanitizeHelperVendorTests
       node.content = "scrubbed"
     end
 
-    assert_equal(%(<div>scrubbed</div>), @subject.sanitize(input, scrubber: scrubber))
+    assert_dom_equal(%(<div>scrubbed</div>), @subject.sanitize(input, scrubber: scrubber))
   end
 
   def test_sanitize_with_custom_scrubber_option
@@ -324,7 +328,7 @@ module SanitizeHelperVendorTests
 
     input = %(<div>hello</div><p>world</p>)
 
-    assert_equal(%(<div>hello</div>world), @subject.sanitize(input, scrubber: scrubber))
+    assert_dom_equal(%(<div>hello</div>world), @subject.sanitize(input, scrubber: scrubber))
   end
 
   def test_sanitize_css
@@ -340,14 +344,14 @@ module SanitizeHelperVendorTests
     input = %(<div><a href="http://www.example.com/">Example</a> of a fragment</div>)
     result = @subject.strip_tags(input)
 
-    assert_equal("Example of a fragment", result)
+    assert_dom_equal("Example of a fragment", result)
   end
 
   def test_strip_links
     input = %(<div><a href="http://www.example.com/">Example</a> of a fragment</div>)
     result = @subject.strip_links(input)
 
-    assert_equal("<div>Example of a fragment</div>", result)
+    assert_dom_equal("<div>Example of a fragment</div>", result)
   end
 
   def test_we_get_the_expected_HTML_parser
@@ -367,7 +371,7 @@ module SanitizeHelperVendorTests
       flunk "Unknown vendor #{vendor}"
     end
 
-    assert_equal(expected, @subject.sanitize(input, scrubber: scrubber))
+    assert_dom_equal(expected, @subject.sanitize(input, scrubber: scrubber))
   end
 end
 

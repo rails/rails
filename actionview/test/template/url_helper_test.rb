@@ -614,7 +614,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_link_tag_using_block_in_erb
     out = render_erb %{<%= link_to('/') do %>Example site<% end %>}
-    assert_equal '<a href="/">Example site</a>', out
+    assert_dom_equal '<a href="/">Example site</a>', out
   end
 
   def test_link_tag_with_html_safe_string
@@ -652,7 +652,7 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal %{<a href="/">Listing</a>},
       link_to_unless(false, "Listing", url_hash)
 
-    assert_equal "<strong>Showing</strong>",
+    assert_dom_equal "<strong>Showing</strong>",
       link_to_unless(true, "Showing", url_hash) { |name|
         raw "<strong>#{name}</strong>"
       }
@@ -662,10 +662,10 @@ class UrlHelperTest < ActiveSupport::TestCase
         "test"
       }
 
-    assert_equal %{&lt;b&gt;Showing&lt;/b&gt;}, link_to_unless(true, "<b>Showing</b>", url_hash)
-    assert_equal %{<a href="/">&lt;b&gt;Showing&lt;/b&gt;</a>}, link_to_unless(false, "<b>Showing</b>", url_hash)
-    assert_equal %{<b>Showing</b>}, link_to_unless(true, raw("<b>Showing</b>"), url_hash)
-    assert_equal %{<a href="/"><b>Showing</b></a>}, link_to_unless(false, raw("<b>Showing</b>"), url_hash)
+    assert_dom_equal %{&lt;b&gt;Showing&lt;/b&gt;}, link_to_unless(true, "<b>Showing</b>", url_hash)
+    assert_dom_equal %{<a href="/">&lt;b&gt;Showing&lt;/b&gt;</a>}, link_to_unless(false, "<b>Showing</b>", url_hash)
+    assert_dom_equal %{<b>Showing</b>}, link_to_unless(true, raw("<b>Showing</b>"), url_hash)
+    assert_dom_equal %{<a href="/"><b>Showing</b></a>}, link_to_unless(false, raw("<b>Showing</b>"), url_hash)
   end
 
   def test_link_to_if
@@ -800,22 +800,22 @@ class UrlHelperTest < ActiveSupport::TestCase
 
     @request = request_for_url("/?order=desc")
 
-    assert_equal %{<a href="/?order=asc">Showing</a>},
+    assert_dom_equal %{<a href="/?order=asc">Showing</a>},
       link_to_unless_current("Showing", hash_for(order: :asc))
-    assert_equal %{<a href="http://www.example.com/?order=asc">Showing</a>},
+    assert_dom_equal %{<a href="http://www.example.com/?order=asc">Showing</a>},
       link_to_unless_current("Showing", "http://www.example.com/?order=asc")
 
     @request = request_for_url("/?order=desc")
-    assert_equal %{<a href="/?order=desc&amp;page=2\">Showing</a>},
+    assert_dom_equal %{<a href="/?order=desc&amp;page=2\">Showing</a>},
       link_to_unless_current("Showing", hash_for(order: "desc", page: 2))
-    assert_equal %{<a href="http://www.example.com/?order=desc&amp;page=2">Showing</a>},
+    assert_dom_equal %{<a href="http://www.example.com/?order=desc&amp;page=2">Showing</a>},
       link_to_unless_current("Showing", "http://www.example.com/?order=desc&page=2")
 
     @request = request_for_url("/show")
 
-    assert_equal %{<a href="/">Listing</a>},
+    assert_dom_equal %{<a href="/">Listing</a>},
       link_to_unless_current("Listing", url_hash)
-    assert_equal %{<a href="http://www.example.com/">Listing</a>},
+    assert_dom_equal %{<a href="http://www.example.com/">Listing</a>},
       link_to_unless_current("Listing", "http://www.example.com/")
   end
 
@@ -831,7 +831,7 @@ class UrlHelperTest < ActiveSupport::TestCase
       %{<a class="admin" href="mailto:david@loudthinking.com">David Heinemeier Hansson</a>},
       mail_to("david@loudthinking.com", "David Heinemeier Hansson", "class" => "admin")
     )
-    assert_equal mail_to("david@loudthinking.com", "David Heinemeier Hansson", "class" => "admin"),
+    assert_dom_equal mail_to("david@loudthinking.com", "David Heinemeier Hansson", "class" => "admin"),
                  mail_to("david@loudthinking.com", "David Heinemeier Hansson", class: "admin")
   end
 
@@ -905,7 +905,7 @@ class UrlHelperTest < ActiveSupport::TestCase
       %{<a class="admin" href="sms:15155555785;">Jim Jones</a>},
       sms_to("15155555785", "Jim Jones", "class" => "admin")
     )
-    assert_equal sms_to("15155555785", "Jim Jones", "class" => "admin"),
+    assert_dom_equal sms_to("15155555785", "Jim Jones", "class" => "admin"),
                  sms_to("15155555785", "Jim Jones", class: "admin")
   end
 
@@ -974,7 +974,7 @@ class UrlHelperTest < ActiveSupport::TestCase
       %{<a class="phoner" href="tel:1234567890">Bob</a>},
       phone_to("1234567890", "Bob", "class" => "phoner")
     )
-    assert_equal phone_to("1234567890", "Bob", "class" => "admin"),
+    assert_dom_equal phone_to("1234567890", "Bob", "class" => "admin"),
                  phone_to("1234567890", "Bob", class: "admin")
   end
 
@@ -1222,7 +1222,7 @@ class LinkToUnlessCurrentWithControllerTest < ActionController::TestCase
 
   def test_link_to_unless_current_shows_link
     get :show, params: { id: 1 }
-    assert_equal %{<a href="/tasks">tasks</a>\n} +
+    assert_dom_equal %{<a href="/tasks">tasks</a>\n} +
       %{<a href="#{@request.protocol}#{@request.host_with_port}/tasks">tasks</a>},
       @response.body
   end
@@ -1306,21 +1306,21 @@ class PolymorphicControllerTest < ActionController::TestCase
     @controller = WorkshopsController.new
 
     get :index
-    assert_equal %{/workshops\n<a href="/workshops">Workshop</a>}, @response.body
+    assert_dom_equal %{/workshops\n<a href="/workshops">Workshop</a>}, @response.body
   end
 
   def test_existing_resource
     @controller = WorkshopsController.new
 
     get :show, params: { id: 1 }
-    assert_equal %{/workshops/1\n<a href="/workshops/1">Workshop</a>}, @response.body
+    assert_dom_equal %{/workshops/1\n<a href="/workshops/1">Workshop</a>}, @response.body
   end
 
   def test_existing_cpk_resource
     @controller = WorkshopsController.new
 
     get :show, params: { id: "1-27" }
-    assert_equal %{/workshops/1-27\n<a href="/workshops/1-27">Workshop</a>}, @response.body
+    assert_dom_equal %{/workshops/1-27\n<a href="/workshops/1-27">Workshop</a>}, @response.body
   end
 
   def test_current_page_when_options_does_not_respond_to_to_hash
@@ -1341,20 +1341,20 @@ class PolymorphicSessionsControllerTest < ActionController::TestCase
     @controller = SessionsController.new
 
     get :index, params: { workshop_id: 1 }
-    assert_equal %{/workshops/1/sessions\n<a href="/workshops/1/sessions">Session</a>}, @response.body
+    assert_dom_equal %{/workshops/1/sessions\n<a href="/workshops/1/sessions">Session</a>}, @response.body
   end
 
   def test_existing_nested_resource
     @controller = SessionsController.new
 
     get :show, params: { workshop_id: 1, id: 1 }
-    assert_equal %{/workshops/1/sessions/1\n<a href="/workshops/1/sessions/1">Session</a>}, @response.body
+    assert_dom_equal %{/workshops/1/sessions/1\n<a href="/workshops/1/sessions/1">Session</a>}, @response.body
   end
 
   def test_existing_nested_resource_with_params
     @controller = SessionsController.new
 
     get :edit, params: { workshop_id: 1, id: 1, format: "json"  }
-    assert_equal %{/workshops/1/sessions/1.json\n<a href="/workshops/1/sessions/1.json">Session</a>}, @response.body
+    assert_dom_equal %{/workshops/1/sessions/1.json\n<a href="/workshops/1/sessions/1.json">Session</a>}, @response.body
   end
 end

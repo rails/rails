@@ -5,10 +5,14 @@ require "controller/fake_models"
 require "test_renderable"
 require "active_model/validations"
 
+require "rails-dom-testing"
+
 class TestController < ActionController::Base
 end
 
 module RenderTestCases
+  include Rails::Dom::Testing::Assertions
+
   def setup_view(paths)
     @assigns = { secret: "in the sauce" }
 
@@ -126,17 +130,17 @@ module RenderTestCases
   end
 
   def test_render_template_with_locale
-    assert_equal "<h1>Kein Kommentar</h1>", @view.render(template: "comments/empty", locale: [:de])
-    assert_equal "<h1>Kein Kommentar</h1>", @view.render(template: "comments/empty", locale: :de)
+    assert_dom_equal "<h1>Kein Kommentar</h1>", @view.render(template: "comments/empty", locale: [:de])
+    assert_dom_equal "<h1>Kein Kommentar</h1>", @view.render(template: "comments/empty", locale: :de)
   end
 
   def test_render_template_with_variants
-    assert_equal "<h1>No Comment</h1>\n", @view.render(template: "comments/empty", variants: :grid)
+    assert_dom_equal "<h1>No Comment</h1>\n", @view.render(template: "comments/empty", variants: :grid)
   end
 
   def test_render_template_with_handlers
-    assert_equal "<h1>No Comment</h1>\n", @view.render(template: "comments/empty", handlers: [:builder])
-    assert_equal "<h1>No Comment</h1>\n", @view.render(template: "comments/empty", handlers: :builder)
+    assert_dom_equal "<h1>No Comment</h1>\n", @view.render(template: "comments/empty", handlers: [:builder])
+    assert_dom_equal "<h1>No Comment</h1>\n", @view.render(template: "comments/empty", handlers: :builder)
   end
 
   def test_render_raw_template_with_handlers
@@ -258,7 +262,7 @@ module RenderTestCases
   end
 
   def test_render_partial_with_variants
-    assert_equal "<h1>Partial with variants</h1>\n", @view.render(partial: "test/partial_with_variants", variants: :grid)
+    assert_dom_equal "<h1>Partial with variants</h1>\n", @view.render(partial: "test/partial_with_variants", variants: :grid)
   end
 
   def test_render_partial_with_selected_format
@@ -447,21 +451,21 @@ module RenderTestCases
   end
 
   def test_render_partial_with_layout_using_collection_and_template
-    assert_equal "<b>Hello: Amazon</b><b>Hello: Yahoo</b>", @view.render(partial: "test/customer", layout: "test/b_layout_for_partial", collection: [ Customer.new("Amazon"), Customer.new("Yahoo") ])
+    assert_dom_equal "<b>Hello: Amazon</b><b>Hello: Yahoo</b>", @view.render(partial: "test/customer", layout: "test/b_layout_for_partial", collection: [ Customer.new("Amazon"), Customer.new("Yahoo") ])
   end
 
   def test_render_partial_with_layout_using_collection_and_template_makes_current_item_available_in_layout
-    assert_equal '<b class="amazon">Hello: Amazon</b><b class="yahoo">Hello: Yahoo</b>',
+    assert_dom_equal '<b class="amazon">Hello: Amazon</b><b class="yahoo">Hello: Yahoo</b>',
       @view.render(partial: "test/customer", layout: "test/b_layout_for_partial_with_object", collection: [ Customer.new("Amazon"), Customer.new("Yahoo") ])
   end
 
   def test_render_partial_with_layout_using_collection_and_template_makes_current_item_counter_available_in_layout
-    assert_equal '<b data-counter="0">Hello: Amazon</b><b data-counter="1">Hello: Yahoo</b>',
+    assert_dom_equal '<b data-counter="0">Hello: Amazon</b><b data-counter="1">Hello: Yahoo</b>',
       @view.render(partial: "test/customer", layout: "test/b_layout_for_partial_with_object_counter", collection: [ Customer.new("Amazon"), Customer.new("Yahoo") ])
   end
 
   def test_render_partial_with_layout_using_object_and_template_makes_object_available_in_layout
-    assert_equal '<b class="amazon">Hello: Amazon</b>',
+    assert_dom_equal '<b class="amazon">Hello: Amazon</b>',
       @view.render(partial: "test/customer", layout: "test/b_layout_for_partial_with_object", object: Customer.new("Amazon"))
   end
 
@@ -483,7 +487,7 @@ module RenderTestCases
   end
 
   def test_render_partial_with_object_and_format_uses_render_partial_path
-    assert_equal "<greeting>Hello</greeting><name>lifo</name>",
+    assert_dom_equal "<greeting>Hello</greeting><name>lifo</name>",
       @controller_view.render(partial: Customer.new("lifo"), formats: :xml, locals: { greeting: "Hello" })
   end
 
@@ -608,7 +612,7 @@ module RenderTestCases
   end
 
   def test_render_with_layout
-    assert_equal %(<title></title>\nHello world!\n),
+    assert_dom_equal %(<title></title>\nHello world!\n),
       @view.render(template: "test/hello_world", layout: "layouts/yield")
   end
 
@@ -623,7 +627,7 @@ module RenderTestCases
   end
 
   def test_render_partial_with_html_only_extension
-    assert_equal %(<h1>partial html</h1>\nHello world!\n),
+    assert_dom_equal %(<h1>partial html</h1>\nHello world!\n),
       @view.render(template: "test/hello_world", layout: "layouts/render_partial_html")
   end
 
@@ -731,17 +735,17 @@ module RenderTestCases
   end
 
   def test_render_with_nested_layout
-    assert_equal %(<title>title</title>\n\n<div id="column">column</div>\n<div id="content">content</div>\n),
+    assert_dom_equal %(<title>title</title>\n\n<div id="column">column</div>\n<div id="content">content</div>\n),
       @view.render(template: "test/nested_layout", layout: "layouts/yield")
   end
 
   def test_render_with_file_in_layout
-    assert_equal %(\n<title>title</title>\n\n),
+    assert_dom_equal %(\n<title>title</title>\n\n),
       @view.render(template: "test/layout_render_file")
   end
 
   def test_render_layout_with_object
-    assert_equal %(<title>David</title>),
+    assert_dom_equal %(<title>David</title>),
       @view.render(template: "test/layout_render_object")
   end
 

@@ -3,20 +3,24 @@
 require "abstract_unit"
 require "template/erb/helper"
 
+require "rails-dom-testing"
+
 module ERBTest
   class TagHelperTest < BlockTestCase
+    include Rails::Dom::Testing::Assertions
+
     test "percent equals works for content_tag and does not require parenthesis on method call" do
-      assert_equal "<div>Hello world</div>", render_content("content_tag :div", "Hello world")
+      assert_dom_equal "<div>Hello world</div>", render_content("content_tag :div", "Hello world")
     end
 
     test "percent equals works for javascript_tag" do
       expected_output = "<script>\n//<![CDATA[\nalert('Hello')\n//]]>\n</script>"
-      assert_equal expected_output, render_content("javascript_tag", "alert('Hello')")
+      assert_dom_equal expected_output, render_content("javascript_tag", "alert('Hello')")
     end
 
     test "percent equals works for javascript_tag with options" do
       expected_output = "<script id=\"the_js_tag\">\n//<![CDATA[\nalert('Hello')\n//]]>\n</script>"
-      assert_equal expected_output, render_content("javascript_tag(:id => 'the_js_tag')", "alert('Hello')")
+      assert_dom_equal expected_output, render_content("javascript_tag(:id => 'the_js_tag')", "alert('Hello')")
     end
 
     test "percent equals works with form tags" do
@@ -26,7 +30,7 @@ module ERBTest
 
     test "percent equals works with fieldset tags" do
       expected_output = "<fieldset><legend>foo</legend>hello</fieldset>"
-      assert_equal expected_output, render_content("field_set_tag('foo')", "<%= 'hello' %>")
+      assert_dom_equal expected_output, render_content("field_set_tag('foo')", "<%= 'hello' %>")
     end
   end
 end

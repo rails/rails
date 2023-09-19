@@ -16,14 +16,14 @@ class CaptureHelperTest < ActionView::TestCase
       @av.output_buffer << "bar"
     end
     assert_predicate @av.output_buffer, :empty?
-    assert_equal "foobar", string
+    assert_dom_equal "foobar", string
   end
 
   def test_capture_captures_the_value_returned_by_the_block_if_the_temporary_buffer_is_blank
     string = @av.capture("foo", "bar") do |a, b|
       a + b
     end
-    assert_equal "foobar", string
+    assert_dom_equal "foobar", string
   end
 
   def test_capture_returns_nil_if_the_returned_value_is_not_a_string
@@ -32,12 +32,12 @@ class CaptureHelperTest < ActionView::TestCase
 
   def test_capture_escapes_html
     string = @av.capture { "<em>bar</em>" }
-    assert_equal "&lt;em&gt;bar&lt;/em&gt;", string
+    assert_dom_equal "&lt;em&gt;bar&lt;/em&gt;", string
   end
 
   def test_capture_doesnt_escape_twice
     string = @av.capture { raw("&lt;em&gt;bar&lt;/em&gt;") }
-    assert_equal "&lt;em&gt;bar&lt;/em&gt;", string
+    assert_dom_equal "&lt;em&gt;bar&lt;/em&gt;", string
   end
 
   def test_capture_does_not_reassign_buffer
@@ -50,24 +50,24 @@ class CaptureHelperTest < ActionView::TestCase
 
   def test_content_for_used_for_read
     content_for :foo, "foo"
-    assert_equal "foo", content_for(:foo)
+    assert_dom_equal "foo", content_for(:foo)
 
     content_for(:bar) { "bar" }
-    assert_equal "bar", content_for(:bar)
+    assert_dom_equal "bar", content_for(:bar)
   end
 
   def test_content_for_with_multiple_calls
     assert_not content_for?(:title)
     content_for :title, "foo"
     content_for :title, :bar
-    assert_equal "foobar", content_for(:title)
+    assert_dom_equal "foobar", content_for(:title)
   end
 
   def test_content_for_with_multiple_calls_and_flush
     assert_not content_for?(:title)
     content_for :title, "foo"
     content_for :title, :bar, flush: true
-    assert_equal "bar", content_for(:title)
+    assert_dom_equal "bar", content_for(:title)
   end
 
   def test_content_for_with_block
@@ -77,7 +77,7 @@ class CaptureHelperTest < ActionView::TestCase
       output_buffer << "bar"
       nil
     end
-    assert_equal "foobar", content_for(:title)
+    assert_dom_equal "foobar", content_for(:title)
   end
 
   def test_content_for_with_block_and_multiple_calls_with_flush
@@ -88,7 +88,7 @@ class CaptureHelperTest < ActionView::TestCase
     content_for :title, flush: true do
       "bar"
     end
-    assert_equal "bar", content_for(:title)
+    assert_dom_equal "bar", content_for(:title)
   end
 
   def test_content_for_with_block_and_multiple_calls_with_flush_nil_content
@@ -99,7 +99,7 @@ class CaptureHelperTest < ActionView::TestCase
     content_for :title, nil, flush: true do
       "bar"
     end
-    assert_equal "bar", content_for(:title)
+    assert_dom_equal "bar", content_for(:title)
   end
 
   def test_content_for_with_block_and_multiple_calls_without_flush
@@ -110,7 +110,7 @@ class CaptureHelperTest < ActionView::TestCase
     content_for :title, flush: false do
       "bar"
     end
-    assert_equal "foobar", content_for(:title)
+    assert_dom_equal "foobar", content_for(:title)
   end
 
   def test_content_for_with_whitespace_block
@@ -121,7 +121,7 @@ class CaptureHelperTest < ActionView::TestCase
       nil
     end
     content_for :title, "bar"
-    assert_equal "foobar", content_for(:title)
+    assert_dom_equal "foobar", content_for(:title)
   end
 
   def test_content_for_with_whitespace_block_and_flush
@@ -132,7 +132,7 @@ class CaptureHelperTest < ActionView::TestCase
       nil
     end
     content_for :title, "bar", flush: true
-    assert_equal "bar", content_for(:title)
+    assert_dom_equal "bar", content_for(:title)
   end
 
   def test_content_for_returns_nil_when_writing
@@ -140,11 +140,11 @@ class CaptureHelperTest < ActionView::TestCase
     assert_nil content_for(:title, "foo")
     assert_nil content_for(:title) { output_buffer << "bar"; nil }
     assert_nil content_for(:title) { output_buffer << "  \n  "; nil }
-    assert_equal "foobar", content_for(:title)
+    assert_dom_equal "foobar", content_for(:title)
     assert_nil content_for(:title, "foo", flush: true)
     assert_nil content_for(:title, flush: true) { output_buffer << "bar"; nil }
     assert_nil content_for(:title, flush: true) { output_buffer << "  \n  "; nil }
-    assert_equal "bar", content_for(:title)
+    assert_dom_equal "bar", content_for(:title)
   end
 
   def test_content_for_returns_nil_when_content_missing
@@ -175,14 +175,14 @@ class CaptureHelperTest < ActionView::TestCase
     assert_not content_for?(:title)
     provide :title, "hi"
     assert content_for?(:title)
-    assert_equal "hi", content_for(:title)
+    assert_dom_equal "hi", content_for(:title)
     provide :title, "<p>title</p>"
-    assert_equal "hi&lt;p&gt;title&lt;/p&gt;", content_for(:title)
+    assert_dom_equal "hi&lt;p&gt;title&lt;/p&gt;", content_for(:title)
 
     @view_flow = ActionView::OutputFlow.new
     provide :title, :hi
     provide :title, raw("<p>title</p>")
-    assert_equal "hi<p>title</p>", content_for(:title)
+    assert_dom_equal "hi<p>title</p>", content_for(:title)
   end
 
   def test_with_output_buffer_swaps_the_output_buffer_given_no_argument
@@ -227,7 +227,7 @@ class CaptureHelperTest < ActionView::TestCase
 
   def test_with_output_buffer_does_not_assume_there_is_an_output_buffer
     assert_predicate @av.output_buffer, :empty?
-    assert_equal "", @av.with_output_buffer { }.to_s
+    assert_dom_equal "", @av.with_output_buffer { }.to_s
   end
 
   def alt_encoding(output_buffer)

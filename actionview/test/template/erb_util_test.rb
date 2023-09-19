@@ -4,8 +4,11 @@ require "abstract_unit"
 require "active_support/json"
 require "active_support/core_ext/erb/util"
 
+require "rails-dom-testing"
+
 class ErbUtilTest < ActiveSupport::TestCase
   include ERB::Util
+  include Rails::Dom::Testing::Assertions
 
   ERB::Util::HTML_ESCAPE.each do |given, expected|
     define_method "test_html_escape_#{expected.gsub(/\W/, '')}" do
@@ -87,26 +90,26 @@ class ErbUtilTest < ActiveSupport::TestCase
 
   def test_html_escape_is_html_safe
     escaped = h("<p>")
-    assert_equal "&lt;p&gt;", escaped
+    assert_dom_equal "&lt;p&gt;", escaped
     assert_predicate escaped, :html_safe?
   end
 
   def test_html_escape_passes_html_escape_unmodified
     escaped = h("<p>".html_safe)
-    assert_equal "<p>", escaped
+    assert_dom_equal "<p>", escaped
     assert_predicate escaped, :html_safe?
   end
 
   def test_rest_in_ascii
     (0..127).to_a.map(&:chr).each do |chr|
       next if %('"&<>).include?(chr)
-      assert_equal chr, html_escape(chr)
+      assert_dom_equal chr, html_escape(chr)
     end
   end
 
   def test_html_escape_once
-    assert_equal "1 &lt;&gt;&amp;&quot;&#39; 2 &amp; 3", html_escape_once('1 <>&"\' 2 &amp; 3')
-    assert_equal " &#X27; &#x27; &#x03BB; &#X03bb; &quot; &#39; &lt; &gt; ", html_escape_once(" &#X27; &#x27; &#x03BB; &#X03bb; \" ' < > ")
+    assert_dom_equal "1 &lt;&gt;&amp;&quot;&#39; 2 &amp; 3", html_escape_once('1 <>&"\' 2 &amp; 3')
+    assert_dom_equal " &#X27; &#x27; &#x03BB; &#X03bb; &quot; &#39; &lt; &gt; ", html_escape_once(" &#X27; &#x27; &#x03BB; &#X03bb; \" ' < > ")
   end
 
   def test_html_escape_once_returns_safe_strings_when_passed_unsafe_strings

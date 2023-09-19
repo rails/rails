@@ -2,6 +2,8 @@
 
 require "abstract_unit"
 
+require "rails-dom-testing"
+
 module I18n
   class CustomExceptionHandler
     def self.call(exception, locale, key, options)
@@ -12,6 +14,7 @@ end
 
 class TranslationHelperTest < ActiveSupport::TestCase
   include ActionView::Helpers::TranslationHelper
+  include Rails::Dom::Testing::Assertions
 
   attr_reader :request, :view
 
@@ -99,22 +102,22 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_returns_missing_translation_message_wrapped_into_span
     expected = '<span class="translation_missing" title="translation missing: en.translations.missing">Missing</span>'
-    assert_equal expected, translate(:"translations.missing")
+    assert_dom_equal expected, translate(:"translations.missing")
     assert_equal true, translate(:"translations.missing").html_safe?
   end
 
   def test_returns_missing_translation_message_with_unescaped_interpolation
     expected = '<span class="translation_missing" title="translation missing: en.translations.missing, name: Kir, year: 2015, vulnerable: &amp;quot; onclick=&amp;quot;alert()&amp;quot;">Missing</span>'
-    assert_equal expected, translate(:"translations.missing", name: "Kir", year: "2015", vulnerable: %{" onclick="alert()"})
+    assert_dom_equal expected, translate(:"translations.missing", name: "Kir", year: "2015", vulnerable: %{" onclick="alert()"})
     assert_predicate translate(:"translations.missing"), :html_safe?
   end
 
   def test_returns_missing_translation_message_does_filters_out_i18n_options
     expected = '<span class="translation_missing" title="translation missing: en.translations.missing, year: 2015">Missing</span>'
-    assert_equal expected, translate(:"translations.missing", year: "2015", default: [])
+    assert_dom_equal expected, translate(:"translations.missing", year: "2015", default: [])
 
     expected = '<span class="translation_missing" title="translation missing: en.scoped.translations.missing, year: 2015">Missing</span>'
-    assert_equal expected, translate(:"translations.missing", year: "2015", scope: %i(scoped))
+    assert_dom_equal expected, translate(:"translations.missing", year: "2015", scope: %i(scoped))
   end
 
   def test_raises_missing_translation_message_with_raise_option
@@ -174,7 +177,7 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_missing_translation_scoped_by_partial
     expected = '<span class="translation_missing" title="translation missing: en.translations.templates.missing.missing">Missing</span>'
-    assert_equal expected, view.render(template: "translations/templates/missing").strip
+    assert_dom_equal expected, view.render(template: "translations/templates/missing").strip
   end
 
   def test_missing_translation_scoped_by_partial_yield_block
@@ -199,7 +202,7 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_missing_translation_scoped_by_partial_yield_single_argument_block
     expected = '<span class="translation_missing" title="translation missing: en.translations.templates.missing_yield_single_argument_block.missing">Missing</span>'
-    assert_equal expected, view.render(template: "translations/templates/missing_yield_single_argument_block").strip
+    assert_dom_equal expected, view.render(template: "translations/templates/missing_yield_single_argument_block").strip
   end
 
   def test_missing_translation_with_default_scoped_by_partial_yield_single_argument_block
@@ -221,14 +224,14 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_translate_escapes_interpolations_in_translations_with_a_html_suffix
     word_struct = Struct.new(:to_s)
-    assert_equal "<a>Hello &lt;World&gt;</a>", translate(:'translations.interpolated_html', word: "<World>")
-    assert_equal "<a>Hello &lt;World&gt;</a>", translate(:'translations.interpolated_html', word: word_struct.new("<World>"))
+    assert_dom_equal "<a>Hello &lt;World&gt;</a>", translate(:'translations.interpolated_html', word: "<World>")
+    assert_dom_equal "<a>Hello &lt;World&gt;</a>", translate(:'translations.interpolated_html', word: word_struct.new("<World>"))
   end
 
   def test_translate_with_html_count
-    assert_equal "<a>One 1</a>", translate(:'translations.count_html', count: 1)
-    assert_equal "<a>Other 2</a>", translate(:'translations.count_html', count: 2)
-    assert_equal "<a>Other &lt;One&gt;</a>", translate(:'translations.count_html', count: "<One>")
+    assert_dom_equal "<a>One 1</a>", translate(:'translations.count_html', count: 1)
+    assert_dom_equal "<a>Other 2</a>", translate(:'translations.count_html', count: 2)
+    assert_dom_equal "<a>Other &lt;One&gt;</a>", translate(:'translations.count_html', count: "<One>")
   end
 
   def test_translate_marks_array_of_translations_with_a_html_safe_suffix_as_safe_html
@@ -245,20 +248,20 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_translate_with_default_named_html
     translation = translate(:'translations.missing', default: :'translations.hello_html')
-    assert_equal "<a>Hello World</a>", translation
+    assert_dom_equal "<a>Hello World</a>", translation
     assert_equal true, translation.html_safe?
   end
 
   def test_translate_with_default_named_html_and_raise_false
     translation = translate(:"translations.missing", default: :"translations.hello_html", raise: false)
-    assert_equal "<a>Hello World</a>", translation
+    assert_dom_equal "<a>Hello World</a>", translation
     assert_predicate translation, :html_safe?
   end
 
   def test_translate_with_missing_default
     translation = translate(:"translations.missing", default: :also_missing)
     expected = '<span class="translation_missing" title="translation missing: en.translations.missing">Missing</span>'
-    assert_equal expected, translation
+    assert_dom_equal expected, translation
     assert_equal true, translation.html_safe?
   end
 
@@ -276,13 +279,13 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_translate_with_two_defaults_named_html
     translation = translate(:'translations.missing', default: [:'translations.missing_html', :'translations.hello_html'])
-    assert_equal "<a>Hello World</a>", translation
+    assert_dom_equal "<a>Hello World</a>", translation
     assert_equal true, translation.html_safe?
   end
 
   def test_translate_with_last_default_named_html
     translation = translate(:'translations.missing', default: [:'translations.missing', :'translations.hello_html'])
-    assert_equal "<a>Hello World</a>", translation
+    assert_dom_equal "<a>Hello World</a>", translation
     assert_equal true, translation.html_safe?
   end
 
@@ -295,7 +298,7 @@ class TranslationHelperTest < ActiveSupport::TestCase
   def test_translate_does_not_mark_unsourced_string_default_as_html_safe
     untrusted_string = "<script>alert()</script>"
     translation = translate(:"translations.missing", default: [:"translations.missing_html", untrusted_string])
-    assert_equal untrusted_string, translation
+    assert_dom_equal untrusted_string, translation
     assert_not_predicate translation, :html_safe?
   end
 
@@ -402,8 +405,8 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal "Foo", translate(:"translations.foo")
 
     expected = '<span class="translation_missing" title="translation missing: en.translations.missing">Missing</span>'
-    assert_equal expected, translate(:"translations.missing")
-    assert_equal expected, translate(:"translations.missing") # returns cached translation
+    assert_dom_equal expected, translate(:"translations.missing")
+    assert_dom_equal expected, translate(:"translations.missing") # returns cached translation
   ensure
     I18n.backend = previous_backend
     I18n.cache_store = previous_cache_store

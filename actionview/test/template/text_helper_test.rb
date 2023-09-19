@@ -28,58 +28,58 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_simple_format
-    assert_equal "<p></p>", simple_format(nil)
+    assert_dom_equal "<p></p>", simple_format(nil)
 
-    assert_equal "<p>ridiculous\n<br /> cross\n<br /> platform linebreaks</p>", simple_format("ridiculous\r\n cross\r platform linebreaks")
-    assert_equal "<p>A paragraph</p>\n\n<p>and another one!</p>", simple_format("A paragraph\n\nand another one!")
-    assert_equal "<p>A paragraph\n<br /> With a newline</p>", simple_format("A paragraph\n With a newline")
+    assert_dom_equal "<p>ridiculous\n<br /> cross\n<br /> platform linebreaks</p>", simple_format("ridiculous\r\n cross\r platform linebreaks")
+    assert_dom_equal "<p>A paragraph</p>\n\n<p>and another one!</p>", simple_format("A paragraph\n\nand another one!")
+    assert_dom_equal "<p>A paragraph\n<br /> With a newline</p>", simple_format("A paragraph\n With a newline")
 
     text = "A\nB\nC\nD"
-    assert_equal "<p>A\n<br />B\n<br />C\n<br />D</p>", simple_format(text)
+    assert_dom_equal "<p>A\n<br />B\n<br />C\n<br />D</p>", simple_format(text)
 
     text = "A\r\n  \nB\n\n\r\n\t\nC\nD"
-    assert_equal "<p>A\n<br />  \n<br />B</p>\n\n<p>\t\n<br />C\n<br />D</p>", simple_format(text)
+    assert_dom_equal "<p>A\n<br />  \n<br />B</p>\n\n<p>\t\n<br />C\n<br />D</p>", simple_format(text)
 
-    assert_equal '<p class="test">This is a classy test</p>', simple_format("This is a classy test", class: "test")
-    assert_equal %Q(<p class="test">para 1</p>\n\n<p class="test">para 2</p>), simple_format("para 1\n\npara 2", class: "test")
+    assert_dom_equal '<p class="test">This is a classy test</p>', simple_format("This is a classy test", class: "test")
+    assert_dom_equal %Q(<p class="test">para 1</p>\n\n<p class="test">para 2</p>), simple_format("para 1\n\npara 2", class: "test")
   end
 
   def test_simple_format_should_sanitize_input_when_sanitize_option_is_not_false
-    assert_equal "<p><b> test with unsafe string </b>code!</p>", simple_format("<b> test with unsafe string </b><script>code!</script>")
+    assert_dom_equal "<p><b> test with unsafe string </b>code!</p>", simple_format("<b> test with unsafe string </b><script>code!</script>")
   end
 
   def test_simple_format_should_sanitize_input_when_sanitize_option_is_true
-    assert_equal "<p><b> test with unsafe string </b>code!</p>",
+    assert_dom_equal "<p><b> test with unsafe string </b>code!</p>",
       simple_format("<b> test with unsafe string </b><script>code!</script>", {}, { sanitize: true })
   end
 
   def test_simple_format_should_sanitize_input_when_sanitize_options_is_specified
-    assert_equal "<p><a target=\"_blank\" href=\"http://example.com\">Continue</a></p>",
+    assert_dom_equal "<p><a target=\"_blank\" href=\"http://example.com\">Continue</a></p>",
       simple_format("<a target=\"_blank\" href=\"http://example.com\">Continue</a>", {}, { sanitize_options: { attributes: %w[target href] } })
   end
 
   def test_simple_format_should_sanitize_input_when_sanitize_options_is_not_specified
-    assert_equal "<p><a href=\"http://example.com\">Continue</a></p>", simple_format("<a target=\"_blank\" href=\"http://example.com\">Continue</a>")
+    assert_dom_equal "<p><a href=\"http://example.com\">Continue</a></p>", simple_format("<a target=\"_blank\" href=\"http://example.com\">Continue</a>")
   end
 
   def test_simple_format_should_not_sanitize_input_when_sanitize_option_is_false
-    assert_equal "<p><b> test with unsafe string </b><script>code!</script></p>", simple_format("<b> test with unsafe string </b><script>code!</script>", {}, { sanitize: false })
+    assert_dom_equal "<p><b> test with unsafe string </b><script>code!</script></p>", simple_format("<b> test with unsafe string </b><script>code!</script>", {}, { sanitize: false })
   end
 
   def test_simple_format_with_custom_wrapper
-    assert_equal "<div></div>", simple_format(nil, {}, { wrapper_tag: "div" })
-    assert_equal "<p></p>", simple_format(nil, {}, { wrapper_tag: nil })
+    assert_dom_equal "<div></div>", simple_format(nil, {}, { wrapper_tag: "div" })
+    assert_dom_equal "<p></p>", simple_format(nil, {}, { wrapper_tag: nil })
   end
 
   def test_simple_format_with_custom_wrapper_and_multi_line_breaks
-    assert_equal "<div>We want to put a wrapper...</div>\n\n<div>...right there.</div>", simple_format("We want to put a wrapper...\n\n...right there.", {}, { wrapper_tag: "div" })
+    assert_dom_equal "<div>We want to put a wrapper...</div>\n\n<div>...right there.</div>", simple_format("We want to put a wrapper...\n\n...right there.", {}, { wrapper_tag: "div" })
   end
 
   def test_simple_format_should_not_change_the_text_passed
     text = "<b>Ok</b><script>code!</script>"
     text_clone = text.dup
     simple_format(text)
-    assert_equal text_clone, text
+    assert_dom_equal text_clone, text
   end
 
   def test_simple_format_does_not_modify_the_html_options_hash
@@ -128,7 +128,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_truncate_with_link_options
-    assert_equal "Here is a long test and ...<a href=\"#\">Continue</a>",
+    assert_dom_equal "Here is a long test and ...<a href=\"#\">Continue</a>",
     truncate("Here is a long test and I need a continue to read link", length: 27) { link_to "Continue", "#" }
   end
 
@@ -137,11 +137,11 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_truncate_should_escape_the_input
-    assert_equal "Hello &lt;sc...", truncate("Hello <script>code!</script>World!!", length: 12)
+    assert_dom_equal "Hello &lt;sc...", truncate("Hello <script>code!</script>World!!", length: 12)
   end
 
   def test_truncate_should_not_escape_the_input_with_escape_false
-    assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!!", length: 12, escape: false)
+    assert_dom_equal "Hello <sc...", truncate("Hello <script>code!</script>World!!", length: 12, escape: false)
   end
 
   def test_truncate_with_escape_false_should_be_html_safe
@@ -155,12 +155,12 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_truncate_with_block_should_escape_the_input
-    assert_equal "&lt;script&gt;code!&lt;/script&gt;He...<a href=\"#\">Continue</a>",
+    assert_dom_equal "&lt;script&gt;code!&lt;/script&gt;He...<a href=\"#\">Continue</a>",
       truncate("<script>code!</script>Here's a long test and I need a continue to read link", length: 27) { link_to "Continue", "#" }
   end
 
   def test_truncate_with_block_should_not_escape_the_input_with_escape_false
-    assert_equal "<script>code!</script>He...<a href=\"#\">Continue</a>",
+    assert_dom_equal "<script>code!</script>He...<a href=\"#\">Continue</a>",
       truncate("<script>code!</script>Here's a long test and I need a continue to read link", length: 27, escape: false) { link_to "Continue", "#" }
   end
 
@@ -170,7 +170,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_truncate_with_block_should_escape_the_block
-    assert_equal "Here is a long test and ...&lt;script&gt;alert(&#39;foo&#39;);&lt;/script&gt;",
+    assert_dom_equal "Here is a long test and ...&lt;script&gt;alert(&#39;foo&#39;);&lt;/script&gt;",
       truncate("Here is a long test and I need a continue to read link", length: 27) { "<script>alert('foo');</script>" }
   end
 
@@ -179,17 +179,17 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_highlight
-    assert_equal(
+    assert_dom_equal(
       "This is a <mark>beautiful</mark> morning",
       highlight("This is a beautiful morning", "beautiful")
     )
 
-    assert_equal(
+    assert_dom_equal(
       "This is a <mark>beautiful</mark> morning, but also a <mark>beautiful</mark> day",
       highlight("This is a beautiful morning, but also a beautiful day", "beautiful")
     )
 
-    assert_equal(
+    assert_dom_equal(
       "This is a <b>beautiful</b> morning, but also a <b>beautiful</b> day",
       highlight("This is a beautiful morning, but also a beautiful day", "beautiful", highlighter: '<b>\1</b>')
     )
@@ -209,67 +209,67 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_highlight_should_sanitize_input
-    assert_equal(
+    assert_dom_equal(
       "This is a <mark>beautiful</mark> morningcode!",
       highlight("This is a beautiful morning<script>code!</script>", "beautiful")
     )
   end
 
   def test_highlight_should_not_sanitize_if_sanitize_option_if_false
-    assert_equal(
+    assert_dom_equal(
       "This is a <mark>beautiful</mark> morning<script>code!</script>",
       highlight("This is a beautiful morning<script>code!</script>", "beautiful", sanitize: false)
     )
   end
 
   def test_highlight_with_regexp
-    assert_equal(
+    assert_dom_equal(
       "This is a <mark>beautiful!</mark> morning",
       highlight("This is a beautiful! morning", "beautiful!")
     )
 
-    assert_equal(
+    assert_dom_equal(
       "This is a <mark>beautiful! morning</mark>",
       highlight("This is a beautiful! morning", "beautiful! morning")
     )
 
-    assert_equal(
+    assert_dom_equal(
       "This is a <mark>beautiful? morning</mark>",
       highlight("This is a beautiful? morning", "beautiful? morning")
     )
   end
 
   def test_highlight_accepts_regexp
-    assert_equal("This day was challenging for judge <mark>Allen</mark> and his colleagues.",
+    assert_dom_equal("This day was challenging for judge <mark>Allen</mark> and his colleagues.",
                  highlight("This day was challenging for judge Allen and his colleagues.", /\ballen\b/i))
   end
 
   def test_highlight_with_multiple_phrases_in_one_pass
-    assert_equal %(<em>wow</em> <em>em</em>), highlight("wow em", %w(wow em), highlighter: '<em>\1</em>')
+    assert_dom_equal %(<em>wow</em> <em>em</em>), highlight("wow em", %w(wow em), highlighter: '<em>\1</em>')
   end
 
   def test_highlight_with_html
-    assert_equal(
+    assert_dom_equal(
       "<p>This is a <mark>beautiful</mark> morning, but also a <mark>beautiful</mark> day</p>",
       highlight("<p>This is a beautiful morning, but also a beautiful day</p>", "beautiful")
     )
-    assert_equal(
+    assert_dom_equal(
       "<p>This is a <em><mark>beautiful</mark></em> morning, but also a <mark>beautiful</mark> day</p>",
       highlight("<p>This is a <em>beautiful</em> morning, but also a beautiful day</p>", "beautiful")
     )
-    assert_equal(
+    assert_dom_equal(
       "<p>This is a <em class=\"error\"><mark>beautiful</mark></em> morning, but also a <mark>beautiful</mark> <span class=\"last\">day</span></p>",
       highlight("<p>This is a <em class=\"error\">beautiful</em> morning, but also a beautiful <span class=\"last\">day</span></p>", "beautiful")
     )
-    assert_equal(
+    assert_dom_equal(
       "<p class=\"beautiful\">This is a <mark>beautiful</mark> morning, but also a <mark>beautiful</mark> day</p>",
       highlight("<p class=\"beautiful\">This is a beautiful morning, but also a beautiful day</p>", "beautiful")
     )
-    assert_equal(
+    assert_dom_equal(
       "<p>This is a <mark>beautiful</mark> <a href=\"http://example.com/beautiful#top?what=beautiful%20morning&amp;when=now+then\">morning</a>, but also a <mark>beautiful</mark> day</p>",
       highlight("<p>This is a beautiful <a href=\"http://example.com/beautiful\#top?what=beautiful%20morning&when=now+then\">morning</a>, but also a beautiful day</p>", "beautiful")
     )
-    assert_equal(
+    assert_dom_equal(
       "<div>abc <b>div</b></div>",
       highlight("<div>abc div</div>", "div", highlighter: '<b>\1</b>')
     )
@@ -283,7 +283,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_highlight_with_block
-    assert_equal(
+    assert_dom_equal(
       "<b>one</b> <b>two</b> <b>three</b>",
       highlight("one two three", ["one", "two", "three"]) { |word| "<b>#{word}</b>" }
     )

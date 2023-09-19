@@ -22,7 +22,7 @@ end
 
 class PeopleHelperTest < ActionView::TestCase
   def test_title
-    assert_equal "<h1>Ruby on Rails</h1>", title("Ruby on Rails")
+    assert_dom_equal "<h1>Ruby on Rails</h1>", title("Ruby on Rails")
   end
 
   def test_homepage_path
@@ -53,7 +53,7 @@ class PeopleHelperTest < ActionView::TestCase
           "/people/1"
         }
       }
-      assert_equal '<a href="/people/1">David</a>', link_to_person(person)
+      assert_dom_equal '<a href="/people/1">David</a>', link_to_person(person)
       assert_equal person, the_model
     end
   end

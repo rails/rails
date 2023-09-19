@@ -2,10 +2,14 @@
 
 require "abstract_unit"
 
+require "rails-dom-testing"
+
 class TestController < ActionController::Base
 end
 
 class SetupFiberedBase < ActiveSupport::TestCase
+  include Rails::Dom::Testing::Assertions
+
   def setup
     ActionView::LookupContext::DetailsKey.clear
 
@@ -39,51 +43,51 @@ class FiberedTest < SetupFiberedBase
       content << piece
     end
 
-    assert_equal "<title>",      content[0]
-    assert_equal "",             content[1]
-    assert_equal "</title>\n",   content[2]
-    assert_equal "Hello world!", content[3]
-    assert_equal "\n",           content[4]
+    assert_dom_equal "<title>",      content[0]
+    assert_dom_equal "",             content[1]
+    assert_dom_equal "</title>\n",   content[2]
+    assert_dom_equal "Hello world!", content[3]
+    assert_dom_equal "\n",           content[4]
   end
 
   def test_render_file
-    assert_equal "Hello world!", buffered_render(file: File.absolute_path("../fixtures/test/hello_world.erb", __dir__))
+    assert_dom_equal "Hello world!", buffered_render(file: File.absolute_path("../fixtures/test/hello_world.erb", __dir__))
   end
 
   def test_render_partial
-    assert_equal "only partial", buffered_render(partial: "test/partial_only")
+    assert_dom_equal "only partial", buffered_render(partial: "test/partial_only")
   end
 
   def test_render_inline
-    assert_equal "Hello, World!", buffered_render(inline: "Hello, World!")
+    assert_dom_equal "Hello, World!", buffered_render(inline: "Hello, World!")
   end
 
   def test_render_without_layout
-    assert_equal "Hello world!", buffered_render(template: "test/hello_world")
+    assert_dom_equal "Hello world!", buffered_render(template: "test/hello_world")
   end
 
   def test_render_with_layout
-    assert_equal %(<title></title>\nHello world!\n),
+    assert_dom_equal %(<title></title>\nHello world!\n),
       buffered_render(template: "test/hello_world", layout: "layouts/yield")
   end
 
   def test_render_with_layout_which_has_render_inline
-    assert_equal %(welcome\nHello world!\n),
+    assert_dom_equal %(welcome\nHello world!\n),
       buffered_render(template: "test/hello_world", layout: "layouts/yield_with_render_inline_inside")
   end
 
   def test_render_with_layout_which_renders_another_partial
-    assert_equal %(partial html\nHello world!\n),
+    assert_dom_equal %(partial html\nHello world!\n),
       buffered_render(template: "test/hello_world", layout: "layouts/yield_with_render_partial_inside")
   end
 
   def test_render_with_nested_layout
-    assert_equal %(<title>title</title>\n\n<div id="column">column</div>\n<div id="content">content</div>\n),
+    assert_dom_equal %(<title>title</title>\n\n<div id="column">column</div>\n<div id="content">content</div>\n),
       buffered_render(template: "test/nested_layout", layout: "layouts/yield")
   end
 
   def test_render_with_file_in_layout
-    assert_equal %(\n<title>title</title>\n\n),
+    assert_dom_equal %(\n<title>title</title>\n\n),
       buffered_render(template: "test/layout_render_file")
   end
 
