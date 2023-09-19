@@ -13,6 +13,10 @@ require "models/strict_zine"
 require "models/interest"
 require "models/treasure"
 require "models/pirate"
+require "models/post"
+require "models/person"
+require "models/reader"
+require "models/comment"
 
 class StrictLoadingTest < ActiveRecord::TestCase
   fixtures :developers, :developers_projects, :projects, :ships
@@ -292,6 +296,24 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_strict_loading_with_has_many_through_twice
+    person = Person.create!(first_name: "John")
+    post = Post.create!(title: "Hello", body: "world")
+    Reader.create!(post: post, person: person)
+    Comment.create!(post: post, body: "Comment")
+    relation = Person.preload(:posts, posts: :comments)
+
+    person = relation.first
+    assert_not_predicate person, :strict_loading?
+    assert_predicate person.association(:posts), :loaded?
+    assert_predicate person.posts.first.association(:comments), :loaded?
+
+    person = relation.strict_loading.first
+    assert_predicate person, :strict_loading?
+    assert_predicate person.association(:posts), :loaded?
+    assert_predicate person.posts.first.association(:comments), :loaded?
+  end
+
   def test_strict_loading_with_has_one_through_does_not_prevent_creation_of_association
     firm = Firm.new(name: "SuperFirm").tap(&:strict_loading!)
     computer = Computer.new(extendedWarranty: 1).tap(&:strict_loading!)
@@ -304,7 +326,6 @@ class StrictLoadingTest < ActiveRecord::TestCase
       computer.save!
     end
   end
-
 
   def test_preload_audit_logs_are_strict_loading_because_parent_is_strict_loading
     developer = Developer.first

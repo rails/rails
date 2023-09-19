@@ -119,6 +119,19 @@ module ActiveRecord
       assert_not_predicate FirstPost.all, :empty_scope?
     end
 
+    def test_empty_scope_or_only_strict_loading
+      relation = Relation.new(Post)
+      assert_predicate relation, :empty_scope_or_only_strict_loading?
+      assert_predicate relation.strict_loading, :empty_scope_or_only_strict_loading?
+
+      relation.merge!(relation)
+      assert_predicate relation, :empty_scope_or_only_strict_loading?
+      assert_predicate relation.strict_loading, :empty_scope_or_only_strict_loading?
+
+      assert_not_predicate NullPost.strict_loading.all, :empty_scope_or_only_strict_loading?
+      assert_not_predicate FirstPost.strict_loading.all, :empty_scope_or_only_strict_loading?
+    end
+
     def test_bad_constants_raise_errors
       assert_raises(NameError) do
         ActiveRecord::Relation::HelloWorld

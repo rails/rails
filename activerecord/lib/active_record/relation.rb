@@ -841,6 +841,10 @@ module ActiveRecord
       @values == klass.unscoped.values
     end
 
+    def empty_scope_or_only_strict_loading? # :nodoc:
+      empty_scope? || @values == klass.unscoped.strict_loading.values
+    end
+
     def has_limit_or_offset? # :nodoc:
       limit_value || offset_value
     end
@@ -851,6 +855,10 @@ module ActiveRecord
 
     class StrictLoadingScope # :nodoc:
       def self.empty_scope?
+        true
+      end
+
+      def empty_scope_or_only_strict_loading? # :nodoc:
         true
       end
 

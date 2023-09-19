@@ -106,7 +106,7 @@ module ActiveRecord
           @reflection    = reflection
           @preload_scope = preload_scope
           @reflection_scope = reflection_scope
-          @associate     = associate_by_default || !preload_scope || preload_scope.empty_scope?
+          @associate     = associate_by_default || !preload_scope || preload_scope.empty_scope_or_only_strict_loading?
           @model         = owners.first && owners.first.class
           @run = false
         end
