@@ -792,7 +792,6 @@ class UserMailer < ApplicationMailer
   end
 
   private
-
     def mark_delivered
       params[:feedback].touch(:delivered_at)
     end
