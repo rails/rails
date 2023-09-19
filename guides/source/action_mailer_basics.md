@@ -777,7 +777,39 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-* You could use an `after_delivery` to record the delivery of the message.
+* You could use an `after_deliver` to record the delivery of the message. It
+  also allows observer/interceptor-like behaviors, but with access to the full
+  mailer context.
+
+```ruby
+class UserMailer < ApplicationMailer
+  after_deliver :mark_delivered
+  before_deliver :sandbox_staging
+  after_deliver :observe_delivery
+
+  def feedback_message
+    @feedback = params[:feedback]
+  end
+
+  private
+
+    def mark_delivered
+      params[:feedback].touch(:delivered_at)
+    end
+
+    # An Interceptor alternative.
+    def sandbox_staging
+      message.to = ['sandbox@example.com'] if Rails.env.staging?
+    end
+
+    # A callback has more context than the comparable Observer example.
+    def observe_delivery
+      EmailDelivery.log(message, self.class, action_name, params)
+    end
+end
+```
+
+
 
 * Mailer callbacks abort further processing if body is set to a non-nil value. `before_deliver` can abort with `throw :abort`.
 
