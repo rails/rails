@@ -366,7 +366,7 @@
       ```ruby
       travel_to Time.new(2004, 11, 24) do
         # Inside the `travel_to` block `Time.new` is stubbed
-        assert_equal Time.new.year, 2004
+        assert_equal 2004, Time.new.year
       end
       ```
 
@@ -434,7 +434,7 @@
     string.slice!(0, 1).html_safe? # => true
     # maintain html_safe? after the slice!
     string.html_safe? # => true
-    string.chr # => true
+    string.chr.html_safe? # => true
     ```
 
     *Michael Go*
