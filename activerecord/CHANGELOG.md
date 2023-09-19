@@ -1,3 +1,12 @@
+*   Support insert returning clause for MariaDB
+
+    INSERT RETURNING [have supported](https://mariadb.com/kb/en/insertreturning/) starting with 10.5.0.
+
+    Now you can use returning with MariaDB the same way as with PostgreSQL
+    in ActiveRecord::Persistence insert methods.
+
+    *Nikolay Kondratyev*
+
 ## Rails 7.1.0.beta1 (September 13, 2023) ##
 
 *   Encryption now supports `support_unencrypted_data` being set per-attribute.
