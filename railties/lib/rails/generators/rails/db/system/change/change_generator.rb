@@ -40,14 +40,41 @@ module Rails
             gsub_file("Gemfile", gem_entry_regex_for(name), gem_entry_for(name, *version))
           end
 
+          def edit_dockerfile
+            build_name = docker_for_database_build
+            deploy_name = docker_for_database_deploy
+            if build_name
+              gsub_file("Dockerfile", all_docker_builds_regex, build_name)
+            end
+            if deploy_name
+              gsub_file("Dockerfile", all_docker_deploys_regex, deploy_name)
+            end
+          end
+
           private
             def all_database_gems
               DATABASES.map { |database| gem_for_database(database) }
             end
 
+            def all_docker_builds
+              DATABASES.map { |database| docker_for_database_build(database).nil? ? nil : docker_for_database_build(database) }.compact!
+            end
+
+            def all_docker_deploys
+              DATABASES.map { |database| docker_for_database_deploy(database).nil? ? nil : docker_for_database_deploy(database) }.compact!
+            end
+
             def all_database_gems_regex
               all_database_gem_names = all_database_gems.map(&:first)
               /(\b#{all_database_gem_names.join('\b|\b')}\b)/
+            end
+
+            def all_docker_builds_regex
+              /(\b#{all_docker_builds.join('\b|\b')}\b)/
+            end
+
+            def all_docker_deploys_regex
+              /(\b#{all_docker_deploys.join('\b|\b')}\b)/
             end
 
             def gem_entry_regex_for(gem_name)

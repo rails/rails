@@ -27,6 +27,26 @@ module Rails
         end
       end
 
+      def docker_for_database_build(database = options[:database])
+        case database
+        when "mysql"          then "build-essential default-libmysqlclient-dev git"
+        when "trilogy"        then "build-essential default-libmysqlclient-dev git"
+        when "postgresql"     then "build-essential git libpq-dev"
+        when "sqlite3"        then "build-essential git"
+        else nil
+        end
+      end
+
+      def docker_for_database_deploy(database = options[:database])
+        case database
+        when "mysql"          then "curl default-mysql-client libvips"
+        when "trilogy"        then "curl default-mysql-client libvips"
+        when "postgresql"     then "curl libvips postgresql-client"
+        when "sqlite3"        then "curl libsqlite3-0 libvips"
+        else nil
+        end
+      end
+
       def convert_database_option_for_jruby
         if defined?(JRUBY_VERSION)
           opt = options.dup

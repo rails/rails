@@ -15,6 +15,8 @@ module Rails
               # Use sqlite3 as the database for Active Record
               gem 'sqlite3'
             ENTRY
+
+            copy_dockerfile
           end
 
           test "change to invalid database" do
@@ -43,6 +45,11 @@ module Rails
               assert_match "# Use pg as the database for Active Record", content
               assert_match 'gem "pg", "~> 1.1"', content
             end
+
+            assert_file("Dockerfile") do |content|
+              assert_match "build-essential git libpq-dev", content
+              assert_match "curl libvips postgresql-client", content
+            end
           end
 
           test "change to mysql" do
@@ -57,6 +64,11 @@ module Rails
               assert_match "# Use mysql2 as the database for Active Record", content
               assert_match 'gem "mysql2", "~> 0.5"', content
             end
+
+            assert_file("Dockerfile") do |content|
+              assert_match "build-essential default-libmysqlclient-dev git", content
+              assert_match "curl default-mysql-client libvips", content
+            end
           end
 
           test "change to sqlite3" do
@@ -70,6 +82,11 @@ module Rails
             assert_file("Gemfile") do |content|
               assert_match "# Use sqlite3 as the database for Active Record", content
               assert_match 'gem "sqlite3", "~> 1.4"', content
+            end
+
+            assert_file("Dockerfile") do |content|
+              assert_match "build-essential git libvips", content
+              assert_match "curl libsqlite3-0 libvips", content
             end
           end
 

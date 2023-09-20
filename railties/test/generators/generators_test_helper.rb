@@ -5,6 +5,7 @@ require "active_support/testing/stream"
 require "active_support/testing/method_call_assertions"
 require "rails/generators"
 require "rails/generators/test_case"
+require "rails/generators/app_base"
 
 Rails.application.config.generators.templates = [File.expand_path("../fixtures/lib/templates", __dir__)]
 
@@ -73,6 +74,13 @@ module GeneratorsTestHelper
     File.write File.join(destination, "Gemfile"), gemfile
   end
 
+  def copy_dockerfile
+    dockerfile = File.expand_path("../fixtures/Dockerfile.test", __dir__)
+    dockerfile = evaluate_template_docker(dockerfile)
+    destination = File.join(destination_root)
+    File.write File.join(destination, "Dockerfile"), dockerfile
+  end
+
   def evaluate_template(file, locals = {})
     erb = ERB.new(File.read(file), trim_mode: "-", eoutvar: "@output_buffer")
     context = Class.new do
@@ -81,6 +89,11 @@ module GeneratorsTestHelper
       end
     end
     erb.result(context.new.instance_eval("binding"))
+  end
+
+  def evaluate_template_docker(file)
+    erb = ERB.new(File.read(file), trim_mode: "-", eoutvar: "@output_buffer")
+    erb.result()
   end
 
   private
