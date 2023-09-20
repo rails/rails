@@ -1,3 +1,10 @@
+*   Fix variants not included when eager loading multiple records containing a single attachment
+
+    When using the `with_attached_#{name}` scope for a `has_one_attached` relation,
+    attachment variants were not eagerly loaded.
+
+    *Russell Porter*
+
 ## Rails 7.0.8 (September 09, 2023) ##
 
 *   No changes.
