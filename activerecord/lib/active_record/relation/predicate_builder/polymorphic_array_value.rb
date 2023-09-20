@@ -34,19 +34,17 @@ module ActiveRecord
         end
 
         def klass(value)
-          case value
-          when Base
+          if value.is_a?(Base)
             value.class
-          when Relation
+          elsif value.is_a?(Relation)
             value.klass
           end
         end
 
         def convert_to_id(value)
-          case value
-          when Base
+          if value.is_a?(Base)
             value._read_attribute(primary_key(value))
-          when Relation
+          elsif value.is_a?(Relation)
             value.select(primary_key(value))
           else
             value
