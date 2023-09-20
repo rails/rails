@@ -1,3 +1,11 @@
+*   Add `bigdecimal` as Active Support dependency that is a bundled gem candidate for Ruby 3.4.
+
+    `bigdecimal` 3.1.4 or higher version will be installed.
+    Ruby 2.7 and 3.0 users who want `bigdecimal` version 2.0.0 or 3.0.0 behavior as a default gem,
+    pin the `bigdecimal` version in your application Gemfile.
+
+    *Koichi ITO*
+
 *   Add `drb`, `mutex_m` and `base64` that are bundled gem candidates for Ruby 3.4
 
     *Yasuo Honda*
