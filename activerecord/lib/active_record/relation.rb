@@ -516,19 +516,11 @@ module ActiveRecord
     end
 
     def update(id = :all, attributes) # :nodoc:
-      if id == :all
-        each { |record| record.update(attributes) }
-      else
-        klass.update(id, attributes)
-      end
+      _update_each(:update, id, attributes) { |record, attributes| record.update(attributes) }
     end
 
     def update!(id = :all, attributes) # :nodoc:
-      if id == :all
-        each { |record| record.update!(attributes) }
-      else
-        klass.update!(id, attributes)
-      end
+      _update_each(:update!, id, attributes) { |record, attributes| record.update!(attributes) }
     end
 
     # Updates the counters of the records in the current relation.
@@ -982,6 +974,32 @@ module ActiveRecord
           else
             klass._query_by_sql(arel, async: async)
           end
+        end
+      end
+
+      def _update_each(method_name, id, attributes, &block)
+        # Took from ActiveRecord::Persistence
+        if id.respond_to?(:map) && id.respond_to?(:any?)
+          if id.any?(ActiveRecord::Base)
+            raise ArgumentError,
+              "You are passing an array of ActiveRecord::Base instances to `#{method_name}`. " \
+              "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`."
+          end
+
+          id.map { |one_id| find(one_id) }.each_with_index { |record, idx|
+            block.call(record, attributes[idx])
+          }
+        elsif id == :all
+          each { |record| block.call(record, attributes) }
+        else
+          if ActiveRecord::Base === id
+            raise ArgumentError,
+              "You are passing an instance of ActiveRecord::Base to `#{method_name}`. " \
+              "Please pass the id of the object by calling `.id`."
+          end
+
+          record = find(id)
+          block.call(record, attributes)
         end
       end
 
