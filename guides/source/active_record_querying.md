@@ -1754,14 +1754,39 @@ some associations. To make sure no associations are lazy loaded you can enable
 
 By enabling strict loading mode on a relation, an
 `ActiveRecord::StrictLoadingViolationError` will be raised if the record tries
-to lazily load an association:
+to lazily load any association:
 
 ```ruby
 user = User.strict_loading.first
+user.address.city # raises an ActiveRecord::StrictLoadingViolationError
 user.comments.to_a # raises an ActiveRecord::StrictLoadingViolationError
 ```
 
 [`strict_loading`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-strict_loading
+
+### `strict_loading!`
+
+We can also enable strict loading on the record itself by calling [`strict_loading!`][]:
+
+```ruby
+user = User.first
+user.strict_loading!
+user.address.city # raises an ActiveRecord::StrictLoadingViolationError
+user.comments.to_a # raises an ActiveRecord::StrictLoadingViolationError
+```
+
+`strict_loading!` also takes a `:mode` argument. Setting it to `:n_plus_one_only`
+will only raise an error if an association that will lead to an N + 1 query is
+lazily loaded:
+
+```ruby
+user.strict_loading!(mode: :n_plus_one_only)
+user.address.city # => "Tatooine"
+user.comments.to_a # => [#<Comment:0x00...]
+user.comments.first.likes.to_a # raises an ActiveRecord::StrictLoadingViolationError
+```
+
+[`strict_loading!`]: https://api.rubyonrails.org/classes/ActiveRecord/Core.html#method-i-strict_loading-21
 
 Scopes
 ------
