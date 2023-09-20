@@ -1,3 +1,14 @@
+*   Ensure the SQLite3 adapter handles default functions with the `||` concatenation operator
+
+    Previously, this default function would produce the static string `"'Ruby ' || 'on ' || 'Rails'"`.
+    Now, the adapter will appropriately receive and use `"Ruby on Rails"`.
+
+    ```ruby
+    change_column_default "test_models", "ruby_on_rails", -> { "('Ruby ' || 'on ' || 'Rails')" }
+    ```
+
+    *Stephen Margheim*
+
 *   Dump PostgreSQL schemas as part of the schema dump.
 
     *Lachlan Sylvester*

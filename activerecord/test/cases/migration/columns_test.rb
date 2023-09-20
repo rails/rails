@@ -311,6 +311,15 @@ module ActiveRecord
         assert_equal "CURRENT_TIMESTAMP", TestModel.columns_hash["edited_at"].default_function
       end
 
+      def test_change_column_default_supports_default_function_with_concatenation_operator
+        skip unless current_adapter?(:SQLite3Adapter)
+
+        add_column "test_models", "ruby_on_rails", :string
+        connection.change_column_default "test_models", "ruby_on_rails", -> { "('Ruby ' || 'on ' || 'Rails')" }
+        TestModel.reset_column_information
+        assert_equal "'Ruby ' || 'on ' || 'Rails'", TestModel.columns_hash["ruby_on_rails"].default_function
+      end
+
       def test_change_column_null_false
         add_column "test_models", "first_name", :string
         connection.change_column_null "test_models", "first_name", false
