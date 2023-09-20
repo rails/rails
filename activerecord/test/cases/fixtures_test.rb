@@ -1324,7 +1324,8 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   self.use_transactional_tests = false
   fixtures :parrots, :parrots_pirates, :pirates, :treasures, :mateys, :ships, :computers,
-           :developers, :"admin/accounts", :"admin/users", :live_parrots, :dead_parrots, :books
+           :developers, :"admin/accounts", :"admin/users", :live_parrots, :dead_parrots, :books,
+           :courses, :bulbs
 
   if current_adapter?(:PostgreSQLAdapter)
     require "models/uuid_parent"
@@ -1347,6 +1348,15 @@ class FoxyFixturesTest < ActiveRecord::TestCase
 
     assert_equal "f92b6bda-0d0d-5fe1-9124-502b18badded", ActiveRecord::FixtureSet.identify(:daddy, :uuid)
     assert_equal "b4b10018-ad47-595d-b42f-d8bdaa6d01bf", ActiveRecord::FixtureSet.identify(:sonny, :uuid)
+  end
+
+  def test_label_of_pk_returns_fixture_label
+    assert_nil ActiveRecord::FixtureSet.label_of(nil)
+    assert_nil ActiveRecord::FixtureSet.label_of(Course.new)
+    assert_equal :ruby, ActiveRecord::FixtureSet.label_of(courses(:ruby))
+    assert_equal :ruby, ActiveRecord::FixtureSet.label_of(treasures(:ruby))
+    assert_equal 1, ActiveRecord::FixtureSet.label_of(pirates(1))
+    assert_equal :special, ActiveRecord::FixtureSet.label_of(bulbs(:special)) # ID primary key
   end
 
   TIMESTAMP_COLUMNS = %w(created_at created_on updated_at updated_on)
@@ -1863,6 +1873,16 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
       assert_equal id, id_hash_two.values.first
       assert_equal id, id_hash_three.values.first
       assert_equal id_hash_two.values, id_hash_three.values.slice(0, 2)
+    end
+
+    def test_label_of_composite_pk_returns_fixture_label
+      assert_nil ActiveRecord::FixtureSet.label_of(Cpk::Order.new)
+      assert_equal :cpk_great_author_first_book, ActiveRecord::FixtureSet.label_of(cpk_books(:cpk_great_author_first_book))
+      assert_equal :cpk_great_author, ActiveRecord::FixtureSet.label_of(cpk_authors(:cpk_great_author))
+      assert_equal :cpk_groceries_order_1, ActiveRecord::FixtureSet.label_of(cpk_orders(:cpk_groceries_order_1))
+      assert_equal :first_book_review, ActiveRecord::FixtureSet.label_of(cpk_reviews(:first_book_review))
+      assert_equal :cpk_book_with_generated_pk, ActiveRecord::FixtureSet.label_of(cpk_books(:cpk_book_with_generated_pk))
+      assert_equal :second_book_review_for_book_with_partial_pk_defined, ActiveRecord::FixtureSet.label_of(cpk_reviews(:second_book_review_for_book_with_partial_pk_defined))
     end
   end
 end

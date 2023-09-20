@@ -637,6 +637,14 @@ module ActiveRecord
           .with_indifferent_access
       end
 
+      # Returns the fixture label for a given record
+      def label_of(record)
+        return unless record
+
+        primary_key_hash = record.attributes.slice(*record.class.primary_key)
+        fixture_pk_to_label_hash.dig(record.class.table_name, primary_key_hash)
+      end
+
       # Superclass for the evaluation contexts used by \ERB fixtures.
       def context_class
         @context_class ||= Class.new
@@ -705,6 +713,19 @@ module ActiveRecord
 
         def update_all_loaded_fixtures(fixtures_map) # :nodoc:
           all_loaded_fixtures.update(fixtures_map)
+        end
+
+        def fixture_pk_to_label_hash # :nodoc:
+          all_loaded_fixtures.transform_values do |fixture_set|
+            fixture_set.fixtures.to_h do |label, fixture|
+              if fixture.model_class.nil? # case for fk_test_has_pk.yml that has no model class
+                [nil, nil]
+              else
+                model_pk = fixture.model_class.primary_key
+                [fixture.to_h.slice(*model_pk), label.respond_to?(:to_sym) ? label.to_sym : label]
+              end
+            end
+          end
         end
     end
 
