@@ -223,7 +223,12 @@ module ActiveRecord
         with_example_table do
           sql = "INSERT INTO ex (number) VALUES (10)"
           name = "foo"
-          assert_logged [[sql, name, []]] do
+
+          sqlite_version_query = ["SELECT sqlite_version(*)", "SCHEMA", []]
+          pragma_query = ["PRAGMA table_info(\"ex\")", "SCHEMA", []]
+          schema_query = ["SELECT sql FROM (SELECT * FROM sqlite_master UNION ALL SELECT * FROM sqlite_temp_master) WHERE type = 'table' AND name = 'ex'", "SCHEMA", []]
+          modified_insert_query = [(sql + ' RETURNING "id"'), name, []]
+          assert_logged [sqlite_version_query, pragma_query, schema_query, modified_insert_query] do
             @conn.insert(sql, name)
           end
         end
@@ -236,6 +241,32 @@ module ActiveRecord
           id = @conn.insert(sql, nil, nil, idval)
           assert_equal idval, id
         end
+      end
+
+      def test_exec_insert_with_returning_disabled
+        original_conn = @conn
+        @conn = Base.sqlite3_connection database: ":memory:",
+                                       adapter: "sqlite3",
+                                       insert_returning: false
+        with_example_table do
+          result = @conn.exec_insert("insert into ex (number) VALUES ('foo')", nil, [], "id")
+          expect = @conn.query("select max(id) from ex").first.first
+          assert_equal expect.to_i, result.rows.first.first
+        end
+        @conn = original_conn
+      end
+
+      def test_exec_insert_default_values_with_returning_disabled
+        original_conn = @conn
+        @conn = Base.sqlite3_connection database: ":memory:",
+                                       adapter: "sqlite3",
+                                       insert_returning: false
+        with_example_table do
+          result = @conn.exec_insert("insert into ex DEFAULT VALUES", nil, [], "id")
+          expect = @conn.query("select max(id) from ex").first.first
+          assert_equal expect.to_i, result.rows.first.first
+        end
+        @conn = original_conn
       end
 
       def test_select_rows

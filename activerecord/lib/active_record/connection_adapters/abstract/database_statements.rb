@@ -633,7 +633,20 @@ module ActiveRecord
           end
         end
 
-        def sql_for_insert(sql, _pk, binds, _returning)
+        def sql_for_insert(sql, pk, binds, returning) # :nodoc:
+          if supports_insert_returning?
+            if pk.nil?
+              # Extract the table from the insert sql. Yuck.
+              table_ref = extract_table_ref_from_insert_sql(sql)
+              pk = primary_key(table_ref) if table_ref
+            end
+
+            returning_columns = returning || Array(pk)
+
+            returning_columns_statement = returning_columns.map { |c| quote_column_name(c) }.join(", ")
+            sql = "#{sql} RETURNING #{returning_columns_statement}" if returning_columns.any?
+          end
+
           [sql, binds]
         end
 
@@ -655,6 +668,12 @@ module ActiveRecord
             relation.arel
           else
             relation
+          end
+        end
+
+        def extract_table_ref_from_insert_sql(sql)
+          if sql =~ /into\s("[A-Za-z0-9_."\[\]\s]+"|[A-Za-z0-9_."\[\]]+)\s*/im
+            $1.strip
           end
         end
     end
