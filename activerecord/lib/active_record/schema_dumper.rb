@@ -57,6 +57,7 @@ module ActiveRecord
 
     def dump(stream)
       header(stream)
+      schemas(stream)
       extensions(stream)
       types(stream)
       tables(stream)
@@ -117,6 +118,10 @@ module ActiveRecord
 
       # (enum) types are only supported by PostgreSQL
       def types(stream)
+      end
+
+      # schemas are only supported by PostgreSQL
+      def schemas(stream)
       end
 
       def tables(stream)
