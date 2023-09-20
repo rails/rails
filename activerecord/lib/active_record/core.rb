@@ -615,7 +615,9 @@ module ActiveRecord
     #
     #   user = User.first
     #   user.strict_loading! # => true
-    #   user.comments
+    #   user.address.city
+    #   => ActiveRecord::StrictLoadingViolationError
+    #   user.comments.to_a
     #   => ActiveRecord::StrictLoadingViolationError
     #
     # ==== Parameters
@@ -629,12 +631,13 @@ module ActiveRecord
     #
     #   user = User.first
     #   user.strict_loading!(false) # => false
-    #   user.comments
-    #   => #<ActiveRecord::Associations::CollectionProxy>
+    #   user.address.city # => "Tatooine"
+    #   user.comments.to_a # => [#<Comment:0x00...]
     #
     #   user.strict_loading!(mode: :n_plus_one_only)
     #   user.address.city # => "Tatooine"
-    #   user.comments
+    #   user.comments.to_a # => [#<Comment:0x00...]
+    #   user.comments.first.ratings.to_a
     #   => ActiveRecord::StrictLoadingViolationError
     def strict_loading!(value = true, mode: :all)
       unless [:all, :n_plus_one_only].include?(mode)
