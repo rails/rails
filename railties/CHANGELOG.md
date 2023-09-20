@@ -1,3 +1,10 @@
+*   Require `concurrent-ruby` in `config/puma.rb` so that Puma can boot in
+    production when `WEB_CONCURRENCY` is not explicitly specified.
+
+    Fixes #49323.
+
+    *Matt Brictson*
+
 *   Raise error when generating attribute with dangerous name.
 
     The following will now raise an error as `save` and `hash` are already
