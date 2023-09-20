@@ -88,7 +88,7 @@ module Rails
     #   end
     #   Rails.error.report(error)
     def error
-      ActiveSupport.error_reporter
+      @_error = ActiveSupport.error_reporter.tap { |reporter| reporter.production = env.production? }
     end
 
     # Returns all \Rails groups for loading based on:

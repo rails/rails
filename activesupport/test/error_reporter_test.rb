@@ -3,6 +3,7 @@
 require_relative "abstract_unit"
 require "active_support/execution_context/test_helper"
 require "active_support/error_reporter/test_helper"
+require "active_support/core_ext/object/with"
 
 class ErrorReporterTest < ActiveSupport::TestCase
   # ExecutionContext is automatically reset in Rails app via executor hooks set in railtie
@@ -120,6 +121,30 @@ class ErrorReporterTest < ActiveSupport::TestCase
       @reporter.handle(fallback: -> { raise ArgumentError }) do
         raise StandardError
       end
+    end
+  end
+
+  test "#handle outside production raises if production_only is true" do
+    @reporter.with(production: false) do
+      error = StandardError.new("Oh no!")
+
+      assert_raises StandardError, "Oh no!" do
+        @reporter.handle(production_only: true) do
+          raise error
+        end
+      end
+    end
+  end
+
+  test "#handle outside production logs if production_only is false" do
+    @reporter.with(production: false) do
+      error = StandardError.new("Oh no!")
+
+      @reporter.handle(production_only: false) do
+        raise error
+      end
+
+      assert_equal [[error, true, :warning, "application", {}]], @subscriber.events
     end
   end
 

@@ -1,3 +1,10 @@
+*   Introduce `:production_only` flag for `ActiveSupport::ErrorReporter#handle` and `#report`.
+
+    When the flag is true, errors will only be reported in production, and will be raised in non-production
+    environments.
+
+    *Andrew Novoselac*
+
 *   Use Ruby 3.3 Range#overlap? if available
 
     *Yasuo Honda*

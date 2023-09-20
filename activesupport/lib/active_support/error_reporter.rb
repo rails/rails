@@ -27,11 +27,12 @@ module ActiveSupport
     SEVERITIES = %i(error warning info)
     DEFAULT_SOURCE = "application"
 
-    attr_accessor :logger
+    attr_accessor :logger, :production
 
-    def initialize(*subscribers, logger: nil)
+    def initialize(*subscribers, logger: nil, production: true)
       @subscribers = subscribers.flatten
       @logger = logger
+      @production = production
     end
 
     # Evaluates the given block, reporting and swallowing any unhandled error.
@@ -71,11 +72,15 @@ module ActiveSupport
     # * +:source+ - This value is passed along to subscribers to indicate the
     #   source of the error. Subscribers can use this value to ignore certain
     #   errors. Defaults to <tt>"application"</tt>.
-    def handle(*error_classes, severity: :warning, context: {}, fallback: nil, source: DEFAULT_SOURCE)
+    #
+    # * +:production_only+ - When true, this method will only report errors if the
+    #   error reporter is in production mode, otherwise it will raise the error.
+    #   This option is false by default.
+    def handle(*error_classes, severity: :warning, context: {}, fallback: nil, source: DEFAULT_SOURCE, production_only: false)
       error_classes = [StandardError] if error_classes.blank?
       yield
     rescue *error_classes => error
-      report(error, handled: true, severity: severity, context: context, source: source)
+      report(error, handled: true, severity: severity, context: context, source: source, production_only: production_only)
       fallback.call if fallback
     end
 
@@ -169,7 +174,8 @@ module ActiveSupport
     #
     #   Rails.error.report(error)
     #
-    def report(error, handled: true, severity: handled ? :warning : :error, context: {}, source: DEFAULT_SOURCE)
+    def report(error, handled: true, severity: handled ? :warning : :error, context: {}, source: DEFAULT_SOURCE, production_only: false)
+      raise error if production_only && !@production
       return if error.instance_variable_defined?(:@__rails_error_reported)
 
       unless SEVERITIES.include?(severity)
