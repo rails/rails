@@ -174,7 +174,7 @@ module ActiveRecord
           end
 
           def returning_column_values(result)
-            result.rows.first
+            Array(result.rows.first)
           end
 
           def suppress_composite_primary_key(pk)

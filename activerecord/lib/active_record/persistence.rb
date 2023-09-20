@@ -1247,13 +1247,14 @@ module ActiveRecord
       attribute_names = attributes_for_create(attribute_names)
 
       returning_columns = self.class._returning_columns_for_insert
+      supports_returning = self.class.connection.supports_insert_returning?
 
       returning_values = self.class._insert_record(
         attributes_with_values(attribute_names),
-        returning_columns
+        supports_returning ? returning_columns : nil
       )
 
-      returning_columns.zip(returning_values).each do |column, value|
+      returning_columns.zip(Array(returning_values)).each do |column, value|
         _write_attribute(column, value) if !_read_attribute(column)
       end if returning_values
 

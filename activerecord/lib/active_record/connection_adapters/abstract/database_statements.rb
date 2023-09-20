@@ -633,16 +633,18 @@ module ActiveRecord
           end
         end
 
-        def sql_for_insert(sql, _pk, binds, _returning)
-          [sql, binds]
+        def sql_for_insert(sql, _pk, binds, returning)
+          return [sql, binds] if supports_insert_returning? || returning.nil? || returning.empty?
+
+          raise ArgumentError, "Current adapter does not support returning determined columns from an insert statement"
         end
 
         def last_inserted_id(result)
           single_value_from_rows(result.rows)
         end
 
-        def returning_column_values(result)
-          [last_inserted_id(result)]
+        def returning_column_values(_result)
+          []
         end
 
         def single_value_from_rows(rows)
