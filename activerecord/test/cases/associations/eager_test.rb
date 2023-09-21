@@ -1697,11 +1697,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
       assert_equal 3, comments_collection.size
     end.last
 
-    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-      assert_match(/WHERE `sharded_comments`.`blog_id` IN \(.+\) AND `sharded_comments`.`blog_post_id` IN \(.+\)/, sql)
-    else
-      assert_match(/WHERE "sharded_comments"."blog_id" IN \(.+\) AND "sharded_comments"."blog_post_id" IN \(.+\)/, sql)
-    end
+    c = Sharded::BlogPost.connection
+    quoted_blog_id = Regexp.escape(c.quote_table_name("sharded_comments.blog_id"))
+    quoted_blog_post_id = Regexp.escape(c.quote_table_name("sharded_comments.blog_post_id"))
+    assert_match(/WHERE #{quoted_blog_id} IN \(.+\) AND #{quoted_blog_post_id} IN \(.+\)/, sql)
   end
 
   test "preloading has_many association associated by a composite query_constraints" do
