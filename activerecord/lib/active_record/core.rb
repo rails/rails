@@ -344,11 +344,6 @@ module ActiveRecord
         end
       end
 
-      # Override the default class equality method to provide support for decorated models.
-      def ===(object) # :nodoc:
-        object.is_a?(self)
-      end
-
       # Returns an instance of +Arel::Table+ loaded with the current table name.
       def arel_table # :nodoc:
         @arel_table ||= Arel::Table.new(table_name, klass: self)
