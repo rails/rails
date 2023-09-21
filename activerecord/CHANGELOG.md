@@ -1,3 +1,18 @@
+*   Add support for generated columns in SQLite3 adapter
+
+    Generated columns (both stored and dynamic) are supported since version 3.31.0 of SQLite.
+    This adds support for those to the SQLite3 adapter.
+
+    ```ruby
+    create_table :users do |t|
+      t.string :name
+      t.virtual :name_upper, type: :string, as: 'UPPER(name)'
+      t.virtual :name_lower, type: :string, as: 'LOWER(name)', stored: true
+    end
+    ```
+
+    *Stephen Margheim*
+
 *   TrilogyAdapter: ignore `host` if `socket` parameter is set.
 
     This allows to configure a connection on a UNIX socket via DATABASE_URL:

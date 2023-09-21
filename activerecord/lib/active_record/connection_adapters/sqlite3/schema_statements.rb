@@ -147,7 +147,14 @@ module ActiveRecord
 
             type_metadata = fetch_type_metadata(field["type"])
             default_value = extract_value_from_default(default)
-            default_function = extract_default_function(default_value, default)
+            generated_type = extract_generated_type(field)
+
+            if generated_type.present?
+              default_function = default
+            else
+              default_function = extract_default_function(default_value, default)
+            end
+
             rowid = is_column_the_rowid?(field, definitions)
 
             Column.new(
@@ -158,7 +165,8 @@ module ActiveRecord
               default_function,
               collation: field["collation"],
               auto_increment: field["auto_increment"],
-              rowid: rowid
+              rowid: rowid,
+              generated_type: generated_type
             )
           end
 
@@ -200,6 +208,13 @@ module ActiveRecord
             return if !deferrable || %i(immediate deferred).include?(deferrable)
 
             raise ArgumentError, "deferrable must be `:immediate` or `:deferred`, got: `#{deferrable.inspect}`"
+          end
+
+          def extract_generated_type(field)
+            case field["hidden"]
+            when 2 then :virtual
+            when 3 then :stored
+            end
           end
       end
     end

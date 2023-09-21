@@ -186,6 +186,10 @@ module ActiveRecord
         !@memory_database
       end
 
+      def supports_virtual_columns?
+        database_version >= "3.31.0"
+      end
+
       def connected?
         !(@raw_connection.nil? || @raw_connection.closed?)
       end
@@ -282,6 +286,7 @@ module ActiveRecord
       end
 
       def add_column(table_name, column_name, type, **options) # :nodoc:
+        type = type.to_sym
         if invalid_alter_table_type?(type, options)
           alter_table(table_name) do |definition|
             definition.column(column_name, type, **options)
@@ -462,7 +467,11 @@ module ActiveRecord
         end
 
         def table_structure(table_name)
-          structure = internal_exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA")
+          structure = if supports_virtual_columns?
+            internal_exec_query("PRAGMA table_xinfo(#{quote_table_name(table_name)})", "SCHEMA")
+          else
+            internal_exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA")
+          end
           raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
           table_structure_with_collation(table_name, structure)
         end
@@ -502,8 +511,9 @@ module ActiveRecord
         # See: https://www.sqlite.org/lang_altertable.html
         # SQLite has an additional restriction on the ALTER TABLE statement
         def invalid_alter_table_type?(type, options)
-          type.to_sym == :primary_key || options[:primary_key] ||
-            options[:null] == false && options[:default].nil?
+          type == :primary_key || options[:primary_key] ||
+            options[:null] == false && options[:default].nil? ||
+            (type == :virtual && options[:stored])
         end
 
         def alter_table(
@@ -651,10 +661,12 @@ module ActiveRecord
 
         COLLATE_REGEX = /.*"(\w+)".*collate\s+"(\w+)".*/i
         PRIMARY_KEY_AUTOINCREMENT_REGEX = /.*"(\w+)".+PRIMARY KEY AUTOINCREMENT/i
+        GENERATED_ALWAYS_AS_REGEX = /.*"(\w+)".+GENERATED ALWAYS AS \((.+)\) (?:STORED|VIRTUAL)/i
 
         def table_structure_with_collation(table_name, basic_structure)
           collation_hash = {}
           auto_increments = {}
+          generated_columns = {}
 
           column_strings = table_structure_sql(table_name)
 
@@ -664,6 +676,7 @@ module ActiveRecord
               # the value in $1 and $2 respectively.
               collation_hash[$1] = $2 if COLLATE_REGEX =~ column_string
               auto_increments[$1] = true if PRIMARY_KEY_AUTOINCREMENT_REGEX =~ column_string
+              generated_columns[$1] = $2 if GENERATED_ALWAYS_AS_REGEX =~ column_string
             end
 
             basic_structure.map do |column|
@@ -675,6 +688,10 @@ module ActiveRecord
 
               if auto_increments.has_key?(column_name)
                 column["auto_increment"] = true
+              end
+
+              if generated_columns.has_key?(column_name)
+                column["dflt_value"] = generated_columns[column_name]
               end
 
               column
