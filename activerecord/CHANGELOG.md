@@ -1,3 +1,9 @@
+*   Performance tune the SQLite3 adapter connection configuration
+
+    For Rails applications, the Write-Ahead-Log in normal syncing mode with a capped journal size, a healthy shared memory buffer and a shared cache will perform, on average, 2× better.
+
+    *Stephen Margheim*
+
 *   Allow SQLite3 `busy_handler` to be configured with simple max number of `retries`
 
     Retrying busy connections without delay is a preferred practice for performance-sensitive applications. Add support for a `database.yml` `retries` integer, which is used in a simple `busy_handler` function to retry busy connections without exponential backoff up to the max number of `retries`.

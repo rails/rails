@@ -136,6 +136,26 @@ module ActiveRecord
         assert_equal "UTF-8", @conn.encoding
       end
 
+      def test_default_pragmas
+        if in_memory_db?
+          assert_equal [{ "foreign_keys" => 1 }], @conn.execute("PRAGMA foreign_keys")
+          assert_equal [{ "journal_mode" => "memory" }], @conn.execute("PRAGMA journal_mode")
+          assert_equal [{ "synchronous" => 2 }], @conn.execute("PRAGMA synchronous")
+          assert_equal [{ "journal_size_limit" => 67108864 }], @conn.execute("PRAGMA journal_size_limit")
+          assert_equal [], @conn.execute("PRAGMA mmap_size")
+          assert_equal [{ "cache_size" => 2000 }], @conn.execute("PRAGMA cache_size")
+        else
+          with_file_connection do |conn|
+            assert_equal [{ "foreign_keys" => 1 }], conn.execute("PRAGMA foreign_keys")
+            assert_equal [{ "journal_mode" => "wal" }], conn.execute("PRAGMA journal_mode")
+            assert_equal [{ "synchronous" => 1 }], conn.execute("PRAGMA synchronous")
+            assert_equal [{ "journal_size_limit" => 67108864 }], conn.execute("PRAGMA journal_size_limit")
+            assert_equal [{ "mmap_size" => 134217728 }], conn.execute("PRAGMA mmap_size")
+            assert_equal [{ "cache_size" => 2000 }], conn.execute("PRAGMA cache_size")
+          end
+        end
+      end
+
       def test_exec_no_binds
         with_example_table "id int, data string" do
           result = @conn.exec_query("SELECT id, data FROM ex")
@@ -814,6 +834,17 @@ module ActiveRecord
           yield
         ensure
           SQLite3Adapter.strict_strings_by_default = false
+        end
+
+        def with_file_connection(options = {})
+          options = options.dup
+          db_config = ActiveRecord::Base.configurations.configurations.find { |config| !config.database.include?(":memory:") }
+          options[:database] ||= db_config.database
+          conn = ActiveRecord::Base.sqlite3_connection(options)
+
+          yield(conn)
+        ensure
+          conn.disconnect! if conn
         end
     end
   end
