@@ -114,10 +114,12 @@ Normally, `lib` has subdirectories that should not be managed by the autoloaders
 config.autoload_lib(ignore: %w(assets tasks))
 ```
 
-Why? While `assets` and `tasks` share the `lib` directory with regular code, their contents are not meant to be autoloaded or eager loaded. `Assets` and `Tasks` are not Ruby namespaces there. Same with generators if you have any:
+Why? While `assets` and `tasks` share the `lib` directory with regular Ruby code, their contents are not meant to be reloaded or eager loaded.
+
+The `ignore` list should have all `lib` subdirectories that do not contain files with `.rb` extension, or that should not be reloadaded or eager loaded. For example,
 
 ```ruby
-config.autoload_lib(ignore: %w(assets tasks generators))
+config.autoload_lib(ignore: %w(assets tasks generators templates middlewares))
 ```
 
 `config.autoload_lib` is not available before 7.1, but you can still emulate it as long as the application uses Zeitwerk:
