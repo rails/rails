@@ -119,7 +119,7 @@ Why? While `assets` and `tasks` share the `lib` directory with regular Ruby code
 The `ignore` list should have all `lib` subdirectories that do not contain files with `.rb` extension, or that should not be reloadaded or eager loaded. For example,
 
 ```ruby
-config.autoload_lib(ignore: %w(assets tasks generators templates middlewares))
+config.autoload_lib(ignore: %w(assets tasks templates generators middleware))
 ```
 
 `config.autoload_lib` is not available before 7.1, but you can still emulate it as long as the application uses Zeitwerk:
