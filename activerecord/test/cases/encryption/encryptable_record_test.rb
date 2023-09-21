@@ -298,6 +298,8 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
   end
 
   test "loading records with encrypted attributes defined on columns with default values" do
+    skip unless supports_insert_on_duplicate_update?
+
     EncryptedBook.insert({ format: "ebook" })
     book = EncryptedBook.last
     assert_equal "<untitled>", book.name
