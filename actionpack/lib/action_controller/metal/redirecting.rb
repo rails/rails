@@ -13,6 +13,7 @@ module ActionController
 
     included do
       mattr_accessor :raise_on_open_redirects, default: false
+      helper_method(:onward_url) if respond_to?(:helper_method)
     end
 
     # Redirects the browser to the target specified in +options+. This parameter can be any one of:
@@ -133,6 +134,43 @@ module ActionController
       end
     end
 
+    # Appends an +onward+ query param to a given +intermediate_url+, and
+    # redirects the browser to the resulting URL. The value of the +onward+
+    # param defaults to the full path of the current request, and can be
+    # overridden with the +:to+ option.
+    #
+    # When responding to an intermediate request, the value of the +onward+
+    # query param can be safely accessed with #onward_url.
+    #
+    # ==== Options
+    #
+    # * <tt>:to</tt> - The value of the +onward+ query param appended to
+    #   +intermediate_url+. Defaults to the full path of the current request.
+    #
+    # All #redirect_to options are also supported.
+    #
+    # ==== Examples
+    #
+    #   # Responding to `GET /posts/1/edit`:
+    #
+    #   redirect_through sign_in_path
+    #   # => redirects to "/sign_in?onward=%2Fposts%2F1%2Fedit"
+    #
+    #   redirect_through sign_in_path(lang: "en")
+    #   # => redirects to "/sign_in?lang=en&onward=%2Fposts%2F1%2Fedit"
+    #
+    #   redirect_through sign_in_path, alert: "You must sign in first."
+    #   # => redirects to "/sign_in?onward=%2Fposts%2F1%2Fedit" with a flash alert
+    #
+    #   redirect_through sign_in_path, to: dashboard_path
+    #   # => redirects to "/sign_in?onward=%2Fdashboard"
+    #
+    def redirect_through(intermediate_url, to: request.fullpath, **options)
+      uri = URI(intermediate_url)
+      uri.query = "#{uri.query}#{"&" if uri.query}#{Rack::Utils.build_query(onward: to)}"
+      redirect_to uri.to_s, options
+    end
+
     def _compute_redirect_to_location(request, options) # :nodoc:
       case options
       # The scheme name consist of a letter followed by any combination of
@@ -175,6 +213,26 @@ module ActionController
     def url_from(location)
       location = location.presence
       location if location && _url_host_allowed?(location)
+    end
+
+    # Returns the value of the +onward+ query param if it is an internal URL or
+    # path. Otherwise returns +nil+.
+    #
+    # This method is also exposed as a view helper.
+    #
+    # ==== Examples
+    #
+    #   # Responding to `GET /sign_in?onward=%2Fposts%2F1%2Fedit`:
+    #   onward_url # => "/posts/1/edit"
+    #
+    #   # Responding to `GET /sign_in`:
+    #   onward_url # => nil
+    #
+    #   # Responding to `GET /sign_in?onward=http%3A%2F%2Fevil.com`:
+    #   onward_url # => nil
+    #
+    def onward_url
+      url_from(params[:onward])
     end
 
     private

@@ -203,6 +203,22 @@ class RedirectController < ActionController::Base
     redirect_to "\000/lol\r\nwat"
   end
 
+  def redirect_through_url
+    redirect_through "/sign_in"
+  end
+
+  def redirect_through_url_with_query_string
+    redirect_through "/sign_in?foo=bar"
+  end
+
+  def redirect_through_url_to_given_url
+    redirect_through "/sign_in", to: "/posts/1/edit"
+  end
+
+  def redirect_to_onward_url_or_fallback
+    redirect_to onward_url || "/fallback"
+  end
+
   def rescue_errors(e) raise e end
 
   private
@@ -581,6 +597,21 @@ class RedirectTest < ActionController::TestCase
     end
   end
 
+  def test_redirect_through_url
+    get :redirect_through_url
+    assert_redirected_to "/sign_in?onward=#{Rack::Utils.escape "/redirect/redirect_through_url"}"
+  end
+
+  def test_redirect_through_url_with_query_string
+    get :redirect_through_url_with_query_string
+    assert_redirected_to "/sign_in?foo=bar&onward=#{Rack::Utils.escape "/redirect/redirect_through_url_with_query_string"}"
+  end
+
+  def test_redirect_through_url_to_given_url
+    get :redirect_through_url_to_given_url
+    assert_redirected_to "/sign_in?onward=#{Rack::Utils.escape "/posts/1/edit"}"
+  end
+
   def test_url_from
     with_raise_on_open_redirects do
       get :safe_redirect_with_fallback, params: { redirect_url: "http://test.host/app" }
@@ -598,6 +629,27 @@ class RedirectTest < ActionController::TestCase
       get :safe_redirect_with_fallback, params: { redirect_url: "" }
       assert_response :redirect
       assert_redirected_to "http://test.host/fallback"
+    end
+  end
+
+  def test_onward_url
+    get :redirect_to_onward_url_or_fallback, params: { onward: "http://test.host/destination" }
+    assert_redirected_to "/destination"
+
+    get :redirect_to_onward_url_or_fallback, params: { onward: "/destination" }
+    assert_redirected_to "/destination"
+
+    get :redirect_to_onward_url_or_fallback, params: { onward: "" }
+    assert_redirected_to "/fallback"
+
+    get :redirect_to_onward_url_or_fallback
+    assert_redirected_to "/fallback"
+  end
+
+  def test_onward_url_with_open_redirect
+    with_raise_on_open_redirects do
+      get :redirect_to_onward_url_or_fallback, params: { onward: "http://www.rubyonrails.org/" }
+      assert_redirected_to "/fallback"
     end
   end
 
