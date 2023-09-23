@@ -101,6 +101,70 @@ to be autoloaded. That is, just reference them.
 The `lib` directory is not affected by this flag, it is added to `$LOAD_PATH`
 always.
 
+### config.autoload_lib and config.autoload_lib_once
+
+If your application does not have `lib` in the autoload or autoload once paths,
+please skip this section. You can find that out by inspecting the output of
+
+```
+# Print autoload paths.
+bin/rails runner 'pp Rails.autoloaders.main.dirs'
+
+# Print autoload once paths.
+bin/rails runner 'pp Rails.autoloaders.once.dirs'
+```
+
+If your application already has `lib` in the autoload paths, normally there is
+configuration in `config/application.rb` that looks something like
+
+```ruby
+# Autoload lib, but do not eager load it (maybe overlooked).
+config.autoload_paths << config.root.join("lib")
+```
+
+or
+
+```ruby
+# Autoload and also eager load lib.
+config.autoload_paths << config.root.join("lib")
+config.eager_load_paths << config.root.join("lib")
+```
+
+or
+
+```ruby
+# Same as above, because all eager load paths become autoload paths too.
+config.eager_load_paths << config.root.join("lib")
+```
+
+That still works, but it is recommended to replace those lines with the more
+concise and correct
+
+```ruby
+config.autoload_lib(ignore: %w(assets tasks))
+```
+
+Please, add to the `ignore` list any other `lib` subdirectories that do not
+contain `.rb` files, or that should not be reloaded or eager loaded. For
+example, if your applications has `lib/templates`, `lib/generators`, or
+`lib/middleware`, you'd add their name relative to `lib`:
+
+```ruby
+config.autoload_lib(ignore: %w(assets tasks templates generators middleware))
+```
+
+With that one-liner, the (non-ignored) code in `lib` will be also eager loaded
+if `config.eager_load` is `true` (the default in `production` mode). This is
+normally what you want, but if `lib` was not added to the eager load paths
+before and you still want it that way, please opt-out:
+
+```ruby
+Rails.autoloaders.main.do_not_eager_load(config.root.join("lib"))
+```
+
+The method `config.autoload_lib_once` is the analogous one if the application
+had `lib` in `config.autoload_once_paths`.
+
 ### `ActiveStorage::BaseController` no longer includes the streaming concern
 
 Application controllers that inherit from `ActiveStorage::BaseController` and use streaming to implement custom file serving logic must now explicitly include the `ActiveStorage::Streaming` module.
