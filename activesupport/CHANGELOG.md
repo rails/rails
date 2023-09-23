@@ -1,3 +1,7 @@
+*   Fix Range#overlaps? not taking empty ranges into account on Ruby < 3.3
+
+    *Nobuyoshi Nakada*, *Shouichi Kamiya*, *Hartley McGuire*
+
 ## Rails 7.0.8 (September 09, 2023) ##
 
 *   Fix `TimeWithZone` still using deprecated `#to_s` when `ENV` or `config` to
