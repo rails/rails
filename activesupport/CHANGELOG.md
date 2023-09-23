@@ -1,3 +1,7 @@
+*   Fix Range#overlap? not taking empty ranges into account on Ruby < 3.3
+
+    *Nobuyoshi Nakada*, *Shouichi Kamiya*, *Hartley McGuire*
+
 *   Use Ruby 3.3 Range#overlap? if available
 
     *Yasuo Honda*

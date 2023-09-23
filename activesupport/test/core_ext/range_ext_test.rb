@@ -70,6 +70,67 @@ class RangeTest < ActiveSupport::TestCase
     assert_not (1...5).overlaps?(6..10)
   end
 
+  def test_overlap_behaves_like_ruby
+    assert_not_operator(0..2, :overlap?, -2..-1)
+    assert_not_operator(0..2, :overlap?, -2...0)
+    assert_operator(0..2, :overlap?, -1..0)
+    assert_operator(0..2, :overlap?, 1..2)
+    assert_operator(0..2, :overlap?, 2..3)
+    assert_not_operator(0..2, :overlap?, 3..4)
+    assert_not_operator(0...2, :overlap?, 2..3)
+    assert_operator(..0, :overlap?, -1..0)
+    assert_operator(...0, :overlap?, -1..0)
+    assert_operator(..0, :overlap?, 0..1)
+    assert_operator(..0, :overlap?, ..1)
+    assert_not_operator(..0, :overlap?, 1..2)
+    assert_not_operator(...0, :overlap?, 0..1)
+    assert_not_operator(0.., :overlap?, -2..-1)
+    assert_not_operator(0.., :overlap?, ...0)
+    assert_operator(0.., :overlap?, -1..0)
+    assert_operator(0.., :overlap?, ..0)
+    assert_operator(0.., :overlap?, 0..1)
+    assert_operator(0.., :overlap?, 1..2)
+    assert_operator(0.., :overlap?, 1..)
+
+    assert_not_operator((1..3), :overlap?, ("a".."d"))
+
+    assert_raise(TypeError) { (0..).overlap?(1) }
+    assert_raise(TypeError) { (0..).overlap?(nil) }
+
+    assert_operator((1..3), :overlap?, (2..4))
+    assert_operator((1...3), :overlap?, (2..3))
+    assert_operator((2..3), :overlap?, (1..2))
+    assert_operator((..3), :overlap?, (3..))
+    assert_operator((nil..nil), :overlap?, (3..))
+    assert_operator((nil...nil), :overlap?, (nil..))
+
+    assert_raise(TypeError) { (1..3).overlap?(1) }
+
+    assert_not_operator((1..2), :overlap?, (2...2))
+    assert_not_operator((2...2), :overlap?, (1..2))
+
+    assert_not_operator((4..1), :overlap?, (2..3))
+    assert_not_operator((4..1), :overlap?, (..3))
+    assert_not_operator((4..1), :overlap?, (2..))
+
+    assert_not_operator((1..4), :overlap?, (3..2))
+    assert_not_operator((..4), :overlap?, (3..2))
+    assert_not_operator((1..), :overlap?, (3..2))
+
+    assert_not_operator((4..5), :overlap?, (2..3))
+    assert_not_operator((4..5), :overlap?, (2...4))
+
+    assert_not_operator((1..2), :overlap?, (3..4))
+    assert_not_operator((1...3), :overlap?, (3..4))
+
+    assert_not_operator((4..5), :overlap?, (2..3))
+    assert_not_operator((4..5), :overlap?, (2...4))
+
+    assert_not_operator((1..2), :overlap?, (3..4))
+    assert_not_operator((1...3), :overlap?, (3..4))
+    assert_not_operator((...3), :overlap?, (3..))
+  end
+
   def test_should_include_identical_inclusive
     assert((1..10).include?(1..10))
   end
