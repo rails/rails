@@ -827,6 +827,11 @@
 
     *Andrii Gladkyi*, *Jean Boussier*
 
+*   Validate option keys passed to `Time#change`, `Date#change`, `DateTime#change`,
+    and `TimeWithZone#change`.
+
+    *Vlad Pisanov*
+
 *   `default` option of `thread_mattr_accessor` now applies through inheritance and
     also across new threads.
 

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "date"
+require "active_support/core_ext/hash/keys"
 
 class DateTime
   class << self
@@ -43,12 +44,15 @@ class DateTime
   # passed, then minute and sec is set to 0. If the hour and minute is passed,
   # then sec is set to 0. The +options+ parameter takes a hash with any of these
   # keys: <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>, <tt>:hour</tt>,
-  # <tt>:min</tt>, <tt>:sec</tt>, <tt>:offset</tt>, <tt>:start</tt>.
+  # <tt>:min</tt>, <tt>:sec</tt>, <tt>:nsec</tt>, <tt>:usec</tt>,
+  # <tt>:offset</tt>, <tt>:start</tt>.
   #
   #   DateTime.new(2012, 8, 29, 22, 35, 0).change(day: 1)              # => DateTime.new(2012, 8, 1, 22, 35, 0)
   #   DateTime.new(2012, 8, 29, 22, 35, 0).change(year: 1981, day: 1)  # => DateTime.new(1981, 8, 1, 22, 35, 0)
   #   DateTime.new(2012, 8, 29, 22, 35, 0).change(year: 1981, hour: 0) # => DateTime.new(1981, 8, 29, 0, 0, 0)
   def change(options)
+    options.assert_valid_keys(:year, :month, :day, :hour, :min, :sec, :usec, :nsec, :offset, :start)
+
     if new_nsec = options[:nsec]
       raise ArgumentError, "Can't change both :nsec and :usec at the same time: #{options.inspect}" if options[:usec]
       new_fraction = Rational(new_nsec, 1000000000)

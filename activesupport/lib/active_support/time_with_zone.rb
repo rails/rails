@@ -6,6 +6,7 @@ require "active_support/duration"
 require "active_support/values/time_zone"
 require "active_support/core_ext/object/acts_like"
 require "active_support/core_ext/date_and_time/compatibility"
+require "active_support/core_ext/hash/keys"
 
 module ActiveSupport
   # = Active Support \Time With Zone
@@ -380,11 +381,13 @@ module ActiveSupport
     #   t.change(offset: "-10:00") # => Fri, 14 Apr 2017 11:45:15.116992711 HST -10:00
     #   t.change(zone: "Hawaii")   # => Fri, 14 Apr 2017 11:45:15.116992711 HST -10:00
     def change(options)
+      options.assert_valid_keys(:year, :month, :day, :hour, :min, :sec, :usec, :nsec, :offset, :zone)
+
       if options[:zone] && options[:offset]
         raise ArgumentError, "Can't change both :offset and :zone at the same time: #{options.inspect}"
       end
 
-      new_time = time.change(options)
+      new_time = time.change(options.without(:zone))
 
       if options[:zone]
         new_zone = ::Time.find_zone(options[:zone])

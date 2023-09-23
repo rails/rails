@@ -188,6 +188,9 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_raise(ArgumentError) { DateTime.civil(2005, 1, 2, 11, 22, 0).change(nsec: 1000000000) }
     assert_nothing_raised { DateTime.civil(2005, 1, 2, 11, 22, 0).change(usec: 999999) }
     assert_nothing_raised { DateTime.civil(2005, 1, 2, 11, 22, 0).change(nsec: 999999999) }
+
+    # invalid option key
+    assert_raise(ArgumentError) { DateTime.civil(2005, 1, 2, 11, 22, 0).change(badarg: 42) }
   end
 
   def test_advance

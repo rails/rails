@@ -6,6 +6,7 @@ require "active_support/core_ext/object/acts_like"
 require "active_support/core_ext/date/zones"
 require "active_support/core_ext/time/zones"
 require "active_support/core_ext/date_and_time/calculations"
+require "active_support/core_ext/hash/keys"
 
 class Date
   include DateAndTime::Calculations
@@ -141,6 +142,8 @@ class Date
   #   Date.new(2007, 5, 12).change(day: 1)               # => Date.new(2007, 5, 1)
   #   Date.new(2007, 5, 12).change(year: 2005, month: 1) # => Date.new(2005, 1, 12)
   def change(options)
+    options.assert_valid_keys(:year, :month, :day)
+
     ::Date.new(
       options.fetch(:year, year),
       options.fetch(:month, month),

@@ -95,6 +95,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(2007, 5, 11), Date.new(2005, 2, 11).change(year: 2007, month: 5)
     assert_equal Date.new(2006, 2, 22), Date.new(2005, 2, 22).change(year: 2006)
     assert_equal Date.new(2005, 6, 22), Date.new(2005, 2, 22).change(month: 6)
+    assert_raise(ArgumentError) { Date.new(2005, 6, 22).change(badarg: 42) }
   end
 
   def test_sunday

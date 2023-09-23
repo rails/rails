@@ -719,6 +719,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "Fri, 31 Dec 1999 19:00:00.000000000 HST -10:00", @twz.change(zone: -10).inspect
     assert_equal "Fri, 31 Dec 1999 19:00:00.000000000 HST -10:00", @twz.change(zone: -36000).inspect
     assert_equal "Fri, 31 Dec 1999 19:00:00.000000000 HST -10:00", @twz.change(zone: "Pacific/Honolulu").inspect
+    assert_raise(ArgumentError) { @twz.change(badarg: 42) }
   end
 
   def test_change_at_dst_boundary

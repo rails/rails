@@ -7,6 +7,7 @@ require "active_support/core_ext/time/zones"
 require "active_support/core_ext/date_and_time/calculations"
 require "active_support/core_ext/date/calculations"
 require "active_support/core_ext/module/remove_method"
+require "active_support/core_ext/hash/keys"
 
 class Time
   include DateAndTime::Calculations
@@ -136,6 +137,8 @@ class Time
   #   Time.new(2012, 8, 29, 22, 35, 0).change(year: 1981, day: 1)  # => Time.new(1981, 8, 1, 22, 35, 0)
   #   Time.new(2012, 8, 29, 22, 35, 0).change(year: 1981, hour: 0) # => Time.new(1981, 8, 29, 0, 0, 0)
   def change(options)
+    options.assert_valid_keys(:year, :month, :day, :hour, :min, :sec, :usec, :nsec, :offset)
+
     new_year   = options.fetch(:year, year)
     new_month  = options.fetch(:month, month)
     new_day    = options.fetch(:day, day)
