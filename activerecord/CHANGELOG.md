@@ -873,7 +873,7 @@
 
     *Jean Boussier*
 
-*   YAML columns use `YAML.safe_dump` is available.
+*   YAML columns use `YAML.safe_dump` if available.
 
     As of `psych 5.1.0`, `YAML.safe_dump` can now apply the same permitted
     types restrictions than `YAML.safe_load`.
