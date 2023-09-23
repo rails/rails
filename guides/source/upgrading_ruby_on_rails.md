@@ -80,13 +80,26 @@ Upgrading from Rails 7.0 to Rails 7.1
 
 For more information on changes made to Rails 7.1 please see the [release notes](7_1_release_notes.html).
 
-### Autoloaded paths are no longer in load path
+### Autoloaded paths are no longer in $LOAD_PATH
 
-Starting from Rails 7.1, all paths managed by the autoloader will no longer be added to `$LOAD_PATH`.
-This means it won't be possible to load them with a manual `require` call, the class or module can be referenced instead.
+Starting from Rails 7.1, the directories managed by the autoloaders are no
+longer added to `$LOAD_PATH`. This means it won't be possible to load their
+files with a manual `require` call, which shouldn't be done anyway.
 
-Reducing the size of `$LOAD_PATH` speed-up `require` calls for apps not using `bootsnap`, and reduce the
-size of the `bootsnap` cache for the others.
+Reducing the size of `$LOAD_PATH` speeds up `require` calls for apps not using
+`bootsnap`, and reduces the size of the `bootsnap` cache for the others.
+
+If you'd like to have these paths still in `$LOAD_PATH`, you can opt-in:
+
+```ruby
+config.add_autoload_paths_to_load_path = true
+```
+
+but we discourage doing so, classes and modules in the autoload paths are meant
+to be autoloaded. That is, just reference them.
+
+The `lib` directory is not affected by this flag, it is added to `$LOAD_PATH`
+always.
 
 ### `ActiveStorage::BaseController` no longer includes the streaming concern
 
