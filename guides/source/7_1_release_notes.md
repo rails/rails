@@ -605,6 +605,17 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Add `TestFixtures#fixture_paths` to support multiple fixture paths.
 
+*   Add `authenticate_by` when using `has_secure_password`.
+
+*   Add `update_attribute!` to `ActiveRecord::Persistence`, which is similar to `update_attribute`
+    but raises `ActiveRecord::RecordNotSaved` when a `before_*` callback throws `:abort`.
+
+*   Allow using aliased attributes with `insert_all`/`upsert_all`.
+
+*   Add `:include` option to `add_index`.
+
+*   Add `#regroup` query method as a short-hand for `.unscope(:group).group(fields)`.
+
 Active Storage
 --------------
 
