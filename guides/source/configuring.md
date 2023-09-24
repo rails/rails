@@ -1613,8 +1613,8 @@ The default value depends on the `config.load_defaults` target version:
 
 | Starting with version | The default value is |
 |-----------------------|----------------------|
-| (original)            | `true`               |
-| 7.1                   | `false`              |
+| (original)            | `false`              |
+| 7.1                   | `true`               |
 
 #### `config.active_record.encryption.hash_digest_class`
 
