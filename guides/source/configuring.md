@@ -71,6 +71,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.belongs_to_required_validates_foreign_key`](#config-active-record-belongs-to-required-validates-foreign-key): `false`
 - [`config.active_record.commit_transaction_on_non_local_return`](#config-active-record-commit-transaction-on-non-local-return): `true`
 - [`config.active_record.default_column_serializer`](#config-active-record-default-column-serializer): `nil`
+- [`config.active_record.encryption.add_to_filter_parameters`](#config-active-record-encryption-add-to-filter-parameters): `true`
 - [`config.active_record.encryption.hash_digest_class`](#config-active-record-encryption-hash-digest-class): `OpenSSL::Digest::SHA256`
 - [`config.active_record.encryption.support_sha1_for_non_deterministic_encryption`](#config-active-record-encryption-support-sha1-for-non-deterministic-encryption): `false`
 - [`config.active_record.generate_secure_token_on`](#config-active-record-generate-secure-token-on): `:initialize`
@@ -1603,6 +1604,17 @@ Allows setting a different regular expression that will be used to decide
 whether a foreign key's name should be dumped to db/schema.rb or not. By
 default, foreign key names starting with `fk_rails_` are not exported to the
 database schema dump. Defaults to `/^fk_rails_[0-9a-f]{10}$/`.
+
+#### `config.active_record.encryption.add_to_filter_parameters`
+
+Enables automatic filtering of encrypted attributes on `inspect`.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+|-----------------------|----------------------|
+| (original)            | `true`               |
+| 7.1                   | `false`              |
 
 #### `config.active_record.encryption.hash_digest_class`
 
