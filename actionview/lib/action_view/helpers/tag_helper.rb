@@ -43,11 +43,1264 @@ module ActionView
       PRE_CONTENT_STRINGS[:textarea]  = "\n"
       PRE_CONTENT_STRINGS["textarea"] = "\n"
 
-      class TagBuilder # :nodoc:
-        include CaptureHelper
-        include OutputSafetyHelper
+      # = Action View Tag Builder
+      #
+      # Returns an HTML tag.
+      #
+      # Builds HTML5 compliant tags with a tag proxy. Every tag can be built with:
+      #
+      #   tag.<tag name>(optional content, options)
+      #
+      # where tag name can be e.g. +br+, +div+, +section+, +article+, or any tag really.
+      # To render an HTML custom element, replace the +-+ in the tag's name
+      # with +_+. For example:
+      #
+      #   tag.turbo_frame id: "a-turbo-frame"
+      #
+      #   # => <turbo-frame id="a-turbo-frame"></turbo-frame>
+      #
+      # ==== Passing content
+      #
+      # Tags can pass content to embed within it:
+      #
+      #   tag.h1 'All titles fit to print' # => <h1>All titles fit to print</h1>
+      #
+      #   tag.div tag.p('Hello world!')  # => <div><p>Hello world!</p></div>
+      #
+      # Content can also be captured with a block, which is useful in templates:
+      #
+      #   <%= tag.p do %>
+      #     The next great American novel starts here.
+      #   <% end %>
+      #   # => <p>The next great American novel starts here.</p>
+      #
+      # ==== Options
+      #
+      # Use symbol keyed options to add attributes to the generated tag.
+      #
+      #   tag.section class: %w( kitties puppies )
+      #   # => <section class="kitties puppies"></section>
+      #
+      #   tag.section id: dom_id(@post)
+      #   # => <section id="<generated dom id>"></section>
+      #
+      # Pass +true+ for any attributes that can render with no values, like +disabled+ and +readonly+.
+      #
+      #   tag.input type: 'text', disabled: true
+      #   # => <input type="text" disabled="disabled">
+      #
+      # HTML5 <tt>data-*</tt> and <tt>aria-*</tt> attributes can be set with a
+      # single +data+ or +aria+ key pointing to a hash of sub-attributes.
+      #
+      # To play nicely with JavaScript conventions, sub-attributes are dasherized.
+      #
+      #   tag.article data: { user_id: 123 }
+      #   # => <article data-user-id="123"></article>
+      #
+      # Thus <tt>data-user-id</tt> can be accessed as <tt>dataset.userId</tt>.
+      #
+      # Data attribute values are encoded to JSON, with the exception of strings, symbols, and
+      # BigDecimals.
+      # This may come in handy when using jQuery's HTML5-aware <tt>.data()</tt>
+      # from 1.4.3.
+      #
+      #   tag.div data: { city_state: %w( Chicago IL ) }
+      #   # => <div data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]"></div>
+      #
+      # The generated tag names and attributes are escaped by default. This can be disabled using
+      # +escape+.
+      #
+      #   tag.img src: 'open & shut.png'
+      #   # => <img src="open &amp; shut.png">
+      #
+      #   tag.img src: 'open & shut.png', escape: false
+      #   # => <img src="open & shut.png">
+      #
+      # The tag builder respects
+      # {HTML5 void elements}[https://www.w3.org/TR/html5/syntax.html#void-elements]
+      # if no content is passed, and omits closing tags for those elements.
+      #
+      #   # A standard element:
+      #   tag.div # => <div></div>
+      #
+      #   # A void element:
+      #   tag.br  # => <br>
+      #
+      # Note that when using the block form options should be wrapped in
+      # parenthesis.
+      #
+      #   <%= tag.a(href: "/about", class: "font-bold") do %>
+      #     About the author
+      #   <% end %>
+      #   # => <a href="/about" class="font-bold">About the author</a>
+      #
+      # === Building HTML attributes
+      #
+      # Transforms a Hash into HTML attributes, ready to be interpolated into
+      # ERB. Includes or omits boolean attributes based on their truthiness.
+      # Transforms keys nested within
+      # <tt>aria:</tt> or <tt>data:</tt> objects into <tt>aria-</tt> and <tt>data-</tt>
+      # prefixed attributes:
+      #
+      #   <input <%= tag.attributes(type: :text, aria: { label: "Search" }) %>>
+      #   # => <input type="text" aria-label="Search">
+      #
+      #   <button <%= tag.attributes id: "call-to-action", disabled: false, aria: { expanded: false } %> class="primary">Get Started!</button>
+      #   # => <button id="call-to-action" aria-expanded="false" class="primary">Get Started!</button>
+      class TagBuilder
+        ##
+        # :method: area
+        #
+        # :call-seq: area(content = nil, **options, &block)
+        #
+        # Renders a void area HTML element
+        #
+        # Refer to the class documentation for more details.
 
-        def self.define_element(name, code_generator:, method_name: name)
+        ##
+        # :method: base
+        #
+        # :call-seq: base(content = nil, escape: true, **options, &block)
+        #
+        # Renders a void base HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: br
+        #
+        # :call-seq: br(content = nil, escape: true, **options, &block)
+        #
+        # Renders a void br HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: col
+        #
+        # :call-seq: col(content = nil, escape: true, **options, &block)
+        #
+        # Renders a void col HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: embed
+        #
+        # :call-seq: embed(content = nil, escape: true, **options, &block)
+        #
+        # Renders a void embed HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: hr
+        #
+        # :call-seq: hr(content = nil, escape: true, **options, &block)
+        #
+        # Renders a void hr HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: img
+        #
+        # :call-seq: img(content = nil, escape: true, **options, &block)
+        #
+        # Renders a void img HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: input
+        #
+        # :call-seq: input(content = nil, escape: true, **options, &block)
+        #
+        # Renders a void input HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: keygen
+        #
+        # :call-seq: keygen(content = nil, escape: true, **options, &block)
+        #
+        # Renders a void keygen HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: link
+        #
+        # :call-seq: link(content = nil, escape: true, **options, &block)
+        #
+        # Renders a void link HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: meta
+        #
+        # :call-seq: meta(content = nil, escape: true, **options, &block)
+        #
+        # Renders a void meta HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: source
+        #
+        # :call-seq: source(content = nil, escape: true, **options, &block)
+        #
+        # Renders a void source HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: track
+        #
+        # :call-seq: track(content = nil, escape: true, **options, &block)
+        #
+        # Renders a void track HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: wbr
+        #
+        # :call-seq: wbr(content = nil, escape: true, **options, &block)
+        #
+        # Renders a void wbr HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: animate
+        #
+        # :call-seq: animate(content = nil, escape: true, **options, &block)
+        #
+        # Renders a self-closing animate HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: animate_motion
+        #
+        # :call-seq: animate_motion(content = nil, escape: true, **options, &block)
+        #
+        # Renders a self-closing animateMotion HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: animate_transform
+        #
+        # :call-seq: animate_transform(content = nil, escape: true, **options, &block)
+        #
+        # Renders a self-closing animateTransform HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: circle
+        #
+        # :call-seq: circle(content = nil, escape: true, **options, &block)
+        #
+        # Renders a self-closing circle HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: ellipse
+        #
+        # :call-seq: ellipse(content = nil, escape: true, **options, &block)
+        #
+        # Renders a self-closing ellipse HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: line
+        #
+        # :call-seq: line(content = nil, escape: true, **options, &block)
+        #
+        # Renders a self-closing line HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: path
+        #
+        # :call-seq: path(content = nil, escape: true, **options, &block)
+        #
+        # Renders a self-closing path HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: polygon
+        #
+        # :call-seq: polygon(content = nil, escape: true, **options, &block)
+        #
+        # Renders a self-closing polygon HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: polyline
+        #
+        # :call-seq: polyline(content = nil, escape: true, **options, &block)
+        #
+        # Renders a self-closing polyline HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: rect
+        #
+        # :call-seq: rect(content = nil, escape: true, **options, &block)
+        #
+        # Renders a self-closing rect HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: set
+        #
+        # :call-seq: set(content = nil, escape: true, **options, &block)
+        #
+        # Renders a self-closing set HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: stop
+        #
+        # :call-seq: stop(content = nil, escape: true, **options, &block)
+        #
+        # Renders a self-closing stop HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: use
+        #
+        # :call-seq: use(content = nil, escape: true, **options, &block)
+        #
+        # Renders a self-closing use HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: view
+        #
+        # :call-seq: view(content = nil, escape: true, **options, &block)
+        #
+        # Renders a self-closing view HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: a
+        #
+        # :call-seq: a(content = nil, escape: true, **options, &block)
+        #
+        # Renders an a HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: abbr
+        #
+        # :call-seq: abbr(content = nil, escape: true, **options, &block)
+        #
+        # Renders a abbr HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: address
+        #
+        # :call-seq: address(content = nil, escape: true, **options, &block)
+        #
+        # Renders an address HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: article
+        #
+        # :call-seq: article(content = nil, escape: true, **options, &block)
+        #
+        # Renders an article HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: aside
+        #
+        # :call-seq: aside(content = nil, escape: true, **options, &block)
+        #
+        # Renders an aside HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: audio
+        #
+        # :call-seq: audio(content = nil, escape: true, **options, &block)
+        #
+        # Renders an audio HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: b
+        #
+        # :call-seq: b(content = nil, escape: true, **options, &block)
+        #
+        # Renders a b HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: bdi
+        #
+        # :call-seq: bdi(content = nil, escape: true, **options, &block)
+        #
+        # Renders a bdi HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: bdo
+        #
+        # :call-seq: bdo(content = nil, escape: true, **options, &block)
+        #
+        # Renders a bdo HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: blockquote
+        #
+        # :call-seq: blockquote(content = nil, escape: true, **options, &block)
+        #
+        # Renders a blockquote HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: body
+        #
+        # :call-seq: body(content = nil, escape: true, **options, &block)
+        #
+        # Renders a body HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: button
+        #
+        # :call-seq: button(content = nil, escape: true, **options, &block)
+        #
+        # Renders a button HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: canvas
+        #
+        # :call-seq: canvas(content = nil, escape: true, **options, &block)
+        #
+        # Renders a canvas HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: caption
+        #
+        # :call-seq: caption(content = nil, escape: true, **options, &block)
+        #
+        # Renders a caption HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: cite
+        #
+        # :call-seq: cite(content = nil, escape: true, **options, &block)
+        #
+        # Renders a cite HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: code
+        #
+        # :call-seq: code(content = nil, escape: true, **options, &block)
+        #
+        # Renders a code HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: colgroup
+        #
+        # :call-seq: colgroup(content = nil, escape: true, **options, &block)
+        #
+        # Renders a colgroup HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: data
+        #
+        # :call-seq: data(content = nil, escape: true, **options, &block)
+        #
+        # Renders a data HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: datalist
+        #
+        # :call-seq: datalist(content = nil, escape: true, **options, &block)
+        #
+        # Renders a datalist HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: dd
+        #
+        # :call-seq: dd(content = nil, escape: true, **options, &block)
+        #
+        # Renders a dd HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: del
+        #
+        # :call-seq: del(content = nil, escape: true, **options, &block)
+        #
+        # Renders a del HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: details
+        #
+        # :call-seq: details(content = nil, escape: true, **options, &block)
+        #
+        # Renders a details HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: dfn
+        #
+        # :call-seq: dfn(content = nil, escape: true, **options, &block)
+        #
+        # Renders a dfn HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: dialog
+        #
+        # :call-seq: dialog(content = nil, escape: true, **options, &block)
+        #
+        # Renders a dialog HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: div
+        #
+        # :call-seq: div(content = nil, escape: true, **options, &block)
+        #
+        # Renders a div HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: dl
+        #
+        # :call-seq: dl(content = nil, escape: true, **options, &block)
+        #
+        # Renders a dl HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: dt
+        #
+        # :call-seq: dt(content = nil, escape: true, **options, &block)
+        #
+        # Renders a dt HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: em
+        #
+        # :call-seq: em(content = nil, escape: true, **options, &block)
+        #
+        # Renders an em HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: fieldset
+        #
+        # :call-seq: fieldset(content = nil, escape: true, **options, &block)
+        #
+        # Renders a fieldset HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: figcaption
+        #
+        # :call-seq: figcaption(content = nil, escape: true, **options, &block)
+        #
+        # Renders a figcaption HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: figure
+        #
+        # :call-seq: figure(content = nil, escape: true, **options, &block)
+        #
+        # Renders a figure HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: footer
+        #
+        # :call-seq: footer(content = nil, escape: true, **options, &block)
+        #
+        # Renders a footer HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: form
+        #
+        # :call-seq: form(content = nil, escape: true, **options, &block)
+        #
+        # Renders a form HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: h1
+        #
+        # :call-seq: h1(content = nil, escape: true, **options, &block)
+        #
+        # Renders an h1 HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: h2
+        #
+        # :call-seq: h2(content = nil, escape: true, **options, &block)
+        #
+        # Renders an h2 HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: h3
+        #
+        # :call-seq: h3(content = nil, escape: true, **options, &block)
+        #
+        # Renders an h3 HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: h4
+        #
+        # :call-seq: h4(content = nil, escape: true, **options, &block)
+        #
+        # Renders an h4 HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: h5
+        #
+        # :call-seq: h5(content = nil, escape: true, **options, &block)
+        #
+        # Renders an h5 HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: h6
+        #
+        # :call-seq: h6(content = nil, escape: true, **options, &block)
+        #
+        # Renders an h6 HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: head
+        #
+        # :call-seq: head(content = nil, escape: true, **options, &block)
+        #
+        # Renders a head HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: header
+        #
+        # :call-seq: header(content = nil, escape: true, **options, &block)
+        #
+        # Renders a header HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: hgroup
+        #
+        # :call-seq: hgroup(content = nil, escape: true, **options, &block)
+        #
+        # Renders an hgroup HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: html
+        #
+        # :call-seq: html(content = nil, escape: true, **options, &block)
+        #
+        # Renders an html HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: i
+        #
+        # :call-seq: i(content = nil, escape: true, **options, &block)
+        #
+        # Renders an i HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: iframe
+        #
+        # :call-seq: iframe(content = nil, escape: true, **options, &block)
+        #
+        # Renders an iframe HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: ins
+        #
+        # :call-seq: ins(content = nil, escape: true, **options, &block)
+        #
+        # Renders an ins HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: kbd
+        #
+        # :call-seq: kbd(content = nil, escape: true, **options, &block)
+        #
+        # Renders a kbd HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: label
+        #
+        # :call-seq: label(content = nil, escape: true, **options, &block)
+        #
+        # Renders a label HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: legend
+        #
+        # :call-seq: legend(content = nil, escape: true, **options, &block)
+        #
+        # Renders a legend HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: li
+        #
+        # :call-seq: li(content = nil, escape: true, **options, &block)
+        #
+        # Renders an li HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: main
+        #
+        # :call-seq: main(content = nil, escape: true, **options, &block)
+        #
+        # Renders a main HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: map
+        #
+        # :call-seq: map(content = nil, escape: true, **options, &block)
+        #
+        # Renders a map HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: mark
+        #
+        # :call-seq: mark(content = nil, escape: true, **options, &block)
+        #
+        # Renders a mark HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: menu
+        #
+        # :call-seq: menu(content = nil, escape: true, **options, &block)
+        #
+        # Renders a menu HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: meter
+        #
+        # :call-seq: meter(content = nil, escape: true, **options, &block)
+        #
+        # Renders a meter HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: nav
+        #
+        # :call-seq: nav(content = nil, escape: true, **options, &block)
+        #
+        # Renders a nav HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: noscript
+        #
+        # :call-seq: noscript(content = nil, escape: true, **options, &block)
+        #
+        # Renders a noscript HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: object
+        #
+        # :call-seq: object(content = nil, escape: true, **options, &block)
+        #
+        # Renders an object HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: ol
+        #
+        # :call-seq: ol(content = nil, escape: true, **options, &block)
+        #
+        # Renders an ol HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: optgroup
+        #
+        # :call-seq: optgroup(content = nil, escape: true, **options, &block)
+        #
+        # Renders an optgroup HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: option
+        #
+        # :call-seq: option(content = nil, escape: true, **options, &block)
+        #
+        # Renders an option HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: output
+        #
+        # :call-seq: output(content = nil, escape: true, **options, &block)
+        #
+        # Renders an output HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: p
+        #
+        # :call-seq: p(content = nil, escape: true, **options, &block)
+        #
+        # Renders a p HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: picture
+        #
+        # :call-seq: picture(content = nil, escape: true, **options, &block)
+        #
+        # Renders a picture HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: portal
+        #
+        # :call-seq: portal(content = nil, escape: true, **options, &block)
+        #
+        # Renders a portal HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: pre
+        #
+        # :call-seq: pre(content = nil, escape: true, **options, &block)
+        #
+        # Renders a pre HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: progress
+        #
+        # :call-seq: progress(content = nil, escape: true, **options, &block)
+        #
+        # Renders a progress HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: q
+        #
+        # :call-seq: q(content = nil, escape: true, **options, &block)
+        #
+        # Renders a q HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: rp
+        #
+        # :call-seq: rp(content = nil, escape: true, **options, &block)
+        #
+        # Renders an rp HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: rt
+        #
+        # :call-seq: rt(content = nil, escape: true, **options, &block)
+        #
+        # Renders an rt HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: ruby
+        #
+        # :call-seq: ruby(content = nil, escape: true, **options, &block)
+        #
+        # Renders a ruby HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: s
+        #
+        # :call-seq: s(content = nil, escape: true, **options, &block)
+        #
+        # Renders an s HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: samp
+        #
+        # :call-seq: samp(content = nil, escape: true, **options, &block)
+        #
+        # Renders a samp HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: script
+        #
+        # :call-seq: script(content = nil, escape: true, **options, &block)
+        #
+        # Renders a script HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: search
+        #
+        # :call-seq: search(content = nil, escape: true, **options, &block)
+        #
+        # Renders a search HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: section
+        #
+        # :call-seq: section(content = nil, escape: true, **options, &block)
+        #
+        # Renders a section HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: select
+        #
+        # :call-seq: select(content = nil, escape: true, **options, &block)
+        #
+        # Renders a select HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: slot
+        #
+        # :call-seq: slot(content = nil, escape: true, **options, &block)
+        #
+        # Renders a slot HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: small
+        #
+        # :call-seq: small(content = nil, escape: true, **options, &block)
+        #
+        # Renders a small HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: span
+        #
+        # :call-seq: span(content = nil, escape: true, **options, &block)
+        #
+        # Renders a span HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: strong
+        #
+        # :call-seq: strong(content = nil, escape: true, **options, &block)
+        #
+        # Renders a strong HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: style
+        #
+        # :call-seq: style(content = nil, escape: true, **options, &block)
+        #
+        # Renders a style HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: sub
+        #
+        # :call-seq: sub(content = nil, escape: true, **options, &block)
+        #
+        # Renders a sub HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: summary
+        #
+        # :call-seq: summary(content = nil, escape: true, **options, &block)
+        #
+        # Renders a summary HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: sup
+        #
+        # :call-seq: sup(content = nil, escape: true, **options, &block)
+        #
+        # Renders a sup HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: table
+        #
+        # :call-seq: table(content = nil, escape: true, **options, &block)
+        #
+        # Renders a table HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: tbody
+        #
+        # :call-seq: tbody(content = nil, escape: true, **options, &block)
+        #
+        # Renders a tbody HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: td
+        #
+        # :call-seq: td(content = nil, escape: true, **options, &block)
+        #
+        # Renders a td HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: template
+        #
+        # :call-seq: template(content = nil, escape: true, **options, &block)
+        #
+        # Renders a template HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: textarea
+        #
+        # :call-seq: textarea(content = nil, escape: true, **options, &block)
+        #
+        # Renders a textarea HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: tfoot
+        #
+        # :call-seq: tfoot(content = nil, escape: true, **options, &block)
+        #
+        # Renders a tfoot HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: th
+        #
+        # :call-seq: th(content = nil, escape: true, **options, &block)
+        #
+        # Renders a th HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: thead
+        #
+        # :call-seq: thead(content = nil, escape: true, **options, &block)
+        #
+        # Renders a thead HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: time
+        #
+        # :call-seq: time(content = nil, escape: true, **options, &block)
+        #
+        # Renders a time HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: title
+        #
+        # :call-seq: title(content = nil, escape: true, **options, &block)
+        #
+        # Renders a title HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: tr
+        #
+        # :call-seq: tr(content = nil, escape: true, **options, &block)
+        #
+        # Renders a tr HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: u
+        #
+        # :call-seq: u(content = nil, escape: true, **options, &block)
+        #
+        # Renders a u HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: ul
+        #
+        # :call-seq: ul(content = nil, escape: true, **options, &block)
+        #
+        # Renders a ul HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: var
+        #
+        # :call-seq: var(content = nil, escape: true, **options, &block)
+        #
+        # Renders a var HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        ##
+        # :method: video
+        #
+        # :call-seq: video(content = nil, escape: true, **options, &block)
+        #
+        # Renders a video HTML element
+        #
+        # Refer to the class documentation for more details.
+
+        def self.define_element(name, code_generator:, method_name: name) # :nodoc:
           return if method_defined?(name)
 
           code_generator.class_eval do |batch|
@@ -58,7 +1311,7 @@ module ActionView
           end
         end
 
-        def self.define_void_element(name, code_generator:, method_name: name)
+        def self.define_void_element(name, code_generator:, method_name: name) # :nodoc:
           code_generator.class_eval do |batch|
             batch << "\n" <<
               "def #{method_name}(escape: true, **options, &block)" <<
@@ -67,7 +1320,7 @@ module ActionView
           end
         end
 
-        def self.define_self_closing_element(name, code_generator:, method_name: name)
+        def self.define_self_closing_element(name, code_generator:, method_name: name) # :nodoc:
           code_generator.class_eval do |batch|
             batch << "\n" <<
               "def #{method_name}(content = nil, escape: true, **options, &block)" <<
@@ -213,30 +1466,38 @@ module ActionView
           define_element :video, code_generator: code_generator
         end
 
-        def initialize(view_context)
+        def initialize(view_context) # :nodoc:
           @view_context = view_context
         end
 
         # Transforms a Hash into HTML Attributes, ready to be interpolated into
         # ERB.
         #
+        # Includes or omits boolean attributes based on their truthiness.
+        # Transforms keys nested within
+        # +aria:+ or +data:+ objects into +aria-+ and +data-+
+        # prefixed attributes:
+        #
         #   <input <%= tag.attributes(type: :text, aria: { label: "Search" }) %> >
         #   # => <input type="text" aria-label="Search">
+        #
+        #   <button <%= tag.attributes id: "call_to_action", disabled: false, aria: { expanded: false } %>>Get Started!</button>
+        #   # => <button id="call_to_action" aria-expanded="false">Get Started!</button>
         def attributes(attributes)
           tag_options(attributes.to_h).to_s.strip.html_safe
         end
 
-        def tag_string(name, content = nil, options, escape: true, &block)
+        def tag_string(name, content = nil, options, escape: true, &block) # :nodoc:
           content = @view_context.capture(self, &block) if block
 
           content_tag_string(name, content, options, escape)
         end
 
-        def self_closing_tag_string(name, options, escape = true, tag_suffix = " />")
+        def self_closing_tag_string(name, options, escape = true, tag_suffix = " />") # :nodoc:
           "<#{name}#{tag_options(options, escape)}#{tag_suffix}".html_safe
         end
 
-        def content_tag_string(name, content, options, escape = true)
+        def content_tag_string(name, content, options, escape = true) # :nodoc:
           tag_options = tag_options(options, escape) if options
 
           if escape && content.present?
@@ -245,7 +1506,7 @@ module ActionView
           "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name]}#{content}</#{name}>".html_safe
         end
 
-        def tag_options(options, escape = true)
+        def tag_options(options, escape = true) # :nodoc:
           return if options.blank?
           output = +""
           sep    = " "
@@ -266,7 +1527,7 @@ module ActionView
                   tokens = TagHelper.build_tag_values(v)
                   next if tokens.none?
 
-                  v = safe_join(tokens, " ")
+                  v = @view_context.safe_join(tokens, " ")
                 else
                   v = v.to_s
                 end
@@ -287,17 +1548,17 @@ module ActionView
           output unless output.empty?
         end
 
-        def boolean_tag_option(key)
+        def boolean_tag_option(key) # :nodoc:
           %(#{key}="#{key}")
         end
 
-        def tag_option(key, value, escape)
+        def tag_option(key, value, escape) # :nodoc:
           key = ERB::Util.xml_name_escape(key) if escape
 
           case value
           when Array, Hash
             value = TagHelper.build_tag_values(value) if key.to_s == "class"
-            value = escape ? safe_join(value, " ") : value.join(" ")
+            value = escape ? @view_context.safe_join(value, " ") : value.join(" ")
           when Regexp
             value = escape ? ERB::Util.unwrapped_html_escape(value.source) : value.source
           else
@@ -330,9 +1591,7 @@ module ActionView
           end
       end
 
-      # Returns an HTML tag.
-      #
-      # === Building HTML tags
+      # === Modern syntax
       #
       # Builds HTML5 compliant tags with a tag proxy. Every tag can be built with:
       #
@@ -340,96 +1599,12 @@ module ActionView
       #
       # where tag name can be e.g. br, div, section, article, or any tag really.
       #
-      # ==== Passing content
-      #
-      # Tags can pass content to embed within it:
-      #
-      #   tag.h1 'All titles fit to print' # => <h1>All titles fit to print</h1>
-      #
-      #   tag.div tag.p('Hello world!')  # => <div><p>Hello world!</p></div>
-      #
-      # Content can also be captured with a block, which is useful in templates:
-      #
-      #   <%= tag.p do %>
-      #     The next great American novel starts here.
-      #   <% end %>
-      #   # => <p>The next great American novel starts here.</p>
-      #
-      # ==== Options
-      #
-      # Use symbol keyed options to add attributes to the generated tag.
-      #
-      #   tag.section class: %w( kitties puppies )
-      #   # => <section class="kitties puppies"></section>
-      #
-      #   tag.section id: dom_id(@post)
-      #   # => <section id="<generated dom id>"></section>
-      #
-      # Pass +true+ for any attributes that can render with no values, like +disabled+ and +readonly+.
-      #
-      #   tag.input type: 'text', disabled: true
-      #   # => <input type="text" disabled="disabled">
-      #
-      # HTML5 <tt>data-*</tt> and <tt>aria-*</tt> attributes can be set with a
-      # single +data+ or +aria+ key pointing to a hash of sub-attributes.
-      #
-      # To play nicely with JavaScript conventions, sub-attributes are dasherized.
-      #
-      #   tag.article data: { user_id: 123 }
-      #   # => <article data-user-id="123"></article>
-      #
-      # Thus <tt>data-user-id</tt> can be accessed as <tt>dataset.userId</tt>.
-      #
-      # Data attribute values are encoded to JSON, with the exception of strings, symbols, and
-      # BigDecimals.
-      # This may come in handy when using jQuery's HTML5-aware <tt>.data()</tt>
-      # from 1.4.3.
-      #
-      #   tag.div data: { city_state: %w( Chicago IL ) }
-      #   # => <div data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]"></div>
-      #
-      # The generated tag names and attributes are escaped by default. This can be disabled using
-      # +escape+.
-      #
-      #   tag.img src: 'open & shut.png'
-      #   # => <img src="open &amp; shut.png">
-      #
-      #   tag.img src: 'open & shut.png', escape: false
-      #   # => <img src="open & shut.png">
-      #
-      # The tag builder respects
-      # {HTML5 void elements}[https://www.w3.org/TR/html5/syntax.html#void-elements]
-      # if no content is passed, and omits closing tags for those elements.
-      #
-      #   # A standard element:
-      #   tag.div # => <div></div>
-      #
-      #   # A void element:
-      #   tag.br  # => <br>
-      #
-      # Note that when using the block form options should be wrapped in
-      # parenthesis.
-      #
-      #   <%= tag.a(href: "/about", class: "font-bold") do %>
-      #     About the author
-      #   <% end %>
-      #   # => <a href="/about" class="font-bold">About the author</a>
-      #
-      # === Building HTML attributes
-      #
-      # Transforms a Hash into HTML attributes, ready to be interpolated into
-      # ERB. Includes or omits boolean attributes based on their truthiness.
-      # Transforms keys nested within
-      # <tt>aria:</tt> or <tt>data:</tt> objects into <tt>aria-</tt> and <tt>data-</tt>
-      # prefixed attributes:
-      #
-      #   <input <%= tag.attributes(type: :text, aria: { label: "Search" }) %>>
-      #   # => <input type="text" aria-label="Search">
-      #
-      #   <button <%= tag.attributes id: "call-to-action", disabled: false, aria: { expanded: false } %> class="primary">Get Started!</button>
-      #   # => <button id="call-to-action" aria-expanded="false" class="primary">Get Started!</button>
+      # Returns an instance of TagBuilder when invoked without positional,
+      # keyword, or block arguments.
       #
       # === Legacy syntax
+      #
+      # Returns an HTML tag.
       #
       # The following format is for legacy syntax support. It will be deprecated in future versions of \Rails.
       #
@@ -595,7 +1770,7 @@ module ActionView
 
           tag_values
         end
-        module_function :build_tag_values
+        module_function :build_tag_values # :nodoc:
 
         def tag_builder
           @tag_builder ||= TagBuilder.new(self)
