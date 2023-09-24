@@ -1,3 +1,9 @@
+*   Allow SQLite3 `busy_handler` to be configured with simple max number of `retries`
+
+    Retrying busy connections without delay is a preferred practice for performance-sensitive applications. Add support for a `database.yml` `retries` integer, which is used in a simple `busy_handler` function to retry busy connections without exponential backoff up to the max number of `retries`.
+
+    *Stephen Margheim*
+
 *   The SQLite3 adapter now supports `supports_insert_returning?`
 
     Implementing the full `supports_insert_returning?` contract means the SQLite3 adapter supports auto-populated columns (#48241) as well as custom primary keys.

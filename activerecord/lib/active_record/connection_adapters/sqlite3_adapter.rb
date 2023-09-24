@@ -712,7 +712,16 @@ module ActiveRecord
         end
 
         def configure_connection
-          @raw_connection.busy_timeout(self.class.type_cast_config_to_integer(@config[:timeout])) if @config[:timeout]
+          if @config[:timeout] && @config[:retries]
+            raise ArgumentError, "Cannot specify both timeout and retries arguments"
+          elsif @config[:timeout]
+            @raw_connection.busy_timeout(self.class.type_cast_config_to_integer(@config[:timeout]))
+          elsif @config[:retries]
+            retries = self.class.type_cast_config_to_integer(@config[:retries])
+            raw_connection.busy_handler do |count|
+              count <= retries
+            end
+          end
 
           raw_execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end
