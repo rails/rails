@@ -133,7 +133,7 @@ config.eager_load_paths << config.root.join("lib")
 or
 
 ```ruby
-# Same as above, because all eager load paths become autoload paths too.
+# Same, because all eager load paths become autoload paths too.
 config.eager_load_paths << config.root.join("lib")
 ```
 
