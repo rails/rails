@@ -1,3 +1,14 @@
+*   The SQLite3 adapter now implements the `supports_deferrable_constraints?` contract
+
+    Allows foreign keys to be deferred by adding the `:deferrable` key to the `foreign_key` options.
+
+    ```ruby
+    add_reference :person, :alias, foreign_key: { deferrable: :deferred }
+    add_reference :alias, :person, foreign_key: { deferrable: :deferred }
+    ```
+
+    *Stephen Margheim*
+
 *   Add `set_constraints` helper for PostgreSQL
 
     ```ruby
