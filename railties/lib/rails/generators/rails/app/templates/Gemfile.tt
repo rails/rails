@@ -65,6 +65,6 @@ group :test do
   gem "selenium-webdriver"
 <%- if RUBY_VERSION < "3.0" -%>
   gem "webdrivers"
-<% end %>
+<%- end -%>
 end
 <%- end -%>
