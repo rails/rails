@@ -401,7 +401,12 @@ ActiveRecord::Schema.define do
     t.index [:firm_id, :type], name: "company_partial_index", where: "(rating > 10)"
     t.index [:firm_id], name: "company_nulls_not_distinct", nulls_not_distinct: true
     t.index :name, name: "company_name_index", using: :btree
-    t.index "(CASE WHEN rating > 0 THEN lower(name) END) DESC", name: "company_expression_index" if supports_expression_index?
+    if supports_expression_index?
+      t.index "(CASE WHEN rating > 0 THEN lower(name) END) DESC", name: "company_expression_index"
+      if ActiveRecord::TestCase.current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+        t.index "(CONCAT_WS(`firm_name`, `name`, _utf8mb4' '))", name: "full_name_index"
+      end
+    end
   end
 
   create_table :content, force: true do |t|

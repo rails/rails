@@ -308,6 +308,15 @@ class SchemaDumperTest < ActiveRecord::TestCase
         assert false
       end
     end
+
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      def test_schema_dump_expression_indices_escaping
+        index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*full_name_index/).first.strip
+        index_definition.sub!(/, name: "full_name_index"\z/, "")
+
+        assert_match %r{concat_ws\(`firm_name`,`name`,_utf8mb4' '\)\)"\z}i, index_definition
+      end
+    end
   end
 
   if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
