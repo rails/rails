@@ -16,6 +16,22 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     ActiveStorage::Blob.all.each(&:delete)
   end
 
+  test "creating a record with a File as attachable attribute" do
+    @user = User.create!(name: "Dorian", avatar: file_fixture("image.gif").open)
+
+    assert_equal "image.gif", @user.avatar.filename.to_s
+    assert_not_nil @user.avatar_attachment
+    assert_not_nil @user.avatar_blob
+  end
+
+  test "creating a record with a Pathname as attachable attribute" do
+    @user = User.create!(name: "Dorian", avatar: file_fixture("image.gif"))
+
+    assert_equal "image.gif", @user.avatar.filename.to_s
+    assert_not_nil @user.avatar_attachment
+    assert_not_nil @user.avatar_blob
+  end
+
   test "attaching an existing blob to an existing record" do
     @user.avatar.attach create_blob(filename: "funky.jpg")
     assert_equal "funky.jpg", @user.avatar.filename.to_s
