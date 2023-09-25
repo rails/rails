@@ -6,11 +6,15 @@ class DeepMergeableTest < ActiveSupport::TestCase
   Wrapper = Struct.new(:underlying) do
     include ActiveSupport::DeepMergeable
 
-    def self.[](value)
-      if value.is_a?(Hash)
-        self.new(value.transform_values { |value| self[value] })
-      else
-        value
+    class << self
+      remove_method :[]
+
+      def self.[](value)
+        if value.is_a?(Hash)
+          self.new(value.transform_values { |value| self[value] })
+        else
+          value
+        end
       end
     end
 
