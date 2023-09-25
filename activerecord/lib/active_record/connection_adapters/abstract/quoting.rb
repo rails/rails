@@ -33,7 +33,7 @@ module ActiveRecord
       # Cast a +value+ to a type that the database understands. For example,
       # SQLite does not understand dates, so this method will convert a Date
       # to a String.
-      def type_cast(value)
+      def type_cast(value, **kwargs)
         case value
         when Symbol, ActiveSupport::Multibyte::Chars, Type::Binary::Data
           value.to_s

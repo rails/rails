@@ -78,6 +78,22 @@ module Arel # :nodoc: all
           visit o.right, collector
         end
 
+        # Postgres-specific implementation that uses `col = ANY ('{1,2}')` instead of `col IN (1,2)`
+        def visit_Arel_Nodes_HomogeneousIn(o, collector)
+          visit o.left, collector
+          collector << (o.type == :in ? " = ANY (" : " != ALL (")
+          type_caster = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Array.new(o.attribute.type_caster, ",")
+          casted_values = o.values.map do |raw_value|
+            o.attribute.type_caster.serialize(raw_value) if o.attribute.type_caster.serializable?(raw_value)
+          end
+          casted_values.compact!
+          pg_encoder = PG::TextEncoder::Array.new(name: "#{type_caster.type}[]", delimiter: ",")
+          values = [ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Array::Data.new(pg_encoder, casted_values)]
+          proc_for_binds = -> value { ActiveModel::Attribute.from_database(o.attribute.name, value, ActiveModel::Type.default_value) }
+          collector.add_binds(values, proc_for_binds, &bind_block)
+          collector << ")"
+        end
+
         BIND_BLOCK = proc { |i| "$#{i}" }
         private_constant :BIND_BLOCK
 

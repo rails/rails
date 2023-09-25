@@ -130,13 +130,18 @@ module ActiveRecord
           end
         end
 
-        def type_cast(value) # :nodoc:
+        def type_cast(value, in_array: false) # :nodoc:
           case value
           when Type::Binary::Data
-            # Return a bind param hash with format as binary.
-            # See https://deveiate.org/code/pg/PG/Connection.html#method-i-exec_prepared-doc
-            # for more information
-            { value: value.to_s, format: 1 }
+            if in_array
+              # Arrays are string-encoded, so an included binary value must also be string-encoded.
+              escape_bytea(value.to_s)
+            else
+              # Return a bind param hash with format as binary.
+              # See https://deveiate.org/code/pg/PG/Connection.html#method-i-exec_prepared-doc
+              # for more information
+              { value: value.to_s, format: 1 }
+            end
           when OID::Xml::Data, OID::Bit::Data
             value.to_s
           when OID::Array::Data
@@ -221,7 +226,7 @@ module ActiveRecord
           def type_cast_array(values)
             case values
             when ::Array then values.map { |item| type_cast_array(item) }
-            else type_cast(values)
+            else type_cast(values, in_array: true)
             end
           end
 

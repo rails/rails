@@ -7,7 +7,11 @@ module ActiveRecord
         class Array < Type::Value # :nodoc:
           include ActiveModel::Type::Helpers::Mutable
 
-          Data = Struct.new(:encoder, :values) # :nodoc:
+          Data = Struct.new(:encoder, :values) do # :nodoc:
+            def hash
+              [encoder.name, encoder.delimiter, values].hash
+            end
+          end
 
           attr_reader :subtype, :delimiter
           delegate :type, :user_input_in_time_zone, :limit, :precision, :scale, to: :subtype

@@ -205,9 +205,16 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     non_mary_and_bob = Author.where.not(id: [mary, bob])
 
-    author_id = Author.connection.quote_table_name("authors.id")
-    assert_sql(/WHERE #{Regexp.escape(author_id)} NOT IN \((\?|\W?\w?\d), \g<1>\)\z/) do
-      assert_equal [david], non_mary_and_bob.merge(non_mary_and_bob)
+    if current_adapter?(:PostgreSQLAdapter)
+      author_id = Author.connection.quote_table_name("authors.id")
+      assert_sql(/WHERE #{Regexp.escape(author_id)} != ALL \(\$1\)\z/) do
+        assert_equal [david], non_mary_and_bob.merge(non_mary_and_bob)
+      end
+    else
+      author_id = Author.connection.quote_table_name("authors.id")
+      assert_sql(/WHERE #{Regexp.escape(author_id)} NOT IN \((\?|\W?\w?\d), \g<1>\)\z/) do
+        assert_equal [david], non_mary_and_bob.merge(non_mary_and_bob)
+      end
     end
 
     only_david = Author.where("#{author_id} IN (?)", david)

@@ -1700,7 +1700,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
     c = Sharded::BlogPost.connection
     quoted_blog_id = Regexp.escape(c.quote_table_name("sharded_comments.blog_id"))
     quoted_blog_post_id = Regexp.escape(c.quote_table_name("sharded_comments.blog_post_id"))
-    assert_match(/WHERE #{quoted_blog_id} IN \(.+\) AND #{quoted_blog_post_id} IN \(.+\)/, sql)
+    if current_adapter?(:PostgreSQLAdapter)
+      assert_match(/WHERE #{quoted_blog_id} = ANY \(\$1\) AND #{quoted_blog_post_id} = ANY \(\$2\)/, sql)
+    else
+      assert_match(/WHERE #{quoted_blog_id} IN \(.+\) AND #{quoted_blog_post_id} IN \(.+\)/, sql)
+    end
   end
 
   test "preloading has_many association associated by a composite query_constraints" do
