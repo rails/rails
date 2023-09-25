@@ -106,12 +106,12 @@ always.
 If your application does not have `lib` in the autoload or autoload once paths,
 please skip this section. You can find that out by inspecting the output of
 
-```
+```bash
 # Print autoload paths.
-bin/rails runner 'pp Rails.autoloaders.main.dirs'
+$ bin/rails runner 'pp Rails.autoloaders.main.dirs'
 
 # Print autoload once paths.
-bin/rails runner 'pp Rails.autoloaders.once.dirs'
+$ bin/rails runner 'pp Rails.autoloaders.once.dirs'
 ```
 
 If your application already has `lib` in the autoload paths, normally there is
