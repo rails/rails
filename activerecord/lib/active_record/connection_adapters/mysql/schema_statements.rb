@@ -36,7 +36,7 @@ module ActiveRecord
               end
 
               if row[:Expression]
-                expression = row[:Expression]
+                expression = row[:Expression].gsub("\\'", "'")
                 expression = +"(#{expression})" unless expression.start_with?("(")
                 indexes.last[-2] << expression
                 indexes.last[-1][:expressions] ||= {}
