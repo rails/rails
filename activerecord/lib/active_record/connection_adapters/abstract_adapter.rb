@@ -668,6 +668,13 @@ module ActiveRecord
 
       # CONNECTION MANAGEMENT ====================================
 
+      # Checks whether the connection to the database was established. This doesn't
+      # include checking whether the database is actually capable of responding, i.e.
+      # whether the connection is stale.
+      def connected?
+        !@raw_connection.nil?
+      end
+
       # Checks whether the connection to the database is still active. This includes
       # checking whether the database is actually capable of responding, i.e. whether
       # the connection isn't stale.
@@ -1215,6 +1222,7 @@ module ActiveRecord
         # Implementations may assume this method will only be called while
         # holding @lock (or from #initialize).
         def configure_connection
+          check_version
         end
 
         def default_prepared_statements

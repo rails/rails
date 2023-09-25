@@ -337,6 +337,10 @@ module ActiveRecord
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
       end
 
+      def connected?
+        !(@raw_connection.nil? || @raw_connection.finished?)
+      end
+
       # Is this connection alive and ready for queries?
       def active?
         @lock.synchronize do
@@ -616,7 +620,9 @@ module ActiveRecord
 
       # Returns the version of the connected PostgreSQL server.
       def get_database_version # :nodoc:
-        valid_raw_connection.server_version
+        with_raw_connection do |conn|
+          conn.server_version
+        end
       end
       alias :postgresql_version :database_version
 
@@ -998,6 +1004,8 @@ module ActiveRecord
         # Configures the encoding, verbosity, schema search path, and time zone of the connection.
         # This is called by #connect and should not be called manually.
         def configure_connection
+          super
+
           if @config[:encoding]
             @raw_connection.set_client_encoding(@config[:encoding])
           end

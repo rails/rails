@@ -196,9 +196,11 @@ module ActiveRecord
         !@memory_database
       end
 
-      def active?
-        @raw_connection && !@raw_connection.closed?
+      def connected?
+        !(@raw_connection.nil? || @raw_connection.closed?)
       end
+
+      alias_method :active?, :connected?
 
       def return_value_after_insert?(column) # :nodoc:
         column.auto_populated?
@@ -722,6 +724,8 @@ module ActiveRecord
               count <= retries
             end
           end
+
+          super
 
           # Enforce foreign key constraints
           # https://www.sqlite.org/pragma.html#pragma_foreign_keys
