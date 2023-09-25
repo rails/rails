@@ -6,8 +6,9 @@
 # These variants are used to create thumbnails, fixed-size avatars, or any other derivative image from the
 # original.
 #
-# Variants rely on {ImageProcessing}[https://github.com/janko/image_processing] gem for the actual transformations
-# of the file, so you must add <tt>gem "image_processing"</tt> to your Gemfile if you wish to use variants. By
+# Image variants can be used to create thumbnails, fixed-size avatars, or any other derivative image from the
+# original. These rely on {ImageProcessing}[https://github.com/janko/image_processing] gem for the actual transformations
+# of the file, so you must add <tt>gem "image_processing"</tt> to your Gemfile if you wish to use these. By
 # default, images will be processed with {ImageMagick}[http://imagemagick.org] using the
 # {MiniMagick}[https://github.com/minimagick/minimagick] gem, but you can also switch to the
 # {libvips}[http://libvips.github.io/libvips/] processor operated by the {ruby-vips}[https://github.com/libvips/ruby-vips]
@@ -18,6 +19,8 @@
 #
 #   Rails.application.config.active_storage.variant_processor = :vips
 #   # => :vips
+#
+# To transform additional media types, please refer to the documentation.
 #
 # Note that to create a variant it's necessary to download the entire blob file from the service. Because of this process,
 # you also want to be considerate about when the variant is actually processed. You shouldn't be processing variants inline
@@ -41,8 +44,8 @@
 # This will create and process a variant of the avatar blob that's constrained to a height and width of 100.
 # Then it'll upload said variant to the service according to a derivative key of the blob and the transformations.
 #
-# You can combine any number of ImageMagick/libvips operations into a variant, as well as any macros provided by the
-# ImageProcessing gem (such as +resize_to_limit+):
+# As far as image variants are concerned, you can combine any number of ImageMagick/libvips operations into a variant,
+# as well as any macros provided by the ImageProcessing gem (such as +resize_to_limit+):
 #
 #   avatar.variant(resize_to_limit: [800, 800], colourspace: "b-w", rotate: "-90")
 #
@@ -108,7 +111,7 @@ class ActiveStorage::Variant
 
     def process
       blob.open do |input|
-        variation.transform(input) do |output|
+        variation.transform(blob, input) do |output|
           service.upload(key, output, content_type: content_type)
         end
       end

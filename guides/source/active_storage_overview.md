@@ -897,7 +897,7 @@ end
 [`ActiveStorage::Representations::RedirectController`]: https://api.rubyonrails.org/classes/ActiveStorage/Representations/RedirectController.html
 [`ActiveStorage::Attachment`]: https://api.rubyonrails.org/classes/ActiveStorage/Attachment.html
 
-### Transforming Images
+### Transforming Files
 
 Transforming images allows you to display the image at your choice of dimensions.
 To create a variation of an image, call [`variant`][] on the attachment. You
@@ -956,6 +956,35 @@ variant processor that you are using, but both support the following parameters:
 [`variant`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-variant
 [Vips]: https://www.rubydoc.info/gems/ruby-vips/Vips/Image
 [`image_processing`]: https://github.com/janko/image_processing
+
+Additional media types, such as audio or video files, can be transformed by
+registering custom transformers in an initializer:
+
+```ruby
+Rails.application.config.active_storage.transformers << FfmpegTransformer
+# => [ ActiveStorage::Transformers::ImageProcessingTransformer, FfmpegTransformer ]
+
+class FfmpegTransformer < ActiveStorage::Transformers::Transformer
+  def self.accept?(blob)
+    blob.video? || blob.audio?
+  end
+
+  def transform(input, format:)
+    format ||= File.extname(input.path)
+    options = transformations[:ffmpeg_opts]
+    create_tempfile(ext: format) do |output|
+      system "ffmpeg -y -i #{input.path} #{options} #{output.path}"
+      yield output
+    end
+  end
+end
+```
+
+```erb
+<%= audio_tag user.my_audio.variant(
+      ffmpeg_opts: "-af silenceremove=stop_periods=-1:stop_duration=1:stop_threshold=-90dB",
+      format: "mp3") %>
+```
 
 ### Previewing Files
 

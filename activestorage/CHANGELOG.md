@@ -1,5 +1,11 @@
 ## Rails 7.1.0.beta1 (September 13, 2023) ##
 
+*   Enable variants for custom media types.
+
+    Refer to the Active Storage Rails guide to register custom transformers.
+
+    *Sébastien Dubois*
+
 *   Disables the session in `ActiveStorage::Blobs::ProxyController`
     and `ActiveStorage::Representations::ProxyController`
     in order to allow caching by default in some CDNs as CloudFlare

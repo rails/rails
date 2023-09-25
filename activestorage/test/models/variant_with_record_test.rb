@@ -283,4 +283,36 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     assert_equal 0, ActiveStorage::VariantRecord.count
     assert_enqueued_with(job: ActiveStorage::PurgeJob, args: [variant.image.blob])
   end
+
+  test "video is invariable without custom transformer" do
+    @orig_transformers = ActiveStorage.transformers
+    ActiveStorage.transformers = [ActiveStorage::Transformers::ImageProcessingTransformer]
+
+    blob = create_file_blob(filename: "video.mp4")
+    assert_raises ActiveStorage::InvariableError do
+      blob.variant({}).processed
+    end
+  ensure
+    ActiveStorage.transformers = @orig_transformers
+  end
+
+  test "video is twice longer using custom transformer" do
+    @orig_transformers = ActiveStorage.transformers
+    ActiveStorage.transformers << FfmpegTransformer
+
+    blob = create_file_blob(filename: "video.mp4")
+    blob_metadata = extract_metadata_from(blob)
+    blob_duration = blob_metadata[:duration]
+
+    opts = '-filter_complex "[0:v]setpts=2*PTS[v];[0:a]atempo=0.5[a]" -map "[v]" -map "[a]"'
+    variant = blob.variant(ffmpeg_opts: opts, format: "mp4").processed
+    assert_match(/video\.mp4/, variant.url)
+
+    variant_blob = ActiveStorage::Blob.last
+    assert variant_blob.video?
+    variant_metadata = extract_metadata_from(variant_blob)
+    assert_in_delta blob_duration * 2, variant_metadata[:duration], 0.1
+  ensure
+    ActiveStorage.transformers = @orig_transformers
+  end
 end

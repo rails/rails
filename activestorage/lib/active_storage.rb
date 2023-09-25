@@ -51,6 +51,7 @@ module ActiveStorage
 
   mattr_accessor :queues, default: {}
 
+  mattr_accessor :transformers, default: []
   mattr_accessor :previewers, default: []
   mattr_accessor :analyzers,  default: []
 
