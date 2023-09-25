@@ -1,3 +1,38 @@
+*   Add a new public API for broadcasting logs
+
+    This feature existed for a while but was until now a private API.
+    Broadcasting log allows to send log message to difference sinks (STDOUT, a file ...) and
+    is used by default in the development environment to write logs both on STDOUT and in the
+    "development.log" file.
+
+    Basic usage:
+
+    ```ruby
+    stdout_logger = Logger.new(STDOUT)
+    file_logger = Logger.new("development.log")
+    broadcast = ActiveSupport::BroadcastLogger.new(stdout_logger, file_logger)
+
+    broadcast.info("Hello!") # The "Hello!" message is written on STDOUT and in the log file.
+    ```
+
+    Adding other sink(s) to the broadcast:
+
+    ```ruby
+    broadcast = ActiveSupport::BroadcastLogger.new
+    broadcast.broadcast_to(Logger.new(STDERR))
+    ```
+
+    Remove a sink from the broadcast:
+
+    ```ruby
+    stdout_logger = Logger.new(STDOUT)
+    broadcast = ActiveSupport::BroadcastLogger.new(stdout_logger)
+
+    broadcast.stop_broadcasting_to(stdout_logger)
+    ```
+
+    *Edouard Chin*
+
 *   Fix Range#overlap? not taking empty ranges into account on Ruby < 3.3
 
     *Nobuyoshi Nakada*, *Shouichi Kamiya*, *Hartley McGuire*
