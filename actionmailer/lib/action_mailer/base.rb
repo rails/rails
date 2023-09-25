@@ -480,6 +480,7 @@ module ActionMailer
     include Rescuable
     include Parameterized
     include Previews
+    include FormBuilder
 
     abstract!
 
