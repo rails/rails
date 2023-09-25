@@ -672,6 +672,10 @@ Please refer to the [Changelog][active-model] for detailed changes.
     validates_inclusion_of :birth_date, in: -> { (..Date.today) }
     ```
 
+    ```ruby
+    validates_exclusion_of :birth_date, in: -> { (..Date.today) }
+    ```
+
 *   Add support for password challenges to `has_secure_password`. When set, validate that the password
     challenge matches the persisted `password_digest`.
 

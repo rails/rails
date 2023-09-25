@@ -176,6 +176,10 @@
     validates_inclusion_of :birth_date, in: -> { (..Date.today) }
     ```
 
+    ```ruby
+    validates_exclusion_of :birth_date, in: -> { (..Date.today) }
+    ```
+
     *Bo Jeanes*
 
 *   Make validators accept lambdas without record argument
