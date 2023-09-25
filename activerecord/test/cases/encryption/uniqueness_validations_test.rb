@@ -60,6 +60,6 @@ class ActiveRecord::Encryption::UniquenessValidationsTest < ActiveRecord::Encryp
     EncryptedBookWithUniquenessValidation.create!(name: "dune")
     record = EncryptedBookWithUniquenessValidation.create(name: "dune")
 
-    assert_equal record.errors.count, 1
+    assert_equal 1, record.errors.count
   end
 end
