@@ -134,6 +134,8 @@ module ActionController # :nodoc:
       # * <tt>:exception</tt> - Raises ActionController::InvalidAuthenticityToken exception.
       # * <tt>:reset_session</tt> - Resets the session.
       # * <tt>:null_session</tt> - Provides an empty session during request but doesn't reset it completely. Used as default if <tt>:with</tt> option is not specified.
+      #   Note if <tt>default_protect_from_forgery</tt> is true, Rails call protect_from_forgery with <tt>with :exception</tt>.
+      #   This might not be intuitive as the method itself treats <tt>:with</tt> as <tt>:null_session</tt> by default.
       #
       # You can also implement custom strategy classes for unverified request handling:
       #
