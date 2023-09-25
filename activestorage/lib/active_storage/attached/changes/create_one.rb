@@ -30,6 +30,18 @@ module ActiveStorage
         )
       when Hash
         blob.upload_without_unfurling(attachable.fetch(:io))
+      when File
+        blob.upload_without_unfurling(attachable)
+      when Pathname
+        blob.upload_without_unfurling(attachable.open)
+      when ActiveStorage::Blob
+      when String
+      else
+        raise(
+          ArgumentError,
+          "Could not upload: expected attachable, " \
+            "got #{attachable.inspect}"
+        )
       end
     end
 
@@ -97,7 +109,11 @@ module ActiveStorage
             service_name: attachment_service_name
           )
         else
-          raise ArgumentError, "Could not find or build blob: expected attachable, got #{attachable.inspect}"
+          raise(
+            ArgumentError,
+            "Could not find or build blob: expected attachable, " \
+              "got #{attachable.inspect}"
+          )
         end
       end
 
