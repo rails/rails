@@ -9,7 +9,7 @@ class DeepMergeableTest < ActiveSupport::TestCase
     class << self
       remove_method :[]
 
-      def self.[](value)
+      def [](value)
         if value.is_a?(Hash)
           self.new(value.transform_values { |value| self[value] })
         else
