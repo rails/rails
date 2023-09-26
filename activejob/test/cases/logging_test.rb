@@ -280,6 +280,8 @@ class LoggingTest < ActiveSupport::TestCase
   end
 
   def test_enqueue_retry_logging
+    skip if adapter_is?(:inline, :sneakers)
+
     perform_enqueued_jobs do
       RetryJob.perform_later "DefaultsError", 2
       assert_match(/Retrying RetryJob \(Job ID: .*?\) after \d+ attempts in 3 seconds, due to a DefaultsError.*\./, @logger.messages)
@@ -292,6 +294,8 @@ class LoggingTest < ActiveSupport::TestCase
   end
 
   def test_retry_stopped_logging
+    skip if adapter_is?(:inline, :sneakers)
+
     perform_enqueued_jobs do
       RetryJob.perform_later "CustomCatchError", 6
     end
@@ -299,6 +303,8 @@ class LoggingTest < ActiveSupport::TestCase
   end
 
   def test_retry_stopped_logging_without_block
+    skip if adapter_is?(:inline, :sneakers)
+
     perform_enqueued_jobs do
       RetryJob.perform_later "DefaultsError", 6
     rescue DefaultsError

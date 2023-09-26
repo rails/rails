@@ -3,6 +3,7 @@
 require "helper"
 require "active_support/core_ext/time"
 require "active_support/core_ext/date"
+require "active_support/concern"
 require "zeitwerk"
 require "jobs/hello_job"
 require "jobs/logging_job"
@@ -14,7 +15,31 @@ require "jobs/inherited_job"
 require "jobs/multiple_kwargs_job"
 require "models/person"
 
+module OnlyRunOnTestAdapterAndDoNotPerformEnqueuedJobs
+  extend ActiveSupport::Concern
+
+  included do
+    setup do
+      skip unless adapter_is?(:test)
+
+      # /rails/activejob/test/adapters/test.rb sets these configs to true, but
+      # in this specific case we want to test enqueueing behaviour.
+      @perform_enqueued_jobs = queue_adapter.perform_enqueued_jobs
+      @perform_enqueued_at_jobs = queue_adapter.perform_enqueued_at_jobs
+      queue_adapter.perform_enqueued_jobs = queue_adapter.perform_enqueued_at_jobs = false
+    end
+
+    teardown do
+      queue_adapter.perform_enqueued_jobs = @perform_enqueued_jobs
+      queue_adapter.perform_enqueued_at_jobs = @perform_enqueued_at_jobs
+    end
+  end
+end
+
+
 class EnqueuedJobsTest < ActiveJob::TestCase
+  include OnlyRunOnTestAdapterAndDoNotPerformEnqueuedJobs
+
   def test_assert_enqueued_jobs
     assert_nothing_raised do
       assert_enqueued_jobs 1 do
@@ -782,6 +807,8 @@ class EnqueuedJobsTest < ActiveJob::TestCase
 end
 
 class PerformedJobsTest < ActiveJob::TestCase
+  include OnlyRunOnTestAdapterAndDoNotPerformEnqueuedJobs
+
   def test_perform_enqueued_jobs_with_only_option_doesnt_leak_outside_the_block
     assert_nil queue_adapter.filter
     perform_enqueued_jobs only: HelloJob do
@@ -2065,6 +2092,62 @@ class PerformedJobsTest < ActiveJob::TestCase
   end
 end
 
+class NotTestAdapterTest < ActiveJob::TestCase
+  setup do
+    skip if adapter_is?(:test)
+
+    @adapter = queue_adapter.class.name
+  end
+
+  test "assert_enqueued_jobs raises" do
+    assert_raises ArgumentError, match: "assert_enqueued_jobs requires the Active Job test adapter, you're using #{@adapter}" do
+      assert_enqueued_jobs(0) { }
+    end
+  end
+
+  test "assert_no_enqueued_jobs raises" do
+    assert_raises ArgumentError, match: "assert_no_enqueued_jobs requires the Active Job test adapter, you're using #{@adapter}" do
+      assert_no_enqueued_jobs { }
+    end
+  end
+
+  test "assert_performed_jobs raises" do
+    assert_raises ArgumentError, match: "assert_performed_jobs requires the Active Job test adapter, you're using #{@adapter}" do
+      assert_performed_jobs(0) { }
+    end
+  end
+
+  test "assert_no_performed_jobs raises" do
+    assert_raises ArgumentError, match: "assert_no_performed_jobs requires the Active Job test adapter, you're using #{@adapter}" do
+      assert_no_performed_jobs { }
+    end
+  end
+
+  test "assert_enqueued_with raises" do
+    assert_raises ArgumentError, match: "assert_enqueued_with requires the Active Job test adapter, you're using #{@adapter}" do
+      assert_enqueued_with { }
+    end
+  end
+
+  test "assert_performed_with raises" do
+    assert_raises ArgumentError, match: "assert_performed_with requires the Active Job test adapter, you're using #{@adapter}" do
+      assert_performed_with { }
+    end
+  end
+
+  test "perform_enqueued_jobs without a block" do
+    assert_raises ArgumentError, match: "perform_enqueued_jobs (without a block) requires the Active Job test adapter, you're using #{@adapter}" do
+      perform_enqueued_jobs
+    end
+  end
+
+  test "perform_enqueued_jobs with a block does not raise" do
+    assert_nothing_raised do
+      perform_enqueued_jobs { }
+    end
+  end
+end
+
 class AdapterIsNotTestAdapterTest < ActiveJob::TestCase
   def queue_adapter_for_test
     ActiveJob::QueueAdapters::InlineAdapter.new
@@ -2092,17 +2175,17 @@ class OverrideQueueAdapterTest < ActiveJob::TestCase
 end
 
 class InheritedJobTest < ActiveJob::TestCase
-  def test_queue_adapter_is_test_adapter
-    assert_instance_of ActiveJob::QueueAdapters::TestAdapter, InheritedJob.queue_adapter
+  def test_queue_adapter_is_inline_adapter_because_it_is_set_on_the_job_class
+    assert_instance_of ActiveJob::QueueAdapters::InlineAdapter, InheritedJob.queue_adapter
   end
 end
 
 class QueueAdapterJobTest < ActiveJob::TestCase
-  def test_queue_adapter_is_test_adapter
+  def test_queue_adapter_is_is_inline_adapter_because_it_is_set_on_the_job_class
     Zeitwerk.with_loader do |loader|
       loader.push_dir("test/jobs")
       loader.setup
-      assert_instance_of ActiveJob::QueueAdapters::TestAdapter, QueueAdapterJob.queue_adapter
+      assert_instance_of ActiveJob::QueueAdapters::InlineAdapter, QueueAdapterJob.queue_adapter
     ensure
       loader.unload
     end

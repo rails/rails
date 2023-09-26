@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
+require "helper"
 require "active_job/queue_adapters/delayed_job_adapter"
+require "jobs/hello_job"
+require "jobs/disable_log_job"
 
 class DelayedJobAdapterTest < ActiveSupport::TestCase
   test "does not log arguments when log_arguments is set to false on a job" do

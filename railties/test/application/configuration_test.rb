@@ -4657,6 +4657,42 @@ module ApplicationTests
       assert_equal(:html4, Rails.application.config.dom_testing_default_html_version)
     end
 
+    ["development", "production"].each do |env|
+      test "active job adapter is async in #{env}" do
+        app(env)
+        assert_equal :async, Rails.application.config.active_job.queue_adapter
+        adapter = ActiveJob::Base.queue_adapter
+        assert_instance_of ActiveJob::QueueAdapters::AsyncAdapter, adapter
+      end
+
+      test "active job adapter can be overridden in #{env} via application.rb" do
+        add_to_config "config.active_job.queue_adapter = :inline"
+        app(env)
+        assert_equal :inline, Rails.application.config.active_job.queue_adapter
+        adapter = ActiveJob::Base.queue_adapter
+        assert_instance_of ActiveJob::QueueAdapters::InlineAdapter, adapter
+      end
+
+      test "active job adapter can be overridden in #{env} via environment config" do
+        app_file "config/environments/#{env}.rb", <<-RUBY
+          Rails.application.configure do
+            config.active_job.queue_adapter = :inline
+          end
+        RUBY
+        app(env)
+        assert_equal :inline, Rails.application.config.active_job.queue_adapter
+        adapter = ActiveJob::Base.queue_adapter
+        assert_instance_of ActiveJob::QueueAdapters::InlineAdapter, adapter
+      end
+    end
+
+    test "active job adapter is `:test` in test environment" do
+      app "test"
+      assert_equal :test, Rails.application.config.active_job.queue_adapter
+      adapter = ActiveJob::Base.queue_adapter
+      assert_instance_of ActiveJob::QueueAdapters::TestAdapter, adapter
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents

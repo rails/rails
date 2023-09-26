@@ -15,7 +15,8 @@ module ActiveJob
   # = Active Job Queue adapter
   #
   # The +ActiveJob::QueueAdapter+ module is used to load the
-  # correct adapter. The default queue adapter is the +:async+ queue.
+  # correct adapter. The default queue adapter is +:async+,
+  # which loads the ActiveJob::QueueAdapters::AsyncAdapter.
   module QueueAdapter # :nodoc:
     extend ActiveSupport::Concern
 
@@ -24,22 +25,20 @@ module ActiveJob
       class_attribute :_queue_adapter, instance_accessor: false, instance_predicate: false
 
       delegate :queue_adapter, to: :class
-
-      self.queue_adapter = :async
     end
 
     # Includes the setter method for changing the active queue adapter.
     module ClassMethods
       # Returns the backend queue provider. The default queue adapter
-      # is the +:async+ queue. See QueueAdapters for more information.
+      # is +:async+. See QueueAdapters for more information.
       def queue_adapter
-        _queue_adapter
+        with_default_if_no_adapter_set { _queue_adapter }
       end
 
       # Returns string denoting the name of the configured queue adapter.
       # By default returns <tt>"async"</tt>.
       def queue_adapter_name
-        _queue_adapter_name
+        with_default_if_no_adapter_set { _queue_adapter_name }
       end
 
       # Specify the backend queue provider. The default queue adapter
@@ -61,6 +60,15 @@ module ActiveJob
       end
 
       private
+        def with_default_if_no_adapter_set
+          value = yield
+          if value.nil?
+            self.queue_adapter = :async
+            value = yield
+          end
+          value
+        end
+
         def assign_adapter(adapter_name, queue_adapter)
           self._queue_adapter_name = adapter_name
           self._queue_adapter = queue_adapter
