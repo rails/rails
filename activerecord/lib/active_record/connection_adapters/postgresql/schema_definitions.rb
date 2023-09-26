@@ -315,7 +315,7 @@ module ActiveRecord
           @base.remove_exclusion_constraint(name, *args)
         end
 
-        # Adds an unique constraint.
+        # Adds a unique constraint.
         #
         #  t.unique_constraint(:position, name: 'unique_position', deferrable: :deferred)
         #
