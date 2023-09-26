@@ -621,6 +621,25 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Add modern, performant defaults for `SQLite3` database connections.
 
+*   Allow specifying where clauses with column-tuple syntax.
+    
+    ```ruby
+    Topic.where([:title, :author_name] => [["The Alchemist", "Paul Coelho"], ["Harry Potter", "J.K Rowling"]])
+    ```
+
+*   Auto generated index names are now limited to 62 bytes, which fits within the default
+    index name length limits for MySQL, Postgres and SQLite.
+
+*   Introduce adapter for Trilogy database client.
+
+*   Add `ActiveRecord.disconnect_all!` method to immediately close all connections from all pools.
+
+*   Add PostgreSQL migration commands for enum rename, add value, and rename value.
+
+*   Add `ActiveRecord::Base#id_value` alias to access the raw value of a record's id column.
+
+*   Add validation option for `enum`.
+
 Active Storage
 --------------
 
