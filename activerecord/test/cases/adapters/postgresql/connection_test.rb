@@ -55,6 +55,8 @@ module ActiveRecord
       # Verify the connection param has been applied.
       expect = NonExistentTable.connection.query("show geqo").first.first
       assert_equal "off", expect
+    ensure
+      NonExistentTable.remove_connection
     end
 
     def test_reset
