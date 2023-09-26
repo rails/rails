@@ -1,3 +1,8 @@
+*   Add support for `#deep_merge` and `#deep_merge!` to
+    `ActionController::Parameters`.
+
+    *Sean Doyle*
+
 ## Rails 7.1.0.beta1 (September 13, 2023) ##
 
 *   `AbstractController::Translation.raise_on_missing_translations` removed

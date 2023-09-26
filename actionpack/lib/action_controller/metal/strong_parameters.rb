@@ -4,6 +4,7 @@ require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/string/filters"
 require "active_support/core_ext/object/to_query"
+require "active_support/deep_mergeable"
 require "action_dispatch/http/upload"
 require "rack/test"
 require "stringio"
@@ -137,6 +138,8 @@ module ActionController
   #   params[:key]  # => "value"
   #   params["key"] # => "value"
   class Parameters
+    include ActiveSupport::DeepMergeable
+
     cattr_accessor :permit_all_parameters, instance_accessor: false, default: false
 
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
@@ -853,11 +856,39 @@ module ActionController
       )
     end
 
+    ##
+    # :call-seq: merge!(other_hash)
+    #
     # Returns the current +ActionController::Parameters+ instance with
     # +other_hash+ merged into current hash.
-    def merge!(other_hash)
-      @parameters.merge!(other_hash.to_h)
+    def merge!(other_hash, &block)
+      @parameters.merge!(other_hash.to_h, &block)
       self
+    end
+
+    ##
+    # :method: deep_merge
+    # :call-seq: deep_merge(other_hash, &block)
+    #
+    # Returns a new +ActionController::Parameters+ instance with +self+ and +other_hash+ merged recursively.
+    #
+    # Like with +Hash#merge+ in the standard library, a block can be provided
+    # to merge values.
+    #
+    #--
+    # Implemented by ActiveSupport::DeepMergeable#deep_merge.
+
+    ##
+    # :method: deep_merge!
+    # :call-seq: deep_merge!(other_hash, &block)
+    #
+    # Same as +#deep_merge+, but modifies +self+.
+    #
+    #--
+    # Implemented by ActiveSupport::DeepMergeable#deep_merge!.
+
+    def deep_merge?(other_hash) # :nodoc
+      other_hash.is_a?(ActiveSupport::DeepMergeable)
     end
 
     # Returns a new +ActionController::Parameters+ instance with all keys
