@@ -533,11 +533,7 @@ module ActiveRecord
       test "materialized transaction state can be restored after a reconnect" do
         @connection.begin_transaction
         assert_predicate @connection, :transaction_open?
-        # +materialize_transactions+ currently automatically dirties the
-        # connection, which would make it unrestorable
-        @connection.transaction_manager.stub(:dirty_current_transaction, nil) do
-          @connection.materialize_transactions
-        end
+        @connection.materialize_transactions
         assert raw_transaction_open?(@connection)
         @connection.reconnect!(restore_transactions: true)
         assert_predicate @connection, :transaction_open?
@@ -627,12 +623,7 @@ module ActiveRecord
       test "active transaction is restored after remote disconnection" do
         assert_operator Post.count, :>, 0
         Post.transaction do
-          # +materialize_transactions+ currently automatically dirties the
-          # connection, which would make it unrestorable
-          @connection.transaction_manager.stub(:dirty_current_transaction, nil) do
-            @connection.materialize_transactions
-          end
-
+          @connection.materialize_transactions
           remote_disconnect @connection
 
           # Regular queries are not retryable, so the only abstract operation we can
