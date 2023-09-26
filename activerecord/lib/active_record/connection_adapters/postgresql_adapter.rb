@@ -226,7 +226,7 @@ module ActiveRecord
         true
       end
 
-      def supports_unique_keys?
+      def supports_unique_constraints?
         true
       end
 

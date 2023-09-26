@@ -16,7 +16,7 @@ module ActiveRecord
       delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
         :options_include_default?, :supports_indexes_in_create?, :use_foreign_keys?,
         :quoted_columns_for_index, :supports_partial_index?, :supports_check_constraints?,
-        :supports_index_include?, :supports_exclusion_constraints?, :supports_unique_keys?,
+        :supports_index_include?, :supports_exclusion_constraints?, :supports_unique_constraints?,
         :supports_nulls_not_distinct?,
         to: :@conn, private: true
 
@@ -65,8 +65,8 @@ module ActiveRecord
             statements.concat(o.exclusion_constraints.map { |exc| accept exc })
           end
 
-          if supports_unique_keys?
-            statements.concat(o.unique_keys.map { |exc| accept exc })
+          if supports_unique_constraints?
+            statements.concat(o.unique_constraints.map { |exc| accept exc })
           end
 
           create_sql << "(#{statements.join(', ')})" if statements.present?

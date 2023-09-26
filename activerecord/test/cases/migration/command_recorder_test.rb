@@ -486,25 +486,25 @@ module ActiveRecord
         assert_equal [:add_check_constraint, [:dogs, "speed > 0", name: "speed_check", if_not_exists: true], nil], enable
       end
 
-      def test_invert_add_unique_key_constraint_with_using_index
+      def test_invert_add_unique_constraint_constraint_with_using_index
         assert_raises(ActiveRecord::IrreversibleMigration) do
-          @recorder.inverse_of :add_unique_key, [:dogs, using_index: "unique_index"]
+          @recorder.inverse_of :add_unique_constraint, [:dogs, using_index: "unique_index"]
         end
       end
 
-      def test_invert_remove_unique_key_constraint
-        enable = @recorder.inverse_of :remove_unique_key, [:dogs, ["speed"], deferrable: :deferred, name: "uniq_speed"]
-        assert_equal [:add_unique_key, [:dogs, ["speed"], deferrable: :deferred, name: "uniq_speed"], nil], enable
+      def test_invert_remove_unique_constraint_constraint
+        enable = @recorder.inverse_of :remove_unique_constraint, [:dogs, ["speed"], deferrable: :deferred, name: "uniq_speed"]
+        assert_equal [:add_unique_constraint, [:dogs, ["speed"], deferrable: :deferred, name: "uniq_speed"], nil], enable
       end
 
-      def test_invert_remove_unique_key_constraint_without_options
-        enable = @recorder.inverse_of :remove_unique_key, [:dogs, ["speed"]]
-        assert_equal [:add_unique_key, [:dogs, ["speed"]], nil], enable
+      def test_invert_remove_unique_constraint_constraint_without_options
+        enable = @recorder.inverse_of :remove_unique_constraint, [:dogs, ["speed"]]
+        assert_equal [:add_unique_constraint, [:dogs, ["speed"]], nil], enable
       end
 
-      def test_invert_remove_unique_key_constraint_without_columns
+      def test_invert_remove_unique_constraint_constraint_without_columns
         assert_raises(ActiveRecord::IrreversibleMigration) do
-          @recorder.inverse_of :remove_unique_key, [:dogs, name: "uniq_speed"]
+          @recorder.inverse_of :remove_unique_constraint, [:dogs, name: "uniq_speed"]
         end
       end
 

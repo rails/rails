@@ -241,19 +241,19 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
   end
 
-  if ActiveRecord::Base.connection.supports_unique_keys?
-    def test_schema_dumps_unique_keys
-      output = dump_table_schema("test_unique_keys")
-      constraint_definitions = output.split(/\n/).grep(/t\.unique_key/)
+  if ActiveRecord::Base.connection.supports_unique_constraints?
+    def test_schema_dumps_unique_constraints
+      output = dump_table_schema("test_unique_constraints")
+      constraint_definitions = output.split(/\n/).grep(/t\.unique_constraint/)
 
       assert_equal 3, constraint_definitions.size
-      assert_match 't.unique_key ["position_1"], name: "test_unique_keys_position_deferrable_false"', output
-      assert_match 't.unique_key ["position_2"], deferrable: :immediate, name: "test_unique_keys_position_deferrable_immediate"', output
-      assert_match 't.unique_key ["position_3"], deferrable: :deferred, name: "test_unique_keys_position_deferrable_deferred"', output
+      assert_match 't.unique_constraint ["position_1"], name: "test_unique_constraints_position_deferrable_false"', output
+      assert_match 't.unique_constraint ["position_2"], deferrable: :immediate, name: "test_unique_constraints_position_deferrable_immediate"', output
+      assert_match 't.unique_constraint ["position_3"], deferrable: :deferred, name: "test_unique_constraints_position_deferrable_deferred"', output
     end
 
-    def test_schema_does_not_dumps_unique_key_indexes
-      output = dump_table_schema("test_unique_keys")
+    def test_schema_does_not_dump_unique_constraints_as_indexes
+      output = dump_table_schema("test_unique_constraints")
       unique_index_definitions = output.split(/\n/).grep(/t\.index.*unique: true/)
 
       assert_equal 0, unique_index_definitions.size

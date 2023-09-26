@@ -503,7 +503,7 @@
 
     Because `deferrable: true` and `deferrable: :deferred` are hard to understand.
     Both true and :deferred are truthy values.
-    This behavior is the same as the deferrable option of the add_unique_key method, added in #46192.
+    This behavior is the same as the deferrable option of the add_unique_constraint method, added in #46192.
 
     *Hiroyuki Ishii*
 
@@ -720,8 +720,8 @@
 *   Add support for unique constraints (PostgreSQL-only).
 
     ```ruby
-    add_unique_key :sections, [:position], deferrable: :deferred, name: "unique_section_position"
-    remove_unique_key :sections, name: "unique_section_position"
+    add_unique_constraint :sections, [:position], deferrable: :deferred, name: "unique_section_position"
+    remove_unique_constraint :sections, name: "unique_section_position"
     ```
 
     See PostgreSQL's [Unique Constraints](https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-UNIQUE-CONSTRAINTS) documentation for more on unique constraints.
@@ -746,11 +746,11 @@
     Using the default behavior, the transaction would fail when executing the
     first `UPDATE` statement.
 
-    By passing the `:deferrable` option to the `add_unique_key` statement in
+    By passing the `:deferrable` option to the `add_unique_constraint` statement in
     migrations, it's possible to defer this check.
 
     ```ruby
-    add_unique_key :items, [:position], deferrable: :immediate
+    add_unique_constraint :items, [:position], deferrable: :immediate
     ```
 
     Passing `deferrable: :immediate` does not change the behaviour of the previous example,
@@ -761,14 +761,14 @@
     check (after the statement), to a deferred check (after the transaction):
 
     ```ruby
-    add_unique_key :items, [:position], deferrable: :deferred
+    add_unique_constraint :items, [:position], deferrable: :deferred
     ```
 
     If you want to change an existing unique index to deferrable, you can use :using_index
     to create deferrable unique constraints.
 
     ```ruby
-    add_unique_key :items, deferrable: :deferred, using_index: "index_items_on_position"
+    add_unique_constraint :items, deferrable: :deferred, using_index: "index_items_on_position"
     ```
 
     *Hiroyuki Ishii*
