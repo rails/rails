@@ -404,6 +404,7 @@ module ActiveRecord
 
         thread.join
       ensure
+        remove_connections(SecondaryBase, roles: [:writing], shards: [:default, :one])
         tf_shard_one.close
         tf_shard_one.unlink
         tf_default.close
@@ -454,6 +455,7 @@ module ActiveRecord
 
         thread.join
       ensure
+        remove_connections(SecondaryBase, roles: [:writing, :secondary], shards: [:default, :one])
         tf_shard_one.close
         tf_shard_one.unlink
         tf_default.close
@@ -528,6 +530,8 @@ module ActiveRecord
 
         thread.join
       ensure
+        remove_connections(SecondaryBase, roles: [:writing, :secondary], shards: [:default, :one])
+        remove_connections(SomeOtherBase, roles: [:writing, :secondary], shards: [:default, :one])
         tf_shard_one.close
         tf_shard_one.unlink
         tf_default.close
@@ -545,6 +549,23 @@ module ActiveRecord
         tf_default_reading2.close
         tf_default_reading2.unlink
       end
+
+      private
+        def remove_connections(klass, roles:, shards:)
+          # TODO: Remove this helper when `remove_connection` for different shards is fixed.
+          # See https://github.com/rails/rails/pull/49382.
+          name = klass.name
+
+          roles.each do |role|
+            shards.each do |shard|
+              ActiveRecord::Base.connection_handler.remove_connection_pool(
+                name,
+                role: role,
+                shard: shard
+              )
+            end
+          end
+        end
     end
   end
 end
