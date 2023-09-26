@@ -108,11 +108,28 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     assert_equal blob, ActiveStorage::Blob.find_signed!(signed_id)
   end
 
-  test "fail to find blob within expiration date" do
+  test "fail to find blob within expiration duration" do
     blob = create_blob
     @user.avatar.attach(blob)
 
     signed_id = @user.avatar.signed_id(expires_in: 1.minute)
+    travel 2.minutes
+    assert_nil ActiveStorage::Blob.find_signed(signed_id)
+  end
+
+  test "getting a signed blob ID from an attachment with a expires_at" do
+    blob = create_blob
+    @user.avatar.attach(blob)
+
+    signed_id = @user.avatar.signed_id(expires_at: 1.minute.from_now)
+    assert_equal blob, ActiveStorage::Blob.find_signed!(signed_id)
+  end
+
+  test "fail to find blob within expiration time" do
+    blob = create_blob
+    @user.avatar.attach(blob)
+
+    signed_id = @user.avatar.signed_id(expires_at: 1.minute.from_now)
     travel 2.minutes
     assert_nil ActiveStorage::Blob.find_signed(signed_id)
   end

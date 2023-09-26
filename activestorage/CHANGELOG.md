@@ -1,3 +1,12 @@
+*   Add `expires_at` option to `ActiveStorage::Blob#signed_id`.
+
+    ```ruby
+    rails_blob_path(user.avatar, disposition: "attachment", expires_at: 30.minutes.from_now)
+    <%= image_tag rails_blob_path(user.avatar.variant(resize: "100x100"), expires_at: 30.minutes.from_now) %>
+    ```
+
+    *Aki*
+
 *   Allow attaching File and Pathname when assigning attributes, e.g.
 
     ```ruby
