@@ -242,6 +242,16 @@ See the [i18n guide](https://guides.rubyonrails.org/v7.1/i18n.html#using-differe
 `AbstractController::Translation.raise_on_missing_translations` has been removed. This was a private API, if you were
 relying on it you should migrate to `config.i18n.raise_on_missing_translations` or to a custom exception handler.
 
+### `bin/rails test` now runs `test:prepare` task
+
+When running tests via `bin/rails test`, the `rake test:prepare` task will run before tests run. If you've enhanced
+the `test:prepare` task, your enhancements will run before your tests. `tailwindcss-rails`, `jsbundling-rails`, and `cssbundling-rails`
+enhance this task, as do other third party gems.
+
+See the [Testing Rails Applications](https://edgeguides.rubyonrails.org/testing.html#running-tests-in-continuous-integration-ci) guide for more information.
+
+If you run a single file's tests (`bin/rails test test/models/user_test.rb`), `test:prepare` will not run before it.
+
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
 
