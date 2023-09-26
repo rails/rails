@@ -1,3 +1,13 @@
+*   Fix duplicate quoting for check constraint expressions in schema dump when using MySQL
+
+    A check constraint with an expression, that already contains quotes, lead to an invalid schema
+    dump with the mysql2 adapter.
+
+    Fixes #42424.
+
+    *Felix Tscheulin*
+
+
 ## Rails 7.0.8 (September 09, 2023) ##
 
 *   Fix `change_column` not setting `precision: 6` on `datetime` columns when
