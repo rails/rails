@@ -1,3 +1,12 @@
+*   Fix duplicate quoting for check constraint expressions in schema dump when using MySQL
+
+    A check constraint with an expression, that already contains quotes, lead to an invalid schema
+    dump with the mysql2 adapter.
+
+    Fixes #42424.
+
+    *Felix Tscheulin*
+
 *   Performance tune the SQLite3 adapter connection configuration
 
     For Rails applications, the Write-Ahead-Log in normal syncing mode with a capped journal size, a healthy shared memory buffer and a shared cache will perform, on average, 2× better.
