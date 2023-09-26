@@ -644,7 +644,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_predicate reference_valid, :valid?
     assert_not_predicate reference_invalid, :valid?
     assert_not_predicate p, :valid?
-    assert_equal ["should be favorite", "can’t be blank"], p.errors.full_messages
+    assert_equal ["should be favorite", "can't be blank"], p.errors.full_messages
   ensure
     ActiveModel::Error.i18n_customize_full_message = old_i18n_customize_full_message
     I18n.backend = I18n::Backend::Simple.new
@@ -687,14 +687,14 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
 
     p = person.new
     assert_not_predicate p, :valid?
-    assert_equal ["Super reference can’t be blank"], p.errors.full_messages
+    assert_equal ["Super reference can't be blank"], p.errors.full_messages
 
     reference_invalid = reference.new(favorite: false)
     p.reference = reference_invalid
 
     assert_not_predicate reference_invalid, :valid?
     assert_not_predicate p, :valid?
-    assert_equal [" should be favorite", "Reference job can’t be blank"], p.errors.full_messages
+    assert_equal [" should be favorite", "Reference job can't be blank"], p.errors.full_messages
   ensure
     I18n.backend = I18n::Backend::Simple.new
   end
