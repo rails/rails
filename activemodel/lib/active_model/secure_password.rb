@@ -57,7 +57,7 @@ module ActiveModel
       #
       #   user.save                                                      # => false, password required
       #   user.password = "vr00m"
-      #   user.save                                                      # => false, confirmation doesn’t match
+      #   user.save                                                      # => false, confirmation doesn't match
       #   user.password_confirmation = "vr00m"
       #   user.save                                                      # => true
       #

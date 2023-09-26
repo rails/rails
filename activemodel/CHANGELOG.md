@@ -1,3 +1,9 @@
+*   Remove change in the typography of user facing error messages.
+    For example, “can’t be blank” is again “can't be blank”.
+
+    *Rafael Mendonça França*
+
+
 ## Rails 7.1.0.beta1 (September 13, 2023) ##
 
 *   Support composite identifiers in `to_key`

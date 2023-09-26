@@ -179,7 +179,7 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.add(:name, :blank)
 
     assert_equal :blank, person.errors.objects.first.type
-    assert_equal ["can’t be blank"], person.errors[:name]
+    assert_equal ["can't be blank"], person.errors[:name]
   end
 
   test "add, with type as String" do
@@ -216,7 +216,7 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.add(:name, type)
 
     assert_equal :blank, person.errors.objects.first.type
-    assert_equal ["can’t be blank"], person.errors[:name]
+    assert_equal ["can't be blank"], person.errors[:name]
   end
 
   test "add an error message on a specific attribute with a defined type" do

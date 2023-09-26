@@ -26,7 +26,7 @@ module ActiveModel
       # <tt>false.blank? # => true</tt>.
       #
       # Configuration options:
-      # * <tt>:message</tt> - A custom error message (default is: "can’t be blank").
+      # * <tt>:message</tt> - A custom error message (default is: "can't be blank").
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+.
