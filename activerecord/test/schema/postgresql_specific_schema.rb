@@ -153,14 +153,14 @@ _SQL
     t.exclusion_constraint "daterange(transaction_from, transaction_to) WITH &&", using: :gist, where: "transaction_from IS NOT NULL AND transaction_to IS NOT NULL", name: "test_exclusion_constraints_transaction_overlap", deferrable: :deferred
   end
 
-  create_table :test_unique_keys, force: true do |t|
+  create_table :test_unique_constraints, force: true do |t|
     t.integer :position_1
     t.integer :position_2
     t.integer :position_3
 
-    t.unique_key :position_1, name: "test_unique_keys_position_deferrable_false"
-    t.unique_key :position_2, name: "test_unique_keys_position_deferrable_immediate", deferrable: :immediate
-    t.unique_key :position_3, name: "test_unique_keys_position_deferrable_deferred", deferrable: :deferred
+    t.unique_constraint :position_1, name: "test_unique_constraints_position_deferrable_false"
+    t.unique_constraint :position_2, name: "test_unique_constraints_position_deferrable_immediate", deferrable: :immediate
+    t.unique_constraint :position_3, name: "test_unique_constraints_position_deferrable_deferred", deferrable: :deferred
   end
 
   if supports_partitioned_indexes?

@@ -654,14 +654,14 @@ Unique Constraint
 # db/migrate/20230422225213_create_items.rb
 create_table :items do |t|
   t.integer :position, null: false
-  t.unique_key [:position], deferrable: :immediate
+  t.unique_constraint [:position], deferrable: :immediate
 end
 ```
 
 If you want to change an existing unique index to deferrable, you can use `:using_index` to create deferrable unique constraints.
 
 ```ruby
-add_unique_key :items, deferrable: :deferred, using_index: "index_items_on_position"
+add_unique_constraint :items, deferrable: :deferred, using_index: "index_items_on_position"
 ```
 
 Like foreign keys, unique constraints can be deferred by setting `:deferrable` to either `:immediate` or `:deferred`. By default, `:deferrable` is `false` and the constraint is always checked immediately.

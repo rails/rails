@@ -177,17 +177,17 @@ module ActiveRecord
           end
         end
 
-        def test_unique_key_creates_unique_key
+        def test_unique_constraint_creates_unique_constraint
           with_change_table do |t|
-            expect :add_unique_key, nil, [:delete_me, :foo, deferrable: :deferred, name: "unique_key"]
-            t.unique_key :foo, deferrable: :deferred, name: "unique_key"
+            expect :add_unique_constraint, nil, [:delete_me, :foo, deferrable: :deferred, name: "unique_constraint"]
+            t.unique_constraint :foo, deferrable: :deferred, name: "unique_constraint"
           end
         end
 
-        def test_remove_unique_key_removes_unique_key
+        def test_remove_unique_constraint_removes_unique_constraint
           with_change_table do |t|
-            expect :remove_unique_key, nil, [:delete_me, name: "unique_key"]
-            t.remove_unique_key name: "unique_key"
+            expect :remove_unique_constraint, nil, [:delete_me, name: "unique_constraint"]
+            t.remove_unique_constraint name: "unique_constraint"
           end
         end
       end

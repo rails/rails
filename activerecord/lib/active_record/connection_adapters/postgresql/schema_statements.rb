@@ -640,8 +640,8 @@ module ActiveRecord
         end
 
         # Returns an array of unique constraints for the given table.
-        # The unique constraints are represented as UniqueKeyDefinition objects.
-        def unique_keys(table_name)
+        # The unique constraints are represented as UniqueConstraintDefinition objects.
+        def unique_constraints(table_name)
           scope = quoted_scope(table_name)
 
           unique_info = internal_exec_query(<<~SQL, "SCHEMA", allow_retry: true, materialize_transactions: false)
@@ -665,7 +665,7 @@ module ActiveRecord
               deferrable: deferrable
             }
 
-            UniqueKeyDefinition.new(table_name, columns, options)
+            UniqueConstraintDefinition.new(table_name, columns, options)
           end
         end
 
@@ -717,7 +717,7 @@ module ActiveRecord
 
         # Adds a new unique constraint to the table.
         #
-        #   add_unique_key :sections, [:position], deferrable: :deferred, name: "unique_position"
+        #   add_unique_constraint :sections, [:position], deferrable: :deferred, name: "unique_position"
         #
         # generates:
         #
@@ -725,7 +725,7 @@ module ActiveRecord
         #
         # If you want to change an existing unique index to deferrable, you can use :using_index to create deferrable unique constraints.
         #
-        #   add_unique_key :sections, deferrable: :deferred, name: "unique_position", using_index: "index_sections_on_position"
+        #   add_unique_constraint :sections, deferrable: :deferred, name: "unique_position", using_index: "index_sections_on_position"
         #
         # The +options+ hash can include the following keys:
         # [<tt>:name</tt>]
@@ -734,15 +734,15 @@ module ActiveRecord
         #   Specify whether or not the unique constraint should be deferrable. Valid values are +false+ or +:immediate+ or +:deferred+ to specify the default behavior. Defaults to +false+.
         # [<tt>:using_index</tt>]
         #   To specify an existing unique index name. Defaults to +nil+.
-        def add_unique_key(table_name, column_name = nil, **options)
-          options = unique_key_options(table_name, column_name, options)
+        def add_unique_constraint(table_name, column_name = nil, **options)
+          options = unique_constraint_options(table_name, column_name, options)
           at = create_alter_table(table_name)
-          at.add_unique_key(column_name, options)
+          at.add_unique_constraint(column_name, options)
 
           execute schema_creation.accept(at)
         end
 
-        def unique_key_options(table_name, column_name, options) # :nodoc:
+        def unique_constraint_options(table_name, column_name, options) # :nodoc:
           assert_valid_deferrable(options[:deferrable])
 
           if column_name && options[:using_index]
@@ -750,22 +750,22 @@ module ActiveRecord
           end
 
           options = options.dup
-          options[:name] ||= unique_key_name(table_name, column: column_name, **options)
+          options[:name] ||= unique_constraint_name(table_name, column: column_name, **options)
           options
         end
 
         # Removes the given unique constraint from the table.
         #
-        #   remove_unique_key :sections, name: "unique_position"
+        #   remove_unique_constraint :sections, name: "unique_position"
         #
         # The +column_name+ parameter will be ignored if present. It can be helpful
         # to provide this in a migration's +change+ method so it can be reverted.
-        # In that case, +column_name+ will be used by #add_unique_key.
-        def remove_unique_key(table_name, column_name = nil, **options)
-          unique_name_to_delete = unique_key_for!(table_name, column: column_name, **options).name
+        # In that case, +column_name+ will be used by #add_unique_constraint.
+        def remove_unique_constraint(table_name, column_name = nil, **options)
+          unique_name_to_delete = unique_constraint_for!(table_name, column: column_name, **options).name
 
           at = create_alter_table(table_name)
-          at.drop_unique_key(unique_name_to_delete)
+          at.drop_unique_constraint(unique_name_to_delete)
 
           execute schema_creation.accept(at)
         end
@@ -1038,7 +1038,7 @@ module ActiveRecord
               raise(ArgumentError, "Table '#{table_name}' has no exclusion constraint for #{expression || options}")
           end
 
-          def unique_key_name(table_name, **options)
+          def unique_constraint_name(table_name, **options)
             options.fetch(:name) do
               column_or_index = Array(options[:column] || options[:using_index]).map(&:to_s)
               identifier = "#{table_name}_#{column_or_index * '_and_'}_unique"
@@ -1048,13 +1048,13 @@ module ActiveRecord
             end
           end
 
-          def unique_key_for(table_name, **options)
-            name = unique_key_name(table_name, **options) unless options.key?(:column)
-            unique_keys(table_name).detect { |unique_key| unique_key.defined_for?(name: name, **options) }
+          def unique_constraint_for(table_name, **options)
+            name = unique_constraint_name(table_name, **options) unless options.key?(:column)
+            unique_constraints(table_name).detect { |unique_constraint| unique_constraint.defined_for?(name: name, **options) }
           end
 
-          def unique_key_for!(table_name, column: nil, **options)
-            unique_key_for(table_name, column: column, **options) ||
+          def unique_constraint_for!(table_name, column: nil, **options)
+            unique_constraint_for(table_name, column: column, **options) ||
               raise(ArgumentError, "Table '#{table_name}' has no unique constraint for #{column || options}")
           end
 

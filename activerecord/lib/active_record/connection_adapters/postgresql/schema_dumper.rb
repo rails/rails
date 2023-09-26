@@ -61,23 +61,23 @@ module ActiveRecord
             end
           end
 
-          def unique_keys_in_create(table, stream)
-            if (unique_keys = @connection.unique_keys(table)).any?
-              add_unique_key_statements = unique_keys.map do |unique_key|
+          def unique_constraints_in_create(table, stream)
+            if (unique_constraints = @connection.unique_constraints(table)).any?
+              add_unique_constraint_statements = unique_constraints.map do |unique_constraint|
                 parts = [
-                  "t.unique_key #{unique_key.column.inspect}"
+                  "t.unique_constraint #{unique_constraint.column.inspect}"
                 ]
 
-                parts << "deferrable: #{unique_key.deferrable.inspect}" if unique_key.deferrable
+                parts << "deferrable: #{unique_constraint.deferrable.inspect}" if unique_constraint.deferrable
 
-                if unique_key.export_name_on_schema_dump?
-                  parts << "name: #{unique_key.name.inspect}"
+                if unique_constraint.export_name_on_schema_dump?
+                  parts << "name: #{unique_constraint.name.inspect}"
                 end
 
                 "    #{parts.join(', ')}"
               end
 
-              stream.puts add_unique_key_statements.sort.join("\n")
+              stream.puts add_unique_constraint_statements.sort.join("\n")
             end
           end
 

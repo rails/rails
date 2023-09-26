@@ -498,7 +498,7 @@ module ActiveRecord
       end
 
       # Does this adapter support creating unique constraints?
-      def supports_unique_keys?
+      def supports_unique_constraints?
         false
       end
 
