@@ -459,7 +459,7 @@ module DefaultPrecisionImplicitTestCases
 
   private
     def precision_implicit_default
-      if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      if current_adapter?(:Mysql2Adapter)
         { precision: 0 }
       else
         { precision: nil }

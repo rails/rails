@@ -296,7 +296,7 @@ ActiveRecord::Schema.define do
     t.index :name, name: "company_name_index", using: :btree
     if supports_expression_index?
       t.index "(CASE WHEN rating > 0 THEN lower(name) END) DESC", name: "company_expression_index"
-      if ActiveRecord::TestCase.current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      if current_adapter?(:Mysql2Adapter)
         t.index "(CONCAT_WS(`firm_name`, `name`, _utf8mb4' '))", name: "full_name_index"
       end
     end
