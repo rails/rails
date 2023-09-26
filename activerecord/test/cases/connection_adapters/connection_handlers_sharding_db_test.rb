@@ -383,10 +383,13 @@ module ActiveRecord
           end
         end
 
-        [:default, :one].each do |shard_name|
-          ActiveRecord::Base.connected_to(role: :writing, shard: shard_name) do
-            SecondaryBase.remove_connection
-          end
+        ActiveRecord::Base.connected_to(role: :writing, shard: :one) do
+          SecondaryBase.remove_connection
+        end
+
+        ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
+          assert_equal "shard_key_default", ShardConnectionTestModel.connection.select_value("SELECT shard_key from shard_connection_test_models")
+          SecondaryBase.remove_connection
         end
 
         connection_classes = ActiveRecord::Base.connection_handler.connection_pool_list(:writing).map(&:connection_class)
