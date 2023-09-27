@@ -1505,7 +1505,7 @@ module ActiveRecord
         # [+:query_constraints+]
         #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
         #   This is an optional option. By default Rails will attempt to derive the value automatically.
-        #   When the value is set the Array size must match associated model's primary key or `query_constraints` size.
+        #   When the value is set the Array size must match associated model's primary key or +query_constraints+ size.
         #
         # Option examples:
         #   has_many :comments, -> { order("posted_on") }
@@ -1689,7 +1689,7 @@ module ActiveRecord
         # [+:query_constraints+]
         #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
         #   This is an optional option. By default Rails will attempt to derive the value automatically.
-        #   When the value is set the Array size must match associated model's primary key or `query_constraints` size.
+        #   When the value is set the Array size must match associated model's primary key or +query_constraints+ size.
         #
         # Option examples:
         #   has_one :credit_card, dependent: :destroy  # destroys the associated credit card
@@ -1866,7 +1866,7 @@ module ActiveRecord
         # [+:query_constraints+]
         #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
         #   This is an optional option. By default Rails will attempt to derive the value automatically.
-        #   When the value is set the Array size must match associated model's primary key or `query_constraints` size.
+        #   When the value is set the Array size must match associated model's primary key or +query_constraints+ size.
         #
         # Option examples:
         #   belongs_to :firm, foreign_key: "client_of"
