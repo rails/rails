@@ -1,3 +1,5 @@
+## Rails 7.1.0.rc1 (September 27, 2023) ##
+
 *   Set `scheduled_at` attribute as a Time object instead of epoch seconds, and serialize and deserialize the value
     when enqueued. Assigning a numeric/epoch value to scheduled_at= is deprecated; use a Time object instead.
 
@@ -10,6 +12,7 @@
     `wait: :exponentially_longer` is waiting polynomially longer, so it is now recommended to use `wait: :polynomially_longer` to keep the same behavior.
 
     *Victor Mours*
+
 
 ## Rails 7.1.0.beta1 (September 13, 2023) ##
 

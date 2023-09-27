@@ -1,3 +1,5 @@
+## Rails 7.1.0.rc1 (September 27, 2023) ##
+
 *   Add a new public API for broadcasting logs
 
     This feature existed for a while but was until now a private API.
@@ -40,6 +42,7 @@
 *   Use Ruby 3.3 Range#overlap? if available
 
     *Yasuo Honda*
+
 
 ## Rails 7.1.0.beta1 (September 13, 2023) ##
 

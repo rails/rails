@@ -1,3 +1,8 @@
+## Rails 7.1.0.rc1 (September 27, 2023) ##
+
+*   No changes.
+
+
 ## Rails 7.1.0.beta1 (September 13, 2023) ##
 
 *   Add a `@server` instance variable referencing the `ActionCable.server`

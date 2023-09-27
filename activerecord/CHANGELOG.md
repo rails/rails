@@ -1,3 +1,5 @@
+## Rails 7.1.0.rc1 (September 27, 2023) ##
+
 *   Better naming for unique constraints support.
 
     Naming unique keys leads to misunderstanding it's a short-hand of unique indexes.
@@ -60,6 +62,7 @@
 *   Dump PostgreSQL schemas as part of the schema dump.
 
     *Lachlan Sylvester*
+
 
 ## Rails 7.1.0.beta1 (September 13, 2023) ##
 

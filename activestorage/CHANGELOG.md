@@ -1,3 +1,5 @@
+## Rails 7.1.0.rc1 (September 27, 2023) ##
+
 *   Add `expires_at` option to `ActiveStorage::Blob#signed_id`.
 
     ```ruby
@@ -15,6 +17,7 @@
     ```
 
     *Dorian Marié*
+
 
 ## Rails 7.1.0.beta1 (September 13, 2023) ##
 

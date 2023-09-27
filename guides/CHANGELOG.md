@@ -1,3 +1,8 @@
+## Rails 7.1.0.rc1 (September 27, 2023) ##
+
+*   No changes.
+
+
 ## Rails 7.1.0.beta1 (September 13, 2023) ##
 
 *   Add "back to top" button to guides

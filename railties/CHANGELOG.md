@@ -1,3 +1,5 @@
+## Rails 7.1.0.rc1 (September 27, 2023) ##
+
 *   Require `concurrent-ruby` in `config/puma.rb` so that Puma can boot in
     production when `WEB_CONCURRENCY` is not explicitly specified.
 
@@ -16,6 +18,7 @@
     ```
 
     *Petrik de Heus*
+
 
 ## Rails 7.1.0.beta1 (September 13, 2023) ##
 

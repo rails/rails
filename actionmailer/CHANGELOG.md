@@ -1,3 +1,5 @@
+## Rails 7.1.0.rc1 (September 27, 2023) ##
+
 *   Introduce `ActionMailer::FormBuilder`
 
     Use the `default_form_builder` method in mailers to set the default form builder

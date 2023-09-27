@@ -1,3 +1,5 @@
+## Rails 7.1.0.rc1 (September 27, 2023) ##
+
 *   Remove change in the typography of user facing error messages.
     For example, “can’t be blank” is again “can't be blank”.
 

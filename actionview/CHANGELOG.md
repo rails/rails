@@ -1,3 +1,5 @@
+## Rails 7.1.0.rc1 (September 27, 2023) ##
+
 *   Introduce `ActionView::TestCase.register_parser`
 
     ```ruby
@@ -15,6 +17,7 @@
     By default, register parsers for `:html` and `:json`.
 
     *Sean Doyle*
+
 
 ## Rails 7.1.0.beta1 (September 13, 2023) ##
 
