@@ -88,7 +88,7 @@ module ActiveSupport
     initializer "active_support.initialize_time_zone" do |app|
       begin
         TZInfo::DataSource.get
-      rescue TZInfo::DataSourceNotFound => e
+      rescue TZInfo::DataSourceNotFound, TZInfo::ZoneinfoDirectoryNotFound => e
         raise e.exception "tzinfo-data is not present. Please add gem 'tzinfo-data' to your Gemfile and run bundle install"
       end
       require "active_support/core_ext/time/zones"
