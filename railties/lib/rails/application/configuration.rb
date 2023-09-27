@@ -287,6 +287,7 @@ module Rails
             active_record.belongs_to_required_validates_foreign_key = false
             active_record.before_committed_on_all_records = true
             active_record.default_column_serializer = nil
+            active_record.encryption.add_to_filter_parameters = true
             active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA256
             active_record.encryption.support_sha1_for_non_deterministic_encryption = false
             active_record.marshalling_format_version = 7.1

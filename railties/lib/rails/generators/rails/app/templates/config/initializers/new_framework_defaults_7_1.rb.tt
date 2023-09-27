@@ -29,6 +29,10 @@
 # as equal to an equivalent `Hash` by default.
 # Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality = false
 
+# Active Record now filters out the encrypted attributes when performing `inspect`.
+# If you need to disable the behavior, set false to the following config:
+# Rails.application.config.active_record.encryption.add_to_filter_parameters = true
+
 # Active Record Encryption now uses SHA-256 as its hash digest algorithm. Important: If you have
 # data encrypted with previous Rails versions, there are two scenarios to consider:
 #
