@@ -36,6 +36,8 @@ module RailInspector
         end
 
         def validate_authors
+          return if no_changes?
+
           authors =
             lines.reverse.find { |line| line.match?(/\*[^\d\s]+(\s[^\d\s]+)*\*/) }
 
@@ -87,6 +89,10 @@ module RailInspector
         end
 
       private
+        def no_changes?
+          lines.first == "*   No changes."
+        end
+
         def add_offense(...)
           @offenses << Offense.new(...)
         end
