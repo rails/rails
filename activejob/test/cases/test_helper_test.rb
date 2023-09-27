@@ -527,7 +527,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
 
     assert_instance_of LoggingJob, job
-    assert_in_delta 5.minutes.from_now.to_f, job.scheduled_at, 1
+    assert_in_delta 5.minutes.from_now.to_f, job.scheduled_at.to_f, 1
     assert_equal "default", job.queue_name
     assert_equal [1, 2, 3, { keyword: true }], job.arguments
   end
@@ -537,7 +537,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     job = assert_enqueued_with(job: LoggingJob)
 
     assert_instance_of LoggingJob, job
-    assert_in_delta 5.minutes.from_now.to_f, job.scheduled_at, 1
+    assert_in_delta 5.minutes.from_now.to_f, job.scheduled_at.to_f, 1
     assert_equal "default", job.queue_name
     assert_equal [1, 2, 3, { keyword: true }], job.arguments
   end
