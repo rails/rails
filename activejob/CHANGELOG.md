@@ -1,3 +1,10 @@
+*   Set `scheduled_at` attribute as a Time object instead of epoch seconds, and serialize and deserialize the value
+    when enqueued. Assigning a numeric/epoch value to scheduled_at= is deprecated; use a Time object instead.
+
+    Deserializes `enqueued_at` as a Time instead of ISO8601 String.
+
+    *Ben Sheldon*
+
 *   Clarify the backoff strategy for the recommended `:wait` option when retrying jobs
 
     `wait: :exponentially_longer` is waiting polynomially longer, so it is now recommended to use `wait: :polynomially_longer` to keep the same behavior.
