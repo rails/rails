@@ -1272,7 +1272,7 @@ module ActiveRecord
     def _raise_record_not_destroyed
       @_association_destroy_exception ||= nil
       key = self.class.primary_key
-      raise @_association_destroy_exception || RecordNotDestroyed.new("Failed to destroy #{self.class} with #{key}=#{send(key)}", self)
+      raise @_association_destroy_exception || RecordNotDestroyed.new("Failed to destroy #{self.class} with #{key}=#{id}", self)
     ensure
       @_association_destroy_exception = nil
     end
