@@ -680,7 +680,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Allow specifying where clauses with column-tuple syntax.
     
     ```ruby
-    Topic.where([:title, :author_name] => [["The Alchemist", "Paul Coelho"], ["Harry Potter", "J.K Rowling"]])
+    Topic.where([:title, :author_name] => [["The Alchemist", "Paulo Coelho"], ["Harry Potter", "J.K Rowling"]])
     ```
 
 *   Auto generated index names are now limited to 62 bytes, which fits within the default
