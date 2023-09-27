@@ -208,11 +208,11 @@ render "comments/comments"
 render 'comments/comments'
 render('comments/comments')
 
-render "header" translates to render("comments/header")
+render "header" # translates to render("comments/header")
 
-render(@topic)         translates to render("topics/topic")
-render(topics)         translates to render("topics/topic")
-render(message.topics) translates to render("topics/topic")
+render(@topic)         # translates to render("topics/topic")
+render(topics)         # translates to render("topics/topic")
+render(message.topics) # translates to render("topics/topic")
 ```
 
 On the other hand, some calls need to be changed to make caching work properly.
@@ -381,13 +381,13 @@ you can have multiple threads performing queries to the cache store at the same 
 If you want to disable connection pooling, set `:pool` option to `false` when configuring the cache store:
 
 ```ruby
-config.cache_store = :mem_cache_store, "cache.example.com", pool: false
+config.cache_store = :mem_cache_store, "cache.example.com", { pool: false }
 ```
 
 You can also override default pool settings by providing individual options to the `:pool` option:
 
 ```ruby
-config.cache_store = :mem_cache_store, "cache.example.com", pool: { size: 32, timeout: 1 }
+config.cache_store = :mem_cache_store, "cache.example.com", { pool: { size: 32, timeout: 1 } }
 ```
 
 * `:size` - This option sets the number of connections per process (defaults to 5).

@@ -600,11 +600,11 @@ To set the new framework default, set the new value in
 def load_defaults(target_version)
   case target_version.to_s
   when "7.1"
-    ...
+    # ...
     if respond_to?(:active_job)
       active_job.existing_behavior = false
     end
-    ...
+    # ...
   end
 end
 ```

@@ -139,7 +139,7 @@ module MyApp
       lib.join("generators")
     )
 
-    ...
+    # ...
   end
 end
 ```
@@ -223,7 +223,7 @@ module MyApp
       lib.join("generators")
     )
 
-    ...
+    # ...
   end
 end
 ```

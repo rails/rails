@@ -1904,40 +1904,23 @@ Configures what exceptions are assigned to an HTTP status. It accepts a hash and
 
 ```ruby
 config.action_dispatch.rescue_responses = {
-  'ActionController::RoutingError'
-    => :not_found,
-  'AbstractController::ActionNotFound'
-    => :not_found,
-  'ActionController::MethodNotAllowed'
-    => :method_not_allowed,
-  'ActionController::UnknownHttpMethod'
-    => :method_not_allowed,
-  'ActionController::NotImplemented'
-    => :not_implemented,
-  'ActionController::UnknownFormat'
-    => :not_acceptable,
-  'ActionController::InvalidAuthenticityToken'
-    => :unprocessable_entity,
-  'ActionController::InvalidCrossOriginRequest'
-    => :unprocessable_entity,
-  'ActionDispatch::Http::Parameters::ParseError'
-    => :bad_request,
-  'ActionController::BadRequest'
-    => :bad_request,
-  'ActionController::ParameterMissing'
-    => :bad_request,
-  'Rack::QueryParser::ParameterTypeError'
-    => :bad_request,
-  'Rack::QueryParser::InvalidParameterError'
-    => :bad_request,
-  'ActiveRecord::RecordNotFound'
-    => :not_found,
-  'ActiveRecord::StaleObjectError'
-    => :conflict,
-  'ActiveRecord::RecordInvalid'
-    => :unprocessable_entity,
-  'ActiveRecord::RecordNotSaved'
-    => :unprocessable_entity
+  'ActionController::RoutingError' => :not_found,
+  'AbstractController::ActionNotFound' => :not_found,
+  'ActionController::MethodNotAllowed' => :method_not_allowed,
+  'ActionController::UnknownHttpMethod'=> :method_not_allowed,
+  'ActionController::NotImplemented' => :not_implemented,
+  'ActionController::UnknownFormat'=> :not_acceptable,
+  'ActionController::InvalidAuthenticityToken' => :unprocessable_entity,
+  'ActionController::InvalidCrossOriginRequest'=> :unprocessable_entity,
+  'ActionDispatch::Http::Parameters::ParseError' => :bad_request,
+  'ActionController::BadRequest' => :bad_request,
+  'ActionController::ParameterMissing' => :bad_request,
+  'Rack::QueryParser::ParameterTypeError'=> :bad_request,
+  'Rack::QueryParser::InvalidParameterError' => :bad_request,
+  'ActiveRecord::RecordNotFound' => :not_found,
+  'ActiveRecord::StaleObjectError' => :conflict,
+  'ActiveRecord::RecordInvalid'=> :unprocessable_entity,
+  'ActiveRecord::RecordNotSaved' => :unprocessable_entity
 }
 ```
 
@@ -2260,10 +2243,12 @@ Specifies whether mail will actually be delivered and is `true` by default. It c
 Configures Action Mailer defaults. Use to set options like `from` or `reply_to` for every mailer. These default to:
 
 ```ruby
-mime_version:  "1.0",
-charset:       "UTF-8",
-content_type: "text/plain",
-parts_order:  ["text/plain", "text/enriched", "text/html"]
+{
+  mime_version:  "1.0",
+  charset:       "UTF-8",
+  content_type: "text/plain",
+  parts_order:  ["text/plain", "text/enriched", "text/html"]
+}
 ```
 
 Assign a hash to set additional options:

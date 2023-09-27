@@ -2038,7 +2038,6 @@ so we write that:
 
 ```ruby
 class ArticlesController < ApplicationController
-
   http_basic_authenticate_with name: "dhh", password: "secret", except: [:index, :show]
 
   def index
@@ -2046,6 +2045,7 @@ class ArticlesController < ApplicationController
   end
 
   # snippet for brevity
+end
 ```
 
 We also want to allow only authenticated users to delete comments, so in the
@@ -2053,7 +2053,6 @@ We also want to allow only authenticated users to delete comments, so in the
 
 ```ruby
 class CommentsController < ApplicationController
-
   http_basic_authenticate_with name: "dhh", password: "secret", only: :destroy
 
   def create
@@ -2062,6 +2061,7 @@ class CommentsController < ApplicationController
   end
 
   # snippet for brevity
+end
 ```
 
 Now if you try to create a new article, you will be greeted with a basic HTTP
