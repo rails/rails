@@ -667,7 +667,7 @@
 
     # Topic => Topic(id: integer, title: string, author_name: string...)
 
-    Topic.where([:title, :author_name] => [["The Alchemist", "Paul Coelho"], ["Harry Potter", "J.K Rowling"]])
+    Topic.where([:title, :author_name] => [["The Alchemist", "Paulo Coelho"], ["Harry Potter", "J.K Rowling"]])
     ```
 
     *Paarth Madan*
