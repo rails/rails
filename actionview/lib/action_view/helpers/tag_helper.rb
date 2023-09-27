@@ -79,11 +79,10 @@ module ActionView
         def content_tag_string(name, content, options, escape = true)
           tag_options = tag_options(options, escape) if options
 
+          TagHelper.ensure_valid_html5_tag_name(name)
           if escape
-            name = ERB::Util.xml_name_escape(name)
             content = ERB::Util.unwrapped_html_escape(content)
           end
-
           "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name]}#{content}</#{name}>".html_safe
         end
 
@@ -310,7 +309,7 @@ module ActionView
         if name.nil?
           tag_builder
         else
-          name = ERB::Util.xml_name_escape(name) if escape
+          ensure_valid_html5_tag_name(name)
           "<#{name}#{tag_builder.tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe
         end
       end
@@ -400,6 +399,11 @@ module ActionView
       end
 
       private
+        def ensure_valid_html5_tag_name(name)
+          raise ArgumentError, "Invalid HTML5 tag name: #{name.inspect}" unless /\A[a-zA-Z][^\s\/>]*\z/.match?(name)
+        end
+        module_function :ensure_valid_html5_tag_name
+
         def build_tag_values(*args)
           tag_values = []
 
