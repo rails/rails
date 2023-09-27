@@ -382,6 +382,65 @@ module ActionView
     end
   end
 
+  class RenderedMethodMissingTest < ActionView::TestCase
+    test "rendered delegates methods to the String" do
+      developer = DeveloperStruct.new("Eloy")
+
+      render "developers/developer", developer: developer
+
+      assert_kind_of String, rendered.to_s
+      assert_equal developer.name, rendered
+      assert_match rendered, /#{developer.name}/
+      assert_includes rendered, developer.name
+    end
+  end
+
+  class HTMLParserTest < ActionView::TestCase
+    test "rendered.html is a Nokogiri::XML::Element" do
+      developer = DeveloperStruct.new("Eloy")
+
+      render "developers/developer", developer: developer
+
+      assert_kind_of Nokogiri::XML::Element, rendered.html
+      assert_equal developer.name, document_root_element.text
+    end
+
+    test "do not memoize the rendered.html in view tests" do
+      concat form_tag("/foo")
+
+      assert_equal "/foo", document_root_element.at("form")["action"]
+
+      concat content_tag(:b, "Strong", class: "foo")
+
+      assert_equal "/foo", document_root_element.at("form")["action"]
+      assert_equal "foo", document_root_element.at("b")["class"]
+    end
+  end
+
+  class JSONParserTest < ActionView::TestCase
+    test "rendered.json is an ActiveSupport::HashWithIndifferentAccess" do
+      developer = DeveloperStruct.new("Eloy")
+
+      render formats: :json, partial: "developers/developer", locals: { developer: developer }
+
+      assert_kind_of ActiveSupport::HashWithIndifferentAccess, rendered.json
+      assert_equal developer.name, rendered.json[:name]
+    end
+  end
+
+  class MissingHTMLParserTest < ActionView::TestCase
+    register_parser :html, nil
+
+    test "rendered.html falls back to returning the value when the parser is missing" do
+      developer = DeveloperStruct.new("Eloy")
+
+      render "developers/developer", developer: developer
+
+      assert_kind_of String, rendered.html
+      assert_equal developer.name, rendered.html
+    end
+  end
+
   module AHelperWithInitialize
     def initialize(*)
       super

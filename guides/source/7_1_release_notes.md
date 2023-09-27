@@ -422,6 +422,62 @@ assert_pattern { html.at("main") => { children: [{ name: "h1", content: /content
 [nokogiri-pattern-matching]: https://nokogiri.org/rdoc/Nokogiri/XML/Attr.html#method-i-deconstruct_keys
 [minitest-pattern-matching]: https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-assert_pattern
 
+### Introduce `ActionView::TestCase.register_parser`
+
+[Extend `ActionView::TestCase`][#49194] to support parsing content rendered by
+view partials into known structures. By default, define `rendered_html` to parse
+HTML into a `Nokogiri::XML::Node` and `rendered_json` to parse JSON into an
+`ActiveSupport::HashWithIndifferentAccess`:
+
+```ruby
+test "renders HTML" do
+  article = Article.create!(title: "Hello, world")
+
+  render partial: "articles/article", locals: { article: article }
+
+  assert_pattern { rendered_html.at("main h1") => { content: "Hello, world" } }
+end
+
+test "renders JSON" do
+  article = Article.create!(title: "Hello, world")
+
+  render formats: :json, partial: "articles/article", locals: { article: article }
+
+  assert_pattern { rendered_json => { title: "Hello, world" } }
+end
+```
+
+To parse the rendered content into RSS, register a call to `RSS::Parser.parse`:
+
+```ruby
+register_parser :rss, -> rendered { RSS::Parser.parse(rendered) }
+
+test "renders RSS" do
+  article = Article.create!(title: "Hello, world")
+
+  render formats: :rss, partial: article, locals: { article: article }
+
+  assert_equal "Hello, world", rendered_rss.items.last.title
+end
+```
+
+To parse the rendered content into a Capybara::Simple::Node, re-register an
+`:html` parser with a call to `Capybara.string`:
+
+```ruby
+register_parser :html, -> rendered { Capybara.string(rendered) }
+
+test "renders HTML" do
+  article = Article.create!(title: "Hello, world")
+
+  render partial: article
+
+  rendered_html.assert_css "main h1", text: "Hello, world"
+end
+```
+
+[#49194]: https://github.com/rails/rails/pull/49194
+
 Railties
 --------
 
