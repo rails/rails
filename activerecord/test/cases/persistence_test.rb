@@ -821,6 +821,14 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
   end
 
+  def test_destroy_for_a_failed_to_destroy_cpk_record
+    book = cpk_books(:cpk_great_author_first_book)
+    book.fail_destroy = true
+    assert_raises(ActiveRecord::RecordNotDestroyed, match: /Failed to destroy Cpk::Book with \["author_id", "id"\]=/) do
+      book.destroy!
+    end
+  end
+
   def test_find_raises_record_not_found_exception
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(99999) }
   end
