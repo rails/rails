@@ -175,7 +175,7 @@ module ActiveJob
     end
 
     def scheduled_at=(value)
-      @_scheduled_at_time = if value&.is_a?(Numeric)
+      @_scheduled_at_time = if value.is_a?(Numeric)
         ActiveJob.deprecator.warn(<<~MSG.squish)
           Assigning a numeric/epoch value to scheduled_at is deprecated. Use a Time object instead.
         MSG
