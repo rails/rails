@@ -13,12 +13,6 @@ class AMLogSubscriberTest < ActionMailer::TestCase
     ActionMailer::LogSubscriber.attach_to :action_mailer
   end
 
-  class TestMailer < ActionMailer::Base
-    def receive(mail)
-      # Do nothing
-    end
-  end
-
   class BogusDelivery
     def initialize(*)
     end
