@@ -329,6 +329,8 @@ module Rails
               action_text.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
             end
           end
+        when "7.2"
+          load_defaults "7.1"
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

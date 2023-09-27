@@ -410,7 +410,7 @@ in files which are executed against any database that Active Record supports.
 Here's a migration that creates a new table called `publications`:
 
 ```ruby
-class CreatePublications < ActiveRecord::Migration[7.1]
+class CreatePublications < ActiveRecord::Migration[7.2]
   def change
     create_table :publications do |t|
       t.string :title

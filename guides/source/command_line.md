@@ -410,7 +410,7 @@ If you wish to test out some code without changing any data, you can do that by 
 
 ```bash
 $ bin/rails console --sandbox
-Loading development environment in sandbox (Rails 7.1.0)
+Loading development environment in sandbox (Rails 7.2.0)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
 ```
