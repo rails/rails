@@ -25,6 +25,7 @@ class PostgresqlAdapterTest < ActionCable::TestCase
     begin
       ActiveRecord::Base.connection
     rescue
+      raise if ENV["CI"] # We shouldn't skip on error on Rails CI.
       @rx_adapter = @tx_adapter = nil
       skip "Couldn't connect to PostgreSQL: #{database_config.inspect}"
     end
