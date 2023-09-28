@@ -3,6 +3,7 @@
 require "abstract_unit"
 require "console_helpers"
 require "plugin_helpers"
+require "net/http"
 
 class Rails::Engine::CommandsTest < ActiveSupport::TestCase
   include ConsoleHelpers
@@ -54,6 +55,25 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
       primary, replica = PTY.open
       pid = spawn_command("server", replica)
       assert_output("Listening on", primary)
+    ensure
+      kill(pid)
+    end
+
+    def test_server_command_broadcast_logs
+      primary, replica = PTY.open
+      pid = spawn_command("server", replica, env: { "RAILS_ENV" => "development" })
+      assert_output("Listening on", primary)
+
+      Net::HTTP.new("127.0.0.1", 3000).tap do |net|
+        net.get("/")
+      end
+
+      in_plugin_context(plugin_path) do
+        logs = File.read("test/dummy/log/development.log")
+        assert_match("Processing by Rails::WelcomeController", logs)
+      end
+
+      assert_output("Processing by Rails::WelcomeController", primary)
     ensure
       kill(pid)
     end

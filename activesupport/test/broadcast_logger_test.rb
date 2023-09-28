@@ -244,6 +244,30 @@ module ActiveSupport
       assert_not_predicate(@logger, :fatal?)
     end
 
+    test "calling a method that no logger in the broadcast have implemented" do
+      assert_raises(NoMethodError) do
+        @logger.non_existing
+      end
+    end
+
+    test "calling a method when *one* logger in the broadcast has implemented it" do
+      logger = BroadcastLogger.new(CustomLogger.new)
+
+      assert(logger.foo)
+    end
+
+    test "calling a method when *multiple* loggers in the broadcast have implemented it" do
+      logger = BroadcastLogger.new(CustomLogger.new, CustomLogger.new)
+
+      assert_equal([true, true], logger.foo)
+    end
+
+    test "calling a method when a subset of loggers in the broadcast have implemented" do
+      logger = BroadcastLogger.new(CustomLogger.new, FakeLogger.new)
+
+      assert(logger.foo)
+    end
+
     class CustomLogger
       attr_reader :adds, :closed, :chevrons
       attr_accessor :level, :progname, :formatter, :local_level
@@ -256,6 +280,10 @@ module ActiveSupport
         @local_level = ::Logger::DEBUG
         @progname    = nil
         @formatter   = nil
+      end
+
+      def foo
+        true
       end
 
       def debug(message, &block)

@@ -28,6 +28,16 @@ class LoggerTest < ActiveSupport::TestCase
     assert_not Logger.logger_outputs_to?(@logger, STDOUT, STDERR), "Expected logger_outputs_to? to STDOUT or STDERR to return false, but was true"
   end
 
+  def test_log_outputs_to_with_a_broadcast_logger
+    logger = ActiveSupport::BroadcastLogger.new(Logger.new(STDOUT))
+
+    assert(Logger.logger_outputs_to?(logger, STDOUT))
+    assert_not(Logger.logger_outputs_to?(logger, STDERR))
+
+    logger.broadcast_to(Logger.new(STDERR))
+    assert(Logger.logger_outputs_to?(logger, STDERR))
+  end
+
   def test_write_binary_data_to_existing_file
     t = Tempfile.new ["development", "log"]
     t.binmode
