@@ -533,7 +533,7 @@ See [the API Documentation for more information](https://api.rubyonrails.org/cla
 Returns meta tags "csrf-param" and "csrf-token" with the name of the cross-site
 request forgery protection parameter and token, respectively.
 
-```html
+```erb
 <%= csrf_meta_tags %>
 ```
 
