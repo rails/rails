@@ -38,12 +38,10 @@ class DatetimePrecisionQuotingTest < ActiveRecord::AbstractMysqlTestCase
       assert_match match, @connection.quoted_date(Time.now.change(sec: 55, usec: 123456))
     end
 
-    def stub_version(full_version_string)
-      @connection.stub(:get_full_version, full_version_string) do
-        @connection.schema_cache.clear!
-        yield
-      end
+    def stub_version(full_version_string, &block)
+      @connection.pool.pool_config.server_version = nil
+      @connection.stub(:get_full_version, full_version_string, &block)
     ensure
-      @connection.schema_cache.clear!
+      @connection.pool.pool_config.server_version = nil
     end
 end

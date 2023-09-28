@@ -66,10 +66,6 @@ module ActiveRecord
         cache(connection).indexes(connection, table_name)
       end
 
-      def database_version(connection)
-        cache(connection).database_version(connection)
-      end
-
       def version(connection)
         cache(connection).version(connection)
       end
@@ -196,10 +192,6 @@ module ActiveRecord
         @schema_reflection.indexes(@connection, table_name)
       end
 
-      def database_version
-        @schema_reflection.database_version(@connection)
-      end
-
       def version
         @schema_reflection.version(@connection)
       end
@@ -264,7 +256,6 @@ module ActiveRecord
         @primary_keys = {}
         @data_sources = {}
         @indexes      = {}
-        @database_version = nil
         @version = nil
       end
 
@@ -283,7 +274,6 @@ module ActiveRecord
         coder["data_sources"]     = @data_sources.sort.to_h
         coder["indexes"]          = @indexes.sort.to_h
         coder["version"]          = @version
-        coder["database_version"] = @database_version
       end
 
       def init_with(coder)
@@ -293,7 +283,6 @@ module ActiveRecord
         @data_sources     = coder["data_sources"]
         @indexes          = coder["indexes"] || {}
         @version          = coder["version"]
-        @database_version = coder["database_version"]
 
         unless coder["deduplicated"]
           derive_columns_hash_and_deduplicate_values
@@ -370,10 +359,6 @@ module ActiveRecord
         end
       end
 
-      def database_version(connection) # :nodoc:
-        @database_version ||= connection.get_database_version
-      end
-
       def version(connection)
         @version ||= connection.schema_version
       end
@@ -401,7 +386,6 @@ module ActiveRecord
         end
 
         version(connection)
-        database_version(connection)
       end
 
       def dump_to(filename)
@@ -415,11 +399,11 @@ module ActiveRecord
       end
 
       def marshal_dump # :nodoc:
-        [@version, @columns, {}, @primary_keys, @data_sources, @indexes, @database_version]
+        [@version, @columns, {}, @primary_keys, @data_sources, @indexes]
       end
 
       def marshal_load(array) # :nodoc:
-        @version, @columns, _columns_hash, @primary_keys, @data_sources, @indexes, @database_version = array
+        @version, @columns, _columns_hash, @primary_keys, @data_sources, @indexes, _database_version = array
         @indexes ||= {}
 
         derive_columns_hash_and_deduplicate_values
