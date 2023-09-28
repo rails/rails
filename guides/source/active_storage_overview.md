@@ -927,7 +927,7 @@ The two processors are not fully compatible, so when migrating an existing appli
 between MiniMagick and Vips, some changes have to be made if using options that are format
 specific:
 
-```rhtml
+```erb
 <!-- MiniMagick -->
 <%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg, sampling_factor: "4:2:0", strip: true, interlace: "JPEG", colorspace: "sRGB", quality: 80) %>
 
