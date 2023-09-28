@@ -170,7 +170,7 @@ Active Storage, with its included JavaScript library, supports uploading directl
     ```
 2. Annotate file inputs with the direct upload URL.
 
-    ```ruby
+    ```erb
     <%= form.file_field :attachments, multiple: true, direct_upload: true %>
     ```
 3. That's it! Uploads begin upon form submission.

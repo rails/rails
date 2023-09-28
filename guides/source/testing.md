@@ -99,6 +99,8 @@ By requiring this file, `test_helper.rb` the default configuration to run our te
 
 ```ruby
 class ArticleTest < ActiveSupport::TestCase
+  # ...
+end
 ```
 
 The `ArticleTest` class defines a _test case_ because it inherits from `ActiveSupport::TestCase`. `ArticleTest` thus has all the methods available from `ActiveSupport::TestCase`. Later in this guide, we'll see some of the methods it gives us.
@@ -893,7 +895,7 @@ require "test_helper"
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   url = ENV.fetch("SELENIUM_REMOTE_URL", nil)
   options = if url
-    { browser: :remote, url }
+    { browser: :remote, url: url }
   else
     { browser: :chrome }
   end
@@ -1330,9 +1332,9 @@ After a request has been made and processed, you will have 3 Hash objects ready 
 As is the case with normal Hash objects, you can access the values by referencing the keys by string. You can also reference them by symbol name. For example:
 
 ```ruby
-flash["gordon"]               flash[:gordon]
-session["shmession"]          session[:shmession]
-cookies["are_good_for_u"]     cookies[:are_good_for_u]
+flash["gordon"]               # or flash[:gordon]
+session["shmession"]          # or session[:shmession]
+cookies["are_good_for_u"]     # or cookies[:are_good_for_u]
 ```
 
 ### Instance Variables Available
@@ -1752,9 +1754,10 @@ test "renders a link to itself" do
 
   render "articles/article", article: article
   anchor = document_root_element.at("a")
+  url = article_url(article)
 
   assert_pattern do
-    anchor => { content: article.title, attributes: [{ name: "href", value: article_url(article) }] }
+    anchor => { content: "Hello, world", attributes: [{ name: "href", value: url }] }
   end
 end
 ```

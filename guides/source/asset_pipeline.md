@@ -241,7 +241,9 @@ Example:
 # config/importmap.rb
 pin "@github/hotkey", to: "https://ga.jspm.io/npm:@github/hotkey@1.4.4/dist/index.js", preload: true
 pin "md5", to: "https://cdn.jsdelivr.net/npm/md5@2.3.0/md5.js"
+```
 
+```erb
 # app/views/layouts/application.html.erb
 <%= javascript_importmap_tags %>
 

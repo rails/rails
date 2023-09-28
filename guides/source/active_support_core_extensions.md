@@ -981,7 +981,9 @@ Instance methods are created as well for convenience, they are just proxies to t
 ```ruby
 module ActionView
   class Base
-    cattr_accessor :field_error_proc, default: Proc.new { ... }
+    cattr_accessor :field_error_proc, default: Proc.new {
+      # ...
+    }
   end
 end
 ```

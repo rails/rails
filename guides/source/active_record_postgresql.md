@@ -329,7 +329,7 @@ To add a new value you can use `add_enum_value`:
 ```ruby
 # db/migrate/20150720144913_add_new_state_to_articles.rb
 def up
-  add_enum_value :article_state, "archived", # will be at the end after published
+  add_enum_value :article_state, "archived" # will be at the end after published
   add_enum_value :article_state, "in review", before: "published"
   add_enum_value :article_state, "approved", after: "in review"
 end

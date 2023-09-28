@@ -178,7 +178,7 @@ If you don't want to use connection pooling, set `:pool` option to `false` when
 configuring your cache store:
 
 ```ruby
-config.cache_store = :mem_cache_store, "cache.example.com", pool: false
+config.cache_store = :mem_cache_store, "cache.example.com", { pool: false }
 ```
 
 See the [caching with Rails](https://guides.rubyonrails.org/v7.1/caching_with_rails.html#connection-pool-options) guide for more information.
@@ -600,6 +600,8 @@ The schema file will look like this:
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[6.1].define(version: 2022_01_28_123512) do
+  # ...
+end
 ```
 
 NOTE: The first time you dump the schema with Rails 7.0, you will see many changes to that file, including
@@ -1131,10 +1133,10 @@ class User < ApplicationRecord
   has_many_attached :highlights
 end
 
-user.highlights.attach(filename: "funky.jpg", ...)
+user.highlights.attach(filename: "funky.jpg")
 user.highlights.count # => 1
 
-blob = ActiveStorage::Blob.create_after_upload!(filename: "town.jpg", ...)
+blob = ActiveStorage::Blob.create_after_upload!(filename: "town.jpg")
 user.update!(highlights: [ blob ])
 
 user.highlights.count # => 2
@@ -1145,10 +1147,10 @@ user.highlights.second.filename # => "town.jpg"
 With the configuration defaults for Rails 6.0, assigning to a collection of attachments replaces existing files instead of appending to them. This matches Active Record behavior when assigning to a collection association:
 
 ```ruby
-user.highlights.attach(filename: "funky.jpg", ...)
+user.highlights.attach(filename: "funky.jpg")
 user.highlights.count # => 1
 
-blob = ActiveStorage::Blob.create_after_upload!(filename: "town.jpg", ...)
+blob = ActiveStorage::Blob.create_after_upload!(filename: "town.jpg")
 user.update!(highlights: [ blob ])
 
 user.highlights.count # => 1
@@ -1158,7 +1160,7 @@ user.highlights.first.filename # => "town.jpg"
 `#attach` can be used to add new attachments without removing the existing ones:
 
 ```ruby
-blob = ActiveStorage::Blob.create_after_upload!(filename: "town.jpg", ...)
+blob = ActiveStorage::Blob.create_after_upload!(filename: "town.jpg")
 user.highlights.attach(blob)
 
 user.highlights.count # => 2
@@ -1787,15 +1789,15 @@ invocation of the instance methods are deferred until either `deliver_now` or
 
 ```ruby
 class Notifier < ActionMailer::Base
-  def notify(user, ...)
+  def notify(user)
     puts "Called"
-    mail(to: user.email, ...)
+    mail(to: user.email)
   end
 end
 ```
 
 ```ruby
-mail = Notifier.notify(user, ...) # Notifier#notify is not yet called at this point
+mail = Notifier.notify(user) # Notifier#notify is not yet called at this point
 mail = mail.deliver_now           # Prints "Called"
 ```
 
@@ -2413,11 +2415,11 @@ Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must rep
 * Rails 4.0 has changed to default join table for `has_and_belongs_to_many` relations to strip the common prefix off the second table name. Any existing `has_and_belongs_to_many` relationship between models with a common prefix must be specified with the `join_table` option. For example:
 
     ```ruby
-    CatalogCategory < ActiveRecord::Base
+    class CatalogCategory < ActiveRecord::Base
       has_and_belongs_to_many :catalog_products, join_table: 'catalog_categories_catalog_products'
     end
 
-    CatalogProduct < ActiveRecord::Base
+    class CatalogProduct < ActiveRecord::Base
       has_and_belongs_to_many :catalog_categories, join_table: 'catalog_categories_catalog_products'
     end
     ```

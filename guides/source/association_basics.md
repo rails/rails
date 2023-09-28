@@ -1750,7 +1750,7 @@ end
 
 Each instance of the `Author` model will have these methods:
 
-```ruby
+```
 books
 books<<(object, ...)
 books.delete(object, ...)
@@ -2321,7 +2321,7 @@ end
 
 Each instance of the `Part` model will have these methods:
 
-```ruby
+```
 assemblies
 assemblies<<(object, ...)
 assemblies.delete(object, ...)

@@ -537,7 +537,7 @@ You can use `ActiveRecord::Encryption.with_encryption_context` to set an encrypt
 
 ```ruby
 ActiveRecord::Encryption.with_encryption_context(encryptor: ActiveRecord::Encryption::NullEncryptor.new) do
-  ...
+  # ...
 end
 ```
 
@@ -549,7 +549,7 @@ You can run code without encryption:
 
 ```ruby
 ActiveRecord::Encryption.without_encryption do
-   ...
+  # ...
 end
 ```
 
@@ -561,7 +561,7 @@ You can run code without encryption but prevent overwriting encrypted content:
 
 ```ruby
 ActiveRecord::Encryption.protecting_encrypted_data do
-   ...
+  # ...
 end
 ```
 
