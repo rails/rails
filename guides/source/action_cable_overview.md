@@ -249,7 +249,7 @@ class ChatChannel < ApplicationCable::Channel
 
   private
     def deliver_error_message(e)
-      broadcast_to(...)
+      # broadcast_to(...)
     end
 end
 ```
@@ -276,7 +276,7 @@ class ChatChannel < ApplicationCable::Channel
 
   private
     def send_welcome_message
-      broadcast_to(...)
+      # broadcast_to(...)
     end
 
     def track_subscription
@@ -847,7 +847,7 @@ You can change that in `config/database.yml` through the `pool` attribute.
 
 Client-side logging is disabled by default. You can enable this by setting the `ActionCable.logger.enabled` to true.
 
-```ruby
+```js
 import * as ActionCable from '@rails/actioncable'
 
 ActionCable.logger.enabled = true

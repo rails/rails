@@ -386,8 +386,8 @@ end
 
 or if you are using Rails 6.0+, you can run a model generator command like this:
 
-```ruby
-bin/rails generate model User avatar:attachment
+```bash
+$ bin/rails generate model User avatar:attachment
 ```
 
 You can create a user with an avatar:
@@ -482,8 +482,8 @@ end
 
 or if you are using Rails 6.0+, you can run a model generator command like this:
 
-```ruby
-bin/rails generate model Message images:attachments
+```bash
+$ bin/rails generate model Message images:attachments
 ```
 
 You can create a message with images:
