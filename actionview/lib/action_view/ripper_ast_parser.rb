@@ -179,7 +179,7 @@ module ActionView
           end
 
           def on_paren(content)
-            content
+            content.size == 1 ? content.first : content
           end
       end
 
