@@ -63,6 +63,16 @@ module TestUnit # :nodoc:
           attribute = attributes.find { |attr| attr.name == name }
           attribute&.virtual?
         end
+
+        def datetime?(name)
+          attribute = attributes.find { |attr| attr.name == name }
+          attribute&.type == :datetime
+        end
+
+        def time?(name)
+          attribute = attributes.find { |attr| attr.name == name }
+          attribute&.type == :time
+        end
     end
   end
 end
