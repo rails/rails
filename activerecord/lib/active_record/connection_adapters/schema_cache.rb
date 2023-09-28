@@ -66,7 +66,7 @@ module ActiveRecord
         cache(connection).indexes(connection, table_name)
       end
 
-      def database_version(connection)
+      def database_version(connection) # :nodoc:
         cache(connection).database_version(connection)
       end
 
@@ -196,7 +196,7 @@ module ActiveRecord
         @schema_reflection.indexes(@connection, table_name)
       end
 
-      def database_version
+      def database_version # :nodoc:
         @schema_reflection.database_version(@connection)
       end
 
