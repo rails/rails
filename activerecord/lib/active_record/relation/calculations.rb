@@ -93,7 +93,7 @@ module ActiveRecord
       end
     end
 
-    # Same as <tt>#count</tt> but perform the query asynchronously and returns an ActiveRecord::Promise
+    # Same as <tt>#count</tt> but perform the query asynchronously and returns an ActiveRecord::Promise.
     def async_count(column_name = nil)
       async.count(column_name)
     end
@@ -106,7 +106,7 @@ module ActiveRecord
       calculate(:average, column_name)
     end
 
-    # Same as <tt>#average</tt> but perform the query asynchronously and returns an ActiveRecord::Promise
+    # Same as <tt>#average</tt> but perform the query asynchronously and returns an ActiveRecord::Promise.
     def async_average(column_name)
       async.average(column_name)
     end
@@ -120,7 +120,7 @@ module ActiveRecord
       calculate(:minimum, column_name)
     end
 
-    # Same as <tt>#minimum</tt> but perform the query asynchronously and returns an ActiveRecord::Promise
+    # Same as <tt>#minimum</tt> but perform the query asynchronously and returns an ActiveRecord::Promise.
     def async_minimum(column_name)
       async.minimum(column_name)
     end
@@ -134,7 +134,7 @@ module ActiveRecord
       calculate(:maximum, column_name)
     end
 
-    # Same as <tt>#maximum</tt> but perform the query asynchronously and returns an ActiveRecord::Promise
+    # Same as <tt>#maximum</tt> but perform the query asynchronously and returns an ActiveRecord::Promise.
     def async_maximum(column_name)
       async.maximum(column_name)
     end
@@ -152,7 +152,7 @@ module ActiveRecord
       end
     end
 
-    # Same as <tt>#sum</tt> but perform the query asynchronously and returns an ActiveRecord::Promise
+    # Same as <tt>#sum</tt> but perform the query asynchronously and returns an ActiveRecord::Promise.
     def async_sum(identity_or_column = nil)
       async.sum(identity_or_column)
     end
@@ -287,7 +287,7 @@ module ActiveRecord
       end
     end
 
-    # Same as <tt>#pluck</tt> but perform the query asynchronously and returns an ActiveRecord::Promise
+    # Same as <tt>#pluck</tt> but perform the query asynchronously and returns an ActiveRecord::Promise.
     def async_pluck(*column_names)
       async.pluck(*column_names)
     end
@@ -315,7 +315,7 @@ module ActiveRecord
       limit(1).pluck(*column_names).then(&:first)
     end
 
-    # Same as <tt>#pick</tt> but perform the query asynchronously and returns an ActiveRecord::Promise
+    # Same as <tt>#pick</tt> but perform the query asynchronously and returns an ActiveRecord::Promise.
     def async_pick(*column_names)
       async.pick(*column_names)
     end
@@ -358,7 +358,7 @@ module ActiveRecord
       result.then { |result| type_cast_pluck_values(result, columns) }
     end
 
-    # Same as <tt>#ids</tt> but perform the query asynchronously and returns an ActiveRecord::Promise
+    # Same as <tt>#ids</tt> but perform the query asynchronously and returns an ActiveRecord::Promise.
     def async_ids
       async.ids
     end
