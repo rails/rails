@@ -6,9 +6,8 @@ module ActiveRecord
   module ConnectionAdapters
     class SchemaCacheTest < ActiveRecord::TestCase
       def setup
-        @connection       = ARUnit2Model.connection
-        @cache            = new_bound_reflection
-        @database_version = @connection.get_database_version
+        @connection = ARUnit2Model.connection
+        @cache = new_bound_reflection
         @check_schema_cache_dump_version_was = SchemaReflection.check_schema_cache_dump_version
       end
 
@@ -67,7 +66,6 @@ module ActiveRecord
           assert cache.data_source_exists?("courses")
           assert_equal "id", cache.primary_keys("courses")
           assert_equal 1, cache.indexes("courses").size
-          assert_equal @database_version.to_s, cache.database_version.to_s
         end
       ensure
         tempfile.unlink
@@ -104,7 +102,6 @@ module ActiveRecord
           assert cache.data_source_exists?(@connection, "courses")
           assert_equal "id", cache.primary_keys(@connection, "courses")
           assert_equal 1, cache.indexes(@connection, "courses").size
-          assert_equal @database_version.to_s, cache.database_version(@connection).to_s
         end
 
         # Load the cache the usual way.
@@ -116,7 +113,6 @@ module ActiveRecord
           assert cache.data_source_exists?("courses")
           assert_equal "id", cache.primary_keys("courses")
           assert_equal 1, cache.indexes("courses").size
-          assert_equal @database_version.to_s, cache.database_version.to_s
         end
       ensure
         tempfile.unlink
@@ -139,18 +135,6 @@ module ActiveRecord
         assert_queries :any, ignore_none: true do
           assert_equal 1, cache.indexes("courses").size
         end
-      end
-
-      def test_yaml_loads_5_1_dump_without_database_version_still_queries_for_database_version
-        cache = load_bound_reflection(schema_dump_path)
-
-        # We can't verify queries get executed because the database version gets
-        # cached in both MySQL and PostgreSQL outside of the schema cache.
-
-        assert_not_nil reflection = @cache.instance_variable_get(:@schema_reflection)
-        assert_nil reflection.instance_variable_get(:@cache)
-
-        assert_equal @database_version.to_s, cache.database_version.to_s
       end
 
       def test_primary_key_for_existent_table
@@ -189,18 +173,6 @@ module ActiveRecord
         assert_equal [], @cache.indexes("omgponies")
       end
 
-      def test_caches_database_version
-        @cache.database_version # cache database_version
-
-        assert_no_queries do
-          assert_equal @database_version.to_s, @cache.database_version.to_s
-
-          if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-            assert_not_nil @cache.database_version.full_version_string
-          end
-        end
-      end
-
       def test_clearing
         @cache.columns("courses")
         @cache.columns_hash("courses")
@@ -211,9 +183,6 @@ module ActiveRecord
         @cache.clear!
 
         assert_equal 0, @cache.size
-        reflection = @cache.instance_variable_get(:@schema_reflection)
-        schema_cache = reflection.instance_variable_get(:@cache)
-        assert_nil schema_cache.instance_variable_get(:@database_version)
       end
 
       def test_marshal_dump_and_load
@@ -222,10 +191,6 @@ module ActiveRecord
 
         # Populate it.
         cache.add("courses")
-
-        # We're going to manually dump, so we also need to force
-        # database_version to be stored.
-        cache.database_version
 
         # Create a new cache by marshal dumping / loading.
         cache = Marshal.load(Marshal.dump(cache.instance_variable_get(:@schema_reflection).instance_variable_get(:@cache)))
@@ -236,7 +201,6 @@ module ActiveRecord
           assert cache.data_source_exists?(@connection, "courses")
           assert_equal "id", cache.primary_keys(@connection, "courses")
           assert_equal 1, cache.indexes(@connection, "courses").size
-          assert_equal @database_version.to_s, cache.database_version(@connection).to_s
         end
       end
 
@@ -257,7 +221,6 @@ module ActiveRecord
           assert cache.data_source_exists?("courses")
           assert_equal "id", cache.primary_keys("courses")
           assert_equal 1, cache.indexes("courses").size
-          assert_equal @database_version.to_s, cache.database_version.to_s
         end
       ensure
         tempfile.unlink
@@ -316,7 +279,6 @@ module ActiveRecord
           assert cache.data_source_exists?(@connection, "courses")
           assert_equal "id", cache.primary_keys(@connection, "courses")
           assert_equal 1, cache.indexes(@connection, "courses").size
-          assert_equal @database_version.to_s, cache.database_version(@connection).to_s
         end
 
         # Load a new cache.
@@ -328,7 +290,6 @@ module ActiveRecord
           assert cache.data_source_exists?("courses")
           assert_equal "id", cache.primary_keys("courses")
           assert_equal 1, cache.indexes("courses").size
-          assert_equal @database_version.to_s, cache.database_version.to_s
         end
       ensure
         tempfile.unlink
@@ -389,20 +350,20 @@ module ActiveRecord
           ActiveRecord::Base.establish_connection(new_config)
 
           # cache starts empty
-          assert_equal 0, ActiveRecord::Base.connection.pool.schema_reflection.instance_variable_get(:@cache).size
+          assert_nil ActiveRecord::Base.connection.pool.schema_reflection.instance_variable_get(:@cache)
 
           # now we access the cache, causing it to load
-          assert ActiveRecord::Base.connection.schema_cache.version
+          assert_not_nil ActiveRecord::Base.connection.schema_cache.version
 
           assert File.exist?(tempfile)
-          assert ActiveRecord::Base.connection.pool.schema_reflection.instance_variable_get(:@cache)
+          assert_not_nil ActiveRecord::Base.connection.pool.schema_reflection.instance_variable_get(:@cache)
 
           # assert cache is still empty on new connection (precondition for the
           # following to show it is loading because of the config change)
           ActiveRecord::Base.establish_connection(new_config)
 
           assert File.exist?(tempfile)
-          assert_equal 0, ActiveRecord::Base.connection.pool.schema_reflection.instance_variable_get(:@cache).size
+          assert_nil ActiveRecord::Base.connection.pool.schema_reflection.instance_variable_get(:@cache)
 
           # cache is loaded upon connection when lazily loading is on
           old_config = ActiveRecord.lazily_load_schema_cache
@@ -410,7 +371,7 @@ module ActiveRecord
           ActiveRecord::Base.establish_connection(new_config)
 
           assert File.exist?(tempfile)
-          assert ActiveRecord::Base.connection.pool.schema_reflection.instance_variable_get(:@cache)
+          assert_not_nil ActiveRecord::Base.connection.pool.schema_reflection.instance_variable_get(:@cache)
         ensure
           ActiveRecord.lazily_load_schema_cache = old_config
           ActiveRecord::Base.establish_connection(:arunit)
@@ -449,7 +410,6 @@ module ActiveRecord
         assert_equal expected, coder["data_sources"]
         assert_equal expected, coder["indexes"]
         assert coder.key?("version")
-        assert coder.key?("database_version")
       end
 
       private

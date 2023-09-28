@@ -868,7 +868,7 @@ module ActiveRecord
       end
 
       def database_version # :nodoc:
-        schema_cache.database_version
+        pool.server_version(self)
       end
 
       def check_version # :nodoc:

@@ -162,10 +162,13 @@ To keep using the current cache store, you can turn off cache versioning entirel
                 warn "Failed to validate the schema cache because of #{error.class}: #{error.message}"
                 nil
               end
-              next if current_version.nil?
 
-              if cache.schema_version != current_version
+              if current_version.nil?
+                connection_pool.schema_reflection.clear!
+                next
+              elsif cache.schema_version != current_version
                 warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the schema cache file is #{cache.schema_version}."
+                connection_pool.schema_reflection.clear!
                 next
               end
             end
