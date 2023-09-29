@@ -1604,6 +1604,17 @@ whether a foreign key's name should be dumped to db/schema.rb or not. By
 default, foreign key names starting with `fk_rails_` are not exported to the
 database schema dump. Defaults to `/^fk_rails_[0-9a-f]{10}$/`.
 
+#### `config.active_record.encryption.add_to_filter_parameters`
+
+Enables automatic filtering of encrypted attributes on `inspect`.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+|-----------------------|----------------------|
+| (original)            | `false`              |
+| 7.1                   | `true`               |
+
 #### `config.active_record.encryption.hash_digest_class`
 
 Sets the digest algorithm used by Active Record Encryption.
