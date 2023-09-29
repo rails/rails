@@ -59,6 +59,14 @@ module Rails
         unless config.consider_all_requests_local
           Rails.error.logger = Rails.logger
         end
+
+        if config.log_to_stdout? && !ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDOUT, STDERR)
+          console = ActiveSupport::Logger.new(STDOUT)
+          console.formatter = Rails.logger.formatter
+          console.level = Rails.logger.level
+
+          Rails.logger = ActiveSupport::BroadcastLogger.new(Rails.logger, console)
+        end
       end
 
       # Initialize cache early in the stack so railties can make use of it.

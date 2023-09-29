@@ -83,6 +83,7 @@ module Rails
         @rake_eager_load                         = false
         @server_timing                           = false
         @dom_testing_default_html_version        = :html4
+        @log_to_stdout                           = false
       end
 
       # Loads default configuration values for a target version. This includes
@@ -551,6 +552,14 @@ module Rails
         else
           @permissions_policy
         end
+      end
+
+      def log_to_stdout! # :nodoc:
+        @log_to_stdout = true
+      end
+
+      def log_to_stdout? # :nodoc:
+        @log_to_stdout
       end
 
       def default_log_file
