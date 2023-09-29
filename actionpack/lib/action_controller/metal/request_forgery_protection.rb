@@ -125,6 +125,7 @@ module ActionController # :nodoc:
       #
       #   If you need to add verification to the beginning of the callback chain, use <tt>prepend: true</tt>.
       # * <tt>:with</tt> - Set the method to handle unverified request.
+      #   Note if <tt>default_protect_from_forgery</tt> is true, Rails call protect_from_forgery with <tt>with :exception</tt>.
       #
       # Built-in unverified request handling methods are:
       # * <tt>:exception</tt> - Raises ActionController::InvalidAuthenticityToken exception.
