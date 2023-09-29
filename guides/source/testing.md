@@ -334,6 +334,8 @@ specify to make your test failure messages clearer.
 | `assert_not_operator( obj1, operator, [obj2], [msg] )`           | Ensures that `obj1.operator(obj2)` is false.|
 | `assert_predicate ( obj, predicate, [msg] )`                     | Ensures that `obj.predicate` is true, e.g. `assert_predicate str, :empty?`|
 | `assert_not_predicate ( obj, predicate, [msg] )`                 | Ensures that `obj.predicate` is false, e.g. `assert_not_predicate str, :empty?`|
+| `assert_error_reported(class) { block }`                         | Ensures that the error class has been reported, e.g. `assert_error_reported IOError { Rails.error.report(IOError.new("Oops")) }`|
+| `assert_no_error_reported { block }`                             | Ensures that no errors have been reported, e.g. `assert_no_error_reported { perform_service }`|
 | `flunk( [msg] )`                                                 | Ensures failure. This is useful to explicitly mark a test that isn't finished yet.|
 
 The above are a subset of assertions that minitest supports. For an exhaustive &
