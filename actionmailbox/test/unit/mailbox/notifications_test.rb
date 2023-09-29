@@ -8,9 +8,7 @@ end
 class ActionMailbox::Base::NotificationsTest < ActiveSupport::TestCase
   test "instruments processing" do
     events = []
-    ActiveSupport::Notifications.subscribe("process.action_mailbox") do |*args|
-      events << ActiveSupport::Notifications::Event.new(*args)
-    end
+    ActiveSupport::Notifications.subscribe("process.action_mailbox") { |event| events << event }
 
     mailbox = RepliesMailbox.new(create_inbound_email_from_fixture("welcome.eml"))
     mailbox.perform_processing

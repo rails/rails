@@ -358,14 +358,13 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   def assert_notification(notification, expected_payload = {}, &block)
     notification_sent = false
 
-    subscription = lambda do |*args|
+    subscription = lambda do |_, _, _, _, payload|
       notification_sent = true
-      event = ActiveSupport::Notifications::Event.new(*args)
 
       expected_payload.each do |key, value|
         assert(
-          value === event.payload[key],
-          "Expected notification payload[:#{key}] to match #{value.inspect}, but got #{event.payload[key].inspect}."
+          value === payload[key],
+          "Expected notification payload[:#{key}] to match #{value.inspect}, but got #{payload[key].inspect}."
         )
       end
     end

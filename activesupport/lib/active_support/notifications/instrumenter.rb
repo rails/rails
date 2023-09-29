@@ -185,8 +185,8 @@ module ActiveSupport
       # Returns the difference in milliseconds between when the execution of the
       # event started and when it ended.
       #
-      #   ActiveSupport::Notifications.subscribe('wait') do |*args|
-      #     @event = ActiveSupport::Notifications::Event.new(*args)
+      #   ActiveSupport::Notifications.subscribe('wait') do |event|
+      #     @event = event
       #   end
       #
       #   ActiveSupport::Notifications.instrument('wait') do

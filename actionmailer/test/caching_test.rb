@@ -173,9 +173,8 @@ class FunctionalFragmentCachingTest < BaseCachingTest
     @mailer.enable_fragment_cache_logging = true
     payload = nil
 
-    subscriber = proc do |*args|
-      event = ActiveSupport::Notifications::Event.new(*args)
-      payload = event.payload
+    subscriber = proc do |_, _, _, _, event_payload|
+      payload = event_payload
     end
 
     ActiveSupport::Notifications.subscribed(subscriber, "read_fragment.action_mailer") do

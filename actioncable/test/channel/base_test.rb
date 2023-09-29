@@ -200,9 +200,7 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
 
   test "notification for perform_action" do
     events = []
-    ActiveSupport::Notifications.subscribe "perform_action.action_cable" do |*args|
-      events << ActiveSupport::Notifications::Event.new(*args)
-    end
+    ActiveSupport::Notifications.subscribe("perform_action.action_cable") { |event| events << event }
 
     data = { "action" => :speak, "content" => "hello" }
     @channel.perform_action data
@@ -218,9 +216,7 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
 
   test "notification for transmit" do
     events = []
-    ActiveSupport::Notifications.subscribe "transmit.action_cable" do |*args|
-      events << ActiveSupport::Notifications::Event.new(*args)
-    end
+    ActiveSupport::Notifications.subscribe("transmit.action_cable") { |event| events << event }
 
     @channel.perform_action "action" => :get_latest
     expected_data = { data: "latest" }
@@ -238,9 +234,7 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
     @channel.subscribe_to_channel
 
     events = []
-    ActiveSupport::Notifications.subscribe "transmit_subscription_confirmation.action_cable" do |*args|
-      events << ActiveSupport::Notifications::Event.new(*args)
-    end
+    ActiveSupport::Notifications.subscribe("transmit_subscription_confirmation.action_cable") { |e| events << e }
 
     @channel.stub(:subscription_confirmation_sent?, false) do
       @channel.send(:transmit_subscription_confirmation)
@@ -255,9 +249,7 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
 
   test "notification for transmit_subscription_rejection" do
     events = []
-    ActiveSupport::Notifications.subscribe "transmit_subscription_rejection.action_cable" do |*args|
-      events << ActiveSupport::Notifications::Event.new(*args)
-    end
+    ActiveSupport::Notifications.subscribe("transmit_subscription_rejection.action_cable") { |event| events << event }
 
     @channel.send(:transmit_subscription_rejection)
 

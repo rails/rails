@@ -29,10 +29,25 @@ You are even able to [create your own events](#creating-custom-events) inside yo
 Subscribing to an Event
 -----------------------
 
-Subscribing to an event is easy. Use [`ActiveSupport::Notifications.subscribe`][] with a block to
-listen to any notification.
+Use [`ActiveSupport::Notifications.subscribe`][] with a block to listen to any notification. Depending on the amount of
+arguments the block takes, you will receive different data.
 
-The block receives the following arguments:
+The first way to subscribe to an event is to use a block with a single argument. The argument will be an instance of
+[`ActiveSupport::Notifications::Event`][].
+
+```ruby
+ActiveSupport::Notifications.subscribe "process_action.action_controller" do |event|
+  event.name        # => "process_action.action_controller"
+  event.duration    # => 10 (in milliseconds)
+  event.allocations # => 1826
+  event.payload     # => {:extra=>information}
+
+  Rails.logger.info "#{event} Received!"
+end
+```
+
+If you don't need all the data recorded by an Event object, you can also specify a
+block that takes the following five arguments:
 
 * Name of the event
 * Time when it started
@@ -41,45 +56,19 @@ The block receives the following arguments:
 * The payload for the event
 
 ```ruby
-ActiveSupport::Notifications.subscribe "process_action.action_controller" do |name, started, finished, unique_id, data|
+ActiveSupport::Notifications.subscribe "process_action.action_controller" do |name, started, finished, unique_id, payload|
   # your own custom stuff
-  Rails.logger.info "#{name} Received! (started: #{started}, finished: #{finished})" # process_action.action_controller Received (started: 2019-05-05 13:43:57 -0800, finished: 2019-05-05 13:43:58 -0800)
+  Rails.logger.info "#{name} Received! (started: #{started}, finished: #{finished})" # process_action.action_controller Received! (started: 2019-05-05 13:43:57 -0800, finished: 2019-05-05 13:43:58 -0800)
 end
 ```
 
 If you are concerned about the accuracy of `started` and `finished` to compute a precise elapsed time, then use [`ActiveSupport::Notifications.monotonic_subscribe`][]. The given block would receive the same arguments as above, but the `started` and `finished` will have values with an accurate monotonic time instead of wall-clock time.
 
 ```ruby
-ActiveSupport::Notifications.monotonic_subscribe "process_action.action_controller" do |name, started, finished, unique_id, data|
+ActiveSupport::Notifications.monotonic_subscribe "process_action.action_controller" do |name, started, finished, unique_id, payload|
   # your own custom stuff
-  Rails.logger.info "#{name} Received! (started: #{started}, finished: #{finished})" # process_action.action_controller Received (started: 1560978.425334, finished: 1560979.429234)
-end
-```
-
-Defining all those block arguments each time can be tedious. You can easily create an [`ActiveSupport::Notifications::Event`][]
-from block arguments like this:
-
-```ruby
-ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
-  event = ActiveSupport::Notifications::Event.new(*args)
-
-  event.name      # => "process_action.action_controller"
-  event.duration  # => 10 (in milliseconds)
-  event.payload   # => {:extra=>information}
-
-  Rails.logger.info "#{event} Received!"
-end
-```
-
-You may also pass a block that accepts only one argument, and it will receive an event object:
-
-```ruby
-ActiveSupport::Notifications.subscribe "process_action.action_controller" do |event|
-  event.name      # => "process_action.action_controller"
-  event.duration  # => 10 (in milliseconds)
-  event.payload   # => {:extra=>information}
-
-  Rails.logger.info "#{event} Received!"
+  duration = finished - started # 1560979.429234 - 1560978.425334
+  Rails.logger.info "#{name} Received! (duration: #{duration})" # process_action.action_controller Received! (duration: 1.0039)
 end
 ```
 
@@ -87,7 +76,7 @@ You may also subscribe to events matching a regular expression. This enables you
 multiple events at once. Here's how to subscribe to everything from `ActionController`:
 
 ```ruby
-ActiveSupport::Notifications.subscribe(/action_controller/) do |*args|
+ActiveSupport::Notifications.subscribe(/action_controller/) do |event|
   # inspect all ActionController events
 end
 ```

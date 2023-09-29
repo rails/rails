@@ -195,9 +195,7 @@ class MiddlewareStackTest < ActiveSupport::TestCase
   test "instruments the execution of middlewares" do
     events = []
 
-    subscriber = proc do |*args|
-      events << ActiveSupport::Notifications::Event.new(*args)
-    end
+    subscriber = proc { |event| events << event }
 
     ActiveSupport::Notifications.subscribed(subscriber, "process_middleware.action_dispatch") do
       app = Rack::Lint.new(
