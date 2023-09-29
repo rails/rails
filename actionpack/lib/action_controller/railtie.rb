@@ -77,6 +77,7 @@ module ActionController
 
         # Configs used in other initializers
         filtered_options = options.except(
+          :default_protect_from_forgery,
           :log_query_tags_around_actions,
           :permit_all_parameters,
           :action_on_unpermitted_parameters,

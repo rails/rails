@@ -90,10 +90,6 @@ module ActionController # :nodoc:
       config_accessor :per_form_csrf_tokens
       self.per_form_csrf_tokens = false
 
-      # Controls whether forgery protection is enabled by default.
-      config_accessor :default_protect_from_forgery
-      self.default_protect_from_forgery = false
-
       # The strategy to use for storing and retrieving CSRF tokens.
       config_accessor :csrf_token_storage_strategy
       self.csrf_token_storage_strategy = SessionStore.new

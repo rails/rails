@@ -1747,7 +1747,6 @@ module ApplicationTests
     test "config.action_controller.default_protect_from_forgery is true by default" do
       app "development"
 
-      assert_equal true, ActionController::Base.default_protect_from_forgery
       assert_includes ActionController::Base.__callbacks[:process_action].map(&:filter), :verify_authenticity_token
     end
 
