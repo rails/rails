@@ -119,7 +119,7 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal topics.count, stats[:count]
   end
 
-  def test_positional_klass_method
+  def test_positional_class_method
     stats = {}
     topics = Topic.all.klass_stats(stats)
 

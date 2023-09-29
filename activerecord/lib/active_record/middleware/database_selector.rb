@@ -49,14 +49,24 @@ module ActiveRecord
     # to call <tt>require "active_support/core_ext/integer/time"</tt> to load
     # the core extension in order to use +2.seconds+
     class DatabaseSelector
-      def initialize(app, resolver_klass = nil, context_klass = nil, options = {})
+      def initialize(app, resolver_class = nil, context_class = nil, options = {})
         @app = app
-        @resolver_klass = resolver_klass || Resolver
-        @context_klass = context_klass || Resolver::Session
+        @resolver_class = resolver_class || Resolver
+        @context_class = context_class || Resolver::Session
         @options = options
       end
 
-      attr_reader :resolver_klass, :context_klass, :options
+      attr_reader :resolver_class, :context_class, :options
+
+      def resolver_klass
+        resolver_class
+      end
+      deprecate resolver_klass: :resolver_class, deprecator: ActiveRecord.deprecator
+
+      def context_klass
+        context_class
+      end
+      deprecate context_klass: :context_class, deprecator: ActiveRecord.deprecator
 
       # Middleware that determines which database connection to use in a multiple
       # database application.
@@ -70,8 +80,8 @@ module ActiveRecord
 
       private
         def select_database(request, &blk)
-          context = context_klass.call(request)
-          resolver = resolver_klass.call(context, options)
+          context = context_class.call(request)
+          resolver = resolver_class.call(context, options)
 
           response = if resolver.reading_request?(request)
             resolver.read(&blk)

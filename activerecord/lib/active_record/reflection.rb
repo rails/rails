@@ -190,13 +190,13 @@ module ActiveRecord
         scope ? [scope] : []
       end
 
-      def join_scope(table, foreign_table, foreign_klass)
+      def join_scope(table, foreign_table, foreign_class)
         predicate_builder = predicate_builder(table)
         scope_chain_items = join_scopes(table, predicate_builder)
         klass_scope       = klass_join_scope(table, predicate_builder)
 
         if type
-          klass_scope.where!(type => foreign_klass.polymorphic_name)
+          klass_scope.where!(type => foreign_class.polymorphic_name)
         end
 
         scope_chain_items.inject(klass_scope, &:merge!)

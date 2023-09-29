@@ -8,22 +8,22 @@ require "models/topic"
 
 class AbsenceValidationTest < ActiveRecord::TestCase
   def test_non_association
-    boy_klass = Class.new(Human) do
+    boy_class = Class.new(Human) do
       def self.name; "Boy" end
       validates_absence_of :name
     end
 
-    assert_predicate boy_klass.new, :valid?
-    assert_not_predicate boy_klass.new(name: "Alex"), :valid?
+    assert_predicate boy_class.new, :valid?
+    assert_not_predicate boy_class.new(name: "Alex"), :valid?
   end
 
   def test_has_one_marked_for_destruction
-    boy_klass = Class.new(Human) do
+    boy_class = Class.new(Human) do
       def self.name; "Boy" end
       validates_absence_of :face
     end
 
-    boy = boy_klass.new(face: Face.new)
+    boy = boy_class.new(face: Face.new)
     assert_not boy.valid?, "should not be valid if has_one association is present"
     assert_equal 1, boy.errors[:face].size, "should only add one error"
 
@@ -32,11 +32,11 @@ class AbsenceValidationTest < ActiveRecord::TestCase
   end
 
   def test_has_many_marked_for_destruction
-    boy_klass = Class.new(Human) do
+    boy_class = Class.new(Human) do
       def self.name; "Boy" end
       validates_absence_of :interests
     end
-    boy = boy_klass.new
+    boy = boy_class.new
     boy.interests << [i1 = Interest.new, i2 = Interest.new]
     assert_not boy.valid?, "should not be valid if has_many association is present"
 
@@ -48,7 +48,7 @@ class AbsenceValidationTest < ActiveRecord::TestCase
   end
 
   def test_does_not_call_to_a_on_associations
-    boy_klass = Class.new(Human) do
+    boy_class = Class.new(Human) do
       def self.name; "Boy" end
       validates_absence_of :face
     end
@@ -56,7 +56,7 @@ class AbsenceValidationTest < ActiveRecord::TestCase
     face_with_to_a = Face.new
     def face_with_to_a.to_a; ["(/)", '(\)']; end
 
-    assert_nothing_raised { boy_klass.new(face: face_with_to_a).valid? }
+    assert_nothing_raised { boy_class.new(face: face_with_to_a).valid? }
   end
 
   def test_validates_absence_of_virtual_attribute_on_model

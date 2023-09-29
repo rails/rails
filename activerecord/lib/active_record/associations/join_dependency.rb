@@ -74,8 +74,8 @@ module ActiveRecord
         @join_type = join_type
       end
 
-      def base_klass
-        join_root.base_klass
+      def base_class
+        join_root.base_class
       end
 
       def reflections
@@ -136,7 +136,7 @@ module ActiveRecord
 
         payload = {
           record_count: result_set.length,
-          class_name: join_root.base_klass.name
+          class_name: join_root.base_class.name
         }
 
         message_bus.instrument("instantiation.active_record", payload) do
@@ -189,8 +189,8 @@ module ActiveRecord
 
         def make_constraints(parent, child, join_type)
           foreign_table = parent.table
-          foreign_klass = parent.base_klass
-          child.join_constraints(foreign_table, foreign_klass, join_type, alias_tracker) do |reflection|
+          foreign_class = parent.base_class
+          child.join_constraints(foreign_table, foreign_class, join_type, alias_tracker) do |reflection|
             table, terminated = @joined_tables[reflection]
             root = reflection == child.reflection
 
@@ -225,9 +225,9 @@ module ActiveRecord
             raise(ConfigurationError, "Can't join '#{klass.name}' to association named '#{name}'; perhaps you misspelled it?")
         end
 
-        def build(associations, base_klass)
+        def build(associations, base_class)
           associations.map do |name, right|
-            reflection = find_reflection base_klass, name
+            reflection = find_reflection base_class, name
             reflection.check_validity!
             reflection.check_eager_loadable!
 

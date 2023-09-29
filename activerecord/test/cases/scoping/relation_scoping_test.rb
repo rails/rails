@@ -335,7 +335,7 @@ class RelationScopingTest < ActiveRecord::TestCase
     end
   end
 
-  def test_scoping_with_klass_method_works_in_the_scope_block
+  def test_scoping_with_class_method_works_in_the_scope_block
     expected = SpecialPostWithDefaultScope.unscoped.to_a
     assert_equal expected, SpecialPostWithDefaultScope.unscoped_all
   end

@@ -28,8 +28,8 @@ class ActiveRecord::Encryption::ConfigurableTest < ActiveRecord::EncryptionTestC
 
   test "can add listeners that will get invoked when declaring encrypted attributes" do
     @klass, @attribute_name = nil
-    ActiveRecord::Encryption.on_encrypted_attribute_declared do |declared_klass, declared_attribute_name|
-      @klass = declared_klass
+    ActiveRecord::Encryption.on_encrypted_attribute_declared do |declared_class, declared_attribute_name|
+      @klass = declared_class
       @attribute_name = declared_attribute_name
     end
 

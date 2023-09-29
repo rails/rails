@@ -402,7 +402,7 @@ class TimestampTest < ActiveRecord::TestCase
       def self.name; "Toy"; end
     end
 
-    wheel_klass = Class.new(ActiveRecord::Base) do
+    wheel_class = Class.new(ActiveRecord::Base) do
       def self.name; "Wheel"; end
       belongs_to :wheelable, polymorphic: true, touch: true
     end
@@ -411,7 +411,7 @@ class TimestampTest < ActiveRecord::TestCase
     time = 3.days.ago
     toy.update_columns(updated_at: time)
 
-    wheel = wheel_klass.new
+    wheel = wheel_class.new
     wheel.wheelable = toy
     wheel.save
     wheel.touch

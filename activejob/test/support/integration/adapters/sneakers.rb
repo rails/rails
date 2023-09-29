@@ -31,8 +31,8 @@ module SneakersJobsManager
     @pid = fork do
       queues = %w(integration_tests)
       workers = queues.map do |q|
-        worker_klass = "ActiveJobWorker" + OpenSSL::Digest::MD5.hexdigest(q)
-        Sneakers.const_set(worker_klass, Class.new(ActiveJob::QueueAdapters::SneakersAdapter::JobWrapper) do
+        worker_class = "ActiveJobWorker" + OpenSSL::Digest::MD5.hexdigest(q)
+        Sneakers.const_set(worker_class, Class.new(ActiveJob::QueueAdapters::SneakersAdapter::JobWrapper) do
           from_queue q
         end)
       end

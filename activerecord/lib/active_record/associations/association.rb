@@ -213,7 +213,7 @@ module ActiveRecord
       private
         # Reader and writer methods call this so that consistent errors are presented
         # when the association target class does not exist.
-        def ensure_klass_exists!
+        def ensure_class_exists!
           klass
         end
 

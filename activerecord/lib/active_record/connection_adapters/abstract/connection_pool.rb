@@ -197,8 +197,6 @@ module ActiveRecord
       def connection_class # :nodoc:
         pool_config.connection_class
       end
-      alias :connection_klass :connection_class
-      deprecate :connection_klass, deprecator: ActiveRecord.deprecator
 
       # Returns true if there is an open connection being used for the current thread.
       #

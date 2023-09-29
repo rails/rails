@@ -57,8 +57,8 @@ class DescendantsTrackerTest < ActiveSupport::TestCase
     # that such references are on a stack that will be entirely garbage
     # collected, effectively working around the problem.
     Thread.new do
-      child_klass = Class.new(Parent)
-      assert_equal_sets [Child1, Grandchild1, Grandchild2, Child2, child_klass], Parent.descendants
+      child_class = Class.new(Parent)
+      assert_equal_sets [Child1, Grandchild1, Grandchild2, Child2, child_class], Parent.descendants
     end.join
 
     # Calling `GC.start` 4 times should trigger a full GC run

@@ -18,7 +18,7 @@ module ActiveRecord
       assert_not relation.loaded, "relation is not loaded"
     end
 
-    def test_responds_to_model_and_returns_klass
+    def test_responds_to_model_and_returns_class
       relation = Relation.new(FakeKlass)
       assert_equal FakeKlass, relation.model
     end

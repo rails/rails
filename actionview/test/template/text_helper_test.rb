@@ -23,8 +23,8 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_simple_format_included_in_isolation
-    helper_klass = Class.new { include ActionView::Helpers::TextHelper }
-    assert_predicate helper_klass.new.simple_format("<b> test with HTML tags </b>"), :html_safe?
+    helper_class = Class.new { include ActionView::Helpers::TextHelper }
+    assert_predicate helper_class.new.simple_format("<b> test with HTML tags </b>"), :html_safe?
   end
 
   def test_simple_format
