@@ -1606,26 +1606,26 @@ database schema dump. Defaults to `/^fk_rails_[0-9a-f]{10}$/`.
 
 #### `config.active_record.encryption.hash_digest_class`
 
- Sets the digest algorithm used by Active Record Encryption.
+Sets the digest algorithm used by Active Record Encryption.
 
- The default value depends on the `config.load_defaults` target version:
+The default value depends on the `config.load_defaults` target version:
 
- | Starting with version | The default value is      |
- |-----------------------|---------------------------|
- | (original)            | `OpenSSL::Digest::SHA1`   |
- | 7.1                   | `OpenSSL::Digest::SHA256` |
+| Starting with version | The default value is      |
+| --------------------- | ------------------------- |
+| (original)            | `OpenSSL::Digest::SHA1`   |
+| 7.1                   | `OpenSSL::Digest::SHA256` |
 
 #### `config.active_record.encryption.support_sha1_for_non_deterministic_encryption`
 
 Enables support for decrypting existing data encrypted using a SHA-1 digest class. When `false`,
 it will only support the digest configured in `config.active_record.encryption.hash_digest_class`.
 
- The default value depends on the `config.load_defaults` target version:
+The default value depends on the `config.load_defaults` target version:
 
- | Starting with version | The default value is |
- |-----------------------|----------------------|
- | (original)            | `true`               |
- | 7.1                   | `false`              |
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 7.1                   | `false`              |
 
 ### Configuring Action Controller
 
