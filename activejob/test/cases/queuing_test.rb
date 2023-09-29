@@ -89,10 +89,8 @@ class QueuingTest < ActiveSupport::TestCase
     jobs = HelloJob.new("Jamie"), HelloJob.new("John")
     called = false
 
-    subscriber = lambda do |*args|
+    subscriber = proc do |_, _, _, _, payload|
       called = true
-      event = ActiveSupport::Notifications::Event.new(*args)
-      payload = event.payload
       assert payload[:adapter]
       assert_equal jobs, payload[:jobs]
       assert_equal 2, payload[:enqueued_count]

@@ -965,9 +965,7 @@ class BaseTest < ActiveSupport::TestCase
 
   test "notification for process" do
     events = []
-    ActiveSupport::Notifications.subscribe("process.action_mailer") do |*args|
-      events << ActiveSupport::Notifications::Event.new(*args)
-    end
+    ActiveSupport::Notifications.subscribe("process.action_mailer") { |event| events << event }
 
     BaseMailer.welcome(body: "Hello there").deliver_now
 
@@ -982,9 +980,7 @@ class BaseTest < ActiveSupport::TestCase
 
   test "notification for deliver" do
     events = []
-    ActiveSupport::Notifications.subscribe("deliver.action_mailer") do |*args|
-      events << ActiveSupport::Notifications::Event.new(*args)
-    end
+    ActiveSupport::Notifications.subscribe("deliver.action_mailer") { |event| events << event }
 
     BaseMailer.welcome(body: "Hello there").deliver_now
 

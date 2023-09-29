@@ -55,9 +55,7 @@ module CacheInstrumentationBehavior
       event_name = "cache_#{method}.active_support"
 
       [].tap do |events|
-        ActiveSupport::Notifications.subscribe event_name do |*args|
-          events << ActiveSupport::Notifications::Event.new(*args)
-        end
+        ActiveSupport::Notifications.subscribe(event_name) { |event| events << event }
         yield
       end
     ensure
