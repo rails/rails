@@ -23,6 +23,7 @@ module ActiveRecord
         db_path = db_config.database
         file = File.absolute_path?(db_path) ? db_path : File.join(root, db_path)
         FileUtils.rm(file)
+        FileUtils.rm_f(["#{file}-shm", "#{file}-wal"])
       rescue Errno::ENOENT => error
         raise NoDatabaseError.new(error.message)
       end
