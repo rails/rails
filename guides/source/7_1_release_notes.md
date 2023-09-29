@@ -673,13 +673,12 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Add `#regroup` query method as a short-hand for `.unscope(:group).group(fields)`.
 
-*   Add support for generated columns, deferred foreign keys, auto-populated columns,
-    and custom primary keys to the `SQLite3` adapter.
+*   Add support for auto-populated columns, and custom primary keys to the `SQLite3` adapter.
 
 *   Add modern, performant defaults for `SQLite3` database connections.
 
 *   Allow specifying where clauses with column-tuple syntax.
-    
+
     ```ruby
     Topic.where([:title, :author_name] => [["The Alchemist", "Paulo Coelho"], ["Harry Potter", "J.K Rowling"]])
     ```
