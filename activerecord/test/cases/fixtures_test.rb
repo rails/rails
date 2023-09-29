@@ -1047,6 +1047,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def transaction_open?; end
       def begin_transaction(*args); end
       def rollback_transaction(*args); end
+      def connect!; end
     end.new
 
     connection.pool = Class.new do
@@ -1068,6 +1069,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def rollback_transaction(*args)
         @rollback_transaction_called = true
       end
+      def connect!; end
     end.new
 
     connection.pool = Class.new do
@@ -1087,6 +1089,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def transaction_open?; end
       def begin_transaction(*args); end
       def rollback_transaction(*args); end
+      def connect!; end
     end.new
 
     connection.pool = Class.new do

@@ -243,7 +243,7 @@ module ActiveRecord
 
       # Returns true if a connection has already been opened.
       def connected?
-        synchronize { @connections.any? }
+        synchronize { @connections.any?(&:connected?) }
       end
 
       # Returns an array containing the connections currently in the pool.
@@ -682,7 +682,6 @@ module ActiveRecord
         def new_connection
           connection = Base.public_send(db_config.adapter_method, db_config.configuration_hash)
           connection.pool = self
-          connection.check_version
           connection
         rescue ConnectionNotEstablished => ex
           raise ex.set_pool(self)

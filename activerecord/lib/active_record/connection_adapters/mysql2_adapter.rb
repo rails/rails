@@ -130,6 +130,10 @@ module ActiveRecord
       # CONNECTION MANAGEMENT ====================================
       #++
 
+      def connected?
+        !(@raw_connection.nil? || @raw_connection.closed?)
+      end
+
       def active?
         !!@raw_connection&.ping
       end

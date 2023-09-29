@@ -158,6 +158,7 @@ module ActiveRecord
           if connection_name
             begin
               connection = ActiveRecord::Base.connection_handler.retrieve_connection(connection_name, shard: shard)
+              connection.connect! # eagerly validate the connection
             rescue ConnectionNotEstablished
               connection = nil
             end

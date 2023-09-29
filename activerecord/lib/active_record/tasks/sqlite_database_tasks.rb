@@ -70,6 +70,7 @@ module ActiveRecord
 
         def establish_connection(config = db_config)
           ActiveRecord::Base.establish_connection(config)
+          connection.connect!
         end
 
         def run_cmd(cmd, args, out)

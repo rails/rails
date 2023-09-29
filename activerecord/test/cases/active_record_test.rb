@@ -12,7 +12,7 @@ class ActiveRecordTest < ActiveRecord::TestCase
       ActiveRecord.disconnect_all!
       assert_not_predicate ActiveRecord::Base, :connected?
 
-      ActiveRecord::Base.connection.active?
+      ActiveRecord::Base.connection.connect!
       assert_predicate ActiveRecord::Base, :connected?
     end
   end

@@ -131,6 +131,10 @@ module ActiveRecord
         end
       end
 
+      def connected?
+        !(@raw_connection.nil? || @raw_connection.closed?)
+      end
+
       def active?
         connection&.ping || false
       rescue ::Trilogy::Error

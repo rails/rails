@@ -870,6 +870,7 @@ module ActiveRecord
         end
 
         def configure_connection
+          super
           variables = @config.fetch(:variables, {}).stringify_keys
 
           # Increase timeout so the server doesn't disconnect us.

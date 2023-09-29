@@ -11,7 +11,7 @@ class TestAdapterWithInvalidConnection < ActiveRecord::TestCase
     def setup
       # Can't just use current adapter; sqlite3 will create a database
       # file on the fly.
-      Bird.establish_connection adapter: "mysql2", database: "i_do_not_exist"
+      Bird.establish_connection adapter: ARTest.connection_name, database: "i_do_not_exist", host: "127.0.0.1", port: 12, username: "invalid"
     end
 
     teardown do
