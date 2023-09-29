@@ -67,7 +67,7 @@ module ActiveRecord
       unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDERR, STDOUT)
         console = ActiveSupport::Logger.new(STDERR)
         console.level = Rails.logger.level
-        Rails.logger = ActiveSupport::BroadcastLogger.new(Rails.logger, console)
+        Rails.logger.broadcast_to(console)
       end
       ActiveRecord.verbose_query_logs = false
     end

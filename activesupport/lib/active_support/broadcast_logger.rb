@@ -202,5 +202,17 @@ module ActiveSupport
       def dispatch(&block)
         @broadcasts.each { |logger| block.call(logger) }
       end
+
+      def method_missing(name, *args)
+        loggers = @broadcasts.select { |logger| logger.respond_to?(name) }
+
+        if loggers.none?
+          super(name, *args)
+        elsif loggers.one?
+          loggers.first.send(name, *args)
+        else
+          loggers.map { |logger| logger.send(name, *args) }
+        end
+      end
   end
 end

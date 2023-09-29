@@ -14,9 +14,16 @@ module ActiveSupport
     #   ActiveSupport::Logger.logger_outputs_to?(logger, STDOUT)
     #   # => true
     def self.logger_outputs_to?(logger, *sources)
-      logdev = logger.instance_variable_get(:@logdev)
-      logger_source = logdev.dev if logdev.respond_to?(:dev)
-      sources.any? { |source| source == logger_source }
+      loggers = if logger.is_a?(BroadcastLogger)
+        logger.broadcasts
+      else
+        [logger]
+      end
+
+      logdevs = loggers.map { |logger| logger.instance_variable_get(:@logdev) }
+      logger_sources = logdevs.filter_map { |logdev| logdev.dev if logdev.respond_to?(:dev) }
+
+      (sources & logger_sources).any?
     end
 
     def initialize(*args, **kwargs)
