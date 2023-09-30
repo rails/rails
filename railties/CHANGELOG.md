@@ -1,3 +1,14 @@
+*   Rails::Generators::Actions#gem_group: Prepend existing gem groups
+
+    Prior to this commit, calls to `gem_group` would amend the `Gemfile`
+    even if there was an existing [gem group][], resulting in duplication.
+
+    This commit prepends existing gem groups with the added gem.
+
+    [gem groups]: https://bundler.io/guides/groups.html
+
+    *Steve Polito*
+
 *   Conditionally print `$stdout` when invoking `run_generator`
 
     In an effort to improve the developer experience when debugging
