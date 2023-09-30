@@ -207,6 +207,36 @@ class SendFileTest < ActionController::TestCase
     assert_equal file_data, response.body
   end
 
+  def test_send_file_instrumentation
+    payload = nil
+
+    subscriber = proc do |*args|
+      event = ActiveSupport::Notifications::Event.new(*args)
+      payload = event.payload
+    end
+
+    ActiveSupport::Notifications.subscribed(subscriber, "send_file.action_controller") do
+      process("file")
+    end
+
+    assert_equal __FILE__, payload[:path]
+  end
+
+  def test_send_data_instrumentation
+    payload = nil
+
+    subscriber = proc do |*args|
+      event = ActiveSupport::Notifications::Event.new(*args)
+      payload = event.payload
+    end
+
+    ActiveSupport::Notifications.subscribed(subscriber, "send_data.action_controller") do
+      process("data")
+    end
+
+    assert_equal({}, payload)
+  end
+
   %w(file data).each do |method|
     define_method "test_send_#{method}_status" do
       @controller.options = { stream: false, status: 500 }
