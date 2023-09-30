@@ -940,7 +940,7 @@ module ApplicationTests
         RUBY
 
         output = rails("db:seed")
-        assert_equal "storage/development.sqlite3", output
+        assert_equal output, "storage/development.sqlite3"
       ensure
         ENV["RAILS_ENV"] = @old_rails_env
         ENV["RACK_ENV"] = @old_rack_env

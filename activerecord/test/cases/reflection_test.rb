@@ -570,13 +570,13 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_reflect_on_association_accepts_symbols
     assert_nothing_raised do
-      assert_equal :departments, Hotel.reflect_on_association(:departments).name
+      assert_equal Hotel.reflect_on_association(:departments).name, :departments
     end
   end
 
   def test_reflect_on_association_accepts_strings
     assert_nothing_raised do
-      assert_equal :departments, Hotel.reflect_on_association("departments").name
+      assert_equal Hotel.reflect_on_association("departments").name, :departments
     end
   end
 

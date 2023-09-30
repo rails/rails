@@ -37,7 +37,7 @@ class TestResponseTest < ActiveSupport::TestCase
       </html>
     HTML
     assert_kind_of(Nokogiri::XML::Document, response.parsed_body)
-    assert_equal("Content", response.parsed_body.at_xpath("/html/body/div").text)
+    assert_equal(response.parsed_body.at_xpath("/html/body/div").text, "Content")
   end
 
   if RUBY_VERSION >= "3.1"
