@@ -107,17 +107,17 @@ class LoggingTest < ActiveSupport::TestCase
   def test_enqueue_job_logging
     events = subscribed { HelloJob.perform_later "Cristian" }
     assert_match(/Enqueued HelloJob \(Job ID: .*?\) to .*?:.*Cristian/, @logger.messages)
-    assert_equal(1, events.count)
+    assert_equal(events.count, 1)
     key, * = events.first
-    assert_equal("enqueue.active_job", key)
+    assert_equal(key, "enqueue.active_job")
   end
 
   def test_enqueue_job_log_error_when_callback_chain_is_halted
     events = subscribed { AbortBeforeEnqueueJob.perform_later }
     assert_match(/Failed enqueuing AbortBeforeEnqueueJob.* a before_enqueue callback halted/, @logger.messages)
-    assert_equal(1, events.count)
+    assert_equal(events.count, 1)
     key, * = events.first
-    assert_equal("enqueue.active_job", key)
+    assert_equal(key, "enqueue.active_job")
   end
 
   def test_enqueue_job_log_error_when_error_is_raised_during_callback_chain
@@ -128,9 +128,9 @@ class LoggingTest < ActiveSupport::TestCase
     end
 
     assert_match(/Failed enqueuing AbortBeforeEnqueueJob/, @logger.messages)
-    assert_equal(1, events.count)
+    assert_equal(events.count, 1)
     key, * = events.first
-    assert_equal("enqueue.active_job", key)
+    assert_equal(key, "enqueue.active_job")
   end
 
   def test_perform_job_logging
@@ -207,9 +207,9 @@ class LoggingTest < ActiveSupport::TestCase
   def test_enqueue_at_job_logging
     events = subscribed { HelloJob.set(wait_until: 24.hours.from_now).perform_later "Cristian" }
     assert_match(/Enqueued HelloJob \(Job ID: .*\) to .*? at.*Cristian/, @logger.messages)
-    assert_equal(1, events.count)
+    assert_equal(events.count, 1)
     key, * = events.first
-    assert_equal("enqueue_at.active_job", key)
+    assert_equal(key, "enqueue_at.active_job")
   rescue NotImplementedError
     skip
   end
@@ -217,9 +217,9 @@ class LoggingTest < ActiveSupport::TestCase
   def test_enqueue_at_job_log_error_when_callback_chain_is_halted
     events = subscribed { AbortBeforeEnqueueJob.set(wait: 1.second).perform_later }
     assert_match(/Failed enqueuing AbortBeforeEnqueueJob.* a before_enqueue callback halted/, @logger.messages)
-    assert_equal(1, events.count)
+    assert_equal(events.count, 1)
     key, * = events.first
-    assert_equal("enqueue_at.active_job", key)
+    assert_equal(key, "enqueue_at.active_job")
   end
 
   def test_enqueue_at_job_log_error_when_error_is_raised_during_callback_chain
@@ -230,17 +230,17 @@ class LoggingTest < ActiveSupport::TestCase
     end
 
     assert_match(/Failed enqueuing AbortBeforeEnqueueJob/, @logger.messages)
-    assert_equal(1, events.count)
+    assert_equal(events.count, 1)
     key, * = events.first
-    assert_equal("enqueue_at.active_job", key)
+    assert_equal(key, "enqueue_at.active_job")
   end
 
   def test_enqueue_in_job_logging
     events = subscribed { HelloJob.set(wait: 2.seconds).perform_later "Cristian" }
     assert_match(/Enqueued HelloJob \(Job ID: .*\) to .*? at.*Cristian/, @logger.messages)
-    assert_equal(1, events.count)
+    assert_equal(events.count, 1)
     key, * = events.first
-    assert_equal("enqueue_at.active_job", key)
+    assert_equal(key, "enqueue_at.active_job")
   rescue NotImplementedError
     skip
   end

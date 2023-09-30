@@ -259,7 +259,7 @@ class TestCaseTest < ActionController::TestCase
 
     post :test_params, params: { foo: klass.new }
 
-    assert_equal "bar", JSON.parse(@response.body)["foo"]
+    assert_equal JSON.parse(@response.body)["foo"], "bar"
   end
 
   def test_body_stream
@@ -1146,7 +1146,7 @@ module EngineControllerTests
 
     def test_engine_controller_route
       get :index
-      assert_equal "bar", @response.body
+      assert_equal @response.body, "bar"
     end
   end
 
@@ -1159,7 +1159,7 @@ module EngineControllerTests
 
     def test_engine_controller_route
       get :index
-      assert_equal "bar", @response.body
+      assert_equal @response.body, "bar"
     end
   end
 end

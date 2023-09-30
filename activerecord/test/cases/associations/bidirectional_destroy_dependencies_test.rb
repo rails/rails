@@ -38,6 +38,6 @@ class BidirectionalDestroyDependenciesTest < ActiveRecord::TestCase
 
     2.times { content.destroy }
 
-    assert_equal true, content.destroyed?
+    assert_equal content.destroyed?, true
   end
 end

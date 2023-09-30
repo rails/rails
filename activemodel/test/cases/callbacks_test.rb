@@ -55,35 +55,33 @@ class CallbacksTest < ActiveModel::TestCase
   test "complete callback chain" do
     model = ModelCallbacks.new
     model.create
-    assert_equal \
-      [:before_create, :before_around_create, :create, :after_around_create, :after_create, :final_callback],
-      model.callbacks
+    assert_equal model.callbacks, [ :before_create, :before_around_create, :create,
+                                    :after_around_create, :after_create, :final_callback]
   end
 
   test "the callback chain is not halted when around or after callbacks return false" do
     model = ModelCallbacks.new
     model.create
-    assert_equal :final_callback, model.callbacks.last
+    assert_equal model.callbacks.last, :final_callback
   end
 
   test "the callback chain is not halted when a before callback returns false)" do
     model = ModelCallbacks.new(before_create_returns: false)
     model.create
-    assert_equal :final_callback, model.callbacks.last
+    assert_equal model.callbacks.last, :final_callback
   end
 
   test "the callback chain is halted when a callback throws :abort" do
     model = ModelCallbacks.new(before_create_throws: :abort)
     model.create
-    assert_equal [:before_create], model.callbacks
+    assert_equal model.callbacks, [:before_create]
   end
 
   test "after callbacks are not executed if the block returns false" do
     model = ModelCallbacks.new(valid: false)
     model.create
-    assert_equal \
-      [:before_create, :before_around_create, :create, :after_around_create],
-      model.callbacks
+    assert_equal model.callbacks, [ :before_create, :before_around_create,
+                                    :create, :after_around_create]
   end
 
   test "only selects which types of callbacks should be created" do

@@ -167,7 +167,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_with_missing_first_record
     posts = Post.where(id: 3).preload(author: { comments: :post }).to_a
-    assert_equal 1, posts.size
+    assert_equal posts.size, 1
   end
 
   def test_eager_association_loading_with_recursive_cascading_four_levels_has_many_through
