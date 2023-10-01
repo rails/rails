@@ -51,7 +51,7 @@ module ActiveSupport
               install_unregistered_type_handler
               message_pack_factory.freeze
             end
-            message_pack_factory.pool(ENV.fetch("RAILS_MAX_THREADS") { 5 })
+            message_pack_factory.pool(ENV.fetch("RAILS_MAX_THREADS", 5).to_i)
           end
         end
 
