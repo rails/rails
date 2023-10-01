@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
-require "ripper"
-
 module ActionView
-  class RenderParser
-    module RipperASTParser # :nodoc:
+  module RenderParser
+    class RipperRenderParser < Base # :nodoc:
       class Node < ::Array # :nodoc:
         attr_reader :type
 
@@ -183,16 +181,161 @@ module ActionView
           end
       end
 
-      extend self
-
-      def parse_render_nodes(code)
-        parser = RenderCallExtractor.new(code)
+      def render_calls
+        parser = RenderCallExtractor.new(@code)
         parser.parse
 
         parser.render_calls.group_by(&:first).to_h do |method, nodes|
           [ method.to_sym, nodes.collect { |v| v[1] } ]
-        end
+        end.map do |method, nodes|
+          nodes.map { |n| parse_render(n) }
+        end.flatten.compact
       end
+
+      private
+        def resolve_path_directory(path)
+          if path.include?("/")
+            path
+          else
+            "#{directory}/#{path}"
+          end
+        end
+
+        # Convert
+        #   render("foo", ...)
+        # into either
+        #   render(template: "foo", ...)
+        # or
+        #   render(partial: "foo", ...)
+        def normalize_args(string, options_hash)
+          if options_hash
+            { partial: string, locals: options_hash }
+          else
+            { partial: string }
+          end
+        end
+
+        def parse_render(node)
+          node = node.argument_nodes
+
+          if (node.length == 1 || node.length == 2) && !node[0].hash?
+            if node.length == 1
+              options = normalize_args(node[0], nil)
+            elsif node.length == 2
+              options = normalize_args(node[0], node[1])
+            end
+
+            return nil unless options
+
+            parse_render_from_options(options)
+          elsif node.length == 1 && node[0].hash?
+            options = parse_hash_to_symbols(node[0])
+
+            return nil unless options
+
+            parse_render_from_options(options)
+          else
+            nil
+          end
+        end
+
+        def parse_hash(node)
+          node.hash? && node.to_hash
+        end
+
+        def parse_hash_to_symbols(node)
+          hash = parse_hash(node)
+
+          return unless hash
+
+          hash.transform_keys do |key_node|
+            key = parse_sym(key_node)
+
+            return unless key
+
+            key
+          end
+        end
+
+        def parse_render_from_options(options_hash)
+          renders = []
+          keys = options_hash.keys
+
+          if (keys & RENDER_TYPE_KEYS).size < 1
+            # Must have at least one of render keys
+            return nil
+          end
+
+          if (keys - ALL_KNOWN_KEYS).any?
+            # de-opt in case of unknown option
+            return nil
+          end
+
+          render_type = (keys & RENDER_TYPE_KEYS)[0]
+
+          node = options_hash[render_type]
+
+          if node.string?
+            template = resolve_path_directory(node.to_string)
+          else
+            if node.variable_reference?
+              dependency = node.variable_name.sub(/\A(?:\$|@{1,2})/, "")
+            elsif node.vcall?
+              dependency = node.variable_name
+            elsif node.call?
+              dependency = node.call_method_name
+            else
+              return
+            end
+
+            object_template = true
+            template = "#{dependency.pluralize}/#{dependency.singularize}"
+          end
+
+          return unless template
+
+          if spacer_template = render_template_with_spacer?(options_hash)
+            virtual_path = partial_to_virtual_path(:partial, spacer_template)
+            renders << virtual_path
+          end
+
+          if options_hash.key?(:object) || options_hash.key?(:collection) || object_template
+            return nil if options_hash.key?(:object) && options_hash.key?(:collection)
+            return nil unless options_hash.key?(:partial)
+          end
+
+          virtual_path = partial_to_virtual_path(render_type, template)
+          renders << virtual_path
+
+          # Support for rendering multiple templates (i.e. a partial with a layout)
+          if layout_template = render_template_with_layout?(render_type, options_hash)
+            virtual_path = partial_to_virtual_path(:layout, layout_template)
+
+            renders << virtual_path
+          end
+
+          renders
+        end
+
+        def parse_str(node)
+          node.string? && node.to_string
+        end
+
+        def parse_sym(node)
+          node.symbol? && node.to_symbol
+        end
+
+        def render_template_with_layout?(render_type, options_hash)
+          if render_type != :layout && options_hash.key?(:layout)
+            parse_str(options_hash[:layout])
+          end
+        end
+
+        def render_template_with_spacer?(options_hash)
+          if options_hash.key?(:spacer_template)
+            parse_str(options_hash[:spacer_template])
+          end
+        end
     end
   end
 end

@@ -2,7 +2,7 @@
 
 module ActionView
   class DependencyTracker # :nodoc:
-    class RipperTracker # :nodoc:
+    class RubyTracker # :nodoc:
       EXPLICIT_DEPENDENCY = /# Template Dependency: (\S+)/
 
       def self.call(name, template, view_paths = nil)
