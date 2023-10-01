@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-require "active_storage/analyzer/null_analyzer"
+require "active_support/hash_with_indifferent_access"
 
 # = Active Storage \Blob \Analyzable
 module ActiveStorage::Blob::Analyzable
-  # Extracts and stores metadata from the file associated with this blob using a relevant analyzer. Active Storage comes
+  # Extracts and stores metadata from the file associated with this blob using relevant analyzers. Active Storage comes
   # with built-in analyzers for images and videos. See ActiveStorage::Analyzer::ImageAnalyzer and
   # ActiveStorage::Analyzer::VideoAnalyzer for information about the specific attributes they extract and the third-party
   # libraries they require.
   #
-  # To choose the analyzer for a blob, Active Storage calls +accept?+ on each registered analyzer in order. It uses the
-  # first analyzer for which +accept?+ returns true when given the blob. If no registered analyzer accepts the blob, no
+  # To choose the analyzer for a blob, Active Storage calls +accept?+ on each registered analyzer in order. It uses
+  # all analyzers for which +accept?+ returns true when given the blob. If no registered analyzer accepts the blob, no
   # metadata is extracted from it.
   #
   # In a \Rails application, add or remove analyzers by manipulating +Rails.application.config.active_storage.analyzers+
@@ -35,7 +35,7 @@ module ActiveStorage::Blob::Analyzable
   # This method is automatically called for a blob when it's attached for the first time. You can call it to analyze a blob
   # again (e.g. if you add a new analyzer or modify an existing one).
   def analyze_later
-    if analyzer_class.analyze_later?
+    if analyzer_classes.any?(&:analyze_later?)
       ActiveStorage::AnalyzeJob.perform_later(self)
     else
       analyze
@@ -49,14 +49,16 @@ module ActiveStorage::Blob::Analyzable
 
   private
     def extract_metadata_via_analyzer
-      analyzer.metadata.merge(analyzed: true)
+      analyzers.reduce(ActiveSupport::HashWithIndifferentAccess.new) do |metadata, analyzer|
+        metadata.deep_merge!(analyzer.metadata)
+      end.merge!(analyzed: true)
     end
 
-    def analyzer
-      analyzer_class.new(self)
+    def analyzers
+      analyzer_classes.map { |analyzer_class| analyzer_class.new(self) }
     end
 
-    def analyzer_class
-      ActiveStorage.analyzers.detect { |klass| klass.accept?(self) } || ActiveStorage::Analyzer::NullAnalyzer
+    def analyzer_classes
+      ActiveStorage.analyzers.select { |klass| klass.accept?(self) }
     end
 end
