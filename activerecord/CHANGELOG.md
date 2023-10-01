@@ -1,3 +1,12 @@
+*   Revert the change to raise an `ArgumentError` when `#accepts_nested_attributes_for` is declared more than once for
+    an association in the same class.
+
+    The reverted behavior broke the case where the `#accepts_nested_attributes_for` was defined in a concern and
+    where overridden in the class that included the concern.
+
+    *Rafael Mendonça França*
+
+
 ## Rails 7.1.0.rc1 (September 27, 2023) ##
 
 *   Better naming for unique constraints support.

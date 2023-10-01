@@ -18,7 +18,6 @@ require "active_support/hash_with_indifferent_access"
 
 class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   teardown do
-    Pirate.nested_attributes_options.delete :ship
     Pirate.accepts_nested_attributes_for :ship, allow_destroy: true, reject_if: proc(&:empty?)
   end
 
@@ -75,7 +74,6 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_should_disable_allow_destroy_by_default
-    Pirate.nested_attributes_options.delete :ship
     Pirate.accepts_nested_attributes_for :ship
 
     pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
@@ -94,7 +92,6 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_reject_if_method_without_arguments
-    Pirate.nested_attributes_options.delete :ship
     Pirate.accepts_nested_attributes_for :ship, reject_if: :new_record?
 
     pirate = Pirate.new(catchphrase: "Stop wastin' me time")
@@ -103,7 +100,6 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_reject_if_method_with_arguments
-    Pirate.nested_attributes_options.delete :ship
     Pirate.accepts_nested_attributes_for :ship, reject_if: :reject_empty_ships_on_create
 
     pirate = Pirate.new(catchphrase: "Stop wastin' me time")
@@ -117,7 +113,6 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_reject_if_with_indifferent_keys
-    Pirate.nested_attributes_options.delete :ship
     Pirate.accepts_nested_attributes_for :ship, reject_if: proc { |attributes| attributes[:name].blank? }
 
     pirate = Pirate.new(catchphrase: "Stop wastin' me time")
@@ -126,7 +121,6 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_reject_if_with_a_proc_which_returns_true_always_for_has_one
-    Pirate.nested_attributes_options.delete :ship
     Pirate.accepts_nested_attributes_for :ship, reject_if: proc { |attributes| true }
     pirate = Pirate.create(catchphrase: "Stop wastin' me time")
     ship = pirate.create_ship(name: "s1")
@@ -149,7 +143,6 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_reject_if_with_a_proc_which_returns_true_always_for_has_many
-    Human.nested_attributes_options.delete :interests
     Human.accepts_nested_attributes_for :interests, reject_if: proc { |attributes| true }
     human = Human.create(name: "John")
     interest = human.interests.create(topic: "photography")
@@ -158,7 +151,6 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_destroy_works_independent_of_reject_if
-    Human.nested_attributes_options.delete :interests
     Human.accepts_nested_attributes_for :interests, reject_if: proc { |attributes| true }, allow_destroy: true
     human = Human.create(name: "Jon")
     interest = human.interests.create(topic: "the ladies")
@@ -167,7 +159,6 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_reject_if_is_not_short_circuited_if_allow_destroy_is_false
-    Pirate.nested_attributes_options.delete :ship
     Pirate.accepts_nested_attributes_for :ship, reject_if: ->(a) { a[:name] == "The Golden Hind" }, allow_destroy: false
 
     pirate = Pirate.create!(catchphrase: "Stop wastin' me time", ship_attributes: { name: "White Pearl", _destroy: "1" })
@@ -181,7 +172,6 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_has_many_association_updating_a_single_record
-    Human.nested_attributes_options.delete(:interests)
     Human.accepts_nested_attributes_for(:interests)
     human = Human.create(name: "John")
     interest = human.interests.create(topic: "photography")
@@ -190,7 +180,6 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_reject_if_with_blank_nested_attributes_id
-    Pirate.nested_attributes_options.delete :ship
     # When using a select list to choose an existing 'ship' id, with include_blank: true
     Pirate.accepts_nested_attributes_for :ship, reject_if: proc { |attributes| attributes[:id].blank? }
 
@@ -200,7 +189,6 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_first_and_array_index_zero_methods_return_the_same_value_when_nested_attributes_are_set_to_update_existing_record
-    Human.nested_attributes_options.delete(:interests)
     Human.accepts_nested_attributes_for(:interests)
     human = Human.create(name: "John")
     interest = human.interests.create topic: "gardening"
@@ -210,7 +198,6 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_allows_class_to_override_setter_and_call_super
-    Pirate.nested_attributes_options.delete :parrot
     mean_pirate_class = Class.new(Pirate) do
       accepts_nested_attributes_for :parrot
       def parrot_attributes=(attrs)
@@ -235,7 +222,6 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_should_not_create_duplicates_with_create_with
-    Human.nested_attributes_options.delete(:interests)
     Human.accepts_nested_attributes_for(:interests)
 
     assert_difference("Interest.count", 1) do
@@ -352,14 +338,12 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   end
 
   def test_should_not_destroy_an_existing_record_if_allow_destroy_is_false
-    Pirate.nested_attributes_options.delete :ship
     Pirate.accepts_nested_attributes_for :ship, allow_destroy: false, reject_if: proc(&:empty?)
 
     @pirate.update(ship_attributes: { id: @pirate.ship.id, _destroy: "1" })
 
     assert_equal @ship, @pirate.reload.ship
 
-    Pirate.nested_attributes_options.delete :ship
     Pirate.accepts_nested_attributes_for :ship, allow_destroy: true, reject_if: proc(&:empty?)
   end
 
@@ -427,7 +411,6 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   end
 
   def test_should_destroy_existing_when_update_only_is_true_and_id_is_given_and_is_marked_for_destruction
-    Pirate.nested_attributes_options.delete :update_only_ship
     Pirate.accepts_nested_attributes_for :update_only_ship, update_only: true, allow_destroy: true
     @ship.delete
     @ship = @pirate.create_update_only_ship(name: "Nights Dirty Lightning")
@@ -437,7 +420,6 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     assert_nil @pirate.reload.ship
     assert_raise(ActiveRecord::RecordNotFound) { Ship.find(@ship.id) }
 
-    Pirate.nested_attributes_options.delete :update_only_ship
     Pirate.accepts_nested_attributes_for :update_only_ship, update_only: true, allow_destroy: false
   end
 end
@@ -550,13 +532,11 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
   end
 
   def test_should_not_destroy_an_existing_record_if_allow_destroy_is_false
-    Ship.nested_attributes_options.delete :pirate
     Ship.accepts_nested_attributes_for :pirate, allow_destroy: false, reject_if: proc(&:empty?)
 
     @ship.update(pirate_attributes: { id: @ship.pirate.id, _destroy: "1" })
     assert_nothing_raised { @ship.pirate.reload }
   ensure
-    Ship.nested_attributes_options.delete :pirate
     Ship.accepts_nested_attributes_for :pirate, allow_destroy: true, reject_if: proc(&:empty?)
   end
 
@@ -608,7 +588,6 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
   end
 
   def test_should_destroy_existing_when_update_only_is_true_and_id_is_given_and_is_marked_for_destruction
-    Ship.nested_attributes_options.delete :update_only_pirate
     Ship.accepts_nested_attributes_for :update_only_pirate, update_only: true, allow_destroy: true
     @pirate.delete
     @pirate = @ship.create_update_only_pirate(catchphrase: "Aye")
@@ -617,7 +596,6 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
 
     assert_raise(ActiveRecord::RecordNotFound) { @pirate.reload }
 
-    Ship.nested_attributes_options.delete :update_only_pirate
     Ship.accepts_nested_attributes_for :update_only_pirate, update_only: true, allow_destroy: false
   end
 end
@@ -842,7 +820,6 @@ module NestedAttributesOnACollectionAssociationTests
   end
 
   def test_validate_presence_of_parent_works_with_inverse_of
-    Human.nested_attributes_options.delete(:interests)
     Human.accepts_nested_attributes_for(:interests)
     assert_equal :human, Human.reflect_on_association(:interests).options[:inverse_of]
     assert_equal :interests, Interest.reflect_on_association(:human).options[:inverse_of]
@@ -865,7 +842,6 @@ module NestedAttributesOnACollectionAssociationTests
   end
 
   def test_numeric_column_changes_from_zero_to_no_empty_string
-    Human.nested_attributes_options.delete(:interests)
     Human.accepts_nested_attributes_for(:interests)
 
     repair_validations(Interest) do
@@ -933,7 +909,6 @@ end
 
 module NestedAttributesLimitTests
   def teardown
-    Pirate.nested_attributes_options.delete :parrots
     Pirate.accepts_nested_attributes_for :parrots, allow_destroy: true, reject_if: proc(&:empty?)
   end
 
@@ -958,7 +933,6 @@ end
 
 class TestNestedAttributesLimitNumeric < ActiveRecord::TestCase
   def setup
-    Pirate.nested_attributes_options.delete :parrots
     Pirate.accepts_nested_attributes_for :parrots, limit: 2
 
     @pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
@@ -969,7 +943,6 @@ end
 
 class TestNestedAttributesLimitSymbol < ActiveRecord::TestCase
   def setup
-    Pirate.nested_attributes_options.delete :parrots
     Pirate.accepts_nested_attributes_for :parrots, limit: :parrots_limit
 
     @pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?", parrots_limit: 2)
@@ -980,7 +953,6 @@ end
 
 class TestNestedAttributesLimitProc < ActiveRecord::TestCase
   def setup
-    Pirate.nested_attributes_options.delete :parrots
     Pirate.accepts_nested_attributes_for :parrots, limit: proc { 2 }
 
     @pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
@@ -993,7 +965,6 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
   fixtures :owners, :pets
 
   def setup
-    Owner.nested_attributes_options.delete :pets
     Owner.accepts_nested_attributes_for :pets, allow_destroy: true
 
     @owner = owners(:ashley)
@@ -1159,24 +1130,5 @@ class TestNestedAttributesForDelegatedType < ActiveRecord::TestCase
   def test_should_build_a_new_record_based_on_the_delegated_type
     assert_not_predicate @entry.entryable, :persisted?
     assert_equal "Hello world!", @entry.entryable.subject
-  end
-end
-
-class TestPreDeclaredNestedAttributesAssociation < ActiveRecord::TestCase
-  setup do
-    assert @current_options = Developer.nested_attributes_options[:projects]
-  end
-
-  def test_should_raise_an_argument_error_with_similar_options
-    assert_raises ArgumentError do
-      Developer.accepts_nested_attributes_for :projects, **@current_options
-    end
-  end
-
-  def test_should_raise_an_argument_error_with_varying_options
-    assert_equal false, @current_options[:update_only]
-    assert_raises ArgumentError do
-      Developer.accepts_nested_attributes_for :projects, **@current_options.merge(update_only: true)
-    end
   end
 end
