@@ -345,6 +345,10 @@ module Rails
         options[:skip_active_storage]
       end
 
+      def skip_action_cable? # :doc:
+        options[:skip_action_cable]
+      end
+
       def skip_action_mailer? # :doc:
         options[:skip_action_mailer]
       end
