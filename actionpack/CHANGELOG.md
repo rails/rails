@@ -1,3 +1,8 @@
+## Rails 7.1.0.rc2 (October 01, 2023) ##
+
+*   No changes.
+
+
 ## Rails 7.1.0.rc1 (September 27, 2023) ##
 
 *   Add support for `#deep_merge` and `#deep_merge!` to

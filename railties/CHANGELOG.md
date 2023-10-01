@@ -1,3 +1,5 @@
+## Rails 7.1.0.rc2 (October 01, 2023) ##
+
 *   Always set the Rails logger to be an instance of `ActiveSupport::BroadcastLogger`.
 
     *Edouard Chin*

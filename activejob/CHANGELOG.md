@@ -1,3 +1,5 @@
+## Rails 7.1.0.rc2 (October 01, 2023) ##
+
 *   Make sure `scheduled_at` is a Time object when asserting enqueued jobs.
 
     *Rafael Mendonça França*

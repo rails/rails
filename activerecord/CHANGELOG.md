@@ -1,3 +1,5 @@
+## Rails 7.1.0.rc2 (October 01, 2023) ##
+
 *   Remove -shm and -wal SQLite files when `rails db:drop` is run.
 
     *Niklas Häusele*
