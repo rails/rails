@@ -140,6 +140,15 @@ module MessagePackSharedSerializerTests
     test "roundtrips ActiveSupport::HashWithIndifferentAccess" do
       assert_roundtrip ActiveSupport::HashWithIndifferentAccess.new(a: true, b: 2, c: "three")
     end
+
+    test "works with ENV['RAILS_MAX_THREADS']" do
+      original_env = ENV.to_h
+      ENV["RAILS_MAX_THREADS"] = "1"
+
+      assert_roundtrip "value"
+    ensure
+      ENV.replace(original_env)
+    end
   end
 
   private
