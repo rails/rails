@@ -1,3 +1,7 @@
+*   Remove -shm and -wal SQLite files when `rails db:drop` is run.
+
+    *Niklas Häusele*
+
 *   Revert the change to raise an `ArgumentError` when `#accepts_nested_attributes_for` is declared more than once for
     an association in the same class.
 

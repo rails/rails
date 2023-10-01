@@ -1,3 +1,8 @@
+*   Always set the Rails logger to be an instance of `ActiveSupport::BroadcastLogger`.
+
+    *Edouard Chin*
+
+
 ## Rails 7.1.0.rc1 (September 27, 2023) ##
 
 *   Require `concurrent-ruby` in `config/puma.rb` so that Puma can boot in

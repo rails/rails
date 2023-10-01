@@ -1,3 +1,8 @@
+*   Make sure `scheduled_at` is a Time object when asserting enqueued jobs.
+
+    *Rafael Mendonça França*
+
+
 ## Rails 7.1.0.rc1 (September 27, 2023) ##
 
 *   Set `scheduled_at` attribute as a Time object instead of epoch seconds, and serialize and deserialize the value

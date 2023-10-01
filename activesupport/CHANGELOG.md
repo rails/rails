@@ -1,3 +1,8 @@
+*   Fix `AS::MessagePack` with `ENV["RAILS_MAX_THREADS"]`.
+
+    *Jonathan Hefner*
+
+
 ## Rails 7.1.0.rc1 (September 27, 2023) ##
 
 *   Add a new public API for broadcasting logs
