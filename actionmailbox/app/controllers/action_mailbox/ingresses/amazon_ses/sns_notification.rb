@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+gem "aws-sdk-sns"
+
 begin
   require "aws-sdk-sns"
 rescue LoadError => e
