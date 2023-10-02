@@ -1608,12 +1608,7 @@ database schema dump. Defaults to `/^fk_rails_[0-9a-f]{10}$/`.
 
 Enables automatic filtering of encrypted attributes on `inspect`.
 
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-|-----------------------|----------------------|
-| (original)            | `false`              |
-| 7.1                   | `true`               |
+The default value is `true`.
 
 #### `config.active_record.encryption.hash_digest_class`
 
