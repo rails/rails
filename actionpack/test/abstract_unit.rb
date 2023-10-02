@@ -362,12 +362,6 @@ require "active_support/testing/method_call_assertions"
 
 class ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
-
-  private
-    # Skips the current run on JRuby using Minitest::Assertions#skip
-    def jruby_skip(message = "")
-      skip message if defined?(JRUBY_VERSION)
-    end
 end
 
 module CookieAssertions
