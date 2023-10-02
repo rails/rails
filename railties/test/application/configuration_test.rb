@@ -1893,6 +1893,26 @@ module ApplicationTests
       assert_equal Logger::DEBUG, Rails.logger.level
     end
 
+    test "config.logger when logger is already a Broadcast Logger" do
+      logger = ActiveSupport::BroadcastLogger.new
+
+      make_basic_app do |application|
+        application.config.logger = logger
+      end
+      assert_same(logger, Rails.logger)
+    end
+
+    test "config.logger when logger is not a Broadcast Logger" do
+      logger = Logger.new(STDOUT)
+
+      make_basic_app do |application|
+        application.config.logger = logger
+      end
+
+      assert_instance_of(ActiveSupport::BroadcastLogger, Rails.logger)
+      assert_includes(Rails.logger.broadcasts, logger)
+    end
+
     test "respond_to? accepts include_private" do
       make_basic_app
 
