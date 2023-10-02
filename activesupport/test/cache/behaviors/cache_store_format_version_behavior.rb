@@ -57,9 +57,9 @@ module CacheStoreFormatVersionBehavior
           lookup_store.send(:serialize_entry, ActiveSupport::Cache::Entry.new(["value"] * 100), compress_threshold: 1)
         end
 
-        skip if !serialized.is_a?(String)
-
-        assert_operator serialized, :start_with?, compressed_signature
+        if serialized.is_a?(String)
+          assert_operator serialized, :start_with?, compressed_signature
+        end
       end
 
       test "Marshal undefined class/module deserialization error with #{format_version} format" do

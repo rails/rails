@@ -6,3 +6,8 @@ if ENV["BUILDKITE"]
 
   Minitest::Ci.report_dir = File.join(__dir__, "../test-reports/#{ENV['BUILDKITE_JOB_ID']}")
 end
+
+if ENV["CI"]
+  require File.join(__dir__, "../activesupport/lib/active_support/testing/no_skip")
+  ActiveSupport::TestCase.include(ActiveSupport::Testing::NoSkip)
+end
