@@ -722,9 +722,7 @@ module ActiveRecord
       end
 
       private
-        def type_map
-          @type_map ||= Type::HashLookupTypeMap.new
-        end
+        attr_reader :type_map
 
         def initialize_type_map(m = type_map)
           self.class.initialize_type_map(m)

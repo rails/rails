@@ -149,6 +149,7 @@ module ActiveRecord
         end
 
         def lookup_cast_type_from_column(column) # :nodoc:
+          verify! if type_map.nil?
           type_map.lookup(column.oid, column.fmod, column.sql_type)
         end
 
