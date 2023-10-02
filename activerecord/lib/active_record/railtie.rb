@@ -200,7 +200,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
           # Additionally if `check_schema_cache_dump_version` is enabled (which is the default),
           # loading the schema cache dump trigger a database connection to compare the schema
           # versions.
-          # This means the attribute methods will be lazily defined whent the model is accessed,
+          # This means the attribute methods will be lazily defined when the model is accessed,
           # likely as part of the first few requests or jobs. This isn't good for performance
           # but we unfortunately have to arbitrate between resiliency and performance, and chose
           # resiliency.
