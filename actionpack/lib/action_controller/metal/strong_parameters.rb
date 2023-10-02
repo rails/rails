@@ -145,6 +145,31 @@ module ActionController
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
 
     ##
+    # :method: deep_merge
+    #
+    # :call-seq:
+    #   deep_merge(other_hash, &block)
+    #
+    # Returns a new +ActionController::Parameters+ instance with +self+ and +other_hash+ merged recursively.
+    #
+    # Like with <tt>Hash#merge</tt> in the standard library, a block can be provided
+    # to merge values.
+    #
+    #--
+    # Implemented by ActiveSupport::DeepMergeable#deep_merge.
+
+    ##
+    # :method: deep_merge!
+    #
+    # :call-seq:
+    #   deep_merge!(other_hash, &block)
+    #
+    # Same as +#deep_merge+, but modifies +self+.
+    #
+    #--
+    # Implemented by ActiveSupport::DeepMergeable#deep_merge!.
+
+    ##
     # :method: as_json
     #
     # :call-seq:
@@ -866,28 +891,7 @@ module ActionController
       self
     end
 
-    ##
-    # :method: deep_merge
-    # :call-seq: deep_merge(other_hash, &block)
-    #
-    # Returns a new +ActionController::Parameters+ instance with +self+ and +other_hash+ merged recursively.
-    #
-    # Like with +Hash#merge+ in the standard library, a block can be provided
-    # to merge values.
-    #
-    #--
-    # Implemented by ActiveSupport::DeepMergeable#deep_merge.
-
-    ##
-    # :method: deep_merge!
-    # :call-seq: deep_merge!(other_hash, &block)
-    #
-    # Same as +#deep_merge+, but modifies +self+.
-    #
-    #--
-    # Implemented by ActiveSupport::DeepMergeable#deep_merge!.
-
-    def deep_merge?(other_hash) # :nodoc
+    def deep_merge?(other_hash) # :nodoc:
       other_hash.is_a?(ActiveSupport::DeepMergeable)
     end
 
