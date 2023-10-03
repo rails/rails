@@ -1,3 +1,17 @@
+*   Extend `validates_associated` to accept a block
+
+    ```ruby
+    class Book < ActiveRecord::Base
+      belongs_to :author, class: User
+
+      validates_associated :author do |author|
+        author.validates_presence_of :name
+      end
+    end
+    ```
+
+    *Sean Doyle & Matheus Richard*
+
 *   Consistently raise an `ArgumentError` when passing an invalid argument to a nested attributes association writer.
 
     Previously, this would only raise on collection associations and produce a generic error on singular associations.

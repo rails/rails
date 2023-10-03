@@ -3,6 +3,11 @@
 module ActiveRecord
   module Validations
     class AssociatedValidator < ActiveModel::EachValidator # :nodoc:
+      def initialize(options, &associated_validations)
+        @associated_validations = options.delete(:with) || associated_validations
+        super(options)
+      end
+
       def validate_each(record, attribute, value)
         context = record_validation_context_for_association(record)
 
@@ -13,6 +18,12 @@ module ActiveRecord
 
       private
         def valid_object?(record, context)
+          if @associated_validations
+            @associated_validations.arity.zero? ?
+              record.singleton_class.instance_exec(&@associated_validations) :
+              @associated_validations.call(record.singleton_class)
+          end
+
           (record.respond_to?(:marked_for_destruction?) && record.marked_for_destruction?) || record.valid?(context)
         end
 
@@ -32,6 +43,28 @@ module ActiveRecord
       #     validates_associated :pages, :library
       #   end
       #
+      # Pass a block to declare additional validations on the relationship:
+      #
+      #   class Book < ActiveRecord::Base
+      #     belongs_to :author, class: User
+      #
+      #     validates_associated :author do |author|
+      #       author.validates_presence_of :name
+      #     end
+      #   end
+      #
+      # The block's parameter is optional, and can be omitted:
+      #
+      #   validates_associated :author do
+      #     validates_presence_of :name
+      #   end
+      #
+      # When configuring the validation with options, pass a lambda as the +with:+ option:
+      #
+      #   validates_associated :author,
+      #     with: -> { validates_presence_of :name },
+      #     unless: :anonymous?
+      #
       # WARNING: This validation must not be used on both ends of an association.
       # Doing so will lead to a circular dependency and cause infinite recursion.
       #
@@ -42,6 +75,8 @@ module ActiveRecord
       #
       # Configuration options:
       #
+      # * <tt>:with</tt> - A callable that defines additional context-specific
+      #   validations on the associated model
       # * <tt>:message</tt> - A custom error message (default is: "is invalid").
       # * <tt>:on</tt> - Specifies the contexts where this validation is active.
       #   Runs in all validation contexts by default +nil+. You can pass a symbol
@@ -57,8 +92,12 @@ module ActiveRecord
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc, or string should return or evaluate to a +true+ or +false+
       #   value.
-      def validates_associated(*attr_names)
-        validates_with AssociatedValidator, _merge_attributes(attr_names)
+      def validates_associated(*attr_names, &block)
+        raise ArgumentError.new(<<~MSG) if attr_names.many? && block
+          validates_associated only accepts a block argument for a single attribute name. You passed: #{attr_names.inspect}"
+        MSG
+
+        validates_with AssociatedValidator, _merge_attributes(attr_names), &block
       end
     end
   end

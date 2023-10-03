@@ -26,6 +26,100 @@ class AssociationValidationTest < ActiveRecord::TestCase
     assert_predicate t, :valid?
   end
 
+  def test_validates_associated_many_block
+    Topic.validates_associated(:replies) do
+      validates_presence_of(:content)
+    end
+
+    topic = Topic.create(content: "whatever")
+    topic.replies << [
+      invalid = Reply.new(content: nil),
+      valid = Reply.new(content: "non-empty")
+    ]
+    unrelated = Reply.new
+
+    assert_predicate topic, :invalid?
+    assert_predicate topic.errors[:replies], :any?
+    assert_equal 1, invalid.errors[:content].count
+    assert_equal 0, valid.errors.count
+    assert_predicate unrelated, :valid?
+
+    invalid.content = "non-empty"
+
+    assert_predicate topic, :valid?
+    assert_predicate invalid, :valid?
+    assert_predicate valid, :valid?
+  end
+
+  def test_validates_associated_many_lambda_value
+    Topic.validates :replies,
+      associated: -> { validates_presence_of(:content) }
+
+    topic = Topic.create(content: "whatever")
+    topic.replies << [
+      invalid = Reply.new(content: nil),
+      valid = Reply.new(content: "non-empty")
+    ]
+
+    assert_predicate topic, :invalid?
+    assert_predicate topic.errors[:replies], :any?
+    assert_equal 1, invalid.errors[:content].count
+    assert_equal 0, valid.errors.count
+
+    invalid.content = "non-empty"
+
+    assert_predicate topic, :valid?
+    assert_predicate invalid, :valid?
+    assert_predicate valid, :valid?
+  end
+
+  def test_validates_associated_many_lambda_value_with_argument
+    Topic.validates :replies,
+      associated: ->(reply) { reply.validates_presence_of(:content) }
+
+    topic = Topic.create(content: "whatever")
+    topic.replies << [
+      invalid = Reply.new(content: nil),
+      valid = Reply.new(content: "non-empty")
+    ]
+
+    assert_predicate topic, :invalid?
+    assert_predicate topic.errors[:replies], :any?
+    assert_equal 1, invalid.errors[:content].count
+    assert_equal 0, valid.errors.count
+
+    invalid.content = "non-empty"
+
+    assert_predicate topic, :valid?
+    assert_predicate invalid, :valid?
+    assert_predicate valid, :valid?
+  end
+
+  def test_validates_associated_with_option
+    Topic.validates_associated :replies,
+      with: -> { validates_presence_of(:content) }
+
+    topic = Topic.create(content: "whatever")
+    topic.replies << [invalid = Reply.new(content: nil)]
+
+    assert_predicate topic, :invalid?
+    assert_predicate topic.errors[:replies], :any?
+    assert_equal 1, invalid.errors[:content].count
+  end
+
+  def test_validates_associated_nested_with_option
+    Topic.validates :replies, associated: {
+      with: -> { validates_presence_of(:content) }
+    }
+
+    topic = Topic.create(content: "whatever")
+    topic.replies << [invalid = Reply.new(content: nil)]
+
+    assert_predicate topic, :invalid?
+    assert_predicate topic.errors[:replies], :any?
+    assert_equal 1, invalid.errors[:content].count
+  end
+
   def test_validates_associated_one
     Reply.validates :topic, associated: true
     Topic.validates_presence_of(:content)
@@ -35,6 +129,85 @@ class AssociationValidationTest < ActiveRecord::TestCase
     assert_predicate r.errors[:topic], :any?
     r.topic.content = "non-empty"
     assert_predicate r, :valid?
+  end
+
+  def test_validates_associated_one_with_block
+    Reply.validates_associated :topic do
+      validates_presence_of(:content)
+    end
+
+    reply = Reply.new
+    reply.topic = Topic.new(content: nil)
+    unrelated = Reply.new
+
+    assert_predicate reply, :invalid?
+    assert_predicate reply.errors[:topic], :any?
+    assert_equal 1, reply.topic.errors[:content].count
+    assert_predicate unrelated, :valid?
+
+    reply.topic.content = "non-empty"
+
+    assert_predicate reply, :valid?
+    assert_predicate reply.topic, :valid?
+  end
+
+  def test_validates_associated_one_lambda
+    Reply.validates :topic,
+      associated: -> { validates_presence_of(:content) }
+
+    reply = Reply.new
+    reply.topic = Topic.new(content: nil)
+
+    assert_predicate reply, :invalid?
+    assert_predicate reply.errors[:topic], :any?
+    assert_equal 1, reply.topic.errors[:content].count
+
+    reply.topic.content = "non-empty"
+
+    assert_predicate reply, :valid?
+    assert_predicate reply.topic, :valid?
+  end
+
+  def test_validates_associated_one_lambda_with_argument
+    Reply.validates :topic,
+      associated: ->(topic) { topic.validates_presence_of(:content) }
+
+    reply = Reply.new
+    reply.topic = Topic.new(content: nil)
+
+    assert_predicate reply, :invalid?
+    assert_predicate reply.errors[:topic], :any?
+    assert_equal 1, reply.topic.errors[:content].count
+
+    reply.topic.content = "non-empty"
+
+    assert_predicate reply, :valid?
+    assert_predicate reply.topic, :valid?
+  end
+
+  def test_validates_associated_one_with_lambda
+    Reply.validates :topic,
+      associated: -> { validates_presence_of(:content) }
+
+    reply = Reply.new
+    reply.topic = Topic.new(content: nil)
+
+    assert_predicate reply, :invalid?
+    assert_predicate reply.errors[:topic], :any?
+    assert_equal 1, reply.topic.errors[:content].count
+
+    reply.topic.content = "non-empty"
+
+    assert_predicate reply, :valid?
+    assert_predicate reply.topic, :valid?
+  end
+
+  def test_validates_associated_with_multiple_names_and_block_raises
+    assert_raises ArgumentError do
+      Reply.validates_associated :topic, :replies do
+        fail "never reached"
+      end
+    end
   end
 
   def test_validates_associated_marked_for_destruction
