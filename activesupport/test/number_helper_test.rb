@@ -69,6 +69,7 @@ module ActiveSupport
 
       def test_number_to_currency
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
+          assert_equal("$123,456,789,012,345,678.91", number_helper.number_to_currency("123456789012345678.91"))
           assert_equal("$1,234,567,890.50", number_helper.number_to_currency(1234567890.50))
           assert_equal("$1,234,567,890.51", number_helper.number_to_currency(1234567890.506))
           assert_equal("-$1,234,567,890.50", number_helper.number_to_currency(-1234567890.50))
