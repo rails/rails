@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "bigdecimal"
+require "bigdecimal/util"
 require "active_support/core_ext/big_decimal/conversions"
 require "active_support/core_ext/hash/keys"
 require "active_support/i18n"
@@ -128,7 +130,7 @@ module ActiveSupport
       def execute
         if !number
           nil
-        elsif validate_float? && !valid_float?
+        elsif validate_float? && !valid_bigdecimal
           number
         else
           convert
@@ -173,8 +175,13 @@ module ActiveSupport
           key.split(".").reduce(DEFAULTS) { |defaults, k| defaults[k.to_sym] }
         end
 
-        def valid_float?
-          Float(number, exception: false)
+        def valid_bigdecimal
+          case number
+          when Float, Rational
+            number.to_d(0)
+          else
+            BigDecimal(number, exception: false)
+          end
         end
     end
   end
