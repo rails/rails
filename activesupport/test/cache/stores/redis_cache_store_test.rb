@@ -22,7 +22,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
   REDIS_URL = ENV["REDIS_URL"] || "redis://localhost:6379/0"
   REDIS_URLS = ENV["REDIS_URLS"]&.split(",") || %w[ redis://localhost:6379/0 redis://localhost:6379/1 ]
 
-  if ENV["CI"]
+  if ENV["BUILDKITE"]
     REDIS_UP = true
   else
     begin
