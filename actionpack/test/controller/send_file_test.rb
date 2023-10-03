@@ -208,10 +208,10 @@ class SendFileTest < ActionController::TestCase
   end
 
   def test_send_file_instrumentation
+    @controller.options = { disposition: :inline }
     payload = nil
 
-    subscriber = proc do |*args|
-      event = ActiveSupport::Notifications::Event.new(*args)
+    subscriber = proc do |event|
       payload = event.payload
     end
 
@@ -220,13 +220,14 @@ class SendFileTest < ActionController::TestCase
     end
 
     assert_equal __FILE__, payload[:path]
+    assert_equal :inline, payload[:disposition]
   end
 
   def test_send_data_instrumentation
+    @controller.options = { content_type: "application/x-ruby" }
     payload = nil
 
-    subscriber = proc do |*args|
-      event = ActiveSupport::Notifications::Event.new(*args)
+    subscriber = proc do |event|
       payload = event.payload
     end
 
@@ -234,7 +235,7 @@ class SendFileTest < ActionController::TestCase
       process("data")
     end
 
-    assert_equal({}, payload)
+    assert_equal("application/x-ruby", payload[:content_type])
   end
 
   %w(file data).each do |method|

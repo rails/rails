@@ -604,8 +604,7 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_instrumentation
     payload = nil
 
-    subscriber = proc do |*args|
-      event = ActiveSupport::Notifications::Event.new(*args)
+    subscriber = proc do |event|
       payload = event.payload
     end
 
