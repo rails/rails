@@ -261,7 +261,7 @@ responds to various format methods (for example, `rendered.html` and
 test. For example, the following [assert_match][] assertion will pass:
 
 ```ruby
-assert_match /some content/i, rendered
+assert_match(/some content/i, rendered)
 ```
 
 However, if your tests rely on `ActionView::TestCase#rendered` returning an
@@ -277,7 +277,6 @@ end
 ```
 
 [assert_match]: https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-assert_match
-
 
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
