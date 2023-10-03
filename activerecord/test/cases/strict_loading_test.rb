@@ -39,15 +39,11 @@ class StrictLoadingTest < ActiveRecord::TestCase
     assert developer.strict_loading_n_plus_one_only?
   end
 
-  def test_strict_loading_n_plus_one_only_mode
+  def test_strict_loading_n_plus_one_only_mode_with_has_many
     developer = Developer.first
-    ship = Ship.first
-    ShipPart.create!(name: "Stern", ship: ship)
     firm = Firm.create!(name: "NASA")
-    project = Project.create!(name: "Apollo", firm: firm)
+    developer.projects << Project.create!(name: "Apollo", firm: firm)
 
-    ship.update_column(:developer_id, developer.id)
-    developer.projects << project
     developer.reload
 
     developer.strict_loading!(mode: :n_plus_one_only)
@@ -63,6 +59,18 @@ class StrictLoadingTest < ActiveRecord::TestCase
     assert_raises ActiveRecord::StrictLoadingViolationError do
       developer.projects.last.firm
     end
+  end
+
+  def test_strict_loading_n_plus_one_only_mode_with_belongs_to
+    developer = Developer.first
+    ship = Ship.first
+    ShipPart.create!(name: "Stern", ship: ship)
+
+    ship.update_column(:developer_id, developer.id)
+    developer.reload
+
+    developer.strict_loading!(mode: :n_plus_one_only)
+    assert_predicate developer, :strict_loading?
 
     # Does not raise when a belongs_to association (:ship) loads its
     # has_many association (:parts)
