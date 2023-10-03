@@ -498,7 +498,7 @@ To use an external debugger (pry, byebug, etc), install the debugger and use it 
 If running tests against generators you will need to set `PRINT_STDOUT=true` in order for debugging tools to work.
 
 ```sh
-PRINT_STDOUT=true ./bin/test test/generators/actions_test.rb
+RAILS_LOG_TO_STDOUT=true ./bin/test test/generators/actions_test.rb
 ```
 
 ### Warnings

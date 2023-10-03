@@ -68,7 +68,7 @@ module Rails
           args += ["--skip-bundle"] unless args.include?("--no-skip-bundle") || args.include?("--dev")
           args += ["--skip-bootsnap"] unless args.include?("--no-skip-bootsnap") || args.include?("--skip-bootsnap")
 
-          if ENV["PRINT_STDOUT"] == "true"
+          if ENV["RAILS_LOG_TO_STDOUT"] == "true"
             generator_class.start(args, config.reverse_merge(destination_root: destination_root))
           else
             capture(:stdout) do

@@ -7,7 +7,7 @@
     This allows for calls to `binding.irb` and `puts` work as expected.
 
     ```sh
-    PRINT_STDOUT=true ./bin/test test/generators/actions_test.rb
+    RAILS_LOG_TO_STDOUT=true ./bin/test test/generators/actions_test.rb
     ```
 
     *Steve Polito*
