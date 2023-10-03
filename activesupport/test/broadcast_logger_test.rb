@@ -268,6 +268,16 @@ module ActiveSupport
       assert(logger.foo)
     end
 
+    test "calling a method that accepts a block" do
+      logger = BroadcastLogger.new(CustomLogger.new)
+
+      called = false
+      logger.bar do
+        called = true
+      end
+      assert(called)
+    end
+
     class CustomLogger
       attr_reader :adds, :closed, :chevrons
       attr_accessor :level, :progname, :formatter, :local_level
@@ -284,6 +294,10 @@ module ActiveSupport
 
       def foo
         true
+      end
+
+      def bar
+        yield
       end
 
       def debug(message, &block)
