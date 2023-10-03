@@ -203,16 +203,20 @@ module ActiveSupport
         @broadcasts.each { |logger| block.call(logger) }
       end
 
-      def method_missing(name, *args)
+      def method_missing(name, *args, &block)
         loggers = @broadcasts.select { |logger| logger.respond_to?(name) }
 
         if loggers.none?
-          super(name, *args)
+          super(name, *args, &block)
         elsif loggers.one?
-          loggers.first.send(name, *args)
+          loggers.first.send(name, *args, &block)
         else
-          loggers.map { |logger| logger.send(name, *args) }
+          loggers.map { |logger| logger.send(name, *args, &block) }
         end
+      end
+
+      def respond_to_missing?(method, include_all)
+        @broadcasts.any? { |logger| logger.respond_to?(method, include_all) }
       end
   end
 end
