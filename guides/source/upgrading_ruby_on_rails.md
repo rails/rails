@@ -257,6 +257,33 @@ See the [Testing Rails Applications](https://edgeguides.rubyonrails.org/testing.
 
 If you run a single file's tests (`bin/rails test test/models/user_test.rb`), `test:prepare` will not run before it.
 
+### `ActionView::TestCase#rendered` no longer returns a `String`
+
+Starting from Rails 7.1, `ActionView::TestCase#rendered` returns an object that
+responds to various format methods (for example, `rendered.html` and
+`rendered.json`). To preserve backward compatibility, the object returned from
+`rendered` will delegate missing methods to the `String` rendered during the
+test. For example, the following [assert_match][] assertion will pass:
+
+```ruby
+assert_match /some content/i, rendered
+```
+
+However, if your tests rely on `ActionView::TestCase#rendered` returning an
+instance of `String`, they will fail. To restore the original behavior, you can
+override the `#rendered` method to read from the `@rendered` instance variable:
+
+```ruby
+# config/initializers/action_view.rb
+
+ActiveSupport.on_load :action_view_test_case do
+  attr_reader :rendered
+end
+```
+
+[assert_match]: https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-assert_match
+
+
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
 
