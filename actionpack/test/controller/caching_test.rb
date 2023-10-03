@@ -257,8 +257,8 @@ Ciao
   def test_fragment_cache_instrumentation
     payload = nil
 
-    subscriber = proc do |_, _, _, _, event_payload|
-      payload = event_payload
+    subscriber = proc do |event|
+      payload = event.payload
     end
 
     ActiveSupport::Notifications.subscribed(subscriber, "read_fragment.action_controller") do
