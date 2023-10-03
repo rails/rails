@@ -495,7 +495,7 @@ You can invoke `test_jdbcmysql`, `test_jdbcsqlite3` or `test_jdbcpostgresql` als
 
 To use an external debugger (pry, byebug, etc), install the debugger and use it as normal.  If debugger issues occur, run tests in serial by setting `PARALLEL_WORKERS=1` or run a single test with `-n test_long_test_name`.
 
-If running tests against generators you will need to set `PRINT_STDOUT=true` in order for debugging tools to work.
+If running tests against generators you will need to set `RAILS_LOG_TO_STDOUT=true` in order for debugging tools to work.
 
 ```sh
 RAILS_LOG_TO_STDOUT=true ./bin/test test/generators/actions_test.rb
