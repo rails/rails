@@ -22,6 +22,12 @@ if defined?(ActiveRecord::Base)
     exit 1
   end
 
+  if Rails.configuration.eager_load
+    ActiveRecord::Base.descendants.each do |model|
+      model.load_schema unless model.abstract_class?
+    end
+  end
+
   ActiveSupport.on_load(:active_support_test_case) do
     include ActiveRecord::TestDatabases
     include ActiveRecord::TestFixtures
