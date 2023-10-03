@@ -83,7 +83,7 @@ NOTE: The `Rails.application.routes.draw do ... end` block that wraps your route
 Resource Routing: the Rails Default
 -----------------------------------
 
-Resource routing allows you to quickly declare all of the common routes for a given resourceful controller. A single call to [`resources`][] can declare all of the necessary routes for your `index`, `show`, `new`, `edit`, `create`, `update`, and `destroy` actions.
+Resource routing allows you to quickly declare all of the common routes for a given resource controller. A single call to [`resources`][] can declare all of the necessary routes for your `index`, `show`, `new`, `edit`, `create`, `update`, and `destroy` actions.
 
 [`resources`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-resources
 
