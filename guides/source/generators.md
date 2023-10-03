@@ -559,6 +559,6 @@ In addition to those, Rails also provides additional assertions via
 [`rails_command`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-rails_command
 [`rake`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-rake
 [`route`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-route
-[`Rails::Generators::Testing::Behaviour`]: https://api.rubyonrails.org/classes/Rails/Generators/Testing.html
-[`run_generator`]: https://api.rubyonrails.org/classes/Rails/Generators/Testing/Behaviour.html#method-i-run_generator
+[`Rails::Generators::Testing::Behaviour`]: https://api.rubyonrails.org/classes/Rails/Generators/Testing/Behavior.html
+[`run_generator`]: https://api.rubyonrails.org/classes/Rails/Generators/Testing/Behavior.html#method-i-run_generator
 [`Rails::Generators::Testing::Assertions`]: https://api.rubyonrails.org/classes/Rails/Generators/Testing/Assertions.html
