@@ -75,7 +75,7 @@ module ActiveRecord
       #   for an Author.
       # - an Array which specifies multiple association names. This array
       #   is processed recursively. For example, specifying <tt>[:avatar, :books]</tt>
-      #   allows this method to preload an author's avatar as well as all of his
+      #   allows this method to preload an author's avatar as well as all of their
       #   books.
       # - a Hash which specifies multiple association names, as well as
       #   association names for the to-be-preloaded association objects. For
