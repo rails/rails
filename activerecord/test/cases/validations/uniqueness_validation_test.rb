@@ -813,10 +813,10 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
     end
   end
 
-  if current_adapter?(:PostgreSQLAdapter)
+  if ActiveRecord::Base.connection.supports_expression_index?
     def test_expression_index
       Topic.validates_uniqueness_of(:title)
-      @connection.add_index(:topics, "LOWER(title)", unique: true, name: :topics_index)
+      @connection.add_index(:topics, "(LOWER(title))", unique: true, name: :topics_index)
 
       t = Topic.create!(title: "abc", author_name: "John")
       t.content = "hello world"
