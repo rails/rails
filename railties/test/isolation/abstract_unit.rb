@@ -211,6 +211,7 @@ module TestHelpers
         config.session_store :cookie_store, key: "_myapp_session"
         config.active_support.deprecation = :log
         config.action_controller.allow_forgery_protection = false
+        config.turbolinks.auto_include = false
       RUBY
     end
 
