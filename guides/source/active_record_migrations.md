@@ -965,6 +965,26 @@ version to migrate to.
 The `bin/rails db:setup` command will create the database, load the schema, and initialize
 it with the seed data.
 
+## Preparing the Database
+
+The `bin/rails db:prepare` command is similar to `bin/rails db:setup`, but it
+operates idempotently.
+
+* If the database has not been created yet, the command will run as the
+  `bin/rails db:setup` does.
+* If the database exists but the tables have not been created, the command will
+  load the schema, run any pending migrations, dump the updated schema, and
+  finally load the seed data.
+* If both the database and tables exist but the seed data has not been loaded,
+  the command will only load the seed data.
+* If the database, tables, and seed data are all in place, the command will do
+  nothing.
+
+NOTE: Once the database, tables, and seed data are all established, the command
+will not try to reload the seed data, even if the previously loaded seed data or
+the existing seed file have been altered or deleted. To reload the seed data,
+you can manually run `bin/rails db:seed`.
+
 ### Resetting the Database
 
 The `bin/rails db:reset` command will drop the database and set it up again. This is
