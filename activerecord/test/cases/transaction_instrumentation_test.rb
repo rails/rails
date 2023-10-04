@@ -129,6 +129,27 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
     ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
   end
 
+  def test_transaction_instrumentation_with_materialized_restart_parent_transactions
+    topic = topics(:fifth)
+    events = []
+    subscriber = ActiveSupport::Notifications.subscribe("transaction.active_record") do |event|
+      events << event
+    end
+
+    ActiveRecord::Base.transaction do
+      topic.update(title: "Sinatra")
+      ActiveRecord::Base.transaction(requires_new: true) do
+        raise ActiveRecord::Rollback
+      end
+    end
+
+    assert_equal 1, events.count
+    event = events.first
+    assert_equal :commit, event.payload[:outcome]
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+  end
+
   def test_transaction_instrumentation_with_restart_savepoint_parent_transactions
     topic = topics(:fifth)
 
@@ -156,6 +177,27 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
     ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
   end
 
+  def test_transaction_instrumentation_with_restart_savepoint_parent_transactions_on_commit
+    topic = topics(:fifth)
+
+    events = []
+    subscriber = ActiveSupport::Notifications.subscribe("transaction.active_record") do |event|
+      events << event
+    end
+
+    ActiveRecord::Base.transaction do
+      topic.update(title: "Sinatra")
+      ActiveRecord::Base.transaction(requires_new: true) do
+      end
+    end
+
+    assert_equal 1, events.count
+    event = events.first
+    assert_equal :commit, event.payload[:outcome]
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+  end
+
   def test_transaction_instrumentation_only_fires_if_materialized
     notified = false
     subscriber = ActiveSupport::Notifications.subscribe("transaction.active_record") do |event|
@@ -166,6 +208,36 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
     end
 
     assert_not notified
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+  end
+
+  def test_transaction_instrumentation_only_fires_on_rollback_if_materialized
+    notified = false
+    subscriber = ActiveSupport::Notifications.subscribe("transaction.active_record") do |event|
+      notified = true
+    end
+
+    ActiveRecord::Base.transaction do
+      raise ActiveRecord::Rollback
+    end
+
+    assert_not notified
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+  end
+
+  def test_reconnecting_after_materialized_transaction_starts_new_event
+    events = []
+    subscriber = ActiveSupport::Notifications.subscribe("transaction.active_record") do |event|
+      events << event
+    end
+    Topic.transaction do
+      Topic.connection.materialize_transactions
+      Topic.connection.reconnect!(restore_transactions: true)
+    end
+
+    assert_equal 2, events.count
   ensure
     ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
   end
@@ -266,6 +338,26 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
       end
 
       assert notified
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    end
+
+    def test_transaction_instrumentation_on_failed_rollback_when_unmaterialized
+      notified = false
+      subscriber = ActiveSupport::Notifications.subscribe("transaction.active_record") do |event|
+        notified = true
+      end
+
+      error = Class.new(StandardError)
+      assert_raises error do
+        # Stubbing this method simulates an error that occurs when the transaction is still unmaterilized.
+        Topic.connection.transaction_manager.stub(:rollback_transaction, -> (*) { raise error }) do
+          Topic.transaction do
+            raise ActiveRecord::Rollback
+          end
+        end
+      end
+      assert_not notified
     ensure
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
