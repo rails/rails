@@ -115,6 +115,7 @@ module ActiveRecord
       def dirty!; end
       def invalidated?; false; end
       def invalidate!; end
+      def materialized?; false; end
     end
 
     class Transaction # :nodoc:
