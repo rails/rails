@@ -87,7 +87,7 @@ module ActiveRecord
           klass.connection.schema_cache.indexes(klass.table_name).any? do |index|
             index.unique &&
               index.where.nil? &&
-              (index.columns - attributes).empty?
+              (Array(index.columns) - attributes).empty?
           end
         end
 
