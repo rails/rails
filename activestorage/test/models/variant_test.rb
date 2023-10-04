@@ -287,7 +287,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
       previous_processor, ActiveStorage.variant_processor = ActiveStorage.variant_processor, processor
       yield
     rescue LoadError
-      ENV["CI"] ? raise : skip("Variant processor #{processor.inspect} is not installed")
+      ENV["BUILDKITE"] ? raise : skip("Variant processor #{processor.inspect} is not installed")
     ensure
       ActiveStorage.variant_processor = previous_processor
     end

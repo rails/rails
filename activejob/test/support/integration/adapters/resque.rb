@@ -7,7 +7,7 @@ module ResqueJobsManager
     Resque.logger = Rails.logger
     unless can_run?
       puts "Cannot run integration tests for resque. To be able to run integration tests for resque you need to install and start redis.\n"
-      status = ENV["CI"] ? false : true
+      status = ENV["BUILDKITE"] ? false : true
       exit status
     end
   end

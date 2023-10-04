@@ -29,7 +29,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
-  if ENV["CI"]
+  if ENV["BUILDKITE"]
     MEMCACHE_UP = true
   else
     begin

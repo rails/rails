@@ -18,7 +18,7 @@ module SneakersJobsManager
                         log: Rails.root.join("log/sneakers.log").to_s
     unless can_run?
       puts "Cannot run integration tests for sneakers. To be able to run integration tests for sneakers you need to install and start rabbitmq.\n"
-      status = ENV["CI"] ? false : true
+      status = ENV["BUILDKITE"] ? false : true
       exit status
     end
   end

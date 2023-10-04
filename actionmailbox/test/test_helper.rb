@@ -5,6 +5,8 @@ require "active_support/testing/strict_warnings"
 ENV["RAILS_ENV"] = "test"
 ENV["RAILS_INBOUND_EMAIL_PASSWORD"] = "tbsy84uSV1Kt3ZJZELY2TmShPRs91E3yL4tzf96297vBCkDWgL"
 
+require_relative "../../tools/test_common"
+
 require_relative "../test/dummy/config/environment"
 ActiveRecord::Migrator.migrations_paths = [File.expand_path("../test/dummy/db/migrate", __dir__)]
 require "rails/test_help"
@@ -53,5 +55,3 @@ class BounceMailer < ActionMailer::Base
     end
   end
 end
-
-require_relative "../../tools/test_common"
