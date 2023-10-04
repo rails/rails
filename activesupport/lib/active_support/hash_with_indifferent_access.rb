@@ -387,6 +387,10 @@ module ActiveSupport
       _new_hash
     end
 
+    def to_proc
+      proc { |key| self[key] }
+    end
+
     private
       if Symbol.method_defined?(:name)
         def convert_key(key)
