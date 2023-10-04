@@ -965,7 +965,7 @@ version to migrate to.
 The `bin/rails db:setup` command will create the database, load the schema, and initialize
 it with the seed data.
 
-## Preparing the Database
+### Preparing the Database
 
 The `bin/rails db:prepare` command is similar to `bin/rails db:setup`, but it
 operates idempotently.
