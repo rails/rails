@@ -553,6 +553,20 @@ module ActiveRecord
         initialize_find_by_cache
       end
 
+      def load_schema # :nodoc:
+        return if schema_loaded?
+        @load_schema_monitor.synchronize do
+          return if @columns_hash
+
+          load_schema!
+
+          @schema_loaded = true
+        rescue
+          reload_schema_from_cache # If the schema loading failed half way through, we must reset the state.
+          raise
+        end
+      end
+
       protected
         def initialize_load_schema_monitor
           @load_schema_monitor = Monitor.new
@@ -592,20 +606,6 @@ module ActiveRecord
 
         def schema_loaded?
           defined?(@schema_loaded) && @schema_loaded
-        end
-
-        def load_schema
-          return if schema_loaded?
-          @load_schema_monitor.synchronize do
-            return if @columns_hash
-
-            load_schema!
-
-            @schema_loaded = true
-          rescue
-            reload_schema_from_cache # If the schema loading failed half way through, we must reset the state.
-            raise
-          end
         end
 
         def load_schema!
