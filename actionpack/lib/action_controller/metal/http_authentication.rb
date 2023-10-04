@@ -424,7 +424,9 @@ module ActionController
 
       module ControllerMethods
         # Authenticate using an HTTP Bearer token, or otherwise render an HTTP
-        # header requesting the client to send a Bearer token.
+        # header requesting the client to send a Bearer token. For the authentication
+        # to be considered successful, `login_procedure` should return a non-nil
+        # value. Typically, the authenticated user is returned.
         #
         # See ActionController::HttpAuthentication::Token for example usage.
         def authenticate_or_request_with_http_token(realm = "Application", message = nil, &login_procedure)
