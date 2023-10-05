@@ -337,10 +337,9 @@
       description: Release notes for Rails 7.1.
       work_in_progress: true
     -
-      name: Version 7.1 - ?
+      name: Version 7.1 - October 2021
       url: 7_1_release_notes.html
       description: Release notes for Rails 7.1.
-      work_in_progress: true
     -
       name: Version 7.0 - December 2021
       url: 7_0_release_notes.html
