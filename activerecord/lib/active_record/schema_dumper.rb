@@ -12,6 +12,12 @@ module ActiveRecord
 
     ##
     # :singleton-method:
+    # A list of schemas which should not be dumped to the schema.
+    # Acceptable values are strings and regexps.
+    cattr_accessor :ignore_schemas, default: []
+
+    ##
+    # :singleton-method:
     # A list of tables which should not be dumped to the schema.
     # Acceptable values are strings and regexps.
     cattr_accessor :ignore_tables, default: []
@@ -128,13 +134,13 @@ module ActiveRecord
         sorted_tables = @connection.tables.sort
 
         sorted_tables.each do |table_name|
-          table(table_name, stream) unless ignored?(table_name)
+          table(table_name, stream) unless ignored_table?(table_name)
         end
 
         # dump foreign keys at the end to make sure all dependent tables exist.
         if @connection.use_foreign_keys?
           sorted_tables.each do |tbl|
-            foreign_keys(tbl, stream) unless ignored?(tbl)
+            foreign_keys(tbl, stream) unless ignored_table?(tbl)
           end
         end
       end
@@ -340,10 +346,14 @@ module ActiveRecord
         table.sub(/\A#{prefix}(.+)#{suffix}\z/, "\\1")
       end
 
-      def ignored?(table_name)
+      def ignored_table?(table_name)
         @ignore_tables.any? do |ignored|
           ignored === remove_prefix_and_suffix(table_name)
         end
+      end
+
+      def ignored_schema?(schema_name)
+        self.class.ignore_schemas.any? { |ignored| ignored === schema_name }
       end
   end
 end
