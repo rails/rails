@@ -1,3 +1,8 @@
+## Rails 7.1.0 (October 05, 2023) ##
+
+*   No changes.
+
+
 ## Rails 7.1.0.rc2 (October 01, 2023) ##
 
 *   Fix `AS::MessagePack` with `ENV["RAILS_MAX_THREADS"]`.
