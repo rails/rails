@@ -54,6 +54,15 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_nil record_with_defaults.modified_time
     assert_not_nil record_with_defaults.modified_time_without_precision
     assert_not_nil record_with_defaults.modified_time_function
+
+    if current_adapter?(:PostgreSQLAdapter)
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "postgresql_identity_table"
+      end
+
+      record = klass.create!
+      assert_not_nil record.id
+    end
   end if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:SQLite3Adapter)
 
   def test_update_many
