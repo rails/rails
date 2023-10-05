@@ -178,6 +178,11 @@ class SignedIdTest < ActiveRecord::TestCase
     ActiveRecord::Base.signed_id_verifier_secret = SIGNED_ID_VERIFIER_TEST_SECRET
   end
 
+  test "always output url_safe" do
+    signed_id = @account.signed_id(purpose: "~~~~~~~~~")
+    assert_not signed_id.include?("+")
+  end
+
   test "use a custom verifier" do
     old_verifier = Account.signed_id_verifier
     Account.signed_id_verifier = ActiveSupport::MessageVerifier.new("sekret")
