@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
+require "active_support/code_generator"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/string/output_safety"
+require "active_support/core_ext/string/inflections"
 require "set"
 require "action_view/helpers/capture_helper"
 require "action_view/helpers/output_safety_helper"
@@ -46,8 +48,166 @@ module ActionView
         include CaptureHelper
         include OutputSafetyHelper
 
-        HTML_VOID_ELEMENTS = %i(area base br col embed hr img input keygen link meta param source track wbr).to_set
-        SVG_SELF_CLOSING_ELEMENTS = %i(animate animateMotion animateTransform circle ellipse line path polygon polyline rect set stop use view).to_set
+        def self.define_element(name, code_generator:, method_name: name.to_s.underscore)
+          code_generator.define_cached_method(method_name, namespace: :tag_builder) do |batch|
+            batch.push(<<~RUBY) unless instance_methods.include?(method_name.to_sym)
+              def #{method_name}(content = nil, escape: true, **options, &block)
+                tag_string(#{name.inspect}, content, escape: escape, **options, &block)
+              end
+            RUBY
+          end
+        end
+
+        def self.define_void_element(name, code_generator:, method_name: name.to_s.underscore, self_closing: false)
+          code_generator.define_cached_method(method_name, namespace: :tag_builder) do |batch|
+            batch.push(<<~RUBY)
+              def #{method_name}(content = nil, escape: true, **options, &block)
+                if content || block
+                  tag_string(#{name.inspect}, content, escape: escape, **options, &block)
+                else
+                  void_tag_string(#{name.inspect}, options, escape, #{self_closing})
+                end
+              end
+            RUBY
+          end
+        end
+
+        def self.define_self_closing_element(name, **options)
+          define_void_element(name, self_closing: true, **options)
+        end
+
+        ActiveSupport::CodeGenerator.batch(self, __FILE__, __LINE__) do |code_generator|
+          define_void_element :area, code_generator: code_generator
+          define_void_element :base, code_generator: code_generator
+          define_void_element :br, code_generator: code_generator
+          define_void_element :col, code_generator: code_generator
+          define_void_element :embed, code_generator: code_generator
+          define_void_element :hr, code_generator: code_generator
+          define_void_element :img, code_generator: code_generator
+          define_void_element :input, code_generator: code_generator
+          define_void_element :keygen, code_generator: code_generator
+          define_void_element :link, code_generator: code_generator
+          define_void_element :meta, code_generator: code_generator
+          define_void_element :source, code_generator: code_generator
+          define_void_element :track, code_generator: code_generator
+          define_void_element :wbr, code_generator: code_generator
+
+          define_self_closing_element :animate, code_generator: code_generator
+          define_self_closing_element :animateMotion, code_generator: code_generator
+          define_self_closing_element :animateTransform, code_generator: code_generator
+          define_self_closing_element :circle, code_generator: code_generator
+          define_self_closing_element :ellipse, code_generator: code_generator
+          define_self_closing_element :line, code_generator: code_generator
+          define_self_closing_element :path, code_generator: code_generator
+          define_self_closing_element :polygon, code_generator: code_generator
+          define_self_closing_element :polyline, code_generator: code_generator
+          define_self_closing_element :rect, code_generator: code_generator
+          define_self_closing_element :set, code_generator: code_generator
+          define_self_closing_element :stop, code_generator: code_generator
+          define_self_closing_element :use, code_generator: code_generator
+          define_self_closing_element :view, code_generator: code_generator
+
+          define_element :a, code_generator: code_generator
+          define_element :abbr, code_generator: code_generator
+          define_element :address, code_generator: code_generator
+          define_element :article, code_generator: code_generator
+          define_element :aside, code_generator: code_generator
+          define_element :audio, code_generator: code_generator
+          define_element :b, code_generator: code_generator
+          define_element :bdi, code_generator: code_generator
+          define_element :bdo, code_generator: code_generator
+          define_element :blockquote, code_generator: code_generator
+          define_element :body, code_generator: code_generator
+          define_element :button, code_generator: code_generator
+          define_element :canvas, code_generator: code_generator
+          define_element :caption, code_generator: code_generator
+          define_element :cite, code_generator: code_generator
+          define_element :code, code_generator: code_generator
+          define_element :colgroup, code_generator: code_generator
+          define_element :data, code_generator: code_generator
+          define_element :datalist, code_generator: code_generator
+          define_element :dd, code_generator: code_generator
+          define_element :del, code_generator: code_generator
+          define_element :details, code_generator: code_generator
+          define_element :dfn, code_generator: code_generator
+          define_element :dialog, code_generator: code_generator
+          define_element :div, code_generator: code_generator
+          define_element :dl, code_generator: code_generator
+          define_element :dt, code_generator: code_generator
+          define_element :em, code_generator: code_generator
+          define_element :fieldset, code_generator: code_generator
+          define_element :figcaption, code_generator: code_generator
+          define_element :figure, code_generator: code_generator
+          define_element :footer, code_generator: code_generator
+          define_element :form, code_generator: code_generator
+          define_element :h1, code_generator: code_generator
+          define_element :h2, code_generator: code_generator
+          define_element :h3, code_generator: code_generator
+          define_element :h4, code_generator: code_generator
+          define_element :h5, code_generator: code_generator
+          define_element :h6, code_generator: code_generator
+          define_element :head, code_generator: code_generator
+          define_element :header, code_generator: code_generator
+          define_element :hgroup, code_generator: code_generator
+          define_element :html, code_generator: code_generator
+          define_element :i, code_generator: code_generator
+          define_element :iframe, code_generator: code_generator
+          define_element :ins, code_generator: code_generator
+          define_element :kbd, code_generator: code_generator
+          define_element :label, code_generator: code_generator
+          define_element :legend, code_generator: code_generator
+          define_element :li, code_generator: code_generator
+          define_element :main, code_generator: code_generator
+          define_element :map, code_generator: code_generator
+          define_element :mark, code_generator: code_generator
+          define_element :menu, code_generator: code_generator
+          define_element :meter, code_generator: code_generator
+          define_element :nav, code_generator: code_generator
+          define_element :noscript, code_generator: code_generator
+          define_element :object, code_generator: code_generator
+          define_element :ol, code_generator: code_generator
+          define_element :optgroup, code_generator: code_generator
+          define_element :option, code_generator: code_generator
+          define_element :output, code_generator: code_generator
+          define_element :p, code_generator: code_generator
+          define_element :picture, code_generator: code_generator
+          define_element :portal, code_generator: code_generator
+          define_element :pre, code_generator: code_generator
+          define_element :progress, code_generator: code_generator
+          define_element :q, code_generator: code_generator
+          define_element :rp, code_generator: code_generator
+          define_element :rt, code_generator: code_generator
+          define_element :ruby, code_generator: code_generator
+          define_element :s, code_generator: code_generator
+          define_element :samp, code_generator: code_generator
+          define_element :script, code_generator: code_generator
+          define_element :search, code_generator: code_generator
+          define_element :section, code_generator: code_generator
+          define_element :select, code_generator: code_generator
+          define_element :slot, code_generator: code_generator
+          define_element :small, code_generator: code_generator
+          define_element :span, code_generator: code_generator
+          define_element :strong, code_generator: code_generator
+          define_element :style, code_generator: code_generator
+          define_element :sub, code_generator: code_generator
+          define_element :summary, code_generator: code_generator
+          define_element :sup, code_generator: code_generator
+          define_element :table, code_generator: code_generator
+          define_element :tbody, code_generator: code_generator
+          define_element :td, code_generator: code_generator
+          define_element :template, code_generator: code_generator
+          define_element :textarea, code_generator: code_generator
+          define_element :tfoot, code_generator: code_generator
+          define_element :th, code_generator: code_generator
+          define_element :thead, code_generator: code_generator
+          define_element :time, code_generator: code_generator
+          define_element :title, code_generator: code_generator
+          define_element :tr, code_generator: code_generator
+          define_element :u, code_generator: code_generator
+          define_element :ul, code_generator: code_generator
+          define_element :var, code_generator: code_generator
+          define_element :video, code_generator: code_generator
+        end
 
         def initialize(view_context)
           @view_context = view_context
@@ -62,24 +222,19 @@ module ActionView
           tag_options(attributes.to_h).to_s.strip.html_safe
         end
 
-        def p(*arguments, **options, &block)
-          tag_string(:p, *arguments, **options, &block)
+        def tag_string(name, content = nil, escape: true, **options, &block)
+          content = @view_context.capture(self, &block) if block
+
+          content_tag_string(name, content, options, escape)
         end
 
-        def tag_string(name, content = nil, escape: true, **options, &block)
-          content = @view_context.capture(self, &block) if block_given?
-          self_closing = SVG_SELF_CLOSING_ELEMENTS.include?(name)
-          if (HTML_VOID_ELEMENTS.include?(name) || self_closing) && content.nil?
-            "<#{name.to_s.dasherize}#{tag_options(options, escape)}#{self_closing ? " />" : ">"}".html_safe
-          else
-            content_tag_string(name.to_s.dasherize, content || "", options, escape)
-          end
+        def void_tag_string(name, options, escape = true, self_closing = false)
+          "<#{name}#{tag_options(options, escape)}#{self_closing ? " />" : ">"}".html_safe
         end
 
         def content_tag_string(name, content, options, escape = true)
           tag_options = tag_options(options, escape) if options
 
-          TagHelper.ensure_valid_html5_tag_name(name)
           if escape
             content = ERB::Util.unwrapped_html_escape(content)
           end
@@ -163,7 +318,11 @@ module ActionView
           end
 
           def method_missing(called, *args, **options, &block)
-            tag_string(called, *args, **options, &block)
+            name = called.to_s.dasherize
+
+            TagHelper.ensure_valid_html5_tag_name(name)
+
+            tag_string(name, *args, **options, &block)
           end
       end
 
@@ -343,6 +502,8 @@ module ActionView
       #   <% end -%>
       #    # => <div class="strong">Hello world!</div>
       def content_tag(name, content_or_options_with_block = nil, options = nil, escape = true, &block)
+        ensure_valid_html5_tag_name(name)
+
         if block_given?
           options = content_or_options_with_block if content_or_options_with_block.is_a?(Hash)
           tag_builder.content_tag_string(name, capture(&block), options, escape)

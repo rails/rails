@@ -30,13 +30,29 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<br>some content</br>", tag.br("some content")
   end
 
+  def test_tag_builder_void_tag_with_empty_content
+    assert_equal "<br></br>", tag.br("")
+  end
+
   def test_tag_builder_self_closing_tag
     assert_equal "<svg><use href=\"#cool-icon\" /></svg>", tag.svg { tag.use("href" => "#cool-icon") }
     assert_equal "<svg><circle cx=\"5\" cy=\"5\" r=\"5\" /></svg>", tag.svg { tag.circle(cx: "5", cy: "5", r: "5") }
+    assert_equal "<animateMotion dur=\"10s\" repeatCount=\"indefinite\" />", tag.animate_motion(dur: "10s", repeatCount: "indefinite")
   end
 
   def test_tag_builder_self_closing_tag_with_content
     assert_equal "<svg><circle><desc>A circle</desc></circle></svg>", tag.svg { tag.circle { tag.desc "A circle" } }
+  end
+
+  def test_tag_builder_defines_methods_to_build_html_elements
+    assert_respond_to tag, :div
+    assert_includes tag.public_methods, :div
+  end
+
+  def test_tag_builder_renders_unknown_html_elements
+    assert_respond_to tag, :turbo_frame
+
+    assert_equal "<turbo-frame id=\"rendered\">Rendered</turbo-frame>", tag.turbo_frame("Rendered", id: "rendered")
   end
 
   def test_tag_builder_is_singleton
