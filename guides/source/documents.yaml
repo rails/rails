@@ -332,7 +332,7 @@
         This guide provides steps to be followed when you upgrade your
         applications to a newer version of Ruby on Rails.
     -
-      name: Version 7.1 - October 2021
+      name: Version 7.1 - October 2023
       url: 7_1_release_notes.html
       description: Release notes for Rails 7.1.
       work_in_progress: true
