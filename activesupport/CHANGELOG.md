@@ -868,7 +868,7 @@
 
      *Trevor Turk*
 
-*   `ActiveSupport::Cache:Store#fetch` now passes an options accessor to the block.
+*   `ActiveSupport::Cache::Store#fetch` now passes an options accessor to the block.
 
     It makes possible to override cache options:
 
