@@ -7,7 +7,7 @@ require "active_support/core_ext/string/inflections"
 class NormalizedAttributeTest < ActiveRecord::TestCase
   class NormalizedAircraft < Aircraft
     normalizes :name, with: -> name { name.titlecase }
-    normalizes :manufactured_at, with: -> time { time.noon }
+    normalizes [:manufactured_at], with: -> time { time.noon }
 
     attr_accessor :validated_name
     validate { self.validated_name = name.dup }

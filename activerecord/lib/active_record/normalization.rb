@@ -78,6 +78,8 @@ module ActiveRecord # :nodoc:
       #
       #   User.normalize_value_for(:phone, "+1 (555) 867-5309") # => "5558675309"
       def normalizes(*names, with:, apply_to_nil: false)
+        names.flatten!
+
         names.each do |name|
           attribute(name) do |cast_type|
             NormalizedValueType.new(cast_type: cast_type, normalizer: with, normalize_nil: apply_to_nil)

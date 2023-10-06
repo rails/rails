@@ -466,6 +466,18 @@ module ActiveRecord
         end
       end
 
+      # Returns the names of attributes that are of the specified +type+.
+      #
+      #   Post.attributes_of_type(:string)   # => [:title]
+      #   Post.attributes_of_type(:datetime) # => [:created_at, :updated_at]
+      #   Post.attributes_of_type(:decimal)  # => []
+      #
+      def attributes_of_type(type)
+        attribute_types.filter_map do |attr_name, attr_type|
+          attr_name.to_sym if attr_type.type == type
+        end
+      end
+
       # Returns the column object for the named attribute.
       # Returns an +ActiveRecord::ConnectionAdapters::NullColumn+ if the
       # named attribute does not exist.
