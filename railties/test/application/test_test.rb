@@ -347,7 +347,91 @@ Expected: ["id", "name"]
         end
       RUBY
 
+      app_file "test/models/user_test.rb", <<-RUBY
+        require "test_helper"
+        class UserTest < ActiveSupport::TestCase
+          test "user" do
+            User.create!(name: "jon")
+          end
+        end
+      RUBY
+
       assert_unsuccessful_run "models/user_test.rb", "Unknown enum attribute 'type' for User"
+    end
+
+    test "schema for all the models is loaded when tests are run in eager load context, but if tables are missing for Rails frameworks this does not break the build" do
+      output = rails("generate", "model", "user", "name:string")
+      version = output.match(/(\d+)_create_users\.rb/)[1]
+
+      app_file "db/schema.rb", <<-RUBY
+        ActiveRecord::Schema.define(version: #{version}) do
+          create_table :users do |t|
+            t.string :name
+          end
+
+          # create_table :action_text_rich_texts
+          # create_table :active_storage_variant_records
+          # create_table :active_storage_blobs
+          # create_table :active_storage_attachments
+          # create_table :action_mailbox_inbound_emails do |t|
+          #   t.integer :status
+          # end
+        end
+      RUBY
+
+      app_file "config/initializers/enable_eager_load.rb", <<-RUBY
+        Rails.application.config.eager_load = true
+      RUBY
+
+      app_file "app/models/user.rb", <<-RUBY
+        class User < ApplicationRecord
+          enum :type, [:admin, :user]
+        end
+      RUBY
+
+      app_file "test/models/user_test.rb", <<-RUBY
+        require "test_helper"
+        class UserTest < ActiveSupport::TestCase
+          test "user" do
+            User.create!(name: "jon")
+          end
+        end
+      RUBY
+
+      assert_unsuccessful_run "models/user_test.rb", "Unknown enum attribute 'type' for User"
+    end
+
+    test "if tables are missing for Rails frameworks this raises when running tests on eager load" do
+      output = rails("generate", "model", "user")
+      version = output.match(/(\d+)_create_users\.rb/)[1]
+
+      app_file "db/schema.rb", <<-RUBY
+        ActiveRecord::Schema.define(version: #{version}) do
+          create_table :users
+          # create_table :action_text_rich_texts
+        end
+      RUBY
+
+      app_file "config/initializers/enable_eager_load.rb", <<-RUBY
+        Rails.application.config.eager_load = true
+      RUBY
+
+      app_file "app/models/user.rb", <<-RUBY
+        class User < ApplicationRecord
+          has_rich_text :name
+        end
+      RUBY
+
+      app_file "test/models/user_test.rb", <<-RUBY
+        require "test_helper"
+        class UserTest < ActiveSupport::TestCase
+          test "user" do
+            User.create!(name: "jon")
+          end
+        end
+      RUBY
+
+      assert_unsuccessful_run "models/user_test.rb", "Could not find table 'action_text_rich_texts'"
     end
 
     private
