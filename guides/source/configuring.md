@@ -1743,6 +1743,13 @@ Rendered messages/_message.html.erb in 1.2 ms [cache hit]
 Rendered recordings/threads/_thread.html.erb in 1.5 ms [cache miss]
 ```
 
+#### `config.action_controller.raise_on_missing_callback_actions`
+
+Raises an `AbstractController::ActionNotFound` when the action specified in callback's `:only` or `:except` options is missing in the controller.
+
+The default value is `false`.
+In newly generated 7.1+ app, the default values in config/environments.development.rb and test.rb will be configured as `true`.
+
 #### `config.action_controller.raise_on_open_redirects`
 
 Raises an `ActionController::Redirecting::UnsafeRedirectError` when an unpermitted open redirect occurs.
