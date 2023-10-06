@@ -622,12 +622,12 @@ module ActionDispatch
   # Calling TestResponse#parsed_body on the response parses the response body
   # based on the last response MIME type.
   #
-  # Out of the box, only `:json` is supported. But for any custom MIME types
-  # you've registered, you can add your own encoders with:
+  # Out of the box, only `:html` and `:json` are supported. But for any custom MIME
+  # types you've registered, you can add your own encoders with:
   #
   #     ActionDispatch::IntegrationTest.register_encoder :wibble,
   #       param_encoder: -> params { params.to_wibble },
-  #       response_parser: -> body { body }
+  #       response_parser: -> body { Wibble.parse(body) }
   #
   # Where `param_encoder` defines how the params should be encoded and
   # `response_parser` defines how the response body should be parsed through
@@ -673,6 +673,19 @@ module ActionDispatch
           @@app = app
         end
 
+        # Calling TestResponse#parsed_body on the response parses the response body based on the
+        # last response MIME type.
+        #
+        # Out of the box, only <tt>:html</tt> and <tt>:json</tt> are supported. But for any custom MIME
+        # types you've registered, you can add your own encoders with:
+        #
+        #   ActionDispatch::IntegrationTest.register_encoder :wibble,
+        #     param_encoder: -> params { params.to_wibble },
+        #     response_parser: -> body { Wibble.parse(body) }
+        #
+        # Where +param_encoder+ defines how the params should be encoded and
+        # +response_parser+ defines how the response body should be parsed through
+        # TestResponse#parsed_body.
         def register_encoder(*args, **options)
           RequestEncoder.register_encoder(*args, **options)
         end
