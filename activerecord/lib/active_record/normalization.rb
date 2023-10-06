@@ -100,6 +100,29 @@ module ActiveRecord # :nodoc:
       def normalize_value_for(name, value)
         type_for_attribute(name).cast(value)
       end
+
+      # Normalizes all attributes of a given type.
+      #
+      # This is handy to apply common normalizations to multiple attributes at once.
+      #
+      # ==== Examples
+      #
+      #   class User < ActiveRecord::Base
+      #     normalizes_type :string, with: -> attribute { attribute.strip }
+      #   end
+      #
+      #   User.normalized_attributes
+      #   # => #<Set: {:email, :name}>
+      def normalizes_type(type, except: nil, with:, apply_to_nil: false)
+        attribute_types
+          .symbolize_keys
+          .filter { |_, attr_type| attr_type.type == type.to_sym }
+          .except(*Array.wrap(except).map(&:to_sym))
+          .keys
+          .each do |name|
+            normalizes(name, with: with, apply_to_nil: apply_to_nil)
+          end
+      end
     end
 
     private

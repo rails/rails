@@ -117,9 +117,11 @@ ActiveRecord::Schema.define do
   end
 
   create_table :birds, force: true do |t|
-    t.string :name
-    t.string :color
+    t.integer :age
     t.integer :pirate_id
+    t.string :color
+    t.string :name
+    t.string :species
   end
 
   create_table :books, id: :integer, force: true do |t|

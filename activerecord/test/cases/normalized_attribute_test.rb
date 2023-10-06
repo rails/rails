@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "models/aircraft"
+require "models/bird"
 require "active_support/core_ext/string/inflections"
 
 class NormalizedAttributeTest < ActiveRecord::TestCase
@@ -109,5 +110,25 @@ class NormalizedAttributeTest < ActiveRecord::TestCase
     assert_equal "0", aircraft.name
     aircraft.save
     assert_equal "1", aircraft.name
+  end
+end
+
+class NormalizedTypeAttributeTest < ActiveRecord::TestCase
+  class NormalizedTypeBird < Bird
+    normalizes_type :string, except: :color, with: -> attribute { attribute.strip }
+  end
+
+  setup do
+    @bird = NormalizedTypeBird.create!(
+      name: " some name ",
+      age: 42,
+      species: " some species ",
+      color: " some color ")
+  end
+
+  test "normalizes all strings types except color" do
+    assert_equal "some name", @bird.name
+    assert_equal "some species", @bird.species
+    assert_equal " some color ", @bird.color # except
   end
 end
