@@ -326,14 +326,6 @@ Expected: ["id", "name"]
           create_table :users do |t|
             t.string :name
           end
-
-          create_table :action_text_rich_texts
-          create_table :active_storage_variant_records
-          create_table :active_storage_blobs
-          create_table :active_storage_attachments
-          create_table :action_mailbox_inbound_emails do |t|
-            t.integer :status
-          end
         end
       RUBY
 
