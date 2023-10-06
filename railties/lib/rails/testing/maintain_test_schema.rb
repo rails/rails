@@ -10,7 +10,7 @@ if defined?(ActiveRecord::Base)
 
   if Rails.configuration.eager_load
     ActiveRecord::Base.descendants.each do |model|
-      model.load_schema unless model.abstract_class?
+      model.load_schema if !model.abstract_class? && model.table_exists?
     end
   end
 end
