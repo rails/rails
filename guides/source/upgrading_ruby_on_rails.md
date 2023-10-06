@@ -281,6 +281,38 @@ ActiveSupport.on_load :action_view_test_case do
 end
 ```
 
+### `Rails.logger` now returns an `ActiveSupport::BroadcastLogger` instance
+
+The `ActiveSupport::BroadcastLogger` class is a new logger that allows to broadcast logs to different sinks (STDOUT, a log file...) in an easy way.
+
+The API to broadcast logs (using the `ActiveSupport::Logger.broadcast` method) was removed and was previously private.
+If your application or library was relying on this API, you need to make the following changes:
+
+```ruby
+logger = Logger.new("some_file.log")
+
+# Before
+
+Rails.logger.extend(ActiveSupport::Logger.broadcast(logger))
+
+# After
+
+Rails.logger.broadcast_to(logger)
+```
+
+If your application had configured a custom logger, `Rails.logger` will wrap and proxy all methods to it. No changes on your side are required to make it work.
+
+If you need to access your custom logger instance, you can do so using the `broadcasts` method:
+
+```ruby
+# config/application.rb
+config.logger = MyLogger.new
+
+# Anywhere in your application
+puts Rails.logger.class #=> BroadcastLogger
+puts Rails.logger.broadcasts #=> [MyLogger]
+```
+
 [assert_match]: https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-assert_match
 
 Upgrading from Rails 6.1 to Rails 7.0

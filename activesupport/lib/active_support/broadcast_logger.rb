@@ -51,6 +51,26 @@ module ActiveSupport
   #
   #   broadcast = BroadcastLogger.new
   #   broadcast.info("Hello world") # The log message will appear nowhere.
+  #
+  # If you are adding a custom logger with custom methods to the broadcast,
+  # the `BroadcastLogger` will proxy them and return the raw value, or an array
+  # of raw values, depending on how many loggers in the broadcasts responded to
+  # the method:
+  #
+  #   class MyLogger < ::Logger
+  #     def loggable?
+  #       true
+  #     end
+  #   end
+  #
+  #   logger = BroadcastLogger.new
+  #   logger.loggable? # => A NoMethodError exception is raised because no loggers in the broadcasts could respond.
+  #
+  #   logger.broadcast_to(MyLogger.new(STDOUT))
+  #   logger.loggable? # => true
+  #   logger.broadcast_to(MyLogger.new(STDOUT))
+  #   puts logger.broadcasts # => [MyLogger, MyLogger]
+  #   logger.loggable? # [true, true]
   class BroadcastLogger
     include ActiveSupport::LoggerSilence
 
