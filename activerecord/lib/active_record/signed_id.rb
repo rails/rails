@@ -76,7 +76,7 @@ module ActiveRecord
           if secret.nil?
             raise ArgumentError, "You must set ActiveRecord::Base.signed_id_verifier_secret to use signed ids"
           else
-            ActiveSupport::MessageVerifier.new secret, digest: "SHA256", serializer: JSON
+            ActiveSupport::MessageVerifier.new secret, digest: "SHA256", serializer: JSON, url_safe: true
           end
         end
       end
