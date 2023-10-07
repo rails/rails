@@ -459,6 +459,10 @@ module ActiveModel
       context_for_validation.context
     end
 
+    def custom_validation_context?
+      !!validation_context
+    end
+
   private
     def validation_context=(context)
       context_for_validation.context = context
