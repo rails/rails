@@ -5,7 +5,7 @@ module Sharded
     self.table_name = :sharded_blog_posts
     query_constraints :blog_id, :id
 
-    belongs_to :blog
+    belongs_to :blog, optional: true
     has_many :comments
     has_many :delete_comments, class_name: "Sharded::Comment", dependent: :delete_all
 

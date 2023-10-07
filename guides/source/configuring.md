@@ -1158,18 +1158,6 @@ if there were multiple copies of the same record enrolled in the transaction.
 | (original)            | `false`              |
 | 7.1                   | `true`               |
 
-#### `config.active_record.belongs_to_required_by_default`
-
-Is a boolean value and controls whether a record fails validation if
-`belongs_to` association is not present.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `nil`                |
-| 5.0                   | `true`               |
-
 #### `config.active_record.belongs_to_required_validates_foreign_key`
 
 Enable validating only parent-related columns for presence when the parent is mandatory.

@@ -3,9 +3,9 @@
 class Post < ActiveRecord::Base
   class CategoryPost < ActiveRecord::Base
     self.table_name = "categories_posts"
-    belongs_to :group, foreign_key: :category_id, class_name: "Category"
-    belongs_to :category
-    belongs_to :post
+    belongs_to :group, foreign_key: :category_id, class_name: "Category", optional: true
+    belongs_to :category, optional: true
+    belongs_to :post, optional: true
   end
 
   module NamedExtension
@@ -40,13 +40,13 @@ class Post < ActiveRecord::Base
     .having("count(comments.id) >= #{comments_count}")
   }
 
-  belongs_to :author
-  belongs_to :readonly_author, -> { readonly }, class_name: "Author", foreign_key: :author_id
+  belongs_to :author, optional: true
+  belongs_to :readonly_author, -> { readonly }, class_name: "Author", foreign_key: :author_id, optional: true
 
-  belongs_to :author_with_posts, -> { includes(:posts) }, class_name: "Author", foreign_key: :author_id
-  belongs_to :author_with_address, -> { includes(:author_address) }, class_name: "Author", foreign_key: :author_id
-  belongs_to :author_with_select, -> { select(:id) }, class_name: "Author", foreign_key: :author_id
-  belongs_to :author_with_the_letter_a, -> { where("name LIKE '%a%'") }, class_name: "Author", foreign_key: :author_id
+  belongs_to :author_with_posts, -> { includes(:posts) }, class_name: "Author", foreign_key: :author_id, optional: true
+  belongs_to :author_with_address, -> { includes(:author_address) }, class_name: "Author", foreign_key: :author_id, optional: true
+  belongs_to :author_with_select, -> { select(:id) }, class_name: "Author", foreign_key: :author_id, optional: true
+  belongs_to :author_with_the_letter_a, -> { where("name LIKE '%a%'") }, class_name: "Author", foreign_key: :author_id, optional: true
 
   def first_comment
     super.body
@@ -389,9 +389,9 @@ class FakeKlass
 end
 
 class Postesque < ActiveRecord::Base
-  belongs_to :author, class_name: "Author", foreign_key: :author_name, primary_key: :name
-  belongs_to :author_with_address, class_name: "Author", foreign_key: :author_id
-  belongs_to :author_with_the_letter_a, class_name: "Author", foreign_key: :author_id
+  belongs_to :author, class_name: "Author", foreign_key: :author_name, primary_key: :name, optional: true
+  belongs_to :author_with_address, class_name: "Author", foreign_key: :author_id, optional: true
+  belongs_to :author_with_the_letter_a, class_name: "Author", foreign_key: :author_id, optional: true
 end
 
 class PostRecord < ActiveRecord::Base

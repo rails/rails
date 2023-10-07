@@ -485,7 +485,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   class SpecialBook < ActiveRecord::Base
     self.table_name = "books"
 
-    belongs_to :author
+    belongs_to :author, optional: true
     enum last_read: { unread: 0, reading: 2, read: 3, forgotten: nil }
   end
 

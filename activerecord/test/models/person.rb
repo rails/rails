@@ -27,10 +27,10 @@ class Person < ActiveRecord::Base
   has_many :jobs_with_dependent_delete_all, source: :job, through: :references, dependent: :delete_all
   has_many :jobs_with_dependent_nullify,    source: :job, through: :references, dependent: :nullify
 
-  belongs_to :primary_contact, class_name: "Person"
+  belongs_to :primary_contact, class_name: "Person", optional: true
   has_many :agents, class_name: "Person", foreign_key: "primary_contact_id"
   has_many :agents_of_agents, through: :agents, source: :agents
-  belongs_to :number1_fan, class_name: "Person"
+  belongs_to :number1_fan, class_name: "Person", optional: true
 
   has_many :personal_legacy_things, dependent: :destroy
 
@@ -74,7 +74,7 @@ class LoosePerson < ActiveRecord::Base
   self.abstract_class = true
 
   has_one    :best_friend,    class_name: "LoosePerson", foreign_key: :best_friend_id
-  belongs_to :best_friend_of, class_name: "LoosePerson", foreign_key: :best_friend_of_id
+  belongs_to :best_friend_of, class_name: "LoosePerson", foreign_key: :best_friend_of_id, optional: true
   has_many   :best_friends,   class_name: "LoosePerson", foreign_key: :best_friend_id
 
   accepts_nested_attributes_for :best_friend, :best_friend_of, :best_friends
@@ -86,7 +86,7 @@ class TightPerson < ActiveRecord::Base
   self.table_name = "people"
 
   has_one    :best_friend,    class_name: "TightPerson", foreign_key: :best_friend_id
-  belongs_to :best_friend_of, class_name: "TightPerson", foreign_key: :best_friend_of_id
+  belongs_to :best_friend_of, class_name: "TightPerson", foreign_key: :best_friend_of_id, optional: true
   has_many   :best_friends,   class_name: "TightPerson", foreign_key: :best_friend_id
 
   accepts_nested_attributes_for :best_friend, :best_friend_of, :best_friends

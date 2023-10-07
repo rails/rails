@@ -5,7 +5,7 @@ module Sharded
     self.table_name = :sharded_blog_posts_tags
     query_constraints :blog_id, :id
 
-    belongs_to :blog_post
-    belongs_to :tag
+    belongs_to :blog_post, optional: true
+    belongs_to :tag, optional: true
   end
 end

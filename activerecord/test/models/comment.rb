@@ -12,21 +12,21 @@ class Comment < ActiveRecord::Base
   scope :created, -> { all }
   scope :ordered_by_post_id, -> { order("comments.post_id DESC") }
 
-  belongs_to :post, counter_cache: true
-  belongs_to :author,   polymorphic: true
-  belongs_to :resource, polymorphic: true
-  belongs_to :origin, polymorphic: true
-  belongs_to :company, foreign_key: "company"
+  belongs_to :post, counter_cache: true, optional: true
+  belongs_to :author,   polymorphic: true, optional: true
+  belongs_to :resource, polymorphic: true, optional: true
+  belongs_to :origin, polymorphic: true, optional: true
+  belongs_to :company, foreign_key: "company", optional: true
 
   has_many :ratings
 
-  belongs_to :first_post, foreign_key: :post_id
-  belongs_to :special_post_with_default_scope, foreign_key: :post_id
+  belongs_to :first_post, foreign_key: :post_id, optional: true
+  belongs_to :special_post_with_default_scope, foreign_key: :post_id, optional: true
 
   has_one :post_with_inverse, ->(comment) { where(id: comment.post_id) }, class_name: "FirstPost", inverse_of: :comment_with_inverse
 
   has_many :children, class_name: "Comment", inverse_of: :parent
-  belongs_to :parent, class_name: "Comment", counter_cache: :children_count, inverse_of: :children
+  belongs_to :parent, class_name: "Comment", counter_cache: :children_count, inverse_of: :children, optional: true
 
   enum label: [:default, :child]
 
@@ -66,7 +66,7 @@ class Comment < ActiveRecord::Base
 end
 
 class SpecialComment < Comment
-  belongs_to :ordinary_post, foreign_key: :post_id, class_name: "Post"
+  belongs_to :ordinary_post, foreign_key: :post_id, class_name: "Post", optional: true
   has_one :author, through: :post
   default_scope { where(deleted_at: nil) }
 
@@ -82,7 +82,7 @@ class VerySpecialComment < Comment
 end
 
 class CommentThatAutomaticallyAltersPostBody < Comment
-  belongs_to :post, class_name: "PostThatLoadsCommentsInAnAfterSaveHook", foreign_key: :post_id
+  belongs_to :post, class_name: "PostThatLoadsCommentsInAnAfterSaveHook", foreign_key: :post_id, optional: true
 
   after_save do |comment|
     comment.post.update(body: "Automatically altered")
@@ -91,7 +91,7 @@ end
 
 class CommentWithDefaultScopeReferencesAssociation < Comment
   default_scope -> { includes(:developer).order("developers.name").references(:developer) }
-  belongs_to :developer
+  belongs_to :developer, optional: true
 end
 
 class CommentWithAfterCreateUpdate < Comment

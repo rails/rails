@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class Pirate < ActiveRecord::Base
-  belongs_to :parrot, validate: true
-  belongs_to :non_validated_parrot, class_name: "Parrot"
+  belongs_to :parrot, validate: true, optional: true
+  belongs_to :non_validated_parrot, class_name: "Parrot", optional: true
   has_and_belongs_to_many :parrots, -> { order("parrots.id ASC") }, validate: true
   has_and_belongs_to_many :non_validated_parrots, class_name: "Parrot"
   has_and_belongs_to_many :parrots_with_method_callbacks, class_name: "Parrot",
@@ -105,8 +105,8 @@ end
 class SpacePirate < ActiveRecord::Base
   self.table_name = "pirates"
 
-  belongs_to :parrot
-  belongs_to :parrot_with_annotation, -> { annotate("that tells jokes") }, class_name: :Parrot, foreign_key: :parrot_id
+  belongs_to :parrot, optional: true
+  belongs_to :parrot_with_annotation, -> { annotate("that tells jokes") }, class_name: :Parrot, foreign_key: :parrot_id, optional: true
   has_and_belongs_to_many :parrots, foreign_key: :pirate_id
   has_and_belongs_to_many :parrots_with_annotation, -> { annotate("that are very colorful") }, class_name: :Parrot, foreign_key: :pirate_id
   has_one :ship, foreign_key: :pirate_id

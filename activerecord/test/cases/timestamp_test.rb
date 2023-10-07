@@ -506,7 +506,7 @@ class TimestampTest < ActiveRecord::TestCase
   def test_clearing_association_touches_the_old_record
     klass = Class.new(ActiveRecord::Base) do
       def self.name; "Toy"; end
-      belongs_to :pet, touch: true
+      belongs_to :pet, touch: true, optional: true
     end
 
     toy = klass.find(1)

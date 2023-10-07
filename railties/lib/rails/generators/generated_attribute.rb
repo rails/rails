@@ -185,7 +185,16 @@ module Rails
       end
 
       def required?
-        reference? && Rails.application.config.active_record.belongs_to_required_by_default
+        required_by_default = Rails.application.config.active_record.belongs_to_required_by_default
+
+        if !required_by_default
+          Rails.deprecator.warn(<<-MSG.squish)
+            `config.active_record.belongs_to_required_by_default` is deprecated and will be removed in Rails 7.3.
+            `belongs_to` associations will have their presence validated by default going forward.
+          MSG
+        end
+
+        reference? && required_by_default
       end
 
       def has_index?

@@ -26,23 +26,28 @@ class RequiredAssociationsTest < ActiveRecord::TestCase
 
   test "belongs_to associations can be optional by default" do
     original_value = ActiveRecord::Base.belongs_to_required_by_default
-    ActiveRecord::Base.belongs_to_required_by_default = false
 
-    model = subclass_of(Child) do
-      belongs_to :parent, inverse_of: false,
-        class_name: "RequiredAssociationsTest::Parent"
+    assert_deprecated(ActiveRecord.deprecator) do
+      ActiveRecord::Base.belongs_to_required_by_default = false
+
+      model = subclass_of(Child) do
+        belongs_to :parent, inverse_of: false,
+          class_name: "RequiredAssociationsTest::Parent"
+      end
+
+      assert model.new.save
+      assert model.new(parent: Parent.new).save
     end
-
-    assert model.new.save
-    assert model.new(parent: Parent.new).save
   ensure
     ActiveRecord::Base.belongs_to_required_by_default = original_value
   end
 
   test "required belongs_to associations have presence validated" do
-    model = subclass_of(Child) do
-      belongs_to :parent, required: true, inverse_of: false,
-        class_name: "RequiredAssociationsTest::Parent"
+    model = assert_deprecated(ActiveRecord.deprecator) do
+      subclass_of(Child) do
+        belongs_to :parent, required: true, inverse_of: false,
+          class_name: "RequiredAssociationsTest::Parent"
+      end
     end
 
     record = model.new
@@ -108,7 +113,7 @@ class RequiredAssociationsTest < ActiveRecord::TestCase
 
   test "required belongs_to associations have a correct error message" do
     model = subclass_of(Child) do
-      belongs_to :parent, required: true, inverse_of: false,
+      belongs_to :parent, optional: false, inverse_of: false,
       class_name: "RequiredAssociationsTest::Parent"
     end
 

@@ -3,6 +3,6 @@
 require "models/arunit2_model"
 
 class Course < ARUnit2Model
-  belongs_to :college
+  belongs_to :college, optional: true
   has_many :entrants
 end

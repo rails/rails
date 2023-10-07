@@ -31,6 +31,9 @@ module ActiveRecord
     self.use_instantiated_fixtures = false
     self.use_transactional_tests = true
 
+    # simulate this default until the config option is removed
+    ActiveRecord::Base.belongs_to_required_by_default = true
+
     def create_fixtures(*fixture_set_names, &block)
       ActiveRecord::FixtureSet.create_fixtures(ActiveRecord::TestCase.fixture_paths, fixture_set_names, fixture_class_names, &block)
     end

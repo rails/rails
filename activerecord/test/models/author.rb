@@ -192,11 +192,11 @@ class Author < ActiveRecord::Base
   has_many :essays_2, primary_key: :name, class_name: "Essay", foreign_key: :author_id
   has_many :essay_categories_2, through: :essays_2, source: :category
 
-  belongs_to :owned_essay, primary_key: :name, class_name: "Essay"
+  belongs_to :owned_essay, primary_key: :name, class_name: "Essay", optional: true
   has_one :owned_essay_category, through: :owned_essay, source: :category
 
-  belongs_to :author_address,       dependent: :destroy
-  belongs_to :author_address_extra, dependent: :delete, class_name: "AuthorAddress"
+  belongs_to :author_address,       dependent: :destroy, optional: true
+  belongs_to :author_address_extra, dependent: :delete, class_name: "AuthorAddress", optional: true
 
   has_many :category_post_comments, through: :categories, source: :post_comments
 
@@ -306,8 +306,8 @@ class AuthorAddress < ActiveRecord::Base
 end
 
 class AuthorFavorite < ActiveRecord::Base
-  belongs_to :author
-  belongs_to :favorite_author, class_name: "Author"
+  belongs_to :author, optional: true
+  belongs_to :favorite_author, class_name: "Author", optional: true
 end
 
 class AuthorFavoriteWithScope < ActiveRecord::Base
@@ -315,6 +315,6 @@ class AuthorFavoriteWithScope < ActiveRecord::Base
 
   default_scope { order(id: :asc) }
 
-  belongs_to :author
-  belongs_to :favorite_author, class_name: "Author"
+  belongs_to :author, optional: true
+  belongs_to :favorite_author, class_name: "Author", optional: true
 end

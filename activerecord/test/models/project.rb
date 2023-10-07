@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Project < ActiveRecord::Base
-  belongs_to :mentor
+  belongs_to :mentor, optional: true
   has_and_belongs_to_many :developers, -> { distinct.order "developers.name desc, developers.id desc" }
   has_and_belongs_to_many :readonly_developers, -> { readonly }, class_name: "Developer"
   has_and_belongs_to_many :non_unique_developers, -> { order "developers.name desc, developers.id desc" }, class_name: "Developer"
@@ -14,7 +14,7 @@ class Project < ActiveRecord::Base
                             before_remove: Proc.new { |o, r| o.developers_log << "before_removing#{r.id}" },
                             after_remove: Proc.new { |o, r| o.developers_log << "after_removing#{r.id}" }
   has_and_belongs_to_many :well_paid_salary_groups, -> { group("developers.salary").having("SUM(salary) > 10000").select("SUM(salary) as salary") }, class_name: "Developer"
-  belongs_to :firm
+  belongs_to :firm, optional: true
   has_one :lead_developer, through: :firm, inverse_of: :contracted_projects
   has_one :lead_developer_disable_joins, through: :firm, inverse_of: :contracted_projects, source: :lead_developer, disable_joins: true
 

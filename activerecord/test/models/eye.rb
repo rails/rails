@@ -35,5 +35,5 @@ class Eye < ActiveRecord::Base
 end
 
 class Iris < ActiveRecord::Base
-  belongs_to :eye
+  belongs_to :eye, optional: true
 end

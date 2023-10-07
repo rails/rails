@@ -15,7 +15,7 @@ class Admin::UserJSON < ActiveRecord::Base
     end
   end
 
-  belongs_to :account
+  belongs_to :account, optional: true
   store :params, accessors: [ :token ], coder: JSON
   store :settings, accessors: [ :color, :homepage ], coder: Coder.new
   store_accessor :settings, :favorite_food

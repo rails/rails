@@ -3,8 +3,8 @@
 require "models/topic"
 
 class Reply < Topic
-  belongs_to :topic, foreign_key: "parent_id", counter_cache: true, inverse_of: :replies
-  belongs_to :topic_with_primary_key, class_name: "Topic", primary_key: "title", foreign_key: "parent_title", counter_cache: "replies_count", touch: true
+  belongs_to :topic, foreign_key: "parent_id", counter_cache: true, inverse_of: :replies, optional: true
+  belongs_to :topic_with_primary_key, class_name: "Topic", primary_key: "title", foreign_key: "parent_title", counter_cache: "replies_count", touch: true, optional: true
   has_many :replies, class_name: "SillyReply", dependent: :destroy, foreign_key: "parent_id"
   has_many :silly_unique_replies, dependent: :destroy, foreign_key: "parent_id"
 
@@ -24,11 +24,11 @@ class Reply < Topic
 end
 
 class SillyReply < Topic
-  belongs_to :reply, foreign_key: "parent_id", counter_cache: :replies_count
+  belongs_to :reply, foreign_key: "parent_id", counter_cache: :replies_count, optional: true
 end
 
 class UniqueReply < Reply
-  belongs_to :topic, foreign_key: "parent_id", counter_cache: true
+  belongs_to :topic, foreign_key: "parent_id", counter_cache: true, optional: true
   validates_uniqueness_of :content, scope: "parent_id"
 end
 
@@ -74,6 +74,6 @@ end
 
 module Web
   class Reply < Web::Topic
-    belongs_to :topic, foreign_key: "parent_id", counter_cache: true, class_name: "Web::Topic"
+    belongs_to :topic, foreign_key: "parent_id", counter_cache: true, class_name: "Web::Topic", optional: true
   end
 end

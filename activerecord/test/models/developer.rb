@@ -31,9 +31,9 @@ class Developer < ActiveRecord::Base
     end
   end
 
-  belongs_to :mentor
-  belongs_to :strict_loading_mentor, strict_loading: true, foreign_key: :mentor_id, class_name: "Mentor"
-  belongs_to :strict_loading_off_mentor, strict_loading: false, foreign_key: :mentor_id, class_name: "Mentor"
+  belongs_to :mentor, optional: true
+  belongs_to :strict_loading_mentor, strict_loading: true, foreign_key: :mentor_id, class_name: "Mentor", optional: true
+  belongs_to :strict_loading_off_mentor, strict_loading: false, foreign_key: :mentor_id, class_name: "Mentor", optional: true
 
   accepts_nested_attributes_for :projects
 
@@ -86,7 +86,7 @@ class Developer < ActiveRecord::Base
   has_one :ship, dependent: :nullify
   has_one :strict_loading_ship, strict_loading: true, class_name: "Ship"
 
-  belongs_to :firm
+  belongs_to :firm, optional: true
   has_many :contracted_projects, class_name: "Project"
 
   scope :jamises, -> { where(name: "Jamis") }
@@ -130,13 +130,13 @@ class SymbolIgnoredDeveloper < ActiveRecord::Base
 end
 
 class AuditLog < ActiveRecord::Base
-  belongs_to :developer, validate: true
-  belongs_to :unvalidated_developer, class_name: "Developer"
+  belongs_to :developer, validate: true, optional: true
+  belongs_to :unvalidated_developer, class_name: "Developer", optional: true
 end
 
 class AuditLogRequired < ActiveRecord::Base
   self.table_name = "audit_logs"
-  belongs_to :developer, required: true
+  belongs_to :developer, optional: false
 end
 
 class DeveloperWithBeforeDestroyRaise < ActiveRecord::Base

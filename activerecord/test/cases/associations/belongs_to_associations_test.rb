@@ -108,16 +108,19 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_optional_relation_can_be_set_per_model
-    model1 = Class.new(ActiveRecord::Base) do
-      self.table_name = "accounts"
-      self.belongs_to_required_by_default = false
+    klass1 = assert_deprecated(ActiveRecord.deprecator) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "accounts"
+        self.belongs_to_required_by_default = false
 
-      belongs_to :company
+        belongs_to :company
 
-      def self.name
-        "FirstModel"
+        def self.name
+          "FirstModel"
+        end
       end
-    end.new
+    end
+    model1 = klass1.new
 
     model2 = Class.new(ActiveRecord::Base) do
       self.table_name = "accounts"
@@ -1379,7 +1382,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   class WheelPolymorphicName < ActiveRecord::Base
     self.table_name = "wheels"
-    belongs_to :wheelable, polymorphic: true, counter_cache: :wheels_count, touch: :wheels_owned_at
+    belongs_to :wheelable, polymorphic: true, counter_cache: :wheels_count, touch: :wheels_owned_at, optional: true
 
     def self.polymorphic_class_for(name)
       raise "Unexpected name: #{name}" unless name == "polymorphic_car"
@@ -1724,7 +1727,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   class ShipRequired < ActiveRecord::Base
     self.table_name = "ships"
-    belongs_to :developer, required: true
+    belongs_to :developer, optional: false
   end
 
   test "runs parent presence check if parent changed or nil" do
@@ -1763,7 +1766,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     model = Class.new(ActiveRecord::Base) do
       self.table_name = "ships"
       def self.name; "Temp"; end
-      belongs_to :developer, required: true
+      belongs_to :developer, optional: false
     end
 
     david = developers(:david)

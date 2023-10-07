@@ -6,7 +6,7 @@ class Club < ActiveRecord::Base
   has_many :members, through: :memberships
   has_one :sponsor
   has_one :sponsored_member, through: :sponsor, source: :sponsorable, source_type: :Member
-  belongs_to :category
+  belongs_to :category, optional: true
 
   has_many :favorites, -> { where(memberships: { favorite: true }) }, through: :memberships, source: :member
 

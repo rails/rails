@@ -44,7 +44,7 @@ class TopicWithEvent < Topic
 end
 
 class TopicWithUniqEvent < Topic
-  belongs_to :event, foreign_key: :parent_id
+  belongs_to :event, foreign_key: :parent_id, optional: true
   validates :event, uniqueness: true
 end
 

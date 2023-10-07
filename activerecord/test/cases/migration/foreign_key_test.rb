@@ -28,7 +28,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
 
         class Astronaut < ActiveRecord::Base
-          belongs_to :rocket
+          belongs_to :rocket, optional: true
         end
 
         class CreateRocketsMigration < ActiveRecord::Migration::Current

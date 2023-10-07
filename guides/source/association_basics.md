@@ -1291,13 +1291,6 @@ object won't be validated. By default, this option is set to `false`.
 
 Passing `true` to the `:polymorphic` option indicates that this is a polymorphic association. Polymorphic associations were discussed in detail <a href="#polymorphic-associations">earlier in this guide</a>.
 
-
-##### `:required`
-
-When set to `true`, the association will also have its presence validated. This will validate the association itself, not the id. You can use `:inverse_of` to avoid an extra query during validation.
-
-NOTE: required is set to `true` by default and is deprecated. If you don’t want to have association presence validated, use `optional: true`.
-
 ##### `:strict_loading`
 
 Enforces strict loading every time the associated record is loaded through this association.

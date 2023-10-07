@@ -16,8 +16,8 @@ module MyApplication
     end
 
     class Client < Company
-      belongs_to :firm, foreign_key: "client_of"
-      belongs_to :firm_with_other_name, class_name: "Firm", foreign_key: "client_of"
+      belongs_to :firm, foreign_key: "client_of", optional: true
+      belongs_to :firm_with_other_name, class_name: "Firm", foreign_key: "client_of", optional: true
 
       class Contact < ActiveRecord::Base; end
     end
@@ -81,11 +81,11 @@ module MyApplication
 
     class Account < ActiveRecord::Base
       with_options(foreign_key: :firm_id) do |i|
-        i.belongs_to :firm, class_name: "MyApplication::Business::Firm"
-        i.belongs_to :qualified_billing_firm, class_name: "MyApplication::Billing::Firm"
-        i.belongs_to :unqualified_billing_firm, class_name: "Firm"
-        i.belongs_to :nested_qualified_billing_firm, class_name: "MyApplication::Billing::Nested::Firm"
-        i.belongs_to :nested_unqualified_billing_firm, class_name: "Nested::Firm"
+        i.belongs_to :firm, class_name: "MyApplication::Business::Firm", optional: true
+        i.belongs_to :qualified_billing_firm, class_name: "MyApplication::Billing::Firm", optional: true
+        i.belongs_to :unqualified_billing_firm, class_name: "Firm", optional: true
+        i.belongs_to :nested_qualified_billing_firm, class_name: "MyApplication::Billing::Nested::Firm", optional: true
+        i.belongs_to :nested_unqualified_billing_firm, class_name: "Nested::Firm", optional: true
       end
 
       validate :check_empty_credit_limit

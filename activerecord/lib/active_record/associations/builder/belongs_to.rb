@@ -111,11 +111,25 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def self.define_validations(model, reflection)
       if reflection.options.key?(:required)
-        reflection.options[:optional] = !reflection.options.delete(:required)
+        optional = !reflection.options.delete(:required)
+
+        ActiveRecord.deprecator.warn(<<-MSG.squish)
+          The `:required` option on `belongs_to` associations is deprecated and will be removed in Rails 7.3.
+          Use `optional: #{optional}` instead for the association `#{reflection.name}`.
+        MSG
+
+        reflection.options[:optional] = optional
       end
 
       if reflection.options[:optional].nil?
         required = model.belongs_to_required_by_default
+
+        if !required
+          ActiveRecord.deprecator.warn(<<-MSG.squish)
+            `#belongs_to_required_by_default` is deprecated and will be removed in Rails 7.3.
+            `belongs_to` associations will have their presence validated by default going forward.
+          MSG
+        end
       else
         required = !reflection.options[:optional]
       end

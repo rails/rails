@@ -21,7 +21,7 @@ class KingCole < GreenCabbage
 end
 
 class RedCabbage < Cabbage
-  belongs_to :seller, class_name: "Company"
+  belongs_to :seller, class_name: "Company", optional: true
 end
 
 class YellingVegetable < Vegetable

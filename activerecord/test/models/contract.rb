@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 class Contract < ActiveRecord::Base
-  belongs_to :company
-  belongs_to :developer, primary_key: :id
-  belongs_to :firm, foreign_key: "company_id"
+  belongs_to :company, optional: true
+  belongs_to :developer, primary_key: :id, optional: true
+  belongs_to :firm, foreign_key: "company_id", optional: true
 
   attribute :metadata, :json
 
@@ -37,6 +37,6 @@ end
 
 class SpecialContract < ActiveRecord::Base
   self.table_name = "contracts"
-  belongs_to :company
-  belongs_to :special_developer, foreign_key: "developer_id"
+  belongs_to :company, optional: true
+  belongs_to :special_developer, foreign_key: "developer_id", optional: true
 end

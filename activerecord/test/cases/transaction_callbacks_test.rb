@@ -11,7 +11,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   class ReplyWithCallbacks < ActiveRecord::Base
     self.table_name = :topics
 
-    belongs_to :topic, foreign_key: "parent_id"
+    belongs_to :topic, foreign_key: "parent_id", optional: true
 
     validates_presence_of :content
 

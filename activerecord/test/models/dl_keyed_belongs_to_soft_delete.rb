@@ -6,7 +6,8 @@ class DlKeyedBelongsToSoftDelete < ActiveRecord::Base
   belongs_to :destroy_async_parent_soft_delete,
     dependent: :destroy_async,
     ensuring_owner_was: :deleted?,
-    class_name: "DestroyAsyncParentSoftDelete"
+    class_name: "DestroyAsyncParentSoftDelete",
+    optional: true
 
   def deleted?
     deleted

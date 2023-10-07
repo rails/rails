@@ -8,7 +8,7 @@ class ReservedWordTest < ActiveRecord::TestCase
 
   class Group < ActiveRecord::Base
     Group.table_name = "group"
-    belongs_to :select
+    belongs_to :select, optional: true
     has_one :values
   end
 

@@ -4,7 +4,9 @@
    self.primary_key = "joins_key"
 
    belongs_to :destroy_async_parent,
-     primary_key: :parent_id
+     primary_key: :parent_id,
+     optional: true
    belongs_to :dl_keyed_has_many_through,
-     primary_key: :through_key
+     primary_key: :through_key,
+     optional: true
  end

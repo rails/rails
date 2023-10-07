@@ -6,8 +6,11 @@ class DlKeyedBelongsTo < ActiveRecord::Base
     dependent: :destroy_async,
     foreign_key: :destroy_async_parent_id,
     primary_key: :parent_id,
-    class_name: "DestroyAsyncParent"
+    class_name: "DestroyAsyncParent",
+    optional: true
   belongs_to :destroy_async_parent_soft_delete,
     dependent: :destroy_async,
-    ensuring_owner_was: :deleted?, class_name: "DestroyAsyncParentSoftDelete"
+    ensuring_owner_was: :deleted?,
+    class_name: "DestroyAsyncParentSoftDelete",
+    optional: true
 end

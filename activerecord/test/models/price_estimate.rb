@@ -3,8 +3,8 @@
 class PriceEstimate < ActiveRecord::Base
   include ActiveSupport::NumberHelper
 
-  belongs_to :estimate_of, polymorphic: true
-  belongs_to :thing, polymorphic: true
+  belongs_to :estimate_of, polymorphic: true, optional: true
+  belongs_to :thing, polymorphic: true, optional: true
 
   validates_numericality_of :price
 

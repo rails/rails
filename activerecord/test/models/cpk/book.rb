@@ -5,8 +5,8 @@ module Cpk
     attr_accessor :fail_destroy
 
     self.table_name = :cpk_books
-    belongs_to :order, autosave: true, query_constraints: [:shop_id, :order_id]
-    belongs_to :author, class_name: "Cpk::Author"
+    belongs_to :order, autosave: true, query_constraints: [:shop_id, :order_id], optional: true
+    belongs_to :author, class_name: "Cpk::Author", optional: true
 
     has_many :chapters, query_constraints: [:author_id, :book_id]
 
@@ -22,17 +22,17 @@ module Cpk
   end
 
   class BrokenBook < Book
-    belongs_to :order, class_name: "Cpk::OrderWithSpecialPrimaryKey"
+    belongs_to :order, class_name: "Cpk::OrderWithSpecialPrimaryKey", optional: true
   end
 
   class BrokenBookWithNonCpkOrder < Book
-    belongs_to :order, class_name: "Cpk::NonCpkOrder", query_constraints: [:shop_id, :order_id]
+    belongs_to :order, class_name: "Cpk::NonCpkOrder", query_constraints: [:shop_id, :order_id], optional: true
   end
 
   class NonCpkBook < Book
     self.primary_key = :id
 
-    belongs_to :non_cpk_order, query_constraints: [:order_id]
+    belongs_to :non_cpk_order, query_constraints: [:order_id], optional: true
   end
 
   class NullifiedBook < Book

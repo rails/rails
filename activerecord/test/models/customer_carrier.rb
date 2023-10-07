@@ -3,8 +3,8 @@
 class CustomerCarrier < ActiveRecord::Base
   cattr_accessor :current_customer
 
-  belongs_to :customer
-  belongs_to :carrier
+  belongs_to :customer, optional: true
+  belongs_to :carrier, optional: true
 
   default_scope -> {
     if current_customer

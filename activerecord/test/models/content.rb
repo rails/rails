@@ -30,7 +30,7 @@ class ContentWhichRequiresTwoDestroyCalls < ActiveRecord::Base
 end
 
 class ContentPosition < ActiveRecord::Base
-  belongs_to :content, dependent: :destroy
+  belongs_to :content, dependent: :destroy, optional: true
 
   def self.destroyed_ids
     @destroyed_ids ||= []

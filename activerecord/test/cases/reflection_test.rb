@@ -257,11 +257,11 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_inferred_foreign_key_from_assoc_name
-    Company.belongs_to :foo
+    Company.belongs_to :foo, optional: true
     assert_equal "foo_id", Company.reflect_on_association(:foo).foreign_key
-    Company.belongs_to :bar, class_name: "Xyzzy"
+    Company.belongs_to :bar, class_name: "Xyzzy", optional: true
     assert_equal "bar_id", Company.reflect_on_association(:bar).foreign_key
-    Company.belongs_to :baz, class_name: "Xyzzy", foreign_key: "xyzzy_id"
+    Company.belongs_to :baz, class_name: "Xyzzy", foreign_key: "xyzzy_id", optional: true
     assert_equal "xyzzy_id", Company.reflect_on_association(:baz).foreign_key
   end
 

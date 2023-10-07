@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class Book < ActiveRecord::Base
-  belongs_to :author
-  belongs_to :format_record, polymorphic: true
+  belongs_to :author, optional: true
+  belongs_to :format_record, polymorphic: true, optional: true
 
   has_many :citations, inverse_of: :book
   has_many :references, -> { distinct }, through: :citations, source: :reference_of

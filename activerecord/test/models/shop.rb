@@ -7,7 +7,7 @@ module Shop
 
   class Product < ActiveRecord::Base
     has_many :variants, dependent: :delete_all
-    belongs_to :type
+    belongs_to :type, optional: true
 
     class Type < ActiveRecord::Base
       has_many :products

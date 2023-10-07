@@ -14,7 +14,7 @@ class Member < ActiveRecord::Base
   has_one :member_detail, inverse_of: false
   has_one :organization, through: :member_detail
   has_one :organization_without_joins, through: :member_detail, disable_joins: true, source: :organization
-  belongs_to :member_type
+  belongs_to :member_type, optional: true
 
   has_many :nested_member_types, through: :member_detail, source: :member_type
   has_one :nested_member_type, through: :member_detail, source: :member_type
@@ -37,7 +37,7 @@ class Member < ActiveRecord::Base
 
   has_one :club_through_many, through: :favorite_memberships, source: :club
 
-  belongs_to :admittable, polymorphic: true
+  belongs_to :admittable, polymorphic: true, optional: true
   has_one :premium_club, through: :admittable
 
   scope :unnamed, -> { where(name: nil)  }

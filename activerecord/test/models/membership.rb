@@ -2,18 +2,18 @@
 
 class Membership < ActiveRecord::Base
   enum type: %i(Membership CurrentMembership SuperMembership SelectedMembership TenantMembership)
-  belongs_to :member
-  belongs_to :club
+  belongs_to :member, optional: true
+  belongs_to :club, optional: true
 end
 
 class CurrentMembership < Membership
-  belongs_to :member
-  belongs_to :club, inverse_of: :membership
+  belongs_to :member, optional: true
+  belongs_to :club, inverse_of: :membership, optional: true
 end
 
 class SuperMembership < Membership
-  belongs_to :member, -> { order("members.id DESC") }
-  belongs_to :club
+  belongs_to :member, -> { order("members.id DESC") }, optional: true
+  belongs_to :club, optional: true
 end
 
 class SelectedMembership < Membership
@@ -25,8 +25,8 @@ end
 class TenantMembership < Membership
   cattr_accessor :current_member
 
-  belongs_to :member
-  belongs_to :club
+  belongs_to :member, optional: true
+  belongs_to :club, optional: true
 
   default_scope -> {
     if current_member

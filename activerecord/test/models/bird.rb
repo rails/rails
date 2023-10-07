@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Bird < ActiveRecord::Base
-  belongs_to :pirate
+  belongs_to :pirate, optional: true
   validates_presence_of :name
 
   accepts_nested_attributes_for :pirate

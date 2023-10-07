@@ -4,7 +4,7 @@ class AbstractDoubloon < ActiveRecord::Base
   # This has functionality that might be shared by multiple classes.
 
   self.abstract_class = true
-  belongs_to :pirate
+  belongs_to :pirate, optional: true
 end
 
 class Doubloon < AbstractDoubloon

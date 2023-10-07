@@ -2,5 +2,5 @@
 
 class Department < ActiveRecord::Base
   has_many :chefs
-  belongs_to :hotel
+  belongs_to :hotel, optional: true
 end

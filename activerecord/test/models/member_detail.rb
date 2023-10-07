@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class MemberDetail < ActiveRecord::Base
-  belongs_to :member, inverse_of: false
-  belongs_to :organization
+  belongs_to :member, inverse_of: false, optional: true
+  belongs_to :organization, optional: true
   has_one :member_type, through: :member
   has_one :membership, through: :member
   has_one :admittable, through: :member, source_type: "Member"

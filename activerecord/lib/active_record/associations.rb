@@ -1847,13 +1847,7 @@ module ActiveRecord
         #   object that is the inverse of this #belongs_to association.
         #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
         # [+:optional+]
-        #   When set to +true+, the association will not have its presence validated.
-        # [+:required+]
-        #   When set to +true+, the association will also have its presence validated.
-        #   This will validate the association itself, not the id. You can use
-        #   +:inverse_of+ to avoid an extra query during validation.
-        #   NOTE: <tt>required</tt> is set to <tt>true</tt> by default and is deprecated. If
-        #   you don't want to have association presence validated, use <tt>optional: true</tt>.
+        #   +false+ by default. When set to +true+, the association will not have its presence validated.
         # [+:default+]
         #   Provide a callable (i.e. proc or lambda) to specify that the association should
         #   be initialized with a particular record before validation.

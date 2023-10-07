@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 class Paragraph < ActiveRecord::Base
-  belongs_to :book
+  belongs_to :book, optional: true
 end

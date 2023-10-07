@@ -138,17 +138,17 @@ class Agency < Firm
 end
 
 class Client < Company
-  belongs_to :firm, foreign_key: "client_of", inverse_of: :client
-  belongs_to :firm_with_basic_id, class_name: "Firm", foreign_key: "firm_id"
-  belongs_to :firm_with_select, -> { select("id") }, class_name: "Firm", foreign_key: "firm_id"
-  belongs_to :firm_with_other_name, class_name: "Firm", foreign_key: "client_of"
-  belongs_to :firm_with_condition, -> { where "1 = ?", 1 }, class_name: "Firm", foreign_key: "client_of"
-  belongs_to :firm_with_primary_key, class_name: "Firm", primary_key: "name", foreign_key: "firm_name"
-  belongs_to :firm_with_primary_key_symbols, class_name: "Firm", primary_key: :name, foreign_key: :firm_name
-  belongs_to :readonly_firm, -> { readonly }, class_name: "Firm", foreign_key: "firm_id"
-  belongs_to :bob_firm, -> { where name: "Bob" }, class_name: "Firm", foreign_key: "client_of"
+  belongs_to :firm, foreign_key: "client_of", inverse_of: :client, optional: true
+  belongs_to :firm_with_basic_id, class_name: "Firm", foreign_key: "firm_id", optional: true
+  belongs_to :firm_with_select, -> { select("id") }, class_name: "Firm", foreign_key: "firm_id", optional: true
+  belongs_to :firm_with_other_name, class_name: "Firm", foreign_key: "client_of", optional: true
+  belongs_to :firm_with_condition, -> { where "1 = ?", 1 }, class_name: "Firm", foreign_key: "client_of", optional: true
+  belongs_to :firm_with_primary_key, class_name: "Firm", primary_key: "name", foreign_key: "firm_name", optional: true
+  belongs_to :firm_with_primary_key_symbols, class_name: "Firm", primary_key: :name, foreign_key: :firm_name, optional: true
+  belongs_to :readonly_firm, -> { readonly }, class_name: "Firm", foreign_key: "firm_id", optional: true
+  belongs_to :bob_firm, -> { where name: "Bob" }, class_name: "Firm", foreign_key: "client_of", optional: true
   has_many :accounts, through: :firm, source: :accounts
-  belongs_to :account
+  belongs_to :account, optional: true
 
   validate do
     firm

@@ -6,7 +6,7 @@ class Owner < ActiveRecord::Base
   has_many :toys, through: :pets
   has_many :persons, through: :pets
 
-  belongs_to :last_pet, class_name: "Pet"
+  belongs_to :last_pet, class_name: "Pet", optional: true
   scope :including_last_pet, -> {
     select('
       owners.*, (

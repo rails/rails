@@ -804,7 +804,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   class SpecialBook < ActiveRecord::Base
     self.table_name = "books"
-    belongs_to :author, class_name: "SpecialAuthor"
+    belongs_to :author, class_name: "SpecialAuthor", optional: true
     has_one :subscription, class_name: "SpecialSubscription", foreign_key: "subscriber_id"
 
     enum status: [:proposed, :written, :published]
@@ -842,7 +842,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   class DestroyByParentBook < ActiveRecord::Base
     self.table_name = "books"
-    belongs_to :author, class_name: "DestroyByParentAuthor"
+    belongs_to :author, class_name: "DestroyByParentAuthor", optional: true
     before_destroy :dont, unless: :destroyed_by_association
 
     def dont
@@ -876,7 +876,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   class UndestroyableBook < ActiveRecord::Base
     self.table_name = "books"
-    belongs_to :author, class_name: "DestroyableAuthor"
+    belongs_to :author, class_name: "DestroyableAuthor", optional: true
     before_destroy :dont
 
     def dont

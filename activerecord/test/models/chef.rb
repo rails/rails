@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 class Chef < ActiveRecord::Base
-  belongs_to :employable, polymorphic: true
+  belongs_to :employable, polymorphic: true, optional: true
   has_many :recipes
 end
 
 class ChefList < Chef
-  belongs_to :employable_list, polymorphic: true
+  belongs_to :employable_list, polymorphic: true, optional: true
 end

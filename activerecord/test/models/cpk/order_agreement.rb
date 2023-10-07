@@ -5,6 +5,6 @@ module Cpk
   class OrderAgreement < ActiveRecord::Base
     self.table_name = :cpk_order_agreements
 
-    belongs_to :order
+    belongs_to :order, optional: true
   end
 end

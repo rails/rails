@@ -508,7 +508,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_calculate_grouped_association_with_foreign_key_option
-    Account.belongs_to :another_firm, class_name: "Firm", foreign_key: "firm_id"
+    Account.belongs_to :another_firm, class_name: "Firm", foreign_key: "firm_id", optional: true
     c = Account.group(:another_firm).count(:all)
     assert_equal 1, c[companies(:first_firm)]
     assert_equal 2, c[companies(:rails_core)]

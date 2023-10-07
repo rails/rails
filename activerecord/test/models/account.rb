@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class Account < ActiveRecord::Base
-  belongs_to :firm, class_name: "Company"
-  belongs_to :unautosaved_firm, foreign_key: "firm_id", class_name: "Firm", autosave: false
+  belongs_to :firm, class_name: "Company", optional: true
+  belongs_to :unautosaved_firm, foreign_key: "firm_id", class_name: "Firm", autosave: false, optional: true
 
   alias_attribute :available_credit, :credit_limit
 
