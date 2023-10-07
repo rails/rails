@@ -7,7 +7,7 @@ Highlights in Rails 7.2:
 
 --------------------------------------------------------------------------------
 
-Upgrading to Rails 7.1
+Upgrading to Rails 7.2
 ----------------------
 
 If you're upgrading an existing application, it's a great idea to have good test
