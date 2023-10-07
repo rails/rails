@@ -206,7 +206,10 @@ module ActiveRecord
         end
 
         def invert_rename_table(args)
-          [:rename_table, args.reverse]
+          old_name, new_name, options = args
+          args = [new_name, old_name]
+          args << options if options
+          [:rename_table, args]
         end
 
         def invert_remove_column(args)
