@@ -430,6 +430,10 @@ module ActiveModel
     #   end
     alias :read_attribute_for_validation :send
 
+    def custom_validation_context?
+      !!validation_context
+    end
+
   private
     def init_internals
       super
