@@ -10,6 +10,9 @@
 /.env*
 !/.env*.erb
 
+# Ignore artifacts from setup-ruby GitHub Action
+/vendor/bundle
+
 # Ignore all default key files.
 /config/master.key
 /config/credentials/*.key
