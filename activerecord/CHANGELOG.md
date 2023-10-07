@@ -1,3 +1,9 @@
+*   Fix "ArgumentError: wrong number of arguments (given 3, expected 2)" when
+    down migrating `rename_table` in older migrations.
+
+    *fatkodima*
+
+
 ## Rails 7.1.0 (October 05, 2023) ##
 
 *   No changes.
