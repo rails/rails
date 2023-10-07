@@ -17,11 +17,16 @@ require "models/citation"
 require "models/aircraft"
 require "models/engine"
 require "models/car"
+require "models/device"
+require "models/user"
+require "models/user/device"
+require "models/user/favorite"
 
 class AssociationsJoinModelTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
 
   fixtures :posts, :authors, :author_addresses, :categories, :categorizations, :comments, :tags, :taggings, :author_favorites, :vertices, :items, :books,
+    :devices, :users, "user/devices", "user/favorites",
     # Reload edges table from fixtures as otherwise repeated test was failing
     :edges
 
@@ -374,6 +379,19 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_has_many_polymorphic_with_source_type
     # added sort by ID as otherwise Oracle select sometimes returned rows in different order
     assert_equal posts(:welcome, :thinking).sort_by(&:id), tags(:general).tagged_posts.sort_by(&:id)
+  end
+
+  def test_has_many_polymorphic_with_source_type_with_namespaced_models
+    # A polymorphic relationship with a source_type and a class_name should
+    # return instances of the class defined in class_name
+    assert_equal devices(:washing_machine, :vacuum_cleaner).sort_by(&:id),
+                 users(:john_doe).favorite_devices.sort_by(&:id)
+
+    # A polymorphic relationship with a source_type and no class_name should
+    # return instances of the class defined in source_type within the
+    # namespace of the current class
+    assert_equal [user_devices(:johns_iphone)],
+                 users(:john_doe).favorite_user_devices
   end
 
   def test_has_many_polymorphic_associations_merges_through_scope
