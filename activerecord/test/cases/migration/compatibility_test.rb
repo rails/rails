@@ -552,6 +552,26 @@ module ActiveRecord
         connection.drop_table(long_table_name) rescue nil
       end
 
+      def test_invert_rename_table_on_7_0
+        connection.create_table(:more_testings)
+
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
+          def change
+            rename_table :more_testings, :new_more_testings
+          end
+        }.new
+
+        migration.migrate(:up)
+        assert connection.table_exists?(:new_more_testings)
+        assert_not connection.table_exists?(:more_testings)
+
+        migration.migrate(:down)
+        assert_not connection.table_exists?(:new_more_testings)
+        assert connection.table_exists?(:more_testings)
+      ensure
+        connection.drop_table(:more_testings) rescue nil
+      end
+
       def test_change_column_null_with_non_boolean_arguments_raises_in_a_migration
         migration = Class.new(ActiveRecord::Migration[7.1]) do
           def up
