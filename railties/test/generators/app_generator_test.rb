@@ -111,6 +111,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file("app/assets/stylesheets/application.css")
   end
 
+  def test_invalid_javascript_option_raises_an_error
+    content = capture(:stderr) { run_generator([destination_root, "-j", "unknown"]) }
+    assert_match(/Invalid value for --javascript option/, content)
+  end
+
+  def test_invalid_asset_pipeline_option_raises_an_error
+    content = capture(:stderr) { run_generator([destination_root, "-a", "unknown"]) }
+    assert_match(/Invalid value for --asset-pipeline option/, content)
+  end
+
+  def test_invalid_css_option_raises_an_error
+    content = capture(:stderr) { run_generator([destination_root, "-c", "unknown"]) }
+    assert_match(/Invalid value for --css option/, content)
+  end
+
   def test_application_job_file_present
     run_generator
     assert_file("app/jobs/application_job.rb")

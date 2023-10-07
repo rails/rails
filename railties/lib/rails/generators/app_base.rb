@@ -18,6 +18,10 @@ module Rails
       NODE_LTS_VERSION = "18.15.0"
       BUN_VERSION = "1.0.1"
 
+      JAVASCRIPT_OPTIONS = %w( importmap bun webpack esbuild rollup )
+      CSS_OPTIONS = %w( tailwind bootstrap bulma postcss sass )
+      ASSET_PIPELINE_OPTIONS = %w( sprockets propshaft )
+
       attr_accessor :rails_template
       add_shebang_option!
 
@@ -71,7 +75,7 @@ module Rails
         class_option :skip_asset_pipeline, type: :boolean, aliases: "-A", default: nil
 
         class_option :asset_pipeline,      type: :string, aliases: "-a", default: "sprockets",
-                                           desc: "Choose your asset pipeline [options: sprockets (default), propshaft]"
+                                           desc: "Choose your asset pipeline [options: #{ASSET_PIPELINE_OPTIONS.join(", ")}]"
 
         class_option :skip_javascript,     type: :boolean, aliases: ["-J", "--skip-js"], default: (true if name == "plugin"),
                                            desc: "Skip JavaScript files"
