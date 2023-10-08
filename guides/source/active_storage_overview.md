@@ -169,7 +169,7 @@ amazon:
   bucket: your_own_bucket-<%= Rails.env %>
 ```
 
-Optionally provide client and upload options:
+Optionally provide client, upload and download options:
 
 ```yaml
 # Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
@@ -185,6 +185,13 @@ amazon:
   upload:
     server_side_encryption: "" # 'aws:kms' or 'AES256'
     cache_control: "private, max-age=<%= 1.day.to_i %>"
+    sse_customer_algorithm: ""
+    sse_customer_key: ""
+    sse_customer_key_md5: ""
+  download:
+    sse_customer_algorithm: ""
+    sse_customer_key: ""
+    sse_customer_key_md5: ""
 ```
 
 TIP: Set sensible client HTTP timeouts and retry limits for your application. In certain failure scenarios, the default AWS client configuration may cause connections to be held for up to several minutes and lead to request queuing.
