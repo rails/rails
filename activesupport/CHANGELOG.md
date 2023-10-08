@@ -1,3 +1,7 @@
+*   Fix MemoryStore to prevent race conditions when incrementing or decrementing.
+
+    *Pierre Jambet*
+
 *   Fix MemoryStore to preserve entries TTL when incrementing or decrementing
 
     This is to be more consistent with how MemCachedStore and RedisCacheStore behaves.
