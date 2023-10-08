@@ -7,6 +7,11 @@ module ActiveRecord
   module Persistence
     extend ActiveSupport::Concern
 
+    included do
+      class_attribute :_reload_attributes_on_create, instance_accessor: false, default: []
+      class_attribute :_reload_attributes_on_update, instance_accessor: false, default: []
+    end
+
     module ClassMethods
       # Creates an object (or multiple objects) and saves it to the database, if validations pass.
       # The resulting object is returned whether the object was saved successfully to the database or not.
@@ -564,6 +569,17 @@ module ActiveRecord
       #   Todo.delete([2,3,4])
       def delete(id_or_array)
         delete_by(primary_key => id_or_array)
+      end
+
+      # TODO: Add docs after these are implemented:
+      # - RETURNING on UPDATE
+      # - Extra SELECT query for dbs that don't support RETURNING
+      def reload_attributes(*attributes, on: [:create, :update]) # :nodoc:
+        attributes = attributes.flatten(1).map(&:to_s)
+        on = [on] if on.is_a?(Symbol)
+
+        self._reload_attributes_on_create |= attributes if on.include? :create
+        self._reload_attributes_on_update |= attributes if on.include? :update
       end
 
       def _insert_record(values, returning) # :nodoc:
@@ -1254,7 +1270,7 @@ module ActiveRecord
       )
 
       returning_columns.zip(returning_values).each do |column, value|
-        _write_attribute(column, value) if !_read_attribute(column)
+        _write_attribute(column, value)
       end if returning_values
 
       @new_record = false

@@ -45,16 +45,39 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_fills_auto_populated_columns_on_creation
     record_with_defaults = Default.create
+
     assert_not_nil record_with_defaults.id
-    assert_equal "Ruby on Rails", record_with_defaults.ruby_on_rails
-    assert_not_nil record_with_defaults.virtual_stored_number if current_adapter?(:PostgreSQLAdapter)
     assert_not_nil record_with_defaults.random_number
+    assert_equal record_with_defaults.random_number + 1,
+      record_with_defaults.random_number_plus_one if current_adapter?(:PostgreSQLAdapter)
+    assert_equal record_with_defaults.random_number + 2,
+      record_with_defaults.random_number_plus_two if current_adapter?(:PostgreSQLAdapter)
+    assert_equal "Ruby on Rails", record_with_defaults.ruby_on_rails
     assert_not_nil record_with_defaults.modified_date
     assert_not_nil record_with_defaults.modified_date_function
     assert_not_nil record_with_defaults.modified_time
     assert_not_nil record_with_defaults.modified_time_without_precision
     assert_not_nil record_with_defaults.modified_time_function
   end if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:SQLite3Adapter)
+
+  def test_assigned_reload_attributes_on_create
+    # Attempting to write random_number_plus_one is essentially a no-op
+    record_with_defaults = Default.create(random_number_plus_one: -1, random_number_plus_two: -1)
+
+    assert_equal record_with_defaults.random_number + 1, record_with_defaults.random_number_plus_one
+    assert_equal record_with_defaults.random_number + 2, record_with_defaults.random_number_plus_two
+  end if current_adapter?(:PostgreSQLAdapter)
+
+  def test_reload_attributes_parameters
+    model = Class.new(ActiveRecord::Base)
+    model.reload_attributes :attr_1, on: :create
+    model.reload_attributes :attr_2, on: :update
+    model.reload_attributes :attr_3, on: [:create, :update]
+    model.reload_attributes [:attr_4, :attr_5]
+
+    assert_equal ["attr_1", "attr_3", "attr_4", "attr_5"], model._reload_attributes_on_create
+    assert_equal ["attr_2", "attr_3", "attr_4", "attr_5"], model._reload_attributes_on_update
+  end
 
   def test_update_many
     topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }

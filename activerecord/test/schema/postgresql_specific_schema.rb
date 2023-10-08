@@ -25,8 +25,9 @@ ActiveRecord::Schema.define do
   end
 
   create_table :defaults, force: true do |t|
-    t.virtual :virtual_stored_number, type: :integer, as: "random_number * 10", stored: true
     t.integer :random_number, default: -> { "random() * 100" }
+    t.virtual :random_number_plus_one, type: :integer, as: "random_number + 1", stored: true
+    t.integer :random_number_plus_two
     t.string :ruby_on_rails, default: -> { "concat('Ruby ', 'on ', 'Rails')" }
     t.date :modified_date, default: -> { "CURRENT_DATE" }
     t.date :modified_date_function, default: -> { "now()" }
@@ -45,6 +46,31 @@ ActiveRecord::Schema.define do
 
 "
   end
+
+  begin
+    execute <<_SQL
+    CREATE OR REPLACE FUNCTION calculate_defaults()
+    RETURNS TRIGGER AS $$
+    BEGIN
+      NEW.random_number_plus_two := NEW.random_number + 2;
+      RETURN NEW;
+    END;
+    $$
+    LANGUAGE plpgsql;
+
+    CREATE TRIGGER insert_or_update_defaults_trigger
+      BEFORE INSERT OR UPDATE ON defaults
+      FOR EACH ROW EXECUTE PROCEDURE calculate_defaults();
+_SQL
+  rescue ActiveRecord::StatementInvalid => e
+    if e.message.include?('language "plpgsql" does not exist')
+      execute "CREATE LANGUAGE 'plpgsql';"
+      retry
+    else
+      raise e
+    end
+  end
+
 
   create_table :postgresql_times, force: true do |t|
     t.interval :time_interval
