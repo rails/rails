@@ -6,7 +6,6 @@ require "listen"
 require "set"
 require "pathname"
 require "concurrent/atomic/atomic_boolean"
-require "active_support/fork_tracker"
 
 module ActiveSupport
   # Allows you to "listen" to changes in a file system.
