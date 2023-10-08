@@ -96,6 +96,19 @@ module ActiveRecord
         end
       end
 
+      def test_exec_insert_with_quote
+        with_example_table do
+          vals = [Relation::QueryAttribute.new("number", 10, Type::Value.new)]
+          @conn.exec_insert("insert into \"ex\" (number) VALUES (?)", "SQL", vals)
+
+          result = @conn.exec_query(
+            "select number from \"ex\" where number = ?", "SQL", vals)
+
+          assert_equal 1, result.rows.length
+          assert_equal 10, result.rows.first.first
+        end
+      end
+
       def test_primary_key_returns_nil_for_no_pk
         with_example_table "id int, data string" do
           assert_nil @conn.primary_key("ex")
