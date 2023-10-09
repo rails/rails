@@ -112,7 +112,7 @@ module ActionView
                 when :local_variable_read_node
                   node.slice
                 when :call_node
-                  node.name
+                  node.name.to_s
                 else
                   return
                 end
