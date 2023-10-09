@@ -6,16 +6,24 @@ module ActiveRecord
       class Column < ConnectionAdapters::Column # :nodoc:
         delegate :oid, :fmod, to: :sql_type_metadata
 
-        def initialize(*, serial: nil, generated: nil, **)
+        def initialize(*, serial: nil, identity: nil, generated: nil, **)
           super
           @serial = serial
+          @identity = identity
           @generated = generated
+        end
+
+        def identity?
+          @identity
         end
 
         def serial?
           @serial
         end
-        alias_method :auto_incremented_by_db?, :serial?
+
+        def auto_incremented_by_db?
+          serial? || identity?
+        end
 
         def virtual?
           # We assume every generated column is virtual, no matter the concrete type
@@ -41,12 +49,14 @@ module ActiveRecord
 
         def init_with(coder)
           @serial = coder["serial"]
+          @identity = coder["identity"]
           @generated = coder["generated"]
           super
         end
 
         def encode_with(coder)
           coder["serial"] = @serial
+          coder["identity"] = @identity
           coder["generated"] = @generated
           super
         end
@@ -54,6 +64,7 @@ module ActiveRecord
         def ==(other)
           other.is_a?(Column) &&
             super &&
+            identity? == other.identity? &&
             serial? == other.serial?
         end
         alias :eql? :==
@@ -61,6 +72,7 @@ module ActiveRecord
         def hash
           Column.hash ^
             super.hash ^
+            identity?.hash ^
             serial?.hash
         end
       end

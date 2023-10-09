@@ -1,3 +1,7 @@
+*   Fix auto populating IDENTITY columns for PostgreSQL.
+
+    *fatkodima*
+
 *   Fix "ArgumentError: wrong number of arguments (given 3, expected 2)" when
     down migrating `rename_table` in older migrations.
 
