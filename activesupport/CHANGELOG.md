@@ -1,3 +1,7 @@
+*   Fix MemoryStore to prevent race conditions when incrementing or decrementing.
+
+    *Pierre Jambet*
+
 *   Implement `HashWithIndifferentAccess#to_proc`.
 
     Previously, calling `#to_proc` on `HashWithIndifferentAccess` object used inherited `#to_proc`
