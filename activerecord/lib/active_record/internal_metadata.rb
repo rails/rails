@@ -64,6 +64,8 @@ module ActiveRecord
     end
 
     def create_table_and_set_flags(environment, schema_sha1 = nil)
+      return unless enabled?
+
       create_table
       update_or_create_entry(:environment, environment)
       update_or_create_entry(:schema_sha1, schema_sha1) if schema_sha1
