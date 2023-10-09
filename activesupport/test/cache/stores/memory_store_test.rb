@@ -27,6 +27,23 @@ class MemoryStoreTest < ActiveSupport::TestCase
   def test_large_object_with_default_compression_settings
     assert_uncompressed(LARGE_OBJECT)
   end
+
+  def test_increment_preserves_expiry
+    @cache = lookup_store
+    @cache.write("counter", 1, raw: true, expires_in: 30.seconds)
+    assert_equal 1, @cache.read("counter", raw: true)
+
+    Time.stub(:now, Time.now + 1.minute) do
+      assert_nil @cache.read("counter", raw: true)
+    end
+
+    @cache.write("counter", 1, raw: true, expires_in: 30.seconds)
+    @cache.increment("counter")
+    assert_equal 2, @cache.read("counter", raw: true)
+    Time.stub(:now, Time.now + 1.minute) do
+      assert_nil @cache.read("counter", raw: true)
+    end
+  end
 end
 
 class MemoryStorePruningTest < ActiveSupport::TestCase
