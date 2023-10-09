@@ -1,3 +1,7 @@
+*   Fix MemoryStore to prevent race conditions when incrementing or decrementing.
+
+    *Pierre Jambet*
+
 ## Rails 7.1.0 (October 05, 2023) ##
 
 *   No changes.

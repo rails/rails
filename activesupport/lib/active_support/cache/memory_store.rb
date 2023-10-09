@@ -238,16 +238,18 @@ module ActiveSupport
           key     = normalize_key(name, options)
           version = normalize_version(name, options)
 
-          entry = read_entry(key, **options)
+          synchronize do
+            entry = read_entry(key, **options)
 
-          if !entry || entry.expired? || entry.mismatched?(version)
-            write(name, Integer(amount), options)
-            amount
-          else
-            num = entry.value.to_i + amount
-            entry = Entry.new(num, expires_at: entry.expires_at, version: entry.version)
-            write_entry(key, entry)
-            num
+            if !entry || entry.expired? || entry.mismatched?(version)
+              write(name, Integer(amount), options)
+              amount
+            else
+              num = entry.value.to_i + amount
+              entry = Entry.new(num, expires_at: entry.expires_at, version: entry.version)
+              write_entry(key, entry)
+              num
+            end
           end
         end
     end
