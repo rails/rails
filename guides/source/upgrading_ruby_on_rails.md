@@ -253,7 +253,7 @@ When running tests via `bin/rails test`, the `rake test:prepare` task will run b
 the `test:prepare` task, your enhancements will run before your tests. `tailwindcss-rails`, `jsbundling-rails`, and `cssbundling-rails`
 enhance this task, as do other third party gems.
 
-See the [Testing Rails Applications](https://edgeguides.rubyonrails.org/testing.html#running-tests-in-continuous-integration-ci) guide for more information.
+See the [Testing Rails Applications](https://guides.rubyonrails.org/testing.html#running-tests-in-continuous-integration-ci) guide for more information.
 
 If you run a single file's tests (`bin/rails test test/models/user_test.rb`), `test:prepare` will not run before it.
 
