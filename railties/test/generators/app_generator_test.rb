@@ -955,6 +955,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile" do |content|
       assert_match(/ruby "#{Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") ? Gem.ruby_version : RUBY_VERSION}"/, content)
     end
+    assert_file "Dockerfile" do |content|
+      assert_match(/ARG RUBY_VERSION=#{Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") ? Gem.ruby_version : RUBY_VERSION}/, content)
+    end
     assert_file ".ruby-version" do |content|
       if ENV["RBENV_VERSION"]
         assert_match(/#{ENV["RBENV_VERSION"]}/, content)
