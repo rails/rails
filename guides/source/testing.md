@@ -1822,7 +1822,7 @@ end
 By default, `ActionView::TestCase` defines a parser for:
 
 * `:html` - returns an instance of [Nokogiri::XML::Node](https://nokogiri.org/rdoc/Nokogiri/XML/Node.html)
-* `:json` - returns an instance of [ActiveSupport::HashWithIndifferentAccess](https://edgeapi.rubyonrails.org/classes/ActiveSupport/HashWithIndifferentAccess.html)
+* `:json` - returns an instance of [ActiveSupport::HashWithIndifferentAccess](https://api.rubyonrails.org/classes/ActiveSupport/HashWithIndifferentAccess.html)
 
 ```ruby
 test "renders HTML" do
