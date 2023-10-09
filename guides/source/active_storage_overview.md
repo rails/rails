@@ -643,7 +643,7 @@ that is routed to the blob's [`RedirectController`][`ActiveStorage::Blobs::Redir
 
 ```ruby
 url_for(user.avatar)
-# => /rails/active_storage/blobs/:signed_id/my-avatar.png
+# => https://www.example.com/rails/active_storage/blobs/redirect/:signed_id/my-avatar.png
 ```
 
 The `RedirectController` redirects to the actual service endpoint. This
