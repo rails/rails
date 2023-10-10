@@ -1453,6 +1453,9 @@ module ActiveRecord
     #   Post.excluding(post_one, post_two)
     #   # SELECT "posts".* FROM "posts" WHERE "posts"."id" NOT IN (1, 2)
     #
+    #   Post.excluding(Post.drafts)
+    #   # SELECT "posts".* FROM "posts" WHERE "posts"."id" NOT IN (3, 4, 5)
+    #
     # This can also be called on associations. As with the above example, either
     # a single record of collection thereof may be specified:
     #
@@ -1468,14 +1471,15 @@ module ActiveRecord
     # is passed in) are not instances of the same model that the relation is
     # scoping.
     def excluding(*records)
+      relations = records.extract! { |element| element.is_a?(Relation) }
       records.flatten!(1)
       records.compact!
 
-      unless records.all?(klass)
+      unless records.all?(klass) && relations.all? { |relation| relation.klass == klass }
         raise ArgumentError, "You must only pass a single or collection of #{klass.name} objects to ##{__callee__}."
       end
 
-      spawn.excluding!(records)
+      spawn.excluding!(records + relations.flat_map(&:ids))
     end
     alias :without :excluding
 
