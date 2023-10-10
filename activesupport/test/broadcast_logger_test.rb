@@ -278,6 +278,18 @@ module ActiveSupport
       assert(called)
     end
 
+    test "calling a method that accepts args" do
+      logger = BroadcastLogger.new(CustomLogger.new)
+
+      assert(logger.baz("foo"))
+    end
+
+    test "calling a method that accepts kwargs" do
+      logger = BroadcastLogger.new(CustomLogger.new)
+
+      assert(logger.qux(param: "foo"))
+    end
+
     class CustomLogger
       attr_reader :adds, :closed, :chevrons
       attr_accessor :level, :progname, :formatter, :local_level
@@ -298,6 +310,14 @@ module ActiveSupport
 
       def bar
         yield
+      end
+
+      def baz(param)
+        true
+      end
+
+      def qux(param:)
+        true
       end
 
       def debug(message, &block)
