@@ -567,6 +567,11 @@ module ActiveRecord
     #   User.order(:name, email: :desc)
     #   # SELECT "users".* FROM "users" ORDER BY "users"."name" ASC, "users"."email" DESC
     #
+    # Same can be done by chaining multiple #order calls.
+    #
+    #   User.order(:name).order(email: :desc)
+    #   # SELECT "users".* FROM "users" ORDER BY "users"."name" ASC, "users"."email" DESC
+    #
     # === strings
     #
     # Strings are passed directly to the database, allowing you to specify
