@@ -560,8 +560,22 @@ class TagHelperTest < ActionView::TestCase
     HTML
   end
 
-  def test_tag_attributes_nil
+  def test_tag_attributes_merges_arguments_from_left_to_right
+    assert_equal %(<input type="text" id="1" class="2" disabled="disabled" >), render_erb(%(<input type="text" <%= tag.attributes({ id: 1 }, { class: "2" }, disabled: true) %> >))
+    assert_equal %(<input type="text" id="1" class="2" disabled="disabled" >), render_erb(%(<input type="text" <%= tag.attributes([{ id: 1 }, { class: "2" }], disabled: true) %> >))
+  end
+
+  def test_tag_attributes_merges_overrides_from_left_to_right
+    assert_equal %(<input type="text" id="3" >), render_erb(%(<input type="text" <%= tag.attributes({ id: 1 }, { id: 2 }, id: 3) %> >))
+  end
+
+  def test_tag_attributes_deep_merges_nested_arguments_from_left_to_right
+    assert_equal %(<input type="text" aria-label="2" aria-disabled="true" aria-selected="false" >), render_erb(%(<input type="text" <%= tag.attributes({ aria: { label: 1 } }, { aria: { disabled: true, label: 2 } }, aria: { selected: false }) %> >))
+  end
+
+  def test_tag_attributes_ignores_nil
     assert_equal %(<input type="text" >), render_erb(%(<input type="text" <%= tag.attributes nil %>>))
+    assert_equal %(<input type="text" >), render_erb(%(<input type="text" <%= tag.attributes nil, {} %>>))
   end
 
   def test_tag_attributes_empty

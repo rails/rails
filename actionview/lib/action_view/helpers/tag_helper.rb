@@ -216,10 +216,27 @@ module ActionView
         # Transforms a Hash into HTML Attributes, ready to be interpolated into
         # ERB.
         #
+        # === Passing a single Hash argument
+        #
         #   <input <%= tag.attributes(type: :text, aria: { label: "Search" }) %> >
         #   # => <input type="text" aria-label="Search">
-        def attributes(attributes)
-          tag_options(attributes.to_h).to_s.strip.html_safe
+        #
+        # === Passing multiple Hash arguments
+        #
+        # Passing multiple Hash arguments will be deep merged from left to right into a single Hash:
+        #
+        #   <input <%= tag.attributes({ type: :text }, { id: "search" }, { aria: { label: "Search" } }) %> >
+        #   # => <input type="text" id="search" aria-label="Search">
+        #
+        # Hash arguments can be mixed with keyword arguments:
+        #
+        #   <input <%= tag.attributes({ type: :text }, { id: "search" }, { aria: { label: "Search" } }, aria: { disabled: true }) %> >
+        #   # => <input type="text" id="search" aria-label="Search" aria-disabled="true">
+        #
+        ruby2_keywords def attributes(*attributes)
+          attributes = attributes.tap(&:flatten!).tap(&:compact_blank!)
+
+          tag_options(attributes.reduce({}, :deep_merge!)).to_s.strip.html_safe
         end
 
         def tag_string(name, content = nil, escape: true, **options, &block)

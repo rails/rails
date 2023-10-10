@@ -1,3 +1,13 @@
+*   `tag.attributes` accepts a variable number of `Hash` arguments, then merges
+    them from left to right:
+
+    ```erb
+    <input <%= tag.attributes({ id: "search" }, { type: :text }, { aria: { label: "Search" } }, aria: { disabled: true }) %> >
+    <%# => <input id="search" type="text" aria-label="Search" aria-disabled="true"> %>
+    ```
+
+    *Sean Doyle*
+
 *   Added validation for HTML tag names in the `tag` and `content_tag` helper method. The `tag` and
     `content_tag` method now checks that the provided tag name adheres to the HTML specification. If
     an invalid HTML tag name is provided, the method raises an `ArgumentError` with an appropriate error
