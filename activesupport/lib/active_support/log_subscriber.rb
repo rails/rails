@@ -122,7 +122,7 @@ module ActiveSupport
         end
 
         def subscribe_log_level(method, level)
-          self.log_levels = log_levels.merge(method => level)
+          self.log_levels = log_levels.merge(method => "#{level}?")
           set_event_levels
         end
     end
@@ -140,13 +140,7 @@ module ActiveSupport
       return true if logger.nil?
       return false unless @event_levels.key?(event)
 
-
-
-      level_check_method = "#{@event_levels.fetch(event)}?"
-
-      return false unless logger.respond_to?(level_check_method)
-
-      !logger.public_send(level_check_method)
+      !logger.public_send(@event_levels.fetch(event))
     end
 
     def call(event)
