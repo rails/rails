@@ -70,6 +70,8 @@ Deleting an author and all of its books is *much* easier:
 @author.destroy
 ```
 
+This is also knowns as dealign with orphaned data.
+
 To learn more about the different types of associations, read the next section of this guide. That's followed by some tips and tricks for working with associations, and then by a complete reference to the methods and options for associations in Rails.
 
 The Types of Associations
