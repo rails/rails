@@ -242,7 +242,7 @@ class QueryLogsTest < ActiveRecord::TestCase
     end
   end
 
-  # Postgres does validate the query encoding. Other adapters don't care.
+  # PostgreSQL does validate the query encoding. Other adapters don't care.
   unless current_adapter?(:PostgreSQLAdapter)
     def test_invalid_encoding_query
       ActiveRecord::QueryLogs.tags = [ :application ]

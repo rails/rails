@@ -1203,7 +1203,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_functions_without_alias
     expected = if current_adapter?(:PostgreSQLAdapter)
-      # Postgres returns the same name for each column in the given query, so each column is named "coalesce"
+      # PostgreSQL returns the same name for each column in the given query, so each column is named "coalesce"
       # As a result Rails cannot accurately type cast each value.
       # To work around this, you should use aliases in your select statement (see test_pluck_functions_with_alias).
       [

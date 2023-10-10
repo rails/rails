@@ -684,7 +684,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
     ```
 
 *   Auto generated index names are now limited to 62 bytes, which fits within the default
-    index name length limits for MySQL, Postgres and SQLite.
+    index name length limits for MySQL, PostgreSQL and SQLite.
 
 *   Introduce adapter for Trilogy database client.
 
