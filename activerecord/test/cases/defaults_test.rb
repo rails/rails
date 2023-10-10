@@ -17,7 +17,7 @@ class DefaultTest < ActiveRecord::TestCase
   if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:SQLite3Adapter)
     def test_multiline_default_text
       record = Default.new
-      # older postgres versions represent the default with escapes ("\\012" for a newline)
+      # older PostgreSQL versions represent the default with escapes ("\\012" for a newline)
       assert("--- []\n\n" == record.multiline_default || "--- []\\012\\012" == record.multiline_default)
     end
   end
