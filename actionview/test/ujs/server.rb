@@ -35,27 +35,7 @@ module UJS
   end
 end
 
-module TestsHelper
-  def test_to(*names)
-    names = names.map { |name| "/test/#{name}.js" }
-    names = %w[/vendor/qunit.js /test/settings.js] + names
-
-    capture do
-      names.each do |name|
-        concat(javascript_include_tag(name))
-      end
-    end
-  end
-end
-
 class TestsController < ActionController::Base
-  helper TestsHelper
-  layout "application"
-
-  def index
-    render :index
-  end
-
   def echo
     data = { params: params.to_unsafe_h }.update(request.env)
 
