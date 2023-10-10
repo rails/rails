@@ -41,7 +41,7 @@ invalidates the cache.
 
 The second feature of the asset pipeline is to use [import maps](https://github.com/WICG/import-maps)
 when serving JavaScript files. This lets you build modern applications using
-Javascript libraries made for ES modules (ESM) without the need for transpiling
+JavaScript libraries made for ES modules (ESM) without the need for transpiling
 and bundling. In turn, **this eliminates the need for Webpack, yarn, node or any
 other part of the JavaScript toolchain**.
 
@@ -89,12 +89,12 @@ Import maps let you import JavaScript modules using logical names that map to ve
 
 With this approach, you'll ship many small JavaScript files instead of one big JavaScript file. Thanks to HTTP/2 that no longer carries a material performance penalty during the initial transport, and in fact offers substantial benefits over the long run due to better caching dynamics.
 
-How to use Import Maps as Javascript Asset Pipeline
+How to use Import Maps as JavaScript Asset Pipeline
 -----------------------------
 
-Import Maps are the default Javascript processor, the logic of generating import maps is handled by the [`importmap-rails`](https://github.com/rails/importmap-rails) gem.
+Import Maps are the default JavaScript processor, the logic of generating import maps is handled by the [`importmap-rails`](https://github.com/rails/importmap-rails) gem.
 
-WARNING: Import maps are used only for Javascript files and can not be used for CSS delivery. Check the [Sprockets section](#how-to-use-sprockets) to learn about CSS.
+WARNING: Import maps are used only for JavaScript files and can not be used for CSS delivery. Check the [Sprockets section](#how-to-use-sprockets) to learn about CSS.
 
 You can find detailed usage instructions on the Gem homepage, but it's important to understand the basics of `importmap-rails`.
 
@@ -327,7 +327,7 @@ Pipeline assets can be placed inside an application in one of three locations:
 
 * `app/javascript` is for your JavaScript code
 
-* `vendor/[assets|javascript]` is for assets that are owned by outside entities, such as CSS frameworks or Javascript libraries. Keep in mind that third-party code with references to other files also processed by the asset Pipeline (images, stylesheets, etc.), will need to be rewritten to use helpers like `asset_path`.
+* `vendor/[assets|javascript]` is for assets that are owned by outside entities, such as CSS frameworks or JavaScript libraries. Keep in mind that third-party code with references to other files also processed by the asset Pipeline (images, stylesheets, etc.), will need to be rewritten to use helpers like `asset_path`.
 
 Other locations could by configured in the `manifest.js` file, refer to the [Manifest Files and Directives](#manifest-files-and-directives).
 
@@ -1046,7 +1046,7 @@ Sprockets.register_preprocessor 'text/css', AddComment
 Alternative Libraries
 ------------------------------------------
 
-Over the years there have been multiple default approaches for handling the assets. The web evolved and we started to see more and more Javascript-heavy applications. In The Rails Doctrine we believe that [The Menu Is Omakase](https://rubyonrails.org/doctrine#omakase) so we focused on the default setup: **Sprockets with Import Maps**.
+Over the years there have been multiple default approaches for handling the assets. The web evolved and we started to see more and more JavaScript-heavy applications. In The Rails Doctrine we believe that [The Menu Is Omakase](https://rubyonrails.org/doctrine#omakase) so we focused on the default setup: **Sprockets with Import Maps**.
 
 We are aware that there are no one-size-fits-it-all solutions for the various JavaScript and CSS frameworks/extensions available. There are other bundling libraries in the Rails ecosystem that should empower you in the cases where the default setup isn't enough.
 
@@ -1074,7 +1074,7 @@ It works in a similar way to `jsbundling-rails` so adds the Node.js dependency t
 
 **What's the difference between Sprockets?** Sprockets on its own is not able to transpile the Sass into CSS, Node.js is required to generate the `.css` files from your `.sass`  files. Once the `.css` files are generated then `Sprockets` is able to deliver them to your clients.
 
-NOTE: `cssbundling-rails` relies on Node to process the CSS. The `dartsass-rails` and `tailwindcss-rails` gems use standalone versions of Tailwind CSS and Dart Sass, meaning no Node dependency. If you are using `importmap-rails` to handle your Javascripts and `dartsass-rails` or `tailwindcss-rails` for CSS you could completely avoid the Node dependency resulting in a less complex solution.
+NOTE: `cssbundling-rails` relies on Node to process the CSS. The `dartsass-rails` and `tailwindcss-rails` gems use standalone versions of Tailwind CSS and Dart Sass, meaning no Node dependency. If you are using `importmap-rails` to handle your JavaScripts and `dartsass-rails` or `tailwindcss-rails` for CSS you could completely avoid the Node dependency resulting in a less complex solution.
 
 ### dartsass-rails
 
