@@ -44,7 +44,7 @@ will not install, and must be installed separately:
 Image analysis and transformations also require the `image_processing` gem. Uncomment it in your `Gemfile`, or add it if necessary:
 
 ```ruby
-gem "image_processing", ">= 1.2"
+gem "image_processing", ">= 1.12"
 ```
 
 TIP: Compared to libvips, ImageMagick is better known and more widely available. However, libvips can be [up to 10x faster and consume 1/10 the memory](https://github.com/libvips/libvips/wiki/Speed-and-memory-use). For JPEG files, this can be further improved by replacing `libjpeg-dev` with `libjpeg-turbo-dev`, which is [2-7x faster](https://libjpeg-turbo.org/About/Performance).

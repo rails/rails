@@ -584,7 +584,7 @@ DEPENDENCIES
   delayed_job
   delayed_job_active_record
   google-cloud-storage (~> 1.11)
-  image_processing (~> 1.2)
+  image_processing (~> 1.12)
   importmap-rails
   jbuilder
   jsbundling-rails
