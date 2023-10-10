@@ -673,7 +673,7 @@ module ActiveRecord
 
         def extract_table_ref_from_insert_sql(sql)
           if sql =~ /into\s("[A-Za-z0-9_."\[\]\s]+"|[A-Za-z0-9_."\[\]]+)\s*/im
-            $1.strip
+            $1.delete('"').strip
           end
         end
     end
