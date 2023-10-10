@@ -1049,13 +1049,13 @@ Controls whether migrations are numbered with serial integers or with timestamps
 
 Controls the action to be taken when a SQL query produces a warning. The following options are available:
 
-  * `:ignore` - Database warnings wil be ignored. This is the default.
+  * `:ignore` - Database warnings will be ignored. This is the default.
 
   * `:log` - Database warnings will be logged via `ActiveRecord.logger` at the `:warn` level.
 
   * `:raise` - Database warnings will be raised as `ActiveRecord::SQLWarning`.
 
-  * `:report` - Database warnings be will reported to subscribers of Rails' error reporter.
+  * `:report` - Database warnings will be reported to subscribers of Rails' error reporter.
 
   * Custom proc - A custom proc can be provided. It should accept a `SQLWarning` error object.
 
