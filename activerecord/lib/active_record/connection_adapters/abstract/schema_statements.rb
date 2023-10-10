@@ -1398,7 +1398,7 @@ module ActiveRecord
 
         limited = relation.reselect(values).distinct!
         limited_ids = select_rows(limited.arel, "SQL").map do |results|
-          results.last(Array(relation.primary_key).length) # ignores order values for MySQL and Postgres
+          results.last(Array(relation.primary_key).length) # ignores order values for MySQL and PostgreSQL
         end
 
         if limited_ids.empty?

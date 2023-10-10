@@ -588,7 +588,7 @@ module ActiveRecord
     #   User.order(Arel.sql('end_date - start_date'))
     #   # SELECT "users".* FROM "users" ORDER BY end_date - start_date
     #
-    # Custom query syntax, like JSON columns for Postgres, is supported in this way.
+    # Custom query syntax, like JSON columns for PostgreSQL, is supported in this way.
     #
     #   User.order(Arel.sql("payload->>'kind'"))
     #   # SELECT "users".* FROM "users" ORDER BY payload->>'kind'
