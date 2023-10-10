@@ -137,10 +137,9 @@ module ActiveSupport
     end
 
     def silenced?(event)
-      return true if logger.nil?
       return false unless @event_levels.key?(event)
 
-      !logger.public_send(@event_levels.fetch(event))
+      !logger&.public_send(@event_levels.fetch(event))
     end
 
     def call(event)
