@@ -117,6 +117,10 @@ module ActiveRecord
       end
       alias :connection_pools :connection_pool_list
 
+      def connection_pool_list_for(connection_name) # :nodoc:
+        get_pool_manager(connection_name)&.pool_configs
+      end
+
       def each_connection_pool(role = nil, &block) # :nodoc:
         role = nil if role == :all
         return enum_for(__method__, role) unless block_given?

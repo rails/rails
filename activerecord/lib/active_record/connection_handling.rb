@@ -306,10 +306,14 @@ module ActiveRecord
       # connection_specification_name so it will use the parent
       # pool.
       if connection_handler.retrieve_connection_pool(name, role: current_role, shard: current_shard)
-        self.connection_specification_name = nil
-      end
+        pool_list = connection_handler.connection_pool_list_for(name)
 
-      connection_handler.remove_connection_pool(name, role: current_role, shard: current_shard)
+        if pool_list && pool_list.size == 1
+          self.connection_specification_name = nil
+        end
+
+        connection_handler.remove_connection_pool(name, role: current_role, shard: current_shard)
+      end
     end
 
     def clear_cache! # :nodoc:

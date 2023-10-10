@@ -316,6 +316,9 @@ module ActiveRecord
 
         assert_equal :not_default, SecondaryBase.default_shard
         assert_equal :default, SomeOtherBase.default_shard
+      ensure
+        name = "ActiveRecord::ConnectionAdapters::ConnectionHandlersShardingDbTest::SecondaryBase"
+        ActiveRecord::Base.connection_handler.remove_connection_pool(name, role: :writing, shard: :not_default)
       end
 
       def test_same_shards_across_clusters
