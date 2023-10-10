@@ -122,7 +122,7 @@ module ActiveSupport
         end
 
         def subscribe_log_level(method, level)
-          self.log_levels = log_levels.merge(method => ::Logger.const_get(level.upcase))
+          self.log_levels = log_levels.merge(method => level)
           set_event_levels
         end
     end
@@ -137,7 +137,16 @@ module ActiveSupport
     end
 
     def silenced?(event)
-      logger.nil? || logger.level > @event_levels.fetch(event, Float::INFINITY)
+      return true if logger.nil?
+      return false unless @event_levels.key?(event)
+
+
+
+      level_check_method = "#{@event_levels.fetch(event)}?"
+
+      return false unless logger.respond_to?(level_check_method)
+
+      !logger.public_send(level_check_method)
     end
 
     def call(event)
