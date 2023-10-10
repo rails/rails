@@ -1767,14 +1767,18 @@ module ActiveRecord
 
         def validate_index_length!(table_name, new_name, internal = false)
           if new_name.length > index_name_length
-            raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{index_name_length} characters"
+            raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{index_name_length} characters."
           end
         end
 
         def validate_table_length!(table_name)
           if table_name.length > table_name_length
-            raise ArgumentError, "Table name '#{table_name}' is too long; the limit is #{table_name_length} characters"
+            raise ArgumentError, table_name_too_long_error_message(table_name)
           end
+        end
+
+        def table_name_too_long_error_message(table_name)
+          "Table name '#{table_name}' is too long; the limit is #{table_name_length} characters"
         end
 
         def extract_new_default_value(default_or_changes)

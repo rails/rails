@@ -608,6 +608,10 @@ module ActiveRecord
         max_identifier_length - "_pkey".length
       end
 
+      def table_name_too_long_error_message(table_name)
+        "Table name '#{table_name}' is too long; PostgreSQL allows a maximum length of #{max_identifier_length} characters, but we also need to allow for the `_pkey` suffix that PostgreSQL adds to table names when creating default indexes, so our effective limit is #{table_name_length} characters."
+      end
+
       # Set the authorized user for this session
       def session_auth=(user)
         clear_cache!

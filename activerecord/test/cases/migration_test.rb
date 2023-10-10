@@ -200,13 +200,18 @@ class MigrationTest < ActiveRecord::TestCase
   def test_create_table_raises_for_long_table_names
     connection = Person.connection
     name_limit = connection.table_name_length
+    max_identifier_length = connection.max_identifier_length
     long_name = "a" * (name_limit + 1)
     short_name = "a" * name_limit
 
     error = assert_raises(ArgumentError) do
       connection.create_table(long_name)
     end
-    assert_equal "Table name '#{long_name}' is too long; the limit is #{name_limit} characters", error.message
+    if current_adapter?(:PostgreSQLAdapter)
+      assert_equal "Table name '#{long_name}' is too long; PostgreSQL allows a maximum length of #{max_identifier_length} characters, but we also need to allow for the `_pkey` suffix that PostgreSQL adds to table names when creating default indexes, so our effective limit is #{name_limit} characters.", error.message
+    else
+      assert_equal "Table name '#{long_name}' is too long; the limit is #{name_limit} characters", error.message
+    end
 
     connection.create_table(short_name)
     assert connection.table_exists?(short_name)
