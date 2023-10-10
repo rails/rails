@@ -5,6 +5,8 @@ Action View Helpers
 
 After reading this guide, you will know:
 
+* How to render HTML elements
+* How to merge HTML attributes and token lists
 * How to format dates, strings and numbers
 * How to link to images, videos, stylesheets, etc...
 * How to sanitize content
@@ -18,6 +20,92 @@ Overview of Helpers Provided by Action View
 WIP: Not all the helpers are listed here. For a full list see the [API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html)
 
 The following is only a brief overview summary of the helpers available in Action View. It's recommended that you review the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html), which covers all of the helpers in more detail, but this should serve as a good starting point.
+
+### TagHelper
+
+This module provides methods for generating HTML [elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Element), [token lists] (https://developer.mozilla.org/en-US/docs/Web/API/DOMTokenList), and [attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes).
+
+#### Rendering HTML Elements
+
+Call Action View's `tag` helper method to generate an HTML element based on the name of the method:
+
+```ruby
+tag.div("Content")
+# => <div>Content</div>
+
+tag.h1("Heading", id: "heading-1")
+# => <h1 id="heading-1">Heading</h1>
+
+tag.p(class: "font-sans") { "Content" }
+# => <p class="font-sans">Content</p>
+```
+
+#### Rendering token lists
+
+Call Action View's `class_names` helper to flatten `Array`, `Hash`, and `String` instances into a `String`:
+
+```ruby
+class_names("a", "b c", ["d"])
+# => "a b c d"
+
+class_names("a", "b c", d: false, e: true)
+# => "a b c e"
+```
+
+You can call either [`class_names`](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/TagHelper.html#method-i-class_names) or [`token_list`](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/TagHelper.html#method-i-token_list).
+
+#### Rendering HTML attributes
+
+Call Action View's `tag.attributes` to transform `Hash` instances into HTML-ready attributes:
+
+```erb
+<input <%= tag.attributes({ id: "search" }, { type: :text }, { aria: { label: "Search" } }, aria: { disabled: true }) %> >
+<%# => <input id="search" type="text" aria-label="Search" aria-disabled="true"> %>
+```
+
+Calls to `tag.attributes` accept many `Hash` instances, and merge them left to right, and support nesting keys under `aria:` and `data:`:
+
+```ruby
+attributes = tag.attributes({ id: "search" }, { type: :text }, { aria: { label: "Search" } }, data: { value: "123" })
+attributes.to_h # => { id: "search", type: "text", aria: { label: "search" }, data: { value: "123" } }
+attributes.to_s # => "id=\"search\" type=\"text\" aria-label=\"Search\" data-value=\"123\""
+```
+
+Attribute merging will account for token lists attributes (like `class` and `aria-labelledby`) by merging values from left to right:
+
+```erb
+<input <%= tag.attributes({ class: "font-bold" }, { class: ["text-sm", "text-gray-700"] }, class: "p-2") %> >
+<%# => <input class="font-bold text-sm text-gray-700 p-2" > %>
+```
+
+To override token list merging for an attribute, pass its name with a `!` suffix:
+
+```ruby
+attributes = tag.attributes({ class: "default" }, { class!: "first-override" }, class!: "second-override")
+attributes.to_h # => { class: "second-override" }
+attributes.to_s # => "class=\"second-override\""
+```
+
+Calls to `tag.attributes` will merge nested values:
+
+```ruby
+attributes = tag.attributes({ aria: { label: "Search" } }, aria: { disabled: true })
+attributes.to_h # => { aria: { label: "Search", disabled: true } }
+attributes.to_s # => "aria-label=\"Search\" aria-disabled=\"true\""
+```
+
+Pass `tag.attributes` as options or keyword arguments:
+
+```ruby
+primary = { class: "bg-red-500 text-white" }
+large = { class: "text-lg p-4" }
+
+button_tag "Click me!", tag.attributes(primary, large)
+# => <button name="button" type="submit" class="bg-red-500 text-white text-lg p-4">Click me!</button>
+
+tag.button "Click me!", id: "cta", **tag.attributes(primary, large)
+# => <button id="cta" class="bg-red-500 text-white text-lg p-4">Click me!</button>
+```
 
 ### AssetTagHelper
 

@@ -2152,6 +2152,26 @@ Configures the set of HTML sanitizers used by Action View by setting `ActionView
 
 NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms Rails will fall back to `Rails::HTML4::Sanitizer`.
 
+#### `config.action_view.token_lists`
+
+Determines whether or not the `tag.attributes` should treat an attribute as a token list. Supports `String` and `Regexp` values. Defaults to:
+
+```ruby
+%w[
+  class
+  rel
+  aria-controls
+  aria-describedby
+  aria-details
+  aria-dropeffect
+  aria-flowto
+  aria-keyshortcuts
+  aria-labelledby
+  aria-owns
+  aria-relevant
+].to_set
+```
+
 ### Configuring Action Mailbox
 
 `config.action_mailbox` provides the following configuration options:

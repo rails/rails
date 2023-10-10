@@ -5,6 +5,7 @@ require "active_support/core_ext/enumerable"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/string/inflections"
 require "set"
+require "action_view/attributes"
 require "action_view/helpers/capture_helper"
 require "action_view/helpers/output_safety_helper"
 
@@ -216,10 +217,57 @@ module ActionView
         # Transforms a Hash into HTML Attributes, ready to be interpolated into
         # ERB.
         #
+        # === Passing a single Hash argument
+        #
         #   <input <%= tag.attributes(type: :text, aria: { label: "Search" }) %> >
         #   # => <input type="text" aria-label="Search">
-        def attributes(attributes)
-          tag_options(attributes.to_h).to_s.strip.html_safe
+        #
+        # === Passing multiple Hash arguments
+        #
+        # Passing multiple Hash arguments will be deep merged from left to right into a single Hash:
+        #
+        #   <input <%= tag.attributes({ type: :text }, { id: "search" }, { aria: { label: "Search" } }) %> >
+        #   # => <input type="text" id="search" aria-label="Search">
+        #
+        # Hash arguments can be mixed with keyword arguments:
+        #
+        #   <input <%= tag.attributes({ type: :text }, { id: "search" }, { aria: { label: "Search" } }, aria: { disabled: true }) %> >
+        #   # => <input type="text" id="search" aria-label="Search" aria-disabled="true">
+        #
+        # When called outside of a rendering context, <tt>tag.attributes</tt>
+        # will return a <tt>Hash</tt>-like object that knows how to render
+        # itself to HTML:
+        #
+        #   primary = { class: "bg-red-500 text-white" }
+        #   large = { class: "text-lg p-4" }
+        #
+        #   button_tag "Click me!", tag.attributes(primary, large)
+        #   # => <button name="button" type="submit" class="bg-red-500 text-white text-lg p-4">Click me!</button>
+        #
+        #   tag.button "Click me!", id: "cta", **tag.attributes(primary, large)
+        #   # => <button id="cta" class="bg-red-500 text-white text-lg p-4">Click me!</button>
+        #
+        # === Token list support
+        #
+        # Attribute merging will account for token lists attributes (like <tt>class</tt> and <tt>aria-labelledby</tt>) by combining values from left to right
+        #
+        #   <input <%= tag.attributes({ class: "font-bold" }, { class: ["text-sm", "text-gray-700"] }, class: "p-2") %> >
+        #   # => <input class="font-bold text-sm text-gray-700 p-2" >
+        #
+        # === Configuring token list support
+        #
+        # To treat addition attributes as token lists, add values to the <tt>config.action_view.token_lists</tt> value:
+        #
+        #   config.action_view.token_lists << "data-action"
+        #   config.action_view.token_lists << "data-controller"
+        #   config.action_view.token_lists << /data-(.*)-target/
+        #
+        ruby2_keywords def attributes(*hashes)
+          attributes = ActionView::Attributes.new(@view_context) do |value|
+            tag_options(value).to_s.strip.html_safe
+          end
+
+          hashes.tap(&:compact!).reduce(attributes, :merge!)
         end
 
         def tag_string(name, content = nil, escape: true, **options, &block)

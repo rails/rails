@@ -560,12 +560,254 @@ class TagHelperTest < ActionView::TestCase
     HTML
   end
 
-  def test_tag_attributes_nil
+  def test_tag_attributes_merges_arguments_from_left_to_right
+    assert_equal %(<input type="text" id="1" class="2" disabled="disabled" >), render_erb(%(<input type="text" <%= tag.attributes({ id: 1 }, { class: "2" }, disabled: true) %> >))
+    assert_equal %(<input type="text" id="1" class="2" disabled="disabled" >), render_erb(%(<input type="text" <%= tag.attributes({ "id" => 1 }, { "class" =>"2" }, "disabled" => true) %> >))
+  end
+
+  def test_tag_attributes_merges_overrides_from_left_to_right
+    assert_equal %(<input type="text" id="3" >), render_erb(%(<input type="text" <%= tag.attributes({ id: 1 }, { id: 2 }, id: 3) %> >))
+  end
+
+  def test_tag_attributes_deep_merges_nested_arguments_from_left_to_right
+    assert_equal %(<input type="text" aria-label="2" aria-disabled="true" aria-selected="false" >), render_erb(%(<input type="text" <%= tag.attributes({ aria: { label: 1 } }, { aria: { disabled: true, label: 2 } }, aria: { selected: false }) %> >))
+  end
+
+  def test_tag_attributes_merges_token_list_attributes
+    with_token_lists "class" do
+      assert_equal({ class: "1 2 3" }, tag.attributes({ class: "1" }, { class: ["2"] }, class: "3"))
+      assert_equal({ "class" => "1 2 3" }, tag.attributes({ "class" => "1" }, { "class" => ["2"] }, "class" => "3"))
+    end
+
+    with_token_lists(/\Aclass\Z/) do
+      assert_equal({ class: "1 2 3" }, tag.attributes({ class: "1" }, { class: ["2"] }, class: "3"))
+      assert_equal({ "class" => "1 2 3" }, tag.attributes({ "class" => "1" }, { "class" => ["2"] }, "class" => "3"))
+    end
+  end
+
+  def test_tag_attributes_deep_merges_token_list_attributes
+    with_token_lists "aria-labelledby" do
+      assert_equal({ aria: { labelledby: "1 2 3" } }, tag.attributes({ aria: { labelledby: "1" } }, { aria: { labelledby: ["2"] } }, aria: { labelledby: "3" }))
+      assert_equal({ "aria-labelledby": "1 2 3" }, tag.attributes({ "aria-labelledby": "1" }, { "aria-labelledby": ["2"] }, "aria-labelledby": "3"))
+      assert_equal({ "aria-labelledby" => "1 2 3" }, tag.attributes({ "aria-labelledby" => "1" }, { "aria-labelledby" => ["2"] }, "aria-labelledby" => "3"))
+    end
+  end
+
+  def test_tag_attributes_deep_merges_custom_token_list_attributes
+    with_token_lists "data-controller" do
+      assert_equal({ data: { controller: "1 2 3" } }, tag.attributes({ data: { controller: "1" } }, { data: { controller: ["2"] } }, data: { controller: "3" }))
+      assert_equal({ "data-controller": "1 2 3" }, tag.attributes({ "data-controller": "1" }, { "data-controller": ["2"] }, "data-controller": "3"))
+      assert_equal({ "data-controller" => "1 2 3" }, tag.attributes({ "data-controller" => "1" }, { "data-controller" => ["2"] }, "data-controller" => "3"))
+    end
+  end
+
+  def test_tag_attributes_merges_custom_token_list_attributes_at_any_depth
+    with_token_lists "data-a-controller-target" do
+      assert_equal({ data: { a_controller_target: "1 2 3" } }, tag.attributes({ data: { a_controller_target: "1" } }, { data: { a_controller_target: ["2"] } }, data: { a_controller_target: "3" }))
+      assert_equal({ "data-a-controller-target": "1 2 3" }, tag.attributes({ "data-a-controller-target": "1" }, { "data-a-controller-target": ["2"] }, "data-a-controller-target": "3"))
+      assert_equal({ "data-a-controller-target" => "1 2 3" }, tag.attributes({ "data-a-controller-target" => "1" }, { "data-a-controller-target" => ["2"] }, "data-a-controller-target" => "3"))
+    end
+  end
+
+  def test_tag_attributes_merges_custom_token_list_attribute_regular_expressions
+    with_token_lists(/data-(.*)-target/) do
+      assert_equal({ data: { a_controller_target: "1 2 3" } }, tag.attributes({ data: { a_controller_target: "1" } }, { data: { a_controller_target: ["2"] } }, data: { a_controller_target: "3" }))
+      assert_equal({ "data-a-controller-target": "1 2 3" }, tag.attributes({ "data-a-controller-target": "1" }, { "data-a-controller-target": ["2"] }, "data-a-controller-target": "3"))
+      assert_equal({ "data-a-controller-target" => "1 2 3" }, tag.attributes({ "data-a-controller-target" => "1" }, { "data-a-controller-target" => ["2"] }, "data-a-controller-target" => "3"))
+    end
+  end
+
+  def test_tag_attributes_to_h_preserves_keys
+    assert_equal({ "type" => :text }, tag.attributes("type" => :text).to_h)
+    assert_equal({ type: :text }, tag.attributes(type: :text).to_h)
+  end
+
+  def test_tag_attributes_to_h_preserves_nested_keys
+    assert_equal({ "data" => { "controller" => "1" } }, tag.attributes("data" => { "controller" => "1" }).to_h)
+    assert_equal({ data: { controller: "1" } }, tag.attributes(data: { controller: "1" }).to_h)
+  end
+
+  def test_tag_attributes_to_hash_preserves_keys
+    assert_equal({ "type" => :text }, tag.attributes("type" => :text).to_hash)
+    assert_equal({ type: :text }, tag.attributes(type: :text).to_hash)
+  end
+
+  def test_tag_attributes_to_hash_preserves_nested_keys
+    assert_equal({ "data" => { "controller" => "1" } }, tag.attributes("data" => { "controller" => "1" }).to_hash)
+    assert_equal({ data: { controller: "1" } }, tag.attributes(data: { controller: "1" }).to_hash)
+  end
+
+  def test_tag_attributes_support_class_names_values
+    with_token_lists "class" do
+      assert_equal(
+        { class: "1 2 3" },
+        tag.attributes(
+          { class: { "1": true } },
+          { class: { "2": true } },
+          class: { "3": true }
+        )
+      )
+    end
+  end
+
+  def test_tag_attributes_deep_merges_attributes_that_are_not_token_lists
+    assert_equal(
+      { data: { json: { c: "3" } } },
+      tag.attributes(
+        { data: { json: { a: "1" } } },
+        { data: { json: { b: "2" } } },
+        { data: { json: { c: "3" } } },
+      )
+    )
+  end
+
+  def test_tag_attributes_can_override_attributes_by_coercing
+    with_token_lists "class" do
+      assert_equal({ class: "3" }, tag.attributes({ class: "1" }, { class: "2" }).to_h.merge(class: "3"))
+      assert_equal({ "class" => "3" }, tag.attributes({ "class" => "1" }, { "class" => "2" }).to_h.merge("class" => "3"))
+    end
+  end
+
+  def test_tag_attributes_can_deep_override_attributes_by_coercing
+    with_token_lists "data-controller" do
+      assert_equal({ data: { controller: "3" } }, tag.attributes({ data: { controller: "1" } }, { data: { controller: "2" } }).to_h.deep_merge(data: { controller: "3" }))
+      assert_equal({ data: { "controller" => "3" } }, tag.attributes({ data: { "controller" => "1" } }, { data: { "controller" => "2" } }).to_h.deep_merge(data: { "controller" => "3" }))
+    end
+  end
+
+  def test_tag_attributes_as_argument
+    assert_equal <<~HTML.squish, render_erb(%(<%= button_tag "Content", tag.attributes(class: "1") %>))
+      <button name="button" type="submit" class="1">Content</button>
+    HTML
+  end
+
+  def test_tag_attributes_double_splat
+    assert_equal <<~HTML.squish, render_erb(%(<%= tag.button "Content", id: "1", **tag.attributes(class: "2") %>))
+      <button id="1" class="2">Content</button>
+    HTML
+  end
+
+  def test_tag_attributes_accepts_attribute_instances
+    with_token_lists "class" do
+      one = tag.attributes(class: "1")
+      two = tag.attributes(class: "2")
+      three = tag.attributes(class: "3")
+
+      assert_equal({ class: "1 2 3" }, tag.attributes(one, two, **three))
+    end
+  end
+
+  def test_tag_attributes_merge_returns_a_new_instance
+    with_token_lists "class" do
+      attributes = tag.attributes(class: "1")
+
+      returned = attributes.merge(class: "2")
+
+      assert_not_same attributes, returned
+      assert_kind_of ActionView::Attributes, returned
+    end
+  end
+
+  def test_tag_attributes_merge_accepts_a_block
+    with_token_lists "class" do
+      attributes = tag.attributes(class: "1")
+
+      returned = attributes.merge(class: "2") { |name, left, right| right }
+
+      assert_not_same attributes, returned
+      assert_kind_of ActionView::Attributes, returned
+      assert_equal({ class: "2" }, returned)
+    end
+  end
+
+  def test_tag_attributes_deep_merge_returns_a_new_instance
+    with_token_lists "class" do
+      attributes = tag.attributes(class: "1")
+
+      returned = attributes.deep_merge(class: "2")
+
+      assert_not_same attributes, returned
+      assert_kind_of ActionView::Attributes, returned
+    end
+  end
+
+  def test_tag_attributes_deep_merge_accepts_a_block
+    with_token_lists "class" do
+      attributes = tag.attributes(class: "1")
+
+      returned = attributes.deep_merge(class: "2") { |name, left, right| right }
+
+      assert_not_same attributes, returned
+      assert_kind_of ActionView::Attributes, returned
+      assert_equal({ class: "2" }, returned)
+    end
+  end
+
+  def test_tag_attributes_merge_bang_returns_self
+    with_token_lists "class" do
+      attributes = tag.attributes(class: "1")
+
+      returned = attributes.merge!(class: "2")
+
+      assert_same attributes, returned
+    end
+  end
+
+  def test_tag_attributes_merge_bang_accepts_a_block
+    with_token_lists "class" do
+      attributes = tag.attributes(class: "1")
+
+      returned = attributes.merge!(class: "2") { |name, left, right| right }
+
+      assert_same attributes, returned
+      assert_equal({ class: "2" }, returned)
+    end
+  end
+
+  def test_tag_attributes_deep_merge_bang_returns_self
+    with_token_lists "class" do
+      attributes = tag.attributes(class: "1")
+
+      returned = attributes.deep_merge!(class: "2")
+
+      assert_same attributes, returned
+    end
+  end
+
+  def test_tag_attributes_deep_merge_bang_accepts_a_block
+    with_token_lists "class" do
+      attributes = tag.attributes(class: "1")
+
+      returned = attributes.deep_merge!(class: "2") { |name, left, right| right }
+
+      assert_same attributes, returned
+      assert_equal({ class: "2" }, returned)
+    end
+  end
+
+  def test_tag_attributes_ignores_nil
     assert_equal %(<input type="text" >), render_erb(%(<input type="text" <%= tag.attributes nil %>>))
+    assert_equal %(<input type="text" >), render_erb(%(<input type="text" <%= tag.attributes nil, {} %>>))
   end
 
   def test_tag_attributes_empty
     assert_equal %(<input type="text" >), render_erb(%(<input type="text" <%= tag.attributes({}) %>>))
+  end
+
+  def test_tag_attributes_merges_attributes_from_Object_with_options
+    with_token_lists "class" do
+      one = tag.attributes(class: "1")
+
+      html = tag.with_options(one).div(class: "2")
+
+      assert_equal <<~HTML.squish, html
+        <div class="1 2"></div>
+      HTML
+    end
+  end
+
+  def test_tag_attributes_inspect
+    assert_equal({ type: :text }.inspect, tag.attributes(type: :text).inspect)
   end
 
   def test_tag_honors_html_safe_for_param_values
@@ -655,5 +897,15 @@ class TagHelperTest < ActionView::TestCase
 
   def test_respond_to
     assert_respond_to tag, :any_tag
+  end
+
+  def with_token_lists(*keys)
+    original, overrides = ActionView::Base.token_lists, Set[*keys]
+
+    ActionView::Base.token_lists = overrides
+
+    yield
+  ensure
+    ActionView::Base.token_lists = original
   end
 end

@@ -14,6 +14,19 @@ module ActionView
     config.action_view.image_decoding = nil
     config.action_view.apply_stylesheet_media_default = true
     config.action_view.prepend_content_exfiltration_prevention = false
+    config.action_view.token_lists = %w[
+      class
+      rel
+      aria-controls
+      aria-describedby
+      aria-details
+      aria-dropeffect
+      aria-flowto
+      aria-keyshortcuts
+      aria-labelledby
+      aria-owns
+      aria-relevant
+    ].to_set
 
     config.eager_load_namespaces << ActionView
 
