@@ -1,3 +1,9 @@
+*   Fix RedisCacheStore to properly set the TTL when incrementing or decrementing.
+
+    This bug was only impacting Redis server older than 7.0.
+
+    *Thomas Countz*
+
 *   Fix MemoryStore to prevent race conditions when incrementing or decrementing.
 
     *Pierre Jambet*

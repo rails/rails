@@ -141,6 +141,8 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       @cache = lookup_store(expires_in: 60)
       # @cache.logger = Logger.new($stdout)  # For test debugging
 
+      @cache_no_ttl = lookup_store
+
       # For LocalCacheBehavior tests
       @peek = lookup_store(expires_in: 60)
     end
@@ -193,6 +195,23 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
     end
 
+    def test_increment_ttl
+      # existing key
+      redis_backend(@cache_no_ttl) { |r| r.set "#{@namespace}:jar", 10 }
+      @cache_no_ttl.increment "jar", 1
+      redis_backend(@cache_no_ttl) do |r|
+        assert r.get("#{@namespace}:jar").to_i == 11
+        assert r.ttl("#{@namespace}:jar") < 0
+      end
+
+      # new key
+      @cache_no_ttl.increment "kar", 1
+      redis_backend(@cache_no_ttl) do |r|
+        assert r.get("#{@namespace}:kar").to_i == 1
+        assert r.ttl("#{@namespace}:kar") < 0
+      end
+    end
+
     def test_increment_expires_in
       @cache.increment "foo", 1, expires_in: 60
       redis_backend do |r|
@@ -208,10 +227,27 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
 
       # key exist but not have expire
-      redis_backend { |r| r.set "#{@namespace}:dar", 10 }
-      @cache.increment "dar", 1, expires_in: 60
-      redis_backend do |r|
+      redis_backend(@cache_no_ttl) { |r| r.set "#{@namespace}:dar", 10 }
+      @cache_no_ttl.increment "dar", 1, expires_in: 60
+      redis_backend(@cache_no_ttl) do |r|
         assert r.ttl("#{@namespace}:dar") > 0
+      end
+    end
+
+    def test_decrement_ttl
+      # existing key
+      redis_backend(@cache_no_ttl) { |r| r.set "#{@namespace}:jar", 10 }
+      @cache_no_ttl.decrement "jar", 1
+      redis_backend(@cache_no_ttl) do |r|
+        assert r.get("#{@namespace}:jar").to_i == 9
+        assert r.ttl("#{@namespace}:jar") < 0
+      end
+
+      # new key
+      @cache_no_ttl.decrement "kar", 1
+      redis_backend(@cache_no_ttl) do |r|
+        assert r.get("#{@namespace}:kar").to_i == -1
+        assert r.ttl("#{@namespace}:kar") < 0
       end
     end
 
@@ -230,9 +266,9 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
 
       # key exist but not have expire
-      redis_backend { |r| r.set "#{@namespace}:dar", 10 }
-      @cache.decrement "dar", 1, expires_in: 60
-      redis_backend do |r|
+      redis_backend(@cache_no_ttl) { |r| r.set "#{@namespace}:dar", 10 }
+      @cache_no_ttl.decrement "dar", 1, expires_in: 60
+      redis_backend(@cache_no_ttl) do |r|
         assert r.ttl("#{@namespace}:dar") > 0
       end
     end
@@ -252,8 +288,8 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
     end
 
-    def redis_backend
-      @cache.redis.with do |r|
+    def redis_backend(cache = @cache)
+      cache.redis.with do |r|
         yield r if block_given?
         return r
       end
