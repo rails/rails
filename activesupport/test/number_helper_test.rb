@@ -15,6 +15,16 @@ module ActiveSupport
         extend ActiveSupport::NumberHelper
       end
 
+      class NumberWithToD
+        def initialize(number)
+          @number = number
+        end
+
+        def to_d
+          @number.to_d
+        end
+      end
+
       def setup
         @instance_with_helpers = TestClassWithInstanceNumberHelpers.new
       end
@@ -95,6 +105,7 @@ module ActiveSupport
           assert_equal("-$,11", number_helper.number_to_currency("-,11"))
           assert_equal("$0.00", number_helper.number_to_currency(-0.0))
           assert_equal("$0.00", number_helper.number_to_currency("-0.0"))
+          assert_equal("$1.23", number_helper.number_to_currency(NumberWithToD.new(1.23)))
         end
       end
 
