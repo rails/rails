@@ -1747,8 +1747,11 @@ Rendered recordings/threads/_thread.html.erb in 1.5 ms [cache miss]
 
 Raises an `AbstractController::ActionNotFound` when the action specified in callback's `:only` or `:except` options is missing in the controller.
 
-The default value is `false`.
-In newly generated 7.1+ app, the default values in config/environments.development.rb and test.rb will be configured as `true`.
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.1                   | `true` (development and test), `false` (other envs)|
+
 
 #### `config.action_controller.raise_on_open_redirects`
 
