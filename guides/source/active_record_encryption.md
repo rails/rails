@@ -495,7 +495,7 @@ The digest algorithm used to derive keys. `OpenSSL::Digest::SHA1` by default.
 #### `config.active_record.encryption.support_sha1_for_non_deterministic_encryption`
 
 Supports decrypting data encrypted non-deterministically with a digest class SHA1. Default is false, which
-means it  will only support the digest algorithm configured in `config.active_record.encryption.hash_digest_class`.
+means it will only support the digest algorithm configured in `config.active_record.encryption.hash_digest_class`.
 
 ### Encryption Contexts
 
