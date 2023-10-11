@@ -179,8 +179,10 @@ module ActiveSupport
           case number
           when Float, Rational
             number.to_d(0)
-          else
+          when String
             BigDecimal(number, exception: false)
+          else
+            number.to_d rescue nil
           end
         end
     end
