@@ -385,11 +385,18 @@ module ActiveRecord
           execute "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
           pk, seq = pk_and_sequence_for(new_name)
           if pk
-            idx = "#{table_name}_pkey"
-            new_idx = "#{new_name}_pkey"
+            # PostgreSQL automatically creates an index for PRIMARY KEY with name consisting of
+            # truncated table name and "_pkey" suffix fitting into max_identifier_length number of characters.
+            max_pkey_prefix = max_identifier_length - "_pkey".size
+            idx = "#{table_name[0, max_pkey_prefix]}_pkey"
+            new_idx = "#{new_name[0, max_pkey_prefix]}_pkey"
             execute "ALTER INDEX #{quote_table_name(idx)} RENAME TO #{quote_table_name(new_idx)}"
-            if seq && seq.identifier == "#{table_name}_#{pk}_seq"
-              new_seq = "#{new_name}_#{pk}_seq"
+
+            # PostgreSQL automatically creates a sequence for PRIMARY KEY with name consisting of
+            # truncated table name and "#{primary_key}_seq" suffix fitting into max_identifier_length number of characters.
+            max_seq_prefix = max_identifier_length - "_#{pk}_seq".size
+            if seq && seq.identifier == "#{table_name[0, max_seq_prefix]}_#{pk}_seq"
+              new_seq = "#{new_name[0, max_seq_prefix]}_#{pk}_seq"
               execute "ALTER TABLE #{seq.quoted} RENAME TO #{quote_table_name(new_seq)}"
             end
           end

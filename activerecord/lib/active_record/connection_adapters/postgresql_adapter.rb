@@ -605,14 +605,6 @@ module ActiveRecord
         @max_identifier_length ||= query_value("SHOW max_identifier_length", "SCHEMA").to_i
       end
 
-      # Returns the maximum length of a table name.
-      def table_name_length
-        # PostgreSQL automatically creates an index for PRIMARY KEY with name consisting of
-        # truncated table name and "_pkey" suffix fitting into max_identifier_length number of characters.
-        # We allow smaller table names to be able to correctly rename this index when renaming the table.
-        max_identifier_length - "_pkey".length
-      end
-
       # Set the authorized user for this session
       def session_auth=(user)
         clear_cache!
