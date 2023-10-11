@@ -1,3 +1,11 @@
+*   Updated `@rails/ujs` files to ignore certain data-* attributes when element is contenteditable.
+
+    This fix was already landed in >= 7.0.4.3, < 7.1.0.
+    [[CVE-2023-23913](https://github.com/advisories/GHSA-xp5h-f8jf-rc8q)]
+
+    *Ryunosuke Sato*
+
+
 ## Rails 7.1.0 (October 05, 2023) ##
 
 *   No changes.
