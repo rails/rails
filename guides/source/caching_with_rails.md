@@ -122,6 +122,16 @@ All cached templates from previous renders will be fetched at once with much
 greater speed. Additionally, the templates that haven't yet been cached will be
 written to cache and multi fetched on the next render.
 
+The cache key can be configured. In the example below, it is prefixed with the
+current locale to ensure that different localizations of the product page
+do not overwrite each other:
+
+```html+erb
+<%= render partial: 'products/product',
+           collection: @products,
+           cached: ->(product) { [I18n.locale, product] } %>
+```
+
 ### Russian Doll Caching
 
 You may want to nest cached fragments inside other cached fragments. This is
