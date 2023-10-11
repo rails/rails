@@ -1,3 +1,10 @@
+*   Updated `@rails/ujs` files to ignore certain data-* attributes when element is contenteditable.
+
+    This fix was already landed in >= 7.0.4.3, < 7.1.0.
+    [[CVE-2023-23913](https://github.com/advisories/GHSA-xp5h-f8jf-rc8q)]
+
+    *Ryunosuke Sato*
+
 *   Added validation for HTML tag names in the `tag` and `content_tag` helper method. The `tag` and
     `content_tag` method now checks that the provided tag name adheres to the HTML specification. If
     an invalid HTML tag name is provided, the method raises an `ArgumentError` with an appropriate error
