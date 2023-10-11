@@ -1326,7 +1326,7 @@ class DirectUploadsController < ActiveStorage::DirectUploadsController
   def authenticate!
     @token = request.headers['Authorization']&.split&.last
 
-    return head :unauthorized unless valid_token?(@token)
+    head :unauthorized unless valid_token?(@token)
   end
 end
 ```
