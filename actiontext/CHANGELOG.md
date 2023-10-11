@@ -1,3 +1,8 @@
+## Rails 7.1.1 (October 11, 2023) ##
+
+*   No changes.
+
+
 ## Rails 7.1.0 (October 05, 2023) ##
 
 *   No changes.

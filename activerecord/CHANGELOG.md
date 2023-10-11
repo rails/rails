@@ -1,3 +1,5 @@
+## Rails 7.1.1 (October 11, 2023) ##
+
 *   Fix auto populating IDENTITY columns for PostgreSQL.
 
     *fatkodima*

@@ -1,3 +1,5 @@
+## Rails 7.1.1 (October 11, 2023) ##
+
 *   Add support for keyword arguments when delegating calls to custom loggers from `ActiveSupport::BroadcastLogger`.
 
     *Edouard Chin*
