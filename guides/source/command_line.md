@@ -181,7 +181,7 @@ With no further work, `bin/rails server` will run our new shiny Rails app:
 $ cd my_app
 $ bin/rails server
 => Booting Puma
-=> Rails 7.1.0 application starting in development
+=> Rails 7.2.0 application starting in development
 => Run `bin/rails server --help` for more startup options
 Puma starting in single mode...
 * Version 3.12.1 (ruby 2.5.7-p206), codename: Llamas in Pajamas
@@ -507,7 +507,7 @@ $ bin/rails destroy model Oops
 ```bash
 $ bin/rails about
 About your application's environment
-Rails version             7.1.0
+Rails version             7.2.0
 Ruby version              2.7.0 (x86_64-linux)
 RubyGems version          2.7.3
 Rack version              2.0.4
