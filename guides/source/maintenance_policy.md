@@ -99,11 +99,11 @@ recommend to point your application at the stable branch using Git. If you are
 not comfortable maintaining your own versions, you should upgrade to a supported
 version.
 
-NPM Packages
+npm Packages
 ------------
 
 Due to a constraint with npm, we are unable to use the 4th digit for security
-releases of [NPM packages][] provided by Rails. This means that instead of the
-equivalent gem version `7.0.1.4`, the NPM package will be versioned `7.0.1-4`.
+releases of [npm packages][] provided by Rails. This means that instead of the
+equivalent gem version `7.0.1.4`, the npm package will be versioned `7.0.1-4`.
 
-[NPM packages]: https://www.npmjs.com/org/rails
+[npm packages]: https://www.npmjs.com/org/rails
