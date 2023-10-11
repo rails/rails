@@ -37,11 +37,11 @@ and because WYSIWYG HTML editors are enormous in scope, each
 browser's implementation has its own set of bugs and quirks,
 and JavaScript developers are left to resolve the inconsistencies.
 
-Trix sidesteps these inconsistencies by treating contenteditable
+Trix sidesteps these inconsistencies by treating `contenteditable`
 as an I/O device: when input makes its way to the editor, Trix converts that input
 into an editing operation on its internal document model, then re-renders
 that document back into the editor. This gives Trix complete control over what
-happens after every keystroke, and avoids the need to use execCommand at all.
+happens after every keystroke, and avoids the need to use `execCommand` at all.
 
 ## Installation
 
