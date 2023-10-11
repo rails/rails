@@ -263,6 +263,8 @@ Use fixed-width fonts for:
 * Symbols
 * Method parameters
 * File names
+* HTML tags and attributes
+* CSS selectors, attributes and values
 
 ```ruby
 class Array
