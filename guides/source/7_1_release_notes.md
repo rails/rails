@@ -723,7 +723,7 @@ Please refer to the [Changelog][active-storage] for detailed changes.
 
 *   `preprocessed` option is added when declaring variants to preprocess variants.
 
-*   Add the ability to destroy active storage variants.
+*   Add the ability to destroy Active Storage variants.
 
     ```ruby
     User.first.avatar.variant(resize_to_limit: [100, 100]).destroy
