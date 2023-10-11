@@ -7,16 +7,6 @@ GIT
       event_emitter
       websocket
 
-GIT
-  remote: https://github.com/rails/sdoc.git
-  revision: 947abf9d928f37b9cb91c8139e051b834265724a
-  branch: main
-  specs:
-    sdoc (3.0.0.alpha)
-      nokogiri
-      rdoc (>= 5.0)
-      rouge
-
 PATH
   remote: .
   specs:
@@ -321,7 +311,7 @@ GEM
     memoist (0.16.2)
     mini_magick (4.12.0)
     mini_mime (1.1.2)
-    mini_portile2 (2.8.2)
+    mini_portile2 (2.8.4)
     minitest (5.19.0)
     minitest-bisect (1.6.0)
       minitest-server (~> 1.0)
@@ -355,12 +345,12 @@ GEM
     net-smtp (0.4.0)
       net-protocol
     nio4r (2.5.9)
-    nokogiri (1.15.2)
+    nokogiri (1.15.4)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
-    nokogiri (1.15.2-x86_64-darwin)
+    nokogiri (1.15.4-x86_64-darwin)
       racc (~> 1.4)
-    nokogiri (1.15.2-x86_64-linux)
+    nokogiri (1.15.4-x86_64-linux)
       racc (~> 1.4)
     os (1.1.4)
     parallel (1.22.1)
@@ -374,7 +364,7 @@ GEM
       activesupport (>= 7.0.0)
       rack
       railties (>= 7.0.0)
-    psych (5.1.0)
+    psych (5.1.1)
       stringio
     public_suffix (5.0.1)
     puma (6.3.0)
@@ -382,7 +372,7 @@ GEM
     queue_classic (4.0.0)
       pg (>= 1.1, < 2.0)
     raabro (1.4.0)
-    racc (1.6.2)
+    racc (1.7.1)
     rack (3.0.8)
     rack-cache (1.14.0)
       rack (>= 0.4)
@@ -434,7 +424,7 @@ GEM
       rufus-scheduler (~> 3.2, != 3.3)
     retriable (3.1.2)
     rexml (3.2.5)
-    rouge (4.1.0)
+    rouge (4.1.3)
     rubocop (1.48.1)
       json (~> 2.3)
       parallel (~> 1.10)
@@ -467,6 +457,8 @@ GEM
     rubyzip (2.3.2)
     rufus-scheduler (3.8.2)
       fugit (~> 1.1, >= 1.1.6)
+    sdoc (2.6.1)
+      rdoc (>= 5.0)
     selenium-webdriver (4.11.0)
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 3.0)
@@ -510,7 +502,7 @@ GEM
     stackprof (0.2.23)
     stimulus-rails (1.2.1)
       railties (>= 6.0.0)
-    stringio (3.0.7)
+    stringio (3.0.8)
     sucker_punch (3.1.0)
       concurrent-ruby (~> 1.0)
     syntax_tree (6.1.1)
@@ -623,7 +615,7 @@ DEPENDENCIES
   rubocop-performance
   rubocop-rails
   rubyzip (~> 2.0)
-  sdoc!
+  sdoc
   selenium-webdriver (>= 4.11.0)
   sidekiq
   sneakers
