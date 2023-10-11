@@ -59,7 +59,7 @@ class TestERBTemplate < ActiveSupport::TestCase
 
   def new_template(body = "<%= hello %>", details = {})
     details = { format: :html, locals: [] }.merge details
-    ActionView::Template.new(body.dup, "hello template", details.delete(:handler) || ERBHandler, **{ virtual_path: "hello" }.merge!(details))
+    ActionView::Template.new(body.dup, "hello template", details.delete(:handler) || ERBHandler, virtual_path: "hello", **details)
   end
 
   def render(locals = {})

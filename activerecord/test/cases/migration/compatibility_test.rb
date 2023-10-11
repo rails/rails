@@ -330,8 +330,8 @@ module ActiveRecord
 
         ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
-        assert connection.column_exists?(:more_testings, :created_at, **{ precision: 6 })
-        assert connection.column_exists?(:more_testings, :updated_at, **{ precision: 6 })
+        assert connection.column_exists?(:more_testings, :created_at, precision: 6)
+        assert connection.column_exists?(:more_testings, :updated_at, precision: 6)
       ensure
         connection.drop_table :more_testings rescue nil
       end

@@ -296,6 +296,9 @@ Style/TrivialAccessors:
 Style/RedundantCondition:
   Enabled: true
 
+Style/RedundantDoubleSplatHashBraces:
+  Enabled: true
+
 Performance/BindCall:
   Enabled: true
 
