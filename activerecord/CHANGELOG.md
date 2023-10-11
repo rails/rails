@@ -7,6 +7,11 @@
 
     *fatkodima*
 
+*   Do not require the Action Text, Active Storage and Action Mailbox tables
+    to be present when running when running test on CI.
+
+    *Rafael Mendonça França*
+
 
 ## Rails 7.1.0 (October 05, 2023) ##
 

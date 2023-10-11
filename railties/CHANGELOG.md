@@ -1,3 +1,8 @@
+*   Ensures the Rails generated Dockerfile uses correct ruby version and matches Gemfile.
+
+    *Abhay Nikam*
+
+
 ## Rails 7.1.0 (October 05, 2023) ##
 
 *   No changes.

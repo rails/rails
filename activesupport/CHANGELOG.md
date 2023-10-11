@@ -1,3 +1,11 @@
+*   Add support for keyword arguments when delegating calls to custom loggers from `ActiveSupport::BroadcastLogger`.
+
+    *Edouard Chin*
+
+*   `NumberHelper`: handle objects responding `to_d`.
+
+    *fatkodima*
+
 *   Fix RedisCacheStore to properly set the TTL when incrementing or decrementing.
 
     This bug was only impacting Redis server older than 7.0.
@@ -7,6 +15,7 @@
 *   Fix MemoryStore to prevent race conditions when incrementing or decrementing.
 
     *Pierre Jambet*
+
 
 ## Rails 7.1.0 (October 05, 2023) ##
 

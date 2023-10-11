@@ -1,3 +1,8 @@
+*   Don't log enqueuing details when the job wasn't enqueued.
+
+    *Dustin Brown*
+
+
 ## Rails 7.1.0 (October 05, 2023) ##
 
 *   No changes.
