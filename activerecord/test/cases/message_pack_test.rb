@@ -9,7 +9,7 @@ require "active_support/message_pack"
 require "active_record/message_pack"
 
 class ActiveRecordMessagePackTest < ActiveRecord::TestCase
-  fixtures :posts, :comments, :authors
+  fixtures :posts, :comments, :authors, :author_addresses
 
   test "enshrines type IDs" do
     expected = {
