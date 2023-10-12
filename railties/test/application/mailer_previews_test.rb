@@ -275,26 +275,6 @@ module ApplicationTests
       assert_no_match '<li><a href="/rails/mailers/notifier/bar">bar</a></li>', last_response.body
     end
 
-    test "mailer preview_path option is deprecated" do
-      prev = ActionMailer::Base.preview_paths
-      ActionMailer::Base.preview_paths = ["#{app_path}/lib/mailer/previews"]
-      assert_deprecated(ActionMailer.deprecator) do
-        assert_equal "#{app_path}/lib/mailer/previews", ActionMailer::Base.preview_path
-      end
-    ensure
-      ActionMailer::Base.preview_paths = prev
-    end
-
-    test "mailer preview_path= option is deprecated" do
-      prev = ActionMailer::Base.preview_paths
-      assert_deprecated(ActionMailer.deprecator) do
-        ActionMailer::Base.preview_path = "#{app_path}/lib/mailer/previews"
-      end
-      assert_equal ["#{app_path}/lib/mailer/previews"], ActionMailer::Base.preview_paths
-    ensure
-      ActionMailer::Base.preview_paths = prev
-    end
-
     test "mailer previews are reloaded from custom preview_paths" do
       app_dir "lib/mailer_previews"
       add_to_config "config.action_mailer.preview_paths = ['#{app_path}/lib/mailer_previews']"

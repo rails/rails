@@ -72,6 +72,8 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `config.action_mailer.preview_path`.
+
 ### Deprecations
 
 ### Notable changes
