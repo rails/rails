@@ -455,7 +455,7 @@ class ErrorsTest < ActiveModel::TestCase
     assert_nil person.errors.as_json.default_proc
   end
 
-  test "messages returns empty frozen array when when accessed with non-existent attribute" do
+  test "messages returns empty frozen array when accessed with non-existent attribute" do
     errors = ActiveModel::Errors.new(Person.new)
 
     assert_equal [], errors.messages[:foo]

@@ -534,7 +534,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   # Note: these next two are kinda odd because they are essentially just testing that the
-  # query cache works as it should, but they are here for legacy reasons as they was previously
+  # query cache works as it should, but they are here for legacy reasons as there was previously
   # a separate cache on association proxies, and these show that that is not necessary.
   def test_scopes_are_cached_on_associations
     post = posts(:welcome)
