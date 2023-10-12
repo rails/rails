@@ -111,6 +111,15 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `name` argument from `ActiveRecord::Base.remove_connection`.
 
+*   Remove deprecated `ActiveRecord::Base.clear_active_connections!`.
+
+*   Remove deprecated `ActiveRecord::Base.clear_reloadable_connections!`.
+
+*   Remove deprecated `ActiveRecord::Base.clear_all_connections!`.
+
+*   Remove deprecated `ActiveRecord::Base.flush_idle_connections!`.
+
+
 ### Deprecations
 
 ### Notable changes

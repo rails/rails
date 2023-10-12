@@ -1,3 +1,19 @@
+*   Remove deprecated `ActiveRecord::Base.clear_active_connections!`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::Base.clear_reloadable_connections!`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::Base.clear_all_connections!`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::Base.flush_idle_connections!`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `name` argument from `ActiveRecord::Base.remove_connection`.
 
     *Rafael Mendonça França*
