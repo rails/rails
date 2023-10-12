@@ -50,6 +50,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated constant `ActionDispatch::IllegalStateError`.
+
 ### Deprecations
 
 ### Notable changes

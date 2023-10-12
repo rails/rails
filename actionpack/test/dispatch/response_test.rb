@@ -10,12 +10,6 @@ class ResponseTest < ActiveSupport::TestCase
     @response.request = ActionDispatch::Request.empty
   end
 
-  def test_illegal_state_error_is_deprecated
-    assert_deprecated(ActionDispatch.deprecator) do
-      ActionDispatch::IllegalStateError
-    end
-  end
-
   def test_can_wait_until_commit
     t = Thread.new {
       @response.await_commit

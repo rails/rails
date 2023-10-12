@@ -44,14 +44,7 @@ end
 # such as MIME-type negotiation, decoding parameters in POST, PATCH, or PUT
 # bodies, handling HTTP caching logic, cookies and sessions.
 module ActionDispatch
-  include ActiveSupport::Deprecation::DeprecatedConstantAccessor
   extend ActiveSupport::Autoload
-
-  class DeprecatedIllegalStateError < StandardError
-  end
-  deprecate_constant "IllegalStateError", "ActionDispatch::DeprecatedIllegalStateError",
-    message: "ActionDispatch::IllegalStateError is deprecated without replacement.",
-    deprecator: ActionDispatch.deprecator
 
   class MissingController < NameError
   end
