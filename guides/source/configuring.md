@@ -64,7 +64,6 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
 - [`config.action_text.sanitizer_vendor`](#config-action-text-sanitizer-vendor): `Rails::HTML::Sanitizer.best_supported_vendor`
 - [`config.action_view.sanitizer_vendor`](#config-action-view-sanitizer-vendor): `Rails::HTML::Sanitizer.best_supported_vendor`
-- [`config.active_job.use_big_decimal_serializer`](#config-active-job-use-big-decimal-serializer): `true`
 - [`config.active_record.allow_deprecated_singular_associations_name`](#config-active-record-allow-deprecated-singular-associations-name): `false`
 - [`config.active_record.before_committed_on_all_records`](#config-active-record-before-committed-on-all-records): `true`
 - [`config.active_record.belongs_to_required_validates_foreign_key`](#config-active-record-belongs-to-required-validates-foreign-key): `false`
@@ -2661,24 +2660,6 @@ The default value depends on the `config.load_defaults` target version:
 
 Determines whether job context for query tags will be automatically updated via
 an `around_perform`. The default value is `true`.
-
-#### `config.active_job.use_big_decimal_serializer`
-
-Enables the new `BigDecimal` argument serializer, which guarantees
-roundtripping. Without this serializer, some queue adapters may serialize
-`BigDecimal` arguments as simple (non-roundtrippable) strings.
-
-WARNING: When deploying an application with multiple replicas, old (pre-Rails
-7.1) replicas will not be able to deserialize `BigDecimal` arguments from this
-serializer. Therefore, this setting should only be enabled after all replicas
-have been successfully upgraded to Rails 7.1.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `false`              |
-| 7.1                   | `true`               |
 
 ### Configuring Action Cable
 

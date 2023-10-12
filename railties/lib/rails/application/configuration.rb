@@ -305,10 +305,6 @@ module Rails
             action_dispatch.debug_exception_log_level = :error
           end
 
-          if respond_to?(:active_job)
-            active_job.use_big_decimal_serializer = true
-          end
-
           if respond_to?(:active_support)
             active_support.cache_format_version = 7.1
             active_support.message_serializer = :json_allow_marshal
