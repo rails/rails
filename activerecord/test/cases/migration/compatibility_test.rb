@@ -570,6 +570,7 @@ module ActiveRecord
         assert connection.table_exists?(:more_testings)
       ensure
         connection.drop_table(:more_testings) rescue nil
+        connection.drop_table(:new_more_testings) rescue nil
       end
 
       def test_change_column_null_with_non_boolean_arguments_raises_in_a_migration
