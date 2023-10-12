@@ -161,35 +161,45 @@ class ActionsTest < Rails::Generators::TestCase
   def test_gem_group_should_wrap_gems_in_a_group
     run_generator
 
+    action :gem_group, :custom_group_one, :custom_group_two do
+      gem "rspec-rails"
+    end
+
+    action :gem_group, :custom_group_two do
+      gem "fakeweb"
+    end
+
+    assert_file "Gemfile", /\n\ngroup :custom_group_one, :custom_group_two do\n  gem "rspec-rails"\nend\n\ngroup :custom_group_two do\n  gem "fakeweb"\nend\n\z/
+  end
+
+  def test_gem_group_should_predend_existing_group
+    run_generator
+
     action :gem_group, :development, :test do
       gem "rspec-rails"
     end
 
-    action :gem_group, :test do
-      gem "fakeweb"
-    end
-
-    assert_file "Gemfile", /\n\ngroup :development, :test do\n  gem "rspec-rails"\nend\n\ngroup :test do\n  gem "fakeweb"\nend\n\z/
+    assert_file "Gemfile", /\ngroup :development, :test do{1}\n  gem "rspec-rails"/
   end
 
   def test_gem_group_should_indent_comments
     run_generator
 
-    action :gem_group, :test do
+    action :gem_group, :custom_group do
       gem "fakeweb", comment: "Fake requests"
     end
 
-    assert_file "Gemfile", /\n\ngroup :test do\n  # Fake requests\n  gem "fakeweb"\nend\n\z/
+    assert_file "Gemfile", /\n\ngroup :custom_group do\n  # Fake requests\n  gem "fakeweb"\nend\n\z/
   end
 
   def test_gem_group_should_indent_multiline_comments
     run_generator
 
-    action :gem_group, :test do
+    action :gem_group, :custom_group do
       gem "fakeweb", comment: "Fake requests\nNeeded in tests"
     end
 
-    assert_file "Gemfile", /\n\ngroup :test do\n  # Fake requests\n  # Needed in tests\n  gem "fakeweb"\nend\n\z/
+    assert_file "Gemfile", /\n\ngroup :custom_group do\n  # Fake requests\n  # Needed in tests\n  gem "fakeweb"\nend\n\z/
   end
 
   def test_github_should_create_an_indented_block
@@ -265,11 +275,11 @@ class ActionsTest < Rails::Generators::TestCase
     run_generator
     File.open("Gemfile", "a") { |f| f.write('gem "rspec-rails"') }
 
-    action :gem_group, :test do
+    action :gem_group, :custom_group do
       gem "fakeweb"
     end
 
-    assert_file "Gemfile", /gem "rspec-rails"\n\ngroup :test do\n  gem "fakeweb"\nend\n\z/
+    assert_file "Gemfile", /gem "rspec-rails"\n\ngroup :custom_group do\n  gem "fakeweb"\nend\n\z/
   end
 
   def test_add_source_with_gemfile_without_newline_at_the_end

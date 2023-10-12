@@ -99,11 +99,15 @@ module Rails
           end
           str << indentation
           str << "gem #{parts.join(", ")}"
-          append_file_with_newline "Gemfile", str.join, verbose: false
+          if @gem_groups
+            inject_into_file "Gemfile", "\n#{str.join}", after: "group #{@gem_groups} do"
+          else
+            append_file_with_newline "Gemfile", str.join, verbose: false
+          end
         end
       end
 
-      # Wraps gem entries inside a group.
+      # Wraps gem entries inside a group. Prepends to existing groups.
       #
       #   gem_group :development, :test do
       #     gem "rspec-rails"
@@ -116,9 +120,16 @@ module Rails
         log :gemfile, "group #{str}"
 
         in_root do
-          append_file_with_newline "Gemfile", "\ngroup #{str} do", force: true
-          with_indentation(&block)
-          append_file_with_newline "Gemfile", "end", force: true
+          if File.readlines("Gemfile").any? { |line| line.include?("group #{str} do") }
+            @gem_groups = str
+            with_indentation(&block)
+          else
+            append_file_with_newline "Gemfile", "\ngroup #{str} do", force: true
+            with_indentation(&block)
+            append_file_with_newline "Gemfile", "end", force: true
+          end
+        ensure
+          @gem_groups = nil
         end
       end
 
