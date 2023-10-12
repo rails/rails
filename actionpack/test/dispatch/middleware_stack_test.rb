@@ -24,6 +24,7 @@ class MiddlewareStackTest < ActiveSupport::TestCase
       @block = block
     end
   end
+  class ExampleError < StandardError; end
 
   def setup
     @stack = ActionDispatch::MiddlewareStack.new
@@ -210,6 +211,17 @@ class MiddlewareStackTest < ActiveSupport::TestCase
 
     assert_equal 2, events.count
     assert_equal ["MiddlewareStackTest::BarMiddleware", "MiddlewareStackTest::FooMiddleware"], events.map { |e| e.payload[:middleware] }
+  end
+
+  test "does not included errors when instrumented middleware is inspected" do
+    ActiveSupport::Notifications.subscribed(proc { }, "process_middleware.action_dispatch") do
+      app = @stack.build(proc { |env| raise ExampleError })
+      env = Rack::MockRequest.env_for("", {})
+
+      assert_raises(ExampleError) { app.call(env) }
+
+      assert_not_includes app.inspect, ExampleError.to_s
+    end
   end
 
   test "includes a middleware" do
