@@ -60,6 +60,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   Remove deprecated `speaker`, `vibrate`, and `vr` permissions policy directives.
 
+*   Remove deprecated support to set `Rails.application.config.action_dispatch.show_exceptions` to `true` and `false`.
+
 ### Deprecations
 
 *   Deprecate `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality`.

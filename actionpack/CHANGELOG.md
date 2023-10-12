@@ -1,3 +1,7 @@
+*   Remove deprecated support to set `Rails.application.config.action_dispatch.show_exceptions` to `true` and `false`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `speaker`, `vibrate`, and `vr` permissions policy directives.
 
     *Rafael Mendonça França*

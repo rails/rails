@@ -186,12 +186,6 @@ module ActionDispatch
         false
       when :rescuable
         rescue_response?
-      when true
-        ActionDispatch.deprecator.warn("Setting action_dispatch.show_exceptions to true is deprecated. Set to :all instead.")
-        true
-      when false
-        ActionDispatch.deprecator.warn("Setting action_dispatch.show_exceptions to false is deprecated. Set to :none instead.")
-        false
       else
         true
       end
