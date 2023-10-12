@@ -1,3 +1,10 @@
+*   Fix the `capture` view helper compatibility with HAML and Slim
+
+    When a blank string was captured in HAML or Slim (and possibly other template engines)
+    it would instead return the entire buffer.
+
+    *Jean Boussier*
+
 *   Updated `@rails/ujs` files to ignore certain data-* attributes when element is contenteditable.
 
     This fix was already landed in >= 7.0.4.3, < 7.1.0.

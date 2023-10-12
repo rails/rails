@@ -230,6 +230,16 @@ class CaptureHelperTest < ActionView::TestCase
     assert_equal "", @av.with_output_buffer { }.to_s
   end
 
+  def test_ignore_the_block_return_if_its_the_buffer
+    @av.output_buffer << "something"
+    string = @av.capture do
+      @av.output_buffer << "foo"
+      @av.output_buffer << "bar"
+      @av.output_buffer
+    end
+    assert_equal "foobar", string
+  end
+
   def alt_encoding(output_buffer)
     output_buffer.encoding == Encoding::US_ASCII ? Encoding::UTF_8 : Encoding::US_ASCII
   end
