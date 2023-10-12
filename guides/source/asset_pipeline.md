@@ -30,7 +30,7 @@ passing the `--skip-asset-pipeline` option.
 $ rails new appname --skip-asset-pipeline
 ```
 
-NOTE: This guide focuses on the default asset pipeline using only `sprockets` for CSS and `importmap-rails` for JavaScript processing. The main limitation of those two is that there is no support for transpiling so you can't use things like `Babel`, `Typescript`, `Sass`, `React JSX format` or `TailwindCSS`. We encourage you to read the [Alternative Libraries section](#alternative-libraries) if you need transpiling for your JavaScript/CSS.
+NOTE: This guide focuses on the default asset pipeline using only `sprockets` for CSS and `importmap-rails` for JavaScript processing. The main limitation of those two is that there is no support for transpiling so you can't use things like `Babel`, `TypeScript`, `Sass`, `React JSX format` or `TailwindCSS`. We encourage you to read the [Alternative Libraries section](#alternative-libraries) if you need transpiling for your JavaScript/CSS.
 
 ## Main Features
 
@@ -329,7 +329,7 @@ Pipeline assets can be placed inside an application in one of three locations:
 
 * `vendor/[assets|javascript]` is for assets that are owned by outside entities, such as CSS frameworks or JavaScript libraries. Keep in mind that third-party code with references to other files also processed by the asset Pipeline (images, stylesheets, etc.), will need to be rewritten to use helpers like `asset_path`.
 
-Other locations could by configured in the `manifest.js` file, refer to the [Manifest Files and Directives](#manifest-files-and-directives).
+Other locations could be configured in the `manifest.js` file, refer to the [Manifest Files and Directives](#manifest-files-and-directives).
 
 #### Search Paths
 
