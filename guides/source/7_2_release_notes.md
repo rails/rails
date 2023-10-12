@@ -107,6 +107,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `Rails.application.config.active_record.suppress_multiple_database_warning`.
 
+*   Remove deprecated support to call `alias_attribute` with non-existent attribute names.
+
 ### Deprecations
 
 ### Notable changes

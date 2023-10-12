@@ -1,3 +1,7 @@
+*   Remove deprecated support to call `alias_attribute` with non-existent attribute names.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `Rails.application.config.active_record.suppress_multiple_database_warning`.
 
     *Rafael Mendonça França*
