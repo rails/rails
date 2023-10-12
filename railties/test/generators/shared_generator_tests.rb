@@ -62,7 +62,7 @@ module SharedGeneratorTests
 
   def test_invalid_database_option_raises_an_error
     content = capture(:stderr) { run_generator([destination_root, "-d", "unknown"]) }
-    assert_match(/Invalid value for --database option/, content)
+    assert_match(/Expected '--database' to be one of/, content)
   end
 
   def test_test_files_are_skipped_if_required

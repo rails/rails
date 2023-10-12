@@ -277,8 +277,8 @@ module Rails
       class_option :version, type: :boolean, aliases: "-v", group: :rails, desc: "Show Rails version number and quit"
       class_option :api, type: :boolean, desc: "Preconfigure smaller stack for API only apps"
       class_option :minimal, type: :boolean, desc: "Preconfigure a minimal rails app"
-      class_option :javascript, type: :string, aliases: ["-j", "--js"], default: "importmap", desc: "Choose JavaScript approach [options: #{JAVASCRIPT_OPTIONS.join(', ')}]"
-      class_option :css, type: :string, aliases: "-c", desc: "Choose CSS processor [options: #{CSS_OPTIONS.join(', ')}] check https://github.com/rails/cssbundling-rails for more options"
+      class_option :javascript, type: :string, aliases: ["-j", "--js"], default: "importmap", enum: JAVASCRIPT_OPTIONS, desc: "Choose JavaScript approach"
+      class_option :css, type: :string, aliases: "-c", enum: CSS_OPTIONS, desc: "Choose CSS processor. Check https://github.com/rails/cssbundling-rails for more options"
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: nil, desc: "Don't run bundle install"
       class_option :skip_decrypted_diffs, type: :boolean, default: nil, desc: "Don't configure git to show decrypted diffs of encrypted credentials"
 
@@ -321,23 +321,6 @@ module Rails
         super
 
         imply_options(OPTION_IMPLICATIONS, meta_options: META_OPTIONS)
-
-        if !options[:skip_active_record] && !DATABASES.include?(options[:database])
-          raise Error, "Invalid value for --database option. Supported preconfigurations are: #{DATABASES.join(", ")}."
-        end
-
-        if !options[:skip_javascript] && !JAVASCRIPT_OPTIONS.include?(options[:javascript])
-          raise Error, "Invalid value for --javascript option. Supported options are: #{JAVASCRIPT_OPTIONS.join(", ")}."
-        end
-
-        if options[:css] && !CSS_OPTIONS.include?(options[:css])
-          raise Error, "Invalid value for --css option. Supported options are: #{CSS_OPTIONS.join(", ")}."
-        end
-
-        # A value of "none" is permitted as an alternative to --skip-asset-pipeline
-        if !options[:skip_asset_pipeline] && !(ASSET_PIPELINE_OPTIONS + ["none"]).include?(options[:asset_pipeline])
-          raise Error, "Invalid value for --asset-pipeline option. Supported options are: #{ASSET_PIPELINE_OPTIONS.join(", ")}."
-        end
 
         @after_bundle_callbacks = []
       end
