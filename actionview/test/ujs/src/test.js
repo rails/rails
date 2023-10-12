@@ -1,6 +1,7 @@
 import "./attach-bindings"
 
 import Rails from '../../../app/javascript/rails-ujs/index'
+Rails.start()
 
 import "../public/test/settings"
 

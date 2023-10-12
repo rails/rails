@@ -34,7 +34,8 @@ export default [
     },
     plugins: [
       terser(terserOptions)
-    ]
+    ],
+    context: "this",
   },
 
   {
@@ -46,6 +47,7 @@ export default [
     },
     plugins: [
       terser(terserOptions)
-    ]
+    ],
+    context: "this",
   }
 ]

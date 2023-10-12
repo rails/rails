@@ -1,4 +1,5 @@
 import $ from 'jquery'
+import Rails from '../../../../app/javascript/rails-ujs/index'
 
 var realHref
 

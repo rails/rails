@@ -620,7 +620,7 @@ Released under the MIT license
       }
     }));
   }
-  if (typeof exports !== "object" && typeof module === "undefined") {
+  if (typeof exports !== "object" && typeof module === "undefined" && typeof this !== "undefined") {
     window.Rails = Rails;
     if (fire(document, "rails:attachBindings")) {
       start();

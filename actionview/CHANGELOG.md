@@ -1,3 +1,14 @@
+*   Don't call `Rails.start()` in automatically when `@rails/ujs` is imported as esm.
+
+    This fix is for Rails 7.1 regression.
+
+    ``` js
+    import Rails from "@rails/ujs"
+    Rails.start() // In Rails 7.1, this raises `Uncaught Error: rails-ujs has already been loaded!`
+    ```
+
+    *Ryunosuke Sato*
+
 *   Updated `@rails/ujs` files to ignore certain data-* attributes when element is contenteditable.
 
     This fix was already landed in >= 7.0.4.3, < 7.1.0.

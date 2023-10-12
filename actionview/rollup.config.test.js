@@ -14,5 +14,7 @@ export default {
   plugins: [
     resolve(),
     commonjs()
-  ]
+  ],
+
+  context: "this",
 }
