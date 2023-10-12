@@ -108,10 +108,11 @@ module ActiveRecord
       # but significantly increases the risk of data loss if the database
       # crashes. As a result, this should not be used in production
       # environments. If you would like all created tables to be unlogged in
-      # the test environment you can add the following line to your test.rb
-      # file:
+      # the test environment you can add the following to your test.rb file:
       #
-      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables = true
+      #   ActiveSupport.on_load(:active_record_postgresqladapter) do
+      #     self.create_unlogged_tables = true
+      #   end
       class_attribute :create_unlogged_tables, default: false
 
       ##
