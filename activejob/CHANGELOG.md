@@ -1,3 +1,7 @@
+*   Remove deprecated `:exponentially_longer` value for the `:wait` in `retry_on`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to set numeric values to `scheduled_at` attribute.
 
     *Rafael Mendonça França*

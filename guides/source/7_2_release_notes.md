@@ -149,6 +149,8 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 *   Remove deprecated support to set numeric values to `scheduled_at` attribute.
 
+*   Remove deprecated `:exponentially_longer` value for the `:wait` in `retry_on`.
+
 ### Deprecations
 
 *   Deprecate `Rails.application.config.active_job.use_big_decimal_serialize`.
