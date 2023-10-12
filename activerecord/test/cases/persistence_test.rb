@@ -59,7 +59,7 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_nil record_with_defaults.modified_time_without_precision
     assert_not_nil record_with_defaults.modified_time_function
 
-    if current_adapter?(:PostgreSQLAdapter)
+    if current_adapter?(:PostgreSQLAdapter) && ActiveRecord::Base.connection.supports_identity_columns?
       klass = Class.new(ActiveRecord::Base) do
         self.table_name = "postgresql_identity_table"
       end
