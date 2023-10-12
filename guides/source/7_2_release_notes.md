@@ -109,6 +109,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated support to call `alias_attribute` with non-existent attribute names.
 
+*   Remove deprecated `name` argument from `ActiveRecord::Base.remove_connection`.
+
 ### Deprecations
 
 ### Notable changes
