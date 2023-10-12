@@ -47,7 +47,11 @@ class PersistenceTest < ActiveRecord::TestCase
     record_with_defaults = Default.create
     assert_not_nil record_with_defaults.id
     assert_equal "Ruby on Rails", record_with_defaults.ruby_on_rails
-    assert_not_nil record_with_defaults.virtual_stored_number if current_adapter?(:PostgreSQLAdapter)
+
+    if current_adapter?(:PostgreSQLAdapter) && ActiveRecord::Base.connection.supports_virtual_columns?
+      assert_not_nil record_with_defaults.virtual_stored_number
+    end
+
     assert_not_nil record_with_defaults.random_number
     assert_not_nil record_with_defaults.modified_date
     assert_not_nil record_with_defaults.modified_date_function

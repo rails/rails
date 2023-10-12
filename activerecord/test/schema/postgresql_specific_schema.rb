@@ -25,7 +25,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :defaults, force: true do |t|
-    t.virtual :virtual_stored_number, type: :integer, as: "random_number * 10", stored: true
+    t.virtual :virtual_stored_number, type: :integer, as: "random_number * 10", stored: true if supports_virtual_columns?
     t.integer :random_number, default: -> { "random() * 100" }
     t.string :ruby_on_rails, default: -> { "concat('Ruby ', 'on ', 'Rails')" }
     t.date :modified_date, default: -> { "CURRENT_DATE" }
@@ -184,7 +184,5 @@ _SQL
                                            options: "PARTITION OF measurements FOR VALUES IN (2)")
   end
 
-  if supports_index_include?
-    add_index(:companies, [:firm_id, :type], name: "company_include_index", include: [:name, :account_id])
-  end
+  add_index(:companies, [:firm_id, :type], name: "company_include_index", include: [:name, :account_id])
 end

@@ -108,7 +108,7 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
       CREATE SCHEMA referential_integrity_test_schema;
 
       CREATE TABLE referential_integrity_test_schema.nodes (
-        id          INT      GENERATED ALWAYS AS IDENTITY,
+        id          BIGSERIAL,
         parent_id   INT      NOT NULL,
         PRIMARY KEY(id),
         CONSTRAINT fk_parent_node FOREIGN KEY(parent_id)
