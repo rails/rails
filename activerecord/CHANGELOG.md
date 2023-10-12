@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveRecord::ActiveJobRequiredError`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveRecord::Base.clear_active_connections!`.
 
     *Rafael Mendonça França*
