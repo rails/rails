@@ -1,3 +1,7 @@
+*   Remove deprecated support to define `explain` in the connection adapter with 2 arguments.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveRecord::ActiveJobRequiredError`.
 
     *Rafael Mendonça França*

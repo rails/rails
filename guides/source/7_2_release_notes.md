@@ -121,6 +121,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `ActiveRecord::ActiveJobRequiredError`.
 
+*   Remove deprecated support to define `explain` in the connection adapter with 2 arguments.
+
 
 ### Deprecations
 
