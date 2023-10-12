@@ -298,20 +298,20 @@
       logger.log("WebSocket onerror event");
     }
   };
-  const extend = function(object, properties) {
-    if (properties != null) {
-      for (let key in properties) {
-        const value = properties[key];
-        object[key] = value;
-      }
-    }
-    return object;
-  };
   class Subscription {
     constructor(consumer, params = {}, mixin) {
       this.consumer = consumer;
       this.identifier = JSON.stringify(params);
-      extend(this, mixin);
+      Subscription.extend(this, mixin);
+    }
+    static extend(object, properties) {
+      if (properties != null) {
+        for (let key in properties) {
+          const value = properties[key];
+          object[key] = value;
+        }
+      }
+      return object;
     }
     perform(action, data = {}) {
       data.action = action;
