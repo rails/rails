@@ -20,7 +20,7 @@ module Rails
 
       JAVASCRIPT_OPTIONS = %w( importmap bun webpack esbuild rollup )
       CSS_OPTIONS = %w( tailwind bootstrap bulma postcss sass )
-      ASSET_PIPELINE_OPTIONS = %w( sprockets propshaft )
+      ASSET_PIPELINE_OPTIONS = %w( none sprockets propshaft )
 
       attr_accessor :rails_template
       add_shebang_option!
@@ -39,7 +39,8 @@ module Rails
                                            desc: "Path to some #{name} template (can be a filesystem path or URL)"
 
         class_option :database,            type: :string, aliases: "-d", default: "sqlite3",
-                                           desc: "Preconfigure for selected database [options: #{DATABASES.join(", ")}]"
+                                           enum: DATABASES,
+                                           desc: "Preconfigure for selected database"
 
         class_option :skip_git,            type: :boolean, aliases: "-G", default: nil,
                                            desc: "Skip git init, .gitignore and .gitattributes"
@@ -75,7 +76,8 @@ module Rails
         class_option :skip_asset_pipeline, type: :boolean, aliases: "-A", default: nil
 
         class_option :asset_pipeline,      type: :string, aliases: "-a", default: "sprockets",
-                                           desc: "Choose your asset pipeline [options: #{ASSET_PIPELINE_OPTIONS.join(", ")}]"
+                                           enum: ASSET_PIPELINE_OPTIONS,
+                                           desc: "Choose your asset pipeline"
 
         class_option :skip_javascript,     type: :boolean, aliases: ["-J", "--skip-js"], default: (true if name == "plugin"),
                                            desc: "Skip JavaScript files"
