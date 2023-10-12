@@ -94,7 +94,7 @@ Bun, then you just need to install Bun as it is both a JavaScript runtime and a 
 #### Installing Bun
 
 Find the installation instructions at the [Bun website](https://bun.sh) and
-verify it’s installed correctly with the following command:
+verify it’s installed correctly and in your path with the following command:
 
 ```bash
 $ bun --version
@@ -102,6 +102,8 @@ $ bun --version
 
 The version of your Bun runtime should be printed out. If it says something
 like `1.0.0`, Bun has been installed correctly.
+
+If not, you may need to reinstall bun in the current directory or restart your terminal.
 
 #### Installing Node.js and Yarn
 
