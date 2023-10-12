@@ -1,3 +1,7 @@
+*   Remove deprecated `speaker`, `vibrate`, and `vr` permissions policy directives.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `Rails.application.config.action_dispatch.return_only_request_media_type_on_content_type`.
 
     *Rafael Mendonça França*
