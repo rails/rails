@@ -785,7 +785,7 @@ class SchemaIndexIncludeColumnsTest < ActiveRecord::PostgreSQLTestCase
     if ActiveRecord::Base.connection.supports_index_include?
       assert_equal 't.index ["firm_id", "type"], name: "company_include_index", include: ["name", "account_id"]', index_definition
     else
-      assert_equal 't.index ["firm_ids", "type"], name: "company_include_index"', index_definition
+      assert_equal 't.index ["firm_id", "type"], name: "company_include_index"', index_definition
     end
   end
 end

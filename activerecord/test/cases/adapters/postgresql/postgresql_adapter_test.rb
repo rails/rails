@@ -330,19 +330,21 @@ module ActiveRecord
         end
       end
 
-      def test_include_index
-        with_example_table do
-          @connection.add_index "ex", %w{ id }, name: "include", include: :number
-          index = @connection.indexes("ex").find { |idx| idx.name == "include" }
-          assert_equal ["number"], index.include
+      if supports_index_include?
+        def test_include_index
+          with_example_table do
+            @connection.add_index "ex", %w{ id }, name: "include", include: :number
+            index = @connection.indexes("ex").find { |idx| idx.name == "include" }
+            assert_equal ["number"], index.include
+          end
         end
-      end
 
-      def test_include_multiple_columns_index
-        with_example_table do
-          @connection.add_index "ex", %w{ id }, name: "include", include: [:number, :data]
-          index = @connection.indexes("ex").find { |idx| idx.name == "include" }
-          assert_equal ["number", "data"], index.include
+        def test_include_multiple_columns_index
+          with_example_table do
+            @connection.add_index "ex", %w{ id }, name: "include", include: [:number, :data]
+            index = @connection.indexes("ex").find { |idx| idx.name == "include" }
+            assert_equal ["number", "data"], index.include
+          end
         end
       end
 
