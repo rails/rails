@@ -413,20 +413,6 @@ module ActiveRecord
   singleton_class.attr_accessor :dump_schemas
   self.dump_schemas = :schema_search_path
 
-  def self.suppress_multiple_database_warning
-    ActiveRecord.deprecator.warn(<<-MSG.squish)
-      config.active_record.suppress_multiple_database_warning is deprecated and will be removed in Rails 7.2.
-      It no longer has any effect and should be removed from the configuration file.
-    MSG
-  end
-
-  def self.suppress_multiple_database_warning=(value)
-    ActiveRecord.deprecator.warn(<<-MSG.squish)
-      config.active_record.suppress_multiple_database_warning= is deprecated and will be removed in Rails 7.2.
-      It no longer has any effect and should be removed from the configuration file.
-    MSG
-  end
-
   ##
   # :singleton-method: verify_foreign_keys_for_fixtures
   # If true, Rails will verify all foreign keys in the database after loading fixtures.

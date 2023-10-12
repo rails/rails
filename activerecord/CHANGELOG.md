@@ -1,3 +1,7 @@
+*   Remove deprecated `Rails.application.config.active_record.suppress_multiple_database_warning`.
+
+    *Rafael Mendonça França*
+
 *   Add ActiveRecord::Encryption::MessagePackMessageSerializer
 
     Serialize data to the MessagePack format, for efficient storage in binary columns.
