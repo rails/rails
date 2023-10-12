@@ -52,6 +52,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   Remove deprecated constant `ActionDispatch::IllegalStateError`.
 
+*   Remove deprecated constant `AbstractController::Helpers::MissingHelperError`.
+
 ### Deprecations
 
 ### Notable changes

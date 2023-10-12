@@ -1,3 +1,7 @@
+*   Remove deprecated constant `AbstractController::Helpers::MissingHelperError`.
+
+    *Rafael Mendonça França*
+
 *   Fix a race condition that could cause a `Text file busy - chromedriver`
     error with parallel system tests
 
