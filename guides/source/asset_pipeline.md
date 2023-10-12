@@ -30,7 +30,7 @@ passing the `--skip-asset-pipeline` option.
 $ rails new appname --skip-asset-pipeline
 ```
 
-NOTE: This guide focuses on the default asset pipeline using only `sprockets` for CSS and `importmap-rails` for JavaScript processing. The main limitation of those two is that there is no support for transpiling so you can't use things like `Babel`, `TypeScript`, `Sass`, `React JSX format` or `TailwindCSS`. We encourage you to read the [Alternative Libraries section](#alternative-libraries) if you need transpiling for your JavaScript/CSS.
+NOTE: This guide focuses on the default asset pipeline using only `sprockets` for CSS and `importmap-rails` for JavaScript processing. The main limitation of those two is that there is no support for transpiling so you can't use things like Babel, TypeScript, Sass, React JSX format, or Tailwind CSS. We encourage you to read the [Alternative Libraries section](#alternative-libraries) if you need transpiling for your JavaScript/CSS.
 
 ## Main Features
 
@@ -1056,7 +1056,7 @@ We are aware that there are no one-size-fits-it-all solutions for the various Ja
 
 The gem provides a build task in `package.json` to watch for changes and automatically generate output in development. For production, it automatically hooks `javascript:build` task into `assets:precompile` task to ensure that all your package dependencies have been installed and JavaScript has been built for all entry points.
 
-**When to use instead of `importmap-rails`?** If your JavaScript code depends on transpiling so if you are using [Babel](https://babeljs.io/), [TypeScript](https://www.typescriptlang.org/) or React `JSX` format then `jsbundling-rails` is the correct way to go.
+**When to use instead of `importmap-rails`?** If your JavaScript code depends on transpiling so if you are using [Babel](https://babeljs.io/), [TypeScript](https://www.typescriptlang.org/) or React JSX format then `jsbundling-rails` is the correct way to go.
 
 ### Webpacker/Shakapacker
 
@@ -1072,15 +1072,15 @@ NOTE: Read the [Comparison with Webpacker](https://github.com/rails/jsbundling-r
 
 It works in a similar way to `jsbundling-rails` so adds the Node.js dependency to your application with `yarn build:css --watch` process to regenerate your stylesheets in development and hooks into `assets:precompile` task in production.
 
-**What's the difference between Sprockets?** Sprockets on its own is not able to transpile the Sass into CSS, Node.js is required to generate the `.css` files from your `.sass`  files. Once the `.css` files are generated then `Sprockets` is able to deliver them to your clients.
+**What's the difference between Sprockets?** Sprockets on its own is not able to transpile the Sass into CSS, Node.js is required to generate the `.css` files from your `.sass`  files. Once the `.css` files are generated then Sprockets is able to deliver them to your clients.
 
 NOTE: `cssbundling-rails` relies on Node to process the CSS. The `dartsass-rails` and `tailwindcss-rails` gems use standalone versions of Tailwind CSS and Dart Sass, meaning no Node dependency. If you are using `importmap-rails` to handle your JavaScripts and `dartsass-rails` or `tailwindcss-rails` for CSS you could completely avoid the Node dependency resulting in a less complex solution.
 
 ### dartsass-rails
 
-If you want to use [`Sass`](https://sass-lang.com/) in your application, [`dartsass-rails`](https://github.com/rails/dartsass-rails) comes as a replacement for the legacy `sassc-rails` gem. `dartsass-rails` uses the `Dart Sass` implementation in favour of deprecated in 2020 [`LibSass`](https://sass-lang.com/blog/libsass-is-deprecated) used by `sassc-rails`.
+If you want to use [Sass](https://sass-lang.com/) in your application, [`dartsass-rails`](https://github.com/rails/dartsass-rails) comes as a replacement for the legacy `sassc-rails` gem. `dartsass-rails` uses the Dart Sass implementation in favour of deprecated in 2020 [LibSass](https://sass-lang.com/blog/libsass-is-deprecated) used by `sassc-rails`.
 
-Unlike `sassc-rails` the new gem is not directly integrated with `Sprockets`. Please refer to the [gem homepage](https://github.com/rails/dartsass-rails) for installation/migration instructions.
+Unlike `sassc-rails` the new gem is not directly integrated with Sprockets. Please refer to the [gem homepage](https://github.com/rails/dartsass-rails) for installation/migration instructions.
 
 WARNING: The popular `sassc-rails` gem is unmaintained since 2019.
 
