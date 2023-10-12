@@ -122,6 +122,8 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_schema_dump_added_enum_value
+    skip("Adding enum values can not be run in a transaction") if @connection.database_version < 10_00_00
+
     @connection.add_enum_value :mood, :angry, before: :ok
     @connection.add_enum_value :mood, :nervous, after: :ok
     @connection.add_enum_value :mood, :glad
@@ -132,6 +134,8 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_schema_dump_renamed_enum_value
+    skip("Renaming enum values is only supported in PostgreSQL 10 or later") if @connection.database_version < 10_00_00
+
     @connection.rename_enum_value :mood, from: :ok, to: :okay
 
     output = dump_table_schema("postgresql_enums")

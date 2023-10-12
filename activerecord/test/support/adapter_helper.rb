@@ -49,6 +49,7 @@ module AdapterHelper
     supports_partial_index?
     supports_partitioned_indexes?
     supports_expression_index?
+    supports_index_include?
     supports_insert_returning?
     supports_insert_on_duplicate_skip?
     supports_insert_on_duplicate_update?
