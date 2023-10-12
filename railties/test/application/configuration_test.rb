@@ -2008,22 +2008,6 @@ module ApplicationTests
       assert_not ActiveRecord.verbose_query_logs
     end
 
-    test "config.active_record.suppress_multiple_database_warning getter is deprecated" do
-      app "development"
-
-      assert_deprecated(Rails.application.deprecators[:active_record]) do
-        ActiveRecord.suppress_multiple_database_warning
-      end
-    end
-
-    test "config.active_record.suppress_multiple_database_warning setter is deprecated" do
-      app "development"
-
-      assert_deprecated(Rails.application.deprecators[:active_record]) do
-        ActiveRecord.suppress_multiple_database_warning = true
-      end
-    end
-
     test "config.active_record.use_yaml_unsafe_load is false by default" do
       app "production"
       assert_not ActiveRecord.use_yaml_unsafe_load
@@ -2385,16 +2369,13 @@ module ApplicationTests
       assert_equal({}, Rails.application.config.load_database_yaml)
     end
 
-    test "setup_initial_database_yaml does not print a warning if config.active_record.suppress_multiple_database_warning is true" do
+    test "setup_initial_database_yaml does not print a warning" do
       app_file "config/database.yml", <<-YAML
         <%= Rails.env %>:
           username: bobby
           adapter: sqlite3
           database: 'dev_db'
       YAML
-      add_to_config <<-RUBY
-        config.active_record.suppress_multiple_database_warning = true
-      RUBY
       app "development"
 
       assert_silent do
