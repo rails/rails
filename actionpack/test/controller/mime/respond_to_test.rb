@@ -919,4 +919,10 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal "text/html", @response.media_type
     assert_equal "phone", @response.body
   end
+
+  def test_variant_from_url
+    get :variant_inline_syntax, format: :html, variant: :phone
+    assert_equal "text/html", @response.media_type
+    assert_equal "phone", @response.body
+  end
 end

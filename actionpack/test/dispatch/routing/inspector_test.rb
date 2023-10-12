@@ -174,7 +174,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern                      Controller#Action",
-          '       GET  /photos/:id(.:format(+:variant)) photos#show {:format=>\"jpg\"}'
+          '       GET  /photos/:id(.:format(+:variant)) photos#show {:format=>"jpg"}'
         ], output
       end
 
@@ -338,13 +338,13 @@ module ActionDispatch
         expected = ["--[ Route 1 ]----------",
                      "Prefix            | custom_assets",
                      "Verb              | GET",
-                     "URI               | /custom/assets(.:format)",
+                     "URI               | /custom/assets(.:format(+:variant))",
                      "Controller#Action | custom_assets#show",
                      "Source Location   | #{file_name}:#{lineno + 6}",
                      "--[ Route 2 ]----------",
                      "Prefix            | custom_furnitures",
                      "Verb              | GET",
-                     "URI               | /custom/furnitures(.:format)",
+                     "URI               | /custom/furnitures(.:format(+:variant))",
                      "Controller#Action | custom_furnitures#show",
                      "Source Location   | #{file_name}:#{lineno + 7}",
                      "--[ Route 3 ]----------",
@@ -358,7 +358,7 @@ module ActionDispatch
                      "--[ Route 1 ]----------",
                      "Prefix            | cart",
                      "Verb              | GET",
-                     "URI               | /cart(.:format)",
+                     "URI               | /cart(.:format(+:variant))",
                      "Controller#Action | cart#show",
                      "Source Location   | #{file_name}:#{lineno + 2}"]
 
@@ -482,8 +482,8 @@ module ActionDispatch
           get "/health", to: proc { [200, {}, ["OK"]] }
         end
         assert_equal [
-          "Prefix Verb URI Pattern       Controller#Action",
-          "health GET  /health(.:format) Inline handler (Proc/Lambda)"
+          "Prefix Verb URI Pattern                  Controller#Action",
+          "health GET  /health(.:format(+:variant)) Inline handler (Proc/Lambda)"
         ], output
       end
 
