@@ -39,7 +39,7 @@ module Rails
                                            desc: "Path to some #{name} template (can be a filesystem path or URL)"
 
         class_option :database,            type: :string, aliases: "-d", default: "sqlite3",
-                                           desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
+                                           desc: "Preconfigure for selected database [options: #{DATABASES.join(", ")}]"
 
         class_option :skip_git,            type: :boolean, aliases: "-G", default: nil,
                                            desc: "Skip git init, .gitignore and .gitattributes"
