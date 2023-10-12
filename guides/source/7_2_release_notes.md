@@ -56,6 +56,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   Remove deprecated comparison between `ActionController::Parameters` and `Hash`.
 
+*   Remove deprecated `Rails.application.config.action_dispatch.return_only_request_media_type_on_content_type`.
+
 ### Deprecations
 
 *   Deprecate `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality`.
