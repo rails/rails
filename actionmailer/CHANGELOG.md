@@ -1,3 +1,7 @@
+*   Remove deprecated params via `:args` for `assert_enqueued_email_with`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `config.action_mailer.preview_path`.
 
     *Rafael Mendonça França*

@@ -74,6 +74,8 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
 
 *   Remove deprecated `config.action_mailer.preview_path`.
 
+*   Remove deprecated params via `:args` for `assert_enqueued_email_with`.
+
 ### Deprecations
 
 ### Notable changes
