@@ -54,7 +54,11 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   Remove deprecated constant `AbstractController::Helpers::MissingHelperError`.
 
+*   Remove deprecated comparison between `ActionController::Parameters` and `Hash`.
+
 ### Deprecations
+
+*   Deprecate `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality`.
 
 ### Notable changes
 

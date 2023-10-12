@@ -60,7 +60,6 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 7.1
 
-- [`config.action_controller.allow_deprecated_parameters_hash_equality`](#config-action-controller-allow-deprecated-parameters-hash-equality): `false`
 - [`config.action_dispatch.debug_exception_log_level`](#config-action-dispatch-debug-exception-log-level): `:error`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
 - [`config.action_text.sanitizer_vendor`](#config-action-text-sanitizer-vendor): `Rails::HTML::Sanitizer.best_supported_vendor`
@@ -1789,18 +1788,6 @@ The default value depends on the `config.load_defaults` target version:
 
 Configures the [`ParamsWrapper`](https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html). This can be called at
 the top level, or on individual controllers.
-
-#### `config.action_controller.allow_deprecated_parameters_hash_equality`
-
-Controls behavior of `ActionController::Parameters#==` with `Hash` arguments.
-Value of the setting determines whether an `ActionController::Parameters` instance is equal to an equivalent `Hash`.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `true`               |
-| 7.1                   | `false`              |
 
 ### Configuring Action Dispatch
 

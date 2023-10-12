@@ -316,10 +316,6 @@ module Rails
             active_support.raise_on_invalid_cache_expiration_time = true
           end
 
-          if respond_to?(:action_controller)
-            action_controller.allow_deprecated_parameters_hash_equality = false
-          end
-
           if defined?(Rails::HTML::Sanitizer) # nested ifs to avoid linter errors
             if respond_to?(:action_view)
               action_view.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor

@@ -1,3 +1,11 @@
+*   Deprecate `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated comparison between `ActionController::Parameters` and `Hash`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated constant `AbstractController::Helpers::MissingHelperError`.
 
     *Rafael Mendonça França*
