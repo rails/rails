@@ -846,7 +846,7 @@ method definition, which is the record to be validated.
 
 If you want to add an error on a specific attribute, pass it as the first
 argument, such as `record.errors.add(:first_name, "please choose another
-name")`. We will cover [validation errors][] in greater detail later.
+name")`. We will cover [validation errors](#working-with-validation-errors) in greater detail later.
 
 ```ruby
 def validate(record)
@@ -914,7 +914,6 @@ end
 
 We will cover [custom validations](#performing-custom-validations) more later.
 
-[validation errors](#working-with-validation-errors)
 [`validates_with`]: https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates_with
 
 Common Validation Options
