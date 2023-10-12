@@ -119,6 +119,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `ActiveRecord::Base.flush_idle_connections!`.
 
+*   Remove deprecated `ActiveRecord::ActiveJobRequiredError`.
+
 
 ### Deprecations
 

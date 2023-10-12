@@ -39,10 +39,6 @@ class DestroyAssociationAsyncJobTest < ActiveRecord::TestCase
     assert_match %r/destroy_association_async_job: uninitialized constant PretendActiveJobIsNotPresent/, error.message
   end
 
-  test "deprecation of rescuing ActiveJobRequiredError which has been replaced by a NameError" do
-    assert_deprecated(ActiveRecord.deprecator) { ActiveRecord::ActiveJobRequiredError }
-  end
-
   test "belong_to dependent destroy_async requires destroy_association_async_job" do
     error = assert_raises ActiveRecord::ConfigurationError do
       UnusedBelongsToAsync.belongs_to :essay_destroy_async, dependent: :destroy_async
