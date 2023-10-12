@@ -147,6 +147,8 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 *   Remove deprecated primitive serializer for `BigDecimal` arguments.
 
+*   Remove deprecated support to set numeric values to `scheduled_at` attribute.
+
 ### Deprecations
 
 *   Deprecate `Rails.application.config.active_job.use_big_decimal_serialize`.

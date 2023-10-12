@@ -1,3 +1,7 @@
+*   Remove deprecated support to set numeric values to `scheduled_at` attribute.
+
+    *Rafael Mendonça França*
+
 *   Deprecate `Rails.application.config.active_job.use_big_decimal_serialize`.
 
     *Rafael Mendonça França*
