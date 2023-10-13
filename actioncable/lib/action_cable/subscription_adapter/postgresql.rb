@@ -9,14 +9,32 @@ module ActionCable
     class PostgreSQL < Base # :nodoc:
       prepend ChannelPrefix
 
+      PayloadTooLargeError = Class.new(StandardError)
+
+      MAX_NOTIFY_SIZE = 7997 # documented as 8000 bytes, but there appears to be some overhead in transit
+      DEFAULT_LARGE_PAYLOADS_TABLE = "action_cable_large_payloads"
+      LARGE_PAYLOAD_PREFIX = "__large_payload:"
+
+      attr_reader :large_payloads_table
+
       def initialize(*)
         super
         @listener = nil
+        @large_payloads_table = @server.config.cable[:large_payloads_table] || DEFAULT_LARGE_PAYLOADS_TABLE
+        @insert_large_payload_query = "INSERT INTO #{@large_payloads_table} (payload) VALUES ($1) RETURNING id"
       end
 
       def broadcast(channel, payload)
         with_broadcast_connection do |pg_conn|
-          pg_conn.exec("NOTIFY #{pg_conn.escape_identifier(channel_identifier(channel))}, '#{pg_conn.escape_string(payload)}'")
+          channel = pg_conn.escape_identifier(channel_identifier(channel))
+          payload = pg_conn.escape_string(payload)
+
+          if payload.bytesize > MAX_NOTIFY_SIZE
+            payload_id = insert_large_payload(pg_conn, payload)
+            payload = "#{LARGE_PAYLOAD_PREFIX}#{payload_id}"
+          end
+
+          pg_conn.exec("NOTIFY #{channel}, '#{payload}'")
         end
       end
 
@@ -64,6 +82,13 @@ module ActionCable
           @listener || @server.mutex.synchronize { @listener ||= Listener.new(self, @server.event_loop) }
         end
 
+        def insert_large_payload(pg_conn, payload)
+          result = pg_conn.exec_params(@insert_large_payload_query, [payload])
+          result.first.fetch("id")
+        rescue PG::UndefinedTable
+          raise PayloadTooLargeError, "The payload is too large for PostgreSQL NOTIFY (#{payload.bytesize} / #{MAX_NOTIFY_SIZE} bytes) and the #{@large_payloads_table} table does not exist. See documentation at https://edgeguides.rubyonrails.org/action_cable_overview.html#postgresql-adapter for details."
+        end
+
         def verify!(pg_conn)
           unless pg_conn.is_a?(PG::Connection)
             raise "The Active Record database must be PostgreSQL in order to use the PostgreSQL Action Cable storage adapter"
@@ -77,6 +102,7 @@ module ActionCable
             @adapter = adapter
             @event_loop = event_loop
             @queue = Queue.new
+            @select_large_payload_query = "SELECT payload FROM #{adapter.large_payloads_table} WHERE id = $1"
 
             @thread = Thread.new do
               Thread.current.abort_on_exception = true
@@ -123,7 +149,15 @@ module ActionCable
             @queue.push([:unlisten, channel])
           end
 
-          def invoke_callback(*)
+          def invoke_callback(callback, message)
+            if message.start_with?(LARGE_PAYLOAD_PREFIX)
+              id = message.delete_prefix(LARGE_PAYLOAD_PREFIX)
+              ActiveRecord::Base.connection_pool.with_connection do |connection|
+                result = connection.raw_connection.exec_params(@select_large_payload_query, [id])
+                message = result.first.fetch("payload")
+              end
+            end
+
             @event_loop.post { super }
           end
         end
