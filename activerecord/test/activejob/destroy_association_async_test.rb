@@ -398,7 +398,7 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
 
     belongs.destroy
     perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
-    assert parent.reload.deleted?
+    assert_predicate parent.reload, :deleted?
   ensure
     DlKeyedBelongsToSoftDelete.delete_all
     DestroyAsyncParentSoftDelete.delete_all

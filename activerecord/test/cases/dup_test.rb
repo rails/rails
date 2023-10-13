@@ -26,7 +26,7 @@ module ActiveRecord
       topic.readonly!
 
       duped = topic.dup
-      assert duped.readonly?, "should be readonly"
+      assert_predicate duped, :readonly?, "should be readonly"
     end
 
     def test_dup_not_persisted
@@ -34,7 +34,7 @@ module ActiveRecord
       duped = topic.dup
 
       assert_not duped.persisted?, "topic not persisted"
-      assert duped.new_record?, "topic is new"
+      assert_predicate duped, :new_record?, "topic is new"
     end
 
     def test_dup_not_previously_new_record

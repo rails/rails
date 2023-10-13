@@ -135,7 +135,7 @@ class TagHelperTest < ActionView::TestCase
     html_safe_str = '"'.html_safe
     assert_equal "<p value=\"&quot;\" />", tag("p", value: html_safe_str)
     assert_equal '"', html_safe_str
-    assert html_safe_str.html_safe?
+    assert_predicate html_safe_str, :html_safe?
   end
 
   def test_tag_with_dangerous_name

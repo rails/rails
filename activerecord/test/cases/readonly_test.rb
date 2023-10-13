@@ -80,16 +80,16 @@ class ReadOnlyTest < ActiveRecord::TestCase
   def test_find_with_readonly_option
     Developer.all.each { |d| assert_not d.readonly? }
     Developer.readonly(false).each { |d| assert_not d.readonly? }
-    Developer.readonly(true).each { |d| assert d.readonly? }
-    Developer.readonly.each { |d| assert d.readonly? }
+    Developer.readonly(true).each { |d| assert_predicate d, :readonly? }
+    Developer.readonly.each { |d| assert_predicate d, :readonly? }
   end
 
   def test_find_with_joins_option_does_not_imply_readonly
     Developer.joins("  ").each { |d| assert_not d.readonly? }
-    Developer.joins("  ").readonly(true).each { |d| assert d.readonly? }
+    Developer.joins("  ").readonly(true).each { |d| assert_predicate d, :readonly? }
 
     Developer.joins(", projects").each { |d| assert_not d.readonly? }
-    Developer.joins(", projects").readonly(true).each { |d| assert d.readonly? }
+    Developer.joins(", projects").readonly(true).each { |d| assert_predicate d, :readonly? }
   end
 
   def test_has_many_find_readonly

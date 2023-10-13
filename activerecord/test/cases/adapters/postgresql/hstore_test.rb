@@ -156,7 +156,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
 
   def test_changes_with_store_accessors
     x = Hstore.new(language: "de")
-    assert x.language_changed?
+    assert_predicate x, :language_changed?
     assert_nil x.language_was
     assert_equal [nil, "de"], x.language_change
     x.save!
@@ -165,7 +165,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
     x.reload
 
     x.settings = nil
-    assert x.language_changed?
+    assert_predicate x, :language_changed?
     assert_equal "de", x.language_was
     assert_equal ["de", nil], x.language_change
   end

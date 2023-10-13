@@ -1631,12 +1631,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_not node.parent_previously_changed?
 
     node.parent = nodes(:grandparent)
-    assert node.parent_changed?
+    assert_predicate node, :parent_changed?
     assert_not node.parent_previously_changed?
 
     node.save!
     assert_not node.parent_changed?
-    assert node.parent_previously_changed?
+    assert_predicate node, :parent_previously_changed?
   end
 
   test "tracking change from persisted record to new record" do
@@ -1646,12 +1646,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_not node.parent_previously_changed?
 
     node.parent = Node.new(tree: node.tree, parent: nodes(:parent_a), name: "Child three")
-    assert node.parent_changed?
+    assert_predicate node, :parent_changed?
     assert_not node.parent_previously_changed?
 
     node.save!
     assert_not node.parent_changed?
-    assert node.parent_previously_changed?
+    assert_predicate node, :parent_previously_changed?
   end
 
   test "tracking change from persisted record to nil" do
@@ -1661,12 +1661,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_not node.parent_previously_changed?
 
     node.parent = nil
-    assert node.parent_changed?
+    assert_predicate node, :parent_changed?
     assert_not node.parent_previously_changed?
 
     node.save!
     assert_not node.parent_changed?
-    assert node.parent_previously_changed?
+    assert_predicate node, :parent_previously_changed?
   end
 
   test "tracking change from nil to persisted record" do
@@ -1676,12 +1676,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_not node.parent_previously_changed?
 
     node.parent = Node.create!(tree: node.tree, name: "Great-grandparent")
-    assert node.parent_changed?
+    assert_predicate node, :parent_changed?
     assert_not node.parent_previously_changed?
 
     node.save!
     assert_not node.parent_changed?
-    assert node.parent_previously_changed?
+    assert_predicate node, :parent_previously_changed?
   end
 
   test "tracking change from nil to new record" do
@@ -1691,12 +1691,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_not node.parent_previously_changed?
 
     node.parent = Node.new(tree: node.tree, name: "Great-grandparent")
-    assert node.parent_changed?
+    assert_predicate node, :parent_changed?
     assert_not node.parent_previously_changed?
 
     node.save!
     assert_not node.parent_changed?
-    assert node.parent_previously_changed?
+    assert_predicate node, :parent_previously_changed?
   end
 
   test "tracking polymorphic changes" do
@@ -1706,20 +1706,20 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_not comment.author_previously_changed?
 
     comment.author = authors(:david)
-    assert comment.author_changed?
+    assert_predicate comment, :author_changed?
 
     comment.save!
     assert_not comment.author_changed?
-    assert comment.author_previously_changed?
+    assert_predicate comment, :author_previously_changed?
 
     assert_equal authors(:david).id, companies(:first_firm).id
 
     comment.author = companies(:first_firm)
-    assert comment.author_changed?
+    assert_predicate comment, :author_changed?
 
     comment.save!
     assert_not comment.author_changed?
-    assert comment.author_previously_changed?
+    assert_predicate comment, :author_previously_changed?
   end
 
   class ShipRequired < ActiveRecord::Base

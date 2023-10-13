@@ -29,7 +29,7 @@ module Arel
 
       def test_descending?
         descending = Descending.new "zomg"
-        assert descending.descending?
+        assert_predicate descending, :descending?
       end
 
       def test_equality_with_same_ivars

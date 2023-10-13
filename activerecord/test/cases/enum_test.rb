@@ -785,8 +785,8 @@ class EnumTest < ActiveRecord::TestCase
 
   test "uses default status when no status is provided in fixtures" do
     book = books(:tlg)
-    assert book.proposed?, "expected fixture to default to proposed status"
-    assert book.in_english?, "expected fixture to default to english language"
+    assert_predicate book, :proposed?, "expected fixture to default to proposed status"
+    assert_predicate book, :in_english?, "expected fixture to default to english language"
   end
 
   test "uses default value from database on initialization" do

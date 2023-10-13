@@ -59,14 +59,14 @@ class ValidatesWithTest < ActiveModel::TestCase
   test "validation with class that adds errors" do
     Topic.validates_with(ValidatorThatAddsErrors)
     topic = Topic.new
-    assert topic.invalid?, "A class that adds errors causes the record to be invalid"
+    assert_predicate topic, :invalid?, "A class that adds errors causes the record to be invalid"
     assert_includes topic.errors[:base], ERROR_MESSAGE
   end
 
   test "with a class that returns valid" do
     Topic.validates_with(ValidatorThatDoesNotAddErrors)
     topic = Topic.new
-    assert topic.valid?, "A class that does not add errors does not cause the record to be invalid"
+    assert_predicate topic, :valid?, "A class that does not add errors does not cause the record to be invalid"
   end
 
   test "with multiple classes" do
@@ -100,13 +100,13 @@ class ValidatesWithTest < ActiveModel::TestCase
     Topic.validates_with(ValidatorThatClearsOptions, ValidatorThatAddsErrors, on: :specific_context)
     topic = Topic.new
     assert topic.invalid?(:specific_context), "validation should work"
-    assert topic.valid?, "Standard options should be preserved"
+    assert_predicate topic, :valid?, "Standard options should be preserved"
   end
 
   test "validates_with preserves validator options" do
     Topic.validates_with(ValidatorThatClearsOptions, ValidatorThatValidatesOptions, field: :first_name)
     topic = Topic.new
-    assert topic.invalid?, "Validator options should be preserved"
+    assert_predicate topic, :invalid?, "Validator options should be preserved"
   end
 
   test "instance validates_with method preserves validator options" do

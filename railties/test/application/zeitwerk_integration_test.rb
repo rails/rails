@@ -25,7 +25,7 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
   test "The integration is minimally looking good" do
     boot
 
-    assert Rails.autoloaders.zeitwerk_enabled?
+    assert_predicate Rails.autoloaders, :zeitwerk_enabled?
     assert_instance_of Zeitwerk::Loader, Rails.autoloaders.main
     assert_instance_of Zeitwerk::Loader, Rails.autoloaders.once
     assert_equal [Rails.autoloaders.main, Rails.autoloaders.once], Rails.autoloaders.to_a
@@ -185,7 +185,7 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
 
     boot
 
-    assert     Rails.autoloaders.main.reloading_enabled?
+    assert_predicate Rails.autoloaders.main, :reloading_enabled?
     assert_not Rails.autoloaders.once.reloading_enabled?
   end
 

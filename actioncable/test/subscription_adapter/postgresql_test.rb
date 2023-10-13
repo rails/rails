@@ -62,7 +62,7 @@ class PostgresqlAdapterTest < ActionCable::TestCase
 
     ActiveRecord::Base.connection_handler.clear_reloadable_connections!
 
-    assert adapter.active?
+    assert_predicate adapter, :active?
   end
 
   def test_default_subscription_connection_identifier

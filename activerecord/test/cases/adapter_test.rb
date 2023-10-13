@@ -782,7 +782,7 @@ if ActiveRecord::Base.connection.supports_advisory_locks?
     include ConnectionHelper
 
     def test_advisory_locks_enabled?
-      assert ActiveRecord::Base.connection.advisory_locks_enabled?
+      assert_predicate ActiveRecord::Base.connection, :advisory_locks_enabled?
 
       run_without_connection do |orig_connection|
         ActiveRecord::Base.establish_connection(
@@ -795,7 +795,7 @@ if ActiveRecord::Base.connection.supports_advisory_locks?
           orig_connection.merge(advisory_locks: true)
         )
 
-        assert ActiveRecord::Base.connection.advisory_locks_enabled?
+        assert_predicate ActiveRecord::Base.connection, :advisory_locks_enabled?
       end
     end
   end

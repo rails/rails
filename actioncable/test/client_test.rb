@@ -325,7 +325,7 @@ class ClientTest < ActionCable::TestCase
       assert_equal({ "type" => "disconnect", "reason" => "remote", "reconnect" => true }, c.read_message)
 
       c.wait_for_close
-      assert(c.closed?)
+      assert_predicate(c, :closed?)
     end
   end
 
@@ -342,7 +342,7 @@ class ClientTest < ActionCable::TestCase
       assert_equal({ "type" => "disconnect", "reason" => "remote", "reconnect" => false }, c.read_message)
 
       c.wait_for_close
-      assert(c.closed?)
+      assert_predicate(c, :closed?)
     end
   end
 

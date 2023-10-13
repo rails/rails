@@ -281,7 +281,7 @@ module ActiveModel
       changed = attribute.with_value_from_user("foo")
       forgotten = changed.forgetting_assignment
 
-      assert changed.changed? # Check to avoid a false positive
+      assert_predicate changed, :changed? # Check to avoid a false positive
       assert_not_predicate forgotten, :changed?
     end
 

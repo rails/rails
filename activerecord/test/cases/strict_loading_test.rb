@@ -36,7 +36,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
 
     assert developer.strict_loading!(mode: :n_plus_one_only)
-    assert developer.strict_loading_n_plus_one_only?
+    assert_predicate developer, :strict_loading_n_plus_one_only?
   end
 
   def test_strict_loading_n_plus_one_only_mode_with_has_many
@@ -88,12 +88,12 @@ class StrictLoadingTest < ActiveRecord::TestCase
 
   def test_strict_loading
     Developer.all.each { |d| assert_not d.strict_loading? }
-    Developer.strict_loading.each { |d| assert d.strict_loading? }
+    Developer.strict_loading.each { |d| assert_predicate d, :strict_loading? }
   end
 
   def test_strict_loading_by_default
     with_strict_loading_by_default(Developer) do
-      Developer.all.each { |d| assert d.strict_loading? }
+      Developer.all.each { |d| assert_predicate d, :strict_loading? }
       Developer.strict_loading(false).each { |d| assert_not d.strict_loading? }
     end
   end

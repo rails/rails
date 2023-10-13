@@ -186,7 +186,7 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
     model.save!
 
     model = PostgresqlEnum.find(model.id)
-    assert model.current_mood_happy?
+    assert_predicate model, :current_mood_happy?
   end
 
   def test_enum_type_scoped_to_schemas

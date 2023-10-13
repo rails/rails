@@ -84,7 +84,7 @@ class AssociationValidationTest < ActiveRecord::TestCase
       Interest.validates_presence_of(:human)
       human = Human.new(name: "John")
       interest = human.interests.build(topic: "Airplanes")
-      assert interest.valid?, "Expected interest to be valid, but was not. Interest should have a human object associated"
+      assert_predicate interest, :valid?, "Expected interest to be valid, but was not. Interest should have a human object associated"
     end
   end
 
@@ -93,7 +93,7 @@ class AssociationValidationTest < ActiveRecord::TestCase
       Interest.validates_presence_of(:human)
       human = Human.create!(name: "John")
       interest = human.interests.build(topic: "Airplanes")
-      assert interest.valid?, "Expected interest to be valid, but was not. Interest should have a human object associated"
+      assert_predicate interest, :valid?, "Expected interest to be valid, but was not. Interest should have a human object associated"
     end
   end
 end

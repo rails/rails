@@ -59,7 +59,7 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
       blob.preview(resize_to_limit: [640, 280]).processed
     end
 
-    assert blob.reload.preview_image.attached?
+    assert_predicate blob.reload.preview_image, :attached?
   end
 
   test "preview of PDF is created on the same service" do

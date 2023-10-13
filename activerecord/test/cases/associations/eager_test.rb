@@ -1338,7 +1338,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     c = Client.create!(name: "Foo", client_of: Company.maximum(:id) + 1)
 
     client = assert_queries(2) { Client.preload(:accounts).find(c.id) }
-    assert_no_queries { assert client.accounts.empty? }
+    assert_no_queries { assert_predicate client.accounts, :empty? }
   end
 
   def test_preloading_has_many_through_with_distinct

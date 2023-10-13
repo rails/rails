@@ -183,7 +183,7 @@ if ActiveRecord::Base.connection.supports_comments?
       assert_equal "Edited column comment", column.comment
 
       if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-        assert column.auto_increment?
+        assert_predicate column, :auto_increment?
       end
     end
 

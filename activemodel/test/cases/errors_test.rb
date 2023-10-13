@@ -55,7 +55,7 @@ class ErrorsTest < ActiveModel::TestCase
   def test_any?
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:name)
-    assert errors.any?, "any? should return true"
+    assert_predicate errors, :any?, "any? should return true"
     assert errors.any? { |_| true }, "any? should return true"
   end
 

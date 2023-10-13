@@ -284,7 +284,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     in_plugin_context(destination_root) do
       quietly { system "bundle install" }
       output = `bin/rails db:migrate 2>&1`
-      assert $?.success?, "Command failed: #{output}"
+      assert_predicate $?, :success?, "Command failed: #{output}"
     end
   end
 
@@ -560,7 +560,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
     in_plugin_context(destination_root) do
       output = `bin/test 2>&1`
-      assert $?.success?, "Command failed: #{output}"
+      assert_predicate $?, :success?, "Command failed: #{output}"
     end
   end
 

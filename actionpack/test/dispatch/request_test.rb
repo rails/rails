@@ -933,7 +933,7 @@ class RequestFormat < BaseRequestTest
       "action_dispatch.logger" => Logger.new(output = StringIO.new)
     )
     assert request.formats
-    assert request.format.html?
+    assert_predicate request.format, :html?
 
     output.rewind && (err = output.read)
     assert_match(/Error occurred while parsing request parameters/, err)

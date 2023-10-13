@@ -1142,7 +1142,7 @@ module Arel
           table = Table.new(:foo, type_caster: fake_caster)
           condition = table["id"].eq("1").and(table["other_id"].eq("2"))
 
-          assert table.able_to_type_cast?
+          assert_predicate table, :able_to_type_cast?
           _(condition.to_sql).must_equal %("foo"."id" = 1 AND "foo"."other_id" = '2')
         end
 
@@ -1154,7 +1154,7 @@ module Arel
           table = Table.new(:foo, type_caster: fake_caster)
           condition = table["id"].eq(Arel.sql("(select 1)"))
 
-          assert table.able_to_type_cast?
+          assert_predicate table, :able_to_type_cast?
           _(condition.to_sql).must_equal %("foo"."id" = (select 1))
         end
       end

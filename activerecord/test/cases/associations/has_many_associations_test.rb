@@ -731,7 +731,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_cant_save_has_many_readonly_association
     authors(:david).readonly_comments.each { |c| assert_raise(ActiveRecord::ReadOnlyRecord) { c.save! } }
-    authors(:david).readonly_comments.each { |c| assert c.readonly? }
+    authors(:david).readonly_comments.each { |c| assert_predicate c, :readonly? }
   end
 
   def test_finding_default_orders
@@ -1866,8 +1866,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     destroyed = companies(:first_firm).clients_of_firm.destroy_all
     assert_equal clients.sort_by(&:id), destroyed.sort_by(&:id)
     assert destroyed.all?(&:frozen?), "destroyed clients should be frozen"
-    assert companies(:first_firm).clients_of_firm.empty?, "37signals has no clients after destroy all"
-    assert companies(:first_firm).clients_of_firm.reload.empty?, "37signals has no clients after destroy all and refresh"
+    assert_predicate companies(:first_firm).clients_of_firm, :empty?, "37signals has no clients after destroy all"
+    assert_predicate companies(:first_firm).clients_of_firm.reload, :empty?, "37signals has no clients after destroy all and refresh"
   end
 
   def test_destroy_all_on_association_clears_scope
@@ -2358,7 +2358,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_calling_many_on_loaded_association_should_not_use_query
     firm = companies(:first_firm)
     firm.clients.load  # force load
-    assert_no_queries { assert firm.clients.many? }
+    assert_no_queries { assert_predicate firm.clients, :many? }
   end
 
   def test_subsequent_calls_to_many_should_use_query

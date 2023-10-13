@@ -21,7 +21,7 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
       @user.highlights.attach(blob)
     end
 
-    assert blob.reload.analyzed?
+    assert_predicate blob.reload, :analyzed?
     assert_equal 4104, blob.metadata[:width]
     assert_equal 2736, blob.metadata[:height]
   end

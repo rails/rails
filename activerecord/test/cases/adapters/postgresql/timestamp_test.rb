@@ -128,11 +128,11 @@ class PostgresqlTimestampFixtureTest < ActiveRecord::PostgreSQLTestCase
 
   def test_load_infinity_and_beyond
     d = Developer.find_by_sql("select 'infinity'::timestamp as legacy_updated_at")
-    assert d.first.updated_at.infinite?, "timestamp should be infinite"
+    assert_predicate d.first.updated_at, :infinite?, "timestamp should be infinite"
 
     d = Developer.find_by_sql("select '-infinity'::timestamp as legacy_updated_at")
     time = d.first.updated_at
-    assert time.infinite?, "timestamp should be infinite"
+    assert_predicate time, :infinite?, "timestamp should be infinite"
     assert_operator time, :<, 0
   end
 
