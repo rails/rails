@@ -86,6 +86,12 @@ module ActiveSupport
     mattr_accessor :colorize_logging, default: true
     class_attribute :log_levels, instance_accessor: false, default: {} # :nodoc:
 
+    LEVEL_CHECKS = {
+      debug: -> (logger) { !logger.debug? },
+      info: -> (logger) { !logger.info? },
+      error: -> (logger) { !logger.error? },
+    }
+
     class << self
       def logger
         @logger ||= if defined?(Rails) && Rails.respond_to?(:logger)
@@ -122,7 +128,7 @@ module ActiveSupport
         end
 
         def subscribe_log_level(method, level)
-          self.log_levels = log_levels.merge(method => ::Logger.const_get(level.upcase))
+          self.log_levels = log_levels.merge(method => LEVEL_CHECKS.fetch(level))
           set_event_levels
         end
     end
@@ -137,7 +143,7 @@ module ActiveSupport
     end
 
     def silenced?(event)
-      logger.nil? || logger.level > @event_levels.fetch(event, Float::INFINITY)
+      logger.nil? || @event_levels[event]&.call(logger)
     end
 
     def call(event)

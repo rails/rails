@@ -1,3 +1,13 @@
+*   Fix compatibility with the `semantic_logger` gem.
+
+    The `semantic_logger` gem doesn't behave exactly like stdlib logger in that
+    `SemanticLogger#level` returns a Symbol while stdlib `Logger#level` returns an Integer.
+
+    This caused the various `LogSubscriber` classes in Rails to break when assigned a
+    `SemanticLogger` instance.
+
+    *Jean Boussier*, *ojab*
+
 *   Fix MemoryStore to prevent race conditions when incrementing or decrementing.
 
     *Pierre Jambet*
