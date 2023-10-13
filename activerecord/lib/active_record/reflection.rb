@@ -382,6 +382,7 @@ module ActiveRecord
         @klass         = options[:anonymous_class]
         @plural_name   = active_record.pluralize_table_names ?
                             name.to_s.pluralize : name.to_s
+        validate_reflection!
       end
 
       def autosave=(autosave)
@@ -432,6 +433,17 @@ module ActiveRecord
       private
         def derive_class_name
           name.to_s.camelize
+        end
+
+        def validate_reflection!
+          return unless options[:foreign_key].is_a?(Array)
+
+          message = <<~MSG.squish
+            Passing #{options[:foreign_key]} array to :foreign_key option
+            on the #{active_record}##{name} association is not supported.
+            Use the query_constraints: #{options[:foreign_key]} option instead to represent a composite foreign key.
+          MSG
+          raise ArgumentError, message
         end
     end
 
