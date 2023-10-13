@@ -238,9 +238,7 @@ module ActionDispatch
     # If you are using +javascript_include_tag+ or +stylesheet_link_tag+ the
     # Early Hints headers are included by default if supported.
     def send_early_hints(links)
-      return unless env["rack.early_hints"]
-
-      env["rack.early_hints"].call(links)
+      env["rack.early_hints"]&.call(links)
     end
 
     # Returns a +String+ with the last requested path including their params.
