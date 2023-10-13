@@ -1,3 +1,8 @@
+*   Remove deprecated support to passing `SchemaMigration` and `InternalMetadata` classes as arguments to
+    `ActiveRecord::MigrationContext`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveRecord::Migration.check_pending` method.
 
     *Rafael Mendonça França*
