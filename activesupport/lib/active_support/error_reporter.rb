@@ -71,12 +71,33 @@ module ActiveSupport
     # * +:source+ - This value is passed along to subscribers to indicate the
     #   source of the error. Subscribers can use this value to ignore certain
     #   errors. Defaults to <tt>"application"</tt>.
-    def handle(*error_classes, severity: :warning, context: {}, fallback: nil, source: DEFAULT_SOURCE)
-      error_classes = [StandardError] if error_classes.blank?
-      yield
-    rescue *error_classes => error
-      report(error, handled: true, severity: severity, context: context, source: source)
-      fallback.call if fallback
+    #
+    # * +:if+ - A boolean that determines whether +handle+ should be executed.
+    #   The block will be executed either way, but errors will only be handled
+    #   and reported if this value is +true+. For example:
+    #
+    #     Rails.error.handle(if: Rails.env.production?) do
+    #       raise "This error will only be raised and reported in production"
+    #     end
+    #
+    # * +:unless+ - A boolean that determines whether +handle+ should be
+    #   executed. The block will be executed either way, but errors will only be
+    #   handled and reported if this value is +false+. For example:
+    #
+    #     Rails.error.handle(unless: Rails.env.test?) do
+    #       raise "This error will only be raised during tests"
+    #     end
+    #
+    #   +:if+ and +:unless+ cannot be specified together.
+    def handle(*error_classes, severity: :warning, context: {}, fallback: nil, source: DEFAULT_SOURCE, **options)
+      return yield if skip_reporting?(options.slice(:if, :unless).compact)
+      begin
+        error_classes = [StandardError] if error_classes.blank?
+        yield
+      rescue *error_classes => error
+        report(error, handled: true, severity: severity, context: context, source: source)
+        fallback.call if fallback
+      end
     end
 
     # Evaluates the given block, reporting and re-raising any unhandled error.
@@ -107,12 +128,33 @@ module ActiveSupport
     # * +:source+ - This value is passed along to subscribers to indicate the
     #   source of the error. Subscribers can use this value to ignore certain
     #   errors. Defaults to <tt>"application"</tt>.
-    def record(*error_classes, severity: :error, context: {}, source: DEFAULT_SOURCE)
-      error_classes = [StandardError] if error_classes.blank?
-      yield
-    rescue *error_classes => error
-      report(error, handled: false, severity: severity, context: context, source: source)
-      raise
+    #
+    # * +:if+ - A boolean that determines whether the error should be reported.
+    #   The block will be executed and errors raised either way, but errors will
+    #   only be reported if this value is +true+. For example:
+    #
+    #     Rails.error.record(if: Rails.env.production?) do
+    #       raise "This error will only be reported in production"
+    #     end
+    #
+    # * +:unless+ - A boolean that determines whether the error should be
+    #   reported. The block will be executed and errors raised either way, but
+    #   errors will only be reported if this value is +false+. For example:
+    #
+    #     Rails.error.record(unless: Rails.env.test?) do
+    #       raise "This error will only be reported in non-test environments"
+    #     end
+    #
+    #   +:if+ and +:unless+ cannot be specified together.
+    def record(*error_classes, severity: :error, context: {}, source: DEFAULT_SOURCE, **options)
+      return yield if skip_reporting?(options.slice(:if, :unless).compact)
+      begin
+        error_classes = [StandardError] if error_classes.blank?
+        yield
+      rescue *error_classes => error
+        report(error, handled: false, severity: severity, context: context, source: source)
+        raise
+      end
     end
 
     # Register a new error subscriber. The subscriber must respond to
@@ -199,5 +241,20 @@ module ActiveSupport
 
       nil
     end
+
+    private
+      def skip_reporting?(conditionals)
+        if conditionals.key?(:if) && conditionals.key?(:unless)
+          raise ArgumentError, "only one of :if or :unless can be specified"
+        end
+
+        if conditionals.key?(:if)
+          !conditionals[:if]
+        elsif conditionals.key?(:unless)
+          !!conditionals[:unless]
+        else
+          false
+        end
+      end
   end
 end

@@ -123,6 +123,59 @@ class ErrorReporterTest < ActiveSupport::TestCase
     end
   end
 
+  test "#handle swallows and reports error when if condition is true" do
+    error = ArgumentError.new("Oops")
+    @reporter.handle(StandardError, if: true) do
+      raise error
+    end
+    assert_equal [[error, true, :warning, "application", {}]], @subscriber.events
+  end
+
+  test "#handle raises the error and doesn't report when if condition is false" do
+    error = ArgumentError.new("Oops")
+    assert_raises ArgumentError do
+      @reporter.handle(ArgumentError, if: false) do
+        raise error
+      end
+    end
+    assert_equal [], @subscriber.events
+  end
+
+  test "#handle executes the block once when condition isn't met and no error raised" do
+    calls = 0
+    @reporter.handle(if: false) do
+      calls += 1
+    end
+
+    assert_equal 1, calls
+  end
+
+  test "#handle raises the error and doesn't report when unless condition is true" do
+    error = ArgumentError.new("Oops")
+    assert_raises ArgumentError do
+      @reporter.handle(ArgumentError, unless: true) do
+        raise error
+      end
+    end
+    assert_equal [], @subscriber.events
+  end
+
+  test "#handle swallows and reports error when unless condition is false" do
+    error = ArgumentError.new("Oops")
+    @reporter.handle(StandardError, unless: false) do
+      raise error
+    end
+    assert_equal [[error, true, :warning, "application", {}]], @subscriber.events
+  end
+
+  test "#handle can't use both if and unless conditions" do
+    assert_raises ArgumentError do
+      @reporter.handle(ArgumentError, if: true, unless: true) do
+        "hello"
+      end
+    end
+  end
+
   test "#record report any unhandled error and re-raise them" do
     error = ArgumentError.new("Oops")
     assert_raises ArgumentError do
@@ -166,6 +219,63 @@ class ErrorReporterTest < ActiveSupport::TestCase
       2 + 2
     end
     assert_equal 4, result
+  end
+
+  test "#record reports error when if condition is true" do
+    error = ArgumentError.new("Oops")
+    assert_raises ArgumentError do
+      @reporter.record(StandardError, if: true) do
+        raise error
+      end
+    end
+    assert_equal [[error, false, :error, "application", {}]], @subscriber.events
+  end
+
+  test "#record doesn't report when if condition is false" do
+    error = ArgumentError.new("Oops")
+    assert_raises ArgumentError do
+      @reporter.record(ArgumentError, if: false) do
+        raise error
+      end
+    end
+    assert_equal [], @subscriber.events
+  end
+
+  test "#record doesn't report when unless condition is true" do
+    error = ArgumentError.new("Oops")
+    assert_raises ArgumentError do
+      @reporter.record(ArgumentError, unless: true) do
+        raise error
+      end
+    end
+    assert_equal [], @subscriber.events
+  end
+
+  test "#record reports error when unless condition is false" do
+    error = ArgumentError.new("Oops")
+    assert_raises ArgumentError do
+      @reporter.record(StandardError, unless: false) do
+        raise error
+      end
+    end
+    assert_equal [[error, false, :error, "application", {}]], @subscriber.events
+  end
+
+  test "#record executes the block once when condition isn't met and no error raised" do
+    calls = 0
+    @reporter.record(if: false) do
+      calls += 1
+    end
+
+    assert_equal 1, calls
+  end
+
+  test "#record can't use both if and unless conditions" do
+    assert_raises ArgumentError do
+      @reporter.record(ArgumentError, if: true, unless: true) do
+        "hello"
+      end
+    end
   end
 
   test "can have multiple subscribers" do

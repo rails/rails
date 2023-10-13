@@ -1,3 +1,10 @@
+*   Add support for the conditional arguments `:if` and `:unless` to `ErrorHandler`'s `handle` and
+    `report` methods.
+
+    This allows for more fine-grained control over when an error should be handled or reported.
+
+    *Dustin Brown*, *dustinbrownman*
+
 *   Fix compatibility with the `semantic_logger` gem.
 
     The `semantic_logger` gem doesn't behave exactly like stdlib logger in that
