@@ -1,3 +1,7 @@
+*   Raise on `foreign_key:` being passed as an array in associations
+
+    *Nikita Vasilevsky*
+
 *   Ensure `#signed_id` outputs `url_safe` strings.
 
     *Jason Meller*
