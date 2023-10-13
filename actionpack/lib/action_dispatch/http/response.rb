@@ -103,10 +103,12 @@ module ActionDispatch # :nodoc:
         @str_body = nil
       end
 
+      def respond_to?(method)
+        @buf.respond_to?(method)
+      end
+
       def to_ary
-        @buf.respond_to?(:to_ary) ?
-          @buf.to_ary :
-          @buf.each
+        @buf.to_ary
       end
 
       def body
@@ -482,48 +484,6 @@ module ActionDispatch # :nodoc:
                        ct.charset || self.class.default_charset)
     end
 
-    class RackBody
-      def initialize(response)
-        @response = response
-      end
-
-      def close
-        # Rack "close" maps to Response#abort, and *not* Response#close
-        # (which is used when the controller's finished writing)
-        @response.abort
-      end
-
-      def body
-        @response.body
-      end
-
-      BODY_METHODS = { to_ary: true, each: true, call: true, to_path: true }
-
-      def respond_to?(method, include_private = false)
-        if BODY_METHODS.key?(method)
-          @response.stream.respond_to?(method)
-        else
-          super
-        end
-      end
-
-      def to_ary
-        @response.stream.to_ary
-      end
-
-      def each(*args, &block)
-        @response.each(*args, &block)
-      end
-
-      def call(*arguments, &block)
-        @response.stream.call(*arguments, &block)
-      end
-
-      def to_path
-        @response.stream.to_path
-      end
-    end
-
     def handle_no_content!
       if NO_CONTENT_CODES.include?(@status)
         @headers.delete CONTENT_TYPE
@@ -535,7 +495,7 @@ module ActionDispatch # :nodoc:
       if NO_CONTENT_CODES.include?(status)
         [status, headers, []]
       else
-        [status, headers, RackBody.new(self)]
+        [status, headers, Rack::BodyProxy.new(self){}]
       end
     end
   end
