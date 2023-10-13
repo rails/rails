@@ -134,7 +134,11 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Remove deprecated support to passing `SchemaMigration` and `InternalMetadata` classes as arguments to
     `ActiveRecord::MigrationContext`.
 
+*   Remove deprecated behavior to support referring to a singular association by its plural name.
+
 ### Deprecations
+
+*   Deprecate `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
 
 ### Notable changes
 

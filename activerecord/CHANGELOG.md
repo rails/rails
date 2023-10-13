@@ -1,3 +1,11 @@
+*   Remove deprecated behavior to support referring to a singular association by its plural name.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to passing `SchemaMigration` and `InternalMetadata` classes as arguments to
     `ActiveRecord::MigrationContext`.
 
