@@ -146,6 +146,11 @@ module ActionDispatch
           def normalize_host(_host, options)
             return _host unless named_host?(_host)
 
+            if %r{\A(https?://)}.match?(options[:host])
+              protocol = options[:host].match(%r{\A(https?://)}).captures.first
+              warn "WARNING: The protocol #{protocol} is hardcoded in the host option. Please pass the protocol parameter instead."
+            end
+
             tld_length = options[:tld_length] || @@tld_length
             subdomain  = options.fetch :subdomain, true
             domain     = options[:domain]
