@@ -5,8 +5,8 @@
 
     *Jean Boussier*
 
+
 ## Rails 7.1.1 (October 11, 2023) ##
-=======
 
 *   Updated `@rails/ujs` files to ignore certain data-* attributes when element is contenteditable.
 
