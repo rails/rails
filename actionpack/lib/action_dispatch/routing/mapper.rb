@@ -236,7 +236,7 @@ module ActionDispatch
           def normalize_format(formatted)
             case formatted
             when true
-              { requirements: { format: /[^\+]+/ },
+              { requirements: { format: /[^+]+/ },
                 defaults:     {} }
             when Regexp
               { requirements: { format: formatted },
