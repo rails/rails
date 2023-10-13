@@ -6,7 +6,7 @@ module ActiveRecord
   # number is inserted in to the schema migrations table so it doesn't need
   # to be executed the next time.
   class SchemaMigration # :nodoc:
-    class NullSchemaMigration
+    class NullSchemaMigration # :nodoc:
     end
 
     attr_reader :connection, :arel_table
