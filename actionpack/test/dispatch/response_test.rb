@@ -617,4 +617,40 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal("text/csv; header=present", @response.media_type)
     assert_equal("utf-16", @response.charset)
   end
+
+  test "response body with enumerator" do
+    @app = lambda { |env|
+      [
+        200,
+        { "Content-Type" => "text/plain" },
+        Enumerator.new { |enumerator| 10.times { |n| enumerator << n.to_s } }
+      ]
+    }
+    get "/"
+    assert_response :success
+
+    assert_equal("text/plain", @response.headers["Content-Type"])
+    assert_equal("text/plain", @response.content_type)
+    assert_equal("text/plain", @response.media_type)
+    assert_equal("utf-8", @response.charset)
+    assert_equal("0123456789", @response.body)
+  end
+
+  test "response body with lazy enumerator" do
+    @app = lambda { |env|
+      [
+        200,
+        { "Content-Type" => "text/plain" },
+        (0..10).lazy
+      ]
+    }
+    get "/"
+    assert_response :success
+
+    assert_equal("text/plain", @response.headers["Content-Type"])
+    assert_equal("text/plain", @response.content_type)
+    assert_equal("text/plain", @response.media_type)
+    assert_equal("utf-8", @response.charset)
+    assert_equal("012345678910", @response.body)
+  end
 end
