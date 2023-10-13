@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveRecord::Migration.check_pending` method.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveRecord::LogSubscriber.runtime` method.
 
     *Rafael Mendonça França*

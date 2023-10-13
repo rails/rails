@@ -44,11 +44,6 @@ module ActiveRecord
           assert_pending_migrations("01_create_foo.rb")
         end
 
-        def test_errors_if_pending_with_deprecated_method
-          create_migration "01", "create_foo"
-          assert_deprecated_check_pending("01_create_foo.rb")
-        end
-
         def test_checks_if_supported
           run_migrations
           assert_no_pending_migrations
@@ -92,25 +87,6 @@ module ActiveRecord
         end
 
         private
-          def assert_deprecated_check_pending(*expected_migrations)
-            2.times do
-              assert_raises ActiveRecord::PendingMigrationError do
-                assert_deprecated(ActiveRecord.deprecator) do
-                  ActiveRecord::Migration.check_pending!
-                end
-              end
-
-              error = assert_raises ActiveRecord::PendingMigrationError do
-                CheckPending.new(proc { flunk }).call({})
-              end
-
-              assert_includes error.message, "Migrations are pending."
-              expected_migrations.each do |migration|
-                assert_includes error.message, migration
-              end
-            end
-          end
-
           def assert_pending_migrations(*expected_migrations)
             2.times do
               assert_raises ActiveRecord::PendingMigrationError do

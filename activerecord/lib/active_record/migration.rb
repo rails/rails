@@ -696,23 +696,6 @@ module ActiveRecord
         delegate || superclass.nearest_delegate
       end
 
-      # Raises ActiveRecord::PendingMigrationError error if any migrations are pending.
-      #
-      # This is deprecated in favor of +check_all_pending!+
-      def check_pending!(connection = ActiveRecord::Tasks::DatabaseTasks.migration_connection)
-        ActiveRecord.deprecator.warn(<<-MSG.squish)
-          The `check_pending!` method is deprecated in favor of `check_all_pending!`. The
-          new implementation will loop through all available database configurations and find
-          pending migrations. The prior implementation did not permit this.
-        MSG
-
-        pending_migrations = connection.migration_context.open.pending_migrations
-
-        if pending_migrations.any?
-          raise ActiveRecord::PendingMigrationError.new(pending_migrations: pending_migrations)
-        end
-      end
-
       # Raises ActiveRecord::PendingMigrationError error if any migrations are pending
       # for all database configurations in an environment.
       def check_all_pending!
