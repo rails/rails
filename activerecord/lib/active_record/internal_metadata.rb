@@ -10,7 +10,7 @@ module ActiveRecord
   # This is enabled by default. To disable this functionality set
   # `use_metadata_table` to false in your database configuration.
   class InternalMetadata # :nodoc:
-    class NullInternalMetadata
+    class NullInternalMetadata # :nodoc:
     end
 
     attr_reader :connection, :arel_table
