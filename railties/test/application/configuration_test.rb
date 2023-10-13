@@ -2875,32 +2875,6 @@ module ApplicationTests
       assert_equal true, ActiveRecord.verify_foreign_keys_for_fixtures
     end
 
-    test "ActiveRecord.allow_deprecated_singular_associations_name is false by default for new apps" do
-      app "development"
-
-      assert_equal false, ActiveRecord.allow_deprecated_singular_associations_name
-    end
-
-    test "ActiveRecord.allow_deprecated_singular_associations_name is true by default for upgraded apps" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app "development"
-
-      assert_equal true, ActiveRecord.allow_deprecated_singular_associations_name
-    end
-
-    test "ActiveRecord.allow_deprecated_singular_associations_name can be configured via config.active_record.allow_deprecated_singular_associations_name" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_7_1.rb", <<-RUBY
-        Rails.application.config.active_record.allow_deprecated_singular_associations_name = false
-      RUBY
-
-      app "development"
-
-      assert_equal false, ActiveRecord.allow_deprecated_singular_associations_name
-    end
-
     test "ActiveRecord::Base.run_commit_callbacks_on_first_saved_instances_in_transaction is false by default for new apps" do
       app "development"
 
