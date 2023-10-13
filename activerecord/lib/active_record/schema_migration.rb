@@ -5,6 +5,7 @@ module ActiveRecord
   # have been applied to a given database. When a migration is run, its schema
   # number is inserted in to the schema migrations table so it doesn't need
   # to be executed the next time.
+  private_constant :SchemaMigration
   class SchemaMigration # :nodoc:
     class NullSchemaMigration
     end

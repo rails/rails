@@ -41,7 +41,7 @@ module RailtiesTest
       end
 
       migration_root = File.expand_path(migration_path, app_path)
-      sm = ActiveRecord::SchemaMigration::NullSchemaMigration.new
+      sm = ActiveRecord.const_get(:SchemaMigration)::NullSchemaMigration.new
       im = ActiveRecord::InternalMetadata::NullInternalMetadata.new
       ActiveRecord::MigrationContext.new(migration_root, sm, im).migrations
     end
