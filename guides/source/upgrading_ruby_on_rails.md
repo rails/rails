@@ -335,6 +335,22 @@ versions, there are two scenarios to consider:
     config.active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA256
     ```
 
+See the [Configuring Rails Applications](configuring.html#config-active-record-encryption-hash-digest-class)
+guide for more information on `config.active_record.encryption.hash_digest_class`.
+
+In addition, a new configuration [`config.active_record.encryption.support_sha1_for_non_deterministic_encryption`](configuring.html#config-active-record-encryption-support-sha1-for-non-deterministic-encryption)
+was introduced to resolve [a bug](https://github.com/rails/rails/issues/42922) that caused some attributes to be
+encrypted using SHA-1 even when SHA-256 was configured via the aforementioned `hash_digest_class` configuration.
+
+By default, `config.active_record.encryption.support_sha1_for_non_deterministic_encryption` is disabled in
+Rails 7.1. If you have data encrypted in a version of Rails < 7.1 that you believe may be affected
+by the aforementioned bug, this configuration should be enabled:
+
+```ruby
+config.active_record.encryption.support_sha1_for_non_deterministic_encryption = true
+```
+
+If you are working with encrypted data, please carefully review the above.
 
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
