@@ -485,7 +485,7 @@ irb> macbook.address
 * [type definition](https://www.postgresql.org/docs/current/static/datatype-geometric.html)
 
 All geometric types, with the exception of `points` are mapped to normal text.
-A point is casted to an array containing `x` and `y` coordinates.
+A point is cast to an array containing `x` and `y` coordinates.
 
 ### Interval
 

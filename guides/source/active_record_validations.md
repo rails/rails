@@ -547,7 +547,7 @@ value.
 ```
 
 Otherwise, it will try to convert the value to a number using `Float`. `Float`s
-are casted to `BigDecimal` using the column's precision value or a maximum of 15
+are cast to `BigDecimal` using the column's precision value or a maximum of 15
 digits.
 
 ```ruby
