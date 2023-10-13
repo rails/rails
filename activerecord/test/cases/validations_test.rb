@@ -20,7 +20,7 @@ class ValidationsTest < ActiveRecord::TestCase
     r = WrongReply.new
     r.title = "Wrong Create"
     assert_not_predicate r, :valid?
-    assert r.errors[:title].any?, "A reply with a bad title should mark that attribute as invalid"
+    assert_predicate r.errors[:title], :any?, "A reply with a bad title should mark that attribute as invalid"
     assert_equal ["is Wrong Create"], r.errors[:title], "A reply with a bad content should contain an error"
   end
 
@@ -33,7 +33,7 @@ class ValidationsTest < ActiveRecord::TestCase
     r.title = "Wrong Update"
     assert_not r.valid?, "Second validation should fail"
 
-    assert r.errors[:title].any?, "A reply with a bad title should mark that attribute as invalid"
+    assert_predicate r.errors[:title], :any?, "A reply with a bad title should mark that attribute as invalid"
     assert_equal ["is Wrong Update"], r.errors[:title], "A reply with a bad content should contain an error"
   end
 

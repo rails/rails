@@ -36,7 +36,7 @@ module ActiveRecord
             }
 
             Process.waitpid pid
-            assert $?.success?, "process should exit successfully"
+            assert_predicate $?, :success?, "process should exit successfully"
           end
         end
 

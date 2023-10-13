@@ -599,7 +599,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_with_readonly_option
     Developer.all.each { |d| assert_not d.readonly? }
-    Developer.all.readonly.each { |d| assert d.readonly? }
+    Developer.all.readonly.each { |d| assert_predicate d, :readonly? }
   end
 
   def test_eager_association_loading_of_stis_with_multiple_references
@@ -1183,7 +1183,7 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.all
 
     assert_queries(3) do
-      assert posts.any? # Uses COUNT()
+      assert_predicate posts, :any? # Uses COUNT()
       assert_not_predicate posts.where(id: nil), :any?
 
       assert posts.any? { |p| p.id > 0 }
@@ -1200,7 +1200,7 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.all
 
     assert_queries(2) do
-      assert posts.many? # Uses COUNT()
+      assert_predicate posts, :many? # Uses COUNT()
       assert posts.many? { |p| p.id > 0 }
       assert_not posts.many? { |p| p.id < 2 }
     end
@@ -1266,7 +1266,7 @@ class RelationTest < ActiveRecord::TestCase
     posts.where.not(id: Post.first).destroy_all
 
     assert_equal 1, posts.size
-    assert posts.one?
+    assert_predicate posts, :one?
   end
 
   def test_to_a_should_dup_target
@@ -1410,7 +1410,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_first_or_create_with_array
     several_green_birds = Bird.where(color: "green").first_or_create([{ name: "parrot" }, { name: "parakeet" }])
     assert_kind_of Array, several_green_birds
-    several_green_birds.each { |bird| assert bird.persisted? }
+    several_green_birds.each { |bird| assert_predicate bird, :persisted? }
 
     same_parrot = Bird.where(color: "green").first_or_create([{ name: "hummingbird" }, { name: "macaw" }])
     assert_kind_of Bird, same_parrot
@@ -1464,7 +1464,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_first_or_create_bang_with_valid_array
     several_green_birds = Bird.where(color: "green").first_or_create!([{ name: "parrot" }, { name: "parakeet" }])
     assert_kind_of Array, several_green_birds
-    several_green_birds.each { |bird| assert bird.persisted? }
+    several_green_birds.each { |bird| assert_predicate bird, :persisted? }
 
     same_parrot = Bird.where(color: "green").first_or_create!([{ name: "hummingbird" }, { name: "macaw" }])
     assert_kind_of Bird, same_parrot
@@ -1973,11 +1973,11 @@ class RelationTest < ActiveRecord::TestCase
     topics = Topic.all
 
     # the first query is triggered because there are no topics yet.
-    assert_queries(1) { assert topics.present? }
+    assert_queries(1) { assert_predicate topics, :present? }
 
     # checking if there are topics is used before you actually display them,
     # thus it shouldn't invoke an extra count query.
-    assert_no_queries { assert topics.present? }
+    assert_no_queries { assert_predicate topics, :present? }
     assert_no_queries { assert_not topics.blank? }
 
     # shows count of topics and loops after loading the query should not trigger extra queries either.

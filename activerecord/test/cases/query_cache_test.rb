@@ -668,10 +668,10 @@ class QueryCacheTest < ActiveRecord::TestCase
       case state
       when :off
         assert_not connection.query_cache_enabled, "cache should be off"
-        assert connection.query_cache.empty?, "cache should be empty"
+        assert_predicate connection.query_cache, :empty?, "cache should be empty"
       when :clean
         assert connection.query_cache_enabled, "cache should be on"
-        assert connection.query_cache.empty?, "cache should be empty"
+        assert_predicate connection.query_cache, :empty?, "cache should be empty"
       when :dirty
         assert connection.query_cache_enabled, "cache should be on"
         assert_not connection.query_cache.empty?, "cache should be dirty"

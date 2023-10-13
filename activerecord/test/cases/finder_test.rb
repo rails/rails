@@ -304,17 +304,17 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_with_distinct_and_offset_and_joins
-    assert Post.left_joins(:comments).distinct.offset(10).exists?
+    assert_predicate Post.left_joins(:comments).distinct.offset(10), :exists?
     assert_not Post.left_joins(:comments).distinct.offset(11).exists?
   end
 
   def test_exists_with_distinct_and_offset_and_select
-    assert Post.select(:body).distinct.offset(4).exists?
+    assert_predicate Post.select(:body).distinct.offset(4), :exists?
     assert_not Post.select(:body).distinct.offset(5).exists?
   end
 
   def test_exists_with_distinct_and_offset_and_eagerload_and_order
-    assert Post.eager_load(:comments).distinct.offset(10).merge(Comment.order(post_id: :asc)).exists?
+    assert_predicate Post.eager_load(:comments).distinct.offset(10).merge(Comment.order(post_id: :asc)), :exists?
     assert_not Post.eager_load(:comments).distinct.offset(11).merge(Comment.order(post_id: :asc)).exists?
   end
 

@@ -55,7 +55,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "each carries permitted status" do
     @params.permit!
-    @params.each { |key, value| assert(value.permitted?) if key == "person" }
+    @params.each { |key, value| assert_predicate(value, :permitted?) if key == "person" }
   end
 
   test "each carries unpermitted status" do
@@ -77,7 +77,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "each_pair carries permitted status" do
     @params.permit!
-    @params.each_pair { |key, value| assert(value.permitted?) if key == "person" }
+    @params.each_pair { |key, value| assert_predicate(value, :permitted?) if key == "person" }
   end
 
   test "each_pair carries unpermitted status" do

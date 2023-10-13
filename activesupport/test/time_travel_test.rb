@@ -257,7 +257,7 @@ class TimeTravelTest < ActiveSupport::TestCase
 
   def test_time_helper_freeze_time_with_usec_true
     # repeatedly test in case Time.now happened to actually be 0 usec
-    assert 9.times.any? do
+    assert_predicate 9.times, :any? do
       freeze_time(with_usec: true) do
         Time.now.usec != 0
       end

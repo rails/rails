@@ -160,7 +160,7 @@ module ActiveModel
     test "can't modify attributes if frozen" do
       data = ModelForAttributesTest.new
       data.freeze
-      assert data.frozen?
+      assert_predicate data, :frozen?
       assert_raise(FrozenError) { data.integer_field = 1 }
     end
 

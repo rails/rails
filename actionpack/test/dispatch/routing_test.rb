@@ -3509,16 +3509,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     get "/streams"
-    assert @response.ok?, "route without trailing slash should work"
+    assert_predicate @response, :ok?, "route without trailing slash should work"
 
     get "/streams/"
-    assert @response.ok?, "route with trailing slash should work"
+    assert_predicate @response, :ok?, "route with trailing slash should work"
 
     get "/streams?foobar"
-    assert @response.ok?, "route without trailing slash and with QUERY_STRING should work"
+    assert_predicate @response, :ok?, "route without trailing slash and with QUERY_STRING should work"
 
     get "/streams/?foobar"
-    assert @response.ok?, "route with trailing slash and with QUERY_STRING should work"
+    assert_predicate @response, :ok?, "route with trailing slash and with QUERY_STRING should work"
   end
 
   def test_route_with_dashes_in_path

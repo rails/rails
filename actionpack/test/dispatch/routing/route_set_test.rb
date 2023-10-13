@@ -20,7 +20,7 @@ module ActionDispatch
       end
 
       test "not being empty when route is added" do
-        assert empty?
+        assert_predicate self, :empty?
 
         draw do
           get "foo", to: SimpleApp.new("foo#index")

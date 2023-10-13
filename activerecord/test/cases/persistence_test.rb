@@ -804,7 +804,7 @@ class PersistenceTest < ActiveRecord::TestCase
   def test_delete
     topic = Topic.find(1)
     assert_equal topic, topic.delete, "topic.delete did not return self"
-    assert topic.frozen?, "topic not frozen after delete"
+    assert_predicate topic, :frozen?, "topic not frozen after delete"
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
   end
 
@@ -823,14 +823,14 @@ class PersistenceTest < ActiveRecord::TestCase
   def test_destroy
     topic = Topic.find(1)
     assert_equal topic, topic.destroy, "topic.destroy did not return self"
-    assert topic.frozen?, "topic not frozen after destroy"
+    assert_predicate topic, :frozen?, "topic not frozen after destroy"
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
   end
 
   def test_destroy!
     topic = Topic.find(1)
     assert_equal topic, topic.destroy!, "topic.destroy! did not return self"
-    assert topic.frozen?, "topic not frozen after destroy!"
+    assert_predicate topic, :frozen?, "topic not frozen after destroy!"
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
   end
 
@@ -1110,8 +1110,8 @@ class PersistenceTest < ActiveRecord::TestCase
     t.update_column(:title, "super_title")
     assert_equal "John", t.author_name
     assert_equal "super_title", t.title
-    assert t.changed?, "topic should have changed"
-    assert t.author_name_changed?, "author_name should have changed"
+    assert_predicate t, :changed?, "topic should have changed"
+    assert_predicate t, :author_name_changed?, "author_name should have changed"
 
     t.reload
     assert_equal author_name, t.author_name
@@ -1209,8 +1209,8 @@ class PersistenceTest < ActiveRecord::TestCase
     t.update_columns(title: "super_title")
     assert_equal "John", t.author_name
     assert_equal "super_title", t.title
-    assert t.changed?, "topic should have changed"
-    assert t.author_name_changed?, "author_name should have changed"
+    assert_predicate t, :changed?, "topic should have changed"
+    assert_predicate t, :author_name_changed?, "author_name should have changed"
 
     t.reload
     assert_equal author_name, t.author_name

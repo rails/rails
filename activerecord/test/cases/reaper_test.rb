@@ -143,7 +143,7 @@ module ActiveRecord
           end
 
           Process.waitpid(pid)
-          assert $?.success?
+          assert_predicate $?, :success?
         ensure
           pool.discard!
         end

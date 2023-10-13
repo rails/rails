@@ -2053,7 +2053,7 @@ class TestAutosaveAssociationValidationsOnAHasManyAssociation < ActiveRecord::Te
     pirate = FamousPirate.create!(catchphrase: "Avast Ye!")
     pirate.famous_ships.create!
 
-    assert pirate.valid?
+    assert_predicate pirate, :valid?
     assert_not pirate.valid?(:conference)
   end
 end
@@ -2100,7 +2100,7 @@ class TestAutosaveAssociationValidationsOnABelongsToAssociation < ActiveRecord::
   def test_validations_still_fire_on_unchanged_association_with_custom_validation_context
     firm_with_low_credit = Firm.create!(name: "Something", account: Account.new(credit_limit: 50))
 
-    assert firm_with_low_credit.valid?
+    assert_predicate firm_with_low_credit, :valid?
     assert_not firm_with_low_credit.valid?(:bank_loan)
   end
 end

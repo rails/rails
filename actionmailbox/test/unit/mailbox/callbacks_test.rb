@@ -61,7 +61,7 @@ class ActionMailbox::Base::CallbacksTest < ActiveSupport::TestCase
 
   test "bouncing in a callback terminates processing" do
     BouncingCallbackMailbox.receive @inbound_email
-    assert @inbound_email.bounced?
+    assert_predicate @inbound_email, :bounced?
     assert_equal [ "Pre-bounce", "Bounce" ], $before_processing
     assert_not $processed
     assert_not $after_processing
@@ -69,7 +69,7 @@ class ActionMailbox::Base::CallbacksTest < ActiveSupport::TestCase
 
   test "marking the inbound email as delivered in a callback terminates processing" do
     DiscardingCallbackMailbox.receive @inbound_email
-    assert @inbound_email.delivered?
+    assert_predicate @inbound_email, :delivered?
     assert_equal [ "Pre-discard", "Discard" ], $before_processing
     assert_not $processed
     assert_not $after_processing

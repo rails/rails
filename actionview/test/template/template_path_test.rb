@@ -9,7 +9,7 @@ class TemplatePathTest < ActiveSupport::TestCase
     assert_equal "foo/_bar", path.virtual
     assert_equal "foo", path.prefix
     assert_equal "bar", path.name
-    assert path.partial?
+    assert_predicate path, :partial?
   end
 
   def test_virtual
@@ -38,14 +38,14 @@ class TemplatePathTest < ActiveSupport::TestCase
     path = ActionView::TemplatePath.parse("_foo")
     assert_equal "", path.prefix
     assert_equal "foo", path.name
-    assert path.partial?
+    assert_predicate path, :partial?
   end
 
   def test_parse_root_partial_with_slash
     path = ActionView::TemplatePath.parse("/_foo")
     assert_equal "", path.prefix
     assert_equal "foo", path.name
-    assert path.partial?
+    assert_predicate path, :partial?
   end
 
   def test_parse_template
@@ -59,20 +59,20 @@ class TemplatePathTest < ActiveSupport::TestCase
     path = ActionView::TemplatePath.parse("foo/_bar")
     assert_equal "foo", path.prefix
     assert_equal "bar", path.name
-    assert path.partial?
+    assert_predicate path, :partial?
   end
 
   def test_parse_deep_partial
     path = ActionView::TemplatePath.parse("foo/bar/_baz")
     assert_equal "foo/bar", path.prefix
     assert_equal "baz", path.name
-    assert path.partial?
+    assert_predicate path, :partial?
   end
 
   def test_parse_deep_partial_with_slash
     path = ActionView::TemplatePath.parse("/foo/bar/_baz")
     assert_equal "foo/bar", path.prefix
     assert_equal "baz", path.name
-    assert path.partial?
+    assert_predicate path, :partial?
   end
 end

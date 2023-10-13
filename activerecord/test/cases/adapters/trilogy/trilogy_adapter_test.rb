@@ -49,15 +49,15 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   end
 
   test "#supports_comments? answers true" do
-    assert @conn.supports_comments?
+    assert_predicate @conn, :supports_comments?
   end
 
   test "#supports_comments_in_create? answers true" do
-    assert @conn.supports_comments_in_create?
+    assert_predicate @conn, :supports_comments_in_create?
   end
 
   test "#supports_savepoints? answers true" do
-    assert @conn.supports_savepoints?
+    assert_predicate @conn, :supports_savepoints?
   end
 
   test "#requires_reloading? answers false" do
@@ -93,7 +93,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   end
 
   test "#active? answers true with connection" do
-    assert @conn.active?
+    assert_predicate @conn, :active?
   end
 
   test "#active? answers false with connection and exception" do

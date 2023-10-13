@@ -703,7 +703,7 @@ module ApplicationTests
 
       get "/"
 
-      assert last_response.ok?
+      assert_predicate last_response, :ok?
     end
 
     test "EtagWithFlash module doesn't break for API apps" do
@@ -720,7 +720,7 @@ module ApplicationTests
 
       get "/"
 
-      assert last_response.ok?
+      assert_predicate last_response, :ok?
     end
 
     test "Use key_generator when secret_key_base is set" do
@@ -1444,7 +1444,7 @@ module ApplicationTests
     test "autoloaders" do
       app "development"
 
-      assert Rails.autoloaders.zeitwerk_enabled?
+      assert_predicate Rails.autoloaders, :zeitwerk_enabled?
       assert_instance_of Zeitwerk::Loader, Rails.autoloaders.main
       assert_equal "rails.main", Rails.autoloaders.main.tag
       assert_instance_of Zeitwerk::Loader, Rails.autoloaders.once

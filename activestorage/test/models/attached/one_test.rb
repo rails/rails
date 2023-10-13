@@ -130,12 +130,12 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
   test "attaching an existing blob to an existing, changed record" do
     @user.name = "Tina"
-    assert @user.changed?
+    assert_predicate @user, :changed?
 
     @user.avatar.attach create_blob(filename: "funky.jpg")
     assert_equal "funky.jpg", @user.avatar.filename.to_s
     assert_not @user.avatar.persisted?
-    assert @user.will_save_change_to_name?
+    assert_predicate @user, :will_save_change_to_name?
 
     @user.save!
     assert_equal "funky.jpg", @user.reload.avatar.filename.to_s
@@ -143,12 +143,12 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
   test "attaching an existing blob from a signed ID to an existing, changed record" do
     @user.name = "Tina"
-    assert @user.changed?
+    assert_predicate @user, :changed?
 
     @user.avatar.attach create_blob(filename: "funky.jpg").signed_id
     assert_equal "funky.jpg", @user.avatar.filename.to_s
     assert_not @user.avatar.persisted?
-    assert @user.will_save_change_to_name?
+    assert_predicate @user, :will_save_change_to_name?
 
     @user.save!
     assert_equal "funky.jpg", @user.reload.avatar.filename.to_s
@@ -156,12 +156,12 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
   test "attaching a new blob from a Hash to an existing, changed record" do
     @user.name = "Tina"
-    assert @user.changed?
+    assert_predicate @user, :changed?
 
     @user.avatar.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg"
     assert_equal "town.jpg", @user.avatar.filename.to_s
     assert_not @user.avatar.persisted?
-    assert @user.will_save_change_to_name?
+    assert_predicate @user, :will_save_change_to_name?
 
     @user.save!
     assert_equal "town.jpg", @user.reload.avatar.filename.to_s
@@ -169,12 +169,12 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
   test "attaching a new blob from an uploaded file to an existing, changed record" do
     @user.name = "Tina"
-    assert @user.changed?
+    assert_predicate @user, :changed?
 
     @user.avatar.attach fixture_file_upload("racecar.jpg")
     assert_equal "racecar.jpg", @user.avatar.filename.to_s
     assert_not @user.avatar.persisted?
-    assert @user.will_save_change_to_name?
+    assert_predicate @user, :will_save_change_to_name?
 
     @user.save!
     assert_equal "racecar.jpg", @user.reload.avatar.filename.to_s
@@ -368,7 +368,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       @user.avatar.attach fixture_file_upload("racecar.jpg")
     end
 
-    assert @user.avatar.reload.analyzed?
+    assert_predicate @user.avatar.reload, :analyzed?
     assert_equal 4104, @user.avatar.metadata[:width]
     assert_equal 2736, @user.avatar.metadata[:height]
   end
@@ -378,7 +378,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       @user.update! avatar: fixture_file_upload("racecar.jpg")
     end
 
-    assert @user.avatar.reload.analyzed?
+    assert_predicate @user.avatar.reload, :analyzed?
     assert_equal 4104, @user.avatar.metadata[:width]
     assert_equal 2736, @user.avatar.metadata[:height]
   end
@@ -388,7 +388,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       @user.avatar.attach directly_upload_file_blob(filename: "racecar.jpg")
     end
 
-    assert @user.avatar.reload.analyzed?
+    assert_predicate @user.avatar.reload, :analyzed?
     assert_equal 4104, @user.avatar.metadata[:width]
     assert_equal 2736, @user.avatar.metadata[:height]
   end
@@ -398,7 +398,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       @user.update! avatar: directly_upload_file_blob(filename: "racecar.jpg")
     end
 
-    assert @user.avatar.reload.analyzed?
+    assert_predicate @user.avatar.reload, :analyzed?
     assert_equal 4104, @user.avatar.metadata[:width]
     assert_equal 2736, @user.avatar.metadata[:height]
   end
@@ -407,7 +407,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     group = Group.create!(users_attributes: [{ name: "John", avatar: { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg" } }])
     group.save!
     new_user = User.find_by(name: "John")
-    assert new_user.avatar.attached?
+    assert_predicate new_user.avatar, :attached?
   end
 
   test "updating an attachment as part of an autosave association" do
@@ -415,13 +415,13 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     @user.avatar = fixture_file_upload("racecar.jpg")
     group.save!
     @user.reload
-    assert @user.avatar.attached?
+    assert_predicate @user.avatar, :attached?
   end
 
   test "attaching an existing blob to a new record" do
     User.new(name: "Jason").tap do |user|
       user.avatar.attach create_blob(filename: "funky.jpg")
-      assert user.new_record?
+      assert_predicate user, :new_record?
       assert_equal "funky.jpg", user.avatar.filename.to_s
 
       user.save!
@@ -432,7 +432,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   test "attaching an existing blob from a signed ID to a new record" do
     User.new(name: "Jason").tap do |user|
       user.avatar.attach create_blob(filename: "funky.jpg").signed_id
-      assert user.new_record?
+      assert_predicate user, :new_record?
       assert_equal "funky.jpg", user.avatar.filename.to_s
 
       user.save!
@@ -443,15 +443,15 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   test "attaching a new blob from a Hash to a new record" do
     User.new(name: "Jason").tap do |user|
       user.avatar.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg"
-      assert user.new_record?
-      assert user.avatar.attachment.new_record?
-      assert user.avatar.blob.new_record?
+      assert_predicate user, :new_record?
+      assert_predicate user.avatar.attachment, :new_record?
+      assert_predicate user.avatar.blob, :new_record?
       assert_equal "town.jpg", user.avatar.filename.to_s
       assert_not ActiveStorage::Blob.service.exist?(user.avatar.key)
 
       user.save!
-      assert user.avatar.attachment.persisted?
-      assert user.avatar.blob.persisted?
+      assert_predicate user.avatar.attachment, :persisted?
+      assert_predicate user.avatar.blob, :persisted?
       assert_equal "town.jpg", user.reload.avatar.filename.to_s
       assert ActiveStorage::Blob.service.exist?(user.avatar.key)
     end
@@ -460,15 +460,15 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   test "attaching a new blob from an uploaded file to a new record" do
     User.new(name: "Jason").tap do |user|
       user.avatar.attach fixture_file_upload("racecar.jpg")
-      assert user.new_record?
-      assert user.avatar.attachment.new_record?
-      assert user.avatar.blob.new_record?
+      assert_predicate user, :new_record?
+      assert_predicate user.avatar.attachment, :new_record?
+      assert_predicate user.avatar.blob, :new_record?
       assert_equal "racecar.jpg", user.avatar.filename.to_s
       assert_not ActiveStorage::Blob.service.exist?(user.avatar.key)
 
       user.save!
-      assert user.avatar.attachment.persisted?
-      assert user.avatar.blob.persisted?
+      assert_predicate user.avatar.attachment, :persisted?
+      assert_predicate user.avatar.blob, :persisted?
       assert_equal "racecar.jpg", user.reload.avatar.filename.to_s
       assert ActiveStorage::Blob.service.exist?(user.avatar.key)
     end
@@ -486,9 +486,9 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
   test "creating a record with a new blob from an uploaded file attached" do
     User.new(name: "Jason", avatar: fixture_file_upload("racecar.jpg")).tap do |user|
-      assert user.new_record?
-      assert user.avatar.attachment.new_record?
-      assert user.avatar.blob.new_record?
+      assert_predicate user, :new_record?
+      assert_predicate user.avatar.attachment, :new_record?
+      assert_predicate user.avatar.blob, :new_record?
       assert_equal "racecar.jpg", user.avatar.filename.to_s
       assert_not ActiveStorage::Blob.service.exist?(user.avatar.key)
 
@@ -505,7 +505,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   test "analyzing a new blob from an uploaded file after attaching it to a new record" do
     perform_enqueued_jobs do
       user = User.create!(name: "Jason", avatar: fixture_file_upload("racecar.jpg"))
-      assert user.avatar.reload.analyzed?
+      assert_predicate user.avatar.reload, :analyzed?
       assert_equal 4104, user.avatar.metadata[:width]
       assert_equal 2736, user.avatar.metadata[:height]
     end
@@ -514,7 +514,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   test "analyzing a directly-uploaded blob after attaching it to a new record" do
     perform_enqueued_jobs do
       user = User.create!(name: "Jason", avatar: directly_upload_file_blob(filename: "racecar.jpg"))
-      assert user.avatar.reload.analyzed?
+      assert_predicate user.avatar.reload, :analyzed?
       assert_equal 4104, user.avatar.metadata[:width]
       assert_equal 2736, user.avatar.metadata[:height]
     end
@@ -523,7 +523,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   test "detaching" do
     create_blob(filename: "funky.jpg").tap do |blob|
       @user.avatar.attach blob
-      assert @user.avatar.attached?
+      assert_predicate @user.avatar, :attached?
 
       perform_enqueued_jobs do
         @user.avatar.detach
@@ -539,7 +539,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     create_blob(filename: "funky.jpg").tap do |blob|
       user = User.new
       user.avatar.attach blob
-      assert user.avatar.attached?
+      assert_predicate user.avatar, :attached?
 
       perform_enqueued_jobs do
         user.avatar.detach
@@ -554,7 +554,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   test "purging" do
     create_blob(filename: "funky.jpg").tap do |blob|
       @user.avatar.attach blob
-      assert @user.avatar.attached?
+      assert_predicate @user.avatar, :attached?
 
       assert_changes -> { @user.updated_at } do
         @user.avatar.purge
@@ -568,11 +568,11 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   test "purging an attachment with a shared blob" do
     create_blob(filename: "funky.jpg").tap do |blob|
       @user.avatar.attach blob
-      assert @user.avatar.attached?
+      assert_predicate @user.avatar, :attached?
 
       another_user = User.create!(name: "John")
       another_user.avatar.attach blob
-      assert another_user.avatar.attached?
+      assert_predicate another_user.avatar, :attached?
 
       @user.avatar.purge
       assert_not @user.avatar.attached?
@@ -585,13 +585,13 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     create_blob(filename: "funky.jpg").tap do |blob|
       user = User.new
       user.avatar.attach blob
-      assert user.avatar.attached?
+      assert_predicate user.avatar, :attached?
 
       attachment = user.avatar.attachment
       user.avatar.purge
 
       assert_not user.avatar.attached?
-      assert attachment.destroyed?
+      assert_predicate attachment, :destroyed?
       assert_not ActiveStorage::Blob.exists?(blob.id)
       assert_not ActiveStorage::Blob.service.exist?(blob.key)
     end
@@ -609,7 +609,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   test "purging later" do
     create_blob(filename: "funky.jpg").tap do |blob|
       @user.avatar.attach blob
-      assert @user.avatar.attached?
+      assert_predicate @user.avatar, :attached?
 
       perform_enqueued_jobs do
         assert_changes -> { @user.updated_at } do
@@ -626,11 +626,11 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   test "purging an attachment later with shared blob" do
     create_blob(filename: "funky.jpg").tap do |blob|
       @user.avatar.attach blob
-      assert @user.avatar.attached?
+      assert_predicate @user.avatar, :attached?
 
       another_user = User.create!(name: "John")
       another_user.avatar.attach blob
-      assert another_user.avatar.attached?
+      assert_predicate another_user.avatar, :attached?
 
       perform_enqueued_jobs do
         @user.avatar.purge_later
@@ -646,7 +646,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     create_blob(filename: "funky.jpg").tap do |blob|
       user = User.new
       user.avatar.attach blob
-      assert user.avatar.attached?
+      assert_predicate user.avatar, :attached?
 
       attachment = user.avatar.attachment
       perform_enqueued_jobs do
@@ -654,7 +654,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       end
 
       assert_not user.avatar.attached?
-      assert attachment.destroyed?
+      assert_predicate attachment, :destroyed?
       assert_not ActiveStorage::Blob.exists?(blob.id)
       assert_not ActiveStorage::Blob.service.exist?(blob.key)
     end
@@ -699,7 +699,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
   test "clearing change on reload" do
     @user.avatar = create_blob(filename: "funky.jpg")
-    assert @user.avatar.attached?
+    assert_predicate @user.avatar, :attached?
 
     @user.reload
     assert_not @user.avatar.attached?

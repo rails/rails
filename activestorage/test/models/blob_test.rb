@@ -159,7 +159,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   test "open with integrity" do
     create_file_blob(filename: "racecar.jpg").tap do |blob|
       blob.open do |file|
-        assert file.binmode?
+        assert_predicate file, :binmode?
         assert_equal 0, file.pos
         assert File.basename(file.path).start_with?("ActiveStorage-#{blob.id}-")
         assert file.path.end_with?(".jpg")
@@ -180,7 +180,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
   test "open in a custom tmpdir" do
     create_file_blob(filename: "racecar.jpg").open(tmpdir: tmpdir = Dir.mktmpdir) do |file|
-      assert file.binmode?
+      assert_predicate file, :binmode?
       assert_equal 0, file.pos
       assert_match(/\.jpg\z/, file.path)
       assert file.path.start_with?(tmpdir)
@@ -273,7 +273,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   test "purge doesn't raise when blob is not persisted" do
     build_blob_after_unfurling.tap do |blob|
       assert_nothing_raised { blob.purge }
-      assert blob.destroyed?
+      assert_predicate blob, :destroyed?
     end
   end
 

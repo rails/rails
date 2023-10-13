@@ -37,33 +37,33 @@ class DelegatedTypeTest < ActiveRecord::TestCase
 
   test "delegated type name" do
     assert_equal "message", @entry_with_message.entryable_name
-    assert @entry_with_message.entryable_name.message?
+    assert_predicate @entry_with_message.entryable_name, :message?
 
     assert_equal "comment", @entry_with_comment.entryable_name
-    assert @entry_with_comment.entryable_name.comment?
+    assert_predicate @entry_with_comment.entryable_name, :comment?
   end
 
   test "delegated type predicates" do
-    assert @entry_with_message.message?
+    assert_predicate @entry_with_message, :message?
     assert_not @entry_with_message.comment?
 
-    assert @entry_with_comment.comment?
+    assert_predicate @entry_with_comment, :comment?
     assert_not @entry_with_comment.message?
   end
 
   test "delegated type predicates with custom foreign_type" do
-    assert @entry_with_post.post?
+    assert_predicate @entry_with_post, :post?
     assert_not @entry_with_message.post?
     assert_not @entry_with_comment.post?
   end
 
   test "scope" do
-    assert Entry.messages.first.message?
-    assert Entry.comments.first.comment?
+    assert_predicate Entry.messages.first, :message?
+    assert_predicate Entry.comments.first, :comment?
   end
 
   test "scope with custom foreign_type" do
-    assert Entry.posts.first.post?
+    assert_predicate Entry.posts.first, :post?
   end
 
   test "accessor" do

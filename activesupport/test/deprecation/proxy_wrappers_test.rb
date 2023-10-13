@@ -38,7 +38,7 @@ class ProxyWrappersTest < ActiveSupport::TestCase
     assert_deprecated("OldWaffleModule", @deprecator) do
       klass.include proxy
     end
-    assert klass.new.waffle?
+    assert_predicate klass.new, :waffle?
   end
 
   def test_prepending_proxy_module
@@ -51,7 +51,7 @@ class ProxyWrappersTest < ActiveSupport::TestCase
     assert_deprecated("OldWaffleModule", @deprecator) do
       klass.prepend proxy
     end
-    assert klass.new.waffle?
+    assert_predicate klass.new, :waffle?
   end
 
   def test_extending_proxy_module
@@ -60,6 +60,6 @@ class ProxyWrappersTest < ActiveSupport::TestCase
     assert_deprecated("OldWaffleModule", @deprecator) do
       obj.extend proxy
     end
-    assert obj.waffle?
+    assert_predicate obj, :waffle?
   end
 end

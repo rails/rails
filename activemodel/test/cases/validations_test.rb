@@ -19,11 +19,11 @@ class ValidationsTest < ActiveModel::TestCase
   def test_single_field_validation
     r = Reply.new
     r.title = "There's no content!"
-    assert r.invalid?, "A reply without content should be invalid"
+    assert_predicate r, :invalid?, "A reply without content should be invalid"
     assert r.after_validation_performed, "after_validation callback should be called"
 
     r.content = "Messa content!"
-    assert r.valid?, "A reply with content should be valid"
+    assert_predicate r, :valid?, "A reply with content should be valid"
     assert r.after_validation_performed, "after_validation callback should be called"
   end
 
@@ -31,7 +31,7 @@ class ValidationsTest < ActiveModel::TestCase
     r = Reply.new
     r.title = "There's no content!"
     assert_predicate r, :invalid?
-    assert r.errors[:content].any?, "A reply without content should mark that attribute as invalid"
+    assert_predicate r.errors[:content], :any?, "A reply without content should mark that attribute as invalid"
     assert_equal ["is Empty"], r.errors["content"], "A reply without content should contain an error"
     assert_equal 1, r.errors.count
   end
@@ -40,10 +40,10 @@ class ValidationsTest < ActiveModel::TestCase
     r = Reply.new
     assert_predicate r, :invalid?
 
-    assert r.errors[:title].any?, "A reply without title should mark that attribute as invalid"
+    assert_predicate r.errors[:title], :any?, "A reply without title should mark that attribute as invalid"
     assert_equal ["is Empty"], r.errors["title"], "A reply without title should contain an error"
 
-    assert r.errors[:content].any?, "A reply without content should mark that attribute as invalid"
+    assert_predicate r.errors[:content], :any?, "A reply without content should mark that attribute as invalid"
     assert_equal ["is Empty"], r.errors["content"], "A reply without content should contain an error"
 
     assert_equal 2, r.errors.count

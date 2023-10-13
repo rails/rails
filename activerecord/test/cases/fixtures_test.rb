@@ -599,7 +599,7 @@ class FixturesTest < ActiveRecord::TestCase
 
       result = test_case.new(:test_fixtures).run
 
-      assert result.passed?, "Expected #{result.name} to pass:\n#{result}"
+      assert_predicate result, :passed?, "Expected #{result.name} to pass:\n#{result}"
     end
   ensure
     ENV["DATABASE_URL"] = db_url_tmp
