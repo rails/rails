@@ -300,7 +300,7 @@ module Rails
   #
   # == Isolated engine's helpers
   #
-  # Sometimes you may want to isolate engine, but use helpers that are defined for it.
+  # Sometimes you may want to isolate an engine, but use helpers that are defined for it.
   # If you want to share just a few specific helpers you can add them to application's
   # helpers in ApplicationController:
   #
