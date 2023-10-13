@@ -155,7 +155,7 @@ module RailInspector
 
         def parse_release_header
           @buffer.scan(
-            /#{RELEASE_HEADER} .*##\n\n/o
+            /#{RELEASE_HEADER} .*##\s*/o
           )
         end
 
