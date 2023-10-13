@@ -529,7 +529,7 @@ set `:only_integer` to true. Then it will use the
 ```
 
 regular expression to validate the attribute's value. Otherwise, it will try to
-convert the value to a number using `Float`. `Float`s are casted to `BigDecimal` using the column's precision value or 15.
+convert the value to a number using `Float`. `Float`s are cast to `BigDecimal` using the column's precision value or 15.
 
 ```ruby
 class Player < ApplicationRecord
