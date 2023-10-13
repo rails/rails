@@ -1205,28 +1205,6 @@ module ActiveRecord
     attr_reader :migrations_paths, :schema_migration, :internal_metadata
 
     def initialize(migrations_paths, schema_migration = nil, internal_metadata = nil)
-      if schema_migration == SchemaMigration
-        ActiveRecord.deprecator.warn(<<-MSG.squish)
-          SchemaMigration no longer inherits from ActiveRecord::Base. If you want
-          to use the default connection, remove this argument. If you want to use a
-          specific connection, instantiate MigrationContext with the connection's schema
-          migration, for example `MigrationContext.new(path, Dog.connection.schema_migration)`.
-        MSG
-
-        schema_migration = nil
-      end
-
-      if internal_metadata == InternalMetadata
-        ActiveRecord.deprecator.warn(<<-MSG.squish)
-          SchemaMigration no longer inherits from ActiveRecord::Base. If you want
-          to use the default connection, remove this argument. If you want to use a
-          specific connection, instantiate MigrationContext with the connection's internal
-          metadata, for example `MigrationContext.new(path, nil, Dog.connection.internal_metadata)`.
-        MSG
-
-        internal_metadata = nil
-      end
-
       @migrations_paths = migrations_paths
       @schema_migration = schema_migration || SchemaMigration.new(connection)
       @internal_metadata = internal_metadata || InternalMetadata.new(connection)

@@ -131,6 +131,9 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `ActiveRecord::Migration.check_pending` method.
 
+*   Remove deprecated support to passing `SchemaMigration` and `InternalMetadata` classes as arguments to
+    `ActiveRecord::MigrationContext`.
+
 ### Deprecations
 
 ### Notable changes
