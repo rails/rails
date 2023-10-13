@@ -194,6 +194,30 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal(expected_posts.map(&:id).sort, blog_posts.map(&:id).sort)
   end
 
+  def test_has_many_with_foreign_key_as_an_array_raises
+    expected_message = <<~MSG.squish
+      Passing [:blog_id, :blog_post_id] array to :foreign_key option
+      on the Sharded::BlogPost#broken_array_fk_comments association is not supported.
+      Use the query_constraints: [:blog_id, :blog_post_id] option instead to represent a composite foreign key.
+    MSG
+    assert_raises ArgumentError, match: expected_message do
+      Sharded::BlogPost.has_many :broken_array_fk_comments,
+        class_name: "Sharded::Comment", foreign_key: [:blog_id, :blog_post_id]
+    end
+  end
+
+  def test_belongs_to_with_foreign_key_as_an_array_raises
+    expected_message = <<~MSG.squish
+      Passing [:blog_id, :blog_post_id] array to :foreign_key option
+      on the Sharded::Comment#broken_array_fk_blog_post association is not supported.
+      Use the query_constraints: [:blog_id, :blog_post_id] option instead to represent a composite foreign key.
+    MSG
+    assert_raises ArgumentError, match: expected_message do
+      Sharded::Comment.belongs_to :broken_array_fk_blog_post,
+        class_name: "Sharded::Blog", foreign_key: [:blog_id, :blog_post_id]
+    end
+  end
+
   def test_has_many_association_with_composite_foreign_key_loads_records
     blog_post = sharded_blog_posts(:great_post_blog_one)
 
