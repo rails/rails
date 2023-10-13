@@ -123,6 +123,11 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated support to define `explain` in the connection adapter with 2 arguments.
 
+*   Remove deprecated `ActiveRecord::LogSubscriber.runtime` method.
+
+*   Remove deprecated `ActiveRecord::LogSubscriber.runtime=` method.
+
+*   Remove deprecated `ActiveRecord::LogSubscriber.reset_runtime` method.
 
 ### Deprecations
 

@@ -1,3 +1,15 @@
+*   Remove deprecated `ActiveRecord::LogSubscriber.runtime` method.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::LogSubscriber.runtime=` method.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::LogSubscriber.reset_runtime` method.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to define `explain` in the connection adapter with 2 arguments.
 
     *Rafael Mendonça França*
