@@ -1930,19 +1930,19 @@ config.action_dispatch.rescue_responses = {
   'ActionController::RoutingError' => :not_found,
   'AbstractController::ActionNotFound' => :not_found,
   'ActionController::MethodNotAllowed' => :method_not_allowed,
-  'ActionController::UnknownHttpMethod'=> :method_not_allowed,
+  'ActionController::UnknownHttpMethod' => :method_not_allowed,
   'ActionController::NotImplemented' => :not_implemented,
-  'ActionController::UnknownFormat'=> :not_acceptable,
+  'ActionController::UnknownFormat' => :not_acceptable,
   'ActionController::InvalidAuthenticityToken' => :unprocessable_entity,
-  'ActionController::InvalidCrossOriginRequest'=> :unprocessable_entity,
+  'ActionController::InvalidCrossOriginRequest' => :unprocessable_entity,
   'ActionDispatch::Http::Parameters::ParseError' => :bad_request,
   'ActionController::BadRequest' => :bad_request,
   'ActionController::ParameterMissing' => :bad_request,
-  'Rack::QueryParser::ParameterTypeError'=> :bad_request,
+  'Rack::QueryParser::ParameterTypeError' => :bad_request,
   'Rack::QueryParser::InvalidParameterError' => :bad_request,
   'ActiveRecord::RecordNotFound' => :not_found,
   'ActiveRecord::StaleObjectError' => :conflict,
-  'ActiveRecord::RecordInvalid'=> :unprocessable_entity,
+  'ActiveRecord::RecordInvalid' => :unprocessable_entity,
   'ActiveRecord::RecordNotSaved' => :unprocessable_entity
 }
 ```
@@ -3547,7 +3547,7 @@ Database Pooling
 
 Active Record database connections are managed by `ActiveRecord::ConnectionAdapters::ConnectionPool` which ensures that a connection pool synchronizes the amount of thread access to a limited number of database connections. This limit defaults to 5 and can be configured in `database.yml`.
 
-```ruby
+```yaml
 development:
   adapter: sqlite3
   database: storage/development.sqlite3
@@ -3563,7 +3563,7 @@ If you try to use more connections than are available, Active Record will block
 you and wait for a connection from the pool. If it cannot get a connection, a
 timeout error similar to that given below will be thrown.
 
-```ruby
+```
 ActiveRecord::ConnectionTimeoutError - could not obtain a database connection within 5.000 seconds (waited 5.000 seconds)
 ```
 
