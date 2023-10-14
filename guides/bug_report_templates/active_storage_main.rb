@@ -8,7 +8,6 @@ gemfile(true) do
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
   gem "rails", github: "rails/rails", branch: "main"
-  gem "rack", "~> 2.0"
   gem "sqlite3"
 end
 
