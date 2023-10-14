@@ -590,3 +590,202 @@ irb> person.password_digest
 irb> person.recovery_password_digest
 => "$2a$04$iOfhwahFymCs5weB3BNH/uXkTG65HR.qpW.bNhEjFP3ftli3o5DQC"
 ```
+
+### Base
+
+[`ActiveModel::Base`](https://api.rubyonrails.org/classes/ActiveModel/Base.html) provides subclasses with an Active Record-inspired interface to execute code with familiar methods like `.create`, `#save`, and `#update`. It includes the [`ActiveModel::API`](#api) module transitively through the [`ActiveModel::Model`](#model) module, so it's designed to integrate with Action Pack and Action View out of the box.
+
+Unlike other facets of Active Model, `ActiveModel::Base` is a Class instead of a Module. Once classes have inherited from `ActiveModel::Base`, they only need to define a `#save!` method to gain access to all its ancestor has to offer.
+
+Similar to the convention for applications to define an `ApplicationRecord` that inherits `ActiveRecord::Base`, it's also conventional for applications to define an `ApplicationModel` that inherits from `ActiveModel::Base`:
+
+```ruby
+# app/models/application_model.rb
+
+class ApplicationModel < ActiveModel::Base
+end
+```
+
+To demonstrate `ActiveModel::Base` in action, consider a credentials-based `Session` class to handle signing into an application. It might accept `email` and `password` attributes, along with a `request` to access a Cookie store. It's responsible for authenticating the provided credentials.
+
+As a preliminary measure, the `Session` class validates that both `email` and `password` are present before it attempts to authenticate. Its `#save!` method is responsible for the authentication logic:
+
+```ruby
+# app/models/session.rb
+
+class Session < ApplicationModel
+  attr_accessor :email, :password, :request
+
+  validates :email, :password, presence: true
+
+  def save!
+    # we'll explore this code in a future example
+  end
+end
+```
+
+NOTE: The `Session` implementation is intended as a demonstration of `ActiveModel::Base`, and should not be used for authentication in a real application.
+
+Since it includes the `ActiveModel::API`, we can submit forms and respond to form submissions through a combination of Action Pack and Action View. For example, imagine a `SessionsController`:
+
+```ruby
+# app/controllers/sessions_controller.rb
+
+class SessionsController < ApplicationController
+  def new
+    @session = Session.new
+  end
+
+  def create
+    @session = Session.new(session_params.merge(request: request))
+
+    if @session.save
+      redirect_to root_url
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  private
+    def session_params
+      params.require(:session).permit(:email, :password)
+    end
+end
+```
+
+The controller's code should feel familiar. Despite the fact that the `Session` class is not backed by Active Record and a database table, its interface resembles classes that are. The `sessions#new` action assigns an instance of `Session` to the `@session` variable when it renders the `sessions/new` template:
+
+```erb
+<%= form_with model: @session do |form| %>
+  <fieldset>
+    <legend>Sign in</legend>
+
+    <% @session.errors[:base].each do |validation_message| %>
+        <p><%= validation_message %></p>
+    <% end %>
+
+    <%= form.label :email %>
+    <%= form.email_field :email %>
+    <% @session.errors[:email].each do |validation_message| %>
+        <p><%= validation_message %></p>
+    <% end %>
+
+    <%= form.label :password %>
+    <%= form.password_field :password %>
+    <% @session.errors[:password].each do |validation_message| %>
+        <p><%= validation_message %></p>
+    <% end %>
+
+    <%= form.button %>
+  </legend>
+<% end %>
+```
+
+Since `Session` includes [`ActiveModel::API`](#api) and [`ActiveModel::Conversion`](#conversion), the call to `form_with model: @session` will infer the URL to submit the form by passing `@session` to [`url_for`](https://api.rubyonrails.org/classes/ActionView/RoutingUrlFor.html#method-i-url_for) and the HTTP verb to submit the request with based on [`Session#persisted?`](#conversion). Similarly, the form builder will use it access to `@session` to render the `<label>` and `<input>` elements with appropriate `[name]`, `[id]`, and `[value]` attributes.
+
+When the `SessionsController#create` action responds to the form's submission, it calls `Session#save`. `ActiveModel::Base` implements `#save` in terms of `#save!`. Since the `Session` class inherits from `ActiveModel::Base` and defines its own `#save!`, it can rely on `ActiveModel::Base` to validate its attributes prior to calling the code defined in `#save!`.
+
+```ruby
+# app/models/session.rb
+
+class Session < ApplicationModel
+  attr_accessor :email, :password, :request
+
+  validates :email, :password, presence: true
+
+  def save!
+    if (user = User.authenticate_by(email: email, password: password))
+      request.cookies[:signed_user_id] = user.signed_id
+    else
+      # we'll explore this code in the next example
+    end
+  end
+end
+```
+
+NOTE: The `Session` implementation is intended as a demonstration of `ActiveModel::Base`, and should not be used for authentication in a real application.
+
+It is the responsibility of `Session#save!` to fail loudly. If the operation is unable to authenticate the credentials, the `Session` should add a message to its [`ActiveModel::Errors`](https://api.rubyonrails.org/classes/ActiveModel/Errors.html) instance and raise an [`ActiveModel::ValidationError`](https://api.rubyonrails.org/classes/ActiveModel/ValidationError.html):
+
+```ruby
+# app/models/session.rb
+
+class Session < ApplicationModel
+  attr_accessor :email, :password, :request
+
+  validates :email, :password, presence: true
+
+  def save!
+    if (user = User.authenticate_by(email: email, password: password))
+      request.cookies[:signed_user_id] = user.signed_id
+    else
+      errors.add(:base, :invalid)
+
+      raise ActiveModel::ValidationError.new(self)
+    end
+  end
+end
+```
+
+In addition to the `#save` method, `ActiveModel::Base` also provides subclasses with `#update!` and `#update` methods defined in terms of `#save!`. These methods can be useful when building edit forms and update controller actions.
+
+For example, consider a `Profile` model that implements specialized access to columns on the `User` record. The `Profile` might wrap its `User` instance, and might not have any attributes of its own:
+
+```ruby
+class Profile < ApplicationModel
+  attr_accessor :user
+
+  delegate :save!, :persisted?, to: :user
+
+  delegate_missing_to :user
+end
+```
+
+The `ProfilesController` defines `#edit` and `#update` actions to manage the user's display name:
+
+```ruby
+# app/controllers/profiles_controller.rb
+
+class ProfilesController < ApplicationController
+  def edit
+    @profile = Profile.new(user: Current.user)
+  end
+
+  def update
+    @profile = Profile.new(user: Current.user)
+
+    if @profile.update(profile_params)
+      redirect_to profile_url
+    else
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
+  private
+    def profile_params
+      params.require(:profile).permit(:display_name)
+    end
+end
+```
+
+The controller's code should feel familiar. Despite the fact that the `Profile` class is not backed by Active Record and a database table, its interface resembles classes that are. The `profiles#edit` action assigns an instance of `Profile` to the `@profile` variable when it renders the `profiles/edit` template:
+
+```erb
+<%= form_with model: @profile do |form| %>
+  <fieldset>
+    <legend>Your public profile</legend>
+
+    <%= form.label :email %>
+    <%= form.email_field :email, name: nil, readonly: true %>
+
+    <%= form.label :display_name %>
+    <%= form.password_field :display_name %>
+
+    <%= form.button %>
+  </legend>
+<% end %>
+```
+
+Since `Profile` includes [`ActiveModel::API`](#api) and [`ActiveModel::Conversion`](#conversion), the call to `form_with model: @profile` will infer the URL to submit the form by passing `@profile` to [`url_for`](https://api.rubyonrails.org/classes/ActionView/RoutingUrlFor.html#method-i-url_for) and the HTTP verb to submit the request with based on [`Profile#persisted?`](#conversion). Similarly, the form builder will use it access to `@profile` to render the `<label>` and `<input>` elements with appropriate `[name]`, `[id]`, and `[value]` attributes.
+
+When the `ProfilesController#update` action responds to the form's submission, it calls `Profile#update`. `ActiveModel::Base` implements `#update` in terms of `#update!`. First, `#update!` will assign any attributes passed as its arguments, then it will call `#save!`. Since the `Profile` class inherits from `ActiveModel::Base` and defines its own `#save!`, it can rely on `ActiveModel::Base` to validate its attributes prior to calling the code defined in `#save!`.

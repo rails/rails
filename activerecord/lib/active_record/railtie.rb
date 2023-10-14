@@ -458,5 +458,11 @@ To keep using the current cache store, you can turn off cache versioning entirel
         end
       end
     end
+
+    initializer "active_record.active_model_base" do
+      ActiveSupport.on_load :active_model_base do
+        validation_exceptions << ActiveRecord::RecordInvalid
+      end
+    end
   end
 end

@@ -21,6 +21,59 @@ guide.
 Major Features
 --------------
 
+### `ActiveModel::Base` class
+
+Base provides subclasses with an Active Record-inspired interface to execute
+code with familiar methods like `.create`, `#save`, and `#update`. It includes
+the `ActiveModel::API` module transitively through the `ActiveModel::Model`
+module, so it's designed to integrate with Action Pack and Action View out of
+the box.
+
+Similar to the convention for applications to define an
+`ApplicationRecord` that inherits `ActiveRecord::Base`, it's
+also conventional for applications to define an `ApplicationModel`
+that inherits from Base:
+
+```ruby
+# app/models/application_model.rb
+
+class ApplicationModel < ActiveModel::Base
+end
+```
+
+Unlike other facets of Active Model, `ActiveModel::Base` is a Class instead of a
+Module. Once classes have inherited from `ActiveModel::Base`, they only need to
+define a `#save!` method. For example, consider a `Session` model responsible
+for authenticating a `User` with `email` and `password` credentials:
+
+```ruby
+# app/models/session.rb
+
+class Session < ApplicationModel
+  attr_accessor :email, :password, :request
+
+  validates :email, :password, presence: true
+
+  def save!
+    if (user = User.authenticate_by(email: email, password: password))
+      request.cookies[:signed_user_id] = user.signed_id
+    else
+      errors.add(:base, :invalid)
+
+      raise ActiveModel::ValidationError.new(self)
+    end
+  end
+end
+```
+
+NOTE: This implementation is intended for demonstration purposes only, and
+is not meant to be used in a real application.
+
+By defining `#save!`, the `Session` class gains access to other methods provided
+by `ActiveModel::Base`, like `create!` and `create`, `update!` and `update`,
+`persisted?` and `new_model?`, and all of the other utilities provided by
+`ActiveModel::Model`, `ActiveModel::API`, and `ActiveModel::Conversion`.
+
 Railties
 --------
 
