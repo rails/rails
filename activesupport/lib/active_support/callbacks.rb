@@ -323,8 +323,10 @@ module ActiveSupport
           end
 
           def conditions_lambdas
-            @if.map { |c| CallTemplate.build(c, self).make_lambda } +
+            conditions =
+              @if.map { |c| CallTemplate.build(c, self).make_lambda } +
               @unless.map { |c| CallTemplate.build(c, self).inverted_lambda }
+            conditions.empty? ? EMPTY_ARRAY : conditions
           end
       end
 
@@ -517,16 +519,18 @@ module ActiveSupport
           @call_template = call_template
           @user_conditions = user_conditions
 
-          @before = []
-          @after = []
+          @before = nil
+          @after = nil
         end
 
         def before(before)
+          @before ||= []
           @before.unshift(before)
           self
         end
 
         def after(after)
+          @after ||= []
           @after.push(after)
           self
         end
@@ -550,11 +554,11 @@ module ActiveSupport
         end
 
         def invoke_before(arg)
-          @before.each { |b| b.call(arg) }
+          @before&.each { |b| b.call(arg) }
         end
 
         def invoke_after(arg)
-          @after.each { |a| a.call(arg) }
+          @after&.each { |a| a.call(arg) }
         end
       end
 
