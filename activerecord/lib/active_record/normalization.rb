@@ -6,6 +6,7 @@ module ActiveRecord # :nodoc:
 
     included do
       class_attribute :normalized_attributes, default: Set.new
+      class_attribute :types_to_normalize_after_schema_loads, default: {}
 
       before_validation :normalize_changed_in_place_attributes
     end
@@ -110,18 +111,28 @@ module ActiveRecord # :nodoc:
       #   class User < ActiveRecord::Base
       #     normalizes_type :string, with: -> attribute { attribute.strip }
       #   end
-      #
-      #   User.normalized_attributes
-      #   # => #<Set: {:email, :name}>
-      def normalizes_type(type, except: nil, with:, apply_to_nil: false)
-        attribute_types
-          .symbolize_keys
-          .filter { |_, attr_type| attr_type.type == type.to_sym }
-          .except(*Array.wrap(except).map(&:to_sym))
-          .keys
-          .each do |name|
-            normalizes(name, with: with, apply_to_nil: apply_to_nil)
-          end
+      def normalizes_type(type, with:, apply_to_nil: false)
+        types_to_normalize_after_schema_loads[type.to_sym] ||= []
+        types_to_normalize_after_schema_loads[type.to_sym] << { with: with, apply_to_nil: apply_to_nil }
+      end
+
+      def load_schema! # :nodoc:
+        super
+
+        types_to_normalize_after_schema_loads.each do |type_symbol, normalizations|
+          columns_hash
+            .symbolize_keys
+            .filter { |_, column| column.type == type_symbol }
+            .keys
+            .each do |attribute_name|
+              normalizations.each do |normalization|
+                normalizes(attribute_name,
+                  with: normalization[:with],
+                  apply_to_nil: normalization[:apply_to_nil]
+                )
+              end
+            end
+        end
       end
     end
 

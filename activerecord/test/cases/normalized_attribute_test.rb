@@ -115,20 +115,19 @@ end
 
 class NormalizedTypeAttributeTest < ActiveRecord::TestCase
   class NormalizedTypeBird < Bird
-    normalizes_type :string, except: :color, with: -> attribute { attribute.strip }
+    normalizes_type :string, with: -> { _1.strip }
   end
 
   setup do
-    @bird = NormalizedTypeBird.create!(
+    @bird = NormalizedTypeBird.new(
       name: " some name ",
       age: 42,
-      species: " some species ",
-      color: " some color ")
+      species: " some species "
+    )
   end
 
-  test "normalizes all strings types except color" do
+  test "normalizes all strings types" do
     assert_equal "some name", @bird.name
     assert_equal "some species", @bird.species
-    assert_equal " some color ", @bird.color # except
   end
 end
