@@ -82,7 +82,54 @@ module ActiveRecord # :nodoc:
           NormalizedValueType.new(cast_type: cast_type, normalizer: with, normalize_nil: apply_to_nil)
         end
 
-        self.normalized_attributes += names.map(&:to_sym)
+        self.normalized_attributes += names.map { |name| resolve_attribute_name(name) }
+      end
+
+      # Similar to #normalizes, but normalizes each attribute of the specified
+      # types.
+      #
+      #   class Post < ActiveRecord::Base
+      #     normalizes_each :string, :text, with: -> { _1.strip }
+      #   end
+      #
+      #   post = Post.new(title: "  Title", body: "Body.\n")
+      #   post.title # => "Title"
+      #   post.body  # => "Body."
+      #
+      # The normalization is applied to matching attributes from the model
+      # schema plus any attributes declared via
+      # {attribute}[rdoc-ref:ActiveRecord::Attributes::ClassMethods#attribute]
+      # _prior to_ the call to +normalizes_each+. Attributes declared after the
+      # call to +normalizes_each+ will not be affected. This behavior can be
+      # used to override a normalization from a parent class by redeclaring an
+      # attribute:
+      #
+      #   class ApplicationRecord < ActiveRecord::Base
+      #     normalizes_each :string, :text, with: -> { _1.strip }
+      #   end
+      #
+      #   class Snippet < ApplicationRecord
+      #     attribute :code, :text
+      #   end
+      #
+      #   snippet = Snippet.create(description: "  Description.\n", code: "  code\n")
+      #   snippet.description  # => "Description."
+      #   snippet.code         # => "  code\n"
+      #
+      # ==== Options
+      #
+      # * +:with+ - Any callable object that accepts the attribute's value as
+      #   its sole argument, and returns it normalized.
+      # * +:apply_to_nil+ - Whether to apply the normalization to +nil+ values.
+      #   Defaults to +false+.
+      #
+      def normalizes_each(*types, with:, apply_to_nil: false)
+        decorate_attributes do |name, cast_type|
+          if types.include?(cast_type.type)
+            self.normalized_attributes += [name]
+            NormalizedValueType.new(cast_type: cast_type, normalizer: with, normalize_nil: apply_to_nil)
+          end
+        end
       end
 
       # Normalizes a given +value+ using normalizations declared for +name+.

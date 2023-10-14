@@ -110,4 +110,39 @@ class NormalizedAttributeTest < ActiveRecord::TestCase
     aircraft.save
     assert_equal "1", aircraft.name
   end
+
+  test ".normalizes_each normalizes attributes of the specified types" do
+    plus_one = Class.new(Aircraft) do
+      normalizes_each :datetime, :integer, with: -> { _1 + 1 }
+    end
+
+    assert_equal @time + 1, plus_one.normalize_value_for(:manufactured_at, @time)
+    assert_equal @time + 1, plus_one.normalize_value_for(:wheels_owned_at, @time)
+    assert_equal 10 + 1, plus_one.normalize_value_for(:wheels_count, 10)
+    assert_equal "Zero", plus_one.normalize_value_for(:name, "Zero")
+  end
+
+  test ".normalizes_each stacks with normalizations from ::normalizes" do
+    stacked = Class.new(Aircraft) do
+      normalizes :manufactured_at, with: -> { _1.noon }
+      normalizes_each :datetime, :integer, with: -> { _1 + 1 }
+      normalizes :wheels_count, with: -> { _1 * 2 }
+    end
+
+    assert_equal @time.noon + 1, stacked.normalize_value_for(:manufactured_at, @time)
+    assert_equal (10 + 1) * 2, stacked.normalize_value_for(:wheels_count, 10)
+  end
+
+  test "normalizations from .normalizes_each can be overridden by redeclaring attribute" do
+    parent = Class.new(Aircraft) do
+      normalizes_each :datetime, with: -> { _1 + 1 }
+    end
+
+    child = Class.new(parent) do
+      attribute :wheels_owned_at, :datetime
+    end
+
+    assert_equal @time + 1, child.normalize_value_for(:manufactured_at, @time)
+    assert_equal @time, child.normalize_value_for(:wheels_owned_at, @time)
+  end
 end
