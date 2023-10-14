@@ -1,3 +1,15 @@
+## Rails 7.1.2 (Unreleased) ##
+
+*   If you accessed `config.eager_load_paths` and friends, later changes to
+    `config.paths` were not reflected in the expected auto/eager load paths.
+    Now, they are.
+
+    This bug has been latent since Rails 3.
+
+    Fixes #49629.
+
+    *Xavier Noria*
+
 ## Rails 7.1.1 (October 11, 2023) ##
 
 *   Ensures the Rails generated Dockerfile uses correct ruby version and matches Gemfile.
