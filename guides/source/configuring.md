@@ -1458,6 +1458,17 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `false`              |
 | 7.1                   | `true`               |
 
+#### `config.active_record.sqlite3_production_warning`
+
+Specifies whether a warning should be raised when using SQLite3 in production environment.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.0                   | `true`               |
+
 #### `config.active_record.async_query_executor`
 
 Specifies how asynchronous queries are pooled.
