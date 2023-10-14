@@ -662,6 +662,30 @@ module ApplicationTests
       assert_utf8
     end
 
+    # Regression test for https://github.com/rails/rails/issues/49629.
+    test "config.paths can be mutated after accessing auto/eager load paths" do
+      app_dir "vendor/auto"
+      app_dir "vendor/once"
+      app_dir "vendor/eager"
+
+      add_to_config <<~RUBY
+        # Reading the collections is enough, no need to modify them.
+        config.autoload_paths
+        config.autoload_once_paths
+        config.eager_load_paths
+
+        config.paths.add("vendor/auto", autoload: true)
+        config.paths.add("vendor/once", autoload_once: true)
+        config.paths.add("vendor/eager", eager_load: true)
+      RUBY
+
+      app "development"
+
+      assert_includes ActiveSupport::Dependencies.autoload_paths, "#{Rails.root}/vendor/auto"
+      assert_includes ActiveSupport::Dependencies.autoload_once_paths, "#{Rails.root}/vendor/once"
+      assert_includes ActiveSupport::Dependencies._eager_load_paths, "#{Rails.root}/vendor/eager"
+    end
+
     test "config.paths.public sets Rails.public_path" do
       add_to_config <<-RUBY
         config.paths["public"] = "somewhere"
