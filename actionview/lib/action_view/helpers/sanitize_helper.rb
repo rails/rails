@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rails-html-sanitizer"
-
 module ActionView
   module Helpers # :nodoc:
     # = Action View Sanitize \Helpers
@@ -9,7 +7,8 @@ module ActionView
     # The SanitizeHelper module provides a set of methods for scrubbing text of undesired HTML elements.
     # These helper methods extend Action View making them callable within your template files.
     module SanitizeHelper
-      mattr_accessor :sanitizer_vendor, default: Rails::HTML4::Sanitizer
+      # The default sanitizer is set in actionview railtie
+      mattr_accessor :sanitizer_vendor
 
       extend ActiveSupport::Concern
 

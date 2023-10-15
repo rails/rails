@@ -2,6 +2,7 @@
 
 require "action_view"
 require "rails"
+require "rails-html-sanitizer"
 
 module ActionView
   # = Action View Railtie
@@ -14,6 +15,7 @@ module ActionView
     config.action_view.image_decoding = nil
     config.action_view.apply_stylesheet_media_default = true
     config.action_view.prepend_content_exfiltration_prevention = false
+    config.action_view.sanitizer_vendor = Rails::HTML5::Sanitizer
 
     config.eager_load_namespaces << ActionView
 
