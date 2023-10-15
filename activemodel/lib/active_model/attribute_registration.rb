@@ -12,6 +12,7 @@ module ActiveModel
       def attribute(name, type = nil, default: (no_default = true), **options)
         name = resolve_attribute_name(name)
         type = resolve_type_name(type, **options) if type.is_a?(Symbol)
+        type = hook_attribute_type(name, type) if type
 
         pending_attribute_modifications << PendingType.new(name, type) if type || no_default
         pending_attribute_modifications << PendingDefault.new(name, default) unless no_default
@@ -76,9 +77,13 @@ module ActiveModel
         end
 
         def reset_default_attributes
+          reset_default_attributes!
+          subclasses.each { |subclass| subclass.send(__method__) }
+        end
+
+        def reset_default_attributes!
           @default_attributes = nil
           @attribute_types = nil
-          subclasses.each { |subclass| subclass.send(__method__) }
         end
 
         def resolve_attribute_name(name)
@@ -87,6 +92,13 @@ module ActiveModel
 
         def resolve_type_name(name, **options)
           Type.lookup(name, **options)
+        end
+
+        # Hook for other modules to override. The attribute type is passed
+        # through this method immediately after it is resolved, before any type
+        # decorations are applied.
+        def hook_attribute_type(attribute, type)
+          type
         end
     end
   end

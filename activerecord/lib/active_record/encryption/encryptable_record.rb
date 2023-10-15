@@ -84,7 +84,7 @@ module ActiveRecord
           def encrypt_attribute(name, key_provider: nil, key: nil, deterministic: false, support_unencrypted_data: nil, downcase: false, ignore_case: false, previous: [], **context_properties)
             encrypted_attributes << name.to_sym
 
-            attribute name do |cast_type|
+            decorate_attributes([name]) do |name, cast_type|
               scheme = scheme_for key_provider: key_provider, key: key, deterministic: deterministic, support_unencrypted_data: support_unencrypted_data, \
                 downcase: downcase, ignore_case: ignore_case, previous: previous, **context_properties
 

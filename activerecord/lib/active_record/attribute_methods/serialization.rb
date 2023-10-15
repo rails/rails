@@ -214,7 +214,9 @@ module ActiveRecord
 
           column_serializer = build_column_serializer(attr_name, coder, type, yaml)
 
-          attribute(attr_name, **options) do |cast_type|
+          attribute(attr_name, **options)
+
+          decorate_attributes([attr_name]) do |attr_name, cast_type|
             if type_incompatible_with_serialize?(cast_type, coder, type)
               raise ColumnNotSerializableError.new(attr_name, cast_type)
             end

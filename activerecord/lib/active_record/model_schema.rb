@@ -435,11 +435,6 @@ module ActiveRecord
         end
       end
 
-      def attribute_types # :nodoc:
-        load_schema
-        @attribute_types ||= Hash.new(Type.default_value)
-      end
-
       def yaml_encoder # :nodoc:
         @yaml_encoder ||= ActiveModel::AttributeSet::YAMLEncoder.new(attribute_types)
       end
@@ -491,11 +486,6 @@ module ActiveRecord
       def column_defaults
         load_schema
         @column_defaults ||= _default_attributes.deep_dup.to_hash.freeze
-      end
-
-      def _default_attributes # :nodoc:
-        load_schema
-        @default_attributes ||= ActiveModel::AttributeSet.new({})
       end
 
       # Returns an array of column names as strings.
@@ -577,9 +567,7 @@ module ActiveRecord
           @arel_table = nil
           @column_names = nil
           @symbol_column_to_string_name_hash = nil
-          @attribute_types = nil
           @content_columns = nil
-          @default_attributes = nil
           @column_defaults = nil
           @attributes_builder = nil
           @columns = nil
@@ -616,17 +604,7 @@ module ActiveRecord
           columns_hash = connection.schema_cache.columns_hash(table_name)
           columns_hash = columns_hash.except(*ignored_columns) unless ignored_columns.empty?
           @columns_hash = columns_hash.freeze
-          @columns_hash.each do |name, column|
-            type = connection.lookup_cast_type_from_column(column)
-            type = _convert_type_from_options(type)
-            define_attribute(
-              name,
-              type,
-              default: column.default,
-              user_provided_default: false
-            )
-            alias_attribute :id_value, :id if name == "id"
-          end
+          alias_attribute :id_value, :id if @columns_hash.key?("id")
 
           super
         end
@@ -654,12 +632,12 @@ module ActiveRecord
           end
         end
 
-        def _convert_type_from_options(type)
+        def type_for_column(column)
+          type = connection.lookup_cast_type_from_column(column)
           if immutable_strings_by_default && type.respond_to?(:to_immutable_string)
-            type.to_immutable_string
-          else
-            type
+            type = type.to_immutable_string
           end
+          type
         end
     end
   end
