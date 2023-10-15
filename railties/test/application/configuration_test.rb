@@ -749,9 +749,7 @@ module ApplicationTests
 
     test "Use key_generator when secret_key_base is set" do
       make_basic_app do |application|
-        Rails.deprecator.silence do
-          application.secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
-        end
+        application.credentials.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
         application.config.session_store :disabled
       end
 
@@ -771,9 +769,7 @@ module ApplicationTests
 
     test "application verifier can be used in the entire application" do
       make_basic_app do |application|
-        Rails.deprecator.silence do
-          application.secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
-        end
+        application.credentials.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
         application.config.session_store :disabled
       end
 
@@ -924,16 +920,14 @@ module ApplicationTests
       end
     end
 
-    test "secrets.secret_key_base is used when config/secrets.yml is present" do
+    test "credentials.secret_key_base is used when config/secrets.yml is present" do
       app_file "config/secrets.yml", <<-YAML
         development:
           secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
       YAML
 
       app "development"
-      Rails.deprecator.silence do
-        assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secrets.secret_key_base
-      end
+      assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.credentials.secret_key_base
       assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secret_key_base
     end
 

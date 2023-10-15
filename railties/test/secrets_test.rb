@@ -19,7 +19,7 @@ class Rails::SecretsTest < ActiveSupport::TestCase
       add_to_env_config("production", "config.read_encrypted_secrets = false")
       app("production")
 
-      assert_not Rails.application.secrets.yeah_yeah
+      assert_not Rails.application.credentials.yeah_yeah
     end
   end
 
@@ -85,7 +85,7 @@ class Rails::SecretsTest < ActiveSupport::TestCase
       add_to_env_config("production", "config.read_encrypted_secrets = true")
       app("production")
 
-      assert_equal "lets-walk-in-the-cool-evening-light", Rails.application.secrets.yeah_yeah
+      assert_equal "lets-walk-in-the-cool-evening-light", Rails.application.credentials.yeah_yeah
     end
   end
 
@@ -97,7 +97,7 @@ class Rails::SecretsTest < ActiveSupport::TestCase
       end_of_yaml
 
       add_to_env_config "production", <<-end_of_config
-        config.dereferenced_secret = Rails.application.secrets.some_secret
+        config.dereferenced_secret = Rails.application.credentials.some_secret
       end_of_config
 
       app("production")
@@ -137,7 +137,7 @@ class Rails::SecretsTest < ActiveSupport::TestCase
 
       app("production")
 
-      assert_equal "00112233445566778899aabbccddeeff…", Rails.application.secrets.api_key
+      assert_equal "00112233445566778899aabbccddeeff…", Rails.application.credentials.api_key
     end
   end
 
@@ -156,7 +156,7 @@ class Rails::SecretsTest < ActiveSupport::TestCase
 
       app("production")
 
-      assert_equal "00112233445566778899aabbccddeeff…", Rails.application.secrets.api_key
+      assert_equal "00112233445566778899aabbccddeeff…", Rails.application.credentials.api_key
     end
   end
 
