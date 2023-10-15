@@ -16,6 +16,10 @@ require "active_support/testing/autorun"
 
 require "rails/testing/maintain_test_schema"
 
+if defined?(Capybara)
+  require "rails/testing/capybara"
+end
+
 if defined?(ActiveRecord::Base)
   ActiveSupport.on_load(:active_support_test_case) do
     include ActiveRecord::TestDatabases

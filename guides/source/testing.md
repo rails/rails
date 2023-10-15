@@ -931,6 +931,22 @@ end
 Now you should get a connection to remote browser and server, regardless if it
 is running in Docker container or CI.
 
+#### Capybara Extensions
+
+Rails extends Capybara to support `aria:` and `data:` expression filters.
+They're designed to mirror how Action View helpers render HTML attributes nested
+in `aria: {}` and `data: {}` arguments.
+
+HTML rendered by the following helper can be asserted against with the `aria:`
+and `data:` filters wherever Capybara selectors are available:
+
+```ruby
+tag.div id: "one", aria: { labelledby: "two" }, data: { nested_key: "value" }
+# => <div id="one" aria-labelledby="two" data-nested-key="value"></div>
+
+assert_selector :element, aria: { labelledby: "two" }, data: { nested_key: "value" }
+```
+
 If your Capybara configuration requires more setup than provided by Rails, this
 additional configuration could be added into the `application_system_test_case.rb`
 file.

@@ -1,3 +1,18 @@
+*   `rails/test_help`: Define `aria:` and `data:` Capybara expression filters
+
+    When `Capybara` is available to the environment, define `aria:` and `data:`
+    expression filters to match Action View's `aria: { ... }` and `data: { ... }`
+    nesting:
+
+    ```ruby
+    tag.div id: "one", aria: { labelledby: "two" }, data: { nested_key: "value" }
+    # => <div id="one" aria-labelledby="two" data-nested-key="value"></div>
+
+    assert_selector :element, aria: { labelledby: "two" }, data: { nested_key: "value" }
+    ```
+
+    *Sean Doyle*
+
 *   Disallow invalid values for rails new options.
 
     The `--database`, `--asset-pipeline`, `--css`, and `--javascript` flags for
