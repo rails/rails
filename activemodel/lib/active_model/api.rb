@@ -67,20 +67,34 @@ module ActiveModel
       extend ActiveModel::Translation
     end
 
-    # Initializes a new model with the given +params+.
+    ##
+    # :call-seq:
+    #   initialize(attributes, &block)
+    #
+    # Initializes a new model with the given +params+. Yields the instance
+    # when passed a +block+ argument.
     #
     #   class Person
     #     include ActiveModel::API
     #     attr_accessor :name, :age
     #   end
     #
-    #   person = Person.new(name: 'bob', age: '18')
+    #   person = Person.new(name: "bob", age: "18")
     #   person.name # => "bob"
     #   person.age  # => "18"
+
+    #   person = Person.new { |person| person.assign_attributes name: "bob", age: "18" }
+    #   person.name # => "bob"
+    #   person.age  # => "18"
+    #
+    #   person = Person.new(name: "bob") { |person| person.age = "18" }
+    #   person.name # => "bob"
+    #   person.age  # => "18"
+    #
     def initialize(attributes = {})
       assign_attributes(attributes) if attributes
 
-      super()
+      super().tap { yield self if block_given? }
     end
 
     # Indicates if the model is persisted. Default is +false+.

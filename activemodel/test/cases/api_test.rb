@@ -42,6 +42,16 @@ class APITest < ActiveModel::TestCase
     assert_equal "value", object.attr
   end
 
+  def test_initialize_with_and_block
+    object = BasicModel.new { |model| model.attr = "value" }
+    assert_equal "value", object.attr
+  end
+
+  def test_initialize_with_params_and_block
+    object = BasicModel.new(attr: "value") { |model| model.attr = "reassigned" }
+    assert_equal "reassigned", object.attr
+  end
+
   def test_initialize_with_params_and_mixins_reversed
     object = BasicModelWithReversedMixins.new(attr: "value")
     assert_equal "value", object.attr
