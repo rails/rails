@@ -14,6 +14,9 @@ module ActiveModel
       attribute :string_with_default, :string, default: "default string"
       attribute :date_field, :date, default: -> { Date.new(2016, 1, 1) }
       attribute :boolean_field, :boolean
+      attribute :hash_with_mutable_default, default: {}
+      attribute :array_with_mutable_default, default: []
+      attribute :array_with_nested_mutable_default, default: [[42]]
     end
 
     class ChildModelForAttributesTest < ModelForAttributesTest
@@ -89,7 +92,10 @@ module ActiveModel
         decimal_field: BigDecimal("1.1"),
         string_with_default: "default string",
         date_field: Date.new(2016, 1, 1),
-        boolean_field: true
+        boolean_field: true,
+        hash_with_mutable_default: {},
+        array_with_mutable_default: [],
+        array_with_nested_mutable_default: [[42]],
       }.stringify_keys
 
       assert_equal expected_attributes, data.attributes
@@ -102,7 +108,10 @@ module ActiveModel
         "decimal_field",
         "string_with_default",
         "date_field",
-        "boolean_field"
+        "boolean_field",
+        "hash_with_mutable_default",
+        "array_with_mutable_default",
+        "array_with_nested_mutable_default",
       ]
 
       assert_equal names, ModelForAttributesTest.attribute_names
@@ -174,6 +183,33 @@ module ActiveModel
       assert_raise(ArgumentError) do
         ModelForAttributesTest.attribute :foo, :unknown
       end
+    end
+
+    test "mutable hash default attribute should be isolated" do
+      data1 = ModelForAttributesTest.new
+      data2 = ModelForAttributesTest.new
+
+      data1.hash_with_mutable_default[:key] = "value"
+      assert_equal({ key: "value" }, data1.hash_with_mutable_default)
+      assert_equal({}, data2.hash_with_mutable_default)
+    end
+
+    test "mutable array default attribute should be isolated" do
+      data1 = ModelForAttributesTest.new
+      data2 = ModelForAttributesTest.new
+
+      data1.array_with_mutable_default << "value"
+      assert_equal(["value"], data1.array_with_mutable_default)
+      assert_equal([], data2.array_with_mutable_default)
+    end
+
+    test "nested mutable array default attribute should be isolated" do
+      data1 = ModelForAttributesTest.new
+      data2 = ModelForAttributesTest.new
+
+      data1.array_with_nested_mutable_default[0] << 54
+      assert_equal([42, 54], data1.array_with_nested_mutable_default[0])
+      assert_equal([42], data2.array_with_nested_mutable_default[0])
     end
   end
 end
