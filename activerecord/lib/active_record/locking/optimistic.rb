@@ -187,6 +187,7 @@ module ActiveRecord
               if lock_optimistically && name == locking_column
                 cast_type = LockingType.new(cast_type)
               end
+
               super
             end
 
