@@ -63,12 +63,12 @@ module ActiveModel
       assert_not_predicate attributes["bar"], :came_from_user?
     end
 
-    test "::attribute_types reflects registered attribute types" do
+    test ".attribute_types reflects registered attribute types" do
       klass = class_with { attribute :foo, TYPE_1 }
       assert_same TYPE_1, klass.attribute_types["foo"]
     end
 
-    test "::attribute_types returns the default type when key is missing" do
+    test ".attribute_types returns the default type when key is missing" do
       klass = class_with { attribute :foo, TYPE_1 }
       assert_equal Type::Value.new, klass.attribute_types["bar"]
     end
@@ -148,7 +148,7 @@ module ActiveModel
       assert_nil parent._default_attributes["bar"].value
     end
 
-    test "::decorate_attributes decorates specified attributes" do
+    test ".decorate_attributes decorates specified attributes" do
       attributes = default_attributes_for do
         attribute :foo, TYPE_1
         attribute :bar, TYPE_2
@@ -167,7 +167,7 @@ module ActiveModel
       assert_same TYPE_2, attributes["qux"].type
     end
 
-    test "::decorate_attributes decorates all attributes when none are specified" do
+    test ".decorate_attributes decorates all attributes when none are specified" do
       attributes = default_attributes_for do
         attribute :foo, TYPE_1
         attribute :bar, TYPE_2
@@ -178,7 +178,7 @@ module ActiveModel
       assert_same TYPE_2, attributes["bar"].type.cast_type
     end
 
-    test "::decorate_attributes supports conditional decoration" do
+    test ".decorate_attributes supports conditional decoration" do
       attributes = default_attributes_for do
         attribute :foo, TYPE_1
         attribute :bar, TYPE_2
@@ -189,7 +189,7 @@ module ActiveModel
       assert_same TYPE_2, attributes["bar"].type
     end
 
-    test "::decorate_attributes stacks decorators" do
+    test ".decorate_attributes stacks decorators" do
       attributes = default_attributes_for do
         attribute :foo, TYPE_1
         decorate_attributes { |name, type| MyDecorator.new("#{name}1", type) }
