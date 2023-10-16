@@ -69,7 +69,9 @@ module ActiveModel
         end
 
         def apply_pending_attribute_modifications(attribute_set)
-          superclass.send(__method__, attribute_set) if superclass.respond_to?(__method__, true)
+          if superclass.respond_to?(:apply_pending_attribute_modifications, true)
+            superclass.send(:apply_pending_attribute_modifications, attribute_set)
+          end
 
           pending_attribute_modifications.each do |modification|
             modification.apply_to(attribute_set)
@@ -78,7 +80,7 @@ module ActiveModel
 
         def reset_default_attributes
           reset_default_attributes!
-          subclasses.each { |subclass| subclass.send(__method__) }
+          subclasses.each { |subclass| subclass.send(:reset_default_attributes) }
         end
 
         def reset_default_attributes!
