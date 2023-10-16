@@ -428,12 +428,14 @@ Models are then connected with the `connects_to` API via the `shards` key:
 
 ```ruby
 class ApplicationRecord < ActiveRecord::Base
-  self.abstract_class = true
+  primary_abstract_class
 
   connects_to database: { writing: :primary, reading: :primary_replica }
 end
 
 class ShardRecord < ApplicationRecord
+  self.abstract_class = true
+
   connects_to shards: {
     shard_one: { writing: :primary_shard_one, reading: :primary_shard_one_replica }
     shard_two: { writing: :primary_shard_two, reading: :primary_shard_two_replica }
