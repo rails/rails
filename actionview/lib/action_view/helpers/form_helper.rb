@@ -2658,6 +2658,24 @@ module ActionView
         @template.button_tag(value, options)
       end
 
+      # Returns a div tag displaying the error messages for a specified attribute (identified by +method+) on an object
+      # assigned to the template (identified by +object+).
+      # Additional options on the div tag can be passed as a hash with +options+. These options will be tagged
+      # onto the HTML as an HTML element attribute as in the example shown, except for the <tt>:separator</tt> option.
+      #
+      # ==== Examples
+      #   error(:title, class: "error_explanation", separator: "<br />")
+      #   # => <div class="error_explanation">Title can't be blank<br />Title is too short (minimum is 2 characters)</div>
+      #
+      def error(method, options = {})
+        return unless @object.respond_to?(:errors) && @object.errors.include?(method)
+
+        separator = options.delete(:separator) || ", "
+        @template.content_tag(:div, options) do
+          @template.safe_join(@object.errors.full_messages_for(method), @template.raw(separator))
+        end
+      end
+
       def emitted_hidden_id? # :nodoc:
         @emitted_hidden_id ||= nil
       end

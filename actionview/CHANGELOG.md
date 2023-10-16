@@ -1,3 +1,24 @@
+*   Added `error` method to the form builder in order to display the error messages next to the corresponding field.
+
+    Examples:
+
+    ```erb
+    <%= form_with(model: user) do |form| %>
+      <div>
+        <%= form.label :name, style: "display: block" %>
+        <%= form.text_field :name %>
+        # Returns the error messages for the `name` attribute
+        <%= form.error :name, style: "color: red" %>
+      </div>
+
+      <div>
+        <%= form.submit %>
+      </div>
+    <% end %>
+    ```
+
+    *Matthew Nguyen*
+
 *   Fix the `capture` view helper compatibility with HAML and Slim
 
     When a blank string was captured in HAML or Slim (and possibly other template engines)
