@@ -17,7 +17,8 @@ module ActiveSupport
   # can focus on the rest.
   #
   #   bc = ActiveSupport::BacktraceCleaner.new
-  #   bc.add_filter   { |line| line.gsub(Rails.root.to_s, '') } # strip the Rails.root prefix
+  #   root = "#{Rails.root}/"
+  #   bc.add_filter   { |line| line.start_with?(root) ? line.from(root.size) : line } # strip the Rails.root prefix
   #   bc.add_silencer { |line| /puma|rubygems/.match?(line) } # skip any lines from puma or rubygems
   #   bc.clean(exception.backtrace) # perform the cleanup
   #
@@ -75,8 +76,9 @@ module ActiveSupport
     # Adds a filter from the block provided. Each line in the backtrace will be
     # mapped against this filter.
     #
-    #   # Will turn "/my/rails/root/app/models/person.rb" into "/app/models/person.rb"
-    #   backtrace_cleaner.add_filter { |line| line.gsub(Rails.root.to_s, '') }
+    #   # Will turn "/my/rails/root/app/models/person.rb" into "app/models/person.rb"
+    #   root = "#{Rails.root}/"
+    #   backtrace_cleaner.add_filter { |line| line.start_with?(root) ? line.from(root.size) : line }
     def add_filter(&block)
       @filters << block
     end
