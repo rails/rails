@@ -1,3 +1,10 @@
+*   "Backport" `ActiveRecord::Persistence.create!` and `.create` to `ActiveModel::Persistence`
+
+    Extract `.create!` and `.create` into `ActiveModel::Persistence`, then
+    include in `ActiveRecord::Persistence`.
+
+    *Sean Doyle*
+
 *   Ensure `#signed_id` outputs `url_safe` strings.
 
     *Jason Meller*

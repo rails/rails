@@ -6,8 +6,15 @@ module ActiveRecord
   # = Active Record \Persistence
   module Persistence
     extend ActiveSupport::Concern
+    include ActiveModel::Persistence
 
     module ClassMethods
+      ##
+      # :method: create
+      #
+      # :call-seq:
+      #   create(attributes = nil, &block)
+      #
       # Creates an object (or multiple objects) and saves it to the database, if validations pass.
       # The resulting object is returned whether the object was saved successfully to the database or not.
       #
@@ -30,16 +37,16 @@ module ActiveRecord
       #   User.create([{ first_name: 'Jamie' }, { first_name: 'Jeremy' }]) do |u|
       #     u.is_admin = false
       #   end
-      def create(attributes = nil, &block)
-        if attributes.is_a?(Array)
-          attributes.collect { |attr| create(attr, &block) }
-        else
-          object = new(attributes, &block)
-          object.save
-          object
-        end
-      end
+      #
+      #--
+      # Implemented by ActiveModel::Persistence.create.
 
+      ##
+      # :method: create!
+      #
+      # :call-seq:
+      #   create!(attributes = nil, &block)
+      #
       # Creates an object (or multiple objects) and saves it to the database,
       # if validations pass. Raises a RecordInvalid error if validations fail,
       # unlike Base#create.
@@ -47,15 +54,9 @@ module ActiveRecord
       # The +attributes+ parameter can be either a Hash or an Array of Hashes.
       # These describe which attributes to be created on the object, or
       # multiple objects when given an Array of Hashes.
-      def create!(attributes = nil, &block)
-        if attributes.is_a?(Array)
-          attributes.collect { |attr| create!(attr, &block) }
-        else
-          object = new(attributes, &block)
-          object.save!
-          object
-        end
-      end
+      #
+      #--
+      # Implemented by ActiveModel::Persistence.create!.
 
       # Builds an object (or multiple objects) and returns either the built object or a list of built
       # objects.
