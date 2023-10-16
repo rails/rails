@@ -9,7 +9,6 @@ gemfile(true) do
 
   # Activate the gem you are reporting the issue against.
   gem "rails", "~> 7.1.0"
-  gem "psych"
 end
 
 require "rack/test"
