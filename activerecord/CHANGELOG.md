@@ -1,3 +1,10 @@
+*   "Backport" `ActiveRecord::Persistence.build` to `ActiveModel::AttributeAssignment`
+
+    Implement `.build` in `ActiveModel::AttributeAssignment` for transitive
+    inclusion in `ActiveRecord::Base`.
+
+    *Sean Doyle*
+
 *   Ensure `#signed_id` outputs `url_safe` strings.
 
     *Jason Meller*

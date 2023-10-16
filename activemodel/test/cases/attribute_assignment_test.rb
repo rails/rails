@@ -10,8 +10,9 @@ class AttributeAssignmentTest < ActiveModel::TestCase
 
     attr_accessor :name, :description
 
-    def initialize(attributes = {})
+    def initialize(attributes = {}, &block)
       assign_attributes(attributes)
+      tap { yield_self(&block) if block }
     end
 
     def broken_attribute=(value)
@@ -134,5 +135,35 @@ class AttributeAssignmentTest < ActiveModel::TestCase
   test "assigning no attributes should not raise, even if the hash is un-permitted" do
     model = Model.new
     assert_nil model.assign_attributes(ProtectedParams.new({}))
+  end
+
+  test "build" do
+    model = Model.build(name: "New Model")
+    assert_equal "New Model", model.name
+  end
+
+  test "build many" do
+    models = Model.build([{ name: "first" }, { name: "second" }])
+    assert_equal ["first", "second"], models.map(&:name)
+  end
+
+  test "build through factory with block" do
+    model = Model.build("name" => "New Model") do |t|
+      t.description = "Description"
+    end
+    assert_equal("New Model", model.name)
+    assert_equal("Description", model.description)
+  end
+
+  test "build many through factory with block" do
+    models = Model.build([{ "name" => "first" }, { "name" => "second" }]) do |t|
+      t.description = "Description"
+    end
+    assert_equal 2, models.size
+    model1, model2 = models
+    assert_equal "first", model1.name
+    assert_equal "Description", model1.description
+    assert_equal "second", model2.name
+    assert_equal "Description", model2.description
   end
 end
