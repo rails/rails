@@ -1,3 +1,9 @@
+*   Migrate `ActiveRecord::AttributeAssignment` support for multi-parameter attributes to Active Model
+
+    Implement assignment in terms of including `ActiveModel::AttributeAssignment`
+
+    *Sean Doyle*
+
 *   Fix `#merge` with `#or` or `#and` and a mixture of attributes and SQL strings resulting in an incorrect query.
 
     ```ruby
