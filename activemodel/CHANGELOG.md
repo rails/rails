@@ -1,3 +1,24 @@
+*   Migrate `ActiveRecord::AttributeAssignment` support for multiparameter attributes to Active Model
+
+    ```ruby
+    class Topic
+      include ActiveModel::Model
+      include ActiveModel::Attributes
+
+      attribute :last_read_on, :date
+    end
+
+    topic = Topic.new
+    topic.attributes = {
+      "last_read_on(1i)" => "2023",
+      "last_read_on(2i)" => "10",
+      "last_read_on(3i)" => "17"
+    )
+    topic.last_read_on == Date.new(2023, 10, 17) # => true
+    ```
+
+    *Sean Doyle*
+
 *   Changes `ActiveModel::Validations#read_attribute_for_validation` to return `nil` if the record doesn't
     respond to the attribute instead of raising an error.
 
