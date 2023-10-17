@@ -1463,6 +1463,7 @@ The default value depends on the `config.load_defaults` target version:
 Specifies whether a warning should be raised when using SQLite3 in production environment.
 
 The default value is `true`
+
 #### `config.active_record.async_query_executor`
 
 Specifies how asynchronous queries are pooled.
