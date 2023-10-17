@@ -52,6 +52,7 @@ group :development do
   # gem "spring"
 <%- if RUBY_VERSION >= "3.1" && RUBY_VERSION < "3.2" -%>
 
+  # Highlight the fine-grained location where an error occurred [https://github.com/ruby/error_highlight]
   gem "error_highlight", ">= 0.4.0", platforms: [:ruby]
 <%- end -%>
 end
