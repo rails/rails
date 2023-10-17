@@ -145,6 +145,7 @@ module TestHelpers
       add_to_env_config :development, "config.action_view.annotate_rendered_view_with_filenames = false"
 
       remove_from_env_config("development", "config.generators.apply_rubocop_autocorrect_after_generate!")
+      add_to_env_config :production, "config.log_level = :error"
     end
 
     def teardown_app
@@ -262,7 +263,7 @@ module TestHelpers
       @app.config.eager_load = false
       @app.config.session_store :cookie_store, key: "_myapp_session"
       @app.config.active_support.deprecation = :log
-      @app.config.log_level = :info
+      @app.config.log_level = :error
       @app.config.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
 
       yield @app if block_given?
