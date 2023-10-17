@@ -1,5 +1,8 @@
 {
   "extends": "eslint:recommended",
+  "globals": {
+    "__esm": "readonly"
+  },
   "rules": {
     "semi": ["error", "never"],
     "quotes": ["error", "double"],
