@@ -413,8 +413,13 @@ module SharedGeneratorTests
       @bundle_commands = []
       @bundle_command_stub ||= -> (command, *) { @bundle_commands << command }
 
+      @rails_commands = []
+      @rails_command_stub ||= -> (command, *_) { @rails_commands << command }
+
       generator.stub(:bundle_command, @bundle_command_stub) do
-        super
+        generator.stub(:rails_command, @rails_command_stub) do
+          super
+        end
       end
     end
 
