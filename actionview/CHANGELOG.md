@@ -1,3 +1,7 @@
+*   Fix `@rails/ujs` calling `start()` an extra time when using bundlers
+
+    *Hartley McGuire*, *Ryunosuke Sato*
+
 *   Fix the `capture` view helper compatibility with HAML and Slim
 
     When a blank string was captured in HAML or Slim (and possibly other template engines)

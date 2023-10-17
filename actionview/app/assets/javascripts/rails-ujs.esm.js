@@ -683,11 +683,4 @@ if (typeof jQuery !== "undefined" && jQuery && jQuery.ajax) {
   }));
 }
 
-if (typeof exports !== "object" && typeof module === "undefined") {
-  window.Rails = Rails;
-  if (fire(document, "rails:attachBindings")) {
-    start();
-  }
-}
-
 export { Rails as default };
