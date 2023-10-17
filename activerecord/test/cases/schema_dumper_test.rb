@@ -580,6 +580,39 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   if current_adapter?(:PostgreSQLAdapter)
+    def test_schema_dump_with_ignoring_schemas
+      original, $stdout = $stdout, StringIO.new
+
+      migration = Class.new(ActiveRecord::Migration::Current) do
+        def up
+          create_schema("cats")
+          create_schema("omg_cats")
+          create_schema("dogs")
+        end
+        def down
+          drop_schema("cats")
+          drop_schema("omg_cats")
+          drop_schema("dogs")
+        end
+      end
+
+      original_schema_dumper_ignore_schemas = ActiveRecord::SchemaDumper.ignore_schemas
+      ActiveRecord::SchemaDumper.ignore_schemas = ["cats", /\Ad.*/]
+      migration.migrate(:up)
+
+      stream = StringIO.new
+      output = ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream).string
+
+      assert_match %r{create_schema "omg_cats"}, output
+      assert_no_match %r{create_schema "cats"}, output
+      assert_no_match %r{create_schema "dogs"}, output
+    ensure
+      migration.migrate(:down)
+      ActiveRecord::SchemaDumper.ignore_schemas = original_schema_dumper_ignore_schemas
+
+      $stdout = original
+    end
+
     def test_schema_dump_with_correct_timestamp_types_via_create_table_and_t_column
       original, $stdout = $stdout, StringIO.new
 

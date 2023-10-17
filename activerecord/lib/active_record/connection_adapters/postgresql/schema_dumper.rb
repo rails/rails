@@ -30,9 +30,10 @@ module ActiveRecord
 
           def schemas(stream)
             schema_names = @connection.schema_names - ["public"]
+            sorted_schemas = schema_names.reject { |name| ignored_schema?(name) }.sort
 
-            if schema_names.any?
-              schema_names.sort.each do |name|
+            if sorted_schemas.any?
+              sorted_schemas.each do |name|
                 stream.puts "  create_schema #{name.inspect}"
               end
               stream.puts
