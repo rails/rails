@@ -82,7 +82,7 @@ module ActiveSupport
             throw :invalid_message_content, "expired"
           end
 
-          if hash["pur"] != purpose&.to_s
+          if hash["pur"].to_s != purpose.to_s
             throw :invalid_message_content, "mismatched purpose"
           end
 
