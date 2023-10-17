@@ -1,3 +1,9 @@
+*   Migrate `ActiveRecord::AttributeAssignment` support for multi-parameter attributes to Active Model
+
+    Implement assignment in terms of including `ActiveModel::AttributeAssignment`
+
+    *Sean Doyle*
+
 *   Add `:touch` option to `update_column`/`update_columns` methods.
 
     ```ruby
