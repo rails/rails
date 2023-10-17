@@ -84,11 +84,7 @@ module ActionController
 
     EXCLUDE_PARAMETERS = %w(authenticity_token _method utf8)
 
-    require "mutex_m"
-
     class Options < Struct.new(:name, :format, :include, :exclude, :klass, :model) # :nodoc:
-      include Mutex_m
-
       def self.from_hash(hash)
         name    = hash[:name]
         format  = Array(hash[:format])
@@ -99,6 +95,7 @@ module ActionController
 
       def initialize(name, format, include, exclude, klass, model) # :nodoc:
         super
+        @mutex = Mutex.new
         @include_set = include
         @name_set    = name
       end
@@ -111,7 +108,7 @@ module ActionController
         return super if @include_set
 
         m = model
-        synchronize do
+        @mutex.synchronize do
           return super if @include_set
 
           @include_set = true
@@ -144,7 +141,7 @@ module ActionController
         return super if @name_set
 
         m = model
-        synchronize do
+        @mutex.synchronize do
           return super if @name_set
 
           @name_set = true
