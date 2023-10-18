@@ -576,4 +576,7 @@ module ActiveRecord
   # values, such as request parameters or model attributes to query methods.
   class UnknownAttributeReference < ActiveRecordError
   end
+
+  class MissingRequiredColumnError < ActiveRecordError
+  end
 end

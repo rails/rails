@@ -1800,6 +1800,11 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal(%w(first_name last_name), SymbolIgnoredDeveloper.ignored_columns)
   end
 
+  test "required columns are stored as an array of string" do
+    assert_equal(%w(name), Developer.required_columns)
+    assert_equal(%w(name), SymbolRequiredDeveloper.required_columns)
+  end
+
   test "when #reload called, ignored columns' attribute methods are not defined" do
     developer = Developer.create!(name: "Developer")
     assert_not_respond_to developer, :first_name
@@ -1839,6 +1844,12 @@ class BasicsTest < ActiveRecord::TestCase
     quoted_id = "#{Developer.quoted_table_name}.#{Developer.quoted_primary_key}"
 
     assert_match(/SELECT #{Regexp.escape(quoted_id)}.* FROM developers/, query)
+  end
+
+  test "missing required_columns raise an error when schema is loaded" do
+    assert_raises(ActiveRecord::MissingRequiredColumnError) do
+      MissingRequiredColumnDeveloper.last
+    end
   end
 
   test "using table name qualified column names unless having SELECT list explicitly" do

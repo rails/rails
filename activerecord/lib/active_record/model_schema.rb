@@ -173,6 +173,7 @@ module ActiveRecord
 
       self.protected_environments = ["production"]
 
+      self.required_columns = [].freeze
       self.ignored_columns = [].freeze
 
       delegate :type_for_attribute, :column_for_attribute, to: :class
@@ -318,6 +319,56 @@ module ActiveRecord
 
       def real_inheritance_column=(value) # :nodoc:
         self._inheritance_column = value.to_s
+      end
+
+      # The list of columns names the model must have.
+      def required_columns
+        @required_columns || superclass.required_columns
+      end
+
+      # Sets the columns names the model must have.
+      # If a model does not have a required column, an error will be raised on schema load.
+      #
+      # One usage pattern for this method could be to ensure columns utilised by a shared concern
+      # are present on the included models.
+      #
+      # For example, given a concern that requires a column to mark a record as archived:
+      #
+      #    module Archivable
+      #      extend ActiveSupport::Concern
+      #
+      #      included do
+      #        self.required_columns += [:archived_at]
+      #      end
+      #
+      #      def archive!
+      #        update!(archived_at: Time.zone.now)
+      #      end
+      #    end
+      #
+      #    class Project < ApplicationRecord
+      #      # schema:
+      #      #   id         :bigint
+      #      #   name       :string, limit: 255
+      #
+      #      include Archivable
+      #    end
+      #
+      #    Project.last # raises ActiveRecord::RequiredColumnMissingError
+      #
+      # Another usage pattern could be to ensure columns required for scoping in a multi-tenant architecture
+      # are present on every model.
+      #
+      # For example, given a multi-tenant architecture where every model should be scoped (and can be indexed)
+      # by the tenant i.e. requires a tenant_id foreign key:
+      #
+      #    class ApplicationRecord < ActiveRecord::Base
+      #      self.abstract_class = true
+      #      self.required_columns = [:tenant_id] # enforces tenant_id on every model
+      #    end
+      def required_columns=(columns)
+        reload_schema_from_cache
+        @required_columns = columns.map(&:to_s).freeze
       end
 
       # The list of columns names the model should ignore. Ignored columns won't have attribute
@@ -588,6 +639,7 @@ module ActiveRecord
           child_class.initialize_load_schema_monitor
           child_class.reload_schema_from_cache(false)
           child_class.class_eval do
+            @required_columns = nil
             @ignored_columns = nil
           end
         end
@@ -604,6 +656,13 @@ module ActiveRecord
           columns_hash = connection.schema_cache.columns_hash(table_name)
           columns_hash = columns_hash.except(*ignored_columns) unless ignored_columns.empty?
           @columns_hash = columns_hash.freeze
+
+          missing_required_columns = required_columns - @columns_hash.keys
+          unless missing_required_columns.empty?
+            message = "The following required columns are missing in #{self}: #{missing_required_columns.join(', ')}"
+            raise ActiveRecord::MissingRequiredColumnError, message
+          end
+
           alias_attribute :id_value, :id if @columns_hash.key?("id")
 
           super

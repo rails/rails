@@ -23,6 +23,7 @@ class Developer < ActiveRecord::Base
     end
   end
 
+  self.required_columns = %w(name)
   self.ignored_columns = %w(first_name last_name)
 
   has_and_belongs_to_many :projects do
@@ -120,6 +121,16 @@ end
 class SpecialDeveloper < ActiveRecord::Base
   self.table_name = "developers"
   has_many :special_contracts, foreign_key: "developer_id"
+end
+
+class MissingRequiredColumnDeveloper < ActiveRecord::Base
+  self.table_name = "developers"
+  self.required_columns = [:missing_column]
+end
+
+class SymbolRequiredDeveloper < ActiveRecord::Base
+  self.table_name = "developers"
+  self.required_columns = [:name]
 end
 
 class SymbolIgnoredDeveloper < ActiveRecord::Base
