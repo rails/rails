@@ -91,7 +91,6 @@ PATH
       drb
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
-      mutex_m
       tzinfo (~> 2.0)
     rails (7.2.0.alpha)
       actioncable (= 7.2.0.alpha)
@@ -342,7 +341,6 @@ GEM
     msgpack (1.7.0)
     multi_json (1.15.0)
     multipart-post (2.2.3)
-    mutex_m (0.1.2)
     mysql2 (0.5.5)
     net-http-persistent (4.0.1)
       connection_pool (~> 2.2)

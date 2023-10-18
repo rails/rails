@@ -41,6 +41,5 @@ Gem::Specification.new do |s|
   s.add_dependency "minitest",        ">= 5.1"
   s.add_dependency "base64"
   s.add_dependency "drb"
-  s.add_dependency "mutex_m"
   s.add_dependency "bigdecimal"
 end

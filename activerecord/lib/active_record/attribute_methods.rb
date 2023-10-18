@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "mutex_m"
 require "active_support/core_ext/enumerable"
 
 module ActiveRecord
@@ -24,7 +23,7 @@ module ActiveRecord
     RESTRICTED_CLASS_METHODS = %w(private public protected allocate new name parent superclass)
 
     class GeneratedAttributeMethods < Module # :nodoc:
-      include Mutex_m
+      LOCK = Monitor.new
     end
 
     class << self
@@ -68,7 +67,7 @@ module ActiveRecord
         superclass.generate_alias_attributes unless superclass == Base
         return if @alias_attributes_mass_generated
 
-        generated_attribute_methods.synchronize do
+        GeneratedAttributeMethods::LOCK.synchronize do
           return if @alias_attributes_mass_generated
           ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
             aliases_by_attribute_name.each do |old_name, new_names|
@@ -127,7 +126,7 @@ module ActiveRecord
         return false if @attribute_methods_generated
         # Use a mutex; we don't want two threads simultaneously trying to define
         # attribute methods.
-        generated_attribute_methods.synchronize do
+        GeneratedAttributeMethods::LOCK.synchronize do
           return false if @attribute_methods_generated
           superclass.define_attribute_methods unless base_class?
           super(attribute_names)
@@ -136,7 +135,7 @@ module ActiveRecord
       end
 
       def undefine_attribute_methods # :nodoc:
-        generated_attribute_methods.synchronize do
+        GeneratedAttributeMethods::LOCK.synchronize do
           super if defined?(@attribute_methods_generated) && @attribute_methods_generated
           @attribute_methods_generated = false
           @alias_attributes_mass_generated = false
