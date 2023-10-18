@@ -63,6 +63,7 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 <%- if RUBY_VERSION < "3.0" -%>
+  # Updates selenium webdrivers automatically
   gem "webdrivers"
 <%- end -%>
 end
