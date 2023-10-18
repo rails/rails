@@ -947,6 +947,11 @@ module ActiveRecord
             exec_main_query
           end
 
+          if rows.is_a?(ActiveRecord::Result)
+            duplicate_columns = rows.columns.tally.select { |_, count| count > 1 }.keys
+            logger.warn("Unclarity field name: there are multiple columns with same name (#{duplicate_columns.join(', ')}). You should specify source table name for each column.") unless duplicate_columns.empty?
+          end
+
           records = instantiate_records(rows, &block)
           preload_associations(records) unless skip_preloading_value
 

@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/post"
 require "models/comment"
+require "active_support/log_subscriber/test_helper"
 
 module ActiveRecord
   class SelectTest < ActiveRecord::TestCase
@@ -182,6 +183,19 @@ module ActiveRecord
       end
 
       assert_equal "`select' with block doesn't take arguments.", error.message
+    end
+
+    def test_select_duplicate_column_name
+      old_logger = ActiveRecord::Base.logger
+      logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+      ActiveRecord::Base.logger = logger
+
+      begin
+        Post.select("posts.*, comments.id").joins(:comments).take
+        assert_equal(["Unclarity field name: there are multiple columns with same name (id). You should specify source table name for each column."], logger.logged(:warn))
+      ensure
+        ActiveRecord::Base.logger = old_logger
+      end
     end
   end
 end
