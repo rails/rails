@@ -189,8 +189,10 @@ module ActiveRecord
       def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [], returning: nil)
         sql, binds = to_sql_and_binds(arel, binds)
         value = exec_insert(sql, name, binds, pk, sequence_name, returning: returning)
-        return id_value if id_value
-        returning.nil? ? last_inserted_id(value) : returning_column_values(value)
+
+        return returning_column_values(value) unless returning.nil?
+
+        id_value || last_inserted_id(value)
       end
       alias create insert
 
