@@ -38,7 +38,11 @@ ActiveRecord::Schema.define do
     t.string :json_data_empty, null: true, default: "", limit: 1024
     t.text :params
     t.references :account
-    t.json :json_options
+    if ActiveRecord::TestCase.current_adapter?(:PostgreSQLAdapter)
+      t.jsonb :json_options
+    else
+      t.json :json_options
+    end
   end
 
   create_table :admin_user_jsons, force: true do |t|

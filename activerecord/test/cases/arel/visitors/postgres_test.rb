@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require "active_model/attribute"
+require "active_record"
+require "active_record/connection_adapters/postgresql_adapter"
 require_relative "../helper"
 
 module Arel
@@ -7,8 +10,21 @@ module Arel
     class PostgresTest < Arel::Spec
       before do
         @visitor = PostgreSQL.new Table.engine.connection
-        @table = Table.new(:users)
+        @table = Table.new(:users, type_caster: fake_pg_caster)
         @attr = @table[:id]
+      end
+
+      # map that converts attribute names to a caster
+      def fake_pg_caster
+        Object.new.tap do |caster|
+          def caster.type_for_attribute(attr_name)
+            ActiveModel::Type::String.new
+          end
+          def caster.type_cast_for_database(attr_name, value)
+            type = type_for_attribute(attr_name)
+            type.serialize(value)
+          end
+        end
       end
 
       def compile(node)
@@ -329,6 +345,22 @@ module Arel
           search = Nodes.build_quoted("{foo,bar,baz}")
           sql = compile Nodes::Overlaps.new(column, search)
           _(sql).must_be_like %{ "products"."tags" && '{foo,bar,baz}' }
+        end
+      end
+
+      describe "Nodes::HomogeneousIn" do
+        it "should use = ANY" do
+          test = Nodes::HomogeneousIn.new([1, 2], @table[:id], :in)
+          _(compile(test)).must_be_like %{
+            "users"."id" = ANY ($1)
+          }
+        end
+
+        it "should use != ALL for negation" do
+          test = Nodes::HomogeneousIn.new([1, 2], @table[:id], :notin)
+          _(compile(test)).must_be_like %{
+            "users"."id" != ALL ($1)
+          }
         end
       end
     end

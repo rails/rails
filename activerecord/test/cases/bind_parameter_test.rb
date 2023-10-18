@@ -94,7 +94,11 @@ if ActiveRecord::Base.connection.prepared_statements
 
         topics = Topic.where(id: [1, 3]).order(:id)
         assert_equal [1, 3], topics.map(&:id)
-        assert_not_includes statement_cache, to_sql_key(topics.arel)
+        if current_adapter?(:PostgreSQLAdapter)
+          assert_includes statement_cache, to_sql_key(topics.arel)
+        else
+          assert_not_includes statement_cache, to_sql_key(topics.arel)
+        end
       end
 
       def test_statement_cache_with_sql_string_literal
@@ -162,12 +166,12 @@ if ActiveRecord::Base.connection.prepared_statements
       end
 
       def test_bind_params_to_sql_with_prepared_statements
-        assert_bind_params_to_sql
+        assert_bind_params_to_sql(true)
       end
 
       def test_bind_params_to_sql_with_unprepared_statements
         @connection.unprepared_statement do
-          assert_bind_params_to_sql
+          assert_bind_params_to_sql(false)
         end
       end
 
@@ -198,58 +202,38 @@ if ActiveRecord::Base.connection.prepared_statements
       end
 
       private
-        def assert_bind_params_to_sql
+        def assert_bind_params_to_sql(prepared)
           table = Author.quoted_table_name
           pk = "#{table}.#{Author.quoted_primary_key}"
 
-          # prepared_statements: true
-          #
-          #   SELECT `authors`.* FROM `authors` WHERE (`authors`.`id` IN (?, ?, ?) OR `authors`.`id` IS NULL)
-          #
-          # prepared_statements: false
-          #
-          #   SELECT `authors`.* FROM `authors` WHERE (`authors`.`id` IN (1, 2, 3) OR `authors`.`id` IS NULL)
-          #
-          sql = "SELECT #{table}.* FROM #{table} WHERE (#{pk} IN (#{bind_params(1..3)}) OR #{pk} IS NULL)"
+          condition = if current_adapter?(:PostgreSQLAdapter)
+            prepared ? "= ANY ($1)" : "= ANY ('{1,2,3}')"
+          else
+            prepared ? "IN (?, ?, ?)" : "IN (1, 2, 3)"
+          end
+
+          sql = "SELECT #{table}.* FROM #{table} WHERE (#{pk} #{condition} OR #{pk} IS NULL)"
 
           authors = Author.where(id: [1, 2, 3, nil])
           assert_equal sql, @connection.to_sql(authors.arel)
           assert_sql(sql) { assert_equal 3, authors.length }
 
-          # prepared_statements: true
-          #
-          #   SELECT `authors`.* FROM `authors` WHERE `authors`.`id` IN (?, ?, ?)
-          #
-          # prepared_statements: false
-          #
-          #   SELECT `authors`.* FROM `authors` WHERE `authors`.`id` IN (1, 2, 3)
-          #
-          sql = "SELECT #{table}.* FROM #{table} WHERE #{pk} IN (#{bind_params(1..3)})"
+          sql = "SELECT #{table}.* FROM #{table} WHERE #{pk} #{condition}"
 
           authors = Author.where(id: [1, 2, 3, 9223372036854775808])
           assert_equal sql, @connection.to_sql(authors.arel)
           assert_sql(sql) { assert_equal 3, authors.length }
 
-          # prepared_statements: true
-          #
-          #   SELECT `authors`.* FROM `authors` WHERE `authors`.`id` IN (?, ?, ?)
-          #
-          # prepared_statements: false
-          #
-          #   SELECT `authors`.* FROM `authors` WHERE `authors`.`id` IN (1, 2, 3)
-          #
-          sql = "SELECT #{table}.* FROM #{table} WHERE #{pk} IN (#{bind_params(1..3)})"
+          condition = if current_adapter?(:PostgreSQLAdapter)
+            prepared ? "IN ($1, $2, $3)" : "IN (1, 2, 3)"
+          else
+            prepared ? "IN (?, ?, ?)" : "IN (1, 2, 3)"
+          end
+          sql = "SELECT #{table}.* FROM #{table} WHERE #{pk} #{condition}"
 
           arel_node = Arel.sql("SELECT #{table}.* FROM #{table} WHERE #{pk} IN (?)", [1, 2, 3])
           assert_equal sql, @connection.to_sql(arel_node)
           assert_sql(sql) { assert_equal 3, @connection.select_all(arel_node).length }
-        end
-
-        def bind_params(ids)
-          collector = @connection.send(:collector)
-          bind_params = ids.map { |i| Arel::Nodes::BindParam.new(i) }
-          sql, _ = @connection.visitor.compile(bind_params, collector)
-          sql
         end
 
         def to_sql_key(arel)

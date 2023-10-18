@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/admin"
+require "models/admin/user"
 require "models/binary"
 require "models/developer"
 require "models/post"
@@ -251,7 +253,23 @@ class LogSubscriberTest < ActiveRecord::TestCase
     def test_where_in_binds_logging_include_attribute_names
       Developer.where(id: [1, 2, 3, 4, 5]).load
       wait
-      assert_match(%{["id", 1], ["id", 2], ["id", 3], ["id", 4], ["id", 5]}, @logger.logged(:debug).last)
+      if current_adapter?(:PostgreSQLAdapter)
+        assert_match(%{["id", "{1,2,3,4,5}"]}, @logger.logged(:debug).last)
+      else
+        assert_match(%{["id", 1], ["id", 2], ["id", 3], ["id", 4], ["id", 5]}, @logger.logged(:debug).last)
+      end
+    end
+
+    def test_where_clause_with_json_attribute
+      Admin::User.create(json_options: { a: 1 })
+      count = Admin::User.where(json_options: [{ a: 1 }, { b: 2 }]).count
+      assert_equal 1, count
+      wait
+      if current_adapter?(:PostgreSQLAdapter)
+        assert_match(%{[["json_options", "{\\"{\\\\\\"a\\\\\\":1}\\",\\"{\\\\\\"b\\\\\\":2}\\"}"]]}, @logger.logged(:debug).last)
+      else
+        assert_match(%{[["json_options", "{\\"a\\":1}"], ["json_options", "{\\"b\\":2}"]]}, @logger.logged(:debug).last)
+      end
     end
 
     def test_binary_data_is_not_logged
