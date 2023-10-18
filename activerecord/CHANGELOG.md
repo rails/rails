@@ -1,3 +1,7 @@
+*   Move pragma statements and defaults to the database configuration file
+
+    *Brett Suwyn*
+
 *   Include `ActiveModel::API` in `ActiveRecord::Base`
 
     *Sean Doyle*

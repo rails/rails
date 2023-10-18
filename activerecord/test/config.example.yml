@@ -119,10 +119,21 @@ connections:
       database: <%= FIXTURES_ROOT %>/fixture_database.sqlite3
       timeout:  5000
       strict:   true
+      journal_mode: WAL
+      synchronous: NORMAL
+      mmap_size: 134217728
+      journal_size_limit: 67108864
+      cache_size: 2000
+
     arunit2:
       database: <%= FIXTURES_ROOT %>/fixture_database_2.sqlite3
       timeout:  5000
       strict:   true
+      journal_mode: WAL
+      synchronous: NORMAL
+      mmap_size: 134217728
+      journal_size_limit: 67108864
+      cache_size: 2000
 
   sqlite3_mem:
     arunit:
