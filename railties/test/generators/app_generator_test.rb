@@ -842,6 +842,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_skip_javascript_option_with_skip_javascript_argument
     run_generator [destination_root, "--skip-javascript"]
+    assert_no_gem "strada-rails"
     assert_no_gem "stimulus-rails"
     assert_no_gem "turbo-rails"
     assert_no_gem "importmap-rails"
@@ -849,6 +850,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_skip_javascript_option_with_J_argument
     run_generator [destination_root, "-J"]
+    assert_no_gem "strada-rails"
     assert_no_gem "stimulus-rails"
     assert_no_gem "turbo-rails"
     assert_no_gem "importmap-rails"
@@ -856,6 +858,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_skip_javascript_option_with_skip_js_argument
     run_generator [destination_root, "--skip-js"]
+    assert_no_gem "strada-rails"
     assert_no_gem "stimulus-rails"
     assert_no_gem "turbo-rails"
     assert_no_gem "importmap-rails"
@@ -865,6 +868,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator_and_bundler [destination_root]
     assert_gem "turbo-rails"
     assert_gem "stimulus-rails"
+    assert_gem "strada-rails"
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_match(/data-turbo-track/, content)
     end

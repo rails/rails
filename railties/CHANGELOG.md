@@ -1,3 +1,7 @@
+*   Add strada-rails to the generated Gemfile.
+
+    *Lázaro Nixon*
+
 *   Disallow invalid values for rails new options.
 
     The `--database`, `--asset-pipeline`, `--css`, and `--javascript` flags for

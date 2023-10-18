@@ -474,7 +474,10 @@ module Rails
         stimulus_rails_entry =
           GemfileEntry.floats "stimulus-rails", "Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]"
 
-        [ turbo_rails_entry, stimulus_rails_entry ]
+        strada_rails_entry =
+          GemfileEntry.floats "strada-rails", "Hotwire's native mobile bridge framework [https://strada.hotwired.dev]"
+
+        [ turbo_rails_entry, stimulus_rails_entry, strada_rails_entry ]
       end
 
       def using_js_runtime?
@@ -707,7 +710,7 @@ module Rails
       def run_hotwire
         return if options[:skip_hotwire] || !bundle_install?
 
-        rails_command "turbo:install stimulus:install"
+        rails_command "turbo:install stimulus:install strada:install"
       end
 
       def run_css

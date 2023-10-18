@@ -25,6 +25,7 @@ end
 gem "rack-cache", "~> 1.2"
 gem "stimulus-rails"
 gem "turbo-rails"
+gem "strada-rails"
 gem "jsbundling-rails"
 gem "cssbundling-rails"
 gem "importmap-rails"
