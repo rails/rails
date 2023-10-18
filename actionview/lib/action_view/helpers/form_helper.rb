@@ -1783,7 +1783,7 @@ module ActionView
       #   <% end %>
       #
       #   <%= form_for @post do |f| %>
-      #     <%= f.field_tag :tag, name: f.field_name(:tag, multiple: true) %>
+      #     <%= f.text_field :tag, name: f.field_name(:tag, multiple: true) %>
       #     <%# => <input type="text" name="post[tag][]">
       #   <% end %>
       #
