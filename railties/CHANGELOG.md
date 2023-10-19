@@ -1,3 +1,11 @@
+*   Add HTML lang attribute to application layout
+
+    It is [recommended] to always have this attribute set on the html tag.
+    [recommended]: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang
+
+    *Matheus Richard*
+
+
 *   Disallow invalid values for rails new options.
 
     The `--database`, `--asset-pipeline`, `--css`, and `--javascript` flags for
