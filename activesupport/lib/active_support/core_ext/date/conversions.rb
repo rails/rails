@@ -4,6 +4,8 @@ require "date"
 require "active_support/inflector/methods"
 require "active_support/core_ext/date/zones"
 require "active_support/core_ext/module/redefine_method"
+require "active_support/deprecation"
+require "active_support/deprecator"
 
 class Date
   DATE_FORMATS = {
