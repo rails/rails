@@ -1,3 +1,8 @@
+*   Fix `delete_matched` for file cache store to work with keys longer than the
+    max filename size.
+
+    *fatkodima* and *Jonathan Hefner*
+
 *   Fix compatibility with the `semantic_logger` gem.
 
     The `semantic_logger` gem doesn't behave exactly like stdlib logger in that
