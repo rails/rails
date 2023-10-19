@@ -138,6 +138,7 @@ module Rails
       @config_target_version = Rails.application.config.loaded_config_version || "5.0"
 
       config
+      configru
 
       if !options[:skip_action_cable] && !action_cable_config_exist
         template "config/cable.yml"
