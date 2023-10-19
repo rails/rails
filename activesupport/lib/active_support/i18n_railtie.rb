@@ -2,6 +2,7 @@
 
 require "active_support"
 require "active_support/core_ext/array/wrap"
+require "rails/railtie"
 
 # :enddoc:
 
