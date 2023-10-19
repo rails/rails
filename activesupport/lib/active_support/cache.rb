@@ -459,7 +459,17 @@ module ActiveSupport
             instrument(:read, name, options) do |payload|
               cached_entry = read_entry(key, **options, event: payload)
               entry = handle_expired_entry(cached_entry, key, options)
-              entry = nil if entry && entry.mismatched?(normalize_version(name, options))
+              if entry
+                if entry.mismatched?(normalize_version(name, options))
+                  entry = nil
+                else
+                  begin
+                    entry.value
+                  rescue DeserializationError
+                    entry = nil
+                  end
+                end
+              end
               payload[:super_operation] = :fetch if payload
               payload[:hit] = !!entry if payload
             end
@@ -511,7 +521,12 @@ module ActiveSupport
               nil
             else
               payload[:hit] = true if payload
-              entry.value
+              begin
+                entry.value
+              rescue DeserializationError
+                payload[:hit] = false
+                nil
+              end
             end
           else
             payload[:hit] = false if payload

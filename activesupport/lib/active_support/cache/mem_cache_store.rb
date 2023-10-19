@@ -270,14 +270,22 @@ module ActiveSupport
         def read_multi_entries(names, **options)
           keys_to_names = names.index_by { |name| normalize_key(name, options) }
 
-          raw_values = @data.with { |c| c.get_multi(keys_to_names.keys) }
+          raw_values = begin
+            @data.with { |c| c.get_multi(keys_to_names.keys) }
+          rescue Dalli::UnmarshalError
+            {}
+          end
+
           values = {}
 
           raw_values.each do |key, value|
             entry = deserialize_entry(value, raw: options[:raw])
 
             unless entry.nil? || entry.expired? || entry.mismatched?(normalize_version(keys_to_names[key], options))
-              values[keys_to_names[key]] = entry.value
+              begin
+                values[keys_to_names[key]] = entry.value
+              rescue DeserializationError
+              end
             end
           end
 
