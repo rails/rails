@@ -36,7 +36,7 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_string_dig
+  def test_dig
     a = ActiveSupport::OrderedOptions.new
 
     a[:test_key] = 56
@@ -44,6 +44,16 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     assert_equal 56, a["test_key"]
     assert_equal 56, a.dig(:test_key)
     assert_equal 56, a.dig("test_key")
+    assert_equal nil, a.dig(:non_existing_key)
+  end
+
+  def test_dig_bang
+    a = ActiveSupport::OrderedOptions.new
+    a[:foo] = { bar: :buz }
+
+    assert_equal :buz, a.dig!(:foo, :bar)
+    assert_equal :buz, a.dig!("foo", "bar")
+    assert_raises(KeyError) { a.dig!(:foo, :non_existing_key) }
   end
 
   def test_method_access
