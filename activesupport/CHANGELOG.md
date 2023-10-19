@@ -1,3 +1,8 @@
+*   Fix `delete_matched` for file cache store to work with keys longer than the
+    max filename size.
+
+    *fatkodima* and *Jonathan Hefner*
+
 *   Fix MemoryStore to prevent race conditions when incrementing or decrementing.
 
     *Pierre Jambet*
