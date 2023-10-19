@@ -7,6 +7,7 @@ require "active_support/core_ext/array/access"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/actionable_error"
+require "active_record/migration/pending_migration_connection"
 
 module ActiveRecord
   class MigrationError < ActiveRecordError # :nodoc:
@@ -768,9 +769,11 @@ module ActiveRecord
         def pending_migrations
           pending_migrations = []
 
-          ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection_for_each(env: env) do |connection|
-            if pending = connection.migration_context.open.pending_migrations
-              pending_migrations << pending
+          ActiveRecord::Base.configurations.configs_for(env_name: env).each do |db_config|
+            ActiveRecord::PendingMigrationConnection.establish_temporary_connection(db_config) do |conn|
+              if pending = conn.migration_context.open.pending_migrations
+                pending_migrations << pending
+              end
             end
           end
 
