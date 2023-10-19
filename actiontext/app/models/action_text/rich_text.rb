@@ -17,8 +17,23 @@ module ActionText
   #   message.content.to_s # => "<h1>Funny times!</h1>"
   #   message.content.to_plain_text # => "Funny times!"
   #
+  #   message = Message.create!(content: "<div onclick='action()'>safe<script>unsafe</script></div>")
+  #   message.content #=> #<ActionText::RichText....
+  #   message.content.to_s # => "<div>safeunsafe</div>"
+  #   message.content.to_plain_text # => "safeunsafe"
   class RichText < Record
     self.table_name = "action_text_rich_texts"
+
+    ##
+    # :method: to_s
+    #
+    # Safely transforms RichText into an HTML String.
+    #
+    #   message = Message.create!(content: "<h1>Funny times!</h1>")
+    #   message.content.to_s # => "<h1>Funny times!</h1>"
+    #
+    #   message = Message.create!(content: "<div onclick='action()'>safe<script>unsafe</script></div>")
+    #   message.content.to_s # => "<div>safeunsafe</div>"
 
     serialize :body, coder: ActionText::Content
     delegate :to_s, :nil?, to: :body
@@ -30,10 +45,16 @@ module ActionText
       self.embeds = body.attachables.grep(ActiveStorage::Blob).uniq if body.present?
     end
 
-    # Returns the +body+ attribute as plain text with all HTML tags removed.
+    # Returns a plain-text version of the markup contained by the +body+ attribute,
+    # with tags removed but HTML entities encoded.
     #
     #   message = Message.create!(content: "<h1>Funny times!</h1>")
     #   message.content.to_plain_text # => "Funny times!"
+    #
+    # NOTE: that the returned string is not HTML safe and should not be rendered in browsers.
+    #
+    #   message = Message.create!(content: "&lt;script&gt;alert()&lt;/script&gt;")
+    #   message.content.to_plain_text # => "<script>alert()</script>"
     def to_plain_text
       body&.to_plain_text.to_s
     end

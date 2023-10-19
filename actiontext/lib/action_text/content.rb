@@ -106,10 +106,19 @@ module ActionText
       self.class.new(content, canonicalize: false)
     end
 
-    # Returns the content as plain text with all HTML tags removed.
+    # Returns a plain-text version of the markup contained by the content,
+    # with tags removed but HTML entities encoded.
     #
     #   content = ActionText::Content.new("<h1>Funny times!</h1>")
     #   content.to_plain_text # => "Funny times!"
+    #
+    #   content = ActionText::Content.new("<div onclick='action()'>safe<script>unsafe</script></div>")
+    #   content.to_plain_text # => "safeunsafe"
+    #
+    # NOTE: that the returned string is not HTML safe and should not be rendered in browsers.
+    #
+    #   content = ActionText::Content.new("&lt;script&gt;alert()&lt;/script&gt;")
+    #   content.to_plain_text # => "<script>alert()</script>"
     def to_plain_text
       render_attachments(with_full_attributes: false, &:to_plain_text).fragment.to_plain_text
     end
@@ -130,6 +139,13 @@ module ActionText
       "action_text/contents/content"
     end
 
+    # Safely transforms Content into an HTML String.
+    #
+    #   content = ActionText::Content.new(content: "<h1>Funny times!</h1>")
+    #   content.to_s # => "<h1>Funny times!</h1>"
+    #
+    #   content = ActionText::Content.new("<div onclick='action()'>safe<script>unsafe</script></div>")
+    #   content.to_s # => "<div>safeunsafe</div>"
     def to_s
       to_rendered_html_with_layout
     end
