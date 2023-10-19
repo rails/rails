@@ -166,6 +166,7 @@ Active Record is an implementation of the object-relational mapping (ORM)
 pattern[https://www.martinfowler.com/eaaCatalog/activeRecord.html] by the same
 name described by Martin Fowler:
 
+>>>
   "An object that wraps a row in a database table or view,
   encapsulates the database access, and adds domain logic on that data."
 
