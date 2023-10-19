@@ -4,6 +4,8 @@ require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/class/attribute"
 require "active_support/subscriber"
 require "active_support/deprecation/proxy_wrappers"
+require "active_support/deprecation"
+require "active_support/deprecator"
 
 module ActiveSupport
   # = Active Support Log \Subscriber
