@@ -13,6 +13,18 @@ class TimeTravelTest < ActiveSupport::TestCase
   class DateSubclass < ::Date; end
   class DateTimeSubclass < ::DateTime; end
 
+  class TravelClass
+    include ActiveSupport::Testing::TimeHelpers
+
+    def travel_to_no_block(date)
+      travel_to(date)
+    end
+
+    def travel_to_block(date)
+      travel_to(date) { }
+    end
+  end
+
   def test_time_helper_travel
     Time.stub(:now, Time.now) do
       expected_time = Time.now + 1.day
@@ -121,6 +133,31 @@ class TimeTravelTest < ActiveSupport::TestCase
           end
         end
       end
+    end
+  end
+
+  def test_time_helper_travel_to_with_separate_class
+    travel_object = TravelClass.new
+    date1 = Date.new(2004, 11, 24)
+    date2 = Date.new(2005, 11, 24)
+
+    Time.stub(:now, now = Time.now) do
+      travel_to(date1) do
+        travel_object.travel_to_no_block(date2)
+      end
+      assert_equal now, Time.now
+
+      travel_to(date1) do
+        travel_object.travel_to_no_block(date2)
+        assert_equal date2, Date.today
+      end
+      assert_equal now, Time.now
+
+      travel_to(date1) do
+        travel_object.travel_to_block(date2)
+        assert_equal date1, Date.today
+      end
+      assert_equal now, Time.now
     end
   end
 

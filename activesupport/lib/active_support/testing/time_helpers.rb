@@ -25,7 +25,7 @@ module ActiveSupport
           unstub_object(stub)
         end
 
-        new_name = "__simple_stub__#{method_name}"
+        new_name = "__simple_stub__#{method_name}__#{object_id}"
 
         @stubs[object.object_id][method_name] = Stub.new(object, method_name, new_name)
 
