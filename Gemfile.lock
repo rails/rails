@@ -59,6 +59,7 @@ PATH
     actionpack (7.0.8)
       actionview (= 7.0.8)
       activesupport (= 7.0.8)
+      racc
       rack (~> 2.0, >= 2.2.4)
       rack-test (>= 0.6.3)
       rails-dom-testing (~> 2.0)

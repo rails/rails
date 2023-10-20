@@ -1,3 +1,8 @@
+*   Add `racc` as a dependency since it will become a bundled gem in Ruby 3.4.0
+
+    *Hartley McGuire*
+
+
 ## Rails 7.0.8 (September 09, 2023) ##
 
 *   Fix `HostAuthorization` potentially displaying the value of the
