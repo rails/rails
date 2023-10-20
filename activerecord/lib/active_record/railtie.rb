@@ -458,5 +458,15 @@ To keep using the current cache store, you can turn off cache versioning entirel
         end
       end
     end
+
+    initializer "active_record.attributes_for_inspect" do |app|
+      ActiveSupport.on_load(:active_record) do
+        if app.config.consider_all_requests_local
+          if app.config.active_record.attributes_for_inspect.nil?
+            ActiveRecord::Base.attributes_for_inspect = :all
+          end
+        end
+      end
+    end
   end
 end

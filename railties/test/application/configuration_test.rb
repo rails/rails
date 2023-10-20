@@ -4718,6 +4718,44 @@ module ApplicationTests
       assert_equal(:html4, Rails.application.config.dom_testing_default_html_version)
     end
 
+    test "sets ActiveRecord::Base.attributes_for_inspect to [:id] when config.consider_all_requests_local = false" do
+      add_to_config "config.consider_all_requests_local = false"
+
+      app "production"
+
+      assert_equal [:id], ActiveRecord::Base.attributes_for_inspect
+    end
+
+    test "sets ActiveRecord::Base.attributes_for_inspect to :all when config.consider_all_requests_local = true" do
+      add_to_config "config.consider_all_requests_local = true"
+
+      app "development"
+
+      assert_equal :all, ActiveRecord::Base.attributes_for_inspect
+    end
+
+    test "app configuration takes precedence over default" do
+      add_to_config "config.consider_all_requests_local = true"
+      add_to_config "config.active_record.attributes_for_inspect = [:foo]"
+
+      app "development"
+
+      assert_equal [:foo], ActiveRecord::Base.attributes_for_inspect
+    end
+
+    test "model's configuration takes precedence over default" do
+      add_to_config "config.consider_all_requests_local = true"
+      app_file "app/models/foo.rb", <<-RUBY
+        class Foo < ApplicationRecord
+          self.attributes_for_inspect = [:foo]
+        end
+      RUBY
+
+      app "development"
+
+      assert_equal [:foo], Foo.attributes_for_inspect
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents
