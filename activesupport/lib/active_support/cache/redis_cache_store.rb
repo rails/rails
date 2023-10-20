@@ -368,8 +368,8 @@ module ActiveSupport
           if pipeline
             pipeline.set(key, payload, **modifiers)
           else
-            failsafe :write_entry, returning: false do
-              redis.then { |c| c.set key, payload, **modifiers }
+            failsafe :write_entry, returning: nil do
+              redis.then { |c| !!c.set(key, payload, **modifiers) }
             end
           end
         end

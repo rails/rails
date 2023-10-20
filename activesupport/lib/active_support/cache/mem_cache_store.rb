@@ -263,10 +263,10 @@ module ActiveSupport
             # Set the memcache expire a few minutes in the future to support race condition ttls on read
             expires_in += 5.minutes
           end
-          rescue_error_with false do
+          rescue_error_with nil do
             # Don't pass compress option to Dalli since we are already dealing with compression.
             options.delete(:compress)
-            @data.with { |c| c.send(method, key, payload, expires_in, **options) }
+            @data.with { |c| !!c.send(method, key, payload, expires_in, **options) }
           end
         end
 

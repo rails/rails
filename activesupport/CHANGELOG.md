@@ -1,3 +1,11 @@
+*   Make return values of `Cache::Store#write` consistent.
+
+    The return value was not specified before. Now it returns `true` on a successful write,
+    `nil` if there was an error talking to the cache backend, and `false` if the write failed
+    for another reason (e.g. the key already exists and `unless_exist: true` was passed).
+
+    *Sander Verdonschot*
+
 *   Fix logged cache keys not always matching actual key used by cache action.
 
     *Hartley McGuire*

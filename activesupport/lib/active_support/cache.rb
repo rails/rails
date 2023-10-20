@@ -166,7 +166,7 @@ module ActiveSupport
     #   cache = ActiveSupport::Cache::MemoryStore.new
     #
     #   cache.read('city')   # => nil
-    #   cache.write('city', "Duckburgh")
+    #   cache.write('city', "Duckburgh") # => true
     #   cache.read('city')   # => "Duckburgh"
     #
     #   cache.write('not serializable', Proc.new {}) # => TypeError
@@ -629,6 +629,9 @@ module ActiveSupport
 
       # Writes the value to the cache with the key. The value must be supported
       # by the +coder+'s +dump+ and +load+ methods.
+      #
+      # Returns +true+ if the write succeeded, +nil+ if there was an error talking
+      # to the cache backend, or +false+ if the write failed for another reason.
       #
       # By default, cache entries larger than 1kB are compressed. Compression
       # allows more data to be stored in the same memory footprint, leading to
