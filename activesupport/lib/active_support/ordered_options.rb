@@ -42,8 +42,8 @@ module ActiveSupport
       super(key.to_sym)
     end
 
-    def dig(*keys)
-      super(*keys.flatten.map(&:to_sym))
+    def dig(key, *identifiers)
+      super(key.to_sym, *identifiers)
     end
 
     def method_missing(name, *args)
