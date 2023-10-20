@@ -1364,7 +1364,7 @@ end
 
 [HTTP headers](https://datatracker.ietf.org/doc/html/rfc2616#section-5.3)
 and
-[CGI variables](https://datatracker.ietf.org/doc/html/rfc3875#section-4)
+[CGI variables](https://datatracker.ietf.org/doc/html/rfc3875#section-4.1)
 can be passed as headers:
 
 ```ruby
