@@ -1,3 +1,7 @@
+*   Add `racc` as a dependency since it will become a bundled gem in Ruby 3.4.0
+
+    *Hartley McGuire*
+
 ## Rails 6.1.7.6 (August 22, 2023) ##
 
 *   No changes.
