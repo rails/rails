@@ -658,6 +658,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Deprecate `rewhere` argument on `#merge`.
 
+*   Deprecate aliasing non-attributes with `alias_attribute`.
+
 ### Notable changes
 
 *   Add `TestFixtures#fixture_paths` to support multiple fixture paths.
