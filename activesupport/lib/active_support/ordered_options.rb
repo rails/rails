@@ -30,6 +30,10 @@ module ActiveSupport
   #
   #   h.dog! # => raises KeyError: :dog is blank
   #
+  # Or use the +dig!+ method.
+  #
+  #   h.dig!(:dog) # => raises KeyError: :dog is blank
+  #
   class OrderedOptions < Hash
     alias_method :_get, :[] # preserve the original #[] method
     protected :_get # make it protected
@@ -44,6 +48,12 @@ module ActiveSupport
 
     def dig(key, *identifiers)
       super(key.to_sym, *identifiers)
+    end
+
+    def dig!(*keys)
+      keys.flatten.inject(self) do |h, key|
+        h[key.to_sym].presence || raise(KeyError.new(":#{key} is blank"))
+      end
     end
 
     def method_missing(name, *args)

@@ -1,3 +1,7 @@
+*   Add `OrderedOptions#dig!` to raise an exception when specifying a non-existent key
+
+    *Takumi Shotoku*
+
 *   Fix compatibility with the `semantic_logger` gem.
 
     The `semantic_logger` gem doesn't behave exactly like stdlib logger in that
