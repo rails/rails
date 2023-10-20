@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/logger_silence"
-
 module ActiveSupport
   # = Active Support Broadcast Logger
   #

@@ -3,8 +3,6 @@
 require "time"
 require "active_support/inflector/methods"
 require "active_support/values/time_zone"
-require "active_support/deprecation"
-require "active_support/deprecator"
 
 class Time
   DATE_FORMATS = {
