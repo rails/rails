@@ -10,7 +10,6 @@ module ApplicationTests
 
     def setup
       build_app(multi_db: true)
-      add_to_config "config.active_record.sqlite3_production_warning = false"
       rails("generate", "scaffold", "Pet", "name:string", "--database=animals")
       app_file "app/models/user.rb", <<-RUBY
         class User < ActiveRecord::Base
