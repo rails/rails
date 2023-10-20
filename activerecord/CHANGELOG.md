@@ -170,6 +170,10 @@
 
     *Adam Hess*
 
+*   Deprecate aliasing non-attributes with `alias_attribute`.
+
+    *Ian Candy*
+
 *   Fix unscope is not working in specific case
 
     Before:
