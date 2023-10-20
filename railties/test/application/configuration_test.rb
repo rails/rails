@@ -23,7 +23,7 @@ end
 
 class ::MyOtherMailObserver < ::MyMailObserver; end
 
-class ::MySafeListSanitizer < Rails::HTML4::SafeListSanitizer; end
+class ::MySafeListSanitizer < ActionView::HTML4::SafeListSanitizer; end
 
 class ::MySanitizerVendor < ::Rails::HTML::Sanitizer
   def self.safe_list_sanitizer
@@ -4599,7 +4599,7 @@ module ApplicationTests
       add_to_config 'config.load_defaults "7.0"'
       app "development"
 
-      assert_equal Rails::HTML4::Sanitizer, ActionView::Helpers::SanitizeHelper.sanitizer_vendor
+      assert_equal ActionView::HTML4::Sanitizer, ActionView::Helpers::SanitizeHelper.sanitizer_vendor
     end
 
     test "sanitizer_vendor is set to a specific vendor" do
@@ -4624,7 +4624,7 @@ module ApplicationTests
       app "development"
 
       assert_kind_of(
-        Rails::HTML4::Sanitizer.safe_list_sanitizer,
+        ActionView::HTML4::Sanitizer.safe_list_sanitizer,
         ActionText::ContentHelper.sanitizer,
       )
     end

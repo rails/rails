@@ -2145,12 +2145,13 @@ Determines whether or not the `form_tag` and `button_to` helpers will produce HT
 
 Configures the set of HTML sanitizers used by Action View by setting `ActionView::Helpers::SanitizeHelper.sanitizer_vendor`. The default value depends on the `config.load_defaults` target version:
 
-| Starting with version | The default value is                 | Which parses markup as |
-|-----------------------|--------------------------------------|------------------------|
-| (original)            | `Rails::HTML4::Sanitizer`            | HTML4                  |
-| 7.1                   | `Rails::HTML5::Sanitizer` (see NOTE) | HTML5                  |
+| Starting with version | The default value is                      | Which parses markup as |
+|-----------------------|-------------------------------------------|------------------------|
+| (original)            | `Rails::HTML4::Sanitizer`                 | HTML4                  |
+| 7.1                   | `Rails::HTML5::Sanitizer`                 | HTML5                  |
+| 7.2                   | `ActionView::HTML5::Sanitizer` (see NOTE) | HTML5                  |
 
-NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms Rails will fall back to `Rails::HTML4::Sanitizer`.
+NOTE: `ActionView::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms Rails will fall back to `ActionView::HTML4::Sanitizer`.
 
 ### Configuring Action Mailbox
 
@@ -2927,12 +2928,13 @@ Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action
 
 Configures the HTML sanitizer used by Action Text by setting `ActionText::ContentHelper.sanitizer` to an instance of the class returned from the vendor's `.safe_list_sanitizer` method. The default value depends on the `config.load_defaults` target version:
 
-| Starting with version | The default value is                 | Which parses markup as |
-|-----------------------|--------------------------------------|------------------------|
-| (original)            | `Rails::HTML4::Sanitizer`            | HTML4                  |
-| 7.1                   | `Rails::HTML5::Sanitizer` (see NOTE) | HTML5                  |
+| Starting with version | The default value is                      | Which parses markup as |
+|-----------------------|-------------------------------------------|------------------------|
+| (original)            | `Rails::HTML4::Sanitizer`                 | HTML4                  |
+| 7.1                   | `Rails::HTML5::Sanitizer`                 | HTML5                  |
+| 7.2                   | `ActionView::HTML5::Sanitizer` (see NOTE) | HTML5                  |
 
-NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms Rails will fall back to `Rails::HTML4::Sanitizer`.
+NOTE: `ActionView::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms Rails will fall back to `ActionView::HTML4::Sanitizer`.
 
 ### Configuring a Database
 

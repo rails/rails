@@ -331,6 +331,16 @@ module Rails
           end
         when "7.2"
           load_defaults "7.1"
+
+          if defined?(ActionView::HTML::Sanitizer) # nested ifs to avoid linter errors
+            if respond_to?(:action_view)
+              action_view.sanitizer_vendor = ActionView::HTML::Sanitizer.best_supported_vendor
+            end
+
+            if respond_to?(:action_text)
+              action_text.sanitizer_vendor = ActionView::HTML::Sanitizer.best_supported_vendor
+            end
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

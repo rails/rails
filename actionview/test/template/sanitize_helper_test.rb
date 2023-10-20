@@ -179,7 +179,7 @@ end
 #  We don't want to do exhaustive HTML sanitization testing here. Let's assume it's already being
 #  done upstream by the vendor.
 #
-#  Note that Rails::Html::Sanitizer and Rails::HTML4::Sanitizer are identical vendors (but aren't
+#  Note that Rails::Html::Sanitizer and ActionView::HTML4::Sanitizer are identical vendors (but aren't
 #  the same class). Eventually we will move away from using Rails::Html (a.k.a Rails::HTML), but
 #  for now we should make sure everything works as expected by testing it.
 #
@@ -355,13 +355,13 @@ module SanitizeHelperVendorTests
     input = %(<p>1<b>2<i>3</b>4</i>5</p>)
     scrubber = Loofah::Scrubber.new { |_| } # no-op, we're checking the underlying parser here
 
-    expected = if vendor == Rails::Html::Sanitizer || vendor == Rails::HTML4::Sanitizer
+    expected = if vendor == Rails::Html::Sanitizer || vendor == ActionView::HTML4::Sanitizer
       if RUBY_ENGINE == "jruby"
         "<p>1<b>2<i>3</i></b><i>4</i>5</p>" # nekohtml parser
       else
         "<p>1<b>2<i>3</i></b>45</p>" # libxml2 html4 parser
       end
-    elsif vendor == Rails::HTML5::Sanitizer
+    elsif vendor == ActionView::HTML5::Sanitizer
       "<p>1<b>2<i>3</i></b><i>4</i>5</p>" # libgumbo html5 parser
     else
       flunk "Unknown vendor #{vendor}"
@@ -383,7 +383,7 @@ class SanitizeHelperVendorHTML4Test < ActiveSupport::TestCase
   include SanitizeHelperVendorTests
 
   def vendor
-    Rails::HTML4::Sanitizer
+    ActionView::HTML4::Sanitizer
   end
 end
 
@@ -391,6 +391,6 @@ class SanitizeHelperVendorHTML5Test < ActiveSupport::TestCase
   include SanitizeHelperVendorTests
 
   def vendor
-    Rails::HTML5::Sanitizer
+    ActionView::HTML5::Sanitizer
   end
 end if Rails::HTML::Sanitizer.html5_support?

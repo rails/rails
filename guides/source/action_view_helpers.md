@@ -438,7 +438,7 @@ strip_links('Blog: <a href="http://myblog.com/">Visit</a>.')
 #### strip_tags(html)
 
 Strips all HTML tags from the html, including comments.
-This functionality is powered by the rails-html-sanitizer gem.
+This functionality is powered by the actionview-html-sanitizer gem.
 
 ```ruby
 strip_tags("Strip <i>these</i> tags!")

@@ -1842,11 +1842,11 @@ after_bundle do
 end
 ```
 
-### Rails HTML Sanitizer
+### ActionView HTML Sanitizer
 
 There's a new choice for sanitizing HTML fragments in your applications. The
 venerable html-scanner approach is now officially being deprecated in favor of
-[`Rails HTML Sanitizer`](https://github.com/rails/rails-html-sanitizer).
+[`ActionView HTML Sanitizer`](https://github.com/rails/actionview-html-sanitizer).
 
 This means the methods `sanitize`, `sanitize_css`, `strip_tags` and
 `strip_links` are backed by a new implementation.
@@ -1860,7 +1860,7 @@ powerful scrubbing.
 [See some examples of scrubbers here](https://github.com/flavorjones/loofah#loofahscrubber).
 
 Two new scrubbers have also been added: `PermitScrubber` and `TargetScrubber`.
-Read the [gem's readme](https://github.com/rails/rails-html-sanitizer) for more information.
+Read the [gem's readme](https://github.com/rails/actionview-html-sanitizer) for more information.
 
 The documentation for `PermitScrubber` and `TargetScrubber` explains how you
 can gain complete control over when and how elements should be stripped.

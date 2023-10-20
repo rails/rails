@@ -53,14 +53,14 @@ class FrameworkDefaultTest < Minitest::Test
       when "7.1"
         if respond_to?(:action_view)
           if Rails::HTML::Sanitizer.html5_support?
-            action_view.sanitizer_vendor = Rails::HTML5::Sanitizer
+            action_view.sanitizer_vendor = ActionView::HTML5::Sanitizer
           end
         end
       end
     RUBY
 
     assert_includes config, "7.1"
-    assert_equal("Rails::HTML5::Sanitizer", config["7.1"]["action_view.sanitizer_vendor"])
+    assert_equal("ActionView::HTML5::Sanitizer", config["7.1"]["action_view.sanitizer_vendor"])
   end
 
   def test_nested_frameworks_raise_when_strict

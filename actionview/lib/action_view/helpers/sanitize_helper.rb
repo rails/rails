@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rails-html-sanitizer"
+require "actionview-html-sanitizer"
 
 module ActionView
   module Helpers # :nodoc:
@@ -9,7 +9,7 @@ module ActionView
     # The SanitizeHelper module provides a set of methods for scrubbing text of undesired HTML elements.
     # These helper methods extend Action View making them callable within your template files.
     module SanitizeHelper
-      mattr_accessor :sanitizer_vendor, default: Rails::HTML4::Sanitizer
+      mattr_accessor :sanitizer_vendor, default: ActionView::HTML4::Sanitizer
 
       extend ActiveSupport::Concern
 
@@ -19,8 +19,8 @@ module ActionView
       # also protecting against attempts to use Unicode, ASCII, and hex character references to work
       # around these protocol filters.
       #
-      # The default sanitizer is Rails::HTML5::SafeListSanitizer. See {Rails HTML
-      # Sanitizers}[https://github.com/rails/rails-html-sanitizer] for more information.
+      # The default sanitizer is ActionView::HTML5::SafeListSanitizer. See {ActionView HTML
+      # Sanitizers}[https://github.com/rails/actionview-html-sanitizer] for more information.
       #
       # Custom sanitization rules can also be provided.
       #
@@ -31,7 +31,7 @@ module ActionView
       #
       # * <tt>:tags</tt> - An array of allowed tags.
       # * <tt>:attributes</tt> - An array of allowed attributes.
-      # * <tt>:scrubber</tt> - A {Rails::HTML scrubber}[https://github.com/rails/rails-html-sanitizer]
+      # * <tt>:scrubber</tt> - A {Rails::HTML scrubber}[https://github.com/rails/actionview-html-sanitizer]
       #   or {Loofah::Scrubber}[https://github.com/flavorjones/loofah] object that
       #   defines custom sanitization rules. A custom scrubber takes precedence over
       #   custom tags and attributes.
@@ -62,7 +62,7 @@ module ActionView
       #
       #   <%= sanitize @comment.body, scrubber: CommentScrubber.new %>
       #
-      # See {Rails HTML Sanitizer}[https://github.com/rails/rails-html-sanitizer] for
+      # See {ActionView HTML Sanitizer}[https://github.com/rails/actionview-html-sanitizer] for
       # documentation about Rails::HTML scrubbers.
       #
       # Providing a custom Loofah::Scrubber:
@@ -87,16 +87,16 @@ module ActionView
       # can do so by setting the following in your application configuration:
       #
       #   # In config/application.rb
-      #   config.action_view.sanitizer_vendor = Rails::HTML4::Sanitizer
+      #   config.action_view.sanitizer_vendor = ActionView::HTML4::Sanitizer
       #
       # Or, if you're upgrading from a previous version of \Rails and wish to opt into the HTML5
       # behavior:
       #
       #   # In config/application.rb
-      #   config.action_view.sanitizer_vendor = Rails::HTML5::Sanitizer
+      #   config.action_view.sanitizer_vendor = ActionView::HTML5::Sanitizer
       #
-      # NOTE: Rails::HTML5::Sanitizer is not supported on JRuby, so on JRuby platforms \Rails will
-      # fall back to use Rails::HTML4::Sanitizer.
+      # NOTE: ActionView::HTML5::Sanitizer is not supported on JRuby, so on JRuby platforms \Rails will
+      # fall back to use ActionView::HTML4::Sanitizer.
       def sanitize(html, options = {})
         self.class.safe_list_sanitizer.sanitize(html, options)&.html_safe
       end

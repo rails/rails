@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "rails-html-sanitizer"
+require "actionview-html-sanitizer"
 
 module ActionText
   module ContentHelper
-    mattr_accessor(:sanitizer, default: Rails::HTML4::Sanitizer.safe_list_sanitizer.new)
+    mattr_accessor(:sanitizer, default: ActionView::HTML4::Sanitizer.safe_list_sanitizer.new)
     mattr_accessor(:allowed_tags)
     mattr_accessor(:allowed_attributes)
     mattr_accessor(:scrubber)
