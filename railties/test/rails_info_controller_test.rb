@@ -78,15 +78,15 @@ class InfoControllerTest < ActionController::TestCase
 
     get :routes, params: { query: "rails_info_properties" }
     assert exact_results.size == 1, "should match complete route names"
-    assert exact_results.include? "/rails/info/properties(.:format)"
+    assert exact_results.include? "/rails/info/properties(.:format(+:variant))"
 
     get :routes, params: { query: "rails_info_properties_path" }
     assert exact_results.size == 1, "should match complete route paths"
-    assert exact_results.include? "/rails/info/properties(.:format)"
+    assert exact_results.include? "/rails/info/properties(.:format(+:variant))"
 
     get :routes, params: { query: "rails_info_properties_url" }
     assert exact_results.size == 1, "should match complete route urls"
-    assert exact_results.include? "/rails/info/properties(.:format)"
+    assert exact_results.include? "/rails/info/properties(.:format(+:variant))"
   end
 
   test "info controller search returns exact matches for route paths" do
@@ -95,19 +95,19 @@ class InfoControllerTest < ActionController::TestCase
 
     get :routes, params: { query: "/rails/info/routes" }
     assert exact_results.size == 1, "should match complete route paths prefixed with /"
-    assert exact_results.include? "/rails/info/routes(.:format)"
+    assert exact_results.include? "/rails/info/routes(.:format(+:variant))"
 
     get :routes, params: { query: "rails/info/routes" }
     assert exact_results.size == 1, "should match complete route paths NOT prefixed with /"
-    assert exact_results.include? "/rails/info/routes(.:format)"
+    assert exact_results.include? "/rails/info/routes(.:format(+:variant))"
 
     get :routes, params: { query: "rails/info/routes.html" }
     assert exact_results.size == 1, "should match complete route paths with optional parts"
-    assert exact_results.include? "/rails/info/routes(.:format)"
+    assert exact_results.include? "/rails/info/routes(.:format(+:variant))"
 
     get :routes, params: { query: "test/nested_route" }
     assert exact_results.size == 1, "should match complete route paths that are nested in a namespace"
-    assert exact_results.include? "/test/nested_route(.:format)"
+    assert exact_results.include? "/test/nested_route(.:format(+:variant))"
   end
 
   test "info controller search returns case-sensitive exact matches for HTTP Verb methods" do
@@ -119,9 +119,9 @@ class InfoControllerTest < ActionController::TestCase
 
     get :routes, params: { query: "GET" }
     assert exact_results.size == 3, "should match complete HTTP Verb methods"
-    assert exact_results.include? "/test/nested_route(.:format)"
-    assert exact_results.include? "/rails/info/properties(.:format)"
-    assert exact_results.include? "/rails/info/routes(.:format)"
+    assert exact_results.include? "/test/nested_route(.:format(+:variant))"
+    assert exact_results.include? "/rails/info/properties(.:format(+:variant))"
+    assert exact_results.include? "/rails/info/routes(.:format(+:variant))"
   end
 
   test "info controller search returns exact matches for route Controller#Action(s)" do
@@ -130,9 +130,9 @@ class InfoControllerTest < ActionController::TestCase
 
     get :routes, params: { query: "rails/info#properties" }
     assert exact_results.size == 3, "should match complete route Controller#Action(s)"
-    assert exact_results.include? "/rails/info/properties(.:format)"
-    assert exact_results.include? "/rails/:test/properties(.:format)"
-    assert exact_results.include? "/rails/:test/named_properties(.:format)"
+    assert exact_results.include? "/rails/info/properties(.:format(+:variant))"
+    assert exact_results.include? "/rails/:test/properties(.:format(+:variant))"
+    assert exact_results.include? "/rails/:test/named_properties(.:format(+:variant))"
   end
 
   test "info controller returns fuzzy matches for route names" do
@@ -141,32 +141,32 @@ class InfoControllerTest < ActionController::TestCase
 
     get :routes, params: { query: "rails_info" }
     assert fuzzy_results.size == 3, "should match incomplete route names"
-    assert fuzzy_results.include? "/rails/info/properties(.:format)"
-    assert fuzzy_results.include? "/rails/info/routes(.:format)"
-    assert fuzzy_results.include? "/rails/:test/named_properties(.:format)"
+    assert fuzzy_results.include? "/rails/info/properties(.:format(+:variant))"
+    assert fuzzy_results.include? "/rails/info/routes(.:format(+:variant))"
+    assert fuzzy_results.include? "/rails/:test/named_properties(.:format(+:variant))"
 
     get :routes, params: { query: "/rails/info/routes" }
     assert fuzzy_results.size == 1, "should match complete route names"
-    assert fuzzy_results.include? "/rails/info/routes(.:format)"
+    assert fuzzy_results.include? "/rails/info/routes(.:format(+:variant))"
 
     get :routes, params: { query: "named_rails_info_properties_path" }
     assert fuzzy_results.size == 1, "should match complete route paths"
-    assert fuzzy_results.include? "/rails/:test/named_properties(.:format)"
+    assert fuzzy_results.include? "/rails/:test/named_properties(.:format(+:variant))"
 
     get :routes, params: { query: "named_rails_info_properties_url" }
     assert fuzzy_results.size == 1, "should match complete route urls"
-    assert fuzzy_results.include? "/rails/:test/named_properties(.:format)"
+    assert fuzzy_results.include? "/rails/:test/named_properties(.:format(+:variant))"
   end
 
   test "info controller returns fuzzy matches for route paths" do
     get :routes, params: { query: "rails/:test" }
     assert fuzzy_results.size == 2, "should match incomplete routes"
-    assert fuzzy_results.include? "/rails/:test/properties(.:format)"
-    assert fuzzy_results.include? "/rails/:test/named_properties(.:format)"
+    assert fuzzy_results.include? "/rails/:test/properties(.:format(+:variant))"
+    assert fuzzy_results.include? "/rails/:test/named_properties(.:format(+:variant))"
 
     get :routes, params: { query: "/rails/info/routes" }
     assert fuzzy_results.size == 1, "should match complete routes"
-    assert fuzzy_results.include? "/rails/info/routes(.:format)"
+    assert fuzzy_results.include? "/rails/info/routes(.:format(+:variant))"
 
     get :routes, params: { query: "rails/info/routes.html" }
     assert fuzzy_results.size == 0, "should match optional parts of route literally"
@@ -177,15 +177,15 @@ class InfoControllerTest < ActionController::TestCase
   test "info controller search returns fuzzy matches for route Controller#Action(s)" do
     get :routes, params: { query: "rails/info#propertie" }
     assert fuzzy_results.size == 3, "should match incomplete routes"
-    assert fuzzy_results.include? "/rails/info/properties(.:format)"
-    assert fuzzy_results.include? "/rails/:test/properties(.:format)"
-    assert fuzzy_results.include? "/rails/:test/named_properties(.:format)"
+    assert fuzzy_results.include? "/rails/info/properties(.:format(+:variant))"
+    assert fuzzy_results.include? "/rails/:test/properties(.:format(+:variant))"
+    assert fuzzy_results.include? "/rails/:test/named_properties(.:format(+:variant))"
 
     get :routes, params: { query: "rails/info#properties" }
     assert fuzzy_results.size == 3, "should match complete route Controller#Action(s)"
-    assert fuzzy_results.include? "/rails/info/properties(.:format)"
-    assert fuzzy_results.include? "/rails/:test/properties(.:format)"
-    assert fuzzy_results.include? "/rails/:test/named_properties(.:format)"
+    assert fuzzy_results.include? "/rails/info/properties(.:format(+:variant))"
+    assert fuzzy_results.include? "/rails/:test/properties(.:format(+:variant))"
+    assert fuzzy_results.include? "/rails/:test/named_properties(.:format(+:variant))"
   end
 
   test "internal routes do not have a default params[:internal] value" do

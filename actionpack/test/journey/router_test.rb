@@ -54,7 +54,7 @@ module ActionDispatch
 
         r = list.first
 
-        assert_equal "/whois/:domain(.:format)", r.path.spec.to_s
+        assert_equal "/whois/:domain(.:format(+:variant))", r.path.spec.to_s
       end
 
       def test_required_parts_verified_are_anchored
