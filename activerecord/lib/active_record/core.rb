@@ -344,6 +344,15 @@ module ActiveRecord
         end
       end
 
+      # Returns a string with the class name without the details about the specific attributes
+      def inspect_without_attributes
+        if self == Base || abstract_class || !connected? || !table_exists?
+          inspect
+        else
+          "#{self.name}"
+        end
+      end
+
       # Returns an instance of +Arel::Table+ loaded with the current table name.
       def arel_table # :nodoc:
         @arel_table ||= Arel::Table.new(table_name, klass: self)
@@ -696,6 +705,7 @@ module ActiveRecord
 
       "#<#{self.class} #{inspection}>"
     end
+
 
     # Takes a PP and prettily prints this record to it, allowing you to get a nice result from <tt>pp record</tt>
     # when pp is required.
