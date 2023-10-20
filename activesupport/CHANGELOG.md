@@ -1,3 +1,7 @@
+*   Fix issue where `bootstrap.rb` overwrites the `level` of a `BroadcastLogger`'s `broadcasts`.
+
+    *Andrew Novoselac*
+
 *   Fix compatibility with the `semantic_logger` gem.
 
     The `semantic_logger` gem doesn't behave exactly like stdlib logger in that
