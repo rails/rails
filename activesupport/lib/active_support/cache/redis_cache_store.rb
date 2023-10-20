@@ -332,7 +332,10 @@ module ActiveSupport
             if value
               entry = deserialize_entry(value, raw: raw)
               unless entry.nil? || entry.expired? || entry.mismatched?(normalize_version(name, options))
-                results[name] = entry.value
+                begin
+                  results[name] = entry.value
+                rescue DeserializationError
+                end
               end
             end
           end

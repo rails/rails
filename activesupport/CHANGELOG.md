@@ -1,3 +1,11 @@
+*   Fix `ActiveSupport::Cache` to handle outdated Marshal payload from Rails 6.1 format.
+
+    Active Support's Cache is supposed to treat a Marshal payload that can no longer be
+    deserialized as a cache miss. It fail to do so for compressed payload in the Rails 6.1
+    legacy format.
+
+    *Jean Boussier*
+
 *   Fix `delete_matched` for file cache store to work with keys longer than the
     max filename size.
 
