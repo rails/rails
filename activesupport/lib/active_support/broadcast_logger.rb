@@ -218,6 +218,14 @@ module ActiveSupport
       dispatch { |logger| logger.fatal! }
     end
 
+    def initialize_copy(other)
+      @broadcasts = []
+      @progname = other.progname.dup
+      @formatter = other.formatter.dup
+
+      broadcast_to(*other.broadcasts.map(&:dup))
+    end
+
     private
       def dispatch(&block)
         @broadcasts.each { |logger| block.call(logger) }
