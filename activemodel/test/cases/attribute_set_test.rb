@@ -279,6 +279,14 @@ module ActiveModel
       assert_not_equal attributes2, attributes3
     end
 
+    test "==(other) is safe to use with any instance" do
+      attribute_set = AttributeSet.new({})
+
+      assert_equal false, attribute_set == nil
+      assert_equal false, attribute_set == 1
+      assert_equal true, attribute_set == attribute_set
+    end
+
     private
       def attributes_with_uninitialized_key
         builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Float.new)
