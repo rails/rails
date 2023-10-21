@@ -563,6 +563,8 @@ module ActiveRecord
       #   # Delete multiple rows
       #   Todo.delete([2,3,4])
       def delete(id_or_array)
+        return 0 if id_or_array.nil? || (id_or_array.is_a?(Array) && id_or_array.empty?)
+
         delete_by(primary_key => id_or_array)
       end
 
