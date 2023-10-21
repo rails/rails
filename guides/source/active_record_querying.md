@@ -2164,7 +2164,7 @@ statement above).
 
 ### Using Common Table Expression (CTE)
 
-The [`with`][] method is a convenient way to access [Common Table Expressions (CTE)](https://en.wikipedia.org/wiki/Hierarchical_and_recursive_queries_in_SQL#Common_table_expression)'s WITH syntax, which can define named temporal query results that are durable and referable within a single SQL query.
+The [`with`][] method is a convenient way to access [Common Table Expressions (CTE)](https://en.wikipedia.org/wiki/Hierarchical_and_recursive_queries_in_SQL#Common_table_expression) `WITH` syntax, which can define named temporal query results that are referable within a single SQL query.
 
 NOTE: When using CTE with MySQL, the version of MySQL should be 8.0+.
 
