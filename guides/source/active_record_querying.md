@@ -2190,10 +2190,9 @@ LEFT OUTER JOIN "commented_posts"
   ON "commented_posts"."post_id" = "posts"."id"
 ```
 
-You can also add multiple CTEs like the following:
+You can also define multiple CTEs by passing multiple key-value pairs:
 
 ```ruby
-# Passing multiple key-value pairs:
 Post.with(
   posts_with_comments: Post.where("comments_count > ?", 0),
   posts_with_tags: Post.where("tags_count > ?", 0)
