@@ -2168,7 +2168,7 @@ The [`with`][] method is a convenient way to access [Common Table Expressions (C
 
 NOTE: MySQL version 8.0+ is required to use CTEs
 
-The `with` method returns the instance of its `ActiveRecord::Relation`, so you can chain other query methods or refer to the defined query results from the chained methods including `from`, `select`, `joins` or `left_outer_joins`:
+The `with` method returns an instance of `ActiveRecord::Relation`, so you can chain other query methods and even refer to the CTE from them (e.g. `from`, `select`, `joins` or `left_outer_joins`):
 
 ```ruby
 relation = Post
