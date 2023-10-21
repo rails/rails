@@ -2166,7 +2166,7 @@ statement above).
 
 The [`with`][] method is a convenient way to access [Common Table Expressions (CTE)](https://en.wikipedia.org/wiki/Hierarchical_and_recursive_queries_in_SQL#Common_table_expression) `WITH` syntax, which can define named temporal query results that are referable within a single SQL query.
 
-NOTE: When using CTE with MySQL, the version of MySQL should be 8.0+.
+NOTE: MySQL version 8.0+ is required to use CTEs
 
 The `with` method returns the instance of its `ActiveRecord::Relation`, so you can chain other query methods or refer to the defined query results from the chained methods including `from`, `select`, `joins` or `left_outer_joins`:
 
