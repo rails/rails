@@ -782,8 +782,9 @@ a pull request. Don't despair! Sometimes it's quick; sometimes it's slow. Such
 is the open source life.
 
 If it's been over a week, and you haven't heard anything, you might want to try
-and nudge things along. You can use the [rubyonrails-core discussion board](https://discuss.rubyonrails.org/c/rubyonrails-core) for this. You can also
-leave another comment on the pull request.
+and nudge things along. You can use the *contributions* channel in the [Ruby on Rails Discord server](https://discord.gg/d8N68BCw49),
+or the [rubyonrails-core discussion board](https://discuss.rubyonrails.org/c/rubyonrails-core) for this.
+You can also leave another comment on the pull request.
 
 While you're waiting for feedback on your pull request, open up a few other
 pull requests and give someone else some! They'll appreciate it in
