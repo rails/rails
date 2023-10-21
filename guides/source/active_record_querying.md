@@ -2199,8 +2199,9 @@ Post.with(
 )
 ```
 
+Or chaining multiple `with` calls:
+
 ```ruby
-# Or chaining multiple `with` calls
 Post
   .with(posts_with_comments: Post.where("comments_count > ?", 0))
   .with(posts_with_tags: Post.where("tags_count > ?", 0))
