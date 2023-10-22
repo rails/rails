@@ -52,7 +52,7 @@ class Date
         strftime(formatter)
       end
     else
-      to_default_s
+      to_s
     end
   end
   alias_method :to_formatted_s, :to_fs
