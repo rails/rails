@@ -66,6 +66,10 @@ class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
     assert_equal({ "Content-Type" => "application/json" }, @service.headers_for_direct_upload(@key, content_type: "application/json"))
   end
 
+  test "method_for_direct_upload generation default" do
+    assert_equal("PUT", @service.method_for_direct_upload)
+  end
+
   test "root" do
     assert_equal tmp_config.dig(:tmp, :root), @service.root
   end

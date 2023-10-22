@@ -226,6 +226,11 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.headers_for_direct_upload key, filename: filename, content_type: content_type, content_length: byte_size, checksum: checksum, custom_metadata: custom_metadata
   end
 
+  # Returns the HTTP method for +service_url_for_direct_upload+ requests.
+  def service_method_for_direct_upload
+    service.method_for_direct_upload
+  end
+
   def content_type_for_serving # :nodoc:
     forcibly_serve_as_binary? ? ActiveStorage.binary_content_type : content_type
   end

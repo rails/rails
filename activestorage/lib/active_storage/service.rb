@@ -144,6 +144,10 @@ module ActiveStorage
       {}
     end
 
+    def method_for_direct_upload
+      "PUT"
+    end
+
     def public?
       @public
     end

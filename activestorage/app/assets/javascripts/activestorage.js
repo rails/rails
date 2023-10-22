@@ -571,9 +571,9 @@
     constructor(blob) {
       this.blob = blob;
       this.file = blob.file;
-      const {url: url, headers: headers} = blob.directUploadData;
+      const {url: url, headers: headers, method: method} = blob.directUploadData;
       this.xhr = new XMLHttpRequest;
-      this.xhr.open("PUT", url, true);
+      this.xhr.open(method, url, true);
       this.xhr.responseType = "text";
       for (const key in headers) {
         this.xhr.setRequestHeader(key, headers[key]);
