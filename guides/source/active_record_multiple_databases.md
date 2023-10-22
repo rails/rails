@@ -407,30 +407,52 @@ production:
   primary_shard_one:
     database: my_primary_shard_one
     adapter: mysql2
+    migrations_paths: db/migrate_shards
   primary_shard_one_replica:
     database: my_primary_shard_one
     adapter: mysql2
     replica: true
+    migrations_paths: db/migrate_shards
+  primary_shard_two:
+    database: my_primary_shard_two
+    adapter: mysql2
+    migrations_paths: db/migrate_shards
+  primary_shard_two_replica:
+    database: my_primary_shard_two
+    adapter: mysql2
+    replica: true
+    migrations_paths: db/migrate_shards
 ```
 
 Models are then connected with the `connects_to` API via the `shards` key:
 
 ```ruby
 class ApplicationRecord < ActiveRecord::Base
+  primary_abstract_class
+
+  connects_to database: { writing: :primary, reading: :primary_replica }
+end
+
+class ShardRecord < ApplicationRecord
   self.abstract_class = true
 
   connects_to shards: {
-    default: { writing: :primary, reading: :primary_replica },
-    shard_one: { writing: :primary_shard_one, reading: :primary_shard_one_replica }
+    shard_one: { writing: :primary_shard_one, reading: :primary_shard_one_replica },
+    shard_two: { writing: :primary_shard_two, reading: :primary_shard_two_replica }
   }
 end
 ```
 
-You are not required to use `default` as the first shard name. Rails will assume the first
-shard name in the `connects_to` hash is the "default" connection. This connection is used
-internally to load type data and other information where the schema is the same across shards.
+If you're using shards, make sure to set the `migrations_paths` to the same path for
+all the shards. When generating a migration you can pass the `--database` option and
+use one of the shard names. Since they all set the same path, it doesn't matter which
+one you choose.
 
-Then models can swap connections manually via the `connected_to` API. If
+```
+$ bin/rails g scaffold Dog name:string --database primary_shard_one
+```
+
+Then models can swap shards manually via the `connected_to` API. If
 using sharding, both a `role` and a `shard` must be passed:
 
 ```ruby

@@ -1,3 +1,7 @@
+*   Include `ActiveModel::API` in `ActiveRecord::Base`
+
+    *Sean Doyle*
+
 *   Ensure `#signed_id` outputs `url_safe` strings.
 
     *Jason Meller*

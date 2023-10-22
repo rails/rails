@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "mutex_m"
 require "concurrent/map"
 require "set"
 require "active_support/core_ext/object/try"
@@ -45,15 +44,13 @@ module ActiveSupport
     #
     # This class is thread safe. All methods are reentrant.
     class Fanout
-      include Mutex_m
-
       def initialize
+        @mutex = Mutex.new
         @string_subscribers = Concurrent::Map.new { |h, k| h.compute_if_absent(k) { [] } }
         @other_subscribers = []
         @all_listeners_for = Concurrent::Map.new
         @groups_for = Concurrent::Map.new
         @silenceable_groups_for = Concurrent::Map.new
-        super
       end
 
       def inspect # :nodoc:
@@ -63,7 +60,7 @@ module ActiveSupport
 
       def subscribe(pattern = nil, callable = nil, monotonic: false, &block)
         subscriber = Subscribers.new(pattern, callable || block, monotonic)
-        synchronize do
+        @mutex.synchronize do
           case pattern
           when String
             @string_subscribers[pattern] << subscriber
@@ -79,7 +76,7 @@ module ActiveSupport
       end
 
       def unsubscribe(subscriber_or_name)
-        synchronize do
+        @mutex.synchronize do
           case subscriber_or_name
           when String
             @string_subscribers[subscriber_or_name].clear
@@ -294,7 +291,7 @@ module ActiveSupport
 
       def all_listeners_for(name)
         # this is correctly done double-checked locking (Concurrent::Map's lookups have volatile semantics)
-        @all_listeners_for[name] || synchronize do
+        @all_listeners_for[name] || @mutex.synchronize do
           # use synchronisation when accessing @subscribers
           @all_listeners_for[name] ||=
             @string_subscribers[name] + @other_subscribers.select { |s| s.subscribed_to?(name) }

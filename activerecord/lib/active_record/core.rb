@@ -428,7 +428,7 @@ module ActiveRecord
       init_internals
       initialize_internals_callback
 
-      assign_attributes(attributes) if attributes
+      super
 
       yield self if block_given?
       _run_initialize_callbacks

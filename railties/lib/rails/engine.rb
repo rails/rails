@@ -578,7 +578,7 @@ module Rails
     end
 
     initializer :set_eager_load_paths, before: :bootstrap_hook do
-      ActiveSupport::Dependencies._eager_load_paths.merge(config.eager_load_paths)
+      ActiveSupport::Dependencies._eager_load_paths.merge(config.all_eager_load_paths)
       config.eager_load_paths.freeze
     end
 
@@ -705,14 +705,14 @@ module Rails
       end
 
       def _all_autoload_once_paths
-        config.autoload_once_paths.uniq
+        config.all_autoload_once_paths.uniq
       end
 
       def _all_autoload_paths
         @_all_autoload_paths ||= begin
-          autoload_paths  = config.autoload_paths
-          autoload_paths += config.eager_load_paths
-          autoload_paths -= config.autoload_once_paths
+          autoload_paths  = config.all_autoload_paths
+          autoload_paths += config.all_eager_load_paths
+          autoload_paths -= config.all_autoload_once_paths
           autoload_paths.uniq
         end
       end

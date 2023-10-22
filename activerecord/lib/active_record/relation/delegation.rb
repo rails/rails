@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "mutex_m"
 require "active_support/core_ext/module/delegation"
 
 module ActiveRecord
@@ -67,10 +66,10 @@ module ActiveRecord
     end
 
     class GeneratedRelationMethods < Module # :nodoc:
-      include Mutex_m
+      MUTEX = Mutex.new
 
       def generate_method(method)
-        synchronize do
+        MUTEX.synchronize do
           return if method_defined?(method)
 
           if /\A[a-zA-Z_]\w*[!?]?\z/.match?(method) && !DELEGATION_RESERVED_METHOD_NAMES.include?(method.to_s)

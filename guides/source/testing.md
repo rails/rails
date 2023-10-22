@@ -1362,9 +1362,9 @@ end
 
 ### Setting Headers and CGI Variables
 
-[HTTP headers](https://tools.ietf.org/search/rfc2616#section-5.3)
+[HTTP headers](https://datatracker.ietf.org/doc/html/rfc2616#section-5.3)
 and
-[CGI variables](https://tools.ietf.org/search/rfc3875#section-4.1)
+[CGI variables](https://datatracker.ietf.org/doc/html/rfc3875#section-4.1)
 can be passed as headers:
 
 ```ruby

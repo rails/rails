@@ -1640,7 +1640,7 @@ The above code will execute just **2** queries, as opposed to the **11** queries
 ```sql
 SELECT books.* FROM books LIMIT 10
 SELECT authors.* FROM authors
-  WHERE authors.book_id IN (1,2,3,4,5,6,7,8,9,10)
+  WHERE authors.id IN (1,2,3,4,5,6,7,8,9,10)
 ```
 
 #### Eager Loading Multiple Associations
@@ -1717,7 +1717,7 @@ The above code will execute just **2** queries, as opposed to the **11** queries
 ```sql
 SELECT books.* FROM books LIMIT 10
 SELECT authors.* FROM authors
-  WHERE authors.book_id IN (1,2,3,4,5,6,7,8,9,10)
+  WHERE authors.id IN (1,2,3,4,5,6,7,8,9,10)
 ```
 
 NOTE: The `preload` method uses an array, hash, or a nested hash of array/hash in the same way as the `includes` method to load any number of associations with a single `Model.find` call. However, unlike the `includes` method, it is not possible to specify conditions for preloaded associations.
@@ -1739,9 +1739,9 @@ end
 The above code will execute just **2** queries, as opposed to the **11** queries from the original case:
 
 ```sql
-SELECT DISTINCT books.id FROM books LEFT OUTER JOIN authors ON authors.book_id = books.id LIMIT 10
+SELECT DISTINCT books.id FROM books LEFT OUTER JOIN authors ON authors.id = books.author_id LIMIT 10
 SELECT books.id AS t0_r0, books.last_name AS t0_r1, ...
-  FROM books LEFT OUTER JOIN authors ON authors.book_id = books.id
+  FROM books LEFT OUTER JOIN authors ON authors.id = books.author_id
   WHERE books.id IN (1,2,3,4,5,6,7,8,9,10)
 ```
 

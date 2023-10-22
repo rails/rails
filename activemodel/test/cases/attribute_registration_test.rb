@@ -6,8 +6,19 @@ module ActiveModel
   class AttributeRegistrationTest < ActiveModel::TestCase
     MyType = Class.new(Type::Value)
     Type.register(MyType.name.to_sym, MyType)
+
     TYPE_1 = MyType.new(precision: 1)
     TYPE_2 = MyType.new(precision: 2)
+
+    MyDecorator = DelegateClass(Type::Value) do
+      attr_reader :name
+      alias :cast_type :__getobj__
+
+      def initialize(name, cast_type)
+        super(cast_type)
+        @name = name
+      end
+    end
 
     test "attributes can be registered" do
       attributes = default_attributes_for { attribute :foo, TYPE_1 }
@@ -52,12 +63,12 @@ module ActiveModel
       assert_not_predicate attributes["bar"], :came_from_user?
     end
 
-    test "attribute_types reflects registered attribute types" do
+    test ".attribute_types reflects registered attribute types" do
       klass = class_with { attribute :foo, TYPE_1 }
       assert_same TYPE_1, klass.attribute_types["foo"]
     end
 
-    test "attribute_types returns the default type when key is missing" do
+    test ".attribute_types returns the default type when key is missing" do
       klass = class_with { attribute :foo, TYPE_1 }
       assert_equal Type::Value.new, klass.attribute_types["bar"]
     end
@@ -135,6 +146,90 @@ module ActiveModel
       assert_equal 789, child._default_attributes["bar"].value
       assert_equal 123, parent._default_attributes["foo"].value
       assert_nil parent._default_attributes["bar"].value
+    end
+
+    test ".decorate_attributes decorates specified attributes" do
+      attributes = default_attributes_for do
+        attribute :foo, TYPE_1
+        attribute :bar, TYPE_2
+        attribute :qux, TYPE_2
+        decorate_attributes([:foo, :bar]) { |name, type| MyDecorator.new(name, type) }
+      end
+
+      assert_instance_of MyDecorator, attributes["foo"].type
+      assert_equal "foo", attributes["foo"].type.name
+      assert_same TYPE_1, attributes["foo"].type.cast_type
+
+      assert_instance_of MyDecorator, attributes["bar"].type
+      assert_equal "bar", attributes["bar"].type.name
+      assert_same TYPE_2, attributes["bar"].type.cast_type
+
+      assert_same TYPE_2, attributes["qux"].type
+    end
+
+    test ".decorate_attributes decorates all attributes when none are specified" do
+      attributes = default_attributes_for do
+        attribute :foo, TYPE_1
+        attribute :bar, TYPE_2
+        decorate_attributes { |name, type| MyDecorator.new(name, type) }
+      end
+
+      assert_same TYPE_1, attributes["foo"].type.cast_type
+      assert_same TYPE_2, attributes["bar"].type.cast_type
+    end
+
+    test ".decorate_attributes supports conditional decoration" do
+      attributes = default_attributes_for do
+        attribute :foo, TYPE_1
+        attribute :bar, TYPE_2
+        decorate_attributes { |name, type| MyDecorator.new(name, type) if name.match?(/oo/) }
+      end
+
+      assert_same TYPE_1, attributes["foo"].type.cast_type
+      assert_same TYPE_2, attributes["bar"].type
+    end
+
+    test ".decorate_attributes stacks decorators" do
+      attributes = default_attributes_for do
+        attribute :foo, TYPE_1
+        decorate_attributes { |name, type| MyDecorator.new("#{name}1", type) }
+        decorate_attributes { |name, type| MyDecorator.new("#{name}2", type) }
+      end
+
+      assert_instance_of MyDecorator, attributes["foo"].type
+      assert_equal "foo2", attributes["foo"].type.name
+
+      assert_instance_of MyDecorator, attributes["foo"].type.cast_type
+      assert_equal "foo1", attributes["foo"].type.cast_type.name
+
+      assert_same TYPE_1, attributes["foo"].type.cast_type.cast_type
+    end
+
+    test "superclass attribute types can be decorated" do
+      parent = class_with do
+        attribute :foo, TYPE_1
+      end
+
+      child = class_with(parent) do
+        decorate_attributes { |name, type| MyDecorator.new(name, type) }
+      end
+
+      assert_instance_of MyDecorator, child._default_attributes["foo"].type
+      assert_same TYPE_1, child._default_attributes["foo"].type.cast_type
+      assert_same TYPE_1, parent._default_attributes["foo"].type
+    end
+
+    test "re-registering an attribute overrides previous decorators" do
+      parent = class_with do
+        attribute :foo, TYPE_1
+        decorate_attributes { |name, type| MyDecorator.new(name, type) }
+      end
+
+      child = class_with(parent) do
+        attribute :foo, TYPE_1
+      end
+
+      assert_same TYPE_1, child._default_attributes["foo"].type
     end
 
     private

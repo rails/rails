@@ -9,7 +9,7 @@ GIT
 
 GIT
   remote: https://github.com/rails/sdoc.git
-  revision: d360d68f62b8e080c20f231a9c4bec0939c73722
+  revision: 5546703dec4d429b9821260bcfa57230bdc5add4
   branch: main
   specs:
     sdoc (3.0.0.alpha)
@@ -50,6 +50,7 @@ PATH
       actionview (= 7.2.0.alpha)
       activesupport (= 7.2.0.alpha)
       nokogiri (>= 1.8.5)
+      racc
       rack (>= 2.2.4)
       rack-session (>= 1.0.1)
       rack-test (>= 0.6.3)
@@ -91,7 +92,6 @@ PATH
       drb
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
-      mutex_m
       tzinfo (~> 2.0)
     rails (7.2.0.alpha)
       actioncable (= 7.2.0.alpha)
@@ -342,7 +342,6 @@ GEM
     msgpack (1.7.0)
     multi_json (1.15.0)
     multipart-post (2.2.3)
-    mutex_m (0.1.2)
     mysql2 (0.5.5)
     net-http-persistent (4.0.1)
       connection_pool (~> 2.2)
@@ -376,7 +375,7 @@ GEM
       activesupport (>= 7.0.0)
       rack
       railties (>= 7.0.0)
-    psych (5.1.0)
+    psych (5.1.1.1)
       stringio
     public_suffix (5.0.1)
     puma (6.3.0)
