@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveRecord::LogSubscriber` methods `.runtime`, `.runtime=`, and `.reset_runtime`.
+
+    *Mike Dalessio*
+
 *   Include `ActiveModel::API` in `ActiveRecord::Base`
 
     *Sean Doyle*
