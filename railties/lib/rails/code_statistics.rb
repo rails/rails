@@ -4,6 +4,31 @@ require "rails/code_statistics_calculator"
 require "active_support/core_ext/enumerable"
 
 class CodeStatistics # :nodoc:
+  DIRECTORIES = [
+    %w(Controllers        app/controllers),
+    %w(Helpers            app/helpers),
+    %w(Jobs               app/jobs),
+    %w(Models             app/models),
+    %w(Mailers            app/mailers),
+    %w(Mailboxes          app/mailboxes),
+    %w(Channels           app/channels),
+    %w(Views              app/views),
+    %w(JavaScripts        app/assets/javascripts),
+    %w(Stylesheets        app/assets/stylesheets),
+    %w(JavaScript         app/javascript),
+    %w(Libraries          lib/),
+    %w(APIs               app/apis),
+    %w(Controller\ tests  test/controllers),
+    %w(Helper\ tests      test/helpers),
+    %w(Job\ tests         test/jobs),
+    %w(Model\ tests       test/models),
+    %w(Mailer\ tests      test/mailers),
+    %w(Mailbox\ tests     test/mailboxes),
+    %w(Channel\ tests     test/channels),
+    %w(Integration\ tests test/integration),
+    %w(System\ tests      test/system),
+  ]
+
   TEST_TYPES = ["Controller tests",
                 "Helper tests",
                 "Model tests",

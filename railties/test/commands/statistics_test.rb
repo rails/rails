@@ -22,4 +22,26 @@ class Rails::Command::DevTest < ActiveSupport::TestCase
       assert rails "stats"
     end
   end
+
+  test "`bin/rails stats` shows a deprecation warning for STATS_DIRECTORIES" do
+    Dir.chdir(app_path) do
+      app_file "app/custom/some_class.rb", <<-CODE
+        class SomeClass; end
+      CODE
+
+      app_file("lib/tasks/custom.rake", <<~CODE
+        task stats: "custom:statsetup"
+        namespace :custom do
+          task statsetup: :environment do
+            Rails.deprecator.behavior = :stderr
+            ::STATS_DIRECTORIES << %w(Custom app/custom)
+          end
+        end
+      CODE
+      )
+      output = rails "stats"
+      assert_match("DEPRECATION WARNING: `STATS_DIRECTORIES` is deprecated!", output)
+      assert_match(/\| Custom(\||\s|\d)+/, output)
+    end
+  end
 end

@@ -1,3 +1,10 @@
+*   Deprecate `::STATS_DIRECTORIES`.
+
+    Global constant `STATS_DIRECTORIES` has been deprecated in favor of
+    `Rails.application.config.code_statistics.directories`.
+
+    *Petrik de Heus*
+
 *   Disallow invalid values for rails new options.
 
     The `--database`, `--asset-pipeline`, `--css`, and `--javascript` flags for

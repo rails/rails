@@ -7,6 +7,7 @@ require "active_support/file_update_checker"
 require "active_support/configuration_file"
 require "rails/engine/configuration"
 require "rails/source_annotation_extractor"
+require "rails/code_statistics"
 
 module Rails
   class Application
@@ -23,7 +24,7 @@ module Rails
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
                     :require_master_key, :credentials, :disable_sandbox, :sandbox_by_default,
                     :add_autoload_paths_to_load_path, :rake_eager_load, :server_timing, :log_file_size,
-                    :dom_testing_default_html_version
+                    :dom_testing_default_html_version, :code_statistics
 
       attr_reader :encoding, :api_only, :loaded_config_version
 
@@ -83,6 +84,7 @@ module Rails
         @rake_eager_load                         = false
         @server_timing                           = false
         @dom_testing_default_html_version        = :html4
+        @code_statistics                         = ActiveSupport::InheritableOptions.new(code_statistics_defaults)
       end
 
       # Loads default configuration values for a target version. This includes
@@ -590,6 +592,12 @@ module Rails
       end
 
       private
+        def code_statistics_defaults
+          {
+            directories: CodeStatistics::DIRECTORIES
+          }
+        end
+
         def credentials_defaults
           content_path = root.join("config/credentials/#{Rails.env}.yml.enc")
           content_path = root.join("config/credentials.yml.enc") if !content_path.exist?
