@@ -290,6 +290,18 @@ module ActiveSupport
       assert(logger.qux(param: "foo"))
     end
 
+    test "#dup duplicates the broadcasts" do
+      logger = CustomLogger.new
+      logger.level = ::Logger::WARN
+      broadcast_logger = BroadcastLogger.new(logger)
+
+      duplicate = broadcast_logger.dup
+
+      assert_equal ::Logger::WARN, duplicate.broadcasts.sole.level
+      assert_not_same logger, duplicate.broadcasts.sole
+      assert_same logger, broadcast_logger.broadcasts.sole
+    end
+
     class CustomLogger
       attr_reader :adds, :closed, :chevrons
       attr_accessor :level, :progname, :formatter, :local_level
