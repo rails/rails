@@ -1,3 +1,7 @@
+*   Remove deprecated method `Rails::DBConsole#find_cmd_and_exec`.
+
+    *Mike Dalessio*
+
 *   Remove deprecated tasks `secrets:{edit,show}`.
 
     Run `bin/rails credentials:help` for more information.
