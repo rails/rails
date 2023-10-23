@@ -1,3 +1,10 @@
+*   Fix `StrongParameters#extract_value` to include blank values
+
+    Otherwise composite paramters may not be parsed correctly when one of the
+    component is blank.
+
+    *fatkodima*, *Yasha Krasnou*, *Matthias Eiglsperger*
+
 *   Add `racc` as a dependency since it will become a bundled gem in Ruby 3.4.0
 
     *Hartley McGuire*
