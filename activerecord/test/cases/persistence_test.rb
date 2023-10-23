@@ -1357,6 +1357,17 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_nothing_raised { Reply.find(should_not_be_destroyed_reply.id) }
   end
 
+  def test_class_level_delete_with_invalid_ids
+    assert_no_queries do
+      assert_equal 0, Topic.delete(nil)
+      assert_equal 0, Topic.delete([])
+    end
+
+    assert_difference -> { Topic.count }, -1 do
+      assert_equal 1, Topic.delete(topics(:first).id)
+    end
+  end
+
   def test_class_level_delete_is_affected_by_scoping
     should_not_be_destroyed_reply = Reply.create("title" => "hello", "content" => "world")
     Topic.find(1).replies << should_not_be_destroyed_reply
