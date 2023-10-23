@@ -1,3 +1,7 @@
+*   Remove deprecated method `#quote_bound_value` from Active Record connection adapters.
+
+    *Mike Dalessio*
+
 *   Remove deprecated `ActiveRecord::LogSubscriber` methods `.runtime`, `.runtime=`, and `.reset_runtime`.
 
     *Mike Dalessio*
