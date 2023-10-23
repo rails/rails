@@ -1,3 +1,9 @@
+*   Remove deprecated tasks `secrets:{edit,show}`.
+
+    Run `bin/rails credentials:help` for more information.
+
+    *Mike Dalessio*
+
 *   Disallow invalid values for rails new options.
 
     The `--database`, `--asset-pipeline`, `--css`, and `--javascript` flags for
