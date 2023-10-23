@@ -1,3 +1,7 @@
+*   Fix `BroadcastLogger#dup` so that it duplicates the logger's `broadcasts`.
+
+    *Andrew Novoselac*
+
 *   Fix issue where `bootstrap.rb` overwrites the `level` of a `BroadcastLogger`'s `broadcasts`.
 
     *Andrew Novoselac*
