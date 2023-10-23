@@ -150,7 +150,7 @@ module ActiveSupport
       def halted_callback_hook(filter, name)
       end
 
-      module Conditionals # :nodoc:
+      module Conditionals # :nodoc: all
         class Value
           def initialize(&block)
             @block = block
@@ -159,128 +159,76 @@ module ActiveSupport
         end
       end
 
-      module Filters
+      module Filters # :nodoc: all
         Environment = Struct.new(:target, :halted, :value)
 
         class Before
-          def self.build(callback_sequence, user_callback, user_conditions, chain_config, filter, name)
+          def initialize(user_callback, user_conditions, chain_config, filter, name)
             halted_lambda = chain_config[:terminator]
-
-            if user_conditions.any?
-              halting_and_conditional(callback_sequence, user_callback, user_conditions, halted_lambda, filter, name)
-            else
-              halting(callback_sequence, user_callback, halted_lambda, filter, name)
-            end
+            @user_callback, @user_conditions, @halted_lambda, @filter, @name = user_callback, user_conditions, halted_lambda, filter, name
+            freeze
           end
+          attr_reader :user_callback, :user_conditions, :halted_lambda, :filter, :name
 
-          def self.halting_and_conditional(callback_sequence, user_callback, user_conditions, halted_lambda, filter, name)
-            callback_sequence.before do |env|
-              target = env.target
-              value  = env.value
-              halted = env.halted
+          def call(env)
+            target = env.target
+            value  = env.value
+            halted = env.halted
 
-              if !halted && user_conditions.all? { |c| c.call(target, value) }
-                result_lambda = -> { user_callback.call target, value }
-                env.halted = halted_lambda.call(target, result_lambda)
-                if env.halted
-                  target.send :halted_callback_hook, filter, name
-                end
+            if !halted && user_conditions.all? { |c| c.call(target, value) }
+              result_lambda = -> { user_callback.call target, value }
+              env.halted = halted_lambda.call(target, result_lambda)
+              if env.halted
+                target.send :halted_callback_hook, filter, name
               end
-
-              env
             end
+
+            env
           end
-          private_class_method :halting_and_conditional
 
-          def self.halting(callback_sequence, user_callback, halted_lambda, filter, name)
-            callback_sequence.before do |env|
-              target = env.target
-              value  = env.value
-              halted = env.halted
-
-              unless halted
-                result_lambda = -> { user_callback.call target, value }
-                env.halted = halted_lambda.call(target, result_lambda)
-                if env.halted
-                  target.send :halted_callback_hook, filter, name
-                end
-              end
-
-              env
-            end
+          def apply(callback_sequence)
+            callback_sequence.before(self)
           end
-          private_class_method :halting
         end
 
         class After
-          def self.build(callback_sequence, user_callback, user_conditions, chain_config)
-            if chain_config[:skip_after_callbacks_if_terminated]
-              if user_conditions.any?
-                halting_and_conditional(callback_sequence, user_callback, user_conditions)
-              else
-                halting(callback_sequence, user_callback)
-              end
-            else
-              if user_conditions.any?
-                conditional callback_sequence, user_callback, user_conditions
-              else
-                simple callback_sequence, user_callback
-              end
-            end
+          attr_reader :user_callback, :user_conditions, :halting
+          def initialize(user_callback, user_conditions, chain_config)
+            halting = chain_config[:skip_after_callbacks_if_terminated]
+            @user_callback, @user_conditions, @halting = user_callback, user_conditions, halting
+            freeze
           end
 
-          def self.halting_and_conditional(callback_sequence, user_callback, user_conditions)
-            callback_sequence.after do |env|
-              target = env.target
-              value  = env.value
-              halted = env.halted
+          def call(env)
+            target = env.target
+            value  = env.value
+            halted = env.halted
 
-              if !halted && user_conditions.all? { |c| c.call(target, value) }
-                user_callback.call target, value
-              end
-
-              env
+            if (!halted || !@halting) && user_conditions.all? { |c| c.call(target, value) }
+              user_callback.call target, value
             end
+
+            env
           end
-          private_class_method :halting_and_conditional
 
-          def self.halting(callback_sequence, user_callback)
-            callback_sequence.after do |env|
-              unless env.halted
-                user_callback.call env.target, env.value
-              end
-
-              env
-            end
+          def apply(callback_sequence)
+            callback_sequence.after(self)
           end
-          private_class_method :halting
+        end
 
-          def self.conditional(callback_sequence, user_callback, user_conditions)
-            callback_sequence.after do |env|
-              target = env.target
-              value  = env.value
-
-              if user_conditions.all? { |c| c.call(target, value) }
-                user_callback.call target, value
-              end
-
-              env
-            end
+        class Around
+          def initialize(user_callback, user_conditions)
+            @user_callback, @user_conditions = user_callback, user_conditions
+            freeze
           end
-          private_class_method :conditional
 
-          def self.simple(callback_sequence, user_callback)
-            callback_sequence.after do |env|
-              user_callback.call env.target, env.value
-
-              env
-            end
+          def apply(callback_sequence)
+            callback_sequence.around(@user_callback, @user_conditions)
           end
-          private_class_method :simple
         end
       end
 
-      class Callback # :nodoc:#
+      class Callback # :nodoc:
         def self.build(chain, filter, kind, options)
           if filter.is_a?(String)
             raise ArgumentError, <<-MSG.squish
@@ -329,19 +277,26 @@ module ActiveSupport
           end
         end
 
+        def compiled
+          @compiled ||=
+            begin
+              user_conditions = conditions_lambdas
+              user_callback = CallTemplate.build(@filter, self)
+
+              case kind
+              when :before
+                Filters::Before.new(user_callback.make_lambda, user_conditions, chain_config, @filter, name)
+              when :after
+                Filters::After.new(user_callback.make_lambda, user_conditions, chain_config)
+              when :around
+                Filters::Around.new(user_callback, user_conditions)
+              end
+            end
+        end
+
         # Wraps code with filter
         def apply(callback_sequence)
-          user_conditions = conditions_lambdas
-          user_callback = CallTemplate.build(@filter, self)
-
-          case kind
-          when :before
-            Filters::Before.build(callback_sequence, user_callback.make_lambda, user_conditions, chain_config, @filter, name)
-          when :after
-            Filters::After.build(callback_sequence, user_callback.make_lambda, user_conditions, chain_config)
-          when :around
-            callback_sequence.around(user_callback, user_conditions)
-          end
+          compiled.apply(callback_sequence)
         end
 
         def current_scopes
@@ -368,14 +323,16 @@ module ActiveSupport
           end
 
           def conditions_lambdas
-            @if.map { |c| CallTemplate.build(c, self).make_lambda } +
+            conditions =
+              @if.map { |c| CallTemplate.build(c, self).make_lambda } +
               @unless.map { |c| CallTemplate.build(c, self).inverted_lambda }
+            conditions.empty? ? EMPTY_ARRAY : conditions
           end
       end
 
       # A future invocation of user-supplied code (either as a callback,
       # or a condition filter).
-      module CallTemplate # :nodoc:
+      module CallTemplate # :nodoc: all
         class MethodCall
           def initialize(method)
             @method_name = method
@@ -562,16 +519,18 @@ module ActiveSupport
           @call_template = call_template
           @user_conditions = user_conditions
 
-          @before = []
-          @after = []
+          @before = nil
+          @after = nil
         end
 
-        def before(&before)
+        def before(before)
+          @before ||= []
           @before.unshift(before)
           self
         end
 
-        def after(&after)
+        def after(after)
+          @after ||= []
           @after.push(after)
           self
         end
@@ -595,11 +554,11 @@ module ActiveSupport
         end
 
         def invoke_before(arg)
-          @before.each { |b| b.call(arg) }
+          @before&.each { |b| b.call(arg) }
         end
 
         def invoke_after(arg)
-          @after.each { |a| a.call(arg) }
+          @after&.each { |a| a.call(arg) }
         end
       end
 
