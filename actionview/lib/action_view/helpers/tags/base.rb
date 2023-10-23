@@ -16,6 +16,7 @@ module ActionView
           @object = retrieve_object(options.delete(:object))
           @skip_default_ids = options.delete(:skip_default_ids)
           @allow_method_names_outside_object = options.delete(:allow_method_names_outside_object)
+          @generate_error_markup = options.delete(:generate_error_markup) { true }
           @options = options
 
           if Regexp.last_match
@@ -131,6 +132,10 @@ module ActionView
 
           def generate_ids?
             !@skip_default_ids
+          end
+
+          def tag_generate_errors?(*)
+            @generate_error_markup && super
           end
       end
     end

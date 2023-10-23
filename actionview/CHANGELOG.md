@@ -1,3 +1,18 @@
+*   Allow disabling error markup generation on a per-field basis. This augments the existing
+    global option, `ActionView::Base.field_error_proc`, that can be used to customize error
+    markup for the entire application. The `generate_error_markup:` option allows bypassing
+    error markup entirely for a single input.
+
+    Example:
+
+    ```erb
+    <%= form_with(model: user) do |f| %>
+      <%= f.text_field(:name, generate_error_markup: false) %>
+    <% end %>
+    ```
+
+    *Cameron Dutro*
+
 *   Fix the `capture` view helper compatibility with HAML and Slim
 
     When a blank string was captured in HAML or Slim (and possibly other template engines)
