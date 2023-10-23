@@ -1,3 +1,7 @@
+*   Remove deprecated method `SafeBuffer#clone_empty`.
+
+    *Mike Dalessio*
+
 *   Fix `BroadcastLogger#dup` so that it duplicates the logger's `broadcasts`.
 
     *Andrew Novoselac*
