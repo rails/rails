@@ -10,11 +10,11 @@ class Owner < ActiveRecord::Base
   scope :including_last_pet, -> {
     select('
       owners.*, (
-        select p.pet_id from pets p
-        where p.owner_id = owners.owner_id
-        order by p.name desc
-        limit 1
-      ) as last_pet_id
+        SELECT p.pet_id FROM pets p
+        WHERE p.owner_id = owners.owner_id
+        ORDER BY p.name DESC
+        LIMIT 1
+      ) AS last_pet_id
     ').includes(:last_pet)
   }
 

@@ -13,7 +13,7 @@ class PostgresqlDomainTest < ActiveRecord::PostgreSQLTestCase
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.transaction do
-      @connection.execute "CREATE DOMAIN custom_money as numeric(8,2)"
+      @connection.execute "CREATE DOMAIN custom_money AS numeric(8,2)"
       @connection.create_table("postgresql_domains") do |t|
         t.column :price, :custom_money
       end

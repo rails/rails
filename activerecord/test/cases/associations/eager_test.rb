@@ -1255,7 +1255,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_loading_with_select_on_joined_table_preloads
     posts = assert_queries(2) do
-      Post.all.merge!(select: "posts.*, authors.name as author_name", includes: :comments, joins: :author, order: "posts.id").to_a
+      Post.all.merge!(select: "posts.*, authors.name AS author_name", includes: :comments, joins: :author, order: "posts.id").to_a
     end
     assert_equal "David", posts[0].author_name
     assert_equal posts(:welcome).comments.sort_by(&:id), assert_no_queries { posts[0].comments.sort_by(&:id) }

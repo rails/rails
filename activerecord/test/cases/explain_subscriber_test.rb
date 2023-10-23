@@ -27,12 +27,12 @@ if ActiveRecord::Base.connection.supports_explain?
 
     def test_collects_nothing_if_collect_is_false
       ActiveRecord::ExplainRegistry.collect = false
-      SUBSCRIBER.finish(nil, nil, name: "SQL", sql: "select 1 from users", binds: [1, 2])
+      SUBSCRIBER.finish(nil, nil, name: "SQL", sql: "SELECT 1 FROM users", binds: [1, 2])
       assert_empty queries
     end
 
     def test_collects_pairs_of_queries_and_binds
-      sql   = "select 1 from users"
+      sql   = "SELECT 1 FROM users"
       binds = [1, 2]
       SUBSCRIBER.finish(nil, nil, name: "SQL", sql: sql, binds: binds)
       assert_equal 1, queries.size
@@ -51,12 +51,12 @@ if ActiveRecord::Base.connection.supports_explain?
     end
 
     def test_collects_cte_queries
-      SUBSCRIBER.finish(nil, nil, name: "SQL", sql: "with s as (values(3)) select 1 from s")
+      SUBSCRIBER.finish(nil, nil, name: "SQL", sql: "WITH s AS (VALUES(3)) SELECT 1 FROM s")
       assert_equal 1, queries.size
     end
 
     def test_collects_queries_starting_with_comment
-      SUBSCRIBER.finish(nil, nil, name: "SQL", sql: "/* comment */ select 1 from users")
+      SUBSCRIBER.finish(nil, nil, name: "SQL", sql: "/* comment */ SELECT 1 FROM users")
       assert_equal 1, queries.size
     end
 

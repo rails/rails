@@ -595,7 +595,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "custom field attribute predicate" do
     object = Company.find_by_sql(<<~SQL).first
-      SELECT c1.*, c2.type as string_value, c2.rating as int_value
+      SELECT c1.*, c2.type AS string_value, c2.rating AS int_value
         FROM companies c1, companies c2
        WHERE c1.firm_id = c2.id
          AND c1.id = 2
@@ -682,9 +682,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     Topic.create(title: "Budget")
     # Oracle does not support boolean expressions in SELECT.
     if current_adapter?(:OracleAdapter)
-      topic = Topic.all.merge!(select: "topics.*, 0 as is_test").first
+      topic = Topic.all.merge!(select: "topics.*, 0 AS is_test").first
     else
-      topic = Topic.all.merge!(select: "topics.*, 1=2 as is_test").first
+      topic = Topic.all.merge!(select: "topics.*, 1=2 AS is_test").first
     end
     assert_not_predicate topic, :is_test?
   end
@@ -693,9 +693,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     Topic.create(title: "Budget")
     # Oracle does not support boolean expressions in SELECT.
     if current_adapter?(:OracleAdapter)
-      topic = Topic.all.merge!(select: "topics.*, 1 as is_test").first
+      topic = Topic.all.merge!(select: "topics.*, 1 AS is_test").first
     else
-      topic = Topic.all.merge!(select: "topics.*, 2=2 as is_test").first
+      topic = Topic.all.merge!(select: "topics.*, 2=2 AS is_test").first
     end
     assert_predicate topic, :is_test?
   end

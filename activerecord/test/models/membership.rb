@@ -18,7 +18,7 @@ end
 
 class SelectedMembership < Membership
   def self.default_scope
-    select("'1' as foo")
+    select("'1' AS foo")
   end
 end
 

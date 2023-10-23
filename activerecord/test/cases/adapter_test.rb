@@ -706,7 +706,7 @@ module ActiveRecord
                   when "Mysql2"
                     @connection.execute("SELECT CONNECTION_ID()").to_a[0][0]
                   when "Trilogy"
-                    @connection.execute("SELECT CONNECTION_ID() as connection_id").to_a[0][0]
+                    @connection.execute("SELECT CONNECTION_ID() AS connection_id").to_a[0][0]
                   when "PostgreSQL"
                     @connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
                   else

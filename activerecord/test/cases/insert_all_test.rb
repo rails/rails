@@ -117,7 +117,7 @@ class InsertAllTest < ActiveRecord::TestCase
   def test_insert_all_returns_requested_sql_fields
     skip unless supports_insert_returning?
 
-    result = Book.insert_all! [{ name: "Rework", author_id: 1 }], returning: Arel.sql("UPPER(name) as name")
+    result = Book.insert_all! [{ name: "Rework", author_id: 1 }], returning: Arel.sql("UPPER(name) AS name")
     assert_equal %w[ REWORK ], result.pluck("name")
   end
 

@@ -481,8 +481,8 @@ class FinderTest < ActiveRecord::TestCase
     bob = authors(:bob)
     mary = authors(:mary)
 
-    assert_equal false, Author.select("COUNT(*) as total_posts", "authors.*").joins(:posts).group(:id).having("total_posts > 2").include?(bob)
-    assert_equal true, Author.select("COUNT(*) as total_posts", "authors.*").joins(:posts).group(:id).having("total_posts > 2").include?(mary)
+    assert_equal false, Author.select("COUNT(*) AS total_posts", "authors.*").joins(:posts).group(:id).having("total_posts > 2").include?(bob)
+    assert_equal true, Author.select("COUNT(*) AS total_posts", "authors.*").joins(:posts).group(:id).having("total_posts > 2").include?(mary)
   end
 
   def test_include_on_loaded_relation_with_match
@@ -1656,7 +1656,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_with_limiting_with_custom_select
     posts = Post.references(:authors).merge(
-      includes: :author, select: 'posts.*, authors.id as "author_id"',
+      includes: :author, select: 'posts.*, authors.id AS "author_id"',
       limit: 3, order: "posts.id"
     ).to_a
     assert_equal 3, posts.size

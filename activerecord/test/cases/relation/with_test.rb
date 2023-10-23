@@ -74,7 +74,7 @@ module ActiveRecord
         relation = Post
           .with(commented_posts: Comment.select(:post_id).distinct)
           .left_outer_joins(:commented_posts)
-          .select("posts.*, commented_posts.post_id as has_comments")
+          .select("posts.*, commented_posts.post_id AS has_comments")
 
         records = relation.order(:id).to_a
 

@@ -285,14 +285,14 @@ module ActiveRecord
       post = Post.select(:title).first
       assert_not_respond_to post, :body, "post should not respond_to?(:body) since invoking it raises exception"
 
-      silence_warnings { post = Post.select("'title' as post_title").first }
+      silence_warnings { post = Post.select("'title' AS post_title").first }
       assert_not_respond_to post, :title, "post should not respond_to?(:body) since invoking it raises exception"
     end
 
     def test_select_quotes_when_using_from_clause
       skip_if_sqlite3_version_includes_quoting_bug
       quoted_join = ActiveRecord::Base.connection.quote_table_name("join")
-      selected = Post.select(:join).from(Post.select("id as #{quoted_join}")).map(&:join)
+      selected = Post.select(:join).from(Post.select("id AS #{quoted_join}")).map(&:join)
       assert_equal Post.pluck(:id).sort, selected.sort
     end
 

@@ -716,7 +716,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_find_grouped
     all_posts_from_category1 = Post.all.merge!(where: "category_id = 1", joins: :categories).to_a
-    grouped_posts_of_category1 = Post.all.merge!(where: "category_id = 1", group: "author_id", select: "count(posts.id) as posts_count", joins: :categories).to_a
+    grouped_posts_of_category1 = Post.all.merge!(where: "category_id = 1", group: "author_id", select: "count(posts.id) AS posts_count", joins: :categories).to_a
     assert_equal 5, all_posts_from_category1.size
     assert_equal 2, grouped_posts_of_category1.size
   end

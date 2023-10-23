@@ -330,7 +330,7 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_id_allows_default_override_via_nil
-    col_desc = connection.execute("SELECT pg_get_expr(d.adbin, d.adrelid) as default
+    col_desc = connection.execute("SELECT pg_get_expr(d.adbin, d.adrelid) AS default
                                   FROM pg_attribute a
                                   LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
                                   WHERE a.attname='id' AND a.attrelid = 'pg_uuids'::regclass").first

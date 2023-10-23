@@ -856,8 +856,8 @@ module ActiveRecord
         def load_types_queries(initializer, oids)
           query = <<~SQL
             SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype
-            FROM pg_type as t
-            LEFT JOIN pg_range as r ON oid = rngtypid
+            FROM pg_type AS t
+            LEFT JOIN pg_range AS r ON oid = rngtypid
           SQL
           if oids
             yield query + "WHERE t.oid IN (%s)" % oids.join(", ")
@@ -1082,7 +1082,7 @@ module ActiveRecord
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
                      c.collname, col_description(a.attrelid, a.attnum) AS comment,
                      #{supports_identity_columns? ? 'attidentity' : quote('')} AS identity,
-                     #{supports_virtual_columns? ? 'attgenerated' : quote('')} as attgenerated
+                     #{supports_virtual_columns? ? 'attgenerated' : quote('')} AS attgenerated
                 FROM pg_attribute a
                 LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
                 LEFT JOIN pg_type t ON a.atttypid = t.oid
@@ -1175,7 +1175,7 @@ module ActiveRecord
           known_coder_types = coders_by_name.keys.map { |n| quote(n) }
           query = <<~SQL % known_coder_types.join(", ")
             SELECT t.oid, t.typname
-            FROM pg_type as t
+            FROM pg_type AS t
             WHERE t.typname IN (%s)
           SQL
           coders = execute_and_clear(query, "SCHEMA", [], allow_retry: true, materialize_transactions: false) do |result|

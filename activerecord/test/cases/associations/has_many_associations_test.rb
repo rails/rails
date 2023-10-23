@@ -979,7 +979,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_find_grouped
     all_clients_of_firm1 = Client.all.merge!(where: "firm_id = 1").to_a
-    grouped_clients_of_firm1 = Client.all.merge!(where: "firm_id = 1", group: "firm_id", select: "firm_id, count(id) as clients_count").to_a
+    grouped_clients_of_firm1 = Client.all.merge!(where: "firm_id = 1", group: "firm_id", select: "firm_id, COUNT(id) AS clients_count").to_a
     assert_equal 3, all_clients_of_firm1.size
     assert_equal 1, grouped_clients_of_firm1.size
   end

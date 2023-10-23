@@ -122,8 +122,8 @@ class Post < ActiveRecord::Base
   has_many :taggings, as: :taggable, counter_cache: :tags_count
   has_many :tags, through: :taggings do
     def add_joins_and_select
-      select("tags.*, authors.id as author_id")
-        .joins("left outer join posts on taggings.taggable_id = posts.id left outer join authors on posts.author_id = authors.id")
+      select("tags.*, authors.id AS author_id")
+        .joins("LEFT OUTER JOIN posts ON taggings.taggable_id = posts.id LEFT OUTER JOIN authors ON posts.author_id = authors.id")
         .to_a
     end
   end

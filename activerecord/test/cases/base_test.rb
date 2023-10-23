@@ -200,7 +200,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_limit_should_sanitize_sql_injection_for_limit_without_commas
     assert_raises(ArgumentError) do
-      Topic.limit("1 select * from schema").to_a
+      Topic.limit("1 * FROM schema").to_a
     end
   end
 
@@ -1447,7 +1447,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_assert_queries
-    query = lambda { ActiveRecord::Base.connection.execute "select count(*) from developers" }
+    query = lambda { ActiveRecord::Base.connection.execute "SELECT COUNT(*) FROM developers" }
     assert_queries(2) { 2.times { query.call } }
     assert_queries 1, &query
     assert_no_queries { assert true }
@@ -1663,7 +1663,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_typecasting_aliases
-    assert_equal 10, Topic.select("10 as tenderlove").first.tenderlove
+    assert_equal 10, Topic.select("10 AS tenderlove").first.tenderlove
   end
 
   def test_default_values_are_deeply_dupped

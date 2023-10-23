@@ -52,7 +52,7 @@ class CoreTest < ActiveRecord::TestCase
   end
 
   def test_inspect_relation_with_virtual_field
-    relation = Topic.limit(1).select("1 as virtual_field")
+    relation = Topic.limit(1).select("1 AS virtual_field")
     assert_match(/virtual_field: 1/, relation.inspect)
   end
 

@@ -247,7 +247,7 @@ class QueryLogsTest < ActiveRecord::TestCase
     def test_invalid_encoding_query
       ActiveRecord::QueryLogs.tags = [ :application ]
       assert_nothing_raised do
-        ActiveRecord::Base.connection.execute "select 1 as '\xFF'"
+        ActiveRecord::Base.connection.execute "SELECT 1 AS '\xFF'"
       end
     end
   end

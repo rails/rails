@@ -78,7 +78,7 @@ class YamlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_types_of_virtual_columns_are_not_changed_on_round_trip
-    author = Author.select("authors.*, count(posts.id) as posts_count")
+    author = Author.select("authors.*, count(posts.id) AS posts_count")
       .joins(:posts)
       .group("authors.id")
       .first

@@ -108,7 +108,7 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_does_not_override_select
-    authors = Author.select("authors.name, #{%{(authors.author_address_id || ' ' || authors.author_address_extra_id) as addr_id}}").left_outer_joins(:posts)
+    authors = Author.select("authors.name, #{%{(authors.author_address_id || ' ' || authors.author_address_extra_id) AS addr_id}}").left_outer_joins(:posts)
     assert_predicate authors, :any?
     assert_respond_to authors.first, :addr_id
   end

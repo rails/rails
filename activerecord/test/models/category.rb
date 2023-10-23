@@ -7,7 +7,7 @@ class Category < ActiveRecord::Base
   has_and_belongs_to_many :posts_with_authors_sorted_by_author_id, -> { includes(:authors).order("authors.id") }, class_name: "Post"
 
   has_and_belongs_to_many :select_testing_posts,
-                          -> { select "posts.*, 1 as correctness_marker" },
+                          -> { select "posts.*, 1 AS correctness_marker" },
                           class_name: "Post",
                           foreign_key: "category_id",
                           association_foreign_key: "post_id"
