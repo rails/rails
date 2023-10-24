@@ -54,6 +54,21 @@ class TestChangelog < Minitest::Test
     assert_equal 0, offenses.length
   end
 
+  def test_no_changes_not_treated_as_offense
+    @changelog = changelog_fixture("action_mailbox.md")
+
+    assert_equal 0, offenses.length
+  end
+
+  def test_invalid_header_does_not_cause_infinite_loop
+    Timeout.timeout(1) do
+      @changelog = changelog_fixture("action_mailbox_invalid.md")
+      assert_equal 2, offenses.length
+    end
+  rescue Timeout::Error
+    flunk "Parsing action_mailbox_invalid.md took too long"
+  end
+
   def test_validate_authors
     assert_offense(<<~CHANGELOG)
       *   Fix issue in CHANGELOG linting

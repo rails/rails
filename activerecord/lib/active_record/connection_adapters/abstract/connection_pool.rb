@@ -22,6 +22,16 @@ module ActiveRecord
       end
       NULL_CONFIG = NullConfig.new # :nodoc:
 
+      def initialize
+        super()
+        @mutex = Mutex.new
+        @server_version = nil
+      end
+
+      def server_version(connection) # :nodoc:
+        @server_version || @mutex.synchronize { @server_version ||= connection.get_database_version }
+      end
+
       def schema_reflection
         SchemaReflection.new(nil)
       end
@@ -111,7 +121,7 @@ module ActiveRecord
       attr_accessor :automatic_reconnect, :checkout_timeout
       attr_reader :db_config, :size, :reaper, :pool_config, :async_executor, :role, :shard
 
-      delegate :schema_reflection, :schema_reflection=, to: :pool_config
+      delegate :schema_reflection, :schema_reflection=, :server_version, to: :pool_config
 
       # Creates a new ConnectionPool object. +pool_config+ is a PoolConfig
       # object which describes database connection information (e.g. adapter,
@@ -233,7 +243,7 @@ module ActiveRecord
 
       # Returns true if a connection has already been opened.
       def connected?
-        synchronize { @connections.any? }
+        synchronize { @connections.any?(&:connected?) }
       end
 
       # Returns an array containing the connections currently in the pool.
@@ -672,7 +682,6 @@ module ActiveRecord
         def new_connection
           connection = Base.public_send(db_config.adapter_method, db_config.configuration_hash)
           connection.pool = self
-          connection.check_version
           connection
         rescue ConnectionNotEstablished => ex
           raise ex.set_pool(self)

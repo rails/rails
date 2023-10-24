@@ -55,7 +55,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "each carries permitted status" do
     @params.permit!
-    @params.each { |key, value| assert(value.permitted?) if key == "person" }
+    @params.each { |key, value| assert_predicate(value, :permitted?) if key == "person" }
   end
 
   test "each carries unpermitted status" do
@@ -77,7 +77,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "each_pair carries permitted status" do
     @params.permit!
-    @params.each_pair { |key, value| assert(value.permitted?) if key == "person" }
+    @params.each_pair { |key, value| assert_predicate(value, :permitted?) if key == "person" }
   end
 
   test "each_pair carries unpermitted status" do
@@ -425,11 +425,13 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   test "#extract_value splits param by delimiter" do
     params = ActionController::Parameters.new(
       id: "1_123",
-      tags: "ruby,rails,web"
+      tags: "ruby,rails,web",
+      blank_tags: ",ruby,,rails,"
     )
 
     assert_equal(["1", "123"], params.extract_value(:id))
     assert_equal(["ruby", "rails", "web"], params.extract_value(:tags, delimiter: ","))
+    assert_equal(["", "ruby", "", "rails", ""], params.extract_value(:blank_tags, delimiter: ","))
     assert_nil(params.extract_value(:non_existent_key))
   end
 end

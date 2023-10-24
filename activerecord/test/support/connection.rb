@@ -22,7 +22,7 @@ module ARTest
     ActiveRecord.async_query_executor = :global_thread_pool
     puts "Using #{connection_name}"
 
-    if ENV["CI"]
+    if ENV["BUILDKITE"]
       ActiveRecord::Base.logger = nil
     else
       ActiveRecord::Base.logger = ActiveSupport::Logger.new("debug.log", 1, 100.megabytes)

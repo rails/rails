@@ -3,10 +3,10 @@
 module ActiveRecord
   module ConnectionAdapters
     class PoolConfig # :nodoc:
-      include Mutex_m
+      include MonitorMixin
 
       attr_reader :db_config, :role, :shard
-      attr_writer :schema_reflection
+      attr_writer :schema_reflection, :server_version
       attr_accessor :connection_class
 
       def schema_reflection
@@ -28,12 +28,17 @@ module ActiveRecord
 
       def initialize(connection_class, db_config, role, shard)
         super()
+        @server_version = nil
         @connection_class = connection_class
         @db_config = db_config
         @role = role
         @shard = shard
         @pool = nil
         INSTANCES[self] = self
+      end
+
+      def server_version(connection)
+        @server_version || synchronize { @server_version ||= connection.get_database_version }
       end
 
       def connection_name

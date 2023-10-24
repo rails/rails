@@ -40,7 +40,7 @@ class CopyTableTest < ActiveRecord::SQLite3TestCase
         rename: { "name" => "person_name" }) do |from, to, options|
       expected = column_values(from, "name")
       assert_equal expected, column_values(to, "person_name")
-      assert expected.any?, "No values in table: #{expected.inspect}"
+      assert_predicate expected, :any?, "No values in table: #{expected.inspect}"
     end
   end
 

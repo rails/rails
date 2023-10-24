@@ -20,7 +20,7 @@ class ActiveModelHelperTest < ActionView::TestCase
     super
 
     @post = Post.new
-    @post.errors.add(:author_name, "can’t be empty")
+    @post.errors.add(:author_name, "can't be empty")
     @post.errors.add(:body, "foo")
     @post.errors.add(:category, "must exist")
     @post.errors.add(:published, "must be accepted")
@@ -163,7 +163,7 @@ class ActiveModelHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal(
-      %(<div class="field_with_errors"><input id="post_author_name" name="post[author_name]" type="text" value="" /> <span class="error">can’t be empty</span></div>),
+      %(<div class="field_with_errors"><input id="post_author_name" name="post[author_name]" type="text" value="" /> <span class="error">can't be empty</span></div>),
       text_field("post", "author_name")
     )
   ensure

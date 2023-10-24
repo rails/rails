@@ -46,6 +46,14 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     assert_equal 56, a.dig("test_key")
   end
 
+  def test_nested_dig
+    a = ActiveSupport::OrderedOptions.new
+
+    a[:test_key] = [{ a: 1 }]
+    assert_equal 1, a.dig(:test_key, 0, :a)
+    assert_nil a.dig(:test_key, 1, :a)
+  end
+
   def test_method_access
     a = ActiveSupport::OrderedOptions.new
 

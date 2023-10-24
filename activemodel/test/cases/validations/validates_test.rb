@@ -65,7 +65,7 @@ class ValidatesTest < ActiveModel::TestCase
     Person.validates :karma, presence: true, email: { if: :condition_is_false }
     person = Person.new
     person.valid?
-    assert_equal ["can’t be blank"], person.errors[:karma]
+    assert_equal ["can't be blank"], person.errors[:karma]
   end
 
   def test_validates_with_if_as_shared_conditions
@@ -78,7 +78,7 @@ class ValidatesTest < ActiveModel::TestCase
     Person.validates :karma, presence: true, email: { unless: :condition_is_true }
     person = Person.new
     person.valid?
-    assert_equal ["can’t be blank"], person.errors[:karma]
+    assert_equal ["can't be blank"], person.errors[:karma]
   end
 
   def test_validates_with_unless_shared_conditions

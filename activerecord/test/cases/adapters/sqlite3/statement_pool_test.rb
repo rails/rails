@@ -15,7 +15,7 @@ class SQLite3StatementPoolTest < ActiveRecord::SQLite3TestCase
       }
 
       Process.waitpid pid
-      assert $?.success?, "process should exit successfully"
+      assert_predicate $?, :success?, "process should exit successfully"
     end
   end
 end

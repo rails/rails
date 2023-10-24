@@ -137,7 +137,7 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
   test "can't modify encrypted attributes when frozen_encryption is true" do
     post = posts(:welcome).becomes(EncryptedPost)
     post.title = "Some new title"
-    assert post.valid?
+    assert_predicate post, :valid?
 
     ActiveRecord::Encryption.with_encryption_context frozen_encryption: true do
       assert_not post.valid?
@@ -250,7 +250,7 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
   if author_name_limit = EncryptedAuthor.columns_hash["name"].limit
     # No column limits in SQLite
     test "validate column sizes" do
-      assert EncryptedAuthor.new(name: "jorge").valid?
+      assert_predicate EncryptedAuthor.new(name: "jorge"), :valid?
       assert_not EncryptedAuthor.new(name: "a" * (author_name_limit + 1)).valid?
       author = EncryptedAuthor.create(name: "a" * (author_name_limit + 1))
       assert_not author.valid?
@@ -265,7 +265,7 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     assert_not book.name_previously_changed?
 
     book.update!(name: "A new title!")
-    assert book.name_previously_changed?
+    assert_predicate book, :name_previously_changed?
   end
 
   test "forces UTF-8 encoding for deterministic attributes by default" do
@@ -346,7 +346,7 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
       key_derivation_salt: "the salt",
       support_sha1_for_non_deterministic_encryption: true
 
-    assert OtherEncryptedPost.type_for_attribute(:title).scheme.previous_schemes.one?
+    assert_predicate OtherEncryptedPost.type_for_attribute(:title).scheme.previous_schemes, :one?
   end
 
   private

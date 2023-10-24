@@ -132,9 +132,10 @@ run the following in a new terminal:
 
 ```bash
 $ rails --version
+Rails 7.2.0
 ```
 
-If it says something like "Rails 7.0.0", you are ready to continue.
+If it says something like "Rails 7.2.0", you are ready to continue.
 
 ### Creating the Blog Application
 
@@ -403,7 +404,7 @@ database-agnostic.
 Let's take a look at the contents of our new migration file:
 
 ```ruby
-class CreateArticles < ActiveRecord::Migration[7.0]
+class CreateArticles < ActiveRecord::Migration[7.2]
   def change
     create_table :articles do |t|
       t.string :title
@@ -464,7 +465,7 @@ $ bin/rails console
 You should see an `irb` prompt like:
 
 ```irb
-Loading development environment (Rails 7.0.0)
+Loading development environment (Rails 7.2.0)
 irb(main):001:0>
 ```
 
@@ -1341,7 +1342,7 @@ In addition to the model, Rails has also made a migration to create the
 corresponding database table:
 
 ```ruby
-class CreateComments < ActiveRecord::Migration[7.0]
+class CreateComments < ActiveRecord::Migration[7.2]
   def change
     create_table :comments do |t|
       t.string :commenter
@@ -2038,7 +2039,6 @@ so we write that:
 
 ```ruby
 class ArticlesController < ApplicationController
-
   http_basic_authenticate_with name: "dhh", password: "secret", except: [:index, :show]
 
   def index
@@ -2046,6 +2046,7 @@ class ArticlesController < ApplicationController
   end
 
   # snippet for brevity
+end
 ```
 
 We also want to allow only authenticated users to delete comments, so in the
@@ -2053,7 +2054,6 @@ We also want to allow only authenticated users to delete comments, so in the
 
 ```ruby
 class CommentsController < ApplicationController
-
   http_basic_authenticate_with name: "dhh", password: "secret", only: :destroy
 
   def create
@@ -2062,6 +2062,7 @@ class CommentsController < ApplicationController
   end
 
   # snippet for brevity
+end
 ```
 
 Now if you try to create a new article, you will be greeted with a basic HTTP

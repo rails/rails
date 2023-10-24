@@ -104,7 +104,9 @@ module ActionDispatch # :nodoc:
       end
 
       def to_ary
-        @buf.to_ary
+        @buf.respond_to?(:to_ary) ?
+          @buf.to_ary :
+          @buf.each
       end
 
       def body

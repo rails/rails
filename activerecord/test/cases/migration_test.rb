@@ -1481,7 +1481,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
           t.change :id, :bigint, auto_increment: true
         end
 
-        assert column(:id).auto_increment?
+        assert_predicate column(:id), :auto_increment?
 
         with_bulk_change_table do |t|
           t.change :id, :bigint, auto_increment: false

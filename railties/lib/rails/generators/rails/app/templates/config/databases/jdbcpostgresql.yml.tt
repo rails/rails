@@ -12,13 +12,13 @@ development:
   <<: *default
   database: <%= app_name %>_development
 
-  # The specified database role being used to connect to postgres.
-  # To create additional roles in postgres see `$ createuser --help`.
-  # When left blank, postgres will use the default role. This is
+  # The specified database role being used to connect to PostgreSQL.
+  # To create additional roles in PostgreSQL see `$ createuser --help`.
+  # When left blank, PostgreSQL will use the default role. This is
   # the same name as the operating system user running Rails.
   #username: <%= app_name %>
 
-  # The password associated with the postgres role (username).
+  # The password associated with the PostgreSQL role (username).
   #password:
 
   # Connect on a TCP socket. Omitted by default since the client uses a

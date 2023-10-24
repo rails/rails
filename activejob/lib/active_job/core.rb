@@ -12,8 +12,10 @@ module ActiveJob
     attr_accessor :arguments
     attr_writer :serialized_arguments
 
-    # Timestamp when the job should be performed
-    attr_accessor :scheduled_at
+    # Time when the job should be performed
+    attr_reader :scheduled_at
+
+    attr_reader :_scheduled_at_time # :nodoc:
 
     # Job Identifier
     attr_accessor :job_id
@@ -94,6 +96,8 @@ module ActiveJob
       @arguments  = arguments
       @job_id     = SecureRandom.uuid
       @queue_name = self.class.queue_name
+      @scheduled_at = nil
+      @_scheduled_at_time = nil
       @priority   = self.class.priority
       @executions = 0
       @exception_executions = {}
@@ -115,7 +119,8 @@ module ActiveJob
         "exception_executions" => exception_executions,
         "locale"     => I18n.locale.to_s,
         "timezone"   => timezone,
-        "enqueued_at" => Time.now.utc.iso8601(9)
+        "enqueued_at" => Time.now.utc.iso8601(9),
+        "scheduled_at" => _scheduled_at_time ? _scheduled_at_time.utc.iso8601(9) : nil,
       }
     end
 
@@ -155,17 +160,30 @@ module ActiveJob
       self.exception_executions = job_data["exception_executions"]
       self.locale               = job_data["locale"] || I18n.locale.to_s
       self.timezone             = job_data["timezone"] || Time.zone&.name
-      self.enqueued_at          = job_data["enqueued_at"]
+      self.enqueued_at          = Time.iso8601(job_data["enqueued_at"]) if job_data["enqueued_at"]
+      self.scheduled_at         = Time.iso8601(job_data["scheduled_at"]) if job_data["scheduled_at"]
     end
 
     # Configures the job with the given options.
     def set(options = {}) # :nodoc:
-      self.scheduled_at = options[:wait].seconds.from_now.to_f if options[:wait]
-      self.scheduled_at = options[:wait_until].to_f if options[:wait_until]
+      self.scheduled_at = options[:wait].seconds.from_now if options[:wait]
+      self.scheduled_at = options[:wait_until] if options[:wait_until]
       self.queue_name   = self.class.queue_name_from_part(options[:queue]) if options[:queue]
       self.priority     = options[:priority].to_i if options[:priority]
 
       self
+    end
+
+    def scheduled_at=(value)
+      @_scheduled_at_time = if value.is_a?(Numeric)
+        ActiveJob.deprecator.warn(<<~MSG.squish)
+          Assigning a numeric/epoch value to scheduled_at is deprecated. Use a Time object instead.
+        MSG
+        Time.at(value)
+      else
+        value
+      end
+      @scheduled_at = value
     end
 
     private

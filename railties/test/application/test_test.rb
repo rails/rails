@@ -317,6 +317,31 @@ Expected: ["id", "name"]
       assert_not_includes output, "after:"
     end
 
+    test "schema for all the models is loaded when tests are run in eager load context" do
+      output = rails("generate", "model", "user", "name:string")
+      version = output.match(/(\d+)_create_users\.rb/)[1]
+
+      app_file "db/schema.rb", <<-RUBY
+        ActiveRecord::Schema.define(version: #{version}) do
+          create_table :users do |t|
+            t.string :name
+          end
+        end
+      RUBY
+
+      app_file "config/initializers/enable_eager_load.rb", <<-RUBY
+        Rails.application.config.eager_load = true
+      RUBY
+
+      app_file "app/models/user.rb", <<-RUBY
+        class User < ApplicationRecord
+          enum :type, [:admin, :user]
+        end
+      RUBY
+
+      assert_unsuccessful_run "models/user_test.rb", "Unknown enum attribute 'type' for User"
+    end
+
     private
       def assert_unsuccessful_run(name, message)
         result = run_test_file(name)

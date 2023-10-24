@@ -112,13 +112,13 @@ class AssociationsTest < ActiveRecord::TestCase
     firm = Firm.new("name" => "A New Firm, Inc")
     firm.save
     firm.clients.each { } # forcing to load all clients
-    assert firm.clients.empty?, "New firm shouldn't have client objects"
+    assert_predicate firm.clients, :empty?, "New firm shouldn't have client objects"
     assert_equal 0, firm.clients.size, "New firm should have 0 clients"
 
     client = Client.new("name" => "TheClient.com", "firm_id" => firm.id)
     client.save
 
-    assert firm.clients.empty?, "New firm should have cached no client objects"
+    assert_predicate firm.clients, :empty?, "New firm should have cached no client objects"
     assert_equal 0, firm.clients.size, "New firm should have cached 0 clients count"
 
     firm.clients.reload
@@ -192,6 +192,30 @@ class AssociationsTest < ActiveRecord::TestCase
     blog_posts = Sharded::BlogPost.where(comments: Sharded::Comment.where(body: "I really enjoyed the post!")).to_a
 
     assert_equal(expected_posts.map(&:id).sort, blog_posts.map(&:id).sort)
+  end
+
+  def test_has_many_with_foreign_key_as_an_array_raises
+    expected_message = <<~MSG.squish
+      Passing [:blog_id, :blog_post_id] array to :foreign_key option
+      on the Sharded::BlogPost#broken_array_fk_comments association is not supported.
+      Use the query_constraints: [:blog_id, :blog_post_id] option instead to represent a composite foreign key.
+    MSG
+    assert_raises ArgumentError, match: expected_message do
+      Sharded::BlogPost.has_many :broken_array_fk_comments,
+        class_name: "Sharded::Comment", foreign_key: [:blog_id, :blog_post_id]
+    end
+  end
+
+  def test_belongs_to_with_foreign_key_as_an_array_raises
+    expected_message = <<~MSG.squish
+      Passing [:blog_id, :blog_post_id] array to :foreign_key option
+      on the Sharded::Comment#broken_array_fk_blog_post association is not supported.
+      Use the query_constraints: [:blog_id, :blog_post_id] option instead to represent a composite foreign key.
+    MSG
+    assert_raises ArgumentError, match: expected_message do
+      Sharded::Comment.belongs_to :broken_array_fk_blog_post,
+        class_name: "Sharded::Blog", foreign_key: [:blog_id, :blog_post_id]
+    end
   end
 
   def test_has_many_association_with_composite_foreign_key_loads_records
@@ -1214,7 +1238,7 @@ class PreloaderTest < ActiveRecord::TestCase
     bob = bob_post.author
     mary = authors(:mary)
 
-    assert bob_post.association(:author).loaded?
+    assert_predicate bob_post.association(:author), :loaded?
     assert_not mary_post.association(:author).loaded?
 
     assert_queries(1) do
@@ -1339,7 +1363,7 @@ class PreloaderTest < ActiveRecord::TestCase
 
     assert_nothing_raised do
       ActiveRecord::Associations::Preloader.new(records: [post], associations: :author, available_records: [[some_other_record]]).call
-      assert post.association(:author).loaded?
+      assert_predicate post.association(:author), :loaded?
       assert_not_equal some_other_record, post.author
     end
   end
@@ -1350,7 +1374,7 @@ class PreloaderTest < ActiveRecord::TestCase
 
     ::ActiveRecord::Associations::Preloader.new(records: blog_posts, associations: [:comments]).call
 
-    assert blog_post.association(:comments).loaded?
+    assert_predicate blog_post.association(:comments), :loaded?
     assert_includes(blog_post.comments.to_a, sharded_comments(:great_comment_blog_post_one))
   end
 
@@ -1360,7 +1384,7 @@ class PreloaderTest < ActiveRecord::TestCase
 
     ActiveRecord::Associations::Preloader.new(records: comments, associations: :blog_post).call
 
-    assert comment.association(:blog_post).loaded?
+    assert_predicate comment.association(:blog_post), :loaded?
     assert_equal sharded_blog_posts(:great_post_blog_one), comment.blog_post
   end
 

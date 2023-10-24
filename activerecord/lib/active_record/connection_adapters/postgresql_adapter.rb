@@ -108,10 +108,11 @@ module ActiveRecord
       # but significantly increases the risk of data loss if the database
       # crashes. As a result, this should not be used in production
       # environments. If you would like all created tables to be unlogged in
-      # the test environment you can add the following line to your test.rb
-      # file:
+      # the test environment you can add the following to your test.rb file:
       #
-      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables = true
+      #   ActiveSupport.on_load(:active_record_postgresqladapter) do
+      #     self.create_unlogged_tables = true
+      #   end
       class_attribute :create_unlogged_tables, default: false
 
       ##
@@ -226,7 +227,7 @@ module ActiveRecord
         true
       end
 
-      def supports_unique_keys?
+      def supports_unique_constraints?
         true
       end
 
@@ -275,6 +276,10 @@ module ActiveRecord
 
       def supports_virtual_columns?
         database_version >= 12_00_00 # >= 12.0
+      end
+
+      def supports_identity_columns? # :nodoc:
+        database_version >= 10_00_00 # >= 10.0
       end
 
       def supports_nulls_not_distinct?
@@ -335,6 +340,10 @@ module ActiveRecord
         @notice_receiver_sql_warnings = []
 
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
+      end
+
+      def connected?
+        !(@raw_connection.nil? || @raw_connection.finished?)
       end
 
       # Is this connection alive and ready for queries?
@@ -596,14 +605,6 @@ module ActiveRecord
         @max_identifier_length ||= query_value("SHOW max_identifier_length", "SCHEMA").to_i
       end
 
-      # Returns the maximum length of a table name.
-      def table_name_length
-        # PostgreSQL automatically creates an index for PRIMARY KEY with name consisting of
-        # truncated table name and "_pkey" suffix fitting into max_identifier_length number of characters.
-        # We allow smaller table names to be able to correctly rename this index when renaming the table.
-        max_identifier_length - "_pkey".length
-      end
-
       # Set the authorized user for this session
       def session_auth=(user)
         clear_cache!
@@ -616,7 +617,9 @@ module ActiveRecord
 
       # Returns the version of the connected PostgreSQL server.
       def get_database_version # :nodoc:
-        valid_raw_connection.server_version
+        with_raw_connection do |conn|
+          conn.server_version
+        end
       end
       alias :postgresql_version :database_version
 
@@ -716,9 +719,7 @@ module ActiveRecord
       end
 
       private
-        def type_map
-          @type_map ||= Type::HashLookupTypeMap.new
-        end
+        attr_reader :type_map
 
         def initialize_type_map(m = type_map)
           self.class.initialize_type_map(m)
@@ -998,6 +999,8 @@ module ActiveRecord
         # Configures the encoding, verbosity, schema search path, and time zone of the connection.
         # This is called by #connect and should not be called manually.
         def configure_connection
+          super
+
           if @config[:encoding]
             @raw_connection.set_client_encoding(@config[:encoding])
           end
@@ -1078,6 +1081,7 @@ module ActiveRecord
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
                      c.collname, col_description(a.attrelid, a.attnum) AS comment,
+                     #{supports_identity_columns? ? 'attidentity' : quote('')} AS identity,
                      #{supports_virtual_columns? ? 'attgenerated' : quote('')} as attgenerated
                 FROM pg_attribute a
                 LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum

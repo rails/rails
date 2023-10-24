@@ -277,6 +277,8 @@ module ActiveRecord
         end
 
         def test_add_index_with_included_column
+          skip("current adapter doesn't support include indexes") unless supports_index_include?
+
           connection.add_index("testings", "last_name", include: :foo)
           assert connection.index_exists?("testings", "last_name", include: :foo)
 
@@ -285,6 +287,8 @@ module ActiveRecord
         end
 
         def test_add_index_with_multiple_included_columns
+          skip("current adapter doesn't support include indexes") unless supports_index_include?
+
           connection.add_index("testings", "last_name", include: [:foo, :bar])
           assert connection.index_exists?("testings", "last_name", include: [:foo, :bar])
 
@@ -293,6 +297,8 @@ module ActiveRecord
         end
 
         def test_add_index_with_included_column_and_where_clause
+          skip("current adapter doesn't support include indexes") unless supports_index_include?
+
           connection.add_index("testings", "last_name", include: :foo, where: "first_name = 'john doe'")
           assert connection.index_exists?("testings", "last_name", include: :foo, where: "first_name = 'john doe'")
 

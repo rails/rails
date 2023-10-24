@@ -123,8 +123,9 @@ The method [`present?`][Object#present?] is equivalent to `!blank?`. This exampl
 
 ```ruby
 def set_conditional_cache_control!
-  return if self["Cache-Control"].present?
-  # ...
+  unless self["Cache-Control"].present?
+    # ...
+  end
 end
 ```
 
@@ -981,7 +982,9 @@ Instance methods are created as well for convenience, they are just proxies to t
 ```ruby
 module ActionView
   class Base
-    cattr_accessor :field_error_proc, default: Proc.new { ... }
+    cattr_accessor :field_error_proc, default: Proc.new {
+      # ...
+    }
   end
 end
 ```

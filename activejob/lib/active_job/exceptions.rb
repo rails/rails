@@ -21,13 +21,16 @@ module ActiveJob
       # You can also pass a block that'll be invoked if the retry attempts fail for custom logic rather than letting
       # the exception bubble up. This block is yielded with the job instance as the first and the error instance as the second parameter.
       #
+      # `retry_on` and `discard_on` handlers are searched from bottom to top, and up the class hierarchy. The handler of the first class for
+      # which <tt>exception.is_a?(klass)</tt> holds true is the one invoked, if any.
+      #
       # ==== Options
       # * <tt>:wait</tt> - Re-enqueues the job with a delay specified either in seconds (default: 3 seconds),
       #   as a computing proc that takes the number of executions so far as an argument, or as a symbol reference of
       #   <tt>:polynomially_longer</tt>, which applies the wait algorithm of <tt>((executions**4) + (Kernel.rand * (executions**4) * jitter)) + 2</tt>
       #   (first wait ~3s, then ~18s, then ~83s, etc)
-      # * <tt>:attempts</tt> - Re-enqueues the job the specified number of times (default: 5 attempts) or a symbol reference of <tt>:unlimited</tt>
-      #   to retry the job until it succeeds
+      # * <tt>:attempts</tt> - Enqueues the job the specified number of times (default: 5 attempts) or a symbol reference of <tt>:unlimited</tt>
+      #   to retry the job until it succeeds. The number of attempts includes the original job execution.
       # * <tt>:queue</tt> - Re-enqueues the job on a different queue
       # * <tt>:priority</tt> - Re-enqueues the job with a different priority
       # * <tt>:jitter</tt> - A random delay of wait time used when calculating backoff. The default is 15% (0.15) which represents the upper bound of possible wait time (expressed as a percentage)
@@ -86,6 +89,9 @@ module ActiveJob
       # like an Active Record, is no longer available, and the job is thus no longer relevant.
       #
       # You can also pass a block that'll be invoked. This block is yielded with the job instance as the first and the error instance as the second parameter.
+      #
+      # `retry_on` and `discard_on` handlers are searched from bottom to top, and up the class hierarchy. The handler of the first class for
+      # which <tt>exception.is_a?(klass)</tt> holds true is the one invoked, if any.
       #
       # ==== Example
       #

@@ -14,14 +14,9 @@ require "rails/generators/test_case"
 
 require "active_support/testing/autorun"
 
-if defined?(ActiveRecord::Base)
-  begin
-    ActiveRecord::Migration.maintain_test_schema!
-  rescue ActiveRecord::PendingMigrationError => e
-    puts e.to_s.strip
-    exit 1
-  end
+require "rails/testing/maintain_test_schema"
 
+if defined?(ActiveRecord::Base)
   ActiveSupport.on_load(:active_support_test_case) do
     include ActiveRecord::TestDatabases
     include ActiveRecord::TestFixtures

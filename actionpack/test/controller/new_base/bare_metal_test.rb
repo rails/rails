@@ -47,7 +47,7 @@ module BareMetalTest
       controller.set_response!(BareController.make_response!(controller.request))
       controller.index
 
-      assert controller.performed?
+      assert_predicate controller, :performed?
       assert_equal ["Hello world"], controller.response_body
     end
 
@@ -56,7 +56,7 @@ module BareMetalTest
       controller.set_request!(ActionDispatch::Request.empty)
       controller.assign_response_array
 
-      assert controller.performed?
+      assert_predicate controller, :performed?
       assert_equal true, controller.response_body
       assert_equal 200, controller.response[0]
       assert_equal "text/html", controller.response[1]["content-type"]
@@ -67,7 +67,7 @@ module BareMetalTest
       controller.set_request!(ActionDispatch::Request.empty)
       controller.assign_response_object
 
-      assert controller.performed?
+      assert_predicate controller, :performed?
       assert_equal true, controller.response_body
       assert_equal 200, controller.response.status
       assert_equal "text/html", controller.response.headers["content-type"]
@@ -79,10 +79,10 @@ module BareMetalTest
       controller.set_response!(BareController.make_response!(controller.request))
       controller.assign_response_body_proc
 
-      assert controller.performed?
+      assert_predicate controller, :performed?
       assert controller.response_body.is_a?(Proc)
       assert_equal 200, controller.response.status
-      assert controller.response.headers.empty?
+      assert_predicate controller.response.headers, :empty?
     end
 
     test "connect a request to controller instance without dispatch" do

@@ -662,6 +662,30 @@ module ApplicationTests
       assert_utf8
     end
 
+    # Regression test for https://github.com/rails/rails/issues/49629.
+    test "config.paths can be mutated after accessing auto/eager load paths" do
+      app_dir "vendor/auto"
+      app_dir "vendor/once"
+      app_dir "vendor/eager"
+
+      add_to_config <<~RUBY
+        # Reading the collections is enough, no need to modify them.
+        config.autoload_paths
+        config.autoload_once_paths
+        config.eager_load_paths
+
+        config.paths.add("vendor/auto", autoload: true)
+        config.paths.add("vendor/once", autoload_once: true)
+        config.paths.add("vendor/eager", eager_load: true)
+      RUBY
+
+      app "development"
+
+      assert_includes ActiveSupport::Dependencies.autoload_paths, "#{Rails.root}/vendor/auto"
+      assert_includes ActiveSupport::Dependencies.autoload_once_paths, "#{Rails.root}/vendor/once"
+      assert_includes ActiveSupport::Dependencies._eager_load_paths, "#{Rails.root}/vendor/eager"
+    end
+
     test "config.paths.public sets Rails.public_path" do
       add_to_config <<-RUBY
         config.paths["public"] = "somewhere"
@@ -703,7 +727,7 @@ module ApplicationTests
 
       get "/"
 
-      assert last_response.ok?
+      assert_predicate last_response, :ok?
     end
 
     test "EtagWithFlash module doesn't break for API apps" do
@@ -720,7 +744,7 @@ module ApplicationTests
 
       get "/"
 
-      assert last_response.ok?
+      assert_predicate last_response, :ok?
     end
 
     test "Use key_generator when secret_key_base is set" do
@@ -1444,7 +1468,7 @@ module ApplicationTests
     test "autoloaders" do
       app "development"
 
-      assert Rails.autoloaders.zeitwerk_enabled?
+      assert_predicate Rails.autoloaders, :zeitwerk_enabled?
       assert_instance_of Zeitwerk::Loader, Rails.autoloaders.main
       assert_equal "rails.main", Rails.autoloaders.main.tag
       assert_instance_of Zeitwerk::Loader, Rails.autoloaders.once
@@ -1747,7 +1771,6 @@ module ApplicationTests
     test "config.action_controller.default_protect_from_forgery is true by default" do
       app "development"
 
-      assert_equal true, ActionController::Base.default_protect_from_forgery
       assert_includes ActionController::Base.__callbacks[:process_action].map(&:filter), :verify_authenticity_token
     end
 
@@ -1892,6 +1915,26 @@ module ApplicationTests
         application.config.log_level = :debug
       end
       assert_equal Logger::DEBUG, Rails.logger.level
+    end
+
+    test "config.logger when logger is already a Broadcast Logger" do
+      logger = ActiveSupport::BroadcastLogger.new
+
+      make_basic_app do |application|
+        application.config.logger = logger
+      end
+      assert_same(logger, Rails.logger)
+    end
+
+    test "config.logger when logger is not a Broadcast Logger" do
+      logger = Logger.new(STDOUT)
+
+      make_basic_app do |application|
+        application.config.logger = logger
+      end
+
+      assert_instance_of(ActiveSupport::BroadcastLogger, Rails.logger)
+      assert_includes(Rails.logger.broadcasts, logger)
     end
 
     test "respond_to? accepts include_private" do

@@ -273,7 +273,7 @@ module ApplicationTests
         end
 
         assert_raises ActiveRecord::ConnectionNotEstablished do
-          ActiveRecord::Base.connection.schema_reflection.columns("posts")
+          ActiveRecord::Base.connection.schema_cache.columns("posts")
         end
       end
     end

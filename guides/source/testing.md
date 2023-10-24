@@ -99,6 +99,8 @@ By requiring this file, `test_helper.rb` the default configuration to run our te
 
 ```ruby
 class ArticleTest < ActiveSupport::TestCase
+  # ...
+end
 ```
 
 The `ArticleTest` class defines a _test case_ because it inherits from `ActiveSupport::TestCase`. `ArticleTest` thus has all the methods available from `ActiveSupport::TestCase`. Later in this guide, we'll see some of the methods it gives us.
@@ -332,6 +334,8 @@ specify to make your test failure messages clearer.
 | `assert_not_operator( obj1, operator, [obj2], [msg] )`           | Ensures that `obj1.operator(obj2)` is false.|
 | `assert_predicate ( obj, predicate, [msg] )`                     | Ensures that `obj.predicate` is true, e.g. `assert_predicate str, :empty?`|
 | `assert_not_predicate ( obj, predicate, [msg] )`                 | Ensures that `obj.predicate` is false, e.g. `assert_not_predicate str, :empty?`|
+| `assert_error_reported(class) { block }`                         | Ensures that the error class has been reported, e.g. `assert_error_reported IOError { Rails.error.report(IOError.new("Oops")) }`|
+| `assert_no_error_reported { block }`                             | Ensures that no errors have been reported, e.g. `assert_no_error_reported { perform_service }`|
 | `flunk( [msg] )`                                                 | Ensures failure. This is useful to explicitly mark a test that isn't finished yet.|
 
 The above are a subset of assertions that minitest supports. For an exhaustive &
@@ -745,9 +749,9 @@ ERB allows you to embed Ruby code within templates. The YAML fixture format is p
 
 ```erb
 <% 1000.times do |n| %>
-user_<%= n %>:
-  username: <%= "user#{n}" %>
-  email: <%= "user#{n}@example.com" %>
+  user_<%= n %>:
+    username: <%= "user#{n}" %>
+    email: <%= "user#{n}@example.com" %>
 <% end %>
 ```
 
@@ -893,7 +897,7 @@ require "test_helper"
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   url = ENV.fetch("SELENIUM_REMOTE_URL", nil)
   options = if url
-    { browser: :remote, url }
+    { browser: :remote, url: url }
   else
     { browser: :chrome }
   end
@@ -1330,9 +1334,9 @@ After a request has been made and processed, you will have 3 Hash objects ready 
 As is the case with normal Hash objects, you can access the values by referencing the keys by string. You can also reference them by symbol name. For example:
 
 ```ruby
-flash["gordon"]               flash[:gordon]
-session["shmession"]          session[:shmession]
-cookies["are_good_for_u"]     cookies[:are_good_for_u]
+flash["gordon"]               # or flash[:gordon]
+session["shmession"]          # or session[:shmession]
+cookies["are_good_for_u"]     # or cookies[:are_good_for_u]
 ```
 
 ### Instance Variables Available
@@ -1358,9 +1362,9 @@ end
 
 ### Setting Headers and CGI Variables
 
-[HTTP headers](https://tools.ietf.org/search/rfc2616#section-5.3)
+[HTTP headers](https://datatracker.ietf.org/doc/html/rfc2616#section-5.3)
 and
-[CGI variables](https://tools.ietf.org/search/rfc3875#section-4.1)
+[CGI variables](https://datatracker.ietf.org/doc/html/rfc3875#section-4.1)
 can be passed as headers:
 
 ```ruby
@@ -1699,7 +1703,7 @@ Partial templates - usually called "partials" - are another device for breaking 
 View tests provide an opportunity to test that partials render content the way you expect. View partial tests reside in `test/views/` and inherit from `ActionView::TestCase`.
 
 To render a partial, call `render` like you would in a template. The content is
-available through the test-local `rendered` method:
+available through the test-local `#rendered` method:
 
 ```ruby
 class ArticlePartialTest < ActionView::TestCase
@@ -1752,9 +1756,10 @@ test "renders a link to itself" do
 
   render "articles/article", article: article
   anchor = document_root_element.at("a")
+  url = article_url(article)
 
   assert_pattern do
-    anchor => { content: article.title, attributes: [{ name: "href", value: article_url(article) }] }
+    anchor => { content: "Hello, world", attributes: [{ name: "href", value: url }] }
   end
 end
 ```
@@ -1793,7 +1798,52 @@ class ArticlePartialTest < ViewPartialTestCase
 end
 ```
 
+Starting in Action View version 7.1, the `#rendered` helper method returns an
+object capable of parsing the view partial's rendered content.
+
+To transform the `String` content returned by the `#rendered` method into an
+object, define a parser by calling `.register_parser`. Calling
+`.register_parser :rss` defines a `#rendered.rss` helper method. For example,
+to parse rendered [RSS content][] into an object with `#rendered.rss`, register
+a call to `RSS::Parser.parse`:
+
+```ruby
+register_parser :rss, -> rendered { RSS::Parser.parse(rendered) }
+
+test "renders RSS" do
+  article = Article.create!(title: "Hello, world")
+
+  render formats: :rss, partial: article
+
+  assert_equal "Hello, world", rendered.rss.items.last.title
+end
+```
+
+By default, `ActionView::TestCase` defines a parser for:
+
+* `:html` - returns an instance of [Nokogiri::XML::Node](https://nokogiri.org/rdoc/Nokogiri/XML/Node.html)
+* `:json` - returns an instance of [ActiveSupport::HashWithIndifferentAccess](https://api.rubyonrails.org/classes/ActiveSupport/HashWithIndifferentAccess.html)
+
+```ruby
+test "renders HTML" do
+  article = Article.create!(title: "Hello, world")
+
+  render partial: "articles/article", locals: { article: article }
+
+  assert_pattern { rendered.html.at("main h1") => { content: "Hello, world" } }
+end
+
+test "renders JSON" do
+  article = Article.create!(title: "Hello, world")
+
+  render formats: :json, partial: "articles/article", locals: { article: article }
+
+  assert_pattern { rendered.json => { title: "Hello, world" } }
+end
+```
+
 [rails-dom-testing]: https://github.com/rails/rails-dom-testing
+[RSS content]: https://www.rssboard.org/rss-specification
 
 Testing Helpers
 ---------------
@@ -2024,20 +2074,21 @@ NOTE: The `assert_emails` method is not tied to a particular deliver method and 
 Testing Jobs
 ------------
 
-Since your custom jobs can be queued at different levels inside your application,
-you'll need to test both the jobs themselves (their behavior when they get enqueued)
-and that other entities correctly enqueue them.
+Jobs can be tested in isolation (focusing on the job's behavior) and in context
+(focusing on the calling code's behavior).
 
-### A Basic Test Case
+### Testing Jobs in Isolation
 
-By default, when you generate a job, an associated test will be generated as well
-under the `test/jobs` directory. Here's an example test with a billing job:
+When you generate a job, an associated test file will also be generated in the
+`test/jobs` directory.
+
+Here is an example test for a billing job:
 
 ```ruby
 require "test_helper"
 
 class BillingJobTest < ActiveJob::TestCase
-  test "that account is charged" do
+  test "account is charged" do
     perform_enqueued_jobs do
       BillingJob.perform_later(account, product)
     end
@@ -2046,52 +2097,48 @@ class BillingJobTest < ActiveJob::TestCase
 end
 ```
 
-This test is pretty simple and only asserts that the job did work that was expected. You can also use `perform_now` to run the job inline, but if you have retries configured, any exceptions raised by the job will be silently ignored, whereas `perform_enqueued_jobs` will fail the test and print the exception information.
+The default queue adapter for tests will not perform jobs until
+[`perform_enqueued_jobs`][] is called. Additionally, it will clear all jobs
+before each test is run so that tests do not interfere with each other.
 
-### Custom Assertions and Testing Jobs inside Other Components
+The test uses `perform_enqueued_jobs` and [`perform_later`][] instead of
+[`perform_now`][] so that if retries are configured, retry failures are caught
+by the test instead of being re-enqueued and ignored.
 
-Active Job ships with a bunch of custom assertions that can be used to lessen the verbosity of tests. For a full list of available assertions, see the API documentation for [`ActiveJob::TestHelper`](https://api.rubyonrails.org/classes/ActiveJob/TestHelper.html).
+[`perform_enqueued_jobs`]: https://api.rubyonrails.org/classes/ActiveJob/TestHelper.html#method-i-perform_enqueued_jobs
+[`perform_later`]: https://api.rubyonrails.org/classes/ActiveJob/Enqueuing/ClassMethods.html#method-i-perform_later
+[`perform_now`]: https://api.rubyonrails.org/classes/ActiveJob/Execution/ClassMethods.html#method-i-perform_now
 
-It's a good practice to ensure that your jobs correctly get enqueued or performed
-wherever you invoke them (e.g. inside your controllers). This is precisely where
-the custom assertions provided by Active Job are pretty useful. For instance,
-within a model, you could confirm that a job was enqueued:
+### Testing Jobs in Context
+
+It's good practice to test that jobs are correctly enqueued, for example, by a
+controller action. The [`ActiveJob::TestHelper`][] module provides several
+methods that can help with this, such as [`assert_enqueued_with`][].
+
+Here is an example that tests an account model method:
 
 ```ruby
 require "test_helper"
 
-class ProductTest < ActiveSupport::TestCase
+class AccountTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
 
-  test "billing job scheduling" do
+  test "#charge_for enqueues billing job" do
     assert_enqueued_with(job: BillingJob) do
-      product.charge(account)
+      account.charge_for(product)
     end
+
     assert_not account.reload.charged_for?(product)
-  end
-end
-```
 
-The default adapter, `:test`, does not perform jobs when they are enqueued.
-You have to tell it when you want jobs to be performed:
+    perform_enqueued_jobs
 
-```ruby
-require "test_helper"
-
-class ProductTest < ActiveSupport::TestCase
-  include ActiveJob::TestHelper
-
-  test "billing job scheduling" do
-    perform_enqueued_jobs(only: BillingJob) do
-      product.charge(account)
-    end
     assert account.reload.charged_for?(product)
   end
 end
 ```
 
-All previously performed and enqueued jobs are cleared before any test runs,
-so you can safely assume that no jobs have already been executed in the scope of each test.
+[`ActiveJob::TestHelper`]: https://api.rubyonrails.org/classes/ActiveJob/TestHelper.html
+[`assert_enqueued_with`]: https://api.rubyonrails.org/classes/ActiveJob/TestHelper.html#method-i-assert_enqueued_with
 
 ### Testing that Exceptions are Raised
 

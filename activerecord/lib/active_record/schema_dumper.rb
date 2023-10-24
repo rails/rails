@@ -193,7 +193,7 @@ module ActiveRecord
           indexes_in_create(table, tbl)
           check_constraints_in_create(table, tbl) if @connection.supports_check_constraints?
           exclusion_constraints_in_create(table, tbl) if @connection.supports_exclusion_constraints?
-          unique_keys_in_create(table, tbl) if @connection.supports_unique_keys?
+          unique_constraints_in_create(table, tbl) if @connection.supports_unique_constraints?
 
           tbl.puts "  end"
           tbl.puts
@@ -229,10 +229,10 @@ module ActiveRecord
             indexes = indexes.reject { |index| exclusion_constraint_names.include?(index.name) }
           end
 
-          if @connection.supports_unique_keys? && (unique_keys = @connection.unique_keys(table)).any?
-            unique_key_names = unique_keys.collect(&:name)
+          if @connection.supports_unique_constraints? && (unique_constraints = @connection.unique_constraints(table)).any?
+            unique_constraint_names = unique_constraints.collect(&:name)
 
-            indexes = indexes.reject { |index| unique_key_names.include?(index.name) }
+            indexes = indexes.reject { |index| unique_constraint_names.include?(index.name) }
           end
 
           index_statements = indexes.map do |index|

@@ -48,7 +48,7 @@ class I18nGenerateMessageValidationTest < ActiveRecord::TestCase
     topic = Topic.new
     topic.errors.add(:title, :invalid)
     topic.errors.add(:title, :blank)
-    assert_equal "Validation failed: Title is invalid, Title can’t be blank", ActiveRecord::RecordInvalid.new(topic).message
+    assert_equal "Validation failed: Title is invalid, Title can't be blank", ActiveRecord::RecordInvalid.new(topic).message
   end
 
   test "RecordInvalid exception translation falls back to the :errors namespace" do

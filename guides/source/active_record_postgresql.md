@@ -329,7 +329,7 @@ To add a new value you can use `add_enum_value`:
 ```ruby
 # db/migrate/20150720144913_add_new_state_to_articles.rb
 def up
-  add_enum_value :article_state, "archived", # will be at the end after published
+  add_enum_value :article_state, "archived" # will be at the end after published
   add_enum_value :article_state, "in review", before: "published"
   add_enum_value :article_state, "approved", after: "in review"
 end
@@ -485,7 +485,7 @@ irb> macbook.address
 * [type definition](https://www.postgresql.org/docs/current/static/datatype-geometric.html)
 
 All geometric types, with the exception of `points` are mapped to normal text.
-A point is casted to an array containing `x` and `y` coordinates.
+A point is cast to an array containing `x` and `y` coordinates.
 
 ### Interval
 
@@ -654,14 +654,14 @@ Unique Constraint
 # db/migrate/20230422225213_create_items.rb
 create_table :items do |t|
   t.integer :position, null: false
-  t.unique_key [:position], deferrable: :immediate
+  t.unique_constraint [:position], deferrable: :immediate
 end
 ```
 
 If you want to change an existing unique index to deferrable, you can use `:using_index` to create deferrable unique constraints.
 
 ```ruby
-add_unique_key :items, deferrable: :deferred, using_index: "index_items_on_position"
+add_unique_constraint :items, deferrable: :deferred, using_index: "index_items_on_position"
 ```
 
 Like foreign keys, unique constraints can be deferred by setting `:deferrable` to either `:immediate` or `:deferred`. By default, `:deferrable` is `false` and the constraint is always checked immediately.

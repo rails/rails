@@ -25,7 +25,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_strip_heredoc_on_a_frozen_string
-    assert "".strip_heredoc.frozen?
+    assert_predicate "".strip_heredoc, :frozen?
   end
 
   def test_strip_heredoc_on_a_string_with_no_lines

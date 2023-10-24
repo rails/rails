@@ -563,6 +563,8 @@ module ActiveRecord
       #   # Delete multiple rows
       #   Todo.delete([2,3,4])
       def delete(id_or_array)
+        return 0 if id_or_array.nil? || (id_or_array.is_a?(Array) && id_or_array.empty?)
+
         delete_by(primary_key => id_or_array)
       end
 
@@ -1272,7 +1274,7 @@ module ActiveRecord
     def _raise_record_not_destroyed
       @_association_destroy_exception ||= nil
       key = self.class.primary_key
-      raise @_association_destroy_exception || RecordNotDestroyed.new("Failed to destroy #{self.class} with #{key}=#{send(key)}", self)
+      raise @_association_destroy_exception || RecordNotDestroyed.new("Failed to destroy #{self.class} with #{key}=#{id}", self)
     ensure
       @_association_destroy_exception = nil
     end

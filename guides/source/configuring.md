@@ -404,7 +404,7 @@ default, Rails filters out passwords by adding the following filters in
 
 ```ruby
 Rails.application.config.filter_parameters += [
-  :passw, :secret, :token, :_key, :crypt, :salt, :certificate, :otp, :ssn
+  :passw, :email, :secret, :token, :_key, :crypt, :salt, :certificate, :otp, :ssn
 ]
 ```
 
@@ -547,8 +547,9 @@ for more information and alternative configuration methods.
 
 #### `config.server_timing`
 
-When `true`, adds the [ServerTiming middleware](#actiondispatch-servertiming)
-to the middleware stack
+When `true`, adds the [`ServerTiming` middleware](#actiondispatch-servertiming)
+to the middleware stack. Defaults to `false`, but is set to `true` in the
+default generated `config/environments/development.rb` file.
 
 #### `config.session_options`
 
@@ -768,8 +769,12 @@ Rails.application.config.host_authorization = {
 
 #### `ActionDispatch::ServerTiming`
 
-Adds metrics to the `Server-Timing` header to be viewed in the dev tools of a
-browser.
+Adds the [`Server-Timing`][] header to the response, which includes performance
+metrics from the server. This data can be viewed by inspecting the response in
+the Network panel of the browser's Developer Tools. Most browsers provide a
+Timing tab that visualizes the data.
+
+[`Server-Timing`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server-Timing
 
 #### `ActionDispatch::SSL`
 
@@ -972,13 +977,13 @@ irb> person = Person.new.tap(&:valid?)
 
 irb> person.errors.full_messages
 => [
-  "Invalid Name (can’t be blank)",
+  "Invalid Name (can't be blank)",
   "Please fill in your Age"
 ]
 
 irb> person.errors.messages
 => {
-  :name => ["can’t be blank"],
+  :name => ["can't be blank"],
   :age  => ["Please fill in your Age"]
 }
 ```
@@ -1044,13 +1049,13 @@ Controls whether migrations are numbered with serial integers or with timestamps
 
 Controls the action to be taken when a SQL query produces a warning. The following options are available:
 
-  * `:ignore` - Database warnings wil be ignored. This is the default.
+  * `:ignore` - Database warnings will be ignored. This is the default.
 
   * `:log` - Database warnings will be logged via `ActiveRecord.logger` at the `:warn` level.
 
   * `:raise` - Database warnings will be raised as `ActiveRecord::SQLWarning`.
 
-  * `:report` - Database warnings be will reported to subscribers of Rails' error reporter.
+  * `:report` - Database warnings will be reported to subscribers of Rails' error reporter.
 
   * Custom proc - A custom proc can be provided. It should accept a `SQLWarning` error object.
 
@@ -1604,28 +1609,34 @@ whether a foreign key's name should be dumped to db/schema.rb or not. By
 default, foreign key names starting with `fk_rails_` are not exported to the
 database schema dump. Defaults to `/^fk_rails_[0-9a-f]{10}$/`.
 
+#### `config.active_record.encryption.add_to_filter_parameters`
+
+Enables automatic filtering of encrypted attributes on `inspect`.
+
+The default value is `true`.
+
 #### `config.active_record.encryption.hash_digest_class`
 
- Sets the digest algorithm used by Active Record Encryption.
+Sets the digest algorithm used by Active Record Encryption.
 
- The default value depends on the `config.load_defaults` target version:
+The default value depends on the `config.load_defaults` target version:
 
- | Starting with version | The default value is      |
- |-----------------------|---------------------------|
- | (original)            | `OpenSSL::Digest::SHA1`   |
- | 7.1                   | `OpenSSL::Digest::SHA256` |
+| Starting with version | The default value is      |
+| --------------------- | ------------------------- |
+| (original)            | `OpenSSL::Digest::SHA1`   |
+| 7.1                   | `OpenSSL::Digest::SHA256` |
 
 #### `config.active_record.encryption.support_sha1_for_non_deterministic_encryption`
 
 Enables support for decrypting existing data encrypted using a SHA-1 digest class. When `false`,
 it will only support the digest configured in `config.active_record.encryption.hash_digest_class`.
 
- The default value depends on the `config.load_defaults` target version:
+The default value depends on the `config.load_defaults` target version:
 
- | Starting with version | The default value is |
- |-----------------------|----------------------|
- | (original)            | `true`               |
- | 7.1                   | `false`              |
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 7.1                   | `false`              |
 
 ### Configuring Action Controller
 
@@ -1732,6 +1743,16 @@ Rendered messages/_message.html.erb in 1.2 ms [cache hit]
 Rendered recordings/threads/_thread.html.erb in 1.5 ms [cache miss]
 ```
 
+#### `config.action_controller.raise_on_missing_callback_actions`
+
+Raises an `AbstractController::ActionNotFound` when the action specified in callback's `:only` or `:except` options is missing in the controller.
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.1                   | `true` (development and test), `false` (other envs)|
+
+
 #### `config.action_controller.raise_on_open_redirects`
 
 Raises an `ActionController::Redirecting::UnsafeRedirectError` when an unpermitted open redirect occurs.
@@ -1794,8 +1815,8 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.action_dispatch.debug_exception_log_level`
 
-Configure the log level used by the DebugExceptions middleware when logging
-uncaught exceptions during requests
+Configures the log level used by the [`ActionDispatch::DebugExceptions`][]
+middleware when logging uncaught exceptions during requests.
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -1803,6 +1824,8 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `:fatal`             |
 | 7.1                   | `:error`             |
+
+[`ActionDispatch::DebugExceptions`]: https://api.rubyonrails.org/classes/ActionDispatch/DebugExceptions.html
 
 #### `config.action_dispatch.default_headers`
 
@@ -1904,40 +1927,23 @@ Configures what exceptions are assigned to an HTTP status. It accepts a hash and
 
 ```ruby
 config.action_dispatch.rescue_responses = {
-  'ActionController::RoutingError'
-    => :not_found,
-  'AbstractController::ActionNotFound'
-    => :not_found,
-  'ActionController::MethodNotAllowed'
-    => :method_not_allowed,
-  'ActionController::UnknownHttpMethod'
-    => :method_not_allowed,
-  'ActionController::NotImplemented'
-    => :not_implemented,
-  'ActionController::UnknownFormat'
-    => :not_acceptable,
-  'ActionController::InvalidAuthenticityToken'
-    => :unprocessable_entity,
-  'ActionController::InvalidCrossOriginRequest'
-    => :unprocessable_entity,
-  'ActionDispatch::Http::Parameters::ParseError'
-    => :bad_request,
-  'ActionController::BadRequest'
-    => :bad_request,
-  'ActionController::ParameterMissing'
-    => :bad_request,
-  'Rack::QueryParser::ParameterTypeError'
-    => :bad_request,
-  'Rack::QueryParser::InvalidParameterError'
-    => :bad_request,
-  'ActiveRecord::RecordNotFound'
-    => :not_found,
-  'ActiveRecord::StaleObjectError'
-    => :conflict,
-  'ActiveRecord::RecordInvalid'
-    => :unprocessable_entity,
-  'ActiveRecord::RecordNotSaved'
-    => :unprocessable_entity
+  'ActionController::RoutingError' => :not_found,
+  'AbstractController::ActionNotFound' => :not_found,
+  'ActionController::MethodNotAllowed' => :method_not_allowed,
+  'ActionController::UnknownHttpMethod' => :method_not_allowed,
+  'ActionController::NotImplemented' => :not_implemented,
+  'ActionController::UnknownFormat' => :not_acceptable,
+  'ActionController::InvalidAuthenticityToken' => :unprocessable_entity,
+  'ActionController::InvalidCrossOriginRequest' => :unprocessable_entity,
+  'ActionDispatch::Http::Parameters::ParseError' => :bad_request,
+  'ActionController::BadRequest' => :bad_request,
+  'ActionController::ParameterMissing' => :bad_request,
+  'Rack::QueryParser::ParameterTypeError' => :bad_request,
+  'Rack::QueryParser::InvalidParameterError' => :bad_request,
+  'ActiveRecord::RecordNotFound' => :not_found,
+  'ActiveRecord::StaleObjectError' => :conflict,
+  'ActiveRecord::RecordInvalid' => :unprocessable_entity,
+  'ActiveRecord::RecordNotSaved' => :unprocessable_entity
 }
 ```
 
@@ -2260,10 +2266,12 @@ Specifies whether mail will actually be delivered and is `true` by default. It c
 Configures Action Mailer defaults. Use to set options like `from` or `reply_to` for every mailer. These default to:
 
 ```ruby
-mime_version:  "1.0",
-charset:       "UTF-8",
-content_type: "text/plain",
-parts_order:  ["text/plain", "text/enriched", "text/html"]
+{
+  mime_version:  "1.0",
+  charset:       "UTF-8",
+  content_type: "text/plain",
+  parts_order:  ["text/plain", "text/enriched", "text/html"]
+}
 ```
 
 Assign a hash to set additional options:
@@ -2789,7 +2797,7 @@ Accepts an array of strings indicating the content types that Active Storage all
 By default, this is defined as:
 
 ```ruby
-config.active_storage.content_types_allowed_inline` = %w(image/png image/gif image/jpeg image/tiff image/vnd.adobe.photoshop image/vnd.microsoft.icon application/pdf)
+config.active_storage.content_types_allowed_inline = %w(image/png image/gif image/jpeg image/tiff image/vnd.adobe.photoshop image/vnd.microsoft.icon application/pdf)
 ```
 
 #### `config.active_storage.queues.analysis`
@@ -2839,6 +2847,10 @@ The default is 5 minutes.
 #### `config.active_storage.urls_expire_in`
 
 Determines the default expiry of URLs in the Rails application generated by Active Storage. The default is nil.
+
+#### `config.active_storage.touch_attachment_records`
+
+Directs ActiveStorage::Attachments to touch its corresponding record when updated. The default is true.
 
 #### `config.active_storage.routes_prefix`
 
@@ -3431,7 +3443,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `load_active_support`: Requires `active_support/dependencies` which sets up the basis for Active Support. Optionally requires `active_support/all` if `config.active_support.bare` is un-truthful, which is the default.
 
-* `initialize_logger`: Initializes the logger (an `ActiveSupport::Logger` object) for the application and makes it accessible at `Rails.logger`, provided that no initializer inserted before this point has defined `Rails.logger`.
+* `initialize_logger`: Initializes the logger (an `ActiveSupport::BroadcastLogger` object) for the application and makes it accessible at `Rails.logger`, provided that no initializer inserted before this point has defined `Rails.logger`.
 
 * `initialize_cache`: If `Rails.cache` isn't set yet, initializes the cache by referencing the value in `config.cache_store` and stores the outcome as `Rails.cache`. If this object responds to the `middleware` method, its middleware is inserted before `Rack::Runtime` in the middleware stack.
 
@@ -3539,7 +3551,7 @@ Database Pooling
 
 Active Record database connections are managed by `ActiveRecord::ConnectionAdapters::ConnectionPool` which ensures that a connection pool synchronizes the amount of thread access to a limited number of database connections. This limit defaults to 5 and can be configured in `database.yml`.
 
-```ruby
+```yaml
 development:
   adapter: sqlite3
   database: storage/development.sqlite3
@@ -3555,7 +3567,7 @@ If you try to use more connections than are available, Active Record will block
 you and wait for a connection from the pool. If it cannot get a connection, a
 timeout error similar to that given below will be thrown.
 
-```ruby
+```
 ActiveRecord::ConnectionTimeoutError - could not obtain a database connection within 5.000 seconds (waited 5.000 seconds)
 ```
 

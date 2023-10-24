@@ -68,7 +68,7 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
       end
       assert_equal "Should be re-raised", e.message
     end
-    assert warning.blank?, "expected no warnings but got:\n#{warning}"
+    assert_predicate warning, :blank?, "expected no warnings but got:\n#{warning}"
   end
 
   def test_does_not_break_transactions
@@ -108,7 +108,7 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
       CREATE SCHEMA referential_integrity_test_schema;
 
       CREATE TABLE referential_integrity_test_schema.nodes (
-        id          INT      GENERATED ALWAYS AS IDENTITY,
+        id          BIGSERIAL,
         parent_id   INT      NOT NULL,
         PRIMARY KEY(id),
         CONSTRAINT fk_parent_node FOREIGN KEY(parent_id)

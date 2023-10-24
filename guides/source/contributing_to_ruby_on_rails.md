@@ -495,6 +495,12 @@ You can invoke `test_jdbcmysql`, `test_jdbcsqlite3` or `test_jdbcpostgresql` als
 
 To use an external debugger (pry, byebug, etc), install the debugger and use it as normal.  If debugger issues occur, run tests in serial by setting `PARALLEL_WORKERS=1` or run a single test with `-n test_long_test_name`.
 
+If running tests against generators you will need to set `RAILS_LOG_TO_STDOUT=true` in order for debugging tools to work.
+
+```sh
+RAILS_LOG_TO_STDOUT=true ./bin/test test/generators/actions_test.rb
+```
+
 ### Warnings
 
 The test suite runs with warnings enabled. Ideally, Ruby on Rails should issue no warnings, but there may be a few, as well as some from third-party libraries. Please ignore (or fix!) them, if any, and submit patches that do not issue new warnings.
@@ -600,11 +606,11 @@ To set the new framework default, set the new value in
 def load_defaults(target_version)
   case target_version.to_s
   when "7.1"
-    ...
+    # ...
     if respond_to?(:active_job)
       active_job.existing_behavior = false
     end
-    ...
+    # ...
   end
 end
 ```
@@ -614,7 +620,7 @@ To ease the upgrade it's required to add the new default to the
 value:
 
 ```ruby
-# new_framework_defaults_7_1.rb.tt
+# new_framework_defaults_7_2.rb.tt
 
 # Rails.application.config.active_job.existing_behavior = false
 ```
@@ -776,8 +782,9 @@ a pull request. Don't despair! Sometimes it's quick; sometimes it's slow. Such
 is the open source life.
 
 If it's been over a week, and you haven't heard anything, you might want to try
-and nudge things along. You can use the [rubyonrails-core discussion board](https://discuss.rubyonrails.org/c/rubyonrails-core) for this. You can also
-leave another comment on the pull request.
+and nudge things along. You can use the *contributions* channel in the [Ruby on Rails Discord server](https://discord.gg/d8N68BCw49),
+or the [rubyonrails-core discussion board](https://discuss.rubyonrails.org/c/rubyonrails-core) for this.
+You can also leave another comment on the pull request.
 
 While you're waiting for feedback on your pull request, open up a few other
 pull requests and give someone else some! They'll appreciate it in

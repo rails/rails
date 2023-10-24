@@ -495,7 +495,7 @@ The digest algorithm used to derive keys. `OpenSSL::Digest::SHA1` by default.
 #### `config.active_record.encryption.support_sha1_for_non_deterministic_encryption`
 
 Supports decrypting data encrypted non-deterministically with a digest class SHA1. Default is false, which
-means it  will only support the digest algorithm configured in `config.active_record.encryption.hash_digest_class`.
+means it will only support the digest algorithm configured in `config.active_record.encryption.hash_digest_class`.
 
 ### Encryption Contexts
 
@@ -537,7 +537,7 @@ You can use `ActiveRecord::Encryption.with_encryption_context` to set an encrypt
 
 ```ruby
 ActiveRecord::Encryption.with_encryption_context(encryptor: ActiveRecord::Encryption::NullEncryptor.new) do
-  ...
+  # ...
 end
 ```
 
@@ -549,7 +549,7 @@ You can run code without encryption:
 
 ```ruby
 ActiveRecord::Encryption.without_encryption do
-   ...
+  # ...
 end
 ```
 
@@ -561,7 +561,7 @@ You can run code without encryption but prevent overwriting encrypted content:
 
 ```ruby
 ActiveRecord::Encryption.protecting_encrypted_data do
-   ...
+  # ...
 end
 ```
 

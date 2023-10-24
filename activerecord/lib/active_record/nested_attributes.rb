@@ -283,13 +283,11 @@ module ActiveRecord
     #
     # === Creating forms with nested attributes
     #
-    # Use ActionView::Helpers::FormHelper#fields_for to create form elements
-    # for updating or destroying nested attributes.
+    # Use ActionView::Helpers::FormHelper#fields_for to create form elements for
+    # nested attributes.
     #
-    # === Testing
-    #
-    # If you are using ActionView::Helpers::FormHelper#fields_for, your integration
-    # tests should replicate the HTML structure it provides. For example;
+    # Integration test params should reflect the structure of the form. For
+    # example:
     #
     #   post members_path, params: {
     #     member: {
@@ -355,16 +353,11 @@ module ActiveRecord
         options.update(attr_names.extract_options!)
         options.assert_valid_keys(:allow_destroy, :reject_if, :limit, :update_only)
         options[:reject_if] = REJECT_ALL_BLANK_PROC if options[:reject_if] == :all_blank
-        options[:class] = self
 
         attr_names.each do |association_name|
           if reflection = _reflect_on_association(association_name)
             reflection.autosave = true
             define_autosave_validation_callbacks(reflection)
-
-            if nested_attributes_options.dig(association_name.to_sym, :class) == self
-              raise ArgumentError, "Already declared #{association_name} as an accepts_nested_attributes association for this class."
-            end
 
             nested_attributes_options = self.nested_attributes_options.dup
             nested_attributes_options[association_name.to_sym] = options

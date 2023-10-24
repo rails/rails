@@ -22,7 +22,7 @@ Import Maps
 
 [Import maps](https://github.com/rails/importmap-rails) let you import JavaScript modules using
 logical names that map to versioned files directly from the browser. Import maps are the default
-from Rails 7, allowing anyone to build modern JavaScript applications using most NPM packages
+from Rails 7, allowing anyone to build modern JavaScript applications using most npm packages
 without the need for transpiling or bundling.
 
 Applications using import maps do not need [Node.js](https://nodejs.org/en/) or
@@ -46,7 +46,7 @@ Run the install task:
 $ bin/rails importmap:install
 ```
 
-### Adding NPM Packages with importmap-rails
+### Adding npm Packages with importmap-rails
 
 To add new packages to your import map-powered application, run the `bin/importmap pin` command
 from your terminal:
@@ -62,7 +62,7 @@ import React from "react"
 import ReactDOM from "react-dom"
 ```
 
-Adding NPM Packages with JavaScript Bundlers
+Adding npm Packages with JavaScript Bundlers
 --------
 
 Import maps are the default for new Rails applications, but if you prefer traditional JavaScript
@@ -94,7 +94,7 @@ Bun, then you just need to install Bun as it is both a JavaScript runtime and a 
 #### Installing Bun
 
 Find the installation instructions at the [Bun website](https://bun.sh) and
-verify it’s installed correctly with the following command:
+verify it’s installed correctly and in your path with the following command:
 
 ```bash
 $ bun --version
@@ -102,6 +102,8 @@ $ bun --version
 
 The version of your Bun runtime should be printed out. If it says something
 like `1.0.0`, Bun has been installed correctly.
+
+If not, you may need to reinstall bun in the current directory or restart your terminal.
 
 #### Installing Node.js and Yarn
 

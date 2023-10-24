@@ -93,7 +93,7 @@ module ActiveRecord
     end
 
     def test_missing_with_association
-      assert posts(:authorless).author.blank?
+      assert_predicate posts(:authorless).author, :blank?
       assert_equal [posts(:authorless)], Post.where.missing(:author).to_a
     end
 
@@ -113,7 +113,7 @@ module ActiveRecord
     end
 
     def test_missing_with_multiple_association
-      assert posts(:authorless).comments.empty?
+      assert_predicate posts(:authorless).comments, :empty?
       assert_equal [posts(:authorless)], Post.where.missing(:author, :comments).to_a
     end
 

@@ -66,7 +66,7 @@ class HotCompatibilityTest < ActiveRecord::TestCase
           record.reload
         end
 
-        assert get_prepared_statement_cache(@klass.connection).any?,
+        assert_predicate get_prepared_statement_cache(@klass.connection), :any?,
           "expected prepared statement cache to have something in it"
 
         # add a new column
@@ -92,7 +92,7 @@ class HotCompatibilityTest < ActiveRecord::TestCase
           record.reload
         end
 
-        assert get_prepared_statement_cache(@klass.connection).any?,
+        assert_predicate get_prepared_statement_cache(@klass.connection), :any?,
           "expected prepared statement cache to have something in it"
 
         # add a new column

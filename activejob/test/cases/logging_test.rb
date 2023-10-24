@@ -144,6 +144,15 @@ class LoggingTest < ActiveSupport::TestCase
     end
   end
 
+  def test_perform_job_logging_when_job_is_not_enqueued
+    perform_enqueued_jobs do
+      LoggingJob.perform_now "Dummy"
+
+      assert_match(/Performing LoggingJob \(Job ID: .*?\) from .*? with arguments:.*Dummy/, @logger.messages)
+      assert_no_match(/enqueued at /, @logger.messages)
+    end
+  end
+
   def test_perform_job_log_error_when_callback_chain_is_halted
     subscribed { AbortBeforeEnqueueJob.perform_now }
     assert_match(/Error performing AbortBeforeEnqueueJob.* a before_perform callback halted/, @logger.messages)

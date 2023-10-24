@@ -67,7 +67,7 @@ module ActiveRecord
       unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDERR, STDOUT)
         console = ActiveSupport::Logger.new(STDERR)
         console.level = Rails.logger.level
-        Rails.logger.extend ActiveSupport::Logger.broadcast console
+        Rails.logger.broadcast_to(console)
       end
       ActiveRecord.verbose_query_logs = false
     end
@@ -162,10 +162,13 @@ To keep using the current cache store, you can turn off cache versioning entirel
                 warn "Failed to validate the schema cache because of #{error.class}: #{error.message}"
                 nil
               end
-              next if current_version.nil?
 
-              if cache.schema_version != current_version
+              if current_version.nil?
+                connection_pool.schema_reflection.clear!
+                next
+              elsif cache.schema_version != current_version
                 warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the schema cache file is #{cache.schema_version}."
+                connection_pool.schema_reflection.clear!
                 next
               end
             end
@@ -197,7 +200,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
           # Additionally if `check_schema_cache_dump_version` is enabled (which is the default),
           # loading the schema cache dump trigger a database connection to compare the schema
           # versions.
-          # This means the attribute methods will be lazily defined whent the model is accessed,
+          # This means the attribute methods will be lazily defined when the model is accessed,
           # likely as part of the first few requests or jobs. This isn't good for performance
           # but we unfortunately have to arbitrate between resiliency and performance, and chose
           # resiliency.
@@ -398,7 +401,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
 
       ActiveSupport.on_load(:active_record_fixture_set) do
-        # Encrypt active record fixtures
+        # Encrypt Active Record fixtures
         if ActiveRecord::Encryption.config.encrypt_fixtures
           ActiveRecord::Fixture.prepend ActiveRecord::Encryption::EncryptedFixtures
         end

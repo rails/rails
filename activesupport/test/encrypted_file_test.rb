@@ -93,14 +93,14 @@ class EncryptedFileTest < ActiveSupport::TestCase
   end
 
   test "key? is true when key file exists" do
-    assert @encrypted_file.key?
+    assert_predicate @encrypted_file, :key?
   end
 
   test "key? is true when env key is present" do
     FileUtils.rm_rf @key_path
     ENV["CONTENT_KEY"] = @key
 
-    assert @encrypted_file.key?
+    assert_predicate @encrypted_file, :key?
   end
 
   test "key? is false and does not raise when the key is missing" do

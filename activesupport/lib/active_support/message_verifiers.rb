@@ -126,6 +126,7 @@ module ActiveSupport
     # indicate whether old option sets are still in use or can be removed from
     # rotation.
 
+    ##
     private
       def build(salt, secret_generator:, secret_generator_options:, **options)
         MessageVerifier.new(secret_generator.call(salt, **secret_generator_options), **options)

@@ -720,7 +720,11 @@ class ActionsTest < Rails::Generators::TestCase
 
   private
     def action(...)
-      capture(:stdout) { generator.send(...) }
+      if ENV["RAILS_LOG_TO_STDOUT"] == "true"
+        generator.send(...)
+      else
+        capture(:stdout) { generator.send(...) }
+      end
     end
 
     def revoke(...)

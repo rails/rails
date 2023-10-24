@@ -31,7 +31,7 @@ class ActionMailbox::Base::BouncingTest < ActiveSupport::TestCase
       BouncingWithReplyMailbox.receive @inbound_email
     end
 
-    assert @inbound_email.bounced?
+    assert_predicate @inbound_email, :bounced?
     assert_emails 1
 
     mail = ActionMailer::Base.deliveries.last
@@ -44,7 +44,7 @@ class ActionMailbox::Base::BouncingTest < ActiveSupport::TestCase
       BouncingWithImmediateReplyMailbox.receive @inbound_email
     end
 
-    assert @inbound_email.bounced?
+    assert_predicate @inbound_email, :bounced?
     assert_emails 1
 
     mail = ActionMailer::Base.deliveries.last

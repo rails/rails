@@ -34,7 +34,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   ##
   # :method:
   #
-  # Returns the associated +ActiveStorage::Attachment+s.
+  # Returns the associated ActiveStorage::Attachment instances.
   has_many :attachments
 
   ##
@@ -47,7 +47,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
     self.service_name ||= self.class.service&.name
   end
 
-  after_update :touch_attachment_records
+  after_update :touch_attachments
 
   after_update_commit :update_service_metadata, if: -> { content_type_previously_changed? || metadata_previously_changed? }
 
@@ -158,7 +158,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
-  def signed_id(purpose: :blob_id, expires_in: nil)
+  def signed_id(purpose: :blob_id, expires_in: nil, expires_at: nil)
     super
   end
 
@@ -376,8 +376,14 @@ class ActiveStorage::Blob < ActiveStorage::Record
       end
     end
 
-    def touch_attachment_records
-      attachments.includes(:record).each do |attachment|
+    def touch_attachments
+      attachments.then do |relation|
+        if ActiveStorage.touch_attachment_records
+          relation.includes(:record)
+        else
+          relation
+        end
+      end.each do |attachment|
         attachment.touch
       end
     end

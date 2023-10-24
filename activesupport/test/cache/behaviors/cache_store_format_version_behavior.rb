@@ -64,16 +64,31 @@ module CacheStoreFormatVersionBehavior
 
       test "Marshal undefined class/module deserialization error with #{format_version} format" do
         key = "marshal-#{rand}"
-        self.class.const_set(:Foo, Class.new)
+        self.class.const_set(:RemovedConstant, Class.new)
         @store = with_format(format_version) { lookup_store }
-        @store.write(key, self.class::Foo.new)
-        assert_instance_of self.class::Foo, @store.read(key)
+        @store.write(key, self.class::RemovedConstant.new)
+        assert_instance_of self.class::RemovedConstant, @store.read(key)
 
-        self.class.send(:remove_const, :Foo)
+        self.class.send(:remove_const, :RemovedConstant)
         assert_nil @store.read(key)
         assert_equal false, @store.exist?(key)
       ensure
-        self.class.send(:remove_const, :Foo) rescue nil
+        self.class.send(:remove_const, :RemovedConstant) rescue nil
+      end
+
+      test "Compressed Marshal undefined class/module deserialization error with #{format_version} format" do
+        key = "marshal-#{rand}"
+        self.class.const_set(:RemovedConstant, Class.new)
+        @store = with_format(format_version) { lookup_store }
+        @store.write(key, self.class::RemovedConstant.new, compress: true, compress_threshold: 1)
+        assert_instance_of self.class::RemovedConstant, @store.read(key)
+
+        self.class.send(:remove_const, :RemovedConstant)
+        assert_nil @store.read(key)
+        assert_equal({}, @store.read_multi(key))
+        assert_equal("new-value", @store.fetch(key) { "new-value" })
+      ensure
+        self.class.send(:remove_const, :RemovedConstant) rescue nil
       end
     end
 

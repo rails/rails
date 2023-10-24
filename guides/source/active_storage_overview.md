@@ -386,8 +386,8 @@ end
 
 or if you are using Rails 6.0+, you can run a model generator command like this:
 
-```ruby
-bin/rails generate model User avatar:attachment
+```bash
+$ bin/rails generate model User avatar:attachment
 ```
 
 You can create a user with an avatar:
@@ -482,8 +482,8 @@ end
 
 or if you are using Rails 6.0+, you can run a model generator command like this:
 
-```ruby
-bin/rails generate model Message images:attachments
+```bash
+$ bin/rails generate model Message images:attachments
 ```
 
 You can create a message with images:
@@ -643,7 +643,7 @@ that is routed to the blob's [`RedirectController`][`ActiveStorage::Blobs::Redir
 
 ```ruby
 url_for(user.avatar)
-# => /rails/active_storage/blobs/:signed_id/my-avatar.png
+# => https://www.example.com/rails/active_storage/blobs/redirect/:signed_id/my-avatar.png
 ```
 
 The `RedirectController` redirects to the actual service endpoint. This
@@ -927,7 +927,7 @@ The two processors are not fully compatible, so when migrating an existing appli
 between MiniMagick and Vips, some changes have to be made if using options that are format
 specific:
 
-```rhtml
+```erb
 <!-- MiniMagick -->
 <%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg, sampling_factor: "4:2:0", strip: true, interlace: "JPEG", colorspace: "sRGB", quality: 80) %>
 
@@ -1326,7 +1326,7 @@ class DirectUploadsController < ActiveStorage::DirectUploadsController
   def authenticate!
     @token = request.headers['Authorization']&.split&.last
 
-    return head :unauthorized unless valid_token?(@token)
+    head :unauthorized unless valid_token?(@token)
   end
 end
 ```

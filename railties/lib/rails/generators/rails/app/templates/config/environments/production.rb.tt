@@ -45,7 +45,7 @@ Rails.application.configure do
   config.active_storage.service = :local
 
   <%- end -%>
-  <%- unless options[:skip_action_cable] -%>
+  <%- unless skip_action_cable? -%>
   # Mount Action Cable outside main process or domain.
   # config.action_cable.mount_path = nil
   # config.action_cable.url = "wss://example.com/cable"

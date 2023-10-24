@@ -7,7 +7,7 @@ module ActiveRecord
     # = Active Record Attribute Methods \Dirty
     #
     # Provides a way to track changes in your Active Record models. It adds all
-    # methods from ActiveModel::Dirty and adds database specific methods.
+    # methods from ActiveModel::Dirty and adds database-specific methods.
     #
     # A newly created +Person+ object is unchanged:
     #

@@ -64,7 +64,7 @@ module ActiveModel
       #   validates_presence_of :password_confirmation, if: :password_changed?
       #
       # Configuration options:
-      # * <tt>:message</tt> - A custom error message (default is: "doesn’t match
+      # * <tt>:message</tt> - A custom error message (default is: "doesn't match
       #   <tt>%{translated_attribute_name}</tt>").
       # * <tt>:case_sensitive</tt> - Looks for an exact match. Ignored by
       #   non-text columns (+true+ by default).

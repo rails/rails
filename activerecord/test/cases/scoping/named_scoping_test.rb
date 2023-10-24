@@ -255,7 +255,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_any_should_not_fire_query_if_scope_loaded
     topics = Topic.base
     topics.load # force load
-    assert_no_queries { assert topics.any? }
+    assert_no_queries { assert_predicate topics, :any? }
   end
 
   def test_model_class_should_respond_to_any
@@ -285,7 +285,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_many_should_not_fire_query_if_scope_loaded
     topics = Topic.base
     topics.load # force load
-    assert_no_queries { assert topics.many? }
+    assert_no_queries { assert_predicate topics, :many? }
   end
 
   def test_many_should_return_false_if_none_or_one
@@ -496,12 +496,12 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal 4, Topic.approved.count
 
     assert_queries(5) do
-      Topic.approved.find_each(batch_size: 1) { |t| assert t.approved? }
+      Topic.approved.find_each(batch_size: 1) { |t| assert_predicate t, :approved? }
     end
 
     assert_queries(3) do
       Topic.approved.find_in_batches(batch_size: 2) do |group|
-        group.each { |t| assert t.approved? }
+        group.each { |t| assert_predicate t, :approved? }
       end
     end
   end
@@ -534,7 +534,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   # Note: these next two are kinda odd because they are essentially just testing that the
-  # query cache works as it should, but they are here for legacy reasons as they was previously
+  # query cache works as it should, but they are here for legacy reasons as there was previously
   # a separate cache on association proxies, and these show that that is not necessary.
   def test_scopes_are_cached_on_associations
     post = posts(:welcome)

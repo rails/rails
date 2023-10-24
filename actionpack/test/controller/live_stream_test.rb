@@ -324,9 +324,9 @@ module ActionController
     tests TestController
 
     def assert_stream_closed
-      assert response.stream.closed?, "stream should be closed"
-      assert response.committed?,     "response should be committed"
-      assert response.sent?,          "response should be sent"
+      assert_predicate response.stream, :closed?, "stream should be closed"
+      assert_predicate response, :committed?,     "response should be committed"
+      assert_predicate response, :sent?,          "response should be sent"
     end
 
     def capture_log_output

@@ -49,7 +49,7 @@ module Rails
       end
 
       def html_status(color:)
-        %(<html><body style="background-color: #{color}"></body></html>).html_safe
+        %(<!DOCTYPE html><html><body style="background-color: #{color}"></body></html>).html_safe
       end
   end
 end

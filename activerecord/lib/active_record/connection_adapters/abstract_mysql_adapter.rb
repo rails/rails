@@ -531,6 +531,13 @@ module ActiveRecord
             expression = row["expression"]
             expression = expression[1..-2] if expression.start_with?("(") && expression.end_with?(")")
             expression = strip_whitespace_characters(expression)
+
+            unless mariadb?
+              # MySQL returns check constraints expression in an already escaped form.
+              # This leads to duplicate escaping later (e.g. when the expression is used in the SchemaDumper).
+              expression = expression.gsub("\\'", "'")
+            end
+
             CheckConstraintDefinition.new(table_name, expression, options)
           end
         else
@@ -863,6 +870,7 @@ module ActiveRecord
         end
 
         def configure_connection
+          super
           variables = @config.fetch(:variables, {}).stringify_keys
 
           # Increase timeout so the server doesn't disconnect us.

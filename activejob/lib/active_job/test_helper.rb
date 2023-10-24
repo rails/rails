@@ -54,15 +54,10 @@ module ActiveJob
       queue_adapter_changed_jobs.each { |klass| klass.disable_test_adapter }
     end
 
-    # Specifies the queue adapter to use with all Active Job test helpers.
-    #
-    # Returns an instance of the queue adapter and defaults to
-    # ActiveJob::QueueAdapters::TestAdapter.
-    #
-    # Note: The adapter provided by this method must provide some additional
-    # methods from those expected of a standard ActiveJob::QueueAdapter
-    # in order to be used with the active job test helpers. Refer to
-    # ActiveJob::QueueAdapters::TestAdapter.
+    # Returns a queue adapter instance to use with all Active Job test helpers.
+    # By default, returns an instance of ActiveJob::QueueAdapters::TestAdapter.
+    # Override this method to specify a different adapter. The adapter must
+    # implement the same interface as ActiveJob::QueueAdapters::TestAdapter.
     def queue_adapter_for_test
       ActiveJob::QueueAdapters::TestAdapter.new
     end
@@ -600,11 +595,12 @@ module ActiveJob
     #     assert_performed_jobs 1
     #   end
     #
-    # If the +:at+ option is specified, then only run jobs enqueued to run
-    # immediately or before the given time
+    # If the +:at+ option is specified, then only jobs that have been enqueued
+    # to run at or before the given time will be performed. This includes jobs
+    # that have been enqueued without a time.
     #
-    # If an adapter other than the test adapter is in use, this method just yields.
-    # See queue_adapter_for_test for more information.
+    # If queue_adapter_for_test is overridden to return a different adapter,
+    # +perform_enqueued_jobs+ will merely execute the block.
     def perform_enqueued_jobs(only: nil, except: nil, queue: nil, at: nil, &block)
       return flush_enqueued_jobs(only: only, except: except, queue: queue, at: at) unless block_given?
 
@@ -730,7 +726,7 @@ module ActiveJob
 
       def instantiate_job(payload, skip_deserialize_arguments: false)
         job = payload[:job].deserialize(payload)
-        job.scheduled_at = payload[:at].to_f if payload.key?(:at)
+        job.scheduled_at = Time.at(payload[:at]) if payload.key?(:at)
         job.send(:deserialize_arguments_if_needed) unless skip_deserialize_arguments
         job
       end

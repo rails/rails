@@ -34,7 +34,7 @@ history to the latest version. Active Record will also update your
 Here's an example of a migration:
 
 ```ruby
-class CreateProducts < ActiveRecord::Migration[7.1]
+class CreateProducts < ActiveRecord::Migration[7.2]
   def change
     create_table :products do |t|
       t.string :name
@@ -73,7 +73,7 @@ If you wish for a migration to do something that Active Record doesn't know how
 to reverse, you can use `reversible`:
 
 ```ruby
-class ChangeProductsPrice < ActiveRecord::Migration[7.1]
+class ChangeProductsPrice < ActiveRecord::Migration[7.2]
   def change
     reversible do |direction|
       change_table :products do |t|
@@ -92,7 +92,7 @@ passed to `direction.up` and `direction.down` respectively.
 Alternatively, you can use `up` and `down` instead of `change`:
 
 ```ruby
-class ChangeProductsPrice < ActiveRecord::Migration[7.1]
+class ChangeProductsPrice < ActiveRecord::Migration[7.2]
   def up
     change_table :products do |t|
       t.change :price, :string
@@ -136,7 +136,7 @@ $ bin/rails generate migration AddPartNumberToProducts
 This will create an appropriately named empty migration:
 
 ```ruby
-class AddPartNumberToProducts < ActiveRecord::Migration[7.1]
+class AddPartNumberToProducts < ActiveRecord::Migration[7.2]
   def change
   end
 end
@@ -160,7 +160,7 @@ $ bin/rails generate migration AddPartNumberToProducts part_number:string
 This will generate the following migration:
 
 ```ruby
-class AddPartNumberToProducts < ActiveRecord::Migration[7.1]
+class AddPartNumberToProducts < ActiveRecord::Migration[7.2]
   def change
     add_column :products, :part_number, :string
   end
@@ -176,7 +176,7 @@ $ bin/rails generate migration AddPartNumberToProducts part_number:string:index
 This will generate the appropriate [`add_column`][] and [`add_index`][] statements:
 
 ```ruby
-class AddPartNumberToProducts < ActiveRecord::Migration[7.1]
+class AddPartNumberToProducts < ActiveRecord::Migration[7.2]
   def change
     add_column :products, :part_number, :string
     add_index :products, :part_number
@@ -194,7 +194,7 @@ Will generate a schema migration which adds two additional
 columns to the `products` table.
 
 ```ruby
-class AddDetailsToProducts < ActiveRecord::Migration[7.1]
+class AddDetailsToProducts < ActiveRecord::Migration[7.2]
   def change
     add_column :products, :part_number, :string
     add_column :products, :price, :decimal
@@ -213,7 +213,7 @@ $ bin/rails generate migration RemovePartNumberFromProducts part_number:string
 This generates the appropriate [`remove_column`][] statements:
 
 ```ruby
-class RemovePartNumberFromProducts < ActiveRecord::Migration[7.1]
+class RemovePartNumberFromProducts < ActiveRecord::Migration[7.2]
   def change
     remove_column :products, :part_number, :string
   end
@@ -233,7 +233,7 @@ $ bin/rails generate migration CreateProducts name:string part_number:string
 generates
 
 ```ruby
-class CreateProducts < ActiveRecord::Migration[7.1]
+class CreateProducts < ActiveRecord::Migration[7.2]
   def change
     create_table :products do |t|
       t.string :name
@@ -261,7 +261,7 @@ $ bin/rails generate migration AddUserRefToProducts user:references
 generates the following [`add_reference`][] call:
 
 ```ruby
-class AddUserRefToProducts < ActiveRecord::Migration[7.1]
+class AddUserRefToProducts < ActiveRecord::Migration[7.2]
   def change
     add_reference :products, :user, foreign_key: true
   end
@@ -281,7 +281,7 @@ $ bin/rails generate migration CreateJoinTableCustomerProduct customer product
 will produce the following migration:
 
 ```ruby
-class CreateJoinTableCustomerProduct < ActiveRecord::Migration[7.1]
+class CreateJoinTableCustomerProduct < ActiveRecord::Migration[7.2]
   def change
     create_join_table :customers, :products do |t|
       # t.index [:customer_id, :product_id]
@@ -310,7 +310,7 @@ $ bin/rails generate model Product name:string description:text
 This will create a migration that looks like this:
 
 ```ruby
-class CreateProducts < ActiveRecord::Migration[7.1]
+class CreateProducts < ActiveRecord::Migration[7.2]
   def change
     create_table :products do |t|
       t.string :name
@@ -338,7 +338,7 @@ $ bin/rails generate migration AddDetailsToProducts 'price:decimal{5,2}' supplie
 will produce a migration that looks like this
 
 ```ruby
-class AddDetailsToProducts < ActiveRecord::Migration[7.1]
+class AddDetailsToProducts < ActiveRecord::Migration[7.2]
   def change
     add_column :products, :price, :decimal, precision: 5, scale: 2
     add_reference :products, :supplier, polymorphic: true
@@ -374,7 +374,7 @@ you. You can change the name of the column with the `:primary_key` option, or
 pass an array to `:primary_key` for a composite primary key. If you don't want
 a primary key at all, you can pass the option `id: false`.
 
-If you need to pass database specific options you can place an SQL fragment in
+If you need to pass database-specific options you can place an SQL fragment in
 the `:options` option. For example:
 
 ```ruby
@@ -635,7 +635,7 @@ You can create a table with a composite primary key by passing the
 `:primary_key` option to `create_table` with an array value:
 
 ```ruby
-class CreateProducts < ActiveRecord::Migration[7.1]
+class CreateProducts < ActiveRecord::Migration[7.2]
   def change
     create_table :products, primary_key: [:customer_id, :product_sku] do |t|
       t.integer :customer_id
@@ -685,37 +685,29 @@ actions automatically. Below are some of the actions that `change` supports:
 * [`add_index`][]
 * [`add_reference`][]
 * [`add_timestamps`][]
-* [`change_column_comment`][] (must supply a `:from` and `:to` option)
-* [`change_column_default`][] (must supply a `:from` and `:to` option)
+* [`change_column_comment`][] (must supply `:from` and `:to` options)
+* [`change_column_default`][] (must supply `:from` and `:to` options)
 * [`change_column_null`][]
-* [`change_table_comment`][] (must supply a `:from` and `:to` option)
+* [`change_table_comment`][] (must supply `:from` and `:to` options)
 * [`create_join_table`][]
 * [`create_table`][]
 * `disable_extension`
 * [`drop_join_table`][]
-* [`drop_table`][] (must supply a block)
+* [`drop_table`][] (must supply table creation options and block)
 * `enable_extension`
-* [`remove_check_constraint`][] (must supply a constraint expression)
-* [`remove_column`][] (must supply a type)
-* [`remove_columns`][] (must supply a `:type` option)
-* [`remove_foreign_key`][] (must supply a second table)
-* [`remove_index`][]
-* [`remove_reference`][]
-* [`remove_timestamps`][]
+* [`remove_check_constraint`][] (must supply original constraint expression)
+* [`remove_column`][] (must supply original type and column options)
+* [`remove_columns`][] (must supply original type and column options)
+* [`remove_foreign_key`][] (must supply other table and original options)
+* [`remove_index`][] (must supply columns and original options)
+* [`remove_reference`][] (must supply original options)
+* [`remove_timestamps`][] (must supply original options)
 * [`rename_column`][]
 * [`rename_index`][]
 * [`rename_table`][]
 
 [`change_table`][] is also reversible, as long as the block only calls
 reversible operations like the ones listed above.
-
-`remove_column` is reversible if you supply the column type as the third
-argument. Provide the original column options too, otherwise Rails can't
-recreate the column exactly when rolling back:
-
-```ruby
-remove_column :posts, :slug, :string, null: false, default: ''
-```
 
 If you're going to need to use any other methods, you should use `reversible`
 or write the `up` and `down` methods instead of using the `change` method.
@@ -744,7 +736,7 @@ reverse. You can use [`reversible`][] to specify what to do when running a
 migration and what else to do when reverting it. For example:
 
 ```ruby
-class ExampleMigration < ActiveRecord::Migration[7.1]
+class ExampleMigration < ActiveRecord::Migration[7.2]
   def change
     create_table :distributors do |t|
       t.string :zipcode
@@ -766,16 +758,15 @@ class ExampleMigration < ActiveRecord::Migration[7.1]
       end
     end
 
-    add_column :users, :home_page_url, :string
-    rename_column :users, :email, :email_address
+    add_column :users, :address, :string
   end
 end
 ```
 
 Using `reversible` will ensure that the instructions are executed in the right
 order too. If the previous example migration is reverted, the `down` block will
-be run after the `home_page_url` column is removed and `email_address` column is renamed and right before the table
-`distributors` is dropped.
+be run after the `users.address` column is removed and before the `distributors`
+table is dropped.
 
 [`reversible`]: https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-reversible
 
@@ -795,7 +786,7 @@ reverse order they were made in the `up` method. The example in the `reversible`
 section is equivalent to:
 
 ```ruby
-class ExampleMigration < ActiveRecord::Migration[7.1]
+class ExampleMigration < ActiveRecord::Migration[7.2]
   def up
     create_table :distributors do |t|
       t.string :zipcode
@@ -808,13 +799,11 @@ class ExampleMigration < ActiveRecord::Migration[7.1]
       FROM distributors;
     SQL
 
-    add_column :users, :home_page_url, :string
-    rename_column :users, :email, :email_address
+    add_column :users, :address, :string
   end
 
   def down
-    rename_column :users, :email_address, :email
-    remove_column :users, :home_page_url
+    remove_column :users, :address
 
     execute <<-SQL
       DROP VIEW distributors_view;
@@ -843,7 +832,7 @@ You can use Active Record's ability to rollback migrations using the [`revert`][
 ```ruby
 require_relative "20121212123456_example_migration"
 
-class FixupExampleMigration < ActiveRecord::Migration[7.1]
+class FixupExampleMigration < ActiveRecord::Migration[7.2]
   def change
     revert ExampleMigration
 
@@ -861,7 +850,7 @@ For example, let's imagine that `ExampleMigration` is committed and it is later
 decided that a Distributors view is no longer needed.
 
 ```ruby
-class DontUseDistributorsViewMigration < ActiveRecord::Migration[7.1]
+class DontUseDistributorsViewMigration < ActiveRecord::Migration[7.2]
   def change
     revert do
       # copy-pasted code from ExampleMigration
@@ -965,6 +954,26 @@ version to migrate to.
 The `bin/rails db:setup` command will create the database, load the schema, and initialize
 it with the seed data.
 
+### Preparing the Database
+
+The `bin/rails db:prepare` command is similar to `bin/rails db:setup`, but it
+operates idempotently.
+
+* If the database has not been created yet, the command will run as the
+  `bin/rails db:setup` does.
+* If the database exists but the tables have not been created, the command will
+  load the schema, run any pending migrations, dump the updated schema, and
+  finally load the seed data.
+* If both the database and tables exist but the seed data has not been loaded,
+  the command will only load the seed data.
+* If the database, tables, and seed data are all in place, the command will do
+  nothing.
+
+NOTE: Once the database, tables, and seed data are all established, the command
+will not try to reload the seed data, even if the previously loaded seed data or
+the existing seed file have been altered or deleted. To reload the seed data,
+you can manually run `bin/rails db:seed`.
+
 ### Resetting the Database
 
 The `bin/rails db:reset` command will drop the database and set it up again. This is
@@ -1039,7 +1048,7 @@ Several methods are provided in migrations that allow you to control all this:
 For example, take the following migration:
 
 ```ruby
-class CreateProducts < ActiveRecord::Migration[7.1]
+class CreateProducts < ActiveRecord::Migration[7.2]
   def change
     suppress_messages do
       create_table :products do |t|
@@ -1144,7 +1153,7 @@ When `:ruby` is selected, then the schema is stored in `db/schema.rb`. If you lo
 at this file you'll find that it looks an awful lot like one very big migration:
 
 ```ruby
-ActiveRecord::Schema[7.1].define(version: 2008_09_06_171750) do
+ActiveRecord::Schema[7.2].define(version: 2008_09_06_171750) do
   create_table "authors", force: true do |t|
     t.string   "name"
     t.datetime "created_at"
@@ -1229,7 +1238,7 @@ modify data. This is useful in an existing database that can't be destroyed and
 recreated, such as a production database.
 
 ```ruby
-class AddInitialProducts < ActiveRecord::Migration[7.1]
+class AddInitialProducts < ActiveRecord::Migration[7.2]
   def up
     5.times do |i|
       Product.create(name: "Product ##{i}", description: "A product.")

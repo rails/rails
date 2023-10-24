@@ -44,7 +44,7 @@ class SubscriptionsTestChannelTest < ActionCable::Channel::TestCase
   def test_subscribe
     subscribe
 
-    assert subscription.confirmed?
+    assert_predicate subscription, :confirmed?
     assert_not subscription.rejected?
     assert_equal 1, connection.transmissions.size
     assert_equal ActionCable::INTERNAL[:message_types][:confirmation],
@@ -77,7 +77,7 @@ class RejectionTestChannelTest < ActionCable::Channel::TestCase
     subscribe
 
     assert_not subscription.confirmed?
-    assert subscription.rejected?
+    assert_predicate subscription, :rejected?
     assert_equal 1, connection.transmissions.size
     assert_equal ActionCable::INTERNAL[:message_types][:rejection],
                  connection.transmissions.last["type"]

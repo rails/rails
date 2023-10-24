@@ -140,7 +140,7 @@ module AbstractController
 
     abstract!
 
-    # Calls the action going through the entire action dispatch stack.
+    # Calls the action going through the entire Action Dispatch stack.
     #
     # The actual method that is called is determined by calling
     # #method_for_action. If no method can handle the action, then an

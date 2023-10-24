@@ -277,6 +277,7 @@ The new API includes the following asynchronous methods:
 - `async_average`
 - `async_pluck`
 - `async_pick`
+- `async_ids`
 - `async_find_by_sql`
 - `async_count_by_sql`
 
@@ -421,6 +422,62 @@ assert_pattern { html.at("main") => { children: [{ name: "h1", content: /content
 [#47144]: https://github.com/rails/rails/pull/47144
 [nokogiri-pattern-matching]: https://nokogiri.org/rdoc/Nokogiri/XML/Attr.html#method-i-deconstruct_keys
 [minitest-pattern-matching]: https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-assert_pattern
+
+### Introduce `ActionView::TestCase.register_parser`
+
+[Extend `ActionView::TestCase`][#49194] to support parsing content rendered by
+view partials into known structures. By default, define `rendered_html` to parse
+HTML into a `Nokogiri::XML::Node` and `rendered_json` to parse JSON into an
+`ActiveSupport::HashWithIndifferentAccess`:
+
+```ruby
+test "renders HTML" do
+  article = Article.create!(title: "Hello, world")
+
+  render partial: "articles/article", locals: { article: article }
+
+  assert_pattern { rendered_html.at("main h1") => { content: "Hello, world" } }
+end
+
+test "renders JSON" do
+  article = Article.create!(title: "Hello, world")
+
+  render formats: :json, partial: "articles/article", locals: { article: article }
+
+  assert_pattern { rendered_json => { title: "Hello, world" } }
+end
+```
+
+To parse the rendered content into RSS, register a call to `RSS::Parser.parse`:
+
+```ruby
+register_parser :rss, -> rendered { RSS::Parser.parse(rendered) }
+
+test "renders RSS" do
+  article = Article.create!(title: "Hello, world")
+
+  render formats: :rss, partial: article, locals: { article: article }
+
+  assert_equal "Hello, world", rendered_rss.items.last.title
+end
+```
+
+To parse the rendered content into a Capybara::Simple::Node, re-register an
+`:html` parser with a call to `Capybara.string`:
+
+```ruby
+register_parser :html, -> rendered { Capybara.string(rendered) }
+
+test "renders HTML" do
+  article = Article.create!(title: "Hello, world")
+
+  render partial: article
+
+  rendered_html.assert_css "main h1", text: "Hello, world"
+end
+```
+
+[#49194]: https://github.com/rails/rails/pull/49194
 
 Railties
 --------
@@ -601,6 +658,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Deprecate `rewhere` argument on `#merge`.
 
+*   Deprecate aliasing non-attributes with `alias_attribute`.
+
 ### Notable changes
 
 *   Add `TestFixtures#fixture_paths` to support multiple fixture paths.
@@ -615,6 +674,29 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Add `:include` option to `add_index`.
 
 *   Add `#regroup` query method as a short-hand for `.unscope(:group).group(fields)`.
+
+*   Add support for auto-populated columns, and custom primary keys to the `SQLite3` adapter.
+
+*   Add modern, performant defaults for `SQLite3` database connections.
+
+*   Allow specifying where clauses with column-tuple syntax.
+
+    ```ruby
+    Topic.where([:title, :author_name] => [["The Alchemist", "Paulo Coelho"], ["Harry Potter", "J.K Rowling"]])
+    ```
+
+*   Auto generated index names are now limited to 62 bytes, which fits within the default
+    index name length limits for MySQL, PostgreSQL and SQLite.
+
+*   Introduce adapter for Trilogy database client.
+
+*   Add `ActiveRecord.disconnect_all!` method to immediately close all connections from all pools.
+
+*   Add PostgreSQL migration commands for enum rename, add value, and rename value.
+
+*   Add `ActiveRecord::Base#id_value` alias to access the raw value of a record's id column.
+
+*   Add validation option for `enum`.
 
 Active Storage
 --------------
@@ -643,7 +725,7 @@ Please refer to the [Changelog][active-storage] for detailed changes.
 
 *   `preprocessed` option is added when declaring variants to preprocess variants.
 
-*   Add the ability to destroy active storage variants.
+*   Add the ability to destroy Active Storage variants.
 
     ```ruby
     User.first.avatar.variant(resize_to_limit: [100, 100]).destroy
@@ -670,6 +752,10 @@ Please refer to the [Changelog][active-model] for detailed changes.
 
     ```ruby
     validates_inclusion_of :birth_date, in: -> { (..Date.today) }
+    ```
+
+    ```ruby
+    validates_exclusion_of :birth_date, in: -> { (..Date.today) }
     ```
 
 *   Add support for password challenges to `has_secure_password`. When set, validate that the password
@@ -791,16 +877,16 @@ See the
 for the many people who spent many hours making Rails, the stable and robust
 framework it is. Kudos to all of them.
 
-[railties]:       https://github.com/rails/rails/blob/main/railties/CHANGELOG.md
-[action-pack]:    https://github.com/rails/rails/blob/main/actionpack/CHANGELOG.md
-[action-view]:    https://github.com/rails/rails/blob/main/actionview/CHANGELOG.md
-[action-mailer]:  https://github.com/rails/rails/blob/main/actionmailer/CHANGELOG.md
-[action-cable]:   https://github.com/rails/rails/blob/main/actioncable/CHANGELOG.md
-[active-record]:  https://github.com/rails/rails/blob/main/activerecord/CHANGELOG.md
-[active-storage]: https://github.com/rails/rails/blob/main/activestorage/CHANGELOG.md
-[active-model]:   https://github.com/rails/rails/blob/main/activemodel/CHANGELOG.md
-[active-support]: https://github.com/rails/rails/blob/main/activesupport/CHANGELOG.md
-[active-job]:     https://github.com/rails/rails/blob/main/activejob/CHANGELOG.md
-[action-text]:    https://github.com/rails/rails/blob/main/actiontext/CHANGELOG.md
-[action-mailbox]: https://github.com/rails/rails/blob/main/actionmailbox/CHANGELOG.md
-[guides]:         https://github.com/rails/rails/blob/main/guides/CHANGELOG.md
+[railties]:       https://github.com/rails/rails/blob/7-1-stable/railties/CHANGELOG.md
+[action-pack]:    https://github.com/rails/rails/blob/7-1-stable/actionpack/CHANGELOG.md
+[action-view]:    https://github.com/rails/rails/blob/7-1-stable/actionview/CHANGELOG.md
+[action-mailer]:  https://github.com/rails/rails/blob/7-1-stable/actionmailer/CHANGELOG.md
+[action-cable]:   https://github.com/rails/rails/blob/7-1-stable/actioncable/CHANGELOG.md
+[active-record]:  https://github.com/rails/rails/blob/7-1-stable/activerecord/CHANGELOG.md
+[active-storage]: https://github.com/rails/rails/blob/7-1-stable/activestorage/CHANGELOG.md
+[active-model]:   https://github.com/rails/rails/blob/7-1-stable/activemodel/CHANGELOG.md
+[active-support]: https://github.com/rails/rails/blob/7-1-stable/activesupport/CHANGELOG.md
+[active-job]:     https://github.com/rails/rails/blob/7-1-stable/activejob/CHANGELOG.md
+[action-text]:    https://github.com/rails/rails/blob/7-1-stable/actiontext/CHANGELOG.md
+[action-mailbox]: https://github.com/rails/rails/blob/7-1-stable/actionmailbox/CHANGELOG.md
+[guides]:         https://github.com/rails/rails/blob/7-1-stable/guides/CHANGELOG.md

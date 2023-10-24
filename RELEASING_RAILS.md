@@ -47,7 +47,7 @@ branch.
 ## Day of release
 
 If making multiple releases. Publish them in order from oldest to newest, to
-ensure that the "greatest" version also shows up in NPM and GitHub Releases as
+ensure that the "greatest" version also shows up in npm and GitHub Releases as
 "latest".
 
 ### Put the new version in the RAILS_VERSION file.

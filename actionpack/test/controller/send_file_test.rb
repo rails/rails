@@ -207,6 +207,37 @@ class SendFileTest < ActionController::TestCase
     assert_equal file_data, response.body
   end
 
+  def test_send_file_instrumentation
+    @controller.options = { disposition: :inline }
+    payload = nil
+
+    subscriber = proc do |event|
+      payload = event.payload
+    end
+
+    ActiveSupport::Notifications.subscribed(subscriber, "send_file.action_controller") do
+      process("file")
+    end
+
+    assert_equal __FILE__, payload[:path]
+    assert_equal :inline, payload[:disposition]
+  end
+
+  def test_send_data_instrumentation
+    @controller.options = { content_type: "application/x-ruby" }
+    payload = nil
+
+    subscriber = proc do |event|
+      payload = event.payload
+    end
+
+    ActiveSupport::Notifications.subscribed(subscriber, "send_data.action_controller") do
+      process("data")
+    end
+
+    assert_equal("application/x-ruby", payload[:content_type])
+  end
+
   %w(file data).each do |method|
     define_method "test_send_#{method}_status" do
       @controller.options = { stream: false, status: 500 }

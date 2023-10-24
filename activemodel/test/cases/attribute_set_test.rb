@@ -274,9 +274,20 @@ module ActiveModel
       attributes = builder.build_from_database(foo: "1", bar: "2")
       attributes2 = builder.build_from_database(foo: "1", bar: "2")
       attributes3 = builder.build_from_database(foo: "2", bar: "2")
+      attributes4 = attributes.deep_dup
 
       assert_equal attributes, attributes2
       assert_not_equal attributes2, attributes3
+      assert_equal attributes, attributes4
+      assert_equal attributes4, attributes
+    end
+
+    test "==(other) is safe to use with any instance" do
+      attribute_set = AttributeSet.new({})
+
+      assert_equal false, attribute_set == nil
+      assert_equal false, attribute_set == 1
+      assert_equal true, attribute_set == attribute_set
     end
 
     private

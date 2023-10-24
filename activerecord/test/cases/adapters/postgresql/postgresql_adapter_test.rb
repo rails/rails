@@ -330,19 +330,21 @@ module ActiveRecord
         end
       end
 
-      def test_include_index
-        with_example_table do
-          @connection.add_index "ex", %w{ id }, name: "include", include: :number
-          index = @connection.indexes("ex").find { |idx| idx.name == "include" }
-          assert_equal ["number"], index.include
+      if supports_index_include?
+        def test_include_index
+          with_example_table do
+            @connection.add_index "ex", %w{ id }, name: "include", include: :number
+            index = @connection.indexes("ex").find { |idx| idx.name == "include" }
+            assert_equal ["number"], index.include
+          end
         end
-      end
 
-      def test_include_multiple_columns_index
-        with_example_table do
-          @connection.add_index "ex", %w{ id }, name: "include", include: [:number, :data]
-          index = @connection.indexes("ex").find { |idx| idx.name == "include" }
-          assert_equal ["number", "data"], index.include
+        def test_include_multiple_columns_index
+          with_example_table do
+            @connection.add_index "ex", %w{ id }, name: "include", include: [:number, :data]
+            index = @connection.indexes("ex").find { |idx| idx.name == "include" }
+            assert_equal ["number", "data"], index.include
+          end
         end
       end
 
@@ -469,6 +471,7 @@ module ActiveRecord
       def test_only_reload_type_map_once_for_every_unrecognized_type
         reset_connection
         connection = ActiveRecord::Base.connection
+        connection.select_all "SELECT 1" # eagerly initialize the connection
 
         silence_warnings do
           assert_queries 2, ignore_none: true do

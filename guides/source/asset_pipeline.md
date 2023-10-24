@@ -30,7 +30,7 @@ passing the `--skip-asset-pipeline` option.
 $ rails new appname --skip-asset-pipeline
 ```
 
-NOTE: This guide focuses on the default asset pipeline using only `sprockets` for CSS and `importmap-rails` for JavaScript processing. The main limitation of those two is that there is no support for transpiling so you can't use things like `Babel`, `Typescript`, `Sass`, `React JSX format` or `TailwindCSS`. We encourage you to read the [Alternative Libraries section](#alternative-libraries) if you need transpiling for your JavaScript/CSS.
+NOTE: This guide focuses on the default asset pipeline using only `sprockets` for CSS and `importmap-rails` for JavaScript processing. The main limitation of those two is that there is no support for transpiling so you can't use things like Babel, TypeScript, Sass, React JSX format, or Tailwind CSS. We encourage you to read the [Alternative Libraries section](#alternative-libraries) if you need transpiling for your JavaScript/CSS.
 
 ## Main Features
 
@@ -41,7 +41,7 @@ invalidates the cache.
 
 The second feature of the asset pipeline is to use [import maps](https://github.com/WICG/import-maps)
 when serving JavaScript files. This lets you build modern applications using
-Javascript libraries made for ES modules (ESM) without the need for transpiling
+JavaScript libraries made for ES modules (ESM) without the need for transpiling
 and bundling. In turn, **this eliminates the need for Webpack, yarn, node or any
 other part of the JavaScript toolchain**.
 
@@ -89,12 +89,12 @@ Import maps let you import JavaScript modules using logical names that map to ve
 
 With this approach, you'll ship many small JavaScript files instead of one big JavaScript file. Thanks to HTTP/2 that no longer carries a material performance penalty during the initial transport, and in fact offers substantial benefits over the long run due to better caching dynamics.
 
-How to use Import Maps as Javascript Asset Pipeline
+How to use Import Maps as JavaScript Asset Pipeline
 -----------------------------
 
-Import Maps are the default Javascript processor, the logic of generating import maps is handled by the [`importmap-rails`](https://github.com/rails/importmap-rails) gem.
+Import Maps are the default JavaScript processor, the logic of generating import maps is handled by the [`importmap-rails`](https://github.com/rails/importmap-rails) gem.
 
-WARNING: Import maps are used only for Javascript files and can not be used for CSS delivery. Check the [Sprockets section](#how-to-use-sprockets) to learn about CSS.
+WARNING: Import maps are used only for JavaScript files and can not be used for CSS delivery. Check the [Sprockets section](#how-to-use-sprockets) to learn about CSS.
 
 You can find detailed usage instructions on the Gem homepage, but it's important to understand the basics of `importmap-rails`.
 
@@ -241,7 +241,9 @@ Example:
 # config/importmap.rb
 pin "@github/hotkey", to: "https://ga.jspm.io/npm:@github/hotkey@1.4.4/dist/index.js", preload: true
 pin "md5", to: "https://cdn.jsdelivr.net/npm/md5@2.3.0/md5.js"
+```
 
+```erb
 # app/views/layouts/application.html.erb
 <%= javascript_importmap_tags %>
 
@@ -325,9 +327,9 @@ Pipeline assets can be placed inside an application in one of three locations:
 
 * `app/javascript` is for your JavaScript code
 
-* `vendor/[assets|javascript]` is for assets that are owned by outside entities, such as CSS frameworks or Javascript libraries. Keep in mind that third-party code with references to other files also processed by the asset Pipeline (images, stylesheets, etc.), will need to be rewritten to use helpers like `asset_path`.
+* `vendor/[assets|javascript]` is for assets that are owned by outside entities, such as CSS frameworks or JavaScript libraries. Keep in mind that third-party code with references to other files also processed by the asset Pipeline (images, stylesheets, etc.), will need to be rewritten to use helpers like `asset_path`.
 
-Other locations could by configured in the `manifest.js` file, refer to the [Manifest Files and Directives](#manifest-files-and-directives).
+Other locations could be configured in the `manifest.js` file, refer to the [Manifest Files and Directives](#manifest-files-and-directives).
 
 #### Search Paths
 
@@ -1044,7 +1046,7 @@ Sprockets.register_preprocessor 'text/css', AddComment
 Alternative Libraries
 ------------------------------------------
 
-Over the years there have been multiple default approaches for handling the assets. The web evolved and we started to see more and more Javascript-heavy applications. In The Rails Doctrine we believe that [The Menu Is Omakase](https://rubyonrails.org/doctrine#omakase) so we focused on the default setup: **Sprockets with Import Maps**.
+Over the years there have been multiple default approaches for handling the assets. The web evolved and we started to see more and more JavaScript-heavy applications. In The Rails Doctrine we believe that [The Menu Is Omakase](https://rubyonrails.org/doctrine#omakase) so we focused on the default setup: **Sprockets with Import Maps**.
 
 We are aware that there are no one-size-fits-it-all solutions for the various JavaScript and CSS frameworks/extensions available. There are other bundling libraries in the Rails ecosystem that should empower you in the cases where the default setup isn't enough.
 
@@ -1054,7 +1056,7 @@ We are aware that there are no one-size-fits-it-all solutions for the various Ja
 
 The gem provides a build task in `package.json` to watch for changes and automatically generate output in development. For production, it automatically hooks `javascript:build` task into `assets:precompile` task to ensure that all your package dependencies have been installed and JavaScript has been built for all entry points.
 
-**When to use instead of `importmap-rails`?** If your JavaScript code depends on transpiling so if you are using [Babel](https://babeljs.io/), [TypeScript](https://www.typescriptlang.org/) or React `JSX` format then `jsbundling-rails` is the correct way to go.
+**When to use instead of `importmap-rails`?** If your JavaScript code depends on transpiling so if you are using [Babel](https://babeljs.io/), [TypeScript](https://www.typescriptlang.org/) or React JSX format then `jsbundling-rails` is the correct way to go.
 
 ### Webpacker/Shakapacker
 
@@ -1070,15 +1072,15 @@ NOTE: Read the [Comparison with Webpacker](https://github.com/rails/jsbundling-r
 
 It works in a similar way to `jsbundling-rails` so adds the Node.js dependency to your application with `yarn build:css --watch` process to regenerate your stylesheets in development and hooks into `assets:precompile` task in production.
 
-**What's the difference between Sprockets?** Sprockets on its own is not able to transpile the Sass into CSS, Node.js is required to generate the `.css` files from your `.sass`  files. Once the `.css` files are generated then `Sprockets` is able to deliver them to your clients.
+**What's the difference between Sprockets?** Sprockets on its own is not able to transpile the Sass into CSS, Node.js is required to generate the `.css` files from your `.sass`  files. Once the `.css` files are generated then Sprockets is able to deliver them to your clients.
 
-NOTE: `cssbundling-rails` relies on Node to process the CSS. The `dartsass-rails` and `tailwindcss-rails` gems use standalone versions of Tailwind CSS and Dart Sass, meaning no Node dependency. If you are using `importmap-rails` to handle your Javascripts and `dartsass-rails` or `tailwindcss-rails` for CSS you could completely avoid the Node dependency resulting in a less complex solution.
+NOTE: `cssbundling-rails` relies on Node to process the CSS. The `dartsass-rails` and `tailwindcss-rails` gems use standalone versions of Tailwind CSS and Dart Sass, meaning no Node dependency. If you are using `importmap-rails` to handle your JavaScripts and `dartsass-rails` or `tailwindcss-rails` for CSS you could completely avoid the Node dependency resulting in a less complex solution.
 
 ### dartsass-rails
 
-If you want to use [`Sass`](https://sass-lang.com/) in your application, [`dartsass-rails`](https://github.com/rails/dartsass-rails) comes as a replacement for the legacy `sassc-rails` gem. `dartsass-rails` uses the `Dart Sass` implementation in favour of deprecated in 2020 [`LibSass`](https://sass-lang.com/blog/libsass-is-deprecated) used by `sassc-rails`.
+If you want to use [Sass](https://sass-lang.com/) in your application, [`dartsass-rails`](https://github.com/rails/dartsass-rails) comes as a replacement for the legacy `sassc-rails` gem. `dartsass-rails` uses the Dart Sass implementation in favour of deprecated in 2020 [LibSass](https://sass-lang.com/blog/libsass-is-deprecated) used by `sassc-rails`.
 
-Unlike `sassc-rails` the new gem is not directly integrated with `Sprockets`. Please refer to the [gem homepage](https://github.com/rails/dartsass-rails) for installation/migration instructions.
+Unlike `sassc-rails` the new gem is not directly integrated with Sprockets. Please refer to the [gem homepage](https://github.com/rails/dartsass-rails) for installation/migration instructions.
 
 WARNING: The popular `sassc-rails` gem is unmaintained since 2019.
 

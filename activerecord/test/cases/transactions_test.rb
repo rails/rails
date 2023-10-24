@@ -332,7 +332,7 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    assert Topic.find(1).approved?, "First should have been approved"
+    assert_predicate Topic.find(1), :approved?, "First should have been approved"
   end
 
   def test_rollback_with_return
@@ -661,7 +661,7 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    assert Topic.find(1).approved?, "First should have been approved"
+    assert_predicate Topic.find(1), :approved?, "First should have been approved"
     assert_not Topic.find(2).approved?, "Second should have been unapproved"
   end
 
@@ -745,11 +745,11 @@ class TransactionTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
 
-    assert @first.approved?, "First should still be changed in the objects"
+    assert_predicate @first, :approved?, "First should still be changed in the objects"
     assert_not @second.approved?, "Second should still be changed in the objects"
 
     assert_not Topic.find(1).approved?, "First shouldn't have been approved"
-    assert Topic.find(2).approved?, "Second should still be approved"
+    assert_predicate Topic.find(2), :approved?, "Second should still be approved"
   end
 
   def test_invalid_keys_for_transaction
@@ -947,7 +947,7 @@ class TransactionTest < ActiveRecord::TestCase
     assert_match(/frozen/i, e.message)
     assert_not topic.persisted?, "not persisted"
     assert_nil topic.id
-    assert topic.frozen?, "not frozen"
+    assert_predicate topic, :frozen?, "not frozen"
   end
 
   def test_rollback_when_thread_killed
@@ -971,11 +971,11 @@ class TransactionTest < ActiveRecord::TestCase
     thread.kill
     thread.join
 
-    assert @first.approved?, "First should still be changed in the objects"
+    assert_predicate @first, :approved?, "First should still be changed in the objects"
     assert_not @second.approved?, "Second should still be changed in the objects"
 
     assert_not Topic.find(1).approved?, "First shouldn't have been approved"
-    assert Topic.find(2).approved?, "Second should still be approved"
+    assert_predicate Topic.find(2), :approved?, "Second should still be approved"
   end
 
   def test_restore_active_record_state_for_all_records_in_a_transaction
@@ -993,15 +993,15 @@ class TransactionTest < ActiveRecord::TestCase
       assert topic_3.save
       @first.save
       @second.destroy
-      assert topic_1.persisted?, "persisted"
+      assert_predicate topic_1, :persisted?, "persisted"
       assert_not_nil topic_1.id
-      assert topic_2.persisted?, "persisted"
+      assert_predicate topic_2, :persisted?, "persisted"
       assert_not_nil topic_2.id
-      assert topic_3.persisted?, "persisted"
+      assert_predicate topic_3, :persisted?, "persisted"
       assert_not_nil topic_3.id
-      assert @first.persisted?, "persisted"
+      assert_predicate @first, :persisted?, "persisted"
       assert_not_nil @first.id
-      assert @second.destroyed?, "destroyed"
+      assert_predicate @second, :destroyed?, "destroyed"
       raise ActiveRecord::Rollback
     end
 
@@ -1011,7 +1011,7 @@ class TransactionTest < ActiveRecord::TestCase
     assert_nil topic_2.id
     assert_not topic_3.persisted?, "not persisted"
     assert_nil topic_3.id
-    assert @first.persisted?, "persisted"
+    assert_predicate @first, :persisted?, "persisted"
     assert_not_nil @first.id
     assert_not @second.destroyed?, "not destroyed"
   end
@@ -1197,7 +1197,7 @@ class TransactionTest < ActiveRecord::TestCase
       topic.destroy
       raise ActiveRecord::Rollback
     end
-    assert topic.frozen?, "frozen"
+    assert_predicate topic, :frozen?, "frozen"
   end
 
   def test_rollback_for_freshly_persisted_records
@@ -1206,7 +1206,7 @@ class TransactionTest < ActiveRecord::TestCase
       topic.destroy
       raise ActiveRecord::Rollback
     end
-    assert topic.persisted?, "persisted"
+    assert_predicate topic, :persisted?, "persisted"
   end
 
   def test_sqlite_add_column_in_transaction

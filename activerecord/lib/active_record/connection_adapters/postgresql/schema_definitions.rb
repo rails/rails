@@ -211,7 +211,7 @@ module ActiveRecord
         end
       end
 
-      UniqueKeyDefinition = Struct.new(:table_name, :column, :options) do
+      UniqueConstraintDefinition = Struct.new(:table_name, :column, :options) do
         def name
           options[:name]
         end
@@ -239,12 +239,12 @@ module ActiveRecord
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
 
-        attr_reader :exclusion_constraints, :unique_keys, :unlogged
+        attr_reader :exclusion_constraints, :unique_constraints, :unlogged
 
         def initialize(*, **)
           super
           @exclusion_constraints = []
-          @unique_keys = []
+          @unique_constraints = []
           @unlogged = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables
         end
 
@@ -252,8 +252,8 @@ module ActiveRecord
           exclusion_constraints << new_exclusion_constraint_definition(expression, options)
         end
 
-        def unique_key(column_name, **options)
-          unique_keys << new_unique_key_definition(column_name, options)
+        def unique_constraint(column_name, **options)
+          unique_constraints << new_unique_constraint_definition(column_name, options)
         end
 
         def new_exclusion_constraint_definition(expression, options) # :nodoc:
@@ -261,9 +261,9 @@ module ActiveRecord
           ExclusionConstraintDefinition.new(name, expression, options)
         end
 
-        def new_unique_key_definition(column_name, options) # :nodoc:
-          options = @conn.unique_key_options(name, column_name, options)
-          UniqueKeyDefinition.new(name, column_name, options)
+        def new_unique_constraint_definition(column_name, options) # :nodoc:
+          options = @conn.unique_constraint_options(name, column_name, options)
+          UniqueConstraintDefinition.new(name, column_name, options)
         end
 
         def new_column_definition(name, type, **options) # :nodoc:
@@ -315,36 +315,36 @@ module ActiveRecord
           @base.remove_exclusion_constraint(name, *args)
         end
 
-        # Adds an unique constraint.
+        # Adds a unique constraint.
         #
-        #  t.unique_key(:position, name: 'unique_position', deferrable: :deferred)
+        #  t.unique_constraint(:position, name: 'unique_position', deferrable: :deferred)
         #
-        # See {connection.add_unique_key}[rdoc-ref:SchemaStatements#add_unique_key]
-        def unique_key(*args)
-          @base.add_unique_key(name, *args)
+        # See {connection.add_unique_constraint}[rdoc-ref:SchemaStatements#add_unique_constraint]
+        def unique_constraint(*args)
+          @base.add_unique_constraint(name, *args)
         end
 
         # Removes the given unique constraint from the table.
         #
-        #  t.remove_unique_key(name: "unique_position")
+        #  t.remove_unique_constraint(name: "unique_position")
         #
-        # See {connection.remove_unique_key}[rdoc-ref:SchemaStatements#remove_unique_key]
-        def remove_unique_key(*args)
-          @base.remove_unique_key(name, *args)
+        # See {connection.remove_unique_constraint}[rdoc-ref:SchemaStatements#remove_unique_constraint]
+        def remove_unique_constraint(*args)
+          @base.remove_unique_constraint(name, *args)
         end
       end
 
       # = Active Record PostgreSQL Adapter Alter \Table
       class AlterTable < ActiveRecord::ConnectionAdapters::AlterTable
-        attr_reader :constraint_validations, :exclusion_constraint_adds, :exclusion_constraint_drops, :unique_key_adds, :unique_key_drops
+        attr_reader :constraint_validations, :exclusion_constraint_adds, :exclusion_constraint_drops, :unique_constraint_adds, :unique_constraint_drops
 
         def initialize(td)
           super
           @constraint_validations = []
           @exclusion_constraint_adds = []
           @exclusion_constraint_drops = []
-          @unique_key_adds = []
-          @unique_key_drops = []
+          @unique_constraint_adds = []
+          @unique_constraint_drops = []
         end
 
         def validate_constraint(name)
@@ -359,12 +359,12 @@ module ActiveRecord
           @exclusion_constraint_drops << constraint_name
         end
 
-        def add_unique_key(column_name, options)
-          @unique_key_adds << @td.new_unique_key_definition(column_name, options)
+        def add_unique_constraint(column_name, options)
+          @unique_constraint_adds << @td.new_unique_constraint_definition(column_name, options)
         end
 
-        def drop_unique_key(unique_key_name)
-          @unique_key_drops << unique_key_name
+        def drop_unique_constraint(unique_constraint_name)
+          @unique_constraint_drops << unique_constraint_name
         end
       end
     end

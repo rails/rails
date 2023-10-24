@@ -63,7 +63,7 @@ $ bin/rails app:update
     conflict  config/application.rb
 Overwrite /myapp/config/application.rb? (enter "h" for help) [Ynaqdh]
        force  config/application.rb
-      create  config/initializers/new_framework_defaults_7_0.rb
+      create  config/initializers/new_framework_defaults_7_2.rb
 ...
 ```
 
@@ -74,6 +74,11 @@ Don't forget to review the difference, to see if there were any unexpected chang
 The new Rails version might have different configuration defaults than the previous version. However, after following the steps described above, your application would still run with configuration defaults from the *previous* Rails version. That's because the value for `config.load_defaults` in `config/application.rb` has not been changed yet.
 
 To allow you to upgrade to new defaults one by one, the update task has created a file `config/initializers/new_framework_defaults_X.Y.rb` (with the desired Rails version in the filename). You should enable the new configuration defaults by uncommenting them in the file; this can be done gradually over several deployments. Once your application is ready to run with new defaults, you can remove this file and flip the `config.load_defaults` value.
+
+Upgrading from Rails 7.1 to Rails 7.2
+-------------------------------------
+
+For more information on changes made to Rails 7.2 please see the [release notes](7_2_release_notes.html).
 
 Upgrading from Rails 7.0 to Rails 7.1
 -------------------------------------
@@ -106,12 +111,12 @@ always.
 If your application does not have `lib` in the autoload or autoload once paths,
 please skip this section. You can find that out by inspecting the output of
 
-```
+```bash
 # Print autoload paths.
-bin/rails runner 'pp Rails.autoloaders.main.dirs'
+$ bin/rails runner 'pp Rails.autoloaders.main.dirs'
 
 # Print autoload once paths.
-bin/rails runner 'pp Rails.autoloaders.once.dirs'
+$ bin/rails runner 'pp Rails.autoloaders.once.dirs'
 ```
 
 If your application already has `lib` in the autoload paths, normally there is
@@ -138,7 +143,7 @@ config.eager_load_paths << config.root.join("lib")
 ```
 
 That still works, but it is recommended to replace those lines with the more
-concise and correct
+concise
 
 ```ruby
 config.autoload_lib(ignore: %w(assets tasks))
@@ -146,7 +151,7 @@ config.autoload_lib(ignore: %w(assets tasks))
 
 Please, add to the `ignore` list any other `lib` subdirectories that do not
 contain `.rb` files, or that should not be reloaded or eager loaded. For
-example, if your applications has `lib/templates`, `lib/generators`, or
+example, if your application has `lib/templates`, `lib/generators`, or
 `lib/middleware`, you'd add their name relative to `lib`:
 
 ```ruby
@@ -178,7 +183,7 @@ If you don't want to use connection pooling, set `:pool` option to `false` when
 configuring your cache store:
 
 ```ruby
-config.cache_store = :mem_cache_store, "cache.example.com", pool: false
+config.cache_store = :mem_cache_store, "cache.example.com", { pool: false }
 ```
 
 See the [caching with Rails](https://guides.rubyonrails.org/v7.1/caching_with_rails.html#connection-pool-options) guide for more information.
@@ -241,6 +246,111 @@ See the [i18n guide](https://guides.rubyonrails.org/v7.1/i18n.html#using-differe
 
 `AbstractController::Translation.raise_on_missing_translations` has been removed. This was a private API, if you were
 relying on it you should migrate to `config.i18n.raise_on_missing_translations` or to a custom exception handler.
+
+### `bin/rails test` now runs `test:prepare` task
+
+When running tests via `bin/rails test`, the `rake test:prepare` task will run before tests run. If you've enhanced
+the `test:prepare` task, your enhancements will run before your tests. `tailwindcss-rails`, `jsbundling-rails`, and `cssbundling-rails`
+enhance this task, as do other third party gems.
+
+See the [Testing Rails Applications](https://guides.rubyonrails.org/testing.html#running-tests-in-continuous-integration-ci) guide for more information.
+
+If you run a single file's tests (`bin/rails test test/models/user_test.rb`), `test:prepare` will not run before it.
+
+### `ActionView::TestCase#rendered` no longer returns a `String`
+
+Starting from Rails 7.1, `ActionView::TestCase#rendered` returns an object that
+responds to various format methods (for example, `rendered.html` and
+`rendered.json`). To preserve backward compatibility, the object returned from
+`rendered` will delegate missing methods to the `String` rendered during the
+test. For example, the following [assert_match][] assertion will pass:
+
+```ruby
+assert_match(/some content/i, rendered)
+```
+
+However, if your tests rely on `ActionView::TestCase#rendered` returning an
+instance of `String`, they will fail. To restore the original behavior, you can
+override the `#rendered` method to read from the `@rendered` instance variable:
+
+```ruby
+# config/initializers/action_view.rb
+
+ActiveSupport.on_load :action_view_test_case do
+  attr_reader :rendered
+end
+```
+
+### `Rails.logger` now returns an `ActiveSupport::BroadcastLogger` instance
+
+The `ActiveSupport::BroadcastLogger` class is a new logger that allows to broadcast logs to different sinks (STDOUT, a log file...) in an easy way.
+
+The API to broadcast logs (using the `ActiveSupport::Logger.broadcast` method) was removed and was previously private.
+If your application or library was relying on this API, you need to make the following changes:
+
+```ruby
+logger = Logger.new("some_file.log")
+
+# Before
+
+Rails.logger.extend(ActiveSupport::Logger.broadcast(logger))
+
+# After
+
+Rails.logger.broadcast_to(logger)
+```
+
+If your application had configured a custom logger, `Rails.logger` will wrap and proxy all methods to it. No changes on your side are required to make it work.
+
+If you need to access your custom logger instance, you can do so using the `broadcasts` method:
+
+```ruby
+# config/application.rb
+config.logger = MyLogger.new
+
+# Anywhere in your application
+puts Rails.logger.class #=> BroadcastLogger
+puts Rails.logger.broadcasts #=> [MyLogger]
+```
+
+[assert_match]: https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-assert_match
+
+
+### Active Record Encryption algorithm changes
+
+Active Record Encryption now uses SHA-256 as its hash digest algorithm. If you have data encrypted with previous Rails
+versions, there are two scenarios to consider:
+
+1. If you have `config.active_support.key_generator_hash_digest_class` configured as SHA-1 (the default
+   before Rails 7.0), you need to configure SHA-1 for Active Record Encryption too:
+
+    ```ruby
+    config.active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA1
+    ```
+
+2. If you have `config.active_support.key_generator_hash_digest_class` configured as SHA-256 (the new default
+   in 7.0), then you need to configure SHA-256 for Active Record Encryption:
+
+    ```ruby
+    config.active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA256
+    ```
+
+See the [Configuring Rails Applications](configuring.html#config-active-record-encryption-hash-digest-class)
+guide for more information on `config.active_record.encryption.hash_digest_class`.
+
+In addition, a new configuration [`config.active_record.encryption.support_sha1_for_non_deterministic_encryption`](configuring.html#config-active-record-encryption-support-sha1-for-non-deterministic-encryption)
+was introduced to resolve [a bug](https://github.com/rails/rails/issues/42922) that caused some attributes to be
+encrypted using SHA-1 even when SHA-256 was configured via the aforementioned `hash_digest_class` configuration.
+
+By default, `config.active_record.encryption.support_sha1_for_non_deterministic_encryption` is disabled in
+Rails 7.1. If you have data encrypted in a version of Rails < 7.1 that you believe may be affected
+by the aforementioned bug, this configuration should be enabled:
+
+```ruby
+config.active_record.encryption.support_sha1_for_non_deterministic_encryption = true
+```
+
+If you are working with encrypted data, please carefully review the above.
 
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
@@ -590,6 +700,8 @@ The schema file will look like this:
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[6.1].define(version: 2022_01_28_123512) do
+  # ...
+end
 ```
 
 NOTE: The first time you dump the schema with Rails 7.0, you will see many changes to that file, including
@@ -1121,10 +1233,10 @@ class User < ApplicationRecord
   has_many_attached :highlights
 end
 
-user.highlights.attach(filename: "funky.jpg", ...)
+user.highlights.attach(filename: "funky.jpg")
 user.highlights.count # => 1
 
-blob = ActiveStorage::Blob.create_after_upload!(filename: "town.jpg", ...)
+blob = ActiveStorage::Blob.create_after_upload!(filename: "town.jpg")
 user.update!(highlights: [ blob ])
 
 user.highlights.count # => 2
@@ -1135,10 +1247,10 @@ user.highlights.second.filename # => "town.jpg"
 With the configuration defaults for Rails 6.0, assigning to a collection of attachments replaces existing files instead of appending to them. This matches Active Record behavior when assigning to a collection association:
 
 ```ruby
-user.highlights.attach(filename: "funky.jpg", ...)
+user.highlights.attach(filename: "funky.jpg")
 user.highlights.count # => 1
 
-blob = ActiveStorage::Blob.create_after_upload!(filename: "town.jpg", ...)
+blob = ActiveStorage::Blob.create_after_upload!(filename: "town.jpg")
 user.update!(highlights: [ blob ])
 
 user.highlights.count # => 1
@@ -1148,7 +1260,7 @@ user.highlights.first.filename # => "town.jpg"
 `#attach` can be used to add new attachments without removing the existing ones:
 
 ```ruby
-blob = ActiveStorage::Blob.create_after_upload!(filename: "town.jpg", ...)
+blob = ActiveStorage::Blob.create_after_upload!(filename: "town.jpg")
 user.highlights.attach(blob)
 
 user.highlights.count # => 2
@@ -1777,15 +1889,15 @@ invocation of the instance methods are deferred until either `deliver_now` or
 
 ```ruby
 class Notifier < ActionMailer::Base
-  def notify(user, ...)
+  def notify(user)
     puts "Called"
-    mail(to: user.email, ...)
+    mail(to: user.email)
   end
 end
 ```
 
 ```ruby
-mail = Notifier.notify(user, ...) # Notifier#notify is not yet called at this point
+mail = Notifier.notify(user) # Notifier#notify is not yet called at this point
 mail = mail.deliver_now           # Prints "Called"
 ```
 
@@ -2403,11 +2515,11 @@ Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must rep
 * Rails 4.0 has changed to default join table for `has_and_belongs_to_many` relations to strip the common prefix off the second table name. Any existing `has_and_belongs_to_many` relationship between models with a common prefix must be specified with the `join_table` option. For example:
 
     ```ruby
-    CatalogCategory < ActiveRecord::Base
+    class CatalogCategory < ActiveRecord::Base
       has_and_belongs_to_many :catalog_products, join_table: 'catalog_categories_catalog_products'
     end
 
-    CatalogProduct < ActiveRecord::Base
+    class CatalogProduct < ActiveRecord::Base
       has_and_belongs_to_many :catalog_categories, join_table: 'catalog_categories_catalog_products'
     end
     ```

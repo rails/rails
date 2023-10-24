@@ -332,7 +332,10 @@ module ActiveSupport
             if value
               entry = deserialize_entry(value, raw: raw)
               unless entry.nil? || entry.expired? || entry.mismatched?(normalize_version(name, options))
-                results[name] = entry.value
+                begin
+                  results[name] = entry.value
+                rescue DeserializationError
+                end
               end
             end
           end
@@ -438,18 +441,26 @@ module ActiveSupport
           redis.then do |c|
             c = c.node_for(key) if c.is_a?(Redis::Distributed)
 
-            if options[:expires_in] && supports_expire_nx?
-              c.pipelined do |pipeline|
-                pipeline.incrby(key, amount)
-                pipeline.call(:expire, key, options[:expires_in].to_i, "NX")
-              end.first
+            expires_in = options[:expires_in]
+
+            if expires_in
+              if supports_expire_nx?
+                count, _ = c.pipelined do |pipeline|
+                  pipeline.incrby(key, amount)
+                  pipeline.call(:expire, key, expires_in.to_i, "NX")
+                end
+              else
+                count, ttl = c.pipelined do |pipeline|
+                  pipeline.incrby(key, amount)
+                  pipeline.ttl(key)
+                end
+                c.expire(key, expires_in.to_i) if ttl < 0
+              end
             else
               count = c.incrby(key, amount)
-              if count != amount && options[:expires_in] && c.ttl(key) < 0
-                c.expire(key, options[:expires_in].to_i)
-              end
-              count
             end
+
+            count
           end
         end
 

@@ -276,10 +276,10 @@ class FormWithActsLikeFormForTest < FormWithTest
     @comment = Comment.new
     def @post.errors
       Class.new {
-        def [](field); field == "author_name" ? ["can’t be empty"] : [] end
+        def [](field); field == "author_name" ? ["can't be empty"] : [] end
         def empty?() false end
         def count() 1 end
-        def full_messages() ["Author name can’t be empty"] end
+        def full_messages() ["Author name can't be empty"] end
       }.new
     end
     def @post.to_key; [123]; end

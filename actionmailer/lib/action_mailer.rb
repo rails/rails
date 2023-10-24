@@ -56,6 +56,7 @@ module ActionMailer
   autoload :MessageDelivery
   autoload :MailDeliveryJob
   autoload :QueuedDelivery
+  autoload :FormBuilder
 
   def self.eager_load!
     super

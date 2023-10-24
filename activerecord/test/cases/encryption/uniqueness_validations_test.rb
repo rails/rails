@@ -55,4 +55,11 @@ class ActiveRecord::Encryption::UniquenessValidationsTest < ActiveRecord::Encryp
       OldEncryptionBook.create! name: "DUNE"
     end
   end
+
+  test "uniqueness validation does not revalidate the attribute with current encryption type" do
+    EncryptedBookWithUniquenessValidation.create!(name: "dune")
+    record = EncryptedBookWithUniquenessValidation.create(name: "dune")
+
+    assert_equal 1, record.errors.count
+  end
 end

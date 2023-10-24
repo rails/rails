@@ -90,10 +90,6 @@ module ActionController # :nodoc:
       config_accessor :per_form_csrf_tokens
       self.per_form_csrf_tokens = false
 
-      # Controls whether forgery protection is enabled by default.
-      config_accessor :default_protect_from_forgery
-      self.default_protect_from_forgery = false
-
       # The strategy to use for storing and retrieving CSRF tokens.
       config_accessor :csrf_token_storage_strategy
       self.csrf_token_storage_strategy = SessionStore.new
@@ -129,6 +125,7 @@ module ActionController # :nodoc:
       #
       #   If you need to add verification to the beginning of the callback chain, use <tt>prepend: true</tt>.
       # * <tt>:with</tt> - Set the method to handle unverified request.
+      #   Note if <tt>default_protect_from_forgery</tt> is true, Rails call protect_from_forgery with <tt>with :exception</tt>.
       #
       # Built-in unverified request handling methods are:
       # * <tt>:exception</tt> - Raises ActionController::InvalidAuthenticityToken exception.

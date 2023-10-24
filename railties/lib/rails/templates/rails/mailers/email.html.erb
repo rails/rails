@@ -44,6 +44,13 @@
     content: "\00a0"; // &nbsp;
   }
 
+  th {
+    font-weight: inherit;
+    color: #7f7f7f;
+    text-align: right;
+    white-space: nowrap;
+  }
+
   iframe {
     border: 0;
     width: 100%;
@@ -134,7 +141,7 @@
           <table>
           <% @email.header_fields.each do |field| %>
             <tr>
-              <td align="right" style="color: #7f7f7f"><%= field.name %>:</td>
+              <th><%= field.name %>:</th>
               <td><%= field.value %></td>
             </tr>
           <% end %>

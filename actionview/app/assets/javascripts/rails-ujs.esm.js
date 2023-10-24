@@ -58,6 +58,18 @@ const setData = function(element, key, value) {
 
 const $ = selector => Array.prototype.slice.call(document.querySelectorAll(selector));
 
+const isContentEditable = function(element) {
+  var isEditable = false;
+  do {
+    if (element.isContentEditable) {
+      isEditable = true;
+      break;
+    }
+    element = element.parentElement;
+  } while (element);
+  return isEditable;
+};
+
 const csrfToken = () => {
   const meta = document.querySelector("meta[name=csrf-token]");
   return meta && meta.content;
@@ -336,6 +348,9 @@ const enableElement = e => {
   } else {
     element = e;
   }
+  if (isContentEditable(element)) {
+    return;
+  }
   if (matches(element, linkDisableSelector)) {
     return enableLinkElement(element);
   } else if (matches(element, buttonDisableSelector) || matches(element, formEnableSelector)) {
@@ -347,6 +362,9 @@ const enableElement = e => {
 
 const disableElement = e => {
   const element = e instanceof Event ? e.target : e;
+  if (isContentEditable(element)) {
+    return;
+  }
   if (matches(element, linkDisableSelector)) {
     return disableLinkElement(element);
   } else if (matches(element, buttonDisableSelector) || matches(element, formDisableSelector)) {
@@ -426,6 +444,9 @@ const handleMethodWithRails = rails => function(e) {
   if (!method) {
     return;
   }
+  if (isContentEditable(this)) {
+    return;
+  }
   const href = rails.href(link);
   const csrfToken$1 = csrfToken();
   const csrfParam$1 = csrfParam();
@@ -457,6 +478,10 @@ const handleRemoteWithRails = rails => function(e) {
     return true;
   }
   if (!fire(element, "ajax:before")) {
+    fire(element, "ajax:stopped");
+    return false;
+  }
+  if (isContentEditable(element)) {
     fire(element, "ajax:stopped");
     return false;
   }
@@ -665,4 +690,4 @@ if (typeof exports !== "object" && typeof module === "undefined") {
   }
 }
 
-export default Rails;
+export { Rails as default };

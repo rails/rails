@@ -38,7 +38,7 @@ class RetryJob < ActiveJob::Base
 
   before_enqueue do |job|
     if job.arguments.include?(:log_scheduled_at) && job.scheduled_at
-      JobBuffer.add("Next execution scheduled at #{job.scheduled_at}")
+      JobBuffer.add("Next execution scheduled at #{job.scheduled_at.to_f}")
     end
   end
 

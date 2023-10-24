@@ -65,16 +65,16 @@ module ActiveSupport
         end
       end
 
-      # Returns a "handle" for an event with the given +name+ and +payload+
+      # Returns a "handle" for an event with the given +name+ and +payload+.
       #
-      # +#start+ and +#finish+ must each be called exactly once on the returned object.
+      # #start and #finish must each be called exactly once on the returned object.
       #
-      # Where possible, it's best to use +#instrument+, which will record the
+      # Where possible, it's best to use #instrument, which will record the
       # start and finish of the event and correctly handle any exceptions.
       # +build_handle+ is a low-level API intended for cases where using
-      # +#instrument+ isn't possible.
+      # +instrument+ isn't possible.
       #
-      # See ActiveSupport::Notifications::Fanout::Handle
+      # See ActiveSupport::Notifications::Fanout::Handle.
       def build_handle(name, payload)
         @notifier.build_handle(name, @id, payload)
       end
@@ -146,21 +146,21 @@ module ActiveSupport
         @allocation_count_finish = now_allocations
       end
 
-      # Returns the CPU time (in milliseconds) passed since the call to
-      # +start!+ and the call to +finish!+
+      # Returns the CPU time (in milliseconds) passed between the call to
+      # #start! and the call to #finish!.
       def cpu_time
         @cpu_time_finish - @cpu_time_start
       end
 
-      # Returns the idle time time (in milliseconds) passed since the call to
-      # +start!+ and the call to +finish!+
+      # Returns the idle time time (in milliseconds) passed between the call to
+      # #start! and the call to #finish!.
       def idle_time
         diff = duration - cpu_time
         diff > 0.0 ? diff : 0.0
       end
 
-      # Returns the number of allocations made since the call to +start!+ and
-      # the call to +finish!+
+      # Returns the number of allocations made between the call to #start! and
+      # the call to #finish!.
       def allocations
         @allocation_count_finish - @allocation_count_start
       end
@@ -185,8 +185,8 @@ module ActiveSupport
       # Returns the difference in milliseconds between when the execution of the
       # event started and when it ended.
       #
-      #   ActiveSupport::Notifications.subscribe('wait') do |*args|
-      #     @event = ActiveSupport::Notifications::Event.new(*args)
+      #   ActiveSupport::Notifications.subscribe('wait') do |event|
+      #     @event = event
       #   end
       #
       #   ActiveSupport::Notifications.instrument('wait') do

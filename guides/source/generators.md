@@ -528,6 +528,24 @@ In addition to those, Rails also provides many helper methods via
 * [`rake`][]
 * [`route`][]
 
+Testing Generators
+------------------
+
+Rails provides testing helper methods via
+[`Rails::Generators::Testing::Behaviour`][], such as:
+
+* [`run_generator`][]
+
+If running tests against generators you will need to set
+`RAILS_LOG_TO_STDOUT=true` in order for debugging tools to work.
+
+```sh
+RAILS_LOG_TO_STDOUT=true ./bin/test test/generators/actions_test.rb
+```
+
+In addition to those, Rails also provides additional assertions via
+[`Rails::Generators::Testing::Assertions`][].
+
 [`Rails::Generators::Actions`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html
 [`environment`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-environment
 [`gem`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-gem
@@ -541,3 +559,6 @@ In addition to those, Rails also provides many helper methods via
 [`rails_command`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-rails_command
 [`rake`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-rake
 [`route`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-route
+[`Rails::Generators::Testing::Behaviour`]: https://api.rubyonrails.org/classes/Rails/Generators/Testing/Behavior.html
+[`run_generator`]: https://api.rubyonrails.org/classes/Rails/Generators/Testing/Behavior.html#method-i-run_generator
+[`Rails::Generators::Testing::Assertions`]: https://api.rubyonrails.org/classes/Rails/Generators/Testing/Assertions.html

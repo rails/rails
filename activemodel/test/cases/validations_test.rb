@@ -19,11 +19,11 @@ class ValidationsTest < ActiveModel::TestCase
   def test_single_field_validation
     r = Reply.new
     r.title = "There's no content!"
-    assert r.invalid?, "A reply without content should be invalid"
+    assert_predicate r, :invalid?, "A reply without content should be invalid"
     assert r.after_validation_performed, "after_validation callback should be called"
 
     r.content = "Messa content!"
-    assert r.valid?, "A reply with content should be valid"
+    assert_predicate r, :valid?, "A reply with content should be valid"
     assert r.after_validation_performed, "after_validation callback should be called"
   end
 
@@ -31,7 +31,7 @@ class ValidationsTest < ActiveModel::TestCase
     r = Reply.new
     r.title = "There's no content!"
     assert_predicate r, :invalid?
-    assert r.errors[:content].any?, "A reply without content should mark that attribute as invalid"
+    assert_predicate r.errors[:content], :any?, "A reply without content should mark that attribute as invalid"
     assert_equal ["is Empty"], r.errors["content"], "A reply without content should contain an error"
     assert_equal 1, r.errors.count
   end
@@ -40,10 +40,10 @@ class ValidationsTest < ActiveModel::TestCase
     r = Reply.new
     assert_predicate r, :invalid?
 
-    assert r.errors[:title].any?, "A reply without title should mark that attribute as invalid"
+    assert_predicate r.errors[:title], :any?, "A reply without title should mark that attribute as invalid"
     assert_equal ["is Empty"], r.errors["title"], "A reply without title should contain an error"
 
-    assert r.errors[:content].any?, "A reply without content should mark that attribute as invalid"
+    assert_predicate r.errors[:content], :any?, "A reply without content should mark that attribute as invalid"
     assert_equal ["is Empty"], r.errors["content"], "A reply without content should contain an error"
 
     assert_equal 2, r.errors.count
@@ -64,8 +64,8 @@ class ValidationsTest < ActiveModel::TestCase
 
   def test_errors_on_nested_attributes_expands_name
     t = Topic.new
-    t.errors.add("replies.name", "can’t be blank")
-    assert_equal ["Replies name can’t be blank"], t.errors.full_messages
+    t.errors.add("replies.name", "can't be blank")
+    assert_equal ["Replies name can't be blank"], t.errors.full_messages
   end
 
   def test_errors_on_base
@@ -213,8 +213,8 @@ class ValidationsTest < ActiveModel::TestCase
     assert_predicate t, :invalid?
 
     hash = {}
-    hash[:title] = ["can’t be blank"]
-    hash[:content] = ["can’t be blank"]
+    hash[:title] = ["can't be blank"]
+    hash[:content] = ["can't be blank"]
     assert_equal t.errors.to_json, hash.to_json
   end
 
@@ -224,7 +224,7 @@ class ValidationsTest < ActiveModel::TestCase
 
     t = Topic.new("title" => "")
     assert_predicate t, :invalid?
-    assert_equal "can’t be blank", t.errors["title"].first
+    assert_equal "can't be blank", t.errors["title"].first
     Topic.validates_presence_of :title, :author_name
     Topic.validate { errors.add("author_email_address", "will never be valid") }
     Topic.validates_length_of :title, :content, minimum: 2
@@ -233,10 +233,10 @@ class ValidationsTest < ActiveModel::TestCase
     assert_predicate t, :invalid?
 
     assert_equal :title, key = t.errors.attribute_names[0]
-    assert_equal "can’t be blank", t.errors[key][0]
+    assert_equal "can't be blank", t.errors[key][0]
     assert_equal "is too short (minimum is 2 characters)", t.errors[key][1]
     assert_equal :author_name, key = t.errors.attribute_names[1]
-    assert_equal "can’t be blank", t.errors[key][0]
+    assert_equal "can't be blank", t.errors[key][0]
     assert_equal :author_email_address, key = t.errors.attribute_names[2]
     assert_equal "will never be valid", t.errors[key][0]
     assert_equal :content, key = t.errors.attribute_names[3]
@@ -414,7 +414,7 @@ class ValidationsTest < ActiveModel::TestCase
     exception = assert_raises(ActiveModel::StrictValidationFailed) do
       Topic.new.valid?
     end
-    assert_equal "Title can’t be blank", exception.message
+    assert_equal "Title can't be blank", exception.message
   end
 
   def test_does_not_modify_options_argument

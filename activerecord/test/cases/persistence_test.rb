@@ -47,13 +47,26 @@ class PersistenceTest < ActiveRecord::TestCase
     record_with_defaults = Default.create
     assert_not_nil record_with_defaults.id
     assert_equal "Ruby on Rails", record_with_defaults.ruby_on_rails
-    assert_not_nil record_with_defaults.virtual_stored_number if current_adapter?(:PostgreSQLAdapter)
+
+    if current_adapter?(:PostgreSQLAdapter) && ActiveRecord::Base.connection.supports_virtual_columns?
+      assert_not_nil record_with_defaults.virtual_stored_number
+    end
+
     assert_not_nil record_with_defaults.random_number
     assert_not_nil record_with_defaults.modified_date
     assert_not_nil record_with_defaults.modified_date_function
     assert_not_nil record_with_defaults.modified_time
     assert_not_nil record_with_defaults.modified_time_without_precision
     assert_not_nil record_with_defaults.modified_time_function
+
+    if current_adapter?(:PostgreSQLAdapter) && ActiveRecord::Base.connection.supports_identity_columns?
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "postgresql_identity_table"
+      end
+
+      record = klass.create!
+      assert_not_nil record.id
+    end
   end if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:SQLite3Adapter)
 
   def test_update_many
@@ -791,7 +804,7 @@ class PersistenceTest < ActiveRecord::TestCase
   def test_delete
     topic = Topic.find(1)
     assert_equal topic, topic.delete, "topic.delete did not return self"
-    assert topic.frozen?, "topic not frozen after delete"
+    assert_predicate topic, :frozen?, "topic not frozen after delete"
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
   end
 
@@ -810,15 +823,23 @@ class PersistenceTest < ActiveRecord::TestCase
   def test_destroy
     topic = Topic.find(1)
     assert_equal topic, topic.destroy, "topic.destroy did not return self"
-    assert topic.frozen?, "topic not frozen after destroy"
+    assert_predicate topic, :frozen?, "topic not frozen after destroy"
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
   end
 
   def test_destroy!
     topic = Topic.find(1)
     assert_equal topic, topic.destroy!, "topic.destroy! did not return self"
-    assert topic.frozen?, "topic not frozen after destroy!"
+    assert_predicate topic, :frozen?, "topic not frozen after destroy!"
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
+  end
+
+  def test_destroy_for_a_failed_to_destroy_cpk_record
+    book = cpk_books(:cpk_great_author_first_book)
+    book.fail_destroy = true
+    assert_raises(ActiveRecord::RecordNotDestroyed, match: /Failed to destroy Cpk::Book with \["author_id", "id"\]=/) do
+      book.destroy!
+    end
   end
 
   def test_find_raises_record_not_found_exception
@@ -1089,8 +1110,8 @@ class PersistenceTest < ActiveRecord::TestCase
     t.update_column(:title, "super_title")
     assert_equal "John", t.author_name
     assert_equal "super_title", t.title
-    assert t.changed?, "topic should have changed"
-    assert t.author_name_changed?, "author_name should have changed"
+    assert_predicate t, :changed?, "topic should have changed"
+    assert_predicate t, :author_name_changed?, "author_name should have changed"
 
     t.reload
     assert_equal author_name, t.author_name
@@ -1188,8 +1209,8 @@ class PersistenceTest < ActiveRecord::TestCase
     t.update_columns(title: "super_title")
     assert_equal "John", t.author_name
     assert_equal "super_title", t.title
-    assert t.changed?, "topic should have changed"
-    assert t.author_name_changed?, "author_name should have changed"
+    assert_predicate t, :changed?, "topic should have changed"
+    assert_predicate t, :author_name_changed?, "author_name should have changed"
 
     t.reload
     assert_equal author_name, t.author_name
@@ -1334,6 +1355,17 @@ class PersistenceTest < ActiveRecord::TestCase
     Topic.delete(1)
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(1) }
     assert_nothing_raised { Reply.find(should_not_be_destroyed_reply.id) }
+  end
+
+  def test_class_level_delete_with_invalid_ids
+    assert_no_queries do
+      assert_equal 0, Topic.delete(nil)
+      assert_equal 0, Topic.delete([])
+    end
+
+    assert_difference -> { Topic.count }, -1 do
+      assert_equal 1, Topic.delete(topics(:first).id)
+    end
   end
 
   def test_class_level_delete_is_affected_by_scoping

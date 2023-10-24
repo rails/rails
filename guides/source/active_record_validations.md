@@ -205,21 +205,21 @@ irb> p.errors.size
 irb> p.valid?
 => false
 irb> p.errors.objects.first.full_message
-=> "Name can’t be blank"
+=> "Name can't be blank"
 
 irb> p = Person.create
 => #<Person id: nil, name: nil>
 irb> p.errors.objects.first.full_message
-=> "Name can’t be blank"
+=> "Name can't be blank"
 
 irb> p.save
 => false
 
 irb> p.save!
-ActiveRecord::RecordInvalid: Validation failed: Name can’t be blank
+ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 
 irb> Person.create!
-ActiveRecord::RecordInvalid: Validation failed: Name can’t be blank
+ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 ```
 
 [`invalid?`][] is the inverse of `valid?`. It triggers your validations,
@@ -547,7 +547,7 @@ value.
 ```
 
 Otherwise, it will try to convert the value to a number using `Float`. `Float`s
-are casted to `BigDecimal` using the column's precision value or a maximum of 15
+are cast to `BigDecimal` using the column's precision value or a maximum of 15
 digits.
 
 ```ruby
@@ -648,7 +648,7 @@ validates :boolean_field_name, exclusion: [nil]
 By using one of these validations, you will ensure the value will NOT be `nil`
 which would result in a `NULL` value in most cases.
 
-The default error message is _"can’t be blank"_.
+The default error message is _"can't be blank"_.
 
 [`Object#blank?`]: https://api.rubyonrails.org/classes/Object.html#method-i-blank-3F
 
@@ -846,7 +846,7 @@ method definition, which is the record to be validated.
 
 If you want to add an error on a specific attribute, pass it as the first
 argument, such as `record.errors.add(:first_name, "please choose another
-name")`. We will cover [validation errors][] in greater detail later.
+name")`. We will cover [validation errors](#working-with-validation-errors) in greater detail later.
 
 ```ruby
 def validate(record)
@@ -914,7 +914,6 @@ end
 
 We will cover [custom validations](#performing-custom-validations) more later.
 
-[validation errors](#working-with-validation-errors)
 [`validates_with`]: https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates_with
 
 Common Validation Options
@@ -1087,7 +1086,7 @@ irb> book.valid?
 irb> book.valid?(:ensure_title)
 => false
 irb> book.errors.messages
-=> {:title=>["can’t be blank"]}
+=> {:title=>["can't be blank"]}
 ```
 
 When triggered by an explicit context, validations are run for that context,
@@ -1106,7 +1105,7 @@ irb> person = Person.new
 irb> person.valid?(:account_setup)
 => false
 irb> person.errors.messages
-=> {:email=>["has already been taken"], :age=>["is not a number"], :name=>["can’t be blank"]}
+=> {:email=>["has already been taken"], :age=>["is not a number"], :name=>["can't be blank"]}
 ```
 
 We will cover more use-cases for `on:` in the [callbacks guide](active_record_callbacks.html).
@@ -1125,7 +1124,7 @@ end
 
 ```irb
 irb> Person.new.valid?
-ActiveModel::StrictValidationFailed: Name can’t be blank
+ActiveModel::StrictValidationFailed: Name can't be blank
 ```
 
 There is also the ability to pass a custom exception to the `:strict` option.
@@ -1138,7 +1137,7 @@ end
 
 ```irb
 irb> Person.new.valid?
-TokenGenerationException: Token can’t be blank
+TokenGenerationException: Token can't be blank
 ```
 
 Conditional Validation
@@ -1395,7 +1394,7 @@ irb> person = Person.new
 irb> person.valid?
 => false
 irb> person.errors.full_messages
-=> ["Name can’t be blank", "Name is too short (minimum is 3 characters)"]
+=> ["Name can't be blank", "Name is too short (minimum is 3 characters)"]
 
 irb> person = Person.new(name: "John Doe")
 irb> person.valid?
@@ -1442,7 +1441,7 @@ irb> person = Person.new
 irb> person.valid?
 => false
 irb> person.errors[:name]
-=> ["can’t be blank", "is too short (minimum is 3 characters)"]
+=> ["can't be blank", "is too short (minimum is 3 characters)"]
 ```
 
 ### `errors.where` and Error Object

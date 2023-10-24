@@ -1276,15 +1276,15 @@ module ActiveRecord
         # +collection+ is a placeholder for the symbol passed as the +name+ argument, so
         # <tt>has_many :clients</tt> would add among others <tt>clients.empty?</tt>.
         #
-        # [collection]
+        # [<tt>collection</tt>]
         #   Returns a Relation of all the associated objects.
         #   An empty Relation is returned if none are found.
-        # [collection<<(object, ...)]
+        # [<tt>collection<<(object, ...)</tt>]
         #   Adds one or more objects to the collection by setting their foreign keys to the collection's primary key.
         #   Note that this operation instantly fires update SQL without waiting for the save or update call on the
         #   parent object, unless the parent object is a new record.
         #   This will also run validations and callbacks of associated object(s).
-        # [collection.delete(object, ...)]
+        # [<tt>collection.delete(object, ...)</tt>]
         #   Removes one or more objects from the collection by setting their foreign keys to +NULL+.
         #   Objects will be in addition destroyed if they're associated with <tt>dependent: :destroy</tt>,
         #   and deleted if they're associated with <tt>dependent: :delete_all</tt>.
@@ -1292,50 +1292,50 @@ module ActiveRecord
         #   If the <tt>:through</tt> option is used, then the join records are deleted (rather than
         #   nullified) by default, but you can specify <tt>dependent: :destroy</tt> or
         #   <tt>dependent: :nullify</tt> to override this.
-        # [collection.destroy(object, ...)]
+        # [<tt>collection.destroy(object, ...)</tt>]
         #   Removes one or more objects from the collection by running <tt>destroy</tt> on
         #   each record, regardless of any dependent option, ensuring callbacks are run.
         #
         #   If the <tt>:through</tt> option is used, then the join records are destroyed
         #   instead, not the objects themselves.
-        # [collection=objects]
+        # [<tt>collection=objects</tt>]
         #   Replaces the collections content by deleting and adding objects as appropriate. If the <tt>:through</tt>
         #   option is true callbacks in the join models are triggered except destroy callbacks, since deletion is
         #   direct by default. You can specify <tt>dependent: :destroy</tt> or
         #   <tt>dependent: :nullify</tt> to override this.
-        # [collection_singular_ids]
+        # [<tt>collection_singular_ids</tt>]
         #   Returns an array of the associated objects' ids
-        # [collection_singular_ids=ids]
+        # [<tt>collection_singular_ids=ids</tt>]
         #   Replace the collection with the objects identified by the primary keys in +ids+. This
         #   method loads the models and calls <tt>collection=</tt>. See above.
-        # [collection.clear]
+        # [<tt>collection.clear</tt>]
         #   Removes every object from the collection. This destroys the associated objects if they
         #   are associated with <tt>dependent: :destroy</tt>, deletes them directly from the
         #   database if <tt>dependent: :delete_all</tt>, otherwise sets their foreign keys to +NULL+.
         #   If the <tt>:through</tt> option is true no destroy callbacks are invoked on the join models.
         #   Join models are directly deleted.
-        # [collection.empty?]
+        # [<tt>collection.empty?</tt>]
         #   Returns +true+ if there are no associated objects.
-        # [collection.size]
+        # [<tt>collection.size</tt>]
         #   Returns the number of associated objects.
-        # [collection.find(...)]
+        # [<tt>collection.find(...)</tt>]
         #   Finds an associated object according to the same rules as ActiveRecord::FinderMethods#find.
-        # [collection.exists?(...)]
+        # [<tt>collection.exists?(...)</tt>]
         #   Checks whether an associated object with the given conditions exists.
         #   Uses the same rules as ActiveRecord::FinderMethods#exists?.
-        # [collection.build(attributes = {}, ...)]
+        # [<tt>collection.build(attributes = {}, ...)</tt>]
         #   Returns one or more new objects of the collection type that have been instantiated
         #   with +attributes+ and linked to this object through a foreign key, but have not yet
         #   been saved.
-        # [collection.create(attributes = {})]
+        # [<tt>collection.create(attributes = {})</tt>]
         #   Returns a new object of the collection type that has been instantiated
         #   with +attributes+, linked to this object through a foreign key, and that has already
         #   been saved (if it passed the validation). *Note*: This only works if the base model
         #   already exists in the DB, not if it is a new (unsaved) record!
-        # [collection.create!(attributes = {})]
+        # [<tt>collection.create!(attributes = {})</tt>]
         #   Does the same as <tt>collection.create</tt>, but raises ActiveRecord::RecordInvalid
         #   if the record is invalid.
-        # [collection.reload]
+        # [<tt>collection.reload</tt>]
         #   Returns a Relation of all of the associated objects, forcing a database read.
         #   An empty Relation is returned if none are found.
         #
@@ -1395,27 +1395,27 @@ module ActiveRecord
         #   end
         #
         # === Options
-        # [:class_name]
+        # [+:class_name+]
         #   Specify the class name of the association. Use it only if that name can't be inferred
         #   from the association name. So <tt>has_many :products</tt> will by default be linked
         #   to the +Product+ class, but if the real class name is +SpecialProduct+, you'll have to
         #   specify it with this option.
-        # [:foreign_key]
+        # [+:foreign_key+]
         #   Specify the foreign key used for the association. By default this is guessed to be the name
         #   of this class in lower-case and "_id" suffixed. So a Person class that makes a #has_many
         #   association will use "person_id" as the default <tt>:foreign_key</tt>.
         #
         #   Setting the <tt>:foreign_key</tt> option prevents automatic detection of the association's
         #   inverse, so it is generally a good idea to set the <tt>:inverse_of</tt> option as well.
-        # [:foreign_type]
+        # [+:foreign_type+]
         #   Specify the column used to store the associated object's type, if this is a polymorphic
         #   association. By default this is guessed to be the name of the polymorphic association
         #   specified on "as" option with a "_type" suffix. So a class that defines a
         #   <tt>has_many :tags, as: :taggable</tt> association will use "taggable_type" as the
         #   default <tt>:foreign_type</tt>.
-        # [:primary_key]
+        # [+:primary_key+]
         #   Specify the name of the column to use as the primary key for the association. By default this is +id+.
-        # [:dependent]
+        # [+:dependent+]
         #   Controls what happens to the associated objects when
         #   their owner is destroyed. Note that these are implemented as
         #   callbacks, and \Rails executes callbacks in order. Therefore, other
@@ -1442,12 +1442,12 @@ module ActiveRecord
         #   <tt>has_many :comments, -> { where published: true }, dependent: :destroy</tt> and <tt>destroy</tt> is
         #   called on a post, only published comments are destroyed. This means that any unpublished comments in the
         #   database would still contain a foreign key pointing to the now deleted post.
-        # [:counter_cache]
+        # [+:counter_cache+]
         #   This option can be used to configure a custom named <tt>:counter_cache.</tt> You only need this option,
         #   when you customized the name of your <tt>:counter_cache</tt> on the #belongs_to association.
-        # [:as]
+        # [+:as+]
         #   Specifies a polymorphic interface (See #belongs_to).
-        # [:through]
+        # [+:through+]
         #   Specifies an association through which to perform the query. This can be any other type
         #   of association, including other <tt>:through</tt> associations. Options for <tt>:class_name</tt>,
         #   <tt>:primary_key</tt> and <tt>:foreign_key</tt> are ignored, as the association uses the
@@ -1463,23 +1463,23 @@ module ActiveRecord
         #   join model. This allows associated records to be built which will automatically create
         #   the appropriate join model records when they are saved. (See the 'Association Join Models'
         #   and 'Setting Inverses' sections above.)
-        # [:disable_joins]
+        # [+:disable_joins+]
         #   Specifies whether joins should be skipped for an association. If set to true, two or more queries
         #   will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory
         #   due to database limitations. This option is only applicable on <tt>has_many :through</tt> associations as
         #   +has_many+ alone do not perform a join.
-        # [:source]
+        # [+:source+]
         #   Specifies the source association name used by #has_many <tt>:through</tt> queries.
         #   Only use it if the name cannot be inferred from the association.
         #   <tt>has_many :subscribers, through: :subscriptions</tt> will look for either <tt>:subscribers</tt> or
         #   <tt>:subscriber</tt> on Subscription, unless a <tt>:source</tt> is given.
-        # [:source_type]
+        # [+:source_type+]
         #   Specifies type of the source association used by #has_many <tt>:through</tt> queries where the source
         #   association is a polymorphic #belongs_to.
-        # [:validate]
+        # [+:validate+]
         #   When set to +true+, validates new objects added to association when saving the parent object. +true+ by default.
         #   If you want to ensure associated objects are revalidated on every update, use +validates_associated+.
-        # [:autosave]
+        # [+:autosave+]
         #   If true, always save the associated objects or destroy them if marked for destruction,
         #   when saving the parent object. If false, never save or destroy the associated objects.
         #   By default, only save associated objects that are new records. This option is implemented as a
@@ -1488,24 +1488,24 @@ module ActiveRecord
         #
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for sets
         #   <tt>:autosave</tt> to <tt>true</tt>.
-        # [:inverse_of]
+        # [+:inverse_of+]
         #   Specifies the name of the #belongs_to association on the associated object
         #   that is the inverse of this #has_many association.
         #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
-        # [:extend]
+        # [+:extend+]
         #   Specifies a module or array of modules that will be extended into the association object returned.
         #   Useful for defining methods on associations, especially when they should be shared between multiple
         #   association objects.
-        # [:strict_loading]
+        # [+:strict_loading+]
         #   When set to +true+, enforces strict loading every time the associated record is loaded through this
         #   association.
-        # [:ensuring_owner_was]
+        # [+:ensuring_owner_was+]
         #   Specifies an instance method to be called on the owner. The method must return true in order for the
         #   associated records to be deleted in a background job.
-        # [:query_constraints]
+        # [+:query_constraints+]
         #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
         #   This is an optional option. By default Rails will attempt to derive the value automatically.
-        #   When the value is set the Array size must match associated model's primary key or `query_constraints` size.
+        #   When the value is set the Array size must match associated model's primary key or +query_constraints+ size.
         #
         # Option examples:
         #   has_many :comments, -> { order("posted_on") }
@@ -1534,26 +1534,26 @@ module ActiveRecord
         # +association+ is a placeholder for the symbol passed as the +name+ argument, so
         # <tt>has_one :manager</tt> would add among others <tt>manager.nil?</tt>.
         #
-        # [association]
+        # [<tt>association</tt>]
         #   Returns the associated object. +nil+ is returned if none is found.
-        # [association=(associate)]
+        # [<tt>association=(associate)</tt>]
         #   Assigns the associate object, extracts the primary key, sets it as the foreign key,
         #   and saves the associate object. To avoid database inconsistencies, permanently deletes an existing
         #   associated object when assigning a new one, even if the new one isn't saved to database.
-        # [build_association(attributes = {})]
+        # [<tt>build_association(attributes = {})</tt>]
         #   Returns a new object of the associated type that has been instantiated
         #   with +attributes+ and linked to this object through a foreign key, but has not
         #   yet been saved.
-        # [create_association(attributes = {})]
+        # [<tt>create_association(attributes = {})</tt>]
         #   Returns a new object of the associated type that has been instantiated
         #   with +attributes+, linked to this object through a foreign key, and that
         #   has already been saved (if it passed the validation).
-        # [create_association!(attributes = {})]
+        # [<tt>create_association!(attributes = {})</tt>]
         #   Does the same as <tt>create_association</tt>, but raises ActiveRecord::RecordInvalid
         #   if the record is invalid.
-        # [reload_association]
+        # [<tt>reload_association</tt>]
         #   Returns the associated object, forcing a database read.
-        # [reset_association]
+        # [<tt>reset_association</tt>]
         #   Unloads the associated object. The next access will query it from the database.
         #
         # === Example
@@ -1591,11 +1591,11 @@ module ActiveRecord
         # The declaration can also include an +options+ hash to specialize the behavior of the association.
         #
         # Options are:
-        # [:class_name]
+        # [+:class_name+]
         #   Specify the class name of the association. Use it only if that name can't be inferred
         #   from the association name. So <tt>has_one :manager</tt> will by default be linked to the Manager class, but
         #   if the real class name is Person, you'll have to specify it with this option.
-        # [:dependent]
+        # [+:dependent+]
         #   Controls what happens to the associated object when
         #   its owner is destroyed:
         #
@@ -1611,24 +1611,24 @@ module ActiveRecord
         #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there is an associated object
         #
         #   Note that <tt>:dependent</tt> option is ignored when using <tt>:through</tt> option.
-        # [:foreign_key]
+        # [+:foreign_key+]
         #   Specify the foreign key used for the association. By default this is guessed to be the name
         #   of this class in lower-case and "_id" suffixed. So a Person class that makes a #has_one association
         #   will use "person_id" as the default <tt>:foreign_key</tt>.
         #
         #   Setting the <tt>:foreign_key</tt> option prevents automatic detection of the association's
         #   inverse, so it is generally a good idea to set the <tt>:inverse_of</tt> option as well.
-        # [:foreign_type]
+        # [+:foreign_type+]
         #   Specify the column used to store the associated object's type, if this is a polymorphic
         #   association. By default this is guessed to be the name of the polymorphic association
         #   specified on "as" option with a "_type" suffix. So a class that defines a
         #   <tt>has_one :tag, as: :taggable</tt> association will use "taggable_type" as the
         #   default <tt>:foreign_type</tt>.
-        # [:primary_key]
+        # [+:primary_key+]
         #   Specify the method that returns the primary key used for the association. By default this is +id+.
-        # [:as]
+        # [+:as+]
         #   Specifies a polymorphic interface (See #belongs_to).
-        # [:through]
+        # [+:through+]
         #   Specifies a Join Model through which to perform the query. Options for <tt>:class_name</tt>,
         #   <tt>:primary_key</tt>, and <tt>:foreign_key</tt> are ignored, as the association uses the
         #   source reflection. You can only use a <tt>:through</tt> query through a #has_one
@@ -1644,52 +1644,52 @@ module ActiveRecord
         #   join model. This allows associated records to be built which will automatically create
         #   the appropriate join model records when they are saved. (See the 'Association Join Models'
         #   and 'Setting Inverses' sections above.)
-        # [:disable_joins]
+        # [+:disable_joins+]
         #   Specifies whether joins should be skipped for an association. If set to true, two or more queries
         #   will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory
         #   due to database limitations. This option is only applicable on <tt>has_one :through</tt> associations as
         #   +has_one+ alone does not perform a join.
-        # [:source]
+        # [+:source+]
         #   Specifies the source association name used by #has_one <tt>:through</tt> queries.
         #   Only use it if the name cannot be inferred from the association.
         #   <tt>has_one :favorite, through: :favorites</tt> will look for a
         #   <tt>:favorite</tt> on Favorite, unless a <tt>:source</tt> is given.
-        # [:source_type]
+        # [+:source_type+]
         #   Specifies type of the source association used by #has_one <tt>:through</tt> queries where the source
         #   association is a polymorphic #belongs_to.
-        # [:validate]
+        # [+:validate+]
         #   When set to +true+, validates new objects added to association when saving the parent object. +false+ by default.
         #   If you want to ensure associated objects are revalidated on every update, use +validates_associated+.
-        # [:autosave]
+        # [+:autosave+]
         #   If true, always save the associated object or destroy it if marked for destruction,
         #   when saving the parent object. If false, never save or destroy the associated object.
         #   By default, only save the associated object if it's a new record.
         #
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for sets
         #   <tt>:autosave</tt> to <tt>true</tt>.
-        # [:touch]
+        # [+:touch+]
         #   If true, the associated object will be touched (the +updated_at+ / +updated_on+ attributes set to current time)
         #   when this record is either saved or destroyed. If you specify a symbol, that attribute
         #   will be updated with the current time in addition to the +updated_at+ / +updated_on+ attribute.
         #   Please note that no validation will be performed when touching, and only the +after_touch+,
         #   +after_commit+, and +after_rollback+ callbacks will be executed.
-        # [:inverse_of]
+        # [+:inverse_of+]
         #   Specifies the name of the #belongs_to association on the associated object
         #   that is the inverse of this #has_one association.
         #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
-        # [:required]
+        # [+:required+]
         #   When set to +true+, the association will also have its presence validated.
         #   This will validate the association itself, not the id. You can use
         #   +:inverse_of+ to avoid an extra query during validation.
-        # [:strict_loading]
+        # [+:strict_loading+]
         #   Enforces strict loading every time the associated record is loaded through this association.
-        # [:ensuring_owner_was]
+        # [+:ensuring_owner_was+]
         #   Specifies an instance method to be called on the owner. The method must return true in order for the
         #   associated records to be deleted in a background job.
-        # [:query_constraints]
+        # [+:query_constraints+]
         #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
         #   This is an optional option. By default Rails will attempt to derive the value automatically.
-        #   When the value is set the Array size must match associated model's primary key or `query_constraints` size.
+        #   When the value is set the Array size must match associated model's primary key or +query_constraints+ size.
         #
         # Option examples:
         #   has_one :credit_card, dependent: :destroy  # destroys the associated credit card
@@ -1721,28 +1721,28 @@ module ActiveRecord
         # +association+ is a placeholder for the symbol passed as the +name+ argument, so
         # <tt>belongs_to :author</tt> would add among others <tt>author.nil?</tt>.
         #
-        # [association]
+        # [<tt>association</tt>]
         #   Returns the associated object. +nil+ is returned if none is found.
-        # [association=(associate)]
+        # [<tt>association=(associate)</tt>]
         #   Assigns the associate object, extracts the primary key, and sets it as the foreign key.
         #   No modification or deletion of existing records takes place.
-        # [build_association(attributes = {})]
+        # [<tt>build_association(attributes = {})</tt>]
         #   Returns a new object of the associated type that has been instantiated
         #   with +attributes+ and linked to this object through a foreign key, but has not yet been saved.
-        # [create_association(attributes = {})]
+        # [<tt>create_association(attributes = {})</tt>]
         #   Returns a new object of the associated type that has been instantiated
         #   with +attributes+, linked to this object through a foreign key, and that
         #   has already been saved (if it passed the validation).
-        # [create_association!(attributes = {})]
+        # [<tt>create_association!(attributes = {})</tt>]
         #   Does the same as <tt>create_association</tt>, but raises ActiveRecord::RecordInvalid
         #   if the record is invalid.
-        # [reload_association]
+        # [<tt>reload_association</tt>]
         #   Returns the associated object, forcing a database read.
-        # [reset_association]
+        # [<tt>reset_association</tt>]
         #   Unloads the associated object. The next access will query it from the database.
-        # [association_changed?]
+        # [<tt>association_changed?</tt>]
         #   Returns true if a new associate object has been assigned and the next save will update the foreign key.
-        # [association_previously_changed?]
+        # [<tt>association_previously_changed?</tt>]
         #   Returns true if the previous save updated the association to reference a new associate object.
         #
         # === Example
@@ -1781,11 +1781,11 @@ module ActiveRecord
         #
         # The declaration can also include an +options+ hash to specialize the behavior of the association.
         #
-        # [:class_name]
+        # [+:class_name+]
         #   Specify the class name of the association. Use it only if that name can't be inferred
         #   from the association name. So <tt>belongs_to :author</tt> will by default be linked to the Author class, but
         #   if the real class name is Person, you'll have to specify it with this option.
-        # [:foreign_key]
+        # [+:foreign_key+]
         #   Specify the foreign key used for the association. By default this is guessed to be the name
         #   of the association with an "_id" suffix. So a class that defines a <tt>belongs_to :person</tt>
         #   association will use "person_id" as the default <tt>:foreign_key</tt>. Similarly,
@@ -1794,22 +1794,22 @@ module ActiveRecord
         #
         #   Setting the <tt>:foreign_key</tt> option prevents automatic detection of the association's
         #   inverse, so it is generally a good idea to set the <tt>:inverse_of</tt> option as well.
-        # [:foreign_type]
+        # [+:foreign_type+]
         #   Specify the column used to store the associated object's type, if this is a polymorphic
         #   association. By default this is guessed to be the name of the association with a "_type"
         #   suffix. So a class that defines a <tt>belongs_to :taggable, polymorphic: true</tt>
         #   association will use "taggable_type" as the default <tt>:foreign_type</tt>.
-        # [:primary_key]
+        # [+:primary_key+]
         #   Specify the method that returns the primary key of associated object used for the association.
         #   By default this is +id+.
-        # [:dependent]
+        # [+:dependent+]
         #   If set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
         #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method. If set to
         #   <tt>:destroy_async</tt>, the associated object is scheduled to be destroyed in a background job.
         #   This option should not be specified when #belongs_to is used in conjunction with
         #   a #has_many relationship on another class because of the potential to leave
         #   orphaned records behind.
-        # [:counter_cache]
+        # [+:counter_cache+]
         #   Caches the number of belonging objects on the associate class through the use of CounterCache::ClassMethods#increment_counter
         #   and CounterCache::ClassMethods#decrement_counter. The counter cache is incremented when an object of this
         #   class is created and decremented when it's destroyed. This requires that a column
@@ -1821,14 +1821,14 @@ module ActiveRecord
         #   option (e.g., <tt>counter_cache: :my_custom_counter</tt>.)
         #   Note: Specifying a counter cache will add it to that model's list of readonly attributes
         #   using +attr_readonly+.
-        # [:polymorphic]
+        # [+:polymorphic+]
         #   Specify this association is a polymorphic association by passing +true+.
         #   Note: If you've enabled the counter cache, then you may want to add the counter cache attribute
         #   to the +attr_readonly+ list in the associated classes (e.g. <tt>class Post; attr_readonly :comments_count; end</tt>).
-        # [:validate]
+        # [+:validate+]
         #   When set to +true+, validates new objects added to association when saving the parent object. +false+ by default.
         #   If you want to ensure associated objects are revalidated on every update, use +validates_associated+.
-        # [:autosave]
+        # [+:autosave+]
         #   If true, always save the associated object or destroy it if marked for destruction, when
         #   saving the parent object.
         #   If false, never save or destroy the associated object.
@@ -1836,37 +1836,37 @@ module ActiveRecord
         #
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for
         #   sets <tt>:autosave</tt> to <tt>true</tt>.
-        # [:touch]
+        # [+:touch+]
         #   If true, the associated object will be touched (the +updated_at+ / +updated_on+ attributes set to current time)
         #   when this record is either saved or destroyed. If you specify a symbol, that attribute
         #   will be updated with the current time in addition to the +updated_at+ / +updated_on+ attribute.
         #   Please note that no validation will be performed when touching, and only the +after_touch+,
         #   +after_commit+, and +after_rollback+ callbacks will be executed.
-        # [:inverse_of]
+        # [+:inverse_of+]
         #   Specifies the name of the #has_one or #has_many association on the associated
         #   object that is the inverse of this #belongs_to association.
         #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
-        # [:optional]
+        # [+:optional+]
         #   When set to +true+, the association will not have its presence validated.
-        # [:required]
+        # [+:required+]
         #   When set to +true+, the association will also have its presence validated.
         #   This will validate the association itself, not the id. You can use
         #   +:inverse_of+ to avoid an extra query during validation.
         #   NOTE: <tt>required</tt> is set to <tt>true</tt> by default and is deprecated. If
         #   you don't want to have association presence validated, use <tt>optional: true</tt>.
-        # [:default]
+        # [+:default+]
         #   Provide a callable (i.e. proc or lambda) to specify that the association should
         #   be initialized with a particular record before validation.
         #   Please note that callable won't be executed if the record exists.
-        # [:strict_loading]
+        # [+:strict_loading+]
         #   Enforces strict loading every time the associated record is loaded through this association.
-        # [:ensuring_owner_was]
+        # [+:ensuring_owner_was+]
         #   Specifies an instance method to be called on the owner. The method must return true in order for the
         #   associated records to be deleted in a background job.
-        # [:query_constraints]
+        # [+:query_constraints+]
         #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
         #   This is an optional option. By default Rails will attempt to derive the value automatically.
-        #   When the value is set the Array size must match associated model's primary key or `query_constraints` size.
+        #   When the value is set the Array size must match associated model's primary key or +query_constraints+ size.
         #
         # Option examples:
         #   belongs_to :firm, foreign_key: "client_of"
@@ -1905,7 +1905,7 @@ module ActiveRecord
         # The join table should not have a primary key or a model associated with it. You must manually generate the
         # join table with a migration such as this:
         #
-        #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration[7.1]
+        #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration[7.2]
         #     def change
         #       create_join_table :developers, :projects
         #     end
@@ -1920,47 +1920,47 @@ module ActiveRecord
         # +collection+ is a placeholder for the symbol passed as the +name+ argument, so
         # <tt>has_and_belongs_to_many :categories</tt> would add among others <tt>categories.empty?</tt>.
         #
-        # [collection]
+        # [<tt>collection</tt>]
         #   Returns a Relation of all the associated objects.
         #   An empty Relation is returned if none are found.
-        # [collection<<(object, ...)]
+        # [<tt>collection<<(object, ...)</tt>]
         #   Adds one or more objects to the collection by creating associations in the join table
         #   (<tt>collection.push</tt> and <tt>collection.concat</tt> are aliases to this method).
         #   Note that this operation instantly fires update SQL without waiting for the save or update call on the
         #   parent object, unless the parent object is a new record.
-        # [collection.delete(object, ...)]
+        # [<tt>collection.delete(object, ...)</tt>]
         #   Removes one or more objects from the collection by removing their associations from the join table.
         #   This does not destroy the objects.
-        # [collection.destroy(object, ...)]
+        # [<tt>collection.destroy(object, ...)</tt>]
         #   Removes one or more objects from the collection by running destroy on each association in the join table, overriding any dependent option.
         #   This does not destroy the objects.
-        # [collection=objects]
+        # [<tt>collection=objects</tt>]
         #   Replaces the collection's content by deleting and adding objects as appropriate.
-        # [collection_singular_ids]
+        # [<tt>collection_singular_ids</tt>]
         #   Returns an array of the associated objects' ids.
-        # [collection_singular_ids=ids]
+        # [<tt>collection_singular_ids=ids</tt>]
         #   Replace the collection by the objects identified by the primary keys in +ids+.
-        # [collection.clear]
+        # [<tt>collection.clear</tt>]
         #   Removes every object from the collection. This does not destroy the objects.
-        # [collection.empty?]
+        # [<tt>collection.empty?</tt>]
         #   Returns +true+ if there are no associated objects.
-        # [collection.size]
+        # [<tt>collection.size</tt>]
         #   Returns the number of associated objects.
-        # [collection.find(id)]
+        # [<tt>collection.find(id)</tt>]
         #   Finds an associated object responding to the +id+ and that
         #   meets the condition that it has to be associated with this object.
         #   Uses the same rules as ActiveRecord::FinderMethods#find.
-        # [collection.exists?(...)]
+        # [<tt>collection.exists?(...)</tt>]
         #   Checks whether an associated object with the given conditions exists.
         #   Uses the same rules as ActiveRecord::FinderMethods#exists?.
-        # [collection.build(attributes = {})]
+        # [<tt>collection.build(attributes = {})</tt>]
         #   Returns a new object of the collection type that has been instantiated
         #   with +attributes+ and linked to this object through the join table, but has not yet been saved.
-        # [collection.create(attributes = {})]
+        # [<tt>collection.create(attributes = {})</tt>]
         #   Returns a new object of the collection type that has been instantiated
         #   with +attributes+, linked to this object through the join table, and that has already been
         #   saved (if it passed the validation).
-        # [collection.reload]
+        # [<tt>collection.reload</tt>]
         #   Returns a Relation of all of the associated objects, forcing a database read.
         #   An empty Relation is returned if none are found.
         #
@@ -2022,15 +2022,15 @@ module ActiveRecord
         #
         # === Options
         #
-        # [:class_name]
+        # [+:class_name+]
         #   Specify the class name of the association. Use it only if that name can't be inferred
         #   from the association name. So <tt>has_and_belongs_to_many :projects</tt> will by default be linked to the
         #   Project class, but if the real class name is SuperProject, you'll have to specify it with this option.
-        # [:join_table]
+        # [+:join_table+]
         #   Specify the name of the join table if the default based on lexical order isn't what you want.
         #   <b>WARNING:</b> If you're overwriting the table name of either class, the +table_name+ method
         #   MUST be declared underneath any #has_and_belongs_to_many declaration in order to work.
-        # [:foreign_key]
+        # [+:foreign_key+]
         #   Specify the foreign key used for the association. By default this is guessed to be the name
         #   of this class in lower-case and "_id" suffixed. So a Person class that makes
         #   a #has_and_belongs_to_many association to Project will use "person_id" as the
@@ -2038,15 +2038,15 @@ module ActiveRecord
         #
         #   Setting the <tt>:foreign_key</tt> option prevents automatic detection of the association's
         #   inverse, so it is generally a good idea to set the <tt>:inverse_of</tt> option as well.
-        # [:association_foreign_key]
+        # [+:association_foreign_key+]
         #   Specify the foreign key used for the association on the receiving side of the association.
         #   By default this is guessed to be the name of the associated class in lower-case and "_id" suffixed.
         #   So if a Person class makes a #has_and_belongs_to_many association to Project,
         #   the association will use "project_id" as the default <tt>:association_foreign_key</tt>.
-        # [:validate]
+        # [+:validate+]
         #   When set to +true+, validates new objects added to association when saving the parent object. +true+ by default.
         #   If you want to ensure associated objects are revalidated on every update, use +validates_associated+.
-        # [:autosave]
+        # [+:autosave+]
         #   If true, always save the associated objects or destroy them if marked for destruction, when
         #   saving the parent object.
         #   If false, never save or destroy the associated objects.
@@ -2054,7 +2054,7 @@ module ActiveRecord
         #
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for sets
         #   <tt>:autosave</tt> to <tt>true</tt>.
-        # [:strict_loading]
+        # [+:strict_loading+]
         #   Enforces strict loading every time an associated record is loaded through this association.
         #
         # Option examples:

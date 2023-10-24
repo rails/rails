@@ -351,13 +351,13 @@ module ActionView
         nopush = options.delete(:nopush) || false
         rel = mime_type == "module" ? "modulepreload" : "preload"
 
-        link_tag = tag.link(**{
+        link_tag = tag.link(
           rel: rel,
           href: href,
           as: as_type,
           type: mime_type,
-          crossorigin: crossorigin
-        }.merge!(options.symbolize_keys))
+          crossorigin: crossorigin,
+          **options.symbolize_keys)
 
         preload_link = "<#{href}>; rel=#{rel}; as=#{as_type}"
         preload_link += "; type=#{mime_type}" if mime_type

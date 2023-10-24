@@ -112,7 +112,7 @@ NOTE: `belongs_to` associations _must_ use the singular term. If you used the pl
 The corresponding migration might look like this:
 
 ```ruby
-class CreateBooks < ActiveRecord::Migration[7.1]
+class CreateBooks < ActiveRecord::Migration[7.2]
   def change
     create_table :authors do |t|
       t.string :name
@@ -159,7 +159,7 @@ The main difference from `belongs_to` is that the link column `supplier_id` is l
 The corresponding migration might look like this:
 
 ```ruby
-class CreateSuppliers < ActiveRecord::Migration[7.1]
+class CreateSuppliers < ActiveRecord::Migration[7.2]
   def change
     create_table :suppliers do |t|
       t.string :name
@@ -205,7 +205,7 @@ NOTE: The name of the other model is pluralized when declaring a `has_many` asso
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAuthors < ActiveRecord::Migration[7.1]
+class CreateAuthors < ActiveRecord::Migration[7.2]
   def change
     create_table :authors do |t|
       t.string :name
@@ -257,7 +257,7 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAppointments < ActiveRecord::Migration[7.1]
+class CreateAppointments < ActiveRecord::Migration[7.2]
   def change
     create_table :physicians do |t|
       t.string :name
@@ -343,7 +343,7 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAccountHistories < ActiveRecord::Migration[7.1]
+class CreateAccountHistories < ActiveRecord::Migration[7.2]
   def change
     create_table :suppliers do |t|
       t.string :name
@@ -386,7 +386,7 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAssembliesAndParts < ActiveRecord::Migration[7.1]
+class CreateAssembliesAndParts < ActiveRecord::Migration[7.2]
   def change
     create_table :assemblies do |t|
       t.string :name
@@ -425,7 +425,7 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateSuppliers < ActiveRecord::Migration[7.1]
+class CreateSuppliers < ActiveRecord::Migration[7.2]
   def change
     create_table :suppliers do |t|
       t.string :name
@@ -510,7 +510,7 @@ Similarly, you can retrieve `@product.pictures`.
 If you have an instance of the `Picture` model, you can get to its parent via `@picture.imageable`. To make this work, you need to declare both a foreign key column and a type column in the model that declares the polymorphic interface:
 
 ```ruby
-class CreatePictures < ActiveRecord::Migration[7.1]
+class CreatePictures < ActiveRecord::Migration[7.2]
   def change
     create_table :pictures do |t|
       t.string  :name
@@ -527,7 +527,7 @@ end
 This migration can be simplified by using the `t.references` form:
 
 ```ruby
-class CreatePictures < ActiveRecord::Migration[7.1]
+class CreatePictures < ActiveRecord::Migration[7.2]
   def change
     create_table :pictures do |t|
       t.string :name
@@ -622,7 +622,7 @@ With this setup, you can retrieve `@employee.subordinates` and `@employee.manage
 In your migrations/schema, you will add a references column to the model itself.
 
 ```ruby
-class CreateEmployees < ActiveRecord::Migration[7.1]
+class CreateEmployees < ActiveRecord::Migration[7.2]
   def change
     create_table :employees do |t|
       t.references :manager, foreign_key: { to_table: :employees }
@@ -696,7 +696,7 @@ end
 This declaration needs to be backed up by a corresponding foreign key column in the books table. For a brand new table, the migration might look something like this:
 
 ```ruby
-class CreateBooks < ActiveRecord::Migration[7.1]
+class CreateBooks < ActiveRecord::Migration[7.2]
   def change
     create_table :books do |t|
       t.datetime   :published_at
@@ -710,7 +710,7 @@ end
 Whereas for an existing table, it might look like this:
 
 ```ruby
-class AddAuthorToBooks < ActiveRecord::Migration[7.1]
+class AddAuthorToBooks < ActiveRecord::Migration[7.2]
   def change
     add_reference :books, :author
   end
@@ -742,7 +742,7 @@ end
 These need to be backed up by a migration to create the `assemblies_parts` table. This table should be created without a primary key:
 
 ```ruby
-class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[7.1]
+class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[7.2]
   def change
     create_table :assemblies_parts, id: false do |t|
       t.bigint :assembly_id
@@ -760,7 +760,7 @@ We pass `id: false` to `create_table` because that table does not represent a mo
 For simplicity, you can also use the method `create_join_table`:
 
 ```ruby
-class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[7.1]
+class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[7.2]
   def change
     create_join_table :assemblies, :parts do |t|
       t.index :assembly_id
@@ -1118,14 +1118,19 @@ The [`belongs_to`][] association supports these options:
 * `:autosave`
 * `:class_name`
 * `:counter_cache`
+* `:default`
 * `:dependent`
+* `:ensuring_owner_was`
 * `:foreign_key`
+* `:foreign_type`
 * `:primary_key`
 * `:inverse_of`
+* `:optional`
 * `:polymorphic`
+* `:required`
+* `:strict_loading`
 * `:touch`
 * `:validate`
-* `:optional`
 
 ##### `:autosave`
 
@@ -1201,6 +1206,10 @@ towards the counter. To fix a stale counter cache, use [`reset_counters`][].
 
 [`reset_counters`]: https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-reset_counters
 
+##### `:default`
+
+When set to `true`, the association will not have its presence validated.
+
 ##### `:dependent`
 
 If you set the `:dependent` option to:
@@ -1217,6 +1226,10 @@ If you set the `:dependent` option to:
 
 WARNING: You should not specify this option on a `belongs_to` association that is connected with a `has_many` association on the other class. Doing so can lead to orphaned records in your database.
 
+##### `:ensuring_owner_was`
+
+Specifies an instance method to be called on the owner. The method must return true in order for the associated records to be deleted in a background job.
+
 ##### `:foreign_key`
 
 By convention, Rails assumes that the column used to hold the foreign key on this model is the name of the association with the suffix `_id` added. The `:foreign_key` option lets you set the name of the foreign key directly:
@@ -1229,6 +1242,10 @@ end
 ```
 
 TIP: In any case, Rails will not create foreign key columns for you. You need to explicitly define them as part of your migrations.
+
+##### `:foreign_type`
+
+Specify the column used to store the associated object’s type, if this is a polymorphic association. By default this is guessed to be the name of the association with a “`_type`” suffix. So a class that defines a `belongs_to :taggable, polymorphic: true` association will use “`taggable_type`” as the default `:foreign_type`.
 
 ##### `:primary_key`
 
@@ -1265,9 +1282,25 @@ class Book < ApplicationRecord
 end
 ```
 
+##### `:optional`
+
+If you set the `:optional` option to `true`, then the presence of the associated
+object won't be validated. By default, this option is set to `false`.
+
 ##### `:polymorphic`
 
 Passing `true` to the `:polymorphic` option indicates that this is a polymorphic association. Polymorphic associations were discussed in detail <a href="#polymorphic-associations">earlier in this guide</a>.
+
+
+##### `:required`
+
+When set to `true`, the association will also have its presence validated. This will validate the association itself, not the id. You can use `:inverse_of` to avoid an extra query during validation.
+
+NOTE: required is set to `true` by default and is deprecated. If you don’t want to have association presence validated, use `optional: true`.
+
+##### `:strict_loading`
+
+Enforces strict loading every time the associated record is loaded through this association.
 
 ##### `:touch`
 
@@ -1294,11 +1327,6 @@ end
 ##### `:validate`
 
 If you set the `:validate` option to `true`, then new associated objects will be validated whenever you save this object. By default, this is `false`: new associated objects will not be validated when this object is saved.
-
-##### `:optional`
-
-If you set the `:optional` option to `true`, then the presence of the associated
-object won't be validated. By default, this option is set to `false`.
 
 #### Scopes for `belongs_to`
 
@@ -1489,11 +1517,16 @@ The [`has_one`][] association supports these options:
 * `:autosave`
 * `:class_name`
 * `:dependent`
+* `:disable_joins`
+* `:ensuring_owner_was`
 * `:foreign_key`
 * `:inverse_of`
 * `:primary_key`
+* `:query_constraints`
+* `:required`
 * `:source`
 * `:source_type`
+* `:strict_loading`
 * `:through`
 * `:touch`
 * `:validate`
@@ -1533,6 +1566,10 @@ destroy such associations you won't be able to change the associated object
 because the initial associated object's foreign key will be set to the
 unallowed `NULL` value.
 
+##### `:disable_joins`
+
+Specifies whether joins should be skipped for an association. If set to `true`, two or more queries will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory due to database limitations. This option is only applicable on `has_one :through` associations as `has_one` alone does not perform a join.
+
 ##### `:foreign_key`
 
 By convention, Rails assumes that the column used to hold the foreign key on the other model is the name of this model with the suffix `_id` added. The `:foreign_key` option lets you set the name of the foreign key directly:
@@ -1564,6 +1601,14 @@ end
 
 By convention, Rails assumes that the column used to hold the primary key of this model is `id`. You can override this and explicitly specify the primary key with the `:primary_key` option.
 
+##### `:query_constraints`
+
+Serves as a composite foreign key. Defines the list of columns to be used to query the associated object. This is an optional option. By default Rails will attempt to derive the value automatically. When the value is set the Array size must match associated model’s primary key or query_constraints size.
+
+##### `:required`
+
+When set to `true`, the association will also have its presence validated. This will validate the association itself, not the id. You can use `:inverse_of` to avoid an extra query during validation.
+
 ##### `:source`
 
 The `:source` option specifies the source association name for a `has_one :through` association.
@@ -1591,6 +1636,10 @@ end
 
 class DustJacket < ApplicationRecord; end
 ```
+
+##### `:strict_loading`
+
+Enforces strict loading every time the associated record is loaded through this association.
 
 ##### `:through`
 
@@ -1750,7 +1799,7 @@ end
 
 Each instance of the `Author` model will have these methods:
 
-```ruby
+```
 books
 books<<(object, ...)
 books.delete(object, ...)
@@ -1944,11 +1993,17 @@ The [`has_many`][] association supports these options:
 * `:class_name`
 * `:counter_cache`
 * `:dependent`
+* `:disable_joins`
+* `:ensuring_owner_was`
+* `:extend`
 * `:foreign_key`
+* `:foreign_type`
 * `:inverse_of`
 * `:primary_key`
+* `:query_constraints`
 * `:source`
 * `:source_type`
+* `:strict_loading`
 * `:through`
 * `:validate`
 
@@ -1987,6 +2042,18 @@ Controls what happens to the associated objects when their owner is destroyed:
 
 The `:destroy` and `:delete_all` options also affect the semantics of the `collection.delete` and `collection=` methods by causing them to destroy associated objects when they are removed from the collection.
 
+##### `:disable_joins`
+
+Specifies whether joins should be skipped for an association. If set to true, two or more queries will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory due to database limitations. This option is only applicable on `has_many :through associations` as has_many alone do not perform a join.
+
+##### `:ensuring_owner_was`
+
+Specifies an instance method to be called on the owner. The method must return true in order for the associated records to be deleted in a background job.
+
+##### `:extend`
+
+Specifies a module or array of modules that will be extended into the association object returned. Useful for defining methods on associations, especially when they should be shared between multiple association objects.
+
 ##### `:foreign_key`
 
 By convention, Rails assumes that the column used to hold the foreign key on the other model is the name of this model with the suffix `_id` added. The `:foreign_key` option lets you set the name of the foreign key directly:
@@ -1998,6 +2065,10 @@ end
 ```
 
 TIP: In any case, Rails will not create foreign key columns for you. You need to explicitly define them as part of your migrations.
+
+##### `:foreign_type`
+
+Specify the column used to store the associated object’s type, if this is a polymorphic association. By default this is guessed to be the name of the polymorphic association specified on “`as`” option with a “`_type`” suffix. So a class that defines a `has_many :tags, as: :taggable` association will use “`taggable_type`” as the default `:foreign_type`.
 
 ##### `:inverse_of`
 
@@ -2032,6 +2103,10 @@ end
 Now if we execute `@todo = @user.todos.create` then the `@todo`
 record's `user_id` value will be the `guid` value of `@user`.
 
+##### `:query_constraints`
+
+Serves as a composite foreign key. Defines the list of columns to be used to query the associated object. This is an optional option. By default Rails will attempt to derive the value automatically. When the value is set the Array size must match associated model’s primary key or `query_constraints` size.
+
 ##### `:source`
 
 The `:source` option specifies the source association name for a `has_many :through` association. You only need to use this option if the name of the source association cannot be automatically inferred from the association name.
@@ -2053,6 +2128,10 @@ end
 class Hardback < ApplicationRecord; end
 class Paperback < ApplicationRecord; end
 ```
+
+##### `:strict_loading`
+
+When set to true, enforces strict loading every time the associated record is loaded through this association.
 
 ##### `:through`
 
@@ -2321,7 +2400,7 @@ end
 
 Each instance of the `Part` model will have these methods:
 
-```ruby
+```
 assemblies
 assemblies<<(object, ...)
 assemblies.delete(object, ...)
@@ -2486,6 +2565,7 @@ The [`has_and_belongs_to_many`][] association supports these options:
 * `:class_name`
 * `:foreign_key`
 * `:join_table`
+* `:strict_loading`
 * `:validate`
 
 ##### `:association_foreign_key`
@@ -2533,6 +2613,10 @@ end
 ##### `:join_table`
 
 If the default name of the join table, based on lexical ordering, is not what you want, you can use the `:join_table` option to override the default.
+
+##### `:strict_loading`
+
+Enforces strict loading every time an associated record is loaded through this association.
 
 ##### `:validate`
 

@@ -10,8 +10,8 @@ module ActiveRecord
     def test_persisted
       topic = Topic.first
       cloned = topic.clone
-      assert topic.persisted?, "topic persisted"
-      assert cloned.persisted?, "topic persisted"
+      assert_predicate topic, :persisted?, "topic persisted"
+      assert_predicate cloned, :persisted?, "topic persisted"
       assert_not cloned.new_record?, "topic is not new"
       assert_not cloned.previously_new_record?, "topic was not previously new"
       assert_not cloned.previously_persisted?, "topic was not previously persisted"
@@ -22,9 +22,9 @@ module ActiveRecord
       topic.freeze
 
       cloned = topic.clone
-      assert cloned.persisted?, "topic persisted"
+      assert_predicate cloned, :persisted?, "topic persisted"
       assert_not cloned.new_record?, "topic is not new"
-      assert cloned.frozen?, "topic should be frozen"
+      assert_predicate cloned, :frozen?, "topic should be frozen"
       assert_raise(FrozenError) { cloned.author_name = "Aaron" }
     end
 

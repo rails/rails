@@ -3,39 +3,44 @@
 require_relative "abstract_unit"
 require "active_support/log_subscriber/test_helper"
 
-class MyLogSubscriber < ActiveSupport::LogSubscriber
-  attr_reader :event
-
-  def some_event(event)
-    @event = event
-    info event.name
-  end
-
-  def foo(event)
-    debug "debug"
-    info { "info" }
-    warn "warn"
-  end
-
-  def bar(event)
-    info "#{color("cool", :red)}, #{color("isn't it?", :blue, bold: true)}"
-  end
-
-  def baz(event)
-    info "#{color("rad", :green, bold: true, underline: true)}, #{color("isn't it?", :yellow, italic: true)}"
-  end
-
-  def deprecated(event)
-    info "#{color("bogus", :red, true)}"
-  end
-
-  def puke(event)
-    raise "puke"
-  end
-end
-
 class SyncLogSubscriberTest < ActiveSupport::TestCase
   include ActiveSupport::LogSubscriber::TestHelper
+
+  class MyLogSubscriber < ActiveSupport::LogSubscriber
+    attr_reader :event
+
+    def some_event(event)
+      @event = event
+      info event.name
+    end
+
+    def foo(event)
+      debug "debug"
+      info { "info" }
+      warn "warn"
+    end
+
+    def bar(event)
+      info "#{color("cool", :red)}, #{color("isn't it?", :blue, bold: true)}"
+    end
+
+    def baz(event)
+      info "#{color("rad", :green, bold: true, underline: true)}, #{color("isn't it?", :yellow, italic: true)}"
+    end
+
+    def deprecated(event)
+      info "#{color("bogus", :red, true)}"
+    end
+
+    def puke(event)
+      raise "puke"
+    end
+
+    def debug_only(event)
+      debug "debug logs are enabled"
+    end
+    subscribe_log_level :debug_only, :debug
+  end
 
   def setup
     super
@@ -45,10 +50,6 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
   def teardown
     super
     ActiveSupport::LogSubscriber.log_subscribers.clear
-  end
-
-  def instrument(*args, &block)
-    ActiveSupport::Notifications.instrument(*args, &block)
   end
 
   def test_proxies_method_to_rails_logger
@@ -165,4 +166,51 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
     assert_equal 1, @logger.logged(:error).size
     assert_match 'Could not log "puke.my_log_subscriber" event. RuntimeError: puke', @logger.logged(:error).last
   end
+
+  def test_subscribe_log_level
+    MyLogSubscriber.logger = @logger
+    @logger.level = Logger::INFO
+    MyLogSubscriber.attach_to :my_log_subscriber, @log_subscriber
+    assert_empty @logger.logged(:debug)
+
+    instrument "debug_only.my_log_subscriber"
+    wait
+    assert_empty @logger.logged(:debug)
+
+    @logger.level = Logger::DEBUG
+    instrument "debug_only.my_log_subscriber"
+    wait
+    assert_not_empty @logger.logged(:debug)
+  end
+
+  class MockSemanticLogger < MockLogger
+    LEVELS = [:debug, :info]
+    def level
+      LEVELS[super]
+    end
+  end
+
+  def test_subscribe_log_level_with_non_numeric_levels
+    # The semantic_logger gem doesn't returns integers but symbols as levels
+    @logger = MockSemanticLogger.new
+    set_logger(@logger)
+    MyLogSubscriber.logger = @logger
+    @logger.level = Logger::INFO
+    MyLogSubscriber.attach_to :my_log_subscriber, @log_subscriber
+    assert_empty @logger.logged(:debug)
+
+    instrument "debug_only.my_log_subscriber"
+    wait
+    assert_empty @logger.logged(:debug)
+
+    @logger.level = Logger::DEBUG
+    instrument "debug_only.my_log_subscriber"
+    wait
+    assert_not_empty @logger.logged(:debug)
+  end
+
+  private
+    def instrument(*args, &block)
+      ActiveSupport::Notifications.instrument(*args, &block)
+    end
 end

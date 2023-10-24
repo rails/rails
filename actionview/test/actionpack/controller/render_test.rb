@@ -1347,7 +1347,7 @@ class RenderTest < ActionController::TestCase
     get :partial_with_form_builder_and_invalid_model
 
     assert_equal <<~HTML.strip, @response.body.strip
-      <div class="field_with_errors"><label for="post_title">Title</label> <span class="error">can’t be blank</span></div>
+      <div class="field_with_errors"><label for="post_title">Title</label> <span class="error">can&#39;t be blank</span></div>
     HTML
   ensure
     ActionView::Base.field_error_proc = old_proc if old_proc

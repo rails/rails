@@ -55,7 +55,7 @@ class DependencyTrackerTest < ActionView::TestCase
   end
 end
 
-# Tests run with both ERBTracker and RipperTracker
+# Tests run with both ERBTracker and RubyTracker
 module SharedTrackerTests
   def test_dependency_of_erb_template_with_number_in_filename
     template = FakeTemplate.new("<%= render 'messages/message123' %>", :erb)
@@ -228,11 +228,11 @@ class ERBTrackerTest < Minitest::Test
   end
 end
 
-class RipperTrackerTest < Minitest::Test
+class RubyTrackerTest < Minitest::Test
   include SharedTrackerTests
 
   def make_tracker(name, template)
-    ActionView::DependencyTracker::RipperTracker.new(name, template)
+    ActionView::DependencyTracker::RubyTracker.new(name, template)
   end
 
   def test_dependencies_skip_unknown_options

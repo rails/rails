@@ -168,10 +168,9 @@ module ActiveRecord
     end
 
     def load_schema! # :nodoc:
-      attributes_to_define_after_schema_loads.each do |name, (cast_type, _default)|
-        unless columns_hash.key?(name)
-          cast_type = cast_type[type_for_attribute(name)] if Proc === cast_type
-          raise "Unknown enum attribute '#{name}' for #{self.name}" if Enum::EnumType === cast_type
+      defined_enums.each_key do |name|
+        unless columns_hash.key?(resolve_attribute_name(name))
+          raise "Unknown enum attribute '#{name}' for #{self.name}"
         end
       end
     end
@@ -254,7 +253,9 @@ module ActiveRecord
         detect_enum_conflict!(name, name)
         detect_enum_conflict!(name, "#{name}=")
 
-        attribute(name, **options) do |subtype|
+        attribute(name, **options)
+
+        decorate_attributes([name]) do |name, subtype|
           subtype = subtype.subtype if EnumType === subtype
           EnumType.new(name, enum_values, subtype, raise_on_invalid_values: !validate)
         end

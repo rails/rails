@@ -32,13 +32,25 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
     assert_match(/^attachment; /, response.headers["Content-Disposition"])
   end
 
-  test "signed ID within expiration date" do
+  test "signed ID within expiration duration" do
     get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg"), expires_in: 1.minute)
     assert_response :success
   end
 
-  test "Expired signed ID" do
+  test "Expired signed ID within expiration duration" do
     url = rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg"), expires_in: 1.minute)
+    travel 2.minutes
+    get url
+    assert_response :not_found
+  end
+
+  test "signed ID within expiration time" do
+    get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg"), expires_at: 1.minute.from_now)
+    assert_response :success
+  end
+
+  test "Expired signed ID within expiration time" do
+    url = rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg"), expires_at: 1.minute.from_now)
     travel 2.minutes
     get url
     assert_response :not_found

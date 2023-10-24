@@ -860,7 +860,7 @@ module ActionDispatch
         params = route_with_params.params
 
         if options.key? :params
-          if options[:params]&.respond_to?(:to_hash)
+          if options[:params].respond_to?(:to_hash)
             params.merge! options[:params]
           else
             params[:params] = options[:params]

@@ -498,7 +498,7 @@ module ActiveRecord
       end
 
       # Does this adapter support creating unique constraints?
-      def supports_unique_keys?
+      def supports_unique_constraints?
         false
       end
 
@@ -667,6 +667,13 @@ module ActiveRecord
       end
 
       # CONNECTION MANAGEMENT ====================================
+
+      # Checks whether the connection to the database was established. This doesn't
+      # include checking whether the database is actually capable of responding, i.e.
+      # whether the connection is stale.
+      def connected?
+        !@raw_connection.nil?
+      end
 
       # Checks whether the connection to the database is still active. This includes
       # checking whether the database is actually capable of responding, i.e. whether
@@ -868,7 +875,7 @@ module ActiveRecord
       end
 
       def database_version # :nodoc:
-        schema_cache.database_version
+        pool.server_version(self)
       end
 
       def check_version # :nodoc:
@@ -1215,6 +1222,7 @@ module ActiveRecord
         # Implementations may assume this method will only be called while
         # holding @lock (or from #initialize).
         def configure_connection
+          check_version
         end
 
         def default_prepared_statements

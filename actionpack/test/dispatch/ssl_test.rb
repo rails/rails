@@ -10,7 +10,7 @@ class SSLTest < ActionDispatch::IntegrationTest
     Rack::Lint.new(
       ActionDispatch::SSL.new(
         Rack::Lint.new(app),
-        **ssl_options.reverse_merge(hsts: { subdomains: true }),
+        hsts: { subdomains: true }, **ssl_options,
       )
     )
   end

@@ -32,7 +32,7 @@ module Mail
 
     private
       def address_list(obj)
-        if obj&.respond_to?(:element)
+        if obj.respond_to?(:element)
           # Mail 2.8+
           obj.element
         else

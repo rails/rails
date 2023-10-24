@@ -99,7 +99,9 @@ module ActiveRecord
 
     def test_removes_file_with_absolute_path
       assert_called_with(FileUtils, :rm, [@database_root]) do
-        ActiveRecord::Tasks::DatabaseTasks.drop @configuration_root, @root
+        assert_called_with(FileUtils, :rm_f, [["#{@database_root}-shm", "#{@database_root}-wal"]]) do
+          ActiveRecord::Tasks::DatabaseTasks.drop @configuration_root, @root
+        end
       end
     end
 
@@ -111,7 +113,9 @@ module ActiveRecord
 
     def test_removes_file_with_relative_path
       assert_called_with(FileUtils, :rm, [@database_root]) do
-        ActiveRecord::Tasks::DatabaseTasks.drop @configuration, @root
+        assert_called_with(FileUtils, :rm_f, [["#{@database_root}-shm", "#{@database_root}-wal"]]) do
+          ActiveRecord::Tasks::DatabaseTasks.drop @configuration, @root
+        end
       end
     end
 

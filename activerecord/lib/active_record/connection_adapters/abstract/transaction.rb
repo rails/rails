@@ -82,8 +82,11 @@ module ActiveRecord
         @base_payload = payload
       end
 
+      class InstrumentationNotStartedError < ActiveRecordError; end
+      class InstrumentationAlreadyStartedError < ActiveRecordError; end
+
       def start
-        return if @started
+        raise InstrumentationAlreadyStartedError.new("Called start on an already started transaction") if @started
         @started = true
 
         @payload = @base_payload.dup
@@ -92,7 +95,7 @@ module ActiveRecord
       end
 
       def finish(outcome)
-        return unless @started
+        raise InstrumentationNotStartedError.new("Called finish on a transaction that hasn't started") unless @started
         @started = false
 
         @payload[:outcome] = outcome
@@ -112,6 +115,7 @@ module ActiveRecord
       def dirty!; end
       def invalidated?; false; end
       def invalidate!; end
+      def materialized?; false; end
     end
 
     class Transaction # :nodoc:
@@ -166,7 +170,7 @@ module ActiveRecord
       end
 
       def incomplete!
-        @instrumenter.finish(:incomplete)
+        @instrumenter.finish(:incomplete) if materialized?
       end
 
       def materialize!
@@ -180,6 +184,7 @@ module ActiveRecord
 
       def restore!
         if materialized?
+          incomplete!
           @materialized = false
           materialize!
         end
@@ -348,13 +353,13 @@ module ActiveRecord
           connection.rollback_to_savepoint(savepoint_name) if materialized?
         end
         @state.rollback!
-        @instrumenter.finish(:rollback)
+        @instrumenter.finish(:rollback) if materialized?
       end
 
       def commit
         connection.release_savepoint(savepoint_name) if materialized?
         @state.commit!
-        @instrumenter.finish(:commit)
+        @instrumenter.finish(:commit) if materialized?
       end
 
       def full_rollback?; false; end
@@ -389,13 +394,13 @@ module ActiveRecord
       def rollback
         connection.rollback_db_transaction if materialized?
         @state.full_rollback!
-        @instrumenter.finish(:rollback)
+        @instrumenter.finish(:rollback) if materialized?
       end
 
       def commit
         connection.commit_db_transaction if materialized?
         @state.full_commit!
-        @instrumenter.finish(:commit)
+        @instrumenter.finish(:commit) if materialized?
       end
     end
 

@@ -53,7 +53,7 @@ For unsupported series, bug fixes may coincidentally land in a stable branch,
 but won't be released in an official version. It is recommended to point your
 application at the stable branch using Git for unsupported versions.
 
-**Currently included series:** `7.1.Z`.
+**Currently included series:** `7.2.Z`.
 
 Security Issues
 ---------------
@@ -78,7 +78,7 @@ there could be breaking changes in the security release. A security release
 should only contain the changes needed to ensure the app is secure so that it's
 easier for applications to remain upgraded.
 
-**Currently included series:** `7.1.Z`, `7.0.Z`, `6.1.Z`.
+**Currently included series:** `7.2.Z`, `7.1.Z`.
 
 Severe Security Issues
 ----------------------
@@ -87,7 +87,7 @@ For severe security issues all releases in the current major series, and also th
 last release in the previous major series will receive patches and new versions. The
 classification of the security issue is judged by the core team.
 
-**Currently included series:** `7.1.Z`, `7.0.Z`, `6.1.Z`.
+**Currently included series:** `7.2.Z`, `7.1.Z`, `7.0.Z`, `6.1.Z`.
 
 Unsupported Release Series
 --------------------------
@@ -99,11 +99,11 @@ recommend to point your application at the stable branch using Git. If you are
 not comfortable maintaining your own versions, you should upgrade to a supported
 version.
 
-NPM Packages
+npm Packages
 ------------
 
 Due to a constraint with npm, we are unable to use the 4th digit for security
-releases of [NPM packages][] provided by Rails. This means that instead of the
-equivalent gem version `7.0.1.4`, the NPM package will be versioned `7.0.1-4`.
+releases of [npm packages][] provided by Rails. This means that instead of the
+equivalent gem version `7.0.1.4`, the npm package will be versioned `7.0.1-4`.
 
-[NPM packages]: https://www.npmjs.com/org/rails
+[npm packages]: https://www.npmjs.com/org/rails

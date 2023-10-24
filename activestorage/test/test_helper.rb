@@ -129,9 +129,7 @@ class ActiveSupport::TestCase
 
     def subscribe_events_from(name)
       events = []
-      ActiveSupport::Notifications.subscribe(name) do |*args|
-        events << ActiveSupport::Notifications::Event.new(*args)
-      end
+      ActiveSupport::Notifications.subscribe(name) { |event| events << event }
       events
     end
 end

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "../../tools/test_common"
+
 require "active_support/testing/strict_warnings"
 require "active_job"
 require "support/job_buffer"
@@ -17,8 +19,6 @@ else
 end
 
 require "active_support/testing/autorun"
-
-require_relative "../../tools/test_common"
 
 def adapter_is?(*adapter_class_symbols)
   adapter_class_symbols.map(&:to_s).include? ActiveJob::Base.queue_adapter_name

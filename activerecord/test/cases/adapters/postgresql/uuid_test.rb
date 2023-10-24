@@ -202,7 +202,7 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
     record = klass.create!(guid: "a0ee-bc99-9c0b-4ef8-bb6d-6bb9-bd38-0a11")
     duplicate = klass.new(guid: record.guid)
 
-    assert record.guid.present? # Ensure we actually are testing a UUID
+    assert_predicate record.guid, :present? # Ensure we actually are testing a UUID
     assert_not_predicate duplicate, :valid?
   end
 end

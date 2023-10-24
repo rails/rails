@@ -536,8 +536,8 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_not_predicate invalid_electron, :valid?
     assert_predicate valid_electron, :valid?
     assert_not_predicate molecule, :valid?
-    assert_equal ["can’t be blank"], molecule.errors["electrons[1].name"]
-    assert_not_equal ["can’t be blank"], molecule.errors["electrons.name"]
+    assert_equal ["can't be blank"], molecule.errors["electrons[1].name"]
+    assert_not_equal ["can't be blank"], molecule.errors["electrons.name"]
   ensure
     ActiveRecord.index_nested_attribute_errors = old_attribute_config
   end
@@ -644,7 +644,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_predicate reference_valid, :valid?
     assert_not_predicate reference_invalid, :valid?
     assert_not_predicate p, :valid?
-    assert_equal ["should be favorite", "can’t be blank"], p.errors.full_messages
+    assert_equal ["should be favorite", "can't be blank"], p.errors.full_messages
   ensure
     ActiveModel::Error.i18n_customize_full_message = old_i18n_customize_full_message
     I18n.backend = I18n::Backend::Simple.new
@@ -687,14 +687,14 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
 
     p = person.new
     assert_not_predicate p, :valid?
-    assert_equal ["Super reference can’t be blank"], p.errors.full_messages
+    assert_equal ["Super reference can't be blank"], p.errors.full_messages
 
     reference_invalid = reference.new(favorite: false)
     p.reference = reference_invalid
 
     assert_not_predicate reference_invalid, :valid?
     assert_not_predicate p, :valid?
-    assert_equal [" should be favorite", "Reference job can’t be blank"], p.errors.full_messages
+    assert_equal [" should be favorite", "Reference job can't be blank"], p.errors.full_messages
   ensure
     I18n.backend = I18n::Backend::Simple.new
   end
@@ -1525,7 +1525,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     @pirate.ship.name   = ""
     @pirate.catchphrase = nil
     assert_predicate @pirate, :invalid?
-    assert_equal ["can’t be blank", "is invalid"], @pirate.errors[:"ship.name"]
+    assert_equal ["can't be blank", "is invalid"], @pirate.errors[:"ship.name"]
   ensure
     Ship._validators = old_validators if old_validators
     Ship._validate_callbacks = old_callbacks if old_callbacks
@@ -1820,7 +1820,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.public_send(@association_name).each { |child| child.name = "" }
 
     assert_not_predicate @pirate, :valid?
-    assert_equal ["can’t be blank"], @pirate.errors["#{@association_name}.name"]
+    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
     assert_empty @pirate.errors[@association_name]
   end
 
@@ -1828,7 +1828,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.public_send(@association_name).build(name: "")
 
     assert_not_predicate @pirate, :valid?
-    assert_equal ["can’t be blank"], @pirate.errors["#{@association_name}.name"]
+    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
     assert_empty @pirate.errors[@association_name]
   end
 
@@ -1852,7 +1852,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.catchphrase = nil
 
     assert_not_predicate @pirate, :valid?
-    assert_equal ["can’t be blank"], @pirate.errors["#{@association_name}.name"]
+    assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
     assert_predicate @pirate.errors[:catchphrase], :any?
   end
 
@@ -2053,7 +2053,7 @@ class TestAutosaveAssociationValidationsOnAHasManyAssociation < ActiveRecord::Te
     pirate = FamousPirate.create!(catchphrase: "Avast Ye!")
     pirate.famous_ships.create!
 
-    assert pirate.valid?
+    assert_predicate pirate, :valid?
     assert_not pirate.valid?(:conference)
   end
 end
@@ -2100,7 +2100,7 @@ class TestAutosaveAssociationValidationsOnABelongsToAssociation < ActiveRecord::
   def test_validations_still_fire_on_unchanged_association_with_custom_validation_context
     firm_with_low_credit = Firm.create!(name: "Something", account: Account.new(credit_limit: 50))
 
-    assert firm_with_low_credit.valid?
+    assert_predicate firm_with_low_credit, :valid?
     assert_not firm_with_low_credit.valid?(:bank_loan)
   end
 end

@@ -86,14 +86,14 @@ module ActionDispatch
       tf = Tempfile.new
       uf = Http::UploadedFile.new(tempfile: tf)
       uf.close
-      assert tf.closed?
+      assert_predicate tf, :closed?
     end
 
     def test_close_accepts_parameter
       tf = Tempfile.new
       uf = Http::UploadedFile.new(tempfile: tf)
       uf.close(true)
-      assert tf.closed?
+      assert_predicate tf, :closed?
       assert_nil tf.path
     end
 

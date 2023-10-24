@@ -131,6 +131,10 @@ module ActiveRecord
         end
       end
 
+      def connected?
+        !(@raw_connection.nil? || @raw_connection.closed?)
+      end
+
       def active?
         connection&.ping || false
       rescue ::Trilogy::Error
@@ -202,7 +206,7 @@ module ActiveRecord
         end
 
         def full_version
-          schema_cache.database_version.full_version_string
+          database_version.full_version_string
         end
 
         def get_full_version

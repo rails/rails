@@ -170,25 +170,18 @@ end
 
 #### Connection Callbacks
 
-There are `before_command`, `after_command`, and `around_command` callbacks available to be invoked before, after or around every command received by a client respectively.
-The term "command" here refers to any interaction received by a client (subscribing, unsubscribing or performing actions):
+[`ActionCable::Connection::Callbacks`][] provides callback hooks that are
+invoked when sending commands to the client, such as when subscribing,
+unsubscribing, or performing an action:
 
-```ruby
-# app/channels/application_cable/connection.rb
-module ApplicationCable
-  class Connection < ActionCable::Connection::Base
-    identified_by :user
+* [`before_command`][]
+* [`after_command`][]
+* [`around_command`][]
 
-    around_command :set_current_account
-
-    private
-      def set_current_account(&block)
-        # Now all channels could use Current.account
-        Current.set(account: user.account, &block)
-      end
-  end
-end
-```
+[`ActionCable::Connection::Callbacks`]: https://api.rubyonrails.org/classes/ActionCable/Connection/Callbacks.html
+[`after_command`]: https://api.rubyonrails.org/classes/ActionCable/Connection/Callbacks/ClassMethods.html#method-i-after_command
+[`around_command`]: https://api.rubyonrails.org/classes/ActionCable/Connection/Callbacks/ClassMethods.html#method-i-around_command
+[`before_command`]: https://api.rubyonrails.org/classes/ActionCable/Connection/Callbacks/ClassMethods.html#method-i-before_command
 
 ### Channels
 
@@ -257,41 +250,28 @@ class ChatChannel < ApplicationCable::Channel
 
   private
     def deliver_error_message(e)
-      broadcast_to(...)
+      # broadcast_to(...)
     end
 end
 ```
 
 #### Channel Callbacks
 
-`ApplicationCable::Channel` provides a number of callbacks that can be used to trigger logic
-during the life cycle of a channel. Available callbacks are:
+[`ActionCable::Channel::Callbacks`][] provides callback hooks that are invoked
+during the life cycle of a channel:
 
-- `before_subscribe`
-- `after_subscribe` (also aliased as: `on_subscribe`)
-- `before_unsubscribe`
-- `after_unsubscribe` (also aliased as: `on_unsubscribe`)
+* [`before_subscribe`][]
+* [`after_subscribe`][] (aliased as [`on_subscribe`][])
+* [`before_unsubscribe`][]
+* [`after_unsubscribe`][] (aliased as [`on_unsubscribe`][])
 
-NOTE: The `after_subscribe` callback is triggered whenever the `subscribed` method is called,
-even if subscription was rejected with the `reject` method. To trigger `after_subscribe`
-only on successful subscriptions, use `after_subscribe :send_welcome_message, unless: :subscription_rejected?`
-
-```ruby
-# app/channels/chat_channel.rb
-class ChatChannel < ApplicationCable::Channel
-  after_subscribe :send_welcome_message, unless: :subscription_rejected?
-  after_subscribe :track_subscription
-
-  private
-    def send_welcome_message
-      broadcast_to(...)
-    end
-
-    def track_subscription
-      # ...
-    end
-end
-```
+[`ActionCable::Channel::Callbacks`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Callbacks.html
+[`after_subscribe`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Callbacks/ClassMethods.html#method-i-after_subscribe
+[`after_unsubscribe`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Callbacks/ClassMethods.html#method-i-after_unsubscribe
+[`before_subscribe`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Callbacks/ClassMethods.html#method-i-before_subscribe
+[`before_unsubscribe`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Callbacks/ClassMethods.html#method-i-before_unsubscribe
+[`on_subscribe`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Callbacks/ClassMethods.html#method-i-on_subscribe
+[`on_unsubscribe`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Callbacks/ClassMethods.html#method-i-on_unsubscribe
 
 ## Client-Side Components
 
@@ -940,7 +920,7 @@ You can change that in `config/database.yml` through the `pool` attribute.
 
 Client-side logging is disabled by default. You can enable this by setting the `ActionCable.logger.enabled` to true.
 
-```ruby
+```js
 import * as ActionCable from '@rails/actioncable'
 
 ActionCable.logger.enabled = true
