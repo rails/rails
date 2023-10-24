@@ -1,3 +1,7 @@
+*   Include precompiled bootsnap cache for docker image.
+
+    *Keiya Chinen*
+
 *   Disallow invalid values for rails new options.
 
     The `--database`, `--asset-pipeline`, `--css`, and `--javascript` flags for
