@@ -544,7 +544,7 @@ module ActiveRecord
           END
           $$;
         SQL
-        internal_exec_query(query)
+        internal_exec_query(query).tap { reload_type_map }
       end
 
       # Drops an enum type.
@@ -560,7 +560,7 @@ module ActiveRecord
         query = <<~SQL
           DROP TYPE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(name)};
         SQL
-        internal_exec_query(query)
+        internal_exec_query(query).tap { reload_type_map }
       end
 
       # Rename an existing enum type to something else.
