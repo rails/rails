@@ -39,8 +39,8 @@ module ActiveRecord
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
     # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
     #   an order is present in the relation.
-    # * <tt>:order</tt> - Specifies the primary key order (can be +:asc+ or +:desc+ or an array consisting
-    #   of :asc or :desc). Defaults to +:asc+.
+    # * <tt>:order</tt> - Specifies the primary key order (can be +:asc+ or +:desc+, an array consisting
+    #   of :asc or :desc, or nil). A value of nil would skip any ordering. Defaults to +:asc+.
     #
     #     class Order < ActiveRecord::Base
     #       self.primary_key = [:id_1, :id_2]
@@ -69,7 +69,7 @@ module ActiveRecord
     #     person.party_all_night!
     #   end
     #
-    # NOTE: Order can be ascending (:asc) or descending (:desc). It is automatically set to
+    # NOTE: Order can be ascending (:asc), descending (:desc) or nil. It is automatically set to
     # ascending on the primary key ("id ASC").
     # This also means that this method only works when the primary key is
     # orderable (e.g. an integer or string).
@@ -317,6 +317,7 @@ module ActiveRecord
       end
 
       def build_batch_orders(order)
+        return [] if order.nil?
         get_the_order_of_primary_key(order).map do |column, ord|
           [column, ord || DEFAULT_ORDER]
         end
