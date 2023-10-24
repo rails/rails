@@ -527,7 +527,8 @@ The following validations are added automatically:
 
 1. Password should be present.
 2. Password should be equal to its confirmation (provided `XXX_confirmation` is passed along).
-3. The maximum length of a password is 72 (required by `bcrypt` on which ActiveModel::SecurePassword depends)
+3. The maximum length of a password is 72 bytes (required as `bcrypt`, on which
+   ActiveModel::SecurePassword depends, truncates the string to this size before encrypting it).
 
 #### Examples
 
