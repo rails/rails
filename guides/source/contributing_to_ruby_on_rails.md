@@ -167,21 +167,6 @@ This will generate the guides in an *output* directory.
 
 NOTE: The Redcarpet Gem doesn't work with JRuby.
 
-Translation efforts we know about (various versions):
-
-* **Italian**: [https://github.com/rixlabs/docrails](https://github.com/rixlabs/docrails)
-* **Spanish**: [https://github.com/latinadeveloper/railsguides.es](https://github.com/latinadeveloper/railsguides.es)
-* **Polish**: [https://github.com/apohllo/docrails](https://github.com/apohllo/docrails)
-* **French** : [https://github.com/railsfrance/docrails](https://github.com/railsfrance/docrails)
-* **Czech** : [https://github.com/rubyonrails-cz/docrails/tree/czech](https://github.com/rubyonrails-cz/docrails/tree/czech)
-* **Turkish** : [https://github.com/ujk/docrails](https://github.com/ujk/docrails)
-* **Korean** : [https://github.com/rorlakr/rails-guides](https://github.com/rorlakr/rails-guides)
-* **Simplified Chinese** : [https://github.com/ruby-china/guides](https://github.com/ruby-china/guides)
-* **Traditional Chinese** : [https://github.com/docrails-tw/guides](https://github.com/docrails-tw/guides)
-* **Russian** : [https://github.com/morsbox/rusrails](https://github.com/morsbox/rusrails)
-* **Japanese** : [https://github.com/yasslab/railsguides.jp](https://github.com/yasslab/railsguides.jp)
-* **Brazilian Portuguese** : [https://github.com/campuscode/rails-guides-pt-BR](https://github.com/campuscode/rails-guides-pt-BR)
-
 Contributing to the Rails Code
 ------------------------------
 
