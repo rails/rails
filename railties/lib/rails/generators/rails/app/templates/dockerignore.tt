@@ -25,6 +25,9 @@
 /tmp/pids/*
 !/tmp/pids/.keep
 <% end -%>
+<% if depend_on_bootsnap? -%>
+!/tmp/cache/bootsnap/*
+<% end -%>
 
 # Ignore storage (uploaded files in development and any SQLite databases).
 /storage/*
