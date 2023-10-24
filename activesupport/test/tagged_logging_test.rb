@@ -16,15 +16,6 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     @logger = ActiveSupport::TaggedLogging.new(MyLogger.new(@output))
   end
 
-  test "sets logger.formatter if missing and extends it with a tagging API" do
-    logger = Logger.new(StringIO.new)
-    assert_nil logger.formatter
-
-    other_logger = ActiveSupport::TaggedLogging.new(logger)
-    assert_not_nil other_logger.formatter
-    assert_respond_to other_logger.formatter, :tagged
-  end
-
   test "tagged once" do
     @logger.tagged("BCX") { @logger.info "Funky time" }
     assert_equal "[BCX] Funky time\n", @output.string
@@ -240,22 +231,66 @@ class TaggedLoggingWithoutBlockTest < ActiveSupport::TestCase
     assert_equal "[OMG] Broadcasting...\n", broadcast_output.string
   end
 
-  test "keeps formatter singleton class methods" do
-    plain_output = StringIO.new
-    plain_logger = Logger.new(plain_output)
-    plain_logger.formatter = Logger::Formatter.new
-    plain_logger.formatter.extend(Module.new {
-      def crozz_method
-      end
-    })
+  test "#tagged without a block doesn't leak to other loggers" do
+    sink1 = StringIO.new
+    logger1 = ActiveSupport::Logger.new(sink1).extend(ActiveSupport::TaggedLogging)
+    sink2 = StringIO.new
+    logger2 = ActiveSupport::Logger.new(sink2).extend(ActiveSupport::TaggedLogging)
+    broadcast_logger = ActiveSupport::BroadcastLogger.new.extend(ActiveSupport::TaggedLogging)
+    broadcast_logger.broadcast_to(logger1, logger2)
 
-    tagged_logger = ActiveSupport::TaggedLogging.new(plain_logger)
-    assert_respond_to tagged_logger.formatter, :tagged
-    assert_respond_to tagged_logger.formatter, :crozz_method
+    broadcast_logger.tagged("tag")
+    broadcast_logger.info("text")
+
+    assert_equal("text\n", sink1.string)
+    assert_equal("text\n", sink2.string)
+  end
+
+  test "keeps broadcasting functionality when passed a block" do
+    output = StringIO.new
+    logger = Logger.new(output)
+    broadcast_logger = ActiveSupport::BroadcastLogger.new.extend(ActiveSupport::TaggedLogging)
+    broadcast_logger.broadcast_to(@logger, logger)
+
+    broadcast_logger.tagged("OMG") { |logger| logger.info "Broadcasting..." }
+
+    assert_equal "[OMG] Broadcasting...\n", @output.string
+    assert_equal "[OMG] Broadcasting...\n", output.string
   end
 
   test "accepts non-String objects" do
     @logger.tagged("tag") { @logger.info [1, 2, 3] }
     assert_equal "[tag] [1, 2, 3]\n", @output.string
+  end
+
+  test "#new when passed a non TaggedLogging logger" do
+    io = StringIO.new
+    logger = Logger.new(io)
+    tagged_logger = ActiveSupport::TaggedLogging.new(logger)
+
+    assert_same(logger, tagged_logger)
+    assert_kind_of(ActiveSupport::TaggedLogging, tagged_logger)
+
+    tagged_logger.tagged("BMX").info("Hello")
+
+    assert_equal("[BMX] Hello\n", io.string)
+  end
+
+  test "#new when passed a TaggedLogging logger" do
+    io = StringIO.new
+    tagged_logger1 = ActiveSupport::TaggedLogging.new(Logger.new(io))
+    tagged_logger2 = ActiveSupport::TaggedLogging.new(tagged_logger1)
+
+    assert_not_same(tagged_logger1, tagged_logger2)
+
+    tagged_logger1.tagged("1st Logger").info("Hello")
+    tagged_logger2.tagged("2nd Logger").info("Hello")
+    tagged_logger1.tagged("1st Logger").info("Hello")
+
+    assert_equal(<<~EOM, io.string)
+      [1st Logger] Hello
+      [2nd Logger] Hello
+      [1st Logger] Hello
+    EOM
   end
 end

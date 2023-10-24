@@ -2,11 +2,13 @@
 
 require "active_support/logger_silence"
 require "active_support/logger_thread_safe_level"
+require "active_support/log_processor"
 require "logger"
 
 module ActiveSupport
   class Logger < ::Logger
     include LoggerSilence
+    include LogProcessor
 
     # Returns true if the logger destination matches one of the sources
     #
