@@ -3,7 +3,7 @@
 require_relative "../../abstract_unit"
 require "active_support/core_ext/object/with"
 
-class BlankTest < ActiveSupport::TestCase
+class WithTest < ActiveSupport::TestCase
   class Record
     def initialize
       @public_attr = :public
