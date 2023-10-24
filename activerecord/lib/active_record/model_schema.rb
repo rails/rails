@@ -605,8 +605,6 @@ module ActiveRecord
           columns_hash = columns_hash.except(*ignored_columns) unless ignored_columns.empty?
           @columns_hash = columns_hash.freeze
           alias_attribute :id_value, :id if @columns_hash.key?("id")
-
-          super
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.
