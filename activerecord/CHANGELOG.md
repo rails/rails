@@ -1,3 +1,7 @@
+*   Support the ability to run find_each/find_in_batches queries without order
+
+    *Shayon Mukherjee*
+
 *   Include `ActiveModel::API` in `ActiveRecord::Base`
 
     *Sean Doyle*
