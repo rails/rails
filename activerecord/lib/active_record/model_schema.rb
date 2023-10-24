@@ -627,8 +627,6 @@ module ActiveRecord
             )
             alias_attribute :id_value, :id if name == "id"
           end
-
-          super
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.

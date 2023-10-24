@@ -1,3 +1,16 @@
+*   Re-enable support for using `enum` with non-column-backed attributes.
+    Non-column-backed attributes must be previously declared with an explicit
+    type. For example:
+
+      ```ruby
+      class Post < ActiveRecord::Base
+        attribute :topic, :string
+        enum topic: %i[science tech engineering math]
+      end
+      ```
+
+    *Jonathan Hefner*
+
 *   Raise on `foreign_key:` being passed as an array in associations
 
     *Nikita Vasilevsky*

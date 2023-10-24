@@ -1055,18 +1055,24 @@ class EnumTest < ActiveRecord::TestCase
     ActiveRecord::Base.logger = old_logger
   end
 
-  test "raises for columnless enums" do
-    klass = Class.new(ActiveRecord::Base) do
-      def self.name
-        "Book"
-      end
-      enum columnless_genre: [:adventure, :comic]
+  test "raises for attributes with undeclared type" do
+    klass = Class.new(Book) do
+      enum typeless_genre: [:adventure, :comic]
     end
 
     error = assert_raises(RuntimeError) do
-      klass.columns # load schema
+      klass.type_for_attribute(:typeless_genre)
     end
-    assert_equal "Unknown enum attribute 'columnless_genre' for Book", error.message
+    assert_match "Undeclared attribute type for enum 'typeless_genre'", error.message
+  end
+
+  test "supports attributes declared with a explicit type" do
+    klass = Class.new(Book) do
+      attribute :my_genre, :integer
+      enum my_genre: [:adventure, :comic]
+    end
+
+    assert_equal :integer, klass.type_for_attribute(:my_genre).type
   end
 
   test "default methods can be disabled by :_instance_methods" do
