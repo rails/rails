@@ -48,7 +48,10 @@ Post = Struct.new(:title, :author_name, :body, :secret, :persisted, :written_on,
   def initialize(*args)
     super
     @persisted = false
+    @errors = ActiveModel::Errors.new(self)
   end
+
+  attr_reader :errors
 
   attr_accessor :author
   def author_attributes=(attributes); end

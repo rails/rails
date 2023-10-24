@@ -108,14 +108,7 @@ class FormHelperTest < ActionView::TestCase
 
     @post = Post.new
     @comment = Comment.new
-    def @post.errors
-      Class.new {
-        def [](field); field == "author_name" ? ["can't be empty"] : [] end
-        def empty?() false end
-        def count() 1 end
-        def full_messages() ["Author name can't be empty"] end
-      }.new
-    end
+    @post.errors.add(:author_name, "can't be empty")
     def @post.to_key; [123]; end
     def @post.id; 0; end
     def @post.id_before_type_cast; "omg"; end
@@ -2807,6 +2800,36 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form("/posts/123", "edit_another_post", "edit_another_post", method: "patch") do
       "<button type='submit' formmethod='delete' name='button' value='existing'>Delete</button>"
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
+  def test_error_with_method_name
+    @post.errors.add(:title, "can't be blank")
+    @post.errors.add(:title, "is too short (minimum is 10 characters)")
+
+    form_for(@post) do |f|
+      concat f.error(:title)
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
+      %(<div>Title can't be blank, Title is too short (minimum is 10 characters)</div>)
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
+  def test_error_with_method_name_and_options
+    @post.errors.add(:title, "can't be blank")
+    @post.errors.add(:title, "is too short (minimum is 10 characters)")
+
+    form_for(@post) do |f|
+      concat f.error(:title, class: "error_explanation", separator: "<br />")
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
+      %(<div class="error_explanation">Title can't be blank<br />Title is too short (minimum is 10 characters)</div>)
     end
 
     assert_dom_equal expected, @rendered
