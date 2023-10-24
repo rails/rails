@@ -1,6 +1,6 @@
 *   Fix `StrongParameters#extract_value` to include blank values
 
-    Otherwise composite paramters may not be parsed correctly when one of the
+    Otherwise composite parameters may not be parsed correctly when one of the
     component is blank.
 
     *fatkodima*, *Yasha Krasnou*, *Matthias Eiglsperger*
