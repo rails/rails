@@ -201,6 +201,7 @@ module ActionView
       @variant           = variant
       @compile_mutex     = Mutex.new
       @strict_locals     = NONE
+      @strict_local_keys = nil
       @type              = nil
     end
 
@@ -244,9 +245,15 @@ module ActionView
     # This method is instrumented as "!render_template.action_view". Notice that
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
-    def render(view, locals, buffer = nil, add_to_stack: true, &block)
+    def render(view, locals, buffer = nil, implicit_locals: [], add_to_stack: true, &block)
       instrument_render_template do
         compile!(view)
+
+        if strict_locals? && @strict_local_keys && !implicit_locals.empty?
+          locals_to_ignore = implicit_locals - @strict_local_keys
+          locals.except!(*locals_to_ignore)
+        end
+
         if buffer
           view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, has_strict_locals: strict_locals?, &block)
           nil
@@ -474,23 +481,30 @@ module ActionView
 
         return unless strict_locals?
 
+        parameters = mod.instance_method(method_name).parameters - [[:req, :output_buffer]]
         # Check compiled method parameters to ensure that only kwargs
         # were provided as strict locals, preventing `locals: (foo, *foo)` etc
         # and allowing `locals: (foo:)`.
 
-        non_kwarg_parameters =
-          (mod.instance_method(method_name).parameters - [[:req, :output_buffer]]).
-            select { |parameter| ![:keyreq, :key, :keyrest, :nokey].include?(parameter[0]) }
+        non_kwarg_parameters = parameters.select do |parameter|
+          ![:keyreq, :key, :keyrest, :nokey].include?(parameter[0])
+        end
 
-        return unless non_kwarg_parameters.any?
+        unless non_kwarg_parameters.empty?
+          mod.undef_method(method_name)
 
-        mod.undef_method(method_name)
+          raise ArgumentError.new(
+            "#{non_kwarg_parameters.map { |_, name| "`#{name}`" }.to_sentence} set as non-keyword " \
+            "#{'argument'.pluralize(non_kwarg_parameters.length)} for #{short_identifier}. " \
+            "Locals can only be set as keyword arguments."
+          )
+        end
 
-        raise ArgumentError.new(
-          "#{non_kwarg_parameters.map { |_, name| "`#{name}`" }.to_sentence} set as non-keyword " \
-          "#{'argument'.pluralize(non_kwarg_parameters.length)} for #{short_identifier}. " \
-          "Locals can only be set as keyword arguments."
-        )
+        unless parameters.any? { |type, _| type == :keyrest }
+          parameters.map!(&:first)
+          parameters.sort!
+          @strict_local_keys = parameters.freeze
+        end
       end
 
       def offset

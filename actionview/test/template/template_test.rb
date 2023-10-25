@@ -62,8 +62,8 @@ class TestERBTemplate < ActiveSupport::TestCase
     ActionView::Template.new(body.dup, "hello template", details.delete(:handler) || ERBHandler, virtual_path: "hello", **details)
   end
 
-  def render(locals = {})
-    @template.render(@context, locals)
+  def render(implicit_locals: [], **locals)
+    @template.render(@context, locals, implicit_locals: implicit_locals)
   end
 
   def setup
@@ -198,6 +198,21 @@ class TestERBTemplate < ActiveSupport::TestCase
     end
 
     assert_match(/unknown local: :foo/, error.message)
+  end
+
+  def test_rails_injected_locals_does_not_raise_error_if_not_passed
+    @template = new_template("<%# locals: (message:) -%>")
+    render(message: "Hi", message_counter: 1, message_iteration: 1, implicit_locals: %i[message_counter message_iteration])
+  end
+
+  def test_rails_injected_locals_can_be_specified
+    @template = new_template("<%# locals: (message: 'Hello') -%>\n<%= message %>")
+    assert_equal "Hello", render(message: "Hello", implicit_locals: %i[message])
+  end
+
+  def test_rails_injected_locals_can_be_specified_as_kwargs
+    @template = new_template("<%# locals: (message: 'Hello', **kwargs) -%>\n<%= kwargs[:message_counter] %>-<%= kwargs[:message_iteration] %>")
+    assert_equal "1-2", render(message: "Hello", message_counter: 1, message_iteration: 2, implicit_locals: %i[message_counter message_iteration])
   end
 
   # TODO: This is currently handled inside ERB. The case of explicitly
