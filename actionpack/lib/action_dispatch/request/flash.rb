@@ -46,12 +46,22 @@ module ActionDispatch
 
       extend self
 
-      # Method to call (`ActionDsiaptch::Request::Flash.use!`) to enable the flash feature in your application.
+      # Method to call (`ActionDispatch::Request::Flash.use!`) to enable the flash feature in your application.
       #
       # Rails applications *not* in API mode are automatically configured, calling this method is not required.
-      # If your application is a Rails API-only one, you can refer to the guide to know how to opt-in.
+      # If your application is a Rails API-only one, you can opt-in by calling this method inside a Rails initializer:
       #
-      # If you are using ActionPack as a standalone gem, call this method during the boot process of your application.
+      # ```ruby
+      # # config/application.rb
+      #
+      # initializer :add_flash_messages do
+      #   ActiveSupport.on_load(:action_dispatch_request) do
+      #     ActionDispatch::Request::Flash.use!
+      #   end
+      # end
+      # ````
+      #
+      # If you are using Action Pack as a standalone gem, call this method during the boot process of your application.
       def use!
         Request.prepend(Flash::RequestMethods)
       end
