@@ -2937,12 +2937,12 @@ There may be cases (like when working with a legacy database) where you need to
 disable Single Table Inheritance altogether. Otherwise, you'll raise
 [`ActiveRecord::SubclassNotFound`][].
 
-This can be achieved by setting the [inheritance_column][] to `:disabled`.
+This can be achieved by setting the [inheritance_column][] to `nil`.
 
 ```ruby
 # Schema: vehicles[ id, type, created_at, updated_at ]
 class Vehicle < ApplicationRecord
-  self.inheritance_column = :disabled
+  self.inheritance_column = nil
 end
 
 Vehicle.create!(type: "Car")
