@@ -255,23 +255,6 @@ module ActiveRecord
         Migration.verbose = verbose_was
       end
 
-      def db_configs_with_versions(db_configs) # :nodoc:
-        db_configs_with_versions = Hash.new { |h, k| h[k] = [] }
-
-        with_temporary_connection_for_each do |conn|
-          db_config = conn.pool.db_config
-          versions_to_run = conn.migration_context.pending_migration_versions
-          target_version = ActiveRecord::Tasks::DatabaseTasks.target_version
-
-          versions_to_run.each do |version|
-            next if target_version && target_version != version
-            db_configs_with_versions[version] << db_config
-          end
-        end
-
-        db_configs_with_versions
-      end
-
       def migrate_status
         unless migration_connection.schema_migration.table_exists?
           Kernel.abort "Schema migrations table does not exist yet."

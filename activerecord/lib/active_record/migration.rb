@@ -1245,7 +1245,7 @@ module ActiveRecord
     def migrate(target_version = nil, &block)
       case
       when target_version.nil?
-        up(target_version, &block)
+        up(&block)
       when current_version == 0 && target_version == 0
         []
       when current_version > target_version
