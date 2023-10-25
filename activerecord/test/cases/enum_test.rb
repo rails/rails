@@ -1073,6 +1073,8 @@ class EnumTest < ActiveRecord::TestCase
     end
 
     assert_equal :integer, klass.type_for_attribute(:my_genre).type
+    assert_raises(NoMethodError) { klass.adventure }
+    assert_raises(NoMethodError) { klass.comic }
   end
 
   test "default methods can be disabled by :_instance_methods" do
