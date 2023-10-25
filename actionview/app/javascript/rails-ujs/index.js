@@ -149,7 +149,7 @@ if (typeof jQuery !== "undefined" && jQuery && jQuery.ajax) {
 // difference between what happens in a bundler and what happens using a
 // sprockets compiler. In the sprockets case, Rails.start() is called
 // automatically, but it is not in the ESModule case.
-if (typeof exports !== "object" && typeof module === "undefined") {
+if (__esm == false && typeof exports !== "object" && typeof module === "undefined") {
   // The coffeescript bundle would set this at the very top. The Rollup bundle
   // doesn't set this until the entire bundle has finished running, so we need
   // to make sure its set before firing the rails:attachBindings event for

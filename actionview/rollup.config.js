@@ -1,4 +1,5 @@
 import { terser } from "rollup-plugin-terser"
+import replace from "@rollup/plugin-replace"
 
 const banner = `
 /*
@@ -33,7 +34,11 @@ export default [
       banner,
     },
     plugins: [
-      terser(terserOptions)
+      replace({
+        preventAssignment: true,
+        values: { __esm: false },
+      }),
+      terser(terserOptions),
     ]
   },
 
@@ -45,7 +50,11 @@ export default [
       banner,
     },
     plugins: [
-      terser(terserOptions)
+      replace({
+        preventAssignment: true,
+        values: { __esm: true },
+      }),
+      terser(terserOptions),
     ]
   }
 ]
