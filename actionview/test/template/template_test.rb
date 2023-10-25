@@ -63,7 +63,7 @@ class TestERBTemplate < ActiveSupport::TestCase
   end
 
   def render(injected_locals: [], **locals)
-    @template.render(@context, locals, injected_locals:)
+    @template.render(@context, locals, injected_locals: injected_locals)
   end
 
   def setup

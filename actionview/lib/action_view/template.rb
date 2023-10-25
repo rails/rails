@@ -250,7 +250,7 @@ module ActionView
 
         if strict_locals? && injected_locals.present?
           # It seems much easier to extract strict locals keys this way than parsing @strict_locals variable
-          strict_locals = view.method(method_name).parameters.select { |type, name| type.in?(%i[keyreq key]) }.map(&:last)
+          strict_locals = view.method(method_name).parameters.filter_map { |type, name| name if type.in?(%i[keyreq key]) }
           locals_to_ignore = injected_locals - strict_locals
           locals.except!(*locals_to_ignore)
         end
