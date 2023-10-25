@@ -194,7 +194,7 @@ module ActionView
 
           _template = (cache[path] ||= (template || find_template(path, @locals.keys + [as, counter, iteration])))
 
-          content = _template.render(view, locals)
+          content = _template.render(view, locals, implicit_locals: [counter, iteration])
           content = layout.render(view, locals) { content } if layout
           partial_iteration.iterate!
           build_rendered_template(content, _template)
