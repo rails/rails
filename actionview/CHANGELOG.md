@@ -1,3 +1,11 @@
+*   Automatically discard the implicit locals injected by collection rendering for template that can't accept them
+
+    When rendering a collection, two implicit variables are injected, which breaks templates with strict locals.
+
+    Now they are only passed if the template will actually accept them.
+
+    *Yasha Krasnou*, *Jean Boussier*
+
 *   Fix `@rails/ujs` calling `start()` an extra time when using bundlers
 
     *Hartley McGuire*, *Ryunosuke Sato*
