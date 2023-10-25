@@ -1,3 +1,9 @@
+*   Fix `NoMethodError` when casting a PostgreSQL `money` value that uses a
+    comma as its radix point and has no leading currency symbol.  For example,
+    when casting `"3,50"`.
+
+    *Andreas Reischuck* and *Jonathan Hefner*
+
 *   Fix duplicate quoting for check constraint expressions in schema dump when using MySQL
 
     A check constraint with an expression, that already contains quotes, lead to an invalid schema
