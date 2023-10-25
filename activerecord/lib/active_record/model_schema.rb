@@ -146,6 +146,11 @@ module ActiveRecord
     # your own model for something else, you can set +inheritance_column+:
     #
     #     self.inheritance_column = 'zoink'
+    #
+    # If you wish to disable single-table inheritance altogether you can set
+    # +inheritance_column+ to +:disabled+
+    #
+    #     self.inheritance_column = :disabled
 
     ##
     # :singleton-method: inheritance_column=
