@@ -484,6 +484,21 @@ config.middleware.delete ::Rack::Sendfile
 Keep in mind that removing these middlewares will remove support for certain
 features in Action Controller.
 
+### Adding Flash messages
+
+By default, Rails doesn't add the feature to write flash messages in the session for API only applications.
+If you'd like your application to opt-in (especially if one of your client is the browser):
+
+```ruby
+# config/application.rb
+
+initializer :add_flash_messages do
+  ActiveSupport.on_load(:action_dispatch_request) do
+    ActionDispatch::Request::Flash.use!
+  end
+end
+```
+
 Choosing Controller Modules
 ---------------------------
 

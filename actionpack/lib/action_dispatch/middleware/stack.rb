@@ -158,6 +158,17 @@ module ActionDispatch
     end
 
     def use(klass, *args, &block)
+      if klass.name == "ActionDispatch::Flash"
+        ActionDispatch.deprecator.warn(<<~EOM)
+          The ActionDispatch::Flash middleware is deprecated without
+          replacement and will be deleted in the next version of Rails.
+
+          To enable the flash feature in your application, call
+          `ActionDispatch::Request::Flash.use!` during the boot process
+          (e.g. inside a Rails initializer).
+        EOM
+      end
+
       middlewares.push(build_middleware(klass, args, block))
     end
     ruby2_keywords(:use)
