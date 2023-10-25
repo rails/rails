@@ -62,8 +62,8 @@ class TestERBTemplate < ActiveSupport::TestCase
     ActionView::Template.new(body.dup, "hello template", details.delete(:handler) || ERBHandler, virtual_path: "hello", **details)
   end
 
-  def render(locals = {})
-    @template.render(@context, locals)
+  def render(injected_locals: [], **locals)
+    @template.render(@context, locals, injected_locals:)
   end
 
   def setup
@@ -198,6 +198,16 @@ class TestERBTemplate < ActiveSupport::TestCase
     end
 
     assert_match(/unknown local: :foo/, error.message)
+  end
+
+  def test_rails_injected_locals_does_not_raise_error_if_not_passed
+    @template = new_template("<%# locals: (message:) -%>")
+    render(message: "Hi", message_counter: 1, message_iteration: 1, injected_locals: %i[message_counter message_iteration])
+  end
+
+  def test_rails_injected_locals_can_be_specified
+    @template = new_template("<%# locals: (message: 'Hello') -%>\n<%= message %>")
+    assert_equal "Hello", render(message: "Hello", injected_locals: %i[message])
   end
 
   # TODO: This is currently handled inside ERB. The case of explicitly

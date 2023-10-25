@@ -244,9 +244,17 @@ module ActionView
     # This method is instrumented as "!render_template.action_view". Notice that
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
-    def render(view, locals, buffer = nil, add_to_stack: true, &block)
+    def render(view, locals, buffer = nil, injected_locals: [], add_to_stack: true, &block)
       instrument_render_template do
         compile!(view)
+
+        if strict_locals? && injected_locals.present?
+          # It seems much easier to extract strict locals keys this way than parsing @strict_locals variable
+          strict_locals = view.method(method_name).parameters.select { |type, name| type.in?(%i[keyreq key]) }.map(&:last)
+          locals_to_ignore = injected_locals - strict_locals
+          locals.except!(*locals_to_ignore)
+        end
+
         if buffer
           view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, has_strict_locals: strict_locals?, &block)
           nil
