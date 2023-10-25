@@ -1,3 +1,9 @@
+*   Fix `NoMethodError` when casting a PostgreSQL `money` value that uses a
+    comma as its radix point and has no leading currency symbol.  For example,
+    when casting `"3,50"`.
+
+    *Andreas Reischuck* and *Jonathan Hefner*
+
 *   Re-enable support for using `enum` with non-column-backed attributes.
     Non-column-backed attributes must be previously declared with an explicit
     type. For example:
