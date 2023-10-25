@@ -21,19 +21,10 @@ module ActiveRecord
       # matched rather than number of rows updated.
       configuration[:found_rows] = true
 
-      options = [
-        configuration[:host],
-        configuration[:port],
-        configuration[:database],
-        configuration[:username],
-        configuration[:password],
-        configuration[:socket],
-        0
-      ]
-
-      trilogy_adapter_class.new nil, logger, options, configuration
+      trilogy_adapter_class.new(configuration)
     end
   end
+
   module ConnectionAdapters
     class TrilogyAdapter < AbstractMysqlAdapter
       ER_BAD_DB_ERROR = 1049
