@@ -9,6 +9,7 @@ module ActionView
     extend ActiveSupport::Autoload
 
     STRICT_LOCALS_REGEX = /\#\s+locals:\s+\((.*)\)/
+    STRICT_LOCAL_KEYS_REGEX = /\w+:/
 
     # === Encodings in ActionView::Template
     #
@@ -197,11 +198,12 @@ module ActionView
         $1.to_sym
       end
 
-      @format            = format
-      @variant           = variant
-      @compile_mutex     = Mutex.new
-      @strict_locals     = NONE
-      @type              = nil
+      @format             = format
+      @variant            = variant
+      @compile_mutex      = Mutex.new
+      @strict_locals      = NONE
+      @strict_local_keys = []
+      @type               = nil
     end
 
     # The locals this template has been or will be compiled for, or nil if this
@@ -244,14 +246,12 @@ module ActionView
     # This method is instrumented as "!render_template.action_view". Notice that
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
-    def render(view, locals, buffer = nil, injected_locals: [], add_to_stack: true, &block)
+    def render(view, locals, buffer = nil, implicit_locals: [], add_to_stack: true, &block)
       instrument_render_template do
         compile!(view)
 
-        if strict_locals? && injected_locals.present?
-          # It seems much easier to extract strict locals keys this way than parsing @strict_locals variable
-          strict_locals = view.method(method_name).parameters.filter_map { |type, name| name if type.in?(%i[keyreq key]) }
-          locals_to_ignore = injected_locals - strict_locals
+        if strict_locals? && implicit_locals.present?
+          locals_to_ignore = implicit_locals - @strict_local_keys
           locals.except!(*locals_to_ignore)
         end
 
@@ -348,6 +348,12 @@ module ActionView
         return if @strict_locals.nil? # Magic comment not found
 
         @strict_locals = "**nil" if @strict_locals.blank?
+
+        unless @strict_locals.start_with?("**")
+          @strict_local_keys = @strict_locals.scan(STRICT_LOCAL_KEYS_REGEX).map! do |arg|
+            arg.strip.chomp(":").to_sym
+          end
+        end
       end
 
       @strict_locals
