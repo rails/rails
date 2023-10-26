@@ -21,7 +21,7 @@ module ActionController
     #     def edit
     #       render plain: "I'm only accessible if you know the password"
     #     end
-    #  end
+    #   end
     #
     # === Advanced \Basic example
     #
