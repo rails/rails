@@ -540,9 +540,6 @@ A CHANGELOG entry should summarize what was changed and should end with the auth
     *Your Name*
 ```
 
-Your name can be added directly after the last word if there are no code
-examples or multiple paragraphs. Otherwise, it's best to make a new paragraph.
-
 ### Breaking Changes
 
 Anytime a change could break existing applications it's considered a breaking
