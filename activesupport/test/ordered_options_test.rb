@@ -44,7 +44,7 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     assert_equal 56, a["test_key"]
     assert_equal 56, a.dig(:test_key)
     assert_equal 56, a.dig("test_key")
-    assert_equal nil, a.dig(:non_existing_key)
+    assert_nil a.dig(:non_existing_key)
   end
 
   def test_dig_bang
