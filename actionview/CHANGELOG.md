@@ -1,3 +1,7 @@
+*   Fix the `number_to_human_size` view helper to correctly work with negative numbers.
+
+    *Earlopain*
+
 *   Automatically discard the implicit locals injected by collection rendering for template that can't accept them
 
     When rendering a collection, two implicit variables are injected, which breaks templates with strict locals.

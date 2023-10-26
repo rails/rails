@@ -310,6 +310,16 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal "10 Bytes",  10.to_fs(:human_size)
   end
 
+  def test_to_fs__human_size_with_negative_number
+    assert_equal "-1 Bytes",   -1.to_fs(:human_size)
+    assert_equal "-3 Bytes",   -3.14159265.to_fs(:human_size)
+    assert_equal "-123 Bytes", -123.to_fs(:human_size)
+    assert_equal "-12.1 KB",   -12345.to_fs(:human_size)
+    assert_equal "-444 KB",    kilobytes(-444).to_fs(:human_size)
+    assert_equal "-1.12 TB",   -1234567890123.to_fs(:human_size)
+    assert_equal "-1.01 KB",   kilobytes(-1.0100).to_fs(:human_size, precision: 4)
+  end
+
   def test_to_fs__human_size_with_options_hash
     assert_equal "1.2 MB",   1234567.to_fs(:human_size, precision: 2)
     assert_equal "3 Bytes",  3.14159265.to_fs(:human_size, precision: 4)

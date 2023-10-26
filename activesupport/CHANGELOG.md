@@ -1,3 +1,7 @@
+*   Fix `#to_fs(:human_size)` to correctly work with negative numbers.
+
+    *Earlopain*
+
 *   Fix `BroadcastLogger#dup` so that it duplicates the logger's `broadcasts`.
 
     *Andrew Novoselac*
