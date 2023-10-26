@@ -1053,6 +1053,8 @@ module ActiveSupport
         end
 
         def save_block_result_to_cache(name, options)
+          options = options.dup
+
           result = instrument(:generate, name, options) do
             yield(name, WriteOptions.new(options))
           end

@@ -1,3 +1,8 @@
+*   Prevent global cache options being overwritten when setting dynamic options
+    inside a `ActiveSupport::Cache::Store#fetch` block.
+
+    *Yasha Krasnou*
+
 *   Fix missing `require` resulting in `NoMethodError` when running
     `bin/rains secrets:show` or `bin/rains secrets:edit`.
 
