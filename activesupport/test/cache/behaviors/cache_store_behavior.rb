@@ -702,6 +702,17 @@ module CacheStoreBehavior
     ActiveSupport::Notifications.unsubscribe "cache_read.active_support"
   end
 
+  def test_setting_options_in_fetch_block_does_not_change_cache_options
+    key = SecureRandom.uuid
+
+    assert_no_changes -> { @cache.options.dup } do
+      @cache.fetch(key) do |_key, options|
+        options.expires_in = 5.minutes
+        "bar"
+      end
+    end
+  end
+
   private
     def with_raise_on_invalid_cache_expiration_time(new_value, &block)
       old_value = ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
