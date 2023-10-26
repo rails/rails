@@ -282,6 +282,18 @@ module ActiveSupport
         end
       end
 
+      def test_number_number_to_human_size_with_negative_number
+        [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
+          assert_equal "-1 Bytes",   number_helper.number_to_human_size(-1)
+          assert_equal "-3 Bytes",   number_helper.number_to_human_size(-3.14159265)
+          assert_equal "-123 Bytes", number_helper.number_to_human_size(-123)
+          assert_equal "-12.1 KB",   number_helper.number_to_human_size(-12345)
+          assert_equal "-444 KB",    number_helper.number_to_human_size(kilobytes(-444))
+          assert_equal "-1.12 TB",   number_helper.number_to_human_size(-1234567890123)
+          assert_equal "-1.01 KB",   number_helper.number_to_human_size(kilobytes(-1.0100), precision: 4)
+        end
+      end
+
       def test_number_to_human_size_with_options_hash
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
           assert_equal "1.2 MB",   number_helper.number_to_human_size(1234567, precision: 2)
