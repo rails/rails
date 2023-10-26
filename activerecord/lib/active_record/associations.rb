@@ -1339,7 +1339,7 @@ module ActiveRecord
         #   Returns a Relation of all of the associated objects, forcing a database read.
         #   An empty Relation is returned if none are found.
         #
-        # === Example
+        # ==== Example
         #
         #   class Firm < ActiveRecord::Base
         #     has_many :clients
@@ -1369,7 +1369,7 @@ module ActiveRecord
         #
         # The declaration can also include an +options+ hash to specialize the behavior of the association.
         #
-        # === Scopes
+        # ==== Scopes
         #
         # You can pass a second argument +scope+ as a callable (i.e. proc or
         # lambda) to retrieve a specific set of records or customize the generated
@@ -1380,7 +1380,7 @@ module ActiveRecord
         #   has_many :employees, -> { joins(:address) }
         #   has_many :posts, ->(blog) { where("max_post_length > ?", blog.max_post_length) }
         #
-        # === Extensions
+        # ==== Extensions
         #
         # The +extension+ argument allows you to pass a block into a has_many
         # association. This is useful for adding new finders, creators, and other
@@ -1394,7 +1394,7 @@ module ActiveRecord
         #     end
         #   end
         #
-        # === Options
+        # ==== Options
         # [+:class_name+]
         #   Specify the class name of the association. Use it only if that name can't be inferred
         #   from the association name. So <tt>has_many :products</tt> will by default be linked
@@ -1556,7 +1556,7 @@ module ActiveRecord
         # [<tt>reset_association</tt>]
         #   Unloads the associated object. The next access will query it from the database.
         #
-        # === Example
+        # ==== Example
         #
         #   class Account < ActiveRecord::Base
         #     has_one :beneficiary
@@ -1575,7 +1575,7 @@ module ActiveRecord
         #   account.reload_beneficiary
         #   account.reset_beneficiary
         #
-        # === Scopes
+        # ==== Scopes
         #
         # You can pass a second argument +scope+ as a callable (i.e. proc or
         # lambda) to retrieve a specific record or customize the generated query
@@ -1586,7 +1586,7 @@ module ActiveRecord
         #   has_one :employer, -> { joins(:company) }
         #   has_one :latest_post, ->(blog) { where("created_at > ?", blog.enabled_at) }
         #
-        # === Options
+        # ==== Options
         #
         # The declaration can also include an +options+ hash to specialize the behavior of the association.
         #
@@ -1745,7 +1745,7 @@ module ActiveRecord
         # [<tt>association_previously_changed?</tt>]
         #   Returns true if the previous save updated the association to reference a new associate object.
         #
-        # === Example
+        # ==== Example
         #
         #   class Post < ActiveRecord::Base
         #     belongs_to :author
@@ -1766,7 +1766,7 @@ module ActiveRecord
         #   post.author_changed?
         #   post.author_previously_changed?
         #
-        # === Scopes
+        # ==== Scopes
         #
         # You can pass a second argument +scope+ as a callable (i.e. proc or
         # lambda) to retrieve a specific record or customize the generated query
@@ -1777,7 +1777,7 @@ module ActiveRecord
         #   belongs_to :user, -> { joins(:friends) }
         #   belongs_to :level, ->(game) { where("game_level > ?", game.current_level) }
         #
-        # === Options
+        # ==== Options
         #
         # The declaration can also include an +options+ hash to specialize the behavior of the association.
         #
@@ -1964,7 +1964,7 @@ module ActiveRecord
         #   Returns a Relation of all of the associated objects, forcing a database read.
         #   An empty Relation is returned if none are found.
         #
-        # === Example
+        # ==== Example
         #
         #   class Developer < ActiveRecord::Base
         #     has_and_belongs_to_many :projects
@@ -1993,7 +1993,7 @@ module ActiveRecord
         #
         # The declaration may include an +options+ hash to specialize the behavior of the association.
         #
-        # === Scopes
+        # ==== Scopes
         #
         # You can pass a second argument +scope+ as a callable (i.e. proc or
         # lambda) to retrieve a specific set of records or customize the generated
@@ -2005,7 +2005,7 @@ module ActiveRecord
         #     where("default_category = ?", post.default_category)
         #   }
         #
-        # === Extensions
+        # ==== Extensions
         #
         # The +extension+ argument allows you to pass a block into a
         # has_and_belongs_to_many association. This is useful for adding new
@@ -2020,7 +2020,7 @@ module ActiveRecord
         #     end
         #   end
         #
-        # === Options
+        # ==== Options
         #
         # [+:class_name+]
         #   Specify the class name of the association. Use it only if that name can't be inferred
