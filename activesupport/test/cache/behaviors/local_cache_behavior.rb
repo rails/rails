@@ -55,7 +55,7 @@ module LocalCacheBehavior
     begin
       @cache.cleanup
     rescue NotImplementedError
-      skip
+      return # Not implementing cleanup is valid
     end
 
     key = SecureRandom.uuid
@@ -157,7 +157,7 @@ module LocalCacheBehavior
     begin
       @cache.delete_matched("*")
     rescue NotImplementedError
-      skip
+      return # Not implementing delete_matched is valid
     end
 
     prefix = SecureRandom.alphanumeric
