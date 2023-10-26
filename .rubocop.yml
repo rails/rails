@@ -257,6 +257,11 @@ Lint/UselessAssignment:
 Lint/DeprecatedClassMethods:
   Enabled: true
 
+Lint/InterpolationCheck:
+  Enabled: true
+  Exclude:
+    - '**/test/**/*'
+
 Style/EvalWithLocation:
   Enabled: true
   Exclude:
