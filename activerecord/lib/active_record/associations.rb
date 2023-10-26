@@ -1300,7 +1300,7 @@ module ActiveRecord
         #   Returns a Relation of all of the associated objects, forcing a database read.
         #   An empty Relation is returned if none are found.
         #
-        # === Example
+        # ==== Example
         #
         # A <tt>Firm</tt> class declares <tt>has_many :clients</tt>, which will add:
         # * <tt>Firm#clients</tt> (similar to <tt>Client.where(firm_id: id)</tt>)
@@ -1321,7 +1321,7 @@ module ActiveRecord
         # * <tt>Firm#clients.reload</tt>
         # The declaration can also include an +options+ hash to specialize the behavior of the association.
         #
-        # === Scopes
+        # ==== Scopes
         #
         # You can pass a second argument +scope+ as a callable (i.e. proc or
         # lambda) to retrieve a specific set of records or customize the generated
@@ -1332,7 +1332,7 @@ module ActiveRecord
         #   has_many :employees, -> { joins(:address) }
         #   has_many :posts, ->(blog) { where("max_post_length > ?", blog.max_post_length) }
         #
-        # === Extensions
+        # ==== Extensions
         #
         # The +extension+ argument allows you to pass a block into a has_many
         # association. This is useful for adding new finders, creators, and other
@@ -1346,7 +1346,7 @@ module ActiveRecord
         #     end
         #   end
         #
-        # === Options
+        # ==== Options
         # [+:class_name+]
         #   Specify the class name of the association. Use it only if that name can't be inferred
         #   from the association name. So <tt>has_many :products</tt> will by default be linked
@@ -1501,7 +1501,7 @@ module ActiveRecord
         # [<tt>reload_association</tt>]
         #   Returns the associated object, forcing a database read.
         #
-        # === Example
+        # ==== Example
         #
         # An Account class declares <tt>has_one :beneficiary</tt>, which will add:
         # * <tt>Account#beneficiary</tt> (similar to <tt>Beneficiary.where(account_id: id).first</tt>)
@@ -1511,7 +1511,7 @@ module ActiveRecord
         # * <tt>Account#create_beneficiary!</tt> (similar to <tt>b = Beneficiary.new(account_id: id); b.save!; b</tt>)
         # * <tt>Account#reload_beneficiary</tt>
         #
-        # === Scopes
+        # ==== Scopes
         #
         # You can pass a second argument +scope+ as a callable (i.e. proc or
         # lambda) to retrieve a specific record or customize the generated query
@@ -1522,7 +1522,7 @@ module ActiveRecord
         #   has_one :employer, -> { joins(:company) }
         #   has_one :latest_post, ->(blog) { where("created_at > ?", blog.enabled_at) }
         #
-        # === Options
+        # ==== Options
         #
         # The declaration can also include an +options+ hash to specialize the behavior of the association.
         #
@@ -1674,7 +1674,7 @@ module ActiveRecord
         # [<tt>association_previously_changed?</tt>]
         #   Returns true if the previous save updated the association to reference a new associate object.
         #
-        # === Example
+        # ==== Example
         #
         # A Post class declares <tt>belongs_to :author</tt>, which will add:
         # * <tt>Post#author</tt> (similar to <tt>Author.find(author_id)</tt>)
@@ -1687,7 +1687,7 @@ module ActiveRecord
         # * <tt>Post#author_previously_changed?</tt>
         # The declaration can also include an +options+ hash to specialize the behavior of the association.
         #
-        # === Scopes
+        # ==== Scopes
         #
         # You can pass a second argument +scope+ as a callable (i.e. proc or
         # lambda) to retrieve a specific record or customize the generated query
@@ -1698,7 +1698,7 @@ module ActiveRecord
         #   belongs_to :user, -> { joins(:friends) }
         #   belongs_to :level, ->(game) { where("game_level > ?", game.current_level) }
         #
-        # === Options
+        # ==== Options
         #
         # [+:class_name+]
         #   Specify the class name of the association. Use it only if that name can't be inferred
@@ -1877,7 +1877,7 @@ module ActiveRecord
         #   Returns a Relation of all of the associated objects, forcing a database read.
         #   An empty Relation is returned if none are found.
         #
-        # === Example
+        # ==== Example
         #
         # A Developer class declares <tt>has_and_belongs_to_many :projects</tt>, which will add:
         # * <tt>Developer#projects</tt>
@@ -1897,7 +1897,7 @@ module ActiveRecord
         # * <tt>Developer#projects.reload</tt>
         # The declaration may include an +options+ hash to specialize the behavior of the association.
         #
-        # === Scopes
+        # ==== Scopes
         #
         # You can pass a second argument +scope+ as a callable (i.e. proc or
         # lambda) to retrieve a specific set of records or customize the generated
@@ -1909,7 +1909,7 @@ module ActiveRecord
         #     where("default_category = ?", post.default_category)
         #   }
         #
-        # === Extensions
+        # ==== Extensions
         #
         # The +extension+ argument allows you to pass a block into a
         # has_and_belongs_to_many association. This is useful for adding new
@@ -1924,7 +1924,7 @@ module ActiveRecord
         #     end
         #   end
         #
-        # === Options
+        # ==== Options
         #
         # [+:class_name+]
         #   Specify the class name of the association. Use it only if that name can't be inferred
