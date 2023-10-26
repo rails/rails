@@ -93,7 +93,7 @@
     <% end %>
 
     <dt>Date:</dt>
-    <dd id="date"><%= Time.current.rfc2822 %></dd>
+    <dd id="date"><%= @email.header['date'] || Time.current.rfc2822 %></dd>
 
     <dt>Subject:</dt>
     <dd><strong id="subject"><%= @email.subject %></strong></dd>
