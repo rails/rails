@@ -50,9 +50,9 @@ module ActiveSupport
       super(*keys.flatten.map(&:to_sym))
     end
 
-    def dig!(*keys)
-      keys.flatten.inject(self) do |h, key|
-        h[key.to_sym].presence || raise(KeyError.new(":#{key} is blank"))
+    def dig!(key, *identifiers)
+      [key.to_sym, *identifiers].inject(self) do |h, k|
+        h.dig(k).presence || raise(KeyError.new(":#{k} is blank"))
       end
     end
 

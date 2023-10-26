@@ -49,11 +49,11 @@ class OrderedOptionsTest < ActiveSupport::TestCase
 
   def test_dig_bang
     a = ActiveSupport::OrderedOptions.new
-    a[:foo] = { bar: :buz }
+    a[:foo] = { bar: :buz, none: nil }
 
     assert_equal :buz, a.dig!(:foo, :bar)
-    assert_equal :buz, a.dig!("foo", "bar")
     assert_raises(KeyError) { a.dig!(:foo, :non_existing_key) }
+    assert_raises(KeyError) { a.dig!(:foo, :none) }
   end
 
   def test_method_access
