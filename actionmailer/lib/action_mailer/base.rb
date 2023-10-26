@@ -14,7 +14,7 @@ module ActionMailer
   #
   # Action Mailer allows you to send email from your application using a mailer model and views.
   #
-  # = Mailer Models
+  # == Mailer Models
   #
   # To use Action Mailer, you need to create a mailer model.
   #
@@ -86,7 +86,7 @@ module ActionMailer
   #     format.html { render "some_other_template" }
   #   end
   #
-  # = Mailer views
+  # == Mailer views
   #
   # Like Action Controller, each mailer class has a corresponding view directory in which each
   # method of the class looks for a template with its name.
@@ -114,7 +114,7 @@ module ActionMailer
   #   <%= truncate(@note.body, length: 25) %>
   #
   #
-  # = Generating URLs
+  # == Generating URLs
   #
   # URLs can be generated in mailer views using <tt>url_for</tt> or named routes. Unlike controllers from
   # Action Pack, the mailer instance doesn't have any context about the incoming request, so you'll need
@@ -142,7 +142,7 @@ module ActionMailer
   #
   # By default when <tt>config.force_ssl</tt> is +true+, URLs generated for hosts will use the HTTPS protocol.
   #
-  # = Sending mail
+  # == Sending mail
   #
   # Once a mailer action and template are defined, you can deliver your message or defer its creation and
   # delivery for later:
@@ -167,7 +167,7 @@ module ActionMailer
   # You never instantiate your mailer class. Rather, you just call the method you defined on the class itself.
   # All instance methods are expected to return a message object to be sent.
   #
-  # = Multipart Emails
+  # == Multipart Emails
   #
   # Multipart messages can also be used implicitly because Action Mailer will automatically detect and use
   # multipart templates, where each template is named after the name of the action, followed by the content
@@ -188,7 +188,7 @@ module ActionMailer
   # This means that you'll have to manually add each part to the email and set the content type of the email
   # to <tt>multipart/alternative</tt>.
   #
-  # = Attachments
+  # == Attachments
   #
   # Sending attachment in emails is easy:
   #
@@ -228,7 +228,7 @@ module ActionMailer
   #       end
   #     end
   #
-  # = Inline Attachments
+  # == Inline Attachments
   #
   # You can also specify that a file should be displayed inline with other HTML. This is useful
   # if you want to display a corporate logo or a photo.
@@ -254,7 +254,7 @@ module ActionMailer
   #
   #   <%= image_tag attachments['photo.png'].url, alt: 'Our Photo', class: 'photo' -%>
   #
-  # = Observing and Intercepting Mails
+  # == Observing and Intercepting Mails
   #
   # Action Mailer provides hooks into the Mail observer and interceptor methods. These allow you to
   # register classes that are called during the mail delivery life cycle.
@@ -267,7 +267,7 @@ module ActionMailer
   # the delivery agents. Your class should make any needed modifications directly to the passed
   # in +Mail::Message+ instance.
   #
-  # = Default \Hash
+  # == Default \Hash
   #
   # Action Mailer provides some intelligent defaults for your emails, these are usually specified in a
   # default method inside the class definition:
@@ -316,7 +316,7 @@ module ActionMailer
   #
   #    config.action_mailer.default_options = { from: "no-reply@example.org" }
   #
-  # = \Callbacks
+  # == \Callbacks
   #
   # You can specify callbacks using <tt>before_action</tt> and <tt>after_action</tt> for configuring your messages,
   # and using <tt>before_deliver</tt> and <tt>after_deliver</tt> for wrapping the delivery process.
@@ -350,7 +350,7 @@ module ActionMailer
   # using <tt>before_action</tt> rather than <tt>after_action</tt> in your
   # Action Mailer classes so that headers are parsed properly.
   #
-  # = Rescuing Errors
+  # == Rescuing Errors
   #
   # +rescue+ blocks inside of a mailer method cannot rescue errors that occur
   # outside of rendering -- for example, record deserialization errors in a
@@ -373,7 +373,7 @@ module ActionMailer
   #     end
   #   end
   #
-  # = Previewing emails
+  # == Previewing emails
   #
   # You can preview your email templates visually by adding a mailer preview file to the
   # <tt>ActionMailer::Base.preview_paths</tt>. Since most emails do something interesting
@@ -410,7 +410,7 @@ module ActionMailer
   # and <tt>register_preview_interceptor</tt> if they should operate on both sending and
   # previewing emails.
   #
-  # = Configuration options
+  # == Configuration options
   #
   # These options are specified on the class level, like
   # <tt>ActionMailer::Base.raise_delivery_errors = true</tt>
