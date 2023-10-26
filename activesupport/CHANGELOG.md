@@ -1,3 +1,8 @@
+*   Fix missing `require` resulting in `NoMethodError` when running
+    `bin/rains secrets:show` or `bin/rains secrets:edit`.
+
+    *Stephen Ierodiaconou*
+
 *   Fix `#to_fs(:human_size)` to correctly work with negative numbers.
 
     *Earlopain*
