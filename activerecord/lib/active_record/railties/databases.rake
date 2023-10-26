@@ -204,7 +204,7 @@ db_namespace = namespace :db do
             conn.migration_context.run(:up, ActiveRecord::Tasks::DatabaseTasks.target_version)
           end
 
-          db_namespace["_dump"].invoke
+          db_namespace["_dump:#{name}"].invoke
         end
       end
     end
@@ -235,7 +235,7 @@ db_namespace = namespace :db do
             conn.migration_context.run(:down, ActiveRecord::Tasks::DatabaseTasks.target_version)
           end
 
-          db_namespace["_dump"].invoke
+          db_namespace["_dump:#{name}"].invoke
         end
       end
     end
@@ -269,7 +269,7 @@ db_namespace = namespace :db do
           conn.migration_context.rollback(step)
         end
 
-        db_namespace["_dump"].invoke
+        db_namespace["_dump:#{name}"].invoke
       end
     end
   end
