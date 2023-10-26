@@ -76,11 +76,13 @@ module ActiveRecord
       #
       # ==== Options
       #
-      # +from+ When passed, this method will return false unless the original
-      # value is equal to the given option
+      # [+from+]
+      #   When specified, this method will return false unless the original
+      #   value is equal to the given value.
       #
-      # +to+ When passed, this method will return false unless the value was
-      # changed to the given value
+      # [+to+]
+      #   When specified, this method will return false unless the value will be
+      #   changed to the given value.
       def saved_change_to_attribute?(attr_name, **options)
         mutations_before_last_save.changed?(attr_name.to_s, **options)
       end
@@ -126,11 +128,13 @@ module ActiveRecord
       #
       # ==== Options
       #
-      # +from+ When passed, this method will return false unless the original
-      # value is equal to the given option
+      # [+from+]
+      #   When specified, this method will return false unless the original
+      #   value is equal to the given value.
       #
-      # +to+ When passed, this method will return false unless the value will be
-      # changed to the given value
+      # [+to+]
+      #   When specified, this method will return false unless the value will be
+      #   changed to the given value.
       def will_save_change_to_attribute?(attr_name, **options)
         mutations_from_database.changed?(attr_name.to_s, **options)
       end
