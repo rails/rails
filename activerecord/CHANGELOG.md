@@ -1,3 +1,8 @@
+*   `ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Interval` now inherits
+    from `ActiveModel::Type::Duration`.
+
+    *Ross Kaffenberger*
+
 *   Include `ActiveModel::API` in `ActiveRecord::Base`
 
     *Sean Doyle*

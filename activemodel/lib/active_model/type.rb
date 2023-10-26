@@ -10,6 +10,7 @@ require "active_model/type/boolean"
 require "active_model/type/date"
 require "active_model/type/date_time"
 require "active_model/type/decimal"
+require "active_model/type/duration"
 require "active_model/type/float"
 require "active_model/type/immutable_string"
 require "active_model/type/integer"
@@ -45,6 +46,7 @@ module ActiveModel
     register(:boolean, Type::Boolean)
     register(:date, Type::Date)
     register(:datetime, Type::DateTime)
+    register(:duration, Type::Duration)
     register(:decimal, Type::Decimal)
     register(:float, Type::Float)
     register(:immutable_string, Type::ImmutableString)
