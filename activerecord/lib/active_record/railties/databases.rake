@@ -195,7 +195,7 @@ db_namespace = namespace :db do
 
     namespace :up do
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
-        desc 'Run the "up" on #{name} database for a given migration VERSION.'
+        desc "Run the \"up\" on #{name} database for a given migration VERSION."
         task name => :load_config do
           raise "VERSION is required" if !ENV["VERSION"] || ENV["VERSION"].empty?
 
@@ -226,7 +226,7 @@ db_namespace = namespace :db do
 
     namespace :down do
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
-        desc 'Run the "down" on #{name} database for a given migration VERSION.'
+        desc "Run the \"down\" on #{name} database for a given migration VERSION."
         task name => :load_config do
           raise "VERSION is required" if !ENV["VERSION"] || ENV["VERSION"].empty?
 
