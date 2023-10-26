@@ -1,3 +1,7 @@
+*   Fix `#to_fs(:human_size)` to correctly work with negative numbers.
+
+    *Earlopain*
+
 *   Add `drb`, `mutex_m` and `base64` that are bundled gem candidates for Ruby 3.4
 
     *Yasuo Honda*
