@@ -290,7 +290,7 @@ module ActionView
     # the same as <tt>Encoding.default_external</tt>.
     #
     # The user can also specify the encoding via a comment on the first
-    # line of the template (# encoding: NAME-OF-ENCODING). This will work
+    # line of the template (<tt># encoding: NAME-OF-ENCODING</tt>). This will work
     # with any template engine, as we process out the encoding comment
     # before passing the source on to the template engine, leaving a
     # blank line in its stead.
