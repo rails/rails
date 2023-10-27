@@ -27,7 +27,7 @@ namespace :test do
 end
 
 task :vendor_trix do
-  module Importmap; end
+  require "importmap-rails"
   require "importmap/packager"
 
   packager = Importmap::Packager.new(vendor_path: "app/assets/javascripts")

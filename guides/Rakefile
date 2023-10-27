@@ -38,7 +38,7 @@ namespace :guides do
   end
 
   task :vendor_javascript do
-    module Importmap; end
+    require "importmap-rails"
     require "importmap/packager"
 
     packager = Importmap::Packager.new(vendor_path: "assets/javascripts")
