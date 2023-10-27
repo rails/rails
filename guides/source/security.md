@@ -1429,6 +1429,14 @@ Rails.application.config.content_security_policy do |policy|
 end
 ```
 
+Enable the [`report-to`][] directive to report violations to the specified Reporting API group:
+
+```ruby
+Rails.application.config.content_security_policy do |policy|
+  policy.report_to "csp-endpoint"
+end
+```
+
 When migrating legacy content, you might want to report violations without
 enforcing the policy. Set the [`Content-Security-Policy-Report-Only`][]
 response header to only report violations:
@@ -1447,6 +1455,7 @@ end
 
 [`Content-Security-Policy-Report-Only`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only
 [`report-uri`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri
+[`report-to`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-to
 
 #### Adding a Nonce
 
