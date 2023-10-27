@@ -186,8 +186,8 @@ module ActiveRecord
       def _create_record(attribute_names = self.attribute_names)
         id = super
 
-        each_counter_cached_associations do |association|
-          association.increment_counters
+        counter_cached_association_names.each do |association_name|
+          association(association_name).increment_counters
         end
 
         id
@@ -197,7 +197,8 @@ module ActiveRecord
         affected_rows = super
 
         if affected_rows > 0
-          each_counter_cached_associations do |association|
+          counter_cached_association_names.each do |association_name|
+            association = association(association_name)
             foreign_key = association.reflection.foreign_key.to_sym
             unless destroyed_by_association && destroyed_by_association.foreign_key.to_sym == foreign_key
               association.decrement_counters
@@ -206,12 +207,6 @@ module ActiveRecord
         end
 
         affected_rows
-      end
-
-      def each_counter_cached_associations
-        _reflections.each do |name, reflection|
-          yield association(name.to_sym) if reflection.belongs_to? && reflection.counter_cache_column
-        end
       end
   end
 end

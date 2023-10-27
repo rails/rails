@@ -303,6 +303,10 @@ module ActiveRecord
       autoload :AliasTracker
     end
 
+    included do
+      class_attribute :counter_cached_association_names, instance_writer: false, default: []
+    end
+
     def self.eager_load!
       super
       Preloader.eager_load!
@@ -1885,6 +1889,9 @@ module ActiveRecord
         #   belong_to  :note, query_constraints: [:organization_id, :note_id]
         def belongs_to(name, scope = nil, **options)
           reflection = Builder::BelongsTo.build(self, name, scope, options)
+          if reflection.counter_cache_column
+            self.counter_cached_association_names = counter_cached_association_names + [name]
+          end
           Reflection.add_reflection self, name, reflection
         end
 
