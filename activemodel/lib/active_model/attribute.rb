@@ -4,14 +4,6 @@ require "active_support/core_ext/object/duplicable"
 
 module ActiveModel
   class Attribute # :nodoc:
-    module UNDEF # :nodoc:
-      def self.duplicable?
-        false
-      end
-      freeze
-    end
-
-    @optimization_enabled = false
     class << self
       def from_database(name, value_before_type_cast, type, value = nil)
         FromDatabase.new(name, value_before_type_cast, type, nil, value)
@@ -43,22 +35,33 @@ module ActiveModel
       @value_before_type_cast = value_before_type_cast
       @type = type
       @original_attribute = original_attribute
-      @value = value.nil? ? UNDEF : value
-      @value_for_database = UNDEF
+      if value.nil?
+        @value = nil
+        @value_set = false
+      else
+        @value = value
+        @value_set = true
+      end
+      @value_for_database = nil
+      @value_for_database_set = false
     end
 
     def value
-      @value = type_cast(value_before_type_cast) if UNDEF.equal?(@value)
+      unless @value_set
+        @value = type_cast(value_before_type_cast)
+        @value_set = true
+      end
       @value
     end
 
     def has_been_read?
-      !UNDEF.equal?(@value)
+      @value_set
     end
 
     def value_for_database
-      if UNDEF.equal?(@value_for_database) || type.changed_in_place?(@value_for_database, value)
+      if !@value_for_database_set || type.changed_in_place?(@value_for_database, value)
         @value_for_database = _value_for_database
+        @value_for_database_set = true
       end
       @value_for_database
     end
@@ -68,8 +71,15 @@ module ActiveModel
       @value_before_type_cast = coder["value_before_type_cast"]
       @type = coder["type"]
       @original_attribute = coder["original_attribute"]
-      @value = coder.map.key?("value") ? coder["value"] : UNDEF
-      @value_for_database = UNDEF
+      if coder.map.key?("value")
+        @value = coder["value"]
+        @value_set = true
+      else
+        @value = nil
+        @value_set = false
+      end
+      @value_for_database = nil
+      @value_for_database_set = false
     end
 
     def encode_with(coder)
@@ -77,7 +87,7 @@ module ActiveModel
       coder["value_before_type_cast"] = value_before_type_cast unless value_before_type_cast.nil?
       coder["type"] = type if type
       coder["original_attribute"] = original_attribute if original_attribute
-      coder["value"] = value unless UNDEF.equal?(@value)
+      coder["value"] = value if @value_set
     end
 
     def original_value
@@ -162,7 +172,7 @@ module ActiveModel
       alias :assigned? :original_attribute
 
       def initialize_dup(other)
-        if has_been_read? && !UNDEF.equal?(@value) && @value.duplicable?
+        if has_been_read? && @value.duplicable?
           @value = @value.dup
         end
       end
@@ -190,7 +200,7 @@ module ActiveModel
           # changed in place, we can simply dup this attribute to avoid
           # deserialize / cast / serialize calls from computing the new
           # attribute's `value_before_type_cast`.
-          if !defined?(@value_for_database) && !changed_in_place?
+          if !@value_for_database_set && !changed_in_place?
             dup
           else
             super
