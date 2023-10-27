@@ -1,3 +1,7 @@
+*   Add support for `with_routing` test helper in `ActionDispatch::IntegrationTest`
+
+    *Gannon McGibbon*
+
 *   Remove deprecated support to set `Rails.application.config.action_dispatch.show_exceptions` to `true` and `false`.
 
     *Rafael Mendonça França*
