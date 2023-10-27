@@ -31,7 +31,7 @@ module ActiveRecord
     # Returns a new +ActiveRecord::Promise+ that will apply the passed block
     # when the value is accessed:
     #
-    #   Post.async_pluck(:title).then { |title| title.upcase }.value
+    #   Post.async_pick(:title).then { |title| title.upcase }.value
     #   # => "POST TITLE"
     def then(&block)
       Promise.new(@future_result, @block ? @block >> block : block)
