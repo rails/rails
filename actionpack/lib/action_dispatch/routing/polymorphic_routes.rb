@@ -206,7 +206,6 @@ module ActionDispatch
 
           def self.polymorphic_method(recipient, record_or_hash_or_array, action, type, options)
             builder = get action, type
-
             case record_or_hash_or_array
             when Array
               record_or_hash_or_array = record_or_hash_or_array.compact
@@ -228,10 +227,12 @@ module ActionDispatch
             else
               method, args = builder.handle_model record_or_hash_or_array
             end
+            method_type = method.delete_suffix "_path"
 
-            if options.empty?
+            if options.empty? && method_type != method_type.singularize
               recipient.public_send(method, *args)
             else
+              options[:format] ||= nil
               recipient.public_send(method, *args, options)
             end
           end
