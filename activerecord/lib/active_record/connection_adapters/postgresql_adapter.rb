@@ -893,7 +893,9 @@ module ActiveRecord
           type_casted_binds = type_casted_binds(binds)
           log(sql, name, binds, type_casted_binds, async: async) do
             with_raw_connection do |conn|
-              conn.exec_params(sql, type_casted_binds)
+              result = conn.exec_params(sql, type_casted_binds)
+              verified!
+              result
             end
           end
         end
@@ -908,7 +910,9 @@ module ActiveRecord
             type_casted_binds = type_casted_binds(binds)
 
             log(sql, name, binds, type_casted_binds, stmt_key, async: async) do
-              conn.exec_prepared(stmt_key, type_casted_binds)
+              result = conn.exec_prepared(stmt_key, type_casted_binds)
+              verified!
+              result
             end
           end
         rescue ActiveRecord::StatementInvalid => e
