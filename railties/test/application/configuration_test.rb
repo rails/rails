@@ -4325,8 +4325,12 @@ module ApplicationTests
 
     test "ActiveSupport::Cache.format_version is 6.1 by default for upgraded apps" do
       remove_from_config '.*config\.load_defaults.*\n'
+      remove_from_config ".*config.active_support.cache_format_version.*\n"
 
-      app "development"
+      msg = /DEPRECATION WARNING: Support for `config.active_support.cache_format_version = 6.1` has been deprecated and will be removed in Rails 7.2./
+      assert_deprecated(msg, ActiveSupport.deprecator) do
+        app "development"
+      end
 
       assert_equal 6.1, ActiveSupport::Cache.format_version
     end
@@ -4358,12 +4362,17 @@ module ApplicationTests
 
     test "ActiveSupport::Cache.format_version 6.1 is deprecated" do
       remove_from_config '.*config\.load_defaults.*\n'
+      remove_from_config ".*config.active_support.cache_format_version.*\n"
 
-      app "development"
+      msg = /DEPRECATION WARNING: Support for `config.active_support.cache_format_version = 6.1` has been deprecated and will be removed in Rails 7.2./
+      assert_deprecated(msg, ActiveSupport.deprecator) do
+        app "development"
+      end
 
       assert_equal 6.1, ActiveSupport::Cache.format_version
 
-      assert_deprecated(ActiveSupport.deprecator) do
+      msg = /DEPRECATION WARNING: Support for `config.active_support.cache_format_version = 6.1` has been deprecated and will be removed in Rails 7.2./
+      assert_deprecated(msg, ActiveSupport.deprecator) do
         ActiveSupport::Cache::Store.new
       end
     end

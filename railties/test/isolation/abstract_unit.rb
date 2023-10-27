@@ -141,6 +141,7 @@ module TestHelpers
         config.cache_store = :mem_cache_store
         config.active_support.deprecation = :log
         config.action_controller.allow_forgery_protection = false
+        config.active_support.cache_format_version = 7.1
       RUBY
     end
 
@@ -255,6 +256,7 @@ module TestHelpers
       @app = Class.new(Rails::Application) do
         def self.name; "RailtiesTestApp"; end
       end
+      @app.config.active_support.cache_format_version = 7.1
       @app.config.hosts << proc { true }
       @app.config.eager_load = false
       @app.config.session_store :cookie_store, key: "_myapp_session"
