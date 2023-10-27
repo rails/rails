@@ -1,3 +1,12 @@
+*   Upgrade Trix to 2.0.7
+
+    *Hartley McGuire*
+
+*   Fix using Trix with Sprockets
+
+    *Hartley McGuire*
+
+
 ## Rails 7.1.1 (October 11, 2023) ##
 
 *   No changes.
