@@ -48,7 +48,7 @@ module ActiveStorage
     #
     # === Examples
     #
-    #   # tests/fixtures/action_text/blobs.yml
+    #   # tests/fixtures/active_storage/blobs.yml
     #   second_thumbnail_blob: <%= ActiveStorage::FixtureSet.blob(
     #     filename: "second.svg",
     #   ) %>
