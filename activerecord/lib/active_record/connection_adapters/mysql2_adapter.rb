@@ -116,17 +116,6 @@ module ActiveRecord
       end
 
       #--
-      # QUOTING ==================================================
-      #++
-
-      # Quotes strings for use in SQL input.
-      def quote_string(string)
-        with_raw_connection(allow_retry: true, materialize_transactions: false) do |connection|
-          connection.escape(string)
-        end
-      end
-
-      #--
       # CONNECTION MANAGEMENT ====================================
       #++
 
