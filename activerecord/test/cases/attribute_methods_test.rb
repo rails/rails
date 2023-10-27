@@ -131,8 +131,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "caching a nil primary key" do
     klass = Class.new(Minimalistic)
-    assert_called(klass, :reset_primary_key, returns: nil) do
-      2.times { klass.primary_key }
+    klass.primary_key # warm once
+
+    assert_not_called(klass, :reset_primary_key) do
+      klass.primary_key
     end
   end
 
