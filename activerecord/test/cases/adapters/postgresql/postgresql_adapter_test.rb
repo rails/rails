@@ -460,11 +460,18 @@ module ActiveRecord
 
       def test_reload_type_map_for_newly_defined_types
         @connection.create_enum "feeling", ["good", "bad"]
-        result = @connection.select_all "SELECT 'good'::feeling"
-        assert_instance_of(PostgreSQLAdapter::OID::Enum,
-                           result.column_types["feeling"])
+
+        # Runs only SELECT, no type map reloading.
+        assert_queries(1, ignore_none: true) do
+          result = @connection.select_all "SELECT 'good'::feeling"
+          assert_instance_of(PostgreSQLAdapter::OID::Enum,
+                             result.column_types["feeling"])
+        end
       ensure
-        @connection.drop_enum "feeling", if_exists: true
+        # Reloads type map.
+        assert_sql(/from pg_type/i) do
+          @connection.drop_enum "feeling", if_exists: true
+        end
         reset_connection
       end
 
