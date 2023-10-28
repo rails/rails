@@ -1,3 +1,8 @@
+*   Fixed an [issue](https://github.com/rails/rails/issues/49809) where saving a
+    record could innappropriately `dup` its attributes.
+
+    *Jonathan Hefner*
+
 *   Fix `NoMethodError` when casting a PostgreSQL `money` value that uses a
     comma as its radix point and has no leading currency symbol.  For example,
     when casting `"3,50"`.
