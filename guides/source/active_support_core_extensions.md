@@ -139,7 +139,7 @@ NOTE: Defined in `active_support/core_ext/object/blank.rb`.
 The [`presence`][Object#presence] method returns its receiver if `present?`, and `nil` otherwise. It is useful for idioms like this:
 
 ```ruby
-host = config[:host].presence || 'localhost'
+host = config[:host].presence || "localhost"
 ```
 
 NOTE: Defined in `active_support/core_ext/object/blank.rb`.
@@ -179,20 +179,20 @@ NOTE: Defined in `active_support/core_ext/object/duplicable.rb`.
 The [`deep_dup`][Object#deep_dup] method returns a deep copy of a given object. Normally, when you `dup` an object that contains other objects, Ruby does not `dup` them, so it creates a shallow copy of the object. If you have an array with a string, for example, it will look like this:
 
 ```ruby
-array     = ['string']
+array     = ["string"]
 duplicate = array.dup
 
-duplicate.push 'another-string'
+duplicate.push "another-string"
 
 # the object was duplicated, so the element was added only to the duplicate
-array     # => ['string']
-duplicate # => ['string', 'another-string']
+array     # => ["string"]
+duplicate # => ["string", "another-string"]
 
-duplicate.first.gsub!('string', 'foo')
+duplicate.first.gsub!("string", "foo")
 
 # first element was not duplicated, it will be changed in both arrays
-array     # => ['foo']
-duplicate # => ['foo', 'another-string']
+array     # => ["foo"]
+duplicate # => ["foo, "another-string"]
 ```
 
 As you can see, after duplicating the `Array` instance, we got another object, therefore we can modify it and the original object will stay unchanged. This is not true for array's elements, however. Since `dup` does not make a deep copy, the string inside the array is still the same object.
@@ -200,13 +200,13 @@ As you can see, after duplicating the `Array` instance, we got another object, t
 If you need a deep copy of an object, you should use `deep_dup`. Here is an example:
 
 ```ruby
-array     = ['string']
+array     = ["string"]
 duplicate = array.deep_dup
 
-duplicate.first.gsub!('string', 'foo')
+duplicate.first.gsub!("string", "foo")
 
-array     # => ['string']
-duplicate # => ['foo']
+array     # => ["string"]
+duplicate # => ["foo"]
 ```
 
 If the object is not duplicable, `deep_dup` will just return it:
@@ -242,8 +242,8 @@ Another example is this code from `ActiveRecord::ConnectionAdapters::AbstractAda
 ```ruby
 def log_info(sql, name, ms)
   if @logger.try(:debug?)
-    name = '%s (%.1fms)' % [name || 'SQL', ms]
-    @logger.debug(format_log_entry(name, sql.squeeze(' ')))
+    name = "%s (%.1fms)" % [name || "SQL", ms]
+    @logger.debug(format_log_entry(name, sql.squeeze(" ")))
   end
 end
 ```
@@ -372,13 +372,13 @@ end
 we get:
 
 ```ruby
-current_user.to_query('user') # => "user=357-john-smith"
+current_user.to_query("user") # => "user=357-john-smith"
 ```
 
 This method escapes whatever is needed, both for the key and the value:
 
 ```ruby
-account.to_query('company[name]')
+account.to_query("company[name]")
 # => "company%5Bname%5D=Johnson+%26+Johnson"
 ```
 
@@ -387,7 +387,7 @@ so its output is ready to be used in a query string.
 Arrays return the result of applying `to_query` to each element with `key[]` as key, and join the result with "&":
 
 ```ruby
-[3.4, -45.6].to_query('sample')
+[3.4, -45.6].to_query("sample")
 # => "sample%5B%5D=3.4&sample%5B%5D=-45.6"
 ```
 
@@ -400,7 +400,7 @@ Hashes also respond to `to_query` but with a different signature. If no argument
 The method [`Hash#to_query`][Hash#to_query] accepts an optional namespace for the keys:
 
 ```ruby
-{ id: 89, name: "John Smith" }.to_query('user')
+{ id: 89, name: "John Smith" }.to_query("user")
 # => "user%5Bid%5D=89&user%5Bname%5D=John+Smith"
 ```
 
@@ -1201,7 +1201,7 @@ The method [`truncate`][String#truncate] returns a copy of its receiver truncate
 Ellipsis can be customized with the `:omission` option:
 
 ```ruby
-"Oh dear! Oh dear! I shall be late!".truncate(20, omission: '&hellip;')
+"Oh dear! Oh dear! I shall be late!".truncate(20, omission: "&hellip;")
 # => "Oh dear! Oh &hellip;"
 ```
 
@@ -1212,7 +1212,7 @@ Pass a `:separator` to truncate the string at a natural break:
 ```ruby
 "Oh dear! Oh dear! I shall be late!".truncate(18)
 # => "Oh dear! Oh dea..."
-"Oh dear! Oh dear! I shall be late!".truncate(18, separator: ' ')
+"Oh dear! Oh dear! I shall be late!".truncate(18, separator: " ")
 # => "Oh dear! Oh..."
 ```
 
@@ -1261,14 +1261,14 @@ The method [`truncate_words`][String#truncate_words] returns a copy of its recei
 Ellipsis can be customized with the `:omission` option:
 
 ```ruby
-"Oh dear! Oh dear! I shall be late!".truncate_words(4, omission: '&hellip;')
+"Oh dear! Oh dear! I shall be late!".truncate_words(4, omission: "&hellip;")
 # => "Oh dear! Oh dear!&hellip;"
 ```
 
 Pass a `:separator` to truncate the string at a natural break:
 
 ```ruby
-"Oh dear! Oh dear! I shall be late!".truncate_words(3, separator: '!')
+"Oh dear! Oh dear! I shall be late!".truncate_words(3, separator: "!")
 # => "Oh dear! Oh dear! I shall be late..."
 ```
 
@@ -1812,7 +1812,7 @@ The capitalization of the first word can be turned off by setting the
 If "SSL" was defined to be an acronym:
 
 ```ruby
-'ssl_error'.humanize # => "SSL error"
+"ssl_error".humanize # => "SSL error"
 ```
 
 The helper method `full_messages` uses `humanize` as a fallback to include
@@ -1825,7 +1825,7 @@ end
 
 def full_message
   # ...
-  attr_name = attribute.to_s.tr('.', '_').humanize
+  attr_name = attribute.to_s.tr(".", "_").humanize
   attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
   # ...
 end
@@ -2048,7 +2048,7 @@ Produce a string representation of a number as a percentage:
 # => 100.000%
 100.to_fs(:percentage, precision: 0)
 # => 100%
-1000.to_fs(:percentage, delimiter: '.', separator: ',')
+1000.to_fs(:percentage, delimiter: ".", separator: ",")
 # => 1.000,000%
 302.24398923423.to_fs(:percentage, precision: 5)
 # => 302.24399%
@@ -2208,7 +2208,7 @@ It iterates through the collection and passes each element to a block. The eleme
 
 ```ruby
 invoices.index_by(&:number)
-# => {'2009-032' => <Invoice ...>, '2009-008' => <Invoice ...>, ...}
+# => {"2009-032" => <Invoice ...>, "2009-008" => <Invoice ...>, ...}
 ```
 
 WARNING. Keys should normally be unique. If the block returns the same value for different elements no collection is built for that key. The last item will win.
@@ -3024,7 +3024,7 @@ NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
 The method [`deep_transform_values`][Hash#deep_transform_values] returns a new hash with all values converted by the block operation. This includes the values from the root hash and from all nested hashes and arrays.
 
 ```ruby
-hash = { person: { name: 'Rob', age: '28' } }
+hash = { person: { name: "Rob", age: "28" } }
 
 hash.deep_transform_values { |value| value.to_s.upcase }
 # => {person: {name: "ROB", age: "28"}}
@@ -3097,8 +3097,8 @@ The method [`multiline?`][Regexp#multiline?] says whether a regexp has the `/m` 
 %r{.}.multiline?  # => false
 %r{.}m.multiline? # => true
 
-Regexp.new('.').multiline?                    # => false
-Regexp.new('.', Regexp::MULTILINE).multiline? # => true
+Regexp.new(".").multiline?                    # => false
+Regexp.new(".", Regexp::MULTILINE).multiline? # => true
 ```
 
 Rails uses this method in a single place, also in the routing code. Multiline regexps are disallowed for route requirements and this flag eases enforcing that constraint.

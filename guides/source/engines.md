@@ -151,7 +151,7 @@ When you include the engine into an application later on, you will do so with
 this line in the Rails application's `Gemfile`:
 
 ```ruby
-gem 'blorgh', path: 'engines/blorgh'
+gem "blorgh", path: "engines/blorgh"
 ```
 
 Don't forget to run `bundle install` as usual. By specifying it as a gem within
@@ -626,14 +626,14 @@ Usually, specifying the engine inside the `Gemfile` would be done by specifying 
 as a normal, everyday gem.
 
 ```ruby
-gem 'devise'
+gem "devise"
 ```
 
 However, because you are developing the `blorgh` engine on your local machine,
 you will need to specify the `:path` option in your `Gemfile`:
 
 ```ruby
-gem 'blorgh', path: 'engines/blorgh'
+gem "blorgh", path: "engines/blorgh"
 ```
 
 Then run `bundle` to install the gem.

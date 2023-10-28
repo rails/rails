@@ -13,7 +13,7 @@ module Rails
           setup do
             copy_gemfile <<~ENTRY
               # Use sqlite3 as the database for Active Record
-              gem 'sqlite3'
+              gem "sqlite3"
             ENTRY
 
             copy_dockerfile

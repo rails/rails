@@ -522,13 +522,13 @@ was rescued.
 To get started, add the redis gem to your Gemfile:
 
 ```ruby
-gem 'redis'
+gem "redis"
 ```
 
 Finally, add the configuration in the relevant `config/environments/*.rb` file:
 
 ```ruby
-config.cache_store = :redis_cache_store, { url: ENV['REDIS_URL'] }
+config.cache_store = :redis_cache_store, { url: ENV["REDIS_URL"] }
 ```
 
 A more complex, production Redis cache store may look something like this:

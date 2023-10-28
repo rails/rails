@@ -1351,7 +1351,7 @@ steps.
 To get started, add the rack-cors gem to your Gemfile:
 
 ```ruby
-gem 'rack-cors'
+gem "rack-cors"
 ```
 
 Next, add an initializer to configure the middleware:

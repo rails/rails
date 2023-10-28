@@ -1292,7 +1292,7 @@ The `app:update` command sets it up in `boot.rb`. If you want to use it, then ad
 
 ```ruby
 # Reduces boot times through caching; required in config/boot.rb
-gem 'bootsnap', require: false
+gem "bootsnap", require: false
 ```
 
 Otherwise change the `boot.rb` to not use bootsnap.
@@ -1443,7 +1443,7 @@ See [#19034](https://github.com/rails/rails/pull/19034) for more details.
 #### Extraction of some helper methods to `rails-controller-testing`
 
 `assigns` and `assert_template` have been extracted to the `rails-controller-testing` gem. To
-continue using these methods in your controller tests, add `gem 'rails-controller-testing'` to
+continue using these methods in your controller tests, add `gem "rails-controller-testing"` to
 your `Gemfile`.
 
 If you are using RSpec for testing, please see the extra configuration required in the gem's
@@ -1475,7 +1475,7 @@ production, set `Rails.application.config.enable_dependency_loading` to true.
 ### XML Serialization
 
 `ActiveModel::Serializers::Xml` has been extracted from Rails to the `activemodel-serializers-xml`
-gem. To continue using XML serialization in your application, add `gem 'activemodel-serializers-xml'`
+gem. To continue using XML serialization in your application, add `gem "activemodel-serializers-xml"`
 to your `Gemfile`.
 
 ### Removed Support for Legacy `mysql` Database Adapter
@@ -1547,7 +1547,7 @@ You can now just call the dependency once with a wildcard.
 `content_tag_for` and `div_for` have been removed in favor of just using `content_tag`. To continue using the older methods, add the `record_tag_helper` gem to your `Gemfile`:
 
 ```ruby
-gem 'record_tag_helper', '~> 1.0'
+gem "record_tag_helper", "~> 1.0"
 ```
 
 See [#18411](https://github.com/rails/rails/pull/18411) for more details.
@@ -1715,11 +1715,11 @@ Upgrading from Rails 4.1 to Rails 4.2
 
 ### Web Console
 
-First, add `gem 'web-console', '~> 2.0'` to the `:development` group in your `Gemfile` and run `bundle install` (it won't have been included when you upgraded Rails). Once it's been installed, you can simply drop a reference to the console helper (i.e., `<%= console %>`) into any view you want to enable it for. A console will also be provided on any error page you view in your development environment.
+First, add `gem "web-console", "~> 2.0"` to the `:development` group in your `Gemfile` and run `bundle install` (it won't have been included when you upgraded Rails). Once it's been installed, you can simply drop a reference to the console helper (i.e., `<%= console %>`) into any view you want to enable it for. A console will also be provided on any error page you view in your development environment.
 
 ### Responders
 
-`respond_with` and the class-level `respond_to` methods have been extracted to the `responders` gem. To use them, simply add `gem 'responders', '~> 2.0'` to your `Gemfile`. Calls to `respond_with` and `respond_to` (again, at the class level) will no longer work without having included the `responders` gem in your dependencies:
+`respond_with` and the class-level `respond_to` methods have been extracted to the `responders` gem. To use them, simply add `gem "responders", "~> 2.0"` to your `Gemfile`. Calls to `respond_with` and `respond_to` (again, at the class level) will no longer work without having included the `responders` gem in your dependencies:
 
 ```ruby
 # app/controllers/users_controller.rb
@@ -1868,7 +1868,7 @@ can gain complete control over when and how elements should be stripped.
 If your application needs to use the old sanitizer implementation, include `rails-deprecated_sanitizer` in your `Gemfile`:
 
 ```ruby
-gem 'rails-deprecated_sanitizer'
+gem "rails-deprecated_sanitizer"
 ```
 
 ### Rails DOM Testing
@@ -1963,7 +1963,7 @@ you must now explicitly skip CSRF protection on those actions.
 
 If you want to use Spring as your application preloader you need to:
 
-1. Add `gem 'spring', group: :development` to your `Gemfile`.
+1. Add `gem "spring", group: :development` to your `Gemfile`.
 2. Install spring using `bundle install`.
 3. Generate the Spring binstub with `bundle exec spring binstub`.
 
@@ -2571,7 +2571,7 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 
 * Rails 4.0 changes the default `layout` lookup set using symbols or procs that return nil. To get the "no layout" behavior, return false instead of nil.
 
-* Rails 4.0 changes the default memcached client from `memcache-client` to `dalli`. To upgrade, simply add `gem 'dalli'` to your `Gemfile`.
+* Rails 4.0 changes the default memcached client from `memcache-client` to `dalli`. To upgrade, simply add `gem "dalli"` to your `Gemfile`.
 
 * Rails 4.0 deprecates the `dom_id` and `dom_class` methods in controllers (they are fine in views). You will need to include the `ActionView::RecordIdentifier` module in controllers requiring this feature.
 
@@ -2710,12 +2710,12 @@ The following changes are meant for upgrading your application to the latest
 Make the following changes to your `Gemfile`.
 
 ```ruby
-gem 'rails', '3.2.21'
+gem "rails", "3.2.21"
 
 group :assets do
-  gem 'sass-rails',   '~> 3.2.6'
-  gem 'coffee-rails', '~> 3.2.2'
-  gem 'uglifier',     '>= 1.0.3'
+  gem "sass-rails",   "~> 3.2.6"
+  gem "coffee-rails", "~> 3.2.2"
+  gem "uglifier",     ">= 1.0.3"
 end
 ```
 
@@ -2761,18 +2761,18 @@ The following changes are meant for upgrading your application to Rails 3.1.12, 
 Make the following changes to your `Gemfile`.
 
 ```ruby
-gem 'rails', '3.1.12'
-gem 'mysql2'
+gem "rails", "3.1.12"
+gem "mysql2"
 
 # Needed for the new asset pipeline
 group :assets do
-  gem 'sass-rails',   '~> 3.1.7'
-  gem 'coffee-rails', '~> 3.1.1'
-  gem 'uglifier',     '>= 1.0.3'
+  gem "sass-rails",   "~> 3.1.7"
+  gem "coffee-rails", "~> 3.1.1"
+  gem "uglifier",     ">= 1.0.3"
 end
 
 # jQuery is the default JavaScript library in Rails 3.1
-gem 'jquery-rails'
+gem "jquery-rails"
 ```
 
 ### config/application.rb
@@ -2781,7 +2781,7 @@ The asset pipeline requires the following additions:
 
 ```ruby
 config.assets.enabled = true
-config.assets.version = '1.0'
+config.assets.version = "1.0"
 ```
 
 If your application is using an "/assets" route for a resource you may want to change the prefix used for assets to avoid conflicts:

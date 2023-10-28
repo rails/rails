@@ -3681,7 +3681,7 @@ evented file system monitor to detect changes when reloading is enabled:
 
 ```ruby
 group :development do
-  gem 'listen', '~> 3.5'
+  gem "listen", "~> 3.5"
 end
 ```
 
