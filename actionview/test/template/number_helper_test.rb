@@ -60,15 +60,15 @@ class NumberHelperTest < ActionView::TestCase
 
   def test_number_to_human_size
     assert_nil number_to_human_size(nil)
-    assert_equal "3 Bytes", number_to_human_size(3.14159265)
+    assert_equal "3 bytes", number_to_human_size(3.14159265)
     assert_equal "1.2 MB", number_to_human_size(1234567, precision: 2)
   end
 
   def test_number_to_human
     assert_nil number_to_human(nil)
     assert_equal "0",   number_to_human(0)
-    assert_equal "1.23 Thousand", number_to_human(1234)
-    assert_equal "489.0 Thousand", number_to_human(489000, precision: 4, strip_insignificant_zeros: false)
+    assert_equal "1.23 thousand", number_to_human(1234)
+    assert_equal "489.0 thousand", number_to_human(489000, precision: 4, strip_insignificant_zeros: false)
   end
 
   def test_number_to_human_escape_units
@@ -114,7 +114,7 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal "9&lt;script&gt;&lt;/script&gt;86 KB", number_to_human_size(10100, separator: "<script></script>")
 
     assert_equal "1&lt;script&gt;&lt;/script&gt;01", number_to_human(1.01, separator: "<script></script>")
-    assert_equal "100&lt;script&gt;&lt;/script&gt;000 Quadrillion", number_to_human(10**20, delimiter: "<script></script>")
+    assert_equal "100&lt;script&gt;&lt;/script&gt;000 quadrillion", number_to_human(10**20, delimiter: "<script></script>")
   end
 
   def test_number_to_human_with_custom_translation_scope

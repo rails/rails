@@ -266,7 +266,7 @@ module ActiveSupport
     #
     # ==== Examples
     #
-    #   number_to_human_size(123)                                    # => "123 Bytes"
+    #   number_to_human_size(123)                                    # => "123 bytes"
     #   number_to_human_size(1234)                                   # => "1.21 KB"
     #   number_to_human_size(12345)                                  # => "12.1 KB"
     #   number_to_human_size(1234567)                                # => "1.18 MB"
@@ -286,7 +286,7 @@ module ActiveSupport
 
     # Pretty prints (formats and approximates) a number in a way it
     # is more readable by humans (e.g.: 1200000000 becomes "1.2
-    # Billion"). This is useful for numbers that can get very large
+    # billion"). This is useful for numbers that can get very large
     # (and too hard to read).
     #
     # See <tt>number_to_human_size</tt> if you want to print a file
@@ -334,25 +334,25 @@ module ActiveSupport
     # ==== Examples
     #
     #   number_to_human(123)                         # => "123"
-    #   number_to_human(1234)                        # => "1.23 Thousand"
-    #   number_to_human(12345)                       # => "12.3 Thousand"
-    #   number_to_human(1234567)                     # => "1.23 Million"
-    #   number_to_human(1234567890)                  # => "1.23 Billion"
-    #   number_to_human(1234567890123)               # => "1.23 Trillion"
-    #   number_to_human(1234567890123456)            # => "1.23 Quadrillion"
-    #   number_to_human(1234567890123456789)         # => "1230 Quadrillion"
-    #   number_to_human(489939, precision: 2)        # => "490 Thousand"
-    #   number_to_human(489939, precision: 4)        # => "489.9 Thousand"
+    #   number_to_human(1234)                        # => "1.23 thousand"
+    #   number_to_human(12345)                       # => "12.3 thousand"
+    #   number_to_human(1234567)                     # => "1.23 million"
+    #   number_to_human(1234567890)                  # => "1.23 billion"
+    #   number_to_human(1234567890123)               # => "1.23 trillion"
+    #   number_to_human(1234567890123456)            # => "1.23 quadrillion"
+    #   number_to_human(1234567890123456789)         # => "1230 quadrillion"
+    #   number_to_human(489939, precision: 2)        # => "490 thousand"
+    #   number_to_human(489939, precision: 4)        # => "489.9 thousand"
     #   number_to_human(489939, precision: 2
-    #                         , round_mode: :down)   # => "480 Thousand"
+    #                         , round_mode: :down)   # => "480 thousand"
     #   number_to_human(1234567, precision: 4,
-    #                            significant: false) # => "1.2346 Million"
+    #                            significant: false) # => "1.2346 million"
     #   number_to_human(1234567, precision: 1,
     #                            separator: ',',
-    #                            significant: false) # => "1,2 Million"
+    #                            significant: false) # => "1,2 million"
     #
-    #   number_to_human(500000000, precision: 5)           # => "500 Million"
-    #   number_to_human(12345012345, significant: false)   # => "12.345 Billion"
+    #   number_to_human(500000000, precision: 5)           # => "500 million"
+    #   number_to_human(12345012345, significant: false)   # => "12.345 billion"
     #
     # Non-significant zeros after the decimal separator are stripped
     # out by default (set <tt>:strip_insignificant_zeros</tt> to

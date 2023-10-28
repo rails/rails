@@ -80,7 +80,7 @@ module ActiveSupport
             # %u is the storage unit, %n is the number (default: 2 MB)
             format: "%n %u",
             units: {
-              byte: "Bytes",
+              byte: "bytes",
               kb: "KB",
               mb: "MB",
               gb: "GB",
@@ -95,23 +95,23 @@ module ActiveSupport
             # but the commented ones might be defined or overridden
             # by the user.
             units: {
-              # femto: Quadrillionth
-              # pico: Trillionth
-              # nano: Billionth
-              # micro: Millionth
-              # mili: Thousandth
-              # centi: Hundredth
-              # deci: Tenth
+              # femto: quadrillionth
+              # pico: trillionth
+              # nano: billionth
+              # micro: millionth
+              # mili: thousandth
+              # centi: hundredth
+              # deci: tenth
               unit: "",
               # ten:
-              #   one: Ten
-              #   other: Tens
-              # hundred: Hundred
-              thousand: "Thousand",
-              million: "Million",
-              billion: "Billion",
-              trillion: "Trillion",
-              quadrillion: "Quadrillion"
+              #   one: ten
+              #   other: tens
+              # hundred: hundred
+              thousand: "thousand",
+              million: "million",
+              billion: "billion",
+              trillion: "trillion",
+              quadrillion: "quadrillion"
             }
           }
         }

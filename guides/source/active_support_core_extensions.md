@@ -2077,7 +2077,7 @@ Produce a string representation of a number rounded to a precision:
 Produce a string representation of a number as a human-readable number of bytes:
 
 ```ruby
-123.to_fs(:human_size)                  # => 123 Bytes
+123.to_fs(:human_size)                  # => 123 bytes
 1234.to_fs(:human_size)                 # => 1.21 KB
 12345.to_fs(:human_size)                # => 12.1 KB
 1234567.to_fs(:human_size)              # => 1.18 MB
@@ -2091,12 +2091,12 @@ Produce a string representation of a number in human-readable words:
 
 ```ruby
 123.to_fs(:human)               # => "123"
-1234.to_fs(:human)              # => "1.23 Thousand"
-12345.to_fs(:human)             # => "12.3 Thousand"
-1234567.to_fs(:human)           # => "1.23 Million"
-1234567890.to_fs(:human)        # => "1.23 Billion"
-1234567890123.to_fs(:human)     # => "1.23 Trillion"
-1234567890123456.to_fs(:human)  # => "1.23 Quadrillion"
+1234.to_fs(:human)              # => "1.23 thousand"
+12345.to_fs(:human)             # => "12.3 thousand"
+1234567.to_fs(:human)           # => "1.23 million"
+1234567890.to_fs(:human)        # => "1.23 billion"
+1234567890123.to_fs(:human)     # => "1.23 trillion"
+1234567890123456.to_fs(:human)  # => "1.23 quadrillion"
 ```
 
 NOTE: Defined in `active_support/core_ext/numeric/conversions.rb`.

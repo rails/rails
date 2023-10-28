@@ -77,8 +77,8 @@ module ActiveSupport
     #  1111.2345.to_fs(:rounded, precision: 2, separator: ',', delimiter: '.')
     #  # => "1.111,23"
     #
-    #  Human-friendly size in Bytes:
-    #  123.to_fs(:human_size)                                    # => "123 Bytes"
+    #  Human-friendly size in bytes:
+    #  123.to_fs(:human_size)                                    # => "123 bytes"
     #  1234.to_fs(:human_size)                                   # => "1.21 KB"
     #  12345.to_fs(:human_size)                                  # => "12.1 KB"
     #  1234567.to_fs(:human_size)                                # => "1.18 MB"
@@ -95,21 +95,21 @@ module ActiveSupport
     #
     #  Human-friendly format:
     #  123.to_fs(:human)                                       # => "123"
-    #  1234.to_fs(:human)                                      # => "1.23 Thousand"
-    #  12345.to_fs(:human)                                     # => "12.3 Thousand"
-    #  1234567.to_fs(:human)                                   # => "1.23 Million"
-    #  1234567890.to_fs(:human)                                # => "1.23 Billion"
-    #  1234567890123.to_fs(:human)                             # => "1.23 Trillion"
-    #  1234567890123456.to_fs(:human)                          # => "1.23 Quadrillion"
-    #  1234567890123456789.to_fs(:human)                       # => "1230 Quadrillion"
-    #  489939.to_fs(:human, precision: 2)                      # => "490 Thousand"
-    #  489939.to_fs(:human, precision: 2, round_mode: :down)   # => "480 Thousand"
-    #  489939.to_fs(:human, precision: 4)                      # => "489.9 Thousand"
+    #  1234.to_fs(:human)                                      # => "1.23 thousand"
+    #  12345.to_fs(:human)                                     # => "12.3 thousand"
+    #  1234567.to_fs(:human)                                   # => "1.23 million"
+    #  1234567890.to_fs(:human)                                # => "1.23 billion"
+    #  1234567890123.to_fs(:human)                             # => "1.23 trillion"
+    #  1234567890123456.to_fs(:human)                          # => "1.23 quadrillion"
+    #  1234567890123456789.to_fs(:human)                       # => "1230 quadrillion"
+    #  489939.to_fs(:human, precision: 2)                      # => "490 thousand"
+    #  489939.to_fs(:human, precision: 2, round_mode: :down)   # => "480 thousand"
+    #  489939.to_fs(:human, precision: 4)                      # => "489.9 thousand"
     #  1234567.to_fs(:human, precision: 4,
-    #                   significant: false)                             # => "1.2346 Million"
+    #                   significant: false)                             # => "1.2346 million"
     #  1234567.to_fs(:human, precision: 1,
     #                   separator: ',',
-    #                   significant: false)                             # => "1,2 Million"
+    #                   significant: false)                             # => "1,2 million"
     def to_fs(format = nil, options = nil)
       return to_s if format.nil?
 

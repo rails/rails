@@ -284,11 +284,11 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   end
 
   def test_to_fs__human_size
-    assert_equal "0 Bytes",   0.to_fs(:human_size)
-    assert_equal "1 Byte",    1.to_fs(:human_size)
-    assert_equal "3 Bytes",   3.14159265.to_fs(:human_size)
-    assert_equal "123 Bytes", 123.0.to_fs(:human_size)
-    assert_equal "123 Bytes", 123.to_fs(:human_size)
+    assert_equal "0 bytes",   0.to_fs(:human_size)
+    assert_equal "1 byte",    1.to_fs(:human_size)
+    assert_equal "3 bytes",   3.14159265.to_fs(:human_size)
+    assert_equal "123 bytes", 123.0.to_fs(:human_size)
+    assert_equal "123 bytes", 123.to_fs(:human_size)
     assert_equal "1.21 KB",   1234.to_fs(:human_size)
     assert_equal "12.1 KB",   12345.to_fs(:human_size)
     assert_equal "1.18 MB",   1234567.to_fs(:human_size)
@@ -302,17 +302,17 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal "1020 MB",   megabytes(1023).to_fs(:human_size)
     assert_equal "3 TB",      terabytes(3).to_fs(:human_size)
     assert_equal "1.2 MB",    1234567.to_fs(:human_size, precision: 2)
-    assert_equal "3 Bytes",   3.14159265.to_fs(:human_size, precision: 4)
+    assert_equal "3 bytes",   3.14159265.to_fs(:human_size, precision: 4)
     assert_equal "1 KB",      kilobytes(1.0123).to_fs(:human_size, precision: 2)
     assert_equal "1.01 KB",   kilobytes(1.0100).to_fs(:human_size, precision: 4)
     assert_equal "10 KB",     kilobytes(10.000).to_fs(:human_size, precision: 4)
-    assert_equal "1 Byte",    1.1.to_fs(:human_size)
-    assert_equal "10 Bytes",  10.to_fs(:human_size)
+    assert_equal "1 byte",    1.1.to_fs(:human_size)
+    assert_equal "10 bytes",  10.to_fs(:human_size)
   end
 
   def test_to_fs__human_size_with_options_hash
     assert_equal "1.2 MB",   1234567.to_fs(:human_size, precision: 2)
-    assert_equal "3 Bytes",  3.14159265.to_fs(:human_size, precision: 4)
+    assert_equal "3 bytes",  3.14159265.to_fs(:human_size, precision: 4)
     assert_equal "1 KB",     kilobytes(1.0123).to_fs(:human_size, precision: 2)
     assert_equal "1.01 KB",  kilobytes(1.0100).to_fs(:human_size, precision: 4)
     assert_equal "10 KB",    kilobytes(10.000).to_fs(:human_size, precision: 4)
@@ -340,21 +340,21 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal "0",   0.to_fs(:human)
     assert_equal "0.5", 0.5.to_fs(:human)
     assert_equal "123", 123.to_fs(:human)
-    assert_equal "1.23 Thousand", 1234.to_fs(:human)
-    assert_equal "12.3 Thousand", 12345.to_fs(:human)
-    assert_equal "1.23 Million", 1234567.to_fs(:human)
-    assert_equal "1.23 Billion", 1234567890.to_fs(:human)
-    assert_equal "1.23 Trillion", 1234567890123.to_fs(:human)
-    assert_equal "1.23 Quadrillion", 1234567890123456.to_fs(:human)
-    assert_equal "1230 Quadrillion", 1234567890123456789.to_fs(:human)
-    assert_equal "490 Thousand", 489939.to_fs(:human, precision: 2)
-    assert_equal "489.9 Thousand", 489939.to_fs(:human, precision: 4)
-    assert_equal "489 Thousand", 489000.to_fs(:human, precision: 4)
-    assert_equal "480 Thousand", 489939.to_fs(:human, precision: 2, round_mode: :down)
-    assert_equal "489.0 Thousand", 489000.to_fs(:human, precision: 4, strip_insignificant_zeros: false)
-    assert_equal "1.2346 Million", 1234567.to_fs(:human, precision: 4, significant: false)
-    assert_equal "1,2 Million", 1234567.to_fs(:human, precision: 1, significant: false, separator: ",")
-    assert_equal "1 Million", 1234567.to_fs(:human, precision: 0, significant: true, separator: ",") # significant forced to false
+    assert_equal "1.23 thousand", 1234.to_fs(:human)
+    assert_equal "12.3 thousand", 12345.to_fs(:human)
+    assert_equal "1.23 million", 1234567.to_fs(:human)
+    assert_equal "1.23 billion", 1234567890.to_fs(:human)
+    assert_equal "1.23 trillion", 1234567890123.to_fs(:human)
+    assert_equal "1.23 quadrillion", 1234567890123456.to_fs(:human)
+    assert_equal "1230 quadrillion", 1234567890123456789.to_fs(:human)
+    assert_equal "490 thousand", 489939.to_fs(:human, precision: 2)
+    assert_equal "489.9 thousand", 489939.to_fs(:human, precision: 4)
+    assert_equal "489 thousand", 489000.to_fs(:human, precision: 4)
+    assert_equal "480 thousand", 489939.to_fs(:human, precision: 2, round_mode: :down)
+    assert_equal "489.0 thousand", 489000.to_fs(:human, precision: 4, strip_insignificant_zeros: false)
+    assert_equal "1.2346 million", 1234567.to_fs(:human, precision: 4, significant: false)
+    assert_equal "1,2 million", 1234567.to_fs(:human, precision: 1, significant: false, separator: ",")
+    assert_equal "1 million", 1234567.to_fs(:human, precision: 0, significant: true, separator: ",") # significant forced to false
   end
 
   def test_number_to_human_with_custom_units
@@ -390,16 +390,16 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   end
 
   def test_number_to_human_with_custom_format
-    assert_equal "123 times Thousand", 123456.to_fs(:human, format: "%n times %u")
+    assert_equal "123 times thousand", 123456.to_fs(:human, format: "%n times %u")
     volume = { unit: "ml", thousand: "lt", million: "m3" }
     assert_equal "123.lt", 123456.to_fs(:human, units: volume, format: "%n.%u")
   end
 
   def test_to_fs__injected_on_proper_types
-    assert_equal "1.23 Thousand", 1230.to_fs(:human)
-    assert_equal "1.23 Thousand", Float(1230).to_fs(:human)
-    assert_equal "100000 Quadrillion", (100**10).to_fs(:human)
-    assert_equal "1 Million", BigDecimal("1000010").to_fs(:human)
+    assert_equal "1.23 thousand", 1230.to_fs(:human)
+    assert_equal "1.23 thousand", Float(1230).to_fs(:human)
+    assert_equal "100000 quadrillion", (100**10).to_fs(:human)
+    assert_equal "1 million", BigDecimal("1000010").to_fs(:human)
   end
 
   def test_to_fs_with_invalid_formatter

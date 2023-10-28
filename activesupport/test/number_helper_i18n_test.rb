@@ -126,7 +126,7 @@ module ActiveSupport
 
     def test_number_to_i18n_human_size_with_empty_i18n_store
       assert_equal("2 KB", number_to_human_size(2048, locale: "empty"))
-      assert_equal("42 Bytes", number_to_human_size(42, locale: "empty"))
+      assert_equal("42 bytes", number_to_human_size(42, locale: "empty"))
     end
 
     def test_number_to_human_with_default_translation_scope
@@ -135,17 +135,17 @@ module ActiveSupport
       # Significant was set to true with precision 2, using b for billion
       assert_equal "1.2 b", number_to_human(1234567890, locale: "ts")
       # Using pluralization (Ten/Tens and Tenth/Tenths)
-      assert_equal "1 Tenth", number_to_human(0.1, locale: "ts")
-      assert_equal "1.3 Tenth", number_to_human(0.134, locale: "ts")
-      assert_equal "2 Tenths", number_to_human(0.2, locale: "ts")
-      assert_equal "1 Ten", number_to_human(10, locale: "ts")
-      assert_equal "1.2 Ten", number_to_human(12, locale: "ts")
-      assert_equal "2 Tens", number_to_human(20, locale: "ts")
+      assert_equal "1 tenth", number_to_human(0.1, locale: "ts")
+      assert_equal "1.3 tenth", number_to_human(0.134, locale: "ts")
+      assert_equal "2 tenths", number_to_human(0.2, locale: "ts")
+      assert_equal "1 ten", number_to_human(10, locale: "ts")
+      assert_equal "1.2 ten", number_to_human(12, locale: "ts")
+      assert_equal "2 tens", number_to_human(20, locale: "ts")
     end
 
     def test_number_to_human_with_empty_i18n_store
-      assert_equal "2 Thousand", number_to_human(2000, locale: "empty")
-      assert_equal "1.23 Billion", number_to_human(1234567890, locale: "empty")
+      assert_equal "2 thousand", number_to_human(2000, locale: "empty")
+      assert_equal "1.23 billion", number_to_human(1234567890, locale: "empty")
     end
 
     def test_number_to_human_with_custom_translation_scope

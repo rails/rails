@@ -253,11 +253,11 @@ module ActiveSupport
 
       def test_number_number_to_human_size
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
-          assert_equal "0 Bytes",   number_helper.number_to_human_size(0)
-          assert_equal "1 Byte",    number_helper.number_to_human_size(1)
-          assert_equal "3 Bytes",   number_helper.number_to_human_size(3.14159265)
-          assert_equal "123 Bytes", number_helper.number_to_human_size(123.0)
-          assert_equal "123 Bytes", number_helper.number_to_human_size(123)
+          assert_equal "0 bytes",   number_helper.number_to_human_size(0)
+          assert_equal "1 byte",    number_helper.number_to_human_size(1)
+          assert_equal "3 bytes",   number_helper.number_to_human_size(3.14159265)
+          assert_equal "123 bytes", number_helper.number_to_human_size(123.0)
+          assert_equal "123 bytes", number_helper.number_to_human_size(123)
           assert_equal "1.21 KB",    number_helper.number_to_human_size(1234)
           assert_equal "12.1 KB",   number_helper.number_to_human_size(12345)
           assert_equal "1.18 MB",    number_helper.number_to_human_size(1234567)
@@ -271,13 +271,13 @@ module ActiveSupport
           assert_equal "3 TB",      number_helper.number_to_human_size(terabytes(3))
           assert_equal "1.2 MB",   number_helper.number_to_human_size(1234567, precision: 2)
           assert_equal "1.1 MB",   number_helper.number_to_human_size(1234567, precision: 2, round_mode: :down)
-          assert_equal "3 Bytes",   number_helper.number_to_human_size(3.14159265, precision: 4)
-          assert_equal "123 Bytes", number_helper.number_to_human_size("123")
+          assert_equal "3 bytes",   number_helper.number_to_human_size(3.14159265, precision: 4)
+          assert_equal "123 bytes", number_helper.number_to_human_size("123")
           assert_equal "1 KB",   number_helper.number_to_human_size(kilobytes(1.0123), precision: 2)
           assert_equal "1.01 KB",   number_helper.number_to_human_size(kilobytes(1.0100), precision: 4)
           assert_equal "10 KB",   number_helper.number_to_human_size(kilobytes(10.000), precision: 4)
-          assert_equal "1 Byte",   number_helper.number_to_human_size(1.1)
-          assert_equal "10 Bytes", number_helper.number_to_human_size(10)
+          assert_equal "1 byte",   number_helper.number_to_human_size(1.1)
+          assert_equal "10 bytes", number_helper.number_to_human_size(10)
           assert_equal "16 ZB", number_helper.number_to_human_size(zettabytes(16))
         end
       end
@@ -285,7 +285,7 @@ module ActiveSupport
       def test_number_to_human_size_with_options_hash
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
           assert_equal "1.2 MB",   number_helper.number_to_human_size(1234567, precision: 2)
-          assert_equal "3 Bytes",   number_helper.number_to_human_size(3.14159265, precision: 4)
+          assert_equal "3 bytes",   number_helper.number_to_human_size(3.14159265, precision: 4)
           assert_equal "1 KB",   number_helper.number_to_human_size(kilobytes(1.0123), precision: 2)
           assert_equal "1.01 KB",   number_helper.number_to_human_size(kilobytes(1.0100), precision: 4)
           assert_equal "10 KB",     number_helper.number_to_human_size(kilobytes(10.000), precision: 4)
@@ -316,23 +316,23 @@ module ActiveSupport
           assert_equal "0",   number_helper.number_to_human(0)
           assert_equal "0.5", number_helper.number_to_human(0.5)
           assert_equal "123", number_helper.number_to_human(123)
-          assert_equal "1.23 Thousand", number_helper.number_to_human(1234)
-          assert_equal "12.3 Thousand", number_helper.number_to_human(12345)
-          assert_equal "1.23 Million", number_helper.number_to_human(1234567)
-          assert_equal "1.23 Billion", number_helper.number_to_human(1234567890)
-          assert_equal "1.23 Trillion", number_helper.number_to_human(1234567890123)
-          assert_equal "1.23 Quadrillion", number_helper.number_to_human(1234567890123456)
-          assert_equal "1230 Quadrillion", number_helper.number_to_human(1234567890123456789)
-          assert_equal "490 Thousand", number_helper.number_to_human(489939, precision: 2)
-          assert_equal "489.9 Thousand", number_helper.number_to_human(489939, precision: 4)
-          assert_equal "489 Thousand", number_helper.number_to_human(489000, precision: 4)
-          assert_equal "480 Thousand", number_helper.number_to_human(489939, precision: 2, round_mode: :down)
-          assert_equal "489.0 Thousand", number_helper.number_to_human(489000, precision: 4, strip_insignificant_zeros: false)
-          assert_equal "1.2346 Million", number_helper.number_to_human(1234567, precision: 4, significant: false)
-          assert_equal "1,2 Million", number_helper.number_to_human(1234567, precision: 1, significant: false, separator: ",")
-          assert_equal "1 Million", number_helper.number_to_human(1234567, precision: 0, significant: true, separator: ",") # significant forced to false
-          assert_equal "1 Million", number_helper.number_to_human(999999)
-          assert_equal "1 Billion", number_helper.number_to_human(999999999)
+          assert_equal "1.23 thousand", number_helper.number_to_human(1234)
+          assert_equal "12.3 thousand", number_helper.number_to_human(12345)
+          assert_equal "1.23 million", number_helper.number_to_human(1234567)
+          assert_equal "1.23 billion", number_helper.number_to_human(1234567890)
+          assert_equal "1.23 trillion", number_helper.number_to_human(1234567890123)
+          assert_equal "1.23 quadrillion", number_helper.number_to_human(1234567890123456)
+          assert_equal "1230 quadrillion", number_helper.number_to_human(1234567890123456789)
+          assert_equal "490 thousand", number_helper.number_to_human(489939, precision: 2)
+          assert_equal "489.9 thousand", number_helper.number_to_human(489939, precision: 4)
+          assert_equal "489 thousand", number_helper.number_to_human(489000, precision: 4)
+          assert_equal "480 thousand", number_helper.number_to_human(489939, precision: 2, round_mode: :down)
+          assert_equal "489.0 thousand", number_helper.number_to_human(489000, precision: 4, strip_insignificant_zeros: false)
+          assert_equal "1.2346 million", number_helper.number_to_human(1234567, precision: 4, significant: false)
+          assert_equal "1,2 million", number_helper.number_to_human(1234567, precision: 1, significant: false, separator: ",")
+          assert_equal "1 million", number_helper.number_to_human(1234567, precision: 0, significant: true, separator: ",") # significant forced to false
+          assert_equal "1 million", number_helper.number_to_human(999999)
+          assert_equal "1 billion", number_helper.number_to_human(999999999)
         end
       end
 
@@ -385,7 +385,7 @@ module ActiveSupport
 
       def test_number_to_human_with_custom_format
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
-          assert_equal "123 times Thousand", number_helper.number_to_human(123456, format: "%n times %u")
+          assert_equal "123 times thousand", number_helper.number_to_human(123456, format: "%n times %u")
           volume = { unit: "ml", thousand: "lt", million: "m3" }
           assert_equal "123.lt", number_helper.number_to_human(123456, units: volume, format: "%n.%u")
         end
