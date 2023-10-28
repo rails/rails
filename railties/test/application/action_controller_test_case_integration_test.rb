@@ -33,6 +33,7 @@ class SharedSetup < ActionController::TestCase
     RUBY
 
     remove_from_config '.*config\.load_defaults.*\n'
+    add_to_config "config.active_support.cache_format_version = 7.1"
     add_to_config "config.active_support.executor_around_test_case = #{self.class.executor_around_each_request}"
 
     app_file "app/controllers/customers_controller.rb", <<-RUBY
