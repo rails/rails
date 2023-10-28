@@ -7,6 +7,12 @@ require "models/pet"
 require "models/toy"
 require "models/comment"
 
+class CallbackCancellationAuthor < ActiveRecord::Base
+  self.table_name = "authors"
+
+  before_destroy { throw :abort }
+end
+
 class DeleteAllTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :comments, :posts, :pets, :toys
 
@@ -24,6 +30,36 @@ class DeleteAllTest < ActiveRecord::TestCase
     end
 
     assert_equal [], davids.to_a
+    assert_predicate davids, :loaded?
+  end
+
+  def test_destroy_all!
+    davids = Author.where(name: "David")
+
+    # Force load
+    assert_equal [authors(:david)], davids.to_a
+    assert_predicate davids, :loaded?
+
+    assert_difference("Author.count", -1) do
+      destroyed = davids.destroy_all!
+      assert_equal [authors(:david)], destroyed
+      assert_predicate destroyed.first, :frozen?
+    end
+
+    assert_equal [], davids.to_a
+    assert_predicate davids, :loaded?
+  end
+
+  def test_error_destroy_all!
+    davids = CallbackCancellationAuthor.where(name: "David")
+
+    # Force load
+    assert_equal 1, davids.to_a.size
+    assert_predicate davids, :loaded?
+
+    assert_raise(ActiveRecord::RecordNotDestroyed) { davids.destroy_all! }
+
+    assert_equal 1, davids.to_a.size
     assert_predicate davids, :loaded?
   end
 
