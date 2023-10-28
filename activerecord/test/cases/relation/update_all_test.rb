@@ -147,43 +147,123 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_equal new_time, developer.updated_at
   end
 
-  def test_update_on_relation
+  def test_update_all_on_relation_maintains_relation_scope
+    TopicWithCallbacks.topic_count = nil
+
     topic1 = TopicWithCallbacks.create! title: "arel", author_name: nil
     topic2 = TopicWithCallbacks.create! title: "activerecord", author_name: nil
-    topics = TopicWithCallbacks.where(id: [topic1.id, topic2.id])
-    topics.update(title: "adequaterecord")
-
-    assert_equal TopicWithCallbacks.count, TopicWithCallbacks.topic_count
+    topics = TopicWithCallbacks.where(id: [topic1.id])
+    topics.update(:all, title: "adequaterecord")
 
     assert_equal "adequaterecord", topic1.reload.title
-    assert_equal "adequaterecord", topic2.reload.title
+    assert_equal "activerecord", topic2.reload.title
+
     # Testing that the before_update callbacks have run
+    assert_equal TopicWithCallbacks.count, TopicWithCallbacks.topic_count
     assert_equal "David", topic1.reload.author_name
-    assert_equal "David", topic2.reload.author_name
+    assert_nil topic2.reload.author_name
+  end
+
+  def test_update_on_relation_maintains_relation_scope
+    topic1 = TopicWithCallbacks.create! title: "arel", author_name: nil
+    topic2 = TopicWithCallbacks.create! title: "activerecord", author_name: nil
+    topics = TopicWithCallbacks.where(id: [topic1.id])
+    topics.update(title: "adequaterecord")
+
+    assert_equal "adequaterecord", topic1.reload.title
+    assert_equal "activerecord", topic2.reload.title
+
+    # Testing that the before_update callbacks have run
+    assert_equal TopicWithCallbacks.count, TopicWithCallbacks.topic_count
+    assert_equal "David", topic1.reload.author_name
+    assert_nil topic2.reload.author_name
   end
 
   def test_update_with_ids_on_relation
+    TopicWithCallbacks.topic_count = nil
+
     topic1 = TopicWithCallbacks.create!(title: "arel", author_name: nil)
     topic2 = TopicWithCallbacks.create!(title: "activerecord", author_name: nil)
     topics = TopicWithCallbacks.none
-    topics.update(
-      [topic1.id, topic2.id],
-      [{ title: "adequaterecord" }, { title: "adequaterecord" }]
-    )
 
-    assert_equal TopicWithCallbacks.count, TopicWithCallbacks.topic_count
+    assert_raise(ActiveRecord::RecordNotFound) do
+      topics.update([topic1.id, topic2.id], [{ title: "adequaterecord" }, { title: "adequaterecord" }])
+    end
+
+    assert_equal "arel", topic1.reload.title
+    assert_equal "activerecord", topic2.reload.title
+
+    # Testing that the before_update callbacks have not run
+    assert_nil TopicWithCallbacks.topic_count
+    assert_nil topic1.author_name
+    assert_nil topic2.author_name
+  end
+
+  def test_update_with_a_single_id
+    TopicWithCallbacks.topic_count = nil
+
+    topic1 = TopicWithCallbacks.create!(title: "arel", author_name: nil)
+    topic2 = TopicWithCallbacks.create!(title: "arel", author_name: nil)
+    topic3 = TopicWithCallbacks.create!(title: "arel", author_name: nil)
+
+    TopicWithCallbacks.where(id: [topic1.id, topic2.id]).update(topic1.id, { title: "adequaterecord" })
 
     assert_equal "adequaterecord", topic1.reload.title
-    assert_equal "adequaterecord", topic2.reload.title
+    assert_equal "arel", topic2.reload.title
+    assert_equal "arel", topic3.reload.title
+
     # Testing that the before_update callbacks have run
+    assert_equal TopicWithCallbacks.count, TopicWithCallbacks.topic_count
     assert_equal "David", topic1.reload.author_name
-    assert_equal "David", topic2.reload.author_name
+    assert_nil topic2.reload.author_name
+    assert_nil topic3.reload.author_name
+  end
+
+  def test_update_with_a_single_if_id_is_outside_of_the_relation
+    TopicWithCallbacks.topic_count = nil
+
+    topic1 = TopicWithCallbacks.create!(title: "arel", author_name: nil)
+    topic2 = TopicWithCallbacks.create!(title: "arel", author_name: nil)
+
+    assert_raise(ActiveRecord::RecordNotFound) do
+      Topic.where(id: topic2.id).update!(topic1.id, { title: "Bar" })
+    end
+
+    assert_equal "arel", topic1.reload.title
+    assert_equal "arel", topic2.reload.title
+
+    # Testing that the before_update callbacks have not run
+    assert_nil TopicWithCallbacks.topic_count
+    assert_nil topic1.author_name
+    assert_nil topic2.author_name
+  end
+
+  def test_update_bang_with_ids_on_relation
+    topic1 = TopicWithCallbacks.create!(title: "arel", author_name: nil)
+    topic2 = TopicWithCallbacks.create!(title: "activerecord", author_name: nil)
+    topics = TopicWithCallbacks.where(id: [topic1.id])
+    topics.update!(title: "adequaterecord")
+
+    assert_equal "adequaterecord", topic1.reload.title
+    assert_equal "activerecord", topic2.reload.title
+
+    # Testing that the before_update callbacks have run
+    assert_equal TopicWithCallbacks.count, TopicWithCallbacks.topic_count
+    assert_equal "David", topic1.reload.author_name
+    assert_nil topic2.reload.author_name
   end
 
   def test_update_on_relation_passing_active_record_object_is_not_permitted
     topic = Topic.create!(title: "Foo", author_name: nil)
-    assert_raises(ArgumentError) do
+    assert_raises(ArgumentError, match: "Please pass the id of the object by calling `.id`") do
       Topic.where(id: topic.id).update(topic, title: "Bar")
+    end
+  end
+
+  def test_update_bang_on_relation_passing_active_record_object_in_array_is_not_permitted
+    topic = Topic.create!(title: "Foo", author_name: nil)
+    assert_raises(ArgumentError, match: "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`") do
+      Topic.where(id: topic.id).update!([topic.id, topic], [{ title: "Bar" }, { title: "Bar" }])
     end
   end
 
@@ -199,6 +279,7 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_equal "adequaterecord", topic1.reload.title
     assert_equal "adequaterecord", topic2.reload.title
     assert_equal "ar", topic3.reload.title
+
     # Testing that the before_update callbacks have run
     assert_equal "David", topic1.reload.author_name
     assert_equal "David", topic2.reload.author_name

@@ -1,3 +1,7 @@
+*   Calling `update` or `update!` on an `ActiveRecord::Relation` should keep using the scope.
+
+    *István Karaszi*
+
 *   Include `ActiveModel::API` in `ActiveRecord::Base`
 
     *Sean Doyle*
