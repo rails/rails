@@ -99,7 +99,7 @@ Adds a line inside the `Application` class for `config/application.rb`.
 If `options[:env]` is specified, the line is appended to the corresponding file in `config/environments`.
 
 ```ruby
-environment 'config.action_mailer.default_url_options = {host: "http://yourwebsite.example.com"}', env: 'production'
+environment 'config.action_mailer.default_url_options = {host: "http://yourwebsite.example.com"}', env: "production"
 ```
 
 A block can be used in place of the `data` argument.
@@ -111,7 +111,7 @@ Adds an initializer to the generated application's `config/initializers` directo
 Let's say you like using `Object#not_nil?` and `Object#not_blank?`:
 
 ```ruby
-initializer 'bloatlol.rb', <<-CODE
+initializer "bloatlol.rb", <<-CODE
   class Object
     def not_nil?
       !nil?
@@ -129,7 +129,7 @@ Similarly, `lib()` creates a file in the `lib/` directory and `vendor()` creates
 There is even `file()`, which accepts a relative path from `Rails.root` and creates all the directories/files needed:
 
 ```ruby
-file 'app/components/foo.rb', <<-CODE
+file "app/components/foo.rb", <<-CODE
   class Foo
   end
 CODE
@@ -182,7 +182,7 @@ rails_command "db:migrate"
 You can also run commands with a different Rails environment:
 
 ```ruby
-rails_command "db:migrate", env: 'production'
+rails_command "db:migrate", env: "production"
 ```
 
 You can also run commands as a super-user:
@@ -210,7 +210,7 @@ route "root to: 'person#index'"
 Enables you to run a command from the given directory. For example, if you have a copy of edge rails that you wish to symlink from your new apps, you can do this:
 
 ```ruby
-inside('vendor') do
+inside("vendor") do
   run "ln -s ~/commit-rails/rails rails"
 end
 ```
@@ -256,7 +256,7 @@ are generated. Useful for adding generated files to version control:
 ```ruby
 after_bundle do
   git :init
-  git add: '.'
+  git add: "."
   git commit: "-a -m 'Initial commit'"
 end
 ```

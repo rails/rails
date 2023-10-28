@@ -302,7 +302,7 @@ You can also pass in a custom message via the `message` option.
 
 ```ruby
 class Person < ApplicationRecord
-  validates :terms_of_service, acceptance: { message: 'must be abided' }
+  validates :terms_of_service, acceptance: { message: "must be abided" }
 end
 ```
 
@@ -312,8 +312,8 @@ easily changed.
 
 ```ruby
 class Person < ApplicationRecord
-  validates :terms_of_service, acceptance: { accept: 'yes' }
-  validates :eula, acceptance: { accept: ['TRUE', 'accepted'] }
+  validates :terms_of_service, acceptance: { accept: "yes" }
+  validates :eula, acceptance: { accept: ["TRUE", "accepted"] }
 end
 ```
 
@@ -804,7 +804,7 @@ lower case.
 ```ruby
 class Person < ApplicationRecord
   validates_each :name, :surname do |record, attr, value|
-    record.errors.add(attr, 'must start with upper case') if /\A[[:lower:]]/.match?(value)
+    record.errors.add(attr, "must start with upper case") if /\A[[:lower:]]/.match?(value)
   end
 end
 ```
@@ -1239,7 +1239,7 @@ the `validates_with` method.
 ```ruby
 class MyValidator < ActiveModel::Validator
   def validate(record)
-    unless record.name.start_with? 'X'
+    unless record.name.start_with? "X"
       record.errors.add :name, "Provide a name starting with X, please!"
     end
   end

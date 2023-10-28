@@ -391,7 +391,7 @@ by passing `index: true` or an options hash to the `:index` option:
 ```ruby
 create_table :users do |t|
   t.string :name, index: true
-  t.string :email, index: { unique: true, name: 'unique_emails' }
+  t.string :email, index: { unique: true, name: "unique_emails" }
 end
 ```
 
@@ -1063,7 +1063,7 @@ class CreateProducts < ActiveRecord::Migration[7.2]
     suppress_messages { add_index :products, :name }
     say "and an index!", true
 
-    say_with_time 'Waiting for a while' do
+    say_with_time "Waiting for a while" do
       sleep 10
       250
     end

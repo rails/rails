@@ -477,7 +477,7 @@ Partials can have their own layouts applied to them. These layouts are different
 Let's say we're displaying an article on a page which should be wrapped in a `div` for display purposes. Firstly, we'll create a new `Article`:
 
 ```ruby
-Article.create(body: 'Partial Layouts are cool!')
+Article.create(body: "Partial Layouts are cool!")
 ```
 
 In the `show` template, we'll render the `_article` partial wrapped in the `box` layout:

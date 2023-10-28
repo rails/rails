@@ -337,7 +337,7 @@ If you have a [singular resource](routing.html#singular-resources), you will nee
 
 ```ruby
 resource :geocoder
-resolve('Geocoder') { [:geocoder] }
+resolve("Geocoder") { [:geocoder] }
 ```
 
 WARNING: When you're using STI (single-table inheritance) with your models, you can't rely on record identification on a subclass if only their parent class is declared a resource. You will have to specify `:url`, and `:scope` (the model name) explicitly.
@@ -740,7 +740,7 @@ The object in the `params` hash is an instance of [`ActionDispatch::Http::Upload
 ```ruby
 def upload
   uploaded_file = params[:picture]
-  File.open(Rails.root.join('public', 'uploads', uploaded_file.original_filename), 'wb') do |file|
+  File.open(Rails.root.join("public", "uploads", uploaded_file.original_filename), "wb") do |file|
     file.write(uploaded_file.read)
   end
 end
@@ -827,7 +827,7 @@ The two basic structures are arrays and hashes. Hashes mirror the syntax used fo
 the `params` hash will contain
 
 ```ruby
-{ 'person' => { 'name' => 'Henry' } }
+{ "person" => { "name" => "Henry" } }
 ```
 
 and `params[:person][:name]` will retrieve the submitted value in the controller.
@@ -841,7 +841,7 @@ Hashes can be nested as many levels as required, for example:
 will result in the `params` hash being
 
 ```ruby
-{ 'person' => { 'address' => { 'city' => 'New York' } } }
+{ "person" => { "address" => { "city" => "New York" } } }
 ```
 
 Normally Rails ignores duplicate parameter names. If the parameter name ends with an empty set of square brackets `[]` then they will be accumulated in an array. If you wanted users to be able to input multiple phone numbers, you could place this in the form:
@@ -1041,16 +1041,16 @@ The `fields_for` yields a form builder. The parameters' name will be what
 
 ```ruby
 {
-  'person' => {
-    'name' => 'John Doe',
-    'addresses_attributes' => {
-      '0' => {
-        'kind' => 'Home',
-        'street' => '221b Baker Street'
+  "person" => {
+    "name" => "John Doe",
+    "addresses_attributes" => {
+      "0" => {
+        "kind" => "Home",
+        "street" => "221b Baker Street"
       },
-      '1' => {
-        'kind' => 'Office',
-        'street' => '31 Spooner Street'
+      "1" => {
+        "kind" => "Office",
+        "street" => "31 Spooner Street"
       }
     }
   }
@@ -1127,7 +1127,7 @@ It is often useful to ignore sets of fields that the user has not filled in. You
 ```ruby
 class Person < ApplicationRecord
   has_many :addresses
-  accepts_nested_attributes_for :addresses, reject_if: lambda { |attributes| attributes['kind'].blank? }
+  accepts_nested_attributes_for :addresses, reject_if: lambda { |attributes| attributes["kind"].blank? }
 end
 ```
 

@@ -281,12 +281,12 @@ user = User.first
 
 ```ruby
 # return the first user named David
-david = User.find_by(name: 'David')
+david = User.find_by(name: "David")
 ```
 
 ```ruby
 # find all users named David who are Code Artists and sort by created_at in reverse chronological order
-users = User.where(name: 'David', occupation: 'Code Artist').order(created_at: :desc)
+users = User.where(name: "David", occupation: "Code Artist").order(created_at: :desc)
 ```
 
 You can learn more about querying an Active Record model in the [Active Record
@@ -298,8 +298,8 @@ Once an Active Record object has been retrieved, its attributes can be modified
 and it can be saved to the database.
 
 ```ruby
-user = User.find_by(name: 'David')
-user.name = 'Dave'
+user = User.find_by(name: "David")
+user.name = "Dave"
 user.save
 ```
 
@@ -307,8 +307,8 @@ A shorthand for this is to use a hash mapping attribute names to the desired
 value, like so:
 
 ```ruby
-user = User.find_by(name: 'David')
-user.update(name: 'Dave')
+user = User.find_by(name: "David")
+user.update(name: "Dave")
 ```
 
 This is most useful when updating several attributes at once.
@@ -326,7 +326,7 @@ Likewise, once retrieved, an Active Record object can be destroyed, which remove
 it from the database.
 
 ```ruby
-user = User.find_by(name: 'David')
+user = User.find_by(name: "David")
 user.destroy
 ```
 
@@ -335,7 +335,7 @@ or `destroy_all` method:
 
 ```ruby
 # find and delete all users named David
-User.destroy_by(name: 'David')
+User.destroy_by(name: "David")
 
 # delete all users
 User.destroy_all

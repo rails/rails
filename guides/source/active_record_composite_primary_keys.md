@@ -251,7 +251,7 @@ end
 And the following route:
 
 ```ruby
-get '/books/:id', to: 'books#show'
+get "/books/:id", to: "books#show"
 ```
 
 When a user opens the URL `/books/4_2`, the controller will extract the

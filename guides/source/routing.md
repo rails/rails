@@ -31,7 +31,7 @@ GET /patients/17
 it asks the router to match it to a controller action. If the first matching route is:
 
 ```ruby
-get '/patients/:id', to: 'patients#show'
+get "/patients/:id", to: "patients#show"
 ```
 
 the request is dispatched to the `patients` controller's `show` action with `{ id: '17' }` in `params`.
@@ -43,7 +43,7 @@ NOTE: Rails uses snake_case for controller names here, if you have a multiple wo
 You can also generate paths and URLs. If the route above is modified to be:
 
 ```ruby
-get '/patients/:id', to: 'patients#show', as: 'patient'
+get "/patients/:id", to: "patients#show", as: "patient"
 ```
 
 and your application contains this code in the controller:
@@ -165,20 +165,20 @@ resources :videos
 Sometimes, you have a resource that clients always look up without referencing an ID. For example, you would like `/profile` to always show the profile of the currently logged in user. In this case, you can use a singular resource to map `/profile` (rather than `/profile/:id`) to the `show` action:
 
 ```ruby
-get 'profile', to: 'users#show'
+get "profile", to: "users#show"
 ```
 
 Passing a `String` to `to:` will expect a `controller#action` format. When using a `Symbol`, the `to:` option should be replaced with `action:`. When using a `String` without a `#`, the `to:` option should be replaced with `controller:`:
 
 ```ruby
-get 'profile', action: :show, controller: 'users'
+get "profile", action: :show, controller: "users"
 ```
 
 This resourceful route:
 
 ```ruby
 resource :geocoder
-resolve('Geocoder') { [:geocoder] }
+resolve("Geocoder") { [:geocoder] }
 ```
 
 creates six different routes in your application, all mapping to the `Geocoders` controller:
@@ -229,7 +229,7 @@ This will create a number of routes for each of the `articles` and `comments` co
 If instead you want to route `/articles` (without the prefix `/admin`) to `Admin::ArticlesController`, you can specify the module with a [`scope`][] block:
 
 ```ruby
-scope module: 'admin' do
+scope module: "admin" do
   resources :articles, :comments
 end
 ```
@@ -237,13 +237,13 @@ end
 This can also be done for a single route:
 
 ```ruby
-resources :articles, module: 'admin'
+resources :articles, module: "admin"
 ```
 
 If instead you want to route `/admin/articles` to `ArticlesController` (without the `Admin::` module prefix), you can specify the path with a `scope` block:
 
 ```ruby
-scope '/admin' do
+scope "/admin" do
   resources :articles, :comments
 end
 ```
@@ -251,7 +251,7 @@ end
 This can also be done for a single route:
 
 ```ruby
-resources :articles, path: '/admin/articles'
+resources :articles, path: "/admin/articles"
 ```
 
 In both of these cases, the named route helpers remain the same as if you did not use `scope`. In the last case, the following paths map to `ArticlesController`:
@@ -550,7 +550,7 @@ To add a member route, just add a [`member`][] block into the resource block:
 ```ruby
 resources :photos do
   member do
-    get 'preview'
+    get "preview"
   end
 end
 ```
@@ -564,7 +564,7 @@ route, eliminating the block:
 
 ```ruby
 resources :photos do
-  get 'preview', on: :member
+  get "preview", on: :member
 end
 ```
 
@@ -585,7 +585,7 @@ To add a route to the collection, use a [`collection`][] block:
 ```ruby
 resources :photos do
   collection do
-    get 'search'
+    get "search"
   end
 end
 ```
@@ -596,7 +596,7 @@ Just as with member routes, you can pass `:on` to a route:
 
 ```ruby
 resources :photos do
-  get 'search', on: :collection
+  get "search", on: :collection
 end
 ```
 
@@ -610,7 +610,7 @@ To add an alternate new action using the `:on` shortcut:
 
 ```ruby
 resources :comments do
-  get 'preview', on: :new
+  get "preview", on: :new
 end
 ```
 
@@ -632,7 +632,7 @@ In particular, simple routing makes it very easy to map legacy URLs to new Rails
 When you set up a regular route, you supply a series of symbols that Rails maps to parts of an incoming HTTP request. For example, consider this route:
 
 ```ruby
-get 'photos(/:id)', to: 'photos#display'
+get "photos(/:id)", to: "photos#display"
 ```
 
 If an incoming request of `/photos/1` is processed by this route (because it hasn't matched any previous route in the file), then the result will be to invoke the `display` action of the `PhotosController`, and to make the final parameter `"1"` available as `params[:id]`. This route will also route the incoming request of `/photos` to `PhotosController#display`, since `:id` is an optional parameter, denoted by parentheses.
@@ -642,7 +642,7 @@ If an incoming request of `/photos/1` is processed by this route (because it has
 You can set up as many dynamic segments within a regular route as you like. Any segment will be available to the action as part of `params`. If you set up this route:
 
 ```ruby
-get 'photos/:id/:user_id', to: 'photos#show'
+get "photos/:id/:user_id", to: "photos#show"
 ```
 
 An incoming path of `/photos/1/2` will be dispatched to the `show` action of the `PhotosController`. `params[:id]` will be `"1"`, and `params[:user_id]` will be `"2"`.
@@ -654,7 +654,7 @@ TIP: By default, dynamic segments don't accept dots - this is because the dot is
 You can specify static segments when creating a route by not prepending a colon to a segment:
 
 ```ruby
-get 'photos/:id/with_user/:user_id', to: 'photos#show'
+get "photos/:id/with_user/:user_id", to: "photos#show"
 ```
 
 This route would respond to paths such as `/photos/1/with_user/2`. In this case, `params` would be `{ controller: 'photos', action: 'show', id: '1', user_id: '2' }`.
@@ -664,7 +664,7 @@ This route would respond to paths such as `/photos/1/with_user/2`. In this case,
 The `params` will also include any parameters from the query string. For example, with this route:
 
 ```ruby
-get 'photos/:id', to: 'photos#show'
+get "photos/:id", to: "photos#show"
 ```
 
 An incoming path of `/photos/1?user_id=2` will be dispatched to the `show` action of the `Photos` controller. `params` will be `{ controller: 'photos', action: 'show', id: '1', user_id: '2' }`.
@@ -674,7 +674,7 @@ An incoming path of `/photos/1?user_id=2` will be dispatched to the `show` actio
 You can define defaults in a route by supplying a hash for the `:defaults` option. This even applies to parameters that you do not specify as dynamic segments. For example:
 
 ```ruby
-get 'photos/:id', to: 'photos#show', defaults: { format: 'jpg' }
+get "photos/:id", to: "photos#show", defaults: { format: "jpg" }
 ```
 
 Rails would match `photos/12` to the `show` action of `PhotosController`, and set `params[:format]` to `"jpg"`.
@@ -696,7 +696,7 @@ NOTE: You cannot override defaults via query parameters - this is for security r
 You can specify a name for any route using the `:as` option:
 
 ```ruby
-get 'exit', to: 'sessions#destroy', as: :logout
+get "exit", to: "sessions#destroy", as: :logout
 ```
 
 This will create `logout_path` and `logout_url` as named route helpers in your application. Calling `logout_path` will return `/exit`
@@ -704,7 +704,7 @@ This will create `logout_path` and `logout_url` as named route helpers in your a
 You can also use this to override routing methods defined by resources by placing custom routes before the resource is defined, like this:
 
 ```ruby
-get ':username', to: 'users#show', as: :user
+get ":username", to: "users#show", as: :user
 resources :users
 ```
 
@@ -715,13 +715,13 @@ This will define a `user_path` method that will be available in controllers, hel
 In general, you should use the [`get`][], [`post`][], [`put`][], [`patch`][], and [`delete`][] methods to constrain a route to a particular verb. You can use the [`match`][] method with the `:via` option to match multiple verbs at once:
 
 ```ruby
-match 'photos', to: 'photos#show', via: [:get, :post]
+match "photos", to: "photos#show", via: [:get, :post]
 ```
 
 You can match all verbs to a particular route using `via: :all`:
 
 ```ruby
-match 'photos', to: 'photos#show', via: :all
+match "photos", to: "photos#show", via: :all
 ```
 
 NOTE: Routing both `GET` and `POST` requests to a single action has security implications. In general, you should avoid routing all verbs to an action unless you have a good reason to.
@@ -735,19 +735,19 @@ NOTE: `GET` in Rails won't check for CSRF token. You should never write to the d
 You can use the `:constraints` option to enforce a format for a dynamic segment:
 
 ```ruby
-get 'photos/:id', to: 'photos#show', constraints: { id: /[A-Z]\d{5}/ }
+get "photos/:id", to: "photos#show", constraints: { id: /[A-Z]\d{5}/ }
 ```
 
 This route would match paths such as `/photos/A12345`, but not `/photos/893`. You can more succinctly express the same route this way:
 
 ```ruby
-get 'photos/:id', to: 'photos#show', id: /[A-Z]\d{5}/
+get "photos/:id", to: "photos#show", id: /[A-Z]\d{5}/
 ```
 
 `:constraints` takes regular expressions with the restriction that regexp anchors can't be used. For example, the following route will not work:
 
 ```ruby
-get '/:id', to: 'articles#show', constraints: { id: /^\d/ }
+get "/:id", to: "articles#show", constraints: { id: /^\d/ }
 ```
 
 However, note that you don't need to use anchors because all routes are anchored at the start and the end.
@@ -755,8 +755,8 @@ However, note that you don't need to use anchors because all routes are anchored
 For example, the following routes would allow for `articles` with `to_param` values like `1-hello-world` that always begin with a number and `users` with `to_param` values like `david` that never begin with a number to share the root namespace:
 
 ```ruby
-get '/:id', to: 'articles#show', constraints: { id: /\d.+/ }
-get '/:username', to: 'users#show'
+get "/:id", to: "articles#show", constraints: { id: /\d.+/ }
+get "/:username", to: "users#show"
 ```
 
 ### Request-Based Constraints
@@ -766,14 +766,14 @@ You can also constrain a route based on any method on the [Request object](actio
 You specify a request-based constraint the same way that you specify a segment constraint:
 
 ```ruby
-get 'photos', to: 'photos#index', constraints: { subdomain: 'admin' }
+get "photos", to: "photos#index", constraints: { subdomain: "admin" }
 ```
 
 You can also specify constraints by using a [`constraints`][] block:
 
 ```ruby
 namespace :admin do
-  constraints subdomain: 'admin' do
+  constraints subdomain: "admin" do
     resources :photos
   end
 end
@@ -801,7 +801,7 @@ class RestrictedListConstraint
 end
 
 Rails.application.routes.draw do
-  get '*path', to: 'restricted_list#index',
+  get "*path", to: "restricted_list#index",
     constraints: RestrictedListConstraint.new
 end
 ```
@@ -810,7 +810,7 @@ You can also specify constraints as a lambda:
 
 ```ruby
 Rails.application.routes.draw do
-  get '*path', to: 'restricted_list#index',
+  get "*path", to: "restricted_list#index",
     constraints: lambda { |request| RestrictedList.retrieve_ips.include?(request.remote_ip) }
 end
 ```
@@ -828,8 +828,8 @@ end
 
 Rails.application.routes.draw do
   constraints(RestrictedListConstraint.new) do
-    get '*path', to: 'restricted_list#index'
-    get '*other-path', to: 'other_restricted_list#index'
+    get "*path", to: "restricted_list#index"
+    get "*other-path", to: "other_restricted_list#index"
   end
 end
 ```
@@ -839,8 +839,8 @@ You can also use a `lambda`:
 ```ruby
 Rails.application.routes.draw do
   constraints(lambda { |request| RestrictedList.retrieve_ips.include?(request.remote_ip) }) do
-    get '*path', to: 'restricted_list#index'
-    get '*other-path', to: 'other_restricted_list#index'
+    get "*path", to: "restricted_list#index"
+    get "*other-path", to: "other_restricted_list#index"
   end
 end
 ```
@@ -850,7 +850,7 @@ end
 Route globbing is a way to specify that a particular parameter should be matched to all the remaining parts of a route. For example:
 
 ```ruby
-get 'photos/*other', to: 'photos#unknown'
+get "photos/*other", to: "photos#unknown"
 ```
 
 This route would match `photos/12` or `/photos/long/path/to/12`, setting `params[:other]` to `"12"` or `"long/path/to/12"`. The segments prefixed with a star are called "wildcard segments".
@@ -858,7 +858,7 @@ This route would match `photos/12` or `/photos/long/path/to/12`, setting `params
 Wildcard segments can occur anywhere in a route. For example:
 
 ```ruby
-get 'books/*section/:title', to: 'books#show'
+get "books/*section/:title", to: "books#show"
 ```
 
 would match `books/some/section/last-words-a-memoir` with `params[:section]` equals `'some/section'`, and `params[:title]` equals `'last-words-a-memoir'`.
@@ -866,7 +866,7 @@ would match `books/some/section/last-words-a-memoir` with `params[:section]` equ
 Technically, a route can have even more than one wildcard segment. The matcher assigns segments to parameters in an intuitive way. For example:
 
 ```ruby
-get '*a/foo/*b', to: 'test#index'
+get "*a/foo/*b", to: "test#index"
 ```
 
 would match `zoo/woo/foo/bar/baz` with `params[:a]` equals `'zoo/woo'`, and `params[:b]` equals `'bar/baz'`.
@@ -874,13 +874,13 @@ would match `zoo/woo/foo/bar/baz` with `params[:a]` equals `'zoo/woo'`, and `par
 NOTE: By requesting `'/foo/bar.json'`, your `params[:pages]` will be equal to `'foo/bar'` with the request format of JSON. If you want the old 3.0.x behavior back, you could supply `format: false` like this:
 
 ```ruby
-get '*pages', to: 'pages#show', format: false
+get "*pages", to: "pages#show", format: false
 ```
 
 NOTE: If you want to make the format segment mandatory, so it cannot be omitted, you can supply `format: true` like this:
 
 ```ruby
-get '*pages', to: 'pages#show', format: true
+get "*pages", to: "pages#show", format: true
 ```
 
 ### Redirection
@@ -888,26 +888,26 @@ get '*pages', to: 'pages#show', format: true
 You can redirect any path to another path by using the [`redirect`][] helper in your router:
 
 ```ruby
-get '/stories', to: redirect('/articles')
+get "/stories", to: redirect("/articles")
 ```
 
 You can also reuse dynamic segments from the match in the path to redirect to:
 
 ```ruby
-get '/stories/:name', to: redirect('/articles/%{name}')
+get "/stories/:name", to: redirect("/articles/%{name}")
 ```
 
 You can also provide a block to `redirect`, which receives the symbolized path parameters and the request object:
 
 ```ruby
-get '/stories/:name', to: redirect { |path_params, req| "/articles/#{path_params[:name].pluralize}" }
-get '/stories', to: redirect { |path_params, req| "/articles/#{req.subdomain}" }
+get "/stories/:name", to: redirect { |path_params, req| "/articles/#{path_params[:name].pluralize}" }
+get "/stories", to: redirect { |path_params, req| "/articles/#{req.subdomain}" }
 ```
 
 Please note that default redirection is a 301 "Moved Permanently" redirect. Keep in mind that some web browsers or proxy servers will cache this type of redirect, making the old page inaccessible. You can use the `:status` option to change the response status:
 
 ```ruby
-get '/stories/:name', to: redirect('/articles/%{name}', status: 302)
+get "/stories/:name", to: redirect("/articles/%{name}", status: 302)
 ```
 
 In all of these cases, if you don't provide the leading host (`http://www.example.com`), Rails will take those details from the current request.
@@ -919,7 +919,7 @@ In all of these cases, if you don't provide the leading host (`http://www.exampl
 Instead of a String like `'articles#index'`, which corresponds to the `index` action in the `ArticlesController`, you can specify any [Rack application](rails_on_rack.html) as the endpoint for a matcher:
 
 ```ruby
-match '/application.js', to: MyRackApp, via: :all
+match "/application.js", to: MyRackApp, via: :all
 ```
 
 As long as `MyRackApp` responds to `call` and returns a `[status, headers, body]`, the router won't know the difference between the Rack application and an action. This is an appropriate use of `via: :all`, as you will want to allow your Rack application to handle all verbs as it considers appropriate.
@@ -933,14 +933,14 @@ the route will be unchanged in the receiving application. With the following
 route your Rack application should expect the route to be `/admin`:
 
 ```ruby
-match '/admin', to: AdminApp, via: :all
+match "/admin", to: AdminApp, via: :all
 ```
 
 If you would prefer to have your Rack application receive requests at the root
 path instead, use [`mount`][]:
 
 ```ruby
-mount AdminApp, at: '/admin'
+mount AdminApp, at: "/admin"
 ```
 
 [`mount`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Base.html#method-i-mount
@@ -950,8 +950,8 @@ mount AdminApp, at: '/admin'
 You can specify what Rails should route `'/'` to with the [`root`][] method:
 
 ```ruby
-root to: 'pages#main'
-root 'pages#main' # shortcut for the above
+root to: "pages#main"
+root "pages#main" # shortcut for the above
 ```
 
 You should put the `root` route at the top of the file, because it is the most popular route and should be matched first.
@@ -975,7 +975,7 @@ root to: "home#index"
 You can specify unicode character routes directly. For example:
 
 ```ruby
-get 'こんにちは', to: 'welcome#index'
+get "こんにちは", to: "welcome#index"
 ```
 
 ### Direct Routes
@@ -999,7 +999,7 @@ direct :commentable do |model|
 end
 
 direct :main do
-  { controller: 'pages', action: 'index', subdomain: 'www' }
+  { controller: "pages", action: "index", subdomain: "www" }
 end
 ```
 
@@ -1035,7 +1035,7 @@ While the default routes and helpers generated by [`resources`][] will usually s
 The `:controller` option lets you explicitly specify a controller to use for the resource. For example:
 
 ```ruby
-resources :photos, controller: 'images'
+resources :photos, controller: "images"
 ```
 
 will recognize incoming paths beginning with `/photos` but route to the `Images` controller:
@@ -1055,7 +1055,7 @@ NOTE: Use `photos_path`, `new_photo_path`, etc. to generate paths for this resou
 For namespaced controllers you can use the directory notation. For example:
 
 ```ruby
-resources :user_permissions, controller: 'admin/user_permissions'
+resources :user_permissions, controller: "admin/user_permissions"
 ```
 
 This will route to the `Admin::UserPermissions` controller.
@@ -1093,7 +1093,7 @@ TIP: By default the `:id` parameter doesn't accept dots - this is because the do
 The `:as` option lets you override the normal naming for the named route helpers. For example:
 
 ```ruby
-resources :photos, as: 'images'
+resources :photos, as: "images"
 ```
 
 will recognize incoming paths beginning with `/photos` and route the requests to `PhotosController`, but use the value of the `:as` option to name the helpers.
@@ -1113,7 +1113,7 @@ will recognize incoming paths beginning with `/photos` and route the requests to
 The `:path_names` option lets you override the automatically-generated `new` and `edit` segments in paths:
 
 ```ruby
-resources :photos, path_names: { new: 'make', edit: 'change' }
+resources :photos, path_names: { new: "make", edit: "change" }
 ```
 
 This would cause the routing to recognize paths such as:
@@ -1128,7 +1128,7 @@ NOTE: The actual action names aren't changed by this option. The two paths shown
 TIP: If you find yourself wanting to change this option uniformly for all of your routes, you can use a scope, like below:
 
 ```ruby
-scope path_names: { new: 'make' } do
+scope path_names: { new: "make" } do
   # rest of your routes
 end
 ```
@@ -1138,8 +1138,8 @@ end
 You can use the `:as` option to prefix the named route helpers that Rails generates for a route. Use this option to prevent name collisions between routes using a path scope. For example:
 
 ```ruby
-scope 'admin' do
-  resources :photos, as: 'admin_photos'
+scope "admin" do
+  resources :photos, as: "admin_photos"
 end
 
 resources :photos
@@ -1153,7 +1153,7 @@ etc. Without the addition of `as: 'admin_photos` on the scoped `resources
 To prefix a group of route helpers, use `:as` with `scope`:
 
 ```ruby
-scope 'admin', as: 'admin' do
+scope "admin", as: "admin" do
   resources :photos, :accounts
 end
 
@@ -1171,7 +1171,7 @@ NOTE: The `namespace` scope will automatically add `:as` as well as `:module` an
 You can prefix routes with a named parameter:
 
 ```ruby
-scope ':account_id', as: 'account', constraints: { account_id: /\d+/ } do
+scope ":account_id", as: "account", constraints: { account_id: /\d+/ } do
   resources :articles
 end
 ```
@@ -1215,8 +1215,8 @@ TIP: If your application has many RESTful routes, using `:only` and `:except` to
 Using `scope`, we can alter path names generated by `resources`:
 
 ```ruby
-scope(path_names: { new: 'neu', edit: 'bearbeiten' }) do
-  resources :categories, path: 'kategorien'
+scope(path_names: { new: "neu", edit: "bearbeiten" }) do
+  resources :categories, path: "kategorien"
 end
 ```
 
@@ -1238,7 +1238,7 @@ If you want to override the singular form of a resource, you should add addition
 
 ```ruby
 ActiveSupport::Inflector.inflections do |inflect|
-  inflect.irregular 'tooth', 'teeth'
+  inflect.irregular "tooth", "teeth"
 end
 ```
 
@@ -1250,7 +1250,7 @@ The `:as` option overrides the automatically-generated name for the resource in 
 
 ```ruby
 resources :magazines do
-  resources :ads, as: 'periodical_ads'
+  resources :ads, as: "periodical_ads"
 end
 ```
 
@@ -1307,7 +1307,7 @@ You could have an `admin.rb` route that contains all the routes for the admin ar
 # config/routes.rb
 
 Rails.application.routes.draw do
-  get 'foo', to: 'foo#bar'
+  get "foo", to: "foo#bar"
 
   draw(:admin) # Will load another route file located in `config/routes/admin.rb`
 end
@@ -1422,8 +1422,8 @@ Routes should be included in your testing strategy (just like the rest of your a
 [`assert_generates`][] asserts that a particular set of options generate a particular path and can be used with default routes or custom routes. For example:
 
 ```ruby
-assert_generates '/photos/1', { controller: 'photos', action: 'show', id: '1' }
-assert_generates '/about', controller: 'pages', action: 'about'
+assert_generates "/photos/1", { controller: "photos", action: "show", id: "1" }
+assert_generates "/about", controller: "pages", action: "about"
 ```
 
 #### The `assert_recognizes` Assertion
@@ -1431,13 +1431,13 @@ assert_generates '/about', controller: 'pages', action: 'about'
 [`assert_recognizes`][] is the inverse of `assert_generates`. It asserts that a given path is recognized and routes it to a particular spot in your application. For example:
 
 ```ruby
-assert_recognizes({ controller: 'photos', action: 'show', id: '1' }, '/photos/1')
+assert_recognizes({ controller: "photos", action: "show", id: "1" }, "/photos/1")
 ```
 
 You can supply a `:method` argument to specify the HTTP verb:
 
 ```ruby
-assert_recognizes({ controller: 'photos', action: 'create' }, { path: 'photos', method: :post })
+assert_recognizes({ controller: "photos", action: "create" }, { path: "photos", method: :post })
 ```
 
 #### The `assert_routing` Assertion
@@ -1445,5 +1445,5 @@ assert_recognizes({ controller: 'photos', action: 'create' }, { path: 'photos', 
 The [`assert_routing`][] assertion checks the route both ways: it tests that the path generates the options, and that the options generate the path. Thus, it combines the functions of `assert_generates` and `assert_recognizes`:
 
 ```ruby
-assert_routing({ path: 'photos', method: :post }, { controller: 'photos', action: 'create' })
+assert_routing({ path: "photos", method: :post }, { controller: "photos", action: "create" })
 ```
