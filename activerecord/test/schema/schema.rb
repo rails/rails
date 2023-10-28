@@ -97,7 +97,7 @@ ActiveRecord::Schema.define do
   create_table :author_addresses, force: true do |t|
   end
 
-  add_foreign_key :authors, :author_addresses
+  add_foreign_key :authors, :author_addresses, deferrable: :immediate
 
   create_table :author_favorites, force: true do |t|
     t.column :author_id, :integer
@@ -706,7 +706,7 @@ ActiveRecord::Schema.define do
     t.integer :college_id
   end
 
-  add_foreign_key :lessons_students, :students, on_delete: :cascade
+  add_foreign_key :lessons_students, :students, on_delete: :cascade, deferrable: :immediate
 
   create_table :lint_models, force: true
 

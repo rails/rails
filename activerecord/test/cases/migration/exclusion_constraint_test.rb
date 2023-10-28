@@ -162,7 +162,7 @@ if ActiveRecord::Base.connection.supports_exclusion_constraints?
 
           assert_nothing_raised do
             Invoice.transaction(requires_new: true) do
-              Invoice.connection.exec_query("SET CONSTRAINTS invoices_date_overlap DEFERRED")
+              Invoice.connection.set_constraints(:deferred, "invoices_date_overlap")
               Invoice.create!(start_date: "2020-12-31", end_date: "2021-01-01")
               invoice.update!(end_date: "2020-12-31")
 
