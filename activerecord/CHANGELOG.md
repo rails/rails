@@ -1,3 +1,14 @@
+*   Support `uuid` type for MariaDB 10.7.0+
+
+    ```ruby
+    create_table :users, id: :uuid do |t| # uuid primary key
+      t.uuid :guid, default: "sys_guid()" # uuid regular column with custom default
+      # ...
+    end
+    ```
+
+    *fatkodima*
+
 *   Fix inconsistency in PostgreSQL handling of unbounded time range types
 
     Use `-infinity` rather than `NULL` for the lower value of PostgreSQL time

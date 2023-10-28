@@ -81,6 +81,14 @@ module ActiveRecord
           "x'#{value.hex}'"
         end
 
+        def quote_default_expression(value, column) # :nodoc:
+          if column.type == :uuid && value.is_a?(String) && value.include?("()")
+            value # Do not quote function default values for UUID columns
+          else
+            super
+          end
+        end
+
         def unquote_identifier(identifier)
           if identifier && identifier.start_with?("`")
             identifier[1..-2]

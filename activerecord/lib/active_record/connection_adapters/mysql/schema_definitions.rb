@@ -7,6 +7,45 @@ module ActiveRecord
         extend ActiveSupport::Concern
         extend ConnectionAdapters::ColumnMethods::ClassMethods
 
+        # Defines the primary key field.
+        # Use of the native MariaDB UUID type is supported, and can be used
+        # by defining your tables as such:
+        #
+        #   create_table :stuffs, id: :uuid do |t|
+        #     t.string :content
+        #     t.timestamps
+        #   end
+        #
+        # By default, this will use the <tt>uuid()</tt> function, which generates
+        # UUIDv1 values. You may also explicitly pass a different UUID generation function:
+        #
+        #   create_table :stuffs, id: false do |t|
+        #     t.primary_key :id, :uuid, default: "sys_guid()"
+        #     t.uuid :foo_id
+        #     t.timestamps
+        #   end
+        #
+        # To use a UUID primary key without any defaults, set the
+        # +:default+ option to +nil+:
+        #
+        #   create_table :stuffs, id: false do |t|
+        #     t.primary_key :id, :uuid, default: nil
+        #     t.uuid :foo_id
+        #     t.timestamps
+        #   end
+        #
+        # Note that setting the UUID primary key default value to +nil+ will
+        # require you to assure that you always provide a UUID value before saving
+        # a record (as primary keys cannot be +nil+). This might be done via the
+        # +SecureRandom.uuid+ method and a +before_save+ callback, for instance.
+        def primary_key(name, type = :primary_key, **options)
+          if type == :uuid
+            options[:default] = options.fetch(:default, "uuid()")
+          end
+
+          super
+        end
+
         ##
         # :method: blob
         # :call-seq: blob(*names, **options)
@@ -43,8 +82,12 @@ module ActiveRecord
         # :method: unsigned_bigint
         # :call-seq: unsigned_bigint(*names, **options)
 
+        ##
+        # :method: uuid
+        # :call-seq: uuid(*names, **options)
+
         define_column_methods :blob, :tinyblob, :mediumblob, :longblob,
-          :tinytext, :mediumtext, :longtext, :unsigned_integer, :unsigned_bigint
+          :tinytext, :mediumtext, :longtext, :unsigned_integer, :unsigned_bigint, :uuid
       end
 
       # = Active Record MySQL Adapter \Index Definition

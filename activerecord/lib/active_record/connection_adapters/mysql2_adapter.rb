@@ -48,6 +48,7 @@ module ActiveRecord
 
             m.register_type %r(^enum)i, Type.lookup(:string, adapter: :mysql2)
             m.register_type %r(^set)i,  Type.lookup(:string, adapter: :mysql2)
+            m.register_type "uuid",     MySQL::Type::Uuid.new
           end
       end
 
@@ -195,6 +196,7 @@ module ActiveRecord
         end
 
         ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql2)
+        ActiveRecord::Type.register(:uuid, MySQL::Type::Uuid, adapter: :mysql2)
     end
 
     ActiveSupport.run_load_hooks(:active_record_mysql2adapter, Mysql2Adapter)
