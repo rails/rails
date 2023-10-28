@@ -423,7 +423,7 @@ module TestHelpers
 
     def remove_from_file(file, str)
       contents = File.read(file)
-      contents.sub!(/#{str}/, "")
+      contents.gsub!(/#{str}/, "")
       File.write(file, contents)
     end
 
