@@ -100,6 +100,14 @@ class Hash
   alias_method :blank?, :empty?
 end
 
+class Symbol
+  # A Symbol is blank if it's empty:
+  #
+  #   :''.blank?     # => true
+  #   :symbol.blank? # => false
+  alias_method :blank?, :empty?
+end
+
 class String
   BLANK_RE = /\A[[:space:]]*\z/
   ENCODED_BLANKS = Concurrent::Map.new do |h, enc|
