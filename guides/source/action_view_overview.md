@@ -152,7 +152,7 @@ It's similar to Builder but is used to generate JSON, instead of XML.
 If you don't have it, you can add the following to your `Gemfile`:
 
 ```ruby
-gem 'jbuilder'
+gem "jbuilder"
 ```
 
 A Jbuilder object named `json` is automatically made available to templates with

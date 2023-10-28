@@ -5,7 +5,7 @@ begin
 rescue LoadError
   raise LoadError, <<~ERROR.squish
     Generating image variants require the image_processing gem.
-    Please add `gem 'image_processing', '~> 1.2'` to your Gemfile.
+    Please add `gem "image_processing", "~> 1.2"` to your Gemfile.
   ERROR
 end
 

@@ -41,7 +41,7 @@ module ActiveModel
       #
       # To use +has_secure_password+, add bcrypt (~> 3.1.7) to your Gemfile:
       #
-      #   gem 'bcrypt', '~> 3.1.7'
+      #   gem "bcrypt", "~> 3.1.7"
       #
       # ==== Examples
       #

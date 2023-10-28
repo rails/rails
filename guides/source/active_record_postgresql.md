@@ -805,5 +805,5 @@ You can use `ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags` to configu
 For example, to exclude comments from your structure dump, add this to an initializer:
 
 ```ruby
-ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ['--no-comments']
+ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ["--no-comments"]
 ```

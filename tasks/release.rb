@@ -214,8 +214,8 @@ namespace :all do
     end
 
     # Replace the generated gemfile entry with the exact version.
-    substitute.call("Gemfile", /^gem 'rails.*/, "gem 'rails', '#{version}'")
-    substitute.call("Gemfile", /^# gem 'image_processing/, "gem 'image_processing")
+    substitute.call("Gemfile", /^gem "rails.*/, %{gem "rails", "#{version}"})
+    substitute.call("Gemfile", /^# gem "image_processing/, 'gem "image_processing')
     sh "bundle"
     sh "rails action_mailbox:install"
     sh "rails action_text:install"
