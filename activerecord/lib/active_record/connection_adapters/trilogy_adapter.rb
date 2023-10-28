@@ -116,12 +116,6 @@ module ActiveRecord
         true
       end
 
-      def quote_string(string)
-        with_raw_connection(allow_retry: true, materialize_transactions: false) do |conn|
-          conn.escape(string)
-        end
-      end
-
       def connected?
         !(@raw_connection.nil? || @raw_connection.closed?)
       end

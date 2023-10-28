@@ -659,6 +659,17 @@ module ActiveRecord
         end
       end
 
+      #--
+      # QUOTING ==================================================
+      #++
+
+      # Quotes strings for use in SQL input.
+      def quote_string(string)
+        with_raw_connection(allow_retry: true, materialize_transactions: false) do |connection|
+          connection.escape(string)
+        end
+      end
+
       class << self
         def extended_type_map(default_timezone: nil, emulate_booleans:) # :nodoc:
           super(default_timezone: default_timezone).tap do |m|
