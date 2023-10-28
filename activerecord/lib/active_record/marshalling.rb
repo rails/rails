@@ -2,17 +2,15 @@
 
 module ActiveRecord
   module Marshalling
-    @format_version = 6.1
+    @format_version = 7.1
 
     class << self
       attr_reader :format_version
 
       def format_version=(version)
         case version
-        when 6.1
-          Methods.remove_method(:marshal_dump) if Methods.method_defined?(:marshal_dump)
         when 7.1
-          Methods.alias_method(:marshal_dump, :_marshal_dump_7_1)
+          # do nothing
         else
           raise ArgumentError, "Unknown marshalling format: #{version.inspect}"
         end
@@ -21,7 +19,7 @@ module ActiveRecord
     end
 
     module Methods
-      def _marshal_dump_7_1
+      def marshal_dump
         payload = [attributes_for_database, new_record?]
 
         cached_associations = self.class.reflect_on_all_associations.select do |reflection|

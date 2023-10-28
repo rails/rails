@@ -24,7 +24,10 @@ module ActiveRecord
       end
 
       def value_for_database
-        @value_for_database = _value_for_database unless defined?(@value_for_database)
+        unless @value_for_database_set
+          @value_for_database = _value_for_database
+          @value_for_database_set = true
+        end
         @value_for_database
       end
 

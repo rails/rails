@@ -35,13 +35,59 @@ module ActiveModel
       @value_before_type_cast = value_before_type_cast
       @type = type
       @original_attribute = original_attribute
-      @value = value unless value.nil?
+      if value.nil?
+        @value = nil
+        @value_set = false
+      else
+        @value = value
+        @value_set = true
+      end
+      @value_for_database = nil
+      @value_for_database_set = false
     end
 
     def value
-      # `defined?` is cheaper than `||=` when we get back falsy values
-      @value = type_cast(value_before_type_cast) unless defined?(@value)
+      unless @value_set
+        @value = type_cast(value_before_type_cast)
+        @value_set = true
+      end
       @value
+    end
+
+    def has_been_read?
+      @value_set
+    end
+
+    def value_for_database
+      if !@value_for_database_set || type.changed_in_place?(@value_for_database, value)
+        @value_for_database = _value_for_database
+        @value_for_database_set = true
+      end
+      @value_for_database
+    end
+
+    def init_with(coder)
+      @name = coder["name"]
+      @value_before_type_cast = coder["value_before_type_cast"]
+      @type = coder["type"]
+      @original_attribute = coder["original_attribute"]
+      if coder.map.key?("value")
+        @value = coder["value"]
+        @value_set = true
+      else
+        @value = nil
+        @value_set = false
+      end
+      @value_for_database = nil
+      @value_for_database_set = false
+    end
+
+    def encode_with(coder)
+      coder["name"] = name
+      coder["value_before_type_cast"] = value_before_type_cast unless value_before_type_cast.nil?
+      coder["type"] = type if type
+      coder["original_attribute"] = original_attribute if original_attribute
+      coder["value"] = value if @value_set
     end
 
     def original_value
@@ -50,13 +96,6 @@ module ActiveModel
       else
         type_cast(value_before_type_cast)
       end
-    end
-
-    def value_for_database
-      if !defined?(@value_for_database) || type.changed_in_place?(@value_for_database, value)
-        @value_for_database = _value_for_database
-      end
-      @value_for_database
     end
 
     def serializable?(&block)
@@ -108,10 +147,6 @@ module ActiveModel
       false
     end
 
-    def has_been_read?
-      defined?(@value)
-    end
-
     def ==(other)
       self.class == other.class &&
         name == other.name &&
@@ -122,22 +157,6 @@ module ActiveModel
 
     def hash
       [self.class, name, value_before_type_cast, type].hash
-    end
-
-    def init_with(coder)
-      @name = coder["name"]
-      @value_before_type_cast = coder["value_before_type_cast"]
-      @type = coder["type"]
-      @original_attribute = coder["original_attribute"]
-      @value = coder["value"] if coder.map.key?("value")
-    end
-
-    def encode_with(coder)
-      coder["name"] = name
-      coder["value_before_type_cast"] = value_before_type_cast unless value_before_type_cast.nil?
-      coder["type"] = type if type
-      coder["original_attribute"] = original_attribute if original_attribute
-      coder["value"] = value if defined?(@value)
     end
 
     def original_value_for_database
@@ -153,7 +172,7 @@ module ActiveModel
       alias :assigned? :original_attribute
 
       def initialize_dup(other)
-        if defined?(@value) && @value.duplicable?
+        if has_been_read? && @value.duplicable?
           @value = @value.dup
         end
       end
@@ -181,7 +200,7 @@ module ActiveModel
           # changed in place, we can simply dup this attribute to avoid
           # deserialize / cast / serialize calls from computing the new
           # attribute's `value_before_type_cast`.
-          if !defined?(@value_for_database) && !changed_in_place?
+          if !@value_for_database_set && !changed_in_place?
             dup
           else
             super
