@@ -55,6 +55,14 @@ module ActiveRecord
             super unless column.auto_increment?
           end
 
+          def returning_column_values(result)
+            if supports_insert_returning?
+              result.rows.first
+            else
+              super
+            end
+          end
+
           def combine_multi_statements(total_sql)
             total_sql.each_with_object([]) do |sql, total_sql_chunks|
               previous_packet = total_sql_chunks.last

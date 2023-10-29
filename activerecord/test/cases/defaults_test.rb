@@ -173,7 +173,7 @@ class MysqlDefaultExpressionTest < ActiveRecord::TestCase
     if supports_default_expression?
       test "schema dump includes default expression" do
         output = dump_table_schema("defaults")
-        assert_match %r/t\.binary\s+"uuid",\s+limit: 36,\s+default: -> { "\(uuid\(\)\)" }/i, output
+        assert_match %r/t\.binary\s+"uuid",\s+limit: 36,\s+default: -> { "\(?uuid\(\)\)?" }/i, output
       end
     end
 

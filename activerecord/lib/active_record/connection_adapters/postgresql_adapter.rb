@@ -290,10 +290,6 @@ module ActiveRecord
         { concurrently: "CONCURRENTLY" }
       end
 
-      def return_value_after_insert?(column) # :nodoc:
-        column.auto_populated?
-      end
-
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         def initialize(connection, max)
           super(max)
