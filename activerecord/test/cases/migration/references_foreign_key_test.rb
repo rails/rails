@@ -63,7 +63,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
                        fks.map { |fk| [fk.from_table, fk.to_table, fk.column] })
         end
 
-        if current_adapter?(:PostgreSQLAdapter)
+        if ActiveRecord::Base.connection.supports_deferrable_constraints?
           test "deferrable: false option can be passed" do
             @connection.create_table :testings do |t|
               t.references :testing_parent, foreign_key: { deferrable: false }
