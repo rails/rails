@@ -172,10 +172,6 @@ module Rails
           remove_file "config/initializers/permissions_policy.rb"
         end
       end
-
-      if !skip_sprockets?
-        insert_into_file "config/application.rb", %(require "sprockets/railtie"), after: /require\(["']rails\/all["']\)\n/
-      end
     end
 
     def master_key
