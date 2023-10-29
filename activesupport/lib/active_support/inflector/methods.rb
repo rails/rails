@@ -134,6 +134,7 @@ module ActiveSupport
     #
     def humanize(lower_case_and_underscored_word, capitalize: true, keep_id_suffix: false)
       result = lower_case_and_underscored_word.to_s.dup
+      return result if result.empty?
 
       inflections.humans.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
 
@@ -149,9 +150,9 @@ module ActiveSupport
       end
 
       if capitalize
-        result.sub!(/\A\w/) do |match|
-          match.upcase!
-          match
+        first = result[0]
+        if first.upcase!
+          result[0] = first
         end
       end
 
@@ -164,7 +165,14 @@ module ActiveSupport
     #   upcase_first('w')                 # => "W"
     #   upcase_first('')                  # => ""
     def upcase_first(string)
-      string.length > 0 ? string[0].upcase.concat(string[1..-1]) : ""
+      case string.length
+      when 0
+        ""
+      when 1
+        string.upcase
+      else
+        string[0].upcase.concat(string[1, string.length])
+      end
     end
 
     # Converts the first character in the string to lowercase.
@@ -173,7 +181,14 @@ module ActiveSupport
     #   downcase_first('I')                          # => "i"
     #   downcase_first('')                           # => ""
     def downcase_first(string)
-      string.length > 0 ? string[0].downcase.concat(string[1..-1]) : ""
+      case string.length
+      when 0
+        ""
+      when 1
+        string.downcase
+      else
+        string[0].downcase.concat(string[1, string.length])
+      end
     end
 
     # Capitalizes all the words and replaces some characters in the string to
@@ -217,7 +232,10 @@ module ActiveSupport
     #   classify('calculus')     # => "Calculu"
     def classify(table_name)
       # strip out any leading schema name
-      camelize(singularize(table_name.to_s.sub(/.*\./, "")))
+      table_name = table_name.to_s
+      dot_idx = table_name.index(".")
+      table_name = table_name[dot_idx + 1, table_name.length] if dot_idx && dot_idx > 0
+      camelize(singularize(table_name))
     end
 
     # Replaces underscores with dashes in the string.
@@ -265,7 +283,7 @@ module ActiveSupport
     #   foreign_key('Message', false) # => "messageid"
     #   foreign_key('Admin::Post')    # => "post_id"
     def foreign_key(class_name, separate_class_name_and_id_with_underscore = true)
-      underscore(demodulize(class_name)) + (separate_class_name_and_id_with_underscore ? "_id" : "id")
+      underscore(demodulize(class_name)) << (separate_class_name_and_id_with_underscore ? "_id" : "id")
     end
 
     # Tries to find a constant with the name specified in the argument string.
