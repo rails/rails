@@ -373,6 +373,12 @@ module ActiveRecord
   end
 
   # Raised on attempt to lazily load records that are marked as strict loading.
+  #
+  # You can resolve this error by eager loading marked records before accessing
+  # them. The
+  # {Eager Loading Associations}[https://guides.rubyonrails.org/active_record_querying.html#eager-loading-associations]
+  # guide covers solutions, such as using
+  # {ActiveRecord::Base.includes}[rdoc-ref:QueryMethods#includes].
   class StrictLoadingViolationError < ActiveRecordError
   end
 

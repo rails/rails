@@ -1763,7 +1763,15 @@ user.address.city # raises an ActiveRecord::StrictLoadingViolationError
 user.comments.to_a # raises an ActiveRecord::StrictLoadingViolationError
 ```
 
+To enable for all relations, change the
+[`config.active_record.strict_loading_by_default`][] flag to `true`.
+
+To send violations to the logger instead, change
+[`config.active_record.action_on_strict_loading_violation`][] to `:log`.
+
 [`strict_loading`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-strict_loading
+[`config.active_record.strict_loading_by_default`]: configuring.html#config-active-record-strict-loading-by-default
+[`config.active_record.action_on_strict_loading_violation`]: configuring.html#config-active-record-action-on-strict-loading-violation
 
 ### `strict_loading!`
 
@@ -1788,6 +1796,16 @@ user.comments.first.likes.to_a # raises an ActiveRecord::StrictLoadingViolationE
 ```
 
 [`strict_loading!`]: https://api.rubyonrails.org/classes/ActiveRecord/Core.html#method-i-strict_loading-21
+
+### `strict_loading` option on an association
+
+We can also enable strict loading for a single association by providing the `strict_loading` option:
+
+```ruby
+class Author < ApplicationRecord
+  has_many :books, strict_loading: true
+end
+```
 
 Scopes
 ------
