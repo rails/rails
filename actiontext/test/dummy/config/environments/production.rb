@@ -20,8 +20,8 @@ Rails.application.configure do
   # or in config/master.key. This key is used to decrypt credentials (and other encrypted files).
   # config.require_master_key = true
 
-  # Enable static file serving from the `/public` folder (turn off if using NGINX/Apache for it).
-  config.public_file_server.enabled = true
+  # Disable serving static files from `public/`, relying on NGINX/Apache to do so instead.
+  # config.public_file_server.enabled = false
 
   # Compress CSS using a preprocessor.
   # config.assets.css_compressor = :sass
