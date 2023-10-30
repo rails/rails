@@ -9,7 +9,7 @@ module SidekiqJobsManager
   def setup
     ActiveJob::Base.queue_adapter = :sidekiq
     unless can_run?
-      puts "Cannot run integration tests for sidekiq. To be able to run integration tests for sidekiq you need to install and start redis.\n"
+      puts "Cannot run integration tests for Sidekiq. To be able to run integration tests for Sidekiq you need to install and start Redis.\n"
       status = ENV["BUILDKITE"] ? false : true
       exit status
     end

@@ -8,7 +8,7 @@ module BackburnerJobsManager
       config.logger = Rails.logger
     end
     unless can_run?
-      puts "Cannot run integration tests for backburner. To be able to run integration tests for backburner you need to install and start beanstalkd.\n"
+      puts "Cannot run integration tests for Backburner. To be able to run integration tests for Backburner you need to install and start beanstalkd.\n"
       status = ENV["BUILDKITE"] ? false : true
       exit status
     end

@@ -212,7 +212,7 @@ module ActiveRecord
 
         def replace_named_bind_variables(statement, bind_vars)
           statement.gsub(/([:\\]?):([a-zA-Z]\w*)/) do |match|
-            if $1 == ":" # skip postgresql casts
+            if $1 == ":" # skip PostgreSQL casts
               match # return the whole match
             elsif $1 == "\\" # escaped literal colon
               match[1..-1] # return match with escaping backlash char removed

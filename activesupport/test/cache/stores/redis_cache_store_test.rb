@@ -135,7 +135,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
   class StoreTest < ActiveSupport::TestCase
     setup do
       @cache = nil
-      skip "redis server is not up" unless REDIS_UP
+      skip "Redis server is not up" unless REDIS_UP
       @namespace = "test-#{SecureRandom.hex}"
 
       @cache = lookup_store(expires_in: 60)
