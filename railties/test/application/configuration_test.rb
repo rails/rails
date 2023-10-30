@@ -695,6 +695,24 @@ module ApplicationTests
       assert_equal Pathname.new(app_path).join("somewhere"), Rails.public_path
     end
 
+    test "In development mode, config.public_file_server.enabled is on by default" do
+      restore_default_config
+
+      with_rails_env "development" do
+        app "development"
+        assert app.config.public_file_server.enabled
+      end
+    end
+
+    test "In test mode, config.public_file_server.enabled is on by default" do
+      restore_default_config
+
+      with_rails_env "test" do
+        app "test"
+        assert app.config.public_file_server.enabled
+      end
+    end
+
     test "In production mode, config.public_file_server.enabled is on by default" do
       restore_default_config
 
