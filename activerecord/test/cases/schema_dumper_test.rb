@@ -122,7 +122,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{c_int_1.*limit: 2}, output
       assert_match %r{c_int_2.*limit: 2}, output
 
-      # int 3 is 4 bytes in postgresql
+      # int 3 is 4 bytes in PostgreSQL
       assert_match %r{"c_int_3"(?!.*limit)}, output
       assert_match %r{"c_int_4"(?!.*limit)}, output
     elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
