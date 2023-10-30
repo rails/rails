@@ -74,9 +74,9 @@ module ActiveRecord
         end
 
         def begin_db_transaction # :nodoc:
-          log("begin transaction", "TRANSACTION") do
+          log("begin #{@transaction_mode} transaction", "TRANSACTION") do
             with_raw_connection(allow_retry: true, materialize_transactions: false) do |conn|
-              conn.transaction
+              conn.transaction(@transaction_mode)
             end
           end
         end

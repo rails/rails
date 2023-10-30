@@ -3105,6 +3105,17 @@ development:
   timeout: 5000
 ```
 
+SQLite supports [three different transaction modes](https://www.sqlite.org/lang_transaction.html) - `deferred`, `immediate`, and `exclusive`.
+
+NOTE: Rails enables WAL mode by default, which means that `exclusive` and `immediate` modes are identical.
+
+You can set the mode to use (the default is `deferred`):
+
+```yaml
+development:
+  transaction_mode: immediate
+```
+
 NOTE: Rails uses an SQLite3 database for data storage by default because it is a zero configuration database that just works. Rails also supports MySQL (including MariaDB) and PostgreSQL "out of the box", and has plugins for many database systems. If you are using a database in a production environment Rails most likely has an adapter for it.
 
 #### Configuring a MySQL or MariaDB Database

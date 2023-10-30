@@ -334,6 +334,34 @@ module ActiveRecord
         end
       end
 
+      [:deferred, :immediate, :exclusive].each do |transaction_mode|
+        test "test_#{transaction_mode}_transaction" do
+          conn = Base.sqlite3_connection database: ":memory:",
+                                        adapter: "sqlite3",
+                                        timeout: 100,
+                                        transaction_mode: transaction_mode
+
+          with_example_table(nil, "ex", conn) do
+            count_sql = "select count(*) from ex"
+
+            assert_sql("begin #{transaction_mode} transaction") do
+              conn.begin_db_transaction
+            end
+            conn.create "INSERT INTO ex (number) VALUES (10)"
+
+            assert_equal 1, conn.select_rows(count_sql).first.first
+            conn.rollback_db_transaction
+            assert_equal 0, conn.select_rows(count_sql).first.first
+          end
+        end
+      end
+
+      def test_invalid_transaction_mode
+        assert_raise(ArgumentError, "transaction_mode must be one of :deferred, :immediate, :exclusive but :invalid was provided") do
+          Base.sqlite3_connection database: ":memory:", adapter: "sqlite3", transaction_mode: :invalid
+        end
+      end
+
       def test_tables
         with_example_table do
           assert_equal %w{ ex }, @conn.tables
@@ -833,12 +861,12 @@ module ActiveRecord
           ActiveSupport::Notifications.unsubscribe(subscription)
         end
 
-        def with_example_table(definition = nil, table_name = "ex", &block)
+        def with_example_table(definition = nil, table_name = "ex", conn = @conn, &block)
           definition ||= <<~SQL
             id integer PRIMARY KEY AUTOINCREMENT,
             number integer
           SQL
-          super(@conn, table_name, definition, &block)
+          super(conn, table_name, definition, &block)
         end
 
         def with_strict_strings_by_default

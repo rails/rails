@@ -1,3 +1,16 @@
+*   The SQLite3 transaction mode can now by configured
+
+    The options are `deferred` (default), `immediate`, and `exclusive`
+
+    ```yaml
+    development:
+      adapter: sqlite3
+      database: storage/development.sqlite3
+      transaction_mode: immediate
+    ```
+
+    *Donal McBreen*
+
 *   Support `RETURNING` clause for MariaDB
 
     *fatkodima*, *Nikolay Kondratyev*

@@ -36,6 +36,7 @@ module ActiveRecord
     # * <tt>:database</tt> - Path to the database file.
     class SQLite3Adapter < AbstractAdapter
       ADAPTER_NAME = "SQLite"
+      TRANSACTION_MODES = [:deferred, :immediate, :exclusive]
 
       class << self
         def new_client(config)
@@ -127,6 +128,10 @@ module ActiveRecord
         @config[:strict] = ConnectionAdapters::SQLite3Adapter.strict_strings_by_default unless @config.key?(:strict)
         @connection_parameters = @config.merge(database: @config[:database].to_s, results_as_hash: true)
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
+        @transaction_mode = @config.fetch(:transaction_mode, :deferred)&.to_sym&.downcase
+        unless TRANSACTION_MODES.include?(@transaction_mode)
+          raise ArgumentError, "transaction_mode must be one of #{TRANSACTION_MODES.map(&:inspect).join(", ")} but #{@transaction_mode.inspect} was provided"
+        end
       end
 
       def database_exists?
