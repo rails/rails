@@ -282,4 +282,11 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     assert_equal 0, ActiveStorage::VariantRecord.count
     assert_enqueued_with(job: ActiveStorage::PurgeJob, args: [variant.image.blob])
   end
+
+  test "resized variation of PNG blob without format should be PNG type" do
+    blob = create_file_blob(filename: "png_image_without_format", content_type: "image/png")
+    variant = blob.variant(resize_to_limit: [100, 100]).processed
+
+    assert_equal "png", variant.image.blob.filename.extension
+  end
 end

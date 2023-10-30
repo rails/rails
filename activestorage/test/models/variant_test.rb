@@ -130,6 +130,24 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     end
   end
 
+  test "resized variation of PNG blob without format should be PNG type" do
+    blob = create_file_blob(filename: "png_image_without_format", content_type: "image/png")
+    variant = blob.variant(resize_to_limit: [15, 15]).processed
+
+    assert_equal "PNG", read_image(variant).type
+  end
+
+  test "resized variation of JFIF works for vips processor" do
+    blob = create_file_blob(filename: "image.jfif", content_type: "image/jpeg")
+    variant = blob.variant(resize_to_fill: [100, 100]).processed
+    assert_match(/image\.jfif/, variant.url)
+
+    image = read_image(variant)
+    assert_equal "JPEG", image.type
+    assert_equal 100, image.width
+    assert_equal 100, image.height
+  end
+
   test "PNG variation of JPEG blob with lowercase format" do
     blob = create_file_blob(filename: "racecar.jpg")
     variant = blob.variant(format: :png).processed
