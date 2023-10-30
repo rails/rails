@@ -18,26 +18,30 @@ module ActiveSupport
     end
 
     module FanoutIteration # :nodoc:
-      def iterate_guarding_exceptions(listeners)
-        exceptions = nil
+      private
+        def iterate_guarding_exceptions(collection)
+          exceptions = nil
 
-        listeners.each do |s|
-          yield s
-        rescue Exception => e
-          exceptions ||= []
-          exceptions << e
-        end
-
-        if exceptions
-          if exceptions.size == 1
-            raise exceptions.first
-          else
-            raise InstrumentationSubscriberError.new(exceptions), cause: exceptions.first
+          collection.each do |s|
+            yield s
+          rescue Exception => e
+            exceptions ||= []
+            exceptions << e
           end
-        end
 
-        listeners
-      end
+          if exceptions
+            exceptions = exceptions.flat_map do |exception|
+              exception.is_a?(InstrumentationSubscriberError) ? exception.exceptions : [exception]
+            end
+            if exceptions.size == 1
+              raise exceptions.first
+            else
+              raise InstrumentationSubscriberError.new(exceptions), cause: exceptions.first
+            end
+          end
+
+          collection
+        end
     end
 
     # This is a default queue implementation that ships with Notifications.
@@ -225,6 +229,8 @@ module ActiveSupport
       #     handle.finish
       #   end
       class Handle
+        include FanoutIteration
+
         def initialize(notifier, name, id, payload) # :nodoc:
           @name = name
           @id = id
@@ -239,7 +245,7 @@ module ActiveSupport
           ensure_state! :initialized
           @state = :started
 
-          @groups.each do |group|
+          iterate_guarding_exceptions(@groups) do |group|
             group.start(@name, @id, @payload)
           end
         end
@@ -252,7 +258,7 @@ module ActiveSupport
           ensure_state! :started
           @state = :finished
 
-          @groups.each do |group|
+          iterate_guarding_exceptions(@groups) do |group|
             group.finish(name, id, payload)
           end
         end
