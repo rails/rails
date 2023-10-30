@@ -1,3 +1,7 @@
+*   Rename `ActionView::TestCase::Behavior::{Content,RenderedViewContent}`
+
+    *Sean Doyle*
+
 *   Raise `ArgumentError` when `nil` is passed as `model:` argument value to the `form_with` method.
 
     *Collin Jilbert*
