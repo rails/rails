@@ -331,7 +331,7 @@ class AssertionsTest < ActiveSupport::TestCase
         @object.increment
       end
     end
-    assert_equal "Expected initial value of nil", error.message
+    assert_equal "Expected initial value of nil, got 0", error.message
   end
 
   def test_assert_no_changes_with_from_and_case_operator
