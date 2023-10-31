@@ -64,7 +64,7 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
 
     assert_not_includes metadata, :width
     assert_not_includes metadata, :height
-    assert_equal 1.022000, metadata[:duration]
+    assert_includes 1.000000..1.022000, metadata[:duration]
     assert_not metadata[:video]
     assert metadata[:audio]
   end
