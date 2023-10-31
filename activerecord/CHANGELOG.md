@@ -1,3 +1,8 @@
+*   Fix upserting for custom `:on_duplicate` and `:unique_by` consisting of all
+    inserts keys.
+
+    *fatkodima*
+
 *   Fix `NoMethodError` when casting a PostgreSQL `money` value that uses a
     comma as its radix point and has no leading currency symbol.  For example,
     when casting `"3,50"`.

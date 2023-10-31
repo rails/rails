@@ -17,8 +17,6 @@ module ActiveRecord
       disallow_raw_sql!(on_duplicate)
       disallow_raw_sql!(returning)
 
-      configure_on_duplicate_update_logic
-
       if model.scope_attributes?
         @scope_attributes = model.scope_attributes
         @keys |= @scope_attributes.keys
@@ -29,8 +27,8 @@ module ActiveRecord
       @returning = false if @returning == []
 
       @unique_by = find_unique_index_for(unique_by)
-      @on_duplicate = :skip if @on_duplicate == :update && updatable_columns.empty?
 
+      configure_on_duplicate_update_logic
       ensure_valid_options_for_connection!
     end
 
@@ -99,6 +97,8 @@ module ActiveRecord
         elsif custom_update_sql_provided?
           @update_sql = on_duplicate
           @on_duplicate = :update
+        elsif @on_duplicate == :update && updatable_columns.empty?
+          @on_duplicate = :skip
         end
       end
 

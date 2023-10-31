@@ -664,6 +664,20 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal "written", Book.find(2).status
   end
 
+  def test_upsert_all_updates_using_provided_sql_and_unique_by
+    skip unless supports_insert_on_duplicate_update? && supports_insert_conflict_target?
+
+    book = books(:rfr)
+    assert_equal "proposed", book.status
+
+    Book.upsert_all(
+      [{ name: book.name, author_id: book.author_id }],
+      unique_by: [:author_id, :name],
+      on_duplicate: Arel.sql("status = 2")
+    )
+    assert_equal "published", book.reload.status
+  end
+
   def test_upsert_all_with_unique_by_fails_cleanly_for_adapters_not_supporting_insert_conflict_target
     skip if supports_insert_conflict_target?
 
