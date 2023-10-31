@@ -7,6 +7,11 @@ class AttrInternalTest < ActiveSupport::TestCase
   def setup
     @target = Class.new
     @instance = @target.new
+    @naming_format_was = Module.attr_internal_naming_format
+  end
+
+  def teardown
+    Module.attr_internal_naming_format = @naming_format_was
   end
 
   def test_reader
@@ -39,9 +44,16 @@ class AttrInternalTest < ActiveSupport::TestCase
     assert_nothing_raised { assert_equal 1, @instance.foo }
   end
 
+  def test_naming_format_deprecation
+    assert_equal "_%s", Module.attr_internal_naming_format
+    assert_deprecated(ActiveSupport.deprecator) do
+      Module.attr_internal_naming_format = "@___%s"
+    end
+    assert_equal "___%s", Module.attr_internal_naming_format
+  end
+
   def test_naming_format
-    assert_equal "@_%s", Module.attr_internal_naming_format
-    assert_nothing_raised { Module.attr_internal_naming_format = "@abc%sdef" }
+    assert_nothing_raised { Module.attr_internal_naming_format = "abc%sdef" }
     @target.attr_internal :foo
 
     assert_not @instance.instance_variable_defined?("@_foo")
@@ -49,7 +61,5 @@ class AttrInternalTest < ActiveSupport::TestCase
     assert_nothing_raised { @instance.foo = 1 }
     assert_not @instance.instance_variable_defined?("@_foo")
     assert @instance.instance_variable_defined?("@abcfoodef")
-  ensure
-    Module.attr_internal_naming_format = "@_%s"
   end
 end
