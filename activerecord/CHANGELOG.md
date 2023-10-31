@@ -1,3 +1,8 @@
+*   Fix upserting for custom `:on_duplicate` and `:unique_by` consisting of all
+    inserts keys.
+
+    *fatkodima*
+
 *   Fixed an [issue](https://github.com/rails/rails/issues/49809) where saving a
     record could innappropriately `dup` its attributes.
 
