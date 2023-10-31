@@ -340,7 +340,7 @@ module ActionController # :nodoc:
 
     def initialize(...)
       super
-      @marked_for_same_origin_verification = nil
+      @_marked_for_same_origin_verification = nil
     end
 
     def reset_csrf_token(request) # :doc:
@@ -414,13 +414,13 @@ module ActionController # :nodoc:
 
       # GET requests are checked for cross-origin JavaScript after rendering.
       def mark_for_same_origin_verification! # :doc:
-        @marked_for_same_origin_verification = request.get?
+        @_marked_for_same_origin_verification = request.get?
       end
 
       # If the +verify_authenticity_token+ before_action ran, verify that
       # JavaScript responses are only served to same-origin GET requests.
       def marked_for_same_origin_verification? # :doc:
-        @marked_for_same_origin_verification ||= false
+        @_marked_for_same_origin_verification ||= false
       end
 
       # Check for cross-origin JavaScript responses.
