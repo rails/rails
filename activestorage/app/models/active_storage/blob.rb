@@ -17,10 +17,6 @@
 # update a blob's metadata on a subsequent pass, but you should not update the key or change the uploaded file.
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
 class ActiveStorage::Blob < ActiveStorage::Record
-  include Analyzable
-  include Identifiable
-  include Representable
-
   self.table_name = "active_storage_blobs"
 
   MINIMUM_TOKEN_LENGTH = 28
@@ -155,7 +151,27 @@ class ActiveStorage::Blob < ActiveStorage::Record
         combined_blob.save!
       end
     end
+
+    def validate_service_configuration(service_name, model_class, association_name) # :nodoc:
+      if service_name
+        services.fetch(service_name) do
+          raise ArgumentError, "Cannot configure service #{service_name.inspect} for #{model_class}##{association_name}"
+        end
+      else
+        validate_global_service_configuration
+      end
+    end
+
+    def validate_global_service_configuration # :nodoc:
+      if connected? && table_exists? && Rails.configuration.active_storage.service.nil?
+        raise RuntimeError, "Missing Active Storage service name. Specify Active Storage service name for config.active_storage.service in config/environments/#{Rails.env}.rb"
+      end
+    end
   end
+
+  include Analyzable
+  include Identifiable
+  include Representable
 
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
   def signed_id(purpose: :blob_id, expires_in: nil, expires_at: nil)

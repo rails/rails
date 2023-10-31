@@ -118,7 +118,12 @@ module ActiveStorage
       end
 
       def attachment_service_name
-        record.attachment_reflections[name].options[:service_name]
+        service_name = record.attachment_reflections[name].options[:service_name]
+        if service_name.is_a?(Proc)
+          service_name = service_name.call(record)
+          ActiveStorage::Blob.validate_service_configuration(service_name, record.class, name)
+        end
+        service_name
       end
   end
 end
