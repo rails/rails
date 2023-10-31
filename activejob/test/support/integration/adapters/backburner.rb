@@ -19,7 +19,7 @@ module BackburnerJobsManager
   end
 
   def start_workers
-    @thread = Thread.new { Backburner.work "integration-tests" } # backburner dasherizes the queue name
+    @thread = Thread.new { Backburner.work "integration-tests" } # Backburner dasherizes the queue name
   end
 
   def stop_workers
@@ -27,7 +27,7 @@ module BackburnerJobsManager
   end
 
   def tube
-    @tube ||= Beaneater::Tube.new(@worker.connection, "backburner.worker.queue.integration-tests") # backburner dasherizes the queue name
+    @tube ||= Beaneater::Tube.new(@worker.connection, "backburner.worker.queue.integration-tests") # Backburner dasherizes the queue name
   end
 
   def can_run?

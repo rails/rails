@@ -52,7 +52,7 @@ class QueuingTest < ActiveSupport::TestCase
     assert_match(/HelloJob \[[0-9a-f-]+\] from DelayedJob\(default\) with arguments: \[\]/, job.name)
   end
 
-  test "resque JobWrapper should have instance variable queue" do
+  test "Resque JobWrapper should have instance variable queue" do
     skip unless adapter_is?(:resque)
     job = ::HelloJob.set(wait: 5.seconds).perform_later
     hash = Resque.decode(Resque.find_delayed_selection { true }[0])

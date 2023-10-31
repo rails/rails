@@ -46,7 +46,7 @@ module SneakersJobsManager
       end
     rescue Timeout::Error
       stop_workers
-      raise "Failed to start sneakers worker"
+      raise "Failed to start Sneakers worker"
     end
   end
 
