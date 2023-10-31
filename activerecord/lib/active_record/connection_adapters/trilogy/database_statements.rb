@@ -26,7 +26,8 @@ module ActiveRecord
           check_if_write_query(sql)
           mark_transaction_written_if_write(sql)
 
-          raw_execute(to_sql(sql, binds), name)
+          sql, _binds = sql_for_insert(sql, pk, binds, returning)
+          raw_execute(sql, name)
         end
 
         def exec_delete(sql, name = nil, binds = []) # :nodoc:
@@ -53,7 +54,11 @@ module ActiveRecord
           end
 
           def last_inserted_id(result)
-            result.last_insert_id
+            if supports_insert_returning?
+              super
+            else
+              result.last_insert_id
+            end
           end
 
           def sync_timezone_changes(conn)

@@ -202,10 +202,6 @@ module ActiveRecord
 
       alias_method :active?, :connected?
 
-      def return_value_after_insert?(column) # :nodoc:
-        column.auto_populated?
-      end
-
       alias :reset! :reconnect!
 
       # Disconnects from the database if already connected. Otherwise, this

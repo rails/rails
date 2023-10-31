@@ -1,3 +1,7 @@
+*   Support `RETURNING` clause for MariaDB
+
+    *fatkodima*, *Nikolay Kondratyev*
+
 *   The SQLite3 adapter now implements the `supports_deferrable_constraints?` contract
 
     Allows foreign keys to be deferred by adding the `:deferrable` key to the `foreign_key` options.

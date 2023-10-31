@@ -66,7 +66,11 @@ module ActiveRecord
           end
 
           def last_inserted_id(result)
-            @raw_connection&.last_id
+            if supports_insert_returning?
+              super
+            else
+              @raw_connection&.last_id
+            end
           end
 
           def multi_statements_enabled?

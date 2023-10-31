@@ -43,31 +43,56 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_nil order_id
   end
 
-  def test_fills_auto_populated_columns_on_creation
-    record_with_defaults = Default.create
-    assert_not_nil record_with_defaults.id
-    assert_equal "Ruby on Rails", record_with_defaults.ruby_on_rails
+  if current_adapter?(:PostgreSQLAdapter)
+    def test_fills_auto_populated_columns_on_creation
+      record = Default.create
+      assert_not_nil record.id
+      assert_equal "Ruby on Rails", record.ruby_on_rails
 
-    if current_adapter?(:PostgreSQLAdapter) && ActiveRecord::Base.connection.supports_virtual_columns?
-      assert_not_nil record_with_defaults.virtual_stored_number
-    end
-
-    assert_not_nil record_with_defaults.random_number
-    assert_not_nil record_with_defaults.modified_date
-    assert_not_nil record_with_defaults.modified_date_function
-    assert_not_nil record_with_defaults.modified_time
-    assert_not_nil record_with_defaults.modified_time_without_precision
-    assert_not_nil record_with_defaults.modified_time_function
-
-    if current_adapter?(:PostgreSQLAdapter) && ActiveRecord::Base.connection.supports_identity_columns?
-      klass = Class.new(ActiveRecord::Base) do
-        self.table_name = "postgresql_identity_table"
+      if supports_virtual_columns?
+        assert_not_nil record.virtual_stored_number
       end
 
-      record = klass.create!
-      assert_not_nil record.id
+      assert_not_nil record.random_number
+      assert_not_nil record.modified_date
+      assert_not_nil record.modified_date_function
+      assert_not_nil record.modified_time
+      assert_not_nil record.modified_time_without_precision
+      assert_not_nil record.modified_time_function
+
+      if supports_identity_columns?
+        klass = Class.new(ActiveRecord::Base) do
+          self.table_name = "postgresql_identity_table"
+        end
+
+        record = klass.create!
+        assert_not_nil record.id
+      end
     end
-  end if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:SQLite3Adapter)
+  elsif current_adapter?(:SQLite3Adapter)
+    def test_fills_auto_populated_columns_on_creation
+      record = Default.create
+      assert_not_nil record.id
+      assert_equal "Ruby on Rails", record.ruby_on_rails
+
+      assert_not_nil record.random_number
+      assert_not_nil record.modified_date
+      assert_not_nil record.modified_date_function
+      assert_not_nil record.modified_time
+      assert_not_nil record.modified_time_without_precision
+      assert_not_nil record.modified_time_function
+    end
+  elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+    def test_fills_auto_populated_columns_on_creation
+      record = Default.create
+      assert_not_nil record.id
+      assert_not_nil record.char1
+
+      if supports_default_expression? && supports_insert_returning?
+        assert_not_nil record.uuid
+      end
+    end
+  end
 
   def test_update_many
     topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }

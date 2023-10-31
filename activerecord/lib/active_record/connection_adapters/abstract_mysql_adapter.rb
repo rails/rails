@@ -170,6 +170,10 @@ module ActiveRecord
         true
       end
 
+      def supports_insert_returning?
+        mariadb? && database_version >= "10.5.0"
+      end
+
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
         query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})") == 1
       end
@@ -635,12 +639,11 @@ module ActiveRecord
       end
 
       def build_insert_sql(insert) # :nodoc:
-        sql = +"INSERT #{insert.into} #{insert.values_list}"
+        sql = +"INSERT"
+        sql << " IGNORE" if insert.skip_duplicates?
+        sql << " #{insert.into} #{insert.values_list}"
 
-        if insert.skip_duplicates?
-          no_op_column = quote_column_name(insert.keys.first)
-          sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{no_op_column}"
-        elsif insert.update_duplicates?
+        if insert.update_duplicates?
           sql << " ON DUPLICATE KEY UPDATE "
           if insert.raw_update_sql?
             sql << insert.raw_update_sql
@@ -650,6 +653,7 @@ module ActiveRecord
           end
         end
 
+        sql << " RETURNING #{insert.returning}" if insert.returning
         sql
       end
 
