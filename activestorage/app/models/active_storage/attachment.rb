@@ -131,7 +131,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
     end
 
     def transform_variants_later
-      named_variants&.each do |_name, named_variant|
+      named_variants.each do |_name, named_variant|
         blob.preprocessed(named_variant.transformations) if named_variant.preprocessed?(record)
       end
     end
@@ -145,21 +145,17 @@ class ActiveStorage::Attachment < ActiveStorage::Record
     end
 
     def named_variants
-      record.attachment_reflections[name]&.named_variants
+      record.attachment_reflections[name]&.named_variants || {}
     end
 
     def transformations_by_name(transformations)
       case transformations
       when Symbol
         variant_name = transformations
-        variants = named_variants&.[](variant_name)
-
-        if !variants
+        named_variants.fetch(variant_name) do
           record_model_name = record.to_model.model_name.name
           raise ArgumentError, "Cannot find variant :#{variant_name} for #{record_model_name}##{name}"
-        end
-
-        variants.transformations
+        end.transformations
       else
         transformations
       end
