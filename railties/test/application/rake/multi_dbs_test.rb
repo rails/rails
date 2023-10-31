@@ -822,8 +822,11 @@ module ApplicationTests
         cache_tables_a = rails("runner", "p ActiveRecord::Base.connection.schema_cache.columns('books')").strip
         assert_includes cache_tables_a, "title", "expected cache_tables_a to include a title entry"
 
-        cache_size_b = rails("runner", "p AnimalsBase.connection.schema_cache.size", stderr: true).strip
-        assert_equal "0", cache_size_b
+        expired_warning = capture(:stderr) do
+          cache_size_b = rails("runner", "p AnimalsBase.connection.schema_cache.size", stderr: true).strip
+          assert_equal "0", cache_size_b
+        end
+        assert_match(/Ignoring .*\.yml because it has expired/, expired_warning)
 
         cache_tables_b = rails("runner", "p AnimalsBase.connection.schema_cache.columns('dogs')").strip
         assert_includes cache_tables_b, "name", "expected cache_tables_b to include a name entry"

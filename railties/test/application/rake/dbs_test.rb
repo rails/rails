@@ -496,6 +496,37 @@ module ApplicationTests
         end
       end
 
+      test "db:schema:cache:dump ignores expired version" do
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:schema:cache:dump"
+          rails "generate", "model", "cat", "color:string"
+          rails "db:migrate"
+
+          expired_warning = capture(:stderr) do
+            cache_size = rails("runner", "p ActiveRecord::Base.connection.schema_cache.size", stderr: true).strip
+            assert_equal "0", cache_size
+          end
+          assert_match(/Ignoring .*\.yml because it has expired/, expired_warning)
+        end
+      end
+
+      test "db:schema:cache:dump ignores validation errors" do
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate"
+          rails "db:schema:cache:dump"
+
+          ActiveRecord::Migrator.stub(:current_version, -> { raise ActiveRecord::ActiveRecordError, "stubbed error" }) do
+            validation_warning = capture(:stderr) do
+              cache_tables = rails("runner", "p ActiveRecord::Base.connection.schema_cache.columns('books')", stderr: true).strip
+              assert_includes cache_tables, "title", "expected cache_tables to include a title entry"
+            end
+            assert_match(/Failed to validate the schema cache because of ActiveRecord::ActiveRecordError: stubbed error/, validation_warning)
+          end
+        end
+      end
+
       def db_fixtures_load(expected_database)
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
