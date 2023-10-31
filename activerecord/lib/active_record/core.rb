@@ -14,9 +14,10 @@ module ActiveRecord
       ##
       # :singleton-method:
       #
-      # Accepts a logger conforming to the interface of Log4r which is then
-      # passed on to any new database connections made and which can be
-      # retrieved on both a class and instance level by calling +logger+.
+      # Accepts a logger conforming to the interface of Log4r or the default
+      # Ruby +Logger+ class, which is then passed on to any new database
+      # connections made. You can retrieve this logger by calling +logger+ on
+      # either an Active Record model class or an Active Record model instance.
       class_attribute :logger, instance_writer: false
 
       ##
