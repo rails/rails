@@ -1,3 +1,7 @@
+*   Fix deserialization of non-string "purpose" field in Message serializer
+
+    *Jacopo Beschi*
+
 *   Prevent global cache options being overwritten when setting dynamic options
     inside a `ActiveSupport::Cache::Store#fetch` block.
 
