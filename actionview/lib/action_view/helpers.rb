@@ -25,6 +25,7 @@ require "action_view/helpers/javascript_helper"
 require "action_view/helpers/number_helper"
 require "action_view/helpers/rendering_helper"
 require "action_view/helpers/translation_helper"
+require "action_view/helpers/form_builder"
 
 module ActionView # :nodoc:
   module Helpers # :nodoc:
