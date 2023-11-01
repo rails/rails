@@ -296,7 +296,7 @@ promise.value # => 10
 These methods allow for the execution of these operations in an asynchronous manner, which can significantly
 improve performance for certain types of database queries.
 
-### Allow templates to set strict `locals`.
+### Allow templates to set strict `locals`
 
 Introduce a new feature that [allows templates to set explicit `locals`](https://github.com/rails/rails/pull/45602).
 This enhancement provides greater control and clarity when passing variables to your templates.
