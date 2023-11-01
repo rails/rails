@@ -129,6 +129,16 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+    def test_insert_all_generates_correct_sql
+      skip unless supports_insert_on_duplicate_skip?
+
+      assert_sql(/ON DUPLICATE KEY UPDATE/) do
+        Book.insert_all [{ id: 1, name: "Agile Web Development with Rails" }]
+      end
+    end
+  end
+
   def test_insert_all_with_skip_duplicates_and_autonumber_id_not_given
     skip unless supports_insert_on_duplicate_skip?
 

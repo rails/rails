@@ -639,11 +639,12 @@ module ActiveRecord
       end
 
       def build_insert_sql(insert) # :nodoc:
-        sql = +"INSERT"
-        sql << " IGNORE" if insert.skip_duplicates?
-        sql << " #{insert.into} #{insert.values_list}"
+        sql = +"INSERT #{insert.into} #{insert.values_list}"
 
-        if insert.update_duplicates?
+        if insert.skip_duplicates?
+          no_op_column = quote_column_name(insert.keys.first)
+          sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{no_op_column}"
+        elsif insert.update_duplicates?
           sql << " ON DUPLICATE KEY UPDATE "
           if insert.raw_update_sql?
             sql << insert.raw_update_sql
