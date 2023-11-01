@@ -49,6 +49,14 @@ module ActiveRecord # :nodoc:
       # By default, the normalization will not be applied to +nil+ values. This
       # behavior can be changed with the +:apply_to_nil+ option.
       #
+      # Be aware that if your app was created before Rails 7.1, and your app
+      # marshals instances of the targeted model (for example, when caching),
+      # then you should set ActiveRecord.marshalling_format_version to +7.1+ or
+      # higher via either <tt>config.load_defaults 7.1</tt> or
+      # <tt>config.active_record.marshalling_format_version = 7.1</tt>.
+      # Otherwise, +Marshal+ may attempt to serialize the normalization +Proc+
+      # and raise +TypeError+.
+      #
       # ==== Options
       #
       # * +:with+ - Any callable object that accepts the attribute's value as
