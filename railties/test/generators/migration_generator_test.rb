@@ -49,6 +49,10 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_exit_on_failure
+    assert_equal true, generator_class.exit_on_failure?
+  end
+
   def test_add_migration_with_attributes
     migration = "add_title_body_to_posts"
     run_generator [migration, "title:string", "body:text"]
