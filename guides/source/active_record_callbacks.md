@@ -610,7 +610,9 @@ User was saved to database
 
 ### Transactional Callback Ordering
 
-When defining multiple transactional `after_` callbacks (`after_commit`, `after_rollback`, etc), the order will be reversed from when they are defined.
+By default, callbacks will run in the order they are defined. However, when
+defining multiple transactional `after_` callbacks (`after_commit`,
+`after_rollback`, etc), the order could be reversed from when they are defined.
 
 ```ruby
 class User < ActiveRecord::Base
@@ -620,6 +622,15 @@ end
 ```
 
 NOTE: This applies to all `after_*_commit` variations too, such as `after_destroy_commit`.
+
+This order can be set via configuration:
+
+```ruby
+config.active_record.run_after_transaction_callbacks_in_order_defined = false
+```
+
+When set to `true` (the default from Rails 7.1), callbacks are executed in the order they
+are defined. When set to `false`, the order is reversed, just like in the example above.
 
 [`after_create_commit`]: https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-after_create_commit
 [`after_destroy_commit`]: https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-after_destroy_commit

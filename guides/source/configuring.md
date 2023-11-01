@@ -1392,7 +1392,7 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.active_record.run_after_transaction_callbacks_in_order_defined`
 
-If true, `after_commit` callbacks are executed in the order they are defined in a model. If false, they are executed in reverse order.
+When `true`, `after_commit` callbacks are executed in the order they are defined in a model. When `false`, they are executed in reverse order.
 
 All other callbacks are always executed in the order they are defined in a model (unless you use `prepend: true`).
 

@@ -241,8 +241,8 @@ module ActiveRecord
   #
   #   config.active_record.run_after_transaction_callbacks_in_order_defined = false
   #
-  # If +true+ (the default from \Rails 7.1), callbacks are executed in the order they
-  # are defined, just like the example above. If +false+, the order is reversed, so
+  # When set to +true+ (the default from \Rails 7.1), callbacks are executed in the order they
+  # are defined, just like the example above. When set to +false+, the order is reversed, so
   # +do_something_else+ is executed before +log_children+.
   #
   # == \Transactions
