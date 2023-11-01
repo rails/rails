@@ -1979,6 +1979,7 @@ NOTE: Defined in `active_support/core_ext/numeric/bytes.rb`.
 
 The following methods:
 
+* [`in_milliseconds`][Numeric#in_milliseconds]
 * [`seconds`][Numeric#seconds]
 * [`minutes`][Numeric#minutes]
 * [`hours`][Numeric#hours]
