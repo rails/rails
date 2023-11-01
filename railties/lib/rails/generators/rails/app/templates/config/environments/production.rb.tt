@@ -13,7 +13,7 @@ Rails.application.configure do
   config.eager_load = true
 
   # Full error reports are disabled and caching is turned on.
-  config.consider_all_requests_local       = false
+  config.consider_all_requests_local = false
   <%- unless options.api? -%>
   config.action_controller.perform_caching = true
   <%- end -%>
@@ -77,7 +77,7 @@ Rails.application.configure do
 
   <%- unless options[:skip_active_job] -%>
   # Use a real queuing backend for Active Job (and separate queues per environment).
-  # config.active_job.queue_adapter     = :resque
+  # config.active_job.queue_adapter = :resque
   # config.active_job.queue_name_prefix = "<%= app_name %>_production"
 
   <%- end -%>
