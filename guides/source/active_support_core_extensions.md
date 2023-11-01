@@ -1947,6 +1947,7 @@ All numbers respond to these methods:
 * [`terabytes`][Numeric#terabytes]
 * [`petabytes`][Numeric#petabytes]
 * [`exabytes`][Numeric#exabytes]
+* [`zettabytes`][Numeric#zettabytes]
 
 They return the corresponding amount of bytes, using a conversion factor of 1024:
 
@@ -1972,6 +1973,7 @@ NOTE: Defined in `active_support/core_ext/numeric/bytes.rb`.
 [Numeric#megabytes]: https://api.rubyonrails.org/classes/Numeric.html#method-i-megabytes
 [Numeric#petabytes]: https://api.rubyonrails.org/classes/Numeric.html#method-i-petabytes
 [Numeric#terabytes]: https://api.rubyonrails.org/classes/Numeric.html#method-i-terabytes
+[Numeric#zettabytes]: https://api.rubyonrails.org/classes/Numeric.html#method-i-zettabytes
 
 ### Time
 
