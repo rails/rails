@@ -39,6 +39,10 @@ class ActiveStorage::Preview
     @blob, @variation = blob, ActiveStorage::Variation.wrap(variation_or_variation_key)
   end
 
+  def processed?
+    image.attached?
+  end
+
   # Processes the preview if it has not been processed yet. Returns the receiving Preview instance for convenience:
   #
   #   blob.preview(resize_to_limit: [100, 100]).processed.url
@@ -91,10 +95,6 @@ class ActiveStorage::Preview
   end
 
   private
-    def processed?
-      image.attached?
-    end
-
     def process
       previewer.preview(service_name: blob.service_name) do |attachable|
         ActiveRecord::Base.connected_to(role: ActiveRecord.writing_role) do
