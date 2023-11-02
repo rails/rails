@@ -61,6 +61,10 @@ class ActiveStorage::Variant
     @blob, @variation = blob, ActiveStorage::Variation.wrap(variation_or_variation_key)
   end
 
+  def processed?
+    service.exist?(key)
+  end
+
   # Returns the variant instance itself after it's been processed or an existing processing has been found on the service.
   def processed
     process unless processed?
@@ -102,10 +106,6 @@ class ActiveStorage::Variant
   end
 
   private
-    def processed?
-      service.exist?(key)
-    end
-
     def process
       blob.open do |input|
         variation.transform(input) do |output|
