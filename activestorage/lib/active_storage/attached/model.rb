@@ -78,10 +78,16 @@ module ActiveStorage
       # (i.e. destroyed) whenever the record is destroyed.
       #
       # If you need the attachment to use a service which differs from the globally configured one,
-      # pass the +:service+ option. For instance:
+      # pass the +:service+ option. For example:
       #
       #   class User < ActiveRecord::Base
       #     has_one_attached :avatar, service: :s3
+      #   end
+      #
+      # +:service+ can also be specified as a proc, and it will be called with the model instance:
+      #
+      #   class User < ActiveRecord::Base
+      #     has_one_attached :avatar, service: ->(user) { user.in_europe_region? ? :s3_europe : :s3_usa }
       #   end
       #
       # If you need to enable +strict_loading+ to prevent lazy loading of attachment,
@@ -92,7 +98,7 @@ module ActiveStorage
       #   end
       #
       def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
-        validate_service_configuration(name, service)
+        ActiveStorage::Blob.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           # frozen_string_literal: true
@@ -163,10 +169,16 @@ module ActiveStorage
       # (i.e. destroyed) whenever the record is destroyed.
       #
       # If you need the attachment to use a service which differs from the globally configured one,
-      # pass the +:service+ option. For instance:
+      # pass the +:service+ option. For example:
       #
       #   class Gallery < ActiveRecord::Base
       #     has_many_attached :photos, service: :s3
+      #   end
+      #
+      # +:service+ can also be specified as a proc, and it will be called with the model instance:
+      #
+      #   class Gallery < ActiveRecord::Base
+      #     has_many_attached :photos, service: ->(gallery) { gallery.personal? ? :personal_s3 : :s3 }
       #   end
       #
       # If you need to enable +strict_loading+ to prevent lazy loading of attachments,
@@ -177,7 +189,7 @@ module ActiveStorage
       #   end
       #
       def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
-        validate_service_configuration(name, service)
+        ActiveStorage::Blob.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           # frozen_string_literal: true
@@ -223,23 +235,6 @@ module ActiveStorage
         yield reflection if block_given?
         ActiveRecord::Reflection.add_attachment_reflection(self, name, reflection)
       end
-
-      private
-        def validate_service_configuration(association_name, service)
-          if service.present?
-            ActiveStorage::Blob.services.fetch(service) do
-              raise ArgumentError, "Cannot configure service :#{service} for #{name}##{association_name}"
-            end
-          else
-            validate_global_service_configuration
-          end
-        end
-
-        def validate_global_service_configuration
-          if connected? && ActiveStorage::Blob.table_exists? && Rails.configuration.active_storage.service.nil?
-            raise RuntimeError, "Missing Active Storage service name. Specify Active Storage service name for config.active_storage.service in config/environments/#{Rails.env}.rb"
-          end
-        end
     end
 
     def attachment_changes # :nodoc:

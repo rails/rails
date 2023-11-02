@@ -772,6 +772,23 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "attaching a new blob from an uploaded file with a service defined at runtime" do
+    extra_attached = Class.new(User) do
+      def self.name; superclass.name; end
+
+      has_many_attached :signatures, service: ->(user) { "disk_#{user.mirror_region}" }
+
+      def mirror_region
+        :mirror_2
+      end
+    end
+
+    @user = @user.becomes(extra_attached)
+
+    @user.signatures.attach fixture_file_upload("cropped.pdf")
+    assert_equal :disk_mirror_2, @user.signatures.first.service.name
+  end
+
   test "attaching blobs to a persisted, unchanged, and valid record, returns the attachments" do
     @user.highlights.attach create_blob(filename: "racecar.jpg")
     return_value = @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
@@ -821,6 +838,20 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
 
     assert_match(/Cannot configure service :unknown for User#featured_photos/, error.message)
+  end
+
+  test "raises error when misconfigured service is defined at runtime" do
+    extra_attached = Class.new(User) do
+      def self.name; superclass.name; end
+
+      has_many_attached :featured_vlogs, service: ->(*) { :unknown }
+    end
+
+    @user = @user.becomes(extra_attached)
+
+    assert_raises match: /Cannot configure service :unknown for .+#featured_vlog/ do
+      @user.featured_vlogs.attach fixture_file_upload("video.mp4")
+    end
   end
 
   test "creating variation by variation name" do
