@@ -346,6 +346,7 @@ The `:cache_hits` key is only included if the collection is rendered with `cache
 | `:binds`             | Bind parameters                          |
 | `:type_casted_binds` | Typecasted bind parameters               |
 | `:statement_name`    | SQL Statement name                       |
+| `:async`             | `true` if query is loaded asynchronously |
 | `:cached`            | `true` is added when cached queries used |
 
 Adapters may add their own data as well.
