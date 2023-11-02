@@ -190,6 +190,89 @@ if SERVICE_CONFIGURATIONS[:s3]
       end
     end
 
+    test "downloading with customer-provided server-side encryption keys" do
+      options = {
+        sse_customer_algorithm: "AES256",
+        sse_customer_key: "12345678901234567890123456789012",
+        sse_customer_key_md5: "45e6e351498b1c138ae30fd9d9382b66"
+      }
+      service = build_service(upload: options, download: options)
+
+      begin
+        key  = SecureRandom.base58(24)
+        data = "Something else entirely!"
+        service.upload key, StringIO.new(data)
+
+        assert_equal data, service.download(key)
+      ensure
+        service.delete key
+      end
+    end
+
+    test "downloading partially with customer-provided server-side encryption keys" do
+      options = {
+        sse_customer_algorithm: "AES256",
+        sse_customer_key: "12345678901234567890123456789012",
+        sse_customer_key_md5: "45e6e351498b1c138ae30fd9d9382b66"
+      }
+      service = build_service(upload: options, download: options)
+
+      begin
+        key  = SecureRandom.base58(24)
+        data = "Something else entirely!"
+        service.upload key, StringIO.new(data)
+
+        assert_equal "Some", service.download_chunk(key, 0..3)
+      ensure
+        service.delete key
+      end
+    end
+
+    test "downloading in chunks with customer-provided server-side encryption keys" do
+      options = {
+        sse_customer_algorithm: "AES256",
+        sse_customer_key: "12345678901234567890123456789012",
+        sse_customer_key_md5: "45e6e351498b1c138ae30fd9d9382b66"
+      }
+      service = build_service(upload: options, download: options)
+
+      key = SecureRandom.base58(24)
+      expected_chunks = [ "a" * 5.megabytes, "b" ]
+      actual_chunks = []
+
+      begin
+        service.upload key, StringIO.new(expected_chunks.join)
+
+        service.download key do |chunk|
+          actual_chunks << chunk
+        end
+
+        assert_equal expected_chunks, actual_chunks, "Downloaded chunks did not match uploaded data"
+      ensure
+        service.delete key
+      end
+    end
+
+    test "existing with customer-provided server-side encryption keys" do
+      options = {
+        sse_customer_algorithm: "AES256",
+        sse_customer_key: "12345678901234567890123456789012",
+        sse_customer_key_md5: "45e6e351498b1c138ae30fd9d9382b66"
+      }
+      service = build_service(upload: options, download: options)
+
+      begin
+        key  = SecureRandom.base58(24)
+        data = "Something else entirely!"
+        service.upload key, StringIO.new(data)
+
+        assert service.exist?(key)
+        assert_not service.exist?(key + "nonsense")
+      ensure
+        service.delete key
+      end
+    end
+
     private
       def build_service(configuration)
         ActiveStorage::Service.configure :s3, SERVICE_CONFIGURATIONS.deep_merge(s3: configuration)
