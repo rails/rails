@@ -2804,6 +2804,20 @@ By default, this is defined as:
 config.active_storage.content_types_allowed_inline = %w(image/png image/gif image/jpeg image/tiff image/vnd.adobe.photoshop image/vnd.microsoft.icon application/pdf)
 ```
 
+#### `config.active_storage.content_type_matchers`
+
+Accepts a hash of with procs to match the content type.
+By default, this is defined as:
+
+```ruby
+config.active_storage.content_type_matchers = {
+  image: -> (content_type) { content_type.start_with?("image") },
+  audio: -> (content_type) { content_type.start_with?("audio") },
+  video: -> (content_type) { content_type.start_with?("video") },
+  text:  -> (content_type) { content_type.start_with?("text") }
+}
+```
+
 #### `config.active_storage.queues.analysis`
 
 Accepts a symbol indicating the Active Job queue to use for analysis jobs. When this option is `nil`, analysis jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).

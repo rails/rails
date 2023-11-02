@@ -75,6 +75,13 @@ module ActiveStorage
       application/pdf
     )
 
+    config.active_storage.content_type_matchers = {
+      image: -> (content_type) { content_type.start_with?("image") },
+      audio: -> (content_type) { content_type.start_with?("audio") },
+      video: -> (content_type) { content_type.start_with?("video") },
+      text:  -> (content_type) { content_type.start_with?("text") }
+    }
+
     config.eager_load_namespaces << ActiveStorage
 
     initializer "active_storage.deprecator", before: :load_environment_config do |app|
@@ -116,6 +123,7 @@ module ActiveStorage
         ActiveStorage.content_types_allowed_inline = app.config.active_storage.content_types_allowed_inline || []
         ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
         ActiveStorage.video_preview_arguments = app.config.active_storage.video_preview_arguments || "-y -vframes 1 -f image2"
+        ActiveStorage.content_type_matchers = app.config.active_storage.content_type_matchers
 
         unless app.config.active_storage.silence_invalid_content_types_warning.nil?
           ActiveStorage.silence_invalid_content_types_warning = app.config.active_storage.silence_invalid_content_types_warning

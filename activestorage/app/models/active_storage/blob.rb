@@ -17,6 +17,8 @@
 # update a blob's metadata on a subsequent pass, but you should not update the key or change the uploaded file.
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
 class ActiveStorage::Blob < ActiveStorage::Record
+  class UnknownContentTypeMatcher < StandardError; end
+
   include Analyzable
   include Identifiable
   include Representable
@@ -188,22 +190,22 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   # Returns true if the content_type of this blob is in the image range, like image/png.
   def image?
-    content_type.start_with?("image")
+    content_type_match_for?(:image)
   end
 
   # Returns true if the content_type of this blob is in the audio range, like audio/mpeg.
   def audio?
-    content_type.start_with?("audio")
+    content_type_match_for?(:audio)
   end
 
   # Returns true if the content_type of this blob is in the video range, like video/mp4.
   def video?
-    content_type.start_with?("video")
+    content_type_match_for?(:video)
   end
 
   # Returns true if the content_type of this blob is in the text range, like text/plain.
   def text?
-    content_type.start_with?("text")
+    content_type_match_for?(:text)
   end
 
   # Returns the URL of the blob on the service. This returns a permanent URL for public files, and returns a
@@ -390,6 +392,30 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
     def update_service_metadata
       service.update_metadata key, **service_metadata if service_metadata.any?
+    end
+
+    def method_missing(method, *args)
+      if method.end_with?("?")
+        matcher_name = method[0..-2]
+        content_type_match_for?(matcher_name)
+      else
+        super
+      end
+    end
+
+    def respond_to_missing?(method, include_private = false)
+      if method.end_with?("?")
+        matcher_name = method[0..-2]
+        ActiveStorage.content_type_matchers.has_key?(matcher_name.to_sym)
+      else
+        super
+      end
+    end
+
+    def content_type_match_for?(name)
+      matcher = ActiveStorage.content_type_matchers[name.to_sym]
+      raise UnknownContentTypeMatcher, "Unknown content type matcher '#{name}'" unless matcher
+      matcher.call(content_type)
     end
 end
 

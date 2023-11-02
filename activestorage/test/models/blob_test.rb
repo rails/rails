@@ -143,6 +143,37 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_not_predicate blob, :audio?
   end
 
+  test "custom content type matcher" do
+    ActiveStorage.content_type_matchers[:pdf] = -> (content_type) { content_type == "application/pdf" }
+    blob = create_blob data: "Hello world!", content_type: "application/pdf"
+    assert_respond_to blob, :pdf?
+    assert_predicate blob, :pdf?
+    assert_not_predicate blob, :image?
+
+    blob.content_type = "image/png"
+    assert_not_predicate blob, :pdf?
+  ensure
+    ActiveStorage.content_type_matchers.delete(:pdf)
+  end
+
+  test "unknown content type matcher" do
+    blob = create_blob data: "Hello world!"
+    assert_not_respond_to blob, :unknown?
+    assert_raises ActiveStorage::Blob::UnknownContentTypeMatcher do
+      blob.unknown?
+    end
+  end
+
+  test "removing existing matchers" do
+    matcher = ActiveStorage.content_type_matchers.delete(:image)
+    blob = create_blob data: "Hello world!"
+    assert_raises ActiveStorage::Blob::UnknownContentTypeMatcher do
+      blob.image?
+    end
+  ensure
+    ActiveStorage.content_type_matchers[:image] = matcher
+  end
+
   test "download yields chunks" do
     blob   = create_blob data: "a" * 5.0625.megabytes
     chunks = []
