@@ -80,7 +80,7 @@ Returns an HTML picture tag for the source. It supports passing a String, an Arr
 ```ruby
 picture_tag("icon.webp", "icon.png") # =>
 
-<picture class="mt-2">
+<picture>
   <source srcset="/icon.webp" />
   <source srcset="/icon.png" />
   <img src="/icon.png" />
