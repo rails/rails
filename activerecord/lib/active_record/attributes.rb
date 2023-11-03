@@ -249,12 +249,11 @@ module ActiveRecord
         end
       end
 
-      def reload_schema_from_cache(*)
-        reset_default_attributes!
-        super
-      end
-
-      alias :reset_default_attributes :reload_schema_from_cache
+      protected
+        def reload_schema_from_cache(*)
+          reset_default_attributes!
+          super
+        end
 
       private
         NO_DEFAULT_PROVIDED = Object.new # :nodoc:
@@ -274,6 +273,10 @@ module ActiveRecord
             default_attribute = ActiveModel::Attribute.from_database(name, value, type)
           end
           _default_attributes[name] = default_attribute
+        end
+
+        def reset_default_attributes
+          reload_schema_from_cache
         end
 
         def resolve_type_name(name, **options)
