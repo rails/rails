@@ -123,8 +123,13 @@ $ sudo apt-get install sqlite3 libsqlite3-dev mysql-server libmysqlclient-dev po
 
 # Install Yarn
 # Use this command if you do not have Node.js installed
-$ curl --fail --silent --show-error --location https://deb.nodesource.com/setup_18.x | sudo -E bash -
+# ref: https://github.com/nodesource/distributions#installation-instructions
+$ sudo mkdir -p /etc/apt/keyrings
+$ curl --fail --silent --show-error --location https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+$ echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+$ sudo apt-get update
 $ sudo apt-get install -y nodejs
+
 # Once you have installed Node.js, install the yarn npm package
 $ sudo npm install --global yarn
 ```
@@ -138,8 +143,10 @@ $ sudo dnf install sqlite-devel sqlite-libs mysql-server mysql-devel postgresql-
 
 # Install Yarn
 # Use this command if you do not have Node.js installed
-$ curl --silent --location https://rpm.nodesource.com/setup_18.x | sudo bash -
-$ sudo dnf install -y nodejs
+# ref: https://github.com/nodesource/distributions#installation-instructions-1
+$ sudo dnf install https://rpm.nodesource.com/pub_20/nodistro/repo/nodesource-release-nodistro-1.noarch.rpm -y
+$ sudo dnf install nodejs -y --setopt=nodesource-nodejs.module_hotfixes=1
+
 # Once you have installed Node.js, install the yarn npm package
 $ sudo npm install --global yarn
 ```
