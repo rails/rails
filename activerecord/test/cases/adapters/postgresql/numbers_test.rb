@@ -48,4 +48,20 @@ class PostgresqlNumberTest < ActiveRecord::PostgreSQLTestCase
     assert_equal new_single, record.single
     assert_equal new_double, record.double
   end
+
+  def test_reassigning_infinity_does_not_mark_record_as_changed
+    record = PostgresqlNumber.create!(single: Float::INFINITY, double: -Float::INFINITY)
+    record.reload
+    record.single = Float::INFINITY
+    record.double = -Float::INFINITY
+    assert_not_predicate record, :changed?
+  end
+
+  def test_reassigning_nan_does_not_mark_record_as_changed
+    record = PostgresqlNumber.create!(single: Float::NAN, double: Float::NAN)
+    record.reload
+    record.single = Float::NAN
+    record.double = Float::NAN
+    assert_not_predicate record, :changed?
+  end
 end

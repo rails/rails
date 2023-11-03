@@ -1,3 +1,9 @@
+*   Don't mark Float::INFINITY as changed when reassigning it
+
+    When saving a record with a float infinite value, it shouldn't mark as changed
+
+    *Maicol Bentancor*
+
 *   Support `RETURNING` clause for MariaDB
 
     *fatkodima*, *Nikolay Kondratyev*
