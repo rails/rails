@@ -148,15 +148,29 @@ class DriverTest < ActiveSupport::TestCase
     end
   end
 
-  test "preloads browser's driver_path" do
-    called = false
-
+  test "preloads browser's driver_path with DriverFinder if a path isn't already specified" do
     original_driver_path = ::Selenium::WebDriver::Chrome::Service.driver_path
-    ::Selenium::WebDriver::Chrome::Service.driver_path = -> { called = true }
+    ::Selenium::WebDriver::Chrome::Service.driver_path = nil
 
-    ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome)
+    # Our stub must return a path to a real executable, otherwise an internal Selenium assertion will fail.
+    found_executable = RbConfig.ruby
+    ::Selenium::WebDriver::SeleniumManager.stub(:driver_path, found_executable) do
+      ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome)
+    end
 
-    assert called
+    assert_equal found_executable, ::Selenium::WebDriver::Chrome::Service.driver_path
+  ensure
+    ::Selenium::WebDriver::Chrome::Service.driver_path = original_driver_path
+  end
+
+  test "does not overwrite existing driver_path during preload" do
+    original_driver_path = ::Selenium::WebDriver::Chrome::Service.driver_path
+    # The driver_path must point to a real executable, otherwise an internal Selenium assertion will fail.
+    ::Selenium::WebDriver::Chrome::Service.driver_path = RbConfig.ruby
+
+    assert_no_changes -> { ::Selenium::WebDriver::Chrome::Service.driver_path } do
+      ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome)
+    end
   ensure
     ::Selenium::WebDriver::Chrome::Service.driver_path = original_driver_path
   end
