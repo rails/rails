@@ -81,8 +81,8 @@ Returns an HTML picture tag for the source. It supports passing a String, an Arr
 picture_tag("icon.webp", "icon.png") # =>
 
 <picture>
-  <source srcset="/icon.webp" />
-  <source srcset="/icon.png" />
+  <source srcset="/icon.webp" type="image/webp" />
+  <source srcset="/icon.png" type="image/png" />
   <img src="/icon.png" />
 </picture>
 ```
