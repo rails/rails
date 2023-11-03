@@ -73,6 +73,20 @@ Returns an HTML image tag for the source. The source can be a full path or a fil
 image_tag("icon.png") # => <img src="/assets/icon.png" />
 ```
 
+#### picture_tag
+
+Returns an HTML picture tag for the source. It supports passing a String, an Array or a Block.
+
+```ruby
+picture_tag("icon.webp", "icon.png") # =>
+
+<picture class="mt-2">
+  <source srcset="/icon.webp" />
+  <source srcset="/icon.png" />
+  <img src="/icon.png" />
+</picture>
+```
+
 #### javascript_include_tag
 
 Returns an HTML script tag for each of the sources provided. You can pass in the filename (`.js` extension is optional) of JavaScript files that exist in your `app/assets/javascripts` directory for inclusion into the current page or you can pass the full path relative to your document root.
