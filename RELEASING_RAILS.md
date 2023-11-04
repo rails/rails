@@ -24,7 +24,7 @@ Obviously Rails cannot be released when it depends on unreleased code.
 Contact the authors of those particular gems and work out a release date that
 suits them.
 
-### Announce your plans to the rest of the team on Campfire
+### Announce your plans to the rest of the team in Basecamp
 
 Let them know of your plans to release.
 
