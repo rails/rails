@@ -524,6 +524,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "posts", PostRecord.table_name
   end
 
+  def test_table_name_for_base_class
+    assert_nil ActiveRecord::Base.table_name
+  end
+
   def test_null_fields
     assert_nil Topic.find(1).parent_id
     assert_nil Topic.create("title" => "Hey you").parent_id
