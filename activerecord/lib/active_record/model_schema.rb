@@ -457,7 +457,7 @@ module ActiveRecord
       end
 
       # Returns the column object for the named attribute.
-      # Returns an +ActiveRecord::ConnectionAdapters::NullColumn+ if the
+      # Returns an ActiveRecord::ConnectionAdapters::NullColumn if the
       # named attribute does not exist.
       #
       #   class Person < ActiveRecord::Base
