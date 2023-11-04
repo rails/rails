@@ -498,7 +498,7 @@ You can declare as many callbacks as you want inside your callback classes.
 Transaction Callbacks
 ---------------------
 
-### Dealing With Consistency
+### `after_commit` and `after_rollback`
 
 There are two additional callbacks that are triggered by the completion of a database transaction: [`after_commit`][] and [`after_rollback`][]. These callbacks are very similar to the `after_save` callback except that they don't execute until after database changes have either been committed or rolled back. They are most useful when your Active Record models need to interact with external systems which are not part of the database transaction.
 
@@ -527,7 +527,23 @@ end
 
 NOTE: The `:on` option specifies when a callback will be fired. If you don't supply the `:on` option the callback will fire for every action.
 
-### Context Matters
+WARNING. When a transaction completes, the `after_commit` or `after_rollback` callbacks are called for all models created, updated, or destroyed within that transaction. However, if an exception is raised within one of these callbacks, the exception will bubble up and any remaining `after_commit` or `after_rollback` methods will _not_ be executed. As such, if your callback code could raise an exception, you'll need to rescue it and handle it within the callback in order to allow other callbacks to run.
+
+WARNING. The code executed within `after_commit` or `after_rollback` callbacks is itself not enclosed within a transaction.
+
+WARNING. In the context of a single transaction, if you interact with multiple
+loaded objects that represent the same record in the database, there's a crucial
+behavior in the `after_commit` and `after_rollback` callbacks to note. These
+callbacks are triggered only for the first object of the specific record that
+undergoes a change within the transaction. Other loaded objects, despite
+representing the same database record, will not have their respective
+`after_commit` or `after_rollback` callbacks triggered. This nuanced behavior is
+particularly impactful in scenarios where you expect independent callback
+execution for each object associated with the same database record. It can
+influence the flow and predictability of callback sequences, leading to potential
+inconsistencies in application logic following the transaction.
+
+### Aliases for `after_commit`
 
 Since using the `after_commit` callback only on create, update, or delete is
 common, there are aliases for those operations:
@@ -547,10 +563,6 @@ class PictureFile < ApplicationRecord
   end
 end
 ```
-
-WARNING. When a transaction completes, the `after_commit` or `after_rollback` callbacks are called for all models created, updated, or destroyed within that transaction. However, if an exception is raised within one of these callbacks, the exception will bubble up and any remaining `after_commit` or `after_rollback` methods will _not_ be executed. As such, if your callback code could raise an exception, you'll need to rescue it and handle it within the callback in order to allow other callbacks to run.
-
-WARNING. The code executed within `after_commit` or `after_rollback` callbacks is itself not enclosed within a transaction.
 
 WARNING. Using both `after_create_commit` and `after_update_commit` with the same method name will only allow the last callback defined to take effect, as they both internally alias to `after_commit` which overrides previously defined callbacks with the same method name.
 
@@ -572,18 +584,6 @@ irb> @user = User.create # prints nothing
 irb> @user.save # updating @user
 User was saved to database
 ```
-
-WARNING. In the context of a single transaction, if you interact with multiple
-loaded objects that represent the same record in the database, there's a crucial
-behavior in the `after_commit` and `after_rollback` callbacks to note. These
-callbacks are triggered only for the first object of the specific record that
-undergoes a change within the transaction. Other loaded objects, despite
-representing the same database record, will not have their respective
-`after_commit` or `after_rollback` callbacks triggered. This nuanced behavior is
-particularly impactful in scenarios where you expect independent callback
-execution for each object associated with the same database record. It can
-influence the flow and predictability of callback sequences, leading to potential
-inconsistencies in application logic following the transaction.
 
 ### `after_save_commit`
 
