@@ -40,6 +40,25 @@ module ActiveModel
         end
       end
 
+      # Returns the type of the specified attribute after applying any
+      # modifiers. This method is the only valid source of information for
+      # anything related to the types of a model's attributes. The return value
+      # of this method will implement the interface described by
+      # ActiveModel::Type::Value (though the object itself may not subclass it).
+      def type_for_attribute(attribute_name, &block)
+        attribute_name = resolve_attribute_name(attribute_name)
+
+        if block
+          attribute_types.fetch(attribute_name, &block)
+        else
+          attribute_types[attribute_name]
+        end
+      end
+
+      def resolve_attribute_name(name) # :nodoc:
+        name.to_s
+      end
+
       private
         PendingType = Struct.new(:name, :type) do # :nodoc:
           def apply_to(attribute_set)
@@ -86,10 +105,6 @@ module ActiveModel
         def reset_default_attributes!
           @default_attributes = nil
           @attribute_types = nil
-        end
-
-        def resolve_attribute_name(name)
-          name.to_s
         end
 
         def resolve_type_name(name, **options)

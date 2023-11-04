@@ -37,4 +37,9 @@
 
     *Steve Polito*
 
+*   Remove the option `config.public_file_server.enabled` from the generators
+    for all environments, as the value is the same in all environments.
+
+    *Adrian Hirt*
+
 Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/railties/CHANGELOG.md) for previous changes.

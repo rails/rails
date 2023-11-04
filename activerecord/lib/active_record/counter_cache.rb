@@ -182,7 +182,7 @@ module ActiveRecord
         _counter_cache_columns.include?(name)
       end
 
-      def load_schema # :nodoc:
+      def load_schema! # :nodoc:
         super
 
         association_names = _reflections.filter_map do |name, reflection|
