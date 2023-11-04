@@ -78,12 +78,16 @@ image_tag("icon.png") # => <img src="/assets/icon.png" />
 Returns an HTML picture tag for the source. It supports passing a String, an Array or a Block.
 
 ```ruby
-picture_tag("icon.webp", "icon.png") # =>
+picture_tag("icon.webp", "icon.png")
+```
 
+This generates the following HTML:
+
+```html
 <picture>
-  <source srcset="/icon.webp" type="image/webp" />
-  <source srcset="/icon.png" type="image/png" />
-  <img src="/icon.png" />
+  <source srcset="/assets/icon.webp" type="image/webp" />
+  <source srcset="/assets/icon.png" type="image/png" />
+  <img src="/assets/icon.png" />
 </picture>
 ```
 
