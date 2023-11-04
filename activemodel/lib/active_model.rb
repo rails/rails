@@ -45,6 +45,7 @@ module ActiveModel
   autoload :Conversion
   autoload :Dirty
   autoload :EachValidator, "active_model/validator"
+  autoload :Enum
   autoload :ForbiddenAttributesProtection
   autoload :Lint
   autoload :Model

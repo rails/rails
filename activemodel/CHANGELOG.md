@@ -1,3 +1,21 @@
+*   Introduce `ActiveModel::Enum`.
+
+    ```ruby
+    class Conversation
+      include ActiveModel::Attributes
+      include ActiveModel::Enum
+      attribute :status, :integer
+      enum :status, [ :active, :archived ]
+    end
+
+    conversation = Conversation.new
+    conversation.active!
+    conversation.active? # => true
+    conversation.status  # => "active"
+    ```
+
+    *Petrik de Heus*
+
 *   Port the `BeforeTypeCast` module to Active Model. Classes that include
     `ActiveModel::Attributes` will now automatically define methods such as
     `*_before_type_cast`, `*_for_database`, etc. These methods behave the same

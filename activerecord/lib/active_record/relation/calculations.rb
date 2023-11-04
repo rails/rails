@@ -455,7 +455,7 @@ module ActiveRecord
           if operation != "count"
             type = column.try(:type_caster) ||
               lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
-            type = type.subtype if Enum::EnumType === type
+            type = type.subtype if ActiveModel::Enum::EnumType === type
           end
 
           type_cast_calculated_value(result.cast_values.first, operation, type)
@@ -526,7 +526,7 @@ module ActiveRecord
           if operation != "count"
             type = column.try(:type_caster) ||
               lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
-            type = type.subtype if Enum::EnumType === type
+            type = type.subtype if ActiveModel::Enum::EnumType === type
           end
 
           hash_rows.each_with_object({}) do |row, result|
