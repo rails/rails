@@ -2756,46 +2756,7 @@ class Author < ApplicationRecord
 end
 ```
 
-Rails passes the object being added or removed to the callback.
-
-You can stack callbacks on a single event by passing them as an array:
-
-```ruby
-class Author < ApplicationRecord
-  has_many :books,
-    before_add: [:check_credit_limit, :calculate_shipping_charges]
-
-  def check_credit_limit(book)
-    # ...
-  end
-
-  def calculate_shipping_charges(book)
-    # ...
-  end
-end
-```
-
-If a `before_add` callback throws `:abort`, the object does not get added to
-the collection. Similarly, if a `before_remove` callback throws `:abort`, the
-object does not get removed from the collection:
-
-```ruby
-# book won't be added if the limit has been reached
-def check_credit_limit(book)
-  throw(:abort) if limit_reached?
-end
-```
-
-NOTE: These callbacks are called only when the associated objects are added or removed through the association collection:
-
-```ruby
-# Triggers `before_add` callback
-author.books << book
-author.books = [book, book2]
-
-# Does not trigger the `before_add` callback
-book.update(author_id: 1)
-```
+Read more about association callbacks in the [Active Record Callbacks Guide](active_record_callbacks.html#association-callbacks)
 
 ### Association Extensions
 
