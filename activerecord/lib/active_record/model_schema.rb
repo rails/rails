@@ -439,28 +439,6 @@ module ActiveRecord
         @yaml_encoder ||= ActiveModel::AttributeSet::YAMLEncoder.new(attribute_types)
       end
 
-      # Returns the type of the attribute with the given name, after applying
-      # all modifiers. This method is the only valid source of information for
-      # anything related to the types of a model's attributes. This method will
-      # access the database and load the model's schema if it is required.
-      #
-      # The return value of this method will implement the interface described
-      # by ActiveModel::Type::Value (though the object itself may not subclass
-      # it).
-      #
-      # +attr_name+ The name of the attribute to retrieve the type for. Must be
-      # a string or a symbol.
-      def type_for_attribute(attr_name, &block)
-        attr_name = attr_name.to_s
-        attr_name = attribute_aliases[attr_name] || attr_name
-
-        if block
-          attribute_types.fetch(attr_name, &block)
-        else
-          attribute_types[attr_name]
-        end
-      end
-
       # Returns the column object for the named attribute.
       # Returns an +ActiveRecord::ConnectionAdapters::NullColumn+ if the
       # named attribute does not exist.
