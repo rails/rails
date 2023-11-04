@@ -1,3 +1,8 @@
+*   `ActiveRecord::Base.table_name` now returns `nil` instead of raising
+    "undefined method `abstract_class?` for Object:Class".
+
+    *a5-stable*
+
 *   Fix upserting for custom `:on_duplicate` and `:unique_by` consisting of all
     inserts keys.
 
