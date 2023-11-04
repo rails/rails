@@ -1,3 +1,7 @@
+*   In Action Mailer previews, show date from message `Date` header if present.
+
+    *Sampat Badhe*
+
 *   Exit with non-zero status when the migration generator fails.
 
     *Katsuhiko YOSHIDA*

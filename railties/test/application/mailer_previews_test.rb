@@ -989,6 +989,66 @@ module ApplicationTests
       assert_match "<dd id=\"bcc\">bcc@example.com</dd>", last_response.body
     end
 
+    test "mailer preview date tag renders date from message header" do
+      mailer "notifier", <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            mail to: "to@example.org", date: Time.utc(2023, 10, 20, 10, 20, 30)
+          end
+        end
+      RUBY
+
+      text_template "notifier/foo", <<-RUBY
+        Hello, World!
+      RUBY
+
+      mailer_preview "notifier", <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app("development")
+
+      get "/rails/mailers/notifier/foo"
+      assert_match "<dd id=\"date\">Fri, 20 Oct 2023 10:20:30 +0000</dd>", last_response.body
+    end
+
+    test "mailer preview date tag falls back to current time when date header is not present" do
+      mailer "notifier", <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      text_template "notifier/foo", <<-RUBY
+        Hello, World!
+      RUBY
+
+      mailer_preview "notifier", <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app("development")
+
+      travel_to(Time.utc(2023, 10, 20, 10, 20, 30)) do
+        get "/rails/mailers/notifier/foo"
+      end
+      assert_match "<dd id=\"date\">Fri, 20 Oct 2023 10:20:30 +0000</dd>", last_response.body
+    end
+
     test "mailer preview has access to rendering context" do
       mailer "notifier", <<-RUBY
         class Notifier < ActionMailer::Base
