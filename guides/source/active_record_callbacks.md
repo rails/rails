@@ -554,18 +554,6 @@ WARNING. The code executed within `after_commit` or `after_rollback` callbacks i
 
 WARNING. Using both `after_create_commit` and `after_update_commit` with the same method name will only allow the last callback defined to take effect, as they both internally alias to `after_commit` which overrides previously defined callbacks with the same method name.
 
-WARNING. In the context of a single transaction, if you interact with multiple
-loaded objects that represent the same record in the database, there's a crucial
-behavior in the `after_commit` and `after_rollback` callbacks to note. These
-callbacks are triggered only for the first object of the specific record that
-undergoes a change within the transaction. Other loaded objects, despite
-representing the same database record, will not have their respective
-`after_commit` or `after_rollback` callbacks triggered. This nuanced behavior is
-particularly impactful in scenarios where you expect independent callback
-execution for each object associated with the same database record. It can
-influence the flow and predictability of callback sequences, leading to potential
-inconsistencies in application logic following the transaction.
-
 ```ruby
 class User < ApplicationRecord
   after_create_commit :log_user_saved_to_db
@@ -584,6 +572,18 @@ irb> @user = User.create # prints nothing
 irb> @user.save # updating @user
 User was saved to database
 ```
+
+WARNING. In the context of a single transaction, if you interact with multiple
+loaded objects that represent the same record in the database, there's a crucial
+behavior in the `after_commit` and `after_rollback` callbacks to note. These
+callbacks are triggered only for the first object of the specific record that
+undergoes a change within the transaction. Other loaded objects, despite
+representing the same database record, will not have their respective
+`after_commit` or `after_rollback` callbacks triggered. This nuanced behavior is
+particularly impactful in scenarios where you expect independent callback
+execution for each object associated with the same database record. It can
+influence the flow and predictability of callback sequences, leading to potential
+inconsistencies in application logic following the transaction.
 
 ### `after_save_commit`
 
