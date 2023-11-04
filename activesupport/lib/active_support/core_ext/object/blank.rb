@@ -16,7 +16,7 @@ class Object
   #
   # @return [true, false]
   def blank?
-    respond_to?(:empty?) ? !!empty? : !self
+    respond_to?(:empty?) ? !!empty? : false
   end
 
   # An object is present if it's not blank.
@@ -56,6 +56,10 @@ class NilClass
   def blank?
     true
   end
+
+  def present? # :nodoc:
+    false
+  end
 end
 
 class FalseClass
@@ -66,6 +70,10 @@ class FalseClass
   # @return [true]
   def blank?
     true
+  end
+
+  def present? # :nodoc:
+    false
   end
 end
 
@@ -78,6 +86,10 @@ class TrueClass
   def blank?
     false
   end
+
+  def present? # :nodoc:
+    true
+  end
 end
 
 class Array
@@ -88,6 +100,10 @@ class Array
   #
   # @return [true, false]
   alias_method :blank?, :empty?
+
+  def present? # :nodoc:
+    !empty?
+  end
 end
 
 class Hash
@@ -98,6 +114,10 @@ class Hash
   #
   # @return [true, false]
   alias_method :blank?, :empty?
+
+  def present? # :nodoc:
+    !empty?
+  end
 end
 
 class Symbol
@@ -106,6 +126,10 @@ class Symbol
   #   :''.blank?     # => true
   #   :symbol.blank? # => false
   alias_method :blank?, :empty?
+
+  def present? # :nodoc:
+    !empty?
+  end
 end
 
 class String
@@ -137,6 +161,10 @@ class String
         ENCODED_BLANKS[self.encoding].match?(self)
       end
   end
+
+  def present? # :nodoc:
+    !blank?
+  end
 end
 
 class Numeric # :nodoc:
@@ -149,6 +177,10 @@ class Numeric # :nodoc:
   def blank?
     false
   end
+
+  def present?
+    true
+  end
 end
 
 class Time # :nodoc:
@@ -159,5 +191,9 @@ class Time # :nodoc:
   # @return [false]
   def blank?
     false
+  end
+
+  def present?
+    true
   end
 end

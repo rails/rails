@@ -506,6 +506,10 @@ module ActiveSupport
       false
     end
 
+    def present? # :nodoc:
+      true
+    end
+
     def freeze
       # preload instance variables before freezing
       period; utc; time; to_datetime; to_time
