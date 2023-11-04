@@ -292,7 +292,6 @@ module ActiveRecord # :nodoc:
     extend DynamicMatchers
     extend DelegatedType
     extend Explain
-    extend Enum
     extend Delegation::DelegateCache
     extend Aggregations::ClassMethods
 
@@ -318,6 +317,7 @@ module ActiveRecord # :nodoc:
     include SecurePassword
     include AutosaveAssociation
     include NestedAttributes
+    include Enum
     include Transactions
     include TouchLater
     include NoTouching
