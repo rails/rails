@@ -121,9 +121,12 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
     assert_empty UUIDType.where(guid: "foobar")
   end
 
-  def test_uuid_change_case_does_not_mark_dirty
+  def test_uuid_change_format_does_not_mark_dirty
     model = UUIDType.create!(guid: "abcd-0123-4567-89ef-dead-beef-0101-1010")
     model.guid = model.guid.swapcase
+    assert_not_predicate model, :changed?
+
+    model.guid = "{#{model.guid}}"
     assert_not_predicate model, :changed?
   end
 
