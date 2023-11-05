@@ -82,25 +82,27 @@ module ActionView
         # method, where +[FORMAT]+ corresponds to the value of the
         # +format+ argument.
         #
-        # === Arguments
+        # By default, ActionView::TestCase defines parsers for:
         #
-        # <tt>format</tt> - Symbol the name of the format used to render view's content
-        # <tt>callable</tt> - Callable to parse the String. Accepts the String.
-        #                     value as its only argument.
-        # <tt>block</tt> - Block serves as the parser when the
-        #                  <tt>callable</tt> is omitted.
+        # * +:html+ - returns an instance of +Nokogiri::XML::Node+
+        # * +:json+ - returns an instance of ActiveSupport::HashWithIndifferentAccess
         #
-        # By default, ActionView::TestCase defines a parser for:
+        # These pre-registered parsers also define corresponding helpers:
         #
-        #   * :html - returns an instance of Nokogiri::XML::Node
-        #   * :json - returns an instance of ActiveSupport::HashWithIndifferentAccess
+        # * +:html+ - defines +rendered.html+
+        # * +:json+ - defines +rendered.json+
         #
-        # Each pre-registered parser also defines a corresponding helper:
+        # ==== Parameters
         #
-        #   * :html - defines `rendered.html`
-        #   * :json - defines `rendered.json`
+        # [+format+]
+        #   The name (as a +Symbol+) of the format used to render the content.
         #
-        # === Examples
+        # [+callable+]
+        #   The parser. A callable object that accepts the rendered string as
+        #   its sole argument. Alternatively, the parser can be specified as a
+        #   block.
+        #
+        # ==== Examples
         #
         #   test "renders HTML" do
         #     article = Article.create!(title: "Hello, world")
@@ -118,7 +120,7 @@ module ActionView
         #     assert_pattern { rendered.json => { title: "Hello, world" } }
         #   end
         #
-        # To parse the rendered content into RSS, register a call to <tt>RSS::Parser.parse</tt>:
+        # To parse the rendered content into RSS, register a call to +RSS::Parser.parse+:
         #
         #   register_parser :rss, -> rendered { RSS::Parser.parse(rendered) }
         #
@@ -130,9 +132,8 @@ module ActionView
         #     assert_equal "Hello, world", rendered.rss.items.last.title
         #   end
         #
-        # To parse the rendered content into a Capybara::Simple::Node,
-        # re-register an <tt>:html</tt> parser with a call to
-        # <tt>Capybara.string</tt>:
+        # To parse the rendered content into a +Capybara::Simple::Node+,
+        # re-register an +:html+ parser with a call to +Capybara.string+:
         #
         #   register_parser :html, -> rendered { Capybara.string(rendered) }
         #
@@ -143,6 +144,7 @@ module ActionView
         #
         #     rendered.html.assert_css "h1", text: "Hello, world"
         #   end
+        #
         def register_parser(format, callable = nil, &block)
           parser = callable || block || :itself.to_proc
           content_class.redefine_method(format) do
