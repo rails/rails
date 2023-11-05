@@ -188,13 +188,15 @@ This would add something like "Process data files (0.34523)" to the log, which y
 
 #### cache
 
-A method for caching fragments of a view rather than an entire action or page. This technique is useful for caching pieces like menus, lists of news topics, static HTML fragments, and so on. This method takes a block that contains the content you wish to cache. See `AbstractController::Caching::Fragments` for more information.
+A method for caching fragments of a view rather than an entire action or page. This technique is useful for caching pieces like menus, lists of news topics, static HTML fragments, and so on. This method takes a block that contains the content you wish to cache. See [`AbstractController::Caching::Fragments`][] for more information.
 
 ```erb
 <% cache do %>
   <%= render "shared/footer" %>
 <% end %>
 ```
+
+[`AbstractController::Caching::Fragments`]: https://api.rubyonrails.org/classes/AbstractController/Caching/Fragments.html
 
 ### CaptureHelper
 
