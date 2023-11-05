@@ -249,15 +249,18 @@ module ApplicationTests
         end
 
         test "db:drop failure because bad permissions" do
-          with_database_existing do
-            with_bad_permissions do
-              output = rails("db:drop", allow_failure: true)
-              assert_match(/Couldn't drop/, output)
-              assert_equal 1, $?.exitstatus
+          with_env(DISABLE_DATABASE_ENVIRONMENT_CHECK: "1") do
+            with_database_existing do
+              with_bad_permissions do
+                output = rails("db:drop", allow_failure: true)
+                assert_match(/Couldn't drop/, output)
+                assert_equal 1, $?.exitstatus
+              end
             end
           end
         end
       end
+
       test "db:create works when schema cache exists and database does not exist" do
         use_postgresql
 
