@@ -328,12 +328,6 @@ module ActiveRecord
         end
       end
 
-      def test_all_connection_pools
-        assert_deprecated(ActiveRecord.deprecator) do
-          assert_equal([@rw_pool, @ro_pool], @handler.all_connection_pools)
-        end
-      end
-
       def test_retrieve_connection
         assert @handler.retrieve_connection(@connection_name)
         assert @handler.retrieve_connection(@connection_name, role: :reading)

@@ -1,3 +1,7 @@
+*   Remove deprecated `#all_connection_pools`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveRecord::ConnectionAdapters::SchemaCache#data_sources`.
 
     *Rafael Mendonça França*
