@@ -144,6 +144,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `#all_foreign_keys_valid?` from database adapters.
 
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::SchemaCache.load_from`.
+
 ### Deprecations
 
 *   Deprecate `Rails.application.config.active_record.allow_deprecated_singular_associations_name`

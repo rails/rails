@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::SchemaCache.load_from`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `#all_foreign_keys_valid?` from database adapters.
 
     *Rafael Mendonça França*
