@@ -136,6 +136,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated behavior to support referring to a singular association by its plural name.
 
+*   Remove deprecated `TestFixtures.fixture_path`.
+
 ### Deprecations
 
 *   Deprecate `Rails.application.config.active_record.allow_deprecated_singular_associations_name`

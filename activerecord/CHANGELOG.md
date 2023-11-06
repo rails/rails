@@ -1,3 +1,7 @@
+*   Remove deprecated `TestFixtures.fixture_path`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated behavior to support referring to a singular association by its plural name.
 
     *Rafael Mendonça França*
