@@ -1,3 +1,7 @@
+*   Remove deprecated support to passing coder and class as second argument to `serialize`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to `ActiveRecord::Base#read_attribute(:id)` to return the custom primary key value.
 
     *Rafael Mendonça França*
