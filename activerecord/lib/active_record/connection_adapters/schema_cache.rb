@@ -225,18 +225,6 @@ module ActiveRecord
 
     # = Active Record Connection Adapters Schema Cache
     class SchemaCache
-      class << self
-        def new(connection)
-          BoundSchemaReflection.new(SchemaReflection.new(nil), connection.pool)
-        end
-        deprecate new: "use ActiveRecord::ConnectionAdapters::SchemaReflection instead", deprecator: ActiveRecord.deprecator
-
-        def load_from(filename) # :nodoc:
-          BoundSchemaReflection.new(SchemaReflection.new(filename), nil)
-        end
-        deprecate load_from: "use ActiveRecord::ConnectionAdapters::SchemaReflection instead", deprecator: ActiveRecord.deprecator
-      end
-
       def self._load_from(filename) # :nodoc:
         return unless File.file?(filename)
 
@@ -264,7 +252,7 @@ module ActiveRecord
       end
       private_class_method :read
 
-      def initialize
+      def initialize # :nodoc:
         @columns      = {}
         @columns_hash = {}
         @primary_keys = {}
@@ -290,7 +278,7 @@ module ActiveRecord
         coder["version"]          = @version
       end
 
-      def init_with(coder)
+      def init_with(coder) # :nodoc:
         @columns          = coder["columns"]
         @columns_hash     = coder["columns_hash"]
         @primary_keys     = coder["primary_keys"]
