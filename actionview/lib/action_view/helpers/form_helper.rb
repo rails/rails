@@ -437,7 +437,7 @@ module ActionView
 
         case record
         when String, Symbol
-          model       = nil
+          model       = false
           object_name = record
         else
           model       = record
@@ -753,7 +753,9 @@ module ActionView
       #   def labelled_form_with(**options, &block)
       #     form_with(**options.merge(builder: LabellingFormBuilder), &block)
       #   end
-      def form_with(model: nil, scope: nil, url: nil, format: nil, **options, &block)
+      def form_with(model: false, scope: nil, url: nil, format: nil, **options, &block)
+        raise ArgumentError, "The :model argument cannot be nil" if model.nil?
+
         options = { allow_method_names_outside_object: true, skip_default_ids: !form_with_generates_ids }.merge!(options)
 
         if model
