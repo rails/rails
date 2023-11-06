@@ -138,6 +138,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `TestFixtures.fixture_path`.
 
+*   Remove deprecated support to `ActiveRecord::Base#read_attribute(:id)` to return the custom primary key value.
+
 ### Deprecations
 
 *   Deprecate `Rails.application.config.active_record.allow_deprecated_singular_associations_name`

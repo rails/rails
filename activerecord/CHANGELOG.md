@@ -1,3 +1,7 @@
+*   Remove deprecated support to `ActiveRecord::Base#read_attribute(:id)` to return the custom primary key value.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `TestFixtures.fixture_path`.
 
     *Rafael Mendonça França*

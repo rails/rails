@@ -30,19 +30,7 @@ module ActiveRecord
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name
 
-        return @attributes.fetch_value(name, &block) unless name == "id" && @primary_key
-
-        if self.class.composite_primary_key?
-          @attributes.fetch_value("id", &block)
-        else
-          if @primary_key != "id"
-            ActiveRecord.deprecator.warn(<<-MSG.squish)
-              Using read_attribute(:id) to read the primary key value is deprecated.
-              Use #id instead.
-            MSG
-          end
-          @attributes.fetch_value(@primary_key, &block)
-        end
+        @attributes.fetch_value(name, &block)
       end
 
       # This method exists to avoid the expensive primary_key check internally, without
