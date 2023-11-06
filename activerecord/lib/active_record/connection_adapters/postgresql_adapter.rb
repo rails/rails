@@ -901,10 +901,10 @@ module ActiveRecord
 
           update_typemap_for_default_timezone
 
-          stmt_key = prepare_statement(sql, binds)
-          type_casted_binds = type_casted_binds(binds)
-
           with_raw_connection do |conn|
+            stmt_key = prepare_statement(sql, binds, conn)
+            type_casted_binds = type_casted_binds(binds)
+
             log(sql, name, binds, type_casted_binds, stmt_key, async: async) do
               conn.exec_prepared(stmt_key, type_casted_binds)
             end
@@ -954,22 +954,20 @@ module ActiveRecord
 
         # Prepare the statement if it hasn't been prepared, return
         # the statement key.
-        def prepare_statement(sql, binds)
-          with_raw_connection(allow_retry: true, materialize_transactions: false) do |conn|
-            sql_key = sql_key(sql)
-            unless @statements.key? sql_key
-              nextkey = @statements.next_key
-              begin
-                conn.prepare nextkey, sql
-              rescue => e
-                raise translate_exception_class(e, sql, binds)
-              end
-              # Clear the queue
-              conn.get_last_result
-              @statements[sql_key] = nextkey
+        def prepare_statement(sql, binds, conn)
+          sql_key = sql_key(sql)
+          unless @statements.key? sql_key
+            nextkey = @statements.next_key
+            begin
+              conn.prepare nextkey, sql
+            rescue => e
+              raise translate_exception_class(e, sql, binds)
             end
-            @statements[sql_key]
+            # Clear the queue
+            conn.get_last_result
+            @statements[sql_key] = nextkey
           end
+          @statements[sql_key]
         end
 
         # Connects to a PostgreSQL server and sets up the adapter depending on the
