@@ -43,7 +43,7 @@ module ActiveRecord
       end
 
       def data_sources(pool, name)
-        cache(pool).data_sources(pool, name)
+        cache(pool).data_source_exists?(pool, name)
       end
 
       def columns(pool, table_name)
@@ -333,11 +333,6 @@ module ActiveRecord
           end
         end
       end
-
-      def data_sources(_connection, name) # :nodoc:
-        @data_sources[name]
-      end
-      deprecate data_sources: :data_source_exists?, deprecator: ActiveRecord.deprecator
 
       # Get the columns for a table
       def columns(pool, table_name)

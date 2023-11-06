@@ -146,6 +146,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `ActiveRecord::ConnectionAdapters::SchemaCache.load_from`.
 
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::SchemaCache#data_sources`.
+
 ### Deprecations
 
 *   Deprecate `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
