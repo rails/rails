@@ -140,6 +140,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated support to `ActiveRecord::Base#read_attribute(:id)` to return the custom primary key value.
 
+*   Remove deprecated support to passing coder and class as second argument to `serialize`.
+
 ### Deprecations
 
 *   Deprecate `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
