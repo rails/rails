@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::SchemaCache#data_sources`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveRecord::ConnectionAdapters::SchemaCache.load_from`.
 
     *Rafael Mendonça França*
