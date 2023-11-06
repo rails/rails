@@ -1,3 +1,7 @@
+*   Remove deprecated `#all_foreign_keys_valid?` from database adapters.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to passing coder and class as second argument to `serialize`.
 
     *Rafael Mendonça França*
