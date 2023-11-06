@@ -612,6 +612,20 @@ module ActiveRecord
         assert_predicate @connection, :active?
       end
 
+      test "querying after a failed query restores and succeeds" do
+        Post.first # Connection verified (and prepared statement pool populated if enabled)
+
+        remote_disconnect @connection
+
+        assert_raises(ActiveRecord::ConnectionFailed) do
+          Post.first # Connection no longer verified after failed query
+        end
+
+        assert Post.first # Verifying the connection causes a reconnect and the query succeeds
+
+        assert_predicate @connection, :active?
+      end
+
       test "transaction restores after remote disconnection" do
         remote_disconnect @connection
         Post.transaction do
