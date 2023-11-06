@@ -1,3 +1,9 @@
+*   Don't mark Float::INFINITY as changed when reassigning it
+
+    When saving a record with a float infinite value, it shouldn't mark as changed
+
+    *Maicol Bentancor*
+
 *   `ActiveRecord::Base.table_name` now returns `nil` instead of raising
     "undefined method `abstract_class?` for Object:Class".
 
