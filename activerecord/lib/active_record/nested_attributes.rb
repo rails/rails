@@ -289,7 +289,7 @@ module ActiveRecord
       # [:allow_destroy]
       #   If true, destroys any members from the attributes hash with a
       #   <tt>_destroy</tt> key and a value that evaluates to +true+
-      #   (e.g. 1, '1', true, or 'true'). This option is off by default.
+      #   (e.g. 1, '1', true, or 'true'). This option is false by default.
       # [:reject_if]
       #   Allows you to specify a Proc or a Symbol pointing to a method
       #   that checks whether a record should be built for a certain attribute
@@ -314,11 +314,11 @@ module ActiveRecord
       #   nested attributes are going to be used when an associated record already
       #   exists. In general, an existing record may either be updated with the
       #   new set of attribute values or be replaced by a wholly new record
-      #   containing those values. By default the +:update_only+ option is +false+
+      #   containing those values. By default the +:update_only+ option is false
       #   and the nested attributes are used to update the existing record only
       #   if they include the record's <tt>:id</tt> value. Otherwise a new
       #   record will be instantiated and used to replace the existing one.
-      #   However if the +:update_only+ option is +true+, the nested attributes
+      #   However if the +:update_only+ option is true, the nested attributes
       #   are used to update the record's attributes always, regardless of
       #   whether the <tt>:id</tt> is present. The option is ignored for collection
       #   associations.
