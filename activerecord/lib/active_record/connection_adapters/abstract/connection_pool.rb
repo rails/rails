@@ -614,7 +614,7 @@ module ActiveRecord
 
           msg << " (#{thread_report.join(', ')})" if thread_report.any?
 
-          raise ExclusiveConnectionTimeoutError, msg
+          raise ExclusiveConnectionTimeoutError.new(msg, connection_pool: self)
         end
 
         def with_new_connections_blocked
@@ -670,6 +670,8 @@ module ActiveRecord
             reap
             @available.poll(checkout_timeout)
           end
+        rescue ConnectionTimeoutError => ex
+          raise ex.set_pool(self)
         end
 
         #--
