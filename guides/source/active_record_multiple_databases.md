@@ -43,7 +43,7 @@ The `database.yml` looks like this:
 
 ```yaml
 production:
-  database: my_primary_database
+  database: my_default_database
   adapter: mysql2
   username: root
   password: <%= ENV['ROOT_PASSWORD'] %>
@@ -53,21 +53,21 @@ Let's add a second database called animals and replicas for both databases as we
 this, we need to change our `database.yml` from a 2-tier
 to a 3-tier config.
 
-If a primary configuration is provided, it will be used as the "default" configuration. If
-there is no configuration named `"primary"`, Rails will use the first configuration as default
+If a "default" configuration is provided, it will be used by default. If
+there is no configuration named `"default"`, Rails will use the first configuration as default
 for each environment. The default configurations will use the default Rails filenames. For example,
 primary configurations will use `schema.rb` for the schema file, whereas all the other entries
 will use `[CONFIGURATION_NAMESPACE]_schema.rb` for the filename.
 
 ```yaml
 production:
-  primary:
-    database: my_primary_database
+  default:
+    database: my_default_database
     username: root
     password: <%= ENV['ROOT_PASSWORD'] %>
     adapter: mysql2
-  primary_replica:
-    database: my_primary_database
+  default_replica:
+    database: my_default_database
     username: root_readonly
     password: <%= ENV['ROOT_READONLY_PASSWORD'] %>
     adapter: mysql2
@@ -88,7 +88,7 @@ production:
 
 When using multiple databases, there are a few important settings.
 
-First, the database name for the `primary` and `primary_replica` should be the same because they contain
+First, the database name for the `default` and `default_replica` should be the same because they contain
 the same data. This is also the case for `animals` and `animals_replica`.
 
 Second, the username for the writers and replicas should be different, and the
@@ -119,7 +119,7 @@ Then we need to update `ApplicationRecord` to be aware of our new replica.
 class ApplicationRecord < ActiveRecord::Base
   self.abstract_class = true
 
-  connects_to database: { writing: :primary, reading: :primary_replica }
+  connects_to database: { writing: :default, reading: :default_replica }
 end
 ```
 
@@ -133,7 +133,7 @@ class PrimaryApplicationRecord < ActiveRecord::Base
 end
 ```
 
-Classes that connect to primary/primary_replica can inherit from your primary abstract
+Classes that connect to default/default_replica can inherit from your primary abstract
 class like standard Rails applications:
 
 ```ruby
@@ -141,7 +141,7 @@ class Person < ApplicationRecord
 end
 ```
 
-By default Rails expects the database roles to be `writing` and `reading` for the primary
+By default Rails expects the database roles to be `writing` and `reading` for the default
 and replica respectively. If you have a legacy system you may already have roles set up that
 you don't want to change. In that case you can set a new role name in your application config.
 
@@ -165,34 +165,34 @@ You can run `bin/rails -T` to see all the commands you're able to run. You shoul
 $ bin/rails -T
 bin/rails db:create                          # Create the database from DATABASE_URL or config/database.yml for the ...
 bin/rails db:create:animals                  # Create animals database for current environment
-bin/rails db:create:primary                  # Create primary database for current environment
+bin/rails db:create:default                  # Create default database for current environment
 bin/rails db:drop                            # Drop the database from DATABASE_URL or config/database.yml for the cu...
 bin/rails db:drop:animals                    # Drop animals database for current environment
-bin/rails db:drop:primary                    # Drop primary database for current environment
+bin/rails db:drop:default                    # Drop default database for current environment
 bin/rails db:migrate                         # Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)
 bin/rails db:migrate:animals                 # Migrate animals database for current environment
-bin/rails db:migrate:primary                 # Migrate primary database for current environment
+bin/rails db:migrate:default                 # Migrate default database for current environment
 bin/rails db:migrate:status                  # Display status of migrations
 bin/rails db:migrate:status:animals          # Display status of migrations for animals database
-bin/rails db:migrate:status:primary          # Display status of migrations for primary database
+bin/rails db:migrate:status:default          # Display status of migrations for default database
 bin/rails db:reset                           # Drop and recreates all databases from their schema for the current environment and loads the seeds
 bin/rails db:reset:animals                   # Drop and recreates the animals database from its schema for the current environment and loads the seeds
-bin/rails db:reset:primary                   # Drop and recreates the primary database from its schema for the current environment and loads the seeds
+bin/rails db:reset:default                   # Drop and recreates the default database from its schema for the current environment and loads the seeds
 bin/rails db:rollback                        # Roll the schema back to the previous version (specify steps w/ STEP=n)
 bin/rails db:rollback:animals                # Rollback animals database for current environment (specify steps w/ STEP=n)
-bin/rails db:rollback:primary                # Rollback primary database for current environment (specify steps w/ STEP=n)
+bin/rails db:rollback:default                # Rollback default database for current environment (specify steps w/ STEP=n)
 bin/rails db:schema:dump                     # Create a database schema file (either db/schema.rb or db/structure.sql  ...
 bin/rails db:schema:dump:animals             # Create a database schema file (either db/schema.rb or db/structure.sql  ...
-bin/rails db:schema:dump:primary             # Create a db/schema.rb file that is portable against any DB supported  ...
+bin/rails db:schema:dump:default             # Create a db/schema.rb file that is portable against any DB supported  ...
 bin/rails db:schema:load                     # Load a database schema file (either db/schema.rb or db/structure.sql  ...
 bin/rails db:schema:load:animals             # Load a database schema file (either db/schema.rb or db/structure.sql  ...
-bin/rails db:schema:load:primary             # Load a database schema file (either db/schema.rb or db/structure.sql  ...
+bin/rails db:schema:load:default             # Load a database schema file (either db/schema.rb or db/structure.sql  ...
 bin/rails db:setup                           # Create all databases, loads all schemas, and initializes with the seed data (use db:reset to also drop all databases first)
 bin/rails db:setup:animals                   # Create the animals database, loads the schema, and initializes with the seed data (use db:reset:animals to also drop the database first)
-bin/rails db:setup:primary                   # Create the primary database, loads the schema, and initializes with the seed data (use db:reset:primary to also drop the database first)
+bin/rails db:setup:default                   # Create the default database, loads the schema, and initializes with the seed data (use db:reset:default to also drop the database first)
 ```
 
-Running a command like `bin/rails db:create` will create both the primary and animals databases.
+Running a command like `bin/rails db:create` will create both the default and animals databases.
 Note that there is no command for creating the database users, and you'll need to do that manually
 to support the readonly users for your replicas. If you want to create just the animals
 database you can run `bin/rails db:create:animals`.
@@ -206,7 +206,7 @@ set to true.
 
 ```yaml
 production:
-  primary:
+  default:
     database: my_database
     adapter: mysql2
   animals:
@@ -224,7 +224,7 @@ You also need to set the `migrations_paths` in the database configurations to te
 where to find the migrations.
 
 For example the `animals` database would look for migrations in the `db/animals_migrate` directory and
-`primary` would look in `db/migrate`. Rails generators now take a `--database` option
+`default` would look in `db/migrate`. Rails generators now take a `--database` option
 so that the file is generated in the correct directory. The command can be run like so:
 
 ```bash
@@ -397,28 +397,28 @@ Shards are declared in the three-tier config like this:
 
 ```yaml
 production:
-  primary:
-    database: my_primary_database
+  default:
+    database: my_default_database
     adapter: mysql2
-  primary_replica:
-    database: my_primary_database
-    adapter: mysql2
-    replica: true
-  primary_shard_one:
-    database: my_primary_shard_one
-    adapter: mysql2
-    migrations_paths: db/migrate_shards
-  primary_shard_one_replica:
-    database: my_primary_shard_one
+  default_replica:
+    database: my_default_database
     adapter: mysql2
     replica: true
-    migrations_paths: db/migrate_shards
-  primary_shard_two:
-    database: my_primary_shard_two
+  default_shard_one:
+    database: my_default_shard_one
     adapter: mysql2
     migrations_paths: db/migrate_shards
-  primary_shard_two_replica:
-    database: my_primary_shard_two
+  default_shard_one_replica:
+    database: my_default_shard_one
+    adapter: mysql2
+    replica: true
+    migrations_paths: db/migrate_shards
+  default_shard_two:
+    database: my_default_shard_two
+    adapter: mysql2
+    migrations_paths: db/migrate_shards
+  default_shard_two_replica:
+    database: my_default_shard_two
     adapter: mysql2
     replica: true
     migrations_paths: db/migrate_shards
@@ -430,15 +430,15 @@ Models are then connected with the `connects_to` API via the `shards` key:
 class ApplicationRecord < ActiveRecord::Base
   primary_abstract_class
 
-  connects_to database: { writing: :primary, reading: :primary_replica }
+  connects_to database: { writing: :default, reading: :default_replica }
 end
 
 class ShardRecord < ApplicationRecord
   self.abstract_class = true
 
   connects_to shards: {
-    shard_one: { writing: :primary_shard_one, reading: :primary_shard_one_replica },
-    shard_two: { writing: :primary_shard_two, reading: :primary_shard_two_replica }
+    shard_one: { writing: :default_shard_one, reading: :default_shard_one_replica },
+    shard_two: { writing: :default_shard_two, reading: :default_shard_two_replica }
   }
 end
 ```
@@ -449,7 +449,7 @@ use one of the shard names. Since they all set the same path, it doesn't matter 
 one you choose.
 
 ```
-$ bin/rails g scaffold Dog name:string --database primary_shard_one
+$ bin/rails g scaffold Dog name:string --database default_shard_one
 ```
 
 Then models can swap shards manually via the `connected_to` API. If
@@ -527,12 +527,12 @@ all databases globally.
 With granular database connection switching, any abstract connection class
 will be able to switch connections without affecting other connections. This
 is useful for switching your `AnimalsRecord` queries to read from the replica
-while ensuring your `ApplicationRecord` queries go to the primary.
+while ensuring your `ApplicationRecord` queries go to the default.
 
 ```ruby
 AnimalsRecord.connected_to(role: :reading) do
   Dog.first # Reads from animals_replica
-  Person.first  # Reads from primary
+  Person.first  # Reads from default
 end
 ```
 
@@ -542,16 +542,16 @@ It's also possible to swap connections granularly for shards.
 AnimalsRecord.connected_to(role: :reading, shard: :shard_one) do
   Dog.first # Will read from shard_one_replica. If no connection exists for shard_one_replica,
   # a ConnectionNotEstablished error will be raised
-  Person.first # Will read from primary writer
+  Person.first # Will read from default writer
 end
 ```
 
-To switch only the primary database cluster use `ApplicationRecord`:
+To switch only the default database cluster use `ApplicationRecord`:
 
 ```ruby
 ApplicationRecord.connected_to(role: :reading, shard: :shard_one) do
-  Person.first # Reads from primary_shard_one_replica
-  Dog.first # Reads from animals_primary
+  Person.first # Reads from default_shard_one_replica
+  Dog.first # Reads from animals_default
 end
 ```
 
