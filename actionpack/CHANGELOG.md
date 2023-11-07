@@ -1,3 +1,8 @@
+*   Fix a race condition that could cause a `Text file busy - chromedriver`
+    error with parallel system tests
+
+    *Matt Brictson*
+
 *   Fix `StrongParameters#extract_value` to include blank values
 
     Otherwise composite parameters may not be parsed correctly when one of the
