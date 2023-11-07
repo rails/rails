@@ -168,6 +168,38 @@ class ErrorReporterTest < ActiveSupport::TestCase
     assert_equal 4, result
   end
 
+  test "#unexpected swallows errors by default" do
+    error = RuntimeError.new("Oops")
+    assert_nil @reporter.unexpected(error)
+    assert_equal [[error, true, :warning, "application", {}]], @subscriber.events
+    assert_not_predicate error.backtrace, :empty?
+  end
+
+  test "#unexpected accepts an error message" do
+    assert_nil @reporter.unexpected("Oops")
+    assert_equal 1, @subscriber.events.size
+
+    error, *event_details = @subscriber.events.first
+    assert_equal [true, :warning, "application", {}], event_details
+
+    assert_equal "Oops", error.message
+    assert_equal RuntimeError, error.class
+    assert_not_predicate error.backtrace, :empty?
+  end
+
+  test "#unexpected re-raise errors in development and test" do
+    @reporter.debug_mode = true
+    error = RuntimeError.new("Oops")
+    raise_line = __LINE__ + 2
+    raised_error = assert_raises ActiveSupport::ErrorReporter::UnexpectedError do
+      @reporter.unexpected(error)
+    end
+    assert_includes raised_error.message, "RuntimeError: Oops"
+    assert_not_nil raised_error.cause
+    assert_same error, raised_error.cause
+    assert_includes raised_error.backtrace.first, "#{__FILE__}:#{raise_line}"
+  end
+
   test "can have multiple subscribers" do
     second_subscriber = ErrorSubscriber.new
     @reporter.subscribe(second_subscriber)

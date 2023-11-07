@@ -1,3 +1,21 @@
+*   Add `ErrorReported#unexpected` to report precondition violations.
+
+    For example:
+
+    ```ruby
+    def edit
+      if published?
+        Rails.error.unexpected("[BUG] Attempting to edit a published article, that shouldn't be possible")
+        return false
+      end
+      # ...
+    end
+    ```
+
+    The above will raise an error in development and test, but only report the error in production.
+
+    *Jean Boussier*
+
 *   Make the order of read_multi and write_multi notifications for `Cache::Store#fetch_multi` operations match the order they are executed in.
 
     *Adam Renberg Tamm*
