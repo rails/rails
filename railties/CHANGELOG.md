@@ -1,3 +1,14 @@
+*   In Action Mailer previews, list inline attachments separately from normal
+    attachments. For example, attachments that were previously listed like
+
+      > Attachments: logo.png file1.pdf file2.pdf
+
+    will now be listed like
+
+      > Attachments: file1.pdf file2.pdf (Inline: logo.png)
+
+    *Christian Schmidt* and *Jonathan Hefner*
+
 *   In mailer preview, only show SMTP-To if it differs from the union of To, Cc and Bcc.
 
     *Christian Schmidt*
