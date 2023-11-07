@@ -1256,7 +1256,7 @@ module ActiveRecord
       )
 
       returning_columns.zip(returning_values).each do |column, value|
-        _write_attribute(column, value) if !_read_attribute(column)
+        _write_attribute(column, value)
       end if returning_values
 
       @new_record = false

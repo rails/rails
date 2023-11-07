@@ -432,8 +432,13 @@ module ActiveRecord
       end
 
       def _returning_columns_for_insert # :nodoc:
-        @_returning_columns_for_insert ||= columns.filter_map do |c|
-          c.name if connection.return_value_after_insert?(c)
+        @_returning_columns_for_insert ||= columns.filter_map do |column|
+          column_name = column.name
+          if connection.return_value_after_insert?(column) ||
+              (composite_primary_key? && primary_key.include?(column_name)) ||
+              primary_key == column_name
+            column_name
+          end
         end
       end
 
