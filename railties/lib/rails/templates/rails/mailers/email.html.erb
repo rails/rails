@@ -61,14 +61,14 @@
 <body>
 <header>
   <dl>
-    <% if @email.respond_to?(:smtp_envelope_from) && Array(@email.from) != Array(@email.smtp_envelope_from) %>
+    <% if Array(@email.from) != Array(@email.smtp_envelope_from) %>
       <dt>SMTP-From:</dt>
       <dd id="smtp_from"><%= @email.smtp_envelope_from %></dd>
     <% end %>
 
-    <% if @email.respond_to?(:smtp_envelope_to) && @email.to != @email.smtp_envelope_to %>
+    <% if Set[*@email.to, *@email.cc, *@email.bcc] != Set[*@email.smtp_envelope_to] %>
       <dt>SMTP-To:</dt>
-      <dd id="smtp_to"><%= @email.smtp_envelope_to %></dd>
+      <dd id="smtp_to"><%= @email.smtp_envelope_to.join(", ") %></dd>
     <% end %>
 
     <dt>From:</dt>

@@ -1,3 +1,7 @@
+*   In mailer preview, only show SMTP-To if it differs from the union of To, Cc and Bcc.
+
+    *Christian Schmidt*
+
 *   Enable YJIT by default on new applications running Ruby 3.3+
 
     Adds a `config/initializers/enable_yjit.rb` initializer that enables YJIT
