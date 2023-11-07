@@ -26,15 +26,14 @@ module ActionDispatch
         yield options if block_given? && options
       end
 
-      # driver_path can be configured as a proc. Running this proc early allows
-      # us to only update the webdriver once and avoid race conditions when
-      # using parallel tests.
+      # driver_path is lazily initialized by default. Eagerly set it to
+      # avoid race conditions when using parallel tests.
       def preload
         case type
         when :chrome
-          ::Selenium::WebDriver::Chrome::Service.driver_path.try(:call)
+          resolve_driver_path(::Selenium::WebDriver::Chrome)
         when :firefox
-          ::Selenium::WebDriver::Firefox::Service.driver_path.try(:call)
+          resolve_driver_path(::Selenium::WebDriver::Firefox)
         end
       end
 
@@ -69,6 +68,13 @@ module ActionDispatch
           configure do |capabilities|
             capabilities.add_argument("-headless")
           end
+        end
+
+        def resolve_driver_path(namespace)
+          namespace::Service.driver_path = ::Selenium::WebDriver::DriverFinder.path(
+            options || namespace::Options.new,
+            namespace::Service
+          )
         end
     end
   end
