@@ -1,6 +1,6 @@
-*   Enable YJIT by default on new application running Ruby 3.3+
+*   Enable YJIT by default on new applications running Ruby 3.3+
 
-    Adds a `config/initializers/enable_yjit.rb` initializer that enable YJIT
+    Adds a `config/initializers/enable_yjit.rb` initializer that enables YJIT
     when running on Ruby 3.3+.
 
     *Jean Boussier*
