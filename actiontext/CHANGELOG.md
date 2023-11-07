@@ -1,3 +1,11 @@
+*   Compile ESM package that can be used directly in the browser as actiontext.esm.js
+
+    *Matias Grunberg*
+
+*   Fix using actiontext.js with Sprockets
+
+    *Matias Grunberg*
+
 *   Upgrade Trix to 2.0.7
 
     *Hartley McGuire*
