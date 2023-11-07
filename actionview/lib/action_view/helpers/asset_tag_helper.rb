@@ -378,8 +378,8 @@ module ActionView
       # You can add HTML attributes using the +options+. The +options+ supports
       # additional keys for convenience and conformance:
       #
-      # * <tt>:size</tt> - Supplied as "{Width}x{Height}" or "{Number}", so "30x45" becomes
-      #   width="30" and height="45", and "50" becomes width="50" and height="50".
+      # * <tt>:size</tt> - Supplied as <tt>"#{width}x#{height}"</tt> or <tt>"#{number}"</tt>, so <tt>"30x45"</tt> becomes
+      #   <tt>width="30" height="45"</tt>, and <tt>"50"</tt> becomes <tt>width="50" height="50"</tt>.
       #   <tt>:size</tt> will be ignored if the value is not in the correct format.
       # * <tt>:srcset</tt> - If supplied as a hash or array of <tt>[source, descriptor]</tt>
       #   pairs, each image path will be expanded before the list is formatted as a string.
@@ -511,8 +511,8 @@ module ActionView
       #
       # * <tt>:poster</tt> - Set an image (like a screenshot) to be shown
       #   before the video loads. The path is calculated like the +src+ of +image_tag+.
-      # * <tt>:size</tt> - Supplied as "{Width}x{Height}" or "{Number}", so "30x45" becomes
-      #   width="30" and height="45", and "50" becomes width="50" and height="50".
+      # * <tt>:size</tt> - Supplied as <tt>"#{width}x#{height}"</tt> or <tt>"#{number}"</tt>, so <tt>"30x45"</tt> becomes
+      #   <tt>width="30" height="45"</tt>, and <tt>"50"</tt> becomes <tt>width="50" height="50"</tt>.
       #   <tt>:size</tt> will be ignored if the value is not in the correct format.
       # * <tt>:poster_skip_pipeline</tt> will bypass the asset pipeline when using
       #   the <tt>:poster</tt> option instead using an asset in the public folder.
