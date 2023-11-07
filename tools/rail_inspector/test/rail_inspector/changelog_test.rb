@@ -18,6 +18,14 @@ class TestChangelog < Minitest::Test
     assert_equal 2, offenses.length
   end
 
+  def test_valid_username_is_valid_author
+    assert_valid_entry <<~CHANGELOG
+      *   Cool change.
+
+          *1337-rails-c0d3r*
+    CHANGELOG
+  end
+
   def test_parses_with_extra_newlines
     @changelog = changelog_fixture("action_mailbox_83d85b2.md")
 
@@ -124,6 +132,11 @@ class TestChangelog < Minitest::Test
 
     def offenses
       entries.flat_map(&:offenses)
+    end
+
+    def assert_valid_entry(source)
+      entry = RailInspector::Changelog::Entry.new(source.lines(chomp: true), 1)
+      assert_empty entry.offenses, "Entry has offenses"
     end
 
     ANNOTATION_PATTERN = /\s*\^+ /
