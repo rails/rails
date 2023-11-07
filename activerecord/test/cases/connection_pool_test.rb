@@ -110,9 +110,10 @@ module ActiveRecord
         @pool.checkout_timeout = 0.001 # no need to delay test suite by waiting the whole full default timeout
         @pool.size.times { assert @pool.checkout }
 
-        assert_raises(ConnectionTimeoutError) do
+        error = assert_raises(ConnectionTimeoutError) do
           @pool.checkout
         end
+        assert_equal @pool, error.connection_pool
       end
 
       def test_full_pool_blocks
@@ -615,9 +616,10 @@ module ActiveRecord
         @pool.checkout_timeout = 0.001 # no need to delay test suite by waiting the whole full default timeout
         [:disconnect, :clear_reloadable_connections].each do |group_action_method|
           @pool.with_connection do |connection|
-            assert_raises(ExclusiveConnectionTimeoutError) do
+            error = assert_raises(ExclusiveConnectionTimeoutError) do
               new_thread { @pool.public_send(group_action_method) }.join
             end
+            assert_equal @pool, error.connection_pool
           end
         end
       ensure
