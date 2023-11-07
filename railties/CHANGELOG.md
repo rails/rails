@@ -1,3 +1,10 @@
+*   Enable YJIT by default on new application running Ruby 3.3+
+
+    Adds a `config/initializers/enable_yjit.rb` initializer that enable YJIT
+    when running on Ruby 3.3+.
+
+    *Jean Boussier*
+
 *   In Action Mailer previews, show date from message `Date` header if present.
 
     *Sampat Badhe*
