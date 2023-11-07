@@ -1,3 +1,32 @@
+* Add `xhr` object to direct-upload:error event so that server generated error messages are accessible.
+
+Before:
+```javascript
+addEventListener("direct-upload:error", event => {
+  event.preventDefault()
+  const { id, error } = event.detail
+  const element = document.getElementById(`direct-upload-${id}`)
+  element.classList.add("direct-upload--error")
+  element.setAttribute("title", error)
+})
+```
+
+After:
+```javascript
+addEventListener("direct-upload:error", event => {
+  event.preventDefault()
+  const { id, error, xhr } = event.detail
+  const element = document.getElementById(`direct-upload-${id}`)
+  const errorMessage = xhr.response['error'] // Example: File size must be less than 100MB
+  element.classList.add("direct-upload--error")
+  element.setAttribute("title", errorMessage)
+})
+```
+
+    *Sean Abrahams*
+
+Fixes #49104
+
 *   Restore ADC when signing URLs with IAM for GCS
 
     ADC was previously used for automatic authorization when signing URLs with IAM.
