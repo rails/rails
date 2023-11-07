@@ -250,6 +250,8 @@ module ActiveSupport
           @filter  = filter
           @if      = check_conditionals(options[:if])
           @unless  = check_conditionals(options[:unless])
+
+          compiled
         end
 
         def merge_conditional_options(chain, if_option:, unless_option:)
