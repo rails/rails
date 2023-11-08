@@ -318,6 +318,17 @@ added to the form that the `button_to` helper renders internally:
 <%= button_to "Delete post", post, method: :delete, form: { data: { turbo_confirm: "Are you sure?" } } %>
 ```
 
+Which generates:
+
+```html
+<form data-turbo-confirm="Are you sure?" method="post" action="...">
+  <input type="hidden" name="_method" value="delete" autocomplete="off">
+  <button type="submit">Delete post></button>
+  ...
+```
+
+NOTE: In this case the `method` argument should not be `turbo_method` as it is unrelated to UJS.
+
 ### Ajax Requests
 
 When making non-GET requests from JavaScript the `X-CSRF-Token` header is required.
