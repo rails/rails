@@ -386,6 +386,7 @@ module ActionDispatch
       def eager_load!
         router.eager_load!
         routes.each(&:eager_load!)
+        formatter.eager_load!
         nil
       end
 
