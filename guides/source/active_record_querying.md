@@ -912,6 +912,14 @@ irb> Book.order("title ASC").order("created_at DESC")
 SELECT * FROM books ORDER BY title ASC, created_at DESC
 ```
 
+You can also order from a joined table
+
+```ruby
+Book.includes(:author).order(books: { print_year: :desc }, authors: { name: :asc })
+# OR
+Book.includes(:author).order('books.print_year desc', 'authors.name asc')
+```
+
 WARNING: In most database systems, on selecting fields with `distinct` from a result set using methods like `select`, `pluck` and `ids`; the `order` method will raise an `ActiveRecord::StatementInvalid` exception unless the field(s) used in `order` clause are included in the select list. See the next section for selecting fields from the result set.
 
 Selecting Specific Fields
