@@ -529,7 +529,7 @@ GEM
     terser (1.1.13)
       execjs (>= 0.3.0, < 3)
     thor (1.3.0)
-    timeout (0.4.0)
+    timeout (0.4.1)
     tomlrb (2.0.3)
     trailblazer-option (0.1.2)
     trilogy (2.5.0)
