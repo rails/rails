@@ -55,10 +55,6 @@ module ActiveModel
         end
       end
 
-      def resolve_attribute_name(name) # :nodoc:
-        name.to_s
-      end
-
       private
         PendingType = Struct.new(:name, :type) do # :nodoc:
           def apply_to(attribute_set)
@@ -105,6 +101,10 @@ module ActiveModel
         def reset_default_attributes!
           @default_attributes = nil
           @attribute_types = nil
+        end
+
+        def resolve_attribute_name(name)
+          name.to_s
         end
 
         def resolve_type_name(name, **options)
