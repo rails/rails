@@ -476,6 +476,39 @@ Known extensions: rails, pride
     -p, --pride                      Pride. Show your testing pride!
 ```
 
+#### Filtering Tests
+
+The `--name` (`-n`) and `--exclude` options can be used to filter (include or exclude) tests based on the test name, not the file name. Test names are derived from the standard Ruby nomenclature of Class::Module::method. To name the tests, the Minitest DSL replaces `::` with `#` and converts test names to methods using snake_case and the prefix `test_` (preserving case). For example:
+
+```ruby
+# test/models/bookmark_test.rb
+require "test_helper"
+
+class BookmarkTest < ActiveSupport::TestCase
+  test "should not save bookmark without URL" do
+    bookmark = Bookmark.new(title: "Rails Guides")
+
+    assert_not result.save
+  end
+end
+```
+
+The above code will generate the ruby method `BookmarkTest::test_should_not_save_bookmark_without_URL` with the test name `BookmarkTest#test_should_not_save_bookmark_without_URL`.
+
+In a Rails app you can run all tests that are in classes starting with the name "Post" (e.g. PostsControllerTest in controllers, PostTest in models and PostsTest in system) using:
+
+```bash
+$ bin/rails test --name /^Post/
+```
+
+To exclude any test in any file that contains the exact word "user", even if it's the last word, use:
+
+```bash
+$ bin/rails test --exclude /_user(_|$)/
+```
+
+This will match `test "should not save user without email" do` and `test "should not save post without user" do` but will not match `test "should not save light without difuser" do`.
+
 ### Running tests in Continuous Integration (CI)
 
 To run all tests in a CI environment, there's just one command you need:
