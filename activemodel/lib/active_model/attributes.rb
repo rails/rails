@@ -31,7 +31,6 @@ module ActiveModel
     extend ActiveSupport::Concern
     include ActiveModel::AttributeRegistration
     include ActiveModel::AttributeMethods
-    include ActiveModel::BeforeTypeCast
 
     included do
       attribute_method_suffix "=", parameters: "value"

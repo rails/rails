@@ -376,16 +376,16 @@ module ActiveModel
         @aliases_by_attribute_name ||= Hash.new { |h, k| h[k] = [] }
       end
 
-      def resolve_attribute_name(name) # :nodoc:
-        attribute_aliases.fetch(super, &:itself)
-      end
-
       private
         def inherited(base) # :nodoc:
           super
           base.class_eval do
             @attribute_method_patterns_cache = nil
           end
+        end
+
+        def resolve_attribute_name(name)
+          attribute_aliases.fetch(super, &:itself)
         end
 
         def generated_attribute_methods
