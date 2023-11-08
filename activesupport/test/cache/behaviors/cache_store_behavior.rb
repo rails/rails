@@ -174,6 +174,15 @@ module CacheStoreBehavior
     assert @cache.write_multi({})
   end
 
+  def test_write_multi_expires_in
+    key = SecureRandom.uuid
+    @cache.write_multi({ key => 1 }, expires_in: 10)
+
+    travel(11.seconds) do
+      assert_nil @cache.read(key)
+    end
+  end
+
   def test_fetch_multi
     key = SecureRandom.uuid
     other_key = SecureRandom.uuid

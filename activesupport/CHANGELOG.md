@@ -1,3 +1,7 @@
+*   Fix `:expires_in` option for `RedisCacheStore#write_multi`.
+
+    *fatkodima*
+
 *   Fix deserialization of non-string "purpose" field in Message serializer
 
     *Jacopo Beschi*
