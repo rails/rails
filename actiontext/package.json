@@ -2,8 +2,8 @@
   "name": "@rails/actiontext",
   "version": "7.1.1",
   "description": "Edit and display rich text in Rails applications",
+  "module": "app/assets/javascripts/actiontext.esm.js",
   "main": "app/assets/javascripts/actiontext.js",
-  "type": "module",
   "files": [
     "app/assets/javascripts/*.js"
   ],

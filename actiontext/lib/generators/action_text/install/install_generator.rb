@@ -29,7 +29,7 @@ module ActionText
         end
 
         if (importmap_path = destination.join("config/importmap.rb")).exist?
-          append_to_file importmap_path.to_s, %(pin "trix"\npin "@rails/actiontext", to: "actiontext.js"\n)
+          append_to_file importmap_path.to_s, %(pin "trix"\npin "@rails/actiontext", to: "actiontext.esm.js"\n)
         end
       end
 
