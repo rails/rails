@@ -6,6 +6,7 @@ class JavascriptPackageTest < ActiveSupport::TestCase
   def test_compiled_code_is_in_sync_with_source_code
     compiled_files = %w[
       app/assets/javascripts/actiontext.js
+      app/assets/javascripts/actiontext.esm.js
     ].map do |file|
       Pathname(file).expand_path("#{__dir__}/..")
     end
