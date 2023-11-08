@@ -104,6 +104,11 @@ module ActionDispatch
         @cache = nil
       end
 
+      def eager_load!
+        cache
+        nil
+      end
+
       private
         def extract_parameterized_parts(route, options, recall)
           parameterized_parts = recall.merge(options)
