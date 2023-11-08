@@ -16,7 +16,9 @@ module ActiveRecord
 
           log(sql, name) do
             with_raw_connection do |conn|
-              conn.async_exec(sql).map_types!(@type_map_for_results).values
+              result = conn.async_exec(sql).map_types!(@type_map_for_results).values
+              verified!
+              result
             end
           end
         end
@@ -51,6 +53,7 @@ module ActiveRecord
           log(sql, name, async: async) do
             with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
               result = conn.async_exec(sql)
+              verified!
               handle_warnings(result)
               result
             end

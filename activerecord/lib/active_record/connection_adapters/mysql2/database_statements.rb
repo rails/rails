@@ -102,6 +102,7 @@ module ActiveRecord
               with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
                 sync_timezone_changes(conn)
                 result = conn.query(sql)
+                verified!
                 handle_warnings(sql)
                 result
               end
@@ -130,6 +131,8 @@ module ActiveRecord
                   result = ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
                     stmt.execute(*type_casted_binds)
                   end
+                  verified!
+                  result
                 rescue ::Mysql2::Error => e
                   if cache_stmt
                     @statements.delete(sql)

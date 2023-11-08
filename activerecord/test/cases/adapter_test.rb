@@ -612,6 +612,26 @@ module ActiveRecord
         assert_predicate @connection, :active?
       end
 
+      test "quoting a string on a 'clean' failed connection will not prevent reconnecting" do
+        remote_disconnect @connection
+
+        @connection.clean! # this simulates a fresh checkout from the pool
+
+        # Clean did not verify / fix the connection
+        assert_not_predicate @connection, :active?
+
+        # Quote string will not verify a broken connection (although it may
+        # reconnect in some cases)
+        Post.connection.quote_string("")
+
+        # Because the connection hasn't been verified since checkout,
+        # and the query cannot safely be retried, the connection will be
+        # verified before querying.
+        Post.delete_all
+
+        assert_predicate @connection, :active?
+      end
+
       test "querying after a failed query restores and succeeds" do
         Post.first # Connection verified (and prepared statement pool populated if enabled)
 

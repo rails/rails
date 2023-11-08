@@ -977,7 +977,11 @@ module ActiveRecord
         # If +allow_retry+ is true, a connection-related exception will
         # cause an automatic reconnect and re-run of the block, up to
         # the connection's configured +connection_retries+ setting
-        # and the configured +retry_deadline+ limit.
+        # and the configured +retry_deadline+ limit. (Note that when
+        # +allow_retry+ is true, it's possible to return without having marked
+        # the connection as verified. If the block is guaranteed to exercise the
+        # connection, consider calling `verified!` to avoid needless
+        # verification queries in subsequent calls.)
         #
         # If +materialize_transactions+ is false, the block will be run without
         # ensuring virtual transactions have been materialized in the DB
@@ -1028,9 +1032,7 @@ module ActiveRecord
             end
 
             begin
-              result = yield @raw_connection
-              @verified = true
-              result
+              yield @raw_connection
             rescue => original_exception
               translated_exception = translate_exception_class(original_exception, nil, nil)
               invalidate_transaction(translated_exception)
@@ -1063,6 +1065,13 @@ module ActiveRecord
               dirty_current_transaction if materialize_transactions
             end
           end
+        end
+
+        # Mark the connection as verified. Call this inside a
+        # `with_raw_connection` block only when the block is guaranteed to
+        # exercise the raw connection.
+        def verified!
+          @verified = true
         end
 
         def retryable_connection_error?(exception)
