@@ -102,6 +102,9 @@ module ActiveRecord
 
       class_attribute :shard_selector, instance_accessor: false, default: nil
 
+      # Specifies the attributes that will be included in the output of the #inspect method
+      class_attribute :attributes_for_inspect, instance_accessor: false, default: [:id]
+
       def self.application_record_class? # :nodoc:
         if ActiveRecord.application_record_class
           self == ActiveRecord.application_record_class
@@ -681,21 +684,14 @@ module ActiveRecord
       self.class.connection_handler
     end
 
-    # Returns the contents of the record as a nicely formatted string.
+    # Returns the attributes specified by <tt>.attributes_for_inspect</tt> as a nicely formatted string.
     def inspect
-      # We check defined?(@attributes) not to issue warnings if the object is
-      # allocated but not initialized.
-      inspection = if defined?(@attributes) && @attributes
-        attribute_names.filter_map do |name|
-          if _has_attribute?(name)
-            "#{name}: #{attribute_for_inspect(name)}"
-          end
-        end.join(", ")
-      else
-        "not initialized"
-      end
+      inspect_with_attributes(attributes_for_inspect)
+    end
 
-      "#<#{self.class} #{inspection}>"
+    # Returns the full contents of the record as a nicely formatted string.
+    def full_inspect
+      inspect_with_attributes(attribute_names)
     end
 
     # Takes a PP and prettily prints this record to it, allowing you to get a nice result from <tt>pp record</tt>
@@ -704,8 +700,9 @@ module ActiveRecord
       return super if custom_inspect_method_defined?
       pp.object_address_group(self) do
         if defined?(@attributes) && @attributes
-          attr_names = self.class.attribute_names.select { |name| _has_attribute?(name) }
+          attr_names = attributes_for_inspect.select { |name| _has_attribute?(name.to_s) }
           pp.seplist(attr_names, proc { pp.text "," }) do |attr_name|
+            attr_name = attr_name.to_s
             pp.breakable " "
             pp.group(1) do
               pp.text attr_name
@@ -770,6 +767,27 @@ module ActiveRecord
 
       def inspection_filter
         self.class.inspection_filter
+      end
+
+      def inspect_with_attributes(attributes_to_list)
+        # We check defined?(@attributes) not to issue warnings if the object is
+        # allocated but not initialized.
+        inspection = if defined?(@attributes) && @attributes
+          attributes_to_list.filter_map do |name|
+            name = name.to_s
+            if _has_attribute?(name)
+              "#{name}: #{attribute_for_inspect(name)}"
+            end
+          end.join(", ")
+        else
+          "not initialized"
+        end
+
+        "#<#{self.class} #{inspection}>"
+      end
+
+      def attributes_for_inspect
+        self.class.attributes_for_inspect == :all ? attribute_names : self.class.attributes_for_inspect
       end
   end
 end
