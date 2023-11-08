@@ -50,6 +50,7 @@ module ActiveRecord
                 stmt.bind_params(type_casted_binds)
                 records = stmt.to_a
               end
+              verified!
 
               build_result(columns: cols, rows: records)
             end
@@ -76,7 +77,9 @@ module ActiveRecord
         def begin_db_transaction # :nodoc:
           log("begin transaction", "TRANSACTION") do
             with_raw_connection(allow_retry: true, materialize_transactions: false) do |conn|
-              conn.transaction
+              result = conn.transaction
+              verified!
+              result
             end
           end
         end
@@ -112,7 +115,9 @@ module ActiveRecord
           def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: false)
             log(sql, name, async: async) do
               with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
-                conn.execute(sql)
+                result = conn.execute(sql)
+                verified!
+                result
               end
             end
           end
@@ -133,7 +138,9 @@ module ActiveRecord
 
             log(sql, name) do
               with_raw_connection do |conn|
-                conn.execute_batch2(sql)
+                result = conn.execute_batch2(sql)
+                verified!
+                result
               end
             end
           end

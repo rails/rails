@@ -46,6 +46,7 @@ module ActiveRecord
               with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
                 sync_timezone_changes(conn)
                 result = conn.query(sql)
+                verified!
                 handle_warnings(sql)
                 result
               end
