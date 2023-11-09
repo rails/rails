@@ -917,7 +917,7 @@ A `:conditions` option can be used to specify additional conditions as a `WHERE`
 SQL fragment to limit the uniqueness constraint lookup:
 
 ```ruby
-validates :name, uniqueness: { conditions: -> { where(status: 'active') } }
+validates :name, uniqueness: { conditions: -> { where(status: "active") } }
 ```
 
 The default error message is _"has already been taken"_.

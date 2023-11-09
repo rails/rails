@@ -220,7 +220,7 @@ module ActiveRecord
 
     private
       def _enum(name, values, prefix: nil, suffix: nil, scopes: true, instance_methods: true, validate: false, **options)
-        assert_valid_enum_definition_values(values)
+        values = assert_valid_enum_definition_values(values)
         assert_valid_enum_options(options)
 
         # statuses = { }
@@ -341,6 +341,20 @@ module ActiveRecord
           if values.keys.any?(&:blank?)
             raise ArgumentError, "Enum values #{values} must not contain a blank name."
           end
+
+          values = values.transform_values do |value|
+            value.is_a?(Symbol) ? value.name : value
+          end
+
+          values.each_value do |value|
+            case value
+            when String, Integer, true, false, nil
+              # noop
+            else
+              raise ArgumentError, "Enum values #{values} must be only booleans, integers, symbols or strings, got: #{value.class}"
+            end
+          end
+
         when Array
           if values.empty?
             raise ArgumentError, "Enum values #{values} must not be empty."
@@ -356,6 +370,8 @@ module ActiveRecord
         else
           raise ArgumentError, "Enum values #{values} must be either a non-empty hash or an array."
         end
+
+        values
       end
 
       def assert_valid_enum_options(options)
