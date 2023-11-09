@@ -60,6 +60,14 @@ class Rails::Command::DbSystemChangeTest < ActiveSupport::TestCase
     assert_match "gsub  Gemfile", output
   end
 
+  test "change works with no Dockerfile" do
+    remove_file("Dockerfile")
+
+    output = change_database(to: "sqlite3")
+
+    assert_match "gsub  Gemfile", output
+  end
+
   private
     def change_database(to:, **options)
       args = ["--to", to]

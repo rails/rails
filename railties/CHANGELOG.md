@@ -1,5 +1,9 @@
 ## Rails 7.1.2 (Unreleased) ##
 
+*   Fix running `db:system:change` when app has no Dockerfile.
+
+    *Hartley McGuire*
+
 *   If you accessed `config.eager_load_paths` and friends, later changes to
     `config.paths` were not reflected in the expected auto/eager load paths.
     Now, they are.
