@@ -41,6 +41,9 @@ module Rails
           end
 
           def edit_dockerfile
+            dockerfile_path = File.expand_path("Dockerfile", destination_root)
+            return unless File.exist?(dockerfile_path)
+
             build_name = docker_for_database_build
             deploy_name = docker_for_database_deploy
             if build_name
