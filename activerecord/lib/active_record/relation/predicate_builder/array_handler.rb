@@ -13,7 +13,7 @@ module ActiveRecord
         return attribute.in([]) if value.empty?
 
         values = value.map { |x| x.is_a?(Base) ? x.id : x }
-        nils = values.extract!(&:nil?)
+        nils = values.compact!
         ranges = values.extract! { |v| v.is_a?(Range) }
 
         values_predicate =
@@ -23,7 +23,7 @@ module ActiveRecord
           else Arel::Nodes::HomogeneousIn.new(values, attribute, :in)
           end
 
-        unless nils.empty?
+        if nils
           values_predicate = values_predicate.or(attribute.eq(nil))
         end
 
