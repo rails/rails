@@ -1,3 +1,9 @@
+*   Fix `where(field: values)` queries when `field` is a serialized attribute
+    (for example, when `field` uses `ActiveRecord::Base.serialize` or is a JSON
+    column).
+
+    *João Alves*
+
 *   Don't mark Float::INFINITY as changed when reassigning it
 
     When saving a record with a float infinite value, it shouldn't mark as changed

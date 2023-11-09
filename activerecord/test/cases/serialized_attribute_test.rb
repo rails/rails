@@ -222,7 +222,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     settings = { "color" => "green" }
     Topic.serialize(:content, Hash)
     topic = Topic.create!(content: settings)
-    assert_equal topic, Topic.where(content: [settings]).take
+    assert_equal topic, Topic.where(content: [settings, { "herring" => "red" }]).take
   end
 
   def test_serialized_default_class
