@@ -1,3 +1,9 @@
+*   Fix `where(field: values)` queries when `field` is a serialized attribute
+    (for example, when `field` uses `ActiveRecord::Base.serialize` or is a JSON
+    column).
+
+    *João Alves*
+
 *   Make the output of `ActiveRecord::Core#inspect` configurable.
 
     By default, calling `inspect` on a record will yield a formatted string including just the `id`.
