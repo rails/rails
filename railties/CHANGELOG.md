@@ -1,3 +1,7 @@
+*   Fix running `db:system:change` when app has no Dockerfile.
+
+    *Hartley McGuire*
+
 *   In Action Mailer previews, list inline attachments separately from normal
     attachments. For example, attachments that were previously listed like
 
