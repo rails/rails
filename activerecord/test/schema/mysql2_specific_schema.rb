@@ -58,6 +58,14 @@ ActiveRecord::Schema.define do
     t.index :snacks, name: "index_key_tests_on_snack"
   end
 
+  create_table :fulltext_tests, force: true, options: "CHARSET=utf8 ENGINE=MyISAM" do |t|
+    t.string :surname
+    t.string :forename
+    t.text   :description
+    t.index ["forename", "surname"], type: :fulltext, name: "index_fulltext_tests_on_forename_and_surname", with_parser: "ngram"
+    t.index :description, type: :fulltext, name: "index_fulltext_tests_on_description"
+  end
+
   create_table :collation_tests, id: false, force: true do |t|
     t.string :string_cs_column, limit: 1, collation: "utf8mb4_bin"
     t.string :string_ci_column, limit: 1, collation: "utf8mb4_general_ci"

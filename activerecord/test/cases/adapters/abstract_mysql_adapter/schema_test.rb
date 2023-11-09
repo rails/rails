@@ -92,6 +92,27 @@ module ActiveRecord
         assert_equal :fulltext, index_c.type
       end
 
+      def test_dump_fulltext_indexes
+        index_a_name = "index_fulltext_tests_on_forename_and_surname"
+        index_b_name = "index_fulltext_tests_on_description"
+
+        table = "fulltext_tests"
+
+        indexes = @connection.indexes(table).sort_by(&:name)
+        assert_equal 2, indexes.size
+
+        index_a = indexes.select { |i| i.name == index_a_name }[0]
+        index_b = indexes.select { |i| i.name == index_b_name }[0]
+
+        assert_nil index_a.using
+        assert_equal :fulltext, index_a.type
+        assert_equal "ngram", index_a.with_parser
+
+        assert_nil index_b.using
+        assert_equal :fulltext, index_b.type
+        assert_nil index_b.with_parser
+      end
+
       unless mysql_enforcing_gtid_consistency?
         def test_drop_temporary_table
           @connection.transaction do

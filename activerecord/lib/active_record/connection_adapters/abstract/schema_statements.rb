@@ -863,13 +863,13 @@ module ActiveRecord
       #
       # Note: only supported by PostgreSQL
       #
-      # ====== Creating an index with a specific type
+      # ====== Creating an index with a specific type, and parser
       #
-      #   add_index(:developers, :name, type: :fulltext)
+      #   add_index(:developers, :name, type: :fulltext, with_parser: "ngram")
       #
       # generates:
       #
-      #   CREATE FULLTEXT INDEX index_developers_on_name ON developers (name) -- MySQL
+      #   CREATE FULLTEXT INDEX index_developers_on_name ON developers (name) WITH PARSER ngram -- MySQL
       #
       # Note: only supported by MySQL.
       #
@@ -1434,7 +1434,7 @@ module ActiveRecord
       end
 
       def add_index_options(table_name, column_name, name: nil, if_not_exists: false, internal: false, **options) # :nodoc:
-        options.assert_valid_keys(:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :include, :nulls_not_distinct)
+        options.assert_valid_keys(:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :include, :nulls_not_distinct, :with_parser)
 
         column_names = index_column_names(column_name)
 
@@ -1455,7 +1455,8 @@ module ActiveRecord
           using: options[:using],
           include: options[:include],
           nulls_not_distinct: options[:nulls_not_distinct],
-          comment: options[:comment]
+          comment: options[:comment],
+          with_parser: options[:with_parser]
         )
 
         [index, index_algorithm(options[:algorithm]), if_not_exists]

@@ -20,7 +20,7 @@ module ActiveRecord
       end
 
       def invalid_add_index_option_exception_message(key)
-        "Unknown key: :#{key}. Valid keys are: :unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :include, :nulls_not_distinct"
+        "Unknown key: :#{key}. Valid keys are: :unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :include, :nulls_not_distinct, :with_parser"
       end
 
       def invalid_create_table_option_exception_message(key)

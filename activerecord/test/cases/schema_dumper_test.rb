@@ -354,6 +354,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{t\.index \["awesome"\], name: "index_key_tests_on_awesome", type: :fulltext$}, output
       assert_match %r{t\.index \["pizza"\], name: "index_key_tests_on_pizza"$}, output
     end
+
+    def test_schema_dumps_fulltext_index
+      output = dump_table_schema "fulltext_tests"
+
+      assert_match %r{t\.index \["forename", "surname"\], name: "index_fulltext_tests_on_forename_and_surname", type: :fulltext, with_parser: "ngram"$}, output
+      assert_match %r{t\.index \["description"\], name: "index_fulltext_tests_on_description", type: :fulltext$}, output
+    end
   end
 
   def test_schema_dump_includes_decimal_options

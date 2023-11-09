@@ -80,4 +80,8 @@
 
     *Jason Meller*
 
+*   Add support for `WITH PARSER` option when adding a fulltext index in MySQL.
+
+    *Gonzalo Rodríguez-Baltanás Díaz*
+
 Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/activerecord/CHANGELOG.md) for previous changes.

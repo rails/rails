@@ -8,16 +8,23 @@ module ActiveRecord
         def indexes(table_name)
           indexes = []
           current_index = nil
+          table_info = create_table_info(table_name)
+
           execute_and_free("SHOW KEYS FROM #{quote_table_name(table_name)}", "SCHEMA") do |result|
             each_hash(result) do |row|
               if current_index != row[:Key_name]
                 next if row[:Key_name] == "PRIMARY" # skip the primary key
                 current_index = row[:Key_name]
+                with_parser = nil
 
                 mysql_index_type = row[:Index_type].downcase.to_sym
                 case mysql_index_type
                 when :fulltext, :spatial
                   index_type = mysql_index_type
+
+                  if %r/FULLTEXT KEY `#{current_index}` .* WITH PARSER `(?<expression>.+?)`.*$/ =~ table_info
+                    with_parser = $~[:expression]
+                  end
                 when :btree, :hash
                   index_using = mysql_index_type
                 end
@@ -31,7 +38,8 @@ module ActiveRecord
                   orders: {},
                   type: index_type,
                   using: index_using,
-                  comment: row[:Index_comment].presence
+                  comment: row[:Index_comment].presence,
+                  with_parser: with_parser.presence
                 ]
               end
 

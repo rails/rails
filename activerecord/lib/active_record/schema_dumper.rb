@@ -257,6 +257,8 @@ module ActiveRecord
         index_parts << "nulls_not_distinct: #{index.nulls_not_distinct.inspect}" if index.nulls_not_distinct
         index_parts << "type: #{index.type.inspect}" if index.type
         index_parts << "comment: #{index.comment.inspect}" if index.comment
+        index_parts << "with_parser: #{index.with_parser.inspect}" if index.with_parser.present?
+
         index_parts
       end
 

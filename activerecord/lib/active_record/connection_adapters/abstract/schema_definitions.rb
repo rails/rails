@@ -7,7 +7,7 @@ module ActiveRecord
     # this type are typically created and returned by methods in database
     # adapters. e.g. ActiveRecord::ConnectionAdapters::MySQL::SchemaStatements#indexes
     class IndexDefinition # :nodoc:
-      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :include, :nulls_not_distinct, :comment, :valid
+      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :include, :nulls_not_distinct, :comment, :valid, :with_parser
 
       def initialize(
         table, name,
@@ -22,7 +22,8 @@ module ActiveRecord
         include: nil,
         nulls_not_distinct: nil,
         comment: nil,
-        valid: true
+        valid: true,
+        with_parser: nil
       )
         @table = table
         @name = name
@@ -38,6 +39,7 @@ module ActiveRecord
         @nulls_not_distinct = nulls_not_distinct
         @comment = comment
         @valid = valid
+        @with_parser = with_parser
       end
 
       def valid?
