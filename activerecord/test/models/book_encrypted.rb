@@ -43,3 +43,9 @@ class EncryptedBookWithUnencryptedDataOptedIn < ActiveRecord::Base
   validates :name, uniqueness: true
   encrypts :name, deterministic: true, support_unencrypted_data: true
 end
+
+class EncryptedBookCustomType < ActiveRecord::Base
+  self.table_name = "books"
+
+  attribute :name, :boolean
+end

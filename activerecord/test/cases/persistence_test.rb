@@ -24,6 +24,8 @@ require "models/admin/user"
 require "models/cpk"
 require "models/chat_message"
 require "models/default"
+require "models/book"
+require "models/book_encrypted"
 
 class PersistenceTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :accounts, :minimalistics, :authors, :author_addresses,
@@ -1628,5 +1630,15 @@ class QueryConstraintsTest < ActiveRecord::TestCase
 
   def test_child_class_with_query_constraints_overrides_parents
     assert_equal(["clothing_type", "color", "size"], ClothingItem::Sized.query_constraints_list)
+  end
+
+  def test_update_after_becomes
+    book = Book.create!(name: "adf")
+    converted_book = book.becomes(EncryptedBookCustomType)
+    converted_book.name = "Testing"
+    converted_book.save
+
+    name = Book.find(converted_book.id).name
+    assert_includes ["1", "t"], name
   end
 end

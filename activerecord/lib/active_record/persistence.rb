@@ -595,7 +595,7 @@ module ActiveRecord
 
       def _update_record(values, constraints) # :nodoc:
         constraints = constraints.map { |name, value| predicate_builder[name, value] }
-
+        values = values.transform_values { |value| value.with_type(arel_table.type_for_attribute(value.name)) }
         default_constraint = build_default_constraint
         constraints << default_constraint if default_constraint
 
