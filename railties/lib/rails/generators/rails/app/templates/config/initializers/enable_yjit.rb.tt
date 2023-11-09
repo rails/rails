@@ -1,4 +1,4 @@
-# Automatically enable YJIT as of Ruby 3.3, as it bring very
+# Automatically enable YJIT as of Ruby 3.3, as it brings very
 # sizeable performance improvements.
 
 # If you are deploying to a memory constrained environment
