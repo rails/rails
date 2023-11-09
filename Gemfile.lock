@@ -92,7 +92,7 @@ PATH
       drb
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
-      tzinfo (~> 2.0)
+      tzinfo (~> 2.0, >= 2.0.5)
     rails (7.2.0.alpha)
       actioncable (= 7.2.0.alpha)
       actionmailbox (= 7.2.0.alpha)
