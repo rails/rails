@@ -99,6 +99,15 @@ javascript_url "common"
 # => http://www.example.com/assets/common.js
 ```
 
+#### preload_link_tag
+
+Returns a link tag that browsers can use to preload the source. The source can be the path of a resource managed by asset pipeline, a full path, or an URI.
+
+```ruby
+preload_link_tag "application.css"
+# => <link rel="preload" href="/assets/application.css" as="style" type="text/css" />
+```
+
 #### stylesheet_link_tag
 
 Returns a stylesheet link tag for the sources specified as arguments. If you don't specify an extension, `.css` will be appended automatically.
