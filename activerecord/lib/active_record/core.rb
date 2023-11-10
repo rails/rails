@@ -384,8 +384,8 @@ module ActiveRecord
             @arel_table = nil
             @predicate_builder = nil
             @inspection_filter = nil
-            @filter_attributes = nil
-            @generated_association_methods = nil
+            @filter_attributes ||= nil
+            @generated_association_methods ||= nil
           end
         end
 
