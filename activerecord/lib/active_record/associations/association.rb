@@ -348,10 +348,31 @@ module ActiveRecord
         def stale_state
         end
 
+        # Builds a record using the current scope and provided attributes. The order of
+        # attribute assignment is as follows:
+        #
+        #   1. Attributes derived from the current scope.
+        #   2. Attributes passed into the method.
+        #   3. Attributes from initialization, e.g. foreign keys.
+        #   4. Attributes assigned via block.
+        #
+        # The order of 1 and 2 are the most important, since the provided attributes (2)
+        # may have values with dependencies on the current scope (1), such as with a
+        # multi-tenant application where 1 could scope to an account_id and 2 could
+        # contain an attribute or association dependent upon said account_id.
         def build_record(attributes)
-          reflection.build_association(attributes) do |record|
-            initialize_attributes(record, attributes)
-            yield(record) if block_given?
+          attributes_for_build = scope_for_create
+          unless attributes.blank?
+            attributes_from_user = attributes.stringify_keys
+            attributes_from_user.except!(reflection.foreign_key) if attributes_for_build.key?(reflection.foreign_key)
+
+            attributes_for_build.merge!(attributes_from_user)
+          end
+
+          reflection.build_association(attributes_for_build) do |record|
+            initialize_attributes(record, attributes_for_build)
+
+            yield record if block_given?
           end
         end
 

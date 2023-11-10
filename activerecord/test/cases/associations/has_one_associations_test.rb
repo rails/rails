@@ -631,6 +631,18 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal pirate.id, ship.pirate_id
   end
 
+  def test_association_foreign_key_from_scope_is_accessible_in_attributes_from_user
+    pirate = Pirate.create!(catchphrase: "You best start believing in ghost stories... you're in one!")
+
+    assert_nothing_raised do
+      ship = pirate.create_ship(pirate_id: pirate.id + 1, raise_unless_pirate_present: true)
+      assert_equal pirate.id, ship.pirate_id
+
+      ship = pirate.build_ship(pirate_id: pirate.id + 1, raise_unless_pirate_present: true)
+      assert_equal pirate.id, ship.pirate_id
+    end
+  end
+
   def test_build_with_block
     car = Car.create(name: "honda")
 

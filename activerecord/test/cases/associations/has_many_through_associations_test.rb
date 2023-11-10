@@ -1423,7 +1423,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     author = organization.author
     post_direct = author.posts.build
     post_through = organization.posts.build
-    assert_equal post_direct.author_id, post_through.author_id
+    assert_equal author.id, post_through.author_id
+    assert_equal author.id, post_direct.author_id
   end
 
   def test_has_many_through_with_scope_that_should_not_be_fully_merged
