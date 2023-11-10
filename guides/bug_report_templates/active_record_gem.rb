@@ -9,6 +9,7 @@ gemfile(true) do
 
   # Activate the gem you are reporting the issue against.
   gem "activerecord", "~> 7.1.0"
+  gem "minitest"
   gem "sqlite3"
 end
 
