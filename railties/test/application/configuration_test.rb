@@ -965,6 +965,20 @@ module ApplicationTests
       assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secret_key_base
     end
 
+    test "config.secret_key_base does not lead to a deprecation" do
+      remove_file "config/secrets.yml"
+      app_file "config/initializers/secret_token.rb", <<-RUBY
+        Rails.application.credentials.secret_key_base = nil
+        Rails.application.config.secret_key_base = "3b7cd727ee24e8444053437c36cc66c3"
+      RUBY
+
+      app "production"
+
+      assert_not_deprecated(Rails.deprecator) do
+        assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secret_key_base
+      end
+    end
+
     test "custom secrets saved in config/secrets.yml are loaded in app secrets" do
       app_file "config/secrets.yml", <<-YAML
         development:
