@@ -2388,7 +2388,7 @@ irb> assoc.unscope(:includes).pluck(:id)
 ### `pick`
 
 [`pick`][] can be used to pick the value(s) from the named column(s) in the current relation. It accepts a list of column names as an argument and returns the first row of the specified column values ​​with corresponding data type.
-`pick` is an short-hand for `relation.limit(1).pluck(*column_names).first`, which is primarily useful when you already have a relation that is limited to one row.
+`pick` is a short-hand for `relation.limit(1).pluck(*column_names).first`, which is primarily useful when you already have a relation that is limited to one row.
 
 `pick` makes it possible to replace code like:
 
