@@ -24,6 +24,7 @@ require "models/admin/user"
 require "models/cpk"
 require "models/chat_message"
 require "models/default"
+require "models/post_with_prefetched_pk"
 
 class PersistenceTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :accounts, :minimalistics, :authors, :author_addresses,
@@ -527,6 +528,11 @@ class PersistenceTest < ActiveRecord::TestCase
     topic.save
     topic_reloaded = Topic.find(topic.id)
     assert_equal("New Topic", topic_reloaded.title)
+  end
+
+  def test_create_prefetched_pk
+    post = PostWithPrefetchedPk.create!(title: "New Message", body: "New Body")
+    assert_equal 123456, post.id
   end
 
   def test_create_model_with_uuid_pk_populates_id
