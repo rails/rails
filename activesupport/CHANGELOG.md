@@ -1,3 +1,7 @@
+*   Fix logged cache keys not always matching actual key used by cache action.
+
+    *Hartley McGuire*
+
 *   Improve error messages of `assert_changes` and `assert_no_changes`
 
     `assert_changes` error messages now display objects with `.inspect` to make it easier

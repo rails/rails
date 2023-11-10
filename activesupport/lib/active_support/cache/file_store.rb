@@ -78,8 +78,9 @@ module ActiveSupport
 
       def delete_matched(matcher, options = nil)
         options = merged_options(options)
+        matcher = key_matcher(matcher, options)
+
         instrument(:delete_matched, matcher.inspect) do
-          matcher = key_matcher(matcher, options)
           search_dir(cache_path) do |path|
             key = file_path_key(path)
             delete_entry(path, **options) if key.match(matcher)
