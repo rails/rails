@@ -1,3 +1,5 @@
+## Rails 7.1.2 (November 10, 2023) ##
+
 *   Make `==(other)` method of AttributeSet safe.
 
     *Dmitry Pogrebnoy*

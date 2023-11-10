@@ -1,6 +1,6 @@
 {
   "name": "@rails/ujs",
-  "version": "7.1.1",
+  "version": "7.1.2",
   "description": "Ruby on Rails unobtrusive scripting adapter",
   "main": "app/assets/javascripts/rails-ujs.js",
   "module": "app/assets/javascripts/rails-ujs.esm.js",

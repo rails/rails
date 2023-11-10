@@ -1,6 +1,6 @@
 {
   "name": "@rails/actioncable",
-  "version": "7.1.1",
+  "version": "7.1.2",
   "description": "WebSocket framework for Ruby on Rails.",
   "module": "app/assets/javascripts/actioncable.esm.js",
   "main": "app/assets/javascripts/actioncable.js",

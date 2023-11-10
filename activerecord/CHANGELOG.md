@@ -1,3 +1,5 @@
+## Rails 7.1.2 (November 10, 2023) ##
+
 *   Fix renaming primary key index when renaming a table with a UUID primary key
     in PostgreSQL.
 

@@ -1,3 +1,5 @@
+## Rails 7.1.2 (November 10, 2023) ##
+
 *   Fix running `db:system:change` when app has no Dockerfile.
 
     *Hartley McGuire*

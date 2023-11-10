@@ -1,3 +1,5 @@
+## Rails 7.1.2 (November 10, 2023) ##
+
 *   Compile ESM package that can be used directly in the browser as actiontext.esm.js
 
     *Matias Grunberg*

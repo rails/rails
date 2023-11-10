@@ -1,3 +1,8 @@
+## Rails 7.1.2 (November 10, 2023) ##
+
+*   No changes.
+
+
 ## Rails 7.1.1 (October 11, 2023) ##
 
 *   Don't log enqueuing details when the job wasn't enqueued.
