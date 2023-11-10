@@ -14,6 +14,10 @@
 
     *Hartley McGuire*
 
+*   Support handling Enumerator for non-buffered responses.
+
+    *Zachary Scott*
+
 
 ## Rails 7.1.1 (October 11, 2023) ##
 

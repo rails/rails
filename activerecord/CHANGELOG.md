@@ -9,6 +9,10 @@
 
     *João Alves*
 
+*   Prevent marking broken connections as verified.
+
+    *Daniel Colson*
+
 *   Don't mark Float::INFINITY as changed when reassigning it
 
     When saving a record with a float infinite value, it shouldn't mark as changed
@@ -29,6 +33,10 @@
     record could innappropriately `dup` its attributes.
 
     *Jonathan Hefner*
+
+*   Dump schema only for a specific db for rollback/up/down tasks for multiple dbs.
+
+    *fatkodima*
 
 *   Fix `NoMethodError` when casting a PostgreSQL `money` value that uses a
     comma as its radix point and has no leading currency symbol.  For example,
@@ -52,6 +60,14 @@
 *   Raise on `foreign_key:` being passed as an array in associations
 
     *Nikita Vasilevsky*
+
+*   Return back maximum allowed PostgreSQL table name to 63 characters.
+
+    *fatkodima*
+
+*   Fix detecting `IDENTITY` columns for PostgreSQL < 10.
+
+    *fatkodima*
 
 
 ## Rails 7.1.1 (October 11, 2023) ##

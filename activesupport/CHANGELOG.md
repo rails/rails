@@ -12,9 +12,13 @@
     *Yasha Krasnou*
 
 *   Fix missing `require` resulting in `NoMethodError` when running
-    `bin/rains secrets:show` or `bin/rains secrets:edit`.
+    `bin/rails secrets:show` or `bin/rails secrets:edit`.
 
     *Stephen Ierodiaconou*
+
+*   Ensure `{down,up}case_first` returns non-frozen string.
+
+    *Jonathan Hefner*
 
 *   Fix `#to_fs(:human_size)` to correctly work with negative numbers.
 
@@ -35,6 +39,14 @@
     legacy format.
 
     *Jean Boussier*
+
+*   Fix `OrderedOptions#dig` for array indexes.
+
+    *fatkodima*
+
+*   Fix time travel helpers to work when nested using with separate classes.
+
+    *fatkodima*
 
 *   Fix `delete_matched` for file cache store to work with keys longer than the
     max filename size.

@@ -1,5 +1,3 @@
-## Rails 7.1.2 (Unreleased) ##
-
 *   Fix running `db:system:change` when app has no Dockerfile.
 
     *Hartley McGuire*
