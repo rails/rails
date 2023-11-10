@@ -341,7 +341,7 @@ module ActiveRecord
               JOIN pg_namespace   nsp  ON (t.relnamespace = nsp.oid)
               WHERE t.oid = #{quote(quote_table_name(table))}::regclass
                 AND cons.contype = 'p'
-                AND pg_get_expr(def.adbin, def.adrelid) ~* 'nextval|uuid_generate'
+                AND pg_get_expr(def.adbin, def.adrelid) ~* 'nextval|uuid_generate|gen_random_uuid'
             SQL
           end
 
