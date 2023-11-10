@@ -12,6 +12,15 @@ class PostgresqlRenameTableTest < ActiveRecord::PostgreSQLTestCase
     @connection.drop_table "after_rename", if_exists: true
   end
 
+  test "renaming a table also renames the primary key sequence" do
+    @connection.create_table :before_rename, force: true
+
+    @connection.rename_table :before_rename, :after_rename
+
+    pk, seq = @connection.pk_and_sequence_for("after_rename")
+    assert_equal "after_rename_#{pk}_seq", seq.identifier
+  end
+
   test "renaming a table also renames the primary key index" do
     @connection.create_table :before_rename, force: true
 
