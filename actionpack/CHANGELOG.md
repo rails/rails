@@ -7,4 +7,8 @@
 
     *Hartley McGuire*
 
+*   Implement a `:force` option for `cookies.delete` to allow deleting cookies not present in the request
+
+    *Felipe Zavan*
+
 Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/actionpack/CHANGELOG.md) for previous changes.

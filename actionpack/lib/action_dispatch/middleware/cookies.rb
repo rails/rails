@@ -382,12 +382,17 @@ module ActionDispatch
       # Removes the cookie on the client machine by setting the value to an empty string
       # and the expiration date in the past. Like <tt>[]=</tt>, you can pass in
       # an options hash to delete cookies with extra data such as a <tt>:path</tt>.
+      # You can also pass the <tt>:force</tt> option to delete a cookie even if it's
+      # not present in the request. This can be useful if you're trying to delete a
+      # cookie that has a path, from a different path.
       #
       # Returns the value of the cookie, or +nil+ if the cookie does not exist.
       def delete(name, options = {})
-        return unless @cookies.has_key? name.to_s
-
         options.symbolize_keys!
+
+        force = options.delete(:force)
+        return if !force && !@cookies.has_key?(name.to_s)
+
         handle_options(options)
 
         value = @cookies.delete(name.to_s)
