@@ -1,3 +1,7 @@
+*   Prevent some constant redefinition warnings when defining `inherited` on models.
+
+    *Adrian Hirt*
+
 *   Fix a memory perfomance regression in attribute methods.
 
     Attribute methods used much more memory and were slower to define than
