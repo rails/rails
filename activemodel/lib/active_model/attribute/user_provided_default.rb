@@ -18,7 +18,7 @@ module ActiveModel
         if user_provided_value.is_a?(Proc)
           @memoized_value_before_type_cast ||= user_provided_value.call
         else
-          @user_provided_value
+          @user_provided_value.dup
         end
       end
 

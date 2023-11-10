@@ -19,6 +19,11 @@ module ActiveModel
     class ChildModelForAttributesTest < ModelForAttributesTest
     end
 
+    class ModelWithDefaultObjects < ModelForAttributesTest
+      attribute :array_with_default, default: []
+      attribute :hash_with_default, default: {}
+    end
+
     class GrandchildModelForAttributesTest < ChildModelForAttributesTest
       attribute :integer_field, :string
       attribute :string_field, default: "default string"
@@ -155,6 +160,39 @@ module ActiveModel
 
       assert_equal 1, data.integer_field
       assert_equal 2, duped.integer_field
+    end
+
+    test "Array default attributes are dup-ed" do
+      first = ModelWithDefaultObjects.new
+      second = ModelWithDefaultObjects.new
+
+      first.array_with_default << 1
+      first.array_with_default << 2
+
+      assert_equal [1, 2], first.array_with_default
+      assert_equal [], second.array_with_default
+    end
+
+    test "Hash default attributes are dup-ed" do
+      first = ModelWithDefaultObjects.new
+      second = ModelWithDefaultObjects.new
+
+      first.hash_with_default[:a] = 1
+      first.hash_with_default[:b] = 2
+
+      assert_equal({ a: 1, b: 2 }, first.hash_with_default)
+      assert_equal({}, second.hash_with_default)
+    end
+
+    test "String default attributes are dup-ed" do
+      first = ModelWithDefaultObjects.new
+      second = ModelWithDefaultObjects.new
+
+      first.string_with_default << "1"
+      first.string_with_default << "2"
+
+      assert_equal "default string12", first.string_with_default
+      assert_equal "default string", second.string_with_default
     end
 
     test "can't modify attributes if frozen" do
