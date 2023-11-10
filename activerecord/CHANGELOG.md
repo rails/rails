@@ -1,3 +1,8 @@
+*   Fix renaming primary key index when renaming a table with a UUID primary key
+    in PostgreSQL.
+
+    *fatkodima*
+
 *   Fix `where(field: values)` queries when `field` is a serialized attribute
     (for example, when `field` uses `ActiveRecord::Base.serialize` or is a JSON
     column).
