@@ -1,3 +1,7 @@
+*   Make schema dumper to account for `ActiveRecord.dump_schemas` when dumping in `:ruby` format.
+
+    *fatkodima*
+
 *   Add `:touch` option to `update_column`/`update_columns` methods.
 
     ```ruby
