@@ -1,4 +1,4 @@
-*   Add helper class method `column_comment(column_name)` to get the comment text for a column.
+*   Add helper method `column_comment(column_name)` to get the comment text for a column.
     ```ruby
     # before
     Post.columns_hash["author"].comment
@@ -8,7 +8,7 @@
     ```
     It raises an error if called with a column name that does not exist on the model's table.
     ```ruby
-    Post.columns_comment("column_that_does_not_exist")
+    Post.column_comment("column_that_does_not_exist")
 
     # => RuntimeError, Invalid column name provided: column_that_does_not_exist
     ```
