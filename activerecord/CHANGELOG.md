@@ -1,4 +1,4 @@
-* Add helper class method `column_comment(column_name)` to get the comment text for a column.
+*   Add helper class method `column_comment(column_name)` to get the comment text for a column.
     ```ruby
     # before
     Post.columns_hash["author"].comment
@@ -15,7 +15,7 @@
 
     *Theodore Ambie-Barango*
 
-* Fix `where(field: values)` queries when `field` is a serialized attribute
+*   Fix `where(field: values)` queries when `field` is a serialized attribute
     (for example, when `field` uses `ActiveRecord::Base.serialize` or is a JSON
     column).
 
