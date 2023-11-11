@@ -168,8 +168,9 @@ module ActiveSupport
       # Deletes cache entries if the cache key matches a given pattern.
       def delete_matched(matcher, options = nil)
         options = merged_options(options)
+        matcher = key_matcher(matcher, options)
+
         instrument(:delete_matched, matcher.inspect) do
-          matcher = key_matcher(matcher, options)
           keys = synchronize { @data.keys }
           keys.each do |key|
             delete_entry(key, **options) if key.match(matcher)

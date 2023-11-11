@@ -192,12 +192,13 @@ module ActiveSupport
       #
       # Failsafe: Raises errors.
       def delete_matched(matcher, options = nil)
-        instrument :delete_matched, matcher do
-          unless String === matcher
-            raise ArgumentError, "Only Redis glob strings are supported: #{matcher.inspect}"
-          end
+        unless String === matcher
+          raise ArgumentError, "Only Redis glob strings are supported: #{matcher.inspect}"
+        end
+        pattern = namespace_key(matcher, options)
+
+        instrument :delete_matched, pattern do
           redis.then do |c|
-            pattern = namespace_key(matcher, options)
             cursor = "0"
             # Fetch keys in batches using SCAN to avoid blocking the Redis server.
             nodes = c.respond_to?(:nodes) ? c.nodes : [c]
@@ -230,10 +231,11 @@ module ActiveSupport
       #
       # Failsafe: Raises errors.
       def increment(name, amount = 1, options = nil)
-        instrument :increment, name, amount: amount do
+        options = merged_options(options)
+        key = normalize_key(name, options)
+
+        instrument :increment, key, amount: amount do
           failsafe :increment do
-            options = merged_options(options)
-            key = normalize_key(name, options)
             change_counter(key, amount, options)
           end
         end
@@ -256,10 +258,11 @@ module ActiveSupport
       #
       # Failsafe: Raises errors.
       def decrement(name, amount = 1, options = nil)
-        instrument :decrement, name, amount: amount do
+        options = merged_options(options)
+        key = normalize_key(name, options)
+
+        instrument :decrement, key, amount: amount do
           failsafe :decrement do
-            options = merged_options(options)
-            key = normalize_key(name, options)
             change_counter(key, -amount, options)
           end
         end

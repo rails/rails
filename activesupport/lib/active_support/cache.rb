@@ -456,7 +456,7 @@ module ActiveSupport
 
           entry = nil
           unless options[:force]
-            instrument(:read, name, options) do |payload|
+            instrument(:read, key, options) do |payload|
               cached_entry = read_entry(key, **options, event: payload)
               entry = handle_expired_entry(cached_entry, key, options)
               if entry
@@ -478,7 +478,7 @@ module ActiveSupport
           if entry
             get_entry_value(entry, name, options)
           else
-            save_block_result_to_cache(name, options, &block)
+            save_block_result_to_cache(name, key, options, &block)
           end
         elsif options && options[:force]
           raise ArgumentError, "Missing block: Calling `Cache#fetch` with `force: true` requires a block."
@@ -508,7 +508,7 @@ module ActiveSupport
         key     = normalize_key(name, options)
         version = normalize_version(name, options)
 
-        instrument(:read, name, options) do |payload|
+        instrument(:read, key, options) do |payload|
           entry = read_entry(key, **options, event: payload)
 
           if entry
@@ -662,10 +662,11 @@ module ActiveSupport
       # Other options will be handled by the specific cache store implementation.
       def write(name, value, options = nil)
         options = merged_options(options)
+        key = normalize_key(name, options)
 
-        instrument(:write, name, options) do
+        instrument(:write, key, options) do
           entry = Entry.new(value, **options.merge(version: normalize_version(name, options)))
-          write_entry(normalize_key(name, options), entry, **options)
+          write_entry(key, entry, **options)
         end
       end
 
@@ -675,9 +676,10 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def delete(name, options = nil)
         options = merged_options(options)
+        key = normalize_key(name, options)
 
-        instrument(:delete, name) do
-          delete_entry(normalize_key(name, options), **options)
+        instrument(:delete, key) do
+          delete_entry(key, **options)
         end
       end
 
@@ -701,9 +703,10 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def exist?(name, options = nil)
         options = merged_options(options)
+        key = normalize_key(name, options)
 
-        instrument(:exist?, name) do |payload|
-          entry = read_entry(normalize_key(name, options), **options, event: payload)
+        instrument(:exist?, key) do |payload|
+          entry = read_entry(key, **options, event: payload)
           (entry && !entry.expired? && !entry.mismatched?(normalize_version(name, options))) || false
         end
       end
@@ -1016,7 +1019,7 @@ module ActiveSupport
               if multi
                 ": #{payload[:key].size} key(s) specified"
               elsif payload[:key]
-                ": #{normalize_key(payload[:key], options)}"
+                ": #{payload[:key]}"
               end
 
             debug_options = " (#{options.inspect})" unless options.blank?
@@ -1052,10 +1055,10 @@ module ActiveSupport
           entry.value
         end
 
-        def save_block_result_to_cache(name, options)
+        def save_block_result_to_cache(name, key, options)
           options = options.dup
 
-          result = instrument(:generate, name, options) do
+          result = instrument(:generate, key, options) do
             yield(name, WriteOptions.new(options))
           end
 
