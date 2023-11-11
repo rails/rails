@@ -484,7 +484,7 @@ module Rails
               config.secret_key_base
             else
               Rails.deprecator.warn(<<~MSG.squish)
-                Your `secret_key_base is configured in `Rails.application.secrets`,
+                Your `secret_key_base` is configured in `Rails.application.secrets`,
                 which is deprecated in favor of `Rails.application.credentials` and
                 will be removed in Rails 7.2.
               MSG
