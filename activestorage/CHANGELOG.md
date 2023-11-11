@@ -1,3 +1,8 @@
+*   Fix `preprocessed: true` option for named variants of previewable files.
+
+    *Nico Wenterodt*
+
+
 ## Rails 7.1.2 (November 10, 2023) ##
 
 *   No changes.
