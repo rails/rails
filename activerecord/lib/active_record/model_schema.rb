@@ -432,10 +432,6 @@ module ActiveRecord
         end.comment
       end
 
-      def table_comment
-
-      end
-
       def columns
         load_schema
         @columns ||= columns_hash.values.freeze
