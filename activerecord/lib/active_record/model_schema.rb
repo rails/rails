@@ -426,6 +426,16 @@ module ActiveRecord
         @columns_hash
       end
 
+      def column_comment(column_name)
+        columns_hash.fetch(column_name.to_s) do
+          raise "Invalid column name provided: #{column_name}"
+        end.comment
+      end
+
+      def table_comment
+
+      end
+
       def columns
         load_schema
         @columns ||= columns_hash.values.freeze
