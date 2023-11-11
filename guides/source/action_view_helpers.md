@@ -99,6 +99,24 @@ javascript_url "common"
 # => http://www.example.com/assets/common.js
 ```
 
+#### picture_tag
+
+Returns an HTML picture tag for the source. It supports passing a String, an Array or a Block.
+
+```ruby
+picture_tag("icon.webp", "icon.png")
+```
+
+This generates the following HTML:
+
+```html
+<picture>
+  <source srcset="/assets/icon.webp" type="image/webp" />
+  <source srcset="/assets/icon.png" type="image/png" />
+  <img src="/assets/icon.png" />
+</picture>
+```
+
 #### preload_link_tag
 
 Returns a link tag that browsers can use to preload the source. The source can be the path of a resource managed by asset pipeline, a full path, or an URI.
