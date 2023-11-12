@@ -90,6 +90,9 @@ class StoreTest < ActiveRecord::TestCase
   test "updating the store will mark accessor as changed" do
     @john.color = "red"
     assert_predicate @john, :color_changed?
+    assert @john.color_changed?(from: "black", to: "red")
+    assert @john.color_changed?(from: "black")
+    assert @john.color_changed?(to: "red")
   end
 
   test "new record and no accessors changes" do
@@ -161,6 +164,10 @@ class StoreTest < ActiveRecord::TestCase
     assert_predicate @john, :saved_change_to_partner_name?
     assert_equal ["Dallas", "Lena"], @john.saved_change_to_partner_name
     assert_equal "Dallas", @john.partner_name_before_last_save
+    assert @john.saved_change_to_partner_name?(from: "Dallas")
+    assert @john.saved_change_to_partner_name?(to: "Lena")
+    assert @john.saved_change_to_partner_name?(from: "Dallas", to: "Lena")
+    assert_not @john.saved_change_to_partner_name?(to: "Euler")
   end
 
   test "saved changes tracking for accessors with json column" do
