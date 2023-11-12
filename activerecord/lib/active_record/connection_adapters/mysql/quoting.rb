@@ -18,9 +18,9 @@ module ActiveRecord
           when BigDecimal
             value.to_s("F")
           when true
-            "1"
+            "TRUE"
           when false
-            "0"
+            "FALSE"
           when ActiveSupport::Duration
             warn_quote_duration_deprecated
             value.to_s
