@@ -1,3 +1,8 @@
+*   Fix `preprocessed: true` option to generate preview images for previewable
+    files as well as the variant associated with the preview image.
+
+    *Chedli Bourguiba*
+
 *   Fix `preprocessed: true` option for named variants of previewable files.
 
     *Nico Wenterodt*
