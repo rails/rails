@@ -3510,7 +3510,11 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `action_mailer.compile_config_methods`: Initializes methods for the config settings specified so that they are quicker to access.
 
-* `set_load_path`: This initializer runs before `bootstrap_hook`. Adds paths specified by `config.paths.load_paths` and all autoload paths to `$LOAD_PATH`.
+* `set_load_path`: This initializer runs before `bootstrap_hook`. Adds paths
+  specified by `config.paths.load_paths` to `$LOAD_PATH`. And unless you set
+  `config.add_autoload_paths_to_load_path` to `false`, it will also add all
+  autoload paths specified by `config.autoload_paths`,
+  `config.eager_load_paths`, `config.autoload_once_paths`.
 
 * `set_autoload_paths`: This initializer runs before `bootstrap_hook`. Adds all sub-directories of `app` and paths specified by `config.autoload_paths`, `config.eager_load_paths` and `config.autoload_once_paths` to `ActiveSupport::Dependencies.autoload_paths`.
 
