@@ -116,6 +116,7 @@ var INTERNAL = {
     welcome: "welcome",
     disconnect: "disconnect",
     ping: "ping",
+    pong: "pong",
     confirmation: "confirm_subscription",
     rejection: "reject_subscription"
   },
@@ -123,10 +124,11 @@ var INTERNAL = {
     unauthorized: "unauthorized",
     invalid_request: "invalid_request",
     server_restart: "server_restart",
-    remote: "remote"
+    remote: "remote",
+    heartbeat_timeout: "heartbeat_timeout"
   },
   default_mount_path: "/cable",
-  protocols: [ "actioncable-v1-json", "actioncable-unsupported" ]
+  protocols: [ "actioncable-v1.1-json", "actioncable-v1-json", "actioncable-unsupported" ]
 };
 
 const {message_types: message_types, protocols: protocols} = INTERNAL;
@@ -233,6 +235,11 @@ class Connection {
       this.webSocket[`on${eventName}`] = function() {};
     }
   }
+  expectsPongResponse() {
+    const protocol = this.getProtocol();
+    if (!protocol) return;
+    return protocol.startsWith("actioncable-v1.1-");
+  }
 }
 
 Connection.reopenDelay = 500;
@@ -259,6 +266,12 @@ Connection.prototype.events = {
       });
 
      case message_types.ping:
+      if (this.expectsPongResponse()) {
+        this.send({
+          type: message_types.pong,
+          message: message
+        });
+      }
       return null;
 
      case message_types.confirmation:

@@ -99,6 +99,7 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
       assert_predicate statistics[:identifier], :blank?
       assert_kind_of Time, statistics[:started_at]
       assert_equal [], statistics[:subscriptions]
+      assert_kind_of Time, statistics[:last_message_received_at]
     end
   end
 
@@ -139,6 +140,100 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
       assert_match(/\A#<ActionCable::Connection::BaseTest::Connection:0x[0-9a-f]+>\z/, connection.inspect)
     end
   end
+
+  test "v1.1 connection is force-closed when no message received within the heartbeat timeout" do
+    run_in_eventmachine do
+      connection = open_connection
+      connection.process
+
+      connection.instance_variable_set(:@expects_pong, true)
+      connection.instance_variable_set(:@last_message_received_at, 1.hour.ago)
+
+      captured = []
+      connection.websocket.define_singleton_method(:close) { |**kwargs| captured << kwargs }
+
+      connection.beat
+
+      assert_equal [{ force: true }], captured
+    end
+  end
+
+  test "v1 connection is not closed on heartbeat even when idle" do
+    run_in_eventmachine do
+      connection = open_connection
+      connection.process
+
+      connection.instance_variable_set(:@expects_pong, false)
+      connection.instance_variable_set(:@last_message_received_at, 1.hour.ago)
+
+      close_called = false
+      connection.websocket.define_singleton_method(:close) { |**| close_called = true }
+
+      connection.beat
+
+      assert_not close_called
+    end
+  end
+
+  test "processing of an incoming PONG message" do
+    run_in_eventmachine do
+      connection = open_connection
+      connection.process
+
+      wait_for_async
+
+      websocket_message = { type: "pong", message: 1.second.ago.to_f }.to_json
+
+      notification_data = nil
+      callback = ->(_name, _started, _finished, _unique_id, data) do
+        notification_data = data
+      end
+
+      ActiveSupport::Notifications.subscribed(callback, "connection_latency.action_cable") do
+        connection.receive(websocket_message)
+      end
+
+      assert_predicate notification_data[:value], :positive?
+      assert_in_delta 1, notification_data[:value], 0.5
+    end
+  end
+
+  test "PONG with non-numeric or implausible timestamp does not emit a latency notification" do
+    run_in_eventmachine do
+      connection = open_connection
+      connection.process
+
+      wait_for_async
+
+      notifications = []
+      callback = ->(_name, _started, _finished, _unique_id, data) { notifications << data }
+
+      ActiveSupport::Notifications.subscribed(callback, "connection_latency.action_cable") do
+        connection.receive({ type: "pong", message: "garbage" }.to_json)
+        connection.receive({ type: "pong", message: nil }.to_json)
+        connection.receive({ type: "pong", message: 0 }.to_json)
+        connection.receive({ type: "pong", message: (Time.now.to_f + 60) }.to_json)
+      end
+
+      assert_empty notifications
+    end
+  end
+
+  test "receiving a message updates the last message received at timestamp" do
+    run_in_eventmachine do
+      connection = open_connection
+      connection.process
+
+      wait_for_async
+
+      connection.instance_variable_set(:@last_message_received_at, 1.hour.ago)
+
+      connection.receive({ type: "pong", message: 123.456 }.to_json)
+
+      assert_in_delta Time.now, connection.instance_variable_get(:@last_message_received_at), 1
+    end
+  end
+
 
   private
     def open_connection

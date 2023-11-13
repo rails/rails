@@ -3,6 +3,7 @@ export default {
     "welcome": "welcome",
     "disconnect": "disconnect",
     "ping": "ping",
+    "pong": "pong",
     "confirmation": "confirm_subscription",
     "rejection": "reject_subscription"
   },
@@ -10,10 +11,12 @@ export default {
     "unauthorized": "unauthorized",
     "invalid_request": "invalid_request",
     "server_restart": "server_restart",
-    "remote": "remote"
+    "remote": "remote",
+    "heartbeat_timeout": "heartbeat_timeout"
   },
   "default_mount_path": "/cable",
   "protocols": [
+    "actioncable-v1.1-json",
     "actioncable-v1-json",
     "actioncable-unsupported"
   ]
