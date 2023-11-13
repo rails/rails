@@ -92,7 +92,7 @@ class ActiveStorage::Preview
 
   private
     def processed?
-      image.attached?
+      image.attached? && variant.processed?
     end
 
     def process
@@ -101,12 +101,12 @@ class ActiveStorage::Preview
           image.attach(attachable)
         end
       end
+      variant
     end
 
     def variant
       image.variant(variation).processed
     end
-
 
     def previewer
       previewer_class.new(blob)

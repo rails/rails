@@ -33,11 +33,11 @@ class ActiveStorage::VariantWithRecord
 
   delegate :key, :url, :download, to: :image, allow_nil: true
 
-  private
-    def processed?
-      record.present?
-    end
+  def processed? # :nodoc:
+    record.present?
+  end
 
+  private
     def process
       transform_blob { |image| create_or_find_record(image: image) }
     end
