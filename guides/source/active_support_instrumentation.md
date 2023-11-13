@@ -781,6 +781,14 @@ This event is only emitted when using [`MemoryStore`][ActiveSupport::Cache::Memo
 | `:message`      | A hash of message    |
 | `:coder`        | The coder            |
 
+#### `connection_latency.action_cable`
+
+| Key                      | Value                |
+| ------------------------ | -------------------- |
+| `:value`                 | The latency in seconds as a float with sub-seconds included |
+| `:connection_identifier` | The identifier string of the connection                     |
+| `:identifiers`           | A hash of identifier objects of the connection              |
+
 ### Active Storage
 
 #### `preview.active_storage`

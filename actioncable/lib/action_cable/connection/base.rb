@@ -52,6 +52,8 @@ module ActionCable
       include Callbacks
       include ActiveSupport::Rescuable
 
+      HALF_OPEN_CONNECTION_TIMEOUT = ActionCable::Server::Connections::BEAT_INTERVAL.seconds * 2
+
       attr_reader :server, :env, :subscriptions, :logger, :worker_pool, :protocol
       delegate :event_loop, :pubsub, :config, to: :server
 
@@ -66,7 +68,7 @@ module ActionCable
         @message_buffer = ActionCable::Connection::MessageBuffer.new(self)
 
         @_internal_subscriptions = nil
-        @started_at = Time.now
+        @started_at = @last_message_received_at = Time.now
       end
 
       # Called by the server when a new WebSocket connection is established. This configures the callbacks intended for overwriting by the user.
@@ -84,12 +86,17 @@ module ActionCable
       # Decodes WebSocket messages and dispatches them to subscribed channels.
       # WebSocket message transfer encoding is always JSON.
       def receive(websocket_message) # :nodoc:
+        @last_message_received_at = Time.now
         send_async :dispatch_websocket_message, websocket_message
       end
 
       def dispatch_websocket_message(websocket_message) # :nodoc:
         if websocket.alive?
-          handle_channel_command decode(websocket_message)
+          payload = decode(websocket_message)
+
+          return handle_pong(payload) if payload["type"] == ActionCable::INTERNAL[:message_types][:pong]
+
+          handle_channel_command(payload)
         else
           logger.error "Ignoring message processed after the WebSocket was closed: #{websocket_message.inspect})"
         end
@@ -106,13 +113,13 @@ module ActionCable
       end
 
       # Close the WebSocket connection.
-      def close(reason: nil, reconnect: true)
+      def close(reason: nil, reconnect: true, force: false)
         transmit(
           type: ActionCable::INTERNAL[:message_types][:disconnect],
           reason: reason,
           reconnect: reconnect
         )
-        websocket.close
+        websocket.close(force: force)
       end
 
       # Invoke a method on the connection asynchronously through the pool of thread workers.
@@ -120,19 +127,29 @@ module ActionCable
         worker_pool.async_invoke(self, method, *arguments)
       end
 
-      # Return a basic hash of statistics for the connection keyed with <tt>identifier</tt>, <tt>started_at</tt>, <tt>subscriptions</tt>, and <tt>request_id</tt>.
+      # Return a basic hash of statistics for the connection keyed with <tt>identifier</tt>, <tt>started_at</tt>,
+      # <tt>subscriptions</tt>, <tt>request_id</tt>, and <tt>last_message_received_at</tt>.
       # This can be returned by a health check against the connection.
       def statistics
         {
           identifier: connection_identifier,
           started_at: @started_at,
           subscriptions: subscriptions.identifiers,
-          request_id: @env["action_dispatch.request_id"]
+          request_id: @env["action_dispatch.request_id"],
+          last_message_received_at: @last_message_received_at
         }
       end
 
       def beat
-        transmit type: ActionCable::INTERNAL[:message_types][:ping], message: Time.now.to_i
+        unless expects_pong?
+          return transmit(type: ActionCable::INTERNAL[:message_types][:ping], message: Time.now.to_i)
+        end
+
+        if missed_pong_response?
+          return close(reason: ::ActionCable::INTERNAL[:disconnect_reasons][:heartbeat_timeout], force: true)
+        end
+
+        transmit type: ::ActionCable::INTERNAL[:message_types][:ping], message: Time.now.to_f
       end
 
       def on_open # :nodoc:
@@ -271,6 +288,30 @@ module ActionCable
           "Successfully upgraded to WebSocket (REQUEST_METHOD: %s, HTTP_CONNECTION: %s, HTTP_UPGRADE: %s)" % [
             env["REQUEST_METHOD"], env["HTTP_CONNECTION"], env["HTTP_UPGRADE"]
           ]
+        end
+
+        def expects_pong?
+          return @expects_pong unless @expects_pong.nil?
+
+          @expects_pong = @protocol&.starts_with?("actioncable-v1.1-")
+        end
+
+        def missed_pong_response?
+          expects_pong? && @last_message_received_at.before?(HALF_OPEN_CONNECTION_TIMEOUT.ago)
+        end
+
+        def handle_pong(payload)
+          latency = Time.now.to_f - payload["message"].to_f
+
+          if latency.positive?
+            payload = {
+              value: latency,
+              connection_identifier: connection_identifier,
+              identifiers: identifiers.index_with { |id| instance_variable_get("@#{id}") }
+            }
+
+            ActiveSupport::Notifications.instrument("connection_latency.action_cable", payload)
+          end
         end
     end
   end
