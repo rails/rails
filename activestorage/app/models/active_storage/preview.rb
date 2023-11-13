@@ -47,7 +47,7 @@ class ActiveStorage::Preview
   # image is stored with the blob, it is only generated once.
   def processed
     process unless processed?
-    variant.processed
+    variant.processed if variant?
     self
   end
 
@@ -63,7 +63,7 @@ class ActiveStorage::Preview
   # a stable URL that redirects to the URL returned by this method.
   def url(**options)
     if processed?
-      variant.url(**options)
+      presentation.url(**options)
     else
       raise UnprocessedError
     end
@@ -72,7 +72,7 @@ class ActiveStorage::Preview
   # Returns a combination key of the blob and the variation that together identifies a specific variant.
   def key
     if processed?
-      variant.key
+      presentation.key
     else
       raise UnprocessedError
     end
@@ -85,7 +85,7 @@ class ActiveStorage::Preview
   # if the preview has not been processed yet.
   def download(&block)
     if processed?
-      variant.download(&block)
+      presentation.download(&block)
     else
       raise UnprocessedError
     end
@@ -105,7 +105,15 @@ class ActiveStorage::Preview
     end
 
     def variant
-      image.variant(variation).processed
+      image.variant(variation)
+    end
+
+    def variant?
+      variation.transformations.present?
+    end
+
+    def presentation
+      variant? ? variant.processed : image
     end
 
 
