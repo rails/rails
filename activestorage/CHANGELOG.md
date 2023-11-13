@@ -1,3 +1,9 @@
+*   Prevent `ActiveRecord::StrictLoadingViolationError` when strict loading is
+    enabled and the variant of an Active Storage preview has already been
+    processed (for example, by calling `ActiveStorage::Preview#url`).
+
+    *Jonathan Hefner*
+
 *   Fix variants not included when eager loading multiple records containing a single attachment
 
     When using the `with_attached_#{name}` scope for a `has_one_attached` relation,
