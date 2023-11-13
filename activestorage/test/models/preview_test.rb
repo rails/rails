@@ -62,6 +62,16 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
     assert_predicate blob.reload.preview_image, :attached?
   end
 
+  test "#processed also processes the preview's image variant" do
+    blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
+    transformations = { resize_to_limit: [640, 280] }
+    preview = blob.preview(transformations)
+
+    assert_changes -> { !!preview.image.variant(transformations)&.send(:processed?) }, to: true do
+      preview.processed
+    end
+  end
+
   test "preview of PDF is created on the same service" do
     blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf", service_name: "local_public")
     preview = blob.preview(resize_to_limit: [640, 280]).processed
