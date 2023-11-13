@@ -20,11 +20,14 @@ class ActiveStorage::TransformJobTest < ActiveJob::TestCase
     @blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
     transformations = { resize_to_limit: [100, 100] }
 
-    assert_changes -> { @blob.reload.preview(transformations).send(:processed?) }, from: false, to: true do
+    assert_changes -> { @blob.preview(transformations).send(:processed?) }, from: false, to: true do
       perform_enqueued_jobs do
         ActiveStorage::TransformJob.perform_later @blob, transformations
       end
+      @blob.reload
     end
+
+    assert @blob.preview(transformations).image.variant(transformations).send(:processed?)
   end
 
   test "creates variant when untracked" do
