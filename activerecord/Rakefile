@@ -2,6 +2,9 @@
 
 # change
 # more change
+# more change
+
+ENV["SEED"] = "6062"
 
 require "shellwords"
 require "rake/testtask"
