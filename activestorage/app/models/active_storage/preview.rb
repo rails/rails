@@ -47,6 +47,7 @@ class ActiveStorage::Preview
   # image is stored with the blob, it is only generated once.
   def processed
     process unless processed?
+    variant.processed
     self
   end
 
