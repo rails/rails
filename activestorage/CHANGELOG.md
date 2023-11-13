@@ -1,3 +1,9 @@
+*   Prevent `ActiveRecord::StrictLoadingViolationError` when strict loading is
+    enabled and the variant of an Active Storage preview has already been
+    processed (for example, by calling `ActiveStorage::Preview#url`).
+
+    *Jonathan Hefner*
+
 *   Fix `preprocessed: true` option for named variants of previewable files.
 
     *Nico Wenterodt*

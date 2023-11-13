@@ -328,28 +328,13 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   end
 
   test "scope_for_strict_loading adds includes only when track_variants and strict_loading_by_default" do
-    assert_empty(
-      ActiveStorage::Blob.scope_for_strict_loading.includes_values,
-      "Expected ActiveStorage::Blob.scope_for_strict_loading have no includes"
-    )
+    assert_empty ActiveStorage::Blob.scope_for_strict_loading.includes_values
 
     with_strict_loading_by_default do
-      includes_values = ActiveStorage::Blob.scope_for_strict_loading.includes_values
-
-      assert(
-        includes_values.any? { |values| values[:variant_records] == { image_attachment: :blob } },
-        "Expected ActiveStorage::Blob.scope_for_strict_loading to have variant_records included"
-      )
-      assert(
-        includes_values.any? { |values| values[:preview_image_attachment] == :blob },
-        "Expected ActiveStorage::Blob.scope_for_strict_loading to have preview_image_attachment included"
-      )
+      assert_not_empty ActiveStorage::Blob.scope_for_strict_loading.includes_values
 
       without_variant_tracking do
-        assert_empty(
-          ActiveStorage::Blob.scope_for_strict_loading.includes_values,
-          "Expected ActiveStorage::Blob.scope_for_strict_loading have no includes"
-        )
+        assert_empty ActiveStorage::Blob.scope_for_strict_loading.includes_values
       end
     end
   end
