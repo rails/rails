@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+ENV["SEED"] = "6062"
+
 require "shellwords"
 require "rake/testtask"
 
