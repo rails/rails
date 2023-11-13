@@ -58,6 +58,8 @@ end
 
 %w( mysql2 trilogy postgresql sqlite3 sqlite3_mem oracle jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
   namespace :test do
+    # ENV["TESTOPTS"] = "-v"
+
     Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
       adapter_short = adapter[/^[a-z0-9]+/]
       t.libs << "test"
