@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+Signal.trap(ENV["BUILDKITE_CANCEL_SIGNAL"] || "TERM") do
+  puts caller
+end
+
 require "config"
 
 require "stringio"
