@@ -105,6 +105,7 @@ class ActiveSupport::TestCase
       strict_loading_was = ActiveRecord::Base.strict_loading_by_default
       ActiveRecord::Base.strict_loading_by_default = true
       yield
+    ensure
       ActiveRecord::Base.strict_loading_by_default = strict_loading_was
     end
 
@@ -112,6 +113,7 @@ class ActiveSupport::TestCase
       variant_tracking_was = ActiveStorage.track_variants
       ActiveStorage.track_variants = false
       yield
+    ensure
       ActiveStorage.track_variants = variant_tracking_was
     end
 
