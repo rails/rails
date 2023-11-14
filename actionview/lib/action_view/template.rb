@@ -501,7 +501,7 @@ module ActionView
         end
 
         unless parameters.any? { |type, _| type == :keyrest }
-          parameters.map!(&:first)
+          parameters.map!(&:last)
           parameters.sort!
           @strict_local_keys = parameters.freeze
         end
