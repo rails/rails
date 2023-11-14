@@ -157,7 +157,7 @@ A short rundown of some of the major features:
       end
     end
 
-  {Learn more}[https://api.rubyonrails.org/v6.1.0/classes/ActiveRecord/Migration.html]
+  {Learn more}[https://api.rubyonrails.org/classes/ActiveRecord/Migration.html]
 
 
 == Philosophy
