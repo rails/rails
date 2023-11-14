@@ -1,3 +1,7 @@
+*   Fix ActiveSupport::Deprecation to handle blaming generated code
+
+    *Jean Boussier*, *fatkodima*
+
 *   Fix `#to_fs(:human_size)` to correctly work with negative numbers.
 
     *Earlopain*
