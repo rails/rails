@@ -476,8 +476,8 @@ end
 ```
 
 First, the template asks the user whether they would like to install Devise.
-If the user replies "yes" (or "y"), the template adds Devise to the `Gemfile`
-asks the user for the name of the Devise user model (defaulting to `User`).
+If the user replies "yes" (or "y"), the template adds Devise to the `Gemfile`,
+and asks the user for the name of the Devise user model (defaulting to `User`).
 Later, after `bundle install` has been run, the template will run the Devise
 generators and `rails db:migrate` if a Devise model was specified. Finally, the
 template will `git add` and `git commit` the entire app directory.
