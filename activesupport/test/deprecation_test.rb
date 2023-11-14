@@ -39,6 +39,14 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  test "passing callstack as `caller` is deprecated" do
+    assert_deprecated(/Passing the result of `caller` to ActiveSupport::Deprecation#warn/, ActiveSupport.deprecator) do
+      assert_deprecated(@deprecator) do
+        @deprecator.warn("Yo dawg!", caller)
+      end
+    end
+  end
+
   test "assert_deprecated is deprecated without a deprecator" do
     assert_deprecated(ActiveSupport.deprecator) do
       assert_deprecated do

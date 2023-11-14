@@ -151,7 +151,12 @@ module ActiveSupport
         end
 
         def _extract_callstack(callstack)
-          warn "Please pass `caller_locations` to the deprecation API" if $VERBOSE
+          ActiveSupport.deprecator.warn(<<~MESSAGE)
+            Passing the result of `caller` to ActiveSupport::Deprecation#warn is deprecated and will be removed in Rails 7.2.
+
+            Please pass the result of `caller_locations` instead.
+          MESSAGE
+
           offending_line = callstack.find { |line| !ignored_callstack?(line) } || callstack.first
 
           if offending_line
