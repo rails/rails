@@ -142,7 +142,9 @@ module ActiveSupport
           return _extract_callstack(callstack) if callstack.first.is_a? String
 
           offending_line = callstack.find { |frame|
-            frame.absolute_path && !ignored_callstack(frame.absolute_path)
+            # Code generated with `eval` doesn't have an `absolute_path`, e.g. templates.
+            path = frame.absolute_path || frame.path
+            path && !ignored_callstack?(path)
           } || callstack.first
 
           [offending_line.path, offending_line.lineno, offending_line.label]
@@ -150,7 +152,7 @@ module ActiveSupport
 
         def _extract_callstack(callstack)
           warn "Please pass `caller_locations` to the deprecation API" if $VERBOSE
-          offending_line = callstack.find { |line| !ignored_callstack(line) } || callstack.first
+          offending_line = callstack.find { |line| !ignored_callstack?(line) } || callstack.first
 
           if offending_line
             if md = offending_line.match(/^(.+?):(\d+)(?::in `(.*?)')?/)
@@ -162,9 +164,10 @@ module ActiveSupport
         end
 
         RAILS_GEM_ROOT = File.expand_path("../../../..", __dir__) + "/"
+        LIB_DIR = RbConfig::CONFIG["libdir"]
 
-        def ignored_callstack(path)
-          path.start_with?(RAILS_GEM_ROOT) || path.start_with?(RbConfig::CONFIG["rubylibdir"])
+        def ignored_callstack?(path)
+          path.start_with?(RAILS_GEM_ROOT, LIB_DIR)
         end
     end
   end
