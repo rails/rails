@@ -36,6 +36,10 @@ module ApplicationTests
         assert_respond_to x, :i_do_not_exist
         assert_kind_of Method, x.method(:i_do_not_exist)
         assert_kind_of ActiveSupport::OrderedOptions, x.i_do_not_exist
+
+        assert_raises ArgumentError, match: "unexpected arguments (true, false) while reading `i_do_not_exist` configuration" do
+          x.i_do_not_exist(true, false)
+        end
       end
 
       private

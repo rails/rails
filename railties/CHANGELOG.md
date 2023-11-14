@@ -1,3 +1,11 @@
+*   Raise `ArgumentError` when reading `config.x.something` with arguments
+
+    ```ruby
+    config.x.this_works.this_raises true # raises ArgumentError
+    ```
+
+    *Sean Doyle*
+
 *   Add default PWA files for manifest and service-worker that are served from `app/views/pwa` and can be dynamically rendered through erb. Mount these files explicitly at the root with default routes in the generated routes file.
 
     *DHH*
