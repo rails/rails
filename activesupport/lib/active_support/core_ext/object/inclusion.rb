@@ -12,6 +12,15 @@ class Object
   #
   # For non +Range+ arguments, this will throw an +ArgumentError+ if the argument
   # doesn't respond to +#include?+.
+  #
+  # As Active Record relations respond to +include?+, calling +in?+ will
+  # perform a query if the relation hasn't been loaded yet:
+  #
+  #   mary = Person.create(name: "Mary")
+  #   => #<Person id: 654, name: "Mary">
+  #   mary.in?(Person.where(name: "Alice"))
+  #   # SELECT 1 AS one FROM "people" WHERE "people"."name" ="Alice" ...
+  #
   def in?(another_object)
     case another_object
     when Range
