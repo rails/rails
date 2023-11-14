@@ -125,11 +125,11 @@ module ActiveRecord
       end
 
       def create_all
-        db_config = migration_connection.pool.db_config
-
-        each_local_configuration { |db_config| create(db_config) }
-
-        migration_class.establish_connection(db_config)
+        each_local_configuration do |db_config|
+          with_temporary_connection(db_config) do
+            create(db_config)
+          end
+        end
       end
 
       def setup_initial_database_yaml # :nodoc:
