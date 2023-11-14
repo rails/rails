@@ -469,7 +469,9 @@ module ActiveRecord
 
         # To refrain from connecting to a newly created empty DB in
         # sqlite3_mem tests
-        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil, &block)
+        pool_mock = Minitest::Mock.new
+        pool_mock.expect(:connection, nil)
+        ActiveRecord::Base.connection_handler.stub(:establish_connection, pool_mock, &block)
       ensure
         ActiveRecord::Base.configurations = old_configurations
       end
