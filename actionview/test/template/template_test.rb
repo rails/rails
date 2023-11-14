@@ -215,6 +215,11 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "1-2", render(message: "Hello", message_counter: 1, message_iteration: 2, implicit_locals: %i[message_counter message_iteration])
   end
 
+  def test_rails_injected_locals_can_be_specified_as_required_argument
+    @template = new_template("<%# locals: (message: 'Hello', message_iteration:) -%>\n<%= message %>-<%= message_iteration %>")
+    assert_equal "Hello-2", render(message: "Hello", message_counter: 1, message_iteration: 2, implicit_locals: %i[message_counter message_iteration])
+  end
+
   # TODO: This is currently handled inside ERB. The case of explicitly
   # lying about encodings via the normal Rails API should be handled
   # inside Rails.
