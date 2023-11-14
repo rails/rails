@@ -360,12 +360,37 @@ module ActionDispatch
             Routing::RouteSet::Dispatcher.new raise_on_name_error
           end
 
-          def route_source_location
-            if Mapper.route_source_locations
-              action_dispatch_dir = File.expand_path("..", __dir__)
-              caller_location = caller_locations.find { |location| !location.path.include?(action_dispatch_dir) }
-              cleaned_path = Mapper.backtrace_cleaner.clean([caller_location.path]).first
-              "#{cleaned_path}:#{caller_location.lineno}" if cleaned_path
+          if Thread.respond_to?(:each_caller_location)
+            def route_source_location
+              if Mapper.route_source_locations
+                action_dispatch_dir = File.expand_path("..", __dir__)
+                Thread.each_caller_location do |location|
+                  next if location.path.start_with?(action_dispatch_dir)
+
+                  if cleaned_path = Mapper.backtrace_cleaner.clean_frame(location.path)
+                    return "#{cleaned_path}:#{location.lineno}"
+                  else
+                    return nil
+                  end
+                end
+                nil
+              end
+            end
+          else
+            def route_source_location
+              if Mapper.route_source_locations
+                action_dispatch_dir = File.expand_path("..", __dir__)
+                caller_locations.each do |location|
+                  next if location.path.start_with?(action_dispatch_dir)
+
+                  if cleaned_path = Mapper.backtrace_cleaner.clean_frame(location.path)
+                    return "#{cleaned_path}:#{location.lineno}"
+                  else
+                    return nil
+                  end
+                end
+                nil
+              end
             end
           end
       end
