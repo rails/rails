@@ -246,7 +246,7 @@ module ActionController
 
     class << self
       def nested_attribute?(key, value) # :nodoc:
-        /\A-?\d+\z/.match?(key) && (value.is_a?(Hash) || value.is_a?(Parameters))
+        /\A-?\d+\z/.match?(key) && (value.is_a?(Hash) || value.is_a?(Array) || value.is_a?(Parameters))
       end
     end
 
@@ -1161,7 +1161,12 @@ module ActionController
           elsif non_scalar?(value)
             # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
             params[key] = each_element(value, filter[key]) do |element|
-              element.permit(*Array.wrap(filter[key]))
+              filters = Array.wrap(filter[key])
+              if element.is_a?(Array)
+                element.map { |e| e.permit(*filters) }
+              else
+                element.permit(*filters)
+              end
             end
           end
         end
