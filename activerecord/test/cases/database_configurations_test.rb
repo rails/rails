@@ -35,6 +35,17 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
     ENV["RAILS_ENV"] = previous_env
   end
 
+  def test_configs_for_with_name_symbol
+    previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "arunit2"
+
+    config = ActiveRecord::Base.configurations.configs_for(name: :primary)
+
+    assert_equal "arunit2", config.env_name
+    assert_equal "primary", config.name
+  ensure
+    ENV["RAILS_ENV"] = previous_env
+  end
+
   def test_configs_for_getter_with_env_and_name
     config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
 
