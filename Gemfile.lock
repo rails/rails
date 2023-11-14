@@ -9,7 +9,7 @@ GIT
 
 GIT
   remote: https://github.com/rails/sdoc.git
-  revision: 5546703dec4d429b9821260bcfa57230bdc5add4
+  revision: e26cca7ccbd0a2cd9ee5a9570c20fa193c825d1a
   branch: main
   specs:
     sdoc (3.0.0.alpha)
@@ -385,7 +385,7 @@ GEM
     queue_classic (4.0.0)
       pg (>= 1.1, < 2.0)
     raabro (1.4.0)
-    racc (1.7.1)
+    racc (1.7.3)
     rack (3.0.8)
     rack-cache (1.14.0)
       rack (>= 0.4)
@@ -409,7 +409,7 @@ GEM
     rb-inotify (0.10.1)
       ffi (~> 1.0)
     rbtree (0.4.6)
-    rdoc (6.5.0)
+    rdoc (6.6.0)
       psych (>= 4.0.0)
     redcarpet (3.2.3)
     redis (5.0.5)
@@ -437,7 +437,7 @@ GEM
       rufus-scheduler (~> 3.2, != 3.3)
     retriable (3.1.2)
     rexml (3.2.6)
-    rouge (4.1.3)
+    rouge (4.2.0)
     rubocop (1.57.0)
       base64 (~> 0.1.1)
       json (~> 2.3)
@@ -515,7 +515,7 @@ GEM
     stackprof (0.2.23)
     stimulus-rails (1.2.1)
       railties (>= 6.0.0)
-    stringio (3.0.8)
+    stringio (3.0.9)
     sucker_punch (3.1.0)
       concurrent-ruby (~> 1.0)
     syntax_tree (6.1.1)
