@@ -393,6 +393,11 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "  1-+1-+  1-+1", word_wrap(input, line_width: 3, break_sequence: "-+")
   end
 
+  test "word_wrap when no wrapping is necessary" do
+    assert_equal "1", word_wrap("1", line_width: 3)
+    assert_equal "", word_wrap("", line_width: 3)
+  end
+
   def test_pluralization
     assert_equal("1 count", pluralize(1, "count"))
     assert_equal("2 counts", pluralize(2, "count"))
