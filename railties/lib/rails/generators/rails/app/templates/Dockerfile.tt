@@ -79,6 +79,9 @@ RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 # Final stage for app image
 FROM base
 
+# Switch to read-only since any cache changes after this point won't persist between containers
+ENV BOOTSNAP_READONLY="1"
+
 <% unless dockerfile_deploy_packages.empty? -%>
 # Install packages needed for deployment
 RUN apt-get update -qq && \
