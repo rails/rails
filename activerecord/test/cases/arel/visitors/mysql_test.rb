@@ -154,10 +154,31 @@ module Arel
       end
 
       describe "Nodes::Ordering" do
-        it "should no-op ascending nulls first" do
+        it "should handle nulls first" do
           test = Table.new(:users)[:first_name].asc.nulls_first
           _(compile(test)).must_be_like %{
-            "users"."first_name" ASC
+            "users"."first_name" IS NOT NULL, "users"."first_name" ASC
+          }
+        end
+
+        it "should handle nulls last" do
+          test = Table.new(:users)[:first_name].asc.nulls_last
+          _(compile(test)).must_be_like %{
+            "users"."first_name" IS NULL, "users"."first_name" ASC
+          }
+        end
+
+        it "should handle nulls first reversed" do
+          test = Table.new(:users)[:first_name].asc.nulls_first.reverse
+          _(compile(test)).must_be_like %{
+            "users"."first_name" IS NULL, "users"."first_name" DESC
+          }
+        end
+
+        it "should handle nulls last reversed" do
+          test = Table.new(:users)[:first_name].asc.nulls_last.reverse
+          _(compile(test)).must_be_like %{
+            "users"."first_name" IS NOT NULL, "users"."first_name" DESC
           }
         end
       end

@@ -84,4 +84,8 @@
 
     *Jason Meller*
 
+*   Add `nulls_last` and working `desc.nulls_first` for MySQL.
+
+    *Tristan Fellows*
+
 Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/activerecord/CHANGELOG.md) for previous changes.
