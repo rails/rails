@@ -104,7 +104,7 @@ module ActiveRecord
       end
 
       def adapter
-        configuration_hash[:adapter]
+        configuration_hash[:adapter]&.to_s
       end
 
       # The path to the schema cache dump file for a database.

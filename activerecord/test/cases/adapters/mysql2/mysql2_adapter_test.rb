@@ -15,7 +15,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
 
   def test_connection_error
     error = assert_raises ActiveRecord::ConnectionNotEstablished do
-      ActiveRecord::Base.mysql2_connection(socket: File::NULL, prepared_statements: false).connect!
+      ActiveRecord::ConnectionAdapters::Mysql2Adapter.new(socket: File::NULL, prepared_statements: false).connect!
     end
     assert_kind_of ActiveRecord::ConnectionAdapters::NullPool, error.connection_pool
   end

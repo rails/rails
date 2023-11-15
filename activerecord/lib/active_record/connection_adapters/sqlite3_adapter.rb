@@ -15,16 +15,6 @@ gem "sqlite3", "~> 1.4"
 require "sqlite3"
 
 module ActiveRecord
-  module ConnectionHandling # :nodoc:
-    def sqlite3_adapter_class
-      ConnectionAdapters::SQLite3Adapter
-    end
-
-    def sqlite3_connection(config)
-      sqlite3_adapter_class.new(config)
-    end
-  end
-
   module ConnectionAdapters # :nodoc:
     # = Active Record SQLite3 Adapter
     #

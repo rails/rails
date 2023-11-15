@@ -605,7 +605,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
         def test_does_not_create_foreign_keys_when_bypassed_by_config
           require "active_record/connection_adapters/sqlite3_adapter"
-          connection = ActiveRecord::Base.sqlite3_connection(
+          connection = ActiveRecord::ConnectionAdapters::SQLite3Adapter.new(
             adapter: "sqlite3",
             database: ":memory:",
             foreign_keys: false,

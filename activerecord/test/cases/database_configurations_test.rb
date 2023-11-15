@@ -57,12 +57,15 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
     config = ActiveRecord::DatabaseConfigurations.new({
         "test" => {
           "config_1" => {
+            "adapter" => "abstract",
             "database" => "db"
           },
           "config_2" => {
+            "adapter" => "abstract",
             "database" => "db"
           },
           "config_3" => {
+            "adapter" => "abstract",
             "database" => "db"
           },
         }
@@ -81,7 +84,7 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
   def test_find_db_config_prioritize_db_config_object_for_the_current_env
     config = ActiveRecord::DatabaseConfigurations.new({
       "primary" => {
-        "adapter" => "randomadapter"
+        "adapter" => "abstract",
       },
       ActiveRecord::ConnectionHandling::DEFAULT_ENV.call => {
         "primary" => {
@@ -118,12 +121,14 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
     configs = ActiveRecord::DatabaseConfigurations.new({
       "test" => {
         "config_1" => {
+          "adapter" => "abstract",
           "database" => "db",
           "custom_config" => {
             "sharded" => 1
           }
         },
         "config_2" => {
+          "adapter" => "abstract",
           "database" => "db"
         }
       }

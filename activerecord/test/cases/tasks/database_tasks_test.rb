@@ -221,6 +221,16 @@ module ActiveRecord
   end
 
   class DatabaseTasksRegisterTask < ActiveRecord::TestCase
+    setup do
+      @tasks_was = ActiveRecord::Tasks::DatabaseTasks.instance_variable_get(:@tasks).dup
+      @adapters_was = ActiveRecord::ConnectionAdapters.instance_variable_get(:@adapters).dup
+    end
+
+    teardown do
+      ActiveRecord::Tasks::DatabaseTasks.instance_variable_set(:@tasks, @tasks_was)
+      ActiveRecord::ConnectionAdapters.instance_variable_set(:@adapters, @adapters_was)
+    end
+
     def test_register_task
       klazz = Class.new do
         def initialize(*arguments); end
@@ -230,8 +240,8 @@ module ActiveRecord
 
       klazz.stub(:new, instance) do
         assert_called_with(instance, :structure_dump, ["awesome-file.sql", nil]) do
-          ActiveRecord::Tasks::DatabaseTasks.register_task(/foo/, klazz)
-          ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => :foo }, "awesome-file.sql")
+          ActiveRecord::Tasks::DatabaseTasks.register_task(/abstract/, klazz)
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => "abstract" }, "awesome-file.sql")
         end
       end
     end
@@ -245,6 +255,7 @@ module ActiveRecord
 
       klazz.stub(:new, instance) do
         assert_called_with(instance, :structure_dump, ["awesome-file.sql", nil]) do
+          ActiveRecord::ConnectionAdapters.register("custom_mysql", "ActiveRecord::ConnectionAdapters::Mysql2Adapter", "active_record/connection_adapters/mysql2_adapter")
           ActiveRecord::Tasks::DatabaseTasks.register_task(/custom_mysql/, klazz)
           ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => :custom_mysql }, "awesome-file.sql")
         end
@@ -253,7 +264,7 @@ module ActiveRecord
 
     def test_unregistered_task
       assert_raise(ActiveRecord::Tasks::DatabaseNotSupported) do
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => :bar }, "awesome-file.sql")
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => "abstract" }, "awesome-file.sql")
       end
     end
   end
@@ -391,7 +402,7 @@ module ActiveRecord
 
   class DatabaseTasksCreateAllTest < ActiveRecord::TestCase
     def setup
-      @configurations = { "development" => { "database" => "my-db" } }
+      @configurations = { "development" => { "adapter" => "abstract", "database" => "my-db" } }
 
       $stdout, @original_stdout = StringIO.new, $stdout
       $stderr, @original_stderr = StringIO.new, $stderr
@@ -480,8 +491,8 @@ module ActiveRecord
 
     def setup
       @configurations = {
-        "development" => { "database" => "dev-db" },
-        "test"        => { "database" => "test-db" },
+        "development" => { "adapter" => "abstract", "database" => "dev-db" },
+        "test"        => { "adapter" => "abstract", "database" => "test-db" },
         "production"  => { "url" => "abstract://prod-db-host/prod-db" }
       }
     end
@@ -603,9 +614,17 @@ module ActiveRecord
 
     def setup
       @configurations = {
-        "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
-        "test" => { "primary" => { "database" => "test-db" }, "secondary" => { "database" => "secondary-test-db" } },
-        "production" => { "primary" => { "url" => "abstract://prod-db-host/prod-db" }, "secondary" => { "url" => "abstract://secondary-prod-db-host/secondary-prod-db" } }
+        "development" => {
+          "primary" => { "adapter" => "abstract", "database" => "dev-db" },
+          "secondary" => { "adapter" => "abstract", "database" => "secondary-dev-db" },
+        },
+        "test" => {
+          "primary" => { "adapter" => "abstract", "database" => "test-db" },
+          "secondary" => { "adapter" => "abstract", "database" => "secondary-test-db" },
+        },
+        "production" => {
+          "primary" => { "url" => "abstract://prod-db-host/prod-db" },
+          "secondary" => { "url" => "abstract://secondary-prod-db-host/secondary-prod-db" } }
       }
     end
 
@@ -727,7 +746,7 @@ module ActiveRecord
 
   class DatabaseTasksDropAllTest < ActiveRecord::TestCase
     def setup
-      @configurations = { development: { "database" => "my-db" } }
+      @configurations = { development: { "adapter" => "abstract", "database" => "my-db" } }
 
       $stdout, @original_stdout = StringIO.new, $stdout
       $stderr, @original_stderr = StringIO.new, $stderr
@@ -814,8 +833,8 @@ module ActiveRecord
 
     def setup
       @configurations = {
-        "development" => { "database" => "dev-db" },
-        "test"        => { "database" => "test-db" },
+        "development" => { "adapter" => "abstract", "database" => "dev-db" },
+        "test"        => { "adapter" => "abstract", "database" => "test-db" },
         "production"  => { "url" => "abstract://prod-db-host/prod-db" }
       }
     end
@@ -905,9 +924,18 @@ module ActiveRecord
 
     def setup
       @configurations = {
-        "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
-        "test" => { "primary" => { "database" => "test-db" }, "secondary" => { "database" => "secondary-test-db" } },
-        "production" => { "primary" => { "url" => "abstract://prod-db-host/prod-db" }, "secondary" => { "url" => "abstract://secondary-prod-db-host/secondary-prod-db" } }
+        "development" => {
+          "primary" => { "adapter" => "abstract", "database" => "dev-db" },
+          "secondary" => { "adapter" => "abstract", "database" => "secondary-dev-db" },
+        },
+        "test" => {
+          "primary" => { "adapter" => "abstract", "database" => "test-db" },
+          "secondary" => { "adapter" => "abstract", "database" => "secondary-test-db" },
+        },
+        "production" => {
+          "primary" => { "url" => "abstract://prod-db-host/prod-db" },
+          "secondary" => { "url" => "abstract://secondary-prod-db-host/secondary-prod-db" },
+        },
       }
     end
 
@@ -1231,9 +1259,9 @@ module ActiveRecord
     def test_purges_current_environment_database
       old_configurations = ActiveRecord::Base.configurations
       configurations = {
-        "development" => { "database" => "dev-db" },
-        "test"        => { "database" => "test-db" },
-        "production"  => { "database" => "prod-db" }
+        "development" => { "adapter" => "abstract", "database" => "dev-db" },
+        "test"        => { "adapter" => "abstract", "database" => "test-db" },
+        "production"  => { "adapter" => "abstract", "database" => "prod-db" },
       }
 
       ActiveRecord::Base.configurations = configurations
@@ -1255,7 +1283,7 @@ module ActiveRecord
   class DatabaseTasksPurgeAllTest < ActiveRecord::TestCase
     def test_purge_all_local_configurations
       old_configurations = ActiveRecord::Base.configurations
-      configurations = { development: { "database" => "my-db" } }
+      configurations = { development: { "adapter" => "abstract", "database" => "my-db" } }
       ActiveRecord::Base.configurations = configurations
 
       assert_called_with(
@@ -1345,9 +1373,18 @@ module ActiveRecord
 
     def setup
       @configurations = {
-        "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
-        "test" => { "primary" => { "database" => "test-db" }, "secondary" => { "database" => "secondary-test-db" } },
-        "production" => { "primary" => { "url" => "abstract://prod-db-host/prod-db" }, "secondary" => { "url" => "abstract://secondary-prod-db-host/secondary-prod-db" } }
+        "development" => {
+          "primary" => { "adapter" => "abstract", "database" => "dev-db" },
+          "secondary" => { "adapter" => "abstract", "database" => "secondary-dev-db" },
+        },
+        "test" => {
+          "primary" => { "adapter" => "abstract", "database" => "test-db" },
+          "secondary" => { "adapter" => "abstract", "database" => "secondary-test-db" },
+        },
+        "production" => {
+          "primary" => { "url" => "abstract://prod-db-host/prod-db" },
+          "secondary" => { "url" => "abstract://secondary-prod-db-host/secondary-prod-db" },
+         }
       }
     end
 
@@ -1451,7 +1488,7 @@ module ActiveRecord
     def test_charset_current
       old_configurations = ActiveRecord::Base.configurations
       configurations = {
-        "production" => { "database" => "prod-db" }
+        "production" => { "adapter" => "abstract", "database" => "prod-db" }
       }
 
       ActiveRecord::Base.configurations = configurations
@@ -1484,7 +1521,7 @@ module ActiveRecord
     def test_collation_current
       old_configurations = ActiveRecord::Base.configurations
       configurations = {
-        "production" => { "database" => "prod-db" }
+        "production" => { "adapter" => "abstract", "database" => "prod-db" }
       }
 
       ActiveRecord::Base.configurations = configurations
@@ -1654,7 +1691,7 @@ module ActiveRecord
 
   class DatabaseTasksCheckSchemaFileMethods < ActiveRecord::TestCase
     setup do
-      @configurations = { "development" => { "database" => "my-db" } }
+      @configurations = { "development" => { "adapter" => "abstract", "database" => "my-db" } }
     end
 
     def test_check_dump_filename_defaults
@@ -1690,7 +1727,10 @@ module ActiveRecord
     def test_check_dump_filename_defaults_for_non_primary_databases
       ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
         configurations = {
-          "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
+          "development" => {
+            "primary" => { "adapter" => "abstract", "database" => "dev-db" },
+            "secondary" => { "adapter" => "abstract", "database" => "secondary-dev-db" },
+          },
         }
         with_stubbed_configurations(configurations) do
           assert_equal "/tmp/secondary_schema.rb", ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(config_for("development", "secondary"))
@@ -1701,7 +1741,7 @@ module ActiveRecord
     def test_setting_schema_dump_to_nil
       ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
         configurations = {
-          "development" => { "primary" => { "database" => "dev-db", "schema_dump" => false } },
+          "development" => { "primary" => { "adapter" => "abstract", "database" => "dev-db", "schema_dump" => false } },
         }
         with_stubbed_configurations(configurations) do
           assert_nil ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(config_for("development", "primary"))
@@ -1714,7 +1754,10 @@ module ActiveRecord
       ENV["SCHEMA"] = "schema_path"
       ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
         configurations = {
-          "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
+          "development" => {
+            "primary" => { "adapter" => "abstract", "database" => "dev-db" },
+            "secondary" => { "adapter" => "abstract", "database" => "secondary-dev-db" },
+          },
         }
         with_stubbed_configurations(configurations) do
           assert_equal "schema_path", ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(config_for("development", "secondary"))
@@ -1728,7 +1771,10 @@ module ActiveRecord
       define_method("test_check_dump_filename_for_#{fmt}_format_with_non_primary_databases") do
         ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/tmp") do
           configurations = {
-            "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
+            "development" => {
+              "primary" => { "adapter" => "abstract", "database" => "dev-db" },
+              "secondary" => { "adapter" => "abstract", "database" => "secondary-dev-db" },
+            },
           }
           with_stubbed_configurations(configurations) do
             assert_equal "/tmp/secondary_#{filename}", ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(config_for("development", "secondary"), fmt)

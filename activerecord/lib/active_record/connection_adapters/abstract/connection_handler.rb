@@ -324,32 +324,6 @@ module ActiveRecord
           db_config = Base.configurations.resolve(config)
 
           raise(AdapterNotSpecified, "database configuration does not specify adapter") unless db_config.adapter
-
-          # Require the adapter itself and give useful feedback about
-          #   1. Missing adapter gems and
-          #   2. Adapter gems' missing dependencies.
-          path_to_adapter = "active_record/connection_adapters/#{db_config.adapter}_adapter"
-          begin
-            require path_to_adapter
-          rescue LoadError => e
-            # We couldn't require the adapter itself. Raise an exception that
-            # points out config typos and missing gems.
-            if e.path == path_to_adapter
-              # We can assume that a non-builtin adapter was specified, so it's
-              # either misspelled or missing from Gemfile.
-              raise LoadError, "Could not load the '#{db_config.adapter}' Active Record adapter. Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary adapter gem to your Gemfile.", e.backtrace
-
-              # Bubbled up from the adapter require. Prefix the exception message
-              # with some guidance about how to address it and reraise.
-            else
-              raise LoadError, "Error loading the '#{db_config.adapter}' Active Record adapter. Missing a gem it depends on? #{e.message}", e.backtrace
-            end
-          end
-
-          unless ActiveRecord::Base.respond_to?(db_config.adapter_method)
-            raise AdapterNotFound, "database configuration specifies nonexistent #{db_config.adapter} adapter"
-          end
-
           ConnectionAdapters::PoolConfig.new(connection_name, db_config, role, shard)
         end
 

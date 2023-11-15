@@ -23,9 +23,9 @@ class ConnectionTest < ActiveRecord::AbstractMysqlTestCase
       db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
       configuration = db_config.configuration_hash.merge(database: "inexistent_activerecord_unittest")
       connection = if current_adapter?(:Mysql2Adapter)
-        ActiveRecord::Base.mysql2_connection(configuration)
+        ActiveRecord::ConnectionAdapters::Mysql2Adapter.new(configuration)
       else
-        ActiveRecord::Base.trilogy_connection(configuration)
+        ActiveRecord::ConnectionAdapters::TrilogyAdapter.new(configuration)
       end
       connection.drop_table "ex", if_exists: true
     end

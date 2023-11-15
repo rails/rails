@@ -8,23 +8,6 @@ require "trilogy"
 require "active_record/connection_adapters/trilogy/database_statements"
 
 module ActiveRecord
-  module ConnectionHandling # :nodoc:
-    def trilogy_adapter_class
-      ConnectionAdapters::TrilogyAdapter
-    end
-
-    # Establishes a connection to the database that's used by all Active Record objects.
-    def trilogy_connection(config)
-      configuration = config.dup
-
-      # Set FOUND_ROWS capability on the connection so UPDATE queries returns number of rows
-      # matched rather than number of rows updated.
-      configuration[:found_rows] = true
-
-      trilogy_adapter_class.new(configuration)
-    end
-  end
-
   module ConnectionAdapters
     class TrilogyAdapter < AbstractMysqlAdapter
       ER_BAD_DB_ERROR = 1049
@@ -88,6 +71,16 @@ module ActiveRecord
             m.register_type %r(^enum)i, Type.lookup(:string, adapter: :trilogy)
             m.register_type %r(^set)i,  Type.lookup(:string, adapter: :trilogy)
           end
+      end
+
+      def initialize(config, *)
+        config = config.dup
+
+        # Set FOUND_ROWS capability on the connection so UPDATE queries returns number of rows
+        # matched rather than number of rows updated.
+        config[:found_rows] = true
+
+        super
       end
 
       TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }

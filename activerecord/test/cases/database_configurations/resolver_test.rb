@@ -12,19 +12,11 @@ module ActiveRecord
         end
 
         def test_url_invalid_adapter
-          error = assert_raises(LoadError) do
+          error = assert_raises(AdapterNotFound) do
             Base.connection_handler.establish_connection "ridiculous://foo?encoding=utf8"
           end
 
-          assert_match "Could not load the 'ridiculous' Active Record adapter. Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary adapter gem to your Gemfile.", error.message
-        end
-
-        def test_error_if_no_adapter_method
-          error = assert_raises(AdapterNotFound) do
-            Base.connection_handler.establish_connection "abstract://foo?encoding=utf8"
-          end
-
-          assert_match "database configuration specifies nonexistent abstract adapter", error.message
+          assert_match "database configuration specifies nonexistent 'ridiculous' adapter. Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary adapter gem to your Gemfile.", error.message
         end
 
         # The abstract adapter is used simply to bypass the bit of code that

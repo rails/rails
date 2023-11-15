@@ -8,17 +8,24 @@ module ActiveRecord
     class DatabaseConfig # :nodoc:
       attr_reader :env_name, :name
 
+      def self.new(...)
+        instance = super
+        instance.adapter_class # Ensure resolution happens early
+        instance
+      end
+
       def initialize(env_name, name)
         @env_name = env_name
         @name = name
+        @adapter_class = nil
       end
 
-      def adapter_method
-        "#{adapter}_connection"
+      def adapter_class
+        @adapter_class ||= ActiveRecord::ConnectionAdapters.resolve(adapter)
       end
 
-      def adapter_class_method
-        "#{adapter}_adapter_class"
+      def new_connection
+        adapter_class.new(configuration_hash)
       end
 
       def host

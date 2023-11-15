@@ -14,7 +14,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
 
   test "connection_error" do
     error = assert_raises ActiveRecord::ConnectionNotEstablished do
-      ActiveRecord::Base.trilogy_connection(host: "invalid", port: 12345).connect!
+      ActiveRecord::ConnectionAdapters::TrilogyAdapter.new(host: "invalid", port: 12345).connect!
     end
     assert_kind_of ActiveRecord::ConnectionAdapters::NullPool, error.connection_pool
   end
