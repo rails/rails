@@ -1,3 +1,9 @@
+*   Prevent `ActiveStorage::Blob#preview` to generate a variant if an empty variation is passed.
+    Calls to `#url`, `#key` or `#download` will now use the original preview
+    image instead of generating a variant with the exact same dimensions.
+
+    *Chedli Bourguiba*
+
 *   Process preview image variant when calling `ActiveStorage::Preview#processed`.
     For example, `attached_pdf.preview(:thumb).processed` will now immediately
     generate the full-sized preview image and the `:thumb` variant of it.
