@@ -113,7 +113,7 @@ module ActiveRecord
 
       if name
         configs.find do |db_config|
-          db_config.name == name
+          db_config.name == name.to_s
         end
       else
         configs

@@ -1,3 +1,7 @@
+*   `DatabaseConfigurations#configs_for` can accept a symbol in the `name` parameter.
+
+    *Andrew Novoselac*
+
 *   Fix `where(field: values)` queries when `field` is a serialized attribute
     (for example, when `field` uses `ActiveRecord::Base.serialize` or is a JSON
     column).
