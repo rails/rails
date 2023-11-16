@@ -10,7 +10,7 @@ module ActiveRecord
 
       def self.new(...)
         instance = super
-        instance.adapter_class # Ensure resolution happens early
+        instance.adapter_class if instance.adapter # Ensure resolution happens early
         instance
       end
 
