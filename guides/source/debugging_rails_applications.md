@@ -866,7 +866,7 @@ extension in the interpreter calls `malloc()` but doesn't properly call
 `free()`, this memory won't be available until the app terminates.
 
 For further information on how to install Valgrind and use with Ruby, refer to
-[Valgrind and Ruby](https://blog.evanweaver.com/2008/02/05/valgrind-and-ruby/)
+[Valgrind and Ruby](https://web.archive.org/web/20230518081626/https://blog.evanweaver.com/2008/02/05/valgrind-and-ruby/)
 by Evan Weaver.
 
 ### Find a Memory Leak
