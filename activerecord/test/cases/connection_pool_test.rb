@@ -215,6 +215,30 @@ module ActiveRecord
         @pool.connections.each { |conn| conn.close if conn.in_use? }
       end
 
+      def test_inactive_are_returned_from_dead_thread
+        ready = Concurrent::CountDownLatch.new
+        @pool.instance_variable_set(:@size, 1)
+
+        child = new_thread do
+          @pool.checkout
+          ready.count_down
+          stop_thread
+        end
+
+        pass_to(child) until ready.wait(0)
+
+        assert_equal 1, active_connections(@pool).size
+
+        child.terminate
+        child.join
+
+        @pool.checkout
+
+        assert_equal 1, active_connections(@pool).size
+      ensure
+        @pool.connections.each { |conn| conn.close if conn.in_use? }
+      end
+
       def test_idle_timeout_configuration
         @pool.disconnect!
 
