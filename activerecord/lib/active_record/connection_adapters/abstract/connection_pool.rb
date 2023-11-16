@@ -682,7 +682,7 @@ module ActiveRecord
         alias_method :release, :remove_connection_from_thread_cache
 
         def new_connection
-          connection = Base.public_send(db_config.adapter_method, db_config.configuration_hash)
+          connection = db_config.new_connection
           connection.pool = self
           connection
         rescue ConnectionNotEstablished => ex

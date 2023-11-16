@@ -10,7 +10,7 @@ module ActiveRecord
         super
 
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-        @connection = ActiveRecord::Base.public_send(db_config.adapter_method, db_config.configuration_hash)
+        @connection = db_config.new_connection
       end
 
       def test_can_query

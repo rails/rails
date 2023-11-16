@@ -16,14 +16,16 @@ module ActiveRecord
       end
 
       def setup
-        @conn = Base.sqlite3_connection database: ":memory:",
-                                        adapter: "sqlite3",
-                                        timeout: 100
+        @conn = SQLite3Adapter.new(
+          database: ":memory:",
+          adapter: "sqlite3",
+          timeout: 100,
+        )
       end
 
       def test_bad_connection
         error = assert_raise ActiveRecord::NoDatabaseError do
-          connection = ActiveRecord::Base.sqlite3_connection(adapter: "sqlite3", database: "/tmp/should/_not/_exist/-cinco-dog.db")
+          connection = SQLite3Adapter.new(adapter: "sqlite3", database: "/tmp/should/_not/_exist/-cinco-dog.db")
           connection.drop_table "ex", if_exists: true
         end
         assert_kind_of ActiveRecord::ConnectionAdapters::NullPool, error.connection_pool
@@ -117,15 +119,17 @@ module ActiveRecord
 
       def test_connection_no_db
         assert_raises(ArgumentError) do
-          Base.sqlite3_connection({})
+          SQLite3Adapter.new({})
         end
       end
 
       def test_bad_timeout
         exception = assert_raises(ActiveRecord::StatementInvalid) do
-          Base.sqlite3_connection(database: ":memory:",
-                                  adapter: "sqlite3",
-                                  timeout: "usa").connect!
+          SQLite3Adapter.new(
+            database: ":memory:",
+            adapter: "sqlite3",
+            timeout: "usa",
+          ).connect!
         end
         assert_match("TypeError", exception.message)
         assert_kind_of ActiveRecord::ConnectionAdapters::NullPool, exception.connection_pool
@@ -133,9 +137,11 @@ module ActiveRecord
 
       # connection is OK with a nil timeout
       def test_nil_timeout
-        conn = Base.sqlite3_connection database: ":memory:",
-                                       adapter: "sqlite3",
-                                       timeout: nil
+        conn = SQLite3Adapter.new(
+          database: ":memory:",
+          adapter: "sqlite3",
+          timeout: nil,
+        )
         conn.connect!
         assert conn, "made a connection"
       end
@@ -277,9 +283,11 @@ module ActiveRecord
 
       def test_exec_insert_with_returning_disabled
         original_conn = @conn
-        @conn = Base.sqlite3_connection database: ":memory:",
-                                       adapter: "sqlite3",
-                                       insert_returning: false
+        @conn = SQLite3Adapter.new(
+          database: ":memory:",
+          adapter: "sqlite3",
+          insert_returning: false,
+        )
         with_example_table do
           result = @conn.exec_insert("insert into ex (number) VALUES ('foo')", nil, [], "id")
           expect = @conn.query("select max(id) from ex").first.first
@@ -290,9 +298,11 @@ module ActiveRecord
 
       def test_exec_insert_default_values_with_returning_disabled
         original_conn = @conn
-        @conn = Base.sqlite3_connection database: ":memory:",
-                                       adapter: "sqlite3",
-                                       insert_returning: false
+        @conn = SQLite3Adapter.new(
+          database: ":memory:",
+          adapter: "sqlite3",
+          insert_returning: false,
+        )
         with_example_table do
           result = @conn.exec_insert("insert into ex DEFAULT VALUES", nil, [], "id")
           expect = @conn.query("select max(id) from ex").first.first
@@ -689,35 +699,43 @@ module ActiveRecord
       end
 
       def test_db_is_not_readonly_when_readonly_option_is_false
-        conn = Base.sqlite3_connection database: ":memory:",
-                                       adapter: "sqlite3",
-                                       readonly: false
+        conn = SQLite3Adapter.new(
+          database: ":memory:",
+          adapter: "sqlite3",
+          readonly: false,
+        )
         conn.connect!
 
         assert_not_predicate conn.raw_connection, :readonly?
       end
 
       def test_db_is_not_readonly_when_readonly_option_is_unspecified
-        conn = Base.sqlite3_connection database: ":memory:",
-                                       adapter: "sqlite3"
+        conn = SQLite3Adapter.new(
+          database: ":memory:",
+          adapter: "sqlite3",
+        )
         conn.connect!
 
         assert_not_predicate conn.raw_connection, :readonly?
       end
 
       def test_db_is_readonly_when_readonly_option_is_true
-        conn = Base.sqlite3_connection database: ":memory:",
-                                       adapter: "sqlite3",
-                                       readonly: true
+        conn = SQLite3Adapter.new(
+          database: ":memory:",
+          adapter: "sqlite3",
+          readonly: true,
+        )
         conn.connect!
 
         assert_predicate conn.raw_connection, :readonly?
       end
 
       def test_writes_are_not_permitted_to_readonly_databases
-        conn = Base.sqlite3_connection database: ":memory:",
-                                       adapter: "sqlite3",
-                                       readonly: true
+        conn = SQLite3Adapter.new(
+          database: ":memory:",
+          adapter: "sqlite3",
+          readonly: true,
+        )
         conn.connect!
 
         exception = assert_raises(ActiveRecord::StatementInvalid) do
@@ -728,7 +746,7 @@ module ActiveRecord
       end
 
       def test_strict_strings_by_default
-        conn = Base.sqlite3_connection(database: ":memory:", adapter: "sqlite3")
+        conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3")
         conn.create_table :testings
 
         assert_nothing_raised do
@@ -736,7 +754,7 @@ module ActiveRecord
         end
 
         with_strict_strings_by_default do
-          conn = Base.sqlite3_connection(database: ":memory:", adapter: "sqlite3")
+          conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3")
           conn.create_table :testings
 
           error = assert_raises(StandardError) do
@@ -748,7 +766,7 @@ module ActiveRecord
       end
 
       def test_strict_strings_by_default_and_true_in_database_yml
-        conn = Base.sqlite3_connection(database: ":memory:", adapter: "sqlite3", strict: true)
+        conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: true)
         conn.create_table :testings
 
         error = assert_raises(StandardError) do
@@ -758,7 +776,7 @@ module ActiveRecord
         assert_equal conn.pool, error.connection_pool
 
         with_strict_strings_by_default do
-          conn = Base.sqlite3_connection(database: ":memory:", adapter: "sqlite3", strict: true)
+          conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: true)
           conn.create_table :testings
 
           error = assert_raises(StandardError) do
@@ -770,7 +788,7 @@ module ActiveRecord
       end
 
       def test_strict_strings_by_default_and_false_in_database_yml
-        conn = Base.sqlite3_connection(database: ":memory:", adapter: "sqlite3", strict: false)
+        conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: false)
         conn.create_table :testings
 
         assert_nothing_raised do
@@ -778,7 +796,7 @@ module ActiveRecord
         end
 
         with_strict_strings_by_default do
-          conn = Base.sqlite3_connection(database: ":memory:", adapter: "sqlite3", strict: false)
+          conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: false)
           conn.create_table :testings
 
           assert_nothing_raised do
@@ -852,7 +870,7 @@ module ActiveRecord
           options = options.dup
           db_config = ActiveRecord::Base.configurations.configurations.find { |config| !config.database.include?(":memory:") }
           options[:database] ||= db_config.database
-          conn = ActiveRecord::Base.sqlite3_connection(options)
+          conn = SQLite3Adapter.new(options)
 
           yield(conn)
         ensure

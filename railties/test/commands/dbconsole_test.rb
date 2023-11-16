@@ -120,7 +120,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   def test_unknown_command_line_client
     start(adapter: "unknown", database: "db")
     assert aborted
-    assert_match(/Unknown command-line client for db/, output)
+    assert_match(/database configuration specifies nonexistent 'unknown' adapter/, output)
   end
 
   def test_primary_is_automatically_picked_with_3_level_configuration
@@ -153,9 +153,10 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
 
     sample_config = {
       "test" => {
-        "primary" => {},
+        "primary" => { "adapter" => "sqlite3" },
         "primary_replica" => {
-          "replica" => true
+          "adapter" => "sqlite3",
+          "replica" => true,
         }
       }
     }
@@ -210,10 +211,9 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     attr_reader :dbconsole
 
     def start(config = {}, argv = [])
-      hash_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("test", "primary", config)
-
       @dbconsole = Rails::DBConsole.new(parse_arguments(argv))
-      @dbconsole.stub(:db_config, hash_config) do
+      hash_config = nil
+      @dbconsole.stub(:db_config, -> { hash_config ||= ActiveRecord::DatabaseConfigurations::HashConfig.new("test", "primary", config) }) do
         capture_abort { @dbconsole.start }
       end
     end

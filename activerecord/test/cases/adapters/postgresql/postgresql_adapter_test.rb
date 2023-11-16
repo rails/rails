@@ -20,7 +20,7 @@ module ActiveRecord
 
       def test_connection_error
         error = assert_raises ActiveRecord::ConnectionNotEstablished do
-          ActiveRecord::Base.postgresql_connection(host: File::NULL).connect!
+          ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(host: File::NULL).connect!
         end
         assert_kind_of ActiveRecord::ConnectionAdapters::NullPool, error.connection_pool
       end
@@ -75,7 +75,7 @@ module ActiveRecord
         assert_raise ActiveRecord::NoDatabaseError do
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
           configuration = db_config.configuration_hash.merge(database: "should_not_exist-cinco-dog-db")
-          connection = ActiveRecord::Base.postgresql_connection(configuration)
+          connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(configuration)
           connection.exec_query("SELECT 1")
         end
       end
@@ -87,7 +87,7 @@ module ActiveRecord
           error = assert_raises ActiveRecord::ConnectionNotEstablished do
             db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
             configuration = db_config.configuration_hash.merge(database: "postgres")
-            connection = ActiveRecord::Base.postgresql_connection(configuration)
+            connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(configuration)
             connection.exec_query("SELECT 1")
           end
           assert_not_nil connection
@@ -640,7 +640,7 @@ module ActiveRecord
 
         def connection_without_insert_returning
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-          ActiveRecord::Base.postgresql_connection(db_config.configuration_hash.merge(insert_returning: false))
+          ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash.merge(insert_returning: false))
         end
     end
   end

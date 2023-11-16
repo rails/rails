@@ -31,6 +31,9 @@ QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name("type")
 ActiveRecord.raise_on_assign_to_attr_readonly = true
 ActiveRecord.belongs_to_required_validates_foreign_key = false
 
+ActiveRecord::ConnectionAdapters.register("abstract", "ActiveRecord::ConnectionAdapters::AbstractAdapter", "active_record/connection_adapters/abstract_adapter")
+ActiveRecord::ConnectionAdapters.register("fake", "FakeActiveRecordAdapter", File.expand_path("../support/fake_adapter.rb", __dir__))
+
 class SQLSubscriber
   attr_reader :logged
   attr_reader :payloads

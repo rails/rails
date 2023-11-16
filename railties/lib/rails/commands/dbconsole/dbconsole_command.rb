@@ -16,8 +16,8 @@ module Rails
 
     def start
       adapter_class.dbconsole(db_config, @options)
-    rescue NotImplementedError
-      abort "Unknown command-line client for #{db_config.database}."
+    rescue NotImplementedError, ActiveRecord::AdapterNotFound, LoadError => error
+      abort error.message
     end
 
     def db_config
@@ -50,11 +50,9 @@ module Rails
 
     private
       def adapter_class
-        if ActiveRecord::Base.respond_to?(db_config.adapter_class_method)
-          ActiveRecord::Base.public_send(db_config.adapter_class_method)
-        else
-          ActiveRecord::ConnectionAdapters::AbstractAdapter
-        end
+        ActiveRecord::ConnectionAdapters.resolve(db_config.adapter)
+      rescue LoadError, ActiveRecord::AdapterNotFound
+        ActiveRecord::ConnectionAdapters::AbstractAdapter
       end
 
       def configurations # :doc:

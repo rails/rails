@@ -49,6 +49,7 @@ module GeneratorsTestHelper
     ActiveRecord::Base.configurations = {
       test: {
         "#{database_name}": {
+          adapter: "sqlite3",
           database: "db/#{database_name}.sqlite3",
           migrations_paths: "db/#{database_name}_migrate",
         },
