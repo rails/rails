@@ -195,6 +195,11 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
     end
 
+    def test_write_with_unless_exist
+      assert_equal true, @cache.write("foo", 1)
+      assert_equal false, @cache.write("foo", 1, unless_exist: true)
+    end
+
     def test_increment_ttl
       # existing key
       redis_backend(@cache_no_ttl) { |r| r.set "#{@namespace}:jar", 10 }

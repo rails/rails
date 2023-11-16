@@ -7,14 +7,14 @@ require "active_support/error_reporter/test_helper"
 module CacheStoreBehavior
   def test_should_read_and_write_strings
     key = SecureRandom.uuid
-    assert @cache.write(key, "bar")
+    assert_equal true, @cache.write(key, "bar")
     assert_equal "bar", @cache.read(key)
   end
 
   def test_should_overwrite
     key = SecureRandom.uuid
-    @cache.write(key, "bar")
-    @cache.write(key, "baz")
+    assert_equal true, @cache.write(key, "bar")
+    assert_equal true, @cache.write(key, "baz")
     assert_equal "baz", @cache.read(key)
   end
 
@@ -116,25 +116,25 @@ module CacheStoreBehavior
 
   def test_should_read_and_write_hash
     key = SecureRandom.uuid
-    assert @cache.write(key, a: "b")
+    assert_equal true, @cache.write(key, a: "b")
     assert_equal({ a: "b" }, @cache.read(key))
   end
 
   def test_should_read_and_write_integer
     key = SecureRandom.uuid
-    assert @cache.write(key, 1)
+    assert_equal true, @cache.write(key, 1)
     assert_equal 1, @cache.read(key)
   end
 
   def test_should_read_and_write_nil
     key = SecureRandom.uuid
-    assert @cache.write(key, nil)
+    assert_equal true, @cache.write(key, nil)
     assert_nil @cache.read(key)
   end
 
   def test_should_read_and_write_false
     key = SecureRandom.uuid
-    assert @cache.write(key, false)
+    assert_equal true, @cache.write(key, false)
     assert_equal false, @cache.read(key)
   end
 
