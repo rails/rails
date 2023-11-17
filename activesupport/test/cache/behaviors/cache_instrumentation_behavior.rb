@@ -34,6 +34,20 @@ module CacheInstrumentationBehavior
     assert_equal @cache.class.name, events[0].payload[:store]
   end
 
+  def test_fetch_multi_instrumentation_order_of_operations
+    operations = []
+    callback = ->(name, *) { operations << name }
+
+    key_1 = SecureRandom.uuid
+    key_2 = SecureRandom.uuid
+
+    ActiveSupport::Notifications.subscribed(callback, /^cache_(read_multi|write_multi)\.active_support$/) do
+      @cache.fetch_multi(key_1, key_2) { |key| key * 2 }
+    end
+
+    assert_equal %w[ cache_read_multi.active_support cache_write_multi.active_support ], operations
+  end
+
   def test_read_multi_instrumentation
     key_1 = SecureRandom.uuid
     @cache.write(key_1, SecureRandom.alphanumeric)

@@ -605,14 +605,14 @@ module ActiveSupport
         options = names.extract_options!
         options = merged_options(options)
 
-        instrument_multi :read_multi, names, options do |payload|
+        writes  = {}
+        ordered = instrument_multi :read_multi, names, options do |payload|
           if options[:force]
             reads = {}
           else
             reads = read_multi_entries(names, **options)
           end
 
-          writes  = {}
           ordered = names.index_with do |name|
             reads.fetch(name) { writes[name] = yield(name) }
           end
@@ -621,10 +621,12 @@ module ActiveSupport
           payload[:hits] = reads.keys
           payload[:super_operation] = :fetch_multi
 
-          write_multi(writes, options)
-
           ordered
         end
+
+        write_multi(writes, options)
+
+        ordered
       end
 
       # Writes the value to the cache with the key. The value must be supported

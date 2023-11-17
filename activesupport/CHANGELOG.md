@@ -1,3 +1,7 @@
+*   Make the order of read_multi and write_multi notifications for `Cache::Store#fetch_multi` operations match the order they are executed in.
+
+    *Adam Renberg Tamm*
+
 *   Make return values of `Cache::Store#write` consistent.
 
     The return value was not specified before. Now it returns `true` on a successful write,
