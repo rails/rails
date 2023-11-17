@@ -88,7 +88,9 @@ module ActiveRecord
 
     initializer "active_record.postgresql_time_zone_aware_types" do
       ActiveSupport.on_load(:active_record_postgresqladapter) do
-        ActiveRecord::Base.time_zone_aware_types << :timestamptz
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::Base.time_zone_aware_types << :timestamptz
+        end
       end
     end
 

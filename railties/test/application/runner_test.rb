@@ -148,5 +148,14 @@ module ApplicationTests
 
       assert_match "42", rails("runner", "puts Task.count")
     end
+
+    def test_works_with_database_url
+      db_name = use_postgresql
+      previous_url = ENV["DATABASE_URL"]
+      ENV["DATABASE_URL"] = "postgres://localhost/#{db_name}"
+      assert_equal "1", rails("runner", "print 1")
+    ensure
+      ENV["DATABASE_URL"] = previous_url
+    end
   end
 end
