@@ -1,3 +1,8 @@
+*   When using the `preprocessed: true` option, avoid enqueuing transform jobs
+    for blobs that are not representable.
+
+    *Chedli Bourguiba*
+
 *   Process preview image variant when calling `ActiveStorage::Preview#processed`.
     For example, `attached_pdf.preview(:thumb).processed` will now immediately
     generate the full-sized preview image and the `:thumb` variant of it.

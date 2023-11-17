@@ -828,7 +828,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   end
 
   test "transforms variants later" do
-    blob = create_blob(filename: "funky.jpg")
+    blob = create_file_blob(filename: "racecar.jpg")
 
     assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [1, 1]] do
       @user.avatar_with_preprocessed.attach blob
@@ -837,10 +837,10 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
   test "transforms variants later conditionally via proc" do
     assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
-      @user.avatar_with_conditional_preprocessed.attach create_blob(filename: "funky.jpg")
+      @user.avatar_with_conditional_preprocessed.attach create_file_blob(filename: "racecar.jpg")
     end
 
-    blob = create_blob(filename: "funky.jpg")
+    blob = create_file_blob(filename: "racecar.jpg")
     @user.update(name: "transform via proc")
 
     assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [2, 2]] do
@@ -850,14 +850,22 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
   test "transforms variants later conditionally via method" do
     assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
-      @user.avatar_with_conditional_preprocessed.attach create_blob(filename: "funky.jpg")
+      @user.avatar_with_conditional_preprocessed.attach create_file_blob(filename: "racecar.jpg")
     end
 
-    blob = create_blob(filename: "funky.jpg")
+    blob = create_file_blob(filename: "racecar.jpg")
     @user.update(name: "transform via method")
 
     assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [3, 3]] do
       @user.avatar_with_conditional_preprocessed.attach blob
+    end
+  end
+
+  test "avoids enqueuing transform later job when blob is not representable" do
+    unrepresentable_blob = create_blob(filename: "hello.txt")
+
+    assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
+      @user.avatar_with_preprocessed.attach unrepresentable_blob
     end
   end
 end

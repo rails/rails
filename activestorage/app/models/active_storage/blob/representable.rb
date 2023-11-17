@@ -99,7 +99,7 @@ module ActiveStorage::Blob::Representable
   end
 
   def preprocessed(transformations) # :nodoc:
-    ActiveStorage::TransformJob.perform_later(self, transformations)
+    ActiveStorage::TransformJob.perform_later(self, transformations) if representable?
   end
 
   private
