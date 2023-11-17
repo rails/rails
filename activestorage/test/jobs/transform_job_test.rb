@@ -44,4 +44,15 @@ class ActiveStorage::TransformJobTest < ActiveJob::TestCase
       ActiveStorage.track_variants = @was_tracking
     end
   end
+
+  test "ignores unrepresentable blob" do
+    unrepresentable_blob = create_blob(content_type: "text/plain")
+    transformations = { resize_to_limit: [100, 100] }
+
+    perform_enqueued_jobs do
+      assert_nothing_raised do
+        ActiveStorage::TransformJob.perform_later unrepresentable_blob, transformations
+      end
+    end
+  end
 end
