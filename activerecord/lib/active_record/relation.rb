@@ -164,8 +164,8 @@ module ActiveRecord
     #
     # If creation failed because of a unique constraint, this method will
     # assume it encountered a race condition and will try finding the record
-    # once more If somehow the second find still find no record because a
-    # concurrent DELETE happened, it will then raise an
+    # once more. If somehow the second find still does not find a record
+    # because a concurrent DELETE happened, it will then raise an
     # ActiveRecord::RecordNotFound exception.
     #
     # Please note <b>this method is not atomic</b>, it runs first a SELECT,
