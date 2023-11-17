@@ -393,6 +393,7 @@ module Rails
           paths.add "config/database",    with: "config/database.yml"
           paths.add "config/secrets",     with: "config", glob: "secrets.yml{,.enc}"
           paths.add "config/environment", with: "config/environment.rb"
+          paths.add "config/environments", glob: "*.rb"
           paths.add "lib/templates"
           paths.add "log",                with: "log/#{Rails.env}.log"
           paths.add "public"
@@ -422,6 +423,10 @@ module Rails
         else
           {}
         end
+      end
+
+      def configured_environments
+        @configured_environments ||= paths["config/environments"].existent.map { |file| File.basename(file, ".rb") }.sort
       end
 
       # Loads and returns the entire raw configuration of database from

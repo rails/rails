@@ -4770,6 +4770,16 @@ module ApplicationTests
       assert_equal [:foo], Foo.attributes_for_inspect
     end
 
+    test "#configured_environments lists all envs in config/environments/*.rb" do
+      restore_default_config
+
+      with_rails_env "development" do
+        app "development"
+
+        assert_equal(["development", "production", "test"], Rails.configuration.configured_environments)
+      end
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents
