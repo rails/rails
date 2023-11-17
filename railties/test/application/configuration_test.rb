@@ -2474,6 +2474,53 @@ module ApplicationTests
       assert_equal "db/two", ar_config["development"]["two"]["migrations_path"]
     end
 
+    test "load database.yml and ignore any top level key that is not a configured environment" do
+      app_file "config/database.yml", <<-YAML
+        shared:
+          timeout: 5000
+
+        default: &default
+          pool: 5
+
+        does_not_exist:
+          some: value
+
+        development:
+          <<: *default
+          adapter: sqlite3
+          database: storage/development.sqlite3
+
+        test:
+          <<: *default
+          adapter: sqlite3
+          database: storage/test.sqlite3
+
+        production:
+          <<: *default
+          adapter: sqlite3
+          timeout: 1000
+          database: storage/production.sqlite3
+      YAML
+
+      restore_default_config
+      app "development"
+
+      config = Rails.configuration.database_configuration
+      assert_equal(["development", "production", "test"], config.keys)
+      assert_equal(
+        { "timeout" => 5000, "pool" => 5, "adapter" => "sqlite3", "database" => "storage/development.sqlite3" },
+        config["development"]
+      )
+      assert_equal(
+        { "timeout" => 5000, "pool" => 5, "adapter" => "sqlite3", "database" => "storage/test.sqlite3" },
+        config["test"]
+      )
+      assert_equal(
+        { "timeout" => 1000, "pool" => 5, "adapter" => "sqlite3", "database" => "storage/production.sqlite3" },
+        config["production"]
+      )
+    end
+
     test "config.action_mailer.show_previews defaults to true in development" do
       app "development"
 
@@ -2909,6 +2956,7 @@ module ApplicationTests
     end
 
     test "ActiveRecord::Base.run_commit_callbacks_on_first_saved_instances_in_transaction is false by default for new apps" do
+      restore_default_config
       app "development"
 
       assert_equal false, ActiveRecord::Base.run_commit_callbacks_on_first_saved_instances_in_transaction

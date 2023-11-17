@@ -436,7 +436,9 @@ module Rails
         yaml = Pathname.new(path) if path
 
         config = if yaml&.exist?
-          loaded_yaml = ActiveSupport::ConfigurationFile.parse(yaml)
+          loaded_yaml = ActiveSupport::ConfigurationFile
+            .parse(yaml)
+            .slice(*(configured_environments + ["shared"]))
           if (shared = loaded_yaml.delete("shared"))
             loaded_yaml.each do |env, config|
               if config.is_a?(Hash) && config.values.all?(Hash)
