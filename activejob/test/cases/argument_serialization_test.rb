@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "json"
 require "bigdecimal"
 require "helper"
 require "active_job/arguments"
@@ -21,6 +22,24 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
   class MyClassWithPermitted
     def self.permitted?
     end
+  end
+
+  class MyString < String
+  end
+
+  class MyStringSerializer < ActiveJob::Serializers::ObjectSerializer
+    def serialize(argument)
+      super({ "value" => argument.to_s })
+    end
+
+    def deserialize(hash)
+      MyString.new(hash["value"])
+    end
+
+    private
+      def klass
+        MyString
+      end
   end
 
   setup do
@@ -122,6 +141,19 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
   # Regression test to #48561
   test "serialize a class with permitted? defined" do
     assert_arguments_unchanged MyClassWithPermitted
+  end
+
+  test "serialize a String subclass object" do
+    original_serializers = ActiveJob::Serializers.serializers
+    ActiveJob::Serializers.add_serializers(MyStringSerializer)
+
+    my_string = MyString.new("foo")
+    serialized = ActiveJob::Arguments.serialize([my_string])
+    deserialized = ActiveJob::Arguments.deserialize(JSON.load(JSON.dump(serialized))).first
+    assert_instance_of MyString, deserialized
+    assert_equal my_string, deserialized
+  ensure
+    ActiveJob::Serializers._additional_serializers = original_serializers
   end
 
   test "serialize a hash" do
