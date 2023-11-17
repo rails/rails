@@ -1,3 +1,8 @@
+*   When using the `preprocessed: true` option, avoid enqueuing transform jobs
+    for blobs that are not representable.
+
+    *Chedli Bourguiba*
+
 *   Prevent `ActiveStorage::Blob#preview` to generate a variant if an empty variation is passed.
     Calls to `#url`, `#key` or `#download` will now use the original preview
     image instead of generating a variant with the exact same dimensions.
