@@ -3,11 +3,11 @@ export class BlobUpload {
     this.blob = blob
     this.file = blob.file
 
-    const { url, headers } = blob.directUploadData
+    const { url, headers, method, responseType } = blob.directUploadData
 
     this.xhr = new XMLHttpRequest
-    this.xhr.open("PUT", url, true)
-    this.xhr.responseType = "text"
+    this.xhr.open(method || "PUT", url, true)
+    this.xhr.responseType = responseType || "text"
     for (const key in headers) {
       this.xhr.setRequestHeader(key, headers[key])
     }
@@ -17,7 +17,22 @@ export class BlobUpload {
 
   create(callback) {
     this.callback = callback
-    this.xhr.send(this.file.slice())
+    const { formData } = this.blob.directUploadData
+    if(formData){
+      var data, fileKey
+      data = new FormData()
+      if(formData[':file']){
+        fileKey = formData[':file']
+        delete formData[':file']
+      }
+      for(const key in formData){
+        data.append(key, formData[key])
+      }
+      data.append(fileKey || 'file', this.file)
+      this.xhr.send(data)
+    }else{
+      this.xhr.send(this.file.slice())
+    }
   }
 
   requestDidLoad(event) {

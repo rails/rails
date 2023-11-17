@@ -53,14 +53,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   validates :service_name, presence: true
   validates :checksum, presence: true, unless: :composed
-
-  validate do
-    if service_name_changed? && service_name.present?
-      services.fetch(service_name) do
-        errors.add(:service_name, :invalid)
-      end
-    end
-  end
+  validate :validate_service_name_in_services, if: -> { service_name_changed? && service_name.present? }
 
   class << self
     # You can use the signed ID of a blob to refer to it on the client side without fear of tampering.
@@ -245,6 +238,27 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.headers_for_direct_upload key, filename: filename, content_type: content_type, content_length: byte_size, checksum: checksum, custom_metadata: custom_metadata
   end
 
+  # Returns HTTP method(PUT/POST) for +service_url_for_direct_upload+ requests.
+  def service_http_method_for_direct_upload
+    service.respond_to?(:http_method_for_direct_upload) ? service.http_method_for_direct_upload : nil
+  end
+
+  # Returns HTTP response type for +service_url_for_direct_upload+ requests.
+  def service_http_response_type_for_direct_upload
+    service.respond_to?(:http_response_type_for_direct_upload) ? service.http_response_type_for_direct_upload : nil
+  end
+
+  # Support sending credential/key from form submission instead of headers
+  def service_form_data_for_direct_upload(expires_in: ActiveStorage.service_urls_expire_in)
+    return {} unless service.respond_to?(:form_data_for_direct_upload)
+
+    service.form_data_for_direct_upload(key,
+                                        expires_in: expires_in,
+                                        content_type: content_type,
+                                        content_length: byte_size,
+                                        checksum: checksum)
+  end
+
   def content_type_for_serving # :nodoc:
     forcibly_serve_as_binary? ? ActiveStorage.binary_content_type : content_type
   end
@@ -409,6 +423,12 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
     def update_service_metadata
       service.update_metadata key, **service_metadata if service_metadata.any?
+    end
+
+    def validate_service_name_in_services
+      services.fetch(service_name) do
+        errors.add(:service_name, :invalid)
+      end
     end
 end
 
