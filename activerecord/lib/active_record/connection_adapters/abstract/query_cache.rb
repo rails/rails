@@ -21,7 +21,7 @@ module ActiveRecord
           method_names.each do |method_name|
             base.class_eval <<-end_code, __FILE__, __LINE__ + 1
               def #{method_name}(...)
-                ActiveRecord::Base.clear_query_caches_for_current_thread
+                ActiveRecord.query_cache_clearing_strategy.call(self, :#{method_name}, ...)
                 super
               end
             end_code

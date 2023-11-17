@@ -84,4 +84,13 @@
 
     *Jason Meller*
 
+*   Add `query_cache_clearing_strategy` to allow control of how the query cache is cleared.
+    ```ruby
+      ActiveRecord.query_cache_clearing_strategy = Proc.new do |conn|
+        conn.clear_query_cache
+      end
+    ```
+
+    *Jonathan Calvert*
+
 Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/activerecord/CHANGELOG.md) for previous changes.

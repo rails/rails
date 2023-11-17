@@ -394,6 +394,15 @@ module ActiveRecord
   singleton_class.attr_accessor :dump_schemas
   self.dump_schemas = :schema_search_path
 
+  ##
+  # :singleton-method
+  # Specify a proc to call when query cache is indicated dirty. By
+  # default, call `ActiveRecord::Base.clear_query_caches_for_current_thread`
+  singleton_class.attr_accessor :query_cache_clearing_strategy
+  self.query_cache_clearing_strategy = Proc.new do
+    ActiveRecord::Base.clear_query_caches_for_current_thread
+  end
+
   def self.suppress_multiple_database_warning
     ActiveRecord.deprecator.warn(<<-MSG.squish)
       config.active_record.suppress_multiple_database_warning is deprecated and will be removed in Rails 7.2.

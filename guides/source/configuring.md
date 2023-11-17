@@ -1642,6 +1642,16 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `true`               |
 | 7.1                   | `false`              |
 
+#### `config.active_record.query_cache_clearing_strategy`
+
+Takes a `Proc` that executes when a method has been called that dirties the query cache. The default proc calls `ActiveRecord::Base.clear_query_caches_for_current_thread` to clear all active connections on the thread. Arguments passed are the connection object, the method name called, followed by any arguments to that method. To have only the connection with the dirty method clear the query cache:
+
+```
+config.active_record.query_cache_clearing_strategy = Proc.new do |conn|
+  conn.clear_query_cache
+end
+```
+
 ### Configuring Action Controller
 
 `config.action_controller` includes a number of configuration settings:
