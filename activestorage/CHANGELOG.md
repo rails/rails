@@ -1,3 +1,8 @@
+*   Fix `ActiveStorage::Representations::ProxyController` to proxy untracked
+    variants.
+
+    *Chedli Bourguiba*
+
 *   When using the `preprocessed: true` option, avoid enqueuing transform jobs
     for blobs that are not representable.
 
