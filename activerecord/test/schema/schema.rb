@@ -562,6 +562,15 @@ ActiveRecord::Schema.define do
     t.index [:source_id, :sink_id], unique: true, name: "unique_edge_index"
   end
 
+  create_table :editorships, force: true do |t|
+    t.string :publication_id
+    t.string :editor_id
+  end
+
+  create_table :editors, force: true do |t|
+    t.string :name
+  end
+
   create_table :engines, force: true do |t|
     t.references :car, index: false
   end
@@ -1036,6 +1045,11 @@ ActiveRecord::Schema.define do
     t.string :type
     t.references :firm, index: false
     t.integer :mentor_id
+  end
+
+  create_table :publications, force: true do |t|
+    t.column :name, :string
+    t.integer :editor_in_chief_id
   end
 
   create_table :randomly_named_table1, force: true do |t|
