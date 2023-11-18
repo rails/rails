@@ -24,4 +24,13 @@ class ActiveSupport::TestCase
   include ActiveSupport::Testing::Stream
 end
 
+ActiveSupport.on_load(:action_controller_test_case) do
+  include ActionView::RailsDomTestingAssertions
+end
+
+ActiveSupport.on_load(:action_mailer_test_case) do
+  include Rails::Dom::Testing::Assertions::SelectorAssertions
+  include Rails::Dom::Testing::Assertions::DomAssertions
+end
+
 require_relative "../../tools/test_common"

@@ -81,6 +81,132 @@ Upgrading from Rails 7.1 to Rails 7.2
 
 For more information on changes made to Rails 7.2 please see the [release notes](7_2_release_notes.html).
 
+### Use Capybara assertions in `ActionController::TestCase`, `ActionDispatch::IntegrationTest`, `ActionMailer::TestCase`, and `ActionView::TestCase`
+
+By default, tests that render HTML support [`rails-dom-testing`](https://github.com/rails/rails-dom-testing) assertions. Rails 7.2 adds support for [`capybara`](https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Minitest/Assertions) through new configurations.
+
+For `ActionController::TestCase`, set `config.action_controller.html_assertions = :capybara`:
+
+```ruby
+# config/application.rb
+
+module MyApp
+  class Application < Rails::Application
+    config.action_controller.html_assertions = :capybara
+
+    # …
+  end
+end
+
+# test/controllers/articles_controller_test.rb
+
+require "test_helper"
+
+class ArticlesControllerTest < ActionController::TestCase
+  test "#index renders a list of articles" do
+    get :index
+
+    assert_response :ok
+    assert_title "Articles"
+    assert_css "main" do |main|
+      assert_css main, "h1", text: "Articles"
+    end
+  end
+end
+```
+
+For `ActionDispatch::IntegrationTest`, set `config.action_dispatch.html_assertions = :capybara`:
+
+```ruby
+# config/application.rb
+
+module MyApp
+  class Application < Rails::Application
+    config.action_dispatch.html_assertions = :capybara
+
+    # …
+  end
+end
+
+# test/integration/articles_controller_test.rb
+
+require "test_helper"
+
+class ArticlesControllerTest < ActionDispatch::IntegrationTest
+  test "get /articles renders a list of articles" do
+    get articles_path
+
+    assert_response :ok
+    assert_title "Articles"
+    assert_css "main" do |main|
+      assert_css main, "h1", text: "Articles"
+    end
+  end
+end
+```
+
+For `ActionMailer::TestCase`, set `config.action_mailer.html_assertions = :capybara`:
+
+```ruby
+# config/application.rb
+
+module MyApp
+  class Application < Rails::Application
+    config.action_mailer.html_assertions = :capybara
+
+    # …
+  end
+end
+
+# test/mailers/users_mailer_test.rb
+
+require "test_helper"
+
+class UsersMailerTest < ActionMailer::TestCase
+  tests UsersMailer
+
+  test "UsersMailer#create" do
+    user = User.create! email: "user@example.com"
+    UsersMailer.create user
+
+    within_html_part do
+      assert_text "Welcome, user@example.com"
+      assert_link "Verify this email address", href: new_email_verification_url(email.verification_token)
+    end
+  end
+end
+```
+
+For `ActionView::TestCase`, set `config.action_view.html_assertions = :capybara`:
+
+```ruby
+# config/application.rb
+
+module MyApp
+  class Application < Rails::Application
+    config.action_view.html_assertions = :capybara
+
+    # …
+  end
+end
+
+# test/views/articles/_article.html.erb_test.rb
+
+require "test_helper"
+
+class ArticlePartialTest < ActionView::TestCase
+  test "articles/article renders an Article" do
+    article = Article.create! title: "Hello, world"
+
+    render "articles/article", article: article
+
+    assert_css "section" do |section|
+      assert_css section, "h1", text: "Hello, world"
+    end
+  end
+end
+```
+
 Upgrading from Rails 7.0 to Rails 7.1
 -------------------------------------
 

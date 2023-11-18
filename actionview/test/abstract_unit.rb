@@ -101,7 +101,13 @@ class BasicController
   end
 end
 
+ActiveSupport.on_load :action_view_test_case do
+  include ActionView::RailsDomTestingAssertions
+end
+
 class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
+  include ActionView::RailsDomTestingAssertions
+
   def self.build_app(routes = nil)
     routes ||= ActionDispatch::Routing::RouteSet.new.tap { |rs|
       rs.draw { }
@@ -145,6 +151,7 @@ module ActionController
 
   class TestCase
     include ActionDispatch::TestProcess
+    include ActionView::RailsDomTestingAssertions
 
     def self.with_routes(&block)
       routes = ActionDispatch::Routing::RouteSet.new

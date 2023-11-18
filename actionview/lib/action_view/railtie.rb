@@ -14,6 +14,7 @@ module ActionView
     config.action_view.image_decoding = nil
     config.action_view.apply_stylesheet_media_default = true
     config.action_view.prepend_content_exfiltration_prevention = false
+    config.action_view.html_assertions = :rails_dom_testing
 
     config.eager_load_namespaces << ActionView
 
@@ -103,6 +104,23 @@ module ActionView
 
     initializer "action_view.collection_caching", after: "action_controller.set_configs" do |app|
       PartialRenderer.collection_cache = app.config.action_controller.cache_store
+    end
+
+    initializer "action_view.test_case" do |app|
+      html_assertions = app.config.action_view.delete(:html_assertions)
+
+      ActiveSupport.on_load(:action_view_test_case) do
+        case html_assertions
+        when :capybara
+          include ActionView::CapybaraAssertions
+        when :rails_dom_testing
+          include ActionView::RailsDomTestingAssertions
+        when :none
+          # do nothing
+        else
+          raise ArgumentError.new("unrecognized value #{assertions.inspect} for config.action_view.html_assertions")
+        end
+      end
     end
 
     config.after_initialize do |app|

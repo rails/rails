@@ -1208,47 +1208,50 @@ NOTE: Don't forget to call `follow_redirect!` if you plan to make subsequent req
 
 Finally we can assert that our response was successful and our new article is readable on the page.
 
-#### Asserting with Capybara
+#### Articles Integration with Capybara Assertions
 
-By default, assertions about the contents of the response's body are provided by [rails-dom-testing][].
-
-Action Dispatch can also integrate with Capybara's [selectors][Capybara::Selector] and [assertions][Capybara::Minitest::Assertions] by including the `ActionDispatch::Assertions::CapybaraAssertions` module:
+By default, `ActionDispatch::IntegrationTest` cases use [rails-dom-testing][] assertions. To add support for [Capybara::Minitest::Assertions][] assertions, set `config.action_controller.html_assertions` when configuring your application:
 
 ```ruby
+# config/application.rb
+module MyApp
+  class Application < Rails::Application
+    config.action_dispatch.html_assertions = :capybara
+
+    # …
+  end
+end
+
+# test/integration/blog_flow_test.rb
 require "test_helper"
-require "action_dispatch/testing/assertions/capybara"
 
 class BlogFlowTest < ActionDispatch::IntegrationTest
-  include ActionDispatch::Assertions::CapybaraAssertions
-
   test "can see the welcome page" do
     get "/"
-    assert_css "h1", "Welcome#index"
+
+    assert_css "h1", text: "Welcome#index"
   end
 end
 ```
 
-In addition to the assertions provided by [Capybara::Minitest::Assertions][], `ActionDispatch::Assertions::CapybaraAssertions` also declares a [within][Capybara::Session#within] test helper to change the current scope and a [page][Capybara::Session] test helper to access the `Capybara::Session` directly.
-
-Mix the `ActionDispatch::Assertions::CapybaraAssertions` module into the `ActionDispatch::IntegrationTest` class to integrate with Capybara's selectors and assertions throughout your integration test suite:
+In addition to CSS selector assertions, Capybara provides a wide range of [selectors][Capybara::Selector]:
 
 ```ruby
-# test/test_helper.rb
+require "test_helper"
 
-require "action_dispatch/testing/assertions/capybara"
+class BlogFlowTest < ActionDispatch::IntegrationTest
+  test "can see the welcome page" do
+    get "/"
 
-# …
-
-class ActionDispatch::IntegrationTest
-  include ActionDispatch::Assertions::CapybaraAssertions
+    assert_selector :element, "h1", text: "Welcome#index"
+    asssert_link "About us", href: "/about"
+  end
 end
 ```
 
 [rails-dom-testing]: https://github.com/rails/rails-dom-testing
-[Capybara::Selector]: https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Selector
 [Capybara::Minitest::Assertions]: https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Minitest/Assertions
-[Capybara::Session]: https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Session
-[Capybara::Session#within]: https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Session#within-instance_method
+[Capybara::Selector]: https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Selector
 
 #### Taking It Further
 
@@ -1862,6 +1865,34 @@ end
 require "view_partial_test_case"
 
 class ArticlePartialTest < ViewPartialTestCase
+  test "renders a link to itself" do
+    article = Article.create! title: "Hello, world"
+
+    render "articles/article", article: article
+
+    assert_link article.title, href: article_url(article)
+  end
+end
+```
+
+To configure **all** `ActionView::TestCase` tests to use Capybara assertions, set `config.action_view.html_assertions = :capybara`:
+
+```ruby
+# config/application.rb
+
+module MyApp
+  class Application < Rails::Application
+    config.action_view.html_assertions = :capybara
+
+    # …
+  end
+end
+
+# test/views/article_partial_test.rb
+
+require "test_helper"
+
+class ArticlePartialTest < ActionView::TestCase
   test "renders a link to itself" do
     article = Article.create! title: "Hello, world"
 

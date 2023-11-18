@@ -34,14 +34,13 @@ module ActionMailer
 
       include ActiveSupport::Testing::ConstantLookup
       include TestHelper
-      include Rails::Dom::Testing::Assertions::SelectorAssertions
-      include Rails::Dom::Testing::Assertions::DomAssertions
 
       included do
         class_attribute :_mailer_class
         setup :initialize_test_deliveries
         setup :set_expected_mail
         teardown :restore_test_deliveries
+        attr_accessor :html_document
         ActiveSupport.run_load_hooks(:action_mailer_test_case, self)
       end
 
@@ -81,6 +80,36 @@ module ActionMailer
       # https://guides.rubyonrails.org/testing.html#revenge-of-the-fixtures
       def read_fixture(action)
         IO.readlines(File.join(Rails.root, "test", "fixtures", self.class.mailer_class.name.underscore, action))
+      end
+
+      # Extract and parse the HTML part of a Mail instance and yield it to the block.
+      #
+      # If the Mail is multipart, extract and parse the +text/html+ part.
+      # Otherwise, extract and parse the body. By default, parse the last delivered Mail.
+      #
+      #   UsersMailer.create(user).deliver_now
+      #   within_html_part do
+      #     assert_text "Welcome, #{user.email}"
+      #   end
+      #
+      #   mail = UsersMailer.create(user)
+      #   within_html_part mail do
+      #     assert_text "Welcome, #{user.email}"
+      #   end
+      def within_html_part(mail = self.class.mailer_class.deliveries.last, html_version: nil, &block)
+        parser = Rails::Dom::Testing.html_document_fragment(html_version: html_version)
+        part = mail.html_part || mail
+
+        if Mime[:html].match?(part.mime_type)
+          html = part.body.raw_source
+          self.html_document = parser.parse(html)
+
+          html_document.yield_self(&block)
+        else
+          raise ArgumentError, "no HTML part in #{mail.inspect}"
+        end
+      ensure
+        self.html_document = nil
       end
 
       private
