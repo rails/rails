@@ -108,10 +108,15 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
       assert_equal 0, event.cpu_time
       assert_equal 0, event.allocations
     else
-      assert_operator event.cpu_time, :>, 0
+      # These assertions may fail on platforms without nanosecond-resolution clocks
+      if Process.clock_getres(Process::CLOCK_MONOTONIC) <= 1.0e-09
+        assert_operator event.cpu_time, :>, 0
+      end
       assert_operator event.allocations, :>, 0
     end
-    assert_operator event.duration, :>, 0
+    if Process.clock_getres(Process::CLOCK_MONOTONIC) <= 1.0e-09
+      assert_operator event.duration, :>, 0
+    end
     assert_operator event.idle_time, :>=, 0
   end
 
