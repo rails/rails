@@ -18,7 +18,7 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters.register("mysql", "ActiveRecord::ConnectionAdapters::TrilogyAdapter", "active_record/connection_adapters/trilogy_adapter")
       #
       def register(name, class_name, path = class_name.underscore)
-        @adapters[name] = [class_name, path]
+        @adapters[name.to_s] = [class_name, path]
       end
 
       def resolve(adapter_name) # :nodoc:
@@ -26,7 +26,7 @@ module ActiveRecord
         #   1. Missing adapter gems.
         #   2. Incorrectly registered adapters.
         #   3. Adapter gems' missing dependencies.
-        class_name, path_to_adapter = @adapters[adapter_name]
+        class_name, path_to_adapter = @adapters[adapter_name.to_s]
 
         unless class_name
           raise AdapterNotFound, <<~MSG.squish

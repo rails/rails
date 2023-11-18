@@ -145,6 +145,15 @@ module ActiveRecord
         config = HashConfig.new("default_env", "primary", { schema_cache_path: "db/config_schema_cache.yml", adapter: "abstract" })
         assert_equal "db/config_schema_cache.yml", config.schema_cache_path
       end
+
+      def test_validate_checks_the_adapter_exists
+        config = HashConfig.new("default_env", "primary", adapter: "abstract")
+        assert config.validate!
+        config = HashConfig.new("default_env", "primary", adapter: "potato")
+        assert_raises(ActiveRecord::AdapterNotFound) do
+          config.validate!
+        end
+      end
     end
   end
 end

@@ -4770,6 +4770,27 @@ module ApplicationTests
       assert_equal [:foo], Foo.attributes_for_inspect
     end
 
+    test "new Active Record connection adapters can be registered as aliases in application initializers" do
+      app_file "config/database.yml", <<-YAML
+        development:
+          adapter: potato
+          database: 'example_db'
+      YAML
+
+      app_file "config/initializers/active_record_connection_adapters.rb", <<-RUBY
+        ActiveRecord::ConnectionAdapters.register(
+          "potato",
+          "ActiveRecord::ConnectionAdapters::SQLite3Adapter",
+          "active_record/connection_adapters/sqlite3_adapter"
+        )
+      RUBY
+
+      app "development"
+
+      assert_equal "potato", ActiveRecord::Base.connection.pool.db_config.adapter
+      assert_equal "SQLite", ActiveRecord::Base.connection.adapter_name
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents

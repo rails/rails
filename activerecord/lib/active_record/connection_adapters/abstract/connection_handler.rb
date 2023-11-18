@@ -322,7 +322,7 @@ module ActiveRecord
         #
         def resolve_pool_config(config, connection_name, role, shard)
           db_config = Base.configurations.resolve(config)
-
+          db_config.validate!
           raise(AdapterNotSpecified, "database configuration does not specify adapter") unless db_config.adapter
           ConnectionAdapters::PoolConfig.new(connection_name, db_config, role, shard)
         end
