@@ -47,8 +47,6 @@ module ActiveJob
 
     private
       # :nodoc:
-      PERMITTED_TYPES = [ NilClass, String, Integer, Float, TrueClass, FalseClass ]
-      # :nodoc:
       GLOBALID_KEY = "_aj_globalid"
       # :nodoc:
       SYMBOL_KEYS_KEY = "_aj_symbol_keys"
@@ -67,13 +65,23 @@ module ActiveJob
         OBJECT_SERIALIZER_KEY, OBJECT_SERIALIZER_KEY.to_sym,
         WITH_INDIFFERENT_ACCESS_KEY, WITH_INDIFFERENT_ACCESS_KEY.to_sym,
       ]
-      private_constant :PERMITTED_TYPES, :RESERVED_KEYS, :GLOBALID_KEY,
+      private_constant :RESERVED_KEYS, :GLOBALID_KEY,
         :SYMBOL_KEYS_KEY, :RUBY2_KEYWORDS_KEY, :WITH_INDIFFERENT_ACCESS_KEY
 
       def serialize_argument(argument)
         case argument
-        when *PERMITTED_TYPES
+        when nil, true, false, Integer, Float # Types that can hardly be subclassed
           argument
+        when String
+          if argument.class == String
+            argument
+          else
+            begin
+              Serializers.serialize(argument)
+            rescue SerializationError
+              argument
+            end
+          end
         when GlobalID::Identification
           convert_to_global_id_hash(argument)
         when Array
@@ -90,10 +98,10 @@ module ActiveJob
           result = serialize_hash(argument)
           result[aj_hash_key] = symbol_keys
           result
-        when -> (arg) { arg.respond_to?(:permitted?) && arg.respond_to?(:to_h) }
-          serialize_indifferent_hash(argument.to_h)
         else
-          if BigDecimal === argument && !ActiveJob.use_big_decimal_serializer
+          if argument.respond_to?(:permitted?) && argument.respond_to?(:to_h)
+            serialize_indifferent_hash(argument.to_h)
+          elsif BigDecimal === argument && !ActiveJob.use_big_decimal_serializer
             ActiveJob.deprecator.warn(<<~MSG)
               Primitive serialization of BigDecimal job arguments is deprecated as it may serialize via .to_s using certain queue adapters.
               Enable config.active_job.use_big_decimal_serializer to use BigDecimalSerializer instead, which will be mandatory in Rails 7.2.
@@ -101,16 +109,16 @@ module ActiveJob
               Note that if your application has multiple replicas, you should only enable this setting after successfully deploying your app to Rails 7.1 first.
               This will ensure that during your deployment all replicas are capable of deserializing arguments serialized with BigDecimalSerializer.
             MSG
-            return argument
+            argument
+          else
+            Serializers.serialize(argument)
           end
-
-          Serializers.serialize(argument)
         end
       end
 
       def deserialize_argument(argument)
         case argument
-        when *PERMITTED_TYPES
+        when nil, true, false, String, Integer, Float
           argument
         when BigDecimal # BigDecimal may have been legacy serialized; Remove in 7.2
           argument
