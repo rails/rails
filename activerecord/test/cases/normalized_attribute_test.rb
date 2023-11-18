@@ -12,6 +12,15 @@ class NormalizedAttributeTest < ActiveRecord::TestCase
     attr_accessor :validated_name
     validate { self.validated_name = name.dup }
   end
+  
+  class SymbolNormalizedAircraft < ActiveRecord::TestCase
+    normalizes :name, with: :titlecase
+    normalizes :manufactured_at, with: :noon
+    
+    attr_accessor :validated_name
+    
+    validate { self.validated_name = name.dup }
+  end
 
   setup do
     @time = Time.utc(1999, 12, 31, 12, 34, 56)
@@ -109,5 +118,10 @@ class NormalizedAttributeTest < ActiveRecord::TestCase
     assert_equal "0", aircraft.name
     aircraft.save
     assert_equal "1", aircraft.name
+  end
+  
+  test "normalizes value from symbol" do
+    aircraft = SymbolNormalizedAircraft.create!(name: "fly HIGH", manufactured_at: @time)
+    assert_equal "Fly High", aircraft.name
   end
 end

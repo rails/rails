@@ -60,7 +60,7 @@ module ActiveRecord # :nodoc:
       # ==== Options
       #
       # * +:with+ - Any callable object that accepts the attribute's value as
-      #   its sole argument, and returns it normalized.
+      #   its sole argument, and returns it normalized. It can also be a symbol that the normalized object responds to
       # * +:apply_to_nil+ - Whether to apply the normalization to +nil+ values.
       #   Defaults to +false+.
       #
@@ -158,7 +158,11 @@ module ActiveRecord # :nodoc:
 
         private
           def normalize(value)
-            normalizer.call(value) unless value.nil? && !normalize_nil?
+            if value.respond_to?(normalizer)
+              value.public_send(normalizer)
+            else
+              normalizer.call(value) unless value.nil? && !normalize_nil?
+            end
           end
       end
   end
