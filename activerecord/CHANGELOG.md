@@ -1,4 +1,8 @@
-*   `DatabaseConfigurations#configs_for` can accept a symbol in the `name` parameter.
+* `ActiveRecord::Normalization::NormalizedValueType` can accept a symbol in the `normalizer` parameter.
+
+    *Ahmed Khattab*
+
+* `DatabaseConfigurations#configs_for` can accept a symbol in the `name` parameter.
 
     *Andrew Novoselac*
 
