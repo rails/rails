@@ -13,6 +13,7 @@ class ActionsTest < Rails::Generators::TestCase
 
   def setup
     Rails.application = TestApp::Application
+    Rails.application.config.root = Pathname("../fixtures/tmp").expand_path(__dir__)
     super
   end
 

@@ -339,7 +339,7 @@ module SharedGeneratorTests
 
   def test_dev_option
     run_generator_using_prerelease [destination_root, "--dev"]
-    rails_path = File.expand_path("../../..", Rails.root)
+    rails_path = File.expand_path("../../../..", Rails.root)
     assert_file "Gemfile", %r{^gem ["']rails["'], path: ["']#{Regexp.escape rails_path}["']$}
   end
 

@@ -468,7 +468,10 @@ module Rails
             abort_on_failure: options[:abort_on_failure],
           }
 
-          in_root { run("#{sudo}#{Shellwords.escape Gem.ruby} bin/#{executor} #{command}", config) }
+          in_root do
+            executor_path = Rails.root.join("bin", executor.to_s)
+            run("#{sudo}#{Shellwords.escape Gem.ruby} #{executor_path} #{command}", config)
+          end
         end
 
         # Always returns value in double quotes.

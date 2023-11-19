@@ -93,6 +93,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
   # brings setup, teardown, and some tests
   include SharedGeneratorTests
 
+  setup { Rails.application.config.root = Pathname(destination_root) }
+
   def default_files
     ::DEFAULT_APP_FILES
   end
