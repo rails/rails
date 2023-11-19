@@ -63,6 +63,20 @@ module ActiveRecord
         ENV["RAILS_ENV"] = previous_env
       end
 
+      def test_validates_db_configuration_and_raises_on_invalid_adapter
+        config = {
+          "development" => { "adapter" => "ridiculous" },
+        }
+
+        @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+        assert_raises(ActiveRecord::AdapterNotFound) do
+          ActiveRecord::Base.establish_connection(:development)
+        end
+      ensure
+        ActiveRecord::Base.configurations = @prev_configs
+      end
+
       unless in_memory_db?
         def test_not_setting_writing_role_while_using_another_named_role_raises
           connection_handler = ActiveRecord::Base.connection_handler

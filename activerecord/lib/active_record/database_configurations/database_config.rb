@@ -8,12 +8,6 @@ module ActiveRecord
     class DatabaseConfig # :nodoc:
       attr_reader :env_name, :name
 
-      def self.new(...)
-        instance = super
-        instance.adapter_class if instance.adapter # Ensure resolution happens early
-        instance
-      end
-
       def initialize(env_name, name)
         @env_name = env_name
         @name = name
@@ -26,6 +20,12 @@ module ActiveRecord
 
       def new_connection
         adapter_class.new(configuration_hash)
+      end
+
+      def validate!
+        adapter_class if adapter
+
+        true
       end
 
       def host
