@@ -65,7 +65,7 @@ class ActiveRecord::Encryption::EncryptorTest < ActiveRecord::EncryptionTestCase
   end
 
   test "decrypt respects encoding even when compression is used" do
-    text = "The Starfleet is here #{'OMG! ' * 50}!".dup.force_encoding(Encoding::ISO_8859_1)
+    text = (+"The Starfleet is here #{'OMG! ' * 50}!").force_encoding(Encoding::ISO_8859_1)
     encrypted_text = @encryptor.encrypt(text)
     decrypted_text = @encryptor.decrypt(encrypted_text)
 

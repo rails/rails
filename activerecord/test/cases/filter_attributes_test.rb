@@ -118,7 +118,7 @@ class FilterAttributesTest < ActiveRecord::TestCase
 
   test "filter_attributes on pretty_print" do
     user = admin_users(:david)
-    actual = "".dup
+    actual = +""
     PP.pp(user, StringIO.new(actual))
 
     assert_includes actual, 'name: "[FILTERED]"'
@@ -127,7 +127,7 @@ class FilterAttributesTest < ActiveRecord::TestCase
 
   test "filter_attributes on pretty_print should not filter nil value" do
     user = Admin::User.new
-    actual = "".dup
+    actual = +""
     PP.pp(user, StringIO.new(actual))
 
     assert_includes actual, "name: nil"
@@ -138,7 +138,7 @@ class FilterAttributesTest < ActiveRecord::TestCase
   test "filter_attributes on pretty_print should handle [FILTERED] value properly" do
     User.filter_attributes = ["auth"]
     user = User.new(token: "[FILTERED]", auth_token: "[FILTERED]")
-    actual = "".dup
+    actual = +""
     PP.pp(user, StringIO.new(actual))
 
     assert_includes actual, 'auth_token: "[FILTERED]"'
