@@ -5,25 +5,11 @@ module ActionView
     module Tags # :nodoc:
       class Label < Base # :nodoc:
         class LabelBuilder # :nodoc:
-          attr_reader :object
+          attr_reader :translation, :object
 
-          def initialize(template_object, object_name, method_name, object, tag_value)
-            @template_object = template_object
-            @object_name = object_name
-            @method_name = method_name
+          def initialize(translation, object)
+            @translation = translation
             @object = object
-            @tag_value = tag_value
-          end
-
-          def translation
-            method_and_value = @tag_value.present? ? "#{@method_name}.#{@tag_value}" : @method_name
-
-            content ||= Translator
-              .new(object, @object_name, method_and_value, scope: "helpers.label")
-              .translate
-            content ||= @method_name.humanize
-
-            content
           end
 
           def to_s
@@ -61,7 +47,8 @@ module ActionView
           options.delete("namespace")
           options["for"] = name_and_id["id"] unless options.key?("for")
 
-          builder = LabelBuilder.new(@template_object, @object_name, @method_name, @object, tag_value)
+          translation = @template_object.field_label(@object_name, @method_name, object: @object, value: tag_value)
+          builder = LabelBuilder.new(translation, @object)
 
           content = if block_given?
             @template_object.capture(builder, &block)
