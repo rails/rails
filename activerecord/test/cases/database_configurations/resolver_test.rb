@@ -16,7 +16,7 @@ module ActiveRecord
             Base.connection_handler.establish_connection "ridiculous://foo?encoding=utf8"
           end
 
-          assert_match "Database configuration specifies nonexistent 'ridiculous' adapter. Available adapters are: abstract, fake, mysql2, postgresql, sqlite3, trilogy. Ensure that the adapter is spelled correctly in config/database.yml or that you've added the necessary adapter gem to your Gemfile if it's not in the list of available adapters.", error.message
+          assert_match "Database configuration specifies nonexistent 'ridiculous' adapter. Available adapters are: abstract, fake, mysql2, postgresql, sqlite3, trilogy. Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary adapter gem to your Gemfile if it's not in the list of available adapters.", error.message
         end
 
         # The abstract adapter is used simply to bypass the bit of code that

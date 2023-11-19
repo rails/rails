@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/string/filters"
+
 module ActiveRecord
   module ConnectionAdapters
     extend ActiveSupport::Autoload
@@ -32,7 +34,7 @@ module ActiveRecord
           raise AdapterNotFound, <<~MSG.squish
             Database configuration specifies nonexistent '#{adapter_name}' adapter.
             Available adapters are: #{@adapters.keys.sort.join(", ")}.
-            Ensure that the adapter is spelled correctly in config/database.yml or that you've added the necessary
+            Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary
             adapter gem to your Gemfile if it's not in the list of available adapters.
           MSG
         end
