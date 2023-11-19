@@ -4791,6 +4791,66 @@ module ApplicationTests
       assert_equal "SQLite", ActiveRecord::Base.connection.adapter_name
     end
 
+    test "uses ActiveRecord::Base.mysql_adapter to alias mysql2 to the default mysql adapter" do
+      app_file "config/database.yml", <<-YAML
+        development:
+          adapter: mysql
+          database: 'example_db'
+      YAML
+
+      app "development"
+
+      assert_equal "mysql", ActiveRecord::Base.connection.pool.db_config.adapter
+      assert_equal "Mysql2", ActiveRecord::Base.connection.adapter_name
+    end
+
+    test "uses ActiveRecord::Base.mysql_adapter to alias trilogy to the default mysql adapter" do
+      app_file "config/database.yml", <<-YAML
+        development:
+          adapter: mysql
+          database: 'example_db'
+      YAML
+
+      add_to_config <<~RUBY
+        config.active_record.mysql_adapter = :trilogy
+      RUBY
+
+      app "development"
+
+      assert_equal "mysql", ActiveRecord::Base.connection.pool.db_config.adapter
+      assert_equal "Trilogy", ActiveRecord::Base.connection.adapter_name
+    end
+
+    test "setting nil to ActiveRecord::Base.mysql_adapter does not alias mysql" do
+      app_file "config/database.yml", <<-YAML
+        development:
+          adapter: mysql
+          database: 'example_db'
+      YAML
+
+      add_to_config <<~RUBY
+        config.active_record.mysql_adapter = nil
+      RUBY
+
+      app "development"
+
+      assert_raise(ActiveRecord::AdapterNotFound) do
+        ActiveRecord::Base.connection
+      end
+    end
+
+    test "setting an invalid value to ActiveRecord::Base.mysql_adapter raises" do
+      add_to_config <<~RUBY
+        config.active_record.mysql_adapter = :potato
+      RUBY
+
+      app "development"
+
+      assert_raise(ActiveRecord::AdapterNotFound) do
+        ActiveRecord::Base.connection
+      end
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents

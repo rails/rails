@@ -44,6 +44,24 @@ module ActiveRecord
 
         assert_equal "FakeActiveRecordAdapter", ActiveRecord::ConnectionAdapters.resolve(:fake).name
       end
+
+      test "#alias registers a new adapter alias with the same class and location as the original" do
+        ActiveRecord::ConnectionAdapters.register("fake", "FakeActiveRecordAdapter", @fake_adapter_path)
+        ActiveRecord::ConnectionAdapters.alias("fake", as: "potato")
+        assert_equal "FakeActiveRecordAdapter", ActiveRecord::ConnectionAdapters.resolve("potato").name
+      end
+
+      test "#alias accepts symbol keys" do
+        ActiveRecord::ConnectionAdapters.register("fake", "FakeActiveRecordAdapter", @fake_adapter_path)
+        ActiveRecord::ConnectionAdapters.alias(:fake, as: :potato)
+        assert_equal "FakeActiveRecordAdapter", ActiveRecord::ConnectionAdapters.resolve("potato").name
+      end
+
+      test "#alias raises if the original is invalid" do
+        assert_raises(ActiveRecord::AdapterNotFound) do
+          ActiveRecord::ConnectionAdapters.alias("carrot", as: "potato")
+        end
+      end
     end
   end
 end

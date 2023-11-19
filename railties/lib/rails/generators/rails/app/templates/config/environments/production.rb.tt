@@ -99,8 +99,12 @@ Rails.application.configure do
 
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
-  <%- end -%>
 
+  <%- if options[:database] == "mysql" || options[:database] == "trilogy" -%>
+  # Database adapter used for MySQL. Supports `:mysql2` and `:trilogy`.
+  config.active_record.mysql_adapter = <%= options[:database] == "trilogy" ? ":trilogy" : ":mysql2" %>
+
+  <%- end -%><%- end -%>
   # Enable DNS rebinding protection and other `Host` header attacks.
   # config.hosts = [
   #   "example.com",     # Allow requests from example.com

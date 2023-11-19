@@ -300,6 +300,12 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
+    initializer "active_record.mysql_adapter" do |app|
+      ActiveSupport.on_load(:active_record) do
+        ActiveRecord::ConnectionAdapters.alias(ActiveRecord.mysql_adapter, as: "mysql") if ActiveRecord.mysql_adapter
+      end
+    end
+
     # This sets the database configuration from Configuration#database_configuration
     # and then establishes the connection.
     initializer "active_record.initialize_database" do

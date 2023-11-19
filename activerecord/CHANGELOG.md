@@ -1,3 +1,11 @@
+*   Allow database adapters to be registered through `ActiveRecord::ConnectionAdapters#register`.
+
+    Set the MySQL adapter to `mysql://...` or `adapter: mysql` in the database configuration, and
+    configure rails to use either `:mysql2` or `:trilogy` as the concrete adapter via the
+    `ActiveRecord.mysql_adapter` config.
+
+    *Jean Boussier*, *Kevin McPhillips*
+
 *   `DatabaseConfigurations#configs_for` can accept a symbol in the `name` parameter.
 
     *Andrew Novoselac*

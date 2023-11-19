@@ -63,11 +63,14 @@ Rails.application.configure do
   # Highlight code that triggered database queries in logs.
   config.active_record.verbose_query_logs = true
 
-  <%- end -%>
+  <%- if options[:database] == "mysql" || options[:database] == "trilogy" -%>
+  # Database adapter used for MySQL. Supports `:mysql2` and `:trilogy`.
+  config.active_record.mysql_adapter = <%= options[:database] == "trilogy" ? ":trilogy" : ":mysql2" %>
+
+  <%- end -%><%- end -%>
   <%- unless options[:skip_active_job] -%>
   # Highlight code that enqueued background job in logs.
   config.active_job.verbose_enqueue_logs = true
-
   <%- end -%>
   <%- unless skip_sprockets? -%>
   # Suppress logger output for asset requests.

@@ -21,6 +21,17 @@ module ActiveRecord
         @adapters[name.to_s] = [class_name, path]
       end
 
+      # Registers name alias for a database adapter.
+      #
+      # == Example
+      #
+      #   ActiveRecord::ConnectionAdapters.alias("trilogy", as: "mysql")
+      #
+      def alias(original, as:)
+        resolve(original) # will raise if original is invalid or does not exist
+        register(as, *@adapters[original.to_s])
+      end
+
       def resolve(adapter_name) # :nodoc:
         # Require the adapter itself and give useful feedback about
         #   1. Missing adapter gems.

@@ -47,6 +47,11 @@ Rails.application.configure do
   config.action_mailer.delivery_method = :test
 
   <%- end -%>
+  <%- unless options.skip_active_record? %><%- if options[:database] == "mysql" || options[:database] == "trilogy" -%>
+  # Database adapter used for MySQL. Supports `:mysql2` and `:trilogy`.
+  config.active_record.mysql_adapter = <%= options[:database] == "trilogy" ? ":trilogy" : ":mysql2" %>
+
+  <%- end -%><%- end -%>
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
 
