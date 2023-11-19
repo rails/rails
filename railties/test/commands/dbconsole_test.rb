@@ -120,7 +120,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   def test_unknown_command_line_client
     start(adapter: "unknown", database: "db")
     assert aborted
-    assert_match(/database configuration specifies nonexistent 'unknown' adapter/, output)
+    assert_match(/Database configuration specifies nonexistent 'unknown' adapter/, output)
   end
 
   def test_primary_is_automatically_picked_with_3_level_configuration
