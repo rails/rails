@@ -1,3 +1,7 @@
+*   Fix direct upload forms when submit button contains nested elements.
+
+    *Marc Köhlbrugge*
+
 *   When using the `preprocessed: true` option, avoid enqueuing transform jobs
     for blobs that are not representable.
 
