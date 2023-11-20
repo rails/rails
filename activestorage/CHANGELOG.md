@@ -1,3 +1,8 @@
+*   Fix `ActiveStorage::Representations::ProxyController` to proxy untracked
+    variants.
+
+    *Chedli Bourguiba*
+
 *   Fix direct upload forms when submit button contains nested elements.
 
     *Marc Köhlbrugge*
