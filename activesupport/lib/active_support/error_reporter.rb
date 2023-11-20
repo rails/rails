@@ -26,12 +26,16 @@ module ActiveSupport
   class ErrorReporter
     SEVERITIES = %i(error warning info)
     DEFAULT_SOURCE = "application"
+    DEFAULT_RESCUE = [StandardError].freeze
 
-    attr_accessor :logger
+    attr_accessor :logger, :debug_mode
+
+    UnexpectedError = Class.new(Exception)
 
     def initialize(*subscribers, logger: nil)
       @subscribers = subscribers.flatten
       @logger = logger
+      @debug_mode = false
     end
 
     # Evaluates the given block, reporting and swallowing any unhandled error.
@@ -72,7 +76,7 @@ module ActiveSupport
     #   source of the error. Subscribers can use this value to ignore certain
     #   errors. Defaults to <tt>"application"</tt>.
     def handle(*error_classes, severity: :warning, context: {}, fallback: nil, source: DEFAULT_SOURCE)
-      error_classes = [StandardError] if error_classes.blank?
+      error_classes = DEFAULT_RESCUE if error_classes.empty?
       yield
     rescue *error_classes => error
       report(error, handled: true, severity: severity, context: context, source: source)
@@ -108,11 +112,45 @@ module ActiveSupport
     #   source of the error. Subscribers can use this value to ignore certain
     #   errors. Defaults to <tt>"application"</tt>.
     def record(*error_classes, severity: :error, context: {}, source: DEFAULT_SOURCE)
-      error_classes = [StandardError] if error_classes.blank?
+      error_classes = DEFAULT_RESCUE if error_classes.empty?
       yield
     rescue *error_classes => error
       report(error, handled: false, severity: severity, context: context, source: source)
       raise
+    end
+
+    # Either report the given error when in production, or raise it when in development or test.
+    #
+    # When called in production, after the error is reported, this method will return
+    # nil and execution will continue.
+    #
+    # When called in development, the original error is wrapped in a different error class to ensure
+    # it's not being rescued higher in the stack and will be surfaced to the developer.
+    #
+    # This method is intended for reporting violated assertions about preconditions, or similar
+    # cases that can and should be gracefully handled in production, but that aren't supposed to happen.
+    #
+    # The error can be either an exception instance or a String.
+    #
+    #   example:
+    #
+    #     def edit
+    #       if published?
+    #         Rails.error.unexpected("[BUG] Attempting to edit a published article, that shouldn't be possible")
+    #         return false
+    #       end
+    #       # ...
+    #     end
+    #
+    def unexpected(error, severity: :warning, context: {}, source: DEFAULT_SOURCE)
+      error = RuntimeError.new(error) if error.is_a?(String)
+      error.set_backtrace(caller(1)) if error.backtrace.nil?
+
+      if @debug_mode
+        raise UnexpectedError, "#{error.class.name}: #{error.message}", error.backtrace, cause: error
+      else
+        report(error, handled: true, severity: severity, context: context, source: source)
+      end
     end
 
     # Register a new error subscriber. The subscriber must respond to
