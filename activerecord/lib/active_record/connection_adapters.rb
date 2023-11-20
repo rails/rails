@@ -28,7 +28,12 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters.alias("trilogy", as: "mysql")
       #
       def alias(original, as:)
-        resolve(original) # will raise if original is invalid or does not exist
+        unless @adapters.key?(original.to_s)
+          raise AdapterNotFound, <<~MSG.squish
+            Cannot alias '#{original}' as '#{as}' adapter because '#{original}' adapter does not exist.
+            Available adapters are: #{@adapters.keys.sort.join(", ")}.
+          MSG
+        end
         register(as, *@adapters[original.to_s])
       end
 

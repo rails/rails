@@ -469,9 +469,9 @@ module ActiveRecord
   # Sets the database connection adapter to be used when the adapter <tt>mysql</tt> is specified.
   # Accepted values are <tt>:mysql2</tt>, <tt>:trilogy</tt>, and <tt>nil</tt> which does not register
   # any <tt>mysql</tt> adapter alias.
-  # Defaults to <tt>nil</tt>.
+  # Defaults to <tt>:trilogy</tt>.
   singleton_class.attr_accessor :mysql_adapter
-  self.mysql_adapter = nil
+  self.mysql_adapter = :trilogy
 
   def self.eager_load!
     super
