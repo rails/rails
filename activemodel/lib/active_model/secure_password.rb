@@ -136,7 +136,7 @@ module ActiveModel
           validate do |record|
             password_value = record.public_send(attribute)
             if password_value.present? && password_value.bytesize > ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
-              record.errors.add(attribute, :password_too_long)
+              record.errors.add(attribute, :too_long, count: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED)
             end
           end
 
