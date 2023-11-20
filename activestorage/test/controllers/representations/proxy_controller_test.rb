@@ -6,6 +6,7 @@ require "database/setup"
 class ActiveStorage::Representations::ProxyControllerWithVariantsTest < ActionDispatch::IntegrationTest
   setup do
     @blob = create_file_blob filename: "racecar.jpg"
+    @transformations = { resize_to_limit: [100, 100] }
   end
 
   test "showing variant attachment" do
@@ -13,12 +14,12 @@ class ActiveStorage::Representations::ProxyControllerWithVariantsTest < ActionDi
       disposition: :attachment,
       filename: @blob.filename,
       signed_blob_id: @blob.signed_id,
-      variation_key: ActiveStorage::Variation.encode(resize_to_limit: [100, 100]))
+      variation_key: ActiveStorage::Variation.encode(@transformations))
 
     assert_response :ok
     assert_match(/^attachment/, response.headers["Content-Disposition"])
 
-    image = read_image(@blob.variant(resize_to_limit: [100, 100]))
+    image = read_image(@blob.variant(@transformations))
     assert_equal 100, image.width
     assert_equal 67, image.height
   end
@@ -27,21 +28,35 @@ class ActiveStorage::Representations::ProxyControllerWithVariantsTest < ActionDi
     get rails_blob_representation_proxy_url(
       filename: @blob.filename,
       signed_blob_id: @blob.signed_id,
-      variation_key: ActiveStorage::Variation.encode(resize_to_limit: [100, 100]))
+      variation_key: ActiveStorage::Variation.encode(@transformations))
 
     assert_response :ok
     assert_match(/^inline/, response.headers["Content-Disposition"])
 
-    image = read_image(@blob.variant(resize_to_limit: [100, 100]))
+    image = read_image(@blob.variant(@transformations))
     assert_equal 100, image.width
     assert_equal 67, image.height
+  end
+
+  test "showing untracked variant" do
+    without_variant_tracking do
+      get rails_blob_representation_proxy_url(
+        disposition: :attachment,
+        filename: @blob.filename,
+        signed_blob_id: @blob.signed_id,
+        variation_key: ActiveStorage::Variation.encode(@transformations))
+
+      assert_response :ok
+      assert_match(/^attachment/, response.headers["Content-Disposition"])
+      assert_equal @blob.representation(@transformations).download, response.body
+    end
   end
 
   test "showing variant with invalid signed blob ID" do
     get rails_blob_representation_proxy_url(
       filename: @blob.filename,
       signed_blob_id: "invalid",
-      variation_key: ActiveStorage::Variation.encode(resize_to_limit: [100, 100]))
+      variation_key: ActiveStorage::Variation.encode(@transformations))
 
     assert_response :not_found
   end

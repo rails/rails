@@ -33,6 +33,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   include ActiveStorage::Blob::Analyzable
   include ActiveStorage::Blob::Identifiable
   include ActiveStorage::Blob::Representable
+  include ActiveStorage::Blob::Servable
 
   self.table_name = "active_storage_blobs"
 
@@ -232,16 +233,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.headers_for_direct_upload key, filename: filename, content_type: content_type, content_length: byte_size, checksum: checksum, custom_metadata: custom_metadata
   end
 
-  def content_type_for_serving # :nodoc:
-    forcibly_serve_as_binary? ? ActiveStorage.binary_content_type : content_type
-  end
-
-  def forced_disposition_for_serving # :nodoc:
-    if forcibly_serve_as_binary? || !allowed_inline?
-      :attachment
-    end
-  end
-
 
   # Uploads the +io+ to the service on the +key+ for this blob. Blobs are intended to be immutable, so you shouldn't be
   # using this method after a file has already been uploaded to fit with a blob. If you want to create a derivative blob,
@@ -381,14 +372,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
     def extract_content_type(io)
       Marcel::MimeType.for io, name: filename.to_s, declared_type: content_type
-    end
-
-    def forcibly_serve_as_binary?
-      ActiveStorage.content_types_to_serve_as_binary.include?(content_type)
-    end
-
-    def allowed_inline?
-      ActiveStorage.content_types_allowed_inline.include?(content_type)
     end
 
     def web_image?
