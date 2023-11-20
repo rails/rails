@@ -1,3 +1,7 @@
+*   Fix direct upload forms when submit button contains nested elements.
+
+    *Marc Köhlbrugge*
+
 *   Prevent `ActiveRecord::StrictLoadingViolationError` when strict loading is
     enabled and the variant of an Active Storage preview has already been
     processed (for example, by calling `ActiveStorage::Preview#url`).

@@ -750,9 +750,9 @@
     }
   }
   function didClick(event) {
-    const {target: target} = event;
-    if ((target.tagName == "INPUT" || target.tagName == "BUTTON") && target.type == "submit" && target.form) {
-      submitButtonsByForm.set(target.form, target);
+    const submitButton = event.target.closest(":is(button, input)[type='submit']");
+    if (submitButton && submitButton.form) {
+      submitButtonsByForm.set(submitButton.form, submitButton);
     }
   }
   function didSubmitForm(event) {
