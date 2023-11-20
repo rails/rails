@@ -76,7 +76,11 @@ module ActiveJob
           if argument.class == String
             argument
           else
-            Serializers.serialize(argument)
+            begin
+              Serializers.serialize(argument)
+            rescue SerializationError
+              argument
+            end
           end
         when GlobalID::Identification
           convert_to_global_id_hash(argument)
