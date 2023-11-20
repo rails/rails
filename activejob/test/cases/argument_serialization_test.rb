@@ -42,6 +42,9 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
       end
   end
 
+  class StringWithoutSerializer < String
+  end
+
   setup do
     @person = Person.find("5")
   end
@@ -154,6 +157,14 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     assert_equal my_string, deserialized
   ensure
     ActiveJob::Serializers._additional_serializers = original_serializers
+  end
+
+  test "serialize a String subclass object without a serializer" do
+    string_without_serializer = StringWithoutSerializer.new("foo")
+    serialized = ActiveJob::Arguments.serialize([string_without_serializer])
+    deserialized = ActiveJob::Arguments.deserialize(JSON.load(JSON.dump(serialized))).first
+    assert_instance_of String, deserialized
+    assert_equal string_without_serializer, deserialized
   end
 
   test "serialize a hash" do
