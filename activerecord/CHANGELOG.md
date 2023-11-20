@@ -1,3 +1,17 @@
+*   Make Trilogy the default MySQL adapter.
+
+    Trilogy has been production tested on very large Rails applications in the wild,
+    is much easier to install than `mysql2` as it doesn't depend on `libmysqlclient`,
+    and generally is better maintained and performs better.
+
+    `rails new --database=mysql` will now generate an application using Trilogy.
+
+    `DATABASE_URL=mysql://host` will now use the trilogy adapter.
+
+    This has no impact on existing applications.
+
+    *Jean Boussier*
+
 *   `DatabaseConfigurations#configs_for` can accept a symbol in the `name` parameter.
 
     *Andrew Novoselac*

@@ -4,7 +4,7 @@ module Rails
   module Generators
     module Database # :nodoc:
       JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc )
-      DATABASES = %w( mysql trilogy postgresql sqlite3 oracle sqlserver ) + JDBC_DATABASES
+      DATABASES = %w( mysql mysql2 trilogy postgresql sqlite3 oracle sqlserver ) + JDBC_DATABASES
 
       def initialize(*)
         super
@@ -13,36 +13,34 @@ module Rails
 
       def gem_for_database(database = options[:database])
         case database
-        when "mysql"          then ["mysql2", ["~> 0.5"]]
-        when "trilogy"        then ["trilogy", ["~> 2.4"]]
-        when "postgresql"     then ["pg", ["~> 1.1"]]
-        when "sqlite3"        then ["sqlite3", ["~> 1.4"]]
-        when "oracle"         then ["activerecord-oracle_enhanced-adapter", nil]
-        when "sqlserver"      then ["activerecord-sqlserver-adapter", nil]
-        when "jdbcmysql"      then ["activerecord-jdbcmysql-adapter", nil]
-        when "jdbcsqlite3"    then ["activerecord-jdbcsqlite3-adapter", nil]
-        when "jdbcpostgresql" then ["activerecord-jdbcpostgresql-adapter", nil]
-        when "jdbc"           then ["activerecord-jdbc-adapter", nil]
+        when "mysql","trilogy" then ["trilogy", ["~> 0.5"]]
+        when "mysql2"          then ["mysql2", ["~> 0.5"]]
+        when "postgresql"      then ["pg", ["~> 1.1"]]
+        when "sqlite3"         then ["sqlite3", ["~> 1.4"]]
+        when "oracle"          then ["activerecord-oracle_enhanced-adapter", nil]
+        when "sqlserver"       then ["activerecord-sqlserver-adapter", nil]
+        when "jdbcmysql"       then ["activerecord-jdbcmysql-adapter", nil]
+        when "jdbcsqlite3"     then ["activerecord-jdbcsqlite3-adapter", nil]
+        when "jdbcpostgresql"  then ["activerecord-jdbcpostgresql-adapter", nil]
+        when "jdbc"            then ["activerecord-jdbc-adapter", nil]
         else [database, nil]
         end
       end
 
       def docker_for_database_build(database = options[:database])
         case database
-        when "mysql"          then "build-essential default-libmysqlclient-dev git"
-        when "trilogy"        then "build-essential default-libmysqlclient-dev git"
-        when "postgresql"     then "build-essential git libpq-dev"
-        when "sqlite3"        then "build-essential git"
+        when "mysql2"                      then "build-essential git default-libmysqlclient-dev"
+        when "postgresql"                  then "build-essential git libpq-dev"
+        when "sqlite3", "mysql", "trilogy" then "build-essential git"
         else nil
         end
       end
 
       def docker_for_database_deploy(database = options[:database])
         case database
-        when "mysql"          then "curl default-mysql-client libvips"
-        when "trilogy"        then "curl default-mysql-client libvips"
-        when "postgresql"     then "curl libvips postgresql-client"
-        when "sqlite3"        then "curl libsqlite3-0 libvips"
+        when "mysql", "mysql2", "trilogy" then "curl libvips default-mysql-client"
+        when "postgresql"                 then "curl libvips postgresql-client"
+        when "sqlite3"                    then "curl libvips libsqlite3-0"
         else nil
         end
       end
@@ -61,7 +59,7 @@ module Rails
 
       def build_package_for_database(database = options[:database])
         case database
-        when "mysql" then "default-libmysqlclient-dev"
+        when "mysql2" then "default-libmysqlclient-dev"
         when "postgresql" then "libpq-dev"
         else nil
         end
@@ -69,7 +67,7 @@ module Rails
 
       def deploy_package_for_database(database = options[:database])
         case database
-        when "mysql" then "default-mysql-client"
+        when "mysql", "mysql2", "trilogy" then "default-mysql-client"
         when "postgresql" then "postgresql-client"
         when "sqlite3" then "libsqlite3-0"
         else nil

@@ -106,6 +106,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile"
   end
 
+  def test_default_mysql_adapter_is_trilogy
+    run_generator([destination_root, "--database=mysql"])
+    FileUtils.cd(destination_root) do
+      assert_match(/gem "trilogy"/, File.read("Gemfile"))
+    end
+  end
+
   def test_assets
     run_generator
 
