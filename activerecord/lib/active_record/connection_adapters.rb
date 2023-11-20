@@ -69,6 +69,8 @@ module ActiveRecord
     register "trilogy", "ActiveRecord::ConnectionAdapters::TrilogyAdapter", "active_record/connection_adapters/trilogy_adapter"
     register "postgresql", "ActiveRecord::ConnectionAdapters::PostgreSQLAdapter", "active_record/connection_adapters/postgresql_adapter"
 
+    ActiveSupport.run_load_hooks(:active_record_connection_adapters, self)
+
     eager_autoload do
       autoload :AbstractAdapter
     end

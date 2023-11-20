@@ -1486,6 +1486,7 @@ These are the load hooks you can use in your own code. To hook into the initiali
 | `ActiveModel::Model`                 | `active_model`                       |
 | `ActiveRecord::Base`                 | `active_record`                      |
 | `ActiveRecord::TestFixtures`         | `active_record_fixtures`             |
+| `ActiveRecord::ConnectionAdapters`   | `active_record_connection_adapters`  |
 | `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter`    | `active_record_postgresqladapter`    |
 | `ActiveRecord::ConnectionAdapters::Mysql2Adapter`        | `active_record_mysql2adapter`        |
 | `ActiveRecord::ConnectionAdapters::TrilogyAdapter`       | `active_record_trilogyadapter`       |

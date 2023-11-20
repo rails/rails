@@ -1,3 +1,9 @@
+*   Create an `active_record_connection_adapters` load hook which is run after
+    `ActiveRecord::ConnectionAdapters` is defined. It can be used to register custom
+    connection adapters.
+
+    *Andrew Novoselac*
+
 *   `DatabaseConfigurations#configs_for` can accept a symbol in the `name` parameter.
 
     *Andrew Novoselac*
