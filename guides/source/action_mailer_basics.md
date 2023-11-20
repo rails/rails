@@ -933,15 +933,11 @@ class SandboxEmailInterceptor
 end
 ```
 
-Before the interceptor can do its job you need to register it using the `interceptors` config option.
-You can do this in an initializer file like `config/initializers/mail_interceptors.rb`:
+Before the interceptor can do its job you need to register it using the `action_mailer.interceptors` config option in the appropriate environment config file.
+For instance, if you have a staging environment, in `config/environments/staging.rb`:
 
 ```ruby
-Rails.application.configure do
-  if Rails.env.staging?
-    config.action_mailer.interceptors = %w[SandboxEmailInterceptor]
-  end
-end
+config.action_mailer.interceptors = %w[SandboxEmailInterceptor]
 ```
 
 NOTE: The example above uses a custom environment called "staging" for a
@@ -961,11 +957,9 @@ class EmailDeliveryObserver
 end
 ```
 
-Similar to interceptors, you must register observers using the `observers` config option.
-You can do this in an initializer file like `config/initializers/mail_observers.rb`:
+Similar to interceptors, you must register observers using the `action_mailer.observers` config option.
+You can do this in the appropriate environment config file like `config/environments/development.rb`:
 
 ```ruby
-Rails.application.configure do
-  config.action_mailer.observers = %w[EmailDeliveryObserver]
-end
+config.action_mailer.observers = %w[EmailDeliveryObserver]
 ```
