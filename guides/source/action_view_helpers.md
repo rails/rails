@@ -33,6 +33,16 @@ image_tag("rails.png")
 
 [`config.asset_host`]: configuring.html#config-asset-host
 
+#### audio_tag
+
+Generate an HTML audio tag with source(s), either as a single tag for a string source or nested source tags within an array for multiple sources.
+The `sources` can be full paths, files in your public audios directory, or Active Storage attachments.
+
+```ruby
+audio_tag("sound")
+# => <audio src="/audios/sound"></audio>
+```
+
 #### auto_discovery_link_tag
 
 Returns a link tag that browsers and feed readers can use to auto-detect an RSS, Atom, or JSON feed.
@@ -40,6 +50,15 @@ Returns a link tag that browsers and feed readers can use to auto-detect an RSS,
 ```ruby
 auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", { title: "RSS Feed" })
 # => <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="http://www.example.com/feed.rss" />
+```
+
+#### favicon_link_tag
+
+Returns a link tag for a favicon managed by the asset pipeline. The `source` can be a full path or a file that exists in your assets directory.
+
+```ruby
+favicon_link_tag
+# => <link href="/assets/favicon.ico" rel="icon" type="image/x-icon" />
 ```
 
 #### image_path
@@ -150,6 +169,15 @@ Computes the URL to a stylesheet asset in the `app/assets/stylesheets` directory
 ```ruby
 stylesheet_url "application"
 # => http://www.example.com/assets/application.css
+```
+
+#### video_tag
+
+Generate an HTML video tag with source(s), either as a single tag for a string source or nested source tags within an array for multiple sources. The `sources` can be full paths, files in your public videos directory, or Active Storage attachments.
+
+```ruby
+video_tag("trailer")
+# => <video src="/videos/trailer"></video>
 ```
 
 ### AtomFeedHelper
