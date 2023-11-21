@@ -29,7 +29,11 @@
 # These libraries are not provided by Rails. You must install them yourself to use the built-in previewers. Before you
 # install and use third-party software, make sure you understand the licensing implications of doing so.
 class ActiveStorage::Preview
+  include ActiveStorage::Blob::Servable
+
   class UnprocessedError < StandardError; end
+
+  delegate :filename, :content_type, to: :variant
 
   attr_reader :blob, :variation
 

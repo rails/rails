@@ -1,3 +1,8 @@
+*   Fix `ActiveStorage::Representations::ProxyController` not returning the proper
+    preview image variant for previewable files.
+
+    *Chedli Bourguiba*
+
 *   Make untracked variants obey `config.active_storage.content_types_to_serve_as_binary`
     and `config.active_storage.content_types_allowed_inline`.
 
