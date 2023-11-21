@@ -41,7 +41,7 @@ module ActiveRecord
         reflection.check_validity!
 
         @owner, @reflection = owner, reflection
-        @disable_joins = @reflection.options[:disable_joins] || false
+        @disable_joins = @reflection.disable_joins?
 
         reset
         reset_scope

@@ -1,3 +1,8 @@
+
+*   Through associations will automatically disable joins when different connections are detected.
+
+    *Katherine Oelsner*, *Daniel Colson*, *John Hawthorn*
+
 *   `DatabaseConfigurations#configs_for` can accept a symbol in the `name` parameter.
 
     *Andrew Novoselac*
