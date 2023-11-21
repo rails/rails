@@ -73,14 +73,10 @@ module ActiveJob
         when nil, true, false, Integer, Float # Types that can hardly be subclassed
           argument
         when String
-          if argument.class == String
+          begin
+            Serializers.serialize(argument)
+          rescue SerializationError
             argument
-          else
-            begin
-              Serializers.serialize(argument)
-            rescue SerializationError
-              argument
-            end
           end
         when GlobalID::Identification
           convert_to_global_id_hash(argument)
