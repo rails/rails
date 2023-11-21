@@ -1,7 +1,7 @@
-*   Fix `ActiveStorage::Representations::ProxyController` to proxy untracked
-    variants.
+*   Make untracked variants obey `config.active_storage.content_types_to_serve_as_binary`
+    and `config.active_storage.content_types_allowed_inline`.
 
-    *Chedli Bourguiba*
+    *Chedli Bourguiba* and *Jonathan Hefner*
 
 *   Fix direct upload forms when submit button contains nested elements.
 
