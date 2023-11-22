@@ -51,9 +51,6 @@ module ActionDispatch
 
       ActiveSupport.on_load(:action_dispatch_request) do
         self.ignore_accept_header = app.config.action_dispatch.ignore_accept_header
-        unless app.config.action_dispatch.respond_to?(:return_only_request_media_type_on_content_type)
-          self.return_only_media_type_on_content_type = app.config.action_dispatch.return_only_request_media_type_on_content_type
-        end
         ActionDispatch::Request::Utils.perform_deep_munge = app.config.action_dispatch.perform_deep_munge
       end
 

@@ -92,23 +92,4 @@ class JobSerializationTest < ActiveSupport::TestCase
 
     assert_equal job.serialize, deserialized_job.serialize
   end
-
-  test "deprecates and coerces numerical scheduled_at attribute to Time when serialized and deserialized" do
-    freeze_time
-    current_time = Time.now
-
-    job = HelloJob.new
-    assert_deprecated(ActiveJob.deprecator) do
-      job.scheduled_at = current_time.to_f
-    end
-
-    serialized_job = job.serialize
-    assert_kind_of String, serialized_job["scheduled_at"]
-    assert_equal current_time.utc.iso8601(9), serialized_job["scheduled_at"]
-
-    deserialized_job = HelloJob.new
-    deserialized_job.deserialize(serialized_job)
-    assert_equal current_time, deserialized_job.scheduled_at
-    assert_equal job.serialize, deserialized_job.serialize
-  end
 end

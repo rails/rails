@@ -39,16 +39,6 @@ class PermissionsPolicyTest < ActiveSupport::TestCase
 
     assert_equal "Invalid HTTP permissions policy source: [:non_existent]", exception.message
   end
-
-  def test_deprecated_directives
-    assert_deprecated(ActionDispatch.deprecator) { @policy.speaker :self }
-    assert_deprecated(ActionDispatch.deprecator) { @policy.vibrate :self }
-    assert_deprecated(ActionDispatch.deprecator) { @policy.vr :self }
-
-    assert_not_deprecated(ActionDispatch.deprecator) do
-      assert_equal "speaker 'self'; vibrate 'self'; vr 'self'", @policy.build
-    end
-  end
 end
 
 class PermissionsPolicyMiddlewareTest < ActionDispatch::IntegrationTest

@@ -45,13 +45,17 @@ module ActiveJob
   autoload :TestCase
   autoload :TestHelper
 
-  ##
-  # :singleton-method:
-  # If false, \Rails will preserve the legacy serialization of BigDecimal job arguments as Strings.
-  # If true, \Rails will use the new BigDecimalSerializer to (de)serialize BigDecimal losslessly.
-  # Legacy serialization will be removed in \Rails 7.2, along with this config.
-  singleton_class.attr_accessor :use_big_decimal_serializer
-  self.use_big_decimal_serializer = false
+  def self.use_big_decimal_serializer
+    ActiveJob.deprecator.warn <<-WARNING.squish
+      Rails.application.config.active_job.use_big_decimal_serializer is deprecated and will be removed in Rails 7.3.
+    WARNING
+  end
+
+  def self.use_big_decimal_serializer=(value)
+    ActiveJob.deprecator.warn <<-WARNING.squish
+      Rails.application.config.active_job.use_big_decimal_serializer is deprecated and will be removed in Rails 7.3.
+    WARNING
+  end
 
   ##
   # :singleton-method:

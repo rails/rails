@@ -60,12 +60,6 @@ module ActiveJob
       #    end
       #  end
       def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil, jitter: JITTER_DEFAULT)
-        if wait == :exponentially_longer
-          ActiveJob.deprecator.warn(<<~MSG.squish)
-            `wait: :exponentially_longer` will actually wait polynomially longer and is therefore deprecated.
-            Prefer `wait: :polynomially_longer` to avoid confusion and keep the same behavior.
-          MSG
-        end
         rescue_from(*exceptions) do |error|
           executions = executions_for(exceptions)
           if attempts == :unlimited || executions < attempts
@@ -168,7 +162,7 @@ module ActiveJob
         jitter = jitter == JITTER_DEFAULT ? self.class.retry_jitter : (jitter || 0.0)
 
         case seconds_or_duration_or_algorithm
-        when :exponentially_longer, :polynomially_longer
+        when  :polynomially_longer
           # This delay uses a polynomial backoff strategy, which was previously misnamed as exponential
           delay = executions**4
           delay_jitter = determine_jitter_for_delay(delay, jitter)

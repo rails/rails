@@ -305,19 +305,11 @@ module Rails
             action_dispatch.debug_exception_log_level = :error
           end
 
-          if respond_to?(:active_job)
-            active_job.use_big_decimal_serializer = true
-          end
-
           if respond_to?(:active_support)
             active_support.cache_format_version = 7.1
             active_support.message_serializer = :json_allow_marshal
             active_support.use_message_serializer_for_metadata = true
             active_support.raise_on_invalid_cache_expiration_time = true
-          end
-
-          if respond_to?(:action_controller)
-            action_controller.allow_deprecated_parameters_hash_equality = false
           end
 
           if defined?(Rails::HTML::Sanitizer) # nested ifs to avoid linter errors

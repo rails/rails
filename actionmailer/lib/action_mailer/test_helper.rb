@@ -160,26 +160,6 @@ module ActionMailer
         mailer = mailer.instance_variable_get(:@mailer)
       end
 
-      if args.is_a?(Hash)
-        ActionMailer.deprecator.warn <<~MSG
-          Passing a Hash to the assert_enqueued_email_with :args kwarg causes the
-          Hash to be treated as params. This behavior is deprecated and will be
-          removed in Rails 7.2.
-
-          To specify a params Hash, use the :params kwarg:
-
-            assert_enqueued_email_with MyMailer, :my_method, params: { my_param: "value" }
-
-          Or, to specify named mailer args as a Hash, wrap the Hash in an array:
-
-            assert_enqueued_email_with MyMailer, :my_method, args: [{ my_arg: "value" }]
-            # OR
-            assert_enqueued_email_with MyMailer, :my_method, args: [my_arg: "value"]
-        MSG
-
-        params, args = args, nil
-      end
-
       args = Array(args) unless args.is_a?(Proc)
       queue ||= mailer.deliver_later_queue_name || ActiveJob::Base.default_queue_name
 
