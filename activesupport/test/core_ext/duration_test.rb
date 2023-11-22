@@ -760,6 +760,16 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal expected_time, time + ActiveSupport::Duration.build(-1)
   end
 
+  def test_duration_negative
+    assert_not 1.hours.negative?
+    assert_not 1.days.negative?
+    assert_not (1.weeks - 1.days).negative?
+
+    assert_predicate -1.weeks, :negative?
+    assert_predicate -1.seconds, :negative?
+    assert_predicate (1.hours - 1.days), :negative?
+  end
+
   private
     def eastern_time_zone
       if Gem.win_platform?

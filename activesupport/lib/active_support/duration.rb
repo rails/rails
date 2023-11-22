@@ -422,6 +422,11 @@ module ActiveSupport
       Duration === other && other.value.eql?(value)
     end
 
+    # Returns +true+ if the duration is less than 0 seconds.
+    def negative?
+      @value < 0
+    end
+
     def hash
       @value.hash
     end
