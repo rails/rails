@@ -245,7 +245,8 @@ module ActiveRecord
             association = owner.association(reflection.name)
 
             if reflection.collection?
-              association.target = records
+              association.loaded!
+              association.target.concat(records)
             else
               association.target = records.first
             end
