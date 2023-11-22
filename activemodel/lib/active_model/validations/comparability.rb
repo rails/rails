@@ -5,7 +5,7 @@ module ActiveModel
     module Comparability # :nodoc:
       COMPARE_CHECKS = { greater_than: :>, greater_than_or_equal_to: :>=,
         equal_to: :==, less_than: :<, less_than_or_equal_to: :<=,
-        other_than: :!= }.freeze
+        other_than: :!=, multiple_of: :multiple_of? }.freeze
 
       def error_options(value, option_value)
         options.except(*COMPARE_CHECKS.keys).merge!(

@@ -2,6 +2,7 @@
 
 require "active_model/validations/comparability"
 require "active_model/validations/resolve_value"
+require "active_support/core_ext/integer/multiple"
 require "bigdecimal/util"
 
 module ActiveModel
@@ -186,6 +187,9 @@ module ActiveModel
       # * <tt>:other_than</tt> - Specifies the value must be other than the
       #   supplied value. The default error message for this option is _"must be
       #   other than %{count}"_.
+      # * <tt>:multiple_of</tt> - Specifies the value must be a multiple of
+      #   the supplied value. The default error message for this option
+      #   is _"must be a multiple of %{count}"_.
       # * <tt>:odd</tt> - Specifies the value must be an odd number. The default
       #   error message for this option is _"must be odd"_.
       # * <tt>:even</tt> - Specifies the value must be an even number. The
