@@ -1002,8 +1002,8 @@ module ActionView
       #   <% end %>
       #
       # When a collection is used you might want to know the index of each
-      # object into the array. For this purpose, the <tt>index</tt> method
-      # is available in the FormBuilder object.
+      # object in the array. For this purpose, the <tt>index</tt> method is
+      # available in the FormBuilder object.
       #
       #   <%= form_for @person do |person_form| %>
       #     ...
