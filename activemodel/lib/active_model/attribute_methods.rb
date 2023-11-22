@@ -231,21 +231,7 @@ module ActiveModel
         call_args = []
         call_args << parameters if parameters
 
-        code_generator.define_cached_method(method_name, as: mangled_name, namespace: :alias_attribute) do |batch|
-          body = if CALL_COMPILABLE_REGEXP.match?(target_name)
-            "self.#{target_name}(#{call_args.join(", ")})"
-          else
-            call_args.unshift(":'#{target_name}'")
-            "send(#{call_args.join(", ")})"
-          end
-
-          modifier = parameters == FORWARD_PARAMETERS ? "ruby2_keywords " : ""
-
-          batch <<
-            "#{modifier}def #{mangled_name}(#{parameters || ''})" <<
-            body <<
-            "end"
-        end
+        define_call(code_generator, method_name, target_name, mangled_name, parameters, call_args, namespace: :alias_attribute)
       end
 
       # Is +new_name+ an alias?
@@ -424,21 +410,7 @@ module ActiveModel
           call_args << parameters if parameters
           namespace = :"#{namespace}_#{proxy_target}_#{call_args.join("_")}}"
 
-          code_generator.define_cached_method(name, as: mangled_name, namespace: namespace) do |batch|
-            body = if CALL_COMPILABLE_REGEXP.match?(proxy_target)
-              "self.#{proxy_target}(#{call_args.join(", ")})"
-            else
-              call_args.unshift(":'#{proxy_target}'")
-              "send(#{call_args.join(", ")})"
-            end
-
-            modifier = parameters == FORWARD_PARAMETERS ? "ruby2_keywords " : ""
-
-            batch <<
-              "#{modifier}def #{mangled_name}(#{parameters || ''})" <<
-              body <<
-              "end"
-          end
+          define_call(code_generator, name, proxy_target, mangled_name, parameters, call_args, namespace: namespace)
         end
 
         def build_mangled_name(name)
@@ -449,6 +421,24 @@ module ActiveModel
           end
 
           mangled_name
+        end
+
+        def define_call(code_generator, name, target_name, mangled_name, parameters, call_args, namespace:)
+          code_generator.define_cached_method(name, as: mangled_name, namespace: namespace) do |batch|
+            body = if CALL_COMPILABLE_REGEXP.match?(target_name)
+              "self.#{target_name}(#{call_args.join(", ")})"
+            else
+              call_args.unshift(":'#{target_name}'")
+              "send(#{call_args.join(", ")})"
+            end
+
+            modifier = parameters == FORWARD_PARAMETERS ? "ruby2_keywords " : ""
+
+            batch <<
+              "#{modifier}def #{mangled_name}(#{parameters || ''})" <<
+              body <<
+              "end"
+          end
         end
 
         class AttributeMethodPattern # :nodoc:
