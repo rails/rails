@@ -187,7 +187,7 @@ module ActiveModel
       #
       #   person = Person.new(name: 'Steph')
       #   person.name = 'Stephanie'
-      #   person.name_change # => ['Steph', 'Stephanie']
+      #   person.name_was # => 'Steph'
 
       ##
       # :method: *_previous_change
