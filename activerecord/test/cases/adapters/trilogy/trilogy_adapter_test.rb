@@ -5,8 +5,6 @@ require "support/ddl_helper"
 require "models/book"
 require "models/post"
 
-require "active_support/error_reporter/test_helper"
-
 class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   setup do
     @conn = ActiveRecord::Base.connection
