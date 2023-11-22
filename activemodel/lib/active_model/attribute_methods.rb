@@ -228,12 +228,14 @@ module ActiveModel
 
         mangled_name = build_mangled_name(target_name)
 
+        call_args = []
+        call_args << parameters if parameters
+
         code_generator.define_cached_method(method_name, as: mangled_name, namespace: :alias_attribute) do |batch|
           body = if CALL_COMPILABLE_REGEXP.match?(target_name)
-            "self.#{target_name}(#{parameters || ''})"
+            "self.#{target_name}(#{call_args.join(", ")})"
           else
-            call_args = [":'#{target_name}'"]
-            call_args << parameters if parameters
+            call_args.unshift(":'#{target_name}'")
             "send(#{call_args.join(", ")})"
           end
 
