@@ -106,7 +106,14 @@ module ActiveRecord
       # all pools belonging to the connection handler will be returned.
       def connection_pool_list(role = nil)
         if role.nil?
-          deprecation_for_pool_handling(__method__)
+          deprecation_for_pool_handling(
+            "`connection_pool_list` currently only applies to connection pools in the current " \
+            "role (use `ActiveRecord::Base.current_role` to get it). In Rails 7.2, this method " \
+            "will apply to all known pools, regardless of role. To affect only those " \
+            "connections belonging to a specific role, pass the role name as an " \
+            "argument. To switch to the new behavior, pass `:all` as the role name."
+          )
+
           role = ActiveRecord::Base.current_role
           connection_name_to_pool_manager.values.flat_map { |m| m.pool_configs(role).map(&:pool) }
         elsif role == :all
@@ -172,7 +179,14 @@ module ActiveRecord
       # pools that the ConnectionHandler is managing.
       def active_connections?(role = nil)
         if role.nil?
-          deprecation_for_pool_handling(__method__)
+          deprecation_for_pool_handling(
+            "`active_connections?` currently only applies to connection pools in the current " \
+            "role (use `ActiveRecord::Base.current_role` to get it). In Rails 7.2, this method " \
+            "will apply to all known pools, regardless of role. To affect only those " \
+            "connections belonging to a specific role, pass the role name as an " \
+            "argument. To switch to the new behavior, pass `:all` as the role name."
+          )
+
           role = ActiveRecord::Base.current_role
         end
 
@@ -184,7 +198,14 @@ module ActiveRecord
       # longer alive.
       def clear_active_connections!(role = nil)
         if role.nil?
-          deprecation_for_pool_handling(__method__)
+          deprecation_for_pool_handling(
+            "`clear_active_connections!` currently only applies to connection pools in the current " \
+            "role (use `ActiveRecord::Base.current_role` to get it). In Rails 7.2, this method " \
+            "will apply to all known pools, regardless of role. To affect only those " \
+            "connections belonging to a specific role, pass the role name as an " \
+            "argument. To switch to the new behavior, pass `:all` as the role name."
+          )
+
           role = ActiveRecord::Base.current_role
         end
 
@@ -196,7 +217,14 @@ module ActiveRecord
       # See ConnectionPool#clear_reloadable_connections! for details.
       def clear_reloadable_connections!(role = nil)
         if role.nil?
-          deprecation_for_pool_handling(__method__)
+          deprecation_for_pool_handling(
+            "`clear_reloadable_connections!` currently only applies to connection pools in the current " \
+            "role (use `ActiveRecord::Base.current_role` to get it). In Rails 7.2, this method " \
+            "will apply to all known pools, regardless of role. To affect only those " \
+            "connections belonging to a specific role, pass the role name as an " \
+            "argument. To switch to the new behavior, pass `:all` as the role name."
+          )
+
           role = ActiveRecord::Base.current_role
         end
 
@@ -205,7 +233,14 @@ module ActiveRecord
 
       def clear_all_connections!(role = nil)
         if role.nil?
-          deprecation_for_pool_handling(__method__)
+          deprecation_for_pool_handling(
+            "`clear_all_connections!` currently only applies to connection pools in the current " \
+            "role (use `ActiveRecord::Base.current_role` to get it). In Rails 7.2, this method " \
+            "will apply to all known pools, regardless of role. To affect only those " \
+            "connections belonging to a specific role, pass the role name as an " \
+            "argument. To switch to the new behavior, pass `:all` as the role name."
+          )
+
           role = ActiveRecord::Base.current_role
         end
 
@@ -217,7 +252,14 @@ module ActiveRecord
       # See ConnectionPool#flush! for details.
       def flush_idle_connections!(role = nil)
         if role.nil?
-          deprecation_for_pool_handling(__method__)
+          deprecation_for_pool_handling(
+            "`flush_idle_connections!` currently only applies to connection pools in the current " \
+            "role (use `ActiveRecord::Base.current_role` to get it). In Rails 7.2, this method " \
+            "will apply to all known pools, regardless of role. To affect only those " \
+            "connections belonging to a specific role, pass the role name as an " \
+            "argument. To switch to the new behavior, pass `:all` as the role name."
+          )
+
           role = ActiveRecord::Base.current_role
         end
 
@@ -284,20 +326,14 @@ module ActiveRecord
           connection_name_to_pool_manager.values
         end
 
-        def deprecation_for_pool_handling(method)
+        def deprecation_for_pool_handling(message)
           roles = []
           pool_managers.each do |pool_manager|
             roles << pool_manager.role_names
           end
 
           if roles.flatten.uniq.count > 1
-            ActiveRecord.deprecator.warn(<<-MSG.squish)
-              `#{method}` currently only applies to connection pools in the current
-              role (`#{ActiveRecord::Base.current_role}`). In Rails 7.2, this method
-              will apply to all known pools, regardless of role. To affect only those
-              connections belonging to a specific role, pass the role name as an
-              argument. To switch to the new behavior, pass `:all` as the role name.
-            MSG
+            ActiveRecord.deprecator.warn(message)
           end
         end
 
