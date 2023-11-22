@@ -1,3 +1,7 @@
+*   Fix port not being included on database connection errors.
+
+    *Hartley McGuire*
+
 *   In cases where MySQL returns `warning_count` greater than zero, but returns no warnings when
     the `SHOW WARNINGS` query is executed, `ActiveRecord.db_warnings_action` proc will still be
     called with a generic warning message rather than silently ignoring the warning(s).

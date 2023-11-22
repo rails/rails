@@ -96,9 +96,11 @@ module ActiveRecord
     end
 
     class << self
-      def hostname_error(hostname)
+      def hostname_error(hostname, port = nil)
+        port_suffix = ":#{port}" if port
+
         DatabaseConnectionError.new(<<~MSG)
-          There is an issue connecting with your hostname: #{hostname}.\n
+          There is an issue connecting with your hostname: #{hostname}#{port_suffix}.\n
           Please check your database configuration and ensure there is a valid connection to your database.
         MSG
       end

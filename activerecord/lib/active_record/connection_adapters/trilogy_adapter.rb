@@ -52,7 +52,7 @@ module ActiveRecord
             ActiveRecord::DatabaseConnectionError.username_error(config[:username])
           else
             if error.message.include?("TRILOGY_DNS_ERROR")
-              ActiveRecord::DatabaseConnectionError.hostname_error(config[:host])
+              ActiveRecord::DatabaseConnectionError.hostname_error(config[:host], config[:port])
             else
               ActiveRecord::ConnectionNotEstablished.new(error.message)
             end

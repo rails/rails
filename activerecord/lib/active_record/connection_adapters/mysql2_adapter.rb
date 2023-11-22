@@ -30,7 +30,7 @@ module ActiveRecord
           when ER_DBACCESS_DENIED_ERROR, ER_ACCESS_DENIED_ERROR
             raise ActiveRecord::DatabaseConnectionError.username_error(config[:username])
           when ER_CONN_HOST_ERROR, ER_UNKNOWN_HOST_ERROR
-            raise ActiveRecord::DatabaseConnectionError.hostname_error(config[:host])
+            raise ActiveRecord::DatabaseConnectionError.hostname_error(config[:host], config[:port])
           else
             raise ActiveRecord::ConnectionNotEstablished, error.message
           end
