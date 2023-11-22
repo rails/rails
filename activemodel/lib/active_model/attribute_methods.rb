@@ -225,11 +225,8 @@ module ActiveModel
         method_name = pattern.method_name(new_name).to_s
         target_name = pattern.method_name(old_name).to_s
         parameters = pattern.parameters
-        mangled_name = target_name
 
-        unless NAME_COMPILABLE_REGEXP.match?(target_name)
-          mangled_name = "__temp__#{target_name.unpack1("h*")}"
-        end
+        mangled_name = build_mangled_name(target_name)
 
         code_generator.define_cached_method(method_name, as: mangled_name, namespace: :alias_attribute) do |batch|
           body = if CALL_COMPILABLE_REGEXP.match?(target_name)
@@ -419,10 +416,7 @@ module ActiveModel
         # using the given `extra` args. This falls back on `send`
         # if the called name cannot be compiled.
         def define_proxy_call(code_generator, name, proxy_target, parameters, *call_args, namespace:)
-          mangled_name = name
-          unless NAME_COMPILABLE_REGEXP.match?(name)
-            mangled_name = "__temp__#{name.unpack1("h*")}"
-          end
+          mangled_name = build_mangled_name(name)
 
           call_args.map!(&:inspect)
           call_args << parameters if parameters
@@ -443,6 +437,16 @@ module ActiveModel
               body <<
               "end"
           end
+        end
+
+        def build_mangled_name(name)
+          mangled_name = name
+
+          unless NAME_COMPILABLE_REGEXP.match?(name)
+            mangled_name = "__temp__#{name.unpack1("h*")}"
+          end
+
+          mangled_name
         end
 
         class AttributeMethodPattern # :nodoc:
