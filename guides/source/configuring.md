@@ -1640,6 +1640,18 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `true`               |
 | 7.1                   | `false`              |
 
+#### `config.active_record.protocol_adapters`
+
+When using a URL to configure the database connection, this option provides a mapping from the protocol to the underlying
+database adapter. For example, this means the environment can specify `DATABASE_URL=mysql://localhost/database` and Rails will map
+`mysql` to the `mysql2` adapter, but the application can also override these mappings:
+
+```ruby
+config.active_record.protocol_adapters.mysql = "trilogy"
+```
+
+If no mapping is found, the protocol is used as the adapter name.
+
 ### Configuring Action Controller
 
 `config.action_controller` includes a number of configuration settings:
@@ -2949,6 +2961,10 @@ development:
 ```
 
 The `config/database.yml` file can contain ERB tags `<%= %>`. Anything in the tags will be evaluated as Ruby code. You can use this to pull out data from an environment variable or to perform calculations to generate the needed connection information.
+
+When using a `ENV['DATABASE_URL']` or a `url` key in your `config/database.yml` file, Rails allows mapping the protocol
+in the URL to a database adapter that can be configured from within the application. This allows the adapter to be configured
+without modifying the URL set in the deployment environment. See: [`config.active_record.protocol_adapters`](#config-active_record-protocol-adapters).
 
 
 TIP: You don't have to update the database configurations manually. If you look at the options of the application generator, you will see that one of the options is named `--database`. This option allows you to choose an adapter from a list of the most used relational databases. You can even run the generator repeatedly: `cd .. && rails new blog --database=mysql`. When you confirm the overwriting of the `config/database.yml` file, your application will be configured for MySQL instead of SQLite. Detailed examples of the common database connections are below.

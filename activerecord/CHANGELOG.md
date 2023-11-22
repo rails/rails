@@ -1,3 +1,15 @@
+*   When using a `DATABASE_URL`, allow for a configuration to map the protocol in the URL to a specific database
+    adapter. This allows decoupling the adapter the application chooses to use from the database connection details
+    set in the deployment environment.
+
+    ```ruby
+    # ENV['DATABASE_URL'] = "mysql://localhost/example_database"
+    config.active_record.protocol_adapters.mysql = "trilogy"
+    # will connect to MySQL using the trilogy adapter
+    ```
+
+    *Jean Boussier*, *Kevin McPhillips*
+
 *   In cases where MySQL returns `warning_count` greater than zero, but returns no warnings when
     the `SHOW WARNINGS` query is executed, `ActiveRecord.db_warnings_action` proc will still be
     called with a generic warning message rather than silently ignoring the warning(s).
