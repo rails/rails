@@ -43,7 +43,7 @@ class ActiveStorage::Preview
     @blob, @variation = blob, ActiveStorage::Variation.wrap(variation_or_variation_key)
   end
 
-  # Processes the preview if it has not been processed yet. Returns the receiving Preview instance for convenience:
+  # Processes the preview if it has not been processed yet. Returns the receiving +ActiveStorage::Preview+ instance for convenience:
   #
   #   blob.preview(resize_to_limit: [100, 100]).processed.url
   #
