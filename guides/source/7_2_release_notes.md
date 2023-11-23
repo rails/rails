@@ -154,6 +154,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
     `#clear_reloadable_connections!`, `#clear_all_connections!` and `#flush_idle_connections!` to the connections pools
     for the current role when the `role` argument isn't provided.
 
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::ConnectionPool#connection_klass`.
+
 ### Deprecations
 
 *   Deprecate `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
