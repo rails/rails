@@ -1,3 +1,7 @@
+*   Remove deprecated `#quote_bound_value`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveRecord::ConnectionAdapters::ConnectionPool#connection_klass`.
 
     *Rafael Mendonça França*

@@ -48,21 +48,6 @@ module ActiveRecord
         end
       end
 
-      # Quote a value to be used as a bound parameter of unknown type. For example,
-      # MySQL might perform dangerous castings when comparing a string to a number,
-      # so this method will cast numbers to string.
-      #
-      # Deprecated: Consider `Arel.sql("... ? ...", value)` or
-      # +sanitize_sql+ instead.
-      def quote_bound_value(value)
-        ActiveRecord.deprecator.warn(<<~MSG.squish)
-          #quote_bound_value is deprecated and will be removed in Rails 7.2.
-          Consider Arel.sql(".. ? ..", value) or #sanitize_sql instead.
-        MSG
-
-        quote(cast_bound_value(value))
-      end
-
       # Cast a value to be used as a bound parameter of unknown type. For example,
       # MySQL might perform dangerous castings when comparing a string to a number,
       # so this method will cast numbers to string.
