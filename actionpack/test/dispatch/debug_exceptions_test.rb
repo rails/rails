@@ -615,6 +615,25 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_not_empty (output.rewind && output.read).lines
   end
 
+  test "logs exception causes" do
+    @app = DevelopmentApp
+
+    output = StringIO.new
+
+    env = { "action_dispatch.show_exceptions"       => :all,
+            "action_dispatch.logger"                => Logger.new(output),
+            "action_dispatch.log_rescued_responses" => true }
+
+    get "/nested_exceptions", headers: env
+    assert_response 500
+    log = output.rewind && output.read
+    assert_includes log, <<~MSG
+      Causes:
+      RuntimeError (Second error)
+      RuntimeError (First error)
+    MSG
+  end
+
   test "display backtrace when error type is SyntaxError" do
     @app = DevelopmentApp
 
