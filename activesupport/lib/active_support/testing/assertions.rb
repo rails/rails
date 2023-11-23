@@ -207,7 +207,7 @@ module ActiveSupport
       #     post :create, params: { status: { ok: true } }
       #   end
       #
-      # Provide the optional keyword argument :from to specify the expected
+      # Provide the optional keyword argument +:from+ to specify the expected
       # initial value.
       #
       #   assert_no_changes -> { Status.all_good? }, from: true do
