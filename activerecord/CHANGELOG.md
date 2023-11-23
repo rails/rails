@@ -1,3 +1,7 @@
+*   Remove deprecated support to quote `ActiveSupport::Duration`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `#quote_bound_value`.
 
     *Rafael Mendonça França*

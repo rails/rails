@@ -158,6 +158,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `#quote_bound_value`.
 
+*   Remove deprecated support to quote `ActiveSupport::Duration`.
+
 ### Deprecations
 
 *   Deprecate `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
