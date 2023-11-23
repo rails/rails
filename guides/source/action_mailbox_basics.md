@@ -340,7 +340,7 @@ by default set to `30.days`, but you can change it in your production.rb
 configuration. (Note that this far-future incineration scheduling relies on
 your job queue being able to hold jobs for that long.)
 
-[`InboundEmail`]: https://edgeapi.rubyonrails.org/classes/ActionMailbox/InboundEmail.html
+[`InboundEmail`]: https://api.rubyonrails.org/classes/ActionMailbox/InboundEmail.html
 [`config.action_mailbox.incinerate_after`]: configuring.html#config-action-mailbox-incinerate-after
 
 ## Working with Action Mailbox in Development
