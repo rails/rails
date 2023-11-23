@@ -323,9 +323,7 @@ module ActiveRecord
         assert_equal([@rw_pool], @handler.connection_pool_list(:writing))
         assert_equal([@ro_pool], @handler.connection_pool_list(:reading))
 
-        assert_deprecated(ActiveRecord.deprecator) do
-          @handler.connection_pool_list
-        end
+        assert_equal([@rw_pool, @ro_pool], @handler.connection_pool_list)
       end
 
       def test_retrieve_connection
@@ -334,22 +332,20 @@ module ActiveRecord
       end
 
       def test_active_connections?
-        assert_deprecated(ActiveRecord.deprecator) do
-          assert_not_predicate @handler, :active_connections?
-        end
+        assert_not_predicate @handler, :active_connections?
 
         assert @handler.retrieve_connection(@connection_name)
         assert @handler.retrieve_connection(@connection_name, role: :reading)
 
-        assert_deprecated(ActiveRecord.deprecator) do
-          assert_predicate @handler, :active_connections?
-        end
+        assert_predicate @handler, :active_connections?
+
+        @handler.clear_active_connections!(:writing)
+
+        assert_predicate @handler, :active_connections?
 
         @handler.clear_active_connections!(:all)
 
-        assert_deprecated(ActiveRecord.deprecator) do
-          assert_not_predicate @handler, :active_connections?
-        end
+        assert_not_predicate @handler, :active_connections?
       end
 
       def test_retrieve_connection_pool
