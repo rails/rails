@@ -616,7 +616,7 @@ Defines the CSS compressor to use. It is set by default by `sass-rails`. The uni
 
 #### `config.assets.js_compressor`
 
-Defines the JavaScript compressor to use. Possible values are `:terser`, `:closure`, `:uglifier`, and `:yui`, which require the use of the `terser`, `closure-compiler`, `uglifier`, or `yui-compressor` gems respectively.
+Defines the JavaScript compressor to use. Possible values are `:terser`, `:closure`, and `:yui`, which require the use of the `terser`, `closure-compiler`, or `yui-compressor` gems respectively.
 
 #### `config.assets.gzip`
 
