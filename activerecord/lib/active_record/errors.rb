@@ -7,6 +7,31 @@ module ActiveRecord
   class ActiveRecordError < StandardError
   end
 
+  module Errors
+    @registry = {}
+
+    class << self
+      attr_accessor :registry
+
+      def register(matcher, klass, adapter:)
+        @registry[adapter] ||= {}
+        @registry[adapter][matcher] = klass
+      end
+
+      def lookup(adapter:, error_number:)
+        for_adapter(adapter)&.last&.fetch(error_number, nil)
+      end
+
+      def exceptions_registered_for_adapter?(adapter)
+        for_adapter(adapter)&.any?
+      end
+
+      def for_adapter(adapter)
+        @registry.find { |adapter_class, errors| adapter.kind_of?(adapter_class) }
+      end
+    end
+  end
+
   # DEPRECATED: Previously raised when trying to use a feature in Active Record which
   # requires Active Job but the gem is not present. Now raises a NameError.
   include ActiveSupport::Deprecation::DeprecatedConstantAccessor

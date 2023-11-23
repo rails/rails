@@ -773,28 +773,29 @@ module ActiveRecord
         end
 
         # See https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html
-        ER_DB_CREATE_EXISTS     = 1007
-        ER_FILSORT_ABORT        = 1028
-        ER_DUP_ENTRY            = 1062
-        ER_NOT_NULL_VIOLATION   = 1048
-        ER_NO_REFERENCED_ROW    = 1216
-        ER_ROW_IS_REFERENCED    = 1217
-        ER_DO_NOT_HAVE_DEFAULT  = 1364
-        ER_ROW_IS_REFERENCED_2  = 1451
-        ER_NO_REFERENCED_ROW_2  = 1452
-        ER_DATA_TOO_LONG        = 1406
-        ER_OUT_OF_RANGE         = 1264
-        ER_LOCK_DEADLOCK        = 1213
         ER_CANNOT_ADD_FOREIGN   = 1215
         ER_CANNOT_CREATE_TABLE  = 1005
-        ER_LOCK_WAIT_TIMEOUT    = 1205
-        ER_QUERY_INTERRUPTED    = 1317
-        ER_CONNECTION_KILLED    = 1927
-        CR_SERVER_GONE_ERROR    = 2006
-        CR_SERVER_LOST          = 2013
-        ER_QUERY_TIMEOUT        = 3024
         ER_FK_INCOMPATIBLE_COLUMNS = 3780
-        ER_CLIENT_INTERACTION_TIMEOUT = 4031
+
+        ActiveRecord::Errors.register(1007, DatabaseAlreadyExists, adapter: self)
+        ActiveRecord::Errors.register(1028, StatementTimeout, adapter: self)
+        ActiveRecord::Errors.register(1062, RecordNotUnique, adapter: self)
+        ActiveRecord::Errors.register(1048, NotNullViolation, adapter: self)
+        ActiveRecord::Errors.register(1216, InvalidForeignKey, adapter: self)
+        ActiveRecord::Errors.register(1217, InvalidForeignKey, adapter: self)
+        ActiveRecord::Errors.register(1364, NotNullViolation, adapter: self)
+        ActiveRecord::Errors.register(1451, InvalidForeignKey, adapter: self)
+        ActiveRecord::Errors.register(1452, InvalidForeignKey, adapter: self)
+        ActiveRecord::Errors.register(1406, ValueTooLong, adapter: self)
+        ActiveRecord::Errors.register(1264, RangeError, adapter: self)
+        ActiveRecord::Errors.register(1213, Deadlocked, adapter: self)
+        ActiveRecord::Errors.register(1205, LockWaitTimeout, adapter: self)
+        ActiveRecord::Errors.register(1317, QueryCanceled, adapter: self)
+        ActiveRecord::Errors.register(1927, ConnectionFailed, adapter: self)
+        ActiveRecord::Errors.register(2006, ConnectionFailed, adapter: self)
+        ActiveRecord::Errors.register(2013, ConnectionFailed, adapter: self)
+        ActiveRecord::Errors.register(3024, StatementTimeout, adapter: self)
+        ActiveRecord::Errors.register(4031, ConnectionFailed, adapter: self)
 
         def translate_exception(exception, message:, sql:, binds:)
           case error_number(exception)
@@ -804,14 +805,6 @@ module ActiveRecord
             else
               super
             end
-          when ER_CONNECTION_KILLED, CR_SERVER_GONE_ERROR, CR_SERVER_LOST, ER_CLIENT_INTERACTION_TIMEOUT
-            ConnectionFailed.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          when ER_DB_CREATE_EXISTS
-            DatabaseAlreadyExists.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          when ER_DUP_ENTRY
-            RecordNotUnique.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          when ER_NO_REFERENCED_ROW, ER_ROW_IS_REFERENCED, ER_ROW_IS_REFERENCED_2, ER_NO_REFERENCED_ROW_2
-            InvalidForeignKey.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_CANNOT_ADD_FOREIGN, ER_FK_INCOMPATIBLE_COLUMNS
             mismatched_foreign_key(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_CANNOT_CREATE_TABLE
@@ -820,20 +813,6 @@ module ActiveRecord
             else
               super
             end
-          when ER_DATA_TOO_LONG
-            ValueTooLong.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          when ER_OUT_OF_RANGE
-            RangeError.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          when ER_NOT_NULL_VIOLATION, ER_DO_NOT_HAVE_DEFAULT
-            NotNullViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          when ER_LOCK_DEADLOCK
-            Deadlocked.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          when ER_LOCK_WAIT_TIMEOUT
-            LockWaitTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          when ER_QUERY_TIMEOUT, ER_FILSORT_ABORT
-            StatementTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          when ER_QUERY_INTERRUPTED
-            QueryCanceled.new(message, sql: sql, binds: binds, connection_pool: @pool)
           else
             super
           end

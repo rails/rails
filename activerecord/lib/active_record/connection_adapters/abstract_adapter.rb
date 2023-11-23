@@ -1169,8 +1169,19 @@ module ActiveRecord
           sql
         end
 
+        # Must return the database error number from the exception, if the exception has an
+        # error number.
+        def error_number(exception) # :nodoc:
+          raise NotImplementedError
+        end
+
         def translate_exception(exception, message:, sql:, binds:)
           # override in derived class
+          if ActiveRecord::Errors.exceptions_registered_for_adapter?(self)
+            exception_class = ActiveRecord::Errors.lookup(adapter: self, error_number: error_number(exception))
+            return exception_class.new(message, sql: sql, binds: binds, connection_pool: @pool) if exception_class
+          end
+
           case exception
           when RuntimeError, ActiveRecord::ActiveRecordError
             exception
