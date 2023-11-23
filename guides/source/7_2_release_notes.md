@@ -156,6 +156,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `ActiveRecord::ConnectionAdapters::ConnectionPool#connection_klass`.
 
+*   Remove deprecated `#quote_bound_value`.
+
 ### Deprecations
 
 *   Deprecate `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
