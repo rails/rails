@@ -134,7 +134,7 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     assert_raises(KeyError) { a.non_existing_key! }
   end
 
-  def test_inspect
+  def test_ordered_option_inspect
     a = ActiveSupport::OrderedOptions.new
     assert_equal "#<ActiveSupport::OrderedOptions {}>", a.inspect
 
@@ -142,5 +142,140 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     a[:baz] = :quz
 
     assert_equal "#<ActiveSupport::OrderedOptions {:foo=>:bar, :baz=>:quz}>", a.inspect
+  end
+
+  def test_inheritable_option_inspect
+    object = ActiveSupport::InheritableOptions.new(one: "first value")
+    assert_equal "#<ActiveSupport::InheritableOptions {:one=>\"first value\"}>", object.inspect
+
+    object[:two] = "second value"
+    object["three"] = "third value"
+    assert_equal "#<ActiveSupport::InheritableOptions {:one=>\"first value\", :two=>\"second value\", :three=>\"third value\"}>", object.inspect
+  end
+
+  def test_ordered_options_to_h
+    object = ActiveSupport::OrderedOptions.new
+    assert_equal({}, object.to_h)
+    object.one = "first value"
+    object[:two] = "second value"
+    object["three"] = "third value"
+
+    assert_equal({ one: "first value", two: "second value", three: "third value" }, object.to_h)
+  end
+
+  def test_inheritable_options_to_h
+    object = ActiveSupport::InheritableOptions.new(one: "first value")
+    assert_equal({ one: "first value" }, object.to_h)
+
+    object[:two] = "second value"
+    object["three"] = "third value"
+
+    assert_equal({ one: "first value", two: "second value", three: "third value" }, object.to_h)
+  end
+
+  def test_ordered_options_dup
+    object = ActiveSupport::OrderedOptions.new
+    object.one = "first value"
+    object[:two] = "second value"
+    object["three"] = "third value"
+
+    duplicate = object.dup
+    assert_equal object, duplicate
+    assert_not_equal object.object_id, duplicate.object_id
+  end
+
+  def test_inheritable_options_dup
+    object = ActiveSupport::InheritableOptions.new(one: "first value")
+    object[:two] = "second value"
+    object["three"] = "third value"
+
+    duplicate = object.dup
+    assert_equal object, duplicate
+    assert_not_equal object.object_id, duplicate.object_id
+  end
+
+  def test_ordered_options_key
+    object = ActiveSupport::OrderedOptions.new
+    object.one = "first value"
+    object[:two] = "second value"
+    object["three"] = "third value"
+
+    assert object.key?(:one)
+    assert_not object.key?("one")
+    assert object.key?(:two)
+    assert_not object.key?("two")
+    assert object.key?(:three)
+    assert_not object.key?("three")
+    assert_not object.key?(:four)
+  end
+
+  def test_inheritable_options_key
+    object = ActiveSupport::InheritableOptions.new(one: "first value")
+    object[:two] = "second value"
+    object["three"] = "third value"
+
+    assert object.key?(:one)
+    assert_not object.key?("one")
+    assert object.key?(:two)
+    assert_not object.key?("two")
+    assert object.key?(:three)
+    assert_not object.key?("three")
+    assert_not object.key?(:four)
+  end
+
+  def test_inheritable_options_overridden
+    object = ActiveSupport::InheritableOptions.new(one: "first value", two: "second value", three: "third value")
+    object["one"] = "first value override"
+    object[:two] = "second value override"
+
+    assert object.overridden?(:one)
+    assert_equal "first value override", object.one
+    assert object.overridden?(:two)
+    assert_equal "second value override", object.two
+    assert_not object.overridden?(:three)
+    assert_equal "third value", object.three
+  end
+
+  def test_inheritable_options_overridden_with_nil
+    object = ActiveSupport::InheritableOptions.new
+    object["one"] = "first value override"
+    object[:two] = "second value override"
+
+    assert_not object.overridden?(:one)
+    assert_equal "first value override", object.one
+    assert_not object.overridden?(:two)
+    assert_equal "second value override", object.two
+  end
+
+  def test_inheritable_options_each
+    object = ActiveSupport::InheritableOptions.new(one: "first value", two: "second value")
+    object["one"] = "first value override"
+    object[:three] = "third value"
+
+    count = 0
+    keys = []
+    object.each do |key, value|
+      count += 1
+      keys << key
+    end
+    assert_equal 3, count
+    assert_equal [:one, :two, :three], keys
+  end
+
+  def test_inheritable_options_to_a
+    object = ActiveSupport::InheritableOptions.new(one: "first value", two: "second value")
+    object["one"] = "first value override"
+    object[:three] = "third value"
+
+    assert_equal [[:one, "first value override"], [:two, "second value"], [:three, "third value"]], object.entries
+    assert_equal [[:one, "first value override"], [:two, "second value"], [:three, "third value"]], object.to_a
+  end
+
+  def test_inheritable_options_count
+    object = ActiveSupport::InheritableOptions.new(one: "first value", two: "second value")
+    object["one"] = "first value override"
+    object[:three] = "third value"
+
+    assert_equal 3, object.count
   end
 end
