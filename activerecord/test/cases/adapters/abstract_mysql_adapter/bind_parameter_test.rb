@@ -72,12 +72,6 @@ module ActiveRecord
           assert_quoted_as "'0.0'", Rational(0)
         end
 
-        def test_where_with_duration_for_string_column_using_bind_parameters
-          assert_deprecated(ActiveRecord.deprecator) do
-            assert_quoted_as "'0'", 0.seconds
-          end
-        end
-
         private
           def assert_quoted_as(expected, value)
             relation = Post.where("title = ?", value)

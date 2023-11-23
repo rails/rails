@@ -23,9 +23,6 @@ module ActiveRecord
         when Type::Time::Value then "'#{quoted_time(value)}'"
         when Date, Time then "'#{quoted_date(value)}'"
         when Class      then "'#{value}'"
-        when ActiveSupport::Duration
-          warn_quote_duration_deprecated
-          value.to_s
         else raise TypeError, "can't quote #{value.class.name}"
         end
       end
@@ -228,22 +225,6 @@ module ActiveRecord
 
         def lookup_cast_type(sql_type)
           type_map.lookup(sql_type)
-        end
-
-        def warn_quote_duration_deprecated
-          ActiveRecord.deprecator.warn(<<~MSG)
-            Using ActiveSupport::Duration as an interpolated bind parameter in an SQL
-            string template is deprecated. To avoid this warning, you should explicitly
-            convert the duration to a more specific database type. For example, if you
-            want to use a duration as an integer number of seconds:
-            ```
-            Record.where("duration = ?", 1.hour.to_i)
-            ```
-            If you want to use a duration as an ISO 8601 string:
-            ```
-            Record.where("duration = ?", 1.hour.iso8601)
-            ```
-          MSG
         end
     end
   end
