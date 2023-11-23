@@ -15,6 +15,10 @@ class ActiveStorage::VariantWithRecord
     @blob, @variation = blob, ActiveStorage::Variation.wrap(variation)
   end
 
+  def processed?
+    record.present?
+  end
+
   def processed
     process unless processed?
     self
@@ -36,10 +40,6 @@ class ActiveStorage::VariantWithRecord
   delegate :key, :url, :download, to: :image, allow_nil: true
 
   private
-    def processed?
-      record.present?
-    end
-
     def process
       transform_blob { |image| create_or_find_record(image: image) }
     end
