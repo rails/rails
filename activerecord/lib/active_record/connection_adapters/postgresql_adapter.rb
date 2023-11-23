@@ -770,6 +770,12 @@ module ActiveRecord
           exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE) if exception.respond_to?(:result)
         end
 
+        def translate_exception(exception, message:, sql:, binds:)
+          return exception unless exception.respond_to?(:result)
+
+          super
+        end
+
         def retryable_query_error?(exception)
           # We cannot retry anything if we're inside a broken transaction; we need to at
           # least raise until the innermost savepoint is rolled back
