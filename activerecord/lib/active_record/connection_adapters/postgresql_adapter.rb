@@ -752,44 +752,22 @@ module ActiveRecord
         end
 
         # See https://www.postgresql.org/docs/current/static/errcodes-appendix.html
-        ActiveRecord::Errors.register("22001", ValueTooLong, adapter: self)
-        ActiveRecord::Errors.register("22003", RangeError, adapter: self)
-        ActiveRecord::Errors.register("23502", NotNullViolation, adapter: self)
-        ActiveRecord::Errors.register("23503", InvalidForeignKey, adapter: self)
-        ActiveRecord::Errors.register("23505", RecordNotUnique, adapter: self)
-        ActiveRecord::Errors.register("40001", SerializationFailure, adapter: self)
-        ActiveRecord::Errors.register("40P01", Deadlocked, adapter: self)
-        ActiveRecord::Errors.register("42P04", DatabaseAlreadyExists, adapter: self)
-        ActiveRecord::Errors.register("55P03", LockWaitTimeout, adapter: self)
-        ActiveRecord::Errors.register("57014", QueryCanceled, adapter: self)
+        ActiveRecord::Errors.register(->(e) { e.message.match?(/connection is closed/i) }, ConnectionNotEstablished, adapter: self)
+        ActiveRecord::Errors.register(->(e) { e.is_a?(PG::ConnectionBad) && e.message.end_with?("\n") }, ConnectionFailed, adapter: self)
+        ActiveRecord::Errors.register(->(e) { e.is_a?(PG::ConnectionBad) && !e.message.end_with?("\n") }, ConnectionNotEstablished, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == "22001" }, ValueTooLong, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == "22003" }, RangeError, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == "23502" }, NotNullViolation, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == "23503" }, InvalidForeignKey, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == "23505" }, RecordNotUnique, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == "40001" }, SerializationFailure, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == "40P01" }, Deadlocked, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == "42P04" }, DatabaseAlreadyExists, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == "55P03" }, LockWaitTimeout, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == "57014" }, QueryCanceled, adapter: self)
 
-        def error_number(exception)
+        def self.error_number(exception)
           exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE) if exception.respond_to?(:result)
-        end
-
-        def translate_exception(exception, message:, sql:, binds:)
-          return exception unless exception.respond_to?(:result)
-
-          if error_number(exception).nil?
-            if exception.message.match?(/connection is closed/i)
-              ConnectionNotEstablished.new(exception, connection_pool: @pool)
-            elsif exception.is_a?(PG::ConnectionBad)
-              # libpq message style always ends with a newline; the pg gem's internal
-              # errors do not. We separate these cases because a pg-internal
-              # ConnectionBad means it failed before it managed to send the query,
-              # whereas a libpq failure could have occurred at any time (meaning the
-              # server may have already executed part or all of the query).
-              if exception.message.end_with?("\n")
-                ConnectionFailed.new(exception, connection_pool: @pool)
-              else
-                ConnectionNotEstablished.new(exception, connection_pool: @pool)
-              end
-            else
-              super
-            end
-          else
-            super
-          end
         end
 
         def retryable_query_error?(exception)

@@ -100,7 +100,7 @@ module ActiveRecord
         end
       end
 
-      def error_number(exception)
+      def self.error_number(exception)
         exception.error_number if exception.respond_to?(:error_number)
       end
 

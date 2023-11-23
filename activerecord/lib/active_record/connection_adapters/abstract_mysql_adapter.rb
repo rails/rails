@@ -777,34 +777,29 @@ module ActiveRecord
         ER_CANNOT_CREATE_TABLE  = 1005
         ER_FK_INCOMPATIBLE_COLUMNS = 3780
 
-        ActiveRecord::Errors.register(1007, DatabaseAlreadyExists, adapter: self)
-        ActiveRecord::Errors.register(1028, StatementTimeout, adapter: self)
-        ActiveRecord::Errors.register(1062, RecordNotUnique, adapter: self)
-        ActiveRecord::Errors.register(1048, NotNullViolation, adapter: self)
-        ActiveRecord::Errors.register(1216, InvalidForeignKey, adapter: self)
-        ActiveRecord::Errors.register(1217, InvalidForeignKey, adapter: self)
-        ActiveRecord::Errors.register(1364, NotNullViolation, adapter: self)
-        ActiveRecord::Errors.register(1451, InvalidForeignKey, adapter: self)
-        ActiveRecord::Errors.register(1452, InvalidForeignKey, adapter: self)
-        ActiveRecord::Errors.register(1406, ValueTooLong, adapter: self)
-        ActiveRecord::Errors.register(1264, RangeError, adapter: self)
-        ActiveRecord::Errors.register(1213, Deadlocked, adapter: self)
-        ActiveRecord::Errors.register(1205, LockWaitTimeout, adapter: self)
-        ActiveRecord::Errors.register(1317, QueryCanceled, adapter: self)
-        ActiveRecord::Errors.register(1927, ConnectionFailed, adapter: self)
-        ActiveRecord::Errors.register(2006, ConnectionFailed, adapter: self)
-        ActiveRecord::Errors.register(2013, ConnectionFailed, adapter: self)
-        ActiveRecord::Errors.register(3024, StatementTimeout, adapter: self)
-        ActiveRecord::Errors.register(4031, ConnectionFailed, adapter: self)
+        ActiveRecord::Errors.register(->(e) { exception.message.match?(/MySQL client is not connected/i) }, ConnectionNotEstablished, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == 1007 }, DatabaseAlreadyExists, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == 1028 }, StatementTimeout, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == 1062 }, RecordNotUnique, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == 1048 }, NotNullViolation, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == 1216 }, InvalidForeignKey, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == 1217 }, InvalidForeignKey, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == 1364 }, NotNullViolation, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == 1451 }, InvalidForeignKey, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == 1452 }, InvalidForeignKey, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == 1406 }, ValueTooLong, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == 1264 }, RangeError, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == 1213 }, Deadlocked, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == 1205 }, LockWaitTimeout, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == 1317 }, QueryCanceled, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == 1927 }, ConnectionFailed, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == 2006 }, ConnectionFailed, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == 2013 }, ConnectionFailed, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == 3024 }, StatementTimeout, adapter: self)
+        ActiveRecord::Errors.register(->(e) { error_number(e) == 4031 }, ConnectionFailed, adapter: self)
 
         def translate_exception(exception, message:, sql:, binds:)
           case error_number(exception)
-          when nil
-            if exception.message.match?(/MySQL client is not connected/i)
-              ConnectionNotEstablished.new(exception, connection_pool: @pool)
-            else
-              super
-            end
           when ER_CANNOT_ADD_FOREIGN, ER_FK_INCOMPATIBLE_COLUMNS
             mismatched_foreign_key(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_CANNOT_CREATE_TABLE

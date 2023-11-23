@@ -631,23 +631,10 @@ module ActiveRecord
                      SELECT #{quoted_from_columns} FROM #{quote_table_name(from)}")
         end
 
-        def translate_exception(exception, message:, sql:, binds:)
-          # SQLite 3.8.2 returns a newly formatted error message:
-          #   UNIQUE constraint failed: *table_name*.*column_name*
-          # Older versions of SQLite return:
-          #   column *column_name* is not unique
-          if exception.message.match?(/(column(s)? .* (is|are) not unique|UNIQUE constraint failed: .*)/i)
-            RecordNotUnique.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          elsif exception.message.match?(/(.* may not be NULL|NOT NULL constraint failed: .*)/i)
-            NotNullViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          elsif exception.message.match?(/FOREIGN KEY constraint failed/i)
-            InvalidForeignKey.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          elsif exception.message.match?(/called on a closed database/i)
-            ConnectionNotEstablished.new(exception, connection_pool: @pool)
-          else
-            super
-          end
-        end
+        ActiveRecord::Errors.register(->(e) { e.message.match?(/(column(s)? .* (is|are) not unique|UNIQUE constraint failed: .*)/i) }, RecordNotUnique, adapter: self)
+        ActiveRecord::Errors.register(->(e) { e.message.match?(/(.* may not be NULL|NOT NULL constraint failed: .*)/i) }, NotNullViolation, adapter: self)
+        ActiveRecord::Errors.register(->(e) { e.message.match?(/FOREIGN KEY constraint failed/i) }, InvalidForeignKey, adapter: self)
+        ActiveRecord::Errors.register(->(e) { e.message.match?(/called on a closed database/i) }, ConnectionNotEstablished, adapter: self)
 
         COLLATE_REGEX = /.*"(\w+)".*collate\s+"(\w+)".*/i
         PRIMARY_KEY_AUTOINCREMENT_REGEX = /.*"(\w+)".+PRIMARY KEY AUTOINCREMENT/i

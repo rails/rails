@@ -18,8 +18,10 @@ module ActiveRecord
         @registry[adapter][matcher] = klass
       end
 
-      def lookup(adapter:, error_number:)
-        for_adapter(adapter)&.last&.fetch(error_number, nil)
+      def lookup(adapter:, exception:)
+        for_adapter(adapter)&.last&.find do |matcher, klass|
+          klass if matcher.call(exception)
+        end&.last
       end
 
       def exceptions_registered_for_adapter?(adapter)
