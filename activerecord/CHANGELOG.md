@@ -891,6 +891,7 @@
     # Rails 7.0 (same behavior with IN clause, mergee side condition is consistently replaced)
     Author.where(id: [david.id, mary.id]).merge(Author.where(id: bob)) # => [bob]
     Author.where(id: david.id..mary.id).merge(Author.where(id: bob)) # => [bob]
+    ```
 
     *Rafael Mendonça França*
 
