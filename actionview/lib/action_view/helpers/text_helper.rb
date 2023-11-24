@@ -160,12 +160,27 @@ module ActionView
         end.html_safe
       end
 
-      # Extracts an excerpt from +text+ that matches the first instance of +phrase+.
-      # The <tt>:radius</tt> option expands the excerpt on each side of the first occurrence of +phrase+ by the number of characters
-      # defined in <tt>:radius</tt> (which defaults to 100). If the excerpt radius overflows the beginning or end of the +text+,
-      # then the <tt>:omission</tt> option (which defaults to "...") will be prepended/appended accordingly. Use the
-      # <tt>:separator</tt> option to choose the delimitation. The resulting string will be stripped in any case. If the +phrase+
-      # isn't found, +nil+ is returned.
+      # Extracts the first occurrence of +phrase+ plus surrounding text from
+      # +text+. An omission marker is prepended / appended if the start / end of
+      # the result does not coincide with the start / end of +text+. The result
+      # is always stripped in any case. Returns +nil+ if +phrase+ isn't found.
+      #
+      # ==== Options
+      #
+      # [+:radius+]
+      #   The number of characters (or tokens — see +:separator+ option) around
+      #   +phrase+ to include in the result. Defaults to 100.
+      #
+      # [+:omission+]
+      #   The marker to prepend / append when the start / end of the excerpt
+      #   does not coincide with the start / end of +text+. Defaults to
+      #   <tt>"..."</tt>.
+      #
+      # [+:separator+]
+      #   The separator between tokens to count for +:radius+. Defaults to
+      #   <tt>""</tt>, which treats each character as a token.
+      #
+      # ==== Examples
       #
       #   excerpt('This is an example', 'an', radius: 5)
       #   # => "...s is an exam..."
