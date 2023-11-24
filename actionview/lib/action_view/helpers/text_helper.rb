@@ -349,8 +349,8 @@ module ActionView
       # and passing the name of the cycle. The current cycle string can be obtained
       # anytime using the current_cycle method.
       #
-      #   # Alternate CSS classes for even and odd numbers...
-      #   @items = [1,2,3,4]
+      #   <%# Alternate CSS classes for even and odd numbers... %>
+      #   <% @items = [1,2,3,4] %>
       #   <table>
       #   <% @items.each do |item| %>
       #     <tr class="<%= cycle("odd", "even") -%>">
@@ -360,12 +360,12 @@ module ActionView
       #   </table>
       #
       #
-      #   # Cycle CSS classes for rows, and text colors for values within each row
-      #   @items = [
+      #   <%# Cycle CSS classes for rows, and text colors for values within each row %>
+      #   <% @items = [
       #     { first: "Robert", middle: "Daniel", last: "James" },
       #     { first: "Emily", middle: "Shannon", maiden: "Pike", last: "Hicks" },
       #     { first: "June", middle: "Dae", last: "Jones" },
-      #   ]
+      #   ] %>
       #   <% @items.each do |item| %>
       #     <tr class="<%= cycle("odd", "even", name: "row_class") -%>">
       #       <td>
@@ -396,8 +396,8 @@ module ActionView
       # for complex table highlighting or any other design need which requires
       # the current cycle string in more than one place.
       #
-      #   # Alternate background colors
-      #   @items = [1,2,3,4]
+      #   <%# Alternate background colors %>
+      #   <% @items = [1,2,3,4] %>
       #   <% @items.each do |item| %>
       #     <div style="background-color:<%= cycle("red","white","blue") %>">
       #       <span style="background-color:<%= current_cycle %>"><%= item %></span>
@@ -411,8 +411,8 @@ module ActionView
       # Resets a cycle so that it starts from the first element the next time
       # it is called. Pass in +name+ to reset a named cycle.
       #
-      #   # Alternate CSS classes for even and odd numbers...
-      #   @items = [[1,2,3,4], [5,6,3], [3,4,5,6,7,4]]
+      #   <%# Alternate CSS classes for even and odd numbers... %>
+      #   <% @items = [[1,2,3,4], [5,6,3], [3,4,5,6,7,4]] %>
       #   <table>
       #   <% @items.each do |item| %>
       #     <tr class="<%= cycle("even", "odd") -%>">
