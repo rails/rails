@@ -163,9 +163,9 @@ module ActiveRecord
           any_raw_connection.server_info[:version]
         end
 
-        ActiveRecord::Errors.register((e) -> { e.is_a?(::Mysql2::Error::TimeoutError) && !e.error_number }, ActiveRecord::AdapterTimeout, adapter: self)
-        ActiveRecord::Errors.register((e) -> { e.is_a?(::Mysql2::Error::ConnectionError) && exception.message.match?(/MySQL client is not connected/i) }, ActiveRecord::ConnectionNotEstablished, adapter: self)
-        ActiveRecord::Errors.register((e) -> { e.is_a?(::Mysql2::Error::ConnectionError) && !exception.message.match?(/MySQL client is not connected/i) }, ActiveRecord::ConnectionFailed, adapter: self)
+        ActiveRecord::Errors.register(->(e) { e.is_a?(::Mysql2::Error::TimeoutError) && !e.error_number }, ActiveRecord::AdapterTimeout, adapter: self)
+        ActiveRecord::Errors.register(->(e) { e.is_a?(::Mysql2::Error::ConnectionError) && exception.message.match?(/MySQL client is not connected/i) }, ActiveRecord::ConnectionNotEstablished, adapter: self)
+        ActiveRecord::Errors.register(->(e) { e.is_a?(::Mysql2::Error::ConnectionError) && !exception.message.match?(/MySQL client is not connected/i) }, ActiveRecord::ConnectionFailed, adapter: self)
 
         def default_prepared_statements
           false
