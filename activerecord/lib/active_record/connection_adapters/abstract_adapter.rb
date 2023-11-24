@@ -1175,10 +1175,10 @@ module ActiveRecord
             exception
           else
             translated_exception = ActiveRecord::Errors.lookup(adapter: self, exception: exception) || ActiveRecord::StatementInvalid
-            if translated_exception.superclass == ActiveRecord::AdapterError
-              translated_exception.new(exception, connection_pool: @pool)
-            else
+            if translated_exception <= ActiveRecord::StatementInvalid
               translated_exception.new(message, sql: sql, binds: binds, connection_pool: @pool)
+            else
+              translated_exception.new(exception, connection_pool: @pool)
             end
           end
         end
