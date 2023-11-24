@@ -703,6 +703,10 @@ module ActiveRecord
         end
       end
 
+      def error_number(exception)
+        exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE) if exception.respond_to?(:result)
+      end
+
       private
         attr_reader :type_map
 
@@ -765,10 +769,6 @@ module ActiveRecord
         ActiveRecord::Errors.register("42P04", DatabaseAlreadyExists, adapter: self)
         ActiveRecord::Errors.register("55P03", LockWaitTimeout, adapter: self)
         ActiveRecord::Errors.register("57014", QueryCanceled, adapter: self)
-
-        def error_number(exception)
-          exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE) if exception.respond_to?(:result)
-        end
 
         def translate_exception(exception, message:, sql:, binds:)
           return exception unless exception.respond_to?(:result)
