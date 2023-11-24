@@ -44,6 +44,13 @@ class PostgresqlDataTypeTest < ActiveRecord::PostgreSQLTestCase
     assert_equal (-21.day), @first_time.scaled_time_interval
   end
 
+  def test_update_large_time_in_seconds
+    @first_time.scaled_time_interval = 70.years.to_f
+    assert @first_time.save
+    assert @first_time.reload
+    assert_equal 70.years, @first_time.scaled_time_interval
+  end
+
   def test_oid_values
     assert_equal 1234, @first_oid.obj_id
   end
