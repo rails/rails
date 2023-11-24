@@ -11,23 +11,50 @@ class ActiveRecordErrorsTest < ActiveRecord::TestCase
   class AnotherFakeAdapter
     def initialize(...)
     end
+
+
+    def error_number(exception)
+      exception.message.reverse
+    end
   end
 
   class SubclassedFakeAdapter < FakeAdapter
   end
 
-  def test_lookup
+  def test_lookup_proc
     ActiveRecord::Errors.register(->(e) { e.message == "0001" }, ActiveRecord::StatementInvalid, adapter: FakeAdapter)
 
     assert_equal ActiveRecord::StatementInvalid, ActiveRecord::Errors.lookup(adapter: FakeAdapter.new, exception: StandardError.new("0001"))
-    assert ActiveRecord::Errors.exceptions_registered_for_adapter?(FakeAdapter.new)
+  end
+
+  def test_lookup_string_message
+    ActiveRecord::Errors.register("0001", ActiveRecord::StatementInvalid, adapter: FakeAdapter)
+
+    assert_equal ActiveRecord::StatementInvalid, ActiveRecord::Errors.lookup(adapter: FakeAdapter.new, exception: StandardError.new("0001"))
+  end
+
+  def test_lookup_string_error_code
+    ActiveRecord::Errors.register("1000", ActiveRecord::StatementInvalid, adapter: AnotherFakeAdapter)
+
+    assert_equal ActiveRecord::StatementInvalid, ActiveRecord::Errors.lookup(adapter: AnotherFakeAdapter.new, exception: StandardError.new("0001"))
+  end
+
+  def test_lookup_regexp_message
+    ActiveRecord::Errors.register(/...1/, ActiveRecord::StatementInvalid, adapter: FakeAdapter)
+
+    assert_equal ActiveRecord::StatementInvalid, ActiveRecord::Errors.lookup(adapter: FakeAdapter.new, exception: StandardError.new("0001"))
+  end
+
+  def test_lookup_regexp_error_code
+    ActiveRecord::Errors.register(/1.../, ActiveRecord::StatementInvalid, adapter: AnotherFakeAdapter)
+
+    assert_equal ActiveRecord::StatementInvalid, ActiveRecord::Errors.lookup(adapter: AnotherFakeAdapter.new, exception: StandardError.new("0001"))
   end
 
   def test_lookup_subclass
     ActiveRecord::Errors.register(->(e) { e.message == "0001" }, ActiveRecord::StatementInvalid, adapter: FakeAdapter)
 
     assert_equal ActiveRecord::StatementInvalid, ActiveRecord::Errors.lookup(adapter: SubclassedFakeAdapter.new, exception: StandardError.new("0001"))
-    assert ActiveRecord::Errors.exceptions_registered_for_adapter?(SubclassedFakeAdapter.new)
   end
 
   def test_lookup_error_number_mismatch
@@ -40,9 +67,5 @@ class ActiveRecordErrorsTest < ActiveRecord::TestCase
     ActiveRecord::Errors.register(->(e) { e.message == "0001" }, ActiveRecord::StatementInvalid, adapter: FakeAdapter)
 
     assert_nil ActiveRecord::Errors.lookup(adapter: AnotherFakeAdapter.new, exception: StandardError.new("0001"))
-  end
-
-  def test_exceptions_registered_for_adapter
-    assert_not ActiveRecord::Errors.exceptions_registered_for_adapter?(AnotherFakeAdapter.new)
   end
 end
