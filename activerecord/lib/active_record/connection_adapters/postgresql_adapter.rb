@@ -752,21 +752,21 @@ module ActiveRecord
         end
 
         # See https://www.postgresql.org/docs/current/static/errcodes-appendix.html
-        ActiveRecord::Errors.register(->(e) { e.message.match?(/connection is closed/i) }, ConnectionNotEstablished, adapter: self)
+        ActiveRecord::Errors.register(/connection is closed/i, ConnectionNotEstablished, adapter: self)
         ActiveRecord::Errors.register(->(e) { e.is_a?(PG::ConnectionBad) && e.message.end_with?("\n") }, ConnectionFailed, adapter: self)
         ActiveRecord::Errors.register(->(e) { e.is_a?(PG::ConnectionBad) && !e.message.end_with?("\n") }, ConnectionNotEstablished, adapter: self)
-        ActiveRecord::Errors.register(->(e) { error_number(e) == "22001" }, ValueTooLong, adapter: self)
-        ActiveRecord::Errors.register(->(e) { error_number(e) == "22003" }, RangeError, adapter: self)
-        ActiveRecord::Errors.register(->(e) { error_number(e) == "23502" }, NotNullViolation, adapter: self)
-        ActiveRecord::Errors.register(->(e) { error_number(e) == "23503" }, InvalidForeignKey, adapter: self)
-        ActiveRecord::Errors.register(->(e) { error_number(e) == "23505" }, RecordNotUnique, adapter: self)
-        ActiveRecord::Errors.register(->(e) { error_number(e) == "40001" }, SerializationFailure, adapter: self)
-        ActiveRecord::Errors.register(->(e) { error_number(e) == "40P01" }, Deadlocked, adapter: self)
-        ActiveRecord::Errors.register(->(e) { error_number(e) == "42P04" }, DatabaseAlreadyExists, adapter: self)
-        ActiveRecord::Errors.register(->(e) { error_number(e) == "55P03" }, LockWaitTimeout, adapter: self)
-        ActiveRecord::Errors.register(->(e) { error_number(e) == "57014" }, QueryCanceled, adapter: self)
+        ActiveRecord::Errors.register("22001", ValueTooLong, adapter: self)
+        ActiveRecord::Errors.register("22003", RangeError, adapter: self)
+        ActiveRecord::Errors.register("23502", NotNullViolation, adapter: self)
+        ActiveRecord::Errors.register("23503", InvalidForeignKey, adapter: self)
+        ActiveRecord::Errors.register("23505", RecordNotUnique, adapter: self)
+        ActiveRecord::Errors.register("40001", SerializationFailure, adapter: self)
+        ActiveRecord::Errors.register("40P01", Deadlocked, adapter: self)
+        ActiveRecord::Errors.register("42P04", DatabaseAlreadyExists, adapter: self)
+        ActiveRecord::Errors.register("55P03", LockWaitTimeout, adapter: self)
+        ActiveRecord::Errors.register("57014", QueryCanceled, adapter: self)
 
-        def self.error_number(exception)
+        def error_number(exception)
           exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE) if exception.respond_to?(:result)
         end
 

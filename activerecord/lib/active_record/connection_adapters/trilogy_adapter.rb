@@ -193,28 +193,12 @@ module ActiveRecord
           end
         end
 
-        def translate_exception(exception, message:, sql:, binds:)
-          if exception.is_a?(::Trilogy::TimeoutError) && !exception.error_code
-            return ActiveRecord::AdapterTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          end
-          error_code = exception.error_code if exception.respond_to?(:error_code)
-
-          case error_code
-          when ER_SERVER_SHUTDOWN
-            return ConnectionFailed.new(message, connection_pool: @pool)
-          end
-
-          case exception
-          when Errno::EPIPE, SocketError, IOError
-            return ConnectionFailed.new(message, connection_pool: @pool)
-          when ::Trilogy::Error
-            if /Connection reset by peer|TRILOGY_CLOSED_CONNECTION|TRILOGY_INVALID_SEQUENCE_ID|TRILOGY_UNEXPECTED_PACKET/.match?(exception.message)
-              return ConnectionFailed.new(message, connection_pool: @pool)
-            end
-          end
-
-          super
-        end
+        ActiveRecord::Errors.register(->(e) { e.is_a?(::Trilogy::TimeoutError) && !e.error_code }, ActiveRecord::AdapterTimeout, adapter: self)
+        ActiveRecord::Errors.register(1053, ConnectionFailed, adapter: self)
+        ActiveRecord::Errors.register(->(e) { e.is_a?(Errno::EPIPE) }, ConnectionFailed, adapter: self)
+        ActiveRecord::Errors.register(->(e) { e.is_a?(SocketError) }, ConnectionFailed, adapter: self)
+        ActiveRecord::Errors.register(->(e) { e.is_a?(IOError) }, ConnectionFailed, adapter: self)
+        ActiveRecord::Errors.register(->(e) { e.is_a?(::Trilogy::Error) && /Connection reset by peer|TRILOGY_CLOSED_CONNECTION|TRILOGY_INVALID_SEQUENCE_ID|TRILOGY_UNEXPECTED_PACKET/.match?(exception.message) }, ConnectionFailed, adapter: self)
 
         def default_prepared_statements
           false

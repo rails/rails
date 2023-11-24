@@ -631,10 +631,10 @@ module ActiveRecord
                      SELECT #{quoted_from_columns} FROM #{quote_table_name(from)}")
         end
 
-        ActiveRecord::Errors.register(->(e) { e.message.match?(/(column(s)? .* (is|are) not unique|UNIQUE constraint failed: .*)/i) }, RecordNotUnique, adapter: self)
-        ActiveRecord::Errors.register(->(e) { e.message.match?(/(.* may not be NULL|NOT NULL constraint failed: .*)/i) }, NotNullViolation, adapter: self)
-        ActiveRecord::Errors.register(->(e) { e.message.match?(/FOREIGN KEY constraint failed/i) }, InvalidForeignKey, adapter: self)
-        ActiveRecord::Errors.register(->(e) { e.message.match?(/called on a closed database/i) }, ConnectionNotEstablished, adapter: self)
+        ActiveRecord::Errors.register(/(column(s)? .* (is|are) not unique|UNIQUE constraint failed: .*)/i, RecordNotUnique, adapter: self)
+        ActiveRecord::Errors.register(/(.* may not be NULL|NOT NULL constraint failed: .*)/i, NotNullViolation, adapter: self)
+        ActiveRecord::Errors.register(/FOREIGN KEY constraint failed/i, InvalidForeignKey, adapter: self)
+        ActiveRecord::Errors.register(/called on a closed database/i, ConnectionNotEstablished, adapter: self)
 
         COLLATE_REGEX = /.*"(\w+)".*collate\s+"(\w+)".*/i
         PRIMARY_KEY_AUTOINCREMENT_REGEX = /.*"(\w+)".+PRIMARY KEY AUTOINCREMENT/i

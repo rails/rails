@@ -100,7 +100,7 @@ module ActiveRecord
         end
       end
 
-      def self.error_number(exception)
+      def error_number(exception)
         exception.error_number if exception.respond_to?(:error_number)
       end
 
@@ -163,19 +163,9 @@ module ActiveRecord
           any_raw_connection.server_info[:version]
         end
 
-        def translate_exception(exception, message:, sql:, binds:)
-          if exception.is_a?(::Mysql2::Error::TimeoutError) && !exception.error_number
-            ActiveRecord::AdapterTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          elsif exception.is_a?(::Mysql2::Error::ConnectionError)
-            if exception.message.match?(/MySQL client is not connected/i)
-              ActiveRecord::ConnectionNotEstablished.new(exception, connection_pool: @pool)
-            else
-              ActiveRecord::ConnectionFailed.new(message, sql: sql, binds: binds, connection_pool: @pool)
-            end
-          else
-            super
-          end
-        end
+        ActiveRecord::Errors.register((e) -> { e.is_a?(::Mysql2::Error::TimeoutError) && !e.error_number }, ActiveRecord::AdapterTimeout, adapter: self)
+        ActiveRecord::Errors.register((e) -> { e.is_a?(::Mysql2::Error::ConnectionError) && exception.message.match?(/MySQL client is not connected/i) }, ActiveRecord::ConnectionNotEstablished, adapter: self)
+        ActiveRecord::Errors.register((e) -> { e.is_a?(::Mysql2::Error::ConnectionError) && !exception.message.match?(/MySQL client is not connected/i) }, ActiveRecord::ConnectionFailed, adapter: self)
 
         def default_prepared_statements
           false
