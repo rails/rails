@@ -22,7 +22,12 @@ class ActiveRecordErrorsTest < ActiveRecord::TestCase
   end
 
   def setup
+    @current_registry = ActiveRecord::Errors.registry
     ActiveRecord::Errors.registry = {}
+  end
+
+  def teardown
+    ActiveRecord::Errors.registry = @current_registry
   end
 
   def test_lookup_proc
