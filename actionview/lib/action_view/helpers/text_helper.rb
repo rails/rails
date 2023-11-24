@@ -343,9 +343,11 @@ module ActionView
       #
       #
       #   # Cycle CSS classes for rows, and text colors for values within each row
-      #   @items = x = [{first: 'Robert', middle: 'Daniel', last: 'James'},
-      #                {first: 'Emily', middle: 'Shannon', maiden: 'Pike', last: 'Hicks'},
-      #               {first: 'June', middle: 'Dae', last: 'Jones'}]
+      #   @items = [
+      #     { first: "Robert", middle: "Daniel", last: "James" },
+      #     { first: "Emily", middle: "Shannon", maiden: "Pike", last: "Hicks" },
+      #     { first: "June", middle: "Dae", last: "Jones" },
+      #   ]
       #   <% @items.each do |item| %>
       #     <tr class="<%= cycle("odd", "even", name: "row_class") -%>">
       #       <td>
