@@ -46,17 +46,20 @@ module ActionView
       # output text within a non-output code block (i.e., <tt><% %></tt>), you
       # can use the +concat+ method.
       #
-      #   <%
-      #       concat "hello"
-      #       # is the equivalent of <%= "hello" %>
+      #   <% concat "hello" %> is equivalent to <%= "hello" %>
       #
-      #       if logged_in
-      #         concat "Logged in!"
-      #       else
-      #         concat link_to('login', action: :login)
-      #       end
-      #       # will either display "Logged in!" or a login link
+      #   <%
+      #      unless signed_in?
+      #        concat link_to("Sign In", action: :sign_in)
+      #      end
       #   %>
+      #
+      #   is equivalent to
+      #
+      #   <% unless signed_in? %>
+      #     <%= link_to "Sign In", action: :sign_in %>
+      #   <% end %>
+      #
       def concat(string)
         output_buffer << string
       end
