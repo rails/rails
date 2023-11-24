@@ -114,25 +114,25 @@ module ActionView
       # for <tt>:sanitize</tt> will turn sanitizing off.
       #
       #   highlight('You searched for: rails', 'rails')
-      #   # => You searched for: <mark>rails</mark>
+      #   # => "You searched for: <mark>rails</mark>"
       #
       #   highlight('You searched for: rails', /for|rails/)
-      #   # => You searched <mark>for</mark>: <mark>rails</mark>
+      #   # => "You searched <mark>for</mark>: <mark>rails</mark>"
       #
       #   highlight('You searched for: ruby, rails, dhh', 'actionpack')
-      #   # => You searched for: ruby, rails, dhh
+      #   # => "You searched for: ruby, rails, dhh"
       #
       #   highlight('You searched for: rails', ['for', 'rails'], highlighter: '<em>\1</em>')
-      #   # => You searched <em>for</em>: <em>rails</em>
+      #   # => "You searched <em>for</em>: <em>rails</em>"
       #
       #   highlight('You searched for: rails', 'rails', highlighter: '<a href="search?q=\1">\1</a>')
-      #   # => You searched for: <a href="search?q=rails">rails</a>
+      #   # => "You searched for: <a href=\"search?q=rails\">rails</a>"
       #
       #   highlight('You searched for: rails', 'rails') { |match| link_to(search_path(q: match, match)) }
-      #   # => You searched for: <a href="search?q=rails">rails</a>
+      #   # => "You searched for: <a href=\"search?q=rails\">rails</a>"
       #
       #   highlight('<a href="javascript:alert(\'no!\')">ruby</a> on rails', 'rails', sanitize: false)
-      #   # => <a href="javascript:alert('no!')">ruby</a> on <mark>rails</mark>
+      #   # => "<a href=\"javascript:alert('no!')\">ruby</a> on <mark>rails</mark>"
       def highlight(text, phrases, options = {}, &block)
         text = sanitize(text) if options.fetch(:sanitize, true)
 
@@ -160,22 +160,22 @@ module ActionView
       # isn't found, +nil+ is returned.
       #
       #   excerpt('This is an example', 'an', radius: 5)
-      #   # => ...s is an exam...
+      #   # => "...s is an exam..."
       #
       #   excerpt('This is an example', 'is', radius: 5)
-      #   # => This is a...
+      #   # => "This is a..."
       #
       #   excerpt('This is an example', 'is')
-      #   # => This is an example
+      #   # => "This is an example"
       #
       #   excerpt('This next thing is an example', 'ex', radius: 2)
-      #   # => ...next...
+      #   # => "...next..."
       #
       #   excerpt('This is also an example', 'an', radius: 8, omission: '<chop> ')
-      #   # => <chop> is also an example
+      #   # => "<chop> is also an example"
       #
       #   excerpt('This is a very beautiful morning', 'very', separator: ' ', radius: 1)
-      #   # => ...a very beautiful...
+      #   # => "...a very beautiful..."
       def excerpt(text, phrase, options = {})
         return unless text && phrase
 
@@ -218,19 +218,19 @@ module ActionView
       # See ActiveSupport::Inflector.pluralize
       #
       #   pluralize(1, 'person')
-      #   # => 1 person
+      #   # => "1 person"
       #
       #   pluralize(2, 'person')
-      #   # => 2 people
+      #   # => "2 people"
       #
       #   pluralize(3, 'person', plural: 'users')
-      #   # => 3 users
+      #   # => "3 users"
       #
       #   pluralize(0, 'person')
-      #   # => 0 people
+      #   # => "0 people"
       #
       #   pluralize(2, 'Person', locale: :de)
-      #   # => 2 Personen
+      #   # => "2 Personen"
       def pluralize(count, singular, plural_arg = nil, plural: plural_arg, locale: I18n.locale)
         word = if count == 1 || count.to_s.match?(/^1(\.0+)?$/)
           singular
@@ -246,21 +246,21 @@ module ActionView
       # (which is 80 by default).
       #
       #   word_wrap('Once upon a time')
-      #   # => Once upon a time
+      #   # => "Once upon a time"
       #
       #   word_wrap('Once upon a time, in a kingdom called Far Far Away, a king fell ill, and finding a successor to the throne turned out to be more trouble than anyone could have imagined...')
-      #   # => Once upon a time, in a kingdom called Far Far Away, a king fell ill, and finding\na successor to the throne turned out to be more trouble than anyone could have\nimagined...
+      #   # => "Once upon a time, in a kingdom called Far Far Away, a king fell ill, and finding\na successor to the throne turned out to be more trouble than anyone could have\nimagined..."
       #
       #   word_wrap('Once upon a time', line_width: 8)
-      #   # => Once\nupon a\ntime
+      #   # => "Once\nupon a\ntime"
       #
       #   word_wrap('Once upon a time', line_width: 1)
-      #   # => Once\nupon\na\ntime
+      #   # => "Once\nupon\na\ntime"
       #
       # You can also specify a custom +break_sequence+ ("\n" by default):
       #
       #   word_wrap('Once upon a time', line_width: 1, break_sequence: "\r\n")
-      #   # => Once\r\nupon\r\na\r\ntime
+      #   # => "Once\r\nupon\r\na\r\ntime"
       def word_wrap(text, line_width: 80, break_sequence: "\n")
         text.split("\n").collect! do |line|
           line.length > line_width ? line.gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1#{break_sequence}").rstrip : line
