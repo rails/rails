@@ -137,6 +137,10 @@ module ActiveRecord
         end
       end
 
+      def error_number(exception)
+        exception.error_code if exception.respond_to?(:error_code)
+      end
+
       private
         def text_type?(type)
           TYPE_MAP.lookup(type).is_a?(Type::String) || TYPE_MAP.lookup(type).is_a?(Type::Text)
@@ -157,10 +161,6 @@ module ActiveRecord
           end
 
           nil
-        end
-
-        def error_number(exception)
-          exception.error_code if exception.respond_to?(:error_code)
         end
 
         def connection
@@ -198,7 +198,7 @@ module ActiveRecord
         ActiveRecord::Errors.register(->(e) { e.is_a?(Errno::EPIPE) }, ConnectionFailed, adapter: self)
         ActiveRecord::Errors.register(->(e) { e.is_a?(SocketError) }, ConnectionFailed, adapter: self)
         ActiveRecord::Errors.register(->(e) { e.is_a?(IOError) }, ConnectionFailed, adapter: self)
-        ActiveRecord::Errors.register(->(e) { e.is_a?(::Trilogy::Error) && /Connection reset by peer|TRILOGY_CLOSED_CONNECTION|TRILOGY_INVALID_SEQUENCE_ID|TRILOGY_UNEXPECTED_PACKET/.match?(exception.message) }, ConnectionFailed, adapter: self)
+        ActiveRecord::Errors.register(->(e) { e.is_a?(::Trilogy::Error) && /Connection reset by peer|TRILOGY_CLOSED_CONNECTION|TRILOGY_INVALID_SEQUENCE_ID|TRILOGY_UNEXPECTED_PACKET/.match?(e.message) }, ConnectionFailed, adapter: self)
 
         def default_prepared_statements
           false

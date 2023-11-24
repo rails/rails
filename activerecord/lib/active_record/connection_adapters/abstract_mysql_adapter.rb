@@ -773,8 +773,10 @@ module ActiveRecord
         end
 
         # See https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html
+        ER_FILSORT_ABORT        = 1028
         ER_CANNOT_ADD_FOREIGN   = 1215
         ER_CANNOT_CREATE_TABLE  = 1005
+        ER_QUERY_TIMEOUT        = 3024
         ER_FK_INCOMPATIBLE_COLUMNS = 3780
 
         ActiveRecord::Errors.register(/MySQL client is not connected/i, ConnectionNotEstablished, adapter: self)

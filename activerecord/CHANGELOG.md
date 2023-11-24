@@ -1,3 +1,13 @@
+*   Introduce `ActiveRecord::Errors` registry for all adapter specific error translations. Adds
+    support for custom error translations when using custom errors from databases, like
+    the PostgreSQL `RAISE` statement.
+
+    ```ruby
+    ActiveRecord::Errors.register("MY0001", MyCustomException, adapter: ActiveRecord::ConnectionAdapters::PostgreSQL)
+    ```
+
+    *Edwin Vlieg*
+
 *   In cases where MySQL returns `warning_count` greater than zero, but returns no warnings when
     the `SHOW WARNINGS` query is executed, `ActiveRecord.db_warnings_action` proc will still be
     called with a generic warning message rather than silently ignoring the warning(s).
