@@ -41,9 +41,10 @@ module ActionView
       include OutputSafetyHelper
 
       # The preferred method of outputting text in your views is to use the
-      # <%= "text" %> eRuby syntax. The regular _puts_ and _print_ methods
+      # <tt><%= "text" %></tt> eRuby syntax. The regular +puts+ and +print+ methods
       # do not operate as expected in an eRuby code block. If you absolutely must
-      # output text within a non-output code block (i.e., <% %>), you can use the concat method.
+      # output text within a non-output code block (i.e., <tt><% %></tt>), you
+      # can use the +concat+ method.
       #
       #   <%
       #       concat "hello"
@@ -110,7 +111,7 @@ module ActionView
       # Highlights one or more +phrases+ everywhere in +text+ by inserting it into
       # a <tt>:highlighter</tt> string. The highlighter can be specialized by passing <tt>:highlighter</tt>
       # as a single-quoted string with <tt>\1</tt> where the phrase is to be inserted (defaults to
-      # <tt><mark>\1</mark></tt>) or passing a block that receives each matched term. By default +text+
+      # <tt>"<mark>\1</mark>"</tt>) or passing a block that receives each matched term. By default +text+
       # is sanitized to prevent possible XSS attacks. If the input is trustworthy, passing false
       # for <tt>:sanitize</tt> will turn sanitizing off.
       #
@@ -215,7 +216,7 @@ module ActionView
       # Attempts to pluralize the +singular+ word unless +count+ is 1. If
       # +plural+ is supplied, it will use that when count is > 1, otherwise
       # it will use the Inflector to determine the plural form for the given locale,
-      # which defaults to I18n.locale
+      # which defaults to +I18n.locale+.
       #
       # The word will be pluralized using rules defined for the locale
       # (you must define your own inflection rules for languages other than English).
@@ -336,7 +337,7 @@ module ActionView
         end
       end
 
-      # Creates a Cycle object whose _to_s_ method cycles through elements of an
+      # Creates a Cycle object whose +to_s+ method cycles through elements of an
       # array every time it is called. This can be used for example, to alternate
       # classes for table rows. You can use named cycles to allow nesting in loops.
       # Passing a Hash as the last parameter with a <tt>:name</tt> key will create a
