@@ -771,9 +771,9 @@ function start() {
 }
 
 function didClick(event) {
-  const submitButton = event.target.closest(":is(button, input)[type='submit']");
-  if (submitButton && submitButton.form) {
-    submitButtonsByForm.set(submitButton.form, submitButton);
+  const button = event.target.closest("button, input");
+  if (button && button.type === "submit" && button.form) {
+    submitButtonsByForm.set(button.form, button);
   }
 }
 
