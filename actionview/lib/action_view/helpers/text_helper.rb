@@ -261,7 +261,7 @@ module ActionView
       #   word_wrap('Once upon a time', line_width: 1)
       #   # => Once\nupon\na\ntime
       #
-      #   You can also specify a custom +break_sequence+ ("\n" by default)
+      # You can also specify a custom +break_sequence+ ("\n" by default):
       #
       #   word_wrap('Once upon a time', line_width: 1, break_sequence: "\r\n")
       #   # => Once\r\nupon\r\na\r\ntime
