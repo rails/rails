@@ -21,19 +21,15 @@ module ActiveRecord
       def lookup(adapter:, exception:)
         error_number = adapter.error_number(exception) if adapter.respond_to?(:error_number)
 
-        for_adapter(adapter)&.last&.find do |matcher, klass|
-          if matcher.respond_to?(:call) && matcher.call(exception)
-            klass
-          elsif matcher.kind_of?(Regexp) && (matcher.match?(exception.message) || matcher.match?(error_number))
-            klass
-          elsif matcher == exception.message || matcher == error_number
-            klass
-          end
+        for_adapter(adapter).find do |matcher, klass|
+          (matcher.respond_to?(:call) && matcher.call(exception)) ||
+            (matcher.kind_of?(Regexp) && (matcher.match?(exception.message) || matcher.match?(error_number))) ||
+            matcher == exception.message || matcher == error_number
         end&.last
       end
 
       def for_adapter(adapter)
-        @registry.find { |adapter_class, errors| adapter.kind_of?(adapter_class) }
+        @registry.find { |adapter_class, errors| adapter.kind_of?(adapter_class) }&.last || {}
       end
     end
   end

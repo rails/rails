@@ -21,6 +21,10 @@ class ActiveRecordErrorsTest < ActiveRecord::TestCase
   class SubclassedFakeAdapter < FakeAdapter
   end
 
+  def setup
+    ActiveRecord::Errors.registry = {}
+  end
+
   def test_lookup_proc
     ActiveRecord::Errors.register(->(e) { e.message == "0001" }, ActiveRecord::StatementInvalid, adapter: FakeAdapter)
 
