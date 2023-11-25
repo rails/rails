@@ -667,6 +667,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_equal 1, @bundle_commands.count("install")
   end
 
+  def test_generation_runs_bundle_lock_for_linux
+    generator([destination_root])
+    run_generator_instance
+
+    assert_not_empty @bundle_commands.grep(/\Alock --add-platform=\S+-linux/)
+  end
+
   def test_generation_use_original_bundle_environment
     generator([destination_root])
 
