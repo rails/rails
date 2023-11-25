@@ -61,6 +61,19 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert_same value, @cache.read("key")
   end
 
+  def test_write_with_unless_exist
+    assert_equal true, @cache.write(1, "aaaaaaaaaa")
+    assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
+    @cache.write(1, nil)
+    assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
+  end
+
+  def test_write_expired_value_with_unless_exist
+    assert_equal true, @cache.write(1, "aaaa", expires_in: 1.second)
+    travel 2.seconds
+    assert_equal true, @cache.write(1, "bbbb", expires_in: 1.second, unless_exist: true)
+  end
+
   private
     def compression_always_disabled_by_default?
       true
@@ -186,18 +199,5 @@ class MemoryStorePruningTest < ActiveSupport::TestCase
     read_item = @cache.read(key)
     assert_not_equal item.object_id, read_item.object_id
     assert_not_equal read_item.object_id, @cache.read(key).object_id
-  end
-
-  def test_write_with_unless_exist
-    assert_equal true, @cache.write(1, "aaaaaaaaaa")
-    assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
-    @cache.write(1, nil)
-    assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
-  end
-
-  def test_write_expired_value_with_unless_exist
-    assert_equal true, @cache.write(1, "aaaa", expires_in: 1.second)
-    travel 2.seconds
-    assert_equal true, @cache.write(1, "bbbb", expires_in: 1.second, unless_exist: true)
   end
 end
