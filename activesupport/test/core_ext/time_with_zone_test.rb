@@ -1255,9 +1255,10 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
     assert_match "invalid argument to TimeZone[]", error.message
   end
 
-  def test_find_zone_with_bang_doesnt_raises_with_nil_and_false
+  def test_find_zone_with_bang_doesnt_raises_with_non_present_argument
     assert_nil Time.find_zone!(nil)
-    assert_equal false, Time.find_zone!(false)
+    assert_nil Time.find_zone!(false)
+    assert_nil Time.find_zone!("")
   end
 
   def test_time_zone_setter_with_find_zone_without_bang
