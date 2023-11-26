@@ -160,7 +160,7 @@ class FileStoreTest < ActiveSupport::TestCase
   end
 
   private
-    def key_pattern(key, namespace: nil)
+    def key_pattern(key, namespace:)
       /.+\/#{Regexp.escape namespace.to_s}#{/%3A/i if namespace}#{Regexp.escape key}/
     end
 end
