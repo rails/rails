@@ -7,6 +7,8 @@ require_relative "../behaviors"
 class NullStoreTest < ActiveSupport::TestCase
   def setup
     @cache = ActiveSupport::Cache.lookup_store(:null_store)
+    @namespace = "test-#{Random.rand(16**32).to_s(16)}"
+    @namespaced_cache = ActiveSupport::Cache.lookup_store(:null_store, namespace: @namespace)
   end
 
   def test_clear
@@ -62,6 +64,17 @@ class NullStoreTest < ActiveSupport::TestCase
     assert_nil @cache.read("name")
   end
 
+  def test_namespaced_local_store_strategy
+    @namespaced_cache.with_local_cache do
+      @namespaced_cache.write("name", "value")
+      assert_equal "value", @namespaced_cache.read("name")
+      @namespaced_cache.delete("name")
+      assert_nil @namespaced_cache.read("name")
+      @namespaced_cache.write("name", "value")
+    end
+    assert_nil @namespaced_cache.read("name")
+  end
+
   def test_local_store_repeated_reads
     @cache.with_local_cache do
       @cache.read("foo")
@@ -69,6 +82,16 @@ class NullStoreTest < ActiveSupport::TestCase
 
       @cache.read_multi("foo", "bar")
       assert_equal({ "foo" => nil, "bar" => nil }, @cache.read_multi("foo", "bar"))
+    end
+  end
+
+  def test_namespaced_local_store_repeated_reads
+    @namespaced_cache.with_local_cache do
+      @namespaced_cache.read("foo")
+      assert_nil @namespaced_cache.read("foo")
+
+      @namespaced_cache.read_multi("foo", "bar")
+      assert_equal({ "foo" => nil, "bar" => nil }, @namespaced_cache.read_multi("foo", "bar"))
     end
   end
 end

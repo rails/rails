@@ -19,6 +19,8 @@ class FileStoreTest < ActiveSupport::TestCase
     @cache = lookup_store(expires_in: 60)
     @peek = lookup_store(expires_in: 60)
     @cache_with_pathname = lookup_store(cache_dir: Pathname.new(cache_dir), expires_in: 60)
+    @namespace = "test-#{Random.rand(16**32).to_s(16)}"
+    @namespaced_cache = lookup_store(expires_in: 60, namespace: @namespace)
 
     @buffer = StringIO.new
     @cache.logger = ActiveSupport::Logger.new(@buffer)
@@ -64,6 +66,11 @@ class FileStoreTest < ActiveSupport::TestCase
     assert_equal "views/index?id=1", @cache.send(:file_path_key, key)
   end
 
+  def test_namespaced_key_transformation
+    key = @namespaced_cache.send(:normalize_key, "views/index?id=1", {})
+    assert_equal "views/index?id=1", @namespaced_cache.send(:file_path_key, key)
+  end
+
   def test_key_transformation_with_pathname
     FileUtils.touch(File.join(cache_dir, "foo"))
     key = @cache_with_pathname.send(:normalize_key, "views/index?id=1", {})
@@ -87,6 +94,15 @@ class FileStoreTest < ActiveSupport::TestCase
   def test_key_transformation_max_filename_size
     key = "#{'A' * ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}B"
     path = @cache.send(:normalize_key, key, {})
+    assert path.split("/").all? { |dir_name| dir_name.size <= ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE }
+    assert_equal "B", File.basename(path)
+  end
+
+  # Because file systems have a maximum filename size, filenames > max size should be split in to directories
+  # If filename is 'AAAAB', where max size is 4, the returned path should be AAAA/B
+  def test_namespaced_key_transformation_max_filename_size
+    key = "#{'A' * ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}B"
+    path = @namespaced_cache.send(:normalize_key, key, {})
     assert path.split("/").all? { |dir_name| dir_name.size <= ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE }
     assert_equal "B", File.basename(path)
   end

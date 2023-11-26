@@ -7,6 +7,8 @@ require_relative "../behaviors"
 class MemoryStoreTest < ActiveSupport::TestCase
   def setup
     @cache = lookup_store(expires_in: 60)
+    @namespace = "test-#{Random.rand(16**32).to_s(16)}"
+    @namespaced_cache = lookup_store(expires_in: 60, namespace: @namespace)
   end
 
   def lookup_store(options = {})
@@ -66,6 +68,13 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
     @cache.write(1, nil)
     assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
+  end
+
+  def test_namespaced_write_with_unless_exist # namespaced_cache
+    assert_equal true, @namespaced_cache.write(1, "aaaaaaaaaa")
+    assert_equal false, @namespaced_cache.write(1, "aaaaaaaaaa", unless_exist: true)
+    @namespaced_cache.write(1, nil)
+    assert_equal false, @namespaced_cache.write(1, "aaaaaaaaaa", unless_exist: true)
   end
 
   def test_write_expired_value_with_unless_exist
