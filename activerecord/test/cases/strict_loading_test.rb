@@ -272,6 +272,26 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_strict_loading_sticks_between_reloads
+    dev = Developer.strict_loading.preload(:audit_logs).first
+
+    assert_nothing_raised do
+      dev.audit_logs.to_a
+    end
+
+    dev.reload
+
+    assert_nothing_raised do
+      dev.audit_logs.to_a
+    end
+
+    dev.reload
+
+    assert_nothing_raised do
+      dev.audit_logs.to_a
+    end
+  end
+
   def test_strict_loading_with_has_many_through_cascade_down_to_middle_records
     dev = Developer.first
     firm = Firm.create!(name: "NASA")

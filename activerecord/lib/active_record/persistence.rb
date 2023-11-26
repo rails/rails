@@ -1154,6 +1154,7 @@ module ActiveRecord
     def _find_record(options)
       all_queries = options ? options[:all_queries] : nil
       base = self.class.all(all_queries: all_queries).preload(strict_loaded_associations)
+      base = base.strict_loading if strict_loading?
 
       if options && options[:lock]
         base.lock(options[:lock]).find_by!(_in_memory_query_constraints_hash)
