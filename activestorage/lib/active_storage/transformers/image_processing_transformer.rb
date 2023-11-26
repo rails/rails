@@ -20,7 +20,7 @@ module ActiveStorage
           processor.
             source(file).
             loader(page: 0).
-            convert(format).
+            convert(reformat(format)).
             apply(operations).
             call
         end
@@ -104,6 +104,12 @@ module ActiveStorage
               validate_arg_hash(value)
             end
           end
+        end
+
+        def reformat(format)
+          return format unless ActiveStorage.variant_processor == :vips
+
+          { "jfif" => "jpg" }.fetch(format, format)
         end
     end
   end
