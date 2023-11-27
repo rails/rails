@@ -90,6 +90,26 @@ module Rails
             end
           end
 
+          test "change to trilogy" do
+            run_generator ["--to", "trilogy"]
+
+            assert_file("config/database.yml") do |content|
+              assert_match "adapter: trilogy", content
+              assert_match "database: tmp_production", content
+            end
+
+            assert_file("Gemfile") do |content|
+              assert_match "# Use trilogy as the database for Active Record", content
+              assert_match 'gem "trilogy", "~> 2.4"', content
+            end
+
+            assert_file("Dockerfile") do |content|
+              assert_match "build-essential git", content
+              assert_match "curl libvips", content
+              assert_no_match "default-libmysqlclient-dev", content
+            end
+          end
+
           test "change from versioned gem to other versioned gem" do
             run_generator ["--to", "sqlite3"]
             run_generator ["--to", "mysql", "--force"]
