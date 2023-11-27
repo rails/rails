@@ -102,7 +102,7 @@ class FileStoreTest < ActiveSupport::TestCase
   # If filename is 'AAAAB', where max size is 4, the returned path should be AAAA/B
   def test_namespaced_key_transformation_max_filename_size
     encoded_prefix = URI.encode_www_form_component("#{@namespace}:")
-    key = "#{'A' * (ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE-encoded_prefix.length)}B"
+    key = "#{'A' * (ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE - encoded_prefix.length)}B"
     path = @namespaced_cache.send(:normalize_key, key, {})
     assert path.split("/").all? { |dir_name| dir_name.size <= ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE }
     assert_equal "B", File.basename(path)

@@ -63,11 +63,11 @@ module CacheLoggingBehavior
 
   def test_write_multi_logging
     key = SecureRandom.uuid
-    assert_logs("Cache write_multi: 1 key(s)") { @cache.write_multi({"#{key}1" => 1}, namespace: nil) }
-    assert_logs("Cache write_multi: 2 key(s)") { @cache.write_multi({"#{key}1" => 1, "#{key}2" => 2}, namespace: nil) }
+    assert_logs("Cache write_multi: 1 key(s)") { @cache.write_multi({ "#{key}1" => 1 }, namespace: nil) }
+    assert_logs("Cache write_multi: 2 key(s)") { @cache.write_multi({ "#{key}1" => 1, "#{key}2" => 2 }, namespace: nil) }
 
-    assert_logs("Cache write_multi: 1 key(s)") { @cache.write_multi({"#{key}1" => 1}, namespace: "bar") }
-    assert_logs("Cache write_multi: 2 key(s)") { @cache.write_multi({"#{key}1" => 1, "#{key}2" => 2}, namespace: "bar") }
+    assert_logs("Cache write_multi: 1 key(s)") { @cache.write_multi({ "#{key}1" => 1 }, namespace: "bar") }
+    assert_logs("Cache write_multi: 2 key(s)") { @cache.write_multi({ "#{key}1" => 1, "#{key}2" => 2 }, namespace: "bar") }
   end
 
   def test_delete_multi_logging
