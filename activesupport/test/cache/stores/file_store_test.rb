@@ -68,7 +68,7 @@ class FileStoreTest < ActiveSupport::TestCase
 
   def test_namespaced_key_transformation
     key = @namespaced_cache.send(:normalize_key, "views/index?id=1", {})
-    assert_equal "views/index?id=1", @namespaced_cache.send(:file_path_key, key)
+    assert_equal "#{@namespace}:views/index?id=1", @namespaced_cache.send(:file_path_key, key)
   end
 
   def test_key_transformation_with_pathname
@@ -101,7 +101,8 @@ class FileStoreTest < ActiveSupport::TestCase
   # Because file systems have a maximum filename size, filenames > max size should be split in to directories
   # If filename is 'AAAAB', where max size is 4, the returned path should be AAAA/B
   def test_namespaced_key_transformation_max_filename_size
-    key = "#{'A' * ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}B"
+    encoded_prefix = URI.encode_www_form_component("#{@namespace}:")
+    key = "#{'A' * (ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE-encoded_prefix.length)}B"
     path = @namespaced_cache.send(:normalize_key, key, {})
     assert path.split("/").all? { |dir_name| dir_name.size <= ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE }
     assert_equal "B", File.basename(path)
