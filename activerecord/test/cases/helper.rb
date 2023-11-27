@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-Signal.trap(0) do
-  puts "Interrupted!"
+Signal.trap("TERM") do
+  puts "Terminated!"
   puts caller
 end
 
