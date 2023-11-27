@@ -14,7 +14,7 @@ module ActiveRecord
     #   class Person < ActiveRecord::Base
     #   end
     #
-    #   person = Person.create(name: "Alisson")
+    #   person = Person.create(name: "Allison")
     #   person.changed? # => false
     #
     # Change the name:
