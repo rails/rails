@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-Signal.trap(ENV["BUILDKITE_CANCEL_SIGNAL"] || "TERM") do
+Signal.trap(0) do
+  puts "Interrupted!"
   puts caller
 end
 
