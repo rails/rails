@@ -1,3 +1,9 @@
+*   The `bin/rails app:template` command will no longer add potentially unwanted
+    gem platforms via `bundle lock --add-platform=...` commands.
+
+    *Jonathan Hefner*
+
+
 ## Rails 7.1.2 (November 10, 2023) ##
 
 *   Fix running `db:system:change` when app has no Dockerfile.

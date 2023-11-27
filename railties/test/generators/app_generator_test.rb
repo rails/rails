@@ -1069,6 +1069,24 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_apply_rails_template_class_method_does_not_add_bundler_platforms
+    run_generator
+
+    FileUtils.cd(destination_root) do
+      FileUtils.touch("lib/template.rb")
+
+      generator_class.no_commands do
+        # There isn't an easy way to access the generator instance in order to
+        # assert that we don't run `bundle lock --add-platform`, so the
+        # following assertion assumes that the sole call to `bundle_command` is
+        # for `bundle install`.
+        assert_called_on_instance_of(generator_class, :bundle_command, times: 1) do
+          quietly { generator_class.apply_rails_template("lib/template.rb", destination_root) }
+        end
+      end
+    end
+  end
+
   def test_gitignore
     run_generator
 
