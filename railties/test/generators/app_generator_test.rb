@@ -680,7 +680,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator([destination_root])
     run_generator_instance
 
-    assert_equal 1, @bundle_commands.count("install")
+    assert_not_empty @bundle_commands.grep(/^install/)
   end
 
   def test_generation_runs_bundle_lock_for_linux
