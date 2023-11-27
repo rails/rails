@@ -210,7 +210,10 @@ module ActiveSupport
         def write_entry(key, entry, **options)
           payload = serialize_entry(entry, **options)
           synchronize do
-            return false if options[:unless_exist] && exist?(key)
+            if options[:unless_exist]
+              entry = read_entry(key, **options)
+              return false if entry && !entry.expired? && !entry.mismatched?(normalize_version(key, options))
+            end
 
             old_payload = @data[key]
             if old_payload
