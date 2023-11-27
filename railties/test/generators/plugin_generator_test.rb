@@ -244,7 +244,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_generation_runs_bundle_install
+  def test_generation_does_not_run_bundle_install
     generator([destination_root])
     run_generator_instance
 

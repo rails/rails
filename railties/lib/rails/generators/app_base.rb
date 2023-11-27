@@ -680,7 +680,7 @@ module Rails
       end
 
       def run_bundle
-        bundle_command("install", "BUNDLE_IGNORE_MESSAGES" => "1") if bundle_install?
+        bundle_command("install --quiet", "BUNDLE_IGNORE_MESSAGES" => "1") if bundle_install?
       end
 
       def run_javascript
