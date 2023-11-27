@@ -130,12 +130,26 @@ module ActionView
         end
       end
 
-      # Highlights one or more +phrases+ everywhere in +text+ by inserting it into
-      # a <tt>:highlighter</tt> string. The highlighter can be specialized by passing <tt>:highlighter</tt>
-      # as a single-quoted string with <tt>\1</tt> where the phrase is to be inserted (defaults to
-      # <tt>"<mark>\1</mark>"</tt>) or passing a block that receives each matched term. By default +text+
-      # is sanitized to prevent possible XSS attacks. If the input is trustworthy, passing false
-      # for <tt>:sanitize</tt> will turn sanitizing off.
+      # Highlights occurrences of +phrases+ in +text+ by formatting them with a
+      # highlighter string. +phrases+ can be one or more strings or regular
+      # expressions. The result will be marked HTML safe. By default, +text+ is
+      # sanitized before highlighting to prevent possible XSS attacks.
+      #
+      # If a block is specified, it will be used instead of the highlighter
+      # string. Each occurrence of a phrase will be passed to the block, and its
+      # return value will be inserted into the final result.
+      #
+      # ==== Options
+      #
+      # [+:highlighter+]
+      #   The highlighter string. Uses <tt>\1</tt> as the placeholder for a
+      #   phrase, similar to +String#sub+. Defaults to <tt>"<mark>\1</mark>"</tt>.
+      #   This option is ignored if a block is specified.
+      #
+      # [+:sanitize+]
+      #   Whether to sanitize +text+ before highlighting. Defaults to true.
+      #
+      # ==== Examples
       #
       #   highlight('You searched for: rails', 'rails')
       #   # => "You searched for: <mark>rails</mark>"
