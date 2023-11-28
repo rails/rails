@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "pp"
 require_relative "abstract_unit"
 require "active_support/ordered_options"
 
@@ -277,5 +278,47 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     object[:three] = "third value"
 
     assert_equal 3, object.count
+  end
+
+  def test_ordered_options_to_s
+    object = ActiveSupport::OrderedOptions.new
+    assert_equal "{}", object.to_s
+
+    object.one = "first value"
+    object[:two] = "second value"
+    object["three"] = "third value"
+
+    assert_equal "{:one=>\"first value\", :two=>\"second value\", :three=>\"third value\"}", object.to_s
+  end
+
+  def test_inheritable_options_to_s
+    object = ActiveSupport::InheritableOptions.new(one: "first value")
+    assert_equal "{:one=>\"first value\"}", object.to_s
+
+    object[:two] = "second value"
+    object["three"] = "third value"
+    assert_equal "{:one=>\"first value\", :two=>\"second value\", :three=>\"third value\"}", object.to_s
+  end
+
+  def test_odrered_options_pp
+    object = ActiveSupport::OrderedOptions.new
+    object.one = "first value"
+    object[:two] = "second value"
+    object["three"] = "third value"
+
+    io = StringIO.new
+    PP.pp(object, io)
+    assert_equal "{:one=>\"first value\", :two=>\"second value\", :three=>\"third value\"}\n", io.string
+  end
+
+  def test_inheritable_options_pp
+    object = ActiveSupport::InheritableOptions.new(one: "first value")
+    object[:two] = "second value"
+    object["three"] = "third value"
+    assert_equal "{:one=>\"first value\", :two=>\"second value\", :three=>\"third value\"}", object.to_s
+
+    io = StringIO.new
+    PP.pp(object, io)
+    assert_equal "{:one=>\"first value\", :two=>\"second value\", :three=>\"third value\"}\n", io.string
   end
 end

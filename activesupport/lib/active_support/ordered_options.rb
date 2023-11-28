@@ -116,6 +116,14 @@ module ActiveSupport
       "#<#{self.class.name} #{to_h.inspect}>"
     end
 
+    def to_s
+      to_h.to_s
+    end
+
+    def pretty_print(pp)
+      pp.pp_hash(to_h)
+    end
+
     alias_method :own_key?, :key?
     private :own_key?
 
