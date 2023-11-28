@@ -1,3 +1,8 @@
+*   Fix `:unless_exist` option for `MemoryStore#write` (et al) when using a
+    cache namespace.
+
+    *S. Brent Faulkner*
+
 *   Fix ActiveSupport::Deprecation to handle blaming generated code
 
     *Jean Boussier*, *fatkodima*
