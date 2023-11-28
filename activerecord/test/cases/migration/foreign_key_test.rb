@@ -519,7 +519,9 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
         if ActiveRecord::Base.connection.supports_deferrable_constraints?
           def test_deferrable_foreign_key
-            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", deferrable: :immediate
+            assert_queries_match(/\("id"\)\s+DEFERRABLE INITIALLY IMMEDIATE\W*\z/i) do
+              @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", deferrable: :immediate
+            end
 
             foreign_keys = @connection.foreign_keys("astronauts")
             assert_equal 1, foreign_keys.size
