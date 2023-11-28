@@ -139,7 +139,7 @@ module ActiveSupport
             local_entries = local_cache.read_multi_entries(keys_to_names.keys)
             local_entries.transform_keys! { |key| keys_to_names[key] }
             local_entries.transform_values! do |payload|
-              deserialize_entry(payload, raw: options[:raw])&.value
+              deserialize_entry(payload, **options)&.value
             end
             missed_names = names - local_entries.keys
 
