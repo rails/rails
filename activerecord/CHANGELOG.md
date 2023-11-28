@@ -1,3 +1,8 @@
+*   Allow using `object_id` as a database column name.
+    It was available before rails 7.1 and may be used as a part of polymorphic relationship to `object` where `object` can be any other database record.
+
+    *Mikhail Doronin*
+
 *   Fix `rails db:create:all` to not touch databases before they are created.
 
     *fatkodima*

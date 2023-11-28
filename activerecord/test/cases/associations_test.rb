@@ -1261,7 +1261,7 @@ class PreloaderTest < ActiveRecord::TestCase
     end
 
     assert_predicate author.association(:essay_category), :loaded?
-    assert categories.map(&:object_id).include?(author.essay_category.object_id)
+    assert categories.map(&:__id__).include?(author.essay_category.__id__)
   end
 
   def test_preload_with_only_some_records_available_with_through_associations
@@ -1307,7 +1307,7 @@ class PreloaderTest < ActiveRecord::TestCase
     end
 
     assert_predicate post.association(:author), :loaded?
-    assert_not_equal david.object_id, post.author.object_id
+    assert_not_equal david.__id__, post.author.__id__
   end
 
   def test_preload_with_available_records_queries_when_collection
@@ -1319,7 +1319,7 @@ class PreloaderTest < ActiveRecord::TestCase
     end
 
     assert_predicate post.association(:comments), :loaded?
-    assert_empty post.comments.map(&:object_id) & comments.map(&:object_id)
+    assert_empty post.comments.map(&:__id__) & comments.map(&:__id__)
   end
 
   def test_preload_with_available_records_queries_when_incomplete
