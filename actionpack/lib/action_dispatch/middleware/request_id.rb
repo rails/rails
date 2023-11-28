@@ -17,6 +17,8 @@ module ActionDispatch
   # The unique request id can be used to trace a request end-to-end and would typically end up being part of log files
   # from multiple pieces of the stack.
   class RequestId
+    RE = /[^\w\-@]/ # :nodoc:
+
     def initialize(app, header:)
       @app = app
       @header = header
@@ -31,7 +33,7 @@ module ActionDispatch
     private
       def make_request_id(request_id)
         if request_id.presence
-          request_id.gsub(/[^\w\-@]/, "").first(255)
+          request_id.gsub(RE, "").first(255)
         else
           internal_request_id
         end
