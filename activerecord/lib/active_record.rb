@@ -333,8 +333,19 @@ module ActiveRecord
   singleton_class.attr_accessor :run_after_transaction_callbacks_in_order_defined
   self.run_after_transaction_callbacks_in_order_defined = false
 
-  singleton_class.attr_accessor :commit_transaction_on_non_local_return
-  self.commit_transaction_on_non_local_return = false
+  def self.commit_transaction_on_non_local_return
+    ActiveRecord.deprecator.warn <<-WARNING.squish
+      `Rails.application.config.active_record.commit_transaction_on_non_local_return`
+      is deprecated and will be removed in Rails 7.3.
+    WARNING
+  end
+
+  def self.commit_transaction_on_non_local_return=(value)
+    ActiveRecord.deprecator.warn <<-WARNING.squish
+      `Rails.application.config.active_record.commit_transaction_on_non_local_return`
+      is deprecated and will be removed in Rails 7.3.
+    WARNING
+  end
 
   ##
   # :singleton-method: warn_on_records_fetched_greater_than
