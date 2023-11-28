@@ -589,18 +589,6 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
             assert_match %r{\s+add_foreign_key "astronauts", "rockets", deferrable: :immediate$}, output
           end
-
-          def test_deferrable_true_foreign_key
-            assert_deprecated(ActiveRecord.deprecator) do
-              @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", deferrable: true
-            end
-
-            foreign_keys = @connection.foreign_keys("astronauts")
-            assert_equal 1, foreign_keys.size
-
-            fk = foreign_keys.first
-            assert_equal :immediate, fk.deferrable
-          end
         end
 
         def test_does_not_create_foreign_keys_when_bypassed_by_config

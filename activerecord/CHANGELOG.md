@@ -1,3 +1,7 @@
+*   Remove deprecated support to pass `deferrable: true` to `add_foreign_key`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to quote `ActiveSupport::Duration`.
 
     *Rafael Mendonça França*

@@ -160,6 +160,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated support to quote `ActiveSupport::Duration`.
 
+*   Remove deprecated support to pass `deferrable: true` to `add_foreign_key`.
+
 ### Deprecations
 
 *   Deprecate `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
