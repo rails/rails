@@ -323,6 +323,10 @@ module Rails
           end
         when "7.2"
           load_defaults "7.1"
+
+          if respond_to?(:active_record)
+            active_record.validate_migration_timestamps = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

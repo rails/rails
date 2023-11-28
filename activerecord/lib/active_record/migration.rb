@@ -131,6 +131,16 @@ module ActiveRecord
     end
   end
 
+  class InvalidMigrationTimestampError < MigrationError # :nodoc:
+    def initialize(version = nil, name = nil)
+      if version && name
+        super("Invalid timestamp #{version} for migration file: #{name}.\nTimestamp should be in form YYYYMMDDHHMMSS.")
+      else
+        super("Invalid timestamp for migration. Timestamp should be in form YYYYMMDDHHMMSS.")
+      end
+    end
+  end
+
   class PendingMigrationError < MigrationError # :nodoc:
     include ActiveSupport::ActionableError
 
@@ -493,7 +503,11 @@ module ActiveRecord
   #
   #    20080717013526_your_migration_name.rb
   #
-  # The prefix is a generation timestamp (in UTC).
+  # The prefix is a generation timestamp (in UTC). Timestamps should not be
+  # modified manually. To validate that migration timestamps adhere to the
+  # format Active Record expects, you can use the following configuration option:
+  #
+  #    config.active_record.validate_migration_timestamps = true
   #
   # If you'd prefer to use numeric prefixes, you can turn timestamped migrations
   # off by setting:
@@ -1316,6 +1330,9 @@ module ActiveRecord
       migrations = migration_files.map do |file|
         version, name, scope = parse_migration_filename(file)
         raise IllegalMigrationNameError.new(file) unless version
+        if validate_timestamp? && !valid_migration_timestamp?(version)
+          raise InvalidMigrationTimestampError.new(version, name)
+        end
         version = version.to_i
         name = name.camelize
 
@@ -1331,6 +1348,9 @@ module ActiveRecord
       file_list = migration_files.filter_map do |file|
         version, name, scope = parse_migration_filename(file)
         raise IllegalMigrationNameError.new(file) unless version
+        if validate_timestamp? && !valid_migration_timestamp?(version)
+          raise InvalidMigrationTimestampError.new(version, name)
+        end
         version = schema_migration.normalize_migration_number(version)
         status = db_list.delete(version) ? "up" : "down"
         [status, version, (name + scope).humanize]
@@ -1373,6 +1393,22 @@ module ActiveRecord
 
       def parse_migration_filename(filename)
         File.basename(filename).scan(Migration::MigrationFilenameRegexp).first
+      end
+
+      def validate_timestamp?
+        ActiveRecord.timestamped_migrations && ActiveRecord.validate_migration_timestamps
+      end
+
+      def valid_migration_timestamp?(version)
+        timestamp = "#{version} UTC"
+        timestamp_format = "%Y%m%d%H%M%S %Z"
+        time = Time.strptime(timestamp, timestamp_format)
+
+        # Time.strptime will wrap if a day between 1-31 is specified, even if the day doesn't exist
+        # for the given month. Comparing against the original timestamp guards against this.
+        time.strftime(timestamp_format) == timestamp
+      rescue ArgumentError
+        false
       end
 
       def move(direction, steps)
