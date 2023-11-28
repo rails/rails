@@ -150,12 +150,6 @@ class RelationMergingTest < ActiveRecord::TestCase
       assert_queries_match(/WHERE \(#{Regexp.escape(author_id)} IN \('1'\)\)\z/) do
         assert_equal [david], only_david.merge(only_david)
       end
-
-      assert_queries_match(/WHERE \(#{Regexp.escape(author_id)} IN \('1'\)\)\z/) do
-        assert_deprecated(ActiveRecord.deprecator) do
-          assert_equal [david], only_david.merge(only_david, rewhere: true)
-        end
-      end
     else
       assert_queries_match(/WHERE \(#{Regexp.escape(author_id)} IN \(1\)\)\z/) do
         assert_equal [david], only_david.merge(only_david)

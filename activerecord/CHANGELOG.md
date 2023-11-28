@@ -1,3 +1,11 @@
+*   Remove deprecated behavior that would rollback a transaction block when exited using `return`, `break` or `throw`.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `Rails.application.config.active_record.commit_transaction_on_non_local_return`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to pass `rewhere` to `ActiveRecord::Relation#merge`.
 
     *Rafael Mendonça França*

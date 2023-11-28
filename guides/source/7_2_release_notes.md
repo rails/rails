@@ -164,9 +164,13 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated support to pass `rewhere` to `ActiveRecord::Relation#merge`.
 
+*   Remove deprecated behavior that would rollback a transaction block when exited using `return`, `break` or `throw`.
+
 ### Deprecations
 
 *   Deprecate `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
+
+*   Deprecate `Rails.application.config.active_record.commit_transaction_on_non_local_return`
 
 ### Notable changes
 
