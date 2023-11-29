@@ -2,6 +2,9 @@ name: rails-new-docker
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 env:
   APP_NAME: devrails
   APP_PATH: dev/devrails
