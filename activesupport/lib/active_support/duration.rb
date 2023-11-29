@@ -14,7 +14,7 @@ module ActiveSupport
   class Duration
     class Scalar < Numeric # :nodoc:
       attr_reader :value
-      delegate :to_i, :to_f, :to_s, to: :value
+      delegate :to_i, :to_f, :to_s, to: :@value
 
       def initialize(value)
         @value = value
@@ -220,6 +220,8 @@ module ActiveSupport
           end
         end
     end
+
+    delegate :to_f, :positive?, :negative?, :zero?, :abs, to: :@value, as: Integer
 
     def initialize(value, parts, variable = nil) # :nodoc:
       @value, @parts = value, parts
