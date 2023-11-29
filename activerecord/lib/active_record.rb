@@ -25,6 +25,7 @@
 
 require "active_support"
 require "active_support/rails"
+require "active_support/ordered_options"
 require "active_model"
 require "arel"
 require "yaml"
@@ -463,6 +464,34 @@ module ActiveRecord
   def self.marshalling_format_version=(value)
     Marshalling.format_version = value
   end
+
+  ##
+  # :singleton-method:
+  # Provides a mapping between database protocols/DBMSs and the
+  # underlying database adapter to be used. This is used only by the
+  # <tt>DATABASE_URL</tt> environment variable.
+  #
+  # == Example
+  #
+  #   DATABASE_URL="mysql://myuser:mypass@localhost/somedatabase"
+  #
+  # The above URL specifies that MySQL is the desired protocol/DBMS, and the
+  # application configuration can then decide which adapter to use. For this example
+  # the default mapping is from <tt>mysql</tt> to <tt>mysql2</tt>, but <tt>:trilogy</tt>
+  # is also supported.
+  #
+  #   ActiveRecord.protocol_adapters.mysql = "mysql2"
+  #
+  # The protocols names are arbitrary, and external database adapters can be
+  # registered and set here.
+  singleton_class.attr_accessor :protocol_adapters
+  self.protocol_adapters = ActiveSupport::InheritableOptions.new(
+    {
+      sqlite: "sqlite3",
+      mysql: "mysql2",
+      postgres: "postgresql",
+    }
+  )
 
   def self.eager_load!
     super
