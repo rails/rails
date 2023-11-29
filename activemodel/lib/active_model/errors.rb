@@ -63,6 +63,7 @@ module ActiveModel
 
     extend Forwardable
 
+    ##
     # :method: each
     #
     # :call-seq: each(&block)
@@ -74,6 +75,31 @@ module ActiveModel
     #     # Will yield <#ActiveModel::Error attribute=name, type=too_short,
     #                                       options={:count=>3}>
     #   end
+
+    ##
+    # :method: clear
+    #
+    # :call-seq: clear
+    #
+    # Clears all errors. Clearing the errors does not, however, make the model
+    # valid. The next time the validations are run (for example, via
+    # ActiveRecord::Validations#valid?), the errors collection will be filled
+    # again if any validations fail.
+
+    ##
+    # :method: empty?
+    #
+    # :call-seq: empty?
+    #
+    # Returns true if there are no errors.
+
+    ##
+    # :method: size
+    #
+    # :call-seq: size
+    #
+    # Returns number of errors.
+
     def_delegators :@errors, :each, :clear, :empty?, :size, :uniq!
 
     # The actual array of +Error+ objects
