@@ -15,7 +15,8 @@ module Rails
   # feature and application sharing.
   #
   # Any <tt>Rails::Engine</tt> is also a Rails::Railtie, so the same
-  # methods (like <tt>rake_tasks</tt> and +generators+) and configuration
+  # methods (like {rake_tasks}[rdoc-ref:Rails::Railtie::rake_tasks] and
+  # {generators}[rdoc-ref:Rails::Railtie::generators]) and configuration
   # options that are available in railties can also be used in engines.
   #
   # == Creating an Engine
@@ -116,7 +117,7 @@ module Rails
   # An engine can also be a Rack application. It can be useful if you have a Rack application that
   # you would like to provide with some of the +Engine+'s features.
   #
-  # To do that, use the +endpoint+ method:
+  # To do that, use the ::endpoint method:
   #
   #   module MyEngine
   #     class Engine < Rails::Engine
@@ -197,7 +198,7 @@ module Rails
   # named routes from the application will be available to your engine's controllers as well.
   #
   # However, sometimes you want to isolate your engine from the application, especially if your engine
-  # has its own router. To do that, you simply need to call +isolate_namespace+. This method requires
+  # has its own router. To do that, you simply need to call ::isolate_namespace. This method requires
   # you to pass a module where all your controllers, helpers, and models should be nested to:
   #
   #   module MyEngine
