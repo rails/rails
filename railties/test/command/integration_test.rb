@@ -3,7 +3,7 @@
 require "isolation/abstract_unit"
 require "rails/command"
 
-class Rails::Command::HelpIntegrationTest < ActiveSupport::TestCase
+class Rails::Command::IntegrationTest < ActiveSupport::TestCase
   setup :build_app
   teardown :teardown_app
 
@@ -28,6 +28,35 @@ class Rails::Command::HelpIntegrationTest < ActiveSupport::TestCase
 
     assert_match "MY_TASK already defined? => false", output
     assert_no_match "MY_TASK already defined? => true", output
+  end
+
+  test "loads app command files only once on unrecognized command" do
+    app_file "lib/commands/my_command.rb", <<~RUBY
+      puts "MY_COMMAND already defined? => \#{!!defined?(MY_COMMAND)}"
+      MY_COMMAND = true
+    RUBY
+
+    output = rails "vershen", allow_failure: true
+
+    assert_match "MY_COMMAND already defined? => false", output
+    assert_no_match "MY_COMMAND already defined? => true", output
+  end
+
+  test "loads app command files from lib/commands" do
+    app_file "lib/commands/custom_command.rb", <<~RUBY
+      class Rails::Command::CustomCommand < Rails::Command::Base
+        desc "custom", "Custom command"
+        def perform
+          puts "Performed custom command"
+        end
+      end
+    RUBY
+
+    help_output = rails "help", allow_failure: true
+    assert_match "Custom command", help_output
+
+    command_output = rails "custom", allow_failure: true
+    assert_match "Performed custom command", command_output
   end
 
   test "prints help via `X:help` command when running `X` and `X:X` command is not defined" do

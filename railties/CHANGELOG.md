@@ -1,3 +1,8 @@
+*   Allow custom Thor commands to load from `lib/commands` by ensuring `lib`
+    is added to the $LOAD_PATH before looking up commands.
+
+    *Ben Sheldon*
+
 *   Add sessions generator to give a basic start to an authentication system using database-tracked sessions.
 
 
