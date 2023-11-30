@@ -3107,31 +3107,6 @@ module ApplicationTests
       assert_includes ActiveJob::Serializers.serializers, DummySerializer
     end
 
-    test "use_big_decimal_serializer is enabled in new apps" do
-      app "development"
-
-      assert ActiveJob.use_big_decimal_serializer, "use_big_decimal_serializer should be enabled in new apps"
-    end
-
-    test "use_big_decimal_serializer is disabled if using defaults prior to 7.1" do
-      remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "7.0"'
-      app "development"
-
-      assert_not ActiveJob.use_big_decimal_serializer, "use_big_decimal_serializer should be disabled in defaults prior to 7.1"
-    end
-
-    test "use_big_decimal_serializer can be enabled in config" do
-      remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "7.0"'
-      app_file "config/initializers/new_framework_defaults_7_1.rb", <<-RUBY
-        Rails.application.config.active_job.use_big_decimal_serializer = true
-      RUBY
-      app "development"
-
-      assert ActiveJob.use_big_decimal_serializer, "use_big_decimal_serializer should be enabled if set in config"
-    end
-
     test "config.active_job.verbose_enqueue_logs defaults to true in development" do
       build_app
       app "development"
@@ -3149,7 +3124,7 @@ module ApplicationTests
     test "active record job queue is set" do
       app "development"
 
-      assert_equal ActiveSupport::InheritableOptions.new(destroy: :active_record_destroy), ActiveRecord.queues
+      assert_equal({}, ActiveRecord.queues)
     end
 
     test "destroy association async job should be loaded in configs" do

@@ -242,9 +242,21 @@ module ActionController
     #    config.action_controller.always_permitted_parameters = %w( controller action format )
     cattr_accessor :always_permitted_parameters, default: %w( controller action )
 
-    cattr_accessor :allow_deprecated_parameters_hash_equality, default: true, instance_accessor: false
-
     class << self
+      def allow_deprecated_parameters_hash_equality
+        ActionController.deprecator.warn <<-WARNING.squish
+          `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality` is
+          deprecated and will be removed in Rails 7.3.
+        WARNING
+      end
+
+      def allow_deprecated_parameters_hash_equality=(value)
+        ActionController.deprecator.warn <<-WARNING.squish
+          `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality`
+          is deprecated and will be removed in Rails 7.3.
+        WARNING
+      end
+
       def nested_attribute?(key, value) # :nodoc:
         /\A-?\d+\z/.match?(key) && (value.is_a?(Hash) || value.is_a?(Parameters))
       end
@@ -284,20 +296,7 @@ module ActionController
       if other.respond_to?(:permitted?)
         permitted? == other.permitted? && parameters == other.parameters
       else
-        if self.class.allow_deprecated_parameters_hash_equality && Hash === other
-          ActionController.deprecator.warn <<-WARNING.squish
-            Comparing equality between `ActionController::Parameters` and a
-            `Hash` is deprecated and will be removed in Rails 7.2. Please only do
-            comparisons between instances of `ActionController::Parameters`. If
-            you need to compare to a hash, first convert it using
-            `ActionController::Parameters#new`.
-            To disable the deprecated behavior set
-            `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality = false`.
-          WARNING
-          @parameters == other
-        else
-          super
-        end
+        super
       end
     end
 

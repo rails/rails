@@ -60,12 +60,10 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 7.1
 
-- [`config.action_controller.allow_deprecated_parameters_hash_equality`](#config-action-controller-allow-deprecated-parameters-hash-equality): `false`
 - [`config.action_dispatch.debug_exception_log_level`](#config-action-dispatch-debug-exception-log-level): `:error`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
 - [`config.action_text.sanitizer_vendor`](#config-action-text-sanitizer-vendor): `Rails::HTML::Sanitizer.best_supported_vendor`
 - [`config.action_view.sanitizer_vendor`](#config-action-view-sanitizer-vendor): `Rails::HTML::Sanitizer.best_supported_vendor`
-- [`config.active_job.use_big_decimal_serializer`](#config-active-job-use-big-decimal-serializer): `true`
 - [`config.active_record.allow_deprecated_singular_associations_name`](#config-active-record-allow-deprecated-singular-associations-name): `false`
 - [`config.active_record.before_committed_on_all_records`](#config-active-record-before-committed-on-all-records): `true`
 - [`config.active_record.belongs_to_required_validates_foreign_key`](#config-active-record-belongs-to-required-validates-foreign-key): `false`
@@ -1642,6 +1640,18 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `true`               |
 | 7.1                   | `false`              |
 
+#### `config.active_record.protocol_adapters`
+
+When using a URL to configure the database connection, this option provides a mapping from the protocol to the underlying
+database adapter. For example, this means the environment can specify `DATABASE_URL=mysql://localhost/database` and Rails will map
+`mysql` to the `mysql2` adapter, but the application can also override these mappings:
+
+```ruby
+config.active_record.protocol_adapters.mysql = "trilogy"
+```
+
+If no mapping is found, the protocol is used as the adapter name.
+
 ### Configuring Action Controller
 
 `config.action_controller` includes a number of configuration settings:
@@ -1789,18 +1799,6 @@ The default value depends on the `config.load_defaults` target version:
 
 Configures the [`ParamsWrapper`](https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html). This can be called at
 the top level, or on individual controllers.
-
-#### `config.action_controller.allow_deprecated_parameters_hash_equality`
-
-Controls behavior of `ActionController::Parameters#==` with `Hash` arguments.
-Value of the setting determines whether an `ActionController::Parameters` instance is equal to an equivalent `Hash`.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `true`               |
-| 7.1                   | `false`              |
 
 ### Configuring Action Dispatch
 
@@ -2028,7 +2026,7 @@ Accepts a logger conforming to the interface of Log4r or the default Ruby Logger
 
 #### `config.action_view.erb_trim_mode`
 
-Gives the trim mode to be used by ERB. It defaults to `'-'`, which turns on trimming of tail spaces and newline when using `<%= -%>` or `<%= =%>`. See the [Erubis documentation](http://www.kuwata-lab.com/erubis/users-guide.06.html#topics-trimspaces) for more information.
+Controls if certain ERB syntax should trim. It defaults to `'-'`, which turns on trimming of tail spaces and newline when using `<%= -%>` or `<%= =%>`. Setting this to anything else will turn off trimming support.
 
 #### `config.action_view.frozen_string_literal`
 
@@ -2675,24 +2673,6 @@ The default value depends on the `config.load_defaults` target version:
 Determines whether job context for query tags will be automatically updated via
 an `around_perform`. The default value is `true`.
 
-#### `config.active_job.use_big_decimal_serializer`
-
-Enables the new `BigDecimal` argument serializer, which guarantees
-roundtripping. Without this serializer, some queue adapters may serialize
-`BigDecimal` arguments as simple (non-roundtrippable) strings.
-
-WARNING: When deploying an application with multiple replicas, old (pre-Rails
-7.1) replicas will not be able to deserialize `BigDecimal` arguments from this
-serializer. Therefore, this setting should only be enabled after all replicas
-have been successfully upgraded to Rails 7.1.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `false`              |
-| 7.1                   | `true`               |
-
 ### Configuring Action Cable
 
 #### `config.action_cable.url`
@@ -2842,11 +2822,17 @@ config.active_storage.logger = ActiveSupport::Logger.new(STDOUT)
 
 Determines the default expiry of URLs generated by:
 
-* `ActiveStorage::Blob#url`
-* `ActiveStorage::Blob#service_url_for_direct_upload`
-* `ActiveStorage::Variant#url`
+* [`ActiveStorage::Blob#url`][]
+* [`ActiveStorage::Blob#service_url_for_direct_upload`][]
+* [`ActiveStorage::Preview#url`][]
+* [`ActiveStorage::Variant#url`][]
 
 The default is 5 minutes.
+
+[`ActiveStorage::Blob#url`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-url
+[`ActiveStorage::Blob#service_url_for_direct_upload`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-service_url_for_direct_upload
+[`ActiveStorage::Preview#url`]: https://api.rubyonrails.org/classes/ActiveStorage/Preview.html#method-i-url
+[`ActiveStorage::Variant#url`]: https://api.rubyonrails.org/classes/ActiveStorage/Variant.html#method-i-url
 
 #### `config.active_storage.urls_expire_in`
 
@@ -2975,6 +2961,10 @@ development:
 ```
 
 The `config/database.yml` file can contain ERB tags `<%= %>`. Anything in the tags will be evaluated as Ruby code. You can use this to pull out data from an environment variable or to perform calculations to generate the needed connection information.
+
+When using a `ENV['DATABASE_URL']` or a `url` key in your `config/database.yml` file, Rails allows mapping the protocol
+in the URL to a database adapter that can be configured from within the application. This allows the adapter to be configured
+without modifying the URL set in the deployment environment. See: [`config.active_record.protocol_adapters`](#config-active_record-protocol-adapters).
 
 
 TIP: You don't have to update the database configurations manually. If you look at the options of the application generator, you will see that one of the options is named `--database`. This option allows you to choose an adapter from a list of the most used relational databases. You can even run the generator repeatedly: `cd .. && rails new blog --database=mysql`. When you confirm the overwriting of the `config/database.yml` file, your application will be configured for MySQL instead of SQLite. Detailed examples of the common database connections are below.

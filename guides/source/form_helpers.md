@@ -262,7 +262,7 @@ Outputs:
 ```html
 <form action="/books/2_25" method="post" accept-charset="UTF-8" >
   <input name="authenticity_token" type="hidden" value="..." />
-  <input type="text" name="book[title]" id="book_title" value="My book" />
+  <input type="text" name="book[title]" id="book_title" value="Some book" />
   <input type="submit" name="commit" value="Update Book" data-disable-with="Update Book">
 </form>
 ```

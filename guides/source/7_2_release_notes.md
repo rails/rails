@@ -50,7 +50,21 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated constant `ActionDispatch::IllegalStateError`.
+
+*   Remove deprecated constant `AbstractController::Helpers::MissingHelperError`.
+
+*   Remove deprecated comparison between `ActionController::Parameters` and `Hash`.
+
+*   Remove deprecated `Rails.application.config.action_dispatch.return_only_request_media_type_on_content_type`.
+
+*   Remove deprecated `speaker`, `vibrate`, and `vr` permissions policy directives.
+
+*   Remove deprecated support to set `Rails.application.config.action_dispatch.show_exceptions` to `true` and `false`.
+
 ### Deprecations
+
+*   Deprecate `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality`.
 
 ### Notable changes
 
@@ -71,6 +85,10 @@ Action Mailer
 Please refer to the [Changelog][action-mailer] for detailed changes.
 
 ### Removals
+
+*   Remove deprecated `config.action_mailer.preview_path`.
+
+*   Remove deprecated params via `:args` for `assert_enqueued_email_with`.
 
 ### Deprecations
 
@@ -127,7 +145,15 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated primitive serializer for `BigDecimal` arguments.
+
+*   Remove deprecated support to set numeric values to `scheduled_at` attribute.
+
+*   Remove deprecated `:exponentially_longer` value for the `:wait` in `retry_on`.
+
 ### Deprecations
+
+*   Deprecate `Rails.application.config.active_job.use_big_decimal_serialize`.
 
 ### Notable changes
 

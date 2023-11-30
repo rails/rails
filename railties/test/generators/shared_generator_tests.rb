@@ -393,12 +393,18 @@ module SharedGeneratorTests
 
       generator(positional_args, option_args)
 
+      prerelease_commands = []
+      prerelease_command_rails_gems = []
       rails_gem_pattern = /^gem ["']rails["'], .+/
-      bundle_command_rails_gems = []
+
       @bundle_command_stub = -> (command, *) do
         @bundle_commands << command
-        assert_file File.expand_path("Gemfile", project_path) do |gemfile|
-          bundle_command_rails_gems << gemfile[rails_gem_pattern]
+
+        if command.start_with?("install", "exec rails")
+          prerelease_commands << command
+          assert_file File.expand_path("Gemfile", project_path) do |gemfile|
+            prerelease_command_rails_gems << gemfile[rails_gem_pattern]
+          end
         end
       end
 
@@ -408,13 +414,11 @@ module SharedGeneratorTests
       end
 
       assert_file File.expand_path("Gemfile", project_path) do |gemfile|
-        assert_equal "install", @bundle_commands[0]
-        assert_match "lock --add-platform", @bundle_commands[1]
+        assert_match %r/^install/, prerelease_commands[0]
+        assert_equal gemfile[rails_gem_pattern], prerelease_command_rails_gems[0]
 
-        assert_equal gemfile[rails_gem_pattern], bundle_command_rails_gems[0]
-
-        assert_match %r"^exec rails (?:plugin )?new #{Regexp.escape Shellwords.join(expected_args)}", @bundle_commands[2]
-        assert_equal gemfile[rails_gem_pattern], bundle_command_rails_gems[1]
+        assert_match %r/^exec rails (?:plugin )?new #{Regexp.escape Shellwords.join(expected_args)}/, prerelease_commands[1]
+        assert_equal gemfile[rails_gem_pattern], prerelease_command_rails_gems[1]
       end
     end
 

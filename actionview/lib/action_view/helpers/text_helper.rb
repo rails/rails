@@ -41,21 +41,25 @@ module ActionView
       include OutputSafetyHelper
 
       # The preferred method of outputting text in your views is to use the
-      # <%= "text" %> eRuby syntax. The regular _puts_ and _print_ methods
+      # <tt><%= "text" %></tt> eRuby syntax. The regular +puts+ and +print+ methods
       # do not operate as expected in an eRuby code block. If you absolutely must
-      # output text within a non-output code block (i.e., <% %>), you can use the concat method.
+      # output text within a non-output code block (i.e., <tt><% %></tt>), you
+      # can use the +concat+ method.
+      #
+      #   <% concat "hello" %> is equivalent to <%= "hello" %>
       #
       #   <%
-      #       concat "hello"
-      #       # is the equivalent of <%= "hello" %>
-      #
-      #       if logged_in
-      #         concat "Logged in!"
-      #       else
-      #         concat link_to('login', action: :login)
-      #       end
-      #       # will either display "Logged in!" or a login link
+      #      unless signed_in?
+      #        concat link_to("Sign In", action: :sign_in)
+      #      end
       #   %>
+      #
+      #   is equivalent to
+      #
+      #   <% unless signed_in? %>
+      #     <%= link_to "Sign In", action: :sign_in %>
+      #   <% end %>
+      #
       def concat(string)
         output_buffer << string
       end
@@ -64,17 +68,36 @@ module ActionView
         output_buffer.respond_to?(:safe_concat) ? output_buffer.safe_concat(string) : concat(string)
       end
 
-      # Truncates a given +text+ after a given <tt>:length</tt> if +text+ is longer than <tt>:length</tt>
-      # (defaults to 30). The last characters will be replaced with the <tt>:omission</tt> (defaults to "...")
-      # for a total length not exceeding <tt>:length</tt>.
+      # Truncates +text+ if it is longer than a specified +:length+. If +text+
+      # is truncated, an omission marker will be appended to the result for a
+      # total length not exceeding +:length+.
       #
-      # Pass a <tt>:separator</tt> to truncate +text+ at a natural break.
+      # You can also pass a block to render and append extra content after the
+      # omission marker when +text+ is truncated. However, this content _can_
+      # cause the total length to exceed +:length+ characters.
       #
-      # Pass a block if you want to show extra content when the text is truncated.
+      # The result will be escaped unless <tt>escape: false</tt> is specified.
+      # In any case, the result will be marked HTML-safe. Care should be taken
+      # if +text+ might contain HTML tags or entities, because truncation could
+      # produce invalid HTML, such as unbalanced or incomplete tags.
       #
-      # The result is marked as HTML-safe, but it is escaped by default, unless <tt>:escape</tt> is
-      # +false+. Care should be taken if +text+ contains HTML tags or entities, because truncation
-      # may produce invalid HTML (such as unbalanced or incomplete tags).
+      # ==== Options
+      #
+      # [+:length+]
+      #   The maximum number of characters that should be returned, excluding
+      #   any extra content from the block. Defaults to 30.
+      #
+      # [+:omission+]
+      #   The string to append after truncating. Defaults to  <tt>"..."</tt>.
+      #
+      # [+:separator+]
+      #   A string or regexp used to find a breaking point at which to truncate.
+      #   By default, truncation can occur at any character in +text+.
+      #
+      # [+:escape+]
+      #   Whether to escape the result. Defaults to true.
+      #
+      # ==== Examples
       #
       #   truncate("Once upon a time in a world far far away")
       #   # => "Once upon a time in a world..."
@@ -95,7 +118,7 @@ module ActionView
       #   # => "<p>Once upon a time in a wo..."
       #
       #   truncate("Once upon a time in a world far far away") { link_to "Continue", "#" }
-      #   # => "Once upon a time in a wo...<a href="#">Continue</a>"
+      #   # => "Once upon a time in a world...<a href=\"#\">Continue</a>"
       def truncate(text, options = {}, &block)
         if text
           length  = options.fetch(:length, 30)
@@ -110,30 +133,30 @@ module ActionView
       # Highlights one or more +phrases+ everywhere in +text+ by inserting it into
       # a <tt>:highlighter</tt> string. The highlighter can be specialized by passing <tt>:highlighter</tt>
       # as a single-quoted string with <tt>\1</tt> where the phrase is to be inserted (defaults to
-      # <tt><mark>\1</mark></tt>) or passing a block that receives each matched term. By default +text+
+      # <tt>"<mark>\1</mark>"</tt>) or passing a block that receives each matched term. By default +text+
       # is sanitized to prevent possible XSS attacks. If the input is trustworthy, passing false
       # for <tt>:sanitize</tt> will turn sanitizing off.
       #
       #   highlight('You searched for: rails', 'rails')
-      #   # => You searched for: <mark>rails</mark>
+      #   # => "You searched for: <mark>rails</mark>"
       #
       #   highlight('You searched for: rails', /for|rails/)
-      #   # => You searched <mark>for</mark>: <mark>rails</mark>
+      #   # => "You searched <mark>for</mark>: <mark>rails</mark>"
       #
       #   highlight('You searched for: ruby, rails, dhh', 'actionpack')
-      #   # => You searched for: ruby, rails, dhh
+      #   # => "You searched for: ruby, rails, dhh"
       #
       #   highlight('You searched for: rails', ['for', 'rails'], highlighter: '<em>\1</em>')
-      #   # => You searched <em>for</em>: <em>rails</em>
+      #   # => "You searched <em>for</em>: <em>rails</em>"
       #
       #   highlight('You searched for: rails', 'rails', highlighter: '<a href="search?q=\1">\1</a>')
-      #   # => You searched for: <a href="search?q=rails">rails</a>
+      #   # => "You searched for: <a href=\"search?q=rails\">rails</a>"
       #
       #   highlight('You searched for: rails', 'rails') { |match| link_to(search_path(q: match, match)) }
-      #   # => You searched for: <a href="search?q=rails">rails</a>
+      #   # => "You searched for: <a href=\"search?q=rails\">rails</a>"
       #
       #   highlight('<a href="javascript:alert(\'no!\')">ruby</a> on rails', 'rails', sanitize: false)
-      #   # => <a href="javascript:alert('no!')">ruby</a> on <mark>rails</mark>
+      #   # => "<a href=\"javascript:alert('no!')\">ruby</a> on <mark>rails</mark>"
       def highlight(text, phrases, options = {}, &block)
         text = sanitize(text) if options.fetch(:sanitize, true)
 
@@ -156,30 +179,45 @@ module ActionView
         end.html_safe
       end
 
-      # Extracts an excerpt from +text+ that matches the first instance of +phrase+.
-      # The <tt>:radius</tt> option expands the excerpt on each side of the first occurrence of +phrase+ by the number of characters
-      # defined in <tt>:radius</tt> (which defaults to 100). If the excerpt radius overflows the beginning or end of the +text+,
-      # then the <tt>:omission</tt> option (which defaults to "...") will be prepended/appended accordingly. Use the
-      # <tt>:separator</tt> option to choose the delimitation. The resulting string will be stripped in any case. If the +phrase+
-      # isn't found, +nil+ is returned.
+      # Extracts the first occurrence of +phrase+ plus surrounding text from
+      # +text+. An omission marker is prepended / appended if the start / end of
+      # the result does not coincide with the start / end of +text+. The result
+      # is always stripped in any case. Returns +nil+ if +phrase+ isn't found.
+      #
+      # ==== Options
+      #
+      # [+:radius+]
+      #   The number of characters (or tokens — see +:separator+ option) around
+      #   +phrase+ to include in the result. Defaults to 100.
+      #
+      # [+:omission+]
+      #   The marker to prepend / append when the start / end of the excerpt
+      #   does not coincide with the start / end of +text+. Defaults to
+      #   <tt>"..."</tt>.
+      #
+      # [+:separator+]
+      #   The separator between tokens to count for +:radius+. Defaults to
+      #   <tt>""</tt>, which treats each character as a token.
+      #
+      # ==== Examples
       #
       #   excerpt('This is an example', 'an', radius: 5)
-      #   # => ...s is an exam...
+      #   # => "...s is an exam..."
       #
       #   excerpt('This is an example', 'is', radius: 5)
-      #   # => This is a...
+      #   # => "This is a..."
       #
       #   excerpt('This is an example', 'is')
-      #   # => This is an example
+      #   # => "This is an example"
       #
       #   excerpt('This next thing is an example', 'ex', radius: 2)
-      #   # => ...next...
+      #   # => "...next..."
       #
       #   excerpt('This is also an example', 'an', radius: 8, omission: '<chop> ')
-      #   # => <chop> is also an example
+      #   # => "<chop> is also an example"
       #
       #   excerpt('This is a very beautiful morning', 'very', separator: ' ', radius: 1)
-      #   # => ...a very beautiful...
+      #   # => "...a very beautiful..."
       def excerpt(text, phrase, options = {})
         return unless text && phrase
 
@@ -215,26 +253,26 @@ module ActionView
       # Attempts to pluralize the +singular+ word unless +count+ is 1. If
       # +plural+ is supplied, it will use that when count is > 1, otherwise
       # it will use the Inflector to determine the plural form for the given locale,
-      # which defaults to I18n.locale
+      # which defaults to +I18n.locale+.
       #
       # The word will be pluralized using rules defined for the locale
       # (you must define your own inflection rules for languages other than English).
       # See ActiveSupport::Inflector.pluralize
       #
       #   pluralize(1, 'person')
-      #   # => 1 person
+      #   # => "1 person"
       #
       #   pluralize(2, 'person')
-      #   # => 2 people
+      #   # => "2 people"
       #
       #   pluralize(3, 'person', plural: 'users')
-      #   # => 3 users
+      #   # => "3 users"
       #
       #   pluralize(0, 'person')
-      #   # => 0 people
+      #   # => "0 people"
       #
       #   pluralize(2, 'Person', locale: :de)
-      #   # => 2 Personen
+      #   # => "2 Personen"
       def pluralize(count, singular, plural_arg = nil, plural: plural_arg, locale: I18n.locale)
         word = if count == 1 || count.to_s.match?(/^1(\.0+)?$/)
           singular
@@ -250,21 +288,21 @@ module ActionView
       # (which is 80 by default).
       #
       #   word_wrap('Once upon a time')
-      #   # => Once upon a time
+      #   # => "Once upon a time"
       #
       #   word_wrap('Once upon a time, in a kingdom called Far Far Away, a king fell ill, and finding a successor to the throne turned out to be more trouble than anyone could have imagined...')
-      #   # => Once upon a time, in a kingdom called Far Far Away, a king fell ill, and finding\na successor to the throne turned out to be more trouble than anyone could have\nimagined...
+      #   # => "Once upon a time, in a kingdom called Far Far Away, a king fell ill, and finding\na successor to the throne turned out to be more trouble than anyone could have\nimagined..."
       #
       #   word_wrap('Once upon a time', line_width: 8)
-      #   # => Once\nupon a\ntime
+      #   # => "Once\nupon a\ntime"
       #
       #   word_wrap('Once upon a time', line_width: 1)
-      #   # => Once\nupon\na\ntime
+      #   # => "Once\nupon\na\ntime"
       #
-      #   You can also specify a custom +break_sequence+ ("\n" by default)
+      # You can also specify a custom +break_sequence+ ("\n" by default):
       #
       #   word_wrap('Once upon a time', line_width: 1, break_sequence: "\r\n")
-      #   # => Once\r\nupon\r\na\r\ntime
+      #   # => "Once\r\nupon\r\na\r\ntime"
       def word_wrap(text, line_width: 80, break_sequence: "\n")
         return +"" if text.empty?
 
@@ -336,7 +374,7 @@ module ActionView
         end
       end
 
-      # Creates a Cycle object whose _to_s_ method cycles through elements of an
+      # Creates a Cycle object whose +to_s+ method cycles through elements of an
       # array every time it is called. This can be used for example, to alternate
       # classes for table rows. You can use named cycles to allow nesting in loops.
       # Passing a Hash as the last parameter with a <tt>:name</tt> key will create a
@@ -345,8 +383,8 @@ module ActionView
       # and passing the name of the cycle. The current cycle string can be obtained
       # anytime using the current_cycle method.
       #
-      #   # Alternate CSS classes for even and odd numbers...
-      #   @items = [1,2,3,4]
+      #   <%# Alternate CSS classes for even and odd numbers... %>
+      #   <% @items = [1,2,3,4] %>
       #   <table>
       #   <% @items.each do |item| %>
       #     <tr class="<%= cycle("odd", "even") -%>">
@@ -356,10 +394,12 @@ module ActionView
       #   </table>
       #
       #
-      #   # Cycle CSS classes for rows, and text colors for values within each row
-      #   @items = x = [{first: 'Robert', middle: 'Daniel', last: 'James'},
-      #                {first: 'Emily', middle: 'Shannon', maiden: 'Pike', last: 'Hicks'},
-      #               {first: 'June', middle: 'Dae', last: 'Jones'}]
+      #   <%# Cycle CSS classes for rows, and text colors for values within each row %>
+      #   <% @items = [
+      #     { first: "Robert", middle: "Daniel", last: "James" },
+      #     { first: "Emily", middle: "Shannon", maiden: "Pike", last: "Hicks" },
+      #     { first: "June", middle: "Dae", last: "Jones" },
+      #   ] %>
       #   <% @items.each do |item| %>
       #     <tr class="<%= cycle("odd", "even", name: "row_class") -%>">
       #       <td>
@@ -390,8 +430,8 @@ module ActionView
       # for complex table highlighting or any other design need which requires
       # the current cycle string in more than one place.
       #
-      #   # Alternate background colors
-      #   @items = [1,2,3,4]
+      #   <%# Alternate background colors %>
+      #   <% @items = [1,2,3,4] %>
       #   <% @items.each do |item| %>
       #     <div style="background-color:<%= cycle("red","white","blue") %>">
       #       <span style="background-color:<%= current_cycle %>"><%= item %></span>
@@ -405,8 +445,8 @@ module ActionView
       # Resets a cycle so that it starts from the first element the next time
       # it is called. Pass in +name+ to reset a named cycle.
       #
-      #   # Alternate CSS classes for even and odd numbers...
-      #   @items = [[1,2,3,4], [5,6,3], [3,4,5,6,7,4]]
+      #   <%# Alternate CSS classes for even and odd numbers... %>
+      #   <% @items = [[1,2,3,4], [5,6,3], [3,4,5,6,7,4]] %>
       #   <table>
       #   <% @items.each do |item| %>
       #     <tr class="<%= cycle("even", "odd") -%>">

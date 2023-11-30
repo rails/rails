@@ -31,7 +31,11 @@
 # These libraries are not provided by \Rails. You must install them yourself to use the built-in previewers. Before you
 # install and use third-party software, make sure you understand the licensing implications of doing so.
 class ActiveStorage::Preview
+  include ActiveStorage::Blob::Servable
+
   class UnprocessedError < StandardError; end
+
+  delegate :filename, :content_type, to: :presentation
 
   attr_reader :blob, :variation
 
@@ -39,7 +43,7 @@ class ActiveStorage::Preview
     @blob, @variation = blob, ActiveStorage::Variation.wrap(variation_or_variation_key)
   end
 
-  # Processes the preview if it has not been processed yet. Returns the receiving Preview instance for convenience:
+  # Processes the preview if it has not been processed yet. Returns the receiving +ActiveStorage::Preview+ instance for convenience:
   #
   #   blob.preview(resize_to_limit: [100, 100]).processed.url
   #

@@ -750,7 +750,11 @@ module ActiveRecord
           return if ActiveRecord.db_warnings_action.nil? || @raw_connection.warning_count == 0
 
           @affected_rows_before_warnings = @raw_connection.affected_rows
+          warning_count = @raw_connection.warning_count
           result = @raw_connection.query("SHOW WARNINGS")
+          result = [
+            ["Warning", nil, "Query had warning_count=#{warning_count} but ‘SHOW WARNINGS’ did not return the warnings. Check MySQL logs or database configuration."],
+          ] if result.count == 0
           result.each do |level, code, message|
             warning = SQLWarning.new(message, code, level, sql, @pool)
             next if warning_ignored?(warning)

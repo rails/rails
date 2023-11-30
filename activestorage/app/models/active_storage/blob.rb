@@ -175,6 +175,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   include Analyzable
   include Identifiable
   include Representable
+  include Servable
 
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
   def signed_id(purpose: :blob_id, expires_in: nil, expires_at: nil)
@@ -243,16 +244,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
   # Returns a Hash of headers for +service_url_for_direct_upload+ requests.
   def service_headers_for_direct_upload
     service.headers_for_direct_upload key, filename: filename, content_type: content_type, content_length: byte_size, checksum: checksum, custom_metadata: custom_metadata
-  end
-
-  def content_type_for_serving # :nodoc:
-    forcibly_serve_as_binary? ? ActiveStorage.binary_content_type : content_type
-  end
-
-  def forced_disposition_for_serving # :nodoc:
-    if forcibly_serve_as_binary? || !allowed_inline?
-      :attachment
-    end
   end
 
 
@@ -371,14 +362,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
     def extract_content_type(io)
       Marcel::MimeType.for io, name: filename.to_s, declared_type: content_type
-    end
-
-    def forcibly_serve_as_binary?
-      ActiveStorage.content_types_to_serve_as_binary.include?(content_type)
-    end
-
-    def allowed_inline?
-      ActiveStorage.content_types_allowed_inline.include?(content_type)
     end
 
     def web_image?

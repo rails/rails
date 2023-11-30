@@ -379,29 +379,5 @@ class ExceptionsTest < ActiveSupport::TestCase
       ]
       assert_equal expected_array, JobBuffer.values.last(2)
     end
-
-    class ::LegacyExponentialNamingError < StandardError; end
-    test "wait: :exponentially_longer is deprecated but still works" do
-      assert_deprecated(ActiveJob.deprecator) do
-        class LegacyRetryJob < RetryJob
-          retry_on LegacyExponentialNamingError, wait: :exponentially_longer, attempts: 10, jitter: nil
-        end
-      end
-
-      travel_to Time.now
-      LegacyRetryJob.perform_later "LegacyExponentialNamingError", 5, :log_scheduled_at
-
-      assert_equal [
-        "Raised LegacyExponentialNamingError for the 1st time",
-        "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
-        "Raised LegacyExponentialNamingError for the 2nd time",
-        "Next execution scheduled at #{(Time.now + 18.seconds).to_f}",
-        "Raised LegacyExponentialNamingError for the 3rd time",
-        "Next execution scheduled at #{(Time.now + 83.seconds).to_f}",
-        "Raised LegacyExponentialNamingError for the 4th time",
-        "Next execution scheduled at #{(Time.now + 258.seconds).to_f}",
-        "Successfully completed job"
-      ], JobBuffer.values
-    end
   end
 end

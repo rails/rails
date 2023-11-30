@@ -61,8 +61,12 @@ module Rails
           broadcast_logger.formatter = Rails.logger.formatter
           Rails.logger = broadcast_logger
         end
+      end
 
-        unless config.consider_all_requests_local
+      initializer :initialize_error_reporter, group: :all do
+        if config.consider_all_requests_local
+          Rails.error.debug_mode = true
+        else
           Rails.error.logger = Rails.logger
         end
       end

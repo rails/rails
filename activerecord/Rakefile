@@ -67,8 +67,6 @@ end
       files = files + FileList["test/cases/adapters/abstract_mysql_adapter/**/*_test.rb"] if ["mysql2", "trilogy"].include?(adapter)
 
       t.test_files = files
-
-      t.test_files = files
       t.warning = true
       t.verbose = true
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)

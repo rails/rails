@@ -53,6 +53,8 @@
 # * {ImageProcessing::Vips}[https://github.com/janko/image_processing/blob/master/doc/vips.md#methods]
 # * {ruby-vips reference}[http://www.rubydoc.info/gems/ruby-vips/Vips/Image]
 class ActiveStorage::Variant
+  include ActiveStorage::Blob::Servable
+
   attr_reader :blob, :variation
   delegate :service, to: :blob
   delegate :content_type, to: :variation

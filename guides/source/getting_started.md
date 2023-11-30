@@ -212,7 +212,7 @@ $ bin/rails server
 TIP: If you are using Windows, you have to pass the scripts under the `bin`
 folder directly to the Ruby interpreter e.g. `ruby bin\rails server`.
 
-TIP: JavaScript asset compression requires you
+TIP: JavaScript asset compression requires you to
 have a JavaScript runtime available on your system, in the absence
 of a runtime you will see an `execjs` error during asset compression.
 Usually macOS and Windows come with a JavaScript runtime installed.

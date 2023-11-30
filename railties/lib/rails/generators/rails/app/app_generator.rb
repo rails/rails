@@ -539,6 +539,7 @@ module Rails
 
       public_task :apply_rails_template
       public_task :run_bundle
+      public_task :add_bundler_platforms
       public_task :generate_bundler_binstub
       public_task :run_javascript
       public_task :run_hotwire

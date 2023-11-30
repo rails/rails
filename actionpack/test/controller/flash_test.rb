@@ -377,18 +377,20 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
       super(path, **options)
     end
 
+    def app
+      @app ||= self.class.build_app do |middleware|
+        middleware.use ActionDispatch::Session::CookieStore, key: SessionKey
+        middleware.use ActionDispatch::Flash
+        middleware.delete ActionDispatch::ShowExceptions
+      end
+    end
+
     def with_test_route_set
       with_routing do |set|
         set.draw do
           ActionDispatch.deprecator.silence do
             get ":action", to: FlashIntegrationTest::TestController
           end
-        end
-
-        @app = self.class.build_app(set) do |middleware|
-          middleware.use ActionDispatch::Session::CookieStore, key: SessionKey
-          middleware.use ActionDispatch::Flash
-          middleware.delete ActionDispatch::ShowExceptions
         end
 
         yield

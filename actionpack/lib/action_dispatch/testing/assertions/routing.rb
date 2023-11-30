@@ -11,6 +11,65 @@ module ActionDispatch
     module RoutingAssertions
       extend ActiveSupport::Concern
 
+      module WithIntegrationRouting # :nodoc:
+        extend ActiveSupport::Concern
+
+        module ClassMethods
+          def with_routing(&block)
+            old_routes = nil
+            old_integration_session = nil
+
+            setup do
+              old_routes = app.routes
+              old_integration_session = integration_session
+              create_routes(&block)
+            end
+
+            teardown do
+              reset_routes(old_routes, old_integration_session)
+            end
+          end
+        end
+
+        def with_routing(&block)
+          old_routes = app.routes
+          old_integration_session = integration_session
+          create_routes(&block)
+        ensure
+          reset_routes(old_routes, old_integration_session)
+        end
+
+        private
+          def create_routes
+            app = self.app
+            routes = ActionDispatch::Routing::RouteSet.new
+            rack_app = app.config.middleware.build(routes)
+            https = integration_session.https?
+            host = integration_session.host
+
+            app.instance_variable_set(:@routes, routes)
+            app.instance_variable_set(:@app, rack_app)
+            @integration_session = Class.new(ActionDispatch::Integration::Session) do
+              include app.routes.url_helpers
+              include app.routes.mounted_helpers
+            end.new(app)
+            @integration_session.https! https
+            @integration_session.host! host
+            @routes = routes
+
+            yield routes
+          end
+
+          def reset_routes(old_routes, old_integration_session)
+            old_rack_app = app.config.middleware.build(old_routes)
+
+            app.instance_variable_set(:@routes, old_routes)
+            app.instance_variable_set(:@app, old_rack_app)
+            @integration_session = old_integration_session
+            @routes = old_routes
+          end
+      end
+
       module ClassMethods
         # A helper to make it easier to test different route configurations.
         # This method temporarily replaces @routes with a new RouteSet instance
@@ -42,6 +101,26 @@ module ActionDispatch
       def setup # :nodoc:
         @routes ||= nil
         super
+      end
+
+      # A helper to make it easier to test different route configurations.
+      # This method temporarily replaces @routes with a new RouteSet instance.
+      #
+      # The new instance is yielded to the passed block. Typically the block
+      # will create some routes using <tt>set.draw { match ... }</tt>:
+      #
+      #   with_routing do |set|
+      #     set.draw do
+      #       resources :users
+      #     end
+      #     assert_equal "/users", users_path
+      #   end
+      #
+      def with_routing(&block)
+        old_routes, old_controller = @routes, @controller
+        create_routes(&block)
+      ensure
+        reset_routes(old_routes, old_controller)
       end
 
       # Asserts that the routing of the given +path+ was handled correctly and that the parsed options (given in the +expected_options+ hash)
@@ -165,26 +244,6 @@ module ActionDispatch
 
         generate_options = options.dup.delete_if { |k, _| defaults.key?(k) }
         assert_generates(path.is_a?(Hash) ? path[:path] : path, generate_options, defaults, extras, message)
-      end
-
-      # A helper to make it easier to test different route configurations.
-      # This method temporarily replaces @routes with a new RouteSet instance.
-      #
-      # The new instance is yielded to the passed block. Typically the block
-      # will create some routes using <tt>set.draw { match ... }</tt>:
-      #
-      #   with_routing do |set|
-      #     set.draw do
-      #       resources :users
-      #     end
-      #     assert_equal "/users", users_path
-      #   end
-      #
-      def with_routing(&block)
-        old_routes, old_controller = @routes, @controller
-        create_routes(&block)
-      ensure
-        reset_routes(old_routes, old_controller)
       end
 
       # ROUTES TODO: These assertions should really work in an integration context

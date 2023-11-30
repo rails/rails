@@ -141,6 +141,12 @@ module ActionDispatch
         message = []
         message << "  "
         message << "#{wrapper.exception_class_name} (#{wrapper.message}):"
+        if wrapper.has_cause?
+          message << "\nCauses:"
+          wrapper.wrapped_causes.each do |wrapped_cause|
+            message << "#{wrapped_cause.exception_class_name} (#{wrapped_cause.message})"
+          end
+        end
         message.concat(wrapper.annotated_source_code)
         message << "  "
         message.concat(trace)

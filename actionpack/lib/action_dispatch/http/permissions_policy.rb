@@ -132,25 +132,6 @@ module ActionDispatch # :nodoc:
       end
     end
 
-    %w[speaker vibrate vr].each do |directive|
-      define_method(directive) do |*sources|
-        ActionDispatch.deprecator.warn(<<~MSG)
-          The `#{directive}` permissions policy directive is deprecated
-          and will be removed in Rails 7.2.
-
-          There is no browser support for this directive, and no plan
-          for browser support in the future. You can just remove this
-          directive from your application.
-        MSG
-
-        if sources.first
-          @directives[directive] = apply_mappings(sources)
-        else
-          @directives.delete(directive)
-        end
-      end
-    end
-
     def build(context = nil)
       build_directives(context).compact.join("; ")
     end

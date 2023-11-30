@@ -334,9 +334,6 @@ Performance/ReverseEach:
 Performance/StringReplacement:
   Enabled: true
 
-Performance/UnfreezeString:
-  Enabled: true
-
 Performance/DeletePrefix:
   Enabled: true
 
