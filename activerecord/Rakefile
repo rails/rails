@@ -2,6 +2,11 @@
 
 ENV["SEED"] = "6062"
 
+Signal.trap("TERM") {
+  puts "Received SIGTERM"
+  puts caller
+}
+
 require "shellwords"
 require "rake/testtask"
 
