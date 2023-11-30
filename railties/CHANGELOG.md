@@ -1,3 +1,8 @@
+*   Fix custom Thor commands in `lib/commands` not being found, by ensuring
+    `lib` is added to the $LOAD_PATH before looking up commands.
+
+    *Ben Sheldon*
+
 *   Don't filter nonexistent i18n paths on initialize. This negatively impacts
     applications with lots of translation files.
 
