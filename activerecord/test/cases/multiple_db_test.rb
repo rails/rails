@@ -124,11 +124,11 @@ class MultipleDbTest < ActiveRecord::TestCase
 
     assert_not_equal course_conn, entrant_conn
 
-    #course_error = assert_raises(ActiveRecord::StatementInvalid) do
-    #  course_conn.execute("SELECT * FROM entrants")
-    #end
+    course_error = assert_raises(ActiveRecord::StatementInvalid) do
+      course_conn.execute("SELECT * FROM entrants")
+    end
 
-    #assert_equal course_conn.pool, course_error.connection_pool
+    assert_equal course_conn.pool, course_error.connection_pool
 
     entrant_error = assert_raises(ActiveRecord::StatementInvalid) do
       entrant_conn.execute("SELECT * FROM courses")
