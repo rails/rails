@@ -47,9 +47,9 @@ module CacheStoreFormatVersionBehavior
           lookup_store.send(:serialize_entry, ActiveSupport::Cache::Entry.new(["value"] * 100))
         end
 
-        skip if !serialized.is_a?(String)
-
-        assert_operator serialized, :start_with?, uncompressed_signature
+        if serialized.is_a?(String)
+          assert_operator serialized, :start_with?, uncompressed_signature
+        end
       end
 
       test "format version #{format_version.inspect} uses correct signature for compressed entries" do

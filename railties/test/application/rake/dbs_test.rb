@@ -232,8 +232,6 @@ module ApplicationTests
 
       def with_bad_permissions
         Dir.chdir(app_path) do
-          skip "Can't avoid permissions as root" if Process.uid.zero?
-
           set_database_url
           FileUtils.chmod("-w", "db")
           yield
@@ -241,14 +239,25 @@ module ApplicationTests
         end
       end
 
-      test "db:create failure because bad permissions" do
-        with_bad_permissions do
-          output = rails("db:create", allow_failure: true)
-          assert_match("Couldn't create '#{database_url_db_name}' database. Please check your configuration.", output)
-          assert_equal 1, $?.exitstatus
+      unless Process.uid.zero?
+        test "db:create failure because bad permissions" do
+          with_bad_permissions do
+            output = rails("db:create", allow_failure: true)
+            assert_match("Couldn't create '#{database_url_db_name}' database. Please check your configuration.", output)
+            assert_equal 1, $?.exitstatus
+          end
+        end
+
+        test "db:drop failure because bad permissions" do
+          with_database_existing do
+            with_bad_permissions do
+              output = rails("db:drop", allow_failure: true)
+              assert_match(/Couldn't drop/, output)
+              assert_equal 1, $?.exitstatus
+            end
+          end
         end
       end
-
       test "db:create works when schema cache exists and database does not exist" do
         use_postgresql
 
@@ -266,16 +275,6 @@ module ApplicationTests
       test "db:drop failure because database does not exist" do
         output = rails("db:drop:_unsafe", "--trace")
         assert_match(/does not exist/, output)
-      end
-
-      test "db:drop failure because bad permissions" do
-        with_database_existing do
-          with_bad_permissions do
-            output = rails("db:drop", allow_failure: true)
-            assert_match(/Couldn't drop/, output)
-            assert_equal 1, $?.exitstatus
-          end
-        end
       end
 
       test "db:truncate_all truncates all non-internal tables" do
