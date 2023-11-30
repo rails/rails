@@ -29,7 +29,7 @@ module ActiveRecord
 
         House.connection.execute("CREATE TABLE `houses` (id INTEGER PRIMARY KEY NOT NULL)")
         Residency.connection.execute("CREATE TABLE `residencies` (id INTEGER PRIMARY KEY NOT NULL, person_id INTEGER NOT NULL, house_id INTEGER NOT NULL)")
- 
+
         house = House.create!
         person = Person.first
         Residency.create!(house: house, person: person)
