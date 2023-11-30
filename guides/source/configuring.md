@@ -2026,7 +2026,7 @@ Accepts a logger conforming to the interface of Log4r or the default Ruby Logger
 
 #### `config.action_view.erb_trim_mode`
 
-Gives the trim mode to be used by ERB. It defaults to `'-'`, which turns on trimming of tail spaces and newline when using `<%= -%>` or `<%= =%>`. See the [Erubis documentation](http://www.kuwata-lab.com/erubis/users-guide.06.html#topics-trimspaces) for more information.
+Controls if certain ERB syntax should trim. It defaults to `'-'`, which turns on trimming of tail spaces and newline when using `<%= -%>` or `<%= =%>`. Setting this to anything else will turn off trimming support.
 
 #### `config.action_view.frozen_string_literal`
 
