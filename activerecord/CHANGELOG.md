@@ -1,7 +1,7 @@
 *   Through associations will automatically disable joins when different connections are detected.
 
     *Katherine Oelsner*, *Daniel Colson*, *John Hawthorn*
-    
+
 *   When using a `DATABASE_URL`, allow for a configuration to map the protocol in the URL to a specific database
     adapter. This allows decoupling the adapter the application chooses to use from the database connection details
     set in the deployment environment.
