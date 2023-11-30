@@ -1,4 +1,3 @@
-
 *   Through associations will automatically disable joins when different connections are detected.
 
     *Katherine Oelsner*, *Daniel Colson*, *John Hawthorn*
