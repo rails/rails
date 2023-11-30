@@ -372,6 +372,14 @@ module ActiveRecord
 
   ##
   # :singleton-method:
+  # Specify whether or not to validate migration timestamps. When set, an error
+  # will be raised if a timestamp is not a valid timestamp in the form
+  # YYYYMMDDHHMMSS. +timestamped_migrations+ must be set to true.
+  singleton_class.attr_accessor :validate_migration_timestamps
+  self.validate_migration_timestamps = false
+
+  ##
+  # :singleton-method:
   # Specify strategy to use for executing migrations.
   singleton_class.attr_accessor :migration_strategy
   self.migration_strategy = Migration::DefaultStrategy
