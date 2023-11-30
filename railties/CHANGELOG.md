@@ -1,3 +1,8 @@
+*   Use `bin/rails runner --skip-executor` option to not wrap the runner script
+    with an Executor.
+
+    *Ben Sheldon*
+
 *   Fix isolated engines to take `ActiveRecord::Base.table_name_prefix` into consideration.
     This will allow for engine defined models, such as inside Active Storage, to respect
     Active Record table name prefix configuration.
