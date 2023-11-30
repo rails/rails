@@ -122,6 +122,7 @@ GEM
     addressable (2.8.1)
       public_suffix (>= 2.0.2, < 6.0)
     amq-protocol (2.3.2)
+    ansi (1.5.0)
     ast (2.4.2)
     aws-eventstream (1.2.0)
     aws-partitions (1.691.0)
@@ -331,6 +332,11 @@ GEM
       path_expander (~> 1.1)
     minitest-ci (3.4.0)
       minitest (>= 5.0.6)
+    minitest-reporters (1.6.1)
+      ansi
+      builder
+      minitest (>= 5.0)
+      ruby-progressbar
     minitest-retry (0.2.2)
       minitest (>= 5.0)
     minitest-server (1.0.7)
@@ -600,6 +606,7 @@ DEPENDENCIES
   minitest (>= 5.15.0)
   minitest-bisect
   minitest-ci
+  minitest-reporters
   minitest-retry
   msgpack (>= 1.7.0)
   mysql2 (~> 0.5)

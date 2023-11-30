@@ -5,6 +5,9 @@ Signal.trap("TERM") do
   puts caller
 end
 
+require "minitest/reporters"
+Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
+
 require "config"
 
 require "stringio"
