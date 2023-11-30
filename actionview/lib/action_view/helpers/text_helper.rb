@@ -68,17 +68,36 @@ module ActionView
         output_buffer.respond_to?(:safe_concat) ? output_buffer.safe_concat(string) : concat(string)
       end
 
-      # Truncates a given +text+ after a given <tt>:length</tt> if +text+ is longer than <tt>:length</tt>
-      # (defaults to 30). The last characters will be replaced with the <tt>:omission</tt> (defaults to "...")
-      # for a total length not exceeding <tt>:length</tt>.
+      # Truncates +text+ if it is longer than a specified +:length+. If +text+
+      # is truncated, an omission marker will be appended to the result for a
+      # total length not exceeding +:length+.
       #
-      # Pass a <tt>:separator</tt> to truncate +text+ at a natural break.
+      # You can also pass a block to render and append extra content after the
+      # omission marker when +text+ is truncated. However, this content _can_
+      # cause the total length to exceed +:length+ characters.
       #
-      # Pass a block if you want to show extra content when the text is truncated.
+      # The result will be escaped unless <tt>escape: false</tt> is specified.
+      # In any case, the result will be marked HTML-safe. Care should be taken
+      # if +text+ might contain HTML tags or entities, because truncation could
+      # produce invalid HTML, such as unbalanced or incomplete tags.
       #
-      # The result is marked as HTML-safe, but it is escaped by default, unless <tt>:escape</tt> is
-      # +false+. Care should be taken if +text+ contains HTML tags or entities, because truncation
-      # may produce invalid HTML (such as unbalanced or incomplete tags).
+      # ==== Options
+      #
+      # [+:length+]
+      #   The maximum number of characters that should be returned, excluding
+      #   any extra content from the block. Defaults to 30.
+      #
+      # [+:omission+]
+      #   The string to append after truncating. Defaults to  <tt>"..."</tt>.
+      #
+      # [+:separator+]
+      #   A string or regexp used to find a breaking point at which to truncate.
+      #   By default, truncation can occur at any character in +text+.
+      #
+      # [+:escape+]
+      #   Whether to escape the result. Defaults to true.
+      #
+      # ==== Examples
       #
       #   truncate("Once upon a time in a world far far away")
       #   # => "Once upon a time in a world..."
