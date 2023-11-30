@@ -118,7 +118,7 @@ module ActionView
       #   # => "<p>Once upon a time in a wo..."
       #
       #   truncate("Once upon a time in a world far far away") { link_to "Continue", "#" }
-      #   # => "Once upon a time in a wo...<a href="#">Continue</a>"
+      #   # => "Once upon a time in a world...<a href=\"#\">Continue</a>"
       def truncate(text, options = {}, &block)
         if text
           length  = options.fetch(:length, 30)
