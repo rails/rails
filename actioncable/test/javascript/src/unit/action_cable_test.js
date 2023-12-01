@@ -16,6 +16,18 @@ module("ActionCable", () => {
         assert.equal(ActionCable.adapters.logger, self.console)
       })
     })
+
+    module("WebSocket", () => {
+      test("default is global.WebSocket", assert => {
+        assert.equal(ActionCable.adapters.WebSocket, global.WebSocket)
+      })
+    })
+
+    module("logger", () => {
+      test("default is global.console", assert => {
+        assert.equal(ActionCable.adapters.logger, global.console)
+      })
+    })
   })
 
   module("#createConsumer", () => {
