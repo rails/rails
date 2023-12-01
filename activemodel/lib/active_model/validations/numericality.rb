@@ -9,6 +9,7 @@ module ActiveModel
     class NumericalityValidator < EachValidator # :nodoc:
       include Comparability
       include ResolveValue
+      include Clusivity
 
       RANGE_CHECKS = { in: :in? }
       NUMBER_CHECKS = { odd: :odd?, even: :even? }
@@ -27,8 +28,8 @@ module ActiveModel
         end
 
         options.slice(*RANGE_CHECKS.keys).each do |option, value|
-          unless value.is_a?(Range)
-            raise ArgumentError, ":#{option} must be a range"
+          unless clusivity?(value)
+            raise ArgumentError, ":#{option} must be a range, an array, or a symbol"
           end
         end
       end
@@ -52,8 +53,12 @@ module ActiveModel
               record.errors.add(attr_name, option, **filtered_options(value))
             end
           elsif RANGE_CHECKS.include?(option)
-            unless value.public_send(RANGE_CHECKS[option], option_value)
-              record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
+            if option_value.is_a?(Symbol) && method_return_is_invalid?(record)
+              raise ArgumentError, ":#{option_value} must return a Range or an Array"
+            end
+            unless include?(record, value)
+              option_value_for_message = option_value.is_a?(Symbol) ? record.send(option_value) : option_value
+              record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value_for_message))
             end
           elsif COMPARE_CHECKS.include?(option)
             option_value = option_as_number(record, option_value, precision, scale)
@@ -107,6 +112,24 @@ module ActiveModel
 
       def is_hexadecimal_literal?(raw_value)
         HEXADECIMAL_REGEX.match?(raw_value.to_s)
+      end
+
+      def clusivity?(value)
+        numericality_inclusion? && clusivityable_delimiter?(value)
+      end
+
+      def numericality_inclusion?
+        options.key?(:in) || options.key?(:within)
+      end
+
+      def clusivityable_delimiter?(value)
+        delimiter.is_a?(Range) ||
+          delimiter.is_a?(Array) ||
+            delimiter.is_a?(Symbol)
+      end
+
+      def method_return_is_invalid?(record)
+        record.respond_to?(delimiter) && !(record.send(delimiter).is_a?(Range) || record.send(delimiter).is_a?(Array))
       end
 
       def filtered_options(value)
