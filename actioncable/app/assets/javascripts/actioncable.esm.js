@@ -1,7 +1,12 @@
-var adapters = {
-  logger: self.console,
-  WebSocket: self.WebSocket
-};
+var adapters = {};
+
+if (typeof global !== 'undefined') {
+  adapters.logger = global.console;
+  adapters.WebSocket = global.WebSocket;
+} else {
+  adapters.logger = self.console;
+  adapters.WebSocket = self.WebSocket;
+}
 
 var logger = {
   log(...messages) {
