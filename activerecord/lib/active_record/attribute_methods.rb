@@ -130,6 +130,7 @@ module ActiveRecord
           return false if @attribute_methods_generated
           superclass.define_attribute_methods unless base_class?
           super(attribute_names)
+          alias_attribute(:id_value, :id) if attribute_names.include?("id")
           @attribute_methods_generated = true
         end
       end
