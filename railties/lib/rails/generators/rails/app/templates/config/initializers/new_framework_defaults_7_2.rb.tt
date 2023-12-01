@@ -8,13 +8,3 @@
 #
 # Read the Guide for Upgrading Ruby on Rails for more info on each option.
 # https://guides.rubyonrails.org/upgrading_ruby_on_rails.html
-
-###
-# Enable validation of migration timestamps. Migration timestamps must be
-# in the form YYYYMMDDHHMMSS, or an ActiveRecord::InvalidMigrationTimestampError
-# will be raised.
-#
-# Applications with existing timestamped migrations that do not adhere to the
-# expected format can disable validation by setting this config to `false`.
-#++
-# Rails.application.config.active_record.validate_migration_timestamps = true

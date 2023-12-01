@@ -10,7 +10,6 @@ module ApplicationTests
       def setup
         build_app(multi_db: true)
         FileUtils.rm_rf("#{app_path}/config/environments")
-        add_to_config("config.active_record.timestamped_migrations = false")
       end
 
       def teardown
@@ -780,13 +779,11 @@ module ApplicationTests
       end
 
       test "db:migrate:status works on all databases" do
-        remove_from_config("config.active_record.timestamped_migrations = false")
         require "#{app_path}/config/environment"
         db_migrate_and_migrate_status
       end
 
       test "db:migrate:status:namespace works" do
-        remove_from_config("config.active_record.timestamped_migrations = false")
         require "#{app_path}/config/environment"
         ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
           db_migrate_namespaced db_config.name

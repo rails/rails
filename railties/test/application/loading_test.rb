@@ -319,7 +319,6 @@ class LoadingTest < ActiveSupport::TestCase
   test "columns migrations also trigger reloading" do
     add_to_config <<-RUBY
       config.enable_reloading = true
-      config.active_record.timestamped_migrations = false
     RUBY
 
     app_file "config/routes.rb", <<-RUBY
