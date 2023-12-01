@@ -1,3 +1,7 @@
+*   Deprecate passing content to void elements when using `tag.br` type tag builders.
+
+    *Hartley McGuire*
+
 *   Fix the `number_to_human_size` view helper to correctly work with negative numbers.
 
     *Earlopain*
