@@ -85,6 +85,44 @@ class TimeTravelTest < ActiveSupport::TestCase
     end
   end
 
+  def test_time_helper_travel_to_with_different_system_and_application_time_zones
+    with_env_tz "US/Eastern" do # system time zone: -05
+      expected_time_in_2021 = Time.new(2021)
+
+      with_tz_default ActiveSupport::TimeZone["Ekaterinburg"] do # application time zone: +05
+        destination_time = Time.new(2023, 12, 1, 5, 6, 7, 5 * 3600)
+
+        # All stubbed methods are expected to return values in system (-05) time zone
+        expected_utc_offset = -5 * 3600
+        expected_time = Time.new(2023, 11, 30, 19, 6, 7, expected_utc_offset)
+        expected_datetime = DateTime.new(2023, 11, 30, 19, 6, 7, -Rational(5, 24))
+        expected_date = Date.new(2023, 11, 30)
+
+        travel_to destination_time do
+          assert_equal expected_time, Time.now
+          assert_equal expected_time.to_fs(:db), Time.now.to_fs(:db)
+          assert_equal expected_utc_offset, Time.now.utc_offset
+
+          assert_equal expected_datetime, DateTime.now
+          assert_equal expected_datetime.to_fs(:db), DateTime.now.to_fs(:db)
+          assert_equal expected_utc_offset, DateTime.now.utc_offset
+
+          assert_equal expected_date, Date.today
+
+          # FIXME: Time.new with no args must equal to Time.now, but it is not so in the current implementation
+          # assert_equal expected_time, Time.new
+          # assert_equal expected_time.to_fs(:db), Time.new.to_fs(:db)
+          # assert_equal expected_utc_offset, Time.new.utc_offset
+
+          # Time.new with any args falls back to original Ruby implementation
+          assert_equal expected_time_in_2021, Time.new(2021)
+          assert_equal expected_time_in_2021.to_fs(:db), Time.new(2021).to_fs(:db)
+          assert_equal expected_time_in_2021.utc_offset, Time.new(2021).utc_offset
+        end
+      end
+    end
+  end
+
   def test_time_helper_travel_to_with_string_for_time_zone
     with_env_tz "US/Eastern" do
       with_tz_default ActiveSupport::TimeZone["UTC"] do
