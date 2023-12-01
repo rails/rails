@@ -1801,4 +1801,75 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   def test_unknown_migration_version_should_raise_an_argument_error
     assert_raise(ArgumentError) { ActiveRecord::Migration[1.0] }
   end
+
+  class MigrationValidationTest < ActiveRecord::TestCase
+    def setup
+      @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
+      @schema_migration = ActiveRecord::Base.connection.schema_migration
+      @internal_metadata = ActiveRecord::Base.connection.internal_metadata
+      ActiveRecord::Base.connection.schema_cache.clear!
+
+      @migrations_path = MIGRATIONS_ROOT + "/temp"
+      @migrator = ActiveRecord::MigrationContext.new(@migrations_path, @schema_migration, @internal_metadata)
+    end
+
+    def teardown
+      @schema_migration.create_table
+      @schema_migration.delete_all_versions
+      ActiveRecord::Migration.verbose = @verbose_was
+    end
+
+    def test_copied_migrations_at_timestamp_boundary_are_valid
+      migrations_path_source = MIGRATIONS_ROOT + "/temp_source"
+      migrations_path_dest = MIGRATIONS_ROOT + "/temp_dest"
+      migrations = ["20180101010101_test_migration.rb", "20180101010102_test_migration_two.rb", "20180101010103_test_migration_three.rb"]
+
+      with_temp_migration_files(migrations_path_source, migrations) do
+        travel_to(Time.utc(2023, 12, 1, 10, 10, 59)) do
+          ActiveRecord::Migration.copy(migrations_path_dest, temp: migrations_path_source)
+
+          assert File.exist?(migrations_path_dest + "/20231201101059_test_migration.temp.rb")
+          assert File.exist?(migrations_path_dest + "/20231201101060_test_migration_two.temp.rb")
+          assert File.exist?(migrations_path_dest + "/20231201101061_test_migration_three.temp.rb")
+
+          migrator = ActiveRecord::MigrationContext.new(migrations_path_dest, @schema_migration, @internal_metadata)
+          migrator.up(20231201101059)
+          migrator.up(20231201101060)
+          migrator.up(20231201101061)
+
+          assert_equal 20231201101061, migrator.current_version
+          assert_not migrator.needs_migration?
+        end
+      end
+    ensure
+      File.delete(*Dir[migrations_path_dest + "/*.rb"])
+      Dir.rmdir(migrations_path_dest) if Dir.exist?(migrations_path_dest)
+    end
+
+    private
+      def with_temp_migration_files(migrations_dir, filenames)
+        Dir.mkdir(migrations_dir) unless Dir.exist?(migrations_dir)
+
+        paths = []
+        filenames.each do |filename|
+          path = File.join(migrations_dir, filename)
+          paths << path
+
+          migration_class = filename.match(ActiveRecord::Migration::MigrationFilenameRegexp)[2].camelize
+
+          File.open(path, "w+") do |file|
+            file << <<~MIGRATION
+          class #{migration_class} < ActiveRecord::Migration::Current
+            def change; end
+          end
+            MIGRATION
+          end
+        end
+
+        yield
+      ensure
+        paths.each { |path| File.delete(path) if File.exist?(path) }
+        Dir.rmdir(migrations_dir) if Dir.exist?(migrations_dir)
+      end
+  end
 end
