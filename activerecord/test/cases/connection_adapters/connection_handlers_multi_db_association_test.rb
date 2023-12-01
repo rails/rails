@@ -16,7 +16,9 @@ module ActiveRecord
 
       class House < SecondaryBase
         has_many :residencies
-        has_many :persons, through: :residencies
+        has_many :persons,
+        -> { where "1=1" },
+        through: :residencies
       end
 
       class Residency < SecondaryBase
@@ -36,6 +38,21 @@ module ActiveRecord
 
         assert_queries(2) do
           assert_equal house.persons.first, person
+        end
+      end
+
+      def test_preloading_association
+        SecondaryBase.connects_to database: { writing: { database: ":memory:", adapter: "sqlite3" } }
+
+        House.connection.execute("CREATE TABLE `houses` (id INTEGER PRIMARY KEY NOT NULL)")
+        Residency.connection.execute("CREATE TABLE `residencies` (id INTEGER PRIMARY KEY NOT NULL, person_id INTEGER NOT NULL, house_id INTEGER NOT NULL)")
+
+        house = House.create!
+        person = Person.first
+        Residency.create!(house: house, person: person)
+
+        assert_queries(3) do
+          House.includes(:persons).first
         end
       end
     end
