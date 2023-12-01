@@ -1,10 +1,3 @@
-*   Add `active_record.config.validate_migration_timestamps` option for validating migration timestamps.
-
-    When set, validates that the timestamp prefix for a migration is in the form YYYYMMDDHHMMSS.
-    This is designed to prevent migration timestamps from being modified by hand.
-
-    *Adrianna Chang*
-
 *   When using a `DATABASE_URL`, allow for a configuration to map the protocol in the URL to a specific database
     adapter. This allows decoupling the adapter the application chooses to use from the database connection details
     set in the deployment environment.
