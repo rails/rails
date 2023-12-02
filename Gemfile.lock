@@ -593,7 +593,7 @@ DEPENDENCIES
   importmap-rails (>= 1.2.3)
   jbuilder
   jsbundling-rails
-  json (>= 2.0.0)
+  json (>= 2.0.0, != 2.7.0)
   libxml-ruby
   listen (~> 3.3)
   mdl
