@@ -675,11 +675,13 @@ module ActionView
       #   <% end %>
       #   # => <fieldset class="format"><p><input id="name" name="name" type="text" /></p></fieldset>
       def field_set_tag(legend = nil, options = nil, &block)
-        output = tag(:fieldset, options, true)
-        output.safe_concat(content_tag("legend", legend)) unless legend.blank?
-        output.concat(capture(&block)) if block_given?
-        output.safe_concat("</fieldset>")
+        content = []
+        content << content_tag("legend", legend) unless legend.blank?
+        content << capture(&block) if block_given?
+
+        content_tag(:fieldset, safe_join(content), options)
       end
+      alias_method :fieldset_tag, :field_set_tag
 
       # Creates a text field of type "color".
       #

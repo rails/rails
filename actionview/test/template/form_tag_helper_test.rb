@@ -925,6 +925,11 @@ class FormTagHelperTest < ActionView::TestCase
     expected = %(<fieldset class="format">Hello world!</fieldset>)
     assert_dom_equal expected, output_buffer
 
+    output_buffer = render_erb("<%= fieldset_tag('', :class => 'format') do %>Hello world!<% end %>")
+
+    expected = %(<fieldset class="format">Hello world!</fieldset>)
+    assert_dom_equal expected, output_buffer
+
     output_buffer = render_erb("<%= field_set_tag %>")
 
     expected = %(<fieldset></fieldset>)
