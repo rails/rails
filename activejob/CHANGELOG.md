@@ -1,3 +1,8 @@
+*   Preserve the serialized timezone when deserializing `ActiveSupport::TimeWithZone` arguments.
+
+    *Joshua Young*
+
+
 ## Rails 7.0.8 (September 09, 2023) ##
 
 *   Fix Active Job log message to correctly report a job failed to enqueue
