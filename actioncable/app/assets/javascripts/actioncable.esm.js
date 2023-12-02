@@ -1,12 +1,16 @@
-var adapters = {};
-
-if (typeof global !== 'undefined') {
-  adapters.logger = global.console;
-  adapters.WebSocket = global.WebSocket;
-} else {
-  adapters.logger = self.console;
-  adapters.WebSocket = self.WebSocket;
+var getAdapter = () => {
+  const adapter = {}
+  if (typeof self !== "undefined") {
+    adapter.logger = self.console;
+    adapter.WebSocket = self.WebSocket;
+  } else {
+    adapter.logger = global.console;
+    adapter.WebSocket = global.WebSocket;
+  }
+  return adapter;
 }
+
+var adapters = getAdapter();
 
 var logger = {
   log(...messages) {
