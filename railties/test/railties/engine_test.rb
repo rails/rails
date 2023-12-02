@@ -1290,6 +1290,32 @@ en:
       assert_equal "foo", Bukkits.table_name_prefix
     end
 
+    test "take ActiveRecord table_name_prefix into consideration when defining table_name_prefix" do
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+            isolate_namespace(Bukkits)
+          end
+        end
+      RUBY
+
+      @plugin.write "app/models/bukkits/post.rb", <<-RUBY
+        module Bukkits
+          class Post < ActiveRecord::Base
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.active_record.table_name_prefix = "ar_prefix_"
+      RUBY
+
+      boot_rails
+
+      assert_equal "ar_prefix_bukkits_posts", Bukkits::Post.table_name
+      assert_equal "ar_prefix_bukkits_", Bukkits.table_name_prefix
+    end
+
     test "fetching engine by path" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
