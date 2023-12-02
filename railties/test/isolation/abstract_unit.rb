@@ -212,6 +212,7 @@ module TestHelpers
         config.cache_store = :mem_cache_store
         config.active_support.deprecation = :log
         config.action_controller.allow_forgery_protection = false
+        config.active_record.sqlite3_production_warning = false
       RUBY
     end
 
