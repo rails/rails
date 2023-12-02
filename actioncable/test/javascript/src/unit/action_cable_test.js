@@ -6,28 +6,31 @@ const {module, test} = QUnit
 module("ActionCable", () => {
   module("Adapters", () => {
     module("WebSocket", () => {
-      test("default is self.WebSocket", assert => {
-        assert.equal(ActionCable.adapters.WebSocket, self.WebSocket)
-      })
+      if(typeof self !== "undefined") {
+        test("default is self.WebSocket", assert => {
+          assert.equal(ActionCable.adapters.WebSocket, self.WebSocket)
+        })
+      }else {
+          test("default is global.WebSocket", assert => {
+            assert.equal(ActionCable.adapters.WebSocket, global.WebSocket)
+          })
+      }
     })
 
-    module("logger", () => {
-      test("default is self.console", assert => {
-        assert.equal(ActionCable.adapters.logger, self.console)
+    if(typeof self !== "undefined") {
+      module("logger", () => {
+        test("default is self.console", assert => {
+          assert.equal(ActionCable.adapters.logger, self.console)
+        })
       })
-    })
 
-    module("WebSocket", () => {
-      test("default is global.WebSocket", assert => {
-        assert.equal(ActionCable.adapters.WebSocket, global.WebSocket)
+    } else {
+      module("logger", () => {
+        test("default is global.console", assert => {
+          assert.equal(ActionCable.adapters.logger, global.console)
+        })
       })
-    })
-
-    module("logger", () => {
-      test("default is global.console", assert => {
-        assert.equal(ActionCable.adapters.logger, global.console)
-      })
-    })
+    }
   })
 
   module("#createConsumer", () => {
