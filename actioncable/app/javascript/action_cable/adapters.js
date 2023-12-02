@@ -1,4 +1,4 @@
 export default {
-  logger: self.console,
-  WebSocket: self.WebSocket
+  logger: typeof self !== "undefined" ? self.console : global.console,
+  WebSocket: typeof self !== "undefined" ? self.WebSocket : global.WebSocket
 }
