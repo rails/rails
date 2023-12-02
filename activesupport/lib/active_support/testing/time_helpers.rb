@@ -161,7 +161,6 @@ module ActiveSupport
         else
           now = date_or_time.to_time.change(usec: 0)
         end
-        now = now.getlocal
 
         stubbed_time = Time.now if simple_stubs.stubbing(Time, :now)
         simple_stubs.stub_object(Time, :now) { at(now.to_i) }
