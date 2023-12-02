@@ -1,3 +1,7 @@
+*   Preserve the serialized timezone when deserializing `ActiveSupport::TimeWithZone` arguments.
+
+    *Joshua Young*
+
 *   Fix ActiveJob arguments serialization to correctly serialize String subclasses having custom serializers
 
     *fatkodima*
