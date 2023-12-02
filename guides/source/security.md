@@ -1139,7 +1139,7 @@ config.action_dispatch.default_headers.clear
 
 ### `Strict-Transport-Security` Header
 
-The HTTP [`Strict-Transport-Security`][] (HTST) response header makes sure the
+The HTTP [`Strict-Transport-Security`][] (HSTS) response header makes sure the
 browser automatically upgrades to HTTPS for current and future connections.
 
 The header is added to the response when enabling the `force_ssl` option:
