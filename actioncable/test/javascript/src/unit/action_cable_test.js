@@ -16,6 +16,7 @@ module("ActionCable", () => {
         })
       }  else {
           test("default is global.WebSocket", assert => {
+            // eslint-disable-next-line no-undef
             assert.equal(ActionCable.adapters.WebSocket, global.WebSocket)
           })
       }
@@ -34,6 +35,7 @@ module("ActionCable", () => {
     }else {
       module("logger", () => {
         test("default is global.console", assert => {
+          // eslint-disable-next-line no-undef
           assert.equal(ActionCable.adapters.logger, global.console)
         })
       })
