@@ -1,3 +1,7 @@
+*   Alias `field_set_tag` helper to `fieldset_tag` to match `<fieldset>` element
+
+    *Sean Doyle*
+
 *   Deprecate passing content to void elements when using `tag.br` type tag builders.
 
     *Hartley McGuire*
