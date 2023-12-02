@@ -7,6 +7,7 @@ require "action_view/helpers/form_tag_helper"
 require "action_view/helpers/active_model_helper"
 require "action_view/model_naming"
 require "action_view/record_identifier"
+require "active_support/code_generator"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/string/output_safety"
@@ -2014,16 +2015,20 @@ module ActionView
       #
       # Please refer to the documentation of the base helper for details.
 
-      (field_helpers - [:label, :check_box, :radio_button, :fields_for, :fields, :hidden_field, :file_field]).each do |selector|
-        class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-          def #{selector}(method, options = {})  # def text_field(method, options = {})
-            @template.public_send(               #   @template.public_send(
-              #{selector.inspect},               #     :text_field,
-              @object_name,                      #     @object_name,
-              method,                            #     method,
-              objectify_options(options))        #     objectify_options(options))
-          end                                    # end
-        RUBY_EVAL
+      ActiveSupport::CodeGenerator.batch(self, __FILE__, __LINE__) do |code_generator|
+        (field_helpers - [:label, :check_box, :radio_button, :fields_for, :fields, :hidden_field, :file_field]).each do |selector|
+          code_generator.define_cached_method(selector, namespace: :form_builder) do |batch|
+            batch.push <<-RUBY_EVAL
+              def #{selector}(method, options = {})  # def text_field(method, options = {})
+                @template.public_send(               #   @template.public_send(
+                  #{selector.inspect},               #     :text_field,
+                  @object_name,                      #     @object_name,
+                  method,                            #     method,
+                  objectify_options(options))        #     objectify_options(options))
+              end                                    # end
+            RUBY_EVAL
+          end
+        end
       end
 
       # Creates a scope around a specific model object like form_for, but
