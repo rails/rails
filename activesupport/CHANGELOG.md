@@ -1,3 +1,12 @@
+*   Fix `Time.now/DateTime.now/Date.today' to return results in a system timezone after `#travel_to'.
+
+    There is a bug in the current implementation of #travel_to:
+    it remembers a timezone of its argument, and all stubbed methods start
+    returning results in that remembered timezone. However, the expected
+    behaviour is to return results in a system timezone.
+
+    *Aleksei Chernenkov*
+
 *   Add `ErrorReported#unexpected` to report precondition violations.
 
     For example:

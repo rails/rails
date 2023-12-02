@@ -169,6 +169,10 @@ module ActiveSupport
           now = date_or_time.to_time.change(usec: 0)
         end
 
+        # +now+ must be in local system timezone, because +Time.at(now)+
+        # and +now.to_date+ (see stubs below) will use +now+'s timezone too!
+        now = now.getlocal
+
         stubs = simple_stubs
         stubbed_time = Time.now if stubs.stubbing(Time, :now)
         stubs.stub_object(Time, :now) { at(now) }
