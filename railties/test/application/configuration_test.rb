@@ -97,7 +97,9 @@ module ApplicationTests
     end
 
     def suppress_sqlite3_warning
-      add_to_config "config.active_record.sqlite3_production_warning = false"
+      add_to_config <<-RUBY
+        config.active_record.sqlite3_production_warning = false
+      RUBY
     end
 
     def restore_sqlite3_warning

@@ -142,6 +142,7 @@ module TestHelpers
         config.active_support.deprecation = :log
         config.action_controller.allow_forgery_protection = false
         config.active_support.cache_format_version = 7.1
+        config.active_record.sqlite3_production_warning = false
       RUBY
     end
 
