@@ -10,7 +10,11 @@ module("ActionCable", () => {
         test("default is self.WebSocket", assert => {
           assert.equal(ActionCable.adapters.WebSocket, self.WebSocket)
         })
-      }else {
+      } else if(typeof window !== "undefined") {
+        test("default is global.WebSocket", assert => {
+          assert.equal(ActionCable.adapters.WebSocket, window.WebSocket)
+        })
+      }  else {
           test("default is global.WebSocket", assert => {
             assert.equal(ActionCable.adapters.WebSocket, global.WebSocket)
           })
@@ -23,8 +27,11 @@ module("ActionCable", () => {
           assert.equal(ActionCable.adapters.logger, self.console)
         })
       })
-
-    } else {
+    }  else if(typeof window !== "undefined") {
+      test("default is global.WebSocket", assert => {
+        assert.equal(ActionCable.adapters.WebSocket, window.console)
+      })
+    }else {
       module("logger", () => {
         test("default is global.console", assert => {
           assert.equal(ActionCable.adapters.logger, global.console)

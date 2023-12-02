@@ -1,4 +1,20 @@
+
+const getAdapter = () => {
+  const adapter = {};
+  if (typeof self !== "undefined") {
+    adapter.logger = self.console;
+    adapter.WebSocket = self.WebSocket;
+  } else if (typeof window !== "undefined") {
+    adapter.logger = window.console;
+    adapter.WebSocket = window.WebSocket;
+  } else {
+    adapter.logger = global.console;
+    adapter.WebSocket = global.WebSocket;
+  }
+  return adapter
+}
+var adapters = getAdapter();
+
 export default {
-  logger: typeof self !== "undefined" ? self.console : global.console,
-  WebSocket: typeof self !== "undefined" ? self.WebSocket : global.WebSocket
+  adapters
 }
