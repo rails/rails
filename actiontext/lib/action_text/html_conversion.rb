@@ -5,7 +5,7 @@ module ActionText
     extend self
 
     def node_to_html(node)
-      node.to_html(save_with: Nokogiri::XML::Node::SaveOptions::AS_HTML)
+      node.to_html(save_with: Nokogiri::XML::Node::SaveOptions::AS_HTML).html_safe
     end
 
     def fragment_for_html(html)

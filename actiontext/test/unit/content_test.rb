@@ -15,6 +15,20 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     assert_equal content, Marshal.load(Marshal.dump(content))
   end
 
+  test "#to_html is html safe" do
+    html = "<div>a<br></div>"
+    content = content_from_html(html)
+
+    assert_predicate content.to_html, :html_safe?
+  end
+
+  test "#to_trix_html is html safe" do
+    html = "<div>a<br></div>"
+    content = content_from_html(html)
+
+    assert_predicate content.to_trix_html, :html_safe?
+  end
+
   test "roundtrips HTML without additional newlines" do
     html = "<div>a<br></div>"
     content = content_from_html(html)
