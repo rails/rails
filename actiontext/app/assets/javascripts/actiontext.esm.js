@@ -508,7 +508,7 @@ function toArray(value) {
 }
 
 class BlobRecord {
-  constructor(file, checksum, url, customHeaders = {}) {
+  constructor(file, checksum, url) {
     this.file = file;
     this.attributes = {
       filename: file.name,
@@ -522,9 +522,6 @@ class BlobRecord {
     this.xhr.setRequestHeader("Content-Type", "application/json");
     this.xhr.setRequestHeader("Accept", "application/json");
     this.xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-    Object.keys(customHeaders).forEach((headerKey => {
-      this.xhr.setRequestHeader(headerKey, customHeaders[headerKey]);
-    }));
     const csrfToken = getMetaValue("csrf-token");
     if (csrfToken != undefined) {
       this.xhr.setRequestHeader("X-CSRF-Token", csrfToken);
@@ -607,12 +604,11 @@ class BlobUpload {
 let id = 0;
 
 class DirectUpload {
-  constructor(file, url, delegate, customHeaders = {}) {
+  constructor(file, url, delegate) {
     this.id = ++id;
     this.file = file;
     this.url = url;
     this.delegate = delegate;
-    this.customHeaders = customHeaders;
   }
   create(callback) {
     FileChecksum.create(this.file, ((error, checksum) => {
@@ -620,7 +616,7 @@ class DirectUpload {
         callback(error);
         return;
       }
-      const blob = new BlobRecord(this.file, checksum, this.url, this.customHeaders);
+      const blob = new BlobRecord(this.file, checksum, this.url);
       notify(this.delegate, "directUploadWillCreateBlobWithXHR", blob.xhr);
       blob.create((error => {
         if (error) {
