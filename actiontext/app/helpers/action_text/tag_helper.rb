@@ -66,15 +66,11 @@ module ActionView::Helpers
     # * <tt>[:data][:blob_url_template]</tt> - Defaults to <tt>rails_service_blob_url(":signed_id", ":filename")</tt>.
     #
     # ==== Example
-    #   form_with(model: @message) do |form|
-    #     form.rich_text_area :content
-    #   end
+    #   rich_text_area :message, :content
     #   # <input type="hidden" name="message[content]" id="message_content_trix_input_message_1">
     #   # <trix-editor id="content" input="message_content_trix_input_message_1" class="trix-content" ...></trix-editor>
     #
-    #   form_with(model: @message) do |form|
-    #     form.rich_text_area :content, value: "<h1>Default message</h1>"
-    #   end
+    #   rich_text_area :message, :content, value: "<h1>Default message</h1>"
     #   # <input type="hidden" name="message[content]" id="message_content_trix_input_message_1" value="<h1>Default message</h1>">
     #   # <trix-editor id="content" input="message_content_trix_input_message_1" class="trix-content" ...></trix-editor>
     def rich_text_area(object_name, method, options = {})
