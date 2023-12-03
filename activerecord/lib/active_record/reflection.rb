@@ -166,6 +166,10 @@ module ActiveRecord
         false
       end
 
+      def disable_joins?
+        false
+      end
+
       def table_name
         klass.table_name
       end
@@ -924,6 +928,10 @@ module ActiveRecord
 
       def through_reflection?
         true
+      end
+
+      def disable_joins?
+        options[:disable_joins] || !klass.connection_specification_name.equal?(source_reflection.active_record.connection_specification_name)
       end
 
       def klass

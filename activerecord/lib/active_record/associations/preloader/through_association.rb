@@ -107,7 +107,7 @@ module ActiveRecord
             scope = through_reflection.klass.unscoped
             options = reflection.options
 
-            return scope if options[:disable_joins]
+            return scope if reflection.disable_joins?
 
             values = reflection_scope.values
             if annotations = values[:annotate]
