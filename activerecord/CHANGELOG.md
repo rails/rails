@@ -1,3 +1,10 @@
+*   Introduce `ActiveRecord::Transactions::ClassMethods#set_callback`
+
+     It is identical to `ActiveSupport::Callbacks::ClassMethods#set_callback`
+     but with support for `after_commit` and `after_rollback` callback options.
+
+    *Joshua Young*
+
 *   Make `ActiveRecord::Encryption::Encryptor` agnostic of the serialization format used for encrypted data.
 
     Previously, the encryptor instance only allowed an encrypted value serialized as a `String` to be passed to the message serializer.
