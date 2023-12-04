@@ -443,6 +443,22 @@ module Rails
         log File.read(find_in_source_paths(path))
       end
 
+      # Modifies or creates key/value pairs in existing +package.json+.
+      #
+      #   package_json scripts: { lint: "run-p lint:eslint lint:types lint:prettier" }
+      def package_json(hash)
+        in_root do
+          content = File.read "package.json"
+
+          json = JSON.parse content
+
+          updated_json = json.merge hash.with_indifferent_access
+          formatted_json = JSON.pretty_generate updated_json
+
+          File.write "package.json", formatted_json
+        end
+      end
+
       private
         # Define log for backwards compatibility. If just one argument is sent,
         # invoke say, otherwise invoke say_status. Differently from say and

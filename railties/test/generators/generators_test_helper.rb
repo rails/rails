@@ -82,6 +82,13 @@ module GeneratorsTestHelper
     File.write File.join(destination, "Dockerfile"), dockerfile
   end
 
+  def create_package_json
+    package_json = File.expand_path("../fixtures/package.json.test", __dir__)
+    package_json = File.read package_json
+    destination = File.join(destination_root)
+    File.write File.join(destination, "package.json"), package_json
+  end
+
   def evaluate_template(file, locals = {})
     erb = ERB.new(File.read(file), trim_mode: "-", eoutvar: "@output_buffer")
     context = Class.new do
