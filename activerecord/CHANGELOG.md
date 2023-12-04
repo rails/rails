@@ -1,3 +1,7 @@
+*   Fix `has_secure_token` calls the setter method on initialize.
+
+    *Abeid Ahmed*
+
 *   When using a `DATABASE_URL`, allow for a configuration to map the protocol in the URL to a specific database
     adapter. This allows decoupling the adapter the application chooses to use from the database connection details
     set in the deployment environment.
