@@ -1,3 +1,7 @@
+*   Fix `has_secure_token` calls the setter method on initialize.
+
+    *Abeid Ahmed*
+
 *   Allow using `object_id` as a database column name.
     It was available before rails 7.1 and may be used as a part of polymorphic relationship to `object` where `object` can be any other database record.
 
