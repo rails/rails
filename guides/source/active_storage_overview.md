@@ -462,6 +462,19 @@ end
 <%= image_tag user.video.preview(:thumb) %>
 ```
 
+If you know in advance that your variants will be accessed, you can specify that
+rails should generate them ahead of time:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :video do |attachable|
+    attachable.variant :thumb, resize_to_limit: [100, 100], preprocessed: true
+  end
+end
+```
+
+Rails will enqueue a job to generate the variant after the attachment is attached to the record.
+
 [`has_one_attached`]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_one_attached
 [Attached::One#attach]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-attach
 [Attached::One#attached?]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-attached-3F
