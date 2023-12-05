@@ -134,6 +134,8 @@ gem "webmock"
 local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 
+gem "irb", "< 1.10"
+
 group :test do
   gem "minitest-bisect"
   gem "minitest-ci", require: false
