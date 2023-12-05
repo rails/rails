@@ -1,3 +1,8 @@
+*   Change generated Dockerfile to use bootsnap read-only mode. This saves
+    some work of bootsnap trying to update its cache when it won't be re-used.
+
+    *Josh Nichols*
+
 *   Fix running `db:system:change` when app has no Dockerfile.
 
     *Hartley McGuire*
