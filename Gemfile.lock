@@ -285,7 +285,7 @@ GEM
       activesupport (>= 6.0.0)
       railties (>= 6.0.0)
     io-console (0.6.0)
-    irb (1.9.1)
+    irb (1.10.1)
       rdoc
       reline (>= 0.3.8)
     jbuilder (2.11.5)
@@ -591,7 +591,6 @@ DEPENDENCIES
   google-cloud-storage (~> 1.11)
   image_processing (~> 1.2)
   importmap-rails (>= 1.2.3)
-  irb (< 1.10)
   jbuilder
   jsbundling-rails
   json (>= 2.0.0, != 2.7.0)
