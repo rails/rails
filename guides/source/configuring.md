@@ -1169,7 +1169,14 @@ Rendered recordings/threads/_thread.html.erb in 1.5 ms [cache miss]
 
 #### `config.action_controller.raise_on_open_redirects`
 
-Raises an `ActionController::Redirecting::UnsafeRedirectError` when an unpermitted open redirect occurs.
+Protect an application from unintentionally redirecting to an external host
+(also known as an "open redirect") by making external redirects opt-in.
+
+When this configuration is set to `true`, an
+`ActionController::Redirecting::UnsafeRedirectError` will be raised when a URL
+with an external host is passed to [redirect_to][]. If an open redirect should
+be allowed, then `allow_other_host: true` can be added to the call to
+`redirect_to`.
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -1177,6 +1184,8 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 7.0                   | `true`               |
+
+[redirect_to]: https://api.rubyonrails.org/classes/ActionController/Redirecting.html#method-i-redirect_to
 
 #### `config.action_controller.log_query_tags_around_actions`
 
