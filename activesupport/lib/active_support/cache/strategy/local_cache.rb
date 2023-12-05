@@ -131,19 +131,22 @@ module ActiveSupport
             end
           end
 
-          def read_multi_entries(keys, **options)
+          def read_multi_entries(names, **options)
             return super unless local_cache
 
-            local_entries = local_cache.read_multi_entries(keys)
-            local_entries.transform_values! do |payload|
-              deserialize_entry(payload)&.value
-            end
-            missed_keys = keys - local_entries.keys
+            keys_to_names = names.index_by { |name| normalize_key(name, options) }
+            local_entries = local_cache.read_multi_entries(keys_to_names.keys)
 
-            if missed_keys.any?
-              local_entries.merge!(super(missed_keys, **options))
+            values = {}
+            local_entries.each do |key, payload|
+              values[keys_to_names[key]] = deserialize_entry(payload)&.value
+            end
+            missed_names = names - values.keys
+
+            if missed_names.any?
+              values.merge!(super(missed_names, **options))
             else
-              local_entries
+              values
             end
           end
 
