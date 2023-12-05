@@ -15,7 +15,7 @@ module ActiveJob
     end
 
     initializer "active_job.logger" do
-      ActiveSupport.on_load(:active_job) { self.logger ||= ::Rails.logger }
+      ActiveSupport.on_load(:active_job) { self.logger = ::Rails.logger }
     end
 
     initializer "active_job.custom_serializers" do |app|
