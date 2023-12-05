@@ -34,6 +34,11 @@ module ActionText
       # * <tt>:strict_loading</tt> - Pass true to force strict loading. When
       #   omitted, <tt>strict_loading:</tt> will be set to the value of the
       #   <tt>strict_loading_by_default</tt> class attribute (false by default).
+      #
+      # Note: Action Text relies on polymorphic associations, which in turn store class names in the database.
+      # When renaming classes that use <tt>has_rich_text</tt>, make sure to also update the class names in the
+      # <tt>action_text_rich_texts.record_type</tt> polymorphic type column of
+      # the corresponding rows.
       def has_rich_text(name, encrypted: false, strict_loading: strict_loading_by_default)
         class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}
