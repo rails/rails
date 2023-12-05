@@ -826,7 +826,7 @@ module ActiveSupport
           end
         end
 
-        def deserialize_entry(payload)
+        def deserialize_entry(payload, **)
           payload.nil? ? nil : @coder.load(payload)
         rescue DeserializationError
           nil
