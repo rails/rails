@@ -65,6 +65,8 @@ module ActiveStorage
     )
 
     config.active_storage.content_types_allowed_inline = %w(
+      image/webp
+      image/avif
       image/png
       image/gif
       image/jpeg
