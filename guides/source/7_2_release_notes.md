@@ -77,6 +77,8 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Deprecations
 
+*  Deprecate passing content to void elements when using `tag.br` type tag builders.
+
 ### Notable changes
 
 Action Mailer
