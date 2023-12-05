@@ -1,3 +1,14 @@
+*   Introduce `package_json` Generator Action
+
+    Extends existing Generator Actions by allowing the consumer to
+    modify `package.json`.
+
+    ```ruby
+    package_json scripts: { stylelint: "npx stylelint 'app/assets/stylesheets/**/*.css'" }
+    ```
+
+    *Steve Polito*
+
 *   Fix running `db:system:change` when app has no Dockerfile.
 
     *Hartley McGuire*

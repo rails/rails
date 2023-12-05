@@ -718,6 +718,44 @@ class ActionsTest < Rails::Generators::TestCase
     assert_equal("", action(:log, :yes, "YES"))
   end
 
+  test "package_json modifies package.json" do
+    create_package_json
+
+    action :package_json, private: true, scripts: {
+      stylelint: "npx stylelint '**/*.css'",
+      "lint" => "run-p lint:eslint lint:types lint:prettier"
+    }
+
+    expected_content = <<~JSON.chomp
+      {
+        "name": "test",
+        "private": true,
+        "scripts": {
+          "stylelint": "npx stylelint '**/*.css'",
+          "lint": "run-p lint:eslint lint:types lint:prettier"
+        }
+      }
+    JSON
+    assert_file "package.json" do |file|
+      assert_equal expected_content, file
+    end
+  end
+
+  test "package_json modifies existing key" do
+    create_package_json
+
+    action :package_json, name: "modified"
+
+    expected_content = <<~JSON.chomp
+      {
+        "name": "modified"
+      }
+    JSON
+    assert_file "package.json" do |file|
+      assert_equal expected_content, file
+    end
+  end
+
   private
     def action(...)
       if ENV["RAILS_LOG_TO_STDOUT"] == "true"

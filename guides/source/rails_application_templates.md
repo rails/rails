@@ -263,6 +263,27 @@ end
 
 The callbacks gets executed even if `--skip-bundle` has been passed.
 
+### package_json(hash)
+
+Modifies or creates key/value pairs in existing `package.json`.
+
+```ruby
+gem "cssbundling-rails"
+
+after_bundle do
+  rails_command "css:install:postcss"
+  run "yarn add stylelint stylelint-config-standard"
+  run "touch .stylelintrc.json"
+  insert_into_file ".stylelintrc.json", <<~JSON
+    {
+      "extends": ["stylelint-config-standard"]
+    }
+  JSON
+
+  package_json scripts: { stylelint: "npx stylelint 'app/assets/stylesheets/**/*.css'" }
+end
+```
+
 Advanced Usage
 --------------
 
