@@ -248,7 +248,7 @@ module ActionDispatch
         end
 
         def spot(exc)
-          if RubyVM::AbstractSyntaxTree.respond_to?(:node_id_for_backtrace_location)
+          if RubyVM::AbstractSyntaxTree.respond_to?(:node_id_for_backtrace_location) && __getobj__.is_a?(Thread::Backtrace::Location)
             location = @template.spot(__getobj__)
           else
             location = super
@@ -273,7 +273,12 @@ module ActionDispatch
 
         (@exception.backtrace_locations || []).map do |loc|
           if built_methods.key?(loc.label.to_s)
-            SourceMapLocation.new(loc, built_methods[loc.label.to_s])
+            thread_backtrace_location = if loc.respond_to?(:__getobj__)
+              loc.__getobj__
+            else
+              loc
+            end
+            SourceMapLocation.new(thread_backtrace_location, built_methods[loc.label.to_s])
           else
             loc
           end
