@@ -285,7 +285,7 @@ GEM
       activesupport (>= 6.0.0)
       railties (>= 6.0.0)
     io-console (0.6.0)
-    irb (1.8.3)
+    irb (1.9.1)
       rdoc
       reline (>= 0.3.8)
     jbuilder (2.11.5)
@@ -409,7 +409,7 @@ GEM
     rb-inotify (0.10.1)
       ffi (~> 1.0)
     rbtree (0.4.6)
-    rdoc (6.6.0)
+    rdoc (6.6.1)
       psych (>= 4.0.0)
     redcarpet (3.2.3)
     redis (5.0.5)
@@ -515,7 +515,7 @@ GEM
     stackprof (0.2.23)
     stimulus-rails (1.2.1)
       railties (>= 6.0.0)
-    stringio (3.0.9)
+    stringio (3.1.0)
     sucker_punch (3.1.0)
       concurrent-ruby (~> 1.0)
     syntax_tree (6.1.1)
@@ -591,6 +591,7 @@ DEPENDENCIES
   google-cloud-storage (~> 1.11)
   image_processing (~> 1.2)
   importmap-rails (>= 1.2.3)
+  irb (< 1.10)
   jbuilder
   jsbundling-rails
   json (>= 2.0.0, != 2.7.0)
