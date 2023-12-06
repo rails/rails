@@ -243,6 +243,10 @@ module Rails
 
     delegate :railtie_name, to: :class
 
+    rake_tasks do
+      load "rails/tasks/testing.rake"
+    end
+
     def initialize # :nodoc:
       if self.class.abstract_railtie?
         raise "#{self.class.name} is abstract, you cannot instantiate it directly."
