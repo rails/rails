@@ -3560,15 +3560,14 @@ Database Pooling
 Active Record database connections are managed by
 `ActiveRecord::ConnectionAdapters::ConnectionPool` which ensures that a
 connection pool synchronizes the amount of thread access to a limited number of
-database connections. This limit defaults to 5 and can be configured in
-`database.yml`.
+database connections. This limit defaults to 5 and can be configured via the
+`pool` option in `database.yml`.
 
 ```yaml
 development:
   adapter: sqlite3
   database: storage/development.sqlite3
   pool: 5
-  timeout: 5000
 ```
 
 Since the connection pooling is handled inside of Active Record by default, all
@@ -3590,7 +3589,14 @@ ActiveRecord::ConnectionTimeoutError - could not obtain a database connection wi
 ```
 
 If you get the above error, you might want to increase the size of the
-connection pool by incrementing the `pool` option in `database.yml`
+connection pool by incrementing the `pool` option in `database.yml`.
+
+The above timeout can be configured using the `checkout_timeout` option
+(defaults to 5 seconds) in `database.yml`, as well as how long an unused
+connection will be kept in the pool `idle_timeout` (defaults to 300 seconds).
+You can find more information regarding the
+`ActiveRecord::ConnectionAdapters::ConnectionPool` and its options in the
+[documentation](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/ConnectionPool.html).
 
 NOTE. If you are running in a multithreaded environment, there could be a chance
 that several threads may be accessing multiple connections simultaneously. So
