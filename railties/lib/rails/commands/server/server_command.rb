@@ -34,6 +34,7 @@ module Rails
       create_tmp_directories
       setup_dev_caching
       log_to_stdout if options[:log_stdout]
+      write_server_url
 
       super()
     ensure
@@ -56,10 +57,19 @@ module Rails
     end
 
     def served_url
-      "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}" unless use_puma?
+      server_url unless use_puma?
     end
 
     private
+      def server_url
+        "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}"
+      end
+
+      def write_server_url
+        path = File.join(Rails.root, "tmp", "server_url.txt")
+        File.write(path, server_url)
+      end
+
       def setup_dev_caching
         if options[:environment] == "development"
           Rails::DevCaching.enable_by_argument(options[:caching])

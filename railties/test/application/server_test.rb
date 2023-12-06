@@ -40,6 +40,29 @@ module ApplicationTests
       end
     end
 
+    test "write server URL to a file" do
+      skip "PTY unavailable" unless available_pty?
+
+      File.open("#{app_path}/config/boot.rb", "w") do |f|
+        f.puts "ENV['BUNDLE_GEMFILE'] = '#{Bundler.default_gemfile}'"
+        f.puts 'require "bundler/setup"'
+      end
+
+      primary, replica = PTY.open
+      pid = nil
+
+      Bundler.with_original_env do
+        pid = Process.spawn("bin/rails server -b localhost -p 3001", chdir: app_path, in: replica, out: replica, err: replica)
+        assert_output("Listening", primary)
+
+        path = "#{app_path}/tmp/server_url.txt"
+        assert_path_exists path
+        assert_equal "http://localhost:3001", File.read(path)
+      ensure
+        kill(pid) if pid
+      end
+    end
+
     test "run +server+ blocks after the server starts" do
       skip "PTY unavailable" unless available_pty?
 

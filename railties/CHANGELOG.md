@@ -1,3 +1,7 @@
+*   Write server URL to a temporary file when starting Rails
+
+    *Andy Waite*
+
 *   Use `bin/rails runner --skip-executor` option to not wrap the runner script
     with an Executor.
 
