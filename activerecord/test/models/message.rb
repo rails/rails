@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
+require "models/entryable"
+
 class Message < ActiveRecord::Base
-  has_one  :entry, as: :entryable, touch: true
+  include Entryable
+
   has_many :recipients
 end

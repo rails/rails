@@ -1,3 +1,14 @@
+*   Infer default `:inverse_of` option for `delegated_type` definitions.
+
+    ```ruby
+    class Entry < ApplicationRecord
+      delegated_type :entryable, types: %w[ Message ]
+      # => defaults to inverse_of: :entry
+    end
+    ```
+
+    *Sean Doyle*
+
 *   Raise specific exception when a connection is not defined.
 
      The new `ConnectionNotDefined` exception provides connection name, shard and role accessors indicating the details of the connection that was requested.
