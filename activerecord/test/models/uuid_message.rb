@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "models/uuid_entryable"
+
 class UuidMessage < ActiveRecord::Base
-  has_one :uuid_entry, as: :entryable
+  include UuidEntryable
 end
