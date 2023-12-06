@@ -3592,10 +3592,10 @@ ActiveRecord::ConnectionTimeoutError - could not obtain a database connection wi
 If you get the above error, you might want to increase the size of the
 connection pool by incrementing the `pool` option in `database.yml`
 
-NOTE. If you are running in a multi-threaded environment, there could be a
-chance that several threads may be accessing multiple connections
-simultaneously. So depending on your current request load, you could very well
-have multiple threads contending for a limited number of connections.
+NOTE. If you are running in a multithreaded environment, there could be a chance
+that several threads may be accessing multiple connections simultaneously. So
+depending on your current request load, you could very well have multiple
+threads contending for a limited number of connections.
 
 
 Custom Configuration
