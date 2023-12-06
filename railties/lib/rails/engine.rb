@@ -396,6 +396,12 @@ module Rails
 
             unless mod.respond_to?(:table_name_prefix)
               define_method(:table_name_prefix) { "#{name}_" }
+
+              ActiveSupport.on_load(:active_record) do
+                mod.singleton_class.redefine_method(:table_name_prefix) do
+                  "#{ActiveRecord::Base.table_name_prefix}#{name}_"
+                end
+              end
             end
 
             unless mod.respond_to?(:use_relative_model_naming?)

@@ -1,3 +1,9 @@
+*   Fix isolated engines to take `ActiveRecord::Base.table_name_prefix` into consideration.
+    This will allow for engine defined models, such as inside Active Storage, to respect
+    Active Record table name prefix configuration.
+
+    *Chedli Bourguiba*
+
 *   The `bin/rails app:template` command will no longer add potentially unwanted
     gem platforms via `bundle lock --add-platform=...` commands.
 
