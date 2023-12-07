@@ -53,7 +53,7 @@ class ActiveStorage::MigrationsTest < ActiveSupport::TestCase
     end
 
     def active_storage_tables
-      [:active_storage_blobs, :active_storage_attachments, :active_storage_variant_records]
+      @active_storage_tables ||= ActiveStorage::Record.descendants.map { |klass| klass.table_name.to_sym }
     end
 
     def primary_key(table)

@@ -1,3 +1,8 @@
+*   Fix all Active Storage database related models to respect
+    `ActiveRecord::Base.table_name_prefix` configuration.
+
+    *Chedli Bourguiba*
+
 *   Fix `ActiveStorage::Representations::ProxyController` not returning the proper
     preview image variant for previewable files.
 
