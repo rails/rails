@@ -1,3 +1,8 @@
+*   Fix all Action Text database related models to respect
+    `ActiveRecord::Base.table_name_prefix` configuration.
+
+    *Chedli Bourguiba*
+
 *   Compile ESM package that can be used directly in the browser as actiontext.esm.js
 
     *Matias Grunberg*
