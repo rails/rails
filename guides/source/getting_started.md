@@ -560,7 +560,7 @@ file, and replace its contents with:
 </ul>
 ```
 
-The above code is a mixture of HTML and *ERB*. ERB is a templating system that
+The above code is a mixture of HTML and *ERB*. ERB, short for [Embedded Ruby](https://docs.ruby-lang.org/en/3.2/ERB.html), is a templating system that
 evaluates Ruby code embedded in a document. Here, we can see two types of ERB
 tags: `<% %>` and `<%= %>`. The `<% %>` tag means "evaluate the enclosed Ruby
 code." The `<%= %>` tag means "evaluate the enclosed Ruby code, and output the
