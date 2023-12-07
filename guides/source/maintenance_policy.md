@@ -78,7 +78,7 @@ there could be breaking changes in the security release. A security release
 should only contain the changes needed to ensure the app is secure so that it's
 easier for applications to remain upgraded.
 
-**Currently included series:** `7.1.Z`, `7.0.Z`, `6.1.Z`.
+**Currently included series:** `7.1.Z`, `7.0.Z`.
 
 Severe Security Issues
 ----------------------
