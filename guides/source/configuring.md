@@ -1784,8 +1784,19 @@ updated via an `around_filter`. The default value is `true`.
 
 #### `config.action_controller.wrap_parameters_by_default`
 
-Configures the [`ParamsWrapper`](https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html) to wrap json
-request by default.
+Before Rails 7.0, new applications were generated with an initializer named
+`wrap_parameters.rb` that enabled parameter wrapping in `ActionController::Base`
+for JSON requests.
+
+Setting this configuration value to `true` has the same behavior as the
+initializer, allowing applications to remove the initializer if they do not wish
+to customize parameter wrapping behavior.
+
+Regardless of this value, applications can continue to customize the parameter
+wrapping behavior as before in an initializer or per controller.
+
+See [`ParamsWrapper`][params_wrapper] for more information on parameter
+wrapping.
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -1793,6 +1804,8 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 7.0                   | `true`               |
+
+[params_wrapper]: https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html
 
 #### `ActionController::Base.wrap_parameters`
 
@@ -2130,7 +2143,21 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.action_view.button_to_generates_button_tag`
 
-Determines whether `button_to` will render `<button>` element, regardless of whether or not the content is passed as the first argument or as a block.
+When `false`, `button_to` will render a `<button>` or an `<input>` inside a
+`<form>` depending on how content is passed (`<form>` omitted for brevity):
+
+```erb
+<%= button_to "Content", "/" %>
+# => <input type="submit" value="Content">
+
+<%= button_to "/" do %>
+  Content
+<% end %>
+# => <button type="submit">Content</button>
+```
+
+Setting this value to `true` makes `button_to` generate a `<button>` tag inside
+the `<form>` in both cases.
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -2141,7 +2168,8 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.action_view.apply_stylesheet_media_default`
 
-Determines whether `stylesheet_link_tag` will render `screen` as the default value for the attribute `media` when it's not provided.
+Determines whether `stylesheet_link_tag` will render `screen` as the default
+value for the `media` attribute when it's not provided.
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -2245,8 +2273,10 @@ Additionally, it is possible to pass any [configuration option `Mail::SMTP` resp
 
 #### `config.action_mailer.smtp_timeout`
 
-Allows to configure both the `:open_timeout` and `:read_timeout`
-values for `:smtp` delivery method.
+Prior to version 2.8.0, the `mail` gem did not configure any default timeouts
+for its SMTP requests. This configuration enables applications to configure
+default values for both `:open_timeout` and `:read_timeout` in the `mail` gem so
+that requests do not end up stuck indefinitely.
 
 The default value depends on the `config.load_defaults` target version:
 
