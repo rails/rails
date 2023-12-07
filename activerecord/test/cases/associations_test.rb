@@ -1452,6 +1452,51 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_match(expectation, preload_sql)
     assert_equal order, loaded_order_agreement.order
   end
+
+  def test_preload_keeps_built_has_many_records_no_ops
+    post = Post.new
+    comment = post.comments.build
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :comments).call
+
+      assert_equal [comment], post.comments.to_a
+    end
+  end
+
+  def test_preload_keeps_built_has_many_records_after_query
+    post = posts(:welcome)
+    comment = post.comments.build
+
+    assert_queries(1) do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :comments).call
+
+      assert_includes post.comments.to_a, comment
+    end
+  end
+
+
+  def test_preload_keeps_built_belongs_to_records_no_ops
+    post = Post.new
+    author = post.build_author
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :author).call
+
+      assert_same author, post.author
+    end
+  end
+
+  def test_preload_keeps_built_belongs_to_records_after_query
+    post = posts(:welcome)
+    author = post.build_author
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :author).call
+
+      assert_same author, post.author
+    end
+  end
 end
 
 class GeneratedMethodsTest < ActiveRecord::TestCase
