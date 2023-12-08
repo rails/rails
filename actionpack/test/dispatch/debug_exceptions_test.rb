@@ -627,11 +627,43 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/nested_exceptions", headers: env
     assert_response 500
     log = output.rewind && output.read
-    assert_includes log, <<~MSG
-      Causes:
-      RuntimeError (Second error)
-      RuntimeError (First error)
+
+    # Splitting into paragraphs to be easier to see difference/error when there is one
+    paragraphs = log.split(/\n\s*\n/)
+
+    assert_includes(paragraphs[0], <<~MSG.strip)
+      RuntimeError (Third error)
+      Caused by: RuntimeError (Second error)
+      Caused by: RuntimeError (First error)
     MSG
+
+    assert_includes(paragraphs[1], <<~MSG.strip)
+      Information for: RuntimeError (Third error):
+    MSG
+
+    assert_match Regexp.new(<<~REGEX.strip), paragraphs[2].lines[0..2].join
+      \\A.*in `rescue in rescue in raise_nested_exceptions'
+      .*in `rescue in raise_nested_exceptions'
+      .*in `raise_nested_exceptions'
+    REGEX
+
+    assert_includes(paragraphs[3], <<~MSG.strip)
+      Information for cause: RuntimeError (Second error):
+    MSG
+
+    assert_match Regexp.new(<<~REGEX.strip), paragraphs[4].lines[0..1].join
+      \\A.*in `rescue in raise_nested_exceptions'
+      .*in `raise_nested_exceptions'
+    REGEX
+
+
+    assert_includes(paragraphs[5], <<~MSG.strip)
+      Information for cause: RuntimeError (First error):
+    MSG
+
+    assert_match Regexp.new(<<~REGEX.strip), paragraphs[6].lines[0]
+      \\A.*in `raise_nested_exceptions'
+    REGEX
   end
 
   test "display backtrace when error type is SyntaxError" do
