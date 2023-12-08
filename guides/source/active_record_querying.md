@@ -1041,7 +1041,7 @@ SQL uses the `HAVING` clause to specify conditions on the `GROUP BY` fields. You
 For example:
 
 ```ruby
-Order.select("created_at, sum(total) as total_price").
+Order.select("created_at as ordered_date, sum(total) as total_price").
   group("created_at").having("sum(total) > ?", 200)
 ```
 
