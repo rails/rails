@@ -586,7 +586,7 @@ class ModuleTest < ActiveSupport::TestCase
       location.delegate(:street, :city, to: :@place, prefix: :the, private: true)
   end
 
-  def test_delegation_arity
+  def test_delegation_arity_to_module
     c = Class.new do
       delegate :zero, :one, :two, to: ArityTester
     end
@@ -594,6 +594,17 @@ class ModuleTest < ActiveSupport::TestCase
     assert_equal 1, c.instance_method(:one).arity
     assert_equal 2, c.instance_method(:two).arity
 
+    e = Class.new do
+      delegate :zero, to: ArityTesterModule
+    end
+
+    assert_equal 0, e.instance_method(:zero).arity
+    assert_nothing_raised do
+      e.new.zero
+    end
+  end
+
+  def test_delegation_arity_to_self_class
     d = Class.new(ArityTester) do
       delegate :zero, :zero_with_block, :zero_with_implicit_block, :one, :one_with_block, :two, :opt,
         :kwargs, :kwargs_with_block, :opt_kwargs, :opt_kwargs_with_block, to: :class
@@ -622,15 +633,6 @@ class ModuleTest < ActiveSupport::TestCase
       d.new.kwargs_with_block(a: 1, b: 2, c: 3)
       d.new.opt_kwargs(a: 1)
       d.new.opt_kwargs_with_block(a: 1, b: 2, c: 3)
-    end
-
-    e = Class.new do
-      delegate :zero, to: ArityTesterModule
-    end
-
-    assert_equal 0, e.instance_method(:zero).arity
-    assert_nothing_raised do
-      e.new.zero
     end
   end
 end
