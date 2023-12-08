@@ -43,7 +43,7 @@ class ActionMailbox::MigrationsTest < ActiveSupport::TestCase
     end
 
     def action_mailbox_tables
-      [:action_mailbox_inbound_emails]
+      @action_mailbox_tables ||= ActionMailbox::Record.descendants.map { |klass| klass.table_name.to_sym }
     end
 
     def primary_key(table)
