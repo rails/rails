@@ -18,10 +18,7 @@ module ActionCable
         end
       end
 
-      included do
-        # Delegates to the class's ::channel_name.
-        delegate :channel_name, to: :class
-      end
+      delegate :channel_name, to: :class, as: ClassMethods
     end
   end
 end
