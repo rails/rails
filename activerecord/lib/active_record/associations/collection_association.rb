@@ -229,10 +229,11 @@ module ActiveRecord
       # check <tt>collection.length.zero?</tt>.
       def empty?
         if loaded? || @association_ids || reflection.has_cached_counter?
-          size.zero?
-        else
-          target.empty? && !scope.exists?
+          return false if size > 0
+          return true if size == 0
         end
+
+        target.empty? && !scope.exists?
       end
 
       # Replace this collection with +other_array+. This will perform a diff

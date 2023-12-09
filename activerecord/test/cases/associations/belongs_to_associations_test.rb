@@ -1017,6 +1017,22 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, topic.replies_count
   end
 
+  def test_ignores_negative_counter_cache
+    post = Post.create!(title: "foo", body: "bar", comments_count: -1)
+
+    assert_queries(1) do
+      assert_predicate post.comments, :empty?
+    end
+
+    post.comments.create!(body: "Thank you")
+    post.update!(comments_count: -1)
+    post.reload
+
+    assert_queries(1) do
+      assert_not_predicate post.comments, :empty?
+    end
+  end
+
   def test_association_assignment_sticks
     post = Post.first
 
