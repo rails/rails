@@ -155,7 +155,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
     def validate_service_configuration(service_name, model_class, association_name) # :nodoc:
       if service_name
-        services.fetch(service_name) do
+        services.fetch(service_name, self) do
           raise ArgumentError, "Cannot configure service #{service_name.inspect} for #{model_class}##{association_name}"
         end
       else

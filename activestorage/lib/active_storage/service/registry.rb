@@ -7,8 +7,8 @@ module ActiveStorage
       @services = {}
     end
 
-    def fetch(service)
-      name = service.is_a?(Proc) ? service.call : service
+    def fetch(service, record = nil)
+      name = service.is_a?(Proc) ? service.call(record) : service
       services.fetch(name.to_sym) do |key|
         if configurations.include?(key)
           services[key] = configurator.build(key)
