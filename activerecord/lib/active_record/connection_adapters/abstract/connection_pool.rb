@@ -658,7 +658,13 @@ module ActiveRecord
             conn
           else
             reap
-            @available.poll(checkout_timeout)
+            # Retry after reaping, which may return an available connection,
+            # remove an inactive connection, or both
+            if conn = @available.poll || try_to_checkout_new_connection
+              conn
+            else
+              @available.poll(checkout_timeout)
+            end
           end
         end
 
