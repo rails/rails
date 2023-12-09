@@ -3216,6 +3216,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     MESSAGE
   end
 
+  def test_empty_method_if_counter_cache_negative
+    post = Post.create!(title: "post 1", body: "post 1 body", comments_count: -20)
+
+    assert_queries(1) do
+      assert_predicate post.comments, :empty?
+    end
+  end
+
   private
     def force_signal37_to_load_all_clients_of_firm
       companies(:first_firm).clients_of_firm.load_target
