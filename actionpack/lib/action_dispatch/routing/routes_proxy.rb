@@ -29,23 +29,18 @@ module ActionDispatch
 
       def method_missing(method, *args)
         if @helpers.respond_to?(method)
-          instance_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def #{method}(*args)
-              options = args.extract_options!
-              options = url_options.merge((options || {}).symbolize_keys)
+          options = args.extract_options!
+          options = url_options.merge((options || {}).symbolize_keys)
 
-              if @script_namer
-                options[:script_name] = merge_script_names(
-                  options[:script_name],
-                  @script_namer.call(options)
-                )
-              end
+          if @script_namer
+            options[:script_name] = merge_script_names(
+              options[:script_name],
+              @script_namer.call(options)
+            )
+          end
 
-              args << options
-              @helpers.#{method}(*args)
-            end
-          RUBY
-          public_send(method, *args)
+          args << options
+          @helpers.public_send(method, *args)
         else
           super
         end
