@@ -93,7 +93,7 @@ class NavigationHelperTest < ActiveSupport::TestCase
   def test_button_to_without_protect_against_forgery_method
     self.class.undef_method(:protect_against_forgery?)
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button></form>},
+      %{<form method="post" action="http://www.example.com" accept-charset="UTF-8" class="button_to"><button type="submit">Hello</button></form>},
       button_to("Hello", "http://www.example.com")
     )
   ensure
@@ -104,7 +104,7 @@ class NavigationHelperTest < ActiveSupport::TestCase
     self.request_forgery = true
 
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button><input name="form_token" type="hidden" value="token" autocomplete="off" /></form>},
+      %{<form method="post" action="http://www.example.com" accept-charset="UTF-8" class="button_to"><input name="form_token" type="hidden" value="token" autocomplete="off" /><button type="submit">Hello</button></form>},
       button_to("Hello", "http://www.example.com", authenticity_token: "token")
     )
   ensure
@@ -115,7 +115,7 @@ class NavigationHelperTest < ActiveSupport::TestCase
     self.request_forgery = true
 
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button><input name="form_token" type="hidden" value="secret" autocomplete="off" /></form>},
+      %{<form method="post" action="http://www.example.com" accept-charset="UTF-8" class="button_to"><input name="form_token" type="hidden" value="secret" autocomplete="off" /><button type="submit">Hello</button></form>},
       button_to("Hello", "http://www.example.com", authenticity_token: true)
     )
   ensure
@@ -126,7 +126,7 @@ class NavigationHelperTest < ActiveSupport::TestCase
     self.request_forgery = true
 
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button></form>},
+      %{<form method="post" action="http://www.example.com" accept-charset="UTF-8" class="button_to"><button type="submit">Hello</button></form>},
       button_to("Hello", "http://www.example.com", authenticity_token: false)
     )
   ensure
@@ -134,26 +134,26 @@ class NavigationHelperTest < ActiveSupport::TestCase
   end
 
   def test_button_to_with_straight_url
-    assert_dom_equal %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button></form>}, button_to("Hello", "http://www.example.com")
+    assert_dom_equal %{<form method="post" action="http://www.example.com" accept-charset="UTF-8" class="button_to"><button type="submit">Hello</button></form>}, button_to("Hello", "http://www.example.com")
   end
 
   def test_button_to_with_path
     assert_dom_equal(
-      %{<form method="post" action="/article/Hello" class="button_to"><button type="submit">Hello</button></form>},
+      %{<form method="post" action="/article/Hello" accept-charset="UTF-8" class="button_to"><button type="submit">Hello</button></form>},
       button_to("Hello", article_path("Hello"))
     )
   end
 
   def test_button_to_with_false_url
     assert_dom_equal(
-      %{<form method="post" class="button_to"><button type="submit">Hello</button></form>},
+      %{<form method="post" accept-charset="UTF-8" class="button_to"><button type="submit">Hello</button></form>},
       button_to("Hello", false)
     )
   end
 
   def test_button_to_with_false_url_and_block
     assert_dom_equal(
-      %{<form method="post" class="button_to"><button type="submit">Hello</button></form>},
+      %{<form method="post" accept-charset="UTF-8" class="button_to"><button type="submit">Hello</button></form>},
       button_to(false) { "Hello" }
     )
   end
@@ -162,7 +162,7 @@ class NavigationHelperTest < ActiveSupport::TestCase
     session = Session.new(nil)
 
     assert_dom_equal(
-      %{<form method="post" action="/sessions" class="button_to"><button type="submit">Create Session</button></form>},
+      %{<form method="post" action="/sessions" accept-charset="UTF-8" class="button_to"><button type="submit">Create Session</button></form>},
       button_to("Create Session", session)
     )
   end
@@ -171,7 +171,7 @@ class NavigationHelperTest < ActiveSupport::TestCase
     workshop = Workshop.new(nil)
 
     assert_dom_equal(
-      %{<form method="post" action="/workshops" class="button_to"><button type="submit">Create</button></form>},
+      %{<form method="post" action="/workshops" accept-charset="UTF-8" class="button_to"><button type="submit">Create</button></form>},
       button_to(workshop) { "Create" }
     )
   end
@@ -181,7 +181,7 @@ class NavigationHelperTest < ActiveSupport::TestCase
     session = Session.new(nil)
 
     assert_dom_equal(
-      %{<form method="post" action="/workshops/1/sessions" class="button_to"><button type="submit">Create</button></form>},
+      %{<form method="post" action="/workshops/1/sessions" accept-charset="UTF-8" class="button_to"><button type="submit">Create</button></form>},
       button_to([workshop, session]) { "Create" }
     )
   end
@@ -190,7 +190,7 @@ class NavigationHelperTest < ActiveSupport::TestCase
     workshop = Workshop.new("1")
 
     assert_dom_equal(
-      %{<form method="post" action="/workshops/1" class="button_to"><input type="hidden" name="_method" value="patch" autocomplete="off" /><button type="submit">Update</button></form>},
+      %{<form method="post" action="/workshops/1" accept-charset="UTF-8" class="button_to"><input type="hidden" name="_method" value="patch" autocomplete="off" /><button type="submit">Update</button></form>},
       button_to(workshop) { "Update" }
     )
   end
@@ -199,7 +199,7 @@ class NavigationHelperTest < ActiveSupport::TestCase
     workshop = Workshop.new("1")
 
     assert_dom_equal(
-      %{<form method="post" action="/workshops/1" class="button_to"><input type="hidden" name="_method" value="patch" autocomplete="off" /><button type="submit">Update</button></form>},
+      %{<form method="post" action="/workshops/1" accept-charset="UTF-8" class="button_to"><input type="hidden" name="_method" value="patch" autocomplete="off" /><button type="submit">Update</button></form>},
       button_to(workshop) { "Update" }
     )
   end
@@ -209,7 +209,7 @@ class NavigationHelperTest < ActiveSupport::TestCase
     session = Session.new("1")
 
     assert_dom_equal(
-      %{<form method="post" action="/workshops/1/sessions/1" class="button_to"><input type="hidden" name="_method" value="patch" autocomplete="off" /><button type="submit">Update</button></form>},
+      %{<form method="post" action="/workshops/1/sessions/1" accept-charset="UTF-8" class="button_to"><input type="hidden" name="_method" value="patch" autocomplete="off" /><button type="submit">Update</button></form>},
       button_to([workshop, session]) { "Update" }
     )
   end
@@ -218,7 +218,7 @@ class NavigationHelperTest < ActiveSupport::TestCase
     self.request_forgery = true
 
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button><input name="form_token" type="hidden" value="secret" autocomplete="off" /></form>},
+      %{<form method="post" action="http://www.example.com" accept-charset="UTF-8" class="button_to"><input name="form_token" type="hidden" value="secret" autocomplete="off" /><button type="submit">Hello</button></form>},
       button_to("Hello", "http://www.example.com")
     )
   ensure
@@ -226,113 +226,113 @@ class NavigationHelperTest < ActiveSupport::TestCase
   end
 
   def test_button_to_with_form_class
-    assert_dom_equal %{<form method="post" action="http://www.example.com" class="custom-class"><button type="submit">Hello</button></form>}, button_to("Hello", "http://www.example.com", form_class: "custom-class")
+    assert_dom_equal %{<form method="post" action="http://www.example.com" accept-charset="UTF-8" class="custom-class"><button type="submit">Hello</button></form>}, button_to("Hello", "http://www.example.com", form_class: "custom-class")
   end
 
   def test_button_to_with_form_class_escapes
-    assert_dom_equal %{<form method="post" action="http://www.example.com" class="&lt;script&gt;evil_js&lt;/script&gt;"><button type="submit">Hello</button></form>}, button_to("Hello", "http://www.example.com", form_class: "<script>evil_js</script>")
+    assert_dom_equal %{<form method="post" action="http://www.example.com" accept-charset="UTF-8" class="&lt;script&gt;evil_js&lt;/script&gt;"><button type="submit">Hello</button></form>}, button_to("Hello", "http://www.example.com", form_class: "<script>evil_js</script>")
   end
 
   def test_button_to_with_query
-    assert_dom_equal %{<form method="post" action="http://www.example.com/q1=v1&amp;q2=v2" class="button_to"><button type="submit">Hello</button></form>}, button_to("Hello", "http://www.example.com/q1=v1&q2=v2")
+    assert_dom_equal %{<form method="post" action="http://www.example.com/q1=v1&amp;q2=v2" accept-charset="UTF-8" class="button_to"><button type="submit">Hello</button></form>}, button_to("Hello", "http://www.example.com/q1=v1&q2=v2")
   end
 
   def test_button_to_with_value
-    assert_dom_equal %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit" name="key" value="value">Hello</button></form>}, button_to("Hello", "http://www.example.com", name: "key", value: "value")
+    assert_dom_equal %{<form method="post" action="http://www.example.com" accept-charset="UTF-8" class="button_to"><button type="submit" name="key" value="value">Hello</button></form>}, button_to("Hello", "http://www.example.com", name: "key", value: "value")
   end
 
   def test_button_to_with_html_safe_URL
-    assert_dom_equal %{<form method="post" action="http://www.example.com/q1=v1&amp;q2=v2" class="button_to"><button type="submit">Hello</button></form>}, button_to("Hello", raw("http://www.example.com/q1=v1&amp;q2=v2"))
+    assert_dom_equal %{<form method="post" action="http://www.example.com/q1=v1&amp;q2=v2" accept-charset="UTF-8" class="button_to"><button type="submit">Hello</button></form>}, button_to("Hello", raw("http://www.example.com/q1=v1&amp;q2=v2"))
   end
 
   def test_button_to_with_query_and_no_name
-    assert_dom_equal %{<form method="post" action="http://www.example.com?q1=v1&amp;q2=v2" class="button_to"><button type="submit">http://www.example.com?q1=v1&amp;q2=v2</button></form>}, button_to(nil, "http://www.example.com?q1=v1&q2=v2")
+    assert_dom_equal %{<form method="post" action="http://www.example.com?q1=v1&amp;q2=v2" accept-charset="UTF-8" class="button_to"><button type="submit">http://www.example.com?q1=v1&amp;q2=v2</button></form>}, button_to(nil, "http://www.example.com?q1=v1&q2=v2")
   end
 
   def test_button_to_with_javascript_confirm
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><button data-confirm="Are you sure?" type="submit">Hello</button></form>},
+      %{<form method="post" action="http://www.example.com" accept-charset="UTF-8" class="button_to"><button data-confirm="Are you sure?" type="submit">Hello</button></form>},
       button_to("Hello", "http://www.example.com", data: { confirm: "Are you sure?" })
     )
   end
 
   def test_button_to_with_javascript_disable_with
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><button data-disable-with="Greeting..." type="submit">Hello</button></form>},
+      %{<form method="post" action="http://www.example.com" accept-charset="UTF-8" class="button_to"><button data-disable-with="Greeting..." type="submit">Hello</button></form>},
       button_to("Hello", "http://www.example.com", data: { disable_with: "Greeting..." })
     )
   end
 
   def test_button_to_with_remote_and_form_options
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="custom-class" data-remote="true" data-type="json"><button type="submit">Hello</button></form>},
+      %{<form method="post" action="http://www.example.com" accept-charset="UTF-8" class="custom-class" data-remote="true" data-type="json"><button type="submit">Hello</button></form>},
       button_to("Hello", "http://www.example.com", remote: true, form: { class: "custom-class", "data-type" => "json" })
     )
   end
 
   def test_button_to_with_remote_and_javascript_confirm
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to" data-remote="true"><button data-confirm="Are you sure?" type="submit">Hello</button></form>},
+      %{<form method="post" action="http://www.example.com" accept-charset="UTF-8" class="button_to" data-remote="true"><button data-confirm="Are you sure?" type="submit">Hello</button></form>},
       button_to("Hello", "http://www.example.com", remote: true, data: { confirm: "Are you sure?" })
     )
   end
 
   def test_button_to_with_remote_and_javascript_disable_with
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to" data-remote="true"><button data-disable-with="Greeting..." type="submit">Hello</button></form>},
+      %{<form method="post" action="http://www.example.com" accept-charset="UTF-8" class="button_to" data-remote="true"><button data-disable-with="Greeting..." type="submit">Hello</button></form>},
       button_to("Hello", "http://www.example.com", remote: true, data: { disable_with: "Greeting..." })
     )
   end
 
   def test_button_to_with_remote_false
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button></form>},
+      %{<form method="post" action="http://www.example.com" accept-charset="UTF-8" class="button_to"><button type="submit">Hello</button></form>},
       button_to("Hello", "http://www.example.com", remote: false)
     )
   end
 
   def test_button_to_enabled_disabled
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button></form>},
+      %{<form method="post" action="http://www.example.com" accept-charset="UTF-8" class="button_to"><button type="submit">Hello</button></form>},
       button_to("Hello", "http://www.example.com", disabled: false)
     )
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><button disabled="disabled" type="submit">Hello</button></form>},
+      %{<form method="post" action="http://www.example.com" accept-charset="UTF-8" class="button_to"><button disabled="disabled" type="submit">Hello</button></form>},
       button_to("Hello", "http://www.example.com", disabled: true)
     )
   end
 
   def test_button_to_with_method_delete
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><input type="hidden" name="_method" value="delete" autocomplete="off" /><button type="submit">Hello</button></form>},
+      %{<form method="post" action="http://www.example.com" accept-charset="UTF-8" class="button_to"><input type="hidden" name="_method" value="delete" autocomplete="off" /><button type="submit">Hello</button></form>},
       button_to("Hello", "http://www.example.com", method: :delete)
     )
   end
 
   def test_button_to_with_method_get
     assert_dom_equal(
-      %{<form method="get" action="http://www.example.com" class="button_to"><button type="submit">Hello</button></form>},
+      %{<form method="get" action="http://www.example.com" accept-charset="UTF-8" class="button_to"><button type="submit">Hello</button></form>},
       button_to("Hello", "http://www.example.com", method: :get)
     )
   end
 
   def test_button_to_with_block
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><button type="submit"><span>Hello</span></button></form>},
+      %{<form method="post" action="http://www.example.com" accept-charset="UTF-8" class="button_to"><button type="submit"><span>Hello</span></button></form>},
       button_to("http://www.example.com") { content_tag(:span, "Hello") }
     )
   end
 
   def test_button_to_with_params
     assert_dom_equal(
-      %{<form action="http://www.example.com" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="baz" value="quux" autocomplete="off" /><input type="hidden" name="foo" value="bar" autocomplete="off" /></form>},
+      %{<form action="http://www.example.com" accept-charset="UTF-8" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="baz" value="quux" autocomplete="off" /><input type="hidden" name="foo" value="bar" autocomplete="off" /></form>},
       button_to("Hello", "http://www.example.com", params: { foo: :bar, baz: "quux" })
     )
   end
 
   def test_button_to_with_block_and_hash_url
     assert_dom_equal(
-      %{<form action="/other" class="button_to" method="post"><button class="button" type="submit">Hello</button></form>},
+      %{<form action="/other" accept-charset="UTF-8" class="button_to" method="post"><button class="button" type="submit">Hello</button></form>},
       button_to({ controller: "foo", action: "other" }, class: "button") { "Hello" }
     )
   end
@@ -342,7 +342,7 @@ class NavigationHelperTest < ActiveSupport::TestCase
     ActionView::Helpers::NavigationHelper.button_to_generates_button_tag = false
 
     assert_dom_equal(
-      %{<form method="post" action="http://www.example.com" class="button_to"><input type="submit" value="Save"/></form>},
+      %{<form method="post" action="http://www.example.com" accept-charset="UTF-8" class="button_to"><input type="submit" value="Save"/></form>},
       button_to("Save", "http://www.example.com")
     )
   ensure
@@ -352,7 +352,7 @@ class NavigationHelperTest < ActiveSupport::TestCase
   def test_button_to_with_content_exfiltration_prevention
     with_prepend_content_exfiltration_prevention(true) do
       assert_dom_equal(
-        %{<!-- '"` --><!-- </textarea></xmp> --></option></form><form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button></form>},
+        %{<!-- '"` --><!-- </textarea></xmp> --></option></form><form method="post" action="http://www.example.com" accept-charset="UTF-8" class="button_to"><button type="submit">Hello</button></form>},
         button_to("Hello", "http://www.example.com")
       )
     end
@@ -378,7 +378,7 @@ class NavigationHelperTest < ActiveSupport::TestCase
 
   def test_button_to_with_permitted_strong_params
     assert_dom_equal(
-      %{<form action="http://www.example.com" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="baz" value="quux" autocomplete="off" /><input type="hidden" name="foo" value="bar" autocomplete="off" /></form>},
+      %{<form action="http://www.example.com" accept-charset="UTF-8" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="baz" value="quux" autocomplete="off" /><input type="hidden" name="foo" value="bar" autocomplete="off" /></form>},
       button_to("Hello", "http://www.example.com", params: FakeParams.new)
     )
   end
@@ -391,14 +391,14 @@ class NavigationHelperTest < ActiveSupport::TestCase
 
   def test_button_to_with_nested_hash_params
     assert_dom_equal(
-      %{<form action="http://www.example.com" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="foo[bar]" value="baz" autocomplete="off" /></form>},
+      %{<form action="http://www.example.com" accept-charset="UTF-8" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="foo[bar]" value="baz" autocomplete="off" /></form>},
       button_to("Hello", "http://www.example.com", params: { foo: { bar: "baz" } })
     )
   end
 
   def test_button_to_with_nested_array_params
     assert_dom_equal(
-      %{<form action="http://www.example.com" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="foo[]" value="bar" autocomplete="off" /></form>},
+      %{<form action="http://www.example.com" accept-charset="UTF-8" class="button_to" method="post"><button type="submit">Hello</button><input type="hidden" name="foo[]" value="bar" autocomplete="off" /></form>},
       button_to("Hello", "http://www.example.com", params: { foo: ["bar"] })
     )
   end
