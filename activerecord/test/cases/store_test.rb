@@ -31,6 +31,25 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal "37signals.com", @john.homepage
   end
 
+  test "checking predicate store attributes through accessors for missing keys" do
+    assert_not @john.settings.key?("homepage")
+    assert_not @john.settings.key?(:homepage)
+    assert_not_predicate @john, :homepage?
+  end
+
+  test "checking predicate store attributes through accessors for truthy values" do
+    assert_predicate @john, :name?
+    assert_predicate @john, :remember_login?
+  end
+
+  test "checking predicate store attributes through accessors for falsy values" do
+    @john.settings = { homepage: nil }
+    @john.preferences = { remember_login: false }
+
+    assert_not_predicate @john, :remember_login?
+    assert_not_predicate @john, :homepage?
+  end
+
   test "writing store attributes does not update unchanged value" do
     admin_user = Admin::User.new(homepage: nil)
     admin_user.homepage = nil
