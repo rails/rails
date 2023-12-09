@@ -1,3 +1,8 @@
+*   Render `[accept-charset="UTF-8"]` on `<form>` elements rendered by
+    `button_to`
+
+    *Sean Doyle*
+
 *   Fix tag parameter content being overwritten instead of combined with tag block content.
     Before `tag.div("Hello ") { "World" }` would just return `<div>World</div>`, now it returns `<div>Hello World</div>`.
 
