@@ -23,10 +23,11 @@ module ActionCable
         super
         @listener = nil
         @redis_connection_for_broadcasts = nil
+        @compressor = Compressor.new
       end
 
       def broadcast(channel, payload)
-        redis_connection_for_broadcasts.publish(channel, payload)
+        redis_connection_for_broadcasts.publish(channel, @compressor.compress(payload))
       end
 
       def subscribe(channel, callback, success_callback = nil)
@@ -47,7 +48,11 @@ module ActionCable
 
       private
         def listener
-          @listener || @server.mutex.synchronize { @listener ||= Listener.new(self, config_options, @server.event_loop) }
+          @listener || @server.mutex.synchronize do
+            @listener ||= Listener.new(self, config_options, @server.event_loop).tap do |listener|
+              listener.compress_with(@compressor)
+            end
+          end
         end
 
         def redis_connection_for_broadcasts

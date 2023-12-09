@@ -14,11 +14,14 @@ module ActionCable
       def initialize(*)
         super
         @listener = nil
+        @compressor = Compressor.new
       end
 
       def broadcast(channel, payload)
+        payload = @compressor.compress(payload)
         with_broadcast_connection do |pg_conn|
-          pg_conn.exec("NOTIFY #{pg_conn.escape_identifier(channel_identifier(channel))}, '#{pg_conn.escape_string(payload)}'")
+          escaped_payload = @compressor.compressed?(payload) ? pg_conn.escape_bytea(payload) : pg_conn.escape_string(payload)
+          pg_conn.exec("NOTIFY #{pg_conn.escape_identifier(channel_identifier(channel))}, '#{escaped_payload}'")
         end
       end
 
@@ -63,7 +66,11 @@ module ActionCable
         end
 
         def listener
-          @listener || @server.mutex.synchronize { @listener ||= Listener.new(self, @server.event_loop) }
+          @listener || @server.mutex.synchronize do
+            @listener ||= Listener.new(self, @server.event_loop).tap do |listener|
+              listener.compress_with(@compressor)
+            end
+          end
         end
 
         def verify!(pg_conn)
@@ -105,7 +112,7 @@ module ActionCable
                   end
 
                   pg_conn.wait_for_notify(1) do |chan, pid, message|
-                    broadcast(chan, message)
+                    broadcast(chan, pg_conn.unescape_bytea(message))
                   end
                 end
               end

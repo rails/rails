@@ -10,6 +10,10 @@ module ActionCable
         @sync = Mutex.new
       end
 
+      def compress_with(compressor)
+        @compressor = compressor
+      end
+
       def add_subscriber(channel, subscriber, on_success)
         @sync.synchronize do
           new_channel = !@subscribers.key?(channel)
@@ -36,6 +40,7 @@ module ActionCable
       end
 
       def broadcast(channel, message)
+        message = @compressor.decompress(message) if @compressor
         list = @sync.synchronize do
           return if !@subscribers.key?(channel)
           @subscribers[channel].dup
