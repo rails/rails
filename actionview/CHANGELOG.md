@@ -1,3 +1,8 @@
+*   Render `[accept-charset="UTF-8"]` on `<form>` elements rendered by
+    `button_to`
+
+    *Sean Doyle*
+
 *   Add `dom_target` helper to create `dom_id`-like strings from an unlimited
     number of objects.
 
