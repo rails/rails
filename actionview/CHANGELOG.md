@@ -1,3 +1,8 @@
+*   Render `[accept-charset="UTF-8"]` on `<form>` elements rendered by
+    `button_to`
+
+    *Sean Doyle*
+
 *   Add ability to pass a block when rendering collection. The block will be executed for each rendered element in the collection.
 
     *Vincent Robert*
