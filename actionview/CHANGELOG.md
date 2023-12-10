@@ -1,3 +1,13 @@
+*   Render `Hash` and keyword options as dasherized HTML attributes
+
+    ```ruby
+    tag.button "POST to /clicked", hx: { post: "/clicked", swap: :outerHTML, data: { json: true } }
+
+    # => <button hx-post="/clicked" hx-swap="outerHTML" hx-data="{&quot;json&quot;:true}">POST to /clicked</button>
+    ```
+
+    *Sean Doyle*
+
 *   Add `dom_target` helper to create `dom_id`-like strings from an unlimited
     number of objects.
 
