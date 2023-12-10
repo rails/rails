@@ -228,10 +228,8 @@ module ActiveRecord
       # loaded and you are going to fetch the records anyway it is better to
       # check <tt>collection.length.zero?</tt>.
       def empty?
-        if loaded? || @association_ids
+        if loaded? || @association_ids || (reflection.has_cached_counter? && size >= 0)
           size.zero?
-        elsif reflection.has_cached_counter?
-          !size.positive?
         else
           target.empty? && !scope.exists?
         end
