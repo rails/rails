@@ -1,3 +1,15 @@
+*   Add `config.action_view.nest_html_attributes_within`
+
+    ```ruby
+    config.action_view.nest_html_attributes_within = [:hx]
+
+    tag.button "POST to /clicked", hx: { post: "/clicked", swap: :outerHTML }
+
+    # => <button hx-post="/clicked" hx-swap="outerHTML">POST to /clicked</button>
+    ```
+
+    *Sean Doyle*
+
 *   Raise `ArgumentError` if `:renderable` object does not respond to `#render_in`
 
     *Sean Doyle*

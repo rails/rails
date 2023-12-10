@@ -2444,6 +2444,14 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_match %r|data-remote="true"|, @rendered
   end
 
+  def test_form_with_with_configured_nest_html_attributes_within
+    ActionView::Helpers::TagHelper::TagBuilder.with nest_html_attributes_within: [:hx, "hx"] do
+      form_with(model: @post, html: { hx: { post: "/path" } }) { }
+
+      assert_dom "form[hx-post=?]", "/path"
+    end
+  end
+
   def test_fields_returns_block_result
     output = fields(model: Post.new) { |f| "fields" }
     assert_equal "fields", output

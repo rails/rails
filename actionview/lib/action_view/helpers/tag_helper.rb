@@ -48,6 +48,8 @@ module ActionView
         include CaptureHelper
         include OutputSafetyHelper
 
+        class_attribute :nest_html_attributes_within, instance_accessor: false, default: Set.new
+
         def self.define_element(name, code_generator:, method_name: name.to_s.underscore)
           code_generator.define_cached_method(method_name, namespace: :tag_builder) do |batch|
             batch.push(<<~RUBY) unless instance_methods.include?(method_name.to_sym)
@@ -264,7 +266,7 @@ module ActionView
           sep    = " "
           options.each_pair do |key, value|
             type = TAG_TYPES[key]
-            if type == :data && value.is_a?(Hash)
+            if value.is_a?(Hash) && (type == :data || TagBuilder.nest_html_attributes_within.include?(key))
               value.each_pair do |k, v|
                 next if v.nil?
                 output << sep
@@ -400,6 +402,16 @@ module ActionView
       #
       #   tag.div data: { city_state: %w( Chicago IL ) }
       #   # => <div data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]"></div>
+      #
+      # To support nesting sub-attribute hashes for other keys in addition to
+      # <tt>:data</tt> and <tt>:aria</tt>, configure
+      # <tt>config.action_view.nest_html_attributes_within</tt>:
+      #
+      #   config.action_view.nest_html_attributes_within = [:hx]
+      #
+      #   tag.button "POST to /clicked", hx: { post: "/clicked", swap: :outerHTML }
+      #
+      #   # => <button hx-post="/clicked" hx-swap="outerHTML">POST to /clicked</button>
       #
       # The generated tag names and attributes are escaped by default. This can be disabled using
       # +escape+.

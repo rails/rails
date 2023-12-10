@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/core_ext/object/with"
 
 class TagHelperTest < ActionView::TestCase
   include RenderERBUtils
@@ -521,9 +522,23 @@ class TagHelperTest < ActionView::TestCase
       content_tag("p", "limelight", data: { number: 1, string: "hello", string_with_quotes: 'double"quote"party"' })
   end
 
+  def test_content_tag_with_configured_nest_html_attributes_within
+    ActionView::Helpers::TagHelper::TagBuilder.with nest_html_attributes_within: [:hx, "hx"] do
+      assert_dom_equal '<p hx-number="1" hx-string="hello" hx-string-with-quotes="double&quot;quote&quot;party&quot;"></p>',
+        content_tag("p", "", hx: { number: 1, string: "hello", string_with_quotes: 'double"quote"party"' })
+    end
+  end
+
   def test_tag_builder_with_data_attributes
     assert_dom_equal '<p data-number="1" data-string="hello" data-string-with-quotes="double&quot;quote&quot;party&quot;">limelight</p>',
       tag.p("limelight", data: { number: 1, string: "hello", string_with_quotes: 'double"quote"party"' })
+  end
+
+  def test_tag_builder_with_configured_nest_html_attributes_within
+    ActionView::Helpers::TagHelper::TagBuilder.with nest_html_attributes_within: [:hx, "hx"] do
+      assert_dom_equal '<p hx-number="1" hx-string="hello" hx-string-with-quotes="double&quot;quote&quot;party&quot;"></p>',
+        tag.p("", hx: { number: 1, string: "hello", string_with_quotes: 'double"quote"party"' })
+    end
   end
 
   def test_cdata_section

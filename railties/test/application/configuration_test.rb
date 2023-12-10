@@ -4620,6 +4620,13 @@ module ApplicationTests
       assert_equal ::MySanitizerVendor, ActionView::Helpers::SanitizeHelper.sanitizer_vendor
     end
 
+    test "nest_html_attributes_within is set to an array of String and Symbol values" do
+      add_to_config "config.action_view.nest_html_attributes_within = ['hx']"
+      app "development"
+
+      assert_equal Set.new(["hx", :hx]), ActionView::Helpers::TagHelper::TagBuilder.nest_html_attributes_within
+    end
+
     test "Action Text uses the best supported safe list sanitizer in new apps" do
       app "development"
 

@@ -2185,6 +2185,18 @@ Configures the set of HTML sanitizers used by Action View by setting `ActionView
 
 NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms Rails will fall back to `Rails::HTML4::Sanitizer`.
 
+#### `config.action_view.nest_html_attributes_within`
+
+Configures support for nesting sub-attribute hashes for keys other than `:data` and `:aria`.
+
+```ruby
+config.action_view.nest_html_attributes_within = [:hx]
+
+tag.button "POST to /clicked", hx: { post: "/clicked", swap: :outerHTML }
+
+# => <button hx-post="/clicked" hx-swap="outerHTML">POST to /clicked</button>
+```
+
 ### Configuring Action Mailbox
 
 `config.action_mailbox` provides the following configuration options:
