@@ -1,5 +1,3 @@
-class EncryptedMessage < ApplicationRecord
-  self.table_name = "messages"
-
+class EncryptedMessage < Message
   has_rich_text :content, encrypted: true
 end

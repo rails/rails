@@ -22,8 +22,6 @@ module ActionText
   #   message.content.to_s # => "<div>safeunsafe</div>"
   #   message.content.to_plain_text # => "safeunsafe"
   class RichText < Record
-    self.table_name = "action_text_rich_texts"
-
     ##
     # :method: to_s
     #
