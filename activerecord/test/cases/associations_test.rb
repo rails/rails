@@ -1388,6 +1388,15 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_equal sharded_blog_posts(:great_post_blog_one), comment.blog_post
   end
 
+  def test_preload_loaded_belongs_to_association_with_composite_foreign_key
+    comment = sharded_comments(:great_comment_blog_post_one)
+    comment.blog_post
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [comment], associations: :blog_post).call
+    end
+  end
+
   def test_preload_has_many_through_association_with_composite_query_constraints
     tag = sharded_tags(:short_read_blog_one)
 
