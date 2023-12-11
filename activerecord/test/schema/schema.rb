@@ -313,6 +313,7 @@ ActiveRecord::Schema.define do
 
   create_table :sharded_blog_posts, force: true do |t|
     t.string :title
+    t.references :parent, polymorphic: true
     t.integer :blog_id
     t.integer :revision
   end

@@ -284,6 +284,14 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal(blog_post, comment.blog_post_by_id)
   end
 
+  def test_polymorphic_belongs_to_uses_parent_query_constraints
+    parent_post = sharded_blog_posts(:great_post_blog_one)
+    child_post = Sharded::BlogPost.create!(title: "Child post", blog_id: parent_post.blog_id, parent: parent_post)
+    child_post.reload # reload to forget the parent association
+
+    assert_equal parent_post, child_post.parent
+  end
+
   def test_preloads_model_with_query_constraints_by_explicitly_configured_fk_and_pk
     comment = sharded_comments(:great_comment_blog_post_one)
     comments = Sharded::Comment.where(id: comment.id).preload(:blog_post_by_id).to_a
