@@ -2485,7 +2485,7 @@ Alternatively, you can specify any serializer object that responds to `dump` and
 `load` methods. For example:
 
 ```ruby
-config.active_job.message_serializer = YAML
+config.active_support.message_serializer = YAML
 ```
 
 The default value depends on the `config.load_defaults` target version:
