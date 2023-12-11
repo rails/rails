@@ -1375,8 +1375,34 @@ Any exceptions that are not configured will be mapped to 500 Internal Server Err
 
 #### `config.action_dispatch.return_only_request_media_type_on_content_type`
 
-Change the return value of `ActionDispatch::Request#content_type` to the
-Content-Type header without modification.
+Configures whether [`ActionDispatch::Request#content_type`][content_type]
+returns only the media type portion of the `Content-Type` HTTP Header, or the
+whole header.
+
+```ruby
+# if a request's Content-Type is "text/csv; charset=utf-16":
+
+# when `true`
+request.content_type # => "text/csv"
+
+# when `false`
+request.content_type # => "text/csv; charset=utf-16"
+```
+
+This configuration is meant to provide a safe transition for the behavior of
+`#content_type` between Rails 7.0 and 7.1. Starting in Rails 7.1,
+`#content_type` will _always_ return the full `Content-Type` header as if the
+configuration value were set to `false`.
+
+To safely switch to the new behavior on Rails 7.0, any usage of `#content_type`
+should be replaced with [`ActionDispatch::Request#media_type`][media_type]. To
+help identify application or gem code needing to change, calling `#content_type`
+will raise a deprecation warning as well.
+
+Once there is nothing calling `#content_type` (and there are no deprecation
+warnings), the configuration can be safely changed to `false`. At this point,
+`#content_type` will no longer raise a deprecation warning and can be used to
+return the whole `Content-Type` header.
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -1384,6 +1410,9 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `true`               |
 | 7.0                   | `false`              |
+
+[content_type]: https://api.rubyonrails.org/classes/ActionDispatch/Request.html#method-i-content_type
+[media_type]: https://api.rubyonrails.org/classes/ActionDispatch/Request.html#method-i-media_type
 
 #### `config.action_dispatch.cookies_same_site_protection`
 
