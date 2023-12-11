@@ -277,7 +277,7 @@ $ bin/rails generate controller Greetings hello
      invoke    test_unit
 ```
 
-What all did this generate? It made sure a bunch of directories were in our application, and created a controller file, a view file, a functional test file, a helper for the view, a JavaScript file, and a stylesheet file.
+What did all this generate? It made sure a bunch of directories were in our application, and created a controller file, a view file, a functional test file, a helper for the view, a JavaScript file, and a stylesheet file.
 
 Check out the controller and modify it a little (in `app/controllers/greetings_controller.rb`):
 
