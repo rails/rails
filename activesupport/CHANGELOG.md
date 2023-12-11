@@ -48,10 +48,6 @@
 
     *Andrew Novoselac*
 
-*   Fix issue where `bootstrap.rb` overwrites the `level` of a `BroadcastLogger`'s `broadcasts`.
-
-    *Andrew Novoselac*
-
 *   Fix `ActiveSupport::Cache` to handle outdated Marshal payload from Rails 6.1 format.
 
     Active Support's Cache is supposed to treat a Marshal payload that can no longer be
