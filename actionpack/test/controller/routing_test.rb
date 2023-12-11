@@ -360,6 +360,11 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       "/:controller(/:action(/:id))(.:format)",
       controller.request.route_uri_pattern
     )
+
+    assert_equal(
+      "/:controller(/:action(/:id))(.:format)",
+      controller.request.get_header("action_dispatch.route_uri_pattern")
+    )
   end
 
   def test_route_with_colon_first
