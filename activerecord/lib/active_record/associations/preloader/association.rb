@@ -38,6 +38,8 @@ module ActiveRecord
           end
 
           def load_records_for_keys(keys, &block)
+            return [] if keys.empty?
+
             if association_key_name.is_a?(Array)
               query_constraints = Hash.new { |hsh, key| hsh[key] = Set.new }
 
