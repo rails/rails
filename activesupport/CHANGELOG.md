@@ -1,3 +1,8 @@
+*   Fix `ActiveSupport::Cache::Store#read_multi` when using a cache namespace
+    and local cache strategy.
+
+    *Mark Oleson*
+
 *   Fix `Time.now/DateTime.now/Date.today' to return results in a system timezone after `#travel_to'.
 
     There is a bug in the current implementation of #travel_to:
