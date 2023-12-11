@@ -1,3 +1,18 @@
+*   Define `?`-suffixed attribute presence predicate method from `store_accessor`
+
+    ```ruby
+    class User < ApplicationRecord
+      store_accessor :settings, :remember_me
+    end
+
+    user = User.new
+    user.remember_me?       # => false
+    user.remember_me = true
+    user.remember_me?       # => true
+    ```
+
+    *Sean Doyle*
+
 *   Fix `has_secure_token` calls the setter method on initialize.
 
     *Abeid Ahmed*

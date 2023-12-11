@@ -92,6 +92,10 @@ module ActiveRecord
   #     def volume_adjustment
   #       super.to_i
   #     end
+  #
+  #     def volume_adjustment?
+  #       !volume_adjustment.zero?
+  #     end
   #   end
   module Store
     extend ActiveSupport::Concern
@@ -141,6 +145,10 @@ module ActiveRecord
 
             define_method(accessor_key) do
               read_store_attribute(store_attribute, key)
+            end
+
+            define_method("#{accessor_key}?") do
+              read_store_attribute(store_attribute, key).present?
             end
 
             define_method("#{accessor_key}_changed?") do
