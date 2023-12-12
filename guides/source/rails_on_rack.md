@@ -339,7 +339,7 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 **`Rack::Head`**
 
-* Converts HEAD requests to `GET` requests and serves them as so.
+* Returns an empty body for all HEAD requests. It leaves all other requests unchanged.
 
 **`Rack::ConditionalGet`**
 
