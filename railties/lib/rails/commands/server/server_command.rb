@@ -151,7 +151,10 @@ module Rails
 
           if server.serveable?
             print_boot_information(server.server, server.served_url)
-            after_stop_callback = -> { say "Exiting" unless options[:daemon] }
+            after_stop_callback = lambda do
+              FileUtils.rm(server_url_path) if File.exist?(server_url_path)
+              say "Exiting" unless options[:daemon]
+            end
             server.start(after_stop_callback)
           else
             say rack_server_suggestion(options[:using])
@@ -176,6 +179,10 @@ module Rails
             restart_cmd:           restart_command,
             early_hints:           early_hints
           }
+        end
+
+        def server_url_path
+          File.join(Rails.root, "tmp", "server_url.txt")
         end
       end
 

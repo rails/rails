@@ -40,7 +40,11 @@ module ApplicationTests
       end
     end
 
-    test "write server URL to a file" do
+    def server_url_path
+      "#{app_path}/tmp/server_url.txt"
+    end
+
+    test "write server URL to a file and delete it during shutdown" do
       skip "PTY unavailable" unless available_pty?
 
       File.open("#{app_path}/config/boot.rb", "w") do |f|
@@ -55,12 +59,12 @@ module ApplicationTests
         pid = Process.spawn("bin/rails server -b localhost -p 3001", chdir: app_path, in: replica, out: replica, err: replica)
         assert_output("Listening", primary)
 
-        path = "#{app_path}/tmp/server_url.txt"
-        assert_path_exists path
-        assert_equal "http://localhost:3001", File.read(path)
+        assert_path_exists server_url_path
+        assert_equal "http://localhost:3001", File.read(server_url_path)
       ensure
         kill(pid) if pid
       end
+      refute_path_exists server_url_path
     end
 
     test "run +server+ blocks after the server starts" do
