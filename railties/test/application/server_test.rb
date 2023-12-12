@@ -67,6 +67,27 @@ module ApplicationTests
       refute_path_exists server_url_path
     end
 
+    test "does not write server URL for non-development environments" do
+      skip "PTY unavailable" unless available_pty?
+
+      File.open("#{app_path}/config/boot.rb", "w") do |f|
+        f.puts "ENV['BUNDLE_GEMFILE'] = '#{Bundler.default_gemfile}'"
+        f.puts 'require "bundler/setup"'
+      end
+
+      primary, replica = PTY.open
+      pid = nil
+
+      Bundler.with_original_env do
+        pid = Process.spawn("bin/rails server -e test -b localhost -p 3000", chdir: app_path, in: replica, out: replica, err: replica)
+        assert_output("Listening", primary)
+
+        refute_path_exists server_url_path
+      ensure
+        kill(pid) if pid
+      end
+    end
+
     test "run +server+ blocks after the server starts" do
       skip "PTY unavailable" unless available_pty?
 

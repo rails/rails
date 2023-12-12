@@ -34,7 +34,7 @@ module Rails
       create_tmp_directories
       setup_dev_caching
       log_to_stdout if options[:log_stdout]
-      write_server_url
+      write_server_url if ENV["RAILS_ENV"] == "development"
 
       super()
     ensure
