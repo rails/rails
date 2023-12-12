@@ -329,6 +329,8 @@ create      app/views/blorgh/articles/edit.html.erb
 create      app/views/blorgh/articles/show.html.erb
 create      app/views/blorgh/articles/new.html.erb
 create      app/views/blorgh/articles/_form.html.erb
+create      app/views/blorgh/articles/_article.html.erb
+invoke    resource_route
 invoke    test_unit
 create      test/controllers/blorgh/articles_controller_test.rb
 create      test/system/blorgh/articles_test.rb
@@ -832,12 +834,12 @@ an author - represented by a record in the `users` table - with an article,
 represented by the `blorgh_articles` table from the engine.
 
 Finally, the author's name should be displayed on the article's page. Add this code
-above the "Title" output inside `app/views/blorgh/articles/show.html.erb`:
+above the "Title" output inside `app/views/blorgh/articles/_article.html.erb`:
 
 ```html+erb
 <p>
-  <b>Author:</b>
-  <%= @article.author.name %>
+  <strong>Author:</strong>
+  <%= article.author.name %>
 </p>
 ```
 
