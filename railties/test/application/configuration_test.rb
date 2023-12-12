@@ -1949,6 +1949,31 @@ module ApplicationTests
       assert_equal Logger::DEBUG, Rails.logger.level
     end
 
+    test "config.log_level does not override the level of the broadcast with the default value" do
+      add_to_config <<-RUBY
+        stdout = Logger.new(STDOUT, level: Logger::INFO)
+        stderr = Logger.new(STDERR, level: Logger::ERROR)
+        config.logger = ActiveSupport::BroadcastLogger.new(stdout, stderr)
+      RUBY
+
+      app "development"
+
+      assert_equal([Logger::INFO, Logger::ERROR], Rails.logger.broadcasts.map(&:level))
+    end
+
+    test "config.log_level overrides the level of the broadcast when a custom value is set" do
+      add_to_config <<-RUBY
+        stdout = Logger.new(STDOUT)
+        stderr = Logger.new(STDERR)
+        config.logger = ActiveSupport::BroadcastLogger.new(stdout, stderr)
+        config.log_level = :warn
+      RUBY
+
+      app "development"
+
+      assert_equal([Logger::WARN, Logger::WARN], Rails.logger.broadcasts.map(&:level))
+    end
+
     test "config.logger when logger is already a Broadcast Logger" do
       logger = ActiveSupport::BroadcastLogger.new
 
