@@ -219,7 +219,7 @@ module ActiveRecord
         return _enum(name, values, **options)
       end
 
-      definitions = options.slice!(:_prefix, :_suffix, :_scopes, :_default, :_instance_methods)
+      definitions = options.slice!(:_prefix, :_suffix, :_scopes, :_default, :_instance_methods, :_validate)
       options.transform_keys! { |key| :"#{key[1..-1]}" }
 
       definitions.each { |name, values| _enum(name, values, **options) }

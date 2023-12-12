@@ -1,3 +1,8 @@
+*   Add `_validate` to `enum status:` style Enum API to mirror `validate` for
+    `enum :status` style Enum API.
+
+    *Hartley McGuire*
+
 *   Make `assert_queries` and `assert_no_queries` assertions public.
 
     To assert the expected number of queries are made, Rails internally uses
