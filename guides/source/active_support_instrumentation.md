@@ -97,6 +97,7 @@ Within the Ruby on Rails framework, there are a number of hooks provided for com
 | ------------- | --------------------------------------------------------- |
 | `:controller` | The controller name                                       |
 | `:action`     | The action                                                |
+| `:request`    | The [`ActionDispatch::Request`][] object                  |
 | `:params`     | Hash of request parameters without any filtered parameter |
 | `:headers`    | Request headers                                           |
 | `:format`     | html/js/json/xml etc                                      |
