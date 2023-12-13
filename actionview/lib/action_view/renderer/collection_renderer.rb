@@ -109,6 +109,22 @@ module ActionView
       end
     end
 
+    def render_collection_derive_partial(collection, context, block)
+      paths = collection.map { |o| partial_path(o, context) }
+
+      if paths.uniq.length == 1
+        # Homogeneous
+        render_collection_with_partial(collection, paths.first, context, block)
+      else
+        # Heterogeneous
+        if @options[:cached]
+          raise NotImplementedError, "render caching requires a template. Please specify a partial when rendering"
+        end
+
+        render_collection_with_multiple_partials(collection, paths, context, block)
+      end
+    end
+
     def render_collection_with_partial(collection, partial, context, block)
       iter_vars  = retrieve_variable(partial)
 
@@ -127,21 +143,17 @@ module ActionView
       render_collection(collection, context, partial, template, layout, block)
     end
 
-    def render_collection_derive_partial(collection, context, block)
-      paths = collection.map { |o| partial_path(o, context) }
+    def render_collection_with_multiple_partials(collection, paths, context, block)
+      paths.map! { |path| retrieve_variable(path).unshift(path) }
+      iter_vars = paths.flatten.uniq
 
-      if paths.uniq.length == 1
-        # Homogeneous
-        render_collection_with_partial(collection, paths.first, context, block)
-      else
-        if @options[:cached]
-          raise NotImplementedError, "render caching requires a template. Please specify a partial when rendering"
-        end
+      collection = MixedCollectionIterator.new(collection, paths)
 
-        paths.map! { |path| retrieve_variable(path).unshift(path) }
-        collection = MixedCollectionIterator.new(collection, paths)
-        render_collection(collection, context, nil, nil, nil, block)
+      layout = if !block && (layout = @options[:layout])
+        find_template(layout.to_s, @locals.keys + iter_vars)
       end
+
+      render_collection(collection, context, nil, nil, layout, block)
     end
 
     private
