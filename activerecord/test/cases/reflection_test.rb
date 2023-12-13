@@ -653,6 +653,14 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "id", actual
   end
 
+  def test_belongs_to_reflection_with_query_constraints_infers_correct_foreign_key
+    blog_foreign_key = Sharded::Comment.reflect_on_association(:blog).foreign_key
+    blog_post_foreign_key = Sharded::Comment.reflect_on_association(:blog_post).foreign_key
+
+    assert_equal "blog_id", blog_foreign_key
+    assert_equal ["blog_id", "blog_post_id"], blog_post_foreign_key
+  end
+
   private
     def assert_reflection(klass, association, options)
       assert reflection = klass.reflect_on_association(association)
