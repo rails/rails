@@ -37,6 +37,38 @@ end
 class BadCustomer < Customer; end
 class GoodCustomer < Customer; end
 
+Supplier = Struct.new(:name, :id) do
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
+
+  undef_method :to_json
+
+  def to_xml(options = {})
+    if options[:builder]
+      options[:builder].name name
+    else
+      "<name>#{name}</name>"
+    end
+  end
+
+  def to_js(options = {})
+    "name: #{name.inspect}"
+  end
+  alias :to_text :to_js
+
+  def errors
+    []
+  end
+
+  def persisted?
+    id.present?
+  end
+
+  def cache_key
+    "#{name}/#{id}"
+  end
+end
+
 Post = Struct.new(:title, :author_name, :body, :secret, :persisted, :written_on, :cost) do
   extend ActiveModel::Naming
   include ActiveModel::Conversion
