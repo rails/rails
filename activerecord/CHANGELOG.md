@@ -1,3 +1,13 @@
+*   TrilogyAdapter: ignore `host` if `socket` parameter is set.
+
+    This allows to configure a connection on a UNIX socket via DATABASE_URL:
+
+    ```
+    DATABASE_URL=trilogy://does-not-matter/my_db_production?socket=/var/run/mysql.sock
+    ```
+
+    *Jean Boussier*
+
 *   Make `assert_queries` and `assert_no_queries` assertions public.
 
     To assert the expected number of queries are made, Rails internally uses
