@@ -197,6 +197,22 @@ Additional keys may be added by the caller.
 | `:keys`       | The unpermitted keys                                                          |
 | `:context`    | Hash with the following keys: `:controller`, `:action`, `:params`, `:request` |
 
+#### `send_stream.action_controller`
+
+| Key            | Value                                    |
+| -------------- | ---------------------------------------- |
+| `:filename`    | The filename                             |
+| `:type`        | HTTP content type                        |
+| `:disposition` | HTTP content disposition                 |
+
+```ruby
+{
+  filename: "subscribers.csv",
+  type: "text/csv",
+  disposition: "attachment"
+}
+```
+
 ### Action Controller — Caching
 
 #### `write_fragment.action_controller`
