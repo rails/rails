@@ -579,7 +579,7 @@ Allows the method to be overridden if `params[:_method]` is set. This is the mid
 
 #### `Rack::Head`
 
-Converts HEAD requests to GET requests and serves them as so.
+Returns an empty body for all HEAD requests. It leaves all other requests unchanged.
 
 #### Adding Custom Middleware
 
