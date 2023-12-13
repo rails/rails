@@ -41,6 +41,18 @@ module ActiveRecord
       assert_not_predicate deferred_posts, :scheduled?
     end
 
+    def test_null_scheduled?
+      deferred_null_posts = Post.none.load_async
+      if in_memory_db?
+        assert_not_predicate deferred_null_posts, :scheduled?
+      else
+        assert_predicate deferred_null_posts, :scheduled?
+      end
+      assert_predicate deferred_null_posts, :loaded?
+      deferred_null_posts.to_a
+      assert_not_predicate deferred_null_posts, :scheduled?
+    end
+
     def test_reset
       deferred_posts = Post.where(author_id: 1).load_async
       if in_memory_db?
