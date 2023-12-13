@@ -127,6 +127,19 @@ module ActionView
       render_collection(collection, context, partial, template, layout, block)
     end
 
+    def render_collection_with_no_partial(collection, paths, context, block)
+      paths.map! { |path| retrieve_variable(path).unshift(path) }
+      iter_vars = paths.flatten.uniq
+
+      collection = MixedCollectionIterator.new(collection, paths)
+
+      layout = if !block && (layout = @options[:layout])
+        find_template(layout.to_s, @locals.keys + iter_vars)
+      end
+
+      render_collection(collection, context, nil, nil, layout, block)
+    end
+
     def render_collection_derive_partial(collection, context, block)
       paths = collection.map { |o| partial_path(o, context) }
 
@@ -138,9 +151,7 @@ module ActionView
           raise NotImplementedError, "render caching requires a template. Please specify a partial when rendering"
         end
 
-        paths.map! { |path| retrieve_variable(path).unshift(path) }
-        collection = MixedCollectionIterator.new(collection, paths)
-        render_collection(collection, context, nil, nil, nil, block)
+        render_collection_with_no_partial(collection, paths, context, block)
       end
     end
 
