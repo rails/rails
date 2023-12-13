@@ -804,6 +804,17 @@ class PreloaderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_does_not_concatenate_duplicate_records
+    post = posts(:welcome)
+    post.reload
+    post.comments.create!(body: "A new comment")
+
+    ActiveRecord::Associations::Preloader.new(records: [post], associations: :comments).call
+
+    assert_equal post.comments.length, post.comments.count
+    assert_equal post.comments.all.to_a, post.comments
+  end
+
   def test_preload_for_hmt_with_conditions
     post = posts(:welcome)
     _normal_category = post.categories.create!(name: "Normal")
