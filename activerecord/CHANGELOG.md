@@ -1,3 +1,13 @@
+*   TrilogyAdapter: ignore `host` if `socket` parameter is set.
+
+    This allows to configure a connection on a UNIX socket via DATABASE_URL:
+
+    ```
+    DATABASE_URL=trilogy://does-not-matter/my_db_production?socket=/var/run/mysql.sock
+    ```
+
+    *Jean Boussier*
+
 *   Fix `has_secure_token` calls the setter method on initialize.
 
     *Abeid Ahmed*

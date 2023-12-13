@@ -57,7 +57,7 @@ module ActiveRecord
         def new_client(config)
           config[:ssl_mode] = parse_ssl_mode(config[:ssl_mode]) if config[:ssl_mode]
           ::Trilogy.new(config)
-        rescue ::Trilogy::ConnectionError, ::Trilogy::ProtocolError => error
+        rescue ::Trilogy::Error => error
           raise translate_connect_error(config, error)
         end
 
@@ -97,6 +97,14 @@ module ActiveRecord
             m.register_type %r(^enum)i, Type.lookup(:string, adapter: :trilogy)
             m.register_type %r(^set)i,  Type.lookup(:string, adapter: :trilogy)
           end
+      end
+
+      def initialize(...)
+        super
+
+        # Trilogy ignore `socket` if `host is set. We want the opposite to allow
+        # configuring UNIX domain sockets via `DATABASE_URL`.
+        @config.delete(:host) if @config[:socket]
       end
 
       TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
