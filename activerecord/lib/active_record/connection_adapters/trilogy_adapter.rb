@@ -76,7 +76,7 @@ module ActiveRecord
       def initialize(config, *)
         config = config.dup
 
-        # Trilogy ignore `socket` if `host is set. We want the opposite to allow
+        # Trilogy ignores `socket` if `host is set. We want the opposite to allow
         # configuring UNIX domain sockets via `DATABASE_URL`.
         config.delete(:host) if config[:socket]
 
