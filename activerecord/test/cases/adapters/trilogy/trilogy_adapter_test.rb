@@ -351,6 +351,13 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     ActiveRecord::Base.establish_connection :arunit
   end
 
+  test "socket has precedence over host" do
+    error = assert_raises ActiveRecord::ConnectionNotEstablished do
+      ActiveRecord::ConnectionAdapters::TrilogyAdapter.new(host: "invalid", port: 12345, socket: "/var/invalid.sock").connect!
+    end
+    assert_includes error.message, "/var/invalid.sock"
+  end
+
   # Create a temporary subscription to verify notification is sent.
   # Optionally verify the notification payload includes expected types.
   def assert_notification(notification, expected_payload = {}, &block)
