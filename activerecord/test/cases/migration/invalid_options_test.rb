@@ -14,6 +14,8 @@ module ActiveRecord
           default_keys.concat([":auto_increment", ":charset", ":as", ":size", ":unsigned", ":first", ":after", ":type", ":stored"])
         elsif current_adapter?(:PostgreSQLAdapter)
           default_keys.concat([":array", ":using", ":cast_as", ":as", ":type", ":enum_type", ":stored"])
+        elsif current_adapter?(:SQLite3Adapter)
+          default_keys.concat([":as", ":type", ":stored"])
         end
 
         "Unknown key: :#{key}. Valid keys are: #{default_keys.join(", ")}"

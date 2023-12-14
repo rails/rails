@@ -263,7 +263,7 @@ module ActiveRecord
           sql = "INSERT INTO ex (number) VALUES (10)"
           name = "foo"
 
-          pragma_query = ["PRAGMA table_info(\"ex\")", "SCHEMA", []]
+          pragma_query = ["PRAGMA table_xinfo(\"ex\")", "SCHEMA", []]
           schema_query = ["SELECT sql FROM (SELECT * FROM sqlite_master UNION ALL SELECT * FROM sqlite_temp_master) WHERE type = 'table' AND name = 'ex'", "SCHEMA", []]
           modified_insert_query = [(sql + ' RETURNING "id"'), name, []]
           assert_logged [pragma_query, schema_query, modified_insert_query] do

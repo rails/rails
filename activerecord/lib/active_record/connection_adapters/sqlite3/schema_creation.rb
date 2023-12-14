@@ -25,6 +25,16 @@ module ActiveRecord
             if options[:collation]
               sql << " COLLATE \"#{options[:collation]}\""
             end
+
+            if as = options[:as]
+              sql << " GENERATED ALWAYS AS (#{as})"
+
+              if options[:stored]
+                sql << " STORED"
+              else
+                sql << " VIRTUAL"
+              end
+            end
             super
           end
       end
