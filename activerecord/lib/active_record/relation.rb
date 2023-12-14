@@ -960,7 +960,7 @@ module ActiveRecord
       def exec_main_query(async: false)
         if @none
           if async
-            return Promise::Complete.new([])
+            return FutureResult::Complete.new([])
           else
             return []
           end

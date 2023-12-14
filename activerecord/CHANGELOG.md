@@ -1,3 +1,9 @@
+*   Fix calling `load_async` on a `none` relation.
+
+    `Model.none.load_async` was returning a broken result.
+
+    *Lucas Mazza*
+
 *   TrilogyAdapter: ignore `host` if `socket` parameter is set.
 
     This allows to configure a connection on a UNIX socket via DATABASE_URL:
