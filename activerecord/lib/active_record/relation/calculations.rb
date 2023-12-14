@@ -260,7 +260,13 @@ module ActiveRecord
     #
     # See also #ids.
     def pluck(*column_names)
-      return [] if @none
+      if @none
+        if @async
+          return Promise::Complete.new([])
+        else
+          return []
+        end
+      end
 
       if loaded? && all_attributes?(column_names)
         result = records.pluck(*column_names)

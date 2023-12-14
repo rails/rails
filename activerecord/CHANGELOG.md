@@ -1,3 +1,10 @@
+*   Fix calling `async_pluck` on a `none` relation.
+
+    `Model.none.async_pluck(:id)` was returning a naked value
+    instead of a promise.
+
+    *Jean Boussier*
+
 *   Fix calling `load_async` on a `none` relation.
 
     `Model.none.load_async` was returning a broken result.
