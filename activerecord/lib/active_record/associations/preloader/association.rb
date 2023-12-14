@@ -247,8 +247,8 @@ module ActiveRecord
             association = owner.association(reflection.name)
 
             if reflection.collection?
-              association.loaded!
-              association.target.concat(records)
+              not_persisted_records = association.target.reject(&:persisted?)
+              association.target = records + not_persisted_records
             else
               association.target = records.first
             end
