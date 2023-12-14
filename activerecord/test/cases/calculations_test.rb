@@ -823,9 +823,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_async_equal [1, 2, 3, 4, 5], Topic.order(:id).async_pluck(:id)
   end
 
-  def test_pluck_async_on_loaded_relation
+  def test_async_pluck_on_loaded_relation
     relation = Topic.order(:id).load
     assert_async_equal relation.pluck(:id), relation.async_pluck(:id)
+  end
+
+  def test_async_pluck_none_relation
+    assert_async_equal [], Topic.none.async_pluck(:id)
   end
 
   def test_pluck_with_empty_in
