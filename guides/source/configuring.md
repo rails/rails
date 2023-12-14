@@ -2537,15 +2537,25 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.active_support.deprecation`
 
-Configures the behavior of deprecation warnings. The options are `:raise`, `:stderr`, `:log`, `:notify`, and `:silence`.
+Configures the behavior of deprecation warnings. See
+[`Deprecation::Behavior`][deprecation_behavior] for a description of the
+available options.
 
-In the default generated `config/environments` files, this is set to `:log` for development and `:stderr` for test, and it is omitted for production in favor of [`config.active_support.report_deprecations`](#config-active-support-report-deprecations).
+In the default generated `config/environments` files, this is set to `:log` for
+development and `:stderr` for test, and it is omitted for production in favor of
+[`config.active_support.report_deprecations`](#config-active-support-report-deprecations).
+
+[deprecation_behavior]: https://api.rubyonrails.org/classes/ActiveSupport/Deprecation/Behavior.html#method-i-behavior-3D
 
 #### `config.active_support.disallowed_deprecation`
 
-Configures the behavior of disallowed deprecation warnings. The options are `:raise`, `:stderr`, `:log`, `:notify`, and `:silence`.
+Configures the behavior of disallowed deprecation warnings. See
+[`Deprecation::Behavior`][deprecation_behavior] for a description of the
+available options.
 
-In the default generated `config/environments` files, this is set to `:raise` for both development and test, and it is omitted for production in favor of [`config.active_support.report_deprecations`](#config-active-support-report-deprecations).
+In the default generated `config/environments` files, this is set to `:raise`
+for both development and test, and it is omitted for production in favor of
+[`config.active_support.report_deprecations`](#config-active-support-report-deprecations).
 
 #### `config.active_support.disallowed_deprecation_warnings`
 
