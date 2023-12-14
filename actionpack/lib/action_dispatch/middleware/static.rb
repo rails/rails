@@ -50,7 +50,7 @@ module ActionDispatch
       "identity" => nil
     }
 
-    def initialize(root, index: "index", headers: {}, precompressed: %i[ br gzip ], compressible_content_types: /\A(?:text\/|application\/javascript)/)
+    def initialize(root, index: "index", headers: {}, precompressed: %i[ br gzip ], compressible_content_types: /\A(?:text\/|application\/javascript|image\/svg\+xml)/)
       @root = root.chomp("/").b
       @index = index
 
