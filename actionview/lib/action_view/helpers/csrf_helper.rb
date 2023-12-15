@@ -23,8 +23,8 @@ module ActionView
         if defined?(protect_against_forgery?) && protect_against_forgery?
           safe_join(
             [
-              tag("meta", name: "csrf-param", content: request_forgery_protection_token),
-              tag("meta", name: "csrf-token", content: form_authenticity_token)
+              tag.meta(name: "csrf-param", content: request_forgery_protection_token),
+              tag.meta(name: "csrf-token", content: form_authenticity_token)
             ],
             "\n"
           )
