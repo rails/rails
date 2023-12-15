@@ -499,6 +499,14 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "comment_id", FirstPost.reflect_on_association(:comment_with_inverse).foreign_key.to_s
   end
 
+  def test_foreign_key_with_derive_fk_query_constraints
+    Post.query_constraints :author_id, :id
+    author = Author.create!(name: "John Doe")
+    post = Post.new(body: "hello", author: author)
+
+    assert_equal post.author_id, author.id
+  end
+
   def test_foreign_key_is_inferred_from_model_name
     assert_equal "post_id", PostRecord.reflect_on_association(:comments).foreign_key.to_s
   end

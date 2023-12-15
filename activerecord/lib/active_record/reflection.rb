@@ -519,7 +519,7 @@ module ActiveRecord
           derived_fk = derive_foreign_key(infer_from_inverse_of: infer_from_inverse_of)
 
           if active_record.has_query_constraints?
-            derived_fk = derive_fk_query_constraints(derived_fk)
+            derived_fk = derive_fk_query_constraints(derived_fk).last
           end
 
           derived_fk
