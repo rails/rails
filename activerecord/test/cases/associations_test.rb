@@ -1220,6 +1220,14 @@ class PreloaderTest < ActiveRecord::TestCase
     other_dog_comment.origin_type = other_dog.class.name
     other_dog_comment.origin_id = other_dog.id
 
+    # Both Dog and OtherDog are backed by a table named `dogs`,
+    # however they are stored in different databases and should
+    # therefore result in two separate queries rather than be batched
+    # together.
+    #
+    # Expected
+    #   SELECT FROM dogs ... (Dog)
+    #   SELECT FROM dogs ... (OtherDog)
     assert_queries(2) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [dog_comment, other_dog_comment], associations: :origin)
       preloader.call
