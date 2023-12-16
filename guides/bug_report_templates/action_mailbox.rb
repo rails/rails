@@ -7,13 +7,14 @@ gemfile(true) do
 
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-  # Activate the gem you are reporting the issue against.
-  gem "rails", "~> 7.1.0"
-  gem "sqlite3"
+  gem "rails"
+  # If you want to test against edge Rails replace the previous line with this:
+  # gem "rails", github: "rails/rails", branch: "main"
 end
 
 require "active_record/railtie"
 require "active_storage/engine"
+require "action_mailbox/engine"
 require "tmpdir"
 
 class TestApp < Rails::Application
@@ -33,6 +34,8 @@ class TestApp < Rails::Application
       service: "Disk"
     }
   }
+
+  config.action_mailbox.ingress = :relay
 end
 
 ENV["DATABASE_URL"] = "sqlite3::memory:"
@@ -40,29 +43,33 @@ ENV["DATABASE_URL"] = "sqlite3::memory:"
 Rails.application.initialize!
 
 require ActiveStorage::Engine.root.join("db/migrate/20170806125915_create_active_storage_tables.rb").to_s
+require ActionMailbox::Engine.root.join("db/migrate/20180917164000_create_action_mailbox_tables.rb").to_s
 
 ActiveRecord::Schema.define do
   CreateActiveStorageTables.new.change
-
-  create_table :users, force: true
+  CreateActionMailboxTables.new.change
 end
 
-class User < ActiveRecord::Base
-  has_one_attached :profile
+class ApplicationMailbox < ActionMailbox::Base
+  routing (/^replies@/i) => :replies
+end
+
+class RepliesMailbox < ActionMailbox::Base
+  def process
+    $processed = mail.subject
+  end
 end
 
 require "minitest/autorun"
 
-class BugTest < Minitest::Test
-  def test_upload_and_download
-    user = User.create!(
-      profile: {
-        content_type: "text/plain",
-        filename: "dummy.txt",
-        io: ::StringIO.new("dummy"),
-      }
-    )
+class RepliesMailboxTest < ActionMailbox::TestCase
+  setup do
+    $processed = false
+    @inbound_email = receive_inbound_email_from_mail \
+      to: "replies@example.com", subject: "Here is a reply"
+  end
 
-    assert_equal "dummy", user.profile.download
+  test "successful mailbox processing" do
+    assert_equal "Here is a reply", $processed
   end
 end
