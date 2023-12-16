@@ -7,9 +7,9 @@ gemfile(true) do
 
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-  # Activate the gem you are reporting the issue against.
-  gem "activerecord", "~> 7.1.0"
-  gem "sqlite3"
+  gem "rails"
+  # If you want to test against edge Rails replace the previous line with this:
+  # gem "rails", github: "rails/rails", branch: "main"
 end
 
 require "active_record"
@@ -29,7 +29,7 @@ end
 class Payment < ActiveRecord::Base
 end
 
-class ChangeAmountToAddScale < ActiveRecord::Migration[7.0]
+class ChangeAmountToAddScale < ActiveRecord::Migration[7.2]
   def change
     reversible do |dir|
       dir.up do
