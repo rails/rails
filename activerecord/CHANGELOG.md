@@ -1,3 +1,9 @@
+*   Improve concurrency support for SQLite3
+
+    The SQLite3 `busy_timeout` C API will hold the global interpreter lock (GIL) for the duration of the retry process, disallowing any other Ruby threads from running while this thread is waiting for a database connection to become available. In order to allow concurrent threads to naturally coordinate their order of execution, the `busy_timeout` C API has been replaced with the `busy_handler` C API. This allows the Ruby thread to be put to sleep while waiting for a database connection to become available, allowing other Ruby threads to run in the meantime, while also respecting the `timeout` option.
+
+    *Stephen Margheim*
+
 *   Add support for generated columns in SQLite3 adapter
 
     Generated columns (both stored and dynamic) are supported since version 3.31.0 of SQLite.

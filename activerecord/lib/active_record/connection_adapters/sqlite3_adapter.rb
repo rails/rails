@@ -749,9 +749,34 @@ module ActiveRecord
           if @config[:timeout] && @config[:retries]
             raise ArgumentError, "Cannot specify both timeout and retries arguments"
           elsif @config[:timeout]
-            @raw_connection.busy_timeout(self.class.type_cast_config_to_integer(@config[:timeout]))
+            timeout = self.class.type_cast_config_to_integer(@config[:timeout])
+            raise TypeError, "Timeout must be an integer" unless timeout.is_a?(Integer)
+
+            timeout_seconds = timeout.fdiv(1000)
+            retry_interval = 6e-5 # 60 microseconds
+
+            # Custom busy_handler to release the GVL while wait for a connection.
+            raw_connection.busy_handler do |count|
+              timed_out = false
+              # keep track of elapsed time every 100 iterations (to lower load)
+              if (count % 100).zero?
+                # fail if we exceed the timeout value (captured from the timeout config option, converted to seconds)
+                timed_out = (count * retry_interval) > timeout_seconds
+              end
+              if timed_out
+                false # this will cause the BusyException to be raised
+              else
+                sleep(retry_interval)
+                true
+              end
+            end
           elsif @config[:retries]
+            ActiveRecord.deprecator.warn(<<-MSG.squish)
+              The `:retries` configuration option is deprecated and will be removed in Rails 7.2.
+            MSG
             retries = self.class.type_cast_config_to_integer(@config[:retries])
+            raise TypeError, "Retries must be an integer" unless retries.is_a?(Integer)
+
             raw_connection.busy_handler do |count|
               count <= retries
             end
