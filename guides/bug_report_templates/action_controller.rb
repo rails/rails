@@ -7,17 +7,16 @@ gemfile(true) do
 
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-  # Activate the gem you are reporting the issue against.
-  gem "rails", "~> 7.0.0"
+  gem "rails"
+  # If you want to test against edge Rails replace the previous line with this:
+  # gem "rails", github: "rails/rails", branch: "main"
 end
 
-require "rack/test"
 require "action_controller/railtie"
 
 class TestApp < Rails::Application
   config.root = __dir__
   config.hosts << "example.org"
-  config.session_store :cookie_store, key: "cookie_store_key"
   config.secret_key_base = "secret_key_base"
 
   config.logger = Logger.new($stdout)
@@ -37,6 +36,7 @@ class TestController < ActionController::Base
 end
 
 require "minitest/autorun"
+require "rack/test"
 
 class BugTest < Minitest::Test
   include Rack::Test::Methods

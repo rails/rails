@@ -7,7 +7,9 @@ gemfile(true) do
 
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-  gem "rails", github: "rails/rails", branch: "main"
+  gem "rails"
+  # If you want to test against edge Rails replace the previous line with this:
+  # gem "rails", github: "rails/rails", branch: "main"
 end
 
 require "active_support"
