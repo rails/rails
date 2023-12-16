@@ -146,8 +146,7 @@ module ActiveRecord
         # Begin transactions for connections already established
         @fixture_connections = enlist_fixture_connections
         @fixture_connections.each do |connection|
-          connection.begin_transaction joinable: false, _lazy: false
-          connection.pool.lock_thread = true if lock_threads
+          begin_fixture_transaction_for(connection)
         end
 
         # When connections are established in the future, begin a transaction too
@@ -167,8 +166,7 @@ module ActiveRecord
               setup_shared_connection_pool
 
               if !@fixture_connections.include?(connection)
-                connection.begin_transaction joinable: false, _lazy: false
-                connection.pool.lock_thread = true if lock_threads
+                begin_fixture_transaction_for(connection)
                 @fixture_connections << connection
               end
             end
@@ -191,8 +189,7 @@ module ActiveRecord
       if run_in_transaction?
         ActiveSupport::Notifications.unsubscribe(@connection_subscriber) if @connection_subscriber
         @fixture_connections.each do |connection|
-          connection.rollback_transaction if connection.transaction_open?
-          connection.pool.lock_thread = false
+          rollback_fixture_transaction_for(connection)
         end
         @fixture_connections.clear
         teardown_shared_connection_pool
@@ -307,6 +304,24 @@ module ActiveRecord
         end
 
         return_single_record ? instances.first : instances
+      end
+
+      def begin_fixture_transaction_for(connection)
+        # in tests, SQLite3Adapter is not always loaded
+        if defined?(ConnectionAdapters::SQLite3Adapter) && connection.is_a?(ConnectionAdapters::SQLite3Adapter)
+          connection.use_deferred_transaction_mode!
+        end
+        connection.begin_transaction joinable: false, _lazy: false
+        connection.pool.lock_thread = true if lock_threads
+      end
+
+      def rollback_fixture_transaction_for(connection)
+        # in tests, SQLite3Adapter is not always loaded
+        if defined?(ConnectionAdapters::SQLite3Adapter) && connection.is_a?(ConnectionAdapters::SQLite3Adapter)
+          connection.use_default_transaction_mode!
+        end
+        connection.rollback_transaction if connection.transaction_open?
+        connection.pool.lock_thread = false
       end
   end
 end

@@ -346,6 +346,7 @@ module ActiveRecord
       rescue ActiveRecord::Rollback
         # rollbacks are silently swallowed
       end
+      alias_method :transaction_returning_status, :transaction
 
       attr_reader :transaction_manager # :nodoc:
 

@@ -77,7 +77,7 @@ module ActiveRecord
         def begin_db_transaction # :nodoc:
           log("begin transaction", "TRANSACTION") do
             with_raw_connection(allow_retry: true, materialize_transactions: false) do |conn|
-              result = conn.transaction
+              result = conn.transaction(@transaction_mode)
               verified!
               result
             end
@@ -109,6 +109,11 @@ module ActiveRecord
 
         def high_precision_current_timestamp
           HIGH_PRECISION_CURRENT_TIMESTAMP
+        end
+
+        def transaction_returning_status
+          use_immediate_transaction_mode!
+          super
         end
 
         private

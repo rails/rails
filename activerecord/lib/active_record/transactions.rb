@@ -358,7 +358,7 @@ module ActiveRecord
       connection = self.class.connection
       ensure_finalize = !connection.transaction_open?
 
-      connection.transaction do
+      connection.transaction_returning_status do
         add_to_transaction(ensure_finalize || has_transactional_callbacks?)
         remember_transaction_record_state
 
