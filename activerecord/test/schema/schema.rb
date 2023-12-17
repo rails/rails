@@ -832,6 +832,10 @@ ActiveRecord::Schema.define do
     t.string      :name
   end
 
+  create_table :my_posts, force: true do |t|
+    t.string      :name
+  end
+
   create_table :notifications, force: true do |t|
     t.string :message
   end
