@@ -10,6 +10,8 @@ gemfile(true) do
   gem "rails"
   # If you want to test against edge Rails replace the previous line with this:
   # gem "rails", github: "rails/rails", branch: "main"
+
+  gem "sqlite3"
 end
 
 require "active_record"
