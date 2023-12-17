@@ -52,7 +52,10 @@ module ActionDispatch
       @encoders[mime_name] = new(mime_name, param_encoder, response_parser)
     end
 
-    register_encoder :html, response_parser: -> body { Rails::Dom::Testing.html_document.parse(body) }
+    register_encoder :html,
+    response_parser: ->(body) { Rails::Dom::Testing.html_document.parse(body) },
+    param_encoder: ->(params) { params }
+
     register_encoder :json, response_parser: -> body { JSON.parse(body, object_class: ActiveSupport::HashWithIndifferentAccess) }
   end
 end
