@@ -46,7 +46,7 @@ module ApplicationTests
         output.sub!(/^\[.*?\] Resolving packages\.\.\.$/, "[1/4] Resolving packages...")
         output.sub!(/^Done in \d+\.\d+s\.\n/, "Done in 0.00s.\n")
         # Ignore warnings such as `Psych.safe_load is deprecated`
-        output.gsub!(/^warning:\s.*\n/, "")
+        output.gsub!(/^.*warning:\s.*\n/, "")
 
         assert_equal(<<~OUTPUT, output)
           == Installing dependencies ==
