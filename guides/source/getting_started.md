@@ -69,7 +69,7 @@ essential to run this example application and no additional code or steps are
 needed.
 
 By following along with this guide, you'll create a Rails project called
-`blog`, a (very) simple weblog. Before you can start building the application,
+`blog`, a (very) simple web blog. Before you can start building the application,
 you need to make sure that you have Rails itself installed.
 
 NOTE: The examples below use `$` to represent your terminal prompt in a UNIX-like OS,
@@ -165,7 +165,7 @@ After you create the blog application, switch to its folder:
 $ cd blog
 ```
 
-The `blog` directory will have a number of generated files and folders that make
+The `blog` directory will have several generated files and folders that make
 up the structure of a Rails application. Most of the work in this tutorial will
 happen in the `app` folder, but here's a basic rundown on the function of each
 of the files and folders that Rails creates by default:
