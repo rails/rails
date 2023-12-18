@@ -13,6 +13,7 @@ require "models/strict_zine"
 require "models/interest"
 require "models/treasure"
 require "models/pirate"
+require "models/comment"
 
 class StrictLoadingTest < ActiveRecord::TestCase
   fixtures :developers, :developers_projects, :projects, :ships
@@ -291,6 +292,24 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_strict_loading_with_has_many_and_query_method
+    with_strict_loading_by_default(Developer) do
+      dev = Developer.preload(:audit_logs).first
+
+      assert_raises ActiveRecord::StrictLoadingViolationError do
+        dev.audit_logs.limit(1).first
+      end
+    end
+  end
+
+  def test_strict_loading_with_has_many_and_query_method_in_scope
+    with_strict_loading_by_default(Developer) do
+      assert_nothing_raised do
+        Developer.preload(:limited_comments).first
+      end
+    end
+  end
+
   def test_strict_loading_with_has_many_singular_association_and_reload
     with_strict_loading_by_default(Developer) do
       dev = Developer.preload(:audit_logs).first
@@ -318,6 +337,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
 
     [
       proc { dev.firms.first.contracts.first },
+      proc { dev.firms.first.contracts.limit(1).first }, # with query method
       proc { dev.contracts.first },
       proc { dev.ship }
     ].each do |block|
