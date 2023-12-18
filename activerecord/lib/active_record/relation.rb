@@ -31,7 +31,7 @@ module ActiveRecord
       @values = values
       @loaded = false
       @predicate_builder = predicate_builder
-      @delegate_to_klass = false
+      @delegate_to_class = false
       @future_result = nil
       @records = nil
       @async = false
@@ -469,11 +469,11 @@ module ActiveRecord
     end
 
     def _exec_scope(...) # :nodoc:
-      @delegate_to_klass = true
+      @delegate_to_class = true
       registry = klass.scope_registry
       _scoping(nil, registry) { instance_exec(...) || self }
     ensure
-      @delegate_to_klass = false
+      @delegate_to_class = false
     end
 
     # Updates all records in the current relation with details given. This method constructs a single SQL UPDATE
@@ -755,7 +755,7 @@ module ActiveRecord
     def reset
       @future_result&.cancel
       @future_result = nil
-      @delegate_to_klass = false
+      @delegate_to_class = false
       @to_sql = @arel = @loaded = @should_eager_load = nil
       @offsets = @take = nil
       @cache_keys = nil
@@ -891,7 +891,7 @@ module ActiveRecord
 
     private
       def already_in_scope?(registry)
-        @delegate_to_klass && registry.current_scope(klass, true)
+        @delegate_to_class && registry.current_scope(klass, true)
       end
 
       def global_scope?(registry)

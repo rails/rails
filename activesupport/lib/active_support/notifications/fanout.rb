@@ -232,8 +232,8 @@ module ActiveSupport
           @name = name
           @id = id
           @payload = payload
-          @groups = notifier.groups_for(name).map do |group_klass, grouped_listeners|
-            group_klass.new(grouped_listeners, name, id, payload)
+          @groups = notifier.groups_for(name).map do |group_class, grouped_listeners|
+            group_class.new(grouped_listeners, name, id, payload)
           end
           @state = :initialized
         end

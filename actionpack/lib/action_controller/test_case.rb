@@ -496,7 +496,7 @@ module ActionController
         @request.delete_header "action_dispatch.cookies"
 
         @request          = TestRequest.new scrub_env!(@request.env), @request.session, @controller.class
-        @response         = build_response @response_klass
+        @response         = build_response @response_class
         @response.request = @request
         @controller.recycle!
 
@@ -536,11 +536,11 @@ module ActionController
       def setup_controller_request_and_response
         @controller = nil unless defined? @controller
 
-        @response_klass = ActionDispatch::TestResponse
+        @response_class = ActionDispatch::TestResponse
 
         if klass = self.class.controller_class
           if klass < ActionController::Live
-            @response_klass = LiveTestResponse
+            @response_class = LiveTestResponse
           end
           unless @controller
             begin
@@ -552,7 +552,7 @@ module ActionController
         end
 
         @request          = TestRequest.create(@controller.class)
-        @response         = build_response @response_klass
+        @response         = build_response @response_class
         @response.request = @request
 
         if @controller

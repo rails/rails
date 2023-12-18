@@ -8,10 +8,10 @@ module ChannelPrefixTest
     server2.config.cable = alt_cable_config.with_indifferent_access
     server2.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
 
-    adapter_klass = server2.config.pubsub_adapter
+    adapter_class = server2.config.pubsub_adapter
 
-    rx_adapter2 = adapter_klass.new(server2)
-    tx_adapter2 = adapter_klass.new(server2)
+    rx_adapter2 = adapter_class.new(server2)
+    tx_adapter2 = adapter_class.new(server2)
 
     subscribe_as_queue("channel") do |queue|
       subscribe_as_queue("channel", rx_adapter2) do |queue2|

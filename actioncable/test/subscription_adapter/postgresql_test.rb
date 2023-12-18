@@ -47,13 +47,13 @@ class PostgresqlAdapterTest < ActionCable::TestCase
     server.config.cable = cable_config.with_indifferent_access
     server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
 
-    adapter_klass = Class.new(server.config.pubsub_adapter) do
+    adapter_class = Class.new(server.config.pubsub_adapter) do
       def active?
         !@listener.nil?
       end
     end
 
-    adapter = adapter_klass.new(server)
+    adapter = adapter_class.new(server)
 
     subscribe_as_queue("channel", adapter) do |queue|
       adapter.broadcast("channel", "hello world")

@@ -46,8 +46,8 @@ module ActiveRecord
 
         def likely_reflections
           parent_classes = parent.target_classes
-          parent_classes.filter_map do |parent_klass|
-            parent_klass._reflect_on_association(@association)
+          parent_classes.filter_map do |parent_class|
+            parent_class._reflect_on_association(@association)
           end
         end
 
@@ -94,8 +94,8 @@ module ActiveRecord
             end
 
             [klass, reflection_scope]
-          end.map do |(rhs_klass, reflection_scope), rs|
-            preloader_for(reflection).new(rhs_klass, rs, reflection, scope, reflection_scope, associate_by_default)
+          end.map do |(rhs_class, reflection_scope), rs|
+            preloader_for(reflection).new(rhs_class, rs, reflection, scope, reflection_scope, associate_by_default)
           end
         end
 

@@ -439,7 +439,7 @@ class FixturesTest < ActiveRecord::TestCase
     ActiveRecord::Base.table_name_prefix = "prefix_"
     ActiveRecord::Base.table_name_suffix = "_suffix"
 
-    other_topic_klass = Class.new(ActiveRecord::Base) do
+    other_topic_class = Class.new(ActiveRecord::Base) do
       def self.name
         "OtherTopic"
       end
@@ -460,8 +460,8 @@ class FixturesTest < ActiveRecord::TestCase
 
     assert_equal :prefix_other_topics_suffix, topics.table_name.to_sym
     # This assertion should preferably be the last in the list, because calling
-    # other_topic_klass.table_name sets a class-level instance variable
-    assert_equal :prefix_other_topics_suffix, other_topic_klass.table_name.to_sym
+    # other_topic_class.table_name sets a class-level instance variable
+    assert_equal :prefix_other_topics_suffix, other_topic_class.table_name.to_sym
 
   ensure
     # Restore prefix/suffix to its previous values

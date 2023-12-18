@@ -511,14 +511,14 @@ module ActiveRecord
 
       def test_unparsed_defaults_are_at_least_set_when_saving
         with_example_table "id SERIAL PRIMARY KEY, number INTEGER NOT NULL DEFAULT (4 + 4) * 2 / 4" do
-          number_klass = Class.new(ActiveRecord::Base) do
+          number_class = Class.new(ActiveRecord::Base) do
             self.table_name = "ex"
           end
-          column = number_klass.columns_hash["number"]
+          column = number_class.columns_hash["number"]
           assert_nil column.default
           assert_nil column.default_function
 
-          first_number = number_klass.new
+          first_number = number_class.new
           assert_nil first_number.number
 
           first_number.save!
@@ -530,10 +530,10 @@ module ActiveRecord
         @connection.execute("CREATE DOMAIN example_type AS integer")
 
         with_example_table "id SERIAL PRIMARY KEY, number example_type" do
-          number_klass = Class.new(ActiveRecord::Base) do
+          number_class = Class.new(ActiveRecord::Base) do
             self.table_name = "ex"
           end
-          attribute = number_klass.arel_table[:number]
+          attribute = number_class.arel_table[:number]
           assert_queries :any, ignore_none: true do
             @connection.case_insensitive_comparison(attribute, "foo")
           end

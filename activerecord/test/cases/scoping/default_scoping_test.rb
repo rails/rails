@@ -432,12 +432,12 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_unscope_and_scope
-    developer_klass = Class.new(Developer) do
+    developer_class = Class.new(Developer) do
       scope :by_name, -> name { unscope(where: :name).where(name: name) }
     end
 
-    expected = developer_klass.where(name: "Jamis").collect { |dev| [dev.name, dev.id] }
-    received = developer_klass.where(name: "David").by_name("Jamis").collect { |dev| [dev.name, dev.id] }
+    expected = developer_class.where(name: "Jamis").collect { |dev| [dev.name, dev.id] }
+    received = developer_class.where(name: "David").by_name("Jamis").collect { |dev| [dev.name, dev.id] }
     assert_equal expected, received
   end
 

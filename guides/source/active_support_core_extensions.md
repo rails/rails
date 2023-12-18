@@ -301,7 +301,7 @@ end
 which is only a marker, its body or return value are irrelevant. Then, client code can query for duck-type-safeness this way:
 
 ```ruby
-some_klass.acts_like?(:string)
+some_class.acts_like?(:string)
 ```
 
 Rails has classes that act like `Date` or `Time` and follow this contract.

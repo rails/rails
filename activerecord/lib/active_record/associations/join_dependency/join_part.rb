@@ -15,12 +15,12 @@ module ActiveRecord
         # The Active Record class which this join part is associated 'about'; for a JoinBase
         # this is the actual base model, for a JoinAssociation this is the target model of the
         # association.
-        attr_reader :base_klass, :children
+        attr_reader :base_class, :children
 
-        delegate :table_name, :column_names, :primary_key, :attribute_types, to: :base_klass
+        delegate :table_name, :column_names, :primary_key, :attribute_types, to: :base_class
 
-        def initialize(base_klass, children)
-          @base_klass = base_klass
+        def initialize(base_class, children)
+          @base_class = base_class
           @children = children
         end
 
@@ -63,7 +63,7 @@ module ActiveRecord
         end
 
         def instantiate(row, aliases, column_types = {}, &block)
-          base_klass.instantiate(extract_record(row, aliases), column_types, &block)
+          base_class.instantiate(extract_record(row, aliases), column_types, &block)
         end
       end
     end

@@ -268,7 +268,7 @@ class UpdateAllTest < ActiveRecord::TestCase
     end
   end
 
-  def test_klass_level_update_all
+  def test_class_level_update_all
     travel 5.seconds do
       now = Time.now.utc
 
@@ -284,7 +284,7 @@ class UpdateAllTest < ActiveRecord::TestCase
     end
   end
 
-  def test_klass_level_touch_all
+  def test_class_level_touch_all
     travel 5.seconds do
       now = Time.now.utc
 

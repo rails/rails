@@ -120,7 +120,7 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal object, type.serialize(object)
   end
 
-  def test_reflection_klass_for_nested_class_name
+  def test_reflection_class_for_nested_class_name
     reflection = ActiveRecord::Reflection.create(
       :has_many,
       nil,
@@ -141,7 +141,7 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "PluralIrregular", reflection.class_name
   end
 
-  def test_reflection_klass_not_found_with_no_class_name_option
+  def test_reflection_class_not_found_with_no_class_name_option
     error = assert_raise(NameError) do
       UserWithInvalidRelation.reflect_on_association(:not_a_class).klass
     end
@@ -153,7 +153,7 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_match ":class_name", error.message
   end
 
-  def test_reflection_klass_not_found_with_pointer_to_non_existent_class_name
+  def test_reflection_class_not_found_with_pointer_to_non_existent_class_name
     error = assert_raise(NameError) do
       UserWithInvalidRelation.reflect_on_association(:class_name_provided_not_a_class).klass
     end
@@ -165,7 +165,7 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_no_match ":class_name", error.message
   end
 
-  def test_reflection_klass_requires_ar_subclass
+  def test_reflection_class_requires_ar_subclass
     [ :account_invalid,          # has_one, without :class_name
       :account_class_name,       # has_one, with :class_name
       :info_invalids,            # has_many through, without :class_name

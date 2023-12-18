@@ -8,14 +8,14 @@ module ActiveRecord
       class JoinBase < JoinPart # :nodoc:
         attr_reader :table
 
-        def initialize(base_klass, table, children)
-          super(base_klass, children)
+        def initialize(base_class, table, children)
+          super(base_class, children)
           @table = table
         end
 
         def match?(other)
           return true if self == other
-          super && base_klass == other.base_klass
+          super && base_class == other.base_class
         end
       end
     end

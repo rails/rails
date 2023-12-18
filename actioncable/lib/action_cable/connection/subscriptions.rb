@@ -33,10 +33,10 @@ module ActionCable
 
         return if subscriptions.key?(id_key)
 
-        subscription_klass = id_options[:channel].safe_constantize
+        subscription_class = id_options[:channel].safe_constantize
 
-        if subscription_klass && ActionCable::Channel::Base > subscription_klass
-          subscription = subscription_klass.new(connection, id_key, id_options)
+        if subscription_class && ActionCable::Channel::Base > subscription_class
+          subscription = subscription_class.new(connection, id_key, id_options)
           subscriptions[id_key] = subscription
           subscription.subscribe_to_channel
         else

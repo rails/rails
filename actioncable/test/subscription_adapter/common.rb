@@ -15,10 +15,10 @@ module CommonSubscriptionAdapterTest
     server.config.cable = cable_config.with_indifferent_access
     server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
 
-    adapter_klass = server.config.pubsub_adapter
+    adapter_class = server.config.pubsub_adapter
 
-    @rx_adapter = adapter_klass.new(server)
-    @tx_adapter = adapter_klass.new(server)
+    @rx_adapter = adapter_class.new(server)
+    @tx_adapter = adapter_class.new(server)
   end
 
   def teardown

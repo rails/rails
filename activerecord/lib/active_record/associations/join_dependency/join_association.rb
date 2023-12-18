@@ -21,7 +21,7 @@ module ActiveRecord
           super && reflection == other.reflection
         end
 
-        def join_constraints(foreign_table, foreign_klass, join_type, alias_tracker)
+        def join_constraints(foreign_table, foreign_class, join_type, alias_tracker)
           joins = []
           chain = []
 
@@ -30,7 +30,7 @@ module ActiveRecord
             @table ||= table
 
             if terminated
-              foreign_table, foreign_klass = table, reflection.klass
+              foreign_table, foreign_class = table, reflection.klass
               break
             end
 
@@ -42,7 +42,7 @@ module ActiveRecord
           chain.reverse_each do |reflection, table|
             klass = reflection.klass
 
-            scope = reflection.join_scope(table, foreign_table, foreign_klass)
+            scope = reflection.join_scope(table, foreign_table, foreign_class)
 
             unless scope.references_values.empty?
               associations = scope.eager_load_values | scope.includes_values
@@ -69,7 +69,7 @@ module ActiveRecord
             end
 
             # The current table in this iteration becomes the foreign table in the next
-            foreign_table, foreign_klass = table, klass
+            foreign_table, foreign_class = table, klass
           end
 
           joins
@@ -78,20 +78,20 @@ module ActiveRecord
         def readonly?
           return @readonly if defined?(@readonly)
 
-          @readonly = reflection.scope && reflection.scope_for(base_klass.unscoped).readonly_value
+          @readonly = reflection.scope && reflection.scope_for(base_class.unscoped).readonly_value
         end
 
         def strict_loading?
           return @strict_loading if defined?(@strict_loading)
 
-          @strict_loading = reflection.scope && reflection.scope_for(base_klass.unscoped).strict_loading_value
+          @strict_loading = reflection.scope && reflection.scope_for(base_class.unscoped).strict_loading_value
         end
 
         private
           def append_constraints(join, constraints)
             if join.is_a?(Arel::Nodes::StringJoin)
               join_string = Arel::Nodes::And.new(constraints.unshift join.left)
-              join.left = Arel.sql(base_klass.connection.visitor.compile(join_string))
+              join.left = Arel.sql(base_class.connection.visitor.compile(join_string))
             else
               right = join.right
               right.expr = Arel::Nodes::And.new(constraints.unshift right.expr)

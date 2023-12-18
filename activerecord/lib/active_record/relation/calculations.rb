@@ -552,7 +552,7 @@ module ActiveRecord
 
       def lookup_cast_type_from_join_dependencies(name, join_dependencies = build_join_dependencies)
         each_join_dependencies(join_dependencies) do |join|
-          type = join.base_klass.attribute_types.fetch(name, nil)
+          type = join.base_class.attribute_types.fetch(name, nil)
           return type if type
         end
         nil
