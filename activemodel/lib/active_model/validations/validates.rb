@@ -10,7 +10,7 @@ module ActiveModel
       # validators can be overridden inside specific classes by creating
       # custom validator classes in their place such as PresenceValidator.
       #
-      # Examples of using the default rails validators:
+      # Examples of using the default \Rails validators:
       #
       #   validates :username, absence: true
       #   validates :terms, acceptance: true

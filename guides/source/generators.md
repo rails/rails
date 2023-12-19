@@ -31,7 +31,7 @@ $ cd myapp
 $ bin/rails generate
 ```
 
-NOTE: To create a rails application we use the `rails` global command which uses
+NOTE: To create a Rails application we use the `rails` global command which uses
 the version of Rails installed via `gem install rails`. When inside the
 directory of your application, we use the `bin/rails` command which uses the
 version of Rails bundled with the application.
