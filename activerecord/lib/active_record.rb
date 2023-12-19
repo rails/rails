@@ -381,6 +381,14 @@ module ActiveRecord
   self.timestamped_migrations = true
 
   ##
+  # :singleton-method: validate_migration_timestamps
+  # Specify whether or not to validate migration timestamps. When set, an error
+  # will be raised if a timestamp is more than a day ahead of the timestamp
+  # associated with the current time. +timestamped_migrations+ must be set to true.
+  singleton_class.attr_accessor :validate_migration_timestamps
+  self.validate_migration_timestamps = false
+
+  ##
   # :singleton-method: migration_strategy
   # Specify strategy to use for executing migrations.
   singleton_class.attr_accessor :migration_strategy
