@@ -861,9 +861,9 @@ This example, again, showed that a restricted list filter is never complete. How
 
 ### Textile Injection
 
-If you want to provide text formatting other than HTML (due to security), use a mark-up language which is converted to HTML on the server-side. [RedCloth](http://redcloth.org/) is such a language for Ruby, but without precautions, it is also vulnerable to XSS.
+If you want to provide text formatting other than HTML (due to security), use a mark-up language which is converted to HTML on the server-side. [RedCloth](https://github.com/jgarber/redcloth) is such a language for Ruby, but without precautions, it is also vulnerable to XSS.
 
-For example, RedCloth translates `_test_` to `<em>test<em>`, which makes the text italic. However, up to the current version 3.0.4, it is still vulnerable to XSS. Get the [all-new version 4](http://www.redcloth.org) that removed serious bugs. However, even that version has [some security bugs](https://rorsecurity.info/journal/2008/10/13/new-redcloth-security.html), so the countermeasures still apply. Here is an example for version 3.0.4:
+For example, RedCloth translates `_test_` to `<em>test<em>`, which makes the text italic. However, up to the current version 3.0.4, it is still vulnerable to XSS. Get the [all-new version 4](https://github.com/jgarber/redcloth) that removed serious bugs. However, even that version has [some security bugs](https://rorsecurity.info/journal/2008/10/13/new-redcloth-security.html), so the countermeasures still apply. Here is an example for version 3.0.4:
 
 ```ruby
 RedCloth.new('<script>alert(1)</script>').to_html
