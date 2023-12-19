@@ -1,3 +1,15 @@
+*   Fix `Relation#transaction` to not apply a default scope
+
+    The method was incorrectly setting a default scope around its block:
+
+    ```ruby
+    Post.where(published: true).transaction do
+      Post.count # SELECT COUNT(*) FROM posts WHERE published = FALSE;
+    end
+    ```
+
+    *Jean Boussier*
+
 *   Fix calling `async_pluck` on a `none` relation.
 
     `Model.none.async_pluck(:id)` was returning a naked value
