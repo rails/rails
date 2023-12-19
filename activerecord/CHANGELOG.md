@@ -1,3 +1,12 @@
+*   Add `active_record.config.validate_migration_timestamps` option for validating migration timestamps.
+
+    When set, validates that the timestamp prefix for a migration is no more than a day ahead of
+    the timestamp associated with the current time. This is designed to prevent migrations prefixes
+    from being hand-edited to future timestamps, which impacts migration generation and other
+    migration commands.
+
+    *Adrianna Chang*
+
 *   Properly synchronize `Mysql2Adapter#active?` and `TrilogyAdapter#active?`
 
     As well as `disconnect!` and `verify!`.
