@@ -222,7 +222,7 @@ module Rails
       end
 
       # Returns the default source root for a given generator. This is used internally
-      # by rails to set its generators source root. If you want to customize your source
+      # by Rails to set its generators source root. If you want to customize your source
       # root, you should use source_root.
       def self.default_source_root
         return unless base_name && generator_name

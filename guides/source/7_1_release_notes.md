@@ -23,7 +23,7 @@ Major Features
 
 ### Generate Dockerfiles for new Rails applications
 
-[Default Docker support](https://github.com/rails/rails/pull/46762) to new rails applications.
+[Default Docker support](https://github.com/rails/rails/pull/46762) to new Rails applications.
 When generating a new application, Rails will now include Docker-related files in the application.
 
 These files serve as a foundational setup for deploying your Rails application in a

@@ -463,7 +463,7 @@ end
 ```
 
 If you know in advance that your variants will be accessed, you can specify that
-rails should generate them ahead of time:
+Rails should generate them ahead of time:
 
 ```ruby
 class User < ApplicationRecord
