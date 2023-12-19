@@ -26,6 +26,8 @@ ActiveRecord.deprecator.debug = true
 # to ensure it's not used internally.
 ActiveRecord.permanent_connection_checkout = :disallowed
 
+ActiveRecord::Delegation::DelegateCache.delegate_base_methods = false
+
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
 

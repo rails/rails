@@ -41,6 +41,8 @@ module ActiveRecord
       module EncryptedQuery # :nodoc:
         class << self
           def process_arguments(owner, args, check_for_additional_values)
+            owner = owner.model if owner.is_a?(Relation)
+
             return args if owner.deterministic_encrypted_attributes&.empty?
 
             if args.is_a?(Array) && (options = args.first).is_a?(Hash)

@@ -327,8 +327,8 @@ module ActiveRecord
 
         if raise_error
           raise ArgumentError.new(ORDER_IGNORE_MESSAGE)
-        elsif logger
-          logger.warn(ORDER_IGNORE_MESSAGE)
+        elsif model.logger
+          model.logger.warn(ORDER_IGNORE_MESSAGE)
         end
       end
 
