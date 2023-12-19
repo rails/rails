@@ -826,13 +826,13 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_caching_of_columns
     david = Developer.find(1)
     # clear cache possibly created by other tests
-    david.projects.reset_column_information
+    Project.reset_column_information
 
     assert_queries_count(include_schema: true) { david.projects.columns }
     assert_no_queries { david.projects.columns }
 
     ## and again to verify that reset_column_information clears the cache correctly
-    david.projects.reset_column_information
+    Project.reset_column_information
 
     assert_queries_count(include_schema: true) { david.projects.columns }
     assert_no_queries { david.projects.columns }

@@ -374,7 +374,7 @@ module ActiveRecord
       relation = construct_relation_for_exists(conditions)
       return false if relation.where_clause.contradiction?
 
-      skip_query_cache_if_necessary { connection.select_rows(relation.arel, "#{name} Exists?").size == 1 }
+      skip_query_cache_if_necessary { connection.select_rows(relation.arel, "#{model.name} Exists?").size == 1 }
     end
 
     # Returns true if the relation contains the given record or false otherwise.
@@ -632,7 +632,7 @@ module ActiveRecord
       end
 
       def ordered_relation
-        if order_values.empty? && (implicit_order_column || !query_constraints_list.nil? || primary_key)
+        if order_values.empty? && (model.implicit_order_column || !model.query_constraints_list.nil? || primary_key)
           order(_order_columns.map { |column| table[column].asc })
         else
           self
@@ -642,11 +642,11 @@ module ActiveRecord
       def _order_columns
         oc = []
 
-        oc << implicit_order_column if implicit_order_column
-        oc << query_constraints_list if query_constraints_list
+        oc << model.implicit_order_column if model.implicit_order_column
+        oc << model.query_constraints_list if model.query_constraints_list
 
-        if primary_key && query_constraints_list.nil?
-          oc << primary_key
+        if model.primary_key && model.query_constraints_list.nil?
+          oc << model.primary_key
         end
 
         oc.flatten.uniq.compact

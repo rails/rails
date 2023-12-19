@@ -100,7 +100,7 @@ module ActiveRecord
              :to_sentence, :to_fs, :to_formatted_s, :as_json,
              :shuffle, :split, :slice, :index, :rindex, to: :records
 
-    delegate :primary_key, :connection, :transaction, to: :klass
+    delegate :primary_key, :connection, :table_name, :transaction, :arel_table, :uncached, :sanitize_sql_like, to: :klass
 
     module ClassSpecificRelation # :nodoc:
       extend ActiveSupport::Concern
@@ -113,7 +113,7 @@ module ActiveRecord
 
       private
         def method_missing(method, ...)
-          if @klass.respond_to?(method)
+          if @klass.respond_to?(method) && !Base.respond_to?(method)
             unless Delegation.uncacheable_methods.include?(method)
               @klass.generate_relation_method(method)
             end
