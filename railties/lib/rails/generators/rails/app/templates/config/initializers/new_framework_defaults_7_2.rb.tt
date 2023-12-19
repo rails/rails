@@ -8,3 +8,5 @@
 #
 # Read the Guide for Upgrading Ruby on Rails for more info on each option.
 # https://guides.rubyonrails.org/upgrading_ruby_on_rails.html
+#
+# Rails.application.config.active_model.i18n_customize_full_message = true
