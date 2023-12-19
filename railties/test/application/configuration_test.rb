@@ -4755,6 +4755,22 @@ module ApplicationTests
       assert_equal "SQLite", ActiveRecord::Base.lease_connection.adapter_name
     end
 
+    test "active_model.i18n_customize_full_message is false by default in 7.1" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.1"'
+      app "development"
+
+      assert_equal false, ActiveModel::Error.i18n_customize_full_message
+    end
+
+    test "active_model.i18n_customize_full_message is true by default in 7.2" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.2"'
+      app "development"
+
+      assert_equal true, ActiveModel::Error.i18n_customize_full_message
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents

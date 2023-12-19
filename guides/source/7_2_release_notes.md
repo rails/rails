@@ -196,6 +196,8 @@ Please refer to the [Changelog][active-model] for detailed changes.
 
 ### Notable changes
 
+*   Changes `active_model.i18n_customize_full_message` default from `false` to `true`.
+
 Active Support
 --------------
 

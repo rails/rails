@@ -27,3 +27,12 @@
 # expected format can disable validation by setting this config to `false`.
 #++
 # Rails.application.config.active_record.validate_migration_timestamps = true
+
+###
+# Controls whether the `Error#full_message` format can be overridden in an i18n
+# locale file.
+#
+# When set to true, full_message will look for a format at the attribute and
+# model level of the locale files
+#++
+# Rails.application.config.active_model.i18n_customize_full_message = true

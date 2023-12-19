@@ -1,3 +1,10 @@
+*   Changes `active_model.i18n_customize_full_message` default from `false` to `true`.
+
+    `config.active_model.i18n_customize_full_message` defaults to `true` for
+    `config.load_defaults 7.2` and above.
+
+    *Steve Polito*
+
 *   Fix a bug where type casting of string to `Time` and `DateTime` doesn't
     calculate minus minute value in TZ offset correctly.
 

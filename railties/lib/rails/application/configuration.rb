@@ -329,6 +329,10 @@ module Rails
           if respond_to?(:active_record)
             active_record.validate_migration_timestamps = true
           end
+
+          if respond_to?(:active_model)
+            active_model.i18n_customize_full_message = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
