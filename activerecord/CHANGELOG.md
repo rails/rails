@@ -1,3 +1,15 @@
+*   Fix `Relation#transaction` to not apply a default scope
+
+    The method was incorrectly setting a default scope around its block:
+
+    ```ruby
+    Post.where(published: true).transaction do
+      Post.count # SELECT COUNT(*) FROM posts WHERE published = FALSE;
+    end
+    ```
+
+    *Jean Boussier*
+
 *   Fix renaming primary key index when renaming a table with a UUID primary key
     in PostgreSQL.
 
