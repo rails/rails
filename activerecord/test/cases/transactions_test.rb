@@ -36,6 +36,14 @@ class TransactionTest < ActiveRecord::TestCase
     assert_equal title_change, topic.changes["title"]
   end
 
+  def test_transaction_does_not_apply_default_scope
+    # Regression test for https://github.com/rails/rails/issues/50368
+    topic = topics(:fifth)
+    Topic.where.not(id: topic.id).transaction do
+      assert_not_nil Topic.find(topic.id)
+    end
+  end
+
   if !in_memory_db?
     def test_rollback_dirty_changes_even_with_raise_during_rollback_removes_from_pool
       topic = topics(:fifth)
