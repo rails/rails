@@ -69,6 +69,20 @@ module ActionDispatch
       end
     end
 
+    class_eval "def throw_syntax_error; eval %(
+      'abc' + pluralize 'def'
+    ); end", "lib/file.rb", 42
+
+    test "#source_extracts works with eval syntax error" do
+      exception = begin throw_syntax_error; rescue SyntaxError => ex; ex; end
+
+      wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exception, 1))
+
+      assert_called_with(wrapper, :source_fragment, ["lib/file.rb", 42], returns: "foo") do
+       assert_equal [ code: "foo", line_number: 42 ], wrapper.source_extracts
+     end
+    end
+
     if defined?(ErrorHighlight) && Gem::Version.new(ErrorHighlight::VERSION) >= Gem::Version.new("0.4.0")
       test "#source_extracts works with error_highlight" do
         lineno = __LINE__

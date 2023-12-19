@@ -172,13 +172,15 @@ class RackLintIntegrationTest < ActionDispatch::IntegrationTest
         get "/", to: ->(_) { [200, {}, [""]] }
       end
 
-      @app = self.class.build_app(set) do |middleware|
-        middleware.unshift Rack::Lint
-      end
-
       get "/"
 
       assert_equal 200, status
+    end
+  end
+
+  def app
+    @app ||= self.class.build_app do |middleware|
+      middleware.unshift Rack::Lint
     end
   end
 end

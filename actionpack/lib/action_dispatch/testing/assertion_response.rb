@@ -36,7 +36,7 @@ module ActionDispatch
 
     private
       def code_from_name(name)
-        GENERIC_RESPONSE_CODES[name] || Rack::Utils::SYMBOL_TO_STATUS_CODE[name]
+        GENERIC_RESPONSE_CODES[name] || Rack::Utils.status_code(name)
       end
 
       def name_from_code(code)

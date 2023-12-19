@@ -8,6 +8,63 @@
 
     *Edwin Vlieg*
 
+*   Add support for generated columns in SQLite3 adapter
+
+    Generated columns (both stored and dynamic) are supported since version 3.31.0 of SQLite.
+    This adds support for those to the SQLite3 adapter.
+
+    ```ruby
+    create_table :users do |t|
+      t.string :name
+      t.virtual :name_upper, type: :string, as: 'UPPER(name)'
+      t.virtual :name_lower, type: :string, as: 'LOWER(name)', stored: true
+    end
+    ```
+
+    *Stephen Margheim*
+
+*   TrilogyAdapter: ignore `host` if `socket` parameter is set.
+
+    This allows to configure a connection on a UNIX socket via DATABASE_URL:
+
+    ```
+    DATABASE_URL=trilogy://does-not-matter/my_db_production?socket=/var/run/mysql.sock
+    ```
+
+    *Jean Boussier*
+
+*   Make `assert_queries` and `assert_no_queries` assertions public.
+
+    To assert the expected number of queries are made, Rails internally uses
+    `assert_queries` and `assert_no_queries`. These assertions can be now
+    be used in applications as well.
+
+    ```ruby
+    class ArticleTest < ActiveSupport::TestCase
+      test "queries are made" do
+         assert_queries(1) { Article.first }
+      end
+    end
+    ```
+
+    *Petrik de Heus*
+
+*   Fix `has_secure_token` calls the setter method on initialize.
+
+    *Abeid Ahmed*
+
+*   When using a `DATABASE_URL`, allow for a configuration to map the protocol in the URL to a specific database
+    adapter. This allows decoupling the adapter the application chooses to use from the database connection details
+    set in the deployment environment.
+
+    ```ruby
+    # ENV['DATABASE_URL'] = "mysql://localhost/example_database"
+    config.active_record.protocol_adapters.mysql = "trilogy"
+    # will connect to MySQL using the trilogy adapter
+    ```
+
+    *Jean Boussier*, *Kevin McPhillips*
+
 *   In cases where MySQL returns `warning_count` greater than zero, but returns no warnings when
     the `SHOW WARNINGS` query is executed, `ActiveRecord.db_warnings_action` proc will still be
     called with a generic warning message rather than silently ignoring the warning(s).
@@ -99,5 +156,9 @@
 *   Ensure `#signed_id` outputs `url_safe` strings.
 
     *Jason Meller*
+
+*   Add `nulls_last` and working `desc.nulls_first` for MySQL.
+
+    *Tristan Fellows*
 
 Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/activerecord/CHANGELOG.md) for previous changes.

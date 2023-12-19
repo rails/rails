@@ -58,22 +58,39 @@ module ActionView
           end
         end
 
-        def self.define_void_element(name, code_generator:, method_name: name.to_s.underscore, self_closing: false)
+        def self.define_void_element(name, code_generator:, method_name: name.to_s.underscore)
           code_generator.define_cached_method(method_name, namespace: :tag_builder) do |batch|
             batch.push(<<~RUBY)
               def #{method_name}(content = nil, escape: true, **options, &block)
                 if content || block
-                  tag_string(#{name.inspect}, content, escape: escape, **options, &block)
+                  ActionView.deprecator.warn <<~TEXT
+                    Putting content inside a void element (#{name}) is invalid
+                    according to the HTML5 spec, and so it is being deprecated
+                    without replacement. In Rails 7.3, passing content as a
+                    positional argument will raise, and using a block will have
+                    no effect.
+                  TEXT
+                  tag_string("#{name}", content, escape: escape, **options, &block)
                 else
-                  void_tag_string(#{name.inspect}, options, escape, #{self_closing})
+                  self_closing_tag_string("#{name}", options, escape, ">")
                 end
               end
             RUBY
           end
         end
 
-        def self.define_self_closing_element(name, **options)
-          define_void_element(name, self_closing: true, **options)
+        def self.define_self_closing_element(name, code_generator:, method_name: name.to_s.underscore)
+          code_generator.define_cached_method(method_name, namespace: :tag_builder) do |batch|
+            batch.push(<<~RUBY)
+              def #{method_name}(content = nil, escape: true, **options, &block)
+                if content || block
+                  tag_string("#{name}", content, escape: escape, **options, &block)
+                else
+                  self_closing_tag_string("#{name}", options, escape)
+                end
+              end
+            RUBY
+          end
         end
 
         ActiveSupport::CodeGenerator.batch(self, __FILE__, __LINE__) do |code_generator|
@@ -228,8 +245,8 @@ module ActionView
           content_tag_string(name, content, options, escape)
         end
 
-        def void_tag_string(name, options, escape = true, self_closing = false)
-          "<#{name}#{tag_options(options, escape)}#{self_closing ? " />" : ">"}".html_safe
+        def self_closing_tag_string(name, options, escape = true, tag_suffix = " />")
+          "<#{name}#{tag_options(options, escape)}#{tag_suffix}".html_safe
         end
 
         def content_tag_string(name, content, options, escape = true)

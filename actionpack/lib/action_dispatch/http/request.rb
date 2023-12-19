@@ -146,7 +146,7 @@ module ActionDispatch
     end
 
     # Returns the URI pattern of the matched route for the request,
-    # using the same format as `bin/rails routes`:
+    # using the same format as <tt>bin/rails routes</tt>:
     #
     #   request.route_uri_pattern # => "/:controller(/:action(/:id))(.:format)"
     def route_uri_pattern

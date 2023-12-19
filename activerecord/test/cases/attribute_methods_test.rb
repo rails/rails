@@ -1393,6 +1393,22 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     alias_attribute :written_by, :author
   end
 
+  test "#alias_attribute method on a STI class is available on subclasses" do
+    superclass = Class.new(ActiveRecord::Base) do
+      self.table_name = "comments"
+      alias_attribute :text, :body
+    end
+
+    subclass = Class.new(superclass) do
+      self.abstract_class = true
+    end
+
+    subsubclass = Class.new(subclass)
+
+    comment = subsubclass.build(body: "Text")
+    assert_equal "Text", comment.text
+  end
+
   test "#alias_attribute with an association method issues a deprecation warning" do
     message = <<~MESSAGE.gsub("\n", " ")
     AttributeMethodsTest::ClassWithAssociationTarget model aliases `author`, but `author` is not an attribute. Starting in Rails 7.2, alias_attribute with non-attribute targets will raise. Use `alias_method :written_by, :author` or define the method manually.

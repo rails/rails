@@ -5,6 +5,8 @@ module ActiveSupport
     module Isolation
       require "thread"
 
+      SubprocessCrashed = Class.new(StandardError)
+
       def self.included(klass) # :nodoc:
         klass.class_eval do
           parallelize_me!
@@ -16,8 +18,15 @@ module ActiveSupport
       end
 
       def run
-        serialized = run_in_isolation do
+        status, serialized = run_in_isolation do
           super
+        end
+
+        unless status&.success?
+          error = SubprocessCrashed.new("Subprocess exited with an error: #{status.inspect}\noutput: #{serialized.inspect}")
+          error.set_backtrace(caller)
+          self.failures << Minitest::UnexpectedError.new(error)
+          return defined?(Minitest::Result) ? Minitest::Result.from(self) : dup
         end
 
         Marshal.load(serialized)
@@ -50,13 +59,13 @@ module ActiveSupport
               end
 
               write.puts [result].pack("m")
-              exit!
+              exit!(0)
             end
 
             write.close
             result = read.read
-            Process.wait2(pid)
-            result.unpack1("m")
+            _, status = Process.wait2(pid)
+            return status, result.unpack1("m")
           end
         end
       end
@@ -75,7 +84,7 @@ module ActiveSupport
             File.open(ENV["ISOLATION_OUTPUT"], "w") do |file|
               file.puts [Marshal.dump(test_result)].pack("m")
             end
-            exit!
+            exit!(0)
           else
             Tempfile.open("isolation") do |tmpfile|
               env = {
@@ -93,13 +102,14 @@ module ActiveSupport
 
               child = IO.popen([env, Gem.ruby, *load_path_args, $0, *ORIG_ARGV, test_opts])
 
+              status = nil
               begin
-                Process.wait(child.pid)
+                _, status = Process.wait2(child.pid)
               rescue Errno::ECHILD # The child process may exit before we wait
                 nil
               end
 
-              return tmpfile.read.unpack1("m")
+              return status, tmpfile.read.unpack1("m")
             end
           end
         end

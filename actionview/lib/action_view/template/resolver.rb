@@ -10,8 +10,6 @@ require "concurrent/map"
 module ActionView
   # = Action View Resolver
   class Resolver
-    include ActiveSupport::Deprecation::DeprecatedConstantAccessor
-
     class PathParser # :nodoc:
       ParsedPath = Struct.new(:path, :details)
 

@@ -12,6 +12,8 @@ require "active_support/core_ext/object/try"
 require "active_support/testing/autorun"
 require "image_processing/mini_magick"
 
+require "active_record/testing/query_assertions"
+
 require "active_job"
 ActiveJob::Base.queue_adapter = :test
 ActiveJob::Base.logger = ActiveSupport::Logger.new(nil)
@@ -24,6 +26,7 @@ class ActiveSupport::TestCase
   self.file_fixture_path = ActiveStorage::FixtureSet.file_fixture_path
 
   include ActiveRecord::TestFixtures
+  include ActiveRecord::Assertions::QueryAssertions
 
   self.fixture_paths = [File.expand_path("fixtures", __dir__)]
 
@@ -33,23 +36,6 @@ class ActiveSupport::TestCase
 
   teardown do
     ActiveStorage::Current.reset
-  end
-
-  def assert_queries(expected_count, matcher: nil, &block)
-    ActiveRecord::Base.connection.materialize_transactions
-
-    queries = []
-    ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
-      queries << payload[:sql] if %w[ SCHEMA TRANSACTION ].exclude?(payload[:name]) && (matcher.nil? || payload[:sql].match(matcher))
-    end
-
-    result = _assert_nothing_raised_or_warn("assert_queries", &block)
-    assert_equal expected_count, queries.size, "#{queries.size} instead of #{expected_count} queries were executed. Queries: #{queries.join("\n\n")}"
-    result
-  end
-
-  def assert_no_queries(&block)
-    assert_queries(0, &block)
   end
 
   private

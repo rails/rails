@@ -33,7 +33,7 @@ module ActiveRecord
           Base.private_instance_methods -
           Base.superclass.instance_methods -
           Base.superclass.private_instance_methods +
-          %i[__id__ dup freeze frozen? hash object_id class clone]
+          %i[__id__ dup freeze frozen? hash class clone]
         ).map { |m| -m.to_s }.to_set.freeze
       end
     end
@@ -130,6 +130,7 @@ module ActiveRecord
           return false if @attribute_methods_generated
           superclass.define_attribute_methods unless base_class?
           super(attribute_names)
+          alias_attribute(:id_value, :id) if attribute_names.include?("id")
           @attribute_methods_generated = true
         end
       end

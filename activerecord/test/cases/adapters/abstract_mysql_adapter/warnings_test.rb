@@ -78,11 +78,10 @@ class WarningsTest < ActiveRecord::AbstractMysqlTestCase
   end
 
   test "db_warnings_action allows a list of codes to ignore" do
-    with_db_warnings_action(:raise, ["1062"]) do
-      row_id = @connection.insert("INSERT INTO posts (title, body) VALUES('Title', 'Body')")
-      result = @connection.execute("INSERT IGNORE INTO posts (id, title, body) VALUES(#{row_id}, 'Title', 'Body')")
+    with_db_warnings_action(:raise, ["1292"]) do
+      result = @connection.execute('SELECT 1 + "foo"')
 
-      assert_equal [], result.to_a
+      assert_equal [1], result.to_a.first
     end
   end
 

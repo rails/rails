@@ -97,6 +97,7 @@ Within the Ruby on Rails framework, there are a number of hooks provided for com
 | ------------- | --------------------------------------------------------- |
 | `:controller` | The controller name                                       |
 | `:action`     | The action                                                |
+| `:request`    | The [`ActionDispatch::Request`][] object                  |
 | `:params`     | Hash of request parameters without any filtered parameter |
 | `:headers`    | Request headers                                           |
 | `:format`     | html/js/json/xml etc                                      |
@@ -195,6 +196,22 @@ Additional keys may be added by the caller.
 | ------------- | ----------------------------------------------------------------------------- |
 | `:keys`       | The unpermitted keys                                                          |
 | `:context`    | Hash with the following keys: `:controller`, `:action`, `:params`, `:request` |
+
+#### `send_stream.action_controller`
+
+| Key            | Value                                    |
+| -------------- | ---------------------------------------- |
+| `:filename`    | The filename                             |
+| `:type`        | HTTP content type                        |
+| `:disposition` | HTTP content disposition                 |
+
+```ruby
+{
+  filename: "subscribers.csv",
+  type: "text/csv",
+  disposition: "attachment"
+}
+```
 
 ### Action Controller — Caching
 

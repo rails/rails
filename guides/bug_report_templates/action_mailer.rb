@@ -7,8 +7,9 @@ gemfile(true) do
 
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-  # Activate the gem you are reporting the issue against.
-  gem "rails", "~> 7.1.0"
+  gem "rails"
+  # If you want to test against edge Rails replace the previous line with this:
+  # gem "rails", github: "rails/rails", branch: "main"
 end
 
 require "action_mailer/railtie"

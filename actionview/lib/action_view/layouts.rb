@@ -209,11 +209,9 @@ module ActionView
 
     included do
       class_attribute :_layout, instance_accessor: false
-      class_attribute :_layout_conditions, instance_accessor: false, default: {}
+      class_attribute :_layout_conditions, instance_accessor: false, instance_reader: true, default: {}
 
       _write_layout_method
-
-      delegate :_layout_conditions, to: :class
     end
 
     module ClassMethods

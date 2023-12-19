@@ -284,6 +284,14 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal(blog_post, comment.blog_post_by_id)
   end
 
+  def test_polymorphic_belongs_to_uses_parent_query_constraints
+    parent_post = sharded_blog_posts(:great_post_blog_one)
+    child_post = Sharded::BlogPost.create!(title: "Child post", blog_id: parent_post.blog_id, parent: parent_post)
+    child_post.reload # reload to forget the parent association
+
+    assert_equal parent_post, child_post.parent
+  end
+
   def test_preloads_model_with_query_constraints_by_explicitly_configured_fk_and_pk
     comment = sharded_comments(:great_comment_blog_post_one)
     comments = Sharded::Comment.where(id: comment.id).preload(:blog_post_by_id).to_a
@@ -796,6 +804,17 @@ class PreloaderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_does_not_concatenate_duplicate_records
+    post = posts(:welcome)
+    post.reload
+    post.comments.create!(body: "A new comment")
+
+    ActiveRecord::Associations::Preloader.new(records: [post], associations: :comments).call
+
+    assert_equal post.comments.length, post.comments.count
+    assert_equal post.comments.all.to_a, post.comments
+  end
+
   def test_preload_for_hmt_with_conditions
     post = posts(:welcome)
     _normal_category = post.categories.create!(name: "Normal")
@@ -1261,7 +1280,7 @@ class PreloaderTest < ActiveRecord::TestCase
     end
 
     assert_predicate author.association(:essay_category), :loaded?
-    assert categories.map(&:object_id).include?(author.essay_category.object_id)
+    assert categories.map(&:__id__).include?(author.essay_category.__id__)
   end
 
   def test_preload_with_only_some_records_available_with_through_associations
@@ -1307,7 +1326,7 @@ class PreloaderTest < ActiveRecord::TestCase
     end
 
     assert_predicate post.association(:author), :loaded?
-    assert_not_equal david.object_id, post.author.object_id
+    assert_not_equal david.__id__, post.author.__id__
   end
 
   def test_preload_with_available_records_queries_when_collection
@@ -1319,7 +1338,7 @@ class PreloaderTest < ActiveRecord::TestCase
     end
 
     assert_predicate post.association(:comments), :loaded?
-    assert_empty post.comments.map(&:object_id) & comments.map(&:object_id)
+    assert_empty post.comments.map(&:__id__) & comments.map(&:__id__)
   end
 
   def test_preload_with_available_records_queries_when_incomplete
@@ -1388,6 +1407,15 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_equal sharded_blog_posts(:great_post_blog_one), comment.blog_post
   end
 
+  def test_preload_loaded_belongs_to_association_with_composite_foreign_key
+    comment = sharded_comments(:great_comment_blog_post_one)
+    comment.blog_post
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [comment], associations: :blog_post).call
+    end
+  end
+
   def test_preload_has_many_through_association_with_composite_query_constraints
     tag = sharded_tags(:short_read_blog_one)
 
@@ -1451,6 +1479,51 @@ class PreloaderTest < ActiveRecord::TestCase
 
     assert_match(expectation, preload_sql)
     assert_equal order, loaded_order_agreement.order
+  end
+
+  def test_preload_keeps_built_has_many_records_no_ops
+    post = Post.new
+    comment = post.comments.build
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :comments).call
+
+      assert_equal [comment], post.comments.to_a
+    end
+  end
+
+  def test_preload_keeps_built_has_many_records_after_query
+    post = posts(:welcome)
+    comment = post.comments.build
+
+    assert_queries(1) do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :comments).call
+
+      assert_includes post.comments.to_a, comment
+    end
+  end
+
+
+  def test_preload_keeps_built_belongs_to_records_no_ops
+    post = Post.new
+    author = post.build_author
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :author).call
+
+      assert_same author, post.author
+    end
+  end
+
+  def test_preload_keeps_built_belongs_to_records_after_query
+    post = posts(:welcome)
+    author = post.build_author
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :author).call
+
+      assert_same author, post.author
+    end
   end
 end
 

@@ -291,6 +291,11 @@ module ActiveRecord
     end
 
     # Returns true if there are no records.
+    #
+    # When a pattern argument is given, this method checks whether elements in
+    # the Enumerable match the pattern via the case-equality operator (`===`).
+    #
+    #   posts.none?(Comment) # => true or false
     def none?(*args)
       return true if @none
 
@@ -299,6 +304,11 @@ module ActiveRecord
     end
 
     # Returns true if there are any records.
+    #
+    # When a pattern argument is given, this method checks whether elements in
+    # the Enumerable match the pattern via the case-equality operator (`===`).
+    #
+    #    posts.any?(Post) # => true or false
     def any?(*args)
       return false if @none
 
@@ -307,6 +317,11 @@ module ActiveRecord
     end
 
     # Returns true if there is exactly one record.
+    #
+    # When a pattern argument is given, this method checks whether elements in
+    # the Enumerable match the pattern via the case-equality operator (`===`).
+    #
+    #    posts.one?(Post) # => true or false
     def one?(*args)
       return false if @none
 
@@ -960,7 +975,7 @@ module ActiveRecord
       def exec_main_query(async: false)
         if @none
           if async
-            return Promise::Complete.new([])
+            return FutureResult::Complete.new([])
           else
             return []
           end

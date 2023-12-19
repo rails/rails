@@ -12,7 +12,7 @@ class SecureBooksController < BooksController; end
 class BlockBooksController < BooksController; end
 class QueryBooksController < BooksController; end
 
-class RoutingAssertionsTest < ActionController::TestCase
+module RoutingAssertionsSharedTests
   def setup
     root_engine = Class.new(Rails::Engine) do
       def self.name
@@ -98,28 +98,28 @@ class RoutingAssertionsTest < ActionController::TestCase
   end
 
   def test_assert_recognizes_with_hash_constraint
-    assert_raise(Assertion) do
+    assert_raise(Minitest::Assertion) do
       assert_recognizes({ controller: "secure_articles", action: "index" }, "http://test.host/secure/articles")
     end
     assert_recognizes({ controller: "secure_articles", action: "index", protocol: "https://" }, "https://test.host/secure/articles")
   end
 
   def test_assert_recognizes_with_block_constraint
-    assert_raise(Assertion) do
+    assert_raise(Minitest::Assertion) do
       assert_recognizes({ controller: "block_articles", action: "index" }, "http://test.host/block/articles")
     end
     assert_recognizes({ controller: "block_articles", action: "index" }, "https://test.host/block/articles")
   end
 
   def test_assert_recognizes_with_query_constraint
-    assert_raise(Assertion) do
+    assert_raise(Minitest::Assertion) do
       assert_recognizes({ controller: "query_articles", action: "index", use_query: "false" }, "/query/articles", use_query: "false")
     end
     assert_recognizes({ controller: "query_articles", action: "index", use_query: "true" }, "/query/articles", use_query: "true")
   end
 
   def test_assert_recognizes_raises_message
-    err = assert_raise(Assertion) do
+    err = assert_raise(Minitest::Assertion) do
       assert_recognizes({ controller: "secure_articles", action: "index" }, "http://test.host/secure/articles", {}, "This is a really bad msg")
     end
 
@@ -145,28 +145,28 @@ class RoutingAssertionsTest < ActionController::TestCase
   end
 
   def test_assert_recognizes_with_engine_and_hash_constraint
-    assert_raise(Assertion) do
+    assert_raise(Minitest::Assertion) do
       assert_recognizes({ controller: "secure_books", action: "index" }, "http://test.host/shelf/secure/books")
     end
     assert_recognizes({ controller: "secure_books", action: "index", protocol: "https://" }, "https://test.host/shelf/secure/books")
   end
 
   def test_assert_recognizes_with_engine_and_block_constraint
-    assert_raise(Assertion) do
+    assert_raise(Minitest::Assertion) do
       assert_recognizes({ controller: "block_books", action: "index" }, "http://test.host/shelf/block/books")
     end
     assert_recognizes({ controller: "block_books", action: "index" }, "https://test.host/shelf/block/books")
   end
 
   def test_assert_recognizes_with_engine_and_query_constraint
-    assert_raise(Assertion) do
+    assert_raise(Minitest::Assertion) do
       assert_recognizes({ controller: "query_books", action: "index", use_query: "false" }, "/shelf/query/books", use_query: "false")
     end
     assert_recognizes({ controller: "query_books", action: "index", use_query: "true" }, "/shelf/query/books", use_query: "true")
   end
 
   def test_assert_recognizes_raises_message_with_engine
-    err = assert_raise(Assertion) do
+    err = assert_raise(Minitest::Assertion) do
       assert_recognizes({ controller: "secure_books", action: "index" }, "http://test.host/shelf/secure/books", {}, "This is a really bad msg")
     end
 
@@ -182,7 +182,7 @@ class RoutingAssertionsTest < ActionController::TestCase
   end
 
   def test_assert_routing_raises_message
-    err = assert_raise(Assertion) do
+    err = assert_raise(Minitest::Assertion) do
       assert_routing("/thisIsNotARoute", { controller: "articles", action: "edit", id: "1" }, { id: "1" }, {}, "This is a really bad msg")
     end
 
@@ -198,14 +198,14 @@ class RoutingAssertionsTest < ActionController::TestCase
   end
 
   def test_assert_routing_with_hash_constraint
-    assert_raise(Assertion) do
+    assert_raise(Minitest::Assertion) do
       assert_routing("http://test.host/secure/articles", controller: "secure_articles", action: "index")
     end
     assert_routing("https://test.host/secure/articles", controller: "secure_articles", action: "index", protocol: "https://")
   end
 
   def test_assert_routing_with_block_constraint
-    assert_raise(Assertion) do
+    assert_raise(Minitest::Assertion) do
       assert_routing("http://test.host/block/articles", controller: "block_articles", action: "index")
     end
     assert_routing("https://test.host/block/articles", controller: "block_articles", action: "index")
@@ -218,13 +218,15 @@ class RoutingAssertionsTest < ActionController::TestCase
       end
 
       assert_routing("/artikel", controller: "articles", action: "index")
-      assert_raise(Assertion) do
+      assert_raise(Minitest::Assertion) do
         assert_routing("/articles", controller: "articles", action: "index")
       end
     end
   end
 
-  class WithRoutingTest < ActionController::TestCase
+  module WithRoutingSharedTests
+    extend ActiveSupport::Concern
+
     def before_setup
       @routes = ActionDispatch::Routing::RouteSet.new
       @routes.draw do
@@ -234,15 +236,17 @@ class RoutingAssertionsTest < ActionController::TestCase
       super
     end
 
-    with_routing do |routes|
-      routes.draw do
-        resources :articles, path: "artikel"
+    included do
+      with_routing do |routes|
+        routes.draw do
+          resources :articles, path: "artikel"
+        end
       end
     end
 
     def test_with_routing_for_the_entire_test_file
       assert_routing("/artikel", controller: "articles", action: "index")
-      assert_raise(Assertion) do
+      assert_raise(Minitest::Assertion) do
         assert_routing("/articles", controller: "articles", action: "index")
       end
     end
@@ -254,15 +258,58 @@ class RoutingAssertionsTest < ActionController::TestCase
         end
 
         assert_routing("/articolo", controller: "articles", action: "index")
-        assert_raise(Assertion) do
+        assert_raise(Minitest::Assertion) do
           assert_routing("/artikel", controller: "articles", action: "index")
         end
       end
 
       assert_routing("/artikel", controller: "articles", action: "index")
-      assert_raise(Assertion) do
+      assert_raise(Minitest::Assertion) do
         assert_routing("/articolo", controller: "articles", action: "index")
       end
+    end
+  end
+end
+
+class RoutingAssertionsControllerTest < ActionController::TestCase
+  include RoutingAssertionsSharedTests
+
+  class WithRoutingTest < ActionController::TestCase
+    include RoutingAssertionsSharedTests::WithRoutingSharedTests
+  end
+end
+
+class RoutingAssertionsIntegrationTest < ActionDispatch::IntegrationTest
+  include RoutingAssertionsSharedTests
+
+  test "https and host settings are set on new session" do
+    https!
+    host! "newhost.com"
+
+    with_routing do |routes|
+      routes.draw {  }
+      assert_predicate integration_session, :https?
+      assert_equal "newhost.com", integration_session.host
+    end
+  end
+
+  class WithRoutingTest < ActionDispatch::IntegrationTest
+    include RoutingAssertionsSharedTests::WithRoutingSharedTests
+  end
+
+  class WithRoutingSettingsTest < ActionDispatch::IntegrationTest
+    setup do
+      https!
+      host! "newhost.com"
+    end
+
+    with_routing do |routes|
+      routes.draw {  }
+    end
+
+    test "https and host settings are set on new session" do
+      assert_predicate integration_session, :https?
+      assert_equal "newhost.com", integration_session.host
     end
   end
 end

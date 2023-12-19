@@ -168,7 +168,7 @@ class Module
   #   Foo.new("Bar").name # raises NoMethodError: undefined method `name'
   #
   # The target method must be public, otherwise it will raise +NoMethodError+.
-  def delegate(*methods, to: nil, prefix: nil, allow_nil: nil, private: nil)
+  def delegate(*methods, to: nil, prefix: nil, allow_nil: nil, private: nil, as: nil)
     unless to
       raise ArgumentError, "Delegation needs a target. Supply a keyword argument 'to' (e.g. delegate :hello, to: :greeter)."
     end
@@ -190,6 +190,16 @@ class Module
     receiver = to.to_s
     receiver = "self.#{receiver}" if DELEGATION_RESERVED_METHOD_NAMES.include?(receiver)
 
+    explicit_receiver = false
+    receiver_class = if as
+      explicit_receiver = true
+      as
+    elsif to.is_a?(Module)
+      to.singleton_class
+    elsif receiver == "self.class"
+      singleton_class
+    end
+
     method_def = []
     method_names = []
 
@@ -205,16 +215,14 @@ class Module
         if /[^\]]=\z/.match?(method)
           "arg"
         else
-          method_object =
+          method_object = if receiver_class
             begin
-              if to.is_a?(Module)
-                to.method(method)
-              elsif receiver == "self.class"
-                method(method)
-              end
+              receiver_class.public_instance_method(method)
             rescue NameError
+              raise if explicit_receiver
               # Do nothing. Fall back to `"..."`
             end
+          end
 
           if method_object
             parameters = method_object.parameters

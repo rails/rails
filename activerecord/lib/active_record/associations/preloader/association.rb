@@ -38,6 +38,8 @@ module ActiveRecord
           end
 
           def load_records_for_keys(keys, &block)
+            return [] if keys.empty?
+
             if association_key_name.is_a?(Array)
               query_constraints = Hash.new { |hsh, key| hsh[key] = Set.new }
 
@@ -245,7 +247,8 @@ module ActiveRecord
             association = owner.association(reflection.name)
 
             if reflection.collection?
-              association.target = records
+              not_persisted_records = association.target.reject(&:persisted?)
+              association.target = records + not_persisted_records
             else
               association.target = records.first
             end

@@ -3124,7 +3124,7 @@ module ApplicationTests
     test "active record job queue is set" do
       app "development"
 
-      assert_equal ActiveSupport::InheritableOptions.new(destroy: :active_record_destroy), ActiveRecord.queues
+      assert_equal({}, ActiveRecord.queues)
     end
 
     test "destroy association async job should be loaded in configs" do

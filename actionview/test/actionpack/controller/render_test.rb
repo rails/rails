@@ -126,6 +126,10 @@ class TestController < ActionController::Base
     render layout: false
   end
 
+  def render_instance_variables
+    render inline: "<%= instance_variables.sort %>"
+  end
+
   # :ported:
   def render_template_with_instance_variables
     @secret = "in the sauce"
@@ -721,6 +725,7 @@ class RenderTest < ActionController::TestCase
     get :render_hello_world_with_forward_slash, to: "test#render_hello_world_with_forward_slash"
     get :render_implicit_html_template_from_xhr_request, to: "test#render_implicit_html_template_from_xhr_request"
     get :render_implicit_js_template_without_layout, to: "test#render_implicit_js_template_without_layout"
+    get :render_instance_variables, to: "test#render_instance_variables"
     get :render_line_offset, to: "test#render_line_offset"
     get :render_nothing_with_appendix, to: "test#render_nothing_with_appendix"
     get :render_template_in_top_directory, to: "test#render_template_in_top_directory"
@@ -783,6 +788,29 @@ class RenderTest < ActionController::TestCase
     assert_response 200
     assert_response :success
     assert_equal "<html>Hello world!</html>", @response.body
+  end
+
+  def test_controller_does_not_leak_instance_variables
+    expected = [
+      :@_assigns, # attr_internal on ActionView::Base
+      :@_config, # attr_internal on ActionView::Base
+      :@_controller, # attr_internal on ActionView::Helpers::ControllerHelper
+      :@_default_form_builder, # attr_internal on ActionView::Helpers::FormHelper
+      :@_ivars, # ActionController::Testing::Functional (only appears inside an ActionController::TestCase)
+      :@_request, # attr_internal on ActionView::Helpers::ControllerHelper
+      :@current_template, # instance variable on ActionView::Base
+      :@lookup_context, # attr_reader on ActionView::Base
+      :@output_buffer, # attr_accessor on ActionView::Base::Context
+      :@variable_for_layout, # part of this test class
+      :@view_flow, # attr_accessor on ActionView::Base::Context
+      :@view_renderer, # attr_reader on ActionView::Base
+      :@virtual_path, # instance variable on ActionView::Base
+    ].inspect
+
+    get :render_instance_variables
+
+    assert_response 200
+    assert_equal expected, @response.body
   end
 
   # :ported:

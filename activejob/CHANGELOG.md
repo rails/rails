@@ -1,3 +1,7 @@
+*   Preserve the serialized timezone when deserializing `ActiveSupport::TimeWithZone` arguments.
+
+    *Joshua Young*
+
 *   Remove deprecated `:exponentially_longer` value for the `:wait` in `retry_on`.
 
     *Rafael Mendonça França*

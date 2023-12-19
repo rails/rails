@@ -91,15 +91,23 @@ module ActiveSupport
 end
 
 class RoutedRackApp
+  class Config < Struct.new(:middleware)
+  end
+
   attr_reader :routes
 
   def initialize(routes, &blk)
     @routes = routes
-    @stack = ActionDispatch::MiddlewareStack.new(&blk).build(@routes)
+    @stack = ActionDispatch::MiddlewareStack.new(&blk)
+    @app = @stack.build(@routes)
   end
 
   def call(env)
-    @stack.call(env)
+    @app.call(env)
+  end
+
+  def config
+    Config.new(@stack)
   end
 end
 
@@ -148,19 +156,6 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
 
   def self.stub_controllers(config = ActionDispatch::Routing::RouteSet::DEFAULT_CONFIG)
     yield DeadEndRoutes.new(config)
-  end
-
-  def with_routing(&block)
-    temporary_routes = ActionDispatch::Routing::RouteSet.new
-    old_app, self.class.app = self.class.app, self.class.build_app(temporary_routes)
-    old_routes = SharedTestRoutes
-    silence_warnings { Object.const_set(:SharedTestRoutes, temporary_routes) }
-
-    yield temporary_routes
-  ensure
-    self.class.app = old_app
-    remove!
-    silence_warnings { Object.const_set(:SharedTestRoutes, old_routes) }
   end
 
   def with_autoload_path(path)

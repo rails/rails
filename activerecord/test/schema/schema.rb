@@ -261,6 +261,17 @@ ActiveRecord::Schema.define do
     t.string :name
   end
 
+  create_table :cpk_posts, primary_key: [:title, :author], force: true do |t|
+    t.string :title
+    t.string :author
+  end
+
+  create_table :cpk_comments, force: true do |t|
+    t.string :commentable_title
+    t.string :commentable_author
+    t.string :commentable_type
+  end
+
   create_table :cpk_reviews, force: true do |t|
     t.integer :author_id
     t.integer :number
@@ -313,6 +324,7 @@ ActiveRecord::Schema.define do
 
   create_table :sharded_blog_posts, force: true do |t|
     t.string :title
+    t.references :parent, polymorphic: true
     t.integer :blog_id
     t.integer :revision
   end
