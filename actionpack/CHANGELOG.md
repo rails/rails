@@ -1,3 +1,8 @@
+*   Fix including `Rails.application.routes.url_helpers` directly in an
+    `ActiveSupport::Concern.`
+
+    *Jonathan Hefner*
+
 *   Fix system tests when using a Chrome binary that has been downloaded by
     Selenium.
 
