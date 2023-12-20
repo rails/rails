@@ -604,7 +604,7 @@ module ActionDispatch
           # `included` block is run only for the initial inclusion of each copy.
           def self.included(base)
             super
-            if !base._routes.equal?(@_proxy._routes)
+            if base.respond_to?(:_routes) && !base._routes.equal?(@_proxy._routes)
               @dup_for_reinclude ||= self.dup
               base.include @dup_for_reinclude
             end
