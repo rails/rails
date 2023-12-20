@@ -300,7 +300,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_build
     devel = Developer.find(1)
 
-    proj = assert_queries(0) { devel.projects.build("name" => "Projekt") }
+    proj = assert_queries_count(0) { devel.projects.build("name" => "Projekt") }
     assert_not_predicate devel.projects, :loaded?
 
     assert_equal devel.projects.last, proj
@@ -316,7 +316,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_new_aliased_to_build
     devel = Developer.find(1)
 
-    proj = assert_queries(0) { devel.projects.new("name" => "Projekt") }
+    proj = assert_queries_count(0) { devel.projects.new("name" => "Projekt") }
     assert_not_predicate devel.projects, :loaded?
 
     assert_equal devel.projects.last, proj
@@ -537,7 +537,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     developer = project.developers.first
 
-    assert_queries(0) do
+    assert_queries_count(0) do
       assert_predicate project.developers, :loaded?
       assert_includes project.developers, developer
     end
@@ -549,7 +549,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     project.reload
     assert_not_predicate project.developers, :loaded?
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_includes project.developers, developer
     end
     assert_not_predicate project.developers, :loaded?
@@ -739,7 +739,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_get_ids_for_loaded_associations
     developer = developers(:david)
     developer.projects.reload
-    assert_queries(0) do
+    assert_queries_count(0) do
       developer.project_ids
       developer.project_ids
     end
@@ -828,13 +828,13 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     # clear cache possibly created by other tests
     david.projects.reset_column_information
 
-    assert_queries(:any) { david.projects.columns }
+    assert_queries_count(include_schema: true) { david.projects.columns }
     assert_no_queries { david.projects.columns }
 
     ## and again to verify that reset_column_information clears the cache correctly
     david.projects.reset_column_information
 
-    assert_queries(:any) { david.projects.columns }
+    assert_queries_count(include_schema: true) { david.projects.columns }
     assert_no_queries { david.projects.columns }
   end
 
@@ -867,7 +867,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_has_and_belongs_to_many_associations_on_new_records_use_null_relations
     projects = Developer.new.projects
-    assert_queries(0) do
+    assert_queries_count(0) do
       assert_equal [], projects
       assert_equal [], projects.where(title: "omg")
       assert_equal [], projects.pluck(:title)

@@ -1523,7 +1523,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_uses_query_constraints_config
     clothing_item = clothing_items(:green_t_shirt)
-    sql = capture_sql { clothing_item.update(description: "Lovely green t-shirt")  }.first
+    sql = capture_sql { clothing_item.update(description: "Lovely green t-shirt")  }.second
     assert_match(/WHERE .*clothing_type/, sql)
     assert_match(/WHERE .*color/, sql)
   end
@@ -1531,7 +1531,7 @@ class PersistenceTest < ActiveRecord::TestCase
   def test_save_uses_query_constraints_config
     clothing_item = clothing_items(:green_t_shirt)
     clothing_item.description = "Lovely green t-shirt"
-    sql = capture_sql { clothing_item.save }.first
+    sql = capture_sql { clothing_item.save }.second
     assert_match(/WHERE .*clothing_type/, sql)
     assert_match(/WHERE .*color/, sql)
   end
@@ -1545,7 +1545,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_destroy_uses_query_constraints_config
     clothing_item = clothing_items(:green_t_shirt)
-    sql = capture_sql { clothing_item.destroy }.first
+    sql = capture_sql { clothing_item.destroy }.second
     assert_match(/WHERE .*clothing_type/, sql)
     assert_match(/WHERE .*color/, sql)
   end
@@ -1559,7 +1559,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_attribute_uses_query_constraints_config
     clothing_item = clothing_items(:green_t_shirt)
-    sql = capture_sql { clothing_item.update_attribute(:description, "Lovely green t-shirt") }.first
+    sql = capture_sql { clothing_item.update_attribute(:description, "Lovely green t-shirt") }.second
     assert_match(/WHERE .*clothing_type/, sql)
     assert_match(/WHERE .*color/, sql)
   end
@@ -1568,7 +1568,7 @@ class PersistenceTest < ActiveRecord::TestCase
     clothing_item = clothing_items(:green_t_shirt)
     clothing_item.color = "blue"
     clothing_item.description = "Now it's a blue t-shirt"
-    sql = capture_sql { clothing_item.save }.first
+    sql = capture_sql { clothing_item.save }.second
     assert_match(/WHERE .*clothing_type/, sql)
     assert_match(/WHERE .*color/, sql)
 

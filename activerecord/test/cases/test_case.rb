@@ -5,6 +5,7 @@ require "active_support"
 require "active_support/testing/autorun"
 require "active_support/testing/method_call_assertions"
 require "active_support/testing/stream"
+require "active_record/testing/query_assertions"
 require "active_record/fixtures"
 
 require "cases/validations_repair_helper"
@@ -20,6 +21,7 @@ module ActiveRecord
   class TestCase < ActiveSupport::TestCase # :nodoc:
     include ActiveSupport::Testing::MethodCallAssertions
     include ActiveSupport::Testing::Stream
+    include ActiveRecord::Assertions::QueryAssertions
     include ActiveRecord::TestFixtures
     include ActiveRecord::ValidationsRepairHelper
     include AdapterHelper
@@ -35,45 +37,34 @@ module ActiveRecord
       ActiveRecord::FixtureSet.create_fixtures(ActiveRecord::TestCase.fixture_paths, fixture_set_names, fixture_class_names, &block)
     end
 
-    def teardown
-      SQLCounter.clear_log
-    end
-
-    def capture_sql
-      ActiveRecord::Base.connection.materialize_transactions
-      SQLCounter.clear_log
-      yield
-      SQLCounter.log.dup
-    end
-
-    def assert_sql(*patterns_to_match, &block)
-      _assert_nothing_raised_or_warn("assert_sql") { capture_sql(&block) }
-
-      failed_patterns = []
-      patterns_to_match.each do |pattern|
-        failed_patterns << pattern unless SQLCounter.log_all.any? { |sql| pattern === sql }
+    def capture_sql(include_schema: false)
+      counter = SQLCounter.new
+      ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
+        yield
+        if include_schema
+          counter.log_all
+        else
+          counter.log
+        end
       end
-      assert_predicate failed_patterns, :empty?, "Query pattern(s) #{failed_patterns.map(&:inspect).join(', ')} not found.#{SQLCounter.log.size == 0 ? '' : "\nQueries:\n#{SQLCounter.log.join("\n")}"}"
     end
 
-    def assert_queries(num = 1, options = {}, &block)
-      ignore_none = options.fetch(:ignore_none) { num == :any }
-      ActiveRecord::Base.connection.materialize_transactions
-      SQLCounter.clear_log
-      x = _assert_nothing_raised_or_warn("assert_queries", &block)
-      the_log = ignore_none ? SQLCounter.log_all : SQLCounter.log
-      if num == :any
-        assert_operator the_log.size, :>=, 1, "1 or more queries expected, but none were executed."
-      else
-        mesg = "#{the_log.size} instead of #{num} queries were executed.#{the_log.size == 0 ? '' : "\nQueries:\n#{the_log.join("\n")}"}"
-        assert_equal num, the_log.size, mesg
+    # Redefine existing assertion method to explicitly not materialize transactions.
+    def assert_queries_match(match, count: nil, include_schema: false, &block)
+      counter = SQLCounter.new
+      ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
+        result = _assert_nothing_raised_or_warn("assert_queries_match", &block)
+        queries = include_schema ? counter.log_all : counter.log
+        matched_queries = queries.select { |query| match === query }
+
+        if count
+          assert_equal count, matched_queries.size, "#{matched_queries.size} instead of #{count} queries were executed.#{queries.empty? ? '' : "\nQueries:\n#{queries.join("\n")}"}"
+        else
+          assert_operator matched_queries.size, :>=, 1, "1 or more queries expected, but none were executed.#{queries.empty? ? '' : "\nQueries:\n#{queries.join("\n")}"}"
+        end
+
+        result
       end
-      x
-    end
-
-    def assert_no_queries(options = {}, &block)
-      options.reverse_merge! ignore_none: true
-      assert_queries(0, options, &block)
     end
 
     def assert_column(model, column_name, msg = nil)
@@ -280,23 +271,4 @@ module ActiveRecord
       super if current_adapter?(:SQLite3Adapter)
     end
   end
-
-  class SQLCounter
-    class << self
-      attr_accessor :ignored_sql, :log, :log_all
-      def clear_log; self.log = []; self.log_all = []; end
-    end
-
-    clear_log
-
-    def call(name, start, finish, message_id, values)
-      return if values[:cached]
-
-      sql = values[:sql]
-      self.class.log_all << sql
-      self.class.log << sql unless ["SCHEMA", "TRANSACTION"].include? values[:name]
-    end
-  end
-
-  ActiveSupport::Notifications.subscribe("sql.active_record", SQLCounter.new)
 end

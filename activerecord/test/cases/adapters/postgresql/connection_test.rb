@@ -24,19 +24,19 @@ module ActiveRecord
     end
 
     def test_encoding
-      assert_queries(1, ignore_none: true) do
+      assert_queries_count(1, include_schema: true) do
         assert_not_nil @connection.encoding
       end
     end
 
     def test_collation
-      assert_queries(1, ignore_none: true) do
+      assert_queries_count(1, include_schema: true) do
         assert_not_nil @connection.collation
       end
     end
 
     def test_ctype
-      assert_queries(1, ignore_none: true) do
+      assert_queries_count(1, include_schema: true) do
         assert_not_nil @connection.ctype
       end
     end

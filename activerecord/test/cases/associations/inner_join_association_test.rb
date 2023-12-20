@@ -43,7 +43,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     SQL
 
     expected = people(:susan)
-    assert_sql(/agents_people_2/i) do
+    assert_queries_match(/agents_people_2/i) do
       assert_equal [expected], Person.joins(:agents).joins(string_join)
     end
   end
@@ -54,7 +54,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     constraint = agents[:primary_contact_id].eq(agents_2[:id]).and(agents[:id].gt(agents_2[:id]))
 
     expected = people(:susan)
-    assert_sql(/agents_people_2/i) do
+    assert_queries_match(/agents_people_2/i) do
       assert_equal [expected], Person.joins(:agents).joins(agents.create_join(agents, agents.create_on(constraint)))
     end
   end

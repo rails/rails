@@ -132,7 +132,7 @@ module ActiveRecord
       def test_yaml_loads_5_1_dump_without_indexes_still_queries_for_indexes
         cache = load_bound_reflection(schema_dump_path)
 
-        assert_queries :any, ignore_none: true do
+        assert_queries_count(include_schema: true) do
           assert_equal 1, cache.indexes("courses").size
         end
       end

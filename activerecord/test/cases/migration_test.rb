@@ -1238,7 +1238,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         raise "need an expected query count for #{classname}"
       }
 
-      assert_queries(expected_query_count) do
+      assert_queries_count(expected_query_count) do
         with_bulk_change_table do |t|
           t.column :name, :string
           t.string :qualification, :experience
@@ -1278,7 +1278,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       [:qualification, :experience].each { |c| assert column(c) }
 
-      assert_queries(1) do
+      assert_queries_count(1) do
         with_bulk_change_table do |t|
           t.remove :qualification, :experience
           t.string :qualification_experience
@@ -1296,7 +1296,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       assert column(:title)
 
-      assert_queries(1) do
+      assert_queries_count(1) do
         with_bulk_change_table do |t|
           t.timestamps
           t.remove :title
@@ -1314,7 +1314,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       [:created_at, :updated_at].each { |c| assert column(c) }
 
-      assert_queries(1) do
+      assert_queries_count(1) do
         with_bulk_change_table do |t|
           t.remove_timestamps
           t.string :title
@@ -1341,7 +1341,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         raise "need an expected query count for #{classname}"
       }
 
-      assert_queries(expected_query_count) do
+      assert_queries_count(expected_query_count) do
         with_bulk_change_table do |t|
           t.index :username, unique: true, name: :awesome_username_index
           t.index [:name, :age], comment: "This is a comment"
@@ -1375,7 +1375,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         raise "need an expected query count for #{classname}"
       }
 
-      assert_queries(expected_query_count) do
+      assert_queries_count(expected_query_count) do
         with_bulk_change_table do |t|
           t.remove_index :name
           t.index :name, name: :new_name_index, unique: true
@@ -1406,7 +1406,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         raise "need an expected query count for #{classname}"
       }
 
-      assert_queries(expected_query_count, ignore_none: true) do
+      assert_queries_count(expected_query_count, include_schema: true) do
         with_bulk_change_table do |t|
           t.change :name, :string, default: "NONAME"
           t.change :birthdate, :datetime, comment: "This is a comment"
@@ -1437,7 +1437,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         raise "need an expected query count for #{classname}"
       }
 
-      assert_queries(expected_query_count, ignore_none: true) do
+      assert_queries_count(expected_query_count, include_schema: true) do
         with_bulk_change_table do |t|
           t.change :name, :string, default: "NONAME"
           t.change :birthdate, :datetime
@@ -1508,7 +1508,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         raise "need an expected query count for #{classname}"
       }
 
-      assert_queries(expected_query_count) do
+      assert_queries_count(expected_query_count) do
         with_bulk_change_table do |t|
           t.remove_index name: :username_index
           t.index :username, name: :username_index, unique: true
@@ -1576,7 +1576,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         end
       }.new
 
-      assert_queries(1) do
+      assert_queries_count(1) do
         migration.migrate(:down)
       end
 

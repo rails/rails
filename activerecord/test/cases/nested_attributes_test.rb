@@ -1096,7 +1096,7 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
     part = ship.parts.build(name: "Stern")
     ship.treasures.build(looter: part)
 
-    assert_queries 3 do
+    assert_queries_count(5) do
       ship.save!
     end
   end

@@ -196,7 +196,7 @@ module ActiveRecord
       end
 
       assert_equal expected_records, deferred_posts.to_a
-      assert_queries(0) do
+      assert_queries_count(0) do
         deferred_posts.each(&:comments)
       end
       assert_equal Post.connection.supports_concurrent_connections?, status[:async]
@@ -205,7 +205,7 @@ module ActiveRecord
     end
 
     def test_contradiction
-      assert_queries(0) do
+      assert_queries_count(0) do
         assert_equal [], Post.where(id: []).load_async.to_a
       end
 
@@ -315,7 +315,7 @@ module ActiveRecord
         assert_not_predicate deferred_posts, :scheduled?
 
         assert_equal expected_records, deferred_posts.to_a
-        assert_queries(0) do
+        assert_queries_count(0) do
           deferred_posts.each(&:comments)
         end
 
@@ -326,7 +326,7 @@ module ActiveRecord
       end
 
       def test_contradiction
-        assert_queries(0) do
+        assert_queries_count(0) do
           assert_equal [], Post.where(id: []).load_async.to_a
         end
 
@@ -458,7 +458,7 @@ module ActiveRecord
         assert_predicate deferred_posts, :scheduled?
 
         assert_equal expected_records, deferred_posts.to_a
-        assert_queries(0) do
+        assert_queries_count(0) do
           deferred_posts.each(&:comments)
         end
         assert_equal Post.connection.supports_concurrent_connections?, status[:async]
@@ -467,7 +467,7 @@ module ActiveRecord
       end
 
       def test_contradiction
-        assert_queries(0) do
+        assert_queries_count(0) do
           assert_equal [], Post.where(id: []).load_async.to_a
         end
 

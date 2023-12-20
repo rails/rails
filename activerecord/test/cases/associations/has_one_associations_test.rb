@@ -33,7 +33,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_has_one
     firm = companies(:first_firm)
     first_account = Account.find(1)
-    assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
+    assert_queries_match(/LIMIT|ROWNUM <=|FETCH FIRST/) do
       assert_equal first_account, firm.account
       assert_equal first_account.credit_limit, firm.account.credit_limit
     end
@@ -46,7 +46,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_cache_nils
     firm = companies(:another_firm)
-    assert_queries(1) { assert_nil firm.account }
+    assert_queries_count(1) { assert_nil firm.account }
     assert_no_queries { assert_nil firm.account }
 
     firms = Firm.includes(:account).to_a
@@ -268,7 +268,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_build_association_dont_create_transaction
     firm = Firm.new
-    assert_queries(0) do
+    assert_queries_count(0) do
       firm.build_account
     end
   end
@@ -377,7 +377,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     Account.where(id: odegy.account.id).update_all(credit_limit: 80)
     assert_equal 53, odegy.account.credit_limit
 
-    assert_queries(1) { odegy.reload_account }
+    assert_queries_count(1) { odegy.reload_account }
     assert_no_queries { odegy.account }
     assert_equal 80, odegy.account.credit_limit
   end
@@ -397,10 +397,10 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, connection.query_cache.size
 
     # Clear the cache and fetch the account again, populating the cache with a query
-    assert_queries(1) { odegy.reload_account }
+    assert_queries_count(1) { odegy.reload_account }
 
     # This query is not cached anymore, so it should make a real SQL query
-    assert_queries(1) { Company.find(odegy_id) }
+    assert_queries_count(1) { Company.find(odegy_id) }
   ensure
     ActiveRecord::Base.connection.disable_query_cache!
   end
@@ -414,7 +414,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_no_queries { odegy.reset_account }
 
-    assert_queries(1) { odegy.account }
+    assert_queries_count(1) { odegy.account }
     assert_equal 80, odegy.account.credit_limit
   end
 
@@ -669,7 +669,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     company.account = nil
     assert_no_queries { company.account = nil }
     account = Account.find(2)
-    assert_queries { company.account = account }
+    assert_queries_count(3) { company.account = account }
 
     assert_no_queries { Firm.new.account = account }
   end
@@ -681,7 +681,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     ship.name = "new name"
     assert_predicate ship, :changed?
-    assert_queries(1) do
+    assert_queries_count(3) do
       # One query for updating name, not triggering query for updating pirate_id
       pirate.ship = ship
     end
@@ -695,7 +695,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     ship.save!
 
     new_ship = Ship.create(name: "new name")
-    assert_queries(2) do
+    assert_queries_count(4) do
       # One query to nullify the old ship, one query to update the new ship
       pirate.ship = new_ship
     end
@@ -751,13 +751,13 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_with_touch_option_on_create
-    assert_queries(3) {
+    assert_queries_count(5) {
       Club.create(name: "1000 Oaks", membership_attributes: { favorite: true })
     }
   end
 
   def test_polymorphic_has_one_with_touch_option_on_create_wont_cache_association_so_fetching_after_transaction_commit_works
-    assert_queries(4) {
+    assert_queries_count(6) {
       chef = Chef.create(employable: DrinkDesignerWithPolymorphicTouchChef.new)
       employable = chef.employable
 
@@ -769,7 +769,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     DrinkDesignerWithPolymorphicTouchChef.create(chef: Chef.new)
     designer = DrinkDesignerWithPolymorphicTouchChef.last
 
-    assert_queries(3) {
+    assert_queries_count(5) {
       designer.update(name: "foo")
     }
   end
@@ -778,21 +778,21 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     new_club = Club.create(name: "1000 Oaks")
     new_club.create_membership
 
-    assert_queries(2) { new_club.update(name: "Effingut") }
+    assert_queries_count(4) { new_club.update(name: "Effingut") }
   end
 
   def test_has_one_with_touch_option_on_touch
     new_club = Club.create(name: "1000 Oaks")
     new_club.create_membership
 
-    assert_queries(1) { new_club.touch }
+    assert_queries_count(3) { new_club.touch }
   end
 
   def test_has_one_with_touch_option_on_destroy
     new_club = Club.create(name: "1000 Oaks")
     new_club.create_membership
 
-    assert_queries(2) { new_club.destroy }
+    assert_queries_count(4) { new_club.destroy }
   end
 
   def test_has_one_with_touch_option_on_empty_update
@@ -910,7 +910,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_with_touch_option_on_nonpersisted_built_associations_doesnt_update_parent
     car = SpecialCar.create(name: "honda")
-    assert_queries(1) do
+    assert_queries_count(1) do
       car.build_special_bulb
       car.build_special_bulb
     end

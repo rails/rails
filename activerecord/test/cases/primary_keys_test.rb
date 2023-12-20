@@ -250,7 +250,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
       self.table_name = "dashboards"
     end
     klass.create! # warmup schema cache
-    assert_queries(3, ignore_none: true) { klass.create! }
+    assert_queries_count(3, include_schema: true) { klass.create! }
   end
 
   def test_assign_id_raises_error_if_primary_key_doesnt_exist

@@ -322,7 +322,7 @@ class UpdateAllTest < ActiveRecord::TestCase
         assert_not test_update_with_order_succeeds.call("id ASC")
       else
         # test that we're failing because the current Arel's engine doesn't support UPDATE ORDER BY queries is using subselects instead
-        assert_sql(/\AUPDATE .+ \(SELECT .* ORDER BY id DESC\)\z/i) do
+        assert_queries_match(/\AUPDATE .+ \(SELECT .* ORDER BY id DESC\)\z/i) do
           test_update_with_order_succeeds.call("id DESC")
         end
       end

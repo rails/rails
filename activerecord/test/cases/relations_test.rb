@@ -98,7 +98,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_not_predicate topics, :loaded?
     assert_not_predicate topics, :loaded
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       2.times { assert_equal 5, topics.to_a.size }
     end
 
@@ -109,7 +109,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_scoped_first
     topics = Topic.all.order("id ASC")
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       2.times { assert_equal "The First Topic", topics.first.title }
     end
 
@@ -153,7 +153,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_reload
     topics = Topic.all
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       2.times { topics.to_a }
     end
 
@@ -162,7 +162,7 @@ class RelationTest < ActiveRecord::TestCase
     original_size = topics.to_a.size
     Topic.create! title: "fake"
 
-    assert_queries(1) { topics.reload }
+    assert_queries_count(1) { topics.reload }
     assert_equal original_size + 1, topics.size
     assert_predicate topics, :loaded?
   end
@@ -614,27 +614,27 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_find_with_preloaded_associations
-    assert_queries(2) do
+    assert_queries_count(2) do
       posts = Post.preload(:comments).order("posts.id")
       assert posts.first.comments.first
     end
 
-    assert_queries(2) do
+    assert_queries_count(2) do
       posts = Post.preload(:comments).order("posts.id")
       assert posts.first.comments.first
     end
 
-    assert_queries(2) do
+    assert_queries_count(2) do
       posts = Post.preload(:author).order("posts.id")
       assert posts.first.author
     end
 
-    assert_queries(2) do
+    assert_queries_count(2) do
       posts = Post.preload(:author).order("posts.id")
       assert posts.first.author
     end
 
-    assert_queries(3) do
+    assert_queries_count(3) do
       posts = Post.preload(:author, :comments).order("posts.id")
       assert posts.first.author
       assert posts.first.comments.first
@@ -642,36 +642,36 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_preload_applies_to_all_chained_preloaded_scopes
-    assert_queries(3) do
+    assert_queries_count(3) do
       post = Post.with_comments.with_tags.first
       assert post
     end
   end
 
   def test_extracted_association
-    relation_authors = assert_queries(2) { Post.all.extract_associated(:author) }
-    root_authors = assert_queries(2) { Post.extract_associated(:author) }
+    relation_authors = assert_queries_count(2) { Post.all.extract_associated(:author) }
+    root_authors = assert_queries_count(2) { Post.extract_associated(:author) }
     assert_equal relation_authors, root_authors
     assert_equal Post.all.collect(&:author), relation_authors
   end
 
   def test_find_with_included_associations
-    assert_queries(2) do
+    assert_queries_count(2) do
       posts = Post.includes(:comments).order("posts.id")
       assert posts.first.comments.first
     end
 
-    assert_queries(2) do
+    assert_queries_count(2) do
       posts = Post.all.includes(:comments).order("posts.id")
       assert posts.first.comments.first
     end
 
-    assert_queries(2) do
+    assert_queries_count(2) do
       posts = Post.includes(:author).order("posts.id")
       assert posts.first.author
     end
 
-    assert_queries(3) do
+    assert_queries_count(3) do
       posts = Post.includes(:author, :comments).order("posts.id")
       assert posts.first.author
       assert posts.first.comments.first
@@ -902,17 +902,17 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_all_using_where_with_relation
     david = authors(:david)
-    assert_queries(1) {
+    assert_queries_count(1) {
       relation = Author.where(id: Author.where(id: david.id))
       assert_equal [david], relation.to_a
     }
 
-    assert_queries(1) {
+    assert_queries_count(1) {
       relation = Author.where("id in (?)", Author.where(id: david).select(:id))
       assert_equal [david], relation.to_a
     }
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       relation = Author.where("id in (:author_ids)", author_ids: Author.where(id: david).select(:id))
       assert_equal [david], relation.to_a
     end
@@ -922,17 +922,17 @@ class RelationTest < ActiveRecord::TestCase
     david = authors(:david)
     davids_posts = david.posts.order(:id).to_a
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       relation = Post.where(id: david.posts.select(:id))
       assert_equal davids_posts, relation.order(:id).to_a
     end
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       relation = Post.where("id in (?)", david.posts.select(:id))
       assert_equal davids_posts, relation.order(:id).to_a, "should process Relation as bind variables"
     end
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       relation = Post.where("id in (:post_ids)", post_ids: david.posts.select(:id))
       assert_equal davids_posts, relation.order(:id).to_a, "should process Relation as named bind variables"
     end
@@ -940,7 +940,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_all_using_where_with_relation_and_alternate_primary_key
     cool_first = minivans(:cool_first)
-    assert_queries(1) {
+    assert_queries_count(1) {
       relation = Minivan.where(minivan_id: Minivan.where(name: cool_first.name))
       assert_equal [cool_first], relation.to_a
     }
@@ -966,7 +966,7 @@ class RelationTest < ActiveRecord::TestCase
 
     subquery = Author.where(id: david.id)
 
-    assert_queries(1) {
+    assert_queries_count(1) {
       relation = Author.where(id: subquery)
       assert_equal [david], relation.to_a
     }
@@ -976,7 +976,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_all_using_where_with_relation_with_joins
     david = authors(:david)
-    assert_queries(1) {
+    assert_queries_count(1) {
       relation = Author.where(id: Author.joins(:posts).where(id: david.id))
       assert_equal [david], relation.to_a
     }
@@ -984,7 +984,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_all_using_where_with_relation_with_select_to_build_subquery
     david = authors(:david)
-    assert_queries(1) {
+    assert_queries_count(1) {
       relation = Author.where(name: Author.where(id: david.id).select(:name))
       assert_equal [david], relation.to_a
     }
@@ -1059,33 +1059,33 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_size_with_distinct
     posts = Post.distinct.select(:author_id, :comments_count)
-    assert_queries(1) { assert_equal 8, posts.size }
-    assert_queries(1) { assert_equal 8, posts.load.size }
+    assert_queries_count(1) { assert_equal 8, posts.size }
+    assert_queries_count(1) { assert_equal 8, posts.load.size }
   end
 
   def test_size_with_eager_loading_and_custom_order
     posts = Post.includes(:comments).order("comments.id")
-    assert_queries(1) { assert_equal 11, posts.size }
-    assert_queries(1) { assert_equal 11, posts.load.size }
+    assert_queries_count(1) { assert_equal 11, posts.size }
+    assert_queries_count(1) { assert_equal 11, posts.load.size }
   end
 
   def test_size_with_eager_loading_and_custom_select_and_order
     posts = Post.includes(:comments).order("comments.id").select(:type)
-    assert_queries(1) { assert_equal 11, posts.size }
-    assert_queries(1) { assert_equal 11, posts.load.size }
+    assert_queries_count(1) { assert_equal 11, posts.size }
+    assert_queries_count(1) { assert_equal 11, posts.load.size }
   end
 
   def test_size_with_eager_loading_and_custom_order_and_distinct
     posts = Post.includes(:comments).order("comments.id").distinct
-    assert_queries(1) { assert_equal 11, posts.size }
-    assert_queries(1) { assert_equal 11, posts.load.size }
+    assert_queries_count(1) { assert_equal 11, posts.size }
+    assert_queries_count(1) { assert_equal 11, posts.load.size }
   end
 
   def test_size_with_eager_loading_and_manual_distinct_select_and_custom_order
     accounts = Account.select("DISTINCT accounts.firm_id").order("accounts.firm_id")
 
-    assert_queries(1) { assert_equal 5, accounts.size }
-    assert_queries(1) { assert_equal 5, accounts.load.size }
+    assert_queries_count(1) { assert_equal 5, accounts.size }
+    assert_queries_count(1) { assert_equal 5, accounts.load.size }
   end
 
   def test_count_explicit_columns
@@ -1110,7 +1110,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_size
     posts = Post.all
 
-    assert_queries(1) { assert_equal 11, posts.size }
+    assert_queries_count(1) { assert_equal 11, posts.size }
     assert_not_predicate posts, :loaded?
 
     best_posts = posts.where(comments_count: 0)
@@ -1121,7 +1121,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_size_with_limit
     posts = Post.limit(10)
 
-    assert_queries(1) { assert_equal 10, posts.size }
+    assert_queries_count(1) { assert_equal 10, posts.size }
     assert_not_predicate posts, :loaded?
 
     best_posts = posts.where(comments_count: 0)
@@ -1156,11 +1156,11 @@ class RelationTest < ActiveRecord::TestCase
   def test_empty
     posts = Post.all
 
-    assert_queries(1) { assert_equal false, posts.empty? }
+    assert_queries_count(1) { assert_equal false, posts.empty? }
     assert_not_predicate posts, :loaded?
 
     no_posts = posts.where(title: "")
-    assert_queries(1) { assert_equal true, no_posts.empty? }
+    assert_queries_count(1) { assert_equal true, no_posts.empty? }
     assert_not_predicate no_posts, :loaded?
 
     best_posts = posts.where(comments_count: 0)
@@ -1171,18 +1171,18 @@ class RelationTest < ActiveRecord::TestCase
   def test_empty_complex_chained_relations
     posts = Post.select("comments_count").where("id is not null").group("author_id").where("legacy_comments_count > 0")
 
-    assert_queries(1) { assert_equal false, posts.empty? }
+    assert_queries_count(1) { assert_equal false, posts.empty? }
     assert_not_predicate posts, :loaded?
 
     no_posts = posts.where(title: "")
-    assert_queries(1) { assert_equal true, no_posts.empty? }
+    assert_queries_count(1) { assert_equal true, no_posts.empty? }
     assert_not_predicate no_posts, :loaded?
   end
 
   def test_any
     posts = Post.all
 
-    assert_queries(3) do
+    assert_queries_count(3) do
       assert_predicate posts, :any? # Uses COUNT()
       assert_not_predicate posts.where(id: nil), :any?
 
@@ -1199,7 +1199,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_many
     posts = Post.all
 
-    assert_queries(2) do
+    assert_queries_count(2) do
       assert_predicate posts, :many? # Uses COUNT()
       assert posts.many? { |p| p.id > 0 }
       assert_not posts.many? { |p| p.id < 2 }
@@ -1221,13 +1221,13 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_none?
     posts = Post.all
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_not posts.none? # Uses COUNT()
     end
 
     assert_not_predicate posts, :loaded?
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert posts.none? { |p| p.id < 0 }
       assert_not posts.none? { |p| p.id == 1 }
 
@@ -1240,13 +1240,13 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_one
     posts = Post.all
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_not posts.one? # Uses COUNT()
     end
 
     assert_not_predicate posts, :loaded?
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_not posts.one? { |p| p.id < 3 }
       assert posts.one? { |p| p.id == 1 }
 
@@ -1259,7 +1259,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_one_with_destroy
     posts = Post.all
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_not posts.one?
     end
 
@@ -1786,10 +1786,10 @@ class RelationTest < ActiveRecord::TestCase
     query = Tag.select(:name).where(id: [tag1.id, tag2.id])
 
     assert_equal ["Foo", "Foo"], query.map(&:name)
-    assert_sql(/DISTINCT/) do
+    assert_queries_match(/DISTINCT/) do
       assert_equal ["Foo"], query.distinct.map(&:name)
     end
-    assert_sql(/DISTINCT/) do
+    assert_queries_match(/DISTINCT/) do
       assert_equal ["Foo"], query.distinct(true).map(&:name)
     end
     assert_equal ["Foo", "Foo"], query.distinct(true).distinct(false).map(&:name)
@@ -1973,7 +1973,7 @@ class RelationTest < ActiveRecord::TestCase
     topics = Topic.all
 
     # the first query is triggered because there are no topics yet.
-    assert_queries(1) { assert_predicate topics, :present? }
+    assert_queries_count(1) { assert_predicate topics, :present? }
 
     # checking if there are topics is used before you actually display them,
     # thus it shouldn't invoke an extra count query.
@@ -1986,7 +1986,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_no_queries { topics.each }
 
     # count always trigger the COUNT query.
-    assert_queries(1) { topics.count }
+    assert_queries_count(1) { topics.count }
 
     assert_predicate topics, :loaded?
   end
@@ -2026,7 +2026,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "find_by doesn't have implicit ordering" do
-    assert_sql(/^((?!ORDER).)*$/) { Post.all.find_by(author_id: 2) }
+    assert_queries_match(/^((?!ORDER).)*$/) { Post.all.find_by(author_id: 2) }
   end
 
   test "find_by requires at least one argument" do
@@ -2046,7 +2046,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "find_by! doesn't have implicit ordering" do
-    assert_sql(/^((?!ORDER).)*$/) { Post.all.find_by!(author_id: 2) }
+    assert_queries_match(/^((?!ORDER).)*$/) { Post.all.find_by!(author_id: 2) }
   end
 
   test "find_by! raises RecordNotFound if the record is missing" do
@@ -2114,13 +2114,13 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "relations don't load all records in #inspect" do
-    assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
+    assert_queries_match(/LIMIT|ROWNUM <=|FETCH FIRST/) do
       Post.all.inspect
     end
   end
 
   test "loading query is annotated in #inspect" do
-    assert_sql(%r(/\* loading for inspect \*/)) do
+    assert_queries_match(%r(/\* loading for inspect \*/)) do
       Post.all.inspect
     end
   end
@@ -2145,13 +2145,13 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "relations don't load all records in #pretty_print" do
-    assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
+    assert_queries_match(/LIMIT|ROWNUM <=|FETCH FIRST/) do
       PP.pp Post.all, StringIO.new # avoid outputting.
     end
   end
 
   test "loading query is annotated in #pretty_print" do
-    assert_sql(%r(/\* loading for pp \*/)) do
+    assert_queries_match(%r(/\* loading for pp \*/)) do
       PP.pp Post.all, StringIO.new # avoid outputting.
     end
   end
@@ -2187,7 +2187,7 @@ class RelationTest < ActiveRecord::TestCase
 
   test "#load" do
     relation = Post.all
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_equal relation, relation.load
     end
     assert_no_queries { relation.to_a }
@@ -2393,12 +2393,12 @@ class RelationTest < ActiveRecord::TestCase
 
   test "#skip_query_cache!" do
     Post.cache do
-      assert_queries(1) do
+      assert_queries_count(1) do
         Post.all.load
         Post.all.load
       end
 
-      assert_queries(2) do
+      assert_queries_count(2) do
         Post.all.skip_query_cache!.load
         Post.all.skip_query_cache!.load
       end
@@ -2407,12 +2407,12 @@ class RelationTest < ActiveRecord::TestCase
 
   test "#skip_query_cache! with an eager load" do
     Post.cache do
-      assert_queries(1) do
+      assert_queries_count(1) do
         Post.eager_load(:comments).load
         Post.eager_load(:comments).load
       end
 
-      assert_queries(2) do
+      assert_queries_count(2) do
         Post.eager_load(:comments).skip_query_cache!.load
         Post.eager_load(:comments).skip_query_cache!.load
       end
@@ -2421,12 +2421,12 @@ class RelationTest < ActiveRecord::TestCase
 
   test "#skip_query_cache! with a preload" do
     Post.cache do
-      assert_queries(2) do
+      assert_queries_count(2) do
         Post.preload(:comments).load
         Post.preload(:comments).load
       end
 
-      assert_queries(4) do
+      assert_queries_count(4) do
         Post.preload(:comments).skip_query_cache!.load
         Post.preload(:comments).skip_query_cache!.load
       end

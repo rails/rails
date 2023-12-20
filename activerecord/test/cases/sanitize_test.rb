@@ -91,11 +91,11 @@ class SanitizeTest < ActiveRecord::TestCase
       }
     end
 
-    assert_sql(/LIKE '20!% !_reduction!_!!'/) do
+    assert_queries_match(/LIKE '20!% !_reduction!_!!'/) do
       searchable_post.search_as_method("20% _reduction_!").to_a
     end
 
-    assert_sql(/LIKE '20!% !_reduction!_!!'/) do
+    assert_queries_match(/LIKE '20!% !_reduction!_!!'/) do
       searchable_post.search_as_scope("20% _reduction_!").to_a
     end
   end

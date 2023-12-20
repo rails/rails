@@ -99,7 +99,7 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
   def test_index_in_bulk_change
     %w(SPATIAL FULLTEXT UNIQUE).each do |type|
       expected = "ALTER TABLE `people` ADD #{type} INDEX `index_people_on_last_name` (`last_name`)"
-      assert_sql(expected) do
+      assert_queries_match(expected) do
         ActiveRecord::Base.connection.change_table(:people, bulk: true) do |t|
           t.index :last_name, type: type
         end
@@ -107,7 +107,7 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
     end
 
     expected = "ALTER TABLE `people` ADD INDEX `index_people_on_last_name` USING btree (`last_name`(10)), ALGORITHM = COPY"
-    assert_sql(expected) do
+    assert_queries_match(expected) do
       ActiveRecord::Base.connection.change_table(:people, bulk: true) do |t|
         t.index :last_name, length: 10, using: :btree, algorithm: :copy
       end

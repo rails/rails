@@ -382,7 +382,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal "title1", t1.title
     assert_equal 0, t1.lock_version
 
-    assert_queries(1) { t1.update(title: "title2") }
+    assert_queries_count(3) { t1.update(title: "title2") }
 
     t1.reload
     assert_equal "title2", t1.title
@@ -390,7 +390,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
     t2 = LockWithoutDefault.new(title: "title1")
 
-    assert_queries(1) { t2.save! }
+    assert_queries_count(3) { t2.save! }
 
     t2.reload
     assert_equal "title1", t2.title
@@ -439,7 +439,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal "title1", t1.title
     assert_equal 0, t1.custom_lock_version
 
-    assert_queries(1) { t1.update(title: "title2") }
+    assert_queries_count(3) { t1.update(title: "title2") }
 
     t1.reload
     assert_equal "title2", t1.title
@@ -447,7 +447,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
     t2 = LockWithCustomColumnWithoutDefault.new(title: "title1")
 
-    assert_queries(1) { t2.save! }
+    assert_queries_count(3) { t2.save! }
 
     t2.reload
     assert_equal "title1", t2.title
@@ -761,7 +761,7 @@ class PessimisticLockingTest < ActiveRecord::TestCase
       def test_lock_sending_custom_lock_statement
         Person.transaction do
           person = Person.find(1)
-          assert_sql(/LIMIT \$?\d FOR SHARE NOWAIT/) do
+          assert_queries_match(/LIMIT \$?\d FOR SHARE NOWAIT/) do
             person.lock!("FOR SHARE NOWAIT")
           end
         end
@@ -777,7 +777,7 @@ class PessimisticLockingTest < ActiveRecord::TestCase
 
       def test_with_lock_locks_with_no_args
         person = Person.find 1
-        assert_sql(/LIMIT \$?\d FOR UPDATE/i) do
+        assert_queries_match(/LIMIT \$?\d FOR UPDATE/i) do
           person.with_lock do
           end
         end

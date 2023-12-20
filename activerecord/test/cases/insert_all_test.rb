@@ -133,7 +133,7 @@ class InsertAllTest < ActiveRecord::TestCase
     def test_insert_all_generates_correct_sql
       skip unless supports_insert_on_duplicate_skip?
 
-      assert_sql(/ON DUPLICATE KEY UPDATE/) do
+      assert_queries_match(/ON DUPLICATE KEY UPDATE/) do
         Book.insert_all [{ id: 1, name: "Agile Web Development with Rails" }]
       end
     end

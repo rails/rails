@@ -394,8 +394,8 @@ module ActiveRecord
         # SQLite3's ALTER TABLE statement has several limitations. To manage
         # this, the adapter creates a temporary table, copies the data, drops
         # the old table, creates the new table, then copies the data back.
-        expected_query_count = current_adapter?(:SQLite3Adapter) ? 12 : 1
-        assert_queries(expected_query_count) do
+        expected_query_count = current_adapter?(:SQLite3Adapter) ? 14 : 1
+        assert_queries_count(expected_query_count) do
           connection.remove_columns("my_table", "col_one", "col_two")
         end
 
@@ -411,8 +411,8 @@ module ActiveRecord
         # SQLite3's ALTER TABLE statement has several limitations. To manage
         # this, the adapter creates a temporary table, copies the data, drops
         # the old table, creates the new table, then copies the data back.
-        expected_query_count = current_adapter?(:SQLite3Adapter) ? 12 : 1
-        assert_queries(expected_query_count) do
+        expected_query_count = current_adapter?(:SQLite3Adapter) ? 14 : 1
+        assert_queries_count(expected_query_count) do
           connection.add_timestamps("my_table")
         end
 
