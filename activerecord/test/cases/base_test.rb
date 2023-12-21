@@ -1450,10 +1450,10 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_assert_queries
+  def test_assert_queries_count
     query = lambda { ActiveRecord::Base.connection.execute "select count(*) from developers" }
-    assert_queries(2) { 2.times { query.call } }
-    assert_queries 1, &query
+    assert_queries_count(2) { 2.times { query.call } }
+    assert_queries_count 1, &query
     assert_no_queries { assert true }
   end
 

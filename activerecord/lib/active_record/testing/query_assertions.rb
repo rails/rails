@@ -5,29 +5,104 @@ module ActiveRecord
     module QueryAssertions
       # Asserts that the number of SQL queries executed in the given block matches the expected count.
       #
-      #   assert_queries(1) { Post.first }
+      #   # Check for exact number of queries
+      #   assert_queries_count(1) { Post.first }
       #
-      # If the +:matcher+ option is provided, only queries that match the matcher are counted.
+      #   # Check for any number of queries
+      #   assert_queries_count { Post.first }
       #
-      #   assert_queries(1, matcher: /LIMIT \?/) { Post.first }
+      # If the +:include_schema+ option is provided, any queries (including schema related) are counted.
       #
-      def assert_queries(expected_count, matcher: nil, &block)
+      #   assert_queries_count(1, include_schema: true) { Post.columns }
+      #
+      def assert_queries_count(count = nil, include_schema: false, &block)
         ActiveRecord::Base.connection.materialize_transactions
 
-        queries = []
-        callback = lambda do |*, payload|
-          queries << payload[:sql] if %w[ SCHEMA TRANSACTION ].exclude?(payload[:name]) && (matcher.nil? || payload[:sql].match(matcher))
-        end
-        ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
-          result = _assert_nothing_raised_or_warn("assert_queries", &block)
-          assert_equal expected_count, queries.size, "#{queries.size} instead of #{expected_count} queries were executed. Queries: #{queries.join("\n\n")}"
+        counter = SQLCounter.new
+        ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
+          result = _assert_nothing_raised_or_warn("assert_queries_count", &block)
+          queries = include_schema ? counter.log_all : counter.log
+          if count
+            assert_equal count, queries.size, "#{queries.size} instead of #{count} queries were executed. Queries: #{queries.join("\n\n")}"
+          else
+            assert_operator queries.size, :>=, 1, "1 or more queries expected, but none were executed.#{queries.empty? ? '' : "\nQueries:\n#{queries.join("\n")}"}"
+          end
           result
         end
       end
 
       # Asserts that no SQL queries are executed in the given block.
-      def assert_no_queries(&block)
-        assert_queries(0, &block)
+      #
+      #   assert_no_queries { post.comments }
+      #
+      # If the +:include_schema+ option is provided, any queries (including schema related) are counted.
+      #
+      #   assert_no_queries(include_schema: true) { Post.columns }
+      #
+      def assert_no_queries(include_schema: false, &block)
+        assert_queries_count(0, include_schema: include_schema, &block)
+      end
+
+      # Asserts that the SQL queries executed in the given block match expected pattern.
+      #
+      #   # Check for exact number of queries
+      #   assert_queries_match(/LIMIT \?/, count: 1) { Post.first }
+      #
+      #   # Check for any number of queries
+      #   assert_queries_match(/LIMIT \?/) { Post.first }
+      #
+      # If the +:include_schema+ option is provided, any queries (including schema related)
+      #   that match the matcher are considered.
+      #
+      #   assert_queries_match(/FROM pg_attribute/i, include_schema: true) { Post.columns }
+      #
+      def assert_queries_match(match, count: nil, include_schema: false, &block)
+        ActiveRecord::Base.connection.materialize_transactions
+
+        counter = SQLCounter.new
+        ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
+          result = _assert_nothing_raised_or_warn("assert_queries_match", &block)
+          queries = include_schema ? counter.log_all : counter.log
+          matched_queries = queries.select { |query| match === query }
+
+          if count
+            assert_equal count, matched_queries.size, "#{matched_queries.size} instead of #{count} queries were executed.#{queries.empty? ? '' : "\nQueries:\n#{queries.join("\n")}"}"
+          else
+            assert_operator matched_queries.size, :>=, 1, "1 or more queries expected, but none were executed.#{queries.empty? ? '' : "\nQueries:\n#{queries.join("\n")}"}"
+          end
+
+          result
+        end
+      end
+
+      # Asserts that no SQL queries matching the pattern are executed in the given block.
+      #
+      #   assert_no_queries_match(/SELECT/i) { post.comments }
+      #
+      # If the +:include_schema+ option is provided, any queries (including schema related)
+      #   that match the matcher are counted.
+      #
+      #   assert_no_queries_match(/FROM pg_attribute/i, include_schema: true) { Post.columns }
+      #
+      def assert_no_queries_match(match, include_schema: false, &block)
+        assert_queries_match(match, count: 0, include_schema: include_schema, &block)
+      end
+
+      class SQLCounter # :nodoc:
+        attr_reader :log, :log_all
+
+        def initialize
+          @log = []
+          @log_all = []
+        end
+
+        def call(*, payload)
+          return if payload[:cached]
+
+          sql = payload[:sql]
+          @log_all << sql
+          @log << sql unless payload[:name] == "SCHEMA"
+        end
       end
     end
   end

@@ -206,28 +206,28 @@ class RelationMergingTest < ActiveRecord::TestCase
     non_mary_and_bob = Author.where.not(id: [mary, bob])
 
     author_id = Author.connection.quote_table_name("authors.id")
-    assert_sql(/WHERE #{Regexp.escape(author_id)} NOT IN \((\?|\W?\w?\d), \g<1>\)\z/) do
+    assert_queries_match(/WHERE #{Regexp.escape(author_id)} NOT IN \((\?|\W?\w?\d), \g<1>\)\z/) do
       assert_equal [david], non_mary_and_bob.merge(non_mary_and_bob)
     end
 
     only_david = Author.where("#{author_id} IN (?)", david)
 
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-      assert_sql(/WHERE \(#{Regexp.escape(author_id)} IN \('1'\)\)\z/) do
+      assert_queries_match(/WHERE \(#{Regexp.escape(author_id)} IN \('1'\)\)\z/) do
         assert_equal [david], only_david.merge(only_david)
       end
 
-      assert_sql(/WHERE \(#{Regexp.escape(author_id)} IN \('1'\)\)\z/) do
+      assert_queries_match(/WHERE \(#{Regexp.escape(author_id)} IN \('1'\)\)\z/) do
         assert_deprecated(ActiveRecord.deprecator) do
           assert_equal [david], only_david.merge(only_david, rewhere: true)
         end
       end
     else
-      assert_sql(/WHERE \(#{Regexp.escape(author_id)} IN \(1\)\)\z/) do
+      assert_queries_match(/WHERE \(#{Regexp.escape(author_id)} IN \(1\)\)\z/) do
         assert_equal [david], only_david.merge(only_david)
       end
 
-      assert_sql(/WHERE \(#{Regexp.escape(author_id)} IN \(1\)\)\z/) do
+      assert_queries_match(/WHERE \(#{Regexp.escape(author_id)} IN \(1\)\)\z/) do
         assert_deprecated(ActiveRecord.deprecator) do
           assert_equal [david], only_david.merge(only_david, rewhere: true)
         end
@@ -298,7 +298,7 @@ class RelationMergingTest < ActiveRecord::TestCase
 
   def test_relation_merging_with_preload
     [Post.all.merge(Post.preload(:author)), Post.preload(:author).merge(Post.all)].each do |posts|
-      assert_queries(2) { assert posts.first.author }
+      assert_queries_count(2) { assert posts.first.author }
     end
   end
 
@@ -318,7 +318,7 @@ class RelationMergingTest < ActiveRecord::TestCase
   end
 
   def test_relation_merging_with_association
-    assert_queries(2) do  # one for loading post, and another one merged query
+    assert_queries_count(2) do  # one for loading post, and another one merged query
       post = Post.where(body: "Such a lovely day").first
       comments = Comment.where(body: "Thank you for the welcome").merge(post.comments)
       assert_equal 1, comments.count
@@ -372,30 +372,30 @@ class RelationMergingTest < ActiveRecord::TestCase
   end
 
   def test_merging_annotations_respects_merge_order
-    assert_sql(%r{/\* foo \*/ /\* bar \*/}) do
+    assert_queries_match(%r{/\* foo \*/ /\* bar \*/}) do
       Post.annotate("foo").merge(Post.annotate("bar")).first
     end
-    assert_sql(%r{/\* bar \*/ /\* foo \*/}) do
+    assert_queries_match(%r{/\* bar \*/ /\* foo \*/}) do
       Post.annotate("bar").merge(Post.annotate("foo")).first
     end
-    assert_sql(%r{/\* foo \*/ /\* bar \*/ /\* baz \*/ /\* qux \*/}) do
+    assert_queries_match(%r{/\* foo \*/ /\* bar \*/ /\* baz \*/ /\* qux \*/}) do
       Post.annotate("foo").annotate("bar").merge(Post.annotate("baz").annotate("qux")).first
     end
   end
 
   def test_merging_duplicated_annotations
     posts = Post.annotate("foo")
-    assert_sql(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* foo \*/\z}) do
+    assert_queries_match(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* foo \*/\z}) do
       posts.merge(posts).uniq!(:annotate).to_a
     end
 
-    assert_sql(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* foo \*/\z}) do
+    assert_queries_match(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* foo \*/\z}) do
       posts.merge(posts).to_a
     end
-    assert_sql(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* foo \*/ /\* bar \*/\z}) do
+    assert_queries_match(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* foo \*/ /\* bar \*/\z}) do
       Post.annotate("foo").merge(Post.annotate("bar")).merge(posts).to_a
     end
-    assert_sql(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* bar \*/ /\* foo \*/\z}) do
+    assert_queries_match(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* bar \*/ /\* foo \*/\z}) do
       Post.annotate("bar").merge(Post.annotate("foo")).merge(posts).to_a
     end
   end

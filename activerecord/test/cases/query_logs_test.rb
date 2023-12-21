@@ -58,7 +58,7 @@ class QueryLogsTest < ActiveRecord::TestCase
   def test_basic_commenting
     ActiveRecord::QueryLogs.tags = [ :application ]
 
-    assert_sql(%r{select id from posts /\*application:active_record\*/$}) do
+    assert_queries_match(%r{select id from posts /\*application:active_record\*/$}) do
       ActiveRecord::Base.connection.execute "select id from posts"
     end
   end
@@ -67,14 +67,14 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord::QueryLogs.tags = [ :application ]
     ActiveRecord::QueryLogs.prepend_comment = true
 
-    assert_sql(%r{/\*application:active_record\*/ select id from posts$}) do
+    assert_queries_match(%r{/\*application:active_record\*/ select id from posts$}) do
       ActiveRecord::Base.connection.execute "select id from posts"
     end
   end
 
   def test_exists_is_commented
     ActiveRecord::QueryLogs.tags = [ :application ]
-    assert_sql(%r{/\*application:active_record\*/}) do
+    assert_queries_match(%r{/\*application:active_record\*/}) do
       Dashboard.exists?
     end
   end
@@ -83,7 +83,7 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord::QueryLogs.tags = [ :application ]
     record = Dashboard.first
 
-    assert_sql(%r{/\*application:active_record\*/}) do
+    assert_queries_match(%r{/\*application:active_record\*/}) do
       record.destroy
     end
   end
@@ -91,7 +91,7 @@ class QueryLogsTest < ActiveRecord::TestCase
   def test_update_is_commented
     ActiveRecord::QueryLogs.tags = [ :application ]
 
-    assert_sql(%r{/\*application:active_record\*/}) do
+    assert_queries_match(%r{/\*application:active_record\*/}) do
       dash = Dashboard.first
       dash.name = "New name"
       dash.save
@@ -101,7 +101,7 @@ class QueryLogsTest < ActiveRecord::TestCase
   def test_create_is_commented
     ActiveRecord::QueryLogs.tags = [ :application ]
 
-    assert_sql(%r{/\*application:active_record\*/}) do
+    assert_queries_match(%r{/\*application:active_record\*/}) do
       Dashboard.create(name: "Another dashboard")
     end
   end
@@ -109,7 +109,7 @@ class QueryLogsTest < ActiveRecord::TestCase
   def test_select_is_commented
     ActiveRecord::QueryLogs.tags = [ :application ]
 
-    assert_sql(%r{/\*application:active_record\*/}) do
+    assert_queries_match(%r{/\*application:active_record\*/}) do
       Dashboard.all.to_a
     end
   end
@@ -119,11 +119,11 @@ class QueryLogsTest < ActiveRecord::TestCase
     i = 0
     ActiveRecord::QueryLogs.tags = [ { query_counter: -> { i += 1 } } ]
 
-    assert_sql("SELECT 1 /*query_counter:1*/") do
+    assert_queries_match("SELECT 1 /*query_counter:1*/") do
       ActiveRecord::Base.connection.execute "SELECT 1"
     end
 
-    assert_sql("SELECT 1 /*query_counter:1*/") do
+    assert_queries_match("SELECT 1 /*query_counter:1*/") do
       ActiveRecord::Base.connection.execute "SELECT 1"
     end
   end
@@ -133,13 +133,13 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveSupport::ExecutionContext[:temporary] = "value"
     ActiveRecord::QueryLogs.tags = [ temporary_tag: ->(context) { context[:temporary] } ]
 
-    assert_sql("SELECT 1 /*temporary_tag:value*/") do
+    assert_queries_match("SELECT 1 /*temporary_tag:value*/") do
       ActiveRecord::Base.connection.execute "SELECT 1"
     end
 
     ActiveSupport::ExecutionContext[:temporary] = "new_value"
 
-    assert_sql("SELECT 1 /*temporary_tag:new_value*/") do
+    assert_queries_match("SELECT 1 /*temporary_tag:new_value*/") do
       ActiveRecord::Base.connection.execute "SELECT 1"
     end
   end
@@ -147,11 +147,11 @@ class QueryLogsTest < ActiveRecord::TestCase
   def test_default_tag_behavior
     ActiveRecord::QueryLogs.tags = [:application, :foo]
     ActiveSupport::ExecutionContext.set(foo: "bar") do
-      assert_sql(%r{/\*application:active_record,foo:bar\*/}) do
+      assert_queries_match(%r{/\*application:active_record,foo:bar\*/}) do
         Dashboard.first
       end
     end
-    assert_sql(%r{/\*application:active_record\*/}) do
+    assert_queries_match(%r{/\*application:active_record\*/}) do
       Dashboard.first
     end
   end
@@ -160,7 +160,7 @@ class QueryLogsTest < ActiveRecord::TestCase
     connection = ActiveRecord::Base.connection
     ActiveRecord::QueryLogs.tags = [ same_connection: ->(context) { context[:connection] == connection } ]
 
-    assert_sql("SELECT 1 /*same_connection:true*/") do
+    assert_queries_match("SELECT 1 /*same_connection:true*/") do
       connection.execute "SELECT 1"
     end
   end
@@ -170,21 +170,21 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveSupport::ExecutionContext[:connection] = fake_connection
     ActiveRecord::QueryLogs.tags = [ fake_connection: ->(context) { context[:connection] == fake_connection } ]
 
-    assert_sql("SELECT 1 /*fake_connection:true*/") do
+    assert_queries_match("SELECT 1 /*fake_connection:true*/") do
       ActiveRecord::Base.connection.execute "SELECT 1"
     end
   end
 
   def test_empty_comments_are_not_added
     ActiveRecord::QueryLogs.tags = [ empty: -> { nil } ]
-    assert_sql(%r{select id from posts$}) do
+    assert_queries_match(%r{select id from posts$}) do
       ActiveRecord::Base.connection.execute "select id from posts"
     end
   end
 
   def test_sql_commenter_format
     ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
-    assert_sql(%r{/\*application='active_record'\*/}) do
+    assert_queries_match(%r{/\*application='active_record'\*/}) do
       Dashboard.first
     end
   end
@@ -192,7 +192,7 @@ class QueryLogsTest < ActiveRecord::TestCase
   def test_custom_basic_tags
     ActiveRecord::QueryLogs.tags = [ :application, { custom_string: "test content" } ]
 
-    assert_sql(%r{/\*application:active_record,custom_string:test content\*/}) do
+    assert_queries_match(%r{/\*application:active_record,custom_string:test content\*/}) do
       Dashboard.first
     end
   end
@@ -200,7 +200,7 @@ class QueryLogsTest < ActiveRecord::TestCase
   def test_custom_proc_tags
     ActiveRecord::QueryLogs.tags = [ :application, { custom_proc: -> { "test content" } } ]
 
-    assert_sql(%r{/\*application:active_record,custom_proc:test content\*/}) do
+    assert_queries_match(%r{/\*application:active_record,custom_proc:test content\*/}) do
       Dashboard.first
     end
   end
@@ -211,7 +211,7 @@ class QueryLogsTest < ActiveRecord::TestCase
       { custom_proc: -> { "test content" }, another_proc: -> { "more test content" } },
     ]
 
-    assert_sql(%r{/\*application:active_record,custom_proc:test content,another_proc:more test content\*/}) do
+    assert_queries_match(%r{/\*application:active_record,custom_proc:test content,another_proc:more test content\*/}) do
       Dashboard.first
     end
   end
@@ -224,7 +224,7 @@ class QueryLogsTest < ActiveRecord::TestCase
       { tracestate: "congo=t61rcWkgMzE,rojo=00f067aa0ba902b7", custom_proc: -> { "Joe's Shack" } },
     ]
 
-    assert_sql(%r{custom_proc='Joe%27s%20Shack',tracestate='congo%3Dt61rcWkgMzE%2Crojo%3D00f067aa0ba902b7'\*/}) do
+    assert_queries_match(%r{custom_proc='Joe%27s%20Shack',tracestate='congo%3Dt61rcWkgMzE%2Crojo%3D00f067aa0ba902b7'\*/}) do
       Dashboard.first
     end
   end
@@ -237,7 +237,7 @@ class QueryLogsTest < ActiveRecord::TestCase
       { custom_proc: -> { 1234 } },
     ]
 
-    assert_sql(%r{custom_proc='1234'\*/}) do
+    assert_queries_match(%r{custom_proc='1234'\*/}) do
       Dashboard.first
     end
   end
@@ -256,7 +256,7 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveSupport::ExecutionContext[:foo] = "bar"
     ActiveRecord::QueryLogs.tags = [ :application, { custom_context_proc: ->(context) { context[:foo] } } ]
 
-    assert_sql(%r{/\*application:active_record,custom_context_proc:bar\*/}) do
+    assert_queries_match(%r{/\*application:active_record,custom_context_proc:bar\*/}) do
       Dashboard.first
     end
   end

@@ -418,7 +418,7 @@ module ActiveRecord
     def test_where_on_association_with_relation_performs_subselect_not_two_queries
       author = authors(:david)
 
-      assert_queries(1) do
+      assert_queries_count(1) do
         Essay.where(writer: Author.where(id: author.id)).to_a
       end
     end

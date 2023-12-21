@@ -362,8 +362,10 @@ Rails adds some custom assertions of its own to the `minitest` framework:
 | [`assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)`](https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_generates) | Asserts that the provided options can be used to generate the provided path. This is the inverse of assert_recognizes. The extras parameter is used to tell the request the names and values of additional request parameters that would be in a query string. The message parameter allows you to specify a custom error message for assertion failures.|
 | [`assert_response(type, message = nil)`](https://api.rubyonrails.org/classes/ActionDispatch/Assertions/ResponseAssertions.html#method-i-assert_response) | Asserts that the response comes with a specific status code. You can specify `:success` to indicate 200-299, `:redirect` to indicate 300-399, `:missing` to indicate 404, or `:error` to match the 500-599 range. You can also pass an explicit status number or its symbolic equivalent. For more information, see [full list of status codes](https://rubydoc.info/gems/rack/Rack/Utils#HTTP_STATUS_CODES-constant) and how their [mapping](https://rubydoc.info/gems/rack/Rack/Utils#SYMBOL_TO_STATUS_CODE-constant) works.|
 | [`assert_redirected_to(options = {}, message=nil)`](https://api.rubyonrails.org/classes/ActionDispatch/Assertions/ResponseAssertions.html#method-i-assert_redirected_to) | Asserts that the response is a redirect to a URL matching the given options. You can also pass named routes such as `assert_redirected_to root_path` and Active Record objects such as `assert_redirected_to @article`.|
-|`assert_queries(int, &block)` | Asserts that `&block` generates an `int` number of SQL queries.|
+|`assert_queries_count(int, &block)` | Asserts that `&block` generates an `int` number of SQL queries.|
 |`assert_no_queries(&block)` | Asserts that `&block` generates no SQL queries.|
+|`assert_queries_match(pattern, &block)` | Asserts that `&block` generates SQL queries that match the pattern.|
+|`assert_no_queries_match(pattern, &block)` | Asserts that `&block` generates no SQL queries that match the pattern.|
 
 You'll see the usage of some of these assertions in the next chapter.
 

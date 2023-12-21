@@ -23,21 +23,28 @@
 
     *Jean Boussier*
 
-*   Make `assert_queries` and `assert_no_queries` assertions public.
+*   Make `assert_queries_count`, `assert_no_queries`, `assert_queries_match` and
+    `assert_no_queries_match` assertions public.
 
-    To assert the expected number of queries are made, Rails internally uses
-    `assert_queries` and `assert_no_queries`. These assertions can be now
-    be used in applications as well.
+    To assert the expected number of queries are made, Rails internally uses `assert_queries_count` and
+    `assert_no_queries`. To assert that specific SQL queries are made, `assert_queries_match` and
+    `assert_no_queries_match` are used. These assertions can now be used in applications as well.
 
     ```ruby
     class ArticleTest < ActiveSupport::TestCase
       test "queries are made" do
-         assert_queries(1) { Article.first }
+        assert_queries_count(1) { Article.first }
+      end
+
+      test "creates a foreign key" do
+        assert_queries_match(/ADD FOREIGN KEY/i, include_schema: true) do
+          @connection.add_foreign_key(:comments, :posts)
+        end
       end
     end
     ```
 
-    *Petrik de Heus*
+    *Petrik de Heus*, *fatkodima*
 
 *   Fix `has_secure_token` calls the setter method on initialize.
 

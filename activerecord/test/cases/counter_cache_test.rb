@@ -132,7 +132,7 @@ class CounterCacheTest < ActiveRecord::TestCase
 
     # SELECT "topics".* FROM "topics" WHERE "topics"."id" = ? LIMIT ?
     # SELECT COUNT(*) FROM "topics" WHERE "topics"."type" IN (?, ?, ?, ?, ?) AND "topics"."parent_id" = ?
-    assert_queries(2) do
+    assert_queries_count(2) do
       Topic.reset_counters(@topic.id, :replies_count)
     end
   end
@@ -143,7 +143,7 @@ class CounterCacheTest < ActiveRecord::TestCase
     # SELECT "topics".* FROM "topics" WHERE "topics"."id" = ? LIMIT ?
     # SELECT COUNT(*) FROM "topics" WHERE "topics"."type" IN (?, ?, ?, ?, ?) AND "topics"."parent_id" = ?
     # UPDATE "topics" SET "updated_at" = ? WHERE "topics"."id" = ?
-    assert_queries(3) do
+    assert_queries_count(3) do
       Topic.reset_counters(@topic.id, :replies_count, touch: true)
     end
   end

@@ -85,7 +85,7 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     users.reset
 
     assert_no_difference -> { ActiveStorage::VariantRecord.count } do
-      assert_queries(11) do
+      assert_queries_count(11) do
         # 11 queries:
         # users x 1
         # attachment (cover photo) x 2
@@ -105,9 +105,8 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     users.reset
 
     assert_no_difference -> { ActiveStorage::VariantRecord.count } do
-      assert_queries(6) do
-        # 6 queries:
-        # users x 1
+      assert_queries_count(5) do
+        # 5 queries:
         # attachment (cover photos) x 1
         # blob for the cover photo x 1
         # variant record x 1
@@ -144,7 +143,7 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     user.reload
 
     assert_no_difference -> { ActiveStorage::VariantRecord.count } do
-      assert_queries(9) do
+      assert_queries_count(9) do
         # 9 queries:
         # attachments (vlogs) x 1
         # blob x 2
@@ -163,7 +162,7 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     user.reload
 
     assert_no_difference -> { ActiveStorage::VariantRecord.count } do
-      assert_queries(7) do
+      assert_queries_count(7) do
         # 7 queries:
         # attachments (vlogs) x 1
         # blob x 1
@@ -181,7 +180,7 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     user.reload
 
     assert_no_difference -> { ActiveStorage::VariantRecord.count } do
-      assert_queries(5) do
+      assert_queries_count(5) do
         # 5 queries:
         # attachments (vlogs) x 1
         # blobs for the vlogs x 1
@@ -200,7 +199,7 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     user.reload
 
     assert_no_difference -> { ActiveStorage::VariantRecord.count } do
-      assert_queries(5) do
+      assert_queries_count(5) do
         # 5 queries:
         # attachments (vlogs) x 1
         # blobs for the vlogs x 1
@@ -219,7 +218,7 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     user.reload
 
     assert_no_difference -> { ActiveStorage::VariantRecord.count } do
-      assert_queries(6) do
+      assert_queries_count(6) do
         # 6 queries:
         # user x 1
         # attachments (vlogs) x 1
@@ -244,7 +243,7 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
       # More queries here because we are creating a different variant.
       # The second time we load this variant, we are back down to just 3 queries.
 
-      assert_queries(9, matcher: /SELECT/) do
+      assert_queries_match(/SELECT/i, count: 9) do
         # 9 queries:
         # attachments (vlogs) initial load x 1
         # blob x 1 (gets both records)
@@ -260,7 +259,7 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
 
       user.reload
 
-      assert_queries(5) do
+      assert_queries_count(5) do
         user.vlogs.with_all_variant_records.each do |vlog|
           rep = vlog.representation(resize_to_limit: [200, 200])
           rep.processed
