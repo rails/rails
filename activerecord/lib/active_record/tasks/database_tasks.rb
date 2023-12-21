@@ -255,7 +255,7 @@ module ActiveRecord
         Migration.verbose = verbose_was
       end
 
-      def db_configs_with_versions(db_configs) # :nodoc:
+      def db_configs_with_versions # :nodoc:
         db_configs_with_versions = Hash.new { |h, k| h[k] = [] }
 
         with_temporary_connection_for_each do |conn|
