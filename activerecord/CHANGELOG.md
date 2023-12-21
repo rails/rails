@@ -1,3 +1,29 @@
+*   Introduce predicate definition when defining scopes
+
+    Creates parity between scopes and instances of records, similar to how
+    `enums` automatically create instance methods that query whether the model
+    belongs to that scope.
+
+    ```ruby
+    class Book < ApplicationRecord
+      scope :out_of_print, -> { where(out_of_print: true) }, predicate: true
+      # Creates instance method named `within_out_of_print?`
+
+      scope :in_print, -> { where(out_of_print: false) }, predicate: :in_print
+      # Creates instance method named `in_print?`
+    end
+    ```
+
+    ```irb
+    irb> Book.out_of_print.first.within_out_of_print?
+    => true
+
+    irb> Book.in_print.first.in_print?
+    => true
+    ```
+
+    *Steve Polito*
+
 *   Add support for generated columns in SQLite3 adapter
 
     Generated columns (both stored and dynamic) are supported since version 3.31.0 of SQLite.

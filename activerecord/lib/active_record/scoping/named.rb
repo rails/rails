@@ -81,6 +81,25 @@ module ActiveRecord
         #     end
         #   end
         #
+        # ==== Options
+        # [+predicate+]
+        #  When set to `true`, `symbol`, or `string` this option dynamically
+        #  defines a predicate instance method for the scope. This method
+        #  returns `true` if the current object belongs to the scope.
+        #
+        #  If set to `true`, the method name is automatically generated in the
+        #  format of "within_#{scope_name}?".
+        #
+        #  Alternatively, a custom method name can be specified by providing a
+        #  `symbol` or `string`.
+        #
+        # Option examples:
+        #   scope :red, -> { where(color: 'red') }, predicate: true
+        #   # Creates instance method name `within_red?`
+        #
+        #   scope :red, -> { where(color: 'red') }, predicate: :is_red
+        #   # Creates instance method name `is_red?`
+        #
         # Unlike <tt>Shirt.find(...)</tt>, however, the object returned by
         # <tt>Shirt.red</tt> is not an Array but an ActiveRecord::Relation,
         # which is composable with other scopes; it resembles the association object
@@ -151,7 +170,9 @@ module ActiveRecord
         #
         #   Article.published.featured.latest_article
         #   Article.featured.titles
-        def scope(name, body, &block)
+        def scope(name, body, **options, &block)
+          predicate = options.delete(:predicate)
+
           unless body.respond_to?(:call)
             raise ArgumentError, "The scope body needs to be callable."
           end
@@ -183,6 +204,24 @@ module ActiveRecord
               scope
             end
           end
+
+          if predicate
+            method_name = case predicate
+                          when Symbol, String
+                            predicate.to_sym
+                          when true
+                            :"within_#{name}"
+                          else
+                            raise ArgumentError,
+                              "Invalid value for 'predicate'. Expected a Symbol, " \
+                              "a String, or true, but received #{predicate.inspect}"
+                          end
+
+            define_method("#{method_name}?") do
+              self.class.send(name).exists?(id)
+            end
+          end
+
           singleton_class.send(:ruby2_keywords, name)
 
           generate_relation_method(name)

@@ -2054,6 +2054,32 @@ SELECT books.* FROM books WHERE books.out_of_print = true
 
 [`unscoped`]: https://api.rubyonrails.org/classes/ActiveRecord/Scoping/Default/ClassMethods.html#method-i-unscoped
 
+### Defining Predicate Methods
+
+To create parity between scopes and instances of records, use the `predicate`
+option.
+
+This is similar to how [enums](#enums) automatically create instance methods
+that query whether the model belongs to that scope.
+
+```ruby
+class Book < ApplicationRecord
+  scope :out_of_print, -> { where(out_of_print: true) }, predicate: true
+  # Creates instance method named `within_out_of_print?`
+
+  scope :in_print, -> { where(out_of_print: false) }, predicate: :in_print
+  # Creates instance method named `in_print?`
+end
+```
+
+```irb
+irb> Book.out_of_print.first.within_out_of_print?
+=> true
+
+irb> Book.in_print.first.in_print?
+=> true
+```
+
 Dynamic Finders
 ---------------
 

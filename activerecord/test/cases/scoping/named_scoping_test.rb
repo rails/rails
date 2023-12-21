@@ -626,4 +626,71 @@ class NamedScopingTest < ActiveRecord::TestCase
       assert_equal Topic.including_annotate_in_scope.to_a, Topic.all.to_a
     end
   end
+
+  def test_scope_with_predicate_true
+    Topic.class_eval do
+      scope :predicate_true, Proc.new { where(id: 1) }, predicate: true
+    end
+
+    expected = Topic.predicate_true.first
+    unexpected = Topic.find(2)
+
+    assert_predicate expected, :within_predicate_true?
+    assert_not_predicate unexpected, :within_predicate_true?
+  end
+
+  def test_scope_with_predicate_symbol
+    Topic.class_eval do
+      scope :predicate_symbol, Proc.new { where(id: 1) }, predicate: :in_predicate_symbol
+    end
+
+    expected = Topic.predicate_symbol.first
+    unexpected = Topic.find(2)
+
+    assert_predicate expected, :in_predicate_symbol?
+    assert_not_predicate unexpected, :in_predicate_symbol?
+  end
+
+  def test_scope_with_predicate_string
+    Topic.class_eval do
+      scope :predicate_string, Proc.new { where(id: 1) }, predicate: "in_predicate_string"
+    end
+
+    expected = Topic.predicate_string.first
+    unexpected = Topic.find(2)
+
+    assert_predicate expected, :in_predicate_string?
+    assert_not_predicate unexpected, :in_predicate_string?
+  end
+
+  def test_scope_with_predicate_raise
+    e = assert_raises ArgumentError do
+      Topic.class_eval do
+        scope :foo, Proc.new { where(id: 1) }, predicate: {}
+      end
+    end
+
+    assert_equal "Invalid value for 'predicate'. Expected a Symbol, a String, " \
+      "or true, but received {}", e.message
+  end
+
+  def test_scope_with_predicate_primary_key
+    original_primary_key = Topic.primary_key
+
+    Topic.class_eval do
+      self.primary_key = "title"
+
+      scope :predicate_primary_key, Proc.new { where(title: "The First Topic") }, predicate: true
+    end
+
+    expected = Topic.predicate_primary_key.first
+    unexpected = Topic.find("The Second Topic of the day")
+
+    assert_predicate expected, :within_predicate_primary_key?
+    assert_not_predicate unexpected, :within_predicate_primary_key?
+  ensure
+    Topic.class_eval do
+      self.primary_key = original_primary_key
+    end
+  end
 end
