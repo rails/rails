@@ -92,7 +92,7 @@ db_namespace = namespace :db do
     if db_configs.size == 1
       ActiveRecord::Tasks::DatabaseTasks.migrate
     else
-      mapped_versions = ActiveRecord::Tasks::DatabaseTasks.db_configs_with_versions(db_configs)
+      mapped_versions = ActiveRecord::Tasks::DatabaseTasks.db_configs_with_versions
 
       mapped_versions.sort.each do |version, db_configs|
         db_configs.each do |db_config|
