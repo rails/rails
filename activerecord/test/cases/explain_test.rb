@@ -35,6 +35,53 @@ if ActiveRecord::Base.connection.supports_explain?
       end
     end
 
+    def test_relation_explain_with_count
+      expected_query = capture_sql {
+        Car.count
+      }.first
+      message = Car.all.explain(:count)
+      assert_match("EXPLAIN #{expected_query}", message)
+    end
+
+    def test_relation_explain_with_count_and_column_name
+      expected_query = capture_sql {
+        Car.count(:id)
+      }.first
+      message = Car.all.explain(:count, :id)
+      assert_match("EXPLAIN #{expected_query}", message)
+    end
+
+    def test_relation_explain_with_minimum
+      expected_query = capture_sql {
+        Car.minimum(:id)
+      }.first
+      message = Car.all.explain(:minimum, :id)
+      assert_match("EXPLAIN #{expected_query}", message)
+    end
+
+    def test_relation_explain_with_maximum
+      expected_query = capture_sql {
+        Car.maximum(:id)
+      }.first
+      message = Car.all.explain(:maximum, :id)
+      assert_match("EXPLAIN #{expected_query}", message)
+    end
+
+    def test_relation_explain_with_sum
+      expected_query = capture_sql {
+        Car.sum(:id)
+      }.first
+      message = Car.all.explain(:sum, :id)
+      assert_match("EXPLAIN #{expected_query}", message)
+    end
+
+    def test_relation_explain_with_unsupported_method
+      error = assert_raise ArgumentError do
+        Car.all.explain(:last)
+      end
+      assert_equal "`last` is not a supported method argument for `explain`", error.message
+    end
+
     def test_exec_explain_with_no_binds
       sqls    = %w(foo bar)
       binds   = [[], []]

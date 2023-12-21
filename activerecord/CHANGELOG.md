@@ -1,3 +1,19 @@
+*   Add `explain` support for calculation methods like `count`
+
+    Allow `explain` to take an operation and column name as argument:
+
+    ```ruby
+    User.all.explain(:count)
+    # EXPLAIN SELECT COUNT(*) FROM `users`
+    # ...
+
+    User.all.explain(:maximum, :id)
+    # EXPLAIN SELECT MAX(`users`.`id`) FROM `users`
+    # ...
+    ```
+
+    *Petrik de Heus*
+
 *   Add support for generated columns in SQLite3 adapter
 
     Generated columns (both stored and dynamic) are supported since version 3.31.0 of SQLite.

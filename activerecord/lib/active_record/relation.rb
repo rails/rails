@@ -16,6 +16,8 @@ module ActiveRecord
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
 
+    EXPLAIN_CALCULATION_METHODS = Set.new([:count, :minimum, :maximum, :sum])
+
     include Enumerable
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
@@ -245,13 +247,38 @@ module ActiveRecord
     # returns the result as a string. The string is formatted imitating the
     # ones printed by the database shell.
     #
+    #   User.all.explain
+    #   # EXPLAIN SELECT `cars`.* FROM `cars`
+    #   # ...
+    #
+    # For calculation methods like `count` pass the method as argument:
+    #
+    #   User.all.explain(:count)
+    #   # EXPLAIN SELECT COUNT(*) FROM `users`
+    #   # ...
+    #
+    # The column name can be passed if required:
+    #
+    #   User.all.explain(:maximum, :id)
+    #   # EXPLAIN SELECT MAX(`users`.`id`) FROM `users`
+    #   # ...
+    #
     # Note that this method actually runs the queries, since the results of some
     # are needed by the next ones when eager loading is going on.
     #
     # Please see further details in the
     # {Active Record Query Interface guide}[https://guides.rubyonrails.org/active_record_querying.html#running-explain].
-    def explain(*options)
-      exec_explain(collecting_queries_for_explain { exec_queries }, options)
+    def explain(method = nil, column_name = nil, options: [])
+      if method.present?
+        case method
+        when EXPLAIN_CALCULATION_METHODS
+          exec_explain(collecting_queries_for_explain { calculate(method, column_name) }, options)
+        else
+          raise ArgumentError, "`#{method}` is not a supported method argument for `explain`"
+        end
+      else
+        exec_explain(collecting_queries_for_explain { exec_queries }, options)
+      end
     end
 
     # Converts relation objects to Array.
