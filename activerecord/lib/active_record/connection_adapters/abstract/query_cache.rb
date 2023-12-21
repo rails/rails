@@ -106,7 +106,8 @@ module ActiveRecord
           sql, binds, preparable = to_sql_and_binds(arel, binds, preparable)
 
           if async
-            lookup_sql_cache(sql, name, binds) || super(sql, name, binds, preparable: preparable, async: async)
+            result = lookup_sql_cache(sql, name, binds) || super(sql, name, binds, preparable: preparable, async: async)
+            FutureResult::Complete.new(result)
           else
             cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable, async: async) }
           end

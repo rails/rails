@@ -1237,6 +1237,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_async_equal part.id, ShipPart.joins(:trinkets).async_sum(:id)
   end
 
+  def test_calculation_with_query_cache
+    ShipPart.cache do
+      count = ShipPart.count
+      assert_async_equal count, ShipPart.async_count
+    end
+  end
+
   def test_pluck_joined_with_polymorphic_relation
     part = ShipPart.create!(name: "has trinket")
     part.trinkets.create!
