@@ -1,3 +1,10 @@
+*   Fix async queries sometimes returning a raw result if they hit the query cache
+
+    `ShipPart.async_count` could return a raw integer rather than a Promise
+    if it found the result in the query cache.
+
+    *fatkodima*
+
 *   Fix `Relation#transaction` to not apply a default scope
 
     The method was incorrectly setting a default scope around its block:

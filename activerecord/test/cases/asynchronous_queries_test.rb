@@ -48,7 +48,7 @@ module AsynchronousQueriesSharedTests
 
     @connection.select_all "SELECT * FROM posts"
     result = @connection.select_all "SELECT * FROM posts", async: true
-    assert_equal ActiveRecord::Result, result.class
+    assert_equal ActiveRecord::FutureResult::Complete, result.class
   ensure
     ActiveRecord::Base.asynchronous_queries_tracker.finalize_session
     @connection.disable_query_cache!
