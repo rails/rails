@@ -138,7 +138,7 @@ module ActiveRecord
   #
   # Now you can list a bunch of entries, call <tt>Entry#title</tt>, and polymorphism will provide you with the answer.
   #
-  # == Nested Attributes
+  # == Nested \Attributes
   #
   # Enabling nested attributes on a delegated_type association allows you to
   # create the entry and message in one go:
