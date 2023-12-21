@@ -24,6 +24,7 @@ STATS_DIRECTORIES ||= [
   %w(Mailer\ tests      test/mailers),
   %w(Mailbox\ tests     test/mailboxes),
   %w(Channel\ tests     test/channels),
+  %w(View\ tests        test/views),
   %w(Integration\ tests test/integration),
   %w(System\ tests      test/system),
 ]
