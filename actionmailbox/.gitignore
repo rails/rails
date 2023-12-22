@@ -5,3 +5,6 @@
 /test/dummy/log/*.log
 /test/dummy/tmp/
 /tmp/
+/test/support/storage/
+/test/support/log/*.log
+/test/support/tmp/
