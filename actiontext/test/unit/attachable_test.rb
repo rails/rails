@@ -24,10 +24,10 @@ class ActionText::AttachableTest < ActiveSupport::TestCase
   end
 
   test "as_json is a hash when the attachable is a new record" do
-    attachable = ActiveStorage::Blob.build_after_unfurling(io: StringIO.new("test"), filename: "test.txt", key: 123)
+    attachable = ActiveStorage::Blob.build_after_unfurling(io: StringIO.new("test"), filename: "test.txt", key: 456)
     attributes = {
       id: nil,
-      key: "123",
+      key: "456",
       filename: "test.txt",
       content_type: "text/plain",
       metadata: { identified: true },
@@ -42,7 +42,7 @@ class ActionText::AttachableTest < ActiveSupport::TestCase
   end
 
   test "attachable_sgid is included in as_json when only option is nil or includes attachable_sgid" do
-    attachable = ActiveStorage::Blob.create_after_unfurling!(io: StringIO.new("test"), filename: "test.txt", key: 123)
+    attachable = ActiveStorage::Blob.create_after_unfurling!(io: StringIO.new("test"), filename: "test.txt", key: 789)
 
     assert_equal({ "id" => attachable.id }, attachable.as_json(only: :id))
     assert_equal({ "id" => attachable.id }, attachable.as_json(only: [:id]))

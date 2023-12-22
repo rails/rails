@@ -3,6 +3,8 @@
 require "test_helper"
 
 class ActionText::ControllerRenderTest < ActionDispatch::IntegrationTest
+  fixtures :all
+
   test "uses current request environment" do
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     message = Message.create!(content: ActionText::Content.new.append_attachables(blob))

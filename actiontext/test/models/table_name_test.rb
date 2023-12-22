@@ -10,7 +10,7 @@ class ActionText::TableNameTest < ActiveSupport::TestCase
     ActiveRecord::Base.table_name_prefix = @prefix = "abc_"
     ActiveRecord::Base.table_name_suffix = @suffix = "_xyz"
 
-    @models = [ActionText::RichText, ActionText::EncryptedRichText]
+    @models = [ActionText::RichText, ActionText::EncryptedRichText, ActiveStorage::Blob]
     @models.map(&:reset_table_name)
   end
 

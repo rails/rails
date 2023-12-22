@@ -8,7 +8,7 @@ task :package
 
 Rake::TestTask.new do |t|
   t.libs << "test"
-  t.test_files = FileList["test/**/*_test.rb"].exclude("test/system/**/*", "test/dummy/**/*")
+  t.test_files = FileList["test/**/*_test.rb"].exclude("test/system/**/*")
   t.verbose = true
 end
 
@@ -20,7 +20,7 @@ end
 
 namespace :test do
   task :isolated do
-    FileList["test/**/*_test.rb"].exclude("test/system/**/*", "test/dummy/**/*").all? do |file|
+    FileList["test/**/*_test.rb"].exclude("test/system/**/*").all? do |file|
       sh(Gem.ruby, "-w", "-Ilib", "-Itest", file)
     end || raise("Failures")
   end

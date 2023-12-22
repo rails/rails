@@ -5,4 +5,7 @@
 /test/dummy/log/*.log
 /test/dummy/public/packs-test
 /test/dummy/tmp/
+/test/support/log/*.log
+/test/support/storage/
+/test/support/tmp/
 /tmp/

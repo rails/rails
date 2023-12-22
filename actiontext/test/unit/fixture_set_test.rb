@@ -3,6 +3,8 @@
 require "test_helper"
 
 class ActionText::FixtureSetTest < ActiveSupport::TestCase
+  fixtures :all
+
   def test_action_text_attachment
     message = messages(:hello_world)
     review = reviews(:hello_world)

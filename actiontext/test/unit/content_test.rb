@@ -94,6 +94,8 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     end
   end
 
+  # TODO: Raises JSON error, should it be reported?
+  # [ActionText::TrixAttachment] Couldn't parse JSON {"sgid":"garbage... from NODE #<Nokogiri::XML::Element:0x38d0 name="div" attribute_nodes=[#<Nokogiri::XML::Attr:0x38b8 name="data-trix-attachment" value="{\"sgid\":\"garbage...">]>
   test "ignores Trix-formatted attachments with malformed JSON" do
     html = %Q(<div data-trix-attachment='{"sgid":"garbage...'></div>)
     content = content_from_html(html)
