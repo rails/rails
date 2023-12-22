@@ -83,4 +83,8 @@
 
     *Adrian Hirt*
 
+*   `rails stats` now includes `test/views` view tests in its output statistics.
+
+    *Noah Horton*
+
 Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/railties/CHANGELOG.md) for previous changes.
