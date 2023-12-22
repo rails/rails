@@ -207,15 +207,15 @@ module ActiveRecord
 
           if predicate
             method_name = case predicate
-                          when Symbol, String
-                            predicate.to_sym
-                          when true
-                            :"within_#{name}"
-                          else
-                            raise ArgumentError,
-                              "Invalid value for 'predicate'. Expected a Symbol, " \
-                              "a String, or true, but received #{predicate.inspect}"
-                          end
+            when Symbol, String
+              predicate.to_sym
+            when true
+              :"within_#{name}"
+            else
+              raise ArgumentError,
+                "Invalid value for 'predicate'. Expected a Symbol, " \
+                "a String, or true, but received #{predicate.inspect}"
+            end
 
             define_method("#{method_name}?") do
               self.class.send(name).exists?(id)
