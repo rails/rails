@@ -62,7 +62,7 @@ module ActiveRecord
       ActiveRecord::SpawnMethods.public_instance_methods(false) - [:spawn, :merge!] +
       ActiveRecord::QueryMethods.public_instance_methods(false).reject { |method|
         method.end_with?("=", "!", "?", "value", "values", "clause")
-      } - [:reverse_order, :arel, :extensions, :construct_join_dependency] + [
+      } - [:all, :reverse_order, :arel, :extensions, :construct_join_dependency] + [
         :any?, :many?, :none?, :one?,
         :first_or_create, :first_or_create!, :first_or_initialize,
         :find_or_create_by, :find_or_create_by!, :find_or_initialize_by,
@@ -89,14 +89,24 @@ module ActiveRecord
 
     test "delegation doesn't override methods defined in other relation subclasses" do
       # precondition, some methods are available on ActiveRecord::Relation subclasses
-      # but not ActiveRecord::Relation itself. Here `delete` is just an example.
-      assert_equal false, ActiveRecord::Relation.method_defined?(:delete)
-      assert_equal true, ActiveRecord::Associations::CollectionProxy.method_defined?(:delete)
+      # but not ActiveRecord::Relation itself. Here `clear` is just an example.
+      assert_equal false, ActiveRecord::Relation.method_defined?(:clear)
+      assert_equal true, ActiveRecord::Associations::CollectionProxy.method_defined?(:clear)
 
       project = projects(:active_record)
-      original_owner = project.developers_with_callbacks.method(:delete).owner
+      original_owner = project.developers_with_callbacks.method(:clear).owner
       Developer.all.delete(12345)
-      assert_equal original_owner, project.developers_with_callbacks.method(:delete).owner
+      assert_equal original_owner, project.developers_with_callbacks.method(:clear).owner
+    end
+
+    test "delegation automatically delegate ActiveRecord::Base methods" do
+      assert_equal false, ActiveRecord::Relation.method_defined?(:superclass)
+      assert_equal true, ActiveRecord::Base.respond_to?(:superclass)
+
+      error = assert_raises NoMethodError do
+        Developer.all.superclass
+      end
+      assert_equal :superclass, error.name
     end
   end
 end

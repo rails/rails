@@ -145,10 +145,10 @@ module ActiveRecord
 
       if found.nil?
         raise_record_not_found_exception!
-      elsif undesired.present?
-        raise ActiveRecord::SoleRecordExceeded.new(self)
-      else
+      elsif undesired.nil?
         found
+      else
+        raise ActiveRecord::SoleRecordExceeded.new(model)
       end
     end
 
