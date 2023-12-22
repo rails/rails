@@ -81,7 +81,7 @@ class Time
     def find_zone!(time_zone)
       return time_zone unless time_zone
 
-      ActiveSupport::TimeZone[time_zone] || raise(ArgumentError, "Invalid Timezone: #{time_zone}")
+      ActiveSupport::TimeZone[time_zone] || raise(ArgumentError, "Invalid Timezone: #{time_zone}! Find the valid identifiers with: ActiveSupport::TimeZone::MAPPING")
     end
 
     # Returns a TimeZone instance matching the time zone provided.

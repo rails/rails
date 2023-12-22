@@ -1246,10 +1246,10 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
 
   def test_find_zone_with_bang_raises_if_time_zone_can_not_be_found
     error = assert_raise(ArgumentError) { Time.find_zone!("No such timezone exists") }
-    assert_equal "Invalid Timezone: No such timezone exists", error.message
+    assert_equal "Invalid Timezone: No such timezone exists! Find the valid identifiers with: ActiveSupport::TimeZone::MAPPING", error.message
 
     error = assert_raise(ArgumentError) { Time.find_zone!(-15.hours) }
-    assert_equal "Invalid Timezone: -54000", error.message
+    assert_equal "Invalid Timezone: -54000! Find the valid identifiers with: ActiveSupport::TimeZone::MAPPING", error.message
 
     error = assert_raise(ArgumentError) { Time.find_zone!(Object.new) }
     assert_match "invalid argument to TimeZone[]", error.message
