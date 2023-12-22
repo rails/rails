@@ -172,6 +172,16 @@ if ActiveRecord::Base.connection.supports_exclusion_constraints?
           end
         end
 
+        def test_exclusion_constraint_exists
+          @connection.add_exclusion_constraint :invoices, "daterange(start_date, end_date) WITH &&", using: :gist, name: "invoices_date_overlap", deferrable: :deferred
+
+          assert @connection.exclusion_constraint_exists?(:invoices, name: "invoices_date_overlap")
+          assert @connection.exclusion_constraint_exists?(:invoices, name: "invoices_date_overlap", deferrable: :deferred)
+          assert_not @connection.exclusion_constraint_exists?(:non_invoices, name: "invoices_date_overlap")
+          assert_not @connection.exclusion_constraint_exists?(:invoices, name: "other_check")
+          assert_not @connection.exclusion_constraint_exists?(:invoices, name: "invoices_date_overlap", deferrable: :immediate)
+        end
+
         def test_remove_exclusion_constraint
           assert_equal 0, @connection.exclusion_constraints("invoices").size
 
