@@ -206,10 +206,9 @@ module ActiveRecord
           end
 
           if predicate
-            method_name = case predicate
-            when Symbol, String
+            method_name = if predicate.is_a?(Symbol) || predicate.is_a?(String)
               predicate.to_sym
-            when true
+            elsif predicate == true
               :"within_#{name}"
             else
               raise ArgumentError,
