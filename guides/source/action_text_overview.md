@@ -106,6 +106,8 @@ class MessagesController < ApplicationController
 end
 ```
 
+NOTE: Since Action Text relies on polymorphic associations, and [polymorphic associations](./association_basics.html#polymorphic-associations) rely on storing class names in the database, that data must remain synchronized with the class name used by the Ruby code. When renaming classes that use `has_rich_text`, make sure to also update the class names in the `action_text_rich_texts.record_type` polymorphic type column of the corresponding rows.
+
 [`rich_text_area`]: https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-rich_text_area
 
 ## Rendering Rich Text Content

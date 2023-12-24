@@ -97,6 +97,10 @@ module ActiveStorage
       #     has_one_attached :avatar, strict_loading: true
       #   end
       #
+      # Note: Active Storage relies on polymorphic associations, which in turn store class names in the database.
+      # When renaming classes that use <tt>has_one_attached</tt>, make sure to also update the class names in the
+      # <tt>active_storage_attachments.record_type</tt> polymorphic type column of
+      # the corresponding rows.
       def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
         ActiveStorage::Blob.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
 
@@ -188,6 +192,10 @@ module ActiveStorage
       #     has_many_attached :photos, strict_loading: true
       #   end
       #
+      # Note: Active Storage relies on polymorphic associations, which in turn store class names in the database.
+      # When renaming classes that use <tt>has_many</tt>, make sure to also update the class names in the
+      # <tt>active_storage_attachments.record_type</tt> polymorphic type column of
+      # the corresponding rows.
       def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
         ActiveStorage::Blob.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
 
