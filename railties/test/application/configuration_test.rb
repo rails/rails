@@ -4329,12 +4329,12 @@ module ApplicationTests
       assert_equal 7.1, ActiveSupport::Cache.format_version
     end
 
-    test "ActiveSupport::Cache.format_version is 6.1 by default for upgraded apps" do
+    test "ActiveSupport::Cache.format_version is 7.1 by default for upgraded apps" do
       remove_from_config '.*config\.load_defaults.*\n'
 
       app "development"
 
-      assert_equal 6.1, ActiveSupport::Cache.format_version
+      assert_equal 7.1, ActiveSupport::Cache.format_version
     end
 
     test "ActiveSupport::Cache.format_version can be configured via config.active_support.cache_format_version" do
@@ -4360,18 +4360,6 @@ module ApplicationTests
       assert_equal \
         Marshal.dump(ActiveSupport::Cache::NullStore.new.instance_variable_get(:@coder)),
         Marshal.dump(Rails.cache.instance_variable_get(:@coder))
-    end
-
-    test "ActiveSupport::Cache.format_version 6.1 is deprecated" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app "development"
-
-      assert_equal 6.1, ActiveSupport::Cache.format_version
-
-      assert_deprecated(ActiveSupport.deprecator) do
-        ActiveSupport::Cache::Store.new
-      end
     end
 
     test "raise_on_invalid_cache_expiration_time is false with 7.0 defaults" do

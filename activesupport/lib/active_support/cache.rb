@@ -52,7 +52,7 @@ module ActiveSupport
       autoload :LocalCache, "active_support/cache/strategy/local_cache"
     end
 
-    @format_version = 6.1
+    @format_version = 7.1
 
     class << self
       attr_accessor :format_version

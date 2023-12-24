@@ -8,6 +8,10 @@ class CacheCoderTest < ActiveSupport::TestCase
     @coder = ActiveSupport::Cache::Coder.new(Serializer, Compressor)
   end
 
+  test "default format version" do
+    assert_equal(7.1, ActiveSupport::Cache.format_version)
+  end
+
   test "roundtrips entry" do
     ENTRIES.each do |entry|
       assert_entry entry, @coder.load(@coder.dump(entry))
