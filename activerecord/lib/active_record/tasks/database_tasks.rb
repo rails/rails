@@ -375,6 +375,7 @@ module ActiveRecord
         return true unless file && File.exist?(file)
 
         with_temporary_connection(db_config) do |connection|
+          connection.create_database
           return false unless connection.internal_metadata.enabled?
           return false unless connection.internal_metadata.table_exists?
 

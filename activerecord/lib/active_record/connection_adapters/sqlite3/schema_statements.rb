@@ -129,6 +129,12 @@ module ActiveRecord
           SQLite3::SchemaCreation.new(self)
         end
 
+        def create_database
+          mode = ::SQLite3::Constants::Open::READWRITE | ::SQLite3::Constants::Open::CREATE
+          config = @connection_parameters.merge(flags: mode)
+          ::SQLite3::Database.new(config[:database].to_s, config)
+        end
+
         private
           def valid_table_definition_options
             super + [:rename]

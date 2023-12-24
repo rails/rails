@@ -14,7 +14,10 @@ module ActiveRecord
 
           @original_configurations = ActiveRecord::Base.configurations
           ActiveRecord::Base.configurations = base_config
-          ActiveRecord::Base.establish_connection(:primary)
+          pool_secondary = ActiveRecord::Base.establish_connection(:secondary)
+          pool_secondary.connection.create_database
+          pool_primary = ActiveRecord::Base.establish_connection(:primary)
+          pool_primary.connection.create_database
         end
 
         teardown do

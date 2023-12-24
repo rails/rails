@@ -14,6 +14,7 @@ module ActiveRecord
             adapter: "sqlite3",
             timeout: 100,
           )
+          @conn.create_database
           @conn.connect!
 
           assert Dir.exist? dir.join("db")

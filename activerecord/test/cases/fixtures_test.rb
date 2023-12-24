@@ -1599,6 +1599,7 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
       handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
       ActiveRecord::Base.connection_handler = handler
       handler.establish_connection(db_config)
+      ActiveRecord::Base.connection.create_database
 
       ActiveRecord::Base.connects_to(database: { writing: :default, reading: :readonly })
 
