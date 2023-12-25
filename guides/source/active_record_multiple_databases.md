@@ -412,7 +412,6 @@ production:
     database: my_primary_shard_one
     adapter: mysql2
     replica: true
-    migrations_paths: db/migrate_shards
   primary_shard_two:
     database: my_primary_shard_two
     adapter: mysql2
@@ -421,7 +420,6 @@ production:
     database: my_primary_shard_two
     adapter: mysql2
     replica: true
-    migrations_paths: db/migrate_shards
 ```
 
 Models are then connected with the `connects_to` API via the `shards` key:
