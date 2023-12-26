@@ -765,6 +765,61 @@ class RelationTest < ActiveRecord::TestCase
     assert_not auth.posts.to_sql.include?("1=1")
   end
 
+  def test_to_sql_with_count
+    expected = capture_sql {
+      Post.count
+    }.first
+    actual = Post.all.to_sql(:count)
+    assert_equal expected, actual
+  end
+
+  def test_to_sql_with_distinct_and_count
+    expected = capture_sql {
+      Post.distinct.count
+    }.first
+    actual = Post.distinct.to_sql(:count)
+    assert_equal expected, actual
+  end
+
+  def test_to_sql_with_group_and_count
+    error = assert_raise do
+      Post.group(:id).to_sql(:count)
+    end
+    assert_equal "Calling `to_sql(:count)` with a `group` is not supported", error.message
+  end
+
+  def test_to_sql_with_minimum
+    expected = capture_sql {
+      Post.minimum(:id)
+    }.first
+    actual = Post.all.to_sql(:minimum, :id)
+    assert_equal expected, actual
+  end
+
+  def test_to_sql_with_maximum
+    expected = capture_sql {
+      Post.maximum(:id)
+    }.first
+    actual = Post.all.to_sql(:maximum, :id)
+    assert_equal expected, actual
+  end
+
+  def test_to_sql_with_sum
+    expected = capture_sql {
+      Post.sum(:id)
+    }.first
+    actual = Post.all.to_sql(:sum, :id)
+    assert_equal expected, actual
+  end
+
+  def test_to_sql_on_eager_join_with_minimum
+    expected = capture_sql {
+      Post.eager_load(:last_comment).order("comments.id DESC").minimum(:id)
+    }.first
+    actual = Post.eager_load(:last_comment).order("comments.id DESC").to_sql(:minimum, :id)
+    assert_equal expected, actual
+  end
+
   def test_loading_with_one_association_with_non_preload
     posts = Post.eager_load(:last_comment).order("comments.id DESC")
     post = posts.find { |p| p.id == 1 }

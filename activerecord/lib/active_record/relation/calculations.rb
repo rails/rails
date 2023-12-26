@@ -389,6 +389,16 @@ module ActiveRecord
       def perform_calculation(operation, column_name)
         operation = operation.to_s.downcase
 
+        distinct, column_name = distict_and_column_name(operation, column_name)
+
+        if group_values.any?
+          execute_grouped_calculation(operation, column_name, distinct)
+        else
+          execute_simple_calculation(operation, column_name, distinct)
+        end
+      end
+
+      def distict_and_column_name(operation, column_name)
         # If #count is used with #distinct (i.e. `relation.distinct.count`) it is
         # considered distinct.
         distinct = distinct_value
@@ -405,12 +415,7 @@ module ActiveRecord
             distinct = nil
           end
         end
-
-        if group_values.any?
-          execute_grouped_calculation(operation, column_name, distinct)
-        else
-          execute_simple_calculation(operation, column_name, distinct)
-        end
+        [distinct, column_name]
       end
 
       def distinct_select?(column_name)
@@ -437,15 +442,8 @@ module ActiveRecord
           relation = self
           query_builder = build_count_subquery(spawn, column_name, distinct)
         else
-          # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
-          relation = unscope(:order).distinct!(false)
-
           column = aggregate_column(column_name)
-          select_value = operation_over_aggregate_column(column, operation, distinct)
-          select_value.distinct = true if operation == "sum" && distinct
-
-          relation.select_values = [select_value]
-
+          relation = build_simple_calculation(operation, column, distinct)
           query_builder = relation.arel
         end
 
@@ -466,6 +464,18 @@ module ActiveRecord
 
           type_cast_calculated_value(result.cast_values.first, operation, type)
         end
+      end
+
+      def build_simple_calculation(operation, column, distinct) # :nodoc:
+        # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
+        relation = unscope(:order).distinct!(false)
+
+        select_value = operation_over_aggregate_column(column, operation, distinct)
+        select_value.distinct = true if operation == "sum" && distinct
+
+        relation.select_values = [select_value]
+
+        relation
       end
 
       def execute_grouped_calculation(operation, column_name, distinct) # :nodoc:
