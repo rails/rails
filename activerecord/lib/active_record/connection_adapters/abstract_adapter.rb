@@ -1170,12 +1170,16 @@ module ActiveRecord
         end
 
         def translate_exception(exception, message:, sql:, binds:)
-          # override in derived class
           case exception
           when RuntimeError, ActiveRecord::ActiveRecordError
             exception
           else
-            ActiveRecord::StatementInvalid.new(message, sql: sql, binds: binds, connection_pool: @pool)
+            translated_exception = ActiveRecord::Errors.lookup(adapter: self, exception: exception) || ActiveRecord::StatementInvalid
+            if translated_exception <= ActiveRecord::StatementInvalid
+              translated_exception.new(message, sql: sql, binds: binds, connection_pool: @pool)
+            else
+              translated_exception.new(exception, connection_pool: @pool)
+            end
           end
         end
 

@@ -7,6 +7,55 @@ module ActiveRecord
   class ActiveRecordError < StandardError
   end
 
+  # = Active Record Errors Registry
+  #
+  # Databases tend to throw errors. And every database has their own format for errors. Some databases even support
+  # custom error messages from functions in the database, for example with PostgreSQL `RAISE` statements.
+  #
+  # +ActiveRecord:Errors+ is manages the translations from database specific errors to +ActiveRecord+ exceptions.
+  # Each database adapter registers their own errors. And you can register your own handlers if you throw custom
+  # errors from your database:
+  #
+  #   ActiveRecord::Errors.register("MY0001", MyCustomException, adapter: ActiveRecord::ConnectionAdapters::PostgreSQL)
+  #
+  module Errors
+    @registry = {}
+
+    class << self
+      attr_accessor :registry
+
+      # Adds a translation from a database specific error to a Ruby exception.
+      #
+      # ==== Parameters
+      #
+      # * +matcher+ - A Proc, Regexp or regular value to match the database error to
+      # * +klass+ - An exception to throw instead of the database error. Should be a subclass of +ActiveRecord::StatementInvalid+.
+      # * +adapter+ - The database adapter to register this translation for
+      #
+      # ==== Examples
+      #
+      #   ActiveRecord::Errors.register("MY0001", MyCustomException, adapter: ActiveRecord::ConnectionAdapters::PostgreSQL)
+      #   ActiveRecord::Errors.register(/connection lost/, CustomConnectionLostException, adapter: ActiveRecord::ConnectionAdapters::PostgreSQL)
+      #   ActiveRecord::Errors.register((e)-> { e.kind_of?(Exception) }, MyCustomException, adapter: ActiveRecord::ConnectionAdapters::PostgreSQL)
+      #
+      def register(matcher, klass, adapter:)
+        @registry[[adapter, matcher]] = klass
+      end
+
+      def lookup(adapter:, exception:)
+        error_number = adapter.error_number(exception) if adapter.respond_to?(:error_number)
+
+        @registry.find do |(adapter_class, matcher), _|
+          return unless adapter.kind_of?(adapter_class)
+
+          (matcher.respond_to?(:call) && matcher.call(exception)) ||
+            (matcher.kind_of?(Regexp) && (matcher.match?(exception.message) || matcher.match?(error_number&.to_s))) ||
+            matcher == exception.message || matcher == error_number
+        end&.last
+      end
+    end
+  end
+
   # DEPRECATED: Previously raised when trying to use a feature in Active Record which
   # requires Active Job but the gem is not present. Now raises a NameError.
   include ActiveSupport::Deprecation::DeprecatedConstantAccessor

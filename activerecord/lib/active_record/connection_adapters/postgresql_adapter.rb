@@ -703,6 +703,10 @@ module ActiveRecord
         end
       end
 
+      def error_number(exception)
+        exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE) if exception.respond_to?(:result)
+      end
+
       private
         attr_reader :type_map
 
@@ -752,61 +756,24 @@ module ActiveRecord
         end
 
         # See https://www.postgresql.org/docs/current/static/errcodes-appendix.html
-        VALUE_LIMIT_VIOLATION = "22001"
-        NUMERIC_VALUE_OUT_OF_RANGE = "22003"
-        NOT_NULL_VIOLATION    = "23502"
-        FOREIGN_KEY_VIOLATION = "23503"
-        UNIQUE_VIOLATION      = "23505"
-        SERIALIZATION_FAILURE = "40001"
-        DEADLOCK_DETECTED     = "40P01"
-        DUPLICATE_DATABASE    = "42P04"
-        LOCK_NOT_AVAILABLE    = "55P03"
-        QUERY_CANCELED        = "57014"
+        ActiveRecord::Errors.register(/connection is closed/i, ConnectionNotEstablished, adapter: self)
+        ActiveRecord::Errors.register(->(e) { e.is_a?(PG::ConnectionBad) && e.message.end_with?("\n") }, ConnectionFailed, adapter: self)
+        ActiveRecord::Errors.register(->(e) { e.is_a?(PG::ConnectionBad) && !e.message.end_with?("\n") }, ConnectionNotEstablished, adapter: self)
+        ActiveRecord::Errors.register("22001", ValueTooLong, adapter: self)
+        ActiveRecord::Errors.register("22003", RangeError, adapter: self)
+        ActiveRecord::Errors.register("23502", NotNullViolation, adapter: self)
+        ActiveRecord::Errors.register("23503", InvalidForeignKey, adapter: self)
+        ActiveRecord::Errors.register("23505", RecordNotUnique, adapter: self)
+        ActiveRecord::Errors.register("40001", SerializationFailure, adapter: self)
+        ActiveRecord::Errors.register("40P01", Deadlocked, adapter: self)
+        ActiveRecord::Errors.register("42P04", DatabaseAlreadyExists, adapter: self)
+        ActiveRecord::Errors.register("55P03", LockWaitTimeout, adapter: self)
+        ActiveRecord::Errors.register("57014", QueryCanceled, adapter: self)
 
         def translate_exception(exception, message:, sql:, binds:)
           return exception unless exception.respond_to?(:result)
 
-          case exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE)
-          when nil
-            if exception.message.match?(/connection is closed/i)
-              ConnectionNotEstablished.new(exception, connection_pool: @pool)
-            elsif exception.is_a?(PG::ConnectionBad)
-              # libpq message style always ends with a newline; the pg gem's internal
-              # errors do not. We separate these cases because a pg-internal
-              # ConnectionBad means it failed before it managed to send the query,
-              # whereas a libpq failure could have occurred at any time (meaning the
-              # server may have already executed part or all of the query).
-              if exception.message.end_with?("\n")
-                ConnectionFailed.new(exception, connection_pool: @pool)
-              else
-                ConnectionNotEstablished.new(exception, connection_pool: @pool)
-              end
-            else
-              super
-            end
-          when UNIQUE_VIOLATION
-            RecordNotUnique.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          when FOREIGN_KEY_VIOLATION
-            InvalidForeignKey.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          when VALUE_LIMIT_VIOLATION
-            ValueTooLong.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          when NUMERIC_VALUE_OUT_OF_RANGE
-            RangeError.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          when NOT_NULL_VIOLATION
-            NotNullViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          when SERIALIZATION_FAILURE
-            SerializationFailure.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          when DEADLOCK_DETECTED
-            Deadlocked.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          when DUPLICATE_DATABASE
-            DatabaseAlreadyExists.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          when LOCK_NOT_AVAILABLE
-            LockWaitTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          when QUERY_CANCELED
-            QueryCanceled.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          else
-            super
-          end
+          super
         end
 
         def retryable_query_error?(exception)

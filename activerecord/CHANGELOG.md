@@ -1,3 +1,13 @@
+*   Introduce `ActiveRecord::Errors` registry for all adapter specific error translations. Adds
+    support for custom error translations when using custom errors from databases, like
+    the PostgreSQL `RAISE` statement.
+
+    ```ruby
+    ActiveRecord::Errors.register("MY0001", MyCustomException, adapter: ActiveRecord::ConnectionAdapters::PostgreSQL)
+    ```
+
+    *Edwin Vlieg*
+
 *   Add support for generated columns in SQLite3 adapter
 
     Generated columns (both stored and dynamic) are supported since version 3.31.0 of SQLite.
