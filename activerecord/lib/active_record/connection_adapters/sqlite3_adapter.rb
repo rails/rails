@@ -77,6 +77,14 @@ module ActiveRecord
         boolean:      { name: "boolean" },
         json:         { name: "json" },
       }
+      DEFAULT_PRAGMAS = {
+        "foreign_keys"        => true,
+        "journal_mode"        => :wal,
+        "synchronous"         => :normal,
+        "mmap_size"           => 134217728, # 128 megabytes
+        "journal_size_limit"  => 67108864, # 64 megabytes
+        "cache_size"          => 2000
+      }
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         alias reset clear
@@ -759,29 +767,14 @@ module ActiveRecord
 
           super
 
-          # Enforce foreign key constraints
-          # https://www.sqlite.org/pragma.html#pragma_foreign_keys
-          # https://www.sqlite.org/foreignkeys.html
-          raw_execute("PRAGMA foreign_keys = ON", "SCHEMA")
-          unless @memory_database
-            # Journal mode WAL allows for greater concurrency (many readers + one writer)
-            # https://www.sqlite.org/pragma.html#pragma_journal_mode
-            raw_execute("PRAGMA journal_mode = WAL", "SCHEMA")
-            # Set more relaxed level of database durability
-            # 2 = "FULL" (sync on every write), 1 = "NORMAL" (sync every 1000 written pages) and 0 = "NONE"
-            # https://www.sqlite.org/pragma.html#pragma_synchronous
-            raw_execute("PRAGMA synchronous = NORMAL", "SCHEMA")
-            # Set the global memory map so all processes can share some data
-            # https://www.sqlite.org/pragma.html#pragma_mmap_size
-            # https://www.sqlite.org/mmap.html
-            raw_execute("PRAGMA mmap_size = #{128.megabytes}", "SCHEMA")
+          pragmas = @config.fetch(:pragmas, {}).stringify_keys
+          DEFAULT_PRAGMAS.merge(pragmas).each do |pragma, value|
+            if ::SQLite3::Pragmas.method_defined?("#{pragma}=")
+              @raw_connection.public_send("#{pragma}=", value)
+            else
+              warn "Unknown SQLite pragma: #{pragma}"
+            end
           end
-          # Impose a limit on the WAL file to prevent unlimited growth
-          # https://www.sqlite.org/pragma.html#pragma_journal_size_limit
-          raw_execute("PRAGMA journal_size_limit = #{64.megabytes}", "SCHEMA")
-          # Set the local connection cache to 2000 pages
-          # https://www.sqlite.org/pragma.html#pragma_cache_size
-          raw_execute("PRAGMA cache_size = 2000", "SCHEMA")
         end
     end
     ActiveSupport.run_load_hooks(:active_record_sqlite3adapter, SQLite3Adapter)
