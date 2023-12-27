@@ -85,6 +85,8 @@ module ActionView
       #   (defaults to current locale).
       # * <tt>:precision</tt> - Sets the level of precision (defaults
       #   to 2).
+      # * <tt>:round_mode</tt> - Determine how rounding is performed
+      #   (defaults to :default. See BigDecimal::mode)
       # * <tt>:unit</tt> - Sets the denomination of the currency
       #   (defaults to "$").
       # * <tt>:separator</tt> - Sets the separator between the units
@@ -107,24 +109,26 @@ module ActionView
       #
       # ==== Examples
       #
-      #   number_to_currency(1234567890.50)                    # => $1,234,567,890.50
-      #   number_to_currency(1234567890.506)                   # => $1,234,567,890.51
-      #   number_to_currency(1234567890.506, precision: 3)     # => $1,234,567,890.506
-      #   number_to_currency(1234567890.506, locale: :fr)      # => 1 234 567 890,51 €
-      #   number_to_currency("123a456")                        # => $123a456
+      #   number_to_currency(1234567890.50)                    # => "$1,234,567,890.50"
+      #   number_to_currency(1234567890.506)                   # => "$1,234,567,890.51"
+      #   number_to_currency(1234567890.506, precision: 3)     # => "$1,234,567,890.506"
+      #   number_to_currency(1234567890.506, locale: :fr)      # => "1 234 567 890,51 €"
+      #   number_to_currency("123a456")                        # => "$123a456"
       #
       #   number_to_currency("123a456", raise: true)           # => InvalidNumberError
       #
       #   number_to_currency(-0.456789, precision: 0)
       #   # => "$0"
       #   number_to_currency(-1234567890.50, negative_format: "(%u%n)")
-      #   # => ($1,234,567,890.50)
+      #   # => "($1,234,567,890.50)"
       #   number_to_currency(1234567890.50, unit: "R$", separator: ",", delimiter: "")
-      #   # => R$1234567890,50
+      #   # => "R$1234567890,50"
       #   number_to_currency(1234567890.50, unit: "R$", separator: ",", delimiter: "", format: "%n %u")
-      #   # => 1234567890,50 R$
+      #   # => "1234567890,50 R$"
       #   number_to_currency(1234567890.50, strip_insignificant_zeros: true)
       #   # => "$1,234,567,890.5"
+      #   number_to_currency(1234567890.50, precision: 0, round_mode: :up)
+      #   # => "$1,234,567,891"
       def number_to_currency(number, options = {})
         delegate_number_helper_method(:number_to_currency, number, options)
       end
@@ -138,6 +142,8 @@ module ActionView
       #   (defaults to current locale).
       # * <tt>:precision</tt> - Sets the precision of the number
       #   (defaults to 3).
+      # * <tt>:round_mode</tt> - Determine how rounding is performed
+      #   (defaults to :default. See BigDecimal::mode)
       # * <tt>:significant</tt> - If +true+, precision will be the number
       #   of significant_digits. If +false+, the number of fractional
       #   digits (defaults to +false+).
@@ -155,16 +161,17 @@ module ActionView
       #
       # ==== Examples
       #
-      #   number_to_percentage(100)                                        # => 100.000%
-      #   number_to_percentage("98")                                       # => 98.000%
-      #   number_to_percentage(100, precision: 0)                          # => 100%
-      #   number_to_percentage(1000, delimiter: '.', separator: ',')       # => 1.000,000%
-      #   number_to_percentage(302.24398923423, precision: 5)              # => 302.24399%
-      #   number_to_percentage(1000, locale: :fr)                          # => 1 000,000%
-      #   number_to_percentage("98a")                                      # => 98a%
-      #   number_to_percentage(100, format: "%n  %")                       # => 100.000  %
+      #   number_to_percentage(100)                                               # => "100.000%"
+      #   number_to_percentage("98")                                              # => "98.000%"
+      #   number_to_percentage(100, precision: 0)                                 # => "100%"
+      #   number_to_percentage(1000, delimiter: '.', separator: ',')              # => "1.000,000%"
+      #   number_to_percentage(302.24398923423, precision: 5)                     # => "302.24399%"
+      #   number_to_percentage(1000, locale: :fr)                                 # => "1 000,000%"
+      #   number_to_percentage("98a")                                             # => "98a%"
+      #   number_to_percentage(100, format: "%n  %")                              # => "100.000  %"
+      #   number_to_percentage(302.24398923423, precision: 5, round_mode: :down)  # => "302.24398%"
       #
-      #   number_to_percentage("98a", raise: true)                         # => InvalidNumberError
+      #   number_to_percentage("98a", raise: true)                                # => InvalidNumberError
       def number_to_percentage(number, options = {})
         delegate_number_helper_method(:number_to_percentage, number, options)
       end
@@ -219,6 +226,8 @@ module ActionView
       #   (defaults to current locale).
       # * <tt>:precision</tt> - Sets the precision of the number
       #   (defaults to 3).
+      # * <tt>:round_mode</tt> - Determine how rounding is performed
+      #   (defaults to :default. See BigDecimal::mode)
       # * <tt>:significant</tt> - If +true+, precision will be the number
       #   of significant_digits. If +false+, the number of fractional
       #   digits (defaults to +false+).
@@ -234,21 +243,23 @@ module ActionView
       #
       # ==== Examples
       #
-      #   number_with_precision(111.2345)                                         # => 111.235
-      #   number_with_precision(111.2345, precision: 2)                           # => 111.23
-      #   number_with_precision(13, precision: 5)                                 # => 13.00000
-      #   number_with_precision(389.32314, precision: 0)                          # => 389
-      #   number_with_precision(111.2345, significant: true)                      # => 111
-      #   number_with_precision(111.2345, precision: 1, significant: true)        # => 100
-      #   number_with_precision(13, precision: 5, significant: true)              # => 13.000
-      #   number_with_precision(111.234, locale: :fr)                             # => 111,234
+      #   number_with_precision(111.2345)                                         # => "111.235"
+      #   number_with_precision(111.2345, precision: 2)                           # => "111.23"
+      #   number_with_precision(13, precision: 5)                                 # => "13.00000"
+      #   number_with_precision(389.32314, precision: 0)                          # => "389"
+      #   number_with_precision(111.2345, significant: true)                      # => "111"
+      #   number_with_precision(111.2345, precision: 1, significant: true)        # => "100"
+      #   number_with_precision(13, precision: 5, significant: true)              # => "13.000"
+      #   number_with_precision(13, precision: nil)                               # => "13"
+      #   number_with_precision(389.32314, precision: 0, round_mode: :up)         # => "390"
+      #   number_with_precision(111.234, locale: :fr)                             # => "111,234"
       #
       #   number_with_precision(13, precision: 5, significant: true, strip_insignificant_zeros: true)
-      #   # => 13
+      #   # => "13"
       #
       #   number_with_precision(389.32314, precision: 4, significant: true)       # => 389.3
       #   number_with_precision(1111.2345, precision: 2, separator: ',', delimiter: '.')
-      #   # => 1.111,23
+      #   # => "1.111,23"
       def number_with_precision(number, options = {})
         delegate_number_helper_method(:number_to_rounded, number, options)
       end
@@ -267,6 +278,8 @@ module ActionView
       #   (defaults to current locale).
       # * <tt>:precision</tt> - Sets the precision of the number
       #   (defaults to 3).
+      # * <tt>:round_mode</tt> - Determine how rounding is performed
+      #   (defaults to :default. See BigDecimal::mode)
       # * <tt>:significant</tt> - If +true+, precision will be the number
       #   of significant_digits. If +false+, the number of fractional
       #   digits (defaults to +true+)
@@ -282,17 +295,18 @@ module ActionView
       #
       # ==== Examples
       #
-      #   number_to_human_size(123)                                          # => 123 Bytes
-      #   number_to_human_size(1234)                                         # => 1.21 KB
-      #   number_to_human_size(12345)                                        # => 12.1 KB
-      #   number_to_human_size(1234567)                                      # => 1.18 MB
-      #   number_to_human_size(1234567890)                                   # => 1.15 GB
-      #   number_to_human_size(1234567890123)                                # => 1.12 TB
-      #   number_to_human_size(1234567890123456)                             # => 1.1 PB
-      #   number_to_human_size(1234567890123456789)                          # => 1.07 EB
-      #   number_to_human_size(1234567, precision: 2)                        # => 1.2 MB
-      #   number_to_human_size(483989, precision: 2)                         # => 470 KB
-      #   number_to_human_size(1234567, precision: 2, separator: ',')        # => 1,2 MB
+      #   number_to_human_size(123)                                          # => "123 Bytes"
+      #   number_to_human_size(1234)                                         # => "1.21 KB"
+      #   number_to_human_size(12345)                                        # => "12.1 KB"
+      #   number_to_human_size(1234567)                                      # => "1.18 MB"
+      #   number_to_human_size(1234567890)                                   # => "1.15 GB"
+      #   number_to_human_size(1234567890123)                                # => "1.12 TB"
+      #   number_to_human_size(1234567890123456)                             # => "1.1 PB"
+      #   number_to_human_size(1234567890123456789)                          # => "1.07 EB"
+      #   number_to_human_size(1234567, precision: 2)                        # => "1.2 MB"
+      #   number_to_human_size(483989, precision: 2)                         # => "470 KB"
+      #   number_to_human_size(483989, precision: 2, round_mode: :up)        # => "480 KB"
+      #   number_to_human_size(1234567, precision: 2, separator: ',')        # => "1,2 MB"
       #   number_to_human_size(1234567890123, precision: 5)                  # => "1.1228 TB"
       #   number_to_human_size(524288000, precision: 5)                      # => "500 MB"
       def number_to_human_size(number, options = {})
@@ -319,6 +333,8 @@ module ActionView
       #   (defaults to current locale).
       # * <tt>:precision</tt> - Sets the precision of the number
       #   (defaults to 3).
+      # * <tt>:round_mode</tt> - Determine how rounding is performed
+      #   (defaults to :default. See BigDecimal::mode)
       # * <tt>:significant</tt> - If +true+, precision will be the number
       #   of significant_digits. If +false+, the number of fractional
       #   digits (defaults to +true+)
@@ -358,11 +374,13 @@ module ActionView
       #   number_to_human(1234567890123456789)                          # => "1230 Quadrillion"
       #   number_to_human(489939, precision: 2)                         # => "490 Thousand"
       #   number_to_human(489939, precision: 4)                         # => "489.9 Thousand"
+      #   number_to_human(489939, precision: 2,
+      #                           round_mode: :down)                    # => "480 Thousand"
       #   number_to_human(1234567, precision: 4,
-      #                           significant: false)                   # => "1.2346 Million"
+      #                            significant: false)                  # => "1.2346 Million"
       #   number_to_human(1234567, precision: 1,
-      #                           separator: ',',
-      #                           significant: false)                   # => "1,2 Million"
+      #                            separator: ',',
+      #                            significant: false)                  # => "1,2 Million"
       #
       #   number_to_human(500000000, precision: 5)                      # => "500 Million"
       #   number_to_human(12345012345, significant: false)              # => "12.345 Billion"
