@@ -21,6 +21,7 @@ module Rails
                     :beginning_of_week, :filter_redirect, :x,
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
+                    :browser_guard_error_handler,
                     :require_master_key, :credentials, :disable_sandbox, :sandbox_by_default,
                     :add_autoload_paths_to_load_path, :rake_eager_load, :server_timing, :log_file_size,
                     :dom_testing_default_html_version
@@ -83,6 +84,8 @@ module Rails
         @rake_eager_load                         = false
         @server_timing                           = false
         @dom_testing_default_html_version        = :html4
+        @browser_guard                           = nil
+        @browser_guard_error_handler             = nil
       end
 
       # Loads default configuration values for a target version. This includes
@@ -533,6 +536,15 @@ module Rails
           @content_security_policy = ActionDispatch::ContentSecurityPolicy.new(&block)
         else
           @content_security_policy
+        end
+      end
+
+      # Configures the ActionDispatch::BrowserGuard.
+      def browser_guard(&block)
+        if block_given?
+          @browser_guard = ActionDispatch::BrowserGuard.new(&block)
+        else
+          @browser_guard
         end
       end
 

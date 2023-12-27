@@ -24,6 +24,7 @@ module ActionDispatch
     include ActionDispatch::Http::URL
     include ActionDispatch::ContentSecurityPolicy::Request
     include ActionDispatch::PermissionsPolicy::Request
+    include ActionDispatch::BrowserGuard::Request
     include Rack::Request::Env
 
     autoload :Session, "action_dispatch/request/session"

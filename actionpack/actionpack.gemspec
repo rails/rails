@@ -43,6 +43,7 @@ Gem::Specification.new do |s|
   s.add_dependency "rails-html-sanitizer", "~> 1.6"
   s.add_dependency "rails-dom-testing", "~> 2.2"
   s.add_dependency "actionview", version
+  s.add_dependency "useragent", ">= 0.16.10"
 
   s.add_development_dependency "activemodel", version
 end

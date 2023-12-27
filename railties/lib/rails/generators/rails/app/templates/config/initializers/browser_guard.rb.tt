@@ -1,0 +1,19 @@
+# Be sure to restart your server when you modify this file.
+
+# Defines which browser versions your app supports. Unsupported browsers will see an error message.
+# By default all browsers are allowed, only browsers with a specific version specified will receive errors.
+
+# Rails.application.configure do
+#   config.browser_guard do |guard|
+#     guard.require_at_least :chrome, 63
+#     guard.require_at_least :safari, 16.7
+#     guard.require_at_least :edge, 89
+#     guard.require_at_least :firefox, 108
+#     guard.require_at_least :opera, 76
+#   end
+# 
+#   # Handler get's called for all browsers that don't match the requirement
+#   config.browser_guard_error_handler = ->(request) { 
+#     Rails.logger.info("#{request.user_agent} blocked from application")
+#   }
+# end

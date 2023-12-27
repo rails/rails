@@ -327,6 +327,8 @@ module Rails
           "action_dispatch.content_security_policy_nonce_generator" => config.content_security_policy_nonce_generator,
           "action_dispatch.content_security_policy_nonce_directives" => config.content_security_policy_nonce_directives,
           "action_dispatch.permissions_policy" => config.permissions_policy,
+          "action_dispatch.browser_guard" => config.browser_guard,
+          "action_dispatch.browser_guard_error_handler" => config.browser_guard_error_handler,
         )
     end
 

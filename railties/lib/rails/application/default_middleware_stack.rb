@@ -80,6 +80,7 @@ module Rails
             middleware.use ::ActionDispatch::Flash
             middleware.use ::ActionDispatch::ContentSecurityPolicy::Middleware
             middleware.use ::ActionDispatch::PermissionsPolicy::Middleware
+            middleware.use ::ActionDispatch::BrowserGuard::Middleware
           end
 
           middleware.use ::Rack::Head
