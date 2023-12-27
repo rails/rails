@@ -57,7 +57,7 @@ to one channel.
 ### Subscribers
 
 When the consumer is subscribed to a channel, they act as a *subscriber*.
-The connection between the subscriber and the channel is called a 
+The connection between the subscriber and the channel is called a
 subscription. A consumer can act as a subscriber to a given channel
 any number of times. For example, a consumer could subscribe to multiple chat rooms
 at the same time. (And remember that a physical user may have multiple consumers,
