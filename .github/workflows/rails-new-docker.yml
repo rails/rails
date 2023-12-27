@@ -33,6 +33,7 @@ jobs:
         podman run --name $APP_NAME \
         -v $(pwd):$(pwd) \
         -e SECRET_KEY_BASE_DUMMY=1 \
+        -e DATABASE_URL=sqlite3:storage/production.sqlite3 \
         -p 3000:3000 $APP_NAME &
     - name: Test container
       run: ruby -r ./.github/workflows/scripts/test-container.rb

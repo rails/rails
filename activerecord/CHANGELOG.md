@@ -1,3 +1,12 @@
+*   Remove warning message when running SQLite in production, but leave it unconfigured
+
+    There are valid use cases for running SQLite in production, however it must be done
+    with care, so instead of a warning most users won't see anyway, it's preferable to
+    leave the configuration commented out to force them to think about having the database
+    on a persistent volume etc.
+
+    *Jacopo Beschi*, *Jean Boussier*
+
 *   Add support for generated columns in SQLite3 adapter
 
     Generated columns (both stored and dynamic) are supported since version 3.31.0 of SQLite.
