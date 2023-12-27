@@ -418,7 +418,6 @@ class LoadingTest < ActiveSupport::TestCase
   end
 
   test "active record query cache hooks are installed before first request in production" do
-    add_to_config "config.active_record.sqlite3_production_warning = false"
     app_file "app/controllers/omg_controller.rb", <<-RUBY
       begin
         class OmgController < ActionController::Metal

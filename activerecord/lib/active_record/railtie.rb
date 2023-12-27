@@ -31,7 +31,6 @@ module ActiveRecord
     config.active_record.check_schema_cache_dump_version = true
     config.active_record.maintain_test_schema = true
     config.active_record.has_many_inversing = false
-    config.active_record.sqlite3_production_warning = true
     config.active_record.query_log_tags_enabled = false
     config.active_record.query_log_tags = [ :application ]
     config.active_record.query_log_tags_format = :legacy
@@ -232,13 +231,13 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
-    SQLITE3_PRODUCTION_WARN = "You are running SQLite in production, this is generally not recommended."\
-      " You can disable this warning by setting \"config.active_record.sqlite3_production_warning=false\"."
-    initializer "active_record.sqlite3_production_warning" do
-      if config.active_record.sqlite3_production_warning && Rails.env.production?
-        ActiveSupport.on_load(:active_record_sqlite3adapter) do
-          Rails.logger.warn(SQLITE3_PRODUCTION_WARN)
-        end
+    initializer "active_record.sqlite3_deprecated_warning" do
+      if config.active_record.key?(:sqlite3_production_warning)
+        config.active_record.delete(:sqlite3_production_warning)
+        ActiveRecord.deprecator.warn <<~MSG.squish
+          The `config.active_record.sqlite3_production_warning` configuration no longer has any effect
+          and can be safely removed.
+        MSG
       end
     end
 
@@ -278,7 +277,6 @@ To keep using the current cache store, you can turn off cache versioning entirel
           :query_log_tags,
           :query_log_tags_format,
           :cache_query_log_tags,
-          :sqlite3_production_warning,
           :sqlite3_adapter_strict_strings_by_default,
           :check_schema_cache_dump_version,
           :use_schema_cache_dump
