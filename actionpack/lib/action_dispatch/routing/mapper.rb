@@ -216,14 +216,23 @@ module ActionDispatch
 
             if to.respond_to?(:action) || to.respond_to?(:call)
               options
-            else
-              to_endpoint = split_to to
-              controller  = to_endpoint[0] || default_controller
-              action      = to_endpoint[1] || default_action
+            elsif to.nil?
+              controller = default_controller
+              action = default_action
 
               controller = add_controller_module(controller, modyoule)
 
               options.merge! check_controller_and_action(path_params, controller, action)
+            elsif to.is_a?(String) && to.include?("#")
+              to_endpoint = to.split("#").map!(&:-@)
+              controller  = to_endpoint[0]
+              action      = to_endpoint[1]
+
+              controller = add_controller_module(controller, modyoule)
+
+              options.merge! check_controller_and_action(path_params, controller, action)
+            else
+              raise ArgumentError, ":to must respond_to? :action or :call, or it must be a String that includes '#'"
             end
           end
 
@@ -306,14 +315,6 @@ module ActionDispatch
               end
             end
             hash
-          end
-
-          def split_to(to)
-            if to&.include?("#")
-              to.split("#").map!(&:-@)
-            else
-              []
-            end
           end
 
           def add_controller_module(controller, modyoule)
