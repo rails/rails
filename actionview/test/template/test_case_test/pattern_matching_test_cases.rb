@@ -9,6 +9,7 @@ class ActionView::PatternMatchingTestCases < ActionView::TestCase
     # rubocop:disable Lint/Syntax
     assert_pattern { document_root_element.at("h1") => { content: "Eloy", attributes: [{ name: "id", value: "name" }] } }
     refute_pattern { document_root_element.at("h1") => { content: "Not Eloy" } }
+    # rubocop:enable Lint/Syntax
   end
 
   test "rendered.html integrates with pattern matching" do
