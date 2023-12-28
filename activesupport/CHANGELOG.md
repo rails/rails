@@ -1,3 +1,13 @@
+*   Yield instance to `Object#with` block
+
+    ```ruby
+    client.with(timeout: 5_000) do |c|
+      c.get("/commits")
+    end
+    ```
+
+    *Sean Doyle*
+
 *   Use logical core count instead of physical core count to determine the
     default number of workers when parallelizing tests.
 
