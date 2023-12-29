@@ -20,6 +20,12 @@ jobs:
         ruby-version: 3.2
         bundler-cache: true
 
+    - name: standard rails new
+      run: |
+        bundle exec railties/exe/rails new dev/devrails --dev
+        cd dev/devrails
+        bundle exec standardrb
+
     - name: mdl
       run: bundle exec rake -f guides/Rakefile guides:lint
 

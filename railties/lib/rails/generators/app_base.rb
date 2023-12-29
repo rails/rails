@@ -88,6 +88,9 @@ module Rails
         class_option :skip_jbuilder,       type: :boolean, default: nil,
                                            desc: "Skip jbuilder gem"
 
+        class_option :skip_linter,         type: :boolean, aliases: ["-L", "--skip-standard"], default: false,
+                                           desc: "Skip standard Ruby linting"
+
         class_option :skip_test,           type: :boolean, aliases: "-T", default: nil,
                                            desc: "Skip test files"
 
@@ -141,6 +144,7 @@ module Rails
           css_gemfile_entry,
           jbuilder_gemfile_entry,
           cable_gemfile_entry,
+          linter_gemfile_entry,
         ].flatten.compact.select(&@gem_filter)
       end
 
@@ -475,6 +479,12 @@ module Rails
           GemfileEntry.floats "stimulus-rails", "Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]"
 
         [ turbo_rails_entry, stimulus_rails_entry ]
+      end
+
+      def linter_gemfile_entry
+        return if options[:skip_linter]
+
+        GemfileEntry.floats "standard", "Standard is a Ruby code formatter and linter [https://github.com/standardrb/standard]"
       end
 
       def using_js_runtime?
