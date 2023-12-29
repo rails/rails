@@ -82,6 +82,11 @@ module Rails
       chmod "bin/docker-entrypoint", 0755 & ~File.umask, verbose: false
     end
 
+    def rubocop
+      template ".rubocop.yml"
+      template "rubocop", "bin/rubocop"
+    end
+
     def version_control
       if !options[:skip_git] && !options[:pretend]
         run git_init_command, capture: options[:quiet], abort_on_failure: false
@@ -367,6 +372,11 @@ module Rails
         build(:dockerfiles)
       end
 
+      def create_rubocop_file
+        return if skip_rubocop?
+        build(:rubocop)
+      end
+
       def create_config_files
         build(:config)
       end
@@ -544,6 +554,7 @@ module Rails
       public_task :run_javascript
       public_task :run_hotwire
       public_task :run_css
+      public_task :run_rubocop
 
       def run_after_bundle_callbacks
         @after_bundle_callbacks.each(&:call)
