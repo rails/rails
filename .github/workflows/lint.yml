@@ -24,7 +24,7 @@ jobs:
       run: |
         bundle exec railties/exe/rails new dev/devrails --dev
         cd dev/devrails
-        bundle exec standardrb
+        bundle exec standardrb --verbose-version
 
     - name: mdl
       run: bundle exec rake -f guides/Rakefile guides:lint
