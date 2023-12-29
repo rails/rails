@@ -2,6 +2,18 @@
 
     *zzak*
 
+*   Active Storage can be configured by `STORAGE_URL` environment variable
+
+    The following cases are currently supported:
+
+    ```
+    disk://my/root/path
+    s3://access_key_id:secret_access_key@us-east-1/your-bucket
+    gcs://path/to/gcs.keyfile@your_project/your-bucket
+    ```
+
+    *zzak*
+
 *   Improve `ActiveStorage::Filename#sanitized` method to handle special characters more effectively.
     Replace the characters `"*?<>` with `-` if they exist in the Filename to match the Filename convention of Win OS.
 
