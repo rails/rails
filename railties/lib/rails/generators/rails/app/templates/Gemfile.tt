@@ -48,6 +48,11 @@ group :development do
   # gem "rack-mini-profiler"
 
 <%- end -%>
+<%- unless options.skip_linter? -%>
+  # Standard is a Ruby code formatter and linter [https://github.com/standardrb/standard]
+  gem "standard"
+
+<%- end -%>
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
 <%- if RUBY_VERSION >= "3.1" && RUBY_VERSION < "3.2" -%>

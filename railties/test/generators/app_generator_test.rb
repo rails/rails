@@ -609,6 +609,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_inclusion_of_linter
+    run_generator
+    assert_gem "standard"
+  end
+
+  def test_linter_is_skipped_if_required
+    run_generator [destination_root, "--skip-linter"]
+
+    assert_no_gem "standard"
+  end
+
   def test_inclusion_of_jbuilder
     run_generator
     assert_gem "jbuilder"
