@@ -1,3 +1,10 @@
+*   Fix `ActiveSupport::JSON.encode` to prevent duplicate keys
+
+    If the same key exist in both String and Symbol form it could
+    lead to the same key being emitted twice.
+
+    *Manish Sharma*
+
 *   Fix `ActiveSupport::Cache::Store#read_multi` when using a cache namespace
     and local cache strategy.
 
