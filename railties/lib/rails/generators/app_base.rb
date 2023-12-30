@@ -720,7 +720,7 @@ module Rails
       def run_rubocop
         return if skip_rubocop? || !bundle_install?
 
-        run "rubocop"
+        run "bin/rubocop"
       end
 
       def add_bundler_platforms
