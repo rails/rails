@@ -718,7 +718,7 @@ module Rails
       end
 
       def run_rubocop
-        return if skip_rubocop? || !bundle_install?
+        return if skip_rubocop? || !bundle_install? || options[:update]
 
         run "bin/rubocop"
       end
