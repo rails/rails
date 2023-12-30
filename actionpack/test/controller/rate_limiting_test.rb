@@ -14,19 +14,13 @@ end.new
 REDIS_TEST_SEGGREGATION = Random.hex(10)
 
 class RateLimitedController < ActionController::Base
-  rate_limit to: 2, within: 3.seconds, by: -> { "#{REDIS_TEST_SEGGREGATION}:#{request.remote_ip}" }, only: :limited_to_two
+  rate_limit to: 2, within: 2.seconds, by: -> { "#{REDIS_TEST_SEGGREGATION}:static" }, only: :limited_to_two
 
   def limited_to_two
     render plain: "Made it!"
   end
 
-  rate_limit to: 2, within: 5.seconds, by: -> { "#{REDIS_TEST_SEGGREGATION}:static" }, only: :limited_by_static
-
-  def limited_by_static
-    render plain: "Made it!"
-  end
-
-  rate_limit to: 2, within: 3.seconds, by: -> { "#{REDIS_TEST_SEGGREGATION}:#{request.remote_ip}" }, with: -> { head :forbidden }, only: :limited_with
+  rate_limit to: 2, within: 2.seconds, by: -> { "#{REDIS_TEST_SEGGREGATION}:static" }, with: -> { head :forbidden }, only: :limited_with
   def limited_with
     render plain: "Made it!"
   end
@@ -36,7 +30,7 @@ class RateLimitingTest < ActionController::TestCase
   tests RateLimitedController
 
   setup do
-    Kredis.counter("rate-limit:rate_limited:#{REDIS_TEST_SEGGREGATION}:0.0.0.0").del
+    Kredis.counter("rate-limit:rate_limited:#{REDIS_TEST_SEGGREGATION}:static").del
   end
 
   test "exceeding basic limit" do
@@ -53,18 +47,9 @@ class RateLimitingTest < ActionController::TestCase
     get :limited_to_two
     assert_response :ok
 
-    sleep 3.1
+    sleep 2.1
     get :limited_to_two
     assert_response :ok
-  end
-
-  test "limited by static" do
-    get :limited_by_static
-    get :limited_by_static
-    assert_response :ok
-    assert_equal 2, Kredis.counter("rate-limit:rate_limited:#{REDIS_TEST_SEGGREGATION}:static").value
-  ensure
-    Kredis.counter("rate-limit:rate_limited:#{REDIS_TEST_SEGGREGATION}:static").del
   end
 
   test "limited with" do
