@@ -36,20 +36,18 @@ module ActionController # :nodoc:
 
       private
         def ensure_compatible_kredis_is_available
-          begin
-            require "kredis"
+          require "kredis"
 
-            if Kredis::VERSION >= "1.7.0"
-              yield
-            else
-              raise StandardError, \
-                "Rate limiting requires Kredis 1.7.0+. Please update by calling `bundle update kredis`."
-            end
-          rescue LoadError
-            raise LoadError, \
-              "Rate limiting requires Redis and Kredis. " +
-              "Please ensure you have Redis installed on your system and the Kredis gem in your Gemfile."
+          if Kredis::VERSION >= "1.7.0"
+            yield
+          else
+            raise StandardError, \
+              "Rate limiting requires Kredis 1.7.0+. Please update by calling `bundle update kredis`."
           end
+        rescue LoadError
+          raise LoadError, \
+            "Rate limiting requires Redis and Kredis. " +
+            "Please ensure you have Redis installed on your system and the Kredis gem in your Gemfile."
         end
     end
 
