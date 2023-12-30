@@ -35,6 +35,7 @@ class RateLimitingTest < ActionController::TestCase
 
   setup do
     Kredis.counter("rate-limit:rate_limited:0.0.0.0").del
+    Kredis.counter("rate-limit:rate_limited:127.0.0.1").del
   end
 
   test "exceeding basic limit" do
