@@ -40,17 +40,17 @@ end
 <% end -%>
 
 group :development do
+<%- unless options.skip_rubocop? -%>
+  # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
+  gem "rubocop-rails-omakase", require: false
+
+<%- end -%>
 <%- unless options.api? || options.skip_dev_gems? -%>
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
 
   # Add speed badges [https://github.com/MiniProfiler/rack-mini-profiler]
   # gem "rack-mini-profiler"
-
-<%- end -%>
-<%- unless options.skip_rubocop? -%>
-  # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
-  gem "rubocop-rails-omakase", require: false
 
 <%- end -%>
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
