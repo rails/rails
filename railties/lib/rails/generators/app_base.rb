@@ -101,7 +101,7 @@ module Rails
                                            desc: "Skip development gems (e.g., web-console)"
 
         class_option :skip_rubocop,        type: :boolean, default: nil,
-                                           desc: "Skip rubocop-rails-omakase gem"
+                                           desc: "Skip RuboCop setup"
 
         class_option :dev,                 type: :boolean, default: nil,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
