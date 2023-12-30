@@ -49,7 +49,7 @@ group :development do
 
 <%- end -%>
 <%- unless options.skip_rubocop? -%>
-  # Omakase Ruby styling for Rails applications [https://github.com/rails/rubocop-rails-omakase/tree/main]
+  # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
 
 <%- end -%>
