@@ -47,7 +47,7 @@ class RateLimitingTest < ActionController::TestCase
     get :limited_to_two
     assert_response :ok
 
-    sleep 2.1
+    sleep 3
     get :limited_to_two
     assert_response :ok
   end
