@@ -84,7 +84,6 @@ module Rails
 
     def rubocop
       template ".rubocop.yml"
-      template "rubocop", "bin/rubocop"
     end
 
     def version_control
@@ -103,7 +102,8 @@ module Rails
     end
 
     def bin
-      directory "bin" do |content|
+      options = skip_rubocop? ? { exclude_pattern: /rubocop/ } : {}
+      directory "bin", **options do |content|
         "#{shebang}\n" + content
       end
       chmod "bin", 0755 & ~File.umask, verbose: false
