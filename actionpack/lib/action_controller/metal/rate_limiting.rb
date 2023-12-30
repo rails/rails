@@ -14,7 +14,7 @@ module ActionController # :nodoc:
       #
       # Requests that exceed the rate limit are refused with a <tt>423 Too Many Requests</tt> response. You can specialize this by passing a callable
       # in the <tt>with:</tt> parameter. It's evaluated within the context of the controller processing the request.
-      # 
+      #
       # Examples:
       #
       #   class SessionsController < ApplicationController
@@ -27,6 +27,7 @@ module ActionController # :nodoc:
       #   end
       #
       # Note: Rate limiting relies on the application having an accessible Redis server and on Kredis 1.7.0+ being available in the bundle.
+      # This uses the Kredis limiter type underneath, which is failsafe, so in case Redis is inaccessible, the rate limit will not refuse action execution.
       def rate_limit(to:, within:, by: -> { request.remote_ip }, with: -> { head :too_many_requests }, **options)
         ensure_compatible_kredis_is_available do
           before_action -> { rate_limiting(to:, within:, by:, with:) }, **options
