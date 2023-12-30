@@ -12,7 +12,7 @@ module ActionController # :nodoc:
       # Rate limits are by default unique to the ip address making the request, but you can provide your own identity function by passing a callable
       # in the <tt>by:</tt> parameter. It's evaluated within the context of the controller processing the request.
       #
-      # Requests that exceed the rate limit are refused with a <tt>423 Too Many Requests</tt> response. You can specialize this by passing a callable
+      # Requests that exceed the rate limit are refused with a <tt>429 Too Many Requests</tt> response. You can specialize this by passing a callable
       # in the <tt>with:</tt> parameter. It's evaluated within the context of the controller processing the request.
       #
       # Examples:
