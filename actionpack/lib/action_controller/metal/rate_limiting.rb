@@ -29,18 +29,15 @@ module ActionController # :nodoc:
       # Note: Rate limiting relies on the application having an accessible Redis server and on Kredis 1.7.0+ being available in the bundle.
       # This uses the Kredis limiter type underneath, which is failsafe, so in case Redis is inaccessible, the rate limit will not refuse action execution.
       def rate_limit(to:, within:, by: -> { request.remote_ip }, with: -> { head :too_many_requests }, **options)
-        ensure_compatible_kredis_is_available do
-          before_action -> { rate_limiting(to: to, within: within, by: by, with: with) }, **options
-        end
+        require_compatible_kredis
+        before_action -> { rate_limiting(to: to, within: within, by: by, with: with) }, **options
       end
 
       private
-        def ensure_compatible_kredis_is_available
+        def require_compatible_kredis
           require "kredis"
 
-          if Kredis::VERSION >= "1.7.0"
-            yield
-          else
+          if Kredis::VERSION < "1.7.0"
             raise StandardError, \
               "Rate limiting requires Kredis 1.7.0+. Please update by calling `bundle update kredis`."
           end
