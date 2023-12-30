@@ -12,13 +12,13 @@ end.new
 # ActiveSupport::LogSubscriber.logger = ActiveSupport::Logger.new(STDOUT)
 
 class RateLimitedController < ActionController::Base
-  rate_limit to: 2, within: 2.seconds, by: -> { "#{Thread.current[:redis_test_seggregation]}:static" }, only: :limited_to_two
+  rate_limit to: 2, within: 2.seconds, by: -> { Thread.current[:redis_test_seggregation] }, only: :limited_to_two
 
   def limited_to_two
     head :ok
   end
 
-  rate_limit to: 2, within: 2.seconds, by: -> { "#{Thread.current[:redis_test_seggregation]}:static" }, with: -> { head :forbidden }, only: :limited_with
+  rate_limit to: 2, within: 2.seconds, by: -> { Thread.current[:redis_test_seggregation] }, with: -> { head :forbidden }, only: :limited_with
   def limited_with
     head :ok
   end
@@ -29,7 +29,7 @@ class RateLimitingTest < ActionController::TestCase
 
   setup do
     Thread.current[:redis_test_seggregation] = Random.hex(10)
-    Kredis.counter("rate-limit:rate_limited:#{Thread.current[:redis_test_seggregation]}:static").del
+    Kredis.counter("rate-limit:rate_limited:#{Thread.current[:redis_test_seggregation]}").del
   end
 
   test "exceeding basic limit" do
