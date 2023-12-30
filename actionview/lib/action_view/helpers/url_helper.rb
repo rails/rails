@@ -630,10 +630,12 @@ module ActionView
           request_uri = +"#{request.protocol}#{request.host_with_port}#{request_uri}"
         end
 
+        url_is_root = is_root_route_equivalent(url_string, request_uri)
+
         remove_trailing_slash!(url_string)
         remove_trailing_slash!(request_uri)
 
-        url_string == request_uri
+        (url_string == request_uri) || url_is_root
       end
 
       if RUBY_VERSION.start_with?("2.7")
@@ -647,6 +649,10 @@ module ActionView
           options = args.pop
           options.is_a?(Hash) ? _current_page?(*args, **options) : _current_page?(*args, options)
         end
+      end
+
+      def is_root_route_equivalent(path1, path2)
+        path1 == "/" && !(request.fullpath.index("?")) && _routes.recognize_path_spec(path1) == _routes.recognize_path_spec(path2)
       end
 
       # Creates an SMS anchor link tag to the specified +phone_number+. When the
