@@ -11,8 +11,6 @@ end.new
 # Enable Kredis logging
 # ActiveSupport::LogSubscriber.logger = ActiveSupport::Logger.new(STDOUT)
 
-Thread.current[:redis_test_seggregation] = Random.hex(10)
-
 class RateLimitedController < ActionController::Base
   rate_limit to: 2, within: 2.seconds, by: -> { "#{Thread.current[:redis_test_seggregation]}:static" }, only: :limited_to_two
 
@@ -30,6 +28,7 @@ class RateLimitingTest < ActionController::TestCase
   tests RateLimitedController
 
   setup do
+    Thread.current[:redis_test_seggregation] = Random.hex(10)
     Kredis.counter("rate-limit:rate_limited:#{Thread.current[:redis_test_seggregation]}:static").del
   end
 
