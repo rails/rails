@@ -100,6 +100,9 @@ module Rails
         class_option :skip_dev_gems,       type: :boolean, default: nil,
                                            desc: "Skip development gems (e.g., web-console)"
 
+        class_option :skip_rubocop,        type: :boolean, default: nil,
+                                           desc: "Skip RuboCop setup"
+
         class_option :dev,                 type: :boolean, default: nil,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
 
@@ -377,6 +380,10 @@ module Rails
 
       def skip_propshaft?
         skip_asset_pipeline? || options[:asset_pipeline] != "propshaft"
+      end
+
+      def skip_rubocop?
+        options[:skip_rubocop]
       end
 
 

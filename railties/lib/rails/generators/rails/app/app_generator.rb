@@ -82,6 +82,10 @@ module Rails
       chmod "bin/docker-entrypoint", 0755 & ~File.umask, verbose: false
     end
 
+    def rubocop
+      template "rubocop.yml", ".rubocop.yml"
+    end
+
     def version_control
       if !options[:skip_git] && !options[:pretend]
         run git_init_command, capture: options[:quiet], abort_on_failure: false
@@ -98,7 +102,8 @@ module Rails
     end
 
     def bin
-      directory "bin" do |content|
+      options = skip_rubocop? ? { exclude_pattern: /rubocop/ } : {}
+      directory "bin", **options do |content|
         "#{shebang}\n" + content
       end
       chmod "bin", 0755 & ~File.umask, verbose: false
@@ -365,6 +370,11 @@ module Rails
       def create_dockerfiles
         return if options[:skip_docker] || options[:dummy_app]
         build(:dockerfiles)
+      end
+
+      def create_rubocop_file
+        return if skip_rubocop?
+        build(:rubocop)
       end
 
       def create_config_files

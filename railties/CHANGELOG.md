@@ -1,3 +1,7 @@
+*   Add RuboCop with rules from rubocop-rails-omakase by default. Skip with --skip-rubocop.
+
+    *DHH* and *zzak*
+
 *   Use `bin/rails runner --skip-executor` option to not wrap the runner script
     with an Executor.
 

@@ -8,6 +8,7 @@ DEFAULT_APP_FILES = %w(
   .gitattributes
   .gitignore
   .dockerignore
+  .rubocop.yml
   .ruby-version
   README.md
   Gemfile
@@ -39,6 +40,7 @@ DEFAULT_APP_FILES = %w(
   bin/docker-entrypoint
   bin/rails
   bin/rake
+  bin/rubocop
   bin/setup
   config/application.rb
   config/boot.rb
@@ -621,6 +623,19 @@ class AppGeneratorTest < Rails::Generators::TestCase
     else
       assert_gem "debug"
     end
+  end
+
+  def test_inclusion_of_rubocop
+    run_generator
+    assert_gem "rubocop-rails-omakase"
+  end
+
+  def test_rubocop_is_skipped_if_required
+    run_generator [destination_root, "--skip-rubocop"]
+
+    assert_no_gem "rubocop"
+    assert_no_file "bin/rubocop"
+    assert_no_file ".rubocop.yml"
   end
 
   def test_usage_read_from_file

@@ -40,6 +40,11 @@ end
 <% end -%>
 
 group :development do
+<%- unless options.skip_rubocop? -%>
+  # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
+  gem "rubocop-rails-omakase", require: false
+
+<%- end -%>
 <%- unless options.api? || options.skip_dev_gems? -%>
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
