@@ -14,7 +14,7 @@ end.new
 REDIS_TEST_SEGGREGATION = Random.hex(10)
 
 class RateLimitedController < ActionController::Base
-  rate_limit to: 2, within: 1.second, by: -> { "#{REDIS_TEST_SEGGREGATION}:#{request.remote_ip}" }, only: :limited_to_two
+  rate_limit to: 2, within: 3.seconds, by: -> { "#{REDIS_TEST_SEGGREGATION}:#{request.remote_ip}" }, only: :limited_to_two
 
   def limited_to_two
     render plain: "Made it!"
@@ -26,7 +26,7 @@ class RateLimitedController < ActionController::Base
     render plain: "Made it!"
   end
 
-  rate_limit to: 2, within: 1.second, by: -> { "#{REDIS_TEST_SEGGREGATION}:#{request.remote_ip}" }, with: -> { head :forbidden }, only: :limited_with
+  rate_limit to: 2, within: 3.seconds, by: -> { "#{REDIS_TEST_SEGGREGATION}:#{request.remote_ip}" }, with: -> { head :forbidden }, only: :limited_with
   def limited_with
     render plain: "Made it!"
   end
@@ -53,7 +53,7 @@ class RateLimitingTest < ActionController::TestCase
     get :limited_to_two
     assert_response :ok
 
-    sleep 1.1
+    sleep 3.1
     get :limited_to_two
     assert_response :ok
   end
