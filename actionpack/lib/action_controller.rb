@@ -46,6 +46,7 @@ module ActionController
     autoload :Logging
     autoload :MimeResponds
     autoload :ParamsWrapper
+    autoload :RateLimiting
     autoload :Redirecting
     autoload :Renderers
     autoload :Rendering
