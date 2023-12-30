@@ -56,7 +56,9 @@ module ActionController # :nodoc:
         limiter = Kredis.limiter "rate-limit:#{controller_path}:#{instance_exec(&by)}", limit: to, expires_in: within
 
         if limiter.exceeded?
-          instance_exec(&with)
+          ActiveSupport::Notifications.instrument("rate_limit.action_controller", request: request) do
+            instance_exec(&with)
+          end
         else
           limiter.poke
         end
