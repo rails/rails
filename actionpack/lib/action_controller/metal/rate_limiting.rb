@@ -26,7 +26,7 @@ module ActionController # :nodoc:
       #       by: -> { request.domain }, with: -> { redirect_to busy_controller_url, alert: "Too many signups on domain!" }, only: :new
       #   end
       #
-      # Note: Rate limiting relies on the application having an accessible Redis server and on the Kredis 1.7.0+ being available in the bundle.
+      # Note: Rate limiting relies on the application having an accessible Redis server and on Kredis 1.7.0+ being available in the bundle.
       def rate_limit(to:, within:, by: -> { request.remote_ip }, with: -> { head :too_many_requests }, **options)
         ensure_compatible_kredis_is_available do
           before_action -> { rate_limiting(to:, within:, by:, with:) }, **options
