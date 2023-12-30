@@ -83,7 +83,7 @@ module Rails
     end
 
     def rubocop
-      template ".rubocop.yml"
+      template "rubocop.yml", ".rubocop.yml"
     end
 
     def version_control
