@@ -17,12 +17,12 @@ class RateLimitedController < ActionController::Base
   rate_limit to: 2, within: 2.seconds, by: -> { "#{REDIS_TEST_SEGGREGATION}:static" }, only: :limited_to_two
 
   def limited_to_two
-    render plain: "Made it!"
+    head :ok
   end
 
   rate_limit to: 2, within: 2.seconds, by: -> { "#{REDIS_TEST_SEGGREGATION}:static" }, with: -> { head :forbidden }, only: :limited_with
   def limited_with
-    render plain: "Made it!"
+    head :ok
   end
 end
 
