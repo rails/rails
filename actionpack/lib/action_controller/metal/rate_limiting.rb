@@ -30,7 +30,7 @@ module ActionController # :nodoc:
       # This uses the Kredis limiter type underneath, which is failsafe, so in case Redis is inaccessible, the rate limit will not refuse action execution.
       def rate_limit(to:, within:, by: -> { request.remote_ip }, with: -> { head :too_many_requests }, **options)
         ensure_compatible_kredis_is_available do
-          before_action -> { rate_limiting(to:, within:, by:, with:) }, **options
+          before_action -> { rate_limiting(to: to, within: within, by: by, with: with) }, **options
         end
       end
 
