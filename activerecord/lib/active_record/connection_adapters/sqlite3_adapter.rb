@@ -77,6 +77,7 @@ module ActiveRecord
         boolean:      { name: "boolean" },
         json:         { name: "json" },
       }
+
       DEFAULT_PRAGMAS = {
         "foreign_keys"        => true,
         "journal_mode"        => :wal,
