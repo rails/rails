@@ -97,6 +97,7 @@ else
 end
 
 gem "kredis", ">= 1.7.0", require: false
+gem "useragent", require: false
 
 # Active Job
 group :job do

@@ -475,6 +475,7 @@ module Rails
         if options[:api]
           remove_file "public/404.html"
           remove_file "public/422.html"
+          remove_file "public/426.html"
           remove_file "public/500.html"
           remove_file "public/apple-touch-icon-precomposed.png"
           remove_file "public/apple-touch-icon.png"

@@ -56,6 +56,7 @@ PATH
       rack-test (>= 0.6.3)
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.6)
+      useragent (~> 0.16)
     actiontext (7.2.0.alpha)
       actionpack (= 7.2.0.alpha)
       activerecord (= 7.2.0.alpha)
@@ -191,8 +192,6 @@ GEM
       railties (>= 6.0.0)
     date (3.3.3)
     debug (1.7.1)
-      irb (>= 1.5.0)
-      reline (>= 0.3.1)
     declarative (0.0.20)
     delayed_job (4.1.11)
       activesupport (>= 3.0, < 8.0)
@@ -550,6 +549,7 @@ GEM
       concurrent-ruby (~> 1.0)
     uber (0.1.0)
     unicode-display_width (2.5.0)
+    useragent (0.16.10)
     w3c_validators (1.3.7)
       json (>= 1.8)
       nokogiri (~> 1.6)
@@ -654,6 +654,7 @@ DEPENDENCIES
   trilogy (>= 2.5.0)
   turbo-rails
   tzinfo-data
+  useragent
   w3c_validators (~> 1.3.6)
   wdm (>= 0.1.0)
   web-console
