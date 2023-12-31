@@ -18,13 +18,13 @@ module ActiveSupport
     # a cleanup will occur which tries to prune the cache down to three quarters
     # of the maximum size by removing the least recently used entries.
     #
-    # Unlike other Cache store implementations, MemoryStore does not compress
-    # values by default. MemoryStore does not benefit from compression as much
+    # Unlike other Cache store implementations, +MemoryStore+ does not compress
+    # values by default. +MemoryStore+ does not benefit from compression as much
     # as other Store implementations, as it does not send data over a network.
     # However, when compression is enabled, it still pays the full cost of
     # compression in terms of cpu use.
     #
-    # MemoryStore is thread-safe.
+    # +MemoryStore+ is thread-safe.
     class MemoryStore < Store
       module DupCoder # :nodoc:
         extend self

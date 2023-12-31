@@ -24,11 +24,11 @@ module ActiveSupport
     #
     # Special features:
     # - Clustering and load balancing. One can specify multiple memcached servers,
-    #   and MemCacheStore will load balance between all available servers. If a
-    #   server goes down, then MemCacheStore will ignore it until it comes back up.
+    #   and +MemCacheStore+ will load balance between all available servers. If a
+    #   server goes down, then +MemCacheStore+ will ignore it until it comes back up.
     #
-    # MemCacheStore implements the Strategy::LocalCache strategy which implements
-    # an in-memory cache inside of a block.
+    # +MemCacheStore+ implements the Strategy::LocalCache strategy which
+    # implements an in-memory cache inside of a block.
     class MemCacheStore < Store
       # These options represent behavior overridden by this implementation and should
       # not be allowed to get down to the Dalli client
@@ -106,14 +106,14 @@ module ActiveSupport
         end
       end
 
-      # Creates a new MemCacheStore object, with the given memcached server
+      # Creates a new +MemCacheStore+ object, with the given memcached server
       # addresses. Each address is either a host name, or a host-with-port string
       # in the form of "host_name:port". For example:
       #
       #   ActiveSupport::Cache::MemCacheStore.new("localhost", "server-downstairs.localnetwork:8229")
       #
       # If no addresses are provided, but <tt>ENV['MEMCACHE_SERVERS']</tt> is defined, it will be used instead. Otherwise,
-      # MemCacheStore will connect to localhost:11211 (the default memcached port).
+      # +MemCacheStore+ will connect to localhost:11211 (the default memcached port).
       # Passing a +Dalli::Client+ instance is deprecated and will be removed. Please pass an address instead.
       def initialize(*addresses)
         addresses = addresses.flatten
