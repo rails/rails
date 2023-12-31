@@ -186,6 +186,30 @@ of the files and folders that Rails created by default:
 |.gitignore|This file tells git which files (or patterns) it should ignore. See [GitHub - Ignoring files](https://help.github.com/articles/ignoring-files) for more info about ignoring files.
 |.ruby-version|This file contains the default Ruby version.|
 
+Dockerfile
+-----------
+
+Rails will generate all the Dockerfiles you need to deploy your application using
+Kamal, or any other Docker-based deployment setup, when you run rails new. These 
+Dockerfiles are tuned for production use with proper caching layers, multi-stage building
+to minimize image sizes, and all the dependencies needed whether you use a JavaScript 
+build environment or not. You can use Docker to run your application by running the 
+following commands:
+
+```bash
+$ cat config/master.key
+very-secret-master-key
+$  docker run -p 3000:3000 -e RAILS_MASTER_KEY="very-secret-master-key" -e DATABASE_URL=postgresql://xxx:@host.docker.internal/rails_50402_development rails-50402
+```
+
+This command runs a Docker container from the `rails-50402` image. It maps port 3000
+of the container to port 3000 on the host machine, ensuring the application inside the
+container is accessible through port 3000 on the host. The `-e` flag sets environment 
+variables: `RAILS_MASTER_KEY` is assigned a specific key value that is unique to your 
+application. The `DATABASE_URL` is points to a PostgreSQL database, with the hostname
+`host.docker.internal` indicating a database running on the host machine. This setup is
+typically used for running and testing a Rails application in an isolated environment.
+
 Hello, Rails!
 -------------
 
