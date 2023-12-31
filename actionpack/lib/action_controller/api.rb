@@ -121,6 +121,7 @@ module ActionController
       ConditionalGet,
       BasicImplicitRender,
       StrongParameters,
+      RateLimiting,
 
       DataStreaming,
       DefaultHeaders,

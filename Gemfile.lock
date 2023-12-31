@@ -300,6 +300,10 @@ GEM
       rexml
     kramdown-parser-gfm (1.1.0)
       kramdown (~> 2.0)
+    kredis (1.7.0)
+      activemodel (>= 6.0.0)
+      activesupport (>= 6.0.0)
+      redis (>= 4.2, < 6)
     language_server-protocol (3.17.0.3)
     libxml-ruby (4.0.0)
     listen (3.8.0)
@@ -594,6 +598,7 @@ DEPENDENCIES
   jbuilder
   jsbundling-rails
   json (>= 2.0.0, != 2.7.0)
+  kredis (>= 1.7.0)
   libxml-ruby
   listen (~> 3.3)
   mdl
