@@ -25,5 +25,5 @@ module ActiveRecord
 end
 
 ActiveSupport::Notifications.monotonic_subscribe("sql.active_record") do |name, start, finish, id, payload|
-  ActiveRecord::RuntimeRegistry.sql_runtime += (finish - start) * 1_000.0
+  ActiveRecord::RuntimeRegistry.sql_runtime += (finish - start)
 end
