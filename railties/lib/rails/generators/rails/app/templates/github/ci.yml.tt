@@ -55,7 +55,7 @@ jobs:
 
     steps:
       - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y <%= dockerfile_deploy_packages.join(" ") %>
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y google-chrome-stable <%= (dockerfile_deploy_packages + [build_package_for_database]).join(" ") %>
 
       - name: Checkout code
         uses: actions/checkout@v4
