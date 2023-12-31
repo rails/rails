@@ -56,6 +56,9 @@ group :rubocop do
   gem "rubocop-performance", require: false
   gem "rubocop-rails", require: false
   gem "rubocop-md", require: false
+
+  # This gem is used in Railties tests so it must be a development dependency.
+  gem "rubocop-rails-omakase", require: false
 end
 
 group :mdl do
