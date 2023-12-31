@@ -103,6 +103,9 @@ module Rails
         class_option :skip_rubocop,        type: :boolean, default: nil,
                                            desc: "Skip RuboCop setup"
 
+        class_option :skip_brakeman,       type: :boolean, default: nil,
+                                           desc: "Skip brakeman setup"
+
         class_option :dev,                 type: :boolean, default: nil,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
 
@@ -386,6 +389,9 @@ module Rails
         options[:skip_rubocop]
       end
 
+      def skip_brakeman?
+        options[:skip_brakeman]
+      end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
         def initialize(name, version, comment, options = {}, commented_out = false)

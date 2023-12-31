@@ -40,6 +40,11 @@ end
 <% end -%>
 
 group :development do
+<%- unless options.skip_brakeman? -%>
+  # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
+  gem "brakeman", require: false
+
+<%- end -%>
 <%- unless options.skip_rubocop? -%>
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false

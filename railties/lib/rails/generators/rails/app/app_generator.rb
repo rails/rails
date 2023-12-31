@@ -102,8 +102,8 @@ module Rails
     end
 
     def bin
-      options = skip_rubocop? ? { exclude_pattern: /rubocop/ } : {}
-      directory "bin", **options do |content|
+      exclude_pattern = Regexp.union([(/rubocop/ if skip_rubocop?), (/brakeman/ if skip_brakeman?)].compact)
+      directory "bin", { exclude_pattern: exclude_pattern } do |content|
         "#{shebang}\n" + content
       end
       chmod "bin", 0755 & ~File.umask, verbose: false
