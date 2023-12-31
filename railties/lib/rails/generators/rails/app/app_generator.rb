@@ -82,6 +82,12 @@ module Rails
       chmod "bin/docker-entrypoint", 0755 & ~File.umask, verbose: false
     end
 
+    def cifiles
+      empty_directory ".github/workflows"
+      template "github/ci.yml", ".github/workflows/ci.yaml"
+      template "github/dependabot.yml", ".github/dependabot.yaml"
+    end
+
     def rubocop
       template "rubocop.yml", ".rubocop.yml"
     end
@@ -375,6 +381,11 @@ module Rails
       def create_rubocop_file
         return if skip_rubocop?
         build(:rubocop)
+      end
+
+      def create_cifiles
+        return if skip_ci?
+        build(:cifiles)
       end
 
       def create_config_files
