@@ -56,12 +56,6 @@ jobs:
 
     <%- else -%>
     services:
-      # Enable when using Redis
-      #   redis:
-      #     image: redis
-      #     ports:
-      #       - 6379:6379
-      #     options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
       <%- if options[:database] == "mysql" || options[:database] == "trilogy" -%>
       mysql:
         image: mysql
@@ -82,6 +76,12 @@ jobs:
       <%- end -%>
 
     <%- end -%>
+      # redis:
+      #   image: redis
+      #   ports:
+      #     - 6379:6379
+      #   options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+
     steps:
       - name: Install packages
         run: sudo apt-get update && sudo apt-get install --no-install-recommends -y google-chrome-stable <%= (dockerfile_deploy_packages + [build_package_for_database]).join(" ") %>
