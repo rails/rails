@@ -42,6 +42,7 @@ Gem::Specification.new do |s|
   s.add_dependency "rack-test", ">= 0.6.3"
   s.add_dependency "rails-html-sanitizer", "~> 1.6"
   s.add_dependency "rails-dom-testing", "~> 2.2"
+  s.add_dependency "useragent", "~> 0.16"
   s.add_dependency "actionview", version
 
   s.add_development_dependency "activemodel", version

@@ -27,6 +27,7 @@ module ActionController
   end
 
   autoload_under "metal" do
+    autoload :AllowBrowser
     autoload :ConditionalGet
     autoload :ContentSecurityPolicy
     autoload :Cookies
