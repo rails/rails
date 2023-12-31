@@ -465,6 +465,11 @@ GEM
       activesupport (>= 4.2.0)
       rack (>= 1.1)
       rubocop (>= 1.33.0, < 2.0)
+    rubocop-rails-omakase (1.0.0)
+      rubocop
+      rubocop-minitest
+      rubocop-performance
+      rubocop-rails
     ruby-progressbar (1.13.0)
     ruby-vips (2.1.4)
       ffi (~> 1.12)
@@ -627,6 +632,7 @@ DEPENDENCIES
   rubocop-packaging
   rubocop-performance
   rubocop-rails
+  rubocop-rails-omakase
   rubyzip (~> 2.0)
   sdoc!
   selenium-webdriver (>= 4.11.0)
