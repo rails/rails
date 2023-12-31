@@ -628,7 +628,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_inclusion_of_rubocop
     run_generator
+
     assert_gem "rubocop-rails-omakase"
+    assert_file "bin/rubocop"
+    assert_directory "bin/hooks"
+    assert_file ".rubocop.yml"
   end
 
   def test_rubocop_is_skipped_if_required
@@ -636,6 +640,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_gem "rubocop"
     assert_no_file "bin/rubocop"
+    assert_no_directory "bin/hooks"
     assert_no_file ".rubocop.yml"
   end
 

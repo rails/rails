@@ -49,6 +49,8 @@ module ApplicationTests
         output.gsub!(/^.*warning:\s.*\n/, "")
 
         assert_equal(<<~OUTPUT, output)
+          == Installing Pre Committer ==
+
           == Installing dependencies ==
           The Gemfile's dependencies are satisfied
 

@@ -1,3 +1,7 @@
+*   Add Git pre committer to by default when rubocop is present
+
+    *faqndo97*
+
 *   Add brakeman gem by default for static analysis of security vulnerabilities. Allow skipping with --skip-brakeman option.
 
     *vipulnsward*
