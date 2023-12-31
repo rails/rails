@@ -62,9 +62,6 @@ jobs:
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
-        # Enable when using Redis
-        # env:
-        #   REDIS_URL: redis://localhost:6379/0
         with:
           ruby-version: .ruby-version
           bundler-cache: true
