@@ -232,6 +232,13 @@ module ActiveRecord
       assert_equal false, deferred_posts.empty?
       assert_predicate deferred_posts, :loaded?
     end
+
+    def test_load_async_with_query_cache
+      titles = Post.where(author_id: 1).pluck(:title)
+      Post.cache do
+        assert_equal titles, Post.where(author_id: 1).load_async.pluck(:title)
+      end
+    end
   end
 
   class LoadAsyncNullExecutorTest < ActiveRecord::TestCase
