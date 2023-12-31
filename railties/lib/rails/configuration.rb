@@ -131,6 +131,15 @@ module Rails
         @after_generate_callbacks << block
       end
 
+      def apply_autocorrect_after_generate!
+        after_generate do |files|
+          parsable_files = files.filter { |file| file.end_with?(".rb") }
+          unless parsable_files.empty?
+            system("bin/rubocop -A --fail-level=E #{parsable_files.shelljoin}", exception: true)
+          end
+        end
+      end
+
       def method_missing(method, *args)
         method = method.to_s.delete_suffix("=").to_sym
 

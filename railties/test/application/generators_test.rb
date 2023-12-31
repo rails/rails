@@ -255,5 +255,14 @@ module ApplicationTests
 
       assert_match(/# Add comment to model/, File.read(model_file))
     end
+
+    test "generators with apply_autocorrect_after_generate!" do
+      with_config do |c|
+        c.generators.apply_autocorrect_after_generate!
+      end
+
+      output = rails("generate", "model", "post", "title:string", "body:string")
+      assert_match(/3 files inspected, no offenses detected/, output)
+    end
   end
 end
