@@ -19,22 +19,23 @@ module ActiveSupport
   module Cache
     # = Redis \Cache \Store
     #
-    # Deployment note: Take care to use a *dedicated Redis cache* rather
-    # than pointing this at your existing Redis server. It won't cope well
-    # with mixed usage patterns and it won't expire cache entries by default.
+    # Deployment note: Take care to use a <b>dedicated Redis cache</b> rather
+    # than pointing this at a persistent Redis server (for example, one used as
+    # an Active Job queue). Redis won't cope well with mixed usage patterns and it
+    # won't expire cache entries by default.
     #
     # Redis cache server setup guide: https://redis.io/topics/lru-cache
     #
-    # * Supports vanilla Redis, hiredis, and Redis::Distributed.
-    # * Supports Memcached-like sharding across Redises with Redis::Distributed.
+    # * Supports vanilla Redis, hiredis, and +Redis::Distributed+.
+    # * Supports Memcached-like sharding across Redises with +Redis::Distributed+.
     # * Fault tolerant. If the Redis server is unavailable, no exceptions are
     #   raised. Cache fetches are all misses and writes are dropped.
     # * Local cache. Hot in-memory primary cache within block/middleware scope.
-    # * +read_multi+ and +write_multi+ support for Redis mget/mset. Use Redis::Distributed
-    #   4.0.1+ for distributed mget support.
+    # * +read_multi+ and +write_multi+ support for Redis mget/mset. Use
+    #   +Redis::Distributed+ 4.0.1+ for distributed mget support.
     # * +delete_matched+ support for Redis KEYS globs.
     class RedisCacheStore < Store
-      # Keys are truncated with the ActiveSupport digest if they exceed 1kB
+      # Keys are truncated with the Active Support digest if they exceed 1kB
       MAX_KEY_BYTESIZE = 1024
 
       DEFAULT_REDIS_OPTIONS = {
@@ -110,8 +111,11 @@ module ActiveSupport
 
       # Creates a new Redis cache store.
       #
-      # Handles four options: :redis block, :redis instance, single :url
-      # string, and multiple :url strings.
+      # There are four ways to provide the Redis client used by the cache: the
+      # +:redis+ param can be a Redis instance or a block that returns a Redis
+      # instance, or the +:url+ param can be a string or an array of strings
+      # which will be used to create a Redis instance or a +Redis::Distributed+
+      # instance.
       #
       #   Option  Class       Result
       #   :redis  Proc    ->  options[:redis].call
@@ -134,7 +138,7 @@ module ActiveSupport
       #
       # Race condition TTL is not set by default. This can be used to avoid
       # "thundering herd" cache writes when hot cache entries are expired.
-      # See <tt>ActiveSupport::Cache::Store#fetch</tt> for more.
+      # See ActiveSupport::Cache::Store#fetch for more.
       #
       # Setting <tt>skip_nil: true</tt> will not cache nil results:
       #
@@ -244,7 +248,7 @@ module ActiveSupport
       # Decrement a cached integer value using the Redis decrby atomic operator.
       # Returns the updated value.
       #
-      # If the key is unset or has expired, it will be set to -amount:
+      # If the key is unset or has expired, it will be set to +-amount+:
       #
       #   cache.decrement("foo") # => -1
       #
