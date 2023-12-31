@@ -38,6 +38,7 @@ DEFAULT_APP_FILES = %w(
   app/views/layouts/mailer.html.erb
   app/views/layouts/mailer.text.erb
   bin/docker-entrypoint
+  bin/brakeman
   bin/rails
   bin/rake
   bin/rubocop
@@ -636,6 +637,27 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_gem "rubocop"
     assert_no_file "bin/rubocop"
     assert_no_file ".rubocop.yml"
+  end
+
+  def test_inclusion_of_brakeman
+    run_generator
+    assert_gem "brakeman"
+  end
+
+  def test_brakeman_is_skipped_if_required
+    puts destination_root
+    run_generator [destination_root, "--skip-brakeman"]
+
+    assert_no_gem "brakeman"
+    assert_no_file "bin/brakeman"
+  end
+
+  def test_both_brakeman_and_rubocop_binstubs_are_skipped_if_required
+    puts destination_root
+    run_generator [destination_root, "--skip-brakeman", "--skip-rubocop"]
+
+    assert_no_file "bin/rubocop"
+    assert_no_file "bin/brakeman"
   end
 
   def test_usage_read_from_file

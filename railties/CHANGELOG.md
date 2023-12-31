@@ -1,3 +1,7 @@
+*   Add brakeman gem by default for static analysis of security vulnerabilities. Allow skipping with --skip-brakeman option.
+
+    *vipulnsward*
+
 *   Add RuboCop with rules from rubocop-rails-omakase by default. Skip with --skip-rubocop.
 
     *DHH* and *zzak*
