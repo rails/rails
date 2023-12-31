@@ -1072,6 +1072,10 @@ module ActiveSupport
         end
     end
 
+    # Enables the dynamic configuration of Cache entry options while ensuring
+    # that conflicting options are not both set. When a block is given to
+    # ActiveSupport::Cache::Store#fetch, the second argument will be an
+    # instance of +WriteOptions+.
     class WriteOptions
       def initialize(options) # :nodoc:
         @options = options
@@ -1089,6 +1093,9 @@ module ActiveSupport
         @options[:expires_in]
       end
 
+      # Sets the Cache entry's +expires_in+ value. If an +expires_at+ option was
+      # previously set, this will unset it since +expires_in+ and +expires_at+
+      # cannot both be set.
       def expires_in=(expires_in)
         @options.delete(:expires_at)
         @options[:expires_in] = expires_in
@@ -1098,6 +1105,9 @@ module ActiveSupport
         @options[:expires_at]
       end
 
+      # Sets the Cache entry's +expires_at+ value. If an +expires_in+ option was
+      # previously set, this will unset it since +expires_at+ and +expires_in+
+      # cannot both be set.
       def expires_at=(expires_at)
         @options.delete(:expires_in)
         @options[:expires_at] = expires_at
