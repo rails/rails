@@ -160,8 +160,8 @@ module ActiveSupport
     # Some implementations may not support all methods beyond the basic cache
     # methods of #fetch, #write, #read, #exist?, and #delete.
     #
-    # ActiveSupport::Cache::Store can store any Ruby object that is supported by
-    # its +coder+'s +dump+ and +load+ methods.
+    # +ActiveSupport::Cache::Store+ can store any Ruby object that is supported
+    # by its +coder+'s +dump+ and +load+ methods.
     #
     #   cache = ActiveSupport::Cache::MemoryStore.new
     #
@@ -370,8 +370,8 @@ module ActiveSupport
       #
       # ==== Options
       #
-      # Internally, +fetch+ calls #read_entry, and calls #write_entry on a cache
-      # miss. Thus, +fetch+ supports the same options as #read and #write.
+      # Internally, +fetch+ calls +read_entry+, and calls +write_entry+ on a
+      # cache miss. Thus, +fetch+ supports the same options as #read and #write.
       # Additionally, +fetch+ supports the following options:
       #
       # * <tt>force: true</tt> - Forces a cache "miss," meaning we treat the
