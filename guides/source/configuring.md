@@ -209,14 +209,6 @@ Makes application believe that all requests are arriving over SSL. This is usefu
 Enables writing log file output immediately instead of buffering. Defaults to
 `true`.
 
-#### `config.autoload_once_paths`
-
-Accepts an array of paths from which Rails will autoload constants that won't be wiped per request. Relevant if reloading is enabled, which it is by default in the `development` environment. Otherwise, all autoloading happens only once. All elements of this array must also be in `autoload_paths`. Default is an empty array.
-
-#### `config.autoload_paths`
-
-Accepts an array of paths from which Rails will autoload constants. Default is an empty array. Since [Rails 6](upgrading_ruby_on_rails.html#autoloading), it is not recommended to adjust this. See [Autoloading and Reloading Constants](autoloading_and_reloading_constants.html#autoload-paths).
-
 #### `config.autoload_lib(ignore:)`
 
 This method adds `lib` to `config.autoload_paths` and `config.eager_load_paths`.
@@ -234,6 +226,14 @@ Please, see more details in the [autoloading guide](autoloading_and_reloading_co
 The method `config.autoload_lib_once` is similar to `config.autoload_lib`, except that it adds `lib` to `config.autoload_once_paths` instead.
 
 By calling `config.autoload_lib_once`, classes and modules in `lib` can be autoloaded, even from application initializers, but won't be reloaded.
+
+#### `config.autoload_once_paths`
+
+Accepts an array of paths from which Rails will autoload constants that won't be wiped per request. Relevant if reloading is enabled, which it is by default in the `development` environment. Otherwise, all autoloading happens only once. All elements of this array must also be in `autoload_paths`. Default is an empty array.
+
+#### `config.autoload_paths`
+
+Accepts an array of paths from which Rails will autoload constants. Default is an empty array. Since [Rails 6](upgrading_ruby_on_rails.html#autoloading), it is not recommended to adjust this. See [Autoloading and Reloading Constants](autoloading_and_reloading_constants.html#autoload-paths).
 
 #### `config.beginning_of_week`
 
@@ -309,10 +309,6 @@ Sets the format used in responses when errors occur in the development environme
 #### `config.disable_sandbox`
 
 Controls whether or not someone can start a console in sandbox mode. This is helpful to avoid a long running session of sandbox console, that could lead a database server to run out of memory. Defaults to `false`.
-
-#### `config.sandbox_by_default`
-
-When `true`, rails console starts in sandbox mode. To start rails console in non-sandbox mode, `--no-sandbox` must be specified. This is helpful to avoid accidental writing to the production database. Defaults to `false`.
 
 #### `config.dom_testing_default_html_version`
 
@@ -538,6 +534,10 @@ Enables or disables reloading of classes only when tracked files change. By defa
 #### `config.require_master_key`
 
 Causes the app to not boot if a master key hasn't been made available through `ENV["RAILS_MASTER_KEY"]` or the `config/master.key` file.
+
+#### `config.sandbox_by_default`
+
+When `true`, rails console starts in sandbox mode. To start rails console in non-sandbox mode, `--no-sandbox` must be specified. This is helpful to avoid accidental writing to the production database. Defaults to `false`.
 
 #### `config.secret_key_base`
 
