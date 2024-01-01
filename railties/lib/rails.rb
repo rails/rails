@@ -31,6 +31,7 @@ module Rails
   autoload :Info
   autoload :InfoController
   autoload :MailersController
+  autoload :PwaController
   autoload :WelcomeController
 
   class << self

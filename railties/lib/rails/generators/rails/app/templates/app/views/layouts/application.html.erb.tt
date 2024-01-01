@@ -3,9 +3,11 @@
   <head>
     <title><%= camelized %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <%%= csrf_meta_tags %>
     <%%= csp_meta_tag %>
 
+    <link rel="manifest" href="/manifest.json">
     <%- if options[:skip_hotwire] || options[:skip_javascript] -%>
     <%%= stylesheet_link_tag "application" %>
     <%- else -%>
