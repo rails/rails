@@ -6,6 +6,8 @@ require "generators/shared_generator_tests"
 
 DEFAULT_APP_FILES = %w(
   .gitattributes
+  .github/dependabot.yml
+  .github/workflows/ci.yml
   .gitignore
   .dockerignore
   .rubocop.yml
@@ -645,7 +647,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_brakeman_is_skipped_if_required
-    puts destination_root
     run_generator [destination_root, "--skip-brakeman"]
 
     assert_no_gem "brakeman"
