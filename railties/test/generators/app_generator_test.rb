@@ -6,6 +6,8 @@ require "generators/shared_generator_tests"
 
 DEFAULT_APP_FILES = %w(
   .gitattributes
+  .github/dependabot.yml
+  .github/workflows/ci.yml
   .gitignore
   .dockerignore
   .rubocop.yml
