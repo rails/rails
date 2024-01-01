@@ -163,6 +163,8 @@ GEM
     bindex (0.8.1)
     bootsnap (1.15.0)
       msgpack (~> 1.2)
+    brakeman (6.1.1)
+      racc
     builder (3.2.4)
     bunny (2.20.2)
       amq-protocol (~> 2.3, >= 2.3.1)
@@ -192,6 +194,8 @@ GEM
       railties (>= 6.0.0)
     date (3.3.3)
     debug (1.7.1)
+      irb (>= 1.5.0)
+      reline (>= 0.3.1)
     declarative (0.0.20)
     delayed_job (4.1.11)
       activesupport (>= 3.0, < 8.0)
@@ -588,6 +592,7 @@ DEPENDENCIES
   bcrypt (~> 3.1.11)
   benchmark-ips
   bootsnap (>= 1.4.4)
+  brakeman
   capybara (>= 3.39)
   cgi (>= 0.3.6)
   connection_pool

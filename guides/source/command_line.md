@@ -185,10 +185,13 @@ $ bin/rails server
 => Rails 7.2.0 application starting in development
 => Run `bin/rails server --help` for more startup options
 Puma starting in single mode...
-* Version 3.12.1 (ruby 2.5.7-p206), codename: Llamas in Pajamas
-* Min threads: 5, max threads: 5
-* Environment: development
-* Listening on tcp://localhost:3000
+* Puma version: 6.4.0 (ruby 3.1.3-p185) ("The Eagle of Durango")
+*  Min threads: 5
+*  Max threads: 5
+*  Environment: development
+*          PID: 5295
+* Listening on http://127.0.0.1:3000
+* Listening on http://[::1]:3000
 Use Ctrl-C to stop
 ```
 

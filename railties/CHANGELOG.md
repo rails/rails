@@ -1,3 +1,11 @@
+*   Updated system tests to now use headless Chrome by default for the new applications.
+
+    *DHH*
+
+*   Add GitHub CI files for dependabot, brakeman, rubocop, and running tests by default. Can be skipped with --skip-ci.
+
+    *DHH*
+
 *   Add brakeman gem by default for static analysis of security vulnerabilities. Allow skipping with --skip-brakeman option.
 
     *vipulnsward*
