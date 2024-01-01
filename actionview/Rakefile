@@ -32,7 +32,8 @@ namespace :test do
 
   desc "Run tests for rails-ujs"
   task :ujs do
-    system("npm run lint")
+    puts "npm run lint"
+    system("npm run lint", exception: true)
     exit $?.exitstatus unless $?.success?
 
     begin
@@ -60,6 +61,7 @@ namespace :test do
       end
       # Decode the obfuscate environment variables
       decoded_environment_variables = Hash[*Base64.decode64(ENV.fetch("ENCODED", "")).split(/[ =]/)]
+      puts "npm test"
       system(decoded_environment_variables, "npm", "test")
       status = $?.exitstatus
     ensure
