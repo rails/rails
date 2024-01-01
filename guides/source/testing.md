@@ -1718,7 +1718,7 @@ Testing View Partials
 
 Partial templates - usually called "partials" - are another device for breaking the rendering process into more manageable chunks. With partials, you can extract pieces of code from your templates to separate files and reuse them throughout your templates.
 
-View tests provide an opportunity to test that partials render content the way you expect. View partial tests reside in `test/views/` and inherit from `ActionView::TestCase`.
+View tests provide an opportunity to test that partials render content the way you expect. View partial tests reside in `test/controllers/` and inherit from `ActionView::TestCase`.
 
 To render a partial, call `render` like you would in a template. The content is
 available through the test-local `#rendered` method:
