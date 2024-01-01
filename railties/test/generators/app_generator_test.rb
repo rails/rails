@@ -636,7 +636,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_rubocop_is_skipped_if_required
     run_generator [destination_root, "--skip-rubocop"]
 
-    assert_no_gem "rubocop"
+    assert_no_gem "rubocop-rails-omakase"
     assert_no_file "bin/rubocop"
     assert_no_file ".rubocop.yml"
   end
