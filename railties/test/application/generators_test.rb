@@ -256,9 +256,9 @@ module ApplicationTests
       assert_match(/# Add comment to model/, File.read(model_file))
     end
 
-    test "generators with apply_autocorrect_after_generate!" do
+    test "generators with apply_rubocop_autocorrect_after_generate!" do
       with_config do |c|
-        c.generators.apply_autocorrect_after_generate!
+        c.generators.apply_rubocop_autocorrect_after_generate!
       end
 
       output = rails("generate", "model", "post", "title:string", "body:string")
