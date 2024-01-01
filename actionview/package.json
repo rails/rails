@@ -38,7 +38,7 @@
     "eslint": "^4.19.1",
     "eslint-plugin-import": "^2.23.4",
     "jquery": "^2.2.0",
-    "karma": "^3.1.1",
+    "karma": "^6.4.2",
     "karma-chrome-launcher": "^2.2.0",
     "karma-qunit": "^2.1.0",
     "karma-sauce-launcher": "^1.2.0",
