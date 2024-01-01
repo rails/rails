@@ -131,7 +131,7 @@ module Rails
         @after_generate_callbacks << block
       end
 
-      def apply_autocorrect_after_generate!
+      def apply_rubocop_autocorrect_after_generate!
         after_generate do |files|
           parsable_files = files.filter { |file| file.end_with?(".rb") }
           unless parsable_files.empty?
