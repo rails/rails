@@ -93,7 +93,7 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Run Tests
+      - name: Run tests
         env:
           RAILS_ENV: test
           <%- if options[:database] == "mysql" || options[:database] == "trilogy" -%>
