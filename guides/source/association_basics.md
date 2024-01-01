@@ -912,7 +912,7 @@ class Author < ApplicationRecord
 end
 
 class Book < ApplicationRecord
-  belongs_to :writer, class_name: 'Author', foreign_key: 'author_id'
+  belongs_to :writer, class_name: "Author", foreign_key: "author_id"
 end
 ```
 
@@ -968,11 +968,11 @@ Active Record provides the `:inverse_of` option so you can explicitly declare bi
 
 ```ruby
 class Author < ApplicationRecord
-  has_many :books, inverse_of: 'writer'
+  has_many :books, inverse_of: "writer"
 end
 
 class Book < ApplicationRecord
-  belongs_to :writer, class_name: 'Author', foreign_key: 'author_id'
+  belongs_to :writer, class_name: "Author", foreign_key: "author_id"
 end
 ```
 
@@ -1261,11 +1261,11 @@ For example, given we have a `users` table with `guid` as the primary key. If we
 
 ```ruby
 class User < ApplicationRecord
-  self.primary_key = 'guid' # primary key is guid and not id
+  self.primary_key = "guid" # primary key is guid and not id
 end
 
 class Todo < ApplicationRecord
-  belongs_to :user, primary_key: 'guid'
+  belongs_to :user, primary_key: "guid"
 end
 ```
 
@@ -2201,7 +2201,7 @@ The `group` method supplies an attribute name to group the result set by, using 
 
 ```ruby
 class Author < ApplicationRecord
-  has_many :chapters, -> { group 'books.id' },
+  has_many :chapters, -> { group "books.id" },
                       through: :books
 end
 ```
@@ -2249,7 +2249,7 @@ The `limit` method lets you restrict the total number of objects that will be fe
 ```ruby
 class Author < ApplicationRecord
   has_many :recent_books,
-    -> { order('published_at desc').limit(100) },
+    -> { order("published_at desc").limit(100) },
     class_name: "Book"
 end
 ```
@@ -2666,7 +2666,7 @@ You can also set conditions via a hash:
 ```ruby
 class Parts < ApplicationRecord
   has_and_belongs_to_many :assemblies,
-    -> { where factory: 'Seattle' }
+    -> { where factory: "Seattle" }
 end
 ```
 
@@ -2857,7 +2857,7 @@ associations, public methods, etc.
 Creating a car will save it in the `vehicles` table with "Car" as the `type` field:
 
 ```ruby
-Car.create(color: 'Red', price: 10000)
+Car.create(color: "Red", price: 10000)
 ```
 
 will generate the following SQL:

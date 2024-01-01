@@ -733,7 +733,7 @@ This used to return a hash on which you could access values with String keys. Th
 You can call `with_indifferent_access` on the return value of `config_for` if you still want to access values with String keys, e.g.:
 
 ```ruby
-Rails.application.config_for(:example).with_indifferent_access.dig('options', 'key')
+Rails.application.config_for(:example).with_indifferent_access.dig("options", "key")
 ```
 
 ### Response's Content-Type when using `respond_to#any`
@@ -747,13 +747,13 @@ Example:
 ```ruby
 def my_action
   respond_to do |format|
-    format.any { render(json: { foo: 'bar' }) }
+    format.any { render(json: { foo: "bar" }) }
   end
 end
 ```
 
 ```ruby
-get('my_action.csv')
+get("my_action.csv")
 ```
 
 Previous behavior was returning a `text/csv` response's Content-Type which is inaccurate since a JSON response is being rendered.
@@ -969,7 +969,7 @@ you need to allow them like this:
 ```ruby
 # config/environments/development.rb
 
-config.hosts << 'dev.myapp.com'
+config.hosts << "dev.myapp.com"
 config.hosts << /[a-z0-9-]+\.myapp\.com/ # Optionally, regexp is allowed as well
 ```
 
@@ -1593,7 +1593,7 @@ class StreamingSupport
   def process(name)
     super(name)
   rescue ArgumentError => e
-    if e.message == 'uncaught throw :warden'
+    if e.message == "uncaught throw :warden"
       throw :warden
     else
       raise e
@@ -2030,7 +2030,7 @@ will be serialized as strings, and `Hash`es will have their keys stringified.
 class CookiesController < ApplicationController
   def set_cookie
     cookies.encrypted[:expiration_date] = Date.tomorrow # => Thu, 20 Mar 2014
-    redirect_to action: 'read_cookie'
+    redirect_to action: "read_cookie"
   end
 
   def read_cookie
@@ -2098,7 +2098,7 @@ Rails-specific features. For example:
 ```ruby
 class FooBar
   def as_json(options = nil)
-    { foo: 'bar' }
+    { foo: "bar" }
   end
 end
 ```
@@ -2191,7 +2191,7 @@ included in the newly introduced `ActiveRecord::FixtureSet.context_class`, in
 ```ruby
 module FixtureFileHelpers
   def file_sha(path)
-    OpenSSL::Digest::SHA256.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
+    OpenSSL::Digest::SHA256.hexdigest(File.read(Rails.root.join("test/fixtures", path)))
   end
 end
 
@@ -2226,10 +2226,10 @@ methods directly on the `Relation`.
 
 ```ruby
 # Instead of this
-Author.where(name: 'Hank Moody').compact!
+Author.where(name: "Hank Moody").compact!
 
 # Now you have to do this
-authors = Author.where(name: 'Hank Moody').to_a
+authors = Author.where(name: "Hank Moody").to_a
 authors.compact!
 ```
 
@@ -2245,9 +2245,9 @@ Before:
 
 ```ruby
 class User < ActiveRecord::Base
-  default_scope { where state: 'pending' }
-  scope :active, -> { where state: 'active' }
-  scope :inactive, -> { where state: 'inactive' }
+  default_scope { where state: "pending" }
+  scope :active, -> { where state: "active" }
+  scope :inactive, -> { where state: "inactive" }
 end
 
 User.all
@@ -2256,7 +2256,7 @@ User.all
 User.active
 # SELECT "users".* FROM "users" WHERE "users"."state" = 'active'
 
-User.where(state: 'inactive')
+User.where(state: "inactive")
 # SELECT "users".* FROM "users" WHERE "users"."state" = 'inactive'
 ```
 
@@ -2264,9 +2264,9 @@ After:
 
 ```ruby
 class User < ActiveRecord::Base
-  default_scope { where state: 'pending' }
-  scope :active, -> { where state: 'active' }
-  scope :inactive, -> { where state: 'inactive' }
+  default_scope { where state: "pending" }
+  scope :active, -> { where state: "active" }
+  scope :inactive, -> { where state: "inactive" }
 end
 
 User.all
@@ -2275,7 +2275,7 @@ User.all
 User.active
 # SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'active'
 
-User.where(state: 'inactive')
+User.where(state: "inactive")
 # SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'inactive'
 ```
 
@@ -2285,9 +2285,9 @@ To get the previous behavior it is needed to explicitly remove the
 
 ```ruby
 class User < ActiveRecord::Base
-  default_scope { where state: 'pending' }
-  scope :active, -> { unscope(where: :state).where(state: 'active') }
-  scope :inactive, -> { rewhere state: 'inactive' }
+  default_scope { where state: "pending" }
+  scope :active, -> { unscope(where: :state).where(state: "active") }
+  scope :inactive, -> { rewhere state: "inactive" }
 end
 
 User.all
@@ -2440,7 +2440,7 @@ end
 
 ```ruby
 # config/initializers/json_patch.rb
-Mime::Type.register 'application/json-patch+json', :json_patch
+Mime::Type.register "application/json-patch+json", :json_patch
 ```
 
 As JSON Patch was only recently made into an RFC, there aren't a lot of great
@@ -2517,11 +2517,11 @@ Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must rep
 
     ```ruby
     class CatalogCategory < ActiveRecord::Base
-      has_and_belongs_to_many :catalog_products, join_table: 'catalog_categories_catalog_products'
+      has_and_belongs_to_many :catalog_products, join_table: "catalog_categories_catalog_products"
     end
 
     class CatalogProduct < ActiveRecord::Base
-      has_and_belongs_to_many :catalog_categories, join_table: 'catalog_categories_catalog_products'
+      has_and_belongs_to_many :catalog_categories, join_table: "catalog_categories_catalog_products"
     end
     ```
 
@@ -2550,8 +2550,8 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 
     ```ruby
     # config/initializers/secret_token.rb
-    Myapp::Application.config.secret_token = 'existing secret token'
-    Myapp::Application.config.secret_key_base = 'new secret key base'
+    Myapp::Application.config.secret_token = "existing secret token"
+    Myapp::Application.config.secret_key_base = "new secret key base"
     ```
 
     Please note that you should wait to set `secret_key_base` until you have 100% of your userbase on Rails 4.x and are reasonably sure you will not need to rollback to Rails 3.x. This is because cookies signed based on the new `secret_key_base` in Rails 4.x are not backwards compatible with Rails 3.x. You are free to leave your existing `secret_token` in place, not set the new `secret_key_base`, and ignore the deprecation warnings until you are reasonably sure that your upgrade is otherwise complete.
@@ -2586,13 +2586,13 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 * Rails 4.0 raises an `ArgumentError` if clashing named routes are defined. This can be triggered by explicitly defined named routes or by the `resources` method. Here are two examples that clash with routes named `example_path`:
 
     ```ruby
-    get 'one' => 'test#example', as: :example
-    get 'two' => 'test#example', as: :example
+    get "one" => "test#example", as: :example
+    get "two" => "test#example", as: :example
     ```
 
     ```ruby
     resources :examples
-    get 'clashing/:id' => 'test#example', as: :example
+    get "clashing/:id" => "test#example", as: :example
     ```
 
     In the first case, you can simply avoid using the same name for multiple
@@ -2603,26 +2603,26 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 * Rails 4.0 also changed the way unicode character routes are drawn. Now you can draw unicode character routes directly. If you already draw such routes, you must change them, for example:
 
     ```ruby
-    get Rack::Utils.escape('こんにちは'), controller: 'welcome', action: 'index'
+    get Rack::Utils.escape("こんにちは"), controller: "welcome", action: "index"
     ```
 
     becomes
 
     ```ruby
-    get 'こんにちは', controller: 'welcome', action: 'index'
+    get "こんにちは", controller: "welcome", action: "index"
     ```
 
 * Rails 4.0 requires that routes using `match` must specify the request method. For example:
 
     ```ruby
     # Rails 3.x
-    match '/' => 'root#index'
+    match "/" => "root#index"
 
     # becomes
-    match '/' => 'root#index', via: :get
+    match "/" => "root#index", via: :get
 
     # or
-    get '/' => 'root#index'
+    get "/" => "root#index"
     ```
 
 * Rails 4.0 has removed `ActionDispatch::BestStandardsSupport` middleware, `<!DOCTYPE html>` already triggers standards mode per https://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx and ChromeFrame header has been moved to `config.action_dispatch.default_headers`.
@@ -2640,8 +2640,8 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 
     ```ruby
     config.action_dispatch.default_headers = {
-      'X-Frame-Options' => 'SAMEORIGIN',
-      'X-XSS-Protection' => '1; mode=block'
+      "X-Frame-Options" => "SAMEORIGIN",
+      "X-XSS-Protection" => "1; mode=block"
     }
     ```
 
@@ -2789,7 +2789,7 @@ If your application is using an "/assets" route for a resource you may want to c
 
 ```ruby
 # Defaults to '/assets'
-config.assets.prefix = '/asset-files'
+config.assets.prefix = "/asset-files"
 ```
 
 ### config/environments/development.rb
@@ -2838,7 +2838,7 @@ You can help test performance with these additions to your test environment:
 # Configure static asset server for tests with Cache-Control for performance
 config.public_file_server.enabled = true
 config.public_file_server.headers = {
-  'Cache-Control' => 'public, max-age=3600'
+  "Cache-Control" => "public, max-age=3600"
 }
 ```
 
@@ -2868,7 +2868,7 @@ You need to change your session key to something new, or remove all sessions:
 
 ```ruby
 # in config/initializers/session_store.rb
-AppName::Application.config.session_store :cookie_store, key: 'SOMETHINGNEW'
+AppName::Application.config.session_store :cookie_store, key: "SOMETHINGNEW"
 ```
 
 or

@@ -1176,7 +1176,7 @@ module Blorgh::Concerns::Models::Article
 
   module ClassMethods
     def some_class_method
-      'some class method string'
+      "some class method string"
     end
   end
 end
@@ -1516,7 +1516,7 @@ Configuration hooks can be called in the Engine class.
 module Blorgh
   class Engine < ::Rails::Engine
     config.before_configuration do
-      puts 'I am called before any initializers'
+      puts "I am called before any initializers"
     end
   end
 end

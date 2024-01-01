@@ -186,7 +186,7 @@ cache.
 It is possible to share partials and associated caching between files with different MIME types. For example shared partial caching allows template writers to share a partial between HTML and JavaScript files. When templates are collected in the template resolver file paths they only include the template language extension and not the MIME type. Because of this templates can be used for multiple MIME types. Both HTML and JavaScript requests will respond to the following code:
 
 ```ruby
-render(partial: 'hotels/hotel', collection: @hotels, cached: true)
+render(partial: "hotels/hotel", collection: @hotels, cached: true)
 ```
 
 Will load a file named `hotels/hotel.erb`.
@@ -194,7 +194,7 @@ Will load a file named `hotels/hotel.erb`.
 Another option is to include the full filename of the partial to render.
 
 ```ruby
-render(partial: 'hotels/hotel.html.erb', collection: @hotels, cached: true)
+render(partial: "hotels/hotel.html.erb", collection: @hotels, cached: true)
 ```
 
 Will load a file named `hotels/hotel.html.erb` in any file MIME type, for example you could include this partial in a JavaScript file.
@@ -215,8 +215,8 @@ how to decode:
 ```ruby
 render partial: "comments/comment", collection: commentable.comments
 render "comments/comments"
-render 'comments/comments'
-render('comments/comments')
+render "comments/comments"
+render("comments/comments")
 
 render "header" # translates to render("comments/header")
 
@@ -543,7 +543,7 @@ config.cache_store = :redis_cache_store, { url: cache_servers,
 
   error_handler: -> (method:, returning:, exception:) {
     # Report errors to Sentry as warnings
-    Sentry.capture_exception exception, level: 'warning',
+    Sentry.capture_exception exception, level: "warning",
       tags: { method: method, returning: returning }
   }
 }

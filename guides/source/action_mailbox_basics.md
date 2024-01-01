@@ -360,7 +360,7 @@ class ForwardsMailboxTest < ActionMailbox::TestCase
   test "directly recording a client forward for a forwarder and forwardee corresponding to one project" do
     assert_difference -> { people(:david).buckets.first.recordings.count } do
       receive_inbound_email_from_mail \
-        to: 'save@example.com',
+        to: "save@example.com",
         from: people(:david).email_address,
         subject: "Fwd: Status update?",
         body: <<~BODY

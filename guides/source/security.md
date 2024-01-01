@@ -364,7 +364,7 @@ Whenever the user is allowed to pass (parts of) the URL for redirection, it is p
 
 ```ruby
 def legacy
-  redirect_to(params.update(action: 'main'))
+  redirect_to(params.update(action: "main"))
 end
 ```
 
@@ -397,10 +397,10 @@ def sanitize_filename(filename)
   filename.strip.tap do |name|
     # NOTE: File.basename doesn't work right with Windows paths on Unix
     # get only the filename, not the whole path
-    name.sub!(/\A.*(\\|\/)/, '')
+    name.sub!(/\A.*(\\|\/)/, "")
     # Finally, replace all non alphanumeric, underscore
     # or periods with underscore
-    name.gsub!(/[^\w.-]/, '_')
+    name.gsub!(/[^\w.-]/, "_")
   end
 end
 ```
@@ -424,16 +424,16 @@ NOTE: _Make sure users cannot download arbitrary files._
 Just as you have to filter file names for uploads, you have to do so for downloads. The `send_file()` method sends files from the server to the client. If you use a file name, that the user entered, without filtering, any file can be downloaded:
 
 ```ruby
-send_file('/var/www/uploads/' + params[:filename])
+send_file("/var/www/uploads/" + params[:filename])
 ```
 
 Simply pass a file name like "../../../etc/passwd" to download the server's login information. A simple solution against this, is to _check that the requested file is in the expected directory_:
 
 ```ruby
-basename = File.expand_path('../../files', __dir__)
+basename = File.expand_path("../../files", __dir__)
 filename = File.expand_path(File.join(basename, @file.public_filename))
 raise if basename != File.expand_path(File.dirname(filename))
-send_file filename, disposition: 'inline'
+send_file filename, disposition: "inline"
 ```
 
 Another (additional) approach is to store the file names in the database and name the files on the disk after the ids in the database. This is also a good approach to avoid possible code in an uploaded file to be executed. The `attachment_fu` plugin does this in a similar way.
@@ -868,14 +868,14 @@ If you want to provide text formatting other than HTML (due to security), use a 
 For example, RedCloth translates `_test_` to `<em>test<em>`, which makes the text italic. However, up to the current version 3.0.4, it is still vulnerable to XSS. Get the [all-new version 4](https://github.com/jgarber/redcloth) that removed serious bugs. However, even that version has [some security bugs](https://rorsecurity.info/journal/2008/10/13/new-redcloth-security.html), so the countermeasures still apply. Here is an example for version 3.0.4:
 
 ```ruby
-RedCloth.new('<script>alert(1)</script>').to_html
+RedCloth.new("<script>alert(1)</script>").to_html
 # => "<script>alert(1)</script>"
 ```
 
 Use the `:filter_html` option to remove HTML which was not created by the Textile processor.
 
 ```ruby
-RedCloth.new('<script>alert(1)</script>', [:filter_html]).to_html
+RedCloth.new("<script>alert(1)</script>", [:filter_html]).to_html
 # => "alert(1)"
 ```
 
@@ -920,21 +920,21 @@ system("/bin/echo", "hello; rm *")
 `Kernel#open` executes OS command if the argument starts with a vertical bar (`|`).
 
 ```ruby
-open('| ls') { |file| file.read }
+open("| ls") { |file| file.read }
 # returns file list as a String via `ls` command
 ```
 
 Countermeasures are to use `File.open`, `IO.open` or `URI#open` instead. They don't execute an OS command.
 
 ```ruby
-File.open('| ls') { |file| file.read }
+File.open("| ls") { |file| file.read }
 # doesn't execute `ls` command, just opens `| ls` file if it exists
 
 IO.open(0) { |file| file.read }
 # opens stdin. doesn't accept a String as the argument
 
-require 'open-uri'
-URI('https://example.com').open { |file| file.read }
+require "open-uri"
+URI("https://example.com").open { |file| file.read }
 # opens the URI. `URI()` doesn't accept `| ls`
 ```
 
@@ -1116,19 +1116,19 @@ These headers are configured by default as follows:
 
 ```ruby
 config.action_dispatch.default_headers = {
-  'X-Frame-Options' => 'SAMEORIGIN',
-  'X-XSS-Protection' => '0',
-  'X-Content-Type-Options' => 'nosniff',
-  'X-Permitted-Cross-Domain-Policies' => 'none',
-  'Referrer-Policy' => 'strict-origin-when-cross-origin'
+  "X-Frame-Options" => "SAMEORIGIN",
+  "X-XSS-Protection" => "0",
+  "X-Content-Type-Options" => "nosniff",
+  "X-Permitted-Cross-Domain-Policies" => "none",
+  "Referrer-Policy" => "strict-origin-when-cross-origin"
 }
 ```
 
 You can override these or add extra headers in `config/application.rb`:
 
 ```ruby
-config.action_dispatch.default_headers['X-Frame-Options'] = 'DENY'
-config.action_dispatch.default_headers['Header-Name']     = 'Value'
+config.action_dispatch.default_headers["X-Frame-Options"] = "DENY"
+config.action_dispatch.default_headers["Header-Name"]     = "Value"
 ```
 
 Or you can remove them:
@@ -1362,9 +1362,9 @@ Next, add an initializer to configure the middleware:
 # config/initializers/cors.rb
 Rails.application.config.middleware.insert_before 0, "Rack::Cors" do
   allow do
-    origins 'example.com'
+    origins "example.com"
 
-    resource '*',
+    resource "*",
       headers: :any,
       methods: [:get, :post, :put, :patch, :delete, :options, :head]
   end

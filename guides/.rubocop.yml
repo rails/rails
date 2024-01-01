@@ -4,9 +4,6 @@ inherit_from:
 AllCops:
   TargetRubyVersion: 3.0
 
-Style/StringLiterals:
-  Enabled: false
-
 Layout/IndentationConsistency:
   Enabled: false
 

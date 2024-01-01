@@ -209,7 +209,7 @@ You can send an HTML string back to the browser by using the `:html` option to
 `render`:
 
 ```ruby
-render html: helpers.tag.strong('Not Found')
+render html: helpers.tag.strong("Not Found")
 ```
 
 TIP: This is useful when you're rendering a small snippet of HTML code.

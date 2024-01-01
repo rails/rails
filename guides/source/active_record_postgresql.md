@@ -39,7 +39,7 @@ that are supported by the PostgreSQL adapter.
 ```ruby
 # db/migrate/20140207133952_create_documents.rb
 create_table :documents do |t|
-  t.binary 'payload'
+  t.binary "payload"
 end
 ```
 
@@ -63,12 +63,12 @@ Document.create payload: data
 ```ruby
 # db/migrate/20140207133952_create_books.rb
 create_table :books do |t|
-  t.string 'title'
-  t.string 'tags', array: true
-  t.integer 'ratings', array: true
+  t.string "title"
+  t.string "tags", array: true
+  t.integer "ratings", array: true
 end
-add_index :books, :tags, using: 'gin'
-add_index :books, :ratings, using: 'gin'
+add_index :books, :tags, using: "gin"
+add_index :books, :ratings, using: "gin"
 ```
 
 ```ruby
@@ -103,9 +103,9 @@ NOTE: You need to enable the `hstore` extension to use hstore.
 ```ruby
 # db/migrate/20131009135255_create_profiles.rb
 class CreateProfiles < ActiveRecord::Migration[7.0]
-  enable_extension 'hstore' unless extension_enabled?('hstore')
+  enable_extension "hstore" unless extension_enabled?("hstore")
   create_table :profiles do |t|
-    t.hstore 'settings'
+    t.hstore "settings"
   end
 end
 ```
@@ -139,11 +139,11 @@ irb> Profile.where("settings->'color' = ?", "yellow")
 # db/migrate/20131220144913_create_events.rb
 # ... for json datatype:
 create_table :events do |t|
-  t.json 'payload'
+  t.json "payload"
 end
 # ... or for jsonb datatype:
 create_table :events do |t|
-  t.jsonb 'payload'
+  t.jsonb "payload"
 end
 ```
 
@@ -175,7 +175,7 @@ This type is mapped to Ruby [`Range`](https://ruby-doc.org/core-3.1.0/Range.html
 ```ruby
 # db/migrate/20130923065404_create_events.rb
 create_table :events do |t|
-  t.daterange 'duration'
+  t.daterange "duration"
 end
 ```
 
@@ -390,7 +390,7 @@ You can use `uuid` type to define references in migrations:
 
 ```ruby
 # db/migrate/20150418012400_create_blog.rb
-enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
+enable_extension "pgcrypto" unless extension_enabled?("pgcrypto")
 create_table :posts, id: :uuid
 
 create_table :comments, id: :uuid do |t|
@@ -455,9 +455,9 @@ objects. The `macaddr` type is mapped to normal text.
 ```ruby
 # db/migrate/20140508144913_create_devices.rb
 create_table(:devices, force: true) do |t|
-  t.inet 'ip'
-  t.cidr 'network'
-  t.macaddr 'address'
+  t.inet "ip"
+  t.cidr "network"
+  t.macaddr "address"
 end
 ```
 
@@ -497,7 +497,7 @@ This type is mapped to [`ActiveSupport::Duration`](https://api.rubyonrails.org/c
 ```ruby
 # db/migrate/20200120000000_create_events.rb
 create_table :events do |t|
-  t.interval 'duration'
+  t.interval "duration"
 end
 ```
 
@@ -523,7 +523,7 @@ extension to generate random UUIDs.
 
 ```ruby
 # db/migrate/20131220144913_create_devices.rb
-enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
+enable_extension "pgcrypto" unless extension_enabled?("pgcrypto")
 create_table :devices, id: :uuid do |t|
   t.string :kind
 end
@@ -598,7 +598,7 @@ NOTE: Generated columns are supported since version 12.0 of PostgreSQL.
 # db/migrate/20131220144913_create_users.rb
 create_table :users do |t|
   t.string :name
-  t.virtual :name_upcased, type: :string, as: 'upper(name)', stored: true
+  t.virtual :name_upcased, type: :string, as: "upper(name)", stored: true
 end
 
 # app/models/user.rb
@@ -606,7 +606,7 @@ class User < ApplicationRecord
 end
 
 # Usage
-user = User.create(name: 'John')
+user = User.create(name: "John")
 User.last.name_upcased # => "JOHN"
 ```
 
@@ -693,7 +693,7 @@ create_table :documents do |t|
   t.string :body
 end
 
-add_index :documents, "to_tsvector('english', title || ' ' || body)", using: :gin, name: 'documents_idx'
+add_index :documents, "to_tsvector('english', title || ' ' || body)", using: :gin, name: "documents_idx"
 ```
 
 ```ruby
@@ -723,7 +723,7 @@ create_table :documents do |t|
             type: :tsvector, as: "to_tsvector('english', title || ' ' || body)", stored: true
 end
 
-add_index :documents, :textsearchable_index_col, using: :gin, name: 'documents_idx'
+add_index :documents, :textsearchable_index_col, using: :gin, name: "documents_idx"
 
 # Usage
 Document.create(title: "Cats and Dogs", body: "are nice!")

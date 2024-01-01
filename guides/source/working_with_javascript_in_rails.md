@@ -228,7 +228,7 @@ def create
 
   respond_to do |format|
     if @post.save
-      format.turbo_stream { render turbo_stream: turbo_stream.prepend('posts', partial: 'post') }
+      format.turbo_stream { render turbo_stream: turbo_stream.prepend("posts", partial: "post") }
     else
       format.html { render :new, status: :unprocessable_entity }
     end
@@ -244,7 +244,7 @@ To broadcast a Turbo Stream from a model combine a model callback like this:
 
 ```ruby
 class Post < ApplicationRecord
-  after_create_commit { broadcast_append_to('posts') }
+  after_create_commit { broadcast_append_to("posts") }
 end
 ```
 

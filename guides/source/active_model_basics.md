@@ -80,9 +80,9 @@ which methods on the object will use them.
 class Person
   include ActiveModel::AttributeMethods
 
-  attribute_method_prefix 'reset_'
-  attribute_method_suffix '_highest?'
-  define_attribute_methods 'age'
+  attribute_method_prefix "reset_"
+  attribute_method_suffix "_highest?"
+  define_attribute_methods "age"
 
   attr_accessor :age
 
@@ -354,7 +354,7 @@ class Person
   attr_accessor :name
 
   def attributes
-    { 'name' => nil }
+    { "name" => nil }
   end
 end
 ```
@@ -388,7 +388,7 @@ class Person
   attr_accessor :name
 
   def attributes
-    { 'name' => nil }
+    { "name" => nil }
   end
 end
 ```
@@ -421,7 +421,7 @@ class Person
   end
 
   def attributes
-    { 'name' => nil }
+    { "name" => nil }
   end
 end
 ```
@@ -462,7 +462,7 @@ pt-BR:
 ```
 
 ```ruby
-Person.human_attribute_name('name') # => "Nome"
+Person.human_attribute_name("name") # => "Nome"
 ```
 
 ### Lint Tests

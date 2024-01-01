@@ -562,7 +562,7 @@ model test. To do that, provide a Hash containing at least an open IO object
 and a filename:
 
 ```ruby
-@message.images.attach(io: File.open('/path/to/file'), filename: 'file.pdf')
+@message.images.attach(io: File.open("/path/to/file"), filename: "file.pdf")
 ```
 
 When possible, provide a content type as well. Active Storage attempts to
@@ -570,7 +570,7 @@ determine a file’s content type from its data. It falls back to the content
 type you provide if it can’t do that.
 
 ```ruby
-@message.images.attach(io: File.open('/path/to/file'), filename: 'file.pdf', content_type: 'application/pdf')
+@message.images.attach(io: File.open("/path/to/file"), filename: "file.pdf", content_type: "application/pdf")
 ```
 
 You can bypass the content type inference from the data by passing in
@@ -578,9 +578,9 @@ You can bypass the content type inference from the data by passing in
 
 ```ruby
 @message.images.attach(
-  io: File.open('/path/to/file'),
-  filename: 'file.pdf',
-  content_type: 'application/pdf',
+  io: File.open("/path/to/file"),
+  filename: "file.pdf",
+  content_type: "application/pdf",
   identify: false
 )
 ```
@@ -721,7 +721,7 @@ direct :cdn_image do |model, options|
       :rails_service_blob_proxy,
       model.signed_id(expires_in: expires_in),
       model.filename,
-      options.merge(host: ENV['CDN_HOST'])
+      options.merge(host: ENV["CDN_HOST"])
     )
   else
     signed_blob_id = model.blob.signed_id(expires_in: expires_in)
@@ -733,7 +733,7 @@ direct :cdn_image do |model, options|
       signed_blob_id,
       variation_key,
       filename,
-      options.merge(host: ENV['CDN_HOST'])
+      options.merge(host: ENV["CDN_HOST"])
     )
   end
 end
@@ -813,7 +813,7 @@ a virus scanner or media transcoder) can operate on it. Use the attachment's
 
 ```ruby
 message.video.open do |file|
-  system '/path/to/virus/scanner', file.path
+  system "/path/to/virus/scanner", file.path
   # ...
 end
 ```
@@ -1340,7 +1340,7 @@ class DirectUploadsController < ActiveStorage::DirectUploadsController
   before_action :authenticate!
 
   def authenticate!
-    @token = request.headers['Authorization']&.split&.last
+    @token = request.headers["Authorization"]&.split&.last
 
     head :unauthorized unless valid_token?(@token)
   end

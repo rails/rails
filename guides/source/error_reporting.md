@@ -78,7 +78,7 @@ There are three ways you can use the error reporter:
 
 ```ruby
 result = Rails.error.handle do
-  1 + '1' # raises TypeError
+  1 + "1" # raises TypeError
 end
 result # => nil
 1 + 1 # This will be executed
@@ -98,7 +98,7 @@ end
 
 ```ruby
 Rails.error.record do
-  1 + '1' # raises TypeError
+  1 + "1" # raises TypeError
 end
 1 + 1 # This won't be executed
 ```
@@ -140,7 +140,7 @@ With `Rails.error.handle` and `Rails.error.record`, you can also choose to only 
 
 ```ruby
 Rails.error.handle(IOError) do
-  1 + '1' # raises TypeError
+  1 + "1" # raises TypeError
 end
 1 + 1 # TypeErrors are not IOErrors, so this will *not* be executed
 ```

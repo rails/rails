@@ -1759,12 +1759,12 @@ class Article < ApplicationRecord
   validates :title, presence: true
   validates :body, presence: true, length: { minimum: 10 }
 
-  VALID_STATUSES = ['public', 'private', 'archived']
+  VALID_STATUSES = ["public", "private", "archived"]
 
   validates :status, inclusion: { in: VALID_STATUSES }
 
   def archived?
-    status == 'archived'
+    status == "archived"
   end
 end
 ```
@@ -1775,12 +1775,12 @@ and in the `Comment` model:
 class Comment < ApplicationRecord
   belongs_to :article
 
-  VALID_STATUSES = ['public', 'private', 'archived']
+  VALID_STATUSES = ["public", "private", "archived"]
 
   validates :status, inclusion: { in: VALID_STATUSES }
 
   def archived?
-    status == 'archived'
+    status == "archived"
   end
 end
 ```
@@ -1828,7 +1828,7 @@ A concern is only responsible for a focused subset of the model's responsibility
 ```ruby
 module Visible
   def archived?
-    status == 'archived'
+    status == "archived"
   end
 end
 ```
@@ -1839,14 +1839,14 @@ We can add our status validation to the concern, but this is slightly more compl
 module Visible
   extend ActiveSupport::Concern
 
-  VALID_STATUSES = ['public', 'private', 'archived']
+  VALID_STATUSES = ["public", "private", "archived"]
 
   included do
     validates :status, inclusion: { in: VALID_STATUSES }
   end
 
   def archived?
-    status == 'archived'
+    status == "archived"
   end
 end
 ```
@@ -1883,7 +1883,7 @@ Class methods can also be added to concerns. If we want to display a count of pu
 module Visible
   extend ActiveSupport::Concern
 
-  VALID_STATUSES = ['public', 'private', 'archived']
+  VALID_STATUSES = ["public", "private", "archived"]
 
   included do
     validates :status, inclusion: { in: VALID_STATUSES }
@@ -1891,12 +1891,12 @@ module Visible
 
   class_methods do
     def public_count
-      where(status: 'public').count
+      where(status: "public").count
     end
   end
 
   def archived?
-    status == 'archived'
+    status == "archived"
   end
 end
 ```

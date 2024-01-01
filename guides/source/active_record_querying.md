@@ -40,13 +40,13 @@ class Book < ApplicationRecord
   belongs_to :supplier
   belongs_to :author
   has_many :reviews
-  has_and_belongs_to_many :orders, join_table: 'books_orders'
+  has_and_belongs_to_many :orders, join_table: "books_orders"
 
   scope :in_print, -> { where(out_of_print: false) }
   scope :out_of_print, -> { where(out_of_print: true) }
   scope :old, -> { where(year_published: ...50.years.ago.year) }
-  scope :out_of_print_and_expensive, -> { out_of_print.where('price > 500') }
-  scope :costs_more_than, ->(amount) { where('price > ?', amount) }
+  scope :out_of_print_and_expensive, -> { out_of_print.where("price > 500") }
+  scope :costs_more_than, ->(amount) { where("price > ?", amount) }
 end
 ```
 
@@ -60,7 +60,7 @@ end
 ```ruby
 class Order < ApplicationRecord
   belongs_to :customer
-  has_and_belongs_to_many :books, join_table: 'books_orders'
+  has_and_belongs_to_many :books, join_table: "books_orders"
 
   enum :status, [:shipped, :being_packed, :complete, :cancelled]
 
@@ -407,7 +407,7 @@ irb> Customer.find_by first_name: 'Jon'
 It is equivalent to writing:
 
 ```ruby
-Customer.where(first_name: 'Lifo').take
+Customer.where(first_name: "Lifo").take
 ```
 
 The SQL equivalent of the above is:
@@ -428,7 +428,7 @@ ActiveRecord::RecordNotFound
 This is equivalent to writing:
 
 ```ruby
-Customer.where(first_name: 'does not exist').take!
+Customer.where(first_name: "does not exist").take!
 ```
 
 [`find_by`]: https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-find_by
@@ -730,7 +730,7 @@ SELECT * FROM books WHERE (books.out_of_print = 1)
 The field name can also be a string:
 
 ```ruby
-Book.where('out_of_print' => true)
+Book.where("out_of_print" => true)
 ```
 
 In the case of a belongs_to relationship, an association key can be used to specify the model if an Active Record object is used as the value. This method works with polymorphic relationships as well.
@@ -833,7 +833,7 @@ Customer.where.not(nullable_country: nil)
 relation, and passing the second one as an argument.
 
 ```ruby
-Customer.where(last_name: 'Smith').or(Customer.where(orders_count: [1, 3, 5]))
+Customer.where(last_name: "Smith").or(Customer.where(orders_count: [1, 3, 5]))
 ```
 
 ```sql
@@ -847,7 +847,7 @@ SELECT * FROM customers WHERE (customers.last_name = 'Smith' OR customers.orders
 `AND` conditions can be built by chaining `where` conditions.
 
 ```ruby
-Customer.where(last_name: 'Smith').where(orders_count: [1, 3, 5])
+Customer.where(last_name: "Smith").where(orders_count: [1, 3, 5])
 ```
 
 ```sql
@@ -1075,7 +1075,7 @@ Overriding Conditions
 You can specify certain conditions to be removed using the [`unscope`][] method. For example:
 
 ```ruby
-Book.where('id > 100').limit(20).order('id desc').unscope(:order)
+Book.where("id > 100").limit(20).order("id desc").unscope(:order)
 ```
 
 The SQL that would be executed:
@@ -1097,7 +1097,7 @@ Book.where(id: 10, out_of_print: false).unscope(where: :id)
 A relation which has used `unscope` will affect any relation into which it is merged:
 
 ```ruby
-Book.order('id desc').merge(Book.unscope(:order))
+Book.order("id desc").merge(Book.unscope(:order))
 # SELECT books.* FROM books
 ```
 
@@ -1108,7 +1108,7 @@ Book.order('id desc').merge(Book.unscope(:order))
 You can also override conditions using the [`only`][] method. For example:
 
 ```ruby
-Book.where('id > 10').limit(20).order('id desc').only(:order, :where)
+Book.where("id > 10").limit(20).order("id desc").only(:order, :where)
 ```
 
 The SQL that would be executed:
@@ -1174,7 +1174,7 @@ SELECT * FROM books WHERE author_id = 10 ORDER BY year_published DESC
 You can using the `reorder` clause to specify a different way to order the books:
 
 ```ruby
-Author.find(10).books.reorder('year_published ASC')
+Author.find(10).books.reorder("year_published ASC")
 ```
 
 The SQL that would be executed:
@@ -1362,7 +1362,7 @@ For example:
 ```ruby
 Book.transaction do
   book = Book.lock.first
-  book.title = 'Algorithms, second edition'
+  book.title = "Algorithms, second edition"
   book.save!
 end
 ```
@@ -1502,7 +1502,7 @@ You can specify conditions on the joined tables using the regular [Array](#array
 
 ```ruby
 time_range = (Time.now.midnight - 1.day)..Time.now.midnight
-Customer.joins(:orders).where('orders.created_at' => time_range).distinct
+Customer.joins(:orders).where("orders.created_at" => time_range).distinct
 ```
 
 This will find all customers who have orders that were created yesterday, using a `BETWEEN` SQL expression to compare `created_at`.
@@ -1541,7 +1541,7 @@ If you want to select a set of records whether or not they have associated
 records you can use the [`left_outer_joins`][] method.
 
 ```ruby
-Customer.left_outer_joins(:reviews).distinct.select('customers.*, COUNT(reviews.*) AS reviews_count').group('customers.id')
+Customer.left_outer_joins(:reviews).distinct.select("customers.*, COUNT(reviews.*) AS reviews_count").group("customers.id")
 ```
 
 Which produces:
@@ -2141,9 +2141,9 @@ The query is sent only when the data is actually needed. So each example below g
 
 ```ruby
 Customer
-  .select('customers.id, customers.last_name, reviews.body')
+  .select("customers.id, customers.last_name, reviews.body")
   .joins(:reviews)
-  .where('reviews.created_at > ?', 1.week.ago)
+  .where("reviews.created_at > ?", 1.week.ago)
 ```
 
 The result should be something like this:
@@ -2160,9 +2160,9 @@ WHERE (reviews.created_at > '2019-01-08')
 
 ```ruby
 Book
-  .select('books.id, books.title, authors.first_name')
+  .select("books.id, books.title, authors.first_name")
   .joins(:author)
-  .find_by(title: 'Abstraction and Specification in Program Development')
+  .find_by(title: "Abstraction and Specification in Program Development")
 ```
 
 The above should generate:
@@ -2217,13 +2217,13 @@ exist, create a customer named "Andy" which is not locked.
 We can achieve this in two ways. The first is to use `create_with`:
 
 ```ruby
-Customer.create_with(locked: false).find_or_create_by(first_name: 'Andy')
+Customer.create_with(locked: false).find_or_create_by(first_name: "Andy")
 ```
 
 The second way is using a block:
 
 ```ruby
-Customer.find_or_create_by(first_name: 'Andy') do |c|
+Customer.find_or_create_by(first_name: "Andy") do |c|
   c.locked = false
 end
 ```
@@ -2461,13 +2461,13 @@ one of those records exists.
 ```ruby
 Customer.exists?(id: [1, 2, 3])
 # or
-Customer.exists?(first_name: ['Jane', 'Sergei'])
+Customer.exists?(first_name: ["Jane", "Sergei"])
 ```
 
 It's even possible to use `exists?` without any arguments on a model or a relation.
 
 ```ruby
-Customer.where(first_name: 'Ryan').exists?
+Customer.where(first_name: "Ryan").exists?
 ```
 
 The above returns `true` if there is at least one customer with the `first_name` 'Ryan' and `false`

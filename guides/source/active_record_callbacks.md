@@ -241,7 +241,7 @@ It can be used along with `belongs_to`:
 class Book < ApplicationRecord
   belongs_to :library, touch: true
   after_touch do
-    puts 'A Book was touched'
+    puts "A Book was touched"
   end
 end
 
@@ -251,7 +251,7 @@ class Library < ApplicationRecord
 
   private
     def log_when_books_or_library_touched
-      puts 'Book/Library was touched'
+      puts "Book/Library was touched"
     end
 end
 ```
@@ -360,7 +360,7 @@ class Article < ApplicationRecord
   after_destroy :log_destroy_action
 
   def log_destroy_action
-    puts 'Article destroyed'
+    puts "Article destroyed"
   end
 end
 ```
@@ -637,7 +637,7 @@ class User < ApplicationRecord
 
   private
     def log_user_saved_to_db
-      puts 'User was saved to database'
+      puts "User was saved to database"
     end
 end
 ```
@@ -659,7 +659,7 @@ class User < ApplicationRecord
 
   private
     def log_user_saved_to_db
-      puts 'User was saved to database'
+      puts "User was saved to database"
     end
 end
 ```
