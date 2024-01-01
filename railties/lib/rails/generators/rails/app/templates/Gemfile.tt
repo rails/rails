@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-ruby <%= "\"#{gem_ruby_version}\"" -%>
+ruby File.read(".ruby-version").strip
 
 <% gemfile_entries.each do |gemfile_entry| %>
 <%= gemfile_entry %>
