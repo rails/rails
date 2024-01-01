@@ -1,1 +1,1 @@
-system("bin/rubocop")
+system("bin/rubocop", exception: true)
