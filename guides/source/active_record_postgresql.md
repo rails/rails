@@ -292,9 +292,9 @@ Declaring an enum attribute in the model adds helper methods and prevents invali
 ```ruby
 # app/models/article.rb
 class Article < ApplicationRecord
-  enum status: {
+  enum :status, {
     draft: "draft", published: "published", archived: "archived"
-  }, _prefix: true
+  }, prefix: true
 end
 ```
 
