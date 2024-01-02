@@ -1,1 +1,40 @@
 system("bin/rubocop", exception: true)
+
+module Git
+  class Repository
+    class << self
+      def modified_ruby_files
+        select_applicable(modified_files)
+      end
+
+      def modified_files
+        `git diff --name-only -z --diff-filter=ACMR --ignore-submodules=all --cached`
+          .split("\0")
+          .map(&:strip)
+          .reject(&:empty?)
+          .map { |relative_file| File.expand_path(relative_file) }
+      end
+
+      def select_applicable(list)
+        list.select { |file| applicable_file?(file) }
+      end
+
+      def applicable_file?(file)
+        includes = [ "**/*.rb", "**/Gemfile" ].map { |glob| File.join(root, glob) }
+
+        includes.any? { |glob| File.fnmatch?(glob, file) }
+      end
+
+      def root
+        @root ||= File.expand_path("../..", __dir__)
+      end
+    end
+  end
+end
+
+begin
+  puts "== Running Rubocop ==\n"
+  system("bin/rubocop #{Git::Repository.modified_ruby_files.join(" ")}", exception: true)
+rescue
+  exit 1
+end
