@@ -1948,16 +1948,25 @@ information. It defaults to `true`.
 
 #### `config.action_dispatch.rescue_responses`
 
-Configures what exceptions are assigned to an HTTP status. It accepts a hash and you can specify pairs of exception/status. By default, this is defined as:
+Configures what exceptions are assigned to an HTTP status. It accepts a hash and you can specify pairs of exception/status.
 
 ```ruby
-config.action_dispatch.rescue_responses = {
+# It's good to use #[]= or #merge! to respect the default values
+config.action_dispatch.rescue_responses['MyAuthenticationError'] = :unauthorized
+```
+
+Use `ActionDispatch::ExceptionWrapper.rescue_responses` to observe the configuration. By default, it is defined as:
+
+```ruby
+{
   'ActionController::RoutingError' => :not_found,
   'AbstractController::ActionNotFound' => :not_found,
   'ActionController::MethodNotAllowed' => :method_not_allowed,
   'ActionController::UnknownHttpMethod' => :method_not_allowed,
   'ActionController::NotImplemented' => :not_implemented,
   'ActionController::UnknownFormat' => :not_acceptable,
+  'ActionDispatch::Http::MimeNegotiation::InvalidType' => :not_acceptable,
+  'ActionController::MissingExactTemplate' => :not_acceptable,
   'ActionController::InvalidAuthenticityToken' => :unprocessable_entity,
   'ActionController::InvalidCrossOriginRequest' => :unprocessable_entity,
   'ActionDispatch::Http::Parameters::ParseError' => :bad_request,
