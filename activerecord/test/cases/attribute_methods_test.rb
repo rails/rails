@@ -1366,7 +1366,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     self.table_name = "books"
 
     attribute :status, :string
-    enum status: {
+    enum :status, {
       pending: "0",
       completed: "1",
     }
