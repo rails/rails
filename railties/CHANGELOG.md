@@ -1,3 +1,7 @@
+*   Add bundler-audit gem by default for vulnerable dependencies check. Allow skipping with --skip-bundler-audit option.
+
+    *gregmolnar*
+
 *   Updated system tests to now use headless Chrome by default for the new applications.
 
     *DHH*

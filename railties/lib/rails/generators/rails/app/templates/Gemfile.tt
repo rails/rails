@@ -45,6 +45,11 @@ group :development do
   gem "brakeman", require: false
 
 <%- end -%>
+<%- unless options.skip_bundler_audit? -%>
+  # Check for vulnerable dependencies [https://github.com/rubysec/bundler-audit]
+  gem "bundler-audit", require: false
+
+<%- end -%>
 <%- unless options.skip_rubocop? -%>
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false

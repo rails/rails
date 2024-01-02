@@ -41,6 +41,7 @@ DEFAULT_APP_FILES = %w(
   app/views/layouts/mailer.text.erb
   bin/docker-entrypoint
   bin/brakeman
+  bin/bundler-audit
   bin/rails
   bin/rake
   bin/rubocop
@@ -662,6 +663,19 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_file "bin/rubocop"
     assert_no_file "bin/brakeman"
+  end
+
+  def test_inclusion_of_bundler_audit
+    run_generator
+    assert_gem "bundler-audit"
+    assert_file "bin/bundler-audit"
+  end
+
+  def test_bundler_audit_is_skipped_if_required
+    run_generator [destination_root, "--skip-bundler-audit"]
+
+    assert_no_gem "bundler-audit"
+    assert_no_file "bin/bundler-audit"
   end
 
   def test_inclusion_of_ci_files

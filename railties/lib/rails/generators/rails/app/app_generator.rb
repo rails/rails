@@ -108,7 +108,7 @@ module Rails
     end
 
     def bin
-      exclude_pattern = Regexp.union([(/rubocop/ if skip_rubocop?), (/brakeman/ if skip_brakeman?)].compact)
+      exclude_pattern = Regexp.union([(/rubocop/ if skip_rubocop?), (/brakeman/ if skip_brakeman?), (/bundler-audit/ if skip_bundler_audit?)].compact)
       directory "bin", { exclude_pattern: exclude_pattern } do |content|
         "#{shebang}\n" + content
       end

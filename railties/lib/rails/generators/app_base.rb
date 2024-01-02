@@ -104,7 +104,10 @@ module Rails
                                            desc: "Skip RuboCop setup"
 
         class_option :skip_brakeman,       type: :boolean, default: nil,
-                                           desc: "Skip brakeman setup"
+                                           desc: "skip brakeman setup"
+
+        class_option :skip_bundler_audit,  type: :boolean, default: nil,
+                                           desc: "skip bundler audit setup"
 
         class_option :skip_ci,             type: :boolean, default: nil,
                                            desc: "Skip GitHub CI files"
@@ -394,6 +397,10 @@ module Rails
 
       def skip_brakeman?
         options[:skip_brakeman]
+      end
+
+      def skip_bundler_audit?
+        options[:skip_bundler_audit]
       end
 
       def skip_ci?
