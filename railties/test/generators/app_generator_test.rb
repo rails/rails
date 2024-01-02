@@ -441,6 +441,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "MyWebSite/config/database.yml", /my_web_site_production/
   end
 
+  def test_html_language_attribute
+    run_generator
+
+    assert_file "app/views/layouts/application.html.erb", /<html lang="en">/
+  end
+
   def test_gemfile_has_no_whitespace_errors
     run_generator
     absolute = File.expand_path("Gemfile", destination_root)
