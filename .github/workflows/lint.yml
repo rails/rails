@@ -9,7 +9,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     env:
-      BUNDLE_WITHOUT: db:job:cable:storage:ujs
+      BUNDLE_WITHOUT: db:job:cable:storage
 
     steps:
     - uses: actions/checkout@v4
@@ -33,7 +33,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install codespell==2.1.0
     - name: Check spelling with codespell
-      run: codespell --ignore-words=codespell.txt --skip="./vendor/bundle,./actionview/test/ujs/public/vendor/qunit.js,./actiontext/app/assets/javascripts/trix.js,./yarn.lock" || exit 1
+      run: codespell --ignore-words=codespell.txt --skip="./vendor/bundle,./actiontext/app/assets/javascripts/trix.js,./yarn.lock" || exit 1
 
     - run: tools/railspect changelogs .
     - run: tools/railspect configuration .
