@@ -3,7 +3,7 @@ yarn install
 
 sudo chown -R vscode:vscode /usr/local/bundle
 
-cd activerecord
+cd activerecord || exit
 
 # Create PostgreSQL databases
 bundle exec rake db:postgresql:rebuild
