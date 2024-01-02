@@ -697,6 +697,7 @@ The full set of methods that can be used in this block are as follows:
 * `scaffold_controller` different from `resource_controller`, defines which generator to use for generating a _scaffolded_ controller when using `bin/rails generate scaffold`. Defaults to `:scaffold_controller`.
 * `test_framework` defines which test framework to use. Defaults to `false` and will use minitest by default.
 * `template_engine` defines which template engine to use, such as ERB or Haml. Defaults to `:erb`.
+* `apply_rubocop_autocorrect_after_generate!` applies RuboCop's autocorrect feature after Rails generators are run.
 
 ### Configuring Middleware
 
