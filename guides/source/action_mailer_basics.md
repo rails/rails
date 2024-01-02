@@ -621,10 +621,6 @@ URL helper.
 <%= user_url(@user, host: 'example.com') %>
 ```
 
-NOTE: non-`GET` links require [rails-ujs](https://github.com/rails/rails/blob/main/actionview/app/assets/javascripts) or
-[jQuery UJS](https://github.com/rails/jquery-ujs), and won't work in mailer templates.
-They will result in normal `GET` requests.
-
 ### Adding Images in Action Mailer Views
 
 Unlike controllers, the mailer instance doesn't have any context about the

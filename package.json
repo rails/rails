@@ -3,8 +3,7 @@
   "workspaces": [
     "actioncable",
     "actiontext",
-    "activestorage",
-    "actionview"
+    "activestorage"
   ],
   "dependencies": {
     "webpack": "^4.17.1"

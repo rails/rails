@@ -8,7 +8,7 @@ permissions:
 env:
   APP_NAME: devrails
   APP_PATH: dev/devrails
-  BUNDLE_WITHOUT: db:job:cable:storage:ujs
+  BUNDLE_WITHOUT: db:job:cable:storage
 
 jobs:
   rails-new-docker:

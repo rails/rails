@@ -3,7 +3,6 @@
   "private": true,
   "dependencies": {
     "@rails/actioncable": "file:../../../../actioncable",
-    "@rails/activestorage": "file:../../../../activestorage",
-    "@rails/ujs": "file:../../../../actionview"
+    "@rails/activestorage": "file:../../../../activestorage"
   }
 }
