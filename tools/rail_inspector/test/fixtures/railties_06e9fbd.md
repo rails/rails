@@ -169,13 +169,13 @@
 
     Previously, when running this command:
 
-    ``` sh
+    ```sh
     bin/rails generate scaffold_controller Admin/Post --model-name Post
     ```
 
     the comments above the controller action would look like:
 
-    ``` ruby
+    ```ruby
     # GET /posts
     def index
       @posts = Post.all
@@ -184,7 +184,7 @@
 
     afterwards, they now look like this:
 
-    ``` ruby
+    ```ruby
     # GET /admin/posts
     def index
       @posts = Post.all

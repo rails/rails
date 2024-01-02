@@ -6,9 +6,12 @@
     <%%= csrf_meta_tags %>
     <%%= csp_meta_tag %>
 
+    <%%= yield :head %>
     <%- if options[:skip_hotwire] || options[:skip_javascript] -%>
+
     <%%= stylesheet_link_tag "application" %>
     <%- else -%>
+
     <%%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%- end -%>
   </head>
