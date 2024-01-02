@@ -93,7 +93,7 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Run Tests
+      - name: Run tests
         env:
           RAILS_ENV: test
           <%- if options[:database] == "mysql" || options[:database] == "trilogy" -%>
@@ -103,3 +103,11 @@ jobs:
           <%- end -%>
           # REDIS_URL: redis://localhost:6379/0
         run: bin/rails db:setup test test:system
+
+      - name: Keep screenshots from failed system tests
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: screenshots
+          path: ${{ github.workspace }}/tmp/screenshots
+          if-no-files-found: ignore

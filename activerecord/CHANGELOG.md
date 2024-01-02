@@ -1,3 +1,17 @@
+*   Allow overriding SQLite defaults from `database.yml`
+
+    Any PRAGMA configuration set under the `pragmas` key in the configuration file take precedence over Rails' defaults, and additional PRAGMAs can be set as well.
+
+    ```yaml
+    database: storage/development.sqlite3
+    timeout: 5000
+    pragmas:
+      journal_mode: off
+      temp_store: memory
+    ```
+
+    *Stephen Margheim*
+
 *   Remove warning message when running SQLite in production, but leave it unconfigured
 
     There are valid use cases for running SQLite in production, however it must be done

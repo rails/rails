@@ -6,6 +6,10 @@
     <%%= csrf_meta_tags %>
     <%%= csp_meta_tag %>
 
+    <%%= yield :head %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="apple-touch-icon" href="/icon.png" sizes="512x512">
     <%- if options[:skip_hotwire] || options[:skip_javascript] -%>
     <%%= stylesheet_link_tag "application" %>
     <%- else -%>

@@ -151,6 +151,9 @@ group :test do
   end
 
   gem "benchmark-ips"
+
+  # Needed for Railties tests because it is included in generated apps.
+  gem "brakeman"
 end
 
 platforms :ruby, :windows do
