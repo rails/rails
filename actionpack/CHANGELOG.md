@@ -1,3 +1,12 @@
+*   Raise `ArgumentError` when `assert_redirected_to` called with status that is not a redirect
+
+    ```ruby
+    assert_redirected_to "/", status: 302
+    assert_redirected_to "/", status: 200 # raises ArgumentError
+    ```
+
+    *Sean Doyle*
+
 *   Add `allow_browser` to set minimum browser versions for the application.
 
     A browser that's blocked will by default be served the file in `public/426.html` with a HTTP status code of "426 Upgrade Required".

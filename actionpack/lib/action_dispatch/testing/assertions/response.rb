@@ -56,8 +56,12 @@ module ActionDispatch
       #   assert_redirected_to "/some/path", status: :moved_permanently
       def assert_redirected_to(url_options = {}, options = {}, message = nil)
         options, message = {}, options unless options.is_a?(Hash)
-
         status = options[:status] || :redirect
+
+        unless AssertionResponse.new(status).code.to_s.match?(/\A3..\z/)
+          raise ArgumentError, "Expected :status to be for a redirect, but was #{status}"
+        end
+
         assert_response(status, message)
         return true if url_options === @response.location
 

@@ -470,6 +470,25 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     end
   end
 
+  def test_assert_redirection_with_status_outside_3XX_range
+    Rack::Utils::HTTP_STATUS_CODES.keys.each do |status|
+      if status < 300 || status > 399
+        assert_raise ArgumentError, match: "Expected :status to be for a redirect, but was #{status}" do
+          assert_redirected_to("http://test.host/some/path", status: status)
+        end
+      end
+    end
+
+    ActionDispatch::AssertionResponse::GENERIC_RESPONSE_CODES.except(:redirect).each do |status, pseudostatus|
+      assert_raise ArgumentError, match: "Expected :status to be for a redirect, but was #{status}" do
+        assert_redirected_to("http://test.host/some/path", status: status)
+      end
+      assert_raise ArgumentError, match: "Expected :status to be for a redirect, but was #{pseudostatus}" do
+        assert_redirected_to("http://test.host/some/path", status: pseudostatus)
+      end
+    end
+  end
+
   def test_redirected_to_with_nested_controller
     @controller = Admin::InnerModuleController.new
     get :redirect_to_absolute_controller
