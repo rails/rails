@@ -274,9 +274,9 @@ end
 ```ruby
 # app/models/article.rb
 class Article < ApplicationRecord
-  enum status: {
+  enum :status, {
     draft: "draft", published: "published"
-  }, _prefix: true
+  }, prefix: true
 end
 ```
 
