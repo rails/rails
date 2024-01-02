@@ -10,6 +10,8 @@
     <%%= yield :head %>
 
     <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="apple-touch-icon" href="/icon.png" sizes="512x512">
     <%- if options[:skip_hotwire] || options[:skip_javascript] -%>
     <%%= stylesheet_link_tag "application" %>
     <%- else -%>
