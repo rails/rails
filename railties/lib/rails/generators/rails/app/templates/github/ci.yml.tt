@@ -105,8 +105,9 @@ jobs:
         run: bin/rails db:setup test test:system
 
       - name: Keep screenshots from failed system tests
-        uses: actions/upload-artifact@v3
-        if: always()
+        uses: actions/upload-artifact@v4
+        if: failure()
         with:
           name: screenshots
           path: ${{ github.workspace }}/tmp/screenshots
+          if-no-files-found: ignore
