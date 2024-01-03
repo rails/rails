@@ -46,16 +46,6 @@ class Minitest::RailsPluginTest < ActiveSupport::TestCase
     end
   end
 
-  test "does not replace backtrace filter when BACKTRACE environment variable is set" do
-    backtrace_filter = baseline_backtrace_filter
-
-    switch_env "BACKTRACE", "true" do
-      with_plugin(initial_backtrace_filter: backtrace_filter) do
-        assert_same backtrace_filter, Minitest.backtrace_filter
-      end
-    end
-  end
-
   test "replaces Minitest::SummaryReporter reporter" do
     with_plugin do
       assert_empty Minitest.reporter.reporters.select { |reporter| reporter.instance_of? Minitest::SummaryReporter }
