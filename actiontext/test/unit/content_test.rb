@@ -3,6 +3,26 @@
 require "test_helper"
 
 class ActionText::ContentTest < ActiveSupport::TestCase
+  test "#locale defaults to I18n.locale" do
+    assert_equal :en, ActionText::Content.new.locale
+
+    I18n.with_locale :es do
+      assert_equal :es, ActionText::Content.new.locale
+    end
+  end
+
+  test "#locale= sets the locale" do
+    english = ActionText::Content.new nil, locale: :en
+
+    assert_equal :en, english.locale
+
+    I18n.with_locale :en do
+      danish = ActionText::Content.new nil, locale: :dk
+
+      assert_equal :dk, danish.locale
+    end
+  end
+
   test "equality" do
     html = "<div>test</div>"
     content = content_from_html(html)
@@ -128,7 +148,7 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     rendered = content_from_html(html).to_rendered_html_with_layout
 
     assert_includes rendered, html
-    assert_match %r/\A#{Regexp.escape '<div class="trix-content">'}/, rendered
+    assert_match %r/\A#{Regexp.escape '<div lang="en" class="trix-content">'}/, rendered
     assert_not defined?(::ApplicationController)
   end
 
@@ -164,7 +184,7 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     Thread.new { rendered = content_from_html(html).to_rendered_html_with_layout }.join
 
     assert_includes rendered, html
-    assert_match %r/\A#{Regexp.escape '<div class="trix-content">'}/, rendered
+    assert_match %r/\A#{Regexp.escape '<div lang="en" class="trix-content">'}/, rendered
   end
 
   test "replace certain nodes" do

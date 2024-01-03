@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2019_03_17_200724) do
+ActiveRecord::Schema[7.2].define(version: 2024_01_03_151150) do
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.string "name", null: false
     t.text "body"
@@ -18,6 +18,7 @@ ActiveRecord::Schema[7.2].define(version: 2019_03_17_200724) do
     t.integer "record_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "locale", null: false
     t.index ["record_type", "record_id", "name"], name: "index_action_text_rich_texts_uniqueness", unique: true
   end
 

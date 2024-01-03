@@ -106,6 +106,8 @@ class MessagesController < ApplicationController
 end
 ```
 
+Rich text content will be saved with the [current I18n.locale](./i18n.html#managing-the-locale-across-requests) value.
+
 NOTE: Since Action Text relies on polymorphic associations, and [polymorphic associations](./association_basics.html#polymorphic-associations) rely on storing class names in the database, that data must remain synchronized with the class name used by the Ruby code. When renaming classes that use `has_rich_text`, make sure to also update the class names in the `action_text_rich_texts.record_type` polymorphic type column of the corresponding rows.
 
 [`rich_text_area`]: https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-rich_text_area
@@ -141,10 +143,12 @@ To customize the HTML container element that's rendered around rich text content
 ```html+erb
 <%# app/views/layouts/action_text/contents/_content.html.erb %>
 
-<div class="trix-content">
+<div lang="<%= content.locale %>" class="trix-content">
   <%= yield %>
 </div>
 ```
+
+If the application supports multiple languages, render the element with the [lang](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang) attribute set to reflect the source language of the content.
 
 To customize the HTML rendered for embedded images and other attachments (known as blobs), edit the `app/views/active_storage/blobs/_blob.html.erb` template created by the installer:
 

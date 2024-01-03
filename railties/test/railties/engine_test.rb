@@ -1805,6 +1805,33 @@ en:
       assert_equal "/fruits/2/bukkits/posts", last_response.body
     end
 
+    test "action_text:install task works within engine" do
+      @plugin.write "Rakefile", <<-RUBY
+        APP_RAKEFILE = '#{app_path}/Rakefile'
+        load "rails/tasks/engine.rake"
+      RUBY
+
+      Dir.chdir(@plugin.path) do
+        assert_command_succeeds("bundle exec rake app:action_text:install")
+
+        action_text_migration = migrations.detect { |migration| migration.name == "CreateActionTextTables" }
+        assert action_text_migration
+      end
+    end
+
+    test "action_text:update task works within engine" do
+      @plugin.write "Rakefile", <<-RUBY
+        APP_RAKEFILE = '#{app_path}/Rakefile'
+        load "rails/tasks/engine.rake"
+      RUBY
+
+      Dir.chdir(@plugin.path) do
+        assert_command_succeeds("bundle exec rake app:action_text:update")
+
+        assert migrations.detect { |migration| migration.name == "AddLocaleToActionTextRichTexts" }
+      end
+    end
+
     test "active_storage:install task works within engine" do
       @plugin.write "Rakefile", <<-RUBY
         APP_RAKEFILE = '#{app_path}/Rakefile'

@@ -39,8 +39,22 @@ module ActionText
     belongs_to :record, polymorphic: true, touch: true
     has_many_attached :embeds
 
+    after_initialize do
+      self.locale ||= I18n.locale
+    end
+
     before_save do
       self.embeds = body.attachables.grep(ActiveStorage::Blob).uniq if body.present?
+    end
+
+    def body=(value)
+      super
+
+      body.try(:locale=, locale)
+    end
+
+    def body
+      super.tap { |value| value.try(:locale=, locale) }
     end
 
     # Returns a plain-text version of the markup contained by the +body+ attribute,

@@ -7,7 +7,14 @@ class ActionText::ModelTest < ActiveSupport::TestCase
 
   test "html conversion" do
     message = Message.new(subject: "Greetings", content: "<h1>Hello world</h1>")
-    assert_equal %Q(<div class="trix-content">\n  <h1>Hello world</h1>\n</div>\n), "#{message.content}"
+    assert_equal %Q(<div lang="en" class="trix-content">\n  <h1>Hello world</h1>\n</div>\n), message.content.to_s
+  end
+
+  test "html conversion incorporates I18n.locale" do
+    I18n.with_locale "es" do
+      message = Message.new(subject: "Greetings", content: "<h1>Hola mundo</h1>")
+      assert_equal %Q(<div lang="es" class="trix-content">\n  <h1>Hola mundo</h1>\n</div>\n), message.content.to_s
+    end
   end
 
   test "plain text conversion" do

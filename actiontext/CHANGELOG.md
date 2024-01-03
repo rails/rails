@@ -1,3 +1,9 @@
+*   Add `action_text_rich_texts.locale`
+
+    Store the locale when Rich Text content is created.
+
+    *Sean Doyle*
+
 *   Fix all Action Text database related models to respect
     `ActiveRecord::Base.table_name_prefix` configuration.
 

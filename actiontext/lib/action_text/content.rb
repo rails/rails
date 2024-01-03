@@ -22,6 +22,7 @@ module ActionText
   class Content
     include Rendering, Serialization
 
+    attr_accessor :locale
     attr_reader :fragment
 
     delegate :blank?, :empty?, :html_safe, :present?, to: :to_html # Delegating to to_html to avoid including the layout
@@ -35,7 +36,9 @@ module ActionText
     end
 
     def initialize(content = nil, options = {})
-      options.with_defaults! canonicalize: true
+      options.with_defaults! canonicalize: true, locale: I18n.locale
+
+      self.locale = options[:locale]
 
       if options[:canonicalize]
         @fragment = self.class.fragment_by_canonicalizing_content(content)
