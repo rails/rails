@@ -60,7 +60,7 @@ group :development do
 <%- end -%>
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
-<%- if RUBY_VERSION >= "3.1" && RUBY_VERSION < "3.2" -%>
+<%- if RUBY_VERSION < "3.2" -%>
 
   # Highlight the fine-grained location where an error occurred [https://github.com/ruby/error_highlight]
   gem "error_highlight", ">= 0.4.0", platforms: [:ruby]
@@ -72,8 +72,5 @@ group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
-<%- if RUBY_VERSION < "3.0" -%>
-  gem "webdrivers"
-<%- end -%>
 end
 <%- end -%>

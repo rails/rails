@@ -193,6 +193,6 @@ gem "wdm", ">= 0.1.0", platforms: [:windows]
 # The error_highlight gem only works on CRuby 3.1 or later.
 # Also, Rails depends on a new API available since error_highlight 0.4.0.
 # (Note that Ruby 3.1 bundles error_highlight 0.3.0.)
-if RUBY_VERSION >= "3.1" && RUBY_VERSION < "3.2"
+if RUBY_VERSION < "3.2"
   gem "error_highlight", ">= 0.4.0", platforms: [:ruby]
 end

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "weakref"
-require "active_support/ruby_features"
 
 module ActiveSupport
   # = Active Support Descendants Tracker
@@ -95,96 +94,19 @@ module ActiveSupport
       end
     end
 
-    if RubyFeatures::CLASS_SUBCLASSES
-      class << self
-        def subclasses(klass)
-          klass.subclasses
-        end
-
-        def descendants(klass)
-          klass.descendants
-        end
+    class << self
+      def subclasses(klass)
+        klass.subclasses
       end
 
-      def descendants
-        subclasses = DescendantsTracker.reject!(self.subclasses)
-        subclasses.concat(subclasses.flat_map(&:descendants))
+      def descendants(klass)
+        klass.descendants
       end
-    else
-      # DescendantsArray is an array that contains weak references to classes.
-      # Note: DescendantsArray is redundant with WeakSet, however WeakSet when used
-      # on Ruby 2.7 or 3.0 can trigger a Ruby crash: https://bugs.ruby-lang.org/issues/18928
-      class DescendantsArray # :nodoc:
-        include Enumerable
+    end
 
-        def initialize
-          @refs = []
-        end
-
-        def <<(klass)
-          @refs << WeakRef.new(klass)
-        end
-
-        def each
-          @refs.reject! do |ref|
-            yield ref.__getobj__
-            false
-          rescue WeakRef::RefError
-            true
-          end
-          self
-        end
-
-        def refs_size
-          @refs.size
-        end
-
-        def cleanup!
-          @refs.delete_if { |ref| !ref.weakref_alive? }
-        end
-
-        def reject!
-          @refs.reject! do |ref|
-            yield ref.__getobj__
-          rescue WeakRef::RefError
-            true
-          end
-        end
-      end
-
-      @direct_descendants = {}
-
-      class << self
-        def subclasses(klass)
-          descendants = @direct_descendants[klass]
-          descendants ? DescendantsTracker.reject!(descendants.to_a) : []
-        end
-
-        def descendants(klass)
-          subclasses = self.subclasses(klass)
-          subclasses.concat(subclasses.flat_map { |k| descendants(k) })
-        end
-
-        # This is the only method that is not thread safe, but is only ever called
-        # during the eager loading phase.
-        def store_inherited(klass, descendant) # :nodoc:
-          (@direct_descendants[klass] ||= DescendantsArray.new) << descendant
-        end
-      end
-
-      def subclasses
-        DescendantsTracker.subclasses(self)
-      end
-
-      def descendants
-        DescendantsTracker.descendants(self)
-      end
-
-      private
-        def inherited(base) # :nodoc:
-          DescendantsTracker.store_inherited(self, base)
-          super
-        end
+    def descendants
+      subclasses = DescendantsTracker.reject!(self.subclasses)
+      subclasses.concat(subclasses.flat_map(&:descendants))
     end
   end
 end

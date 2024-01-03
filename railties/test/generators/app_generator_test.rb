@@ -1184,17 +1184,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_old_rubies_do_not_use_bullseye_python
-    Gem.stub(:ruby_version, Gem::Version.new("2.7.0")) do
-      run_generator [destination_root, "--js=esbuild"]
-    end
-
-    assert_file "Dockerfile" do |content|
-      assert_match(/python/, content)
-      assert_no_match(/python-is-python3/, content)
-    end
-  end
-
   def test_skip_docker
     run_generator [destination_root, "--skip-docker"]
 

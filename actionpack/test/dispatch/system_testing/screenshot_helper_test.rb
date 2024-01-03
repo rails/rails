@@ -152,18 +152,15 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
     assert_match %r|url=artifact://.+?tmp/screenshots/1_x\.png|, display_image_actual
   end
 
-  # minitest doesn't support metadata in the version locked on Ruby 2.7
-  if RUBY_VERSION > "3.0"
-    test "take_failed_screenshot persists the image path in the test metadata" do
-      Rails.stub :root, Pathname.getwd do
-        @new_test.stub :passed?, false do
-          Capybara::Session.stub :instance_created?, true do
-            @new_test.stub :save_image, nil do
-              @new_test.stub :show, -> (_) { } do
-                @new_test.take_failed_screenshot
+  test "take_failed_screenshot persists the image path in the test metadata" do
+    Rails.stub :root, Pathname.getwd do
+      @new_test.stub :passed?, false do
+        Capybara::Session.stub :instance_created?, true do
+          @new_test.stub :save_image, nil do
+            @new_test.stub :show, -> (_) { } do
+              @new_test.take_failed_screenshot
 
-                assert_equal @new_test.send(:relative_image_path), @new_test.metadata[:failure_screenshot_path]
-              end
+              assert_equal @new_test.send(:relative_image_path), @new_test.metadata[:failure_screenshot_path]
             end
           end
         end

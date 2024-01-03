@@ -579,24 +579,7 @@ module Rails
         if using_node?
           packages << "node-gyp" # pkg-config already listed above
 
-          # module build process depends on Python, and debian changed
-          # how python is installed with the bullseye release.  Below
-          # is based on debian release included with the Ruby images on
-          # Dockerhub.
-          case Gem.ruby_version.to_s
-          when /^2\.7/
-            bullseye = Gem.ruby_version >= Gem::Version.new("2.7.4")
-          when /^3\.0/
-            bullseye = Gem.ruby_version >= Gem::Version.new("3.0.2")
-          else
-            bullseye = true
-          end
-
-          if bullseye
-            packages << "python-is-python3"
-          else
-            packages << "python"
-          end
+          packages << "python-is-python3"
         end
 
         packages.compact.sort
