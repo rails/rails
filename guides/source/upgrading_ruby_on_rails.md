@@ -252,6 +252,31 @@ See the [Testing Rails Applications](https://guides.rubyonrails.org/testing.html
 
 If you run a single file's tests (`bin/rails test test/models/user_test.rb`), `test:prepare` will not run before it.
 
+### Import syntax from `@rails/ujs` is modified
+
+Starting from Rails 7.1, the syntax for importing modules from `@rails/ujs` is modified. Rails no longer supports the
+direct import of a module from `@rails/ujs`.
+
+For example, attempting to import a function from the library will fail:
+
+\```
+import { fileInputSelector } from "@rails/ujs"
+#=> export 'fileInputSelector' (imported as 'fileInputSelector') was not found in '@rails/ujs' (possible exports: default)
+\```
+
+In Rails 7.1, users should first import the Rails object directly from `@rails/ujs`.
+Users can then import specific modules from the Rails object.
+
+An example of imports in Rails 7.1 is shown below:
+
+```javascript
+import Rails from "@rails/ujs"
+// Alias the method
+const fileInputSelector = Rails.fileInputSelector
+// Alternatively, reference it from the Rails object where it is used
+Rails.fileInputSelector(...)
+```
+
 ### `ActionView::TestCase#rendered` no longer returns a `String`
 
 Starting from Rails 7.1, `ActionView::TestCase#rendered` returns an object that
