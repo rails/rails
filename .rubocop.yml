@@ -367,6 +367,9 @@ Minitest/AssertWithExpectedArgument:
 Minitest/LiteralAsActualArgument:
   Enabled: true
 
+Minitest/NonExecutableTestMethod:
+  Enabled: true
+
 Minitest/SkipEnsure:
   Enabled: true
 
