@@ -3,11 +3,13 @@
   <head>
     <title><%%= content_for(:title) || "<%= camelized %>" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <%%= csrf_meta_tags %>
     <%%= csp_meta_tag %>
 
     <%%= yield :head %>
 
+    <link rel="manifest" href="/manifest.json">
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="apple-touch-icon" href="/icon.png" sizes="512x512">
     <%- if options[:skip_hotwire] || options[:skip_javascript] -%>

@@ -1,3 +1,7 @@
+*   Add default PWA files for manifest and service-worker that are served from `app/views/pwa` and can be dynamically rendered through erb. Mount these files explicitly at the root with default routes in the generated routes file.
+
+    *DHH*
+
 *   Updated system tests to now use headless Chrome by default for the new applications.
 
     *DHH*
