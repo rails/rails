@@ -102,6 +102,9 @@ Lastly, for new writer databases, you need to set the `migrations_paths` to the 
 where you will store migrations for that database. We'll look more at `migrations_paths`
 later on in this guide.
 
+You can also configure the schema dump file by setting `schema_dump` to a custom schema file name
+or completely skip the schema dumping by setting `schema_dump: false`.
+
 Now that we have a new database, let's set up the connection model. In order to use the
 new database we need to create a new abstract class and connect to the animals databases.
 
@@ -441,7 +444,7 @@ class ShardRecord < ApplicationRecord
 end
 ```
 
-If you're using shards, make sure to set the `migrations_paths` to the same path for
+If you're using shards, make sure both `migrations_paths` and `schema_dump` remain unchanged for
 all the shards. When generating a migration you can pass the `--database` option and
 use one of the shard names. Since they all set the same path, it doesn't matter which
 one you choose.
