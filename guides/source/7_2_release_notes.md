@@ -75,6 +75,8 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `@rails/ujs` in favor of `Turbo`.
+
 ### Deprecations
 
 *  Deprecate passing content to void elements when using `tag.br` type tag builders.
