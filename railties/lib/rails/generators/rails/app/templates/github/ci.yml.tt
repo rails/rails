@@ -8,7 +8,7 @@ on:
 
 jobs:
 <%- unless skip_brakeman? -%>
-  scan:
+  scan_ruby:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,8 +21,26 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Scan for security vulnerabilities
+      - name: Scan for security vulnerabilities in Ruby Dependencies
         run: bin/brakeman
+<% end -%>
+<%- if options[:javascript] == "importmap" -%>
+
+  scan_js:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Scan for security vulnerabilities in Javascript Dependencies
+        run: bin/importmap audit
 <% end -%>
 <%- unless skip_rubocop? -%>
 
