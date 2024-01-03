@@ -1,3 +1,8 @@
+*   Use logical core count instead of physical core count to determine the
+    default number of workers when parallelizing tests.
+
+    *Jonathan Hefner*
+
 *   Fix `Time.now/DateTime.now/Date.today' to return results in a system timezone after `#travel_to'.
 
     There is a bug in the current implementation of #travel_to:
