@@ -265,10 +265,10 @@ direct import of a module from `@rails/ujs`.
 
 For example, attempting to import a function from the library will fail:
 
-\```
+```javascript
 import { fileInputSelector } from "@rails/ujs"
-#=> export 'fileInputSelector' (imported as 'fileInputSelector') was not found in '@rails/ujs' (possible exports: default)
-\```
+// ERROR: export 'fileInputSelector' (imported as 'fileInputSelector') was not found in '@rails/ujs' (possible exports: default)
+```
 
 In Rails 7.1, users should first import the Rails object directly from `@rails/ujs`.
 Users can then import specific modules from the Rails object.
