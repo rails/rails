@@ -71,6 +71,10 @@ module Rails
         end
       end
 
+      initializer :configure_backtrace_cleaner, group: :all do
+        Rails.backtrace_cleaner.remove_silencers! if ENV["BACKTRACE"]
+      end
+
       # Initialize cache early in the stack so railties can make use of it.
       initializer :initialize_cache, group: :all do
         cache_format_version = config.active_support.delete(:cache_format_version)

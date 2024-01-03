@@ -1,3 +1,13 @@
+*   Support `BACKTRACE` ENV variable to turn off backtrace cleaning.
+
+    Useful for debugging framework code:
+
+    ```sh
+    BACKTRACE=1 ./bin/rails server
+    ```
+
+    *Alex Ghiculescu*
+
 *   Raise `ArgumentError` when reading `config.x.something` with arguments
 
     ```ruby
