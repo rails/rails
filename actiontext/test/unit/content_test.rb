@@ -210,3 +210,7 @@ class ActionText::ContentTest < ActiveSupport::TestCase
       ActionText::Attachment.tag_name = previous_tag_name
     end
 end
+
+if RUBY_VERSION >= "3.1"
+  require_relative "./content_test/pattern_matching_test_cases"
+end
