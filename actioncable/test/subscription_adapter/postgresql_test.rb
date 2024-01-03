@@ -84,4 +84,51 @@ class PostgresqlAdapterTest < ActionCable::TestCase
     identifiers = ActiveRecord::Base.connection.exec_query("SELECT application_name FROM pg_stat_activity").rows
     assert_includes identifiers, ["hello-world-42"]
   end
+
+  # Postgres has a NOTIFY payload limit of 8000 bytes which requires special handling to avoid
+  # "PG::InvalidParameterValue: ERROR: payload string too long" errors.
+  def test_large_payload_broadcast
+    large_payloads_table = "action_cable_large_payloads"
+    ActiveRecord::Base.connection_pool.with_connection do |connection|
+      connection.execute("
+        CREATE TABLE IF NOT EXISTS #{large_payloads_table}
+        (id serial primary key, payload text, created_at timestamp default CURRENT_TIMESTAMP)
+      ")
+      connection.execute("TRUNCATE TABLE #{large_payloads_table}")
+    end
+
+    server = ActionCable::Server::Base.new
+    server.config.cable = cable_config.merge(large_payloads_table: large_payloads_table).with_indifferent_access
+    server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
+    adapter = server.config.pubsub_adapter.new(server)
+
+    large_payload = "a" * (ActionCable::SubscriptionAdapter::PostgreSQL::MAX_NOTIFY_SIZE + 1)
+
+    subscribe_as_queue("channel", adapter) do |queue|
+      adapter.broadcast("channel", large_payload)
+
+      # The large payload is stored in the database at this point
+      assert_equal 1, ActiveRecord::Base.connection.query("SELECT COUNT(*) FROM #{large_payloads_table}").first.first
+
+      assert_equal large_payload, queue.pop
+    end
+  end
+
+  # If the large payloads table doesn't exist, the adapter raises a helpful error
+  # to aid developers in creating it.
+  def test_large_payload_broadcast_without_large_payloads_table
+    server = ActionCable::Server::Base.new
+    server.config.cable = cable_config.merge(large_payloads_table: "doesnt_exist").with_indifferent_access
+    server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
+    adapter = server.config.pubsub_adapter.new(server)
+
+    large_payload = "a" * (ActionCable::SubscriptionAdapter::PostgreSQL::MAX_NOTIFY_SIZE + 1)
+
+    subscribe_as_queue("channel", adapter) do |queue|
+      assert_raises(ActionCable::SubscriptionAdapter::PostgreSQL::PayloadTooLargeError) do
+        adapter.broadcast("channel", large_payload)
+        queue.pop
+      end
+    end
+  end
 end

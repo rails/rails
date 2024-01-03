@@ -780,6 +780,17 @@ The PostgreSQL adapter uses Active Record's connection pool, and thus the
 application's `config/database.yml` database configuration, for its connection.
 This may change in the future. [#27214](https://github.com/rails/rails/issues/27214)
 
+The PostgreSQL adapter is limited by a hard coded 8000 byte payload size limitation for PostgreSQL's NOTIFY command. To work around this, the adapter can store and fetch large payloads via a dedicated table. To enable this, create a migration via `bin/rails generate migration create_action_cable_large_payloads` with the following contents:
+
+```ruby
+create_table :action_cable_large_payloads do |t|
+  t.text :payload, null: false
+  t.datetime :created_at, null: false, default: -> { "CURRENT_TIMESTAMP" }
+end
+```
+
+Note that clearing out old payloads in the table isn't handled by the adapter, so you will probably want to add a recurring job running eg. `ActiveRecord::Base.connection.execute("DELETE FROM action_cable_large_payloads WHERE created_at < now() - interval '5 minutes'")` to prevent endless growth.
+
 ### Allowed Request Origins
 
 Action Cable will only accept requests from specified origins, which are
