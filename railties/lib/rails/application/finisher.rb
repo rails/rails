@@ -78,6 +78,7 @@ module Rails
         if config.eager_load
           ActiveSupport.run_load_hooks(:before_eager_load, self)
           Zeitwerk::Loader.eager_load_all
+          Rails.eager_load!
           config.eager_load_namespaces.each(&:eager_load!)
 
           if config.reloading_enabled?

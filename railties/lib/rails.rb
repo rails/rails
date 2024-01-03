@@ -27,12 +27,15 @@ module Rails
   extend ActiveSupport::Autoload
   extend ActiveSupport::Benchmarkable
 
-  autoload :HealthController
   autoload :Info
   autoload :InfoController
   autoload :MailersController
-  autoload :PwaController
   autoload :WelcomeController
+
+  eager_autoload do
+    autoload :HealthController
+    autoload :PwaController
+  end
 
   class << self
     @application = @app_class = nil
