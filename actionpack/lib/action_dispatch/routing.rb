@@ -117,9 +117,9 @@ module ActionDispatch
   #
   #   # In config/routes.rb
   #   controller :blog do
-  #     get 'blog/show',    to: :list
-  #     get 'blog/delete',  to: :delete
-  #     get 'blog/edit',    to: :edit
+  #     get 'blog/show'    => :list
+  #     get 'blog/delete'  => :delete
+  #     get 'blog/edit'    => :edit
   #   end
   #
   #   # provides named routes for show, delete, and edit
