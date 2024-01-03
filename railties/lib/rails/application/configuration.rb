@@ -569,14 +569,12 @@ module Rails
         def method_missing(method, *args)
           if method.end_with?("=")
             @configurations[:"#{method[0..-2]}"] = args.first
-          elsif args.none?
+          elsif args.empty?
             @configurations.fetch(method) {
               @configurations[method] = ActiveSupport::OrderedOptions.new
             }
           else
-            arguments = args.map(&:inspect)
-
-            raise ArgumentError.new("unexpected arguments (%s) while reading `%s` configuration" % [arguments.join(", "), method])
+            raise ArgumentError, "wrong number of arguments (given #{args.length}, expected 0) when reading configuration `#{method}`"
           end
         end
 
