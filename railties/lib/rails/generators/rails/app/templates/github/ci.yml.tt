@@ -110,9 +110,6 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Configure parallelization
-        run: echo "PARALLEL_WORKERS=$(nproc)" >> $GITHUB_ENV
-
       - name: Run tests
         env:
           RAILS_ENV: test
