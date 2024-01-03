@@ -42,11 +42,11 @@ module ActionDispatch
           UNRESERVED = "#{ALPHA}#{DIGIT}\\-\\._~"
           SUB_DELIMS = "!\\$&'\\(\\)\\*\\+,;="
 
-          ESCAPED  = /%[a-zA-Z0-9]{2}/.freeze
+          ESCAPED  = /%[a-zA-Z0-9]{2}/
 
-          FRAGMENT = /[^#{UNRESERVED}#{SUB_DELIMS}:@\/?]/.freeze
-          SEGMENT  = /[^#{UNRESERVED}#{SUB_DELIMS}:@]/.freeze
-          PATH     = /[^#{UNRESERVED}#{SUB_DELIMS}:@\/]/.freeze
+          FRAGMENT = /[^#{UNRESERVED}#{SUB_DELIMS}:@\/?]/
+          SEGMENT  = /[^#{UNRESERVED}#{SUB_DELIMS}:@]/
+          PATH     = /[^#{UNRESERVED}#{SUB_DELIMS}:@\/]/
 
           def escape_fragment(fragment)
             escape(fragment, FRAGMENT)

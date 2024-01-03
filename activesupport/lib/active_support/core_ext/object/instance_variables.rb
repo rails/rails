@@ -29,5 +29,4 @@ class Object
   def instance_variable_names
     instance_variables.map(&:name)
   end
-  end
 end
