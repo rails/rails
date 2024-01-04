@@ -397,12 +397,13 @@ module ActionView
   end
 
   class HTMLParserTest < ActionView::TestCase
-    test "rendered.html is a Nokogiri::XML::Element" do
+    test "rendered.html is a Nokogiri::XML::DocumentFragment" do
       developer = DeveloperStruct.new("Eloy")
 
       render "developers/developer", developer: developer
 
-      assert_kind_of Nokogiri::XML::Element, rendered.html
+      assert_kind_of Nokogiri::XML::DocumentFragment, rendered.html
+      assert_equal rendered.to_s, rendered.html.to_s
       assert_equal developer.name, document_root_element.text
     end
 
@@ -425,6 +426,7 @@ module ActionView
       render formats: :json, partial: "developers/developer", locals: { developer: developer }
 
       assert_kind_of ActiveSupport::HashWithIndifferentAccess, rendered.json
+      assert_equal rendered.to_s, rendered.json.to_json
       assert_equal developer.name, rendered.json[:name]
     end
   end

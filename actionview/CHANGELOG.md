@@ -1,3 +1,7 @@
+*   Parse `ActionView::TestCase#rendered` HTML content as `Nokogiri::XML::DocumentFragment` instead of `Nokogiri::XML::Document`
+
+    *Sean Doyle*
+
 *   Rename `ActionView::TestCase::Behavior::{Content,RenderedViewContent}`
 
     *Sean Doyle*
