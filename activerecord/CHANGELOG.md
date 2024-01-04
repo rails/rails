@@ -1,3 +1,7 @@
+*   Implement `ActiveRecord::AttributeMethods::Query` in terms of `ActiveModel::AttributeMethods::Query`
+
+    *Sean Doyle*
+
 *   Add `:touch` option to `update_column`/`update_columns` methods.
 
     ```ruby

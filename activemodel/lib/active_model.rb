@@ -56,6 +56,14 @@ module ActiveModel
   autoload :Validations
   autoload :Validator
 
+  module AttributeMethods
+    extend ActiveSupport::Autoload
+
+    eager_autoload do
+      autoload :Query
+    end
+  end
+
   module Attributes
     extend ActiveSupport::Autoload
 
