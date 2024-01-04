@@ -19,13 +19,13 @@ module Rails
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x,
-                    :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
+                    :read_encrypted_secrets, :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
                     :require_master_key, :credentials, :disable_sandbox, :sandbox_by_default,
                     :add_autoload_paths_to_load_path, :rake_eager_load, :server_timing, :log_file_size,
                     :dom_testing_default_html_version
 
-      attr_reader :encoding, :api_only, :loaded_config_version
+      attr_reader :encoding, :api_only, :loaded_config_version, :log_level
 
       def initialize(*)
         super
@@ -377,6 +377,15 @@ module Rails
         generators.api_only = value
 
         @debug_exception_response_format ||= :api
+      end
+
+      def log_level=(level)
+        @log_level = level
+        @broadcast_log_level = level
+      end
+
+      def broadcast_log_level # :nodoc:
+        defined?(@broadcast_log_level) ? @broadcast_log_level : nil
       end
 
       def debug_exception_response_format

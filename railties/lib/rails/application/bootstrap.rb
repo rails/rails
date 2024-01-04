@@ -55,7 +55,11 @@ module Rails
           logger
         end
 
-        unless Rails.logger.is_a?(ActiveSupport::BroadcastLogger)
+        if Rails.logger.is_a?(ActiveSupport::BroadcastLogger)
+          if config.broadcast_log_level
+            Rails.logger.level = ActiveSupport::Logger.const_get(config.broadcast_log_level.to_s.upcase)
+          end
+        else
           Rails.logger.level = ActiveSupport::Logger.const_get(config.log_level.to_s.upcase)
           broadcast_logger = ActiveSupport::BroadcastLogger.new(Rails.logger)
           broadcast_logger.formatter = Rails.logger.formatter

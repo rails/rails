@@ -1,3 +1,7 @@
+*   Fix `config.log_level` not being respected when using a `BroadcastLogger`
+
+    *Édouard Chin*
+
 *   Fix isolated engines to take `ActiveRecord::Base.table_name_prefix` into consideration.
     This will allow for engine defined models, such as inside Active Storage, to respect
     Active Record table name prefix configuration.
