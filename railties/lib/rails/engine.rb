@@ -738,7 +738,7 @@ module Rails
       def fixtures_in_root_and_not_in_vendor_or_dot_dir?(fixtures)
         fixtures.exist? && fixtures.to_s.start_with?(Rails.root.to_s) &&
           !fixtures.to_s.start_with?(Rails.root.join("vendor").to_s) &&
-          !fixtures.to_s.start_with?(Rails.root.join(".").to_s)
+          !fixtures.to_s.start_with?("#{Rails.root}/.".to_s)
       end
 
       def build_request(env)
