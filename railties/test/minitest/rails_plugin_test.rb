@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
-require "env_helpers"
 
 class Minitest::RailsPluginTest < ActiveSupport::TestCase
-  include EnvHelpers
-
   setup do
     @output = StringIO.new("".encode("UTF-8"))
   end
