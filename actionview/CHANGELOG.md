@@ -1,3 +1,7 @@
+*   Raise `ArgumentError` when `nil` is passed as `model:` argument value to the `form_with` method.
+
+    *Collin Jilbert*
+
 *   Alias `field_set_tag` helper to `fieldset_tag` to match `<fieldset>` element
 
     *Sean Doyle*
