@@ -59,46 +59,46 @@ module ActionView
       @cache_hits ||= {}
     end
 
-    def render_template_to_object(context, options) # :nodoc:
-      TemplateRenderer.new(@lookup_context).render(context, options)
-    end
+    private
+      def render_template_to_object(context, options)
+        TemplateRenderer.new(@lookup_context).render(context, options)
+      end
 
-    def render_partial_to_object(context, options, &block) # :nodoc:
-      partial = options[:partial]
-      if String === partial
-        collection = collection_from_options(options)
+      def render_partial_to_object(context, options, &block)
+        partial = options[:partial]
+        if String === partial
+          collection = collection_from_options(options)
 
-        if collection
-          # Collection + Partial
-          renderer = CollectionRenderer.new(@lookup_context, options)
-          renderer.render_collection_with_partial(collection, partial, context, block)
-        else
-          if options.key?(:object)
-            # Object + Partial
-            renderer = ObjectRenderer.new(@lookup_context, options)
-            renderer.render_object_with_partial(options[:object], partial, context, block)
+          if collection
+            # Collection + Partial
+            renderer = CollectionRenderer.new(@lookup_context, options)
+            renderer.render_collection_with_partial(collection, partial, context, block)
           else
-            # Partial
-            renderer = PartialRenderer.new(@lookup_context, options)
-            renderer.render(partial, context, block)
+            if options.key?(:object)
+              # Object + Partial
+              renderer = ObjectRenderer.new(@lookup_context, options)
+              renderer.render_object_with_partial(options[:object], partial, context, block)
+            else
+              # Partial
+              renderer = PartialRenderer.new(@lookup_context, options)
+              renderer.render(partial, context, block)
+            end
+          end
+        else
+          collection = collection_from_object(partial) || collection_from_options(options)
+
+          if collection
+            # Collection + Derived Partial
+            renderer = CollectionRenderer.new(@lookup_context, options)
+            renderer.render_collection_derive_partial(collection, context, block)
+          else
+            # Object + Derived Partial
+            renderer = ObjectRenderer.new(@lookup_context, options)
+            renderer.render_object_derive_partial(partial, context, block)
           end
         end
-      else
-        collection = collection_from_object(partial) || collection_from_options(options)
-
-        if collection
-          # Collection + Derived Partial
-          renderer = CollectionRenderer.new(@lookup_context, options)
-          renderer.render_collection_derive_partial(collection, context, block)
-        else
-          # Object + Derived Partial
-          renderer = ObjectRenderer.new(@lookup_context, options)
-          renderer.render_object_derive_partial(partial, context, block)
-        end
       end
-    end
 
-    private
       def collection_from_options(options)
         if options.key?(:collection)
           collection = options[:collection]
