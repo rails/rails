@@ -14,5 +14,6 @@ if ENV["BUILDKITE"]
           "This should never happen on CI."
       end
   end
+  ActiveSupport::TestCase.alias_method :skip, :force_skip
   ActiveSupport::TestCase.include(DisableSkipping)
 end
