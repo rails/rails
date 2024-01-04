@@ -95,7 +95,7 @@ module JSONTest
     ModuleTests   = [[ Module, %("Module") ],
                      [ Class,  %("Class")  ],
                      [ ActiveSupport,                   %("ActiveSupport")                   ],
-                     [ ActiveSupport::MessageEncryptor, %("ActiveSupport::MessageEncryptor") ]]
+                     [ ActiveSupport::Testing, %("ActiveSupport::Testing") ]]
     ObjectTests   = [[ Foo.new(1, 2), %({\"a\":1,\"b\":2}) ]]
     HashlikeTests = [[ Hashlike.new, %({\"bar\":\"world\",\"foo\":\"hello\"}) ]]
     StructTests   = [[ MyStruct.new(:foo, "bar"), %({\"name\":\"foo\",\"value\":\"bar\"}) ],
