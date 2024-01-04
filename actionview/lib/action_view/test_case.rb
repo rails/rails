@@ -202,7 +202,7 @@ module ActionView
 
         setup :setup_with_controller
 
-        register_parser :html, -> rendered { Rails::Dom::Testing.html_document.parse(rendered).root }
+        register_parser :html, -> rendered { Rails::Dom::Testing.html_document_fragment.parse(rendered) }
         register_parser :json, -> rendered { JSON.parse(rendered, object_class: ActiveSupport::HashWithIndifferentAccess) }
 
         ActiveSupport.run_load_hooks(:action_view_test_case, self)
