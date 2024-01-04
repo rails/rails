@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+ActiveSupport::TestCase.alias_method :force_skip, :skip
+
 if ENV["BUILDKITE"]
   require "minitest-ci"
   ENV.delete("CI") # CI has affect on the applications, and we don't want it applied to the apps.
@@ -14,6 +16,5 @@ if ENV["BUILDKITE"]
           "This should never happen on CI."
       end
   end
-  ActiveSupport::TestCase.alias_method :skip, :force_skip
   ActiveSupport::TestCase.include(DisableSkipping)
 end
