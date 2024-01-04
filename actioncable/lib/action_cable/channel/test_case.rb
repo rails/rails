@@ -312,6 +312,28 @@ module ActionCable
           assert_has_stream(broadcasting_for(object))
         end
 
+        # Asserts that the specified stream has not been started.
+        #
+        #   def test_assert_not_started_stream
+        #     subscribe
+        #     assert_not_has_stream 'messages'
+        #   end
+        #
+        def assert_not_has_stream(stream)
+          assert subscription.streams.exclude?(stream), "Stream #{stream} has been started"
+        end
+
+        # Asserts that the specified stream for a model has not started.
+        #
+        #   def test_assert_not_started_stream_for
+        #     subscribe id: 41
+        #     assert_not_has_stream_for User.find(42)
+        #   end
+        #
+        def assert_not_has_stream_for(object)
+          assert_not_has_stream(broadcasting_for(object))
+        end
+
         private
           def check_subscribed!
             raise "Must be subscribed!" if subscription.nil? || subscription.rejected?

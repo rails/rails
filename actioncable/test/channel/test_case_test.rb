@@ -107,6 +107,20 @@ class StreamsTestChannelTest < ActionCable::Channel::TestCase
     assert_has_stream "test_42"
   end
 
+  def test_not_stream_without_params
+    subscribe
+    unsubscribe
+
+    assert_not_has_stream "test_0"
+  end
+
+  def test_not_stream_with_params
+    subscribe id: 42
+    perform :unsubscribed, id: 42
+
+    assert_not_has_stream "test_42"
+  end
+
   def test_unsubscribe_from_stream
     subscribe
     unsubscribe
@@ -119,6 +133,10 @@ class StreamsForTestChannel < ActionCable::Channel::Base
   def subscribed
     stream_for User.new(params[:id])
   end
+
+  def unsubscribed
+    stop_stream_for User.new(params[:id])
+  end
 end
 
 class StreamsForTestChannelTest < ActionCable::Channel::TestCase
@@ -126,6 +144,13 @@ class StreamsForTestChannelTest < ActionCable::Channel::TestCase
     subscribe id: 42
 
     assert_has_stream_for User.new(42)
+  end
+
+  def test_not_stream_with_params
+    subscribe id: 42
+    perform :unsubscribed, id: 42
+
+    assert_not_has_stream_for User.new(42)
   end
 end
 
