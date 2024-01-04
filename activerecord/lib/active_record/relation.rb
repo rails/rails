@@ -3,6 +3,54 @@
 module ActiveRecord
   # = Active Record \Relation
   class Relation
+    class ExplainProxy  # :nodoc:
+      def initialize(relation, options)
+        @relation = relation
+        @options  = options
+      end
+
+      def inspect
+        exec_explain { @relation.send(:exec_queries) }
+      end
+
+      def average(column_name)
+        exec_explain { @relation.average(column_name) }
+      end
+
+      def count(column_name = nil)
+        exec_explain { @relation.count(column_name) }
+      end
+
+      def first(limit = nil)
+        exec_explain { @relation.first(limit) }
+      end
+
+      def last(limit = nil)
+        exec_explain { @relation.last(limit) }
+      end
+
+      def maximum(column_name)
+        exec_explain { @relation.maximum(column_name) }
+      end
+
+      def minimum(column_name)
+        exec_explain { @relation.minimum(column_name) }
+      end
+
+      def pluck(*column_names)
+        exec_explain { @relation.pluck(*column_names) }
+      end
+
+      def sum(identity_or_column = nil)
+        exec_explain { @relation.sum(identity_or_column) }
+      end
+
+      private
+        def exec_explain(&block)
+          @relation.exec_explain(@relation.collecting_queries_for_explain { block.call }, @options)
+        end
+    end
+
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
                             :order, :joins, :left_outer_joins, :references,
                             :extending, :unscope, :optimizer_hints, :annotate,
@@ -245,13 +293,30 @@ module ActiveRecord
     # returns the result as a string. The string is formatted imitating the
     # ones printed by the database shell.
     #
+    #   User.all.explain
+    #   # EXPLAIN SELECT `cars`.* FROM `cars`
+    #   # ...
+    #
     # Note that this method actually runs the queries, since the results of some
     # are needed by the next ones when eager loading is going on.
+    #
+    # To run EXPLAIN on queries created by `first`, `pluck` and `count`, call
+    # these methods on `explain`:
+    #
+    #   User.all.explain.count
+    #   # EXPLAIN SELECT COUNT(*) FROM `users`
+    #   # ...
+    #
+    # The column name can be passed if required:
+    #
+    #   User.all.explain.maximum(:id)
+    #   # EXPLAIN SELECT MAX(`users`.`id`) FROM `users`
+    #   # ...
     #
     # Please see further details in the
     # {Active Record Query Interface guide}[https://guides.rubyonrails.org/active_record_querying.html#running-explain].
     def explain(*options)
-      exec_explain(collecting_queries_for_explain { exec_queries }, options)
+      ExplainProxy.new(self, options)
     end
 
     # Converts relation objects to Array.

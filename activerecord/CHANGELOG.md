@@ -1,3 +1,19 @@
+*   Add `explain` support for `last`, `pluck` and `count`
+
+    Let `explain` return a proxy that delegates these methods:
+
+    ```ruby
+    User.all.explain.count
+    # EXPLAIN SELECT COUNT(*) FROM `users`
+    # ...
+
+    User.all.explain.maximum(:id)
+    # EXPLAIN SELECT MAX(`users`.`id`) FROM `users`
+    # ...
+    ```
+
+    *Petrik de Heus*
+
 *   Validate using `:on` option when using `validates_associated`
 
     Fixes an issue where `validates_associated` `:on`  option wasn't respected
