@@ -34,7 +34,7 @@ class FinderTest < ActiveRecord::TestCase
 
   fixtures :companies, :topics, :entrants, :developers, :developers_projects,
     :posts, :comments, :accounts, :authors, :author_addresses, :customers,
-    :categories, :categorizations, :cars, :clothing_items, :cpk_books
+    :categories, :categorizations, :cars, :clothing_items, :cpk_books, :cpk_reviews
 
   def test_find_by_id_with_hash
     assert_nothing_raised do
@@ -1873,6 +1873,22 @@ class FinderTest < ActiveRecord::TestCase
     books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
 
     assert_equal books.map(&:id), Cpk::Book.order(author_id: :asc).find(books.map(&:id)).map(&:id)
+  end
+
+  test "#find_by with composite primary key" do
+    book = cpk_books(:cpk_book_with_generated_pk)
+    assert_equal cpk_reviews(:first_book_review), Cpk::Review.find_by(book: book)
+  end
+
+  test "#find_by with composite primary key and query caching" do
+    book = cpk_books(:cpk_book_with_generated_pk)
+
+    Cpk::Review.cache do
+      assert_queries_count(1) do
+        Cpk::Review.find_by(book: book)
+        Cpk::Review.find_by(book: book)
+      end
+    end
   end
 
   private

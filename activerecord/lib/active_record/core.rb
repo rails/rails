@@ -272,10 +272,25 @@ module ActiveRecord
           elsif reflection.belongs_to? && !reflection.polymorphic?
             key = reflection.join_foreign_key
             pkey = reflection.join_primary_key
-            value = value.public_send(pkey) if value.respond_to?(pkey)
+
+            if pkey.is_a?(Array)
+              if pkey.all? { |attribute| value.respond_to?(attribute) }
+                value = pkey.map do |attribute|
+                  if attribute == "id"
+                    value.id_value
+                  else
+                    value.public_send(attribute)
+                  end
+                end
+                composite_primary_key = true
+              end
+            else
+              value = value.public_send(pkey) if value.respond_to?(pkey)
+            end
           end
 
-          if !columns_hash.key?(key) || StatementCache.unsupported_value?(value)
+          if !composite_primary_key &&
+            (!columns_hash.key?(key) || StatementCache.unsupported_value?(value))
             return super
           end
 
@@ -402,12 +417,18 @@ module ActiveRecord
 
         def cached_find_by(keys, values)
           statement = cached_find_by_statement(keys) { |params|
-            wheres = keys.index_with { params.bind }
+            wheres = keys.index_with do |key|
+              if key.is_a?(Array)
+                [key.map { params.bind }]
+              else
+                params.bind
+              end
+            end
             where(wheres).limit(1)
           }
 
           begin
-            statement.execute(values, connection).first
+            statement.execute(values.flatten, connection).first
           rescue TypeError
             raise ActiveRecord::StatementInvalid
           end

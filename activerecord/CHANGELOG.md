@@ -1,3 +1,7 @@
+*   Fix `find_by` to work correctly in presence of composite primary keys
+
+    *fatkodima*
+
 *   Fix logging of time spent in Active Record being incorrect
 
     *fatkodima*
