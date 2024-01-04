@@ -5,7 +5,7 @@ require "rack/test"
 require "env_helpers"
 
 module ApplicationTests
-  class RoutingTest < ActiveSupport::TestCase
+  class BacktraceCleanerTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
     include EnvHelpers
