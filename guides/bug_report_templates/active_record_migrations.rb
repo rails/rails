@@ -7,8 +7,10 @@ gemfile(true) do
 
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-  # Activate the gem you are reporting the issue against.
-  gem "activerecord", "~> 7.0.0"
+  gem "rails"
+  # If you want to test against edge Rails replace the previous line with this:
+  # gem "rails", github: "rails/rails", branch: "main"
+
   gem "sqlite3"
 end
 
@@ -29,7 +31,7 @@ end
 class Payment < ActiveRecord::Base
 end
 
-class ChangeAmountToAddScale < ActiveRecord::Migration[7.0]
+class ChangeAmountToAddScale < ActiveRecord::Migration::Current # or use a specific version via `Migration[number]`
   def change
     reversible do |dir|
       dir.up do
