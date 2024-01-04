@@ -198,7 +198,7 @@ module ActionView
       end
 
       included do
-        class_attribute :content_class, instance_accessor: false, default: Content
+        class_attribute :content_class, instance_accessor: false, default: RenderedViewContent
 
         setup :setup_with_controller
 
@@ -299,7 +299,7 @@ module ActionView
         @controller._routes if @controller.respond_to?(:_routes)
       end
 
-      class Content < SimpleDelegator
+      class RenderedViewContent < String # :nodoc:
       end
 
       # Need to experiment if this priority is the best one: rendered => output_buffer
