@@ -40,7 +40,7 @@ class JsonGemEncodingTest < ActiveSupport::TestCase
 
   private
     def require_or_skip(file)
-      force_skip("'#{file}' was already loaded")
+      require(file) || force_skip("'#{file}' was already loaded")
     end
 
     def assert_same_with_or_without_active_support(subject)
