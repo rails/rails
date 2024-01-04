@@ -1779,7 +1779,7 @@ class ViewPartialTestCase < ActionView::TestCase
   include Capybara::Minitest::Assertions
 
   def page
-    Capybara.string(document_root_element)
+    Capybara.string(rendered)
   end
 end
 
