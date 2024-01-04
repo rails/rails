@@ -41,3 +41,8 @@
 !/app/assets/builds/.keep
 /public/assets
 <% end -%>
+<% unless options.skip_ci? -%>
+
+# Ignore CI service files.
+/.github
+<% end -%>
