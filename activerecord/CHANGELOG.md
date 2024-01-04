@@ -1,3 +1,7 @@
+*   Implement `ActiveRecord::AttributeMethods::Query` in terms of `ActiveModel::AttributeMethods::Query`
+
+    *Sean Doyle*
+
 *   Validate using `:on` option when using `validates_associated`
 
     Fixes an issue where `validates_associated` `:on`  option wasn't respected
