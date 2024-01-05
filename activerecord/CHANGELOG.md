@@ -1,6 +1,6 @@
-*   Add `explain` support for methods like `last`, `pluck` and `count`
-
-    Let `explain` return a proxy that delegates these methods:
+*   The object returned by `explain` now responds to `pluck`, `first`,
+    `last`, `average`, `count`, `maximum`, `minimum`, and `sum`. Those
+    new methods run `EXPLAIN` on the corresponding queries:
 
     ```ruby
     User.all.explain.count
@@ -11,10 +11,6 @@
     # EXPLAIN SELECT MAX(`users`.`id`) FROM `users`
     # ...
     ```
-
-    The supported methods are `pluck`, `first`, and `last`, as well as the
-    calculation methods: `average`, `count`, `maximum`,
-    `minimum`, and `sum`.
 
     *Petrik de Heus*
 
