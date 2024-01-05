@@ -1884,7 +1884,7 @@ class FinderTest < ActiveRecord::TestCase
     book = cpk_books(:cpk_book_with_generated_pk)
 
     Cpk::Review.cache do
-      assert_queries_count(1) do
+      assert_queries(1) do
         Cpk::Review.find_by(book: book)
         Cpk::Review.find_by(book: book)
       end
