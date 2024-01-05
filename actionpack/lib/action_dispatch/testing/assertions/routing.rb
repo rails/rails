@@ -248,7 +248,7 @@ module ActionDispatch
 
       # ROUTES TODO: These assertions should really work in an integration context
       def method_missing(selector, ...)
-        if defined?(@controller) && @controller && defined?(@routes) && @routes && @routes.named_routes.route_defined?(selector)
+        if @controller && @routes&.named_routes.route_defined?(selector)
           @controller.public_send(selector, ...)
         else
           super
@@ -258,7 +258,7 @@ module ActionDispatch
       private
         def create_routes
           @routes = ActionDispatch::Routing::RouteSet.new
-          if defined?(@controller) && @controller
+          if @controller
             @controller = @controller.clone
             _routes = @routes
 
@@ -282,7 +282,7 @@ module ActionDispatch
 
         def reset_routes(old_routes, old_controller)
           @routes = old_routes
-          if defined?(@controller) && @controller
+          if @controller
             @controller = old_controller
           end
         end

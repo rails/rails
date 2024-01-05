@@ -720,7 +720,7 @@ module ActiveRecord
     def pretty_print(pp)
       return super if custom_inspect_method_defined?
       pp.object_address_group(self) do
-        if defined?(@attributes) && @attributes
+        if @attributes
           attr_names = attributes_for_inspect.select { |name| _has_attribute?(name.to_s) }
           pp.seplist(attr_names, proc { pp.text "," }) do |attr_name|
             attr_name = attr_name.to_s
@@ -791,9 +791,7 @@ module ActiveRecord
       end
 
       def inspect_with_attributes(attributes_to_list)
-        # We check defined?(@attributes) not to issue warnings if the object is
-        # allocated but not initialized.
-        inspection = if defined?(@attributes) && @attributes
+        inspection = if @attributes
           attributes_to_list.filter_map do |name|
             name = name.to_s
             if _has_attribute?(name)

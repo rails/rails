@@ -196,7 +196,7 @@ module ActiveJob
       end
 
       def arguments_serialized?
-        defined?(@serialized_arguments) && @serialized_arguments
+        @serialized_arguments
       end
   end
 end
