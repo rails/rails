@@ -428,7 +428,7 @@ module ActionView
     end
 
     def _include_layout?(options)
-      (options.keys & [:body, :plain, :html, :inline, :partial]).empty? || options.key?(:layout)
+      !options.keys.intersect?([:body, :plain, :html, :inline, :partial]) || options.key?(:layout)
     end
   end
 end

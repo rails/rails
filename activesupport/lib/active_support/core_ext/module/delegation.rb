@@ -227,7 +227,7 @@ class Module
           if method_object
             parameters = method_object.parameters
 
-            if (parameters.map(&:first) & [:opt, :rest, :keyreq, :key, :keyrest]).any?
+            if parameters.map(&:first).intersect?([:opt, :rest, :keyreq, :key, :keyrest])
               "..."
             else
               defn = parameters.filter_map { |type, arg| arg if type == :req }
