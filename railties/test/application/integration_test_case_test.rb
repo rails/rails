@@ -40,7 +40,10 @@ module ApplicationTests
         end
       RUBY
 
-      with_rails_env("test") { rails("db:migrate") }
+      with_rails_env("test") do
+        rails("db:create")
+        rails("db:migrate") 
+      end
       output = rails("test")
       assert_match(/0 failures, 0 errors/, output)
     end
@@ -68,7 +71,10 @@ module ApplicationTests
         end
       RUBY
 
-      with_rails_env("test") { rails("db:migrate") }
+      with_rails_env("test") do
+        rails("db:create")
+        rails("db:migrate")
+      end
       output = rails("test")
       assert_match(/0 failures, 0 errors/, output)
     end
