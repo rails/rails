@@ -63,24 +63,6 @@ module ActiveRecord
         # alias attributes in Active Record are lazily generated
       end
 
-      def generate_alias_attributes # :nodoc:
-        superclass.generate_alias_attributes unless superclass == Base
-        return if @alias_attributes_mass_generated
-
-        GeneratedAttributeMethods::LOCK.synchronize do
-          return if @alias_attributes_mass_generated
-          ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
-            aliases_by_attribute_name.each do |old_name, new_names|
-              new_names.each do |new_name|
-                generate_alias_attribute_methods(code_generator, new_name, old_name)
-              end
-            end
-          end
-
-          @alias_attributes_mass_generated = true
-        end
-      end
-
       def alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
         method_name = pattern.method_name(new_name).to_s
         target_name = pattern.method_name(old_name).to_s
@@ -120,6 +102,10 @@ module ActiveRecord
         end
       end
 
+      def attribute_methods_generated? # :nodoc:
+        @attribute_methods_generated
+      end
+
       # Generates all the attribute related methods for columns in the database
       # accessors, mutators and query methods.
       def define_attribute_methods # :nodoc:
@@ -128,11 +114,29 @@ module ActiveRecord
         # attribute methods.
         GeneratedAttributeMethods::LOCK.synchronize do
           return false if @attribute_methods_generated
-          superclass.define_attribute_methods unless base_class?
-          super(attribute_names)
-          alias_attribute(:id_value, :id) if attribute_names.include?("id")
+
+          superclass.define_attribute_methods unless superclass == Base
+
+          unless abstract_class?
+            load_schema
+            super(attribute_names)
+            if _has_attribute?("id")
+              alias_attribute(:id_value, :id)
+            end
+          end
+
+          ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
+            aliases_by_attribute_name.each do |old_name, new_names|
+              new_names.each do |new_name|
+                generate_alias_attribute_methods(code_generator, new_name, old_name)
+              end
+            end
+          end
+
           @attribute_methods_generated = true
+          @alias_attributes_mass_generated = true
         end
+        true
       end
 
       def undefine_attribute_methods # :nodoc:
@@ -457,6 +461,36 @@ module ActiveRecord
     end
 
     private
+      def respond_to_missing?(name, include_private = false)
+        if self.class.define_attribute_methods
+          # Some methods weren't defined yet.
+          return true if self.class.method_defined?(name)
+          return true if include_private && self.class.private_method_defined?(name)
+        end
+
+        super
+      end
+
+      def method_missing(name, ...)
+        unless self.class.attribute_methods_generated?
+          if self.class.method_defined?(name)
+            # The method is explicitly defined in the model, but calls a generated
+            # method with super. So we must resume the call chain at the right setp.
+            last_method = method(name)
+            last_method = last_method.super_method while last_method.super_method
+            self.class.define_attribute_methods
+            if last_method.super_method
+              return last_method.super_method.call(...)
+            end
+          elsif self.class.define_attribute_methods
+            # Some attribute methods weren't generated yet, we retry the call
+            return public_send(name, ...)
+          end
+        end
+
+        super
+      end
+
       def attribute_method?(attr_name)
         @attributes&.key?(attr_name)
       end
