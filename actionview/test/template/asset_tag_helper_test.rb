@@ -560,6 +560,10 @@ class AssetTagHelperTest < ActionView::TestCase
     StyleLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
+  def test_stylesheet_link_tag_nonce
+    assert_dom_equal %(<link rel="stylesheet" href="/stylesheets/foo.css" nonce="iyhD0Yc0W+c="></link>), stylesheet_link_tag("foo.css", nonce: true)
+  end
+
   def test_stylesheet_link_tag_with_missing_source
     assert_nothing_raised {
       stylesheet_link_tag("missing_security_guard")

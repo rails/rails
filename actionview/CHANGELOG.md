@@ -1,3 +1,8 @@
+*   Add the `nonce: true` option for `stylesheet_link_tag` helper to support automatic nonce generation for Content Security Policy.
+    Works the same way as `javascript_include_tag nonce: true` does.
+
+    *Akhil G Krishnan*, *AJ Esler*
+
 *   Parse `ActionView::TestCase#rendered` HTML content as `Nokogiri::XML::DocumentFragment` instead of `Nokogiri::XML::Document`
 
     *Sean Doyle*

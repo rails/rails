@@ -1281,10 +1281,11 @@ can be added to script tags by passing `nonce: true` as part of `html_options`:
 <% end -%>
 ```
 
-The same works with `javascript_include_tag`:
+The same works with `javascript_include_tag` and the `stylesheet_link_tag`:
 
 ```html+erb
 <%= javascript_include_tag "script", nonce: true %>
+<%= stylesheet_link_tag "style.css", nonce: true %>
 ```
 
 Use [`csp_meta_tag`](https://api.rubyonrails.org/classes/ActionView/Helpers/CspHelper.html#method-i-csp_meta_tag)
