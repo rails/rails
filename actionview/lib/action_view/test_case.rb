@@ -171,10 +171,9 @@ module ActionView
           # Almost a duplicate from ActionController::Helpers
           methods.flatten.each do |method|
             _helpers_for_modification.module_eval <<~end_eval, __FILE__, __LINE__ + 1
-              def #{method}(*args, &block)                    # def current_user(*args, &block)
-                _test_case.send(:'#{method}', *args, &block)  #   _test_case.send(:'current_user', *args, &block)
-              end                                             # end
-              ruby2_keywords(:'#{method}')
+              def #{method}(...)                    # def current_user(*args, &block)
+                _test_case.send(:'#{method}', ...)  #   _test_case.send(:'current_user', *args, &block)
+              end                                   # end
             end_eval
           end
         end
@@ -416,7 +415,7 @@ module ActionView
         end]
       end
 
-      def method_missing(selector, *args)
+      def method_missing(selector, ...)
         begin
           routes = @controller.respond_to?(:_routes) && @controller._routes
         rescue
@@ -426,12 +425,11 @@ module ActionView
         if routes &&
            (routes.named_routes.route_defined?(selector) ||
              routes.mounted_helpers.method_defined?(selector))
-          @controller.__send__(selector, *args)
+          @controller.__send__(selector, ...)
         else
           super
         end
       end
-      ruby2_keywords(:method_missing)
 
       def respond_to_missing?(name, include_private = false)
         begin

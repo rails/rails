@@ -247,14 +247,13 @@ module ActionDispatch
       end
 
       # ROUTES TODO: These assertions should really work in an integration context
-      def method_missing(selector, *args, &block)
+      def method_missing(selector, ...)
         if defined?(@controller) && @controller && defined?(@routes) && @routes && @routes.named_routes.route_defined?(selector)
-          @controller.public_send(selector, *args, &block)
+          @controller.public_send(selector, ...)
         else
           super
         end
       end
-      ruby2_keywords(:method_missing)
 
       private
         def create_routes
