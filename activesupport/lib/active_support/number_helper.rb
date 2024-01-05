@@ -140,42 +140,64 @@ module ActiveSupport
       NumberToCurrencyConverter.convert(number, options)
     end
 
-    # Formats a +number+ as a percentage string (e.g., 65%). You can
-    # customize the format in the +options+ hash.
+    # Formats +number+ as a percentage string.
+    #
+    #   number_to_percentage(100)   # => "100.000%"
+    #   number_to_percentage("99")  # => "99.000%"
+    #   number_to_percentage("99x") # => "99x%"
+    #
+    #   number_to_percentage(12345.6789, delimiter: ".", separator: ",", precision: 2)
+    #   # => "12.345,68%"
     #
     # ==== Options
     #
-    # * <tt>:locale</tt> - Sets the locale to be used for formatting
-    #   (defaults to current locale).
-    # * <tt>:precision</tt> - Sets the precision of the number
-    #   (defaults to 3). Keeps the number's precision if +nil+.
-    # * <tt>:round_mode</tt> - Determine how rounding is performed
-    #   (defaults to :default. See BigDecimal::mode)
-    # * <tt>:significant</tt> - If +true+, precision will be the number
-    #   of significant_digits. If +false+, the number of fractional
-    #   digits (defaults to +false+).
-    # * <tt>:separator</tt> - Sets the separator between the
-    #   fractional and integer digits (defaults to ".").
-    # * <tt>:delimiter</tt> - Sets the thousands delimiter (defaults
-    #   to "").
-    # * <tt>:strip_insignificant_zeros</tt> - If +true+ removes
-    #   insignificant zeros after the decimal separator (defaults to
-    #   +false+).
-    # * <tt>:format</tt> - Specifies the format of the percentage
-    #   string The number field is <tt>%n</tt> (defaults to "%n%").
+    # [+:locale+]
+    #   The locale to use for formatting. Defaults to the current locale.
     #
-    # ==== Examples
+    #     number_to_percentage(1000, locale: :fr)
+    #     # => "1000,000%"
     #
-    #   number_to_percentage(100)                                              # => "100.000%"
-    #   number_to_percentage('98')                                             # => "98.000%"
-    #   number_to_percentage(100, precision: 0)                                # => "100%"
-    #   number_to_percentage(1000, delimiter: '.', separator: ',')             # => "1.000,000%"
-    #   number_to_percentage(302.24398923423, precision: 5)                    # => "302.24399%"
-    #   number_to_percentage(1000, locale: :fr)                                # => "1000,000%"
-    #   number_to_percentage(1000, precision: nil)                             # => "1000%"
-    #   number_to_percentage('98a')                                            # => "98a%"
-    #   number_to_percentage(100, format: '%n  %')                             # => "100.000  %"
-    #   number_to_percentage(302.24398923423, precision: 5, round_mode: :down) # => "302.24398%"
+    # [+:precision+]
+    #   The level of precision, or +nil+ to preserve +number+'s precision.
+    #   Defaults to 2.
+    #
+    #     number_to_percentage(12.3456789, precision: 4) # => "12.3457%"
+    #     number_to_percentage(99.999, precision: 0)     # => "100%"
+    #     number_to_percentage(99.999, precision: nil)   # => "99.999%"
+    #
+    # [+:round_mode+]
+    #   Specifies how rounding is performed. See +BigDecimal.mode+. Defaults to
+    #   +:default+.
+    #
+    #     number_to_percentage(12.3456789, precision: 4, round_mode: :down)
+    #     # => "12.3456%"
+    #
+    # [+:significant+]
+    #   Whether +:precision+ should be applied to significant digits instead of
+    #   fractional digits. Defaults to false.
+    #
+    #     number_to_percentage(12345.6789)                                  # => "12345.679%"
+    #     number_to_percentage(12345.6789, significant: true)               # => "12300%"
+    #     number_to_percentage(12345.6789, precision: 2)                    # => "12345.68%"
+    #     number_to_percentage(12345.6789, precision: 2, significant: true) # => "12000%"
+    #
+    # [+:separator+]
+    #   The decimal separator. Defaults to <tt>"."</tt>.
+    #
+    # [+:delimiter+]
+    #   The thousands delimiter. Defaults to <tt>","</tt>.
+    #
+    # [+:strip_insignificant_zeros+]
+    #   Whether to remove insignificant zeros after the decimal separator.
+    #   Defaults to false.
+    #
+    # [+:format+]
+    #   The format of the output. <tt>%n</tt> represents the number. Defaults to
+    #   <tt>"%n%"</tt>.
+    #
+    #     number_to_percentage(100, format: "%n  %")
+    #     # => "100.000  %"
+    #
     def number_to_percentage(number, options = {})
       NumberToPercentageConverter.convert(number, options)
     end
