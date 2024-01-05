@@ -108,12 +108,6 @@ class Time
     subsec
   end
 
-  unless Time.method_defined?(:floor)
-    def floor(precision = 0)
-      change(nsec: 0) + subsec.floor(precision)
-    end
-  end
-
   # Returns a new Time where one or more of the elements have been changed according
   # to the +options+ parameter. The time options (<tt>:hour</tt>, <tt>:min</tt>,
   # <tt>:sec</tt>, <tt>:usec</tt>, <tt>:nsec</tt>) reset cascadingly, so if only
