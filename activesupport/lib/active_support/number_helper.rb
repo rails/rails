@@ -67,63 +67,75 @@ module ActiveSupport
       NumberToPhoneConverter.convert(number, options)
     end
 
-    # Formats a +number+ into a currency string (e.g., $13.65). You
-    # can customize the format in the +options+ hash.
+    # Formats a +number+ into a currency string.
+    #
+    #   number_to_currency(1234567890.50)  # => "$1,234,567,890.50"
+    #   number_to_currency(1234567890.506) # => "$1,234,567,890.51"
+    #   number_to_currency("12x34")        # => "$12x34"
+    #
+    #   number_to_currency(1234567890.50, unit: "&pound;", separator: ",", delimiter: "")
+    #   # => "&pound;1234567890,50"
     #
     # The currency unit and number formatting of the current locale will be used
-    # unless otherwise specified in the provided options. No currency conversion
-    # is performed. If the user is given a way to change their locale, they will
+    # unless otherwise specified via options. No currency conversion is
+    # performed. If the user is given a way to change their locale, they will
     # also be able to change the relative value of the currency displayed with
     # this helper. If your application will ever support multiple locales, you
-    # may want to specify a constant <tt>:locale</tt> option or consider
-    # using a library capable of currency conversion.
+    # may want to specify a constant +:locale+ option or consider using a
+    # library capable of currency conversion.
     #
     # ==== Options
     #
-    # * <tt>:locale</tt> - Sets the locale to be used for formatting
-    #   (defaults to current locale).
-    # * <tt>:precision</tt> - Sets the level of precision (defaults
-    #   to 2).
-    # * <tt>:round_mode</tt> - Determine how rounding is performed
-    #   (defaults to :default. See BigDecimal::mode)
-    # * <tt>:unit</tt> - Sets the denomination of the currency
-    #   (defaults to "$").
-    # * <tt>:separator</tt> - Sets the separator between the units
-    #   (defaults to ".").
-    # * <tt>:delimiter</tt> - Sets the thousands delimiter (defaults
-    #   to ",").
-    # * <tt>:format</tt> - Sets the format for non-negative numbers
-    #   (defaults to "%u%n").  Fields are <tt>%u</tt> for the
-    #   currency, and <tt>%n</tt> for the number.
-    # * <tt>:negative_format</tt> - Sets the format for negative
-    #   numbers (defaults to prepending a hyphen to the formatted
-    #   number given by <tt>:format</tt>).  Accepts the same fields
-    #   than <tt>:format</tt>, except <tt>%n</tt> is here the
-    #   absolute value of the number.
-    # * <tt>:strip_insignificant_zeros</tt> - If +true+ removes
-    #   insignificant zeros after the decimal separator (defaults to
-    #   +false+).
+    # [+:locale+]
+    #   The locale to use for formatting. Defaults to the current locale.
     #
-    # ==== Examples
+    #     number_to_currency(1234567890.506, locale: :fr)
+    #     # => "1 234 567 890,51 €"
     #
-    #   number_to_currency(1234567890.50)                # => "$1,234,567,890.50"
-    #   number_to_currency(1234567890.506)               # => "$1,234,567,890.51"
-    #   number_to_currency(1234567890.506, precision: 3) # => "$1,234,567,890.506"
-    #   number_to_currency(1234567890.506, locale: :fr)  # => "1 234 567 890,51 €"
-    #   number_to_currency('123a456')                    # => "$123a456"
+    # [+:precision+]
+    #   The level of precision. Defaults to 2.
     #
-    #   number_to_currency(-0.456789, precision: 0)
-    #   # => "$0"
-    #   number_to_currency(-1234567890.50, negative_format: '(%u%n)')
-    #   # => "($1,234,567,890.50)"
-    #   number_to_currency(1234567890.50, unit: '&pound;', separator: ',', delimiter: '')
-    #   # => "&pound;1234567890,50"
-    #   number_to_currency(1234567890.50, unit: '&pound;', separator: ',', delimiter: '', format: '%n %u')
-    #   # => "1234567890,50 &pound;"
-    #   number_to_currency(1234567890.50, strip_insignificant_zeros: true)
-    #   # => "$1,234,567,890.5"
-    #   number_to_currency(1234567890.50, precision: 0, round_mode: :up)
-    #   # => "$1,234,567,891"
+    #     number_to_currency(1234567890.123, precision: 3) # => "$1,234,567,890.123"
+    #     number_to_currency(0.456789, precision: 0)       # => "$0"
+    #
+    # [+:round_mode+]
+    #   Specifies how rounding is performed. See +BigDecimal.mode+. Defaults to
+    #   +:default+.
+    #
+    #     number_to_currency(1234567890.01, precision: 0, round_mode: :up)
+    #     # => "$1,234,567,891"
+    #
+    # [+:unit+]
+    #   The denomination of the currency. Defaults to <tt>"$"</tt>.
+    #
+    # [+:separator+]
+    #   The decimal separator. Defaults to <tt>"."</tt>.
+    #
+    # [+:delimiter+]
+    #   The thousands delimiter. Defaults to <tt>","</tt>.
+    #
+    # [+:format+]
+    #   The format for non-negative numbers. <tt>%u</tt> represents the currency,
+    #   and <tt>%n</tt> represents the number. Defaults to <tt>"%u%n"</tt>.
+    #
+    #     number_to_currency(1234567890.50, format: "%n %u")
+    #     # => "1,234,567,890.50 $"
+    #
+    # [+:negative_format+]
+    #   The format for negative numbers. <tt>%u</tt> and <tt>%n</tt> behave the
+    #   same as in +:format+, but <tt>%n</tt> represents the absolute value of
+    #   the number. Defaults to the value of +:format+ prepended with <tt>-</tt>.
+    #
+    #     number_to_currency(-1234567890.50, negative_format: "(%u%n)")
+    #     # => "($1,234,567,890.50)"
+    #
+    # [+:strip_insignificant_zeros+]
+    #   Whether to remove insignificant zeros after the decimal separator.
+    #   Defaults to false.
+    #
+    #     number_to_currency(1234567890.50, strip_insignificant_zeros: true)
+    #     # => "$1,234,567,890.5"
+    #
     def number_to_currency(number, options = {})
       NumberToCurrencyConverter.convert(number, options)
     end
