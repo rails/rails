@@ -51,8 +51,6 @@ module ActiveJob
       # :nodoc:
       SYMBOL_KEYS_KEY = "_aj_symbol_keys"
       # :nodoc:
-      RUBY2_KEYWORDS_KEY = "_aj_ruby2_keywords"
-      # :nodoc:
       WITH_INDIFFERENT_ACCESS_KEY = "_aj_hash_with_indifferent_access"
       # :nodoc:
       OBJECT_SERIALIZER_KEY = "_aj_serialized"
@@ -61,12 +59,11 @@ module ActiveJob
       RESERVED_KEYS = [
         GLOBALID_KEY, GLOBALID_KEY.to_sym,
         SYMBOL_KEYS_KEY, SYMBOL_KEYS_KEY.to_sym,
-        RUBY2_KEYWORDS_KEY, RUBY2_KEYWORDS_KEY.to_sym,
         OBJECT_SERIALIZER_KEY, OBJECT_SERIALIZER_KEY.to_sym,
         WITH_INDIFFERENT_ACCESS_KEY, WITH_INDIFFERENT_ACCESS_KEY.to_sym,
       ]
       private_constant :RESERVED_KEYS, :GLOBALID_KEY,
-        :SYMBOL_KEYS_KEY, :RUBY2_KEYWORDS_KEY, :WITH_INDIFFERENT_ACCESS_KEY
+        :SYMBOL_KEYS_KEY, :WITH_INDIFFERENT_ACCESS_KEY
 
       def serialize_argument(argument)
         case argument
@@ -90,11 +87,7 @@ module ActiveJob
           serialize_indifferent_hash(argument)
         when Hash
           symbol_keys = argument.each_key.grep(Symbol).map!(&:to_s)
-          aj_hash_key = if Hash.ruby2_keywords_hash?(argument)
-            RUBY2_KEYWORDS_KEY
-          else
-            SYMBOL_KEYS_KEY
-          end
+          aj_hash_key = SYMBOL_KEYS_KEY
           result = serialize_hash(argument)
           result[aj_hash_key] = symbol_keys
           result
@@ -150,10 +143,6 @@ module ActiveJob
           result = result.with_indifferent_access
         elsif symbol_keys = result.delete(SYMBOL_KEYS_KEY)
           result = transform_symbol_keys(result, symbol_keys)
-        elsif symbol_keys = result.delete(RUBY2_KEYWORDS_KEY)
-          result = transform_symbol_keys(result, symbol_keys)
-          result = Hash.ruby2_keywords_hash(result)
-        end
         result
       end
 

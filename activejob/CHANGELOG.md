@@ -1,3 +1,7 @@
+*   Remove support for serializing `Hash.ruby2_keywords_hash?`
+
+    *Sean Doyle*
+
 *   Preserve the serialized timezone when deserializing `ActiveSupport::TimeWithZone` arguments.
 
     *Joshua Young*
