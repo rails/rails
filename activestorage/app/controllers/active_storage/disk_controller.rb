@@ -30,7 +30,7 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
     else
       head :not_found
     end
-  rescue ActiveStorage::IntegrityError
+  rescue ActiveStorage::IntegrityError, Mime::Type::InvalidMimeType
     head :unprocessable_entity
   end
 
@@ -52,6 +52,6 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
     end
 
     def acceptable_content?(token)
-      token[:content_type] == request.content_mime_type && token[:content_length] == request.content_length
+      Mime::Type.lookup(token[:content_type]) == request.content_mime_type && token[:content_length] == request.content_length
     end
 end
