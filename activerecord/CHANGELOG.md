@@ -1,3 +1,11 @@
+*   Handle records being loaded with Marshal without triggering schema load
+
+    When using the old marshalling format for Active Record and loading
+    a serialized instance, it didn't trigger loading the schema and defining
+    attribute methods.
+
+    *Jean Boussier*
+
 *   Prevent some constant redefinition warnings when defining `inherited` on models.
 
     *Adrian Hirt*
