@@ -266,7 +266,7 @@ module Rails
     end
 
     def config_target_version
-      defined?(@config_target_version) ? @config_target_version : Rails::VERSION::STRING.to_f
+      @config_target_version || Rails::VERSION::STRING.to_f
     end
   end
 

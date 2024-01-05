@@ -137,7 +137,7 @@ module ActiveRecord
 
       def undefine_attribute_methods # :nodoc:
         GeneratedAttributeMethods::LOCK.synchronize do
-          super if defined?(@attribute_methods_generated) && @attribute_methods_generated
+          super if @attribute_methods_generated
           @attribute_methods_generated = false
           @alias_attributes_mass_generated = false
         end
@@ -288,9 +288,7 @@ module ActiveRecord
 
       # If the result is true then check for the select case.
       # For queries selecting a subset of columns, return false for unselected columns.
-      # We check defined?(@attributes) not to issue warnings if called on objects that
-      # have been allocated but not yet initialized.
-      if defined?(@attributes)
+      if @attributes
         if name = self.class.symbol_column_to_string(name.to_sym)
           return _has_attribute?(name)
         end
@@ -460,8 +458,7 @@ module ActiveRecord
 
     private
       def attribute_method?(attr_name)
-        # We check defined? because Syck calls respond_to? before actually calling initialize.
-        defined?(@attributes) && @attributes.key?(attr_name)
+        @attributes&.key?(attr_name)
       end
 
       def attributes_with_values(attribute_names)

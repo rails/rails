@@ -273,7 +273,7 @@ module ActiveRecord
         @table_name        = value
         @quoted_table_name = nil
         @arel_table        = nil
-        @sequence_name     = nil unless defined?(@explicit_sequence_name) && @explicit_sequence_name
+        @sequence_name     = nil unless @explicit_sequence_name
         @predicate_builder = nil
       end
 
@@ -414,11 +414,10 @@ module ActiveRecord
       end
 
       def attributes_builder # :nodoc:
-        unless defined?(@attributes_builder) && @attributes_builder
+        @attributes_builder ||= begin
           defaults = _default_attributes.except(*(column_names - [primary_key]))
-          @attributes_builder = ActiveModel::AttributeSet::Builder.new(attribute_types, defaults)
+          ActiveModel::AttributeSet::Builder.new(attribute_types, defaults)
         end
-        @attributes_builder
       end
 
       def columns_hash # :nodoc:
@@ -573,7 +572,7 @@ module ActiveRecord
         end
 
         def schema_loaded?
-          defined?(@schema_loaded) && @schema_loaded
+          @schema_loaded
         end
 
         def load_schema!

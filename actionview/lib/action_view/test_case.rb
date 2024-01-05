@@ -433,7 +433,7 @@ module ActionView
 
       def respond_to_missing?(name, include_private = false)
         begin
-          routes = defined?(@controller) && @controller.respond_to?(:_routes) && @controller._routes
+          routes = @controller.respond_to?(:_routes) && @controller._routes
         rescue
           # Don't call routes, if there is an error on _routes call
         end

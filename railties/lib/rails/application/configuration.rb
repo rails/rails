@@ -378,9 +378,7 @@ module Rails
         @broadcast_log_level = level
       end
 
-      def broadcast_log_level # :nodoc:
-        defined?(@broadcast_log_level) ? @broadcast_log_level : nil
-      end
+      attr_reader :broadcast_log_level # :nodoc:
 
       def debug_exception_response_format
         @debug_exception_response_format || :default

@@ -344,7 +344,7 @@ module ActiveSupport
 
       # Silences the logger within a block.
       def mute
-        previous_silence, @silence = defined?(@silence) && @silence, true
+        previous_silence, @silence = @silence, true
         yield
       ensure
         @silence = previous_silence
