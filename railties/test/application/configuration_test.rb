@@ -31,6 +31,13 @@ class ::MySanitizerVendor < ::Rails::HTML::Sanitizer
   end
 end
 
+class ::MyCustomKeyProvider
+  attr_reader :primary_key
+  def initialize(primary_key); @primary_key = primary_key; end
+end
+
+class ::MyOldKeyProvider; end
+
 module ApplicationTests
   class ConfigurationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
@@ -3817,6 +3824,74 @@ module ApplicationTests
 
       assert_not_includes Post.filter_attributes, :content
       assert_not_includes ActiveRecord::Base.filter_attributes, :content
+    end
+
+    test "ActiveRecord::Encryption.config is ready for encrypted attributes when app is lazy loaded" do
+      add_to_config <<-RUBY
+        config.enable_reloading = false
+        config.eager_load = false
+      RUBY
+
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        Rails.application.config.active_record.encryption.primary_key = "dummy_key"
+        Rails.application.config.active_record.encryption.previous = [ { key_provider: MyOldKeyProvider.new } ]
+
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveRecord::Migration.verbose = false
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :posts do |t|
+            t.string :content
+          end
+        end
+
+        ActiveRecord::Base.connection.schema_cache.add("posts")
+      RUBY
+
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+          encrypts :content, key_provider: MyCustomKeyProvider.new(ActiveRecord::Encryption.config.primary_key)
+        end
+      RUBY
+
+      app "development"
+
+      assert_kind_of ::MyOldKeyProvider, Post.attribute_types["content"].previous_schemes.first.key_provider
+      assert_kind_of ::MyCustomKeyProvider, Post.attribute_types["content"].scheme.key_provider
+      assert_equal "dummy_key", Post.attribute_types["content"].scheme.key_provider.primary_key
+    end
+
+    test "ActiveRecord::Encryption.config is ready for encrypted attributes when app is eager loaded" do
+      add_to_config <<-RUBY
+        config.enable_reloading = false
+        config.eager_load = true
+      RUBY
+
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+          encrypts :content, key_provider: MyCustomKeyProvider.new(ActiveRecord::Encryption.config.primary_key)
+        end
+      RUBY
+
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        Rails.application.config.active_record.encryption.primary_key = "dummy_key"
+        Rails.application.config.active_record.encryption.previous = [ { key_provider: MyOldKeyProvider.new } ]
+
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveRecord::Migration.verbose = false
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :posts do |t|
+            t.string :content
+          end
+        end
+
+        ActiveRecord::Base.connection.schema_cache.add("posts")
+      RUBY
+
+      app "production"
+
+      assert_kind_of ::MyOldKeyProvider, Post.attribute_types["content"].previous_schemes.first&.key_provider
+      assert_kind_of ::MyCustomKeyProvider, Post.attribute_types["content"].scheme.key_provider
+      assert_equal "dummy_key", Post.attribute_types["content"].scheme.key_provider.primary_key
     end
 
     test "ActiveStorage.routes_prefix can be configured via config.active_storage.routes_prefix" do
