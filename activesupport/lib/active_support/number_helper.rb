@@ -243,49 +243,58 @@ module ActiveSupport
       NumberToDelimitedConverter.convert(number, options)
     end
 
-    # Formats a +number+ with the specified level of
-    # <tt>:precision</tt> (e.g., 112.32 has a precision of 2 if
-    # +:significant+ is +false+, and 5 if +:significant+ is +true+).
-    # You can customize the format in the +options+ hash.
+    # Formats +number+ to a specific level of precision.
+    #
+    #   number_to_rounded(12345.6789)                # => "12345.679"
+    #   number_to_rounded(12345.6789, precision: 2)  # => "12345.68"
+    #   number_to_rounded(12345.6789, precision: 0)  # => "12345"
+    #   number_to_rounded(12345, precision: 5)       # => "12345.00000"
     #
     # ==== Options
     #
-    # * <tt>:locale</tt> - Sets the locale to be used for formatting
-    #   (defaults to current locale).
-    # * <tt>:precision</tt> - Sets the precision of the number
-    #   (defaults to 3). Keeps the number's precision if +nil+.
-    # * <tt>:round_mode</tt> - Determine how rounding is performed
-    #   (defaults to :default. See BigDecimal::mode)
-    # * <tt>:significant</tt> - If +true+, precision will be the number
-    #   of significant_digits. If +false+, the number of fractional
-    #   digits (defaults to +false+).
-    # * <tt>:separator</tt> - Sets the separator between the
-    #   fractional and integer digits (defaults to ".").
-    # * <tt>:delimiter</tt> - Sets the thousands delimiter (defaults
-    #   to "").
-    # * <tt>:strip_insignificant_zeros</tt> - If +true+ removes
-    #   insignificant zeros after the decimal separator (defaults to
-    #   +false+).
+    # [+:locale+]
+    #   The locale to use for formatting. Defaults to the current locale.
     #
-    # ==== Examples
+    #     number_to_rounded(111.234, locale: :fr)
+    #     # => "111,234"
     #
-    #   number_to_rounded(111.2345)                                  # => "111.235"
-    #   number_to_rounded(111.2345, precision: 2)                    # => "111.23"
-    #   number_to_rounded(13, precision: 5)                          # => "13.00000"
-    #   number_to_rounded(389.32314, precision: 0)                   # => "389"
-    #   number_to_rounded(111.2345, significant: true)               # => "111"
-    #   number_to_rounded(111.2345, precision: 1, significant: true) # => "100"
-    #   number_to_rounded(13, precision: 5, significant: true)       # => "13.000"
-    #   number_to_rounded(13, precision: nil)                        # => "13"
-    #   number_to_rounded(389.32314, precision: 0, round_mode: :up)  # => "390"
-    #   number_to_rounded(111.234, locale: :fr)                      # => "111,234"
+    # [+:precision+]
+    #   The level of precision, or +nil+ to preserve +number+'s precision.
+    #   Defaults to 3.
     #
-    #   number_to_rounded(13, precision: 5, significant: true, strip_insignificant_zeros: true)
-    #   # => "13"
+    #     number_to_rounded(12345.6789, precision: nil)
+    #     # => "12345.6789"
     #
-    #   number_to_rounded(389.32314, precision: 4, significant: true) # => "389.3"
-    #   number_to_rounded(1111.2345, precision: 2, separator: ',', delimiter: '.')
-    #   # => "1.111,23"
+    # [+:round_mode+]
+    #   Specifies how rounding is performed. See +BigDecimal.mode+. Defaults to
+    #   +:default+.
+    #
+    #     number_to_rounded(12.34, precision: 0, round_mode: :up)
+    #     # => "13"
+    #
+    # [+:significant+]
+    #   Whether +:precision+ should be applied to significant digits instead of
+    #   fractional digits. Defaults to false.
+    #
+    #     number_to_rounded(12345.6789)                                  # => "12345.679"
+    #     number_to_rounded(12345.6789, significant: true)               # => "12300"
+    #     number_to_rounded(12345.6789, precision: 2)                    # => "12345.68"
+    #     number_to_rounded(12345.6789, precision: 2, significant: true) # => "12000"
+    #
+    # [+:separator+]
+    #   The decimal separator. Defaults to <tt>"."</tt>.
+    #
+    # [+:delimiter+]
+    #   The thousands delimiter. Defaults to <tt>","</tt>.
+    #
+    # [+:strip_insignificant_zeros+]
+    #   Whether to remove insignificant zeros after the decimal separator.
+    #   Defaults to false.
+    #
+    #     number_to_rounded(12.34, strip_insignificant_zeros: false)  # => "12.340"
+    #     number_to_rounded(12.34, strip_insignificant_zeros: true)   # => "12.34"
+    #     number_to_rounded(12.3456, strip_insignificant_zeros: true) # => "12.346"
+    #
     def number_to_rounded(number, options = {})
       NumberToRoundedConverter.convert(number, options)
     end
