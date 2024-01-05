@@ -45,12 +45,6 @@ module ActionView
       end
     end
 
-    # Direct access to template rendering.
-    def render_template(context, options) # :nodoc:
-      render_template_to_object(context, options).body
-    end
-
-    # Direct access to partial rendering.
     def render_partial(context, options, &block) # :nodoc:
       render_partial_to_object(context, options, &block).body
     end
