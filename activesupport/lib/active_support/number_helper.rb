@@ -18,38 +18,51 @@ module ActiveSupport
 
     extend self
 
-    # Formats a +number+ into a phone number (US by default e.g., (555)
-    # 123-9876). You can customize the format in the +options+ hash.
+    # Formats +number+ into a phone number.
+    #
+    #   number_to_phone(5551234)    # => "555-1234"
+    #   number_to_phone("5551234")  # => "555-1234"
+    #   number_to_phone(1235551234) # => "123-555-1234"
+    #   number_to_phone("12x34")    # => "12x34"
+    #
+    #   number_to_phone(1235551234, delimiter: ".", country_code: 1, extension: 1343)
+    #   # => "+1.123.555.1234 x 1343"
     #
     # ==== Options
     #
-    # * <tt>:area_code</tt> - Adds parentheses around the area code.
-    # * <tt>:delimiter</tt> - Specifies the delimiter to use
-    #   (defaults to "-").
-    # * <tt>:extension</tt> - Specifies an extension to add to the
-    #   end of the generated number.
-    # * <tt>:country_code</tt> - Sets the country code for the phone
-    #   number.
-    # * <tt>:pattern</tt> - Specifies how the number is divided into three
-    #   groups with the custom regexp to override the default format.
-    # ==== Examples
+    # [+:area_code+]
+    #   Whether to use parentheses for the area code. Defaults to false.
     #
-    #   number_to_phone(5551234)                                     # => "555-1234"
-    #   number_to_phone('5551234')                                   # => "555-1234"
-    #   number_to_phone(1235551234)                                  # => "123-555-1234"
-    #   number_to_phone(1235551234, area_code: true)                 # => "(123) 555-1234"
-    #   number_to_phone(1235551234, delimiter: ' ')                  # => "123 555 1234"
-    #   number_to_phone(1235551234, area_code: true, extension: 555) # => "(123) 555-1234 x 555"
-    #   number_to_phone(1235551234, country_code: 1)                 # => "+1-123-555-1234"
-    #   number_to_phone('123a456')                                   # => "123a456"
+    #     number_to_phone(1235551234, area_code: true)
+    #     # => "(123) 555-1234"
     #
-    #   number_to_phone(1235551234, country_code: 1, extension: 1343, delimiter: '.')
-    #   # => "+1.123.555.1234 x 1343"
+    # [+:delimiter+]
+    #   The digit group delimiter to use. Defaults to <tt>"-"</tt>.
     #
-    #   number_to_phone(75561234567, pattern: /(\d{1,4})(\d{4})(\d{4})$/, area_code: true)
-    #   # => "(755) 6123-4567"
-    #   number_to_phone(13312345678, pattern: /(\d{3})(\d{4})(\d{4})$/)
-    #   # => "133-1234-5678"
+    #     number_to_phone(1235551234, delimiter: " ")
+    #     # => "123 555 1234"
+    #
+    # [+:country_code+]
+    #   A country code to prepend.
+    #
+    #     number_to_phone(1235551234, country_code: 1)
+    #     # => "+1-123-555-1234"
+    #
+    # [+:extension+]
+    #   An extension to append.
+    #
+    #     number_to_phone(1235551234, extension: 555)
+    #     # => "123-555-1234 x 555"
+    #
+    # [+:pattern+]
+    #   A regexp that specifies how the digits should be grouped. The first
+    #   three captures from the regexp are treated as digit groups.
+    #
+    #     number_to_phone(13312345678, pattern: /(\d{3})(\d{4})(\d{4})$/)
+    #     # => "133-1234-5678"
+    #     number_to_phone(75561234567, pattern: /(\d{1,4})(\d{4})(\d{4})$/, area_code: true)
+    #     # => "(755) 6123-4567"
+    #
     def number_to_phone(number, options = {})
       NumberToPhoneConverter.convert(number, options)
     end
