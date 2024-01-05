@@ -1,3 +1,7 @@
+*   Fix possible XSS vulnerability with the `translate` method in controllers
+
+    CVE-2024-26143
+
 *   Fix ReDoS in Accept header parsing
 
     CVE-2024-26142
