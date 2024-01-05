@@ -42,7 +42,7 @@ module ApplicationTests
 
       with_rails_env("test") do
         rails("db:create")
-        rails("db:migrate") 
+        rails("db:migrate")
       end
       output = rails("test")
       assert_match(/0 failures, 0 errors/, output)

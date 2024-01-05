@@ -249,6 +249,7 @@ module ApplicationTests
         end
 
         test "db:drop failure because bad permissions" do
+          rails("db:create")
           with_database_existing do
             with_bad_permissions do
               output = rails("db:drop", allow_failure: true)
@@ -280,6 +281,7 @@ module ApplicationTests
       test "db:truncate_all truncates all non-internal tables" do
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
+          rails "db:create"
           rails "db:migrate"
           require "#{app_path}/config/environment"
           Book.create!(title: "Remote")
@@ -305,6 +307,7 @@ module ApplicationTests
         with_rails_env "production" do
           Dir.chdir(app_path) do
             rails "generate", "model", "book", "title:string"
+            rails "db:create"
             rails "db:migrate"
             require "#{app_path}/config/environment"
             Book.create!(title: "Remote")
@@ -332,6 +335,7 @@ module ApplicationTests
 
       def db_migrate_and_status(expected_database)
         rails "generate", "model", "book", "title:string"
+        rails "db:create"
         rails "db:migrate"
         output = rails("db:migrate:status")
         assert_match(%r{database:\s+\S*#{Regexp.escape(expected_database)}}, output)
@@ -354,6 +358,7 @@ module ApplicationTests
         Dir.chdir(app_path) do
           args = ["generate", "model", "book", "title:string"]
           rails args
+          rails "db:create"
           rails "db:migrate", "db:schema:dump"
           assert_match(/create_table "books"/, File.read("db/schema.rb"))
         end
@@ -363,6 +368,7 @@ module ApplicationTests
         Dir.chdir(app_path) do
           args = ["generate", "model", "book", "title:string"]
           rails args
+          rails "db:create"
           rails "db:migrate", "db:schema:dump"
           assert_match(/CREATE TABLE/, File.read("db/structure.sql"))
         end
@@ -498,6 +504,7 @@ module ApplicationTests
       test "db:schema:cache:dump ignores expired version" do
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
+          rails "db:create"
           rails "db:schema:cache:dump"
           rails "generate", "model", "cat", "color:string"
           rails "db:migrate"
@@ -513,6 +520,7 @@ module ApplicationTests
       test "db:schema:cache:dump ignores validation errors" do
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
+          rails "db:create"
           rails "db:migrate"
           rails "db:schema:cache:dump"
 
@@ -540,12 +548,14 @@ module ApplicationTests
       test "db:fixtures:load without database_url" do
         require "#{app_path}/config/environment"
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary")
+        rails("db:create")
         db_fixtures_load db_config.database
       end
 
       test "db:fixtures:load with database_url" do
         require "#{app_path}/config/environment"
         set_database_url
+        rails("db:create")
         db_fixtures_load database_url_db_name
       end
 
@@ -554,12 +564,14 @@ module ApplicationTests
 
         rails "generate", "model", "admin::book", "title:string"
         reload
+        rails "db:create"
         rails "db:migrate", "db:fixtures:load"
 
         assert_equal 2, Admin::Book.count
       end
 
       test "db:schema:load does not purge the existing database" do
+        rails "db:create"
         rails "runner", "ActiveRecord::Base.connection.create_table(:posts) {|t| t.string :title }"
 
         app_file "db/schema.rb", <<-RUBY
@@ -600,6 +612,7 @@ module ApplicationTests
           end
         RUBY
 
+        rails "db:create"
         rails "db:schema:load"
 
         tables = rails("runner", "p ActiveRecord::Base.connection.tables").strip
@@ -681,6 +694,7 @@ module ApplicationTests
       test "db:seed:replant truncates all non-internal tables and loads the seeds" do
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
+          rails "db:create"
           rails "db:migrate"
           require "#{app_path}/config/environment"
           Book.create!(title: "Remote")
@@ -714,6 +728,7 @@ module ApplicationTests
         with_rails_env "production" do
           Dir.chdir(app_path) do
             rails "generate", "model", "book", "title:string"
+            rails "db:create"
             rails "db:migrate"
             require "#{app_path}/config/environment"
             Book.create!(title: "Remote")
@@ -821,6 +836,7 @@ module ApplicationTests
           RUBY
 
           rails "generate", "model", "recipe", "title:string"
+          rails "db:create"
           rails "db:migrate"
           rails "db:schema:cache:dump"
 
@@ -832,7 +848,7 @@ module ApplicationTests
           assert_match(/Dropped database/, output)
 
           repeat_output = rails "db:drop"
-          assert_match(/Dropped database/, repeat_output)
+          assert_match(/does not exist/, repeat_output)
         end
       end
 
@@ -843,6 +859,7 @@ module ApplicationTests
 
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
+          rails "db:create"
           rails "db:migrate"
 
           destructive_tasks = ["db:drop:all", "db:drop", "db:purge:all", "db:truncate_all", "db:purge", "db:schema:load", "db:test:purge"]
