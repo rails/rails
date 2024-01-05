@@ -7,6 +7,7 @@ module ApplicationTests
     class RakeMigrationsTest < ActiveSupport::TestCase
       def setup
         build_app
+        rails("db:create")
         FileUtils.rm_rf("#{app_path}/config/environments")
       end
 
@@ -437,6 +438,7 @@ module ApplicationTests
 
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
+          rails "db:create"
           rails "db:migrate"
 
           assert File.exist?("db/schema_file.rb"), "should dump schema when configured to"
@@ -455,6 +457,7 @@ module ApplicationTests
 
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
+          rails "db:create"
           rails "db:migrate"
 
           assert_not File.exist?("db/schema.rb"), "should not dump schema when configured not to"
