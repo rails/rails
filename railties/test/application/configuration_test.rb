@@ -190,6 +190,7 @@ module ApplicationTests
       app "development"
 
       begin
+        ActiveRecord::Base.connection.create_database
         ActiveRecord::Migrator.migrations_paths = ["#{app_path}/db/migrate"]
 
         get "/foo"
