@@ -336,9 +336,9 @@ class Module
         #{target}.respond_to?(name) || super
       end
 
-      def method_missing(method, *args, &block)
+      def method_missing(method, ...)
         if #{target}.respond_to?(method)
-          #{target}.public_send(method, *args, &block)
+          #{target}.public_send(method, ...)
         else
           begin
             super
@@ -355,7 +355,6 @@ class Module
           end
         end
       end
-      ruby2_keywords(:method_missing)
     RUBY
   end
 end

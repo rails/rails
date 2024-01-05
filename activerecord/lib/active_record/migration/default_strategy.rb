@@ -6,13 +6,12 @@ module ActiveRecord
     # to the connection adapter.
     class DefaultStrategy < ExecutionStrategy # :nodoc:
       private
-        def method_missing(method, *arguments, &block)
-          connection.send(method, *arguments, &block)
+        def method_missing(method, ...)
+          connection.send(method, ...)
         end
-        ruby2_keywords(:method_missing)
 
-        def respond_to_missing?(method, *)
-          connection.respond_to?(method) || super
+        def respond_to_missing?(method, include_private = false)
+          connection.respond_to?(method, include_private) || super
         end
 
         def connection
