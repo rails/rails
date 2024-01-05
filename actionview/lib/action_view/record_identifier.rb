@@ -90,9 +90,25 @@ module ActionView
     #
     #   dom_id(Post.find(45), :edit) # => "edit_post_45"
     #   dom_id(Post, :custom)        # => "custom_post"
-    def dom_id(record_or_class, prefix = nil)
-      raise ArgumentError, "dom_id must be passed a record_or_class as the first argument, you passed #{record_or_class.inspect}" unless record_or_class
+    #
+    # Providing an array of records or classes will join the singular dom_ids together
+    #
+    #   dom_id([Author.find(20), Post.find(45)])             # => "author_20_post_45"
+    #   dom_id([Author.find(20), Post.find(45)], :dashboard) # => "dashboard_author_20_post_45"
+    def dom_id(records_or_classes, prefix = nil)
+      raise ArgumentError, "dom_id must be passed records_or_classes as the first argument, you passed #{records_or_classes.inspect}" unless records_or_classes
 
+      if records_or_classes.is_a?(Array)
+        parts = records_or_classes.map { |object| singular_dom_id(object) }
+        ([prefix] + parts).compact.join(JOIN)
+      else
+        singular_dom_id(records_or_classes, prefix)
+      end
+    end
+
+  private
+    # Returns a string representation of a single record or class
+    def singular_dom_id(record_or_class, prefix = nil)
       record_id = record_key_for_dom_id(record_or_class) unless record_or_class.is_a?(Class)
       if record_id
         "#{dom_class(record_or_class, prefix)}#{JOIN}#{record_id}"
@@ -101,7 +117,6 @@ module ActionView
       end
     end
 
-  private
     # Returns a string representation of the key attribute(s) that is suitable for use in an HTML DOM id.
     # This can be overwritten to customize the default generated string representation if desired.
     # If you need to read back a key from a dom_id in order to query for the underlying database record,
@@ -112,7 +127,7 @@ module ActionView
     # make sure yourself that your dom ids are valid, in case you override this method.
     def record_key_for_dom_id(record) # :doc:
       key = convert_to_model(record).to_key
-      key && key.all? ? key.join(JOIN) : nil
+      (key && key.all?) ? key.join(JOIN) : nil
     end
   end
 end

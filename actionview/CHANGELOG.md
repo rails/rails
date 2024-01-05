@@ -1,3 +1,9 @@
+*   allow dom_id method to accept an array of records_or_classes
+
+    Works similarly to `cache` helper from ActionView.
+
+    *Justin Wilson*
+
 *   Add the `nonce: true` option for `stylesheet_link_tag` helper to support automatic nonce generation for Content Security Policy.
     Works the same way as `javascript_include_tag nonce: true` does.
 

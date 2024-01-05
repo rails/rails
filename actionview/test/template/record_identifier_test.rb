@@ -30,6 +30,20 @@ class RecordIdentifierTest < ActiveSupport::TestCase
     assert_equal "#{@singular}_1", dom_id(@record)
   end
 
+  def test_dom_id_with_two_saved_records
+    @record.save
+    @second_record = Tag.new
+    @second_record.save
+    assert_equal "#{@singular}_1_tag_1", dom_id([@record, @second_record])
+  end
+
+  def test_dom_id_with_two_saved_records_and_prefix
+    @record.save
+    @second_record = Tag.new
+    @second_record.save
+    assert_equal "my_prefix_#{@singular}_1_tag_1", dom_id([@record, @second_record], "my_prefix")
+  end
+
   def test_dom_id_with_composite_primary_key_record
     record = Cpk::Book.new(id: [1, 123])
     assert_equal("cpk_book_1_123", dom_id(record))
