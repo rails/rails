@@ -1,3 +1,7 @@
+*   Fix possible XSS vulnerability with the `translate` method in controllers
+
+    CVE-2024-26143
+
 *   Add `racc` as a dependency since it will become a bundled gem in Ruby 3.4.0
 
     *Hartley McGuire*

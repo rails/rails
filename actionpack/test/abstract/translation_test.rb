@@ -89,10 +89,78 @@ module AbstractController
         end
       end
 
+      def test_default_translation_as_safe_html
+        @controller.stub :action_name, :index do
+          translation = @controller.t(".twoz", default: ["<tag>"])
+          assert_equal "&lt;tag&gt;", translation
+          assert_equal true, translation.html_safe?
+        end
+      end
+
+      def test_default_translation_with_raise_as_safe_html
+        @controller.stub :action_name, :index do
+          translation = @controller.t(".twoz", raise: true, default: ["<tag>"])
+          assert_equal "&lt;tag&gt;", translation
+          assert_equal true, translation.html_safe?
+        end
+      end
+
       def test_localize
         time, expected = Time.gm(2000), "Sat, 01 Jan 2000 00:00:00 +0000"
         I18n.stub :localize, expected do
           assert_equal expected, @controller.l(time)
+        end
+      end
+
+      def test_translate_does_not_mark_plain_text_as_safe_html
+        @controller.stub :action_name, :index do
+          translation = @controller.t(".hello")
+          assert_equal "<a>Hello World</a>", translation
+          assert_equal false, translation.html_safe?
+        end
+      end
+
+      def test_translate_marks_translations_with_a_html_suffix_as_safe_html
+        @controller.stub :action_name, :index do
+          translation = @controller.t(".hello_html")
+          assert_equal "<a>Hello World</a>", translation
+          assert_equal true, translation.html_safe?
+        end
+      end
+
+      def test_translate_marks_translation_with_nested_html_key
+        @controller.stub :action_name, :index do
+          translation = @controller.t(".nested.html")
+          assert_equal "<a>nested</a>", translation
+          assert_equal true, translation.html_safe?
+        end
+      end
+
+      def test_translate_escapes_interpolations_in_translations_with_a_html_suffix
+        word_struct = Struct.new(:to_s)
+        @controller.stub :action_name, :index do
+          translation = @controller.t(".interpolated_html", word: "<World>")
+          assert_equal "<a>Hello &lt;World&gt;</a>", translation
+          assert_equal true, translation.html_safe?
+
+          translation = @controller.t(".interpolated_html", word: word_struct.new("<World>"))
+          assert_equal "<a>Hello &lt;World&gt;</a>", translation
+          assert_equal true, translation.html_safe?
+        end
+      end
+
+      def test_translate_marks_translation_with_missing_html_key_as_safe_html
+        @controller.stub :action_name, :index do
+          translation = @controller.t("<tag>.html")
+          assert_equal "translation missing: <tag>.html", translation
+          assert_equal false, translation.html_safe?
+        end
+      end
+      def test_translate_marks_translation_with_missing_nested_html_key_as_safe_html
+        @controller.stub :action_name, :index do
+          translation = @controller.t(".<tag>.html")
+          assert_equal "translation missing: abstract_controller.testing.translation.index.<tag>.html", translation
+          assert_equal false, translation.html_safe?
         end
       end
     end
