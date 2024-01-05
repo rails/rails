@@ -1,3 +1,7 @@
+*   Fix `encrypted_attribute?` to take into account context properties passed to `encrypts`.
+
+    *Maxime Réty*
+
 *   Fix `find_by` to work correctly in presence of composite primary keys
 
     *fatkodima*
