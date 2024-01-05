@@ -202,37 +202,43 @@ module ActiveSupport
       NumberToPercentageConverter.convert(number, options)
     end
 
-    # Formats a +number+ with grouped thousands using +delimiter+
-    # (e.g., 12,324). You can customize the format in the +options+
-    # hash.
+    # Formats +number+ by grouping thousands with a delimiter.
+    #
+    #   number_to_delimited(12345678)      # => "12,345,678"
+    #   number_to_delimited("123456")      # => "123,456"
+    #   number_to_delimited(12345678.9876) # => "12,345,678.9876"
+    #   number_to_delimited("12x34")       # => "12x34"
+    #
+    #   number_to_delimited(12345678.9876, delimiter: ".", separator: ",")
+    #   # => "12.345.678,9876"
     #
     # ==== Options
     #
-    # * <tt>:locale</tt> - Sets the locale to be used for formatting
-    #   (defaults to current locale).
-    # * <tt>:delimiter</tt> - Sets the thousands delimiter (defaults
-    #   to ",").
-    # * <tt>:separator</tt> - Sets the separator between the
-    #   fractional and integer digits (defaults to ".").
-    # * <tt>:delimiter_pattern</tt> - Sets a custom regular expression used for
-    #   deriving the placement of delimiter. Helpful when using currency formats
-    #   like INR.
+    # [+:locale+]
+    #   The locale to use for formatting. Defaults to the current locale.
     #
-    # ==== Examples
+    #     number_to_delimited(12345678.05, locale: :fr)
+    #     # => "12 345 678,05"
     #
-    #   number_to_delimited(12345678)                    # => "12,345,678"
-    #   number_to_delimited('123456')                    # => "123,456"
-    #   number_to_delimited(12345678.05)                 # => "12,345,678.05"
-    #   number_to_delimited(12345678, delimiter: '.')    # => "12.345.678"
-    #   number_to_delimited(12345678, delimiter: ',')    # => "12,345,678"
-    #   number_to_delimited(12345678.05, separator: ' ') # => "12,345,678 05"
-    #   number_to_delimited(12345678.05, locale: :fr)    # => "12 345 678,05"
-    #   number_to_delimited('112a')                      # => "112a"
-    #   number_to_delimited(98765432.98, delimiter: ' ', separator: ',')
-    #                                                    # => "98 765 432,98"
-    #   number_to_delimited("123456.78",
-    #     delimiter_pattern: /(\d+?)(?=(\d\d)+(\d)(?!\d))/)
-    #                                                    # => "1,23,456.78"
+    # [+:delimiter+]
+    #   The thousands delimiter. Defaults to <tt>","</tt>.
+    #
+    #     number_to_delimited(12345678, delimiter: ".")
+    #     # => "12.345.678"
+    #
+    # [+:separator+]
+    #   The decimal separator. Defaults to <tt>"."</tt>.
+    #
+    #     number_to_delimited(12345678.05, separator: " ")
+    #     # => "12,345,678 05"
+    #
+    # [+:delimiter_pattern+]
+    #   A regexp to determine the placement of delimiters. Helpful when using
+    #   currency formats like INR.
+    #
+    #     number_to_delimited("123456.78", delimiter_pattern: /(\d+?)(?=(\d\d)+(\d)(?!\d))/)
+    #     # => "1,23,456.78"
+    #
     def number_to_delimited(number, options = {})
       NumberToDelimitedConverter.convert(number, options)
     end
