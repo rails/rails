@@ -793,7 +793,30 @@ module MyApplication
 end
 ```
 
-This will work fine, because both the `Supplier` and the `Account` class are defined within the same scope. But the following will _not_ work, because `Supplier` and `Account` are defined in different scopes:
+This will work fine, because both the `Supplier` and the `Account` class are defined within the same scope (`MyApplication::Business`). This organization allows structuring models into folders based on their scope, without having to explicitly add the scope to every association:
+
+```ruby
+# app/models/my_application/business/supplier.rb
+module MyApplication
+  module Business
+    class Supplier < ApplicationRecord
+      has_one :account
+    end
+  end
+end
+# app/models/my_application/business/account.rb
+module MyApplication
+  module Business
+    class Account < ApplicationRecord
+      belongs_to :supplier
+    end
+  end
+end
+```
+
+It is crucial to note that this does not affect the naming of your tables. For instance, if there is a `MyApplication::Business::Supplier` model, there must also be a `my_application_business_suppliers` table.
+
+Note that he following will _not_ work, because `Supplier` and `Account` are defined in different scopes (`MyApplication::Business` and `MyApplication::Billing`):
 
 ```ruby
 module MyApplication
