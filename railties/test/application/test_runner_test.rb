@@ -830,7 +830,6 @@ module ApplicationTests
         exercise_parallelization_regardless_of_machine_core_count(with: :processes)
 
         rails "generate", "scaffold", "User", "name:string"
-        rails "db:create"
         rails "db:migrate"
 
         output = rails "test"
@@ -1057,6 +1056,7 @@ module ApplicationTests
 
     def test_rake_db_and_test_tasks_parses_args_correctly
       create_test_file :models, "account"
+      create_database
       output = Dir.chdir(app_path) { `bin/rake db:migrate test:models TESTOPTS='-v' && echo ".tables" | rails dbconsole` }
       assert_match "AccountTest#test_truth", output
       assert_match "ar_internal_metadata", output
@@ -1258,6 +1258,7 @@ module ApplicationTests
             name: Tsubasa Hanekawa
         YAML
 
+        create_database
         run_migration
       end
 
@@ -1425,6 +1426,7 @@ module ApplicationTests
       def create_scaffold
         rails "generate", "scaffold", "user", "name:string"
         assert File.exist?("#{app_path}/app/models/user.rb")
+        create_database
         run_migration
       end
 
@@ -1434,6 +1436,10 @@ module ApplicationTests
 
       def run_migration
         rails "db:migrate"
+      end
+
+      def create_database
+        rails "db:create"
       end
   end
 end
