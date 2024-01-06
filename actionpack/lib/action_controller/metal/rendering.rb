@@ -39,6 +39,22 @@ module ActionController
     # If the first argument responds to +render_in+, the template will be
     # rendered by calling +render_in+ with the current view context.
     #
+    #   class Greeting
+    #     def render_in(view_context)
+    #       view_context.render html: "<h1>Hello, World</h1>"
+    #     end
+    #
+    #     def format
+    #       :html
+    #     end
+    #   end
+    #
+    #   render(Greeting.new)
+    #   # => "<h1>Hello, World</h1>"
+    #
+    #   render(renderable: Greeting.new)
+    #   # => "<h1>Hello, World</h1>"
+    #
     # ==== \Rendering Mode
     #
     # [+:partial+]
@@ -91,6 +107,14 @@ module ActionController
     #
     #     render json: { hello: "world" }
     #     # => renders "{\"hello\":\"world\"}"
+    #
+    # [+:renderable+]
+    #   Renders the provided object by calling +render_in+ with the current view
+    #   context. The response format is determined by calling +format+ on the
+    #   renderable if it responds to +format+, falling back to +text/html+ by default.
+    #
+    #     render renderable: Greeting.new
+    #     # => renders "<h1>Hello, World</h1>"
     #
     # By default, when a rendering mode is specified, no layout template is
     # rendered.
