@@ -30,8 +30,8 @@ module ActiveRecord
     # instantiation of the actual post records.
     class CollectionProxy < Relation
       def initialize(klass, association, **) # :nodoc:
-        @association = association
         super klass
+        @association = association
 
         extensions = association.extensions
         extend(*extensions) if extensions.any?
@@ -54,6 +54,10 @@ module ActiveRecord
         @association.loaded?
       end
       alias :loaded :loaded?
+
+      def load_async
+        @association.load_target_async
+      end
 
       ##
       # :method: select
@@ -1118,7 +1122,7 @@ module ActiveRecord
       ].flat_map { |klass|
         klass.public_instance_methods(false)
       } - self.public_instance_methods(false) - [:select] + [
-        :scoping, :values, :insert, :insert_all, :insert!, :insert_all!, :upsert, :upsert_all, :load_async
+        :scoping, :values, :insert, :insert_all, :insert!, :insert_all!, :upsert, :upsert_all
       ]
 
       delegate(*delegate_methods, to: :scope)

@@ -69,6 +69,7 @@ module ActiveRecord
         post = Post.first
 
         defered_comments = post.comments.load_async
+        assert_predicate defered_comments, :loaded?
         assert_predicate defered_comments, :scheduled?
 
         events = []
@@ -82,13 +83,37 @@ module ActiveRecord
         end
 
         assert_equal [["Comment Load", true]], events.map { |e| [e.payload[:name], e.payload[:async]] }
-        assert_not_predicate post.comments, :loaded?
+        assert_predicate defered_comments, :loaded?
+        assert_not_predicate defered_comments, :scheduled?
+      end
+
+      def test_load_async_has_many_association_in_place
+        post = Post.first
+
+        post.comments.load_async
+        assert_predicate post.comments, :loaded?
+        assert_predicate post.comments, :scheduled?
+
+        events = []
+        callback = -> (event) do
+          events << event unless event.payload[:name] == "SCHEMA"
+        end
+
+        wait_for_async_query
+        ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+          post.comments.to_a
+        end
+
+        assert_equal [["Comment Load", true]], events.map { |e| [e.payload[:name], e.payload[:async]] }
+        assert_predicate post.comments, :loaded?
+        assert_not_predicate post.comments, :scheduled?
       end
 
       def test_load_async_has_many_through_association
         post = Post.first
 
         defered_categories = post.scategories.load_async
+        assert_predicate defered_categories, :loaded?
         assert_predicate defered_categories, :scheduled?
 
         events = []
@@ -102,7 +127,30 @@ module ActiveRecord
         end
 
         assert_equal [["Category Load", true]], events.map { |e| [e.payload[:name], e.payload[:async]] }
-        assert_not_predicate post.scategories, :loaded?
+        assert_predicate defered_categories, :loaded?
+        assert_not_predicate defered_categories, :scheduled?
+      end
+
+      def test_load_async_has_many_through_association_in_place
+        post = Post.first
+
+        post.scategories.load_async
+        assert_predicate post.scategories, :loaded?
+        assert_predicate post.scategories, :scheduled?
+
+        events = []
+        callback = -> (event) do
+          events << event unless event.payload[:name] == "SCHEMA"
+        end
+
+        wait_for_async_query
+        ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+          post.scategories.to_a
+        end
+
+        assert_equal [["Category Load", true]], events.map { |e| [e.payload[:name], e.payload[:async]] }
+        assert_predicate post.scategories, :loaded?
+        assert_not_predicate post.scategories, :scheduled?
       end
     end
 

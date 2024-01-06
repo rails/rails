@@ -68,6 +68,7 @@ module ActiveRecord
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
     attr_reader :table, :klass, :loaded, :predicate_builder
+    attr_reader :future_result # :nodoc:
     attr_accessor :skip_preloading_value
     alias :model :klass
     alias :loaded? :loaded
@@ -793,7 +794,11 @@ module ActiveRecord
     # Returns <tt>true</tt> if the relation was scheduled on the background
     # thread pool.
     def scheduled?
-      !!@future_result
+      if @association
+        !!@association.future_result_scope&.future_result
+      else
+        !!@future_result
+      end
     end
 
     # Causes the records to be loaded from the database if they have not
