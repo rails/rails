@@ -20,7 +20,7 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Scan for security vulnerabilities in Ruby Dependencies
+      - name: Scan for security vulnerabilities in Ruby dependencies
         run: bin/brakeman
 <% end -%>
 <%- if options[:javascript] == "importmap" -%>
@@ -38,7 +38,7 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Scan for security vulnerabilities in Javascript Dependencies
+      - name: Scan for security vulnerabilities in JavaScript dependencies
         run: bin/importmap audit
 <% end -%>
 <%- unless skip_rubocop? -%>
