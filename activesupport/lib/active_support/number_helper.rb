@@ -352,111 +352,104 @@ module ActiveSupport
       NumberToHumanSizeConverter.convert(number, options)
     end
 
-    # Pretty prints (formats and approximates) a number in a way it
-    # is more readable by humans (e.g.: 1200000000 becomes "1.2
-    # Billion"). This is useful for numbers that can get very large
-    # (and too hard to read).
+    # Formats +number+ into a more human-friendly representation. Useful for
+    # numbers that can become very large and too hard to read.
     #
-    # See <tt>number_to_human_size</tt> if you want to print a file
-    # size.
+    #   number_to_human(123)                 # => "123"
+    #   number_to_human(1234)                # => "1.23 Thousand"
+    #   number_to_human(12345)               # => "12.3 Thousand"
+    #   number_to_human(1234567)             # => "1.23 Million"
+    #   number_to_human(1234567890)          # => "1.23 Billion"
+    #   number_to_human(1234567890123)       # => "1.23 Trillion"
+    #   number_to_human(1234567890123456)    # => "1.23 Quadrillion"
+    #   number_to_human(1234567890123456789) # => "1230 Quadrillion"
     #
-    # You can also define your own unit-quantifier names if you want
-    # to use other decimal units (e.g.: 1500 becomes "1.5
-    # kilometers", 0.150 becomes "150 milliliters", etc). You may
-    # define a wide range of unit quantifiers, even fractional ones
-    # (centi, deci, mili, etc).
+    # See #number_to_human_size if you want to pretty-print a file size.
     #
     # ==== Options
     #
-    # * <tt>:locale</tt> - Sets the locale to be used for formatting
-    #   (defaults to current locale).
-    # * <tt>:precision</tt> - Sets the precision of the number
-    #   (defaults to 3).
-    # * <tt>:round_mode</tt> - Determine how rounding is performed
-    #   (defaults to :default. See BigDecimal::mode)
-    # * <tt>:significant</tt> - If +true+, precision will be the number
-    #   of significant_digits. If +false+, the number of fractional
-    #   digits (defaults to +true+)
-    # * <tt>:separator</tt> - Sets the separator between the
-    #   fractional and integer digits (defaults to ".").
-    # * <tt>:delimiter</tt> - Sets the thousands delimiter (defaults
-    #   to "").
-    # * <tt>:strip_insignificant_zeros</tt> - If +true+ removes
-    #   insignificant zeros after the decimal separator (defaults to
-    #   +true+)
-    # * <tt>:units</tt> - A Hash of unit quantifier names. Or a
-    #   string containing an i18n scope where to find this hash. It
-    #   might have the following keys:
-    #   * *integers*: <tt>:unit</tt>, <tt>:ten</tt>,
-    #     <tt>:hundred</tt>, <tt>:thousand</tt>, <tt>:million</tt>,
-    #     <tt>:billion</tt>, <tt>:trillion</tt>,
-    #     <tt>:quadrillion</tt>
-    #   * *fractionals*: <tt>:deci</tt>, <tt>:centi</tt>,
-    #     <tt>:mili</tt>, <tt>:micro</tt>, <tt>:nano</tt>,
-    #     <tt>:pico</tt>, <tt>:femto</tt>
-    # * <tt>:format</tt> - Sets the format of the output string
-    #   (defaults to "%n %u"). The field types are:
-    #   * %u - The quantifier (ex.: 'thousand')
-    #   * %n - The number
+    # [+:locale+]
+    #   The locale to use for formatting. Defaults to the current locale.
     #
-    # ==== Examples
+    # [+:precision+]
+    #   The level of precision. Defaults to 3.
     #
-    #   number_to_human(123)                         # => "123"
-    #   number_to_human(1234)                        # => "1.23 Thousand"
-    #   number_to_human(12345)                       # => "12.3 Thousand"
-    #   number_to_human(1234567)                     # => "1.23 Million"
-    #   number_to_human(1234567890)                  # => "1.23 Billion"
-    #   number_to_human(1234567890123)               # => "1.23 Trillion"
-    #   number_to_human(1234567890123456)            # => "1.23 Quadrillion"
-    #   number_to_human(1234567890123456789)         # => "1230 Quadrillion"
-    #   number_to_human(489939, precision: 2)        # => "490 Thousand"
-    #   number_to_human(489939, precision: 4)        # => "489.9 Thousand"
-    #   number_to_human(489939, precision: 2
-    #                         , round_mode: :down)   # => "480 Thousand"
-    #   number_to_human(1234567, precision: 4,
-    #                            significant: false) # => "1.2346 Million"
-    #   number_to_human(1234567, precision: 1,
-    #                            separator: ',',
-    #                            significant: false) # => "1,2 Million"
+    #     number_to_human(123456, precision: 2) # => "120 Thousand"
+    #     number_to_human(123456, precision: 4) # => "123.5 Thousand"
     #
-    #   number_to_human(500000000, precision: 5)           # => "500 Million"
-    #   number_to_human(12345012345, significant: false)   # => "12.345 Billion"
+    # [+:round_mode+]
+    #   Specifies how rounding is performed. See +BigDecimal.mode+. Defaults to
+    #   +:default+.
     #
-    # Non-significant zeros after the decimal separator are stripped
-    # out by default (set <tt>:strip_insignificant_zeros</tt> to
-    # +false+ to change that):
+    #     number_to_human(123456, precision: 2, round_mode: :up)
+    #     # => "130 Thousand"
     #
-    #   number_to_human(12.00001)                                       # => "12"
-    #   number_to_human(12.00001, strip_insignificant_zeros: false)     # => "12.0"
+    # [+:significant+]
+    #   Whether +:precision+ should be applied to significant digits instead of
+    #   fractional digits. Defaults to true.
     #
-    # ==== Custom Unit Quantifiers
+    # [+:separator+]
+    #   The decimal separator. Defaults to <tt>"."</tt>.
     #
-    # You can also use your own custom unit quantifiers:
+    #     number_to_human(123456, precision: 4, separator: ",")
+    #     # => "123,5 Thousand"
     #
-    #   number_to_human(500000, units: { unit: 'ml', thousand: 'lt' })  # => "500 lt"
+    # [+:delimiter+]
+    #   The thousands delimiter. Defaults to <tt>","</tt>.
     #
-    # If in your I18n locale you have:
+    # [+:strip_insignificant_zeros+]
+    #   Whether to remove insignificant zeros after the decimal separator.
+    #   Defaults to true.
     #
-    #   distance:
-    #     centi:
-    #       one: "centimeter"
-    #       other: "centimeters"
-    #     unit:
-    #       one: "meter"
-    #       other: "meters"
-    #     thousand:
-    #       one: "kilometer"
-    #       other: "kilometers"
-    #     billion: "gazillion-distance"
+    #     number_to_human(1000000)                                   # => "1 Million"
+    #     number_to_human(1000000, strip_insignificant_zeros: false) # => "1.00 Million"
+    #     number_to_human(10.01)                                     # => "10"
+    #     number_to_human(10.01, strip_insignificant_zeros: false)   # => "10.0"
     #
-    # Then you could do:
+    # [+:format+]
+    #   The format of the output. <tt>%n</tt> represents the number, and
+    #   <tt>%u</tt> represents the quantifier (e.g., "Thousand"). Defaults to
+    #   <tt>"%n %u"</tt>.
     #
-    #   number_to_human(543934, units: :distance)            # => "544 kilometers"
-    #   number_to_human(54393498, units: :distance)          # => "54400 kilometers"
-    #   number_to_human(54393498000, units: :distance)       # => "54.4 gazillion-distance"
-    #   number_to_human(343, units: :distance, precision: 1) # => "300 meters"
-    #   number_to_human(1, units: :distance)                 # => "1 meter"
-    #   number_to_human(0.34, units: :distance)              # => "34 centimeters"
+    # [+:units+]
+    #   A Hash of custom unit quantifier names.
+    #
+    #     number_to_human(1, units: { unit: "m", thousand: "km" })        # => "1 m"
+    #     number_to_human(100, units: { unit: "m", thousand: "km" })      # => "100 m"
+    #     number_to_human(1000, units: { unit: "m", thousand: "km" })     # => "1 km"
+    #     number_to_human(100000, units: { unit: "m", thousand: "km" })   # => "100 km"
+    #     number_to_human(10000000, units: { unit: "m", thousand: "km" }) # => "10000 km"
+    #
+    #   The following keys are supported for integer units: +:unit+, +:ten+,
+    #   +:hundred+, +:thousand+, +:million+, +:billion+, +:trillion+,
+    #   +:quadrillion+. Additionally, the following keys are supported for
+    #   fractional units: +:deci+, +:centi+, +:mili+, +:micro+, +:nano+,
+    #   +:pico+, +:femto+.
+    #
+    #   The Hash can also be defined as a scope in an I18n locale. For example:
+    #
+    #     en:
+    #       distance:
+    #         centi:
+    #           one: "centimeter"
+    #           other: "centimeters"
+    #         unit:
+    #           one: "meter"
+    #           other: "meters"
+    #         thousand:
+    #           one: "kilometer"
+    #           other: "kilometers"
+    #
+    #   Then it can be specified by name:
+    #
+    #     number_to_human(1, units: :distance)        # => "1 meter"
+    #     number_to_human(100, units: :distance)      # => "100 meters"
+    #     number_to_human(1000, units: :distance)     # => "1 kilometer"
+    #     number_to_human(100000, units: :distance)   # => "100 kilometers"
+    #     number_to_human(10000000, units: :distance) # => "10000 kilometers"
+    #     number_to_human(0.1, units: :distance)      # => "10 centimeters"
+    #     number_to_human(0.01, units: :distance)     # => "1 centimeter"
+    #
     def number_to_human(number, options = {})
       NumberToHumanConverter.convert(number, options)
     end
