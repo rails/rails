@@ -294,7 +294,7 @@ module ActiveRecord
     # ones printed by the database shell.
     #
     #   User.all.explain
-    #   # EXPLAIN SELECT `cars`.* FROM `cars`
+    #   # EXPLAIN SELECT `users`.* FROM `users`
     #   # ...
     #
     # Note that this method actually runs the queries, since the results of some
