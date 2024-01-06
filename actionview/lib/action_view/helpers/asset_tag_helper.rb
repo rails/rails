@@ -166,6 +166,8 @@ module ActionView
       #   that path.
       # * <tt>:skip_pipeline</tt>  - This option is used to bypass the asset pipeline
       #   when it is set to true.
+      # * <tt>:nonce</tt>  - When set to true, adds an automatic nonce value if
+      #   you have Content Security Policy enabled.
       #
       # ==== Examples
       #
