@@ -256,7 +256,7 @@ module ActiveRecord
 
     attr_writer :connection_specification_name
 
-    # Return the connection specification name from the current class or its parent.
+    # Returns the connection specification name from the current class or its parent.
     def connection_specification_name
       if @connection_specification_name.nil?
         return self == Base ? Base.name : superclass.connection_specification_name

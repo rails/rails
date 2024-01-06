@@ -475,8 +475,7 @@ module ActiveRecord
         @available.num_waiting
       end
 
-      # Return connection pool's usage statistic
-      # Example:
+      # Returns the connection pool's usage statistic.
       #
       #    ActiveRecord::Base.connection_pool.stat # => { size: 15, connections: 1, busy: 1, dead: 0, idle: 0, waiting: 0, checkout_timeout: 5 }
       def stat
