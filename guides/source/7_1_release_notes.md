@@ -649,7 +649,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Deprecate `config.active_record.suppress_multiple_database_warning`.
 
-*   Deprecate using `ActiveSupport::Duration` as an interpolated bind parameter in a SQL
+*   Deprecate using `ActiveSupport::Duration` as an interpolated bind parameter in an SQL
     string template.
 
 *   Deprecate `all_connection_pools` and make `connection_pool_list` more explicit.
