@@ -34,12 +34,6 @@ module Rails
       private
         attr_reader :file_name
 
-        # FIXME: We are avoiding to use alias because a bug on thor that make
-        # this method public and add it to the task list.
-        def singular_name # :doc:
-          file_name
-        end
-
         def inside_template # :doc:
           @inside_template = true
           yield
@@ -72,11 +66,11 @@ module Rails
         end
 
         def human_name # :doc:
-          @human_name ||= singular_name.humanize
+          @human_name ||= file_name.humanize
         end
 
         def plural_name # :doc:
-          @plural_name ||= singular_name.pluralize
+          @plural_name ||= file_name.pluralize
         end
 
         def i18n_scope # :doc:
@@ -85,13 +79,13 @@ module Rails
 
         def table_name # :doc:
           @table_name ||= begin
-            base = pluralize_table_names? ? plural_name : singular_name
+            base = pluralize_table_names? ? plural_name : file_name
             (class_path + [base]).join("_")
           end
         end
 
         def uncountable? # :doc:
-          singular_name == plural_name
+          file_name == plural_name
         end
 
         def index_helper(type: nil) # :doc:

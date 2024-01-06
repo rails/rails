@@ -15,7 +15,6 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, "line_item",  :file_path
     assert_name g, "line_item",  :file_name
     assert_name g, "Line item",  :human_name
-    assert_name g, "line_item",  :singular_name
     assert_name g, "line_items", :plural_name
     assert_name g, "line_item",  :i18n_scope
     assert_name g, "line_items", :table_name
@@ -29,7 +28,6 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, "admin/foo",  :file_path
     assert_name g, "foo",        :file_name
     assert_name g, "Foo",        :human_name
-    assert_name g, "foo",        :singular_name
     assert_name g, "foos",       :plural_name
     assert_name g, "admin.foo",  :i18n_scope
     assert_name g, "admin_foos", :table_name
@@ -53,7 +51,6 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, "Admin::Foo", :class_name
     assert_name g, "admin/foo",  :file_path
     assert_name g, "foo",        :file_name
-    assert_name g, "foo",        :singular_name
     assert_name g, "Foo",        :human_name
     assert_name g, "foos",       :plural_name
     assert_name g, "admin.foo",  :i18n_scope
@@ -138,7 +135,6 @@ class NamedBaseTest < Rails::Generators::TestCase
 
   def test_scaffold_plural_names_with_model_name_option
     g = generator ["Admin::Foo"], model_name: "User"
-    assert_name g, "user",        :singular_name
     assert_name g, "User",        :name
     assert_name g, "user",        :file_path
     assert_name g, "User",        :class_name
