@@ -2,9 +2,9 @@
 
 module ActionView
   class TemplateRenderer < AbstractRenderer # :nodoc:
-    def render(context, options)
+    def render(context, options, &block)
       @details = extract_details(options)
-      template = determine_template(options)
+      template = determine_template(options, &block)
 
       prepend_formats(template.format)
 
@@ -13,7 +13,7 @@ module ActionView
 
     private
       # Determine the template to be rendered using the given options.
-      def determine_template(options)
+      def determine_template(options, &block)
         keys = options.has_key?(:locals) ? options[:locals].keys : []
 
         if options.key?(:body)
@@ -41,7 +41,7 @@ module ActionView
           end
           Template::Inline.new(options[:inline], "inline template", handler, locals: keys, format: format)
         elsif options.key?(:renderable)
-          Template::Renderable.new(options[:renderable])
+          Template::Renderable.new(options[:renderable], &block)
         elsif options.key?(:template)
           if options[:template].respond_to?(:render)
             options[:template]

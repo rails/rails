@@ -283,12 +283,19 @@ TIP: `send_file` is often a faster and better option if a layout isn't required.
 
 #### Rendering Objects
 
-Rails can render objects responding to `#render_in`. The format can be controlled by defining `#format` on the object.
+Rails can render objects that respond to `#render_in`. You can provide the object as the first positional argument or provide it as the `:renderable` option to `render`. The object must also define a `#format` method that returns a valid [Mime#[]](https://api.rubyonrails.org/classes/Mime.html#method-c-5B-5D) key:
+
 
 ```ruby
 class Greeting
-  def render_in(view_context)
-    view_context.render html: "Hello, World"
+  def render_in(view_context, **options, &block)
+    if block
+      view_context.render html: block.call
+    else
+      view_context.render inline: <<~ERB.strip, **options
+        <h1>Hello <%= local_assigns.fetch(:name, "World") %>!</h1>
+      ERB
+    end
   end
 
   def format
@@ -297,14 +304,22 @@ class Greeting
 end
 
 render Greeting.new
-# => "Hello World"
-```
+# => "<h1>Hello World!</h1>"
 
-This calls `render_in` on the provided object with the current view context. You can also provide the object by using the `:renderable` option to `render`:
-
-```ruby
 render renderable: Greeting.new
-# => "Hello World"
+# => "<h1>Hello World!</h1>"
+
+render Greeting.new, name: "Rails"
+# => "<h1>Hello Rails!</h1>"
+
+render renderable: Greeting.new, locals: { name: "Rails" }
+# => "<h1>Hello Rails!</h1>"
+
+render(Greeting.new) { "Hello Block!" }
+# => "Hello Block!"
+
+render(renderable: Greeting.new) { "Hello Block!" }
+# => "Hello Block!"
 ```
 
 #### Options for `render`

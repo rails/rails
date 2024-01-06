@@ -116,14 +116,14 @@ module ActionView
       @_view_renderer ||= ActionView::Renderer.new(lookup_context)
     end
 
-    def render_to_body(options = {})
+    def render_to_body(options = {}, &block)
       _process_options(options)
-      _render_template(options)
+      _render_template(options, &block)
     end
 
     private
       # Find and render a template based on the options given.
-      def _render_template(options)
+      def _render_template(options, &block)
         variant = options.delete(:variant)
         assigns = options.delete(:assigns)
         context = view_context
@@ -132,7 +132,7 @@ module ActionView
         lookup_context.variants = variant if variant
 
         rendered_template = context.in_rendering_context(options) do |renderer|
-          renderer.render_to_object(context, options)
+          renderer.render_to_object(context, options, &block)
         end
 
         rendered_format = rendered_template.format || lookup_context.formats.first
@@ -164,6 +164,7 @@ module ActionView
             options = action
           elsif action.respond_to?(:render_in)
             options[:renderable] = action
+            options[:locals] = options
           else
             options[:partial] = action
           end
