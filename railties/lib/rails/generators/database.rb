@@ -61,8 +61,9 @@ module Rails
 
       def build_package_for_database(database = options[:database])
         case database
-        when "mysql" then "default-libmysqlclient-dev"
+        when "mysql"      then "default-libmysqlclient-dev"
         when "postgresql" then "libpq-dev"
+        when "sqlserver"  then "freetds-dev"
         else nil
         end
       end

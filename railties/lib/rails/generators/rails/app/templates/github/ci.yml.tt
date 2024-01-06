@@ -88,6 +88,14 @@ jobs:
         ports:
           - 5432:5432
         options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
+      <%- elsif options[:database] == "sqlserver" -%>
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          MSSQL_SA_PASSWORD: SecurePass1!
+        ports:
+          - 1433:1433
       <%- end -%>
 
       # redis:
@@ -117,6 +125,8 @@ jobs:
           DATABASE_URL: mysql2://127.0.0.1:3306
           <%- elsif options[:database] == "postgresql" -%>
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
+          <%- elsif options[:database] == "sqlserver" -%>
+          DATABASE_URL: "sqlserver://sa:SecurePass1!@localhost:1433"
           <%- end -%>
           # REDIS_URL: redis://localhost:6379/0
         run: bin/rails db:setup test test:system
