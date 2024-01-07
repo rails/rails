@@ -1,5 +1,8 @@
 #!/bin/bash -e
 
+# Remove PID in case of restart after container crash
+rm -f /rails/tmp/pids/server.pid
+
 <% unless skip_active_record? -%>
 # If running the rails server then create or migrate existing database
 if [ "${1}" == "./bin/rails" ] && [ "${2}" == "server" ]; then
