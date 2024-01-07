@@ -3,32 +3,20 @@
 module ActiveSupport
   # = Backtrace Cleaner
   #
-  # Backtraces often include many lines that are not relevant for the context
-  # under review. This makes it hard to find the signal amongst the backtrace
-  # noise, and adds debugging time. With a BacktraceCleaner, filters and
-  # silencers are used to remove the noisy lines, so that only the most relevant
-  # lines remain.
+  # BacktraceCleaner holds filters and silencers which will inspect and mutate line-by-line the application's backtrace.
   #
-  # Filters are used to modify lines of data, while silencers are used to remove
-  # lines entirely. The typical filter use case is to remove lengthy path
-  # information from the start of each line, and view file paths relevant to the
-  # app directory instead of the file system root. The typical silencer use case
-  # is to exclude the output of a noisy library from the backtrace, so that you
-  # can focus on the rest.
+  # \Rails applications are configured by default to silence the backtraces of gems and standard libraries.
+  # To obtain the verbose, unsuppressed backtrace, set the environment variable <tt>BACKTRACE=1</tt>.
+  #
+  #   BACKTRACE=1 ./bin/rails server
+  #
+  # In case more control is needed, use #add_filter, #add_silencer, and #clean to satisfy the requirements.
   #
   #   bc = ActiveSupport::BacktraceCleaner.new
   #   root = "#{Rails.root}/"
   #   bc.add_filter   { |line| line.start_with?(root) ? line.from(root.size) : line } # strip the Rails.root prefix
   #   bc.add_silencer { |line| /puma|rubygems/.match?(line) } # skip any lines from puma or rubygems
   #   bc.clean(exception.backtrace) # perform the cleanup
-  #
-  # To reconfigure an existing BacktraceCleaner (like the default one in \Rails)
-  # and show as much data as possible, you can always call
-  # BacktraceCleaner#remove_silencers!, which will restore the
-  # backtrace to a pristine state. If you need to reconfigure an existing
-  # BacktraceCleaner so that it does not filter or modify the paths of any lines
-  # of the backtrace, you can call BacktraceCleaner#remove_filters!
-  # These two methods will give you a completely untouched backtrace.
   #
   # Inspired by the Quiet Backtrace gem by thoughtbot.
   class BacktraceCleaner
