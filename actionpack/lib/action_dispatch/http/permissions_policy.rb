@@ -85,7 +85,7 @@ module ActionDispatch # :nodoc:
     }.freeze
 
     # List of available permissions can be found at
-    # https://github.com/w3c/webappsec-permissions-policy/blob/master/features.md#policy-controlled-features
+    # https://github.com/w3c/webappsec-permissions-policy/blob/main/features.md#policy-controlled-features
     DIRECTIVES = {
       accelerometer:        "accelerometer",
       ambient_light_sensor: "ambient-light-sensor",
