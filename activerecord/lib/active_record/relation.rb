@@ -300,8 +300,8 @@ module ActiveRecord
     # Note that this method actually runs the queries, since the results of some
     # are needed by the next ones when eager loading is going on.
     #
-    # To run EXPLAIN on queries created by `first`, `pluck` and `count`, call
-    # these methods on `explain`:
+    # To run EXPLAIN on queries created by +first+, +pluck+ and +count+, call
+    # these methods on +explain+:
     #
     #   User.all.explain.count
     #   # EXPLAIN SELECT COUNT(*) FROM `users`
