@@ -207,6 +207,40 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal expected, accounts.merge!(accounts).minimum(:credit_limit)
   end
 
+  def test_regroup_by_multiple_same_field
+    accounts = Account.regroup(:firm_id)
+
+    expected = {
+      nil => 50,
+      1 => 50,
+      2 => 60,
+      6 => 105,
+      9 => 53
+    }
+    assert_equal expected, accounts.sum(:credit_limit)
+    assert_equal expected, accounts.merge!(accounts).uniq!(:regroup).sum(:credit_limit)
+
+    expected = {
+      nil => 50,
+      1 => 50,
+      2 => 60,
+      6 => 55,
+      9 => 53
+    }
+
+    assert_equal expected, accounts.merge!(accounts).maximum(:credit_limit)
+
+    expected = {
+      nil => 50,
+      1 => 50,
+      2 => 60,
+      6 => 50,
+      9 => 53
+    }
+
+    assert_equal expected, accounts.merge!(accounts).minimum(:credit_limit)
+  end
+
   def test_should_generate_valid_sql_with_joins_and_group
     assert_nothing_raised do
       AuditLog.joins(:developer).group(:id).count

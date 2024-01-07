@@ -515,7 +515,21 @@ module ActiveRecord
     end
 
     def group!(*args) # :nodoc:
-      self.group_values += args
+      raw_group!(*args)
+      preprocess_group_args(args)
+      self.group_values |= args
+      self
+    end
+
+    def only_group!(*args) # :nodoc
+      preprocess_group_args(args)
+      self.group_values |= args
+      self
+    end
+
+    def raw_group!(*args) # :nodoc:
+      self.raw_group_values ||= FROZEN_EMPTY_ARRAY
+      self.raw_group_values += args
       self
     end
 
@@ -528,7 +542,8 @@ module ActiveRecord
     #   # SELECT `posts`.`*` FROM `posts` GROUP BY `posts`.`title`
     #
     # This is short-hand for <tt>unscope(:group).group(fields)</tt>.
-    # Note that we're unscoping the entire group statement.
+    # Note that we're unscoping the entire group statement, except when used inside a merge relation,
+    # in which case it will unscope the merged relation only.
     def regroup(*args)
       check_if_method_has_arguments!(__callee__, args)
       spawn.regroup!(*args)
@@ -536,6 +551,8 @@ module ActiveRecord
 
     # Same as #regroup but operates on relation in-place instead of copying.
     def regroup!(*args) # :nodoc:
+      self.raw_group_values = args
+      preprocess_group_args(args)
       self.group_values = args
       self
     end
@@ -1587,8 +1604,7 @@ module ActiveRecord
         arel.having(having_clause.ast) unless having_clause.empty?
         arel.take(build_cast_value("LIMIT", connection.sanitize_limit(limit_value))) if limit_value
         arel.skip(build_cast_value("OFFSET", offset_value.to_i)) if offset_value
-        arel.group(*arel_columns(group_values.uniq)) unless group_values.empty?
-
+        build_group(arel)
         build_order(arel)
         build_with(arel)
         build_select(arel)
@@ -1859,6 +1875,11 @@ module ActiveRecord
         arel.order(*orders) unless orders.empty?
       end
 
+      def build_group(arel)
+        groups = group_values.compact_blank
+        arel.group(*groups) unless groups.empty?
+      end
+
       VALID_DIRECTIONS = [:asc, :desc, :ASC, :DESC,
                           "asc", "desc", "ASC", "DESC"].to_set # :nodoc:
 
@@ -2047,6 +2068,23 @@ module ActiveRecord
           end
           v1 == v2
         end
+      end
+
+      def preprocess_group_args(group_args)
+        group_args.map! do |arg|
+          case arg
+          when Symbol
+            arel_column(arg.to_s) do |attr_name|
+              connection.quote_table_name(attr_name)
+            end
+          when String
+            arel_column(arg, &:itself)
+          when Proc
+            field.call
+          else
+            arg
+          end
+        end.flatten!
       end
   end
 end

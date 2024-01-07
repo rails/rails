@@ -1,3 +1,19 @@
+*   Make `group`/`regroup` inside `merge` be applied to the merged relation instead of the outermost relation.
+
+    ```ruby
+    Product.joins(:items).group(:id).merge(Item.group(:id))
+    # SELECT "products".* FROM "products"
+    # INNER JOIN "items" ON "items"."product_id" = "products"."id"
+    # GROUP BY "products"."id", "items"."id"
+
+    Product.joins(:items).group(:id).merge(Item.group(:title).regroup(:id))
+    # SELECT "products".* FROM "products"
+    # INNER JOIN "items" ON "items"."product_id" = "products"."id"
+    # GROUP BY "products"."id", "items"."id"
+    ```
+
+    *João Marcos S B de Moraes*
+
 *   Fix single quote escapes on default generated MySQL columns
 
     MySQL 5.7.5+ supports generated columns, which can be used to create a column that is computed from an expression.

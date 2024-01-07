@@ -54,7 +54,8 @@ module ActiveRecord
       NORMAL_VALUES = Relation::VALUE_METHODS - Relation::CLAUSE_METHODS -
                       [
                         :select, :includes, :preload, :joins, :left_outer_joins,
-                        :order, :reverse_order, :lock, :create_with, :reordering
+                        :order, :reverse_order, :lock, :create_with, :reordering,
+                        :group, :raw_group
                       ]
 
       def merge
@@ -161,6 +162,11 @@ module ActiveRecord
           elsif other.order_values.any?
             # merge in order_values from relation
             relation.order!(*other.order_values)
+          end
+
+          if other.group_values.any?
+            relation.only_group!(*other.group_values)
+            relation.raw_group!(*other.raw_group_values) if other.raw_group_values.any?
           end
 
           extensions = other.extensions - relation.extensions

@@ -2446,7 +2446,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_empty authors
   end
 
-  (ActiveRecord::Relation::MULTI_VALUE_METHODS - [:extending, :with]).each do |method|
+  (ActiveRecord::Relation::MULTI_VALUE_METHODS - [:extending, :with, :raw_group]).each do |method|
     test "#{method} with blank value" do
       authors = Author.public_send(method, [""])
       assert_empty authors.public_send(:"#{method}_values")

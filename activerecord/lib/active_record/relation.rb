@@ -54,7 +54,7 @@ module ActiveRecord
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
                             :order, :joins, :left_outer_joins, :references,
                             :extending, :unscope, :optimizer_hints, :annotate,
-                            :with]
+                            :with, :raw_group]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering, :strict_loading,
                             :reverse_order, :distinct, :create_with, :skip_query_cache]
@@ -589,9 +589,8 @@ module ActiveRecord
       arel = eager_loading? ? apply_join_dependency.arel : build_arel
       arel.source.left = table
 
-      group_values_arel_columns = arel_columns(group_values.uniq)
       having_clause_ast = having_clause.ast unless having_clause.empty?
-      stmt = arel.compile_update(values, table[primary_key], having_clause_ast, group_values_arel_columns)
+      stmt = arel.compile_update(values, table[primary_key], having_clause_ast, group_values)
       klass.connection.update(stmt, "#{klass} Update All").tap { reset }
     end
 
@@ -722,9 +721,8 @@ module ActiveRecord
       arel = eager_loading? ? apply_join_dependency.arel : build_arel
       arel.source.left = table
 
-      group_values_arel_columns = arel_columns(group_values.uniq)
       having_clause_ast = having_clause.ast unless having_clause.empty?
-      stmt = arel.compile_delete(table[primary_key], having_clause_ast, group_values_arel_columns)
+      stmt = arel.compile_delete(table[primary_key], having_clause_ast, group_values)
 
       klass.connection.delete(stmt, "#{klass} Delete All").tap { reset }
     end

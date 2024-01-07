@@ -420,7 +420,7 @@ class RelationMergingTest < ActiveRecord::TestCase
 end
 
 class MergingDifferentRelationsTest < ActiveRecord::TestCase
-  fixtures :posts, :authors, :author_addresses, :developers
+  fixtures :posts, :authors, :author_addresses, :developers, :comments
 
   test "merging where relations" do
     hello_by_bob = Post.where(body: "hello").joins(:author).
@@ -462,6 +462,20 @@ class MergingDifferentRelationsTest < ActiveRecord::TestCase
     comment_2.ratings.create!
 
     assert_equal dev.ratings, [rating_1]
+  end
+
+  test "merging group relations" do
+    posts = Post.joins(:comments).group(:id, :type).merge(Comment.group(:body)).order(:id, :type, "comments.body").
+      limit(2).pluck(:id, :type, "comments.body")
+
+    assert_equal [[1, "Post", "Thank you again for the welcome"], [1, "Post", "Thank you for the welcome"]], posts
+  end
+
+  test "merging regroup relations" do
+    posts = Post.joins(:comments).group(:type).merge(Comment.group(:id).regroup(:body)).group(:id).order(:id, "comments.body").
+      limit(2).pluck(:id, :type, "comments.body")
+
+    assert_equal [[1, "Post", "Thank you again for the welcome"], [1, "Post", "Thank you for the welcome"]], posts
   end
 
   if ActiveRecord::Base.connection.supports_common_table_expressions?
