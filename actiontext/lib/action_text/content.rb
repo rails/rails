@@ -24,6 +24,7 @@ module ActionText
 
     attr_reader :fragment
 
+    delegate :deconstruct, to: :fragment
     delegate :blank?, :empty?, :html_safe, :present?, to: :to_html # Delegating to to_html to avoid including the layout
 
     class << self

@@ -66,7 +66,7 @@ Spring is running:
 ```
 
 Have a look at the
-[Spring README](https://github.com/rails/spring/blob/master/README.md) to
+[Spring README](https://github.com/rails/spring/blob/main/README.md) to
 see all available features.
 
 See the [Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#spring)

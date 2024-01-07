@@ -247,7 +247,7 @@ module ActiveRecord
 
         def warn_quote_duration_deprecated
           ActiveRecord.deprecator.warn(<<~MSG)
-            Using ActiveSupport::Duration as an interpolated bind parameter in a SQL
+            Using ActiveSupport::Duration as an interpolated bind parameter in an SQL
             string template is deprecated. To avoid this warning, you should explicitly
             convert the duration to a more specific database type. For example, if you
             want to use a duration as an integer number of seconds:

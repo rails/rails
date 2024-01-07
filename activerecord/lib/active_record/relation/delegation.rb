@@ -79,10 +79,9 @@ module ActiveRecord
               end
             RUBY
           else
-            define_method(method) do |*args, &block|
-              scoping { klass.public_send(method, *args, &block) }
+            define_method(method) do |*args, **kwargs, &block|
+              scoping { klass.public_send(method, *args, **kwargs, &block) }
             end
-            ruby2_keywords(method)
           end
         end
       end
@@ -113,17 +112,16 @@ module ActiveRecord
       end
 
       private
-        def method_missing(method, *args, &block)
+        def method_missing(method, ...)
           if @klass.respond_to?(method)
             unless Delegation.uncacheable_methods.include?(method)
               @klass.generate_relation_method(method)
             end
-            scoping { @klass.public_send(method, *args, &block) }
+            scoping { @klass.public_send(method, ...) }
           else
             super
           end
         end
-        ruby2_keywords(:method_missing)
     end
 
     module ClassMethods # :nodoc:

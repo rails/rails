@@ -9,7 +9,7 @@ module ActionController
 
     class UnsafeRedirectError < StandardError; end
 
-    ILLEGAL_HEADER_VALUE_REGEX = /[\x00-\x08\x0A-\x1F]/.freeze
+    ILLEGAL_HEADER_VALUE_REGEX = /[\x00-\x08\x0A-\x1F]/
 
     included do
       mattr_accessor :raise_on_open_redirects, default: false

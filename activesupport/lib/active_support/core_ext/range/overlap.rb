@@ -4,7 +4,7 @@ class Range
   # Compare two ranges and see if they overlap each other
   #  (1..5).overlap?(4..6) # => true
   #  (1..5).overlap?(7..9) # => false
-  unless Range.method_defined?(:overlap?)
+  unless Range.method_defined?(:overlap?) # Ruby 3.3+
     def overlap?(other)
       raise TypeError unless other.is_a? Range
 

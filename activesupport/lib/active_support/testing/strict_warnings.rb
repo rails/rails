@@ -21,7 +21,7 @@ module ActiveSupport
       %r{/lib/mail/parsers/.*assigned but unused variable - testEof}
     )
 
-    def warn(message, *)
+    def warn(message, ...)
       return if SUPPRESSED_WARNINGS.match?(message)
 
       super
@@ -32,7 +32,6 @@ module ActiveSupport
 
       raise message
     end
-    ruby2_keywords :warn if respond_to?(:ruby2_keywords, true)
   end
 end
 

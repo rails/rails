@@ -257,7 +257,7 @@ class PostgreSQLGeometricLineTest < ActiveRecord::PostgreSQLTestCase
   end
 
   teardown do
-    if defined?(@connection)
+    if @connection
       @connection.drop_table "postgresql_lines", if_exists: true
     end
   end

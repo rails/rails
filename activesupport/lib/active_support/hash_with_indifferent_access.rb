@@ -392,14 +392,8 @@ module ActiveSupport
     end
 
     private
-      if Symbol.method_defined?(:name)
-        def convert_key(key)
-          key.kind_of?(Symbol) ? key.name : key
-        end
-      else
-        def convert_key(key)
-          key.kind_of?(Symbol) ? key.to_s : key
-        end
+      def convert_key(key)
+        key.kind_of?(Symbol) ? key.name : key
       end
 
       def convert_value(value, conversion: nil)

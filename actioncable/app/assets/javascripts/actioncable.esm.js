@@ -1,6 +1,6 @@
 var adapters = {
-  logger: self.console,
-  WebSocket: self.WebSocket
+  logger: typeof console !== "undefined" ? console : undefined,
+  WebSocket: typeof WebSocket !== "undefined" ? WebSocket : undefined
 };
 
 var logger = {

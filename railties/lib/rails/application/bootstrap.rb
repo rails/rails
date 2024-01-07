@@ -55,7 +55,11 @@ module Rails
           logger
         end
 
-        unless Rails.logger.is_a?(ActiveSupport::BroadcastLogger)
+        if Rails.logger.is_a?(ActiveSupport::BroadcastLogger)
+          if config.broadcast_log_level
+            Rails.logger.level = ActiveSupport::Logger.const_get(config.broadcast_log_level.to_s.upcase)
+          end
+        else
           Rails.logger.level = ActiveSupport::Logger.const_get(config.log_level.to_s.upcase)
           broadcast_logger = ActiveSupport::BroadcastLogger.new(Rails.logger)
           broadcast_logger.formatter = Rails.logger.formatter
@@ -69,6 +73,10 @@ module Rails
         else
           Rails.error.logger = Rails.logger
         end
+      end
+
+      initializer :configure_backtrace_cleaner, group: :all do
+        Rails.backtrace_cleaner.remove_silencers! if ENV["BACKTRACE"]
       end
 
       # Initialize cache early in the stack so railties can make use of it.

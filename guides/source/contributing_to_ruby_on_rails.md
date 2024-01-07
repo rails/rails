@@ -160,7 +160,7 @@ To generate the guides in HTML format, you will need to install the guides depen
 
 ```bash
 # only install gems necessary for the guides. To undo run: bundle config --delete without
-$ bundle install --without job cable storage ujs test db
+$ bundle install --without job cable storage test db
 $ cd guides/
 $ bundle exec rake guides:generate:html GUIDES_LANGUAGE=it-IT
 ```
@@ -288,8 +288,6 @@ Inspecting 1 file
 
 1 file inspected, no offenses detected
 ```
-
-For `rails-ujs` CoffeeScript and JavaScript files, you can run `npm run lint` in `actionview` folder.
 
 #### Spell Checking
 

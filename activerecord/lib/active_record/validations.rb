@@ -74,6 +74,10 @@ module ActiveRecord
 
     alias_method :validate, :valid?
 
+    def custom_validation_context? # :nodoc:
+      validation_context && [:create, :update].exclude?(validation_context)
+    end
+
   private
     def default_validation_context
       new_record? ? :create : :update

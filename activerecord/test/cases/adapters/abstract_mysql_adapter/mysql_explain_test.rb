@@ -8,13 +8,13 @@ class MySQLExplainTest < ActiveRecord::AbstractMysqlTestCase
   fixtures :authors, :author_addresses
 
   def test_explain_for_one_query
-    explain = Author.where(id: 1).explain
+    explain = Author.where(id: 1).explain.inspect
     assert_match %(EXPLAIN SELECT `authors`.* FROM `authors` WHERE `authors`.`id` = 1), explain
     assert_match %r(authors |.* const), explain
   end
 
   def test_explain_with_eager_loading
-    explain = Author.where(id: 1).includes(:posts).explain
+    explain = Author.where(id: 1).includes(:posts).explain.inspect
     assert_match %(EXPLAIN SELECT `authors`.* FROM `authors` WHERE `authors`.`id` = 1), explain
     assert_match %r(authors |.* const), explain
     assert_match %(EXPLAIN SELECT `posts`.* FROM `posts` WHERE `posts`.`author_id` = 1), explain
@@ -22,17 +22,17 @@ class MySQLExplainTest < ActiveRecord::AbstractMysqlTestCase
   end
 
   def test_explain_with_options_as_symbol
-    explain = Author.where(id: 1).explain(explain_option)
+    explain = Author.where(id: 1).explain(explain_option).inspect
     assert_match %(#{expected_analyze_clause} SELECT `authors`.* FROM `authors` WHERE `authors`.`id` = 1), explain
   end
 
   def test_explain_with_options_as_strings
-    explain = Author.where(id: 1).explain(explain_option.to_s.upcase)
+    explain = Author.where(id: 1).explain(explain_option.to_s.upcase).inspect
     assert_match %(#{expected_analyze_clause} SELECT `authors`.* FROM `authors` WHERE `authors`.`id` = 1), explain
   end
 
   def test_explain_options_with_eager_loading
-    explain = Author.where(id: 1).includes(:posts).explain(explain_option)
+    explain = Author.where(id: 1).includes(:posts).explain(explain_option).inspect
     assert_match %(#{expected_analyze_clause} SELECT `authors`.* FROM `authors` WHERE `authors`.`id` = 1), explain
     assert_match %(#{expected_analyze_clause} SELECT `posts`.* FROM `posts` WHERE `posts`.`author_id` = 1), explain
   end

@@ -27,18 +27,6 @@ module ActiveSupport
   #
   #   MyLib.eager_load!
   module Autoload
-    def self.extended(base) # :nodoc:
-      if RUBY_VERSION < "3"
-        base.class_eval do
-          @_autoloads = nil
-          @_under_path = nil
-          @_at_path = nil
-          @_eager_autoload = false
-          @_eagerloaded_constants = nil
-        end
-      end
-    end
-
     def autoload(const_name, path = @_at_path)
       unless path
         full = [name, @_under_path, const_name.to_s].compact.join("::")

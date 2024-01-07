@@ -452,14 +452,8 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal(["A", "bbb"], hash.keys) # asserting that order of keys is unchanged
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
 
-    if RUBY_VERSION < "3"
-      assert_raise ArgumentError do
-        hash.transform_keys(nil)
-      end
-    else
-      assert_raise TypeError do
-        hash.transform_keys(nil)
-      end
+    assert_raise TypeError do
+      hash.transform_keys(nil)
     end
   end
 
@@ -512,14 +506,8 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal(["A", "bbb"], hash.keys) # asserting that order of keys is unchanged
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
 
-    if RUBY_VERSION < "3"
-      assert_raise ArgumentError do
-        hash.transform_keys(nil)
-      end
-    else
-      assert_raise TypeError do
-        hash.transform_keys(nil)
-      end
+    assert_raise TypeError do
+      hash.transform_keys(nil)
     end
   end
 

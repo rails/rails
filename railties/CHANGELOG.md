@@ -1,3 +1,30 @@
+*   Set `config.action_view.annotate_rendered_view_with_filenames` to `true` in the
+    development environment.
+
+    *Adrian Marin*
+
+*   Support `BACKTRACE` ENV variable to turn off backtrace cleaning.
+
+    Useful for debugging framework code:
+
+    ```sh
+    BACKTRACE=1 ./bin/rails server
+    ```
+
+    *Alex Ghiculescu*
+
+*   Raise `ArgumentError` when reading `config.x.something` with arguments
+
+    ```ruby
+    config.x.this_works.this_raises true # raises ArgumentError
+    ```
+
+    *Sean Doyle*
+
+*   Add default PWA files for manifest and service-worker that are served from `app/views/pwa` and can be dynamically rendered through erb. Mount these files explicitly at the root with default routes in the generated routes file.
+
+    *DHH*
+
 *   Updated system tests to now use headless Chrome by default for the new applications.
 
     *DHH*

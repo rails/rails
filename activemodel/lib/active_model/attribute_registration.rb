@@ -40,11 +40,6 @@ module ActiveModel
         end
       end
 
-      # Returns the type of the specified attribute after applying any
-      # modifiers. This method is the only valid source of information for
-      # anything related to the types of a model's attributes. The return value
-      # of this method will implement the interface described by
-      # ActiveModel::Type::Value (though the object itself may not subclass it).
       def type_for_attribute(attribute_name, &block)
         attribute_name = resolve_attribute_name(attribute_name)
 

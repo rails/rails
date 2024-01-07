@@ -210,7 +210,7 @@ module ActiveSupport
             Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID, :float_millisecond)
           end
         rescue
-          def now_cpu # rubocop:disable Lint/DuplicateMethods
+          def now_cpu
             0.0
           end
         end

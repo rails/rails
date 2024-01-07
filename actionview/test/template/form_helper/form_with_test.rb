@@ -339,6 +339,14 @@ class FormWithActsLikeFormForTest < FormWithTest
     super
   end
 
+  def test_form_with_when_given_nil_model_argument
+    error = assert_raises(ArgumentError) do
+      form_with(model: nil) do
+      end
+    end
+    assert_equal "The :model argument cannot be nil", error.message
+  end
+
   def test_form_with
     form_with(model: @post, id: "create-post") do |f|
       concat f.label(:title) { "The Title" }

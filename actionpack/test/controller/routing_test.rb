@@ -1694,7 +1694,7 @@ class RouteSetTest < ActiveSupport::TestCase
     set.draw do
       get "page/:name" => "pages#show", :constraints => lambda { |request|
         name_param = request.params[:name]
-        return true
+        true
       }
     end
     assert_equal({ controller: "pages", action: "show", name: "mypage" },

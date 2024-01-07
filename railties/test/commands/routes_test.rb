@@ -242,7 +242,6 @@ rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:i
       run_routes_command([ "--expanded" ])
     end
 
-    # rubocop:disable Layout/TrailingWhitespace
     assert_equal <<~MESSAGE, output
       --[ Route 1 ]--------------
       Prefix            | cart
@@ -365,7 +364,6 @@ rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:i
       URI               | /rails/active_storage/direct_uploads(.:format)
       Controller#Action | active_storage/direct_uploads#create
     MESSAGE
-    # rubocop:enable Layout/TrailingWhitespace
   end
 
   test "rails routes with unused option" do

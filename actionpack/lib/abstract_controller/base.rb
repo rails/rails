@@ -148,7 +148,7 @@ module AbstractController
     #
     # ==== Returns
     # * <tt>self</tt>
-    def process(action, *args)
+    def process(action, ...)
       @_action_name = action.to_s
 
       unless action_name = _find_action_name(@_action_name)
@@ -157,9 +157,8 @@ module AbstractController
 
       @_response_body = nil
 
-      process_action(action_name, *args)
+      process_action(action_name, ...)
     end
-    ruby2_keywords(:process)
 
     # Delegates to the class's ::controller_path.
     def controller_path

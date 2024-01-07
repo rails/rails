@@ -99,17 +99,10 @@ module ActiveRecord
           end
         end
 
-        if RUBY_VERSION >= "2.8"
-          assert_equal [
-            [:rename_column, [:fruits, :cultivar, :kind]],
-            [:remove_column, [:fruits, :name, :string], nil],
-          ], @recorder.commands
-        else
-          assert_equal [
-            [:rename_column, [:fruits, :cultivar, :kind]],
-            [:remove_column, [:fruits, :name, :string, {}], nil],
-          ], @recorder.commands
-        end
+        assert_equal [
+          [:rename_column, [:fruits, :cultivar, :kind]],
+          [:remove_column, [:fruits, :name, :string], nil],
+        ], @recorder.commands
 
         assert_raises(ActiveRecord::IrreversibleMigration) do
           @recorder.revert do

@@ -44,6 +44,10 @@ module ActiveRecord
         end
       end
 
+      def encrypted?(value)
+        with_context { encryptor.encrypted? value }
+      end
+
       def changed_in_place?(raw_old_value, new_value)
         old_value = raw_old_value.nil? ? nil : deserialize(raw_old_value)
         old_value != new_value

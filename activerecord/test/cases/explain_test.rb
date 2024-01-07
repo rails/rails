@@ -16,7 +16,7 @@ if ActiveRecord::Base.connection.supports_explain?
     end
 
     def test_relation_explain
-      message = Car.where(name: "honda").explain
+      message = Car.where(name: "honda").explain.inspect
       assert_match(/^EXPLAIN/, message)
     end
 
@@ -33,6 +33,96 @@ if ActiveRecord::Base.connection.supports_explain?
       else
         assert_match "honda", sql
       end
+    end
+
+    def test_relation_explain_with_average
+      expected_query = capture_sql {
+        Car.average(:id)
+      }.first
+      message = Car.all.explain.average(:id)
+      assert_match(/^EXPLAIN/, message)
+      assert_match(expected_query, message)
+    end
+
+    def test_relation_explain_with_count
+      expected_query = capture_sql {
+        Car.count
+      }.first
+      message = Car.all.explain.count
+      assert_match(/^EXPLAIN/, message)
+      assert_match(expected_query, message)
+    end
+
+    def test_relation_explain_with_count_and_argument
+      expected_query = capture_sql {
+        Car.count(:id)
+      }.first
+      message = Car.all.explain.count(:id)
+      assert_match(/^EXPLAIN/, message)
+      assert_match(expected_query, message)
+    end
+
+    def test_relation_explain_with_minimum
+      expected_query = capture_sql {
+        Car.minimum(:id)
+      }.first
+      message = Car.all.explain.minimum(:id)
+      assert_match(/^EXPLAIN/, message)
+      assert_match(expected_query, message)
+    end
+
+    def test_relation_explain_with_maximum
+      expected_query = capture_sql {
+        Car.maximum(:id)
+      }.first
+      message = Car.all.explain.maximum(:id)
+      assert_match(/^EXPLAIN/, message)
+      assert_match(expected_query, message)
+    end
+
+    def test_relation_explain_with_sum
+      expected_query = capture_sql {
+        Car.sum(:id)
+      }.first
+      message = Car.all.explain.sum(:id)
+      assert_match(/^EXPLAIN/, message)
+      assert_match(expected_query, message)
+    end
+
+    def test_relation_explain_with_first
+      expected_query = capture_sql {
+        Car.all.first
+      }.first
+      message = Car.all.explain.first
+      assert_match(/^EXPLAIN/, message)
+      assert_match(expected_query, message)
+    end
+
+    def test_relation_explain_with_last
+      expected_query = capture_sql {
+        Car.all.last
+      }.first
+      message = Car.all.explain.last
+      assert_match(/^EXPLAIN/, message)
+      assert_match(expected_query, message)
+    end
+
+    def test_relation_explain_with_pluck
+      expected_query = capture_sql {
+        Car.all.pluck
+      }.first
+      message = Car.all.explain.pluck
+      assert_match(/^EXPLAIN/, message)
+      assert_match(expected_query, message)
+    end
+
+    def test_relation_explain_with_pluck_with_args
+      expected_query = capture_sql {
+        Car.all.pluck(:id, :name)
+      }.first
+      message = Car.all.explain.pluck(:id, :name)
+      assert_match(/^EXPLAIN/, message)
+      assert_match(expected_query, message)
     end
 
     def test_exec_explain_with_no_binds

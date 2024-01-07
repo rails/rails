@@ -23,7 +23,7 @@ module ActiveSupport
       logdevs = loggers.map { |logger| logger.instance_variable_get(:@logdev) }
       logger_sources = logdevs.filter_map { |logdev| logdev.dev if logdev.respond_to?(:dev) }
 
-      (sources & logger_sources).any?
+      sources.intersect?(logger_sources)
     end
 
     def initialize(*args, **kwargs)

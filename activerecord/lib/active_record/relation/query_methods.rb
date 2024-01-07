@@ -1575,8 +1575,7 @@ module ActiveRecord
       end
 
       def assert_mutability!
-        raise ImmutableRelation if @loaded
-        raise ImmutableRelation if defined?(@arel) && @arel
+        raise ImmutableRelation if @loaded || @arel
       end
 
       def build_arel(aliases = nil)

@@ -165,7 +165,7 @@ module ActiveRecord
 
       # Returns whether this class is an abstract class or not.
       def abstract_class?
-        defined?(@abstract_class) && @abstract_class == true
+        @abstract_class == true
       end
 
       # Sets the application record class for Active Record

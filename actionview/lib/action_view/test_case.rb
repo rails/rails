@@ -171,10 +171,9 @@ module ActionView
           # Almost a duplicate from ActionController::Helpers
           methods.flatten.each do |method|
             _helpers_for_modification.module_eval <<~end_eval, __FILE__, __LINE__ + 1
-              def #{method}(*args, &block)                    # def current_user(*args, &block)
-                _test_case.send(:'#{method}', *args, &block)  #   _test_case.send(:'current_user', *args, &block)
-              end                                             # end
-              ruby2_keywords(:'#{method}')
+              def #{method}(...)                    # def current_user(*args, &block)
+                _test_case.send(:'#{method}', ...)  #   _test_case.send(:'current_user', *args, &block)
+              end                                   # end
             end_eval
           end
         end
@@ -198,11 +197,11 @@ module ActionView
       end
 
       included do
-        class_attribute :content_class, instance_accessor: false, default: Content
+        class_attribute :content_class, instance_accessor: false, default: RenderedViewContent
 
         setup :setup_with_controller
 
-        register_parser :html, -> rendered { Rails::Dom::Testing.html_document.parse(rendered).root }
+        register_parser :html, -> rendered { Rails::Dom::Testing.html_document_fragment.parse(rendered) }
         register_parser :json, -> rendered { JSON.parse(rendered, object_class: ActiveSupport::HashWithIndifferentAccess) }
 
         ActiveSupport.run_load_hooks(:action_view_test_case, self)
@@ -299,7 +298,7 @@ module ActionView
         @controller._routes if @controller.respond_to?(:_routes)
       end
 
-      class Content < SimpleDelegator
+      class RenderedViewContent < String # :nodoc:
       end
 
       # Need to experiment if this priority is the best one: rendered => output_buffer
@@ -416,7 +415,7 @@ module ActionView
         end]
       end
 
-      def method_missing(selector, *args)
+      def method_missing(selector, ...)
         begin
           routes = @controller.respond_to?(:_routes) && @controller._routes
         rescue
@@ -426,16 +425,15 @@ module ActionView
         if routes &&
            (routes.named_routes.route_defined?(selector) ||
              routes.mounted_helpers.method_defined?(selector))
-          @controller.__send__(selector, *args)
+          @controller.__send__(selector, ...)
         else
           super
         end
       end
-      ruby2_keywords(:method_missing)
 
       def respond_to_missing?(name, include_private = false)
         begin
-          routes = defined?(@controller) && @controller.respond_to?(:_routes) && @controller._routes
+          routes = @controller.respond_to?(:_routes) && @controller._routes
         rescue
           # Don't call routes, if there is an error on _routes call
         end

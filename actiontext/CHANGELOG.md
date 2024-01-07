@@ -1,3 +1,20 @@
+*   Delegate `ActionText::Content#deconstruct` to `Nokogiri::XML::DocumentFragment#elements`
+
+    ```ruby
+    content = ActionText::Content.new <<~HTML
+      <h1>Hello, world</h1>
+
+      <div>The body</div>
+    HTML
+
+    content => [h1, div]
+
+    assert_pattern { h1 => { content: "Hello, world" } }
+    assert_pattern { div => { content: "The body" } }
+    ```
+
+    *Sean Doyle*
+
 *   Fix all Action Text database related models to respect
     `ActiveRecord::Base.table_name_prefix` configuration.
 

@@ -3,11 +3,7 @@
 source "https://rubygems.org"
 gemspec
 
-if RUBY_VERSION < "3"
-  gem "minitest", ">= 5.15.0", "< 5.16"
-else
-  gem "minitest", ">= 5.15.0"
-end
+gem "minitest", ">= 5.15.0"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 13"
@@ -15,12 +11,7 @@ gem "rake", ">= 13"
 gem "sprockets-rails", ">= 2.0.0"
 gem "propshaft", ">= 0.1.7"
 gem "capybara", ">= 3.39"
-if RUBY_VERSION < "3"
-  gem "selenium-webdriver", "<= 4.9.0"
-  gem "webdrivers"
-else
-  gem "selenium-webdriver", ">= 4.11.0"
-end
+gem "selenium-webdriver", ">= 4.11.0"
 
 gem "rack-cache", "~> 1.2"
 gem "stimulus-rails"
@@ -62,7 +53,7 @@ group :rubocop do
 end
 
 group :mdl do
-  gem "mdl", require: false
+  gem "mdl", "!= 0.13.0", require: false
 end
 
 group :doc do
@@ -202,6 +193,6 @@ gem "wdm", ">= 0.1.0", platforms: [:windows]
 # The error_highlight gem only works on CRuby 3.1 or later.
 # Also, Rails depends on a new API available since error_highlight 0.4.0.
 # (Note that Ruby 3.1 bundles error_highlight 0.3.0.)
-if RUBY_VERSION >= "3.1" && RUBY_VERSION < "3.2"
+if RUBY_VERSION < "3.2"
   gem "error_highlight", ">= 0.4.0", platforms: [:ruby]
 end

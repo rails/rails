@@ -1,14 +1,13 @@
 name: CI
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
+  push:
     branches: [ main ]
 
 jobs:
 <%- unless skip_brakeman? -%>
-  scan:
+  scan_ruby:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,8 +20,26 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Scan for security vulnerabilities
+      - name: Scan for security vulnerabilities in Ruby dependencies
         run: bin/brakeman
+<% end -%>
+<%- if options[:javascript] == "importmap" -%>
+
+  scan_js:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Scan for security vulnerabilities in JavaScript dependencies
+        run: bin/importmap audit
 <% end -%>
 <%- unless skip_rubocop? -%>
 
@@ -39,7 +56,7 @@ jobs:
           bundler-cache: true
 
       - name: Lint code for consistent style
-        run: bin/rubocop
+        run: bin/rubocop -f github
 <% end -%>
 
   test:
@@ -105,8 +122,9 @@ jobs:
         run: bin/rails db:setup test test:system
 
       - name: Keep screenshots from failed system tests
-        uses: actions/upload-artifact@v3
-        if: always()
+        uses: actions/upload-artifact@v4
+        if: failure()
         with:
           name: screenshots
           path: ${{ github.workspace }}/tmp/screenshots
+          if-no-files-found: ignore

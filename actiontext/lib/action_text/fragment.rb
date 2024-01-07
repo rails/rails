@@ -21,6 +21,8 @@ module ActionText
 
     attr_reader :source
 
+    delegate :deconstruct, to: "source.elements"
+
     def initialize(source)
       @source = source
     end

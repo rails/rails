@@ -442,7 +442,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_application_name_is_normalized_in_config
     run_generator [File.join(destination_root, "MyWebSite"), "-d", "postgresql"]
-    assert_file "MyWebSite/app/views/layouts/application.html.erb", /<title>MyWebSite<\/title>/
+    assert_file "MyWebSite/app/views/layouts/application.html.erb", /<title><%= content_for(:title) || "MyWebSite" %><\/title>/
     assert_file "MyWebSite/config/database.yml", /my_web_site_production/
   end
 
@@ -1181,17 +1181,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/libvips/, content)
       assert_no_match(/yarn/, content)
       assert_no_match(/node-gyp/, content)
-    end
-  end
-
-  def test_old_rubies_do_not_use_bullseye_python
-    Gem.stub(:ruby_version, Gem::Version.new("2.7.0")) do
-      run_generator [destination_root, "--js=esbuild"]
-    end
-
-    assert_file "Dockerfile" do |content|
-      assert_match(/python/, content)
-      assert_no_match(/python-is-python3/, content)
     end
   end
 

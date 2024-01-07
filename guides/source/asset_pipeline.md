@@ -1023,7 +1023,7 @@ Making Your Library or Gem a Pre-Processor
 
 Sprockets uses Processors, Transformers, Compressors, and Exporters to extend
 Sprockets functionality. Have a look at
-[Extending Sprockets](https://github.com/rails/sprockets/blob/master/guides/extending_sprockets.md)
+[Extending Sprockets](https://github.com/rails/sprockets/blob/main/guides/extending_sprockets.md)
 to learn more. Here we registered a preprocessor to add a comment to the end
 of text/css (`.css`) files.
 

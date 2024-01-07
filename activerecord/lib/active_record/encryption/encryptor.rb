@@ -100,7 +100,6 @@ module ActiveRecord
         end
 
         def deserialize_message(message)
-          raise Errors::Encoding unless message.is_a?(String)
           serializer.load message
         rescue ArgumentError, TypeError, Errors::ForbiddenClass
           raise Errors::Encoding

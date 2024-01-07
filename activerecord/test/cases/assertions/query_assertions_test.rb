@@ -90,27 +90,25 @@ module ActiveRecord
       if current_adapter?(:PostgreSQLAdapter)
         def test_assert_queries_count_include_schema
           Post.columns # load columns
-          assert_raises(Minitest::Assertion, match: "0 instead of 1 queries were executed") do
-            assert_queries_count(1, include_schema: true) { Post.columns }
+          assert_raises(Minitest::Assertion, match: "1 or more queries expected") do
+            assert_queries_count(include_schema: true) { Post.columns }
           end
 
           Post.reset_column_information
-          assert_queries_count(1, include_schema: true) { Post.columns }
+          assert_queries_count(include_schema: true) { Post.columns }
         end
 
         def test_assert_no_queries_include_schema
           assert_no_queries { Post.none }
 
-          error = assert_raises(Minitest::Assertion) {
+          assert_raises(Minitest::Assertion, match: /\d instead of 0/) {
             assert_no_queries { Post.first }
           }
-          assert_match(/1 instead of 0/, error.message)
 
           Post.reset_column_information
-          error = assert_raises(Minitest::Assertion) {
+          assert_raises(Minitest::Assertion, match: /\d instead of 0/) {
             assert_no_queries(include_schema: true) { Post.columns }
           }
-          assert_match(/1 instead of 0/, error.message)
         end
 
         def test_assert_queries_match_include_schema

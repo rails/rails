@@ -275,10 +275,25 @@ module ActiveRecord
           elsif reflection.belongs_to? && !reflection.polymorphic?
             key = reflection.join_foreign_key
             pkey = reflection.join_primary_key
-            value = value.public_send(pkey) if value.respond_to?(pkey)
+
+            if pkey.is_a?(Array)
+              if pkey.all? { |attribute| value.respond_to?(attribute) }
+                value = pkey.map do |attribute|
+                  if attribute == "id"
+                    value.id_value
+                  else
+                    value.public_send(attribute)
+                  end
+                end
+                composite_primary_key = true
+              end
+            else
+              value = value.public_send(pkey) if value.respond_to?(pkey)
+            end
           end
 
-          if !columns_hash.key?(key) || StatementCache.unsupported_value?(value)
+          if !composite_primary_key &&
+            (!columns_hash.key?(key) || StatementCache.unsupported_value?(value))
             return super
           end
 
@@ -405,12 +420,18 @@ module ActiveRecord
 
         def cached_find_by(keys, values)
           statement = cached_find_by_statement(keys) { |params|
-            wheres = keys.index_with { params.bind }
+            wheres = keys.index_with do |key|
+              if key.is_a?(Array)
+                [key.map { params.bind }]
+              else
+                params.bind
+              end
+            end
             where(wheres).limit(1)
           }
 
           begin
-            statement.execute(values, connection).first
+            statement.execute(values.flatten, connection).first
           rescue TypeError
             raise ActiveRecord::StatementInvalid
           end
@@ -699,7 +720,7 @@ module ActiveRecord
     def pretty_print(pp)
       return super if custom_inspect_method_defined?
       pp.object_address_group(self) do
-        if defined?(@attributes) && @attributes
+        if @attributes
           attr_names = attributes_for_inspect.select { |name| _has_attribute?(name.to_s) }
           pp.seplist(attr_names, proc { pp.text "," }) do |attr_name|
             attr_name = attr_name.to_s
@@ -748,7 +769,6 @@ module ActiveRecord
         @strict_loading_mode = :all
 
         klass.define_attribute_methods
-        klass.generate_alias_attributes
       end
 
       def initialize_internals_callback
@@ -770,9 +790,7 @@ module ActiveRecord
       end
 
       def inspect_with_attributes(attributes_to_list)
-        # We check defined?(@attributes) not to issue warnings if the object is
-        # allocated but not initialized.
-        inspection = if defined?(@attributes) && @attributes
+        inspection = if @attributes
           attributes_to_list.filter_map do |name|
             name = name.to_s
             if _has_attribute?(name)

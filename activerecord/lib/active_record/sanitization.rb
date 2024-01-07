@@ -17,7 +17,7 @@ module ActiveRecord
       #   sanitize_sql_for_conditions(["name='%s' and group_id='%s'", "foo'bar", 4])
       #   # => "name='foo''bar' and group_id='4'"
       #
-      # This method will NOT sanitize a SQL string since it won't contain
+      # This method will NOT sanitize an SQL string since it won't contain
       # any conditions in it and will return the string as is.
       #
       #   sanitize_sql_for_conditions("name='foo''bar' and group_id='4'")
@@ -52,7 +52,7 @@ module ActiveRecord
       #   Post.sanitize_sql_for_assignment({ name: nil, group_id: 4 })
       #   # => "`posts`.`name` = NULL, `posts`.`group_id` = 4"
       #
-      # This method will NOT sanitize a SQL string since it won't contain
+      # This method will NOT sanitize an SQL string since it won't contain
       # any conditions in it and will return the string as is.
       #
       #   sanitize_sql_for_assignment("name=NULL and group_id='4'")

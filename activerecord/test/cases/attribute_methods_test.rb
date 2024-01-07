@@ -1034,11 +1034,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
     topic = topic_class.new(title: "New topic")
     assert_equal("New topic", topic.subject_to_be_undefined)
+    assert_equal true, topic_class.method_defined?(:subject_to_be_undefined)
     topic_class.undefine_attribute_methods
+    assert_equal false, topic_class.method_defined?(:subject_to_be_undefined)
 
-    assert_raises(NoMethodError, match: /undefined method `subject_to_be_undefined'/) do
-      topic.subject_to_be_undefined
-    end
+    topic.subject_to_be_undefined
+    assert_equal true, topic_class.method_defined?(:subject_to_be_undefined)
+
+    topic_class.undefine_attribute_methods
+    assert_equal true, topic.respond_to?(:subject_to_be_undefined)
+    assert_equal true, topic_class.method_defined?(:subject_to_be_undefined)
   end
 
   test "#define_attribute_methods brings back undefined aliases" do
@@ -1052,11 +1057,11 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal("New topic", topic.title_alias_to_be_undefined)
     topic_class.undefine_attribute_methods
 
-    assert_not_respond_to topic, :title_alias_to_be_undefined
+    assert_equal false, topic_class.method_defined?(:title_alias_to_be_undefined)
 
     topic_class.define_attribute_methods
 
-    assert_respond_to topic, :title_alias_to_be_undefined
+    assert_equal true, topic_class.method_defined?(:title_alias_to_be_undefined)
     assert_equal "New topic", topic.title_alias_to_be_undefined
   end
 

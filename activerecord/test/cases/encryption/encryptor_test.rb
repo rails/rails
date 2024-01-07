@@ -12,7 +12,13 @@ class ActiveRecord::Encryption::EncryptorTest < ActiveRecord::EncryptionTestCase
     assert_encrypt_text("my secret text")
   end
 
-  test "decrypt and invalid string will raise a Decryption error" do
+  test "trying to decrypt something else than a string will raise a Decryption error" do
+    assert_raises(ActiveRecord::Encryption::Errors::Decryption) do
+      @encryptor.decrypt(:it_can_only_decrypt_strings)
+    end
+  end
+
+  test "decrypt an invalid string will raise a Decryption error" do
     assert_raises(ActiveRecord::Encryption::Errors::Decryption) do
       @encryptor.decrypt("some test that does not make sense")
     end

@@ -86,13 +86,7 @@ module ActiveSupport
         case store
         when Symbol
           options = parameters.extract_options!
-          # clean this up once Ruby 2.7 support is dropped
-          # see https://github.com/rails/rails/pull/41522#discussion_r581186602
-          if options.empty?
-            retrieve_store_class(store).new(*parameters)
-          else
-            retrieve_store_class(store).new(*parameters, **options)
-          end
+          retrieve_store_class(store).new(*parameters, **options)
         when Array
           lookup_store(*store)
         when nil
@@ -344,7 +338,7 @@ module ActiveSupport
 
       # Silences the logger within a block.
       def mute
-        previous_silence, @silence = defined?(@silence) && @silence, true
+        previous_silence, @silence = @silence, true
         yield
       ensure
         @silence = previous_silence

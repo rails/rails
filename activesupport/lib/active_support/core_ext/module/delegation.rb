@@ -227,7 +227,7 @@ class Module
           if method_object
             parameters = method_object.parameters
 
-            if (parameters.map(&:first) & [:opt, :rest, :keyreq, :key, :keyrest]).any?
+            if parameters.map(&:first).intersect?([:opt, :rest, :keyreq, :key, :keyrest])
               "..."
             else
               defn = parameters.filter_map { |type, arg| arg if type == :req }
@@ -336,9 +336,9 @@ class Module
         #{target}.respond_to?(name) || super
       end
 
-      def method_missing(method, *args, &block)
+      def method_missing(method, ...)
         if #{target}.respond_to?(method)
-          #{target}.public_send(method, *args, &block)
+          #{target}.public_send(method, ...)
         else
           begin
             super
@@ -355,7 +355,6 @@ class Module
           end
         end
       end
-      ruby2_keywords(:method_missing)
     RUBY
   end
 end

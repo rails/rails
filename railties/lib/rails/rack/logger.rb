@@ -35,7 +35,7 @@ module Rails
 
           logger.info { started_request_message(request) }
           status, headers, body = response = @app.call(env)
-          body = ::Rack::BodyProxy.new(body, &handle.method(:finish))
+          body = ::Rack::BodyProxy.new(body) { finish_request_instrumentation(handle) }
 
           if response.frozen?
             [status, headers, body]
@@ -44,10 +44,8 @@ module Rails
             response
           end
         rescue Exception
-          handle.finish
+          finish_request_instrumentation(handle)
           raise
-        ensure
-          ActiveSupport::LogSubscriber.flush_all!
         end
 
         # Started GET "/session/new" for 127.0.0.1 at 2012-09-26 14:51:42 -0700
@@ -74,6 +72,11 @@ module Rails
 
         def logger
           Rails.logger
+        end
+
+        def finish_request_instrumentation(handle)
+          handle.finish
+          ActiveSupport::LogSubscriber.flush_all!
         end
     end
   end

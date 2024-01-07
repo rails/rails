@@ -153,7 +153,7 @@ module ActiveModel
       alias :assigned? :original_attribute
 
       def initialize_dup(other)
-        if defined?(@value) && @value.duplicable?
+        if @value&.duplicable?
           @value = @value.dup
         end
       end

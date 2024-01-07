@@ -697,6 +697,7 @@ The full set of methods that can be used in this block are as follows:
 * `scaffold_controller` different from `resource_controller`, defines which generator to use for generating a _scaffolded_ controller when using `bin/rails generate scaffold`. Defaults to `:scaffold_controller`.
 * `test_framework` defines which test framework to use. Defaults to `false` and will use minitest by default.
 * `template_engine` defines which template engine to use, such as ERB or Haml. Defaults to `:erb`.
+* `apply_rubocop_autocorrect_after_generate!` applies RuboCop's autocorrect feature after Rails generators are run.
 
 ### Configuring Middleware
 
@@ -1049,7 +1050,7 @@ Controls whether migrations are numbered with serial integers or with timestamps
 
 #### `config.active_record.db_warnings_action`
 
-Controls the action to be taken when a SQL query produces a warning. The following options are available:
+Controls the action to be taken when an SQL query produces a warning. The following options are available:
 
   * `:ignore` - Database warnings will be ignored. This is the default.
 
@@ -1947,16 +1948,25 @@ information. It defaults to `true`.
 
 #### `config.action_dispatch.rescue_responses`
 
-Configures what exceptions are assigned to an HTTP status. It accepts a hash and you can specify pairs of exception/status. By default, this is defined as:
+Configures what exceptions are assigned to an HTTP status. It accepts a hash and you can specify pairs of exception/status.
 
 ```ruby
-config.action_dispatch.rescue_responses = {
+# It's good to use #[]= or #merge! to respect the default values
+config.action_dispatch.rescue_responses['MyAuthenticationError'] = :unauthorized
+```
+
+Use `ActionDispatch::ExceptionWrapper.rescue_responses` to observe the configuration. By default, it is defined as:
+
+```ruby
+{
   'ActionController::RoutingError' => :not_found,
   'AbstractController::ActionNotFound' => :not_found,
   'ActionController::MethodNotAllowed' => :method_not_allowed,
   'ActionController::UnknownHttpMethod' => :method_not_allowed,
   'ActionController::NotImplemented' => :not_implemented,
   'ActionController::UnknownFormat' => :not_acceptable,
+  'ActionDispatch::Http::MimeNegotiation::InvalidType' => :not_acceptable,
+  'ActionController::MissingExactTemplate' => :not_acceptable,
   'ActionController::InvalidAuthenticityToken' => :unprocessable_entity,
   'ActionController::InvalidCrossOriginRequest' => :unprocessable_entity,
   'ActionDispatch::Http::Parameters::ParseError' => :bad_request,
