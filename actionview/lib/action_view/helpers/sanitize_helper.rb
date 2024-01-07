@@ -112,7 +112,7 @@ module ActionView
         self.class.safe_list_sanitizer.sanitize(html, options)&.html_safe
       end
 
-      # Sanitizes a block of CSS code. Used by +sanitize+ when it comes across a style attribute.
+      # Sanitizes a block of CSS code. Used by #sanitize when it comes across a style attribute.
       def sanitize_css(style)
         self.class.safe_list_sanitizer.sanitize_css(style)
       end
