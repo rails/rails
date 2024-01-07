@@ -183,6 +183,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          public/426.html
          public/500.html
          public/icon.png
+         public/icon.svg
       )
     end
 end
