@@ -290,7 +290,7 @@ google:
   gsa_email: "foobar@baz.iam.gserviceaccount.com"
 ```
 
-Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/master/google-cloud-storage) gem to your `Gemfile`:
+Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/main/google-cloud-storage) gem to your `Gemfile`:
 
 ```ruby
 gem "google-cloud-storage", "~> 1.11", require: false
