@@ -524,6 +524,6 @@ $ bundle exec rake rdoc
 
 ### References
 
-* [Developing a RubyGem using Bundler](https://github.com/radar/guides/blob/master/gem-development.md)
+* [Developing a RubyGem using Bundler](https://bundler.io/guides/creating_gem.html)
 * [Using .gemspecs as Intended](https://yehudakatz.com/2010/04/02/using-gemspecs-as-intended/)
 * [Gemspec Reference](https://guides.rubygems.org/specification-reference/)
