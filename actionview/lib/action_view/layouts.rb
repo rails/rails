@@ -152,7 +152,7 @@ module ActionView
   # The template will be looked always in <tt>app/views/layouts/</tt> folder. But you can point
   # <tt>layouts</tt> folder direct also. <tt>layout "layouts/demo"</tt> is the same as <tt>layout "demo"</tt>.
   #
-  # Setting the layout to +nil+ forces it to be looked up in the filesystem and fallbacks to the parent behavior if none exists.
+  # Setting the layout to +nil+ forces it to be looked up in the filesystem and falls back to the parent behavior if none exists.
   # Setting it to +nil+ is useful to re-enable template lookup overriding a previous configuration set in the parent:
   #
   #     class ApplicationController < ActionController::Base
@@ -164,7 +164,7 @@ module ActionView
   #     end
   #
   #     class CommentsController < ApplicationController
-  #       # Will search for "comments" layout and fallback "application" layout
+  #       # Will search for "comments" layout and fall back to "application" layout
   #       layout nil
   #     end
   #

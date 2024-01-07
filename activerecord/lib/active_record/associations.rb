@@ -1050,7 +1050,7 @@ module ActiveRecord
       # query per addressable type.
       # For example, if all the addressables are either of class Person or Company, then a total
       # of 3 queries will be executed. The list of addressable types to load is determined on
-      # the back of the addresses loaded. This is not supported if Active Record has to fallback
+      # the back of the addresses loaded. This is not supported if Active Record has to fall back
       # to the previous implementation of eager loading and will raise ActiveRecord::EagerLoadPolymorphicError.
       # The reason is that the parent model's type is a column value so its corresponding table
       # name cannot be put in the +FROM+/+JOIN+ clauses of that query.
