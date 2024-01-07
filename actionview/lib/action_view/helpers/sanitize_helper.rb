@@ -11,12 +11,12 @@ module ActionView
       extend ActiveSupport::Concern
       # Sanitizes HTML input, stripping all but known-safe tags and attributes.
       #
-      # It also strips href/src attributes with unsafe protocols like
+      # It also strips +href+ / +src+ attributes with unsafe protocols like
       # <tt>javascript:</tt>, while also protecting against attempts to use Unicode,
       # ASCII, and hex character references to work around these protocol filters.
       # All special characters will be escaped.
       #
-      # The default sanitizer is Rails::Html::SafeListSanitizer. See {Rails HTML
+      # The default sanitizer is +Rails::Html::SafeListSanitizer+. See {Rails HTML
       # Sanitizers}[https://github.com/rails/rails-html-sanitizer] for more information.
       #
       # Custom sanitization rules can also be provided.
@@ -26,24 +26,29 @@ module ActionView
       #
       # ==== Options
       #
-      # * <tt>:tags</tt> - An array of allowed tags.
-      # * <tt>:attributes</tt> - An array of allowed attributes.
-      # * <tt>:scrubber</tt> - A {Rails::Html scrubber}[https://github.com/rails/rails-html-sanitizer]
+      # [+:tags+]
+      #   An array of allowed tags.
+      #
+      # [+:attributes+]
+      #   An array of allowed attributes.
+      #
+      # [+:scrubber+]
+      #   A {Rails::Html scrubber}[https://github.com/rails/rails-html-sanitizer]
       #   or {Loofah::Scrubber}[https://github.com/flavorjones/loofah] object that
       #   defines custom sanitization rules. A custom scrubber takes precedence over
       #   custom tags and attributes.
       #
       # ==== Examples
       #
-      # Normal use:
+      # ===== Normal use
       #
       #   <%= sanitize @comment.body %>
       #
-      # Providing custom lists of permitted tags and attributes:
+      # ===== Providing custom lists of permitted tags and attributes
       #
       #   <%= sanitize @comment.body, tags: %w(strong em a), attributes: %w(href) %>
       #
-      # Providing a custom Rails::Html scrubber:
+      # ===== Providing a custom +Rails::Html+ scrubber
       #
       #   class CommentScrubber < Rails::Html::PermitScrubber
       #     def initialize
@@ -62,9 +67,9 @@ module ActionView
       #   <%= sanitize @comment.body, scrubber: CommentScrubber.new %>
       #
       # See {Rails HTML Sanitizer}[https://github.com/rails/rails-html-sanitizer] for
-      # documentation about Rails::Html scrubbers.
+      # documentation about +Rails::Html+ scrubbers.
       #
-      # Providing a custom Loofah::Scrubber:
+      # ===== Providing a custom +Loofah::Scrubber+
       #
       #   scrubber = Loofah::Scrubber.new do |node|
       #     node.remove if node.name == 'script'
@@ -75,7 +80,9 @@ module ActionView
       #   <%= sanitize @comment.body, scrubber: scrubber %>
       #
       # See {Loofah's documentation}[https://github.com/flavorjones/loofah] for more
-      # information about defining custom Loofah::Scrubber objects.
+      # information about defining custom +Loofah::Scrubber+ objects.
+      #
+      # ==== Global Configuration
       #
       # To set the default allowed tags or attributes across your application:
       #
