@@ -804,6 +804,9 @@ module MyApplication
     end
   end
 end
+```
+
+```ruby
 # app/models/my_application/business/account.rb
 module MyApplication
   module Business
