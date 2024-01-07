@@ -57,6 +57,8 @@ module ActionView
       #     end
       #   end
       #
+      # <code></code>
+      #
       #   <%= sanitize @comment.body, scrubber: CommentScrubber.new %>
       #
       # See {Rails HTML Sanitizer}[https://github.com/rails/rails-html-sanitizer] for
@@ -67,6 +69,8 @@ module ActionView
       #   scrubber = Loofah::Scrubber.new do |node|
       #     node.remove if node.name == 'script'
       #   end
+      #
+      # <code></code>
       #
       #   <%= sanitize @comment.body, scrubber: scrubber %>
       #

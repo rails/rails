@@ -184,8 +184,7 @@ module Rails
     end
 
     # Convenience for loading config/foo.yml for the current Rails env.
-    #
-    # Examples:
+    # Example:
     #
     #     # config/exception_notification.yml:
     #     production:
@@ -196,13 +195,15 @@ module Rails
     #       url: http://localhost:3001
     #       namespace: my_app_development
     #
+    # <code></code>
+    #
     #     # config/environments/production.rb
     #     Rails.application.configure do
     #       config.middleware.use ExceptionNotifier, config_for(:exception_notification)
     #     end
     #
-    #     # You can also store configurations in a shared section which will be
-    #     # merged with the environment configuration
+    # You can also store configurations in a shared section which will be merged
+    # with the environment configuration
     #
     #     # config/example.yml
     #     shared:
@@ -214,6 +215,8 @@ module Rails
     #       foo:
     #         bar:
     #           qux: 2
+    #
+    # <code></code>
     #
     #     # development environment
     #     Rails.application.config_for(:example)[:foo][:bar]
