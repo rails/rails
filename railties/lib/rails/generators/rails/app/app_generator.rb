@@ -489,6 +489,7 @@ module Rails
           remove_file "public/426.html"
           remove_file "public/500.html"
           remove_file "public/icon.png"
+          remove_file "public/icon.svg"
         end
       end
 
