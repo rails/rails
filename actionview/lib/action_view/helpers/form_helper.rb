@@ -1118,6 +1118,8 @@ module ActionView
       #       post:
       #         cost: "Total cost"
       #
+      # <code></code>
+      #
       #   label(:post, :cost)
       #   # => <label for="post_cost">Total cost</label>
       #
@@ -2357,6 +2359,8 @@ module ActionView
       #     attributes:
       #       post:
       #         cost: "Total cost"
+      #
+      # <code></code>
       #
       #   label(:cost)
       #   # => <label for="post_cost">Total cost</label>
