@@ -99,6 +99,7 @@ PATH
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
       mutex_m
+      ruby2_keywords
       tzinfo (~> 2.0)
       zeitwerk (~> 2.3)
     rails (6.1.7.6)
