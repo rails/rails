@@ -24,7 +24,7 @@ module ActiveRecord
     # To use the DatabaseSelector in your application with default settings,
     # run the provided generator.
     #
-    #   bin/rails g active_record:multi_db
+    #   $ bin/rails g active_record:multi_db
     #
     # This will create a file named +config/initializers/multi_db.rb+ with the
     # following contents:
