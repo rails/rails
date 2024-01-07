@@ -152,9 +152,23 @@ module ActiveRecord
         end
 
         def table_options(table_name) # :nodoc:
-          if comment = table_comment(table_name)
-            { comment: comment }
+          options = {}
+
+          comment = table_comment(table_name)
+
+          options[:comment] = comment if comment
+
+          inherited_table_names = inherited_table_names(table_name).presence
+
+          options[:options] = "INHERITS (#{inherited_table_names.join(", ")})" if inherited_table_names
+
+          if !options[:options] && supports_native_partitioning?
+            partition_definition = table_partition_definition(table_name)
+
+            options[:options] = "PARTITION BY #{partition_definition}" if partition_definition
           end
+
+          options
         end
 
         # Returns a comment stored in database for given table
@@ -170,6 +184,36 @@ module ActiveRecord
                 AND n.nspname = #{scope[:schema]}
             SQL
           end
+        end
+
+        # Returns the partition definition of a given table
+        def table_partition_definition(table_name) # :nodoc:
+          scope = quoted_scope(table_name, type: "BASE TABLE")
+
+          query_value(<<~SQL, "SCHEMA")
+            SELECT pg_catalog.pg_get_partkeydef(c.oid)
+            FROM pg_catalog.pg_class c
+              LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE c.relname = #{scope[:name]}
+              AND c.relkind IN (#{scope[:type]})
+              AND n.nspname = #{scope[:schema]}
+          SQL
+        end
+
+        # Returns the inherited table name of a given table
+        def inherited_table_names(table_name) # :nodoc:
+          scope = quoted_scope(table_name, type: "BASE TABLE")
+
+          query_values(<<~SQL, "SCHEMA")
+            SELECT parent.relname
+            FROM pg_catalog.pg_inherits i
+              JOIN pg_catalog.pg_class child ON i.inhrelid = child.oid
+              JOIN pg_catalog.pg_class parent ON i.inhparent = parent.oid
+              LEFT JOIN pg_namespace n ON n.oid = child.relnamespace
+            WHERE child.relname = #{scope[:name]}
+              AND child.relkind IN (#{scope[:type]})
+              AND n.nspname = #{scope[:schema]}
+          SQL
         end
 
         # Returns the current database name.
