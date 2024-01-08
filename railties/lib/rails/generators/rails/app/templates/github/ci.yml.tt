@@ -73,7 +73,7 @@ jobs:
           bundler-cache: true
 
       - name: Lint templates for consistent style
-        run: bin/erblint ./app/**/*.erb
+        run: bin/erblint
 <% end -%>
 
   test:
