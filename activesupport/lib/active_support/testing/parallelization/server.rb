@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "ruby2_keywords"
 require "drb"
 require "drb/unix" unless Gem.win_platform?
 
