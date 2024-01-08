@@ -54,6 +54,18 @@
 
     *Sean Doyle*
 
+*   Remove deprecated support for the pre-Ruby 2.4 behavior of `to_time` returning a `Time` object with local timezone.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `config.active_support.to_time_preserves_timezone`.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `DateAndTime::Compatibility.preserve_timezone`.
+
+    *Rafael Mendonça França*
+
 *   Yield instance to `Object#with` block
 
     ```ruby
