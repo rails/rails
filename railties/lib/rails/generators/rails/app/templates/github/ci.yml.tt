@@ -21,7 +21,7 @@ jobs:
           bundler-cache: true
 
       - name: Scan for security vulnerabilities in Ruby dependencies
-        run: bin/brakeman
+        run: bin/brakeman --no-pager
 <% end -%>
 <%- if options[:javascript] == "importmap" -%>
 
