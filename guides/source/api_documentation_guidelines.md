@@ -62,6 +62,8 @@ Communicate to the reader the current way of doing things, both explicitly and i
 
 Documentation has to be brief but comprehensive. Explore and document edge cases. What happens if a module is anonymous? What if a collection is empty? What if an argument is nil?
 
+### Naming
+
 The proper names of Rails components have a space in between the words, like "Active Support". `ActiveRecord` is a Ruby module, whereas Active Record is an ORM. All Rails documentation should consistently refer to Rails components by their proper names.
 
 When referencing a "Rails application", as opposed to an "engine" or "plugin", always use "application". Rails apps are not "services", unless specifically discussing about service-oriented architecture.
@@ -69,6 +71,8 @@ When referencing a "Rails application", as opposed to an "engine" or "plugin", a
 Spell names correctly: Arel, minitest, RSpec, HTML, MySQL, JavaScript, ERB, Hotwire. When in doubt, please have a look at some authoritative source like their official documentation.
 
 Use the article "an" for "SQL", as in "an SQL statement". Also "an SQLite database".
+
+### Pronouns
 
 Prefer wordings that avoid "you"s and "your"s. For example, instead of
 
