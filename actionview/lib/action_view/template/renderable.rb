@@ -17,7 +17,7 @@ module ActionView
       end
 
       def format
-        @renderable.format
+        @renderable.try(:format)
       end
     end
   end
