@@ -314,6 +314,9 @@ Style/RedundantCondition:
 Style/RedundantDoubleSplatHashBraces:
   Enabled: true
 
+Style/ArrayIntersect:
+  Enabled: true
+
 Performance/BindCall:
   Enabled: true
 
