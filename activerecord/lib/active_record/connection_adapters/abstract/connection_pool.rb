@@ -58,12 +58,10 @@ module ActiveRecord
     # Connections can be obtained and used from a connection pool in several
     # ways:
     #
-    # 1. Simply use {ActiveRecord::Base.connection}[rdoc-ref:ConnectionHandling.connection]
-    #    as with Active Record 2.1 and
-    #    earlier (pre-connection-pooling). Eventually, when you're done with
-    #    the connection(s) and wish it to be returned to the pool, you call
+    # 1. Simply use {ActiveRecord::Base.connection}[rdoc-ref:ConnectionHandling.connection].
+    #    When you're done with the connection(s) and wish it to be returned to the pool, you call
     #    {ActiveRecord::Base.connection_handler.clear_active_connections!}[rdoc-ref:ConnectionAdapters::ConnectionHandler#clear_active_connections!].
-    #    This will be the default behavior for Active Record when used in conjunction with
+    #    This is the default behavior for Active Record when used in conjunction with
     #    Action Pack's request handling cycle.
     # 2. Manually check out a connection from the pool with
     #    {ActiveRecord::Base.connection_pool.checkout}[rdoc-ref:#checkout]. You are responsible for
