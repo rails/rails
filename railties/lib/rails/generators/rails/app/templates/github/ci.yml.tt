@@ -43,7 +43,7 @@ jobs:
 <% end -%>
 <%- unless skip_rubocop? -%>
 
-  lint:
+  lint_code:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -57,6 +57,23 @@ jobs:
 
       - name: Lint code for consistent style
         run: bin/rubocop -f github
+<% end -%>
+<%- unless skip_erb_lint? -%>
+
+  lint_templates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Lint templates for consistent style
+        run: bin/erblint ./app/**/*.erb
 <% end -%>
 
   test:

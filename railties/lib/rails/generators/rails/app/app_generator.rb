@@ -92,6 +92,10 @@ module Rails
       template "rubocop.yml", ".rubocop.yml"
     end
 
+    def erb_lint
+      template "erb-lint.yml", ".erb-lint.yml"
+    end
+
     def version_control
       if !options[:skip_git] && !options[:pretend]
         run git_init_command, capture: options[:quiet], abort_on_failure: false
@@ -108,7 +112,7 @@ module Rails
     end
 
     def bin
-      exclude_pattern = Regexp.union([(/rubocop/ if skip_rubocop?), (/brakeman/ if skip_brakeman?)].compact)
+      exclude_pattern = Regexp.union([(/rubocop/ if skip_rubocop?), (/brakeman/ if skip_brakeman?), (/erblint/ if skip_erb_lint?)].compact)
       directory "bin", { exclude_pattern: exclude_pattern } do |content|
         "#{shebang}\n" + content
       end
@@ -381,6 +385,11 @@ module Rails
       def create_rubocop_file
         return if skip_rubocop?
         build(:rubocop)
+      end
+
+      def create_erb_lint_file
+        return if skip_erb_lint?
+        build(:erb_lint)
       end
 
       def create_cifiles

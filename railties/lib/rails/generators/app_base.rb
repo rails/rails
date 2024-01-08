@@ -103,6 +103,9 @@ module Rails
         class_option :skip_rubocop,        type: :boolean, default: nil,
                                            desc: "Skip RuboCop setup"
 
+        class_option :skip_erb_lint,       type: :boolean, default: nil,
+                                           desc: "Skip ERB Lint setup"
+
         class_option :skip_brakeman,       type: :boolean, default: nil,
                                            desc: "Skip brakeman setup"
 
@@ -390,6 +393,10 @@ module Rails
 
       def skip_rubocop?
         options[:skip_rubocop]
+      end
+
+      def skip_erb_lint?
+        options[:skip_erb_lint]
       end
 
       def skip_brakeman?

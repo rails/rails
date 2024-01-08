@@ -11,6 +11,7 @@ DEFAULT_APP_FILES = %w(
   .gitignore
   .dockerignore
   .rubocop.yml
+  .erb-lint.yml
   .ruby-version
   README.md
   Gemfile
@@ -44,6 +45,7 @@ DEFAULT_APP_FILES = %w(
   bin/rails
   bin/rake
   bin/rubocop
+  bin/erblint
   bin/setup
   config/application.rb
   config/boot.rb
@@ -657,10 +659,23 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "bin/brakeman"
   end
 
-  def test_both_brakeman_and_rubocop_binstubs_are_skipped_if_required
-    run_generator [destination_root, "--skip-brakeman", "--skip-rubocop"]
+  def test_inclusion_of_erb_lint
+    run_generator
+    assert_gem "erb_lint"
+  end
+
+  def test_erb_lint_is_skipped_if_required
+    run_generator [destination_root, "--skip-erb-lint"]
+
+    assert_no_gem "erb_lint"
+    assert_no_file "bin/erblint"
+  end
+
+  def test_brakeman_rubocop_and_erblint_binstubs_are_skipped_if_required
+    run_generator [destination_root, "--skip-brakeman", "--skip-rubocop", "--skip-erb-lint"]
 
     assert_no_file "bin/rubocop"
+    assert_no_file "bin/erblint"
     assert_no_file "bin/brakeman"
   end
 

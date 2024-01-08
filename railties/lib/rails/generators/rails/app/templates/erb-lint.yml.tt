@@ -1,0 +1,16 @@
+---
+EnableDefaultLinters: true
+linters:
+  SelfClosingTag:
+    enabled: false
+    enforced_style: 'always'
+
+<%- unless options.skip_rubocop? -%>
+  Rubocop:
+    enabled: true
+    only: [Style/StringLiterals]
+    rubocop_config:
+      Style/StringLiterals:
+        Enabled: true
+        EnforcedStyle: double_quotes
+<%- end -%>
