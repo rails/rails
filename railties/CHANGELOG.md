@@ -1,3 +1,7 @@
+*   Use `oven-sh/setup-bun` in GitHub CI when generating an app with bun
+
+    *TangRufus*
+
 *   Disable `pidfile` generation in production environment.
 
     *Hans Schnedlitz*
