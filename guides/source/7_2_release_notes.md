@@ -181,6 +181,8 @@ Please refer to the [Changelog][active-storage] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `config.active_storage.replace_on_assign_to_many`.
+
 ### Deprecations
 
 ### Notable changes
