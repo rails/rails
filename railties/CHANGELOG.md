@@ -1,3 +1,7 @@
+*   Add ERBLint to the default Gemfile to lint ERB templates. Skip with --skip-erb-lint.
+
+    *Igor Alexandrov*
+
 *   Set `config.action_view.annotate_rendered_view_with_filenames` to `true` in the
     development environment.
 
