@@ -1,3 +1,7 @@
+*   Disable `pidfile` generation in production environment.
+
+    *Hans Schnedlitz*
+
 *   Set `config.action_view.annotate_rendered_view_with_filenames` to `true` in the
     development environment.
 
