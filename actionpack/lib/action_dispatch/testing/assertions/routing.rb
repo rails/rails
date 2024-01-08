@@ -248,7 +248,7 @@ module ActionDispatch
 
       # ROUTES TODO: These assertions should really work in an integration context
       def method_missing(selector, ...)
-        if @controller && @routes&.named_routes.route_defined?(selector)
+        if @controller && @routes&.named_routes&.route_defined?(selector)
           @controller.public_send(selector, ...)
         else
           super
