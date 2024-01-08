@@ -52,7 +52,6 @@ module ActiveRecord
       # Resets the \loaded flag to +false+ and sets the \target to +nil+.
       def reset
         @loaded = false
-        @target = nil
         @stale_state = nil
       end
 
