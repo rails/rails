@@ -183,6 +183,8 @@ Please refer to the [Changelog][active-storage] for detailed changes.
 
 *   Remove deprecated `config.active_storage.replace_on_assign_to_many`.
 
+*   Remove deprecated `config.active_storage.silence_invalid_content_types_warning`.
+
 ### Deprecations
 
 ### Notable changes

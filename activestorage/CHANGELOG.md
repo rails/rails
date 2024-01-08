@@ -1,3 +1,7 @@
+*   Remove deprecated `config.active_storage.silence_invalid_content_types_warning`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `config.active_storage.replace_on_assign_to_many`.
 
     *Rafael Mendonça França*

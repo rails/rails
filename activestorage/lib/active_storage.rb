@@ -365,14 +365,6 @@ module ActiveStorage
 
   mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
 
-  def self.silence_invalid_content_types_warning
-    ActiveStorage.deprecator.warn("config.active_storage.silence_invalid_content_types_warning is deprecated and has no effect.")
-  end
-
-  def self.silence_invalid_content_types_warning=(value)
-    ActiveStorage.deprecator.warn("config.active_storage.silence_invalid_content_types_warning is deprecated and has no effect.")
-  end
-
   module Transformers
     extend ActiveSupport::Autoload
 
