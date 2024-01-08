@@ -46,19 +46,50 @@ Wording
 
 Write simple, declarative sentences. Brevity is a plus. Get to the point.
 
-Write in present tense: "Returns a hash that...", rather than "Returned a hash that..." or "Will return a hash that...".
+```ruby
+# BAD
+# Caching may interfere with being able to see the results
+# of code changes.
+
+# GOOD
+# Caching interferes with seeing the results of code changes.
+```
+
+Use present tense:
+
+```ruby
+# BAD
+# Returned a hash that...
+# Will return a hash that...
+# Return a hash that...
+
+# GOOD
+# Returns a hash that...
+```
 
 Start comments in upper case. Follow regular punctuation rules:
 
 ```ruby
+# BAD
+# declares an attribute reader backed by an internally-named
+# instance variable
+
+# GOOD
 # Declares an attribute reader backed by an internally-named
 # instance variable.
-def attr_internal_reader(*attrs)
-  # ...
-end
 ```
 
 Communicate to the reader the current way of doing things, both explicitly and implicitly. Use the idioms recommended in edge. Reorder sections to emphasize favored approaches if needed, etc. The documentation should be a model for best practices and canonical, modern Rails usage.
+
+```ruby
+# BAD
+# Book.where('name = ?', "Where the Wild Things Are")
+# Book.where('year_published < ?', 50.years.ago)
+
+# GOOD
+# Book.where(name: "Where the Wild Things Are")
+# Book.where(year_published: ...50.years.ago)
+```
 
 Documentation has to be brief but comprehensive. Explore and document edge cases. What happens if a module is anonymous? What if a collection is empty? What if an argument is nil?
 
@@ -66,24 +97,62 @@ Documentation has to be brief but comprehensive. Explore and document edge cases
 
 The proper names of Rails components have a space in between the words, like "Active Support". `ActiveRecord` is a Ruby module, whereas Active Record is an ORM. All Rails documentation should consistently refer to Rails components by their proper names.
 
+```ruby
+# GOOD
+# Active Record classes can be created by inheriting from
+# ActiveRecord::Base.
+```
+
 When referencing a "Rails application", as opposed to an "engine" or "plugin", always use "application". Rails apps are not "services", unless specifically discussing about service-oriented architecture.
 
-Spell names correctly: Arel, minitest, RSpec, HTML, MySQL, JavaScript, ERB, Hotwire. When in doubt, please have a look at some authoritative source like their official documentation.
+```ruby
+# BAD
+# Production services can report their status upstream.
+# Devise is a Rails authentication application.
 
-Use the article "an" for "SQL", as in "an SQL statement". Also "an SQLite database".
+# GOOD
+# Production applications can report their status upstream.
+# Devise is a Rails authentication enging.
+```
+
+Spell software names correctly. When in doubt, please have a look at some authoritative source like their official documentation.
+
+```ruby
+# GOOD
+# Arel
+# ERB
+# Hotwire
+# HTML
+# JavaScript
+# minitest
+# MySQL
+# npm
+# PostgreSQL
+# RSpec
+```
+
+Use the article "an" for "SQL":
+
+```ruby
+# BAD
+# Creates a SQL statement.
+# Starts a SQLite database.
+
+# GOOD
+# Creates an SQL statement.
+# Starts an SQLite database.
+```
 
 ### Pronouns
 
-Prefer wordings that avoid "you"s and "your"s. For example, instead of
+Prefer wordings that avoid "you"s and "your"s.
 
 ```ruby
+# BAD
 # If you need to use +return+ statements in your callbacks, it is
 # recommended that you explicitly define them as methods.
-```
 
-use this style:
-
-```ruby
+# GOOD
 # If +return+ is needed, it is recommended to explicitly define a
 # method.
 ```
