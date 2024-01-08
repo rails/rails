@@ -221,7 +221,7 @@ module ActiveRecord
         end
 
         def cant_modify_encrypted_attributes_when_frozen
-          self.class&.encrypted_attributes.each do |attribute|
+          self.class.encrypted_attributes.each do |attribute|
             errors.add(attribute.to_sym, "can't be modified because it is encrypted") if changed_attributes.include?(attribute)
           end
         end
