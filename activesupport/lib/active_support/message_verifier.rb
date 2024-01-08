@@ -33,7 +33,7 @@ module ActiveSupport
   # === Confine messages to a specific purpose
   #
   # It's not recommended to use the same verifier for different purposes in your application.
-  # Doing so could allow a malicious actor to re-use a signed message to perform an unauthorized
+  # Doing so could allow a malicious actor to reuse a signed message to perform an unauthorized
   # action.
   # You can reduce this risk by confining signed messages to a specific +:purpose+.
   #

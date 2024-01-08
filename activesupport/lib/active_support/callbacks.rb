@@ -145,7 +145,7 @@ module ActiveSupport
 
     private
       # A hook invoked every time a before callback is halted.
-      # This can be overridden in ActiveSupport::Callbacks implementors in order
+      # This can be overridden in ActiveSupport::Callbacks implementers in order
       # to provide better debugging/logging.
       def halted_callback_hook(filter, name)
       end

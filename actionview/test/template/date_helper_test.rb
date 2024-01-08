@@ -410,7 +410,7 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_select_month_with_zero_indexed_custom_names
-    month_names = %w(Januar Februar Marts April Maj Juni Juli August September Oktober November December)
+    month_names = %w(January February March April May June July August September October November December)
 
     expected = +%(<select id="date_month" name="date[month]">\n)
     1.upto(12) { |month| expected << %(<option value="#{month}"#{' selected="selected"' if month == 8}>#{month_names[month - 1]}</option>\n) }

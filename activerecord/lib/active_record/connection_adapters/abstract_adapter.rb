@@ -682,7 +682,7 @@ module ActiveRecord
       end
 
       # Disconnects from the database if already connected, and establishes a new
-      # connection with the database. Implementors should define private #reconnect
+      # connection with the database. Implementers should define private #reconnect
       # instead.
       def reconnect!(restore_transactions: false)
         retries_available = connection_retries
@@ -742,7 +742,7 @@ module ActiveRecord
       # database-dependent operation.
       #
       # If a database driver or protocol does not support such a feature,
-      # implementors may alias this to #reconnect!. Otherwise, implementors
+      # implementers may alias this to #reconnect!. Otherwise, implementers
       # should call super immediately after resetting the connection (and while
       # still holding @lock).
       def reset!
