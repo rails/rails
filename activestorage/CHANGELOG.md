@@ -1,3 +1,12 @@
+*   Fix retrieving rotation value from FFmpeg on version 5.0+.
+
+    In FFmpeg version 5.0+ the rotation value has been removed from tags.
+    Instead the value can be found in side_data_list. Along with
+    this update it's possible to have values of -90, -270 to denote the video
+    has been rotated.
+
+    *Haroon Ahmed*
+
 ## Rails 6.1.7.6 (August 22, 2023) ##
 
 *   No changes.
