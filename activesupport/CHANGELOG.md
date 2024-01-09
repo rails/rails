@@ -1,3 +1,7 @@
+*   Remove deprecated constants `ActiveSupport::LogSubscriber::CLEAR` and `ActiveSupport::LogSubscriber::BOLD`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support for `config.active_support.cache_format_version = 6.1`.
 
     *Rafael Mendonça França*

@@ -62,10 +62,6 @@ module ActiveSupport
   # that all logs are flushed, and it is called in Rails::Rack::Logger after a
   # request finishes.
   class LogSubscriber < Subscriber
-    # Embed in a String to clear all previous ANSI sequences.
-    CLEAR = ActiveSupport::Deprecation::DeprecatedObjectProxy.new("\e[0m", "CLEAR is deprecated! Use MODES[:clear] instead.", ActiveSupport.deprecator)
-    BOLD  = ActiveSupport::Deprecation::DeprecatedObjectProxy.new("\e[1m", "BOLD is deprecated! Use MODES[:bold] instead.", ActiveSupport.deprecator)
-
     # ANSI sequence modes
     MODES = {
       clear:     0,
