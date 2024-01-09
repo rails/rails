@@ -125,22 +125,7 @@ module ActiveSupport
           end
         end
 
-        ActiveSupport::CodeGenerator.batch(singleton_class, __FILE__, __LINE__) do |owner|
-          names.each do |name|
-            owner.define_cached_method(name, namespace: :current_attributes_delegation) do |batch|
-              batch <<
-                "def #{name}" <<
-                "instance.#{name}" <<
-                "end"
-            end
-            owner.define_cached_method("#{name}=", namespace: :current_attributes_delegation) do |batch|
-              batch <<
-                "def #{name}=(value)" <<
-                "instance.#{name} = value" <<
-                "end"
-            end
-          end
-        end
+        singleton_class.delegate(*names.flat_map { |name| [name, "#{name}="] }, to: :instance, as: self)
       end
 
       # Calls this callback before #reset is called on the instance. Used for resetting external collaborators that depend on current values.
