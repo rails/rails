@@ -200,24 +200,6 @@ module ActiveSupport
           def retrieve_pool_options(options)
             if options.key?(:pool)
               pool_options = options.delete(:pool)
-            elsif options.key?(:pool_size) || options.key?(:pool_timeout)
-              pool_options = {}
-
-              if options.key?(:pool_size)
-                ActiveSupport.deprecator.warn(<<~MSG)
-                  Using :pool_size is deprecated and will be removed in Rails 7.2.
-                  Use `pool: { size: #{options[:pool_size].inspect} }` instead.
-                MSG
-                pool_options[:size] = options.delete(:pool_size)
-              end
-
-              if options.key?(:pool_timeout)
-                ActiveSupport.deprecator.warn(<<~MSG)
-                  Using :pool_timeout is deprecated and will be removed in Rails 7.2.
-                  Use `pool: { timeout: #{options[:pool_timeout].inspect} }` instead.
-                MSG
-                pool_options[:timeout] = options.delete(:pool_timeout)
-              end
             else
               pool_options = true
             end

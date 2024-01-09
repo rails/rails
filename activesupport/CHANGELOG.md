@@ -1,3 +1,7 @@
+*   Remove deprecated `:pool_size` and `:pool_timeout` options for the cache storage.
+
+    *Rafael Mendonça França*
+
 *   Warn on tests without assertions.
 
     `ActiveSupport::TestCase` now warns when tests do not run any assertions.
