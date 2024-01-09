@@ -1,3 +1,7 @@
+*   Raise `ArgumentError` if `:renderable` object does not respond to `#render_in`
+
+    *Sean Doyle*
+
 *   Add the `nonce: true` option for `stylesheet_link_tag` helper to support automatic nonce generation for Content Security Policy.
     Works the same way as `javascript_include_tag nonce: true` does.
 
