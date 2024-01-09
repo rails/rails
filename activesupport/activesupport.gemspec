@@ -43,5 +43,4 @@ Gem::Specification.new do |s|
   s.add_dependency "drb"
   s.add_dependency "mutex_m"
   s.add_dependency "bigdecimal"
-  s.add_dependency "ruby2_keywords"
 end
