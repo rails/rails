@@ -1,3 +1,7 @@
+*   Remove deprecated support for `config.active_support.cache_format_version = 6.1`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `:pool_size` and `:pool_timeout` options for the cache storage.
 
     *Rafael Mendonça França*

@@ -2585,7 +2585,7 @@ The default value depends on the `config.load_defaults` target version:
 #### `config.active_support.cache_format_version`
 
 Specifies which serialization format to use for the cache. Possible values are
-`6.1`, `7.0`, and `7.1`.
+`7.0`, and `7.1`.
 
 `7.0` serializes cache entries more efficiently.
 
@@ -2601,7 +2601,6 @@ The default value depends on the `config.load_defaults` target version:
 
 | Starting with version | The default value is |
 | --------------------- | -------------------- |
-| (original)            | `6.1`                |
 | 7.0                   | `7.0`                |
 | 7.1                   | `7.1`                |
 

@@ -41,46 +41,6 @@ module ActiveSupport
 
       prepend Strategy::LocalCache
 
-      module DupLocalCache
-        class DupLocalStore < DelegateClass(Strategy::LocalCache::LocalStore)
-          def write_entry(_key, entry)
-            if entry.is_a?(Entry)
-              entry.dup_value!
-            end
-            super
-          end
-
-          def fetch_entry(key)
-            entry = super do
-              new_entry = yield
-              if entry.is_a?(Entry)
-                new_entry.dup_value!
-              end
-              new_entry
-            end
-            entry = entry.dup
-
-            if entry.is_a?(Entry)
-              entry.dup_value!
-            end
-
-            entry
-          end
-        end
-
-        private
-          def local_cache
-            if ActiveSupport::Cache.format_version == 6.1
-              if local_cache = super
-                DupLocalStore.new(local_cache)
-              end
-            else
-              super
-            end
-          end
-      end
-      prepend DupLocalCache
-
       KEY_MAX_SIZE = 250
       ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/n
 
@@ -226,20 +186,6 @@ module ActiveSupport
       end
 
       private
-        def default_serializer
-          if Cache.format_version == 6.1
-            ActiveSupport.deprecator.warn <<~EOM
-              Support for `config.active_support.cache_format_version = 6.1` has been deprecated and will be removed in Rails 7.2.
-
-              Check the Rails upgrade guide at https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#new-activesupport-cache-serialization-format
-              for more information on how to upgrade.
-            EOM
-            Cache::SerializerWithFallback[:passthrough]
-          else
-            super
-          end
-        end
-
         # Read an entry from the cache.
         def read_entry(key, **options)
           deserialize_entry(read_serialized_entry(key, **options), **options)

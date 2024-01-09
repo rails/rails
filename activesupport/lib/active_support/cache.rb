@@ -52,7 +52,7 @@ module ActiveSupport
       autoload :LocalCache, "active_support/cache/strategy/local_cache"
     end
 
-    @format_version = 6.1
+    @format_version = 7.0
 
     class << self
       attr_accessor :format_version
@@ -761,14 +761,6 @@ module ActiveSupport
       private
         def default_serializer
           case Cache.format_version
-          when 6.1
-            ActiveSupport.deprecator.warn <<~EOM
-              Support for `config.active_support.cache_format_version = 6.1` has been deprecated and will be removed in Rails 7.2.
-
-              Check the Rails upgrade guide at https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#new-activesupport-cache-serialization-format
-              for more information on how to upgrade.
-            EOM
-            Cache::SerializerWithFallback[:marshal_6_1]
           when 7.0
             Cache::SerializerWithFallback[:marshal_7_0]
           when 7.1
