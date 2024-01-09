@@ -1,3 +1,7 @@
+*   Add `<role>_types` class method to `ActiveRecord::DelegatedType` so that the delegated types can be instrospected
+
+    *JP Rosevear*
+
 *   Make `ActiveRecord::Encryption::Encryptor` agnostic of the serialization format used for encrypted data.
 
     Previously, the encryptor instance only allowed an encrypted value serialized as a `String` to be passed to the message serializer.
