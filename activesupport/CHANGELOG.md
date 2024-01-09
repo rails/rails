@@ -1,3 +1,7 @@
+*   Remove deprecated `config.active_support.use_rfc4122_namespaced_uuids`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `config.active_support.remove_deprecated_time_with_zone_name`.
 
     *Rafael Mendonça França*

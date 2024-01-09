@@ -219,6 +219,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove deprecated `config.active_support.remove_deprecated_time_with_zone_name`.
 
+*   Remove deprecated `config.active_support.use_rfc4122_namespaced_uuids`.
+
 *   Remove deprecated support for the pre-Ruby 2.4 behavior of `to_time` returning a `Time` object with local timezone.
 
 ### Deprecations
