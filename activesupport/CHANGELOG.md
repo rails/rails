@@ -1,3 +1,7 @@
+*   Remove deprecated `config.active_support.remove_deprecated_time_with_zone_name`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `config.active_support.disable_to_s_conversion`.
 
     *Rafael Mendonça França*

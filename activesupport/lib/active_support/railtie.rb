@@ -118,9 +118,7 @@ module ActiveSupport
 
     initializer "active_support.set_configs" do |app|
       app.config.active_support.each do |k, v|
-        if k == :remove_deprecated_time_with_zone_name
-          ActiveSupport.deprecator.warn("config.active_support.remove_deprecated_time_with_zone_name is deprecated and will be removed in Rails 7.2.")
-        elsif k == :use_rfc4122_namespaced_uuids
+        if k == :use_rfc4122_namespaced_uuids
           ActiveSupport.deprecator.warn("config.active_support.use_rfc4122_namespaced_uuids is deprecated and will be removed in Rails 7.2.")
         else
           k = "#{k}="
