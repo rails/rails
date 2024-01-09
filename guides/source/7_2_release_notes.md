@@ -215,6 +215,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove deprecated support to bolding log text with positional boolean in `ActiveSupport::LogSubscriber#color`.
 
+*   Remove deprecated `config.active_support.disable_to_s_conversion`.
+
 *   Remove deprecated support for the pre-Ruby 2.4 behavior of `to_time` returning a `Time` object with local timezone.
 
 ### Deprecations

@@ -1,3 +1,7 @@
+*   Remove deprecated `config.active_support.disable_to_s_conversion`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to bolding log text with positional boolean in `ActiveSupport::LogSubscriber#color`.
 
     *Rafael Mendonça França*
