@@ -14,8 +14,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Remove $BUNDLE_GEMFILE.lock
-      run: rm -f $BUNDLE_GEMFILE.lock
+    - name: Remove Gemfile.lock
+      run: rm -f Gemfile.lock
 
     - name: Set up Ruby 3.3
       uses: ruby/setup-ruby@v1
