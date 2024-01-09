@@ -1,3 +1,11 @@
+*   Implement `ActiveSupport::CurrentAttributes` in terms of `ActiveSupport::AttributeMethods`
+
+    *Sean Doyle*
+
+*   Port `ActiveModel::AttributeMethods` to `ActiveSupport::AttributeMethods`
+
+    *Sean Doyle*
+
 *   Yield instance to `Object#with` block
 
     ```ruby

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/attribute_methods"
 require "active_support/callbacks"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/delegation"
@@ -89,6 +90,7 @@ module ActiveSupport
   # The attributes stuck in Current should be used by more or less all actions on all requests. If you start
   # sticking controller-specific attributes in there, you're going to create a mess.
   class CurrentAttributes
+    include ActiveSupport::AttributeMethods
     include ActiveSupport::Callbacks
     define_callbacks :reset
 
@@ -107,39 +109,7 @@ module ActiveSupport
           raise ArgumentError, "Restricted attribute names: #{invalid_attribute_names.join(", ")}"
         end
 
-        ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |owner|
-          names.each do |name|
-            owner.define_cached_method(name, namespace: :current_attributes) do |batch|
-              batch <<
-                "def #{name}" <<
-                "attributes[:#{name}]" <<
-                "end"
-            end
-            owner.define_cached_method("#{name}=", namespace: :current_attributes) do |batch|
-              batch <<
-                "def #{name}=(value)" <<
-                "attributes[:#{name}] = value" <<
-                "end"
-            end
-          end
-        end
-
-        ActiveSupport::CodeGenerator.batch(singleton_class, __FILE__, __LINE__) do |owner|
-          names.each do |name|
-            owner.define_cached_method(name, namespace: :current_attributes_delegation) do |batch|
-              batch <<
-                "def #{name}" <<
-                "instance.#{name}" <<
-                "end"
-            end
-            owner.define_cached_method("#{name}=", namespace: :current_attributes_delegation) do |batch|
-              batch <<
-                "def #{name}=(value)" <<
-                "instance.#{name} = value" <<
-                "end"
-            end
-          end
-        end
+        names.each { |name| define_attribute_methods name }
       end
 
       # Calls this callback before #reset is called on the instance. Used for resetting external collaborators that depend on current values.
@@ -165,10 +135,6 @@ module ActiveSupport
       end
 
       private
-        def generated_attribute_methods
-          @generated_attribute_methods ||= Module.new.tap { |mod| include mod }
-        end
-
         def current_instances
           IsolatedExecutionState[:current_attributes_instances] ||= {}
         end
@@ -190,6 +156,8 @@ module ActiveSupport
           super || instance.respond_to?(name)
         end
     end
+
+    attribute_method_suffix "=", parameters: "value"
 
     attr_accessor :attributes
 
@@ -223,6 +191,14 @@ module ActiveSupport
     end
 
     private
+      def attribute(name)
+        attributes[name]
+      end
+
+      def attribute=(name, value)
+        attributes[name] = value
+      end
+
       def assign_attributes(new_attributes)
         new_attributes.each { |key, value| public_send("#{key}=", value) }
       end
