@@ -144,6 +144,12 @@ class CurrentAttributesTest < ActiveSupport::TestCase
 
     assert_equal "world/1", Current.world
     assert_equal "account/1", Current.account
+
+    hash = { world: "world/2", account: "account/2" }
+    Current.set(hash) do
+      assert_equal "world/2", Current.world
+      assert_equal "account/2", Current.account
+    end
   end
 
   test "using keyword arguments" do
