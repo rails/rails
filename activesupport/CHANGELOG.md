@@ -1,3 +1,13 @@
+*   Add `default:` support for `ActiveSupport::CurrentAttributes.attribute`
+
+    ```ruby
+    class Current < ActiveSupport::CurrentAttributes
+      attribute :counter, default: 0
+    end
+    ```
+
+    *Sean Doyle*
+
 *   Yield instance to `Object#with` block
 
     ```ruby
