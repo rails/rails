@@ -1,3 +1,8 @@
+*   Fix Migrations with versions older than 7.1 validating options given to
+    `add_reference`.
+
+    *Hartley McGuire*
+
 *   Add `<role>_types` class method to `ActiveRecord::DelegatedType` so that the delegated types can be instrospected
 
     *JP Rosevear*
