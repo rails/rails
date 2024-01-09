@@ -1,3 +1,7 @@
+*   Remove deprecated support to bolding log text with positional boolean in `ActiveSupport::LogSubscriber#color`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated constants `ActiveSupport::LogSubscriber::CLEAR` and `ActiveSupport::LogSubscriber::BOLD`.
 
     *Rafael Mendonça França*

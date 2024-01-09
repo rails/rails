@@ -178,14 +178,6 @@ module ActiveSupport
     end
 
     def mode_from(options)
-      if options.is_a?(TrueClass) || options.is_a?(FalseClass)
-        ActiveSupport.deprecator.warn(<<~MSG.squish)
-          Bolding log text with a positional boolean is deprecated and will be removed
-          in Rails 7.2. Use an option hash instead (eg. `color("my text", :red, bold: true)`).
-        MSG
-        options = { bold: options }
-      end
-
       modes = MODES.values_at(*options.compact_blank.keys)
 
       "\e[#{modes.join(";")}m" if modes.any?

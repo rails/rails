@@ -213,6 +213,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove deprecated constants `ActiveSupport::LogSubscriber::CLEAR` and `ActiveSupport::LogSubscriber::BOLD`.
 
+*   Remove deprecated support to bolding log text with positional boolean in `ActiveSupport::LogSubscriber#color`.
+
 *   Remove deprecated support for the pre-Ruby 2.4 behavior of `to_time` returning a `Time` object with local timezone.
 
 ### Deprecations
