@@ -20,7 +20,7 @@ module ActiveRecord
       include Serialization
     end
 
-    RESTRICTED_CLASS_METHODS = %w(private public protected allocate new name parent superclass)
+    RESTRICTED_CLASS_METHODS = %w(private public protected allocate new name superclass)
 
     class GeneratedAttributeMethods < Module # :nodoc:
       LOCK = Monitor.new

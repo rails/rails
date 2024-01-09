@@ -363,7 +363,6 @@ class NamedScopingTest < ActiveRecord::TestCase
       :protected,
       :private,
       :name,
-      :parent,
       :superclass
     ]
 
