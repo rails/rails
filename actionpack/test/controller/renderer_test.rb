@@ -79,6 +79,17 @@ class RendererTest < ActiveSupport::TestCase
     )
   end
 
+  test "render a renderable object with block" do
+    renderer = ApplicationController.renderer
+
+    assert_equal(
+      %(<h1>Hello, block!</h1>),
+      renderer.render(TestRenderable.new) do
+        "Hello, block!"
+      end
+    )
+  end
+
   test "rendering with custom env" do
     renderer = ApplicationController.renderer.new method: "post"
     content  = renderer.render inline: "<%= request.post? %>"

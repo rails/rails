@@ -41,7 +41,7 @@ module ActionView
           end
           Template::Inline.new(options[:inline], "inline template", handler, locals: keys, format: format)
         elsif options.key?(:renderable)
-          Template::Renderable.new(options[:renderable])
+          Template::Renderable.new(options[:renderable], options[:block])
         elsif options.key?(:template)
           if options[:template].respond_to?(:render)
             options[:template]

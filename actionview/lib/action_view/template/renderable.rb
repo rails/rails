@@ -4,8 +4,9 @@ module ActionView
   class Template
     # = Action View Renderable Template for objects that respond to #render_in
     class Renderable # :nodoc:
-      def initialize(renderable)
+      def initialize(renderable, block)
         @renderable = renderable
+        @block = block
       end
 
       def identifier
@@ -13,7 +14,7 @@ module ActionView
       end
 
       def render(context, *args)
-        @renderable.render_in(context)
+        @renderable.render_in(context, &@block)
       end
 
       def format
