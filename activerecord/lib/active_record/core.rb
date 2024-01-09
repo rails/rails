@@ -73,7 +73,7 @@ module ActiveRecord
       end
       self.configurations = {}
 
-      # Returns fully resolved ActiveRecord::DatabaseConfigurations object
+      # Returns a fully resolved ActiveRecord::DatabaseConfigurations object.
       def self.configurations
         @@configurations
       end
