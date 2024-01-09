@@ -689,10 +689,18 @@ module Rails
       def run_javascript
         return if options[:skip_javascript] || !bundle_install?
 
-        case options[:javascript]
-        when "importmap"                           then rails_command "importmap:install"
-        when "webpack", "bun", "esbuild", "rollup" then rails_command "javascript:install:#{options[:javascript]}"
+        if force_esbuild? || options[:javascript] == "esbuild"
+          rails_command "javascript:install:esbuild"
+        elsif %w[webpack bun esbuild rollup].include?(options[:javascript])
+          rails_command "javascript:install:#{options[:javascript]}"
+        else
+          rails_command "importmap:install"
         end
+      end
+
+      # Should force ebsbuild for --css bootstrap without providing --j
+      def force_esbuild?
+        using_js_runtime? && options[:javascript] == "importmap"
       end
 
       def run_hotwire
