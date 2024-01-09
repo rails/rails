@@ -164,16 +164,18 @@ module ActiveSupport
         end
 
         def method_missing(name, ...)
-          # Caches the method definition as a singleton method of the receiver.
-          #
-          # By letting #delegate handle it, we avoid an enclosure that'll capture args.
-          singleton_class.delegate name, to: :instance
-
-          send(name, ...)
+          instance.public_send(name, ...)
         end
 
         def respond_to_missing?(name, _)
-          super || instance.respond_to?(name)
+          instance.respond_to?(name) || super
+        end
+
+        def method_added(name)
+          return if name == :initialize
+          return unless public_method_defined?(name)
+          return if respond_to?(name, true)
+          singleton_class.delegate(name, to: :instance, as: self)
         end
     end
 
