@@ -694,6 +694,10 @@ module ActiveRecord
     end
 
     # Marks this record as read only.
+    #
+    #   customer = Customer.first
+    #   customer.readonly!
+    #   customer.save # Raises an ActiveRecord::ReadOnlyRecord
     def readonly!
       @readonly = true
     end
