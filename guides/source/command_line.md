@@ -458,7 +458,7 @@ $ bin/rails dbconsole --database=animals
 
 ### `bin/rails runner`
 
-`runner` runs Ruby code in the context of Rails non-interactively. For instance:
+`runner` runs Ruby code from inside the context of the Rails application non-interactively, without having to open Rails `console`. For instance:
 
 ```bash
 $ bin/rails runner "Model.long_running_method"
