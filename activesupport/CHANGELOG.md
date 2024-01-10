@@ -1,3 +1,7 @@
+*   Remove deprecated support to passing `Dalli::Client` instances to `MemCacheStore`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `config.active_support.use_rfc4122_namespaced_uuids`.
 
     *Rafael Mendonça França*
