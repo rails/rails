@@ -1481,8 +1481,12 @@ queries can be executed concurrently.
 
 Defaults to `4`.
 
-This number must be considered in accordance with the database pool size configured in `database.yml`. The connection pool
-should be large enough to accommodate both the foreground threads (.e.g web server or job worker threads) and background threads.
+This number must be considered in accordance with the database connection pool size configured in `database.yml`. The connection pool
+should be large enough to accommodate both the foreground threads (ie. web server or job worker threads) and background threads.
+
+For each process, Rails will create one global query executor that uses this many threads to process async queries. Thus, the pool size
+should be at least `thread_count + global_executor_concurrency + 1`. For example, if your web server has a maximum of 3 threads,
+and `global_executor_concurrency` is set to 4, then your pool size should be at least 8.
 
 #### `config.active_record.allow_deprecated_singular_associations_name`
 
