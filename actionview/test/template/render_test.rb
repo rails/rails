@@ -312,6 +312,15 @@ module RenderTestCases
     end
   end
 
+  def test_render_renderable_does_not_mask_nomethoderror_from_within_render_in
+    renderable = Object.new
+    renderable.define_singleton_method(:render_in) { |*| nil.foo }
+
+    assert_raises NoMethodError, match: "undefined method `foo' for nil" do
+      @view.render renderable: renderable
+    end
+  end
+
   def test_render_partial_starting_with_a_capital
     assert_nothing_raised { @view.render(partial: "test/FooBar") }
   end
