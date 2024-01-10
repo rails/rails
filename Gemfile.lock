@@ -413,6 +413,7 @@ GEM
     rb-inotify (0.10.1)
       ffi (~> 1.0)
     rdoc (6.3.1)
+    readline-ext (0.2.0)
     redcarpet (3.2.3)
     redis (4.2.5)
     regexp_parser (2.1.1)
@@ -612,6 +613,7 @@ DEPENDENCIES
   rack-test (< 2)
   rails!
   rake (>= 13)
+  readline-ext
   redcarpet (~> 3.2.3)
   redis (~> 4.0)
   redis-namespace!
