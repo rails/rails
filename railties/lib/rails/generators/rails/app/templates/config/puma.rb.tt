@@ -34,7 +34,7 @@ if rails_env == "production"
   # variable to match the number of processors.
   processors_count = Integer(ENV.fetch("WEB_CONCURRENCY") { 1 })
   if processors_count > 1
-    workers worker_count
+    workers processors_count
   else
     preload_app!
   end
