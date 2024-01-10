@@ -1,3 +1,20 @@
+*   Add `ActiveRecord::ConnectionAdapters::QueryCache#ignore_query_cache`
+
+    This entirely ignores the query cache within a block.
+
+    - Queries are not cached or read from the cache
+    - Writes do not clear the cache
+    - cached/uncached blocks do nothing
+
+    ```ruby
+      ActiveRecord::Base.connection.ignore_query_cache do
+        post = Post.find 1
+        post.touch
+      end
+    ```
+
+    *Donal McBreen*
+
 *   Make `ActiveRecord::Encryption::Encryptor` agnostic of the serialization format used for encrypted data.
 
     Previously, the encryptor instance only allowed an encrypted value serialized as a `String` to be passed to the message serializer.

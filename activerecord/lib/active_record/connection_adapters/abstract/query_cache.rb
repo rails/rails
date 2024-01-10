@@ -21,7 +21,7 @@ module ActiveRecord
           method_names.each do |method_name|
             base.class_eval <<-end_code, __FILE__, __LINE__ + 1
               def #{method_name}(...)
-                ActiveRecord::Base.clear_query_caches_for_current_thread
+                ActiveRecord::Base.clear_query_caches_for_current_thread unless @query_cache_ignored
                 super
               end
             end_code
@@ -50,12 +50,13 @@ module ActiveRecord
         end
       end
 
-      attr_reader :query_cache, :query_cache_enabled
+      attr_reader :query_cache, :query_cache_enabled, :query_cache_ignored
 
       def initialize(*)
         super
         @query_cache         = {}
         @query_cache_enabled = false
+        @query_cache_ignored = false
         @query_cache_max_size = nil
       end
 
@@ -85,6 +86,13 @@ module ActiveRecord
         @query_cache_enabled = old
       end
 
+      def ignore_query_cache
+        old, @query_cache_ignored = @query_cache_ignored, true
+        yield
+      ensure
+        @query_cache_ignored = old
+      end
+
       # Clears the query cache.
       #
       # One reason you may wish to call this method explicitly is between queries
@@ -102,7 +110,7 @@ module ActiveRecord
 
         # If arel is locked this is a SELECT ... FOR UPDATE or somesuch.
         # Such queries should not be cached.
-        if @query_cache_enabled && !(arel.respond_to?(:locked) && arel.locked)
+        if @query_cache_enabled && !@query_cache_ignored && !(arel.respond_to?(:locked) && arel.locked)
           sql, binds, preparable = to_sql_and_binds(arel, binds, preparable)
 
           if async

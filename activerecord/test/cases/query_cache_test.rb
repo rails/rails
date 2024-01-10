@@ -650,6 +650,42 @@ class QueryCacheTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection_pool.lock_thread = false
   end
 
+  def test_the_query_cache_is_not_used_when_it_is_ignored
+    middleware do |env|
+      Task.find 1
+
+      assert_queries(1) do
+        Task.connection.ignore_query_cache { Task.find 1 }
+      end
+    end
+  end
+
+  def test_queries_are_not_cached_when_the_query_cache_is_ignored
+    middleware do |env|
+      assert_equal false, Task.connection.query_cache_ignored
+      Task.connection.ignore_query_cache do
+        assert_equal true, Task.connection.query_cache_ignored
+        Task.find 1
+      end
+      query_cache = ActiveRecord::Base.connection.query_cache
+      assert_equal 0, query_cache.length, query_cache.keys
+    end
+  end
+
+  def test_writes_do_not_clear_the_query_cache_when_it_is_ignored
+    middleware do |env|
+      query_cache = ActiveRecord::Base.connection.query_cache
+
+      Task.find 1
+      assert_equal 1, query_cache.length, query_cache.keys
+
+      Task.connection.ignore_query_cache { Task.create! }
+      assert_equal 1, query_cache.length, query_cache.keys
+
+      assert_no_queries { Task.find 1 }
+    end
+  end
+
   private
     def with_temporary_connection_pool(&block)
       pool_config = ActiveRecord::Base.connection.pool.pool_config
