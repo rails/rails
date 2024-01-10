@@ -14,8 +14,12 @@ module ActionView
 
       def render(context, *args)
         @renderable.render_in(context)
-      rescue NoMethodError
-        raise ArgumentError, "'#{@renderable.inspect}' is not a renderable object. It must implement #render_in."
+      rescue NoMethodError => error
+        if error.name == :render_in
+          raise ArgumentError, "'#{@renderable.inspect}' is not a renderable object. It must implement #render_in."
+        else
+          raise
+        end
       end
 
       def format
