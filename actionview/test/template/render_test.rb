@@ -314,9 +314,9 @@ module RenderTestCases
 
   def test_render_renderable_does_not_mask_nomethoderror_from_within_render_in
     renderable = Object.new
-    renderable.define_singleton_method(:render_in) { |*| nil.foo }
+    renderable.define_singleton_method(:render_in) { |*| nil.render_in }
 
-    assert_raises NoMethodError, match: "undefined method `foo' for nil" do
+    assert_raises NoMethodError, match: "undefined method `render_in' for nil" do
       @view.render renderable: renderable
     end
   end
