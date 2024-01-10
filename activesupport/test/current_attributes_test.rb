@@ -11,6 +11,8 @@ class CurrentAttributesTest < ActiveSupport::TestCase
   Person = Struct.new(:id, :name, :time_zone)
 
   class Current < ActiveSupport::CurrentAttributes
+    attribute :counter_integer, default: 0
+    attribute :counter_callable, default: -> { 0 }
     attribute :world, :account, :person, :request
     delegate :time_zone, to: :person
 
@@ -84,6 +86,30 @@ class CurrentAttributesTest < ActiveSupport::TestCase
   test "read and write attribute" do
     Current.world = "world/1"
     assert_equal "world/1", Current.world
+  end
+
+  test "read and write attribute with default value" do
+    assert_equal 0, Current.counter_integer
+
+    Current.counter_integer += 1
+
+    assert_equal 1, Current.counter_integer
+
+    Current.reset
+
+    assert_equal 0, Current.counter_integer
+  end
+
+  test "read attribute with default callable" do
+    assert_equal 0, Current.counter_callable
+
+    Current.counter_callable += 1
+
+    assert_equal 1, Current.counter_callable
+
+    Current.reset
+
+    assert_equal 0, Current.counter_callable
   end
 
   test "read overwritten attribute method" do
