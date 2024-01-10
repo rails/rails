@@ -120,9 +120,6 @@ module ActiveRecord
           unless abstract_class?
             load_schema
             super(attribute_names)
-            if _has_attribute?("id")
-              alias_attribute(:id_value, :id)
-            end
           end
 
           ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
