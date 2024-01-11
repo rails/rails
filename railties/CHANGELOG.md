@@ -1,3 +1,7 @@
+*   Add warning for non-existent directories in `config.autoload_paths` and `config.autoload_once_paths` for Zeitwerk
+
+    *Takumasa Ochi*
+
 *   Prevent unnecessary application reloads in development.
 
     Previously, some files outside autoload paths triggered unnecessary reloads.
