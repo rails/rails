@@ -1228,7 +1228,7 @@ class PreloaderTest < ActiveRecord::TestCase
     # Expected
     #   SELECT FROM dogs ... (Dog)
     #   SELECT FROM dogs ... (OtherDog)
-    assert_queries(2) do
+    assert_queries_count(2) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [dog_comment, other_dog_comment], associations: :origin)
       preloader.call
     end
