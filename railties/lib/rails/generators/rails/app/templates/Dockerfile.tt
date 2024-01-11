@@ -72,7 +72,9 @@ RUN bundle exec bootsnap precompile app/ lib/
 <% end -%>
 <% unless options.api? || skip_asset_pipeline? -%>
 # Precompiling assets for production without requiring secret RAILS_MASTER_KEY
-RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+ARG RAILS_MASTER_KEY
+ENV RAILS_MASTER_KEY=$RAILS_MASTER_KEY
+RUN ./bin/rails assets:precompile
 
 <% end -%>
 
