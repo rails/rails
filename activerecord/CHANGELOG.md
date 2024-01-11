@@ -1,3 +1,11 @@
+*   Fix multi-database polymorphic preloading with equivalent table names
+
+    When preloading polymorphic associations, if two models pointed to two
+    tables with the same name but located in different databases, the
+    preloader would only load one. 
+
+    *Ari Summer*
+
 *   Fix `encrypted_attribute?` to take into account context properties passed to `encrypts`.
 
     *Maxime Réty*

@@ -17,11 +17,12 @@ module ActiveRecord
           def eql?(other)
             association_key_name == other.association_key_name &&
               scope.table_name == other.scope.table_name &&
+              scope.connection_specification_name == other.scope.connection_specification_name &&
               scope.values_for_queries == other.scope.values_for_queries
           end
 
           def hash
-            [association_key_name, scope.table_name, scope.values_for_queries].hash
+            [association_key_name, scope.table_name, scope.connection_specification_name, scope.values_for_queries].hash
           end
 
           def records_for(loaders)

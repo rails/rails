@@ -39,6 +39,8 @@ require "models/sharded"
 require "models/cpk"
 require "models/member_detail"
 require "models/organization"
+require "models/dog"
+require "models/other_dog"
 
 
 class AssociationsTest < ActiveRecord::TestCase
@@ -773,7 +775,8 @@ end
 class PreloaderTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :books, :authors, :tags, :taggings, :essays, :categories, :author_addresses,
            :sharded_blog_posts, :sharded_comments, :sharded_blog_posts_tags, :sharded_tags,
-           :members, :member_details, :organizations, :cpk_orders, :cpk_order_agreements
+           :members, :member_details, :organizations, :cpk_orders, :cpk_order_agreements,
+           :dogs, :other_dogs
 
   def test_preload_with_scope
     post = posts(:welcome)
@@ -1192,6 +1195,31 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_no_queries do
       post.author
       postesque.author
+    end
+  end
+
+  def test_multi_database_polymorphic_preload_with_same_table_name
+    dog = dogs(:sophie)
+    dog_comment = comments(:greetings)
+    dog_comment.origin_type = dog.class.name
+    dog_comment.origin_id = dog.id
+
+    other_dog = other_dogs(:lassie)
+    other_dog_comment = comments(:more_greetings)
+    other_dog_comment.origin_type = other_dog.class.name
+    other_dog_comment.origin_id = other_dog.id
+
+    # Both Dog and OtherDog are backed by a table named `dogs`,
+    # however they are stored in different databases and should
+    # therefore result in two separate queries rather than be batched
+    # together.
+    #
+    # Expected
+    #   SELECT FROM dogs ... (Dog)
+    #   SELECT FROM dogs ... (OtherDog)
+    assert_queries(2) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [dog_comment, other_dog_comment], associations: :origin)
+      preloader.call
     end
   end
 
