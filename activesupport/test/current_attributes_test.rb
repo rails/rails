@@ -214,6 +214,13 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     assert_equal true, Current.respond_to?("respond_to_test")
   end
 
+  test "CurrentAttributes defaults do not leak between classes" do
+    Class.new(ActiveSupport::CurrentAttributes) { attribute :counter_integer, default: 100 }
+    Current.reset
+
+    assert_equal 0, Current.counter_integer
+  end
+
   test "CurrentAttributes use fiber-local variables" do
     previous_level = ActiveSupport::IsolatedExecutionState.isolation_level
     ActiveSupport::IsolatedExecutionState.isolation_level = :fiber

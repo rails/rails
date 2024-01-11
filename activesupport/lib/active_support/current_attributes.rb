@@ -134,7 +134,7 @@ module ActiveSupport
 
         singleton_class.delegate(*names.flat_map { |name| [name, "#{name}="] }, to: :instance, as: self)
 
-        defaults.merge! names.index_with { default }
+        self.defaults = defaults.merge(names.index_with { default })
       end
 
       # Calls this callback before #reset is called on the instance. Used for resetting external collaborators that depend on current values.
@@ -188,12 +188,12 @@ module ActiveSupport
         end
     end
 
-    class_attribute :defaults, instance_writer: false, default: {}
+    class_attribute :defaults, instance_writer: false, default: {}.freeze
 
     attr_accessor :attributes
 
     def initialize
-      @attributes = merge_defaults!({})
+      @attributes = resolve_defaults
     end
 
     # Expose one or more attributes within a block. Old values are returned after the block concludes.
@@ -213,20 +213,14 @@ module ActiveSupport
     # Reset all attributes. Should be called before and after actions, when used as a per-request singleton.
     def reset
       run_callbacks :reset do
-        self.attributes = merge_defaults!({})
+        self.attributes = resolve_defaults
       end
     end
 
     private
-      def merge_defaults!(attributes)
-        defaults.each_with_object(attributes) do |(name, default), values|
-          value =
-            case default
-            when Proc then default.call
-            else default.dup
-            end
-
-          values[name] = value
+      def resolve_defaults
+        defaults.transform_values do |value|
+          Proc === value ? value.call : value.dup
         end
       end
   end
