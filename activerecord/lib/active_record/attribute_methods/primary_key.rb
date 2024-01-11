@@ -152,6 +152,11 @@ module ActiveRecord
                 @attributes_builder = nil
               end
             end
+
+            def load_schema! # :nodoc:
+              super
+              alias_attribute :id_value, :id if @columns_hash.key?("id")
+            end
         end
     end
   end
