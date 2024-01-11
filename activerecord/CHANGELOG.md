@@ -1,11 +1,3 @@
-*   Handle records being loaded with Marshal without triggering schema load
-
-    When using the old marshalling format for Active Record and loading
-    a serialized instance, it didn't trigger loading the schema and defining
-    attribute methods.
-
-    *Jean Boussier*
-
 *   Fix `encrypted_attribute?` to take into account context properties passed to `encrypts`.
 
     *Maxime Réty*
