@@ -1031,7 +1031,7 @@ module ActionDispatch
         #       end
         #     end
         #
-        # An expected place for this code would be `lib/constraints`.
+        # An expected place for this code would be +app/constraints/iphone.rb+.
         #
         # This class is then used like this:
         #
