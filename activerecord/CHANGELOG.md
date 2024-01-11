@@ -2,7 +2,7 @@
 
     When preloading polymorphic associations, if two models pointed to two
     tables with the same name but located in different databases, the
-    preloader would only load one. 
+    preloader would only load one.
 
     *Ari Summer*
 
