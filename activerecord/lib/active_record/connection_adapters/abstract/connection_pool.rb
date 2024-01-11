@@ -43,6 +43,9 @@ module ActiveRecord
       def db_config
         NULL_CONFIG
       end
+      def query_cache_enabled
+        false
+      end
     end
 
     # = Active Record Connection Pool

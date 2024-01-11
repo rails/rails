@@ -650,6 +650,19 @@ class QueryCacheTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection_pool.lock_thread = false
   end
 
+  def test_writes_to_a_pool_and_connection_with_the_query_cache_disabled_do_not_clear_other_pools
+    middleware { |env|
+      assert_cache :clean
+      Post.first
+      assert_cache :dirty
+
+      Professor.connection_pool.disable_query_cache!
+      Professor.create!(name: "Plum")
+
+      assert_cache :dirty
+    }.call({})
+  end
+
   private
     def with_temporary_connection_pool(&block)
       pool_config = ActiveRecord::Base.connection.pool.pool_config

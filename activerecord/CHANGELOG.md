@@ -1,3 +1,7 @@
+*   Only clear the query cache if either the connection pool or the connection itself has the query cache enabled.
+
+    *Donal McBreen*
+
 *   Make `ActiveRecord::Encryption::Encryptor` agnostic of the serialization format used for encrypted data.
 
     Previously, the encryptor instance only allowed an encrypted value serialized as a `String` to be passed to the message serializer.
