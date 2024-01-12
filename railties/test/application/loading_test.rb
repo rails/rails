@@ -292,6 +292,46 @@ class LoadingTest < ActiveSupport::TestCase
     assert_equal "7", last_response.body
   end
 
+
+  test "routes reloading triggers after_routes_loaded" do
+    add_to_config <<-RUBY
+      config.enable_reloading = true
+    RUBY
+
+    app_file "config/routes.rb", <<-RUBY
+      $counter ||= 1
+      $counter  *= 2
+      Rails.application.routes.draw do
+        get '/c', to: lambda { |env| User.name; [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
+      end
+    RUBY
+
+    app_file "config/initializers/after_routes_loaded.rb", <<-RUBY
+      Rails.configuration.after_routes_loaded do
+        $counter *= 3
+      end
+    RUBY
+
+    app_file "app/models/user.rb", <<-MODEL
+      class User
+        $counter += 1
+      end
+    MODEL
+
+    require "rack/test"
+    extend Rack::Test::Methods
+
+    require "#{rails_root}/config/environment"
+
+    get "/c"
+    assert_equal "3", last_response.body
+
+    app_file "db/schema.rb", ""
+
+    get "/c"
+    assert_equal "19", last_response.body
+  end
+
   test "routes are only loaded once on boot" do
     add_to_config <<-RUBY
       config.enable_reloading = true
