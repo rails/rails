@@ -1,3 +1,7 @@
+*   Add `exclusion_constraint_exists?` and `unique_constraint_exists?` helpers
+
+    *fatkodima*
+
 *   Make `ActiveRecord::Encryption::Encryptor` agnostic of the serialization format used for encrypted data.
 
     Previously, the encryptor instance only allowed an encrypted value serialized as a `String` to be passed to the message serializer.

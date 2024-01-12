@@ -183,6 +183,15 @@ if ActiveRecord::Base.connection.supports_unique_constraints?
           end
         end
 
+        def test_unique_constraint_exists
+          @connection.add_unique_constraint :sections, :position, name: "unique_constraint"
+
+          assert @connection.unique_constraint_exists?(:sections, name: "unique_constraint")
+          assert_not @connection.unique_constraint_exists?(:non_sections, name: "unique_constraint")
+          assert_not @connection.unique_constraint_exists?(:sections, column: :non_position, name: "unique_constraint")
+          assert_not @connection.unique_constraint_exists?(:sections, name: "other_check")
+        end
+
         def test_remove_unique_constraint
           @connection.add_unique_constraint :sections, [:position], name: :unique_section_position
           assert_equal 1, @connection.unique_constraints("sections").size

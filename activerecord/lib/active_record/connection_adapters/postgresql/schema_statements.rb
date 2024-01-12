@@ -726,6 +726,17 @@ module ActiveRecord
           execute schema_creation.accept(at)
         end
 
+        # Checks to see if an exclusion constraint exists on a table for a given exclusion constraint definition.
+        #
+        #   exclusion_constraint_exists?(:invoices, name: "invoices_date_overlap")
+        #
+        def exclusion_constraint_exists?(table_name, **options)
+          if !options.key?(:name) && !options.key?(:expression)
+            raise ArgumentError, "At least one of :name or :expression must be supplied"
+          end
+          exclusion_constraint_for(table_name, **options).present?
+        end
+
         # Adds a new unique constraint to the table.
         #
         #   add_unique_constraint :sections, [:position], deferrable: :deferred, name: "unique_position"
@@ -779,6 +790,17 @@ module ActiveRecord
           at.drop_unique_constraint(unique_name_to_delete)
 
           execute schema_creation.accept(at)
+        end
+
+        # Checks to see if a unique constraint exists on a table for a given unique constraint definition.
+        #
+        #   unique_constraint_exists?(:sections, name: "unique_position")
+        #
+        def unique_constraint_exists?(table_name, **options)
+          if !options.key?(:name) && !options.key?(:expression)
+            raise ArgumentError, "At least one of :name or :expression must be supplied"
+          end
+          unique_constraint_for(table_name, **options).present?
         end
 
         # Maps logical Rails types to PostgreSQL-specific data types.
@@ -1042,7 +1064,7 @@ module ActiveRecord
 
           def exclusion_constraint_for(table_name, **options)
             excl_name = exclusion_constraint_name(table_name, **options)
-            exclusion_constraints(table_name).detect { |excl| excl.name == excl_name }
+            exclusion_constraints(table_name).detect { |excl| excl.defined_for?(name: excl_name, **options) }
           end
 
           def exclusion_constraint_for!(table_name, expression: nil, **options)
