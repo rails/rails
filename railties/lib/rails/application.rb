@@ -413,7 +413,7 @@ module Rails
       files, dirs = config.watchable_files.dup, config.watchable_dirs.dup
 
       Rails.autoloaders.main.dirs.each do |path|
-        dirs[path.to_s] = [:rb]
+        dirs[path] = [:rb]
       end
 
       [files, dirs]
