@@ -712,10 +712,12 @@ Rails
 
 ### deprecation.rails
 
-| Key          | Value                           |
-| ------------ | ------------------------------- |
-| `:message`   | The deprecation warning         |
-| `:callstack` | Where the deprecation came from |
+| Key                    | Value                                                 |
+| ---------------------- | ----------------------------------------------------- |
+| `:message`             | The deprecation warning                               |
+| `:callstack`           | Where the deprecation came from                       |
+| `:gem_name`            | Name of the gem reporting the deprecation             |
+| `:deprecation_horizon` | Version where the deprecated behavior will be removed |
 
 Exceptions
 ----------
