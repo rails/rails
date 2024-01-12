@@ -197,14 +197,12 @@ module ActiveRecord
       def dangerous_class_method?(method_name)
         return true if RESTRICTED_CLASS_METHODS.include?(method_name.to_s)
 
-        if Base.respond_to?(method_name, true)
-          if Object.respond_to?(method_name, true)
-            Base.method(method_name).owner != Object.method(method_name).owner
-          else
-            true
-          end
+        return false unless Base.respond_to?(method_name, true)
+
+        if Object.respond_to?(method_name, true)
+          Base.method(method_name).owner != Object.method(method_name).owner
         else
-          false
+          true
         end
       end
 
