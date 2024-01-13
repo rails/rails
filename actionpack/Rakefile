@@ -15,7 +15,6 @@ Rake::TestTask.new do |t|
   t.test_files = test_files
 
   t.warning = true
-  t.verbose = true
   t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
 end
 

@@ -44,7 +44,6 @@ namespace :test do
     t.test_files = FileList["test/cases/arel/**/*_test.rb"]
 
     t.warning = true
-    t.verbose = true
   end
 end
 
@@ -68,7 +67,6 @@ end
 
       t.test_files = files
       t.warning = true
-      t.verbose = true
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
 
@@ -79,7 +77,6 @@ end
           t.libs << "test"
           t.test_files = FileList["test/activejob/*_test.rb"]
           t.warning = true
-          t.verbose = true
           t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
         end
       end
@@ -185,7 +182,6 @@ end
           t.test_files = FileList["test/cases/encryption/performance/*_test.rb"]
 
           t.warning = true
-          t.verbose = true
           t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
         end
       end
