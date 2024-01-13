@@ -127,6 +127,12 @@ module MessagePackSharedSerializerTests
 
     test "roundtrips IPAddr" do
       assert_roundtrip IPAddr.new("127.0.0.1")
+      assert_roundtrip IPAddr.new("1.1.1.1/16")
+      assert_equal 16, load(dump(IPAddr.new("1.1.1.1/16"))).prefix
+
+      assert_roundtrip IPAddr.new("::1")
+      assert_roundtrip IPAddr.new("1:1:1:1:1:1:1:1/64")
+      assert_equal 64, load(dump(IPAddr.new("1:1:1:1:1:1:1:1/64"))).prefix
     end
 
     test "roundtrips Pathname" do
