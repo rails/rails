@@ -1,9 +1,14 @@
 # frozen_string_literal: true
 
+require "bundler/setup"
 require "net/http"
 
-$:.unshift __dir__
+$LOAD_PATH.unshift __dir__
+
 require "tasks/release"
+
+$LOAD_PATH.unshift(*FRAMEWORKS.map { |framework| File.join(__dir__, framework, "lib") })
+
 require "railties/lib/rails/api/task"
 
 desc "Build gem files for all projects"
