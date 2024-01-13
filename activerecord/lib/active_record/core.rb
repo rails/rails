@@ -73,7 +73,29 @@ module ActiveRecord
       end
       self.configurations = {}
 
-      # Returns a fully resolved ActiveRecord::DatabaseConfigurations object.
+      ##
+      # Contains the database configuration - as is typically stored in
+      # config/database.yml - as an ActiveRecord::DatabaseConfigurations
+      # object.
+      #
+      # For example, the following database.yml...
+      #
+      #   development:
+      #     adapter: sqlite3
+      #     database: storage/development.sqlite3
+      #
+      #   production:
+      #     adapter: sqlite3
+      #     database: storage/production.sqlite3
+      #
+      # ...would result in ActiveRecord::Base.configurations to look like this:
+      #
+      #   #<ActiveRecord::DatabaseConfigurations:0x00007fd1acbdf800 @configurations=[
+      #     #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10 @env_name="development",
+      #       @name="primary", @config={adapter: "sqlite3", database: "storage/development.sqlite3"}>,
+      #     #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbdea90 @env_name="production",
+      #       @name="primary", @config={adapter: "sqlite3", database: "storage/production.sqlite3"}>
+      #   ]>
       def self.configurations
         @@configurations
       end
