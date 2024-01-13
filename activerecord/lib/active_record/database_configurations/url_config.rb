@@ -44,6 +44,13 @@ module ActiveRecord
         @configuration_hash = @configuration_hash.merge(build_url_hash).freeze
       end
 
+      def schema_dump(format = ActiveRecord.schema_format)
+        schema_dump_config = super(format)
+        return nil if schema_dump_config == "false"
+
+        schema_dump_config
+      end
+
       private
         # Return a Hash that can be merged into the main config that represents
         # the passed in url
