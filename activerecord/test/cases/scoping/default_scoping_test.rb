@@ -99,7 +99,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_default_scope_runs_on_create
     Mentor.create!
-    create_sql = capture_sql { DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen") }.second
+    create_sql = capture_sql { DeveloperWithDefaultMentorScopeNot.create!(name: "Eileen") }.second
 
     assert_match(/mentor_id/, create_sql)
   end
@@ -119,8 +119,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_default_scope_runs_on_select
     Mentor.create!
-    DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen")
-    select_sql = capture_sql { DeveloperwithDefaultMentorScopeNot.find_by(name: "Eileen") }.first
+    DeveloperWithDefaultMentorScopeNot.create!(name: "Eileen")
+    select_sql = capture_sql { DeveloperWithDefaultMentorScopeNot.find_by(name: "Eileen") }.first
 
     assert_match(/mentor_id/, select_sql)
   end
@@ -142,7 +142,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_default_scope_doesnt_run_on_update
     Mentor.create!
-    dev = DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen")
+    dev = DeveloperWithDefaultMentorScopeNot.create!(name: "Eileen")
     update_sql = capture_sql { dev.update!(name: "Not Eileen") }.first
 
     assert_no_match(/mentor_id/, update_sql)
@@ -163,9 +163,37 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_no_match(/AND$/, update_sql)
   end
 
+  def test_scoping_with_where_without_all_queries_and_default_scopes_with_and_without_all_queries_on_update
+    Mentor.create!
+    dev = DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries.create!(name: "Josh")
+    DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries
+      .where("1=1")
+      .scoping do
+        reload_sql = capture_sql { dev.update!(name: "Not Josh") }.first
+
+        assert_no_match(/1=1/, reload_sql)
+        assert_no_match(/mentor_id/, reload_sql)
+        assert_match(/firm_id/, reload_sql)
+      end
+  end
+
+  def test_scoping_with_where_with_all_queries_true_and_default_scopes_with_and_without_all_queries_on_update
+    Mentor.create!
+    dev = DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries.create!(name: "Josh")
+    DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries
+      .where("1=1")
+      .scoping(all_queries: true) do
+        reload_sql = capture_sql { dev.update!(name: "Not Josh") }.first
+
+        assert_match(/1=1/, reload_sql)
+        assert_no_match(/mentor_id/, reload_sql)
+        assert_match(/firm_id/, reload_sql)
+      end
+  end
+
   def test_default_scope_doesnt_run_on_update_columns
     Mentor.create!
-    dev = DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen")
+    dev = DeveloperWithDefaultMentorScopeNot.create!(name: "Eileen")
     update_sql = capture_sql { dev.update_columns(name: "Not Eileen") }.first
 
     assert_no_match(/mentor_id/, update_sql)
@@ -188,7 +216,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_default_scope_doesnt_run_on_destroy
     Mentor.create!
-    dev = DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen")
+    dev = DeveloperWithDefaultMentorScopeNot.create!(name: "Eileen")
     destroy_sql = capture_sql { dev.destroy }.first
 
     assert_no_match(/mentor_id/, destroy_sql)
@@ -209,9 +237,37 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_no_match(/AND$/, destroy_sql)
   end
 
+  def test_scoping_with_where_without_all_queries_and_default_scopes_with_and_without_all_queries_on_destroy
+    Mentor.create!
+    dev = DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries.create!(name: "Josh")
+    DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries
+      .where("1=1")
+      .scoping do
+        reload_sql = capture_sql { dev.destroy! }.first
+
+        assert_no_match(/1=1/, reload_sql)
+        assert_no_match(/mentor_id/, reload_sql)
+        assert_match(/firm_id/, reload_sql)
+      end
+  end
+
+  def test_scoping_with_where_with_all_queries_true_and_default_scopes_with_and_without_all_queries_on_destroy
+    Mentor.create!
+    dev = DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries.create!(name: "Josh")
+    DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries
+      .where("1=1")
+      .scoping(all_queries: true) do
+        reload_sql = capture_sql { dev.destroy! }.first
+
+        assert_match(/1=1/, reload_sql)
+        assert_no_match(/mentor_id/, reload_sql)
+        assert_match(/firm_id/, reload_sql)
+      end
+  end
+
   def test_default_scope_doesnt_run_on_reload
     Mentor.create!
-    dev = DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen")
+    dev = DeveloperWithDefaultMentorScopeNot.create!(name: "Eileen")
     reload_sql = capture_sql { dev.reload }.first
 
     assert_no_match(/mentor_id/, reload_sql)
@@ -232,6 +288,34 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
     assert_no_match(/mentor_id/, reload_sql)
     assert_match(/firm_id/, reload_sql)
+  end
+
+  def test_scoping_with_where_without_all_queries_and_default_scopes_with_and_without_all_queries_on_reload
+    Mentor.create!
+    dev = DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries.create!(name: "Josh")
+    DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries
+      .where("1=1")
+      .scoping do
+        reload_sql = capture_sql { dev.reload }.first
+
+        assert_no_match(/1=1/, reload_sql)
+        assert_no_match(/mentor_id/, reload_sql)
+        assert_match(/firm_id/, reload_sql)
+      end
+  end
+
+  def test_scoping_with_where_with_all_queries_true_and_default_scopes_with_and_without_all_queries_on_reload
+    Mentor.create!
+    dev = DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries.create!(name: "Josh")
+    DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries
+      .where("1=1")
+      .scoping(all_queries: true) do
+        reload_sql = capture_sql { dev.reload }.first
+
+        assert_match(/1=1/, reload_sql)
+        assert_no_match(/mentor_id/, reload_sql)
+        assert_match(/firm_id/, reload_sql)
+      end
   end
 
   def test_nilable_default_scope_with_all_queries_runs_on_reload

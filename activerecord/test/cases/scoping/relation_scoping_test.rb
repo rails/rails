@@ -426,22 +426,6 @@ class RelationScopingTest < ActiveRecord::TestCase
       assert_no_match(/owned_essay_id/, third_select_sql)
     end
   end
-
-  def test_raises_error_if_all_queries_is_set_to_false_while_nested
-    Author.all.limit(5).update_all(organization_id: 1)
-
-    Author.where(organization_id: 1).scoping(all_queries: true) do
-      select_sql = capture_sql { Author.first }.first
-      assert_match(/organization_id/, select_sql)
-
-      error = assert_raises ArgumentError do
-        Author.where(organization_id: 1).scoping(all_queries: false) { }
-      end
-
-      assert_equal "Scoping is set to apply to all queries and cannot be " \
-       "unset in a nested block.", error.message
-    end
-  end
 end
 
 class NestedRelationScopingTest < ActiveRecord::TestCase
@@ -516,6 +500,22 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
 
     assert_equal 1, comment.post_id
     assert_equal "Hey guys", comment.body
+  end
+
+  def test_raises_error_if_all_queries_is_set_to_false_while_nested
+    Author.all.limit(5).update_all(organization_id: 1)
+
+    Author.where(organization_id: 1).scoping(all_queries: true) do
+      select_sql = capture_sql { Author.first }.first
+      assert_match(/organization_id/, select_sql)
+
+      error = assert_raises ArgumentError do
+        Author.where(organization_id: 1).scoping(all_queries: false) { }
+      end
+
+      assert_equal "Scoping is set to apply to all queries and cannot be " \
+       "unset in a nested block.", error.message
+    end
   end
 end
 

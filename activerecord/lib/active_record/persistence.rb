@@ -600,7 +600,7 @@ module ActiveRecord
         constraints << default_constraint if default_constraint
 
         if current_scope = self.global_current_scope
-          constraints << current_scope.where_clause.ast
+          constraints << (current_scope.where_clause - default_scoped.where_clause).ast
         end
 
         um = Arel::UpdateManager.new(arel_table)
@@ -617,7 +617,7 @@ module ActiveRecord
         constraints << default_constraint if default_constraint
 
         if current_scope = self.global_current_scope
-          constraints << current_scope.where_clause.ast
+          constraints << (current_scope.where_clause - default_scoped.where_clause).ast
         end
 
         dm = Arel::DeleteManager.new(arel_table)
@@ -1072,7 +1072,11 @@ module ActiveRecord
       self.class.connection.clear_query_cache
 
       fresh_object = if apply_scoping?(options)
-        _find_record((options || {}).merge(all_queries: true))
+        base = self.class.unscoped
+        current_scope = self.class.global_current_scope || base
+        scoping_constraint = build_reload_scoping_constraint(current_scope)
+        base = base.where(scoping_constraint) if scoping_constraint
+        base.scoping { _find_record(options) }
       else
         self.class.unscoped { _find_record(options) }
       end
@@ -1175,6 +1179,13 @@ module ActiveRecord
     def apply_scoping?(options)
       !(options && options[:unscoped]) &&
         (self.class.default_scopes?(all_queries: true) || self.class.global_current_scope)
+    end
+
+    def build_reload_scoping_constraint(current_scope)
+      default_scope_clause = self.class.default_scoped(all_queries: true).where_clause
+      default_scopes_to_unscope_clause = self.class.default_scoped.where_clause
+      reload_clause = (current_scope.where_clause - default_scopes_to_unscope_clause) + default_scope_clause
+      reload_clause.ast unless reload_clause.empty?
     end
 
     def _query_constraints_hash
