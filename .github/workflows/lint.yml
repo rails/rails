@@ -26,11 +26,6 @@ jobs:
     - name: mdl
       run: bundle exec rake -f guides/Rakefile guides:lint
 
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.10"
-
     - run: tools/railspect changelogs .
     - run: tools/railspect configuration .
 
