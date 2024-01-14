@@ -10,7 +10,7 @@
 
     *Mark Oleson*
 
-*   Fix `Time.now/DateTime.now/Date.today' to return results in a system timezone after `#travel_to'.
+*   Fix `Time.now/DateTime.now/Date.today` to return results in a system timezone after `#travel_to`.
 
     There is a bug in the current implementation of #travel_to:
     it remembers a timezone of its argument, and all stubbed methods start
