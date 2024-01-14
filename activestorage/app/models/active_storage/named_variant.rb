@@ -9,13 +9,24 @@ class ActiveStorage::NamedVariant # :nodoc:
   end
 
   def preprocessed?(record)
-    case preprocessed
+    callable_value(record, preprocessed)
+  end
+
+  def transformations_for(record)
+    callable = method(:callable_value).curry.call(record)
+    transformations.transform_values(&callable)
+  end
+
+  private
+
+  def callable_value(record, method_or_value)
+    case method_or_value
     when Symbol
-      record.send(preprocessed)
+      record.send(method_or_value)
     when Proc
-      preprocessed.call(record)
+      method_or_value.call(record)
     else
-      preprocessed
+      method_or_value
     end
   end
 end
