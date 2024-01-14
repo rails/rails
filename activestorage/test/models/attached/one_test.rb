@@ -806,6 +806,21 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_equal 67, image.height
   end
 
+  test "creating variation with dynamic variation" do
+    john = User.create!(name: "John")
+
+    assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
+      @user.avatar_with_dynamic.attach fixture_file_upload("racecar.jpg")
+      john.avatar_with_dynamic.attach fixture_file_upload("racecar.jpg")
+    end
+
+    josh_variation = @user.avatar_with_dynamic.variant(:thumb).variation
+    john_variation = john.avatar_with_dynamic.variant(:thumb).variation
+
+    assert_equal({ format: "jpg", resize_to_limit: [100, 100] }, josh_variation.transformations)
+    assert_equal({ format: "jpg", resize_to_limit: [200, 200] }, john_variation.transformations)
+  end
+
   test "raises error when unknown variant name is used to generate variant" do
     @user.avatar_with_variants.attach fixture_file_upload("racecar.jpg")
 
