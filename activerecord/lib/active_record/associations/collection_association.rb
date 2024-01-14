@@ -266,7 +266,9 @@ module ActiveRecord
       end
 
       def load_target
-        if find_target?
+        if @future_result_scope
+          @target = @future_result_scope.records
+        elsif find_target?
           @target = merge_target_lists(find_target, target)
         end
 

@@ -33,7 +33,7 @@ module ActiveRecord
     # <tt>owner</tt>, the collection of its posts as <tt>target</tt>, and
     # the <tt>reflection</tt> object represents a <tt>:has_many</tt> macro.
     class Association # :nodoc:
-      attr_reader :owner, :target, :reflection, :disable_joins
+      attr_reader :owner, :target, :reflection, :disable_joins, :future_result_scope
 
       delegate :options, to: :reflection
 
@@ -110,6 +110,7 @@ module ActiveRecord
 
       def reset_scope
         @association_scope = nil
+        @future_result_scope = nil
       end
 
       # Set the inverse association, if possible
@@ -177,6 +178,12 @@ module ActiveRecord
         target
       rescue ActiveRecord::RecordNotFound
         reset
+      end
+
+      def load_target_async
+        @future_result_scope = scope.load_async
+        @loaded = @future_result_scope.loaded?
+        @future_result_scope
       end
 
       # We can't dump @reflection and @through_reflection since it contains the scope proc
