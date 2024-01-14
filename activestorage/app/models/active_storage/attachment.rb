@@ -195,7 +195,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
       named_variants.each do |_variant_name, named_variant|
         next unless named_variant.process(record) == :immediately
 
-        blob.variant(named_variant.transformations).process_from_io(io)
+        blob.variant(named_variant.transformations_for(record)).process_from_io(io)
         io.rewind if io.respond_to?(:rewind)
       end
 
@@ -212,9 +212,9 @@ class ActiveStorage::Attachment < ActiveStorage::Record
         case named_variant.process(record)
         when :immediately
           # Skip if already processed from local io in uploaded()
-          immediate_variants << named_variant.transformations unless immediate_variants_processed
+          immediate_variants << named_variant.transformations_for(record) unless immediate_variants_processed
         when :later
-          later_variants << named_variant.transformations
+          later_variants << named_variant.transformations_for(record)
         end
       end
 
@@ -245,7 +245,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
         named_variants.fetch(variant_name) do
           record_model_name = record.to_model.model_name.name
           raise ArgumentError, "Cannot find variant :#{variant_name} for #{record_model_name}##{name}"
-        end.transformations
+        end.transformations_for(record)
       else
         transformations
       end
