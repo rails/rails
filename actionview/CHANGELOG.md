@@ -1,3 +1,7 @@
+*   Fix `word_wrap` with empty string.
+
+    *Jonathan Hefner*
+
 *   Rename `ActionView::TestCase::Behavior::Content` to `ActionView::TestCase::Behavior::RenderedViewContent`
 
     Make `RenderedViewContent` inherit from `String`. Make private API with `:nodoc:`

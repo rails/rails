@@ -1,4 +1,20 @@
-*   Fix multi-database polymorphic preloading with equivalent table names
+*   Fix view runtime for controllers with async queries.
+
+    *fatkodima*
+
+*   Fix `load_async` to work with query cache.
+
+    *fatkodima*
+
+*   Fix polymorphic `belongs_to` to correctly use parent's `query_constraints`.
+
+    *fatkodima*
+
+*   Fix `Preloader` to not generate a query for already loaded association with `query_constraints`.
+
+    *fatkodima*
+
+*   Fix multi-database polymorphic preloading with equivalent table names.
 
     When preloading polymorphic associations, if two models pointed to two
     tables with the same name but located in different databases, the
@@ -10,22 +26,22 @@
 
     *Maxime Réty*
 
-*   Fix `find_by` to work correctly in presence of composite primary keys
+*   Fix `find_by` to work correctly in presence of composite primary keys.
 
     *fatkodima*
 
-*   Fix logging of time spent in Active Record being incorrect
+*   Fix logging of time spent in Active Record being incorrect.
 
     *fatkodima*
 
-*   Fix async queries sometimes returning a raw result if they hit the query cache
+*   Fix async queries sometimes returning a raw result if they hit the query cache.
 
     `ShipPart.async_count` could return a raw integer rather than a Promise
     if it found the result in the query cache.
 
     *fatkodima*
 
-*   Fix `Relation#transaction` to not apply a default scope
+*   Fix `Relation#transaction` to not apply a default scope.
 
     The method was incorrectly setting a default scope around its block:
 

@@ -28,6 +28,7 @@
 
     *Jean Boussier*, *fatkodima*
 
+
 ## Rails 7.1.2 (November 10, 2023) ##
 
 *   Fix `:expires_in` option for `RedisCacheStore#write_multi`.
