@@ -1,3 +1,12 @@
+*   Make `schema_dump`, `query_cache`, `replica` and `database_tasks` configurable via `DATABASE_URL`
+
+    This wouldn't always work previously because boolean values would be interpreted as strings.
+
+    e.g. `DATABASE_URL=postgres://localhost/foo?schema_dump=false` now properly disable dumping the schema
+    cache.
+
+    *Mike Coutermarsh*, *Jean Boussier*
+
 *   Introduce `ActiveRecord::Transactions::ClassMethods#set_callback`
 
      It is identical to `ActiveSupport::Callbacks::ClassMethods#set_callback`
