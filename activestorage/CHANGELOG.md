@@ -1,3 +1,7 @@
+*   Add ability to define named variant transformations dynamically.
+
+    *Carlos Palhares*
+
 *   Forward other options from `has_one_attached` and `has_many_attached` to the attachment association.
 
     ```ruby
