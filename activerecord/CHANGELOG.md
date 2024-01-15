@@ -1,3 +1,12 @@
+*   Support PostgreSQL DISTINCT ON queries
+
+    ```ruby
+    User.distinct_on(:name)
+    #=> SQL SELECT DISTINCT ON (name) * FROM users
+    ```
+
+    *Ali Ismayilov*
+
 *   Introduce `ActiveRecord::Transactions::ClassMethods#set_callback`
 
      It is identical to `ActiveSupport::Callbacks::ClassMethods#set_callback`
