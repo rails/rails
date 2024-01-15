@@ -1,3 +1,8 @@
+*   Fix Migrations with versions older than 7.1 validating options given to
+    `add_reference`.
+
+    *Hartley McGuire*
+
 *   Ensure `reload` sets correct owner for each association.
 
     *Dmytro Savochkin*

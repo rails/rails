@@ -61,8 +61,10 @@ module ActiveRecord
               column_name.is_a?(String) && /\W/.match?(column_name)
             end
         end
+
         module TableDefinition
           include LegacyIndexName
+
           def column(name, type, **options)
             options[:_skip_validate_options] = true
             super
@@ -94,6 +96,12 @@ module ActiveRecord
           options[:name] = legacy_index_name(table_name, column_name) if options[:name].nil?
           super
         end
+
+        def add_reference(table_name, ref_name, **options)
+          options[:_skip_validate_options] = true
+          super
+        end
+        alias :add_belongs_to :add_reference
 
         def create_table(table_name, **options)
           options[:_uses_legacy_table_name] = true
