@@ -122,6 +122,36 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     end
   end
 
+  def find_keys_for_representation(filename)
+    user = User.create!(name: "Justin")
+
+    10.times do
+      blob = directly_upload_file_blob(filename: filename)
+      user.highlights_with_variants.attach(blob)
+    end
+
+    # Force the processing
+    user.highlights_with_variants.each do |highlight|
+      highlight.representation(:thumb).processed.key
+    end
+
+    highlights = User.with_attached_highlights_with_variants.find_by(name: "Justin").highlights_with_variants.to_a
+
+    assert_queries_count(0) do
+      highlights.each do |highlight|
+        highlight.representation(:thumb).key
+      end
+    end
+  end
+
+  def test_with_attached_image_variant_no_n_plus_1
+    find_keys_for_representation "racecar.jpg"
+  end
+
+  def test_with_attached_video_variant_no_n_plus_1
+    find_keys_for_representation "video.mp4"
+  end
+
   test "eager loading has_many_attached records" do
     user = User.create!(name: "Josh")
 
