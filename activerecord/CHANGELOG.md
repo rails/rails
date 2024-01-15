@@ -1,3 +1,7 @@
+*   Ensure `reload`` sets correct owner for each association.
+
+    *Dmytro Savochkin*
+
 *   Fix view runtime for controllers with async queries.
 
     *fatkodima*
