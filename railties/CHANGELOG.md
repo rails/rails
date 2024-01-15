@@ -1,3 +1,7 @@
+*   Make sure `config.after_routes_loaded` hook runs on boot.
+
+    *Rafael Mendonça França*
+
 *   Fix `config.log_level` not being respected when using a `BroadcastLogger`
 
     *Édouard Chin*
