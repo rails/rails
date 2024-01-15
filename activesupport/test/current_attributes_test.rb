@@ -11,6 +11,8 @@ class CurrentAttributesTest < ActiveSupport::TestCase
   Person = Struct.new(:id, :name, :time_zone)
 
   class Current < ActiveSupport::CurrentAttributes
+    attribute :counter_integer, default: 0
+    attribute :counter_callable, default: -> { 0 }
     attribute :world, :account, :person, :request
     delegate :time_zone, to: :person
 
@@ -86,6 +88,30 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     assert_equal "world/1", Current.world
   end
 
+  test "read and write attribute with default value" do
+    assert_equal 0, Current.counter_integer
+
+    Current.counter_integer += 1
+
+    assert_equal 1, Current.counter_integer
+
+    Current.reset
+
+    assert_equal 0, Current.counter_integer
+  end
+
+  test "read attribute with default callable" do
+    assert_equal 0, Current.counter_callable
+
+    Current.counter_callable += 1
+
+    assert_equal 1, Current.counter_callable
+
+    Current.reset
+
+    assert_equal 0, Current.counter_callable
+  end
+
   test "read overwritten attribute method" do
     Current.request = "request/1"
     assert_equal "request/1 something", Current.request
@@ -144,6 +170,12 @@ class CurrentAttributesTest < ActiveSupport::TestCase
 
     assert_equal "world/1", Current.world
     assert_equal "account/1", Current.account
+
+    hash = { world: "world/2", account: "account/2" }
+    Current.set(hash) do
+      assert_equal "world/2", Current.world
+      assert_equal "account/2", Current.account
+    end
   end
 
   test "using keyword arguments" do
@@ -180,6 +212,13 @@ class CurrentAttributesTest < ActiveSupport::TestCase
 
   test "respond_to? for methods that have not been called" do
     assert_equal true, Current.respond_to?("respond_to_test")
+  end
+
+  test "CurrentAttributes defaults do not leak between classes" do
+    Class.new(ActiveSupport::CurrentAttributes) { attribute :counter_integer, default: 100 }
+    Current.reset
+
+    assert_equal 0, Current.counter_integer
   end
 
   test "CurrentAttributes use fiber-local variables" do

@@ -73,7 +73,7 @@ module ActiveRecord
       end
       self.configurations = {}
 
-      # Returns fully resolved ActiveRecord::DatabaseConfigurations object
+      # Returns a fully resolved ActiveRecord::DatabaseConfigurations object.
       def self.configurations
         @@configurations
       end
@@ -569,6 +569,10 @@ module ActiveRecord
     # Returns a hash of the given methods with their names as keys and returned
     # values as values.
     #
+    #   topic = Topic.new(title: "Budget", author_name: "Jason")
+    #   topic.slice(:title, :author_name)
+    #   => { "title" => "Budget", "author_name" => "Jason" }
+    #
     #--
     # Implemented by ActiveModel::Access#slice.
 
@@ -578,6 +582,10 @@ module ActiveRecord
     # :call-seq: values_at(*methods)
     #
     # Returns an array of the values returned by the given methods.
+    #
+    #   topic = Topic.new(title: "Budget", author_name: "Jason")
+    #   topic.values_at(:title, :author_name)
+    #   => ["Budget", "Jason"]
     #
     #--
     # Implemented by ActiveModel::Access#values_at.
@@ -697,6 +705,10 @@ module ActiveRecord
     end
 
     # Marks this record as read only.
+    #
+    #   customer = Customer.first
+    #   customer.readonly!
+    #   customer.save # Raises an ActiveRecord::ReadOnlyRecord
     def readonly!
       @readonly = true
     end

@@ -857,6 +857,8 @@ By default, system tests are run with the Selenium driver, using the Chrome
 browser, and a screen size of 1400x1400. The next section explains how to
 change the default settings.
 
+By default, Rails will attempt to rescue from exceptions raised during tests and respond with HTML error pages. This behavior can be controlled by the [`config.action_dispatch.show_exceptions`](/configuring.html#config-action-dispatch-show-exceptions) configuration.
+
 ### Changing the Default Settings
 
 Rails makes changing the default settings for system tests very simple. All
@@ -1112,6 +1114,8 @@ end
 
 Here the test is inheriting from `ActionDispatch::IntegrationTest`. This makes some additional helpers available for us to use in our integration tests.
 
+By default, Rails will attempt to rescue from exceptions raised during tests and respond with HTML error pages. This behavior can be controlled by the [`config.action_dispatch.show_exceptions`](/configuring.html#config-action-dispatch-show-exceptions) configuration.
+
 ### Helpers Available for Integration Tests
 
 In addition to the standard testing helpers, inheriting from `ActionDispatch::IntegrationTest` comes with some additional helpers available when writing integration tests. Let's get briefly introduced to the three categories of helpers we get to choose from.
@@ -1310,6 +1314,8 @@ NOTE: If you followed the steps in the [Basic Authentication](getting_started.ht
 ```ruby
 post articles_url, params: { article: { body: "Rails is awesome!", title: "Hello Rails" } }, headers: { Authorization: ActionController::HttpAuthentication::Basic.encode_credentials("dhh", "secret") }
 ```
+
+By default, Rails will attempt to rescue from exceptions raised during tests and respond with HTML error pages. This behavior can be controlled by the [`config.action_dispatch.show_exceptions`](/configuring.html#config-action-dispatch-show-exceptions) configuration.
 
 ### Available Request Types for Functional Tests
 

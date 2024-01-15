@@ -365,6 +365,8 @@ module ActiveModel
           super
           base.class_eval do
             @attribute_method_patterns_cache = nil
+            @aliases_by_attribute_name = nil
+            @generated_attribute_methods = nil
           end
         end
 

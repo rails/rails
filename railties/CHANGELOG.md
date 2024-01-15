@@ -1,3 +1,11 @@
+*   Prevent unnecessary application reloads in development.
+
+    Previously, some files outside autoload paths triggered unnecessary reloads.
+    With this fix, application reloads according to `Rails.autoloaders.main.dirs`,
+    thereby preventing unnecessary reloads.
+
+    *Takumasa Ochi*
+
 *   Use `oven-sh/setup-bun` in GitHub CI when generating an app with bun
 
     *TangRufus*

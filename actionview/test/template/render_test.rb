@@ -293,8 +293,32 @@ module RenderTestCases
   end
 
   def test_render_partial_with_incompatible_object
-    e = assert_raises(ArgumentError) { @view.render(partial: nil) }
-    assert_equal "'#{nil.inspect}' is not an ActiveModel-compatible object. It must implement :to_partial_path.", e.message
+    assert_raises ArgumentError, match: "'#{nil.inspect}' is not an ActiveModel-compatible object. It must implement #to_partial_path." do
+      @view.render(partial: nil)
+    end
+  end
+
+  def test_render_renderable_with_nil
+    assert_raises ArgumentError, match: "'#{nil.inspect}' is not a renderable object. It must implement #render_in." do
+      @view.render renderable: nil
+    end
+  end
+
+  def test_render_renderable_with_incompatible_object
+    object = Object.new
+
+    assert_raises ArgumentError, match: "'#{object.inspect}' is not a renderable object. It must implement #render_in." do
+      @view.render renderable: object
+    end
+  end
+
+  def test_render_renderable_does_not_mask_nomethoderror_from_within_render_in
+    renderable = Object.new
+    renderable.define_singleton_method(:render_in) { |*| nil.render_in }
+
+    assert_raises NoMethodError, match: "undefined method `render_in' for nil" do
+      @view.render renderable: renderable
+    end
   end
 
   def test_render_partial_starting_with_a_capital

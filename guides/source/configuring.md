@@ -1481,8 +1481,12 @@ queries can be executed concurrently.
 
 Defaults to `4`.
 
-This number must be considered in accordance with the database pool size configured in `database.yml`. The connection pool
-should be large enough to accommodate both the foreground threads (.e.g web server or job worker threads) and background threads.
+This number must be considered in accordance with the database connection pool size configured in `database.yml`. The connection pool
+should be large enough to accommodate both the foreground threads (ie. web server or job worker threads) and background threads.
+
+For each process, Rails will create one global query executor that uses this many threads to process async queries. Thus, the pool size
+should be at least `thread_count + global_executor_concurrency + 1`. For example, if your web server has a maximum of 3 threads,
+and `global_executor_concurrency` is set to 4, then your pool size should be at least 8.
 
 #### `config.active_record.allow_deprecated_singular_associations_name`
 
@@ -2019,6 +2023,25 @@ The default value depends on the `config.load_defaults` target version:
 
 Enables logging those unhandled exceptions configured in `rescue_responses`. It
 defaults to `true`.
+
+#### `config.action_dispatch.show_exceptions`
+
+The `config.action_dispatch.show_exceptions` configuration controls how Action Pack (specifically the [`ActionDispatch::ShowExceptions`](/configuring.html#actiondispatch-showexceptions) middleware) handles exceptions raised while responding to requests.
+
+Setting the value to `:all` or `true` configures Action Pack to rescue from exceptions and render corresponding error pages. For example, Action Pack would rescue from an `ActiveRecord::RecordNotFound` exception and render the contents of `public/404.html` with a `404 Not found` status code.
+
+Setting the value to `:rescueable` configures Action Pack rescue from exceptions defined in [`config.action_dispatch.rescue_responses`](/configuring.html#config-action-dispatch-rescue-responses), and raise all others. For example, Action Pack would rescue from `ActiveRecord::RecordNotFound`, but would raise a `NoMethodError`.
+
+Setting the value to `:none` or `false` configures Action Pack raise all exceptions.
+
+* `:all`, `true` - render error pages for all exceptions
+* `:rescuable` - render error pages for exceptions declared by [`config.action_dispatch.rescue_responses`](/configuring.html#config-action-dispatch-rescue-responses)
+* `:none`, `false` - raise all exceptions
+
+| Starting with version | The default value is  |
+| --------------------- | --------------------- |
+| (original)            | `true`                |
+| 7.1                   | `:all`                |
 
 #### `ActionDispatch::Callbacks.before`
 

@@ -32,19 +32,13 @@ PATH
       activerecord (= 7.2.0.alpha)
       activestorage (= 7.2.0.alpha)
       activesupport (= 7.2.0.alpha)
-      mail (>= 2.7.1)
-      net-imap
-      net-pop
-      net-smtp
+      mail (>= 2.8.0)
     actionmailer (7.2.0.alpha)
       actionpack (= 7.2.0.alpha)
       actionview (= 7.2.0.alpha)
       activejob (= 7.2.0.alpha)
       activesupport (= 7.2.0.alpha)
-      mail (~> 2.5, >= 2.5.4)
-      net-imap
-      net-pop
-      net-smtp
+      mail (>= 2.8.0)
       rails-dom-testing (~> 2.2)
     actionpack (7.2.0.alpha)
       actionview (= 7.2.0.alpha)
@@ -333,7 +327,7 @@ GEM
     mini_magick (4.12.0)
     mini_mime (1.1.5)
     mini_portile2 (2.8.5)
-    minitest (5.20.0)
+    minitest (5.21.1)
     minitest-bisect (1.7.0)
       minitest-server (~> 1.0)
       path_expander (~> 1.1)
@@ -677,4 +671,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   2.3.22
+   2.5.4

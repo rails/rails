@@ -1305,7 +1305,7 @@ Active Record provides the [`readonly`][] method on a relation to explicitly dis
 ```ruby
 customer = Customer.readonly.first
 customer.visits += 1
-customer.save
+customer.save # Raises an ActiveRecord::ReadOnlyRecord
 ```
 
 As `customer` is explicitly set to be a readonly object, the above code will raise an `ActiveRecord::ReadOnlyRecord` exception when calling `customer.save` with an updated value of _visits_.
