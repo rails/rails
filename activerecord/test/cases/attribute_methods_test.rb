@@ -37,6 +37,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       self.table_name = "topics"
     end
 
+    new_topic_model.define_attribute_methods
     assert_includes new_topic_model.attribute_names, "id"
     assert_includes new_topic_model.attribute_aliases, "id_value"
   end
