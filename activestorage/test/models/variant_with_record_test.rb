@@ -105,11 +105,12 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     users.reset
 
     assert_no_difference -> { ActiveStorage::VariantRecord.count } do
-      assert_queries_count(5) do
+      assert_queries_count(6) do
         # 5 queries:
         # attachment (cover photos) x 1
         # blob for the cover photo x 1
         # variant record x 1
+        # preview_image_attachments for non-images
         # attachment x 1
         # variant record x 1
         users.with_attached_cover_photo.each do |u|
@@ -248,12 +249,13 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     user.reload
 
     assert_no_difference -> { ActiveStorage::VariantRecord.count } do
-      assert_queries_count(6) do
-        # 6 queries:
+      assert_queries_count(7) do
+        # 7 queries:
         # user x 1
         # attachments (vlogs) x 1
         # blobs for the vlogs x 1
         # variant records for the blobs x 1
+        # preview_image_attachments for non-images
         # attachments for the variant records x 1
         # blobs for the attachments for the variant records x 1
         User.where(id: user.id).with_attached_vlogs.each do |u|
