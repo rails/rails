@@ -1,3 +1,7 @@
+*   Add `<role>_types` class method to `ActiveRecord::DelegatedType` so that the delegated types can be instrospected
+
+    *JP Rosevear*
+
 *   Make `schema_dump`, `query_cache`, `replica` and `database_tasks` configurable via `DATABASE_URL`
 
     This wouldn't always work previously because boolean values would be interpreted as strings.
