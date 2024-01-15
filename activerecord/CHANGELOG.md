@@ -1,4 +1,4 @@
-*   Ensure `reload`` sets correct owner for each association.
+*   Ensure `reload` sets correct owner for each association.
 
     *Dmytro Savochkin*
 
