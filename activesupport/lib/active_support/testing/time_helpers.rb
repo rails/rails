@@ -162,8 +162,12 @@ module ActiveSupport
           now = date_or_time.to_time.change(usec: 0)
         end
 
+        # +now+ must be in local system timezone, because +now.to_date+ (see stubs below) will use +now+'s timezone!
+        now = now.getlocal
+
         stubbed_time = Time.now if simple_stubs.stubbing(Time, :now)
         simple_stubs.stub_object(Time, :now) { at(now.to_i) }
+        # FIXME: Time.new (without args) must also be stubbed, because it should be equivalent to Time.now
         simple_stubs.stub_object(Date, :today) { jd(now.to_date.jd) }
         simple_stubs.stub_object(DateTime, :now) { jd(now.to_date.jd, now.hour, now.min, now.sec, Rational(now.utc_offset, 86400)) }
 
