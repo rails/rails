@@ -1,3 +1,7 @@
+*   Add ability to define named variant transformations dynamically.
+
+    *Carlos Palhares*
+
 *   Preserve committed proxy responses when a storage error interrupts a
     streamed download.
 
