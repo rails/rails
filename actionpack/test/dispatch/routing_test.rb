@@ -4054,7 +4054,7 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
         get "/foo/bar", to: "foo"
       end
     }
-    assert_match(/:to must respond_to/, ex.message)
+    assert_match(/:to must respond to/, ex.message)
   end
 
   def test_to_is_a_symbol
@@ -4063,7 +4063,7 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
         get "/foo/bar", to: :foo
       end
     }
-    assert_match(/:to must respond_to/, ex.message)
+    assert_match(/:to must respond to/, ex.message)
   end
 
   def test_missing_action_on_hash

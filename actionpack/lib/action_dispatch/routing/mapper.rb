@@ -216,23 +216,21 @@ module ActionDispatch
 
             if to.respond_to?(:action) || to.respond_to?(:call)
               options
-            elsif to.nil?
-              controller = default_controller
-              action = default_action
-
-              controller = add_controller_module(controller, modyoule)
-
-              options.merge! check_controller_and_action(path_params, controller, action)
-            elsif to.is_a?(String) && to.include?("#")
-              to_endpoint = to.split("#").map!(&:-@)
-              controller  = to_endpoint[0]
-              action      = to_endpoint[1]
-
-              controller = add_controller_module(controller, modyoule)
-
-              options.merge! check_controller_and_action(path_params, controller, action)
             else
-              raise ArgumentError, ":to must respond_to? :action or :call, or it must be a String that includes '#'"
+              if to.nil?
+                controller = default_controller
+                action = default_action
+              elsif to.is_a?(String) && to.include?("#")
+                to_endpoint = to.split("#").map!(&:-@)
+                controller  = to_endpoint[0]
+                action      = to_endpoint[1]
+              else
+                raise ArgumentError, ":to must respond to `action` or `call`, or it must be a String that includes '#'"
+              end
+
+              controller = add_controller_module(controller, modyoule)
+
+              options.merge! check_controller_and_action(path_params, controller, action)
             end
           end
 
