@@ -106,7 +106,7 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
 
     assert_no_difference -> { ActiveStorage::VariantRecord.count } do
       assert_queries_count(6) do
-        # 5 queries:
+        # 6 queries:
         # attachment (cover photos) x 1
         # blob for the cover photo x 1
         # variant record x 1
