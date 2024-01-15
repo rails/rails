@@ -817,8 +817,8 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     josh_variantion = @user.avatar_with_dynamic.variant(:thumb).variation
     john_variantion = john.avatar_with_dynamic.variant(:thumb).variation
 
-    assert_equal josh_variantion.transformations, { format: "jpg", resize_to_limit: [100, 100]}
-    assert_equal john_variantion.transformations, { format: "jpg", resize_to_limit: [200, 200]}
+    assert_equal({ format: "jpg", resize_to_limit: [100, 100] }, josh_variantion.transformations)
+    assert_equal({ format: "jpg", resize_to_limit: [200, 200] }, john_variantion.transformations)
   end
 
   test "raises error when unknown variant name is used to generate variant" do

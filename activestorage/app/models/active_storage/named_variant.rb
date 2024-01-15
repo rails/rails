@@ -18,15 +18,14 @@ class ActiveStorage::NamedVariant # :nodoc:
   end
 
   private
-
-  def callable_value(record, method_or_value)
-    case method_or_value
-    when Symbol
-      record.send(method_or_value)
-    when Proc
-      method_or_value.call(record)
-    else
-      method_or_value
+    def callable_value(record, method_or_value)
+      case method_or_value
+      when Symbol
+        record.send(method_or_value)
+      when Proc
+        method_or_value.call(record)
+      else
+        method_or_value
+      end
     end
-  end
 end
