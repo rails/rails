@@ -39,10 +39,6 @@
 
     *fatkodima*
 
-*   Fix logging of time spent in Active Record being incorrect.
-
-    *fatkodima*
-
 *   Fix async queries sometimes returning a raw result if they hit the query cache.
 
     `ShipPart.async_count` could return a raw integer rather than a Promise
