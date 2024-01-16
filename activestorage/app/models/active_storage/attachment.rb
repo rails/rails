@@ -42,7 +42,10 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   # Eager load all variant records on an attachment at once.
   #
   #   User.first.avatars.with_all_variant_records
-  scope :with_all_variant_records, -> { includes(blob: { variant_records: { image_attachment: :blob } }) }
+  scope :with_all_variant_records, -> { includes(blob: {
+    variant_records: { image_attachment: :blob },
+    preview_image_attachment: { blob: { variant_records: { image_attachment: :blob } } }
+  }) }
 
   # Synchronously deletes the attachment and {purges the blob}[rdoc-ref:ActiveStorage::Blob#purge].
   def purge
