@@ -84,7 +84,7 @@ module ActionDispatch
     end
 
     test "#source_extracts works with nil backtrace_locations" do
-      exception = begin eval "class Foo; yield; end"; rescue SyntaxError => ex; ex; end
+      exception = begin TOPLEVEL_BINDING.eval "yield"; rescue SyntaxError => ex; ex; end
 
       wrapper = ExceptionWrapper.new(nil, exception)
 
