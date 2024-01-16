@@ -100,8 +100,7 @@ module ActiveRecord
              :to_sentence, :to_fs, :to_formatted_s, :as_json,
              :shuffle, :split, :slice, :index, :rindex, to: :records
 
-    delegate :primary_key, :connection, :table_name, :transaction, :arel_table, :uncached,
-             :sanitize_sql_like, :unscoped, to: :klass
+    delegate :primary_key, :connection, :table_name, :transaction, :sanitize_sql_like, :unscoped, to: :klass
 
     # TODO: scoped delegate
     [:find_signed, :find_signed!, :delete, :find_by_token_for, :find_by_token_for!, :upsert_all, :insert_all, :insert_all!].each do |method|

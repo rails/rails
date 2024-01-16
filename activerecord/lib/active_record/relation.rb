@@ -1078,7 +1078,7 @@ module ActiveRecord
 
       def skip_query_cache_if_necessary(&block)
         if skip_query_cache_value
-          uncached(&block)
+          model.uncached(&block)
         else
           yield
         end
