@@ -34,7 +34,8 @@ module ActiveRecord
 end
 
 ActiveSupport::Notifications.monotonic_subscribe("sql.active_record") do |name, start, finish, id, payload|
-  runtime = finish - start
+  runtime = (finish - start) * 1_000.0
+
   if payload[:async]
     ActiveRecord::RuntimeRegistry.async_sql_runtime += (runtime - payload[:lock_wait])
   end
