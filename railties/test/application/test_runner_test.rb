@@ -799,7 +799,7 @@ module ApplicationTests
 
       assert_match %r{Interrupt}, @error_output
       assert_equal 1, matches[3].to_i
-      assert matches[1].to_i < 11
+      assert_operator matches[1].to_i, :<, 11
     end
 
     def test_run_in_parallel_with_processes
