@@ -105,7 +105,13 @@ module Rails
         ActiveSupport::Dependencies.autoload_once_paths.freeze
         ActiveSupport::Dependencies.autoload_once_paths.uniq.each do |path|
           # Zeitwerk only accepts existing directories in `push_dir`.
-          next unless File.directory?(path)
+          unless File.directory?(path)
+            warn <<~INFO
+              config.autoload_once_paths must be existing directories.
+              '#{path}' is not an existing directory.
+            INFO
+            next
+          end
           next if already_configured_dirs.member?(path.to_s)
 
           autoloader.push_dir(path)
