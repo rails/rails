@@ -334,12 +334,12 @@ module ActionView
             true
           end
 
-          def method_missing(called, *args, **options, &block)
-            name = called.to_s.dasherize
+          def method_missing(called, ...)
+            name = called.name.dasherize
 
             TagHelper.ensure_valid_html5_tag_name(name)
 
-            tag_string(name, *args, **options, &block)
+            tag_string(name, ...)
           end
       end
 

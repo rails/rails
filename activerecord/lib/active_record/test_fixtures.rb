@@ -272,16 +272,16 @@ module ActiveRecord
         use_instantiated_fixtures != :no_instances
       end
 
-      def method_missing(name, *args, **kwargs, &block)
-        if fs_name = fixture_sets[name.to_s]
-          access_fixture(fs_name, *args, **kwargs, &block)
+      def method_missing(method, ...)
+        if fs_name = fixture_sets[method.name]
+          access_fixture(fs_name, ...)
         else
           super
         end
       end
 
-      def respond_to_missing?(name, include_private = false)
-        if include_private && fixture_sets.key?(name.to_s)
+      def respond_to_missing?(method, include_private = false)
+        if include_private && fixture_sets.key?(method.name)
           true
         else
           super

@@ -668,7 +668,7 @@ module ActionMailer
         true
       end
 
-      def method_missing(*args)
+      def method_missing(...)
         nil
       end
     end
