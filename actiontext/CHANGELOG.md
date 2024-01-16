@@ -1,3 +1,7 @@
+*   Use `includes` instead of `eager_load` for `with_all_rich_text`.
+
+    *Petrik de Heus*
+
 *   Delegate `ActionText::Content#deconstruct` to `Nokogiri::XML::DocumentFragment#elements`
 
     ```ruby
