@@ -506,8 +506,8 @@ module ActiveSupport
         value.respond_to?(method)
       end
 
-      def method_missing(method, *args, &block)
-        value.public_send(method, *args, &block)
+      def method_missing(...)
+        value.public_send(...)
       end
 
       def raise_type_error(other)

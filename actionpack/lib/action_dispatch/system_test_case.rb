@@ -178,9 +178,9 @@ module ActionDispatch
           end
       end
 
-      def method_missing(name, *args, &block)
+      def method_missing(name, ...)
         if url_helpers.respond_to?(name)
-          url_helpers.public_send(name, *args, &block)
+          url_helpers.public_send(name, ...)
         else
           super
         end

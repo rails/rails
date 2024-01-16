@@ -326,7 +326,7 @@ module Mime
       def to_ary; end
       def to_a; end
 
-      def method_missing(method, *args)
+      def method_missing(method, ...)
         if method.end_with?("?")
           method[0..-2].downcase.to_sym == to_sym
         else
@@ -373,7 +373,7 @@ module Mime
         method.end_with?("?")
       end
 
-      def method_missing(method, *args)
+      def method_missing(method, ...)
         false if method.end_with?("?")
       end
   end
