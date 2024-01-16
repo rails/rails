@@ -153,6 +153,30 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     find_keys_for_representation "video.mp4"
   end
 
+  def test_no_n_plus_1_with_all_variant_records_on_attached_video
+    user = User.create!(name: "Justin")
+
+    10.times do
+      blob = directly_upload_file_blob(filename: "video.mp4")
+      user.highlights_with_variants.attach(blob)
+    end
+
+    # Force the processing
+    user.highlights_with_variants.each do |highlight|
+      highlight.representation(:thumb).processed.key
+    end
+
+    user.reload
+
+    highlights = user.highlights_with_variants.with_all_variant_records.to_a
+
+    assert_queries_count(0) do
+      highlights.each do |highlight|
+        highlight.representation(:thumb).key
+      end
+    end
+  end
+
   test "eager loading has_many_attached records" do
     user = User.create!(name: "Josh")
 
@@ -230,11 +254,12 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     user.reload
 
     assert_no_difference -> { ActiveStorage::VariantRecord.count } do
-      assert_queries_count(5) do
-        # 5 queries:
+      assert_queries_count(6) do
+        # 6 queries:
         # attachments (vlogs) x 1
         # blobs for the vlogs x 1
         # variant records for the blobs x 1
+        # preview_image_attachments for non-images
         # attachments for the variant records x 1
         # blobs for the attachments for the variant records x 1
         user.vlogs.with_all_variant_records.each do |vlog|
@@ -275,11 +300,12 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
       # More queries here because we are creating a different variant.
       # The second time we load this variant, we are back down to just 3 queries.
 
-      assert_queries_match(/SELECT/i, count: 9) do
+      assert_queries_match(/SELECT/i, count: 10) do
         # 9 queries:
         # attachments (vlogs) initial load x 1
         # blob x 1 (gets both records)
         # variant record x 1 (gets both records)
+        # preview_image_attachments for non-images
         # 2x get blob, attachment, variant records again, this happens when loading the new blob inside `VariantWithRecord#key`
         user.vlogs.with_all_variant_records.each do |vlog|
           rep = vlog.representation(resize_to_limit: [200, 200])
@@ -291,7 +317,7 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
 
       user.reload
 
-      assert_queries_count(5) do
+      assert_queries_count(6) do
         user.vlogs.with_all_variant_records.each do |vlog|
           rep = vlog.representation(resize_to_limit: [200, 200])
           rep.processed
