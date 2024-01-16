@@ -673,6 +673,7 @@ module NoOptionValidationTestCases
         change_table :tests do |t|
           t.change :some_id, :float, null: false, wrong_index: true
           t.integer :another_id, wrong_unique: true
+          t.references :yet_another_table, bad: :option
         end
       end
     }.new

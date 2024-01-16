@@ -82,6 +82,11 @@ module ActiveRecord
             super
           end
 
+          def references(*args, **options)
+            options[:_skip_validate_options] = true
+            super
+          end
+
           private
             def raise_on_if_exist_options(options)
             end
