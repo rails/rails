@@ -1,3 +1,17 @@
+*   Ensure only directories exist in Rails default load paths
+
+    Previously, some files put under `app` directory would contaminate the load paths.
+    This commit removes files from the default load paths set up by the Rails framework.
+
+    Now, only directories are included as default in the following paths:
+
+    * autoload_paths
+    * autoload_once_paths
+    * eager_load_paths
+    * load_paths
+
+    *Takumasa Ochi*
+
 *   Prevent unnecessary application reloads in development.
 
     Previously, some files outside autoload paths triggered unnecessary reloads.
