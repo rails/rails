@@ -1,7 +1,7 @@
 ## Rails 7.1.3 (January 16, 2024) ##
 
 *   Fix Migrations with versions older than 7.1 validating options given to
-    `add_reference`.
+    `add_reference` and `t.references`.
 
     *Hartley McGuire*
 
