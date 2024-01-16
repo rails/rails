@@ -1,4 +1,8 @@
-*   Fix `ActiveSupport::JSON.encode` to prevent duplicate keys
+*   Handle nil `backtrace_locations` in `ActiveSupport::SyntaxErrorProxy`.
+
+    *Eugene Kenny*
+
+*   Fix `ActiveSupport::JSON.encode` to prevent duplicate keys.
 
     If the same key exist in both String and Symbol form it could
     lead to the same key being emitted twice.
@@ -24,7 +28,7 @@
 
     *S. Brent Faulkner*
 
-*   Fix ActiveSupport::Deprecation to handle blaming generated code
+*   Fix ActiveSupport::Deprecation to handle blaming generated code.
 
     *Jean Boussier*, *fatkodima*
 

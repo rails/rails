@@ -6,7 +6,7 @@
 
     *Joshua Young*
 
-*   Fix ActiveJob arguments serialization to correctly serialize String subclasses having custom serializers
+*   Fix ActiveJob arguments serialization to correctly serialize String subclasses having custom serializers.
 
     *fatkodima*
 

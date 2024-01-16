@@ -1,18 +1,18 @@
 ## Rails 7.1.2 (November 10, 2023) ##
 
-*   Compile ESM package that can be used directly in the browser as actiontext.esm.js
+*   Compile ESM package that can be used directly in the browser as `actiontext.esm.js`.
 
     *Matias Grunberg*
 
-*   Fix using actiontext.js with Sprockets
+*   Fix using actiontext.js with Sprockets.
 
     *Matias Grunberg*
 
-*   Upgrade Trix to 2.0.7
+*   Upgrade Trix to 2.0.7.
 
     *Hartley McGuire*
 
-*   Fix using Trix with Sprockets
+*   Fix using Trix with Sprockets.
 
     *Hartley McGuire*
 

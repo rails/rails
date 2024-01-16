@@ -8,6 +8,7 @@
 
     *Jonathan Hefner*
 
+
 ## Rails 7.1.2 (November 10, 2023) ##
 
 *   Fix a race condition that could cause a `Text file busy - chromedriver`

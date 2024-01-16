@@ -1,4 +1,4 @@
-*   Fix N+1 query when fetching preview images for non-image assets
+*   Fix N+1 query when fetching preview images for non-image assets.
 
     *Aaron Patterson & Justin Searls*
 
