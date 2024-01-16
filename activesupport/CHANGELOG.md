@@ -1,3 +1,5 @@
+## Rails 7.1.3 (January 16, 2024) ##
+
 *   Handle nil `backtrace_locations` in `ActiveSupport::SyntaxErrorProxy`.
 
     *Eugene Kenny*
