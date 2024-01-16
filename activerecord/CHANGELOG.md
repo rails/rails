@@ -1,5 +1,5 @@
 *   Fix Migrations with versions older than 7.1 validating options given to
-    `add_reference`.
+    `add_reference` and `t.references`.
 
     *Hartley McGuire*
 
