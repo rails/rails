@@ -1,3 +1,10 @@
+*   Changes `active_model.i18n_customize_full_message` default from `false` to `true`.
+
+    `config.active_model.i18n_customize_full_message` defaults to `true` for
+    `config.load_defaults 7.2` and above.
+
+    *Steve Polito*
+
 *   Port the `type_for_attribute` method to Active Model. Classes that include
     `ActiveModel::Attributes` will now provide this method. This method behaves
     the same for Active Model as it does for Active Record.

@@ -323,6 +323,10 @@ module Rails
           end
         when "7.2"
           load_defaults "7.1"
+
+          if respond_to?(:active_model)
+            active_model.i18n_customize_full_message = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
