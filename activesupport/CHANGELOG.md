@@ -1,3 +1,10 @@
+*   Fix `ActiveSupport::Notifications.publish_event` to preserve units.
+
+    This solves the incorrect reporting of time spent running Active Record
+    asynchronous queries (by a factor `1000`).
+
+    *Jean Boussier*
+
 *   Fix ActiveSupport::Deprecation to handle blaming generated code
 
     *Jean Boussier*, *fatkodima*

@@ -56,7 +56,7 @@ module ActiveSupport
     end
 
     class Event
-      attr_reader :name, :time, :end, :transaction_id, :children
+      attr_reader :name, :transaction_id, :children
       attr_accessor :payload
 
       def initialize(name, start, ending, transaction_id, payload)
@@ -72,7 +72,15 @@ module ActiveSupport
         @allocation_count_finish = 0
       end
 
-      def record
+      def time
+        @time / 1000.0 if @time
+      end
+
+      def end
+        @end / 1000.0 if @end
+      end
+
+      def record # :nodoc:
         start!
         begin
           yield payload if block_given?
@@ -130,7 +138,7 @@ module ActiveSupport
       #
       #   @event.duration # => 1000.138
       def duration
-        self.end - time
+        @end - @time
       end
 
       def <<(event)
