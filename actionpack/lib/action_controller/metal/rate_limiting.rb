@@ -16,7 +16,7 @@ module ActionController # :nodoc:
       # in the <tt>with:</tt> parameter. It's evaluated within the context of the controller processing the request.
       #
       # Rate limiting relies on a backing <tt>ActiveSupport::Cache</tt> store and defaults to <tt>config.action_controller.cache_store</tt>, which
-      # itself default to the global <tt>config.cache_store</tt>. If you don't want to store rate limits in the same datastore than your general caches
+      # itself defaults to the global <tt>config.cache_store</tt>. If you don't want to store rate limits in the same datastore as your general caches,
       # you can pass a custom store in the <tt>store</tt> parameter.
       #
       # Examples:
