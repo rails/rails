@@ -181,6 +181,7 @@ module ActiveRecord
               default, default_function = nil, default
             elsif type_metadata.extra == "DEFAULT_GENERATED"
               default = +"(#{default})" unless default.start_with?("(")
+              default = default.gsub("\\'", "'")
               default, default_function = nil, default
             elsif type_metadata.type == :text && default&.start_with?("'")
               # strip and unescape quotes
