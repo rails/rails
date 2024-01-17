@@ -348,6 +348,48 @@ class NumericalityValidationTest < ActiveModel::TestCase
     assert_valid_values([Float("65.6"), BigDecimal("65.6")])
   end
 
+  def test_validates_numericality_inclusion_for_ranges_arrays_symbols
+    Topic.define_method(:valid_approvals) { [1, 2] }
+    Topic.validates_numericality_of :approved, in: :valid_approvals
+
+    topic = Topic.new
+    topic.approved = 2
+    assert_predicate topic, :valid?
+
+    topic.approved = 3
+    assert_predicate topic, :invalid?
+
+    Topic.define_method(:valid_approvals) { 0..2 }
+    Topic.validates_numericality_of :approved, in: :valid_approvals
+
+    topic = Topic.new
+    topic.approved = 2
+    assert_predicate topic, :valid?
+
+    topic.approved = 3
+    assert_predicate topic, :invalid?
+
+    valid_approvals = [1, 2]
+    Topic.validates_numericality_of :approved, in: valid_approvals
+
+    topic = Topic.new
+    topic.approved = 2
+    assert_predicate topic, :valid?
+
+    topic.approved = 3
+    assert_predicate topic, :invalid?
+
+    valid_approvals = 0..2
+    Topic.validates_numericality_of :approved, in: valid_approvals
+
+    topic = Topic.new
+    topic.approved = 2
+    assert_predicate topic, :valid?
+
+    topic.approved = 3
+    assert_predicate topic, :invalid?
+  end
+
   private
     def assert_invalid_values(values, error = nil)
       with_each_topic_approved_value(values) do |topic, value|
