@@ -25,6 +25,7 @@ require "models/cpk"
 require "models/chat_message"
 require "models/default"
 require "models/post_with_prefetched_pk"
+require "models/mypost"
 
 class PersistenceTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :accounts, :minimalistics, :authors, :author_addresses,
@@ -872,6 +873,22 @@ class PersistenceTest < ActiveRecord::TestCase
       book.destroy!
     end
   end
+
+  def test_destroy_after_restart_parent_transaction_rollback
+    MyPost.create!
+    assert_equal 1, MyPost.count
+    MyPost.test_restart_parent_transaction
+    assert_equal 0, MyPost.count
+  end
+
+  def test_destroy_after_savepoint_transaction_rollback
+    MyPost.create!
+    assert_equal 1, MyPost.count
+    MyPost.test_savepoint_transaction
+    assert_equal 0, MyPost.count
+  end
+
+
 
   def test_find_raises_record_not_found_exception
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(99999) }

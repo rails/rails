@@ -782,7 +782,11 @@ module ActiveRecord
     def destroy
       _raise_readonly_record_error if readonly?
       destroy_associations
-      @_trigger_destroy_callback ||= persisted? && destroy_row > 0
+      if @_trigger_destroy_callback
+        destroy_row
+      else
+        @_trigger_destroy_callback = persisted? && destroy_row > 0
+      end
       @destroyed = true
       @previously_new_record = false
       freeze
