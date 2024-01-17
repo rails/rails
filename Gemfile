@@ -87,7 +87,6 @@ else
   gem "rack", git: "https://github.com/rack/rack.git", branch: "main"
 end
 
-gem "kredis", ">= 1.7.0", require: false
 gem "useragent", require: false
 
 # Active Job
