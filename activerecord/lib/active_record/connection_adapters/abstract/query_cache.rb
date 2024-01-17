@@ -107,7 +107,7 @@ module ActiveRecord
 
           if async
             result = lookup_sql_cache(sql, name, binds) || super(sql, name, binds, preparable: preparable, async: async)
-            FutureResult::Complete.new(result)
+            FutureResult.wrap(result)
           else
             cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable, async: async) }
           end
