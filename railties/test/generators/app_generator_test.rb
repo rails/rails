@@ -316,6 +316,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_preserves_propshaft
+    run_generator [destination_root, "-a", "propshaft"]
+
+    FileUtils.cd(destination_root) do
+      config = "config/environments/production.rb"
+      assert_no_changes -> { File.readlines(config).grep(/config\.assets/) } do
+        run_app_update
+      end
+    end
+  end
+
   def test_gem_for_active_storage
     run_generator
     assert_file "Gemfile", /^# gem "image_processing"/
