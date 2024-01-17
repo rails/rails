@@ -1,3 +1,10 @@
+*   Fix `ActiveSupport::Notifications.publish_event` to preserve units.
+
+    This solves the incorrect reporting of time spent running Active Record
+    asynchronous queries (by a factor `1000`).
+
+    *Jean Boussier*
+
 ## Rails 7.1.3 (January 16, 2024) ##
 
 *   Handle nil `backtrace_locations` in `ActiveSupport::SyntaxErrorProxy`.
