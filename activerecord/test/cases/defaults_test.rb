@@ -175,6 +175,13 @@ class MysqlDefaultExpressionTest < ActiveRecord::TestCase
         output = dump_table_schema("defaults")
         assert_match %r/t\.binary\s+"uuid",\s+limit: 36,\s+default: -> { "\(uuid\(\)\)" }/i, output
       end
+
+      if current_adapter?(:Mysql2Adapter)
+        test "schema dump includes default expression with single quotes reflected correctly" do
+          output = dump_table_schema("defaults")
+          assert_match %r/t\.string\s+"char2_concatenated",\s+default: -> { "\(?concat\(`char2`,(_utf8mb4)?'-'\)\)?" }/i, output
+        end
+      end
     end
 
     if supports_datetime_with_precision?
