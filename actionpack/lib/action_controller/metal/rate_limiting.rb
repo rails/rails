@@ -16,7 +16,7 @@ module ActionController # :nodoc:
       # in the <tt>with:</tt> parameter. It's evaluated within the context of the controller processing the request.
       #
       # Rate limiting relies on a backing <tt>ActiveSupport::Cache</tt> store and defaults to <tt>config.action_controller.cache_store</tt>, which
-      # itself default to the global `config.cache_store`. If you don't want to store rate limits in the same datastore than your general caches
+      # itself default to the global <tt>config.cache_store</tt>. If you don't want to store rate limits in the same datastore than your general caches
       # you can pass a custom store in the <tt>store</tt> parameter.
       #
       # Examples:
@@ -34,8 +34,6 @@ module ActionController # :nodoc:
       #     RATE_LIMIT_STORE = ActiveSupport::Cache::RedisCacheStore.new(url: ENV["REDIS_URL"])
       #     rate_limit to: 10, within: 3.minutes, store: RATE_LIMIT_STORE
       #   end
-      #
-      # TODO Note
       def rate_limit(to:, within:, by: -> { request.remote_ip }, with: -> { head :too_many_requests }, store: cache_store, **options)
         before_action -> { rate_limiting(to: to, within: within, by: by, with: with, store: store) }, **options
       end
