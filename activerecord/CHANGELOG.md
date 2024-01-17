@@ -1,3 +1,7 @@
+*   Fix async queries returning a doubly wrapped result when hitting the query cache.
+
+    *fatkodima*
+
 *   Fix single quote escapes on default generated MySQL columns
 
     MySQL 5.7.5+ supports generated columns, which can be used to create a column that is computed from an expression.
