@@ -28,20 +28,20 @@ module Rails
     #
     # Middlewares can also be completely swapped out and replaced with others:
     #
-    #     config.middleware.swap ActionDispatch::Flash, Magical::Unicorns
+    #     config.middleware.swap Rack::Head, Magical::Unicorns
     #
     # Middlewares can be moved from one place to another:
     #
-    #     config.middleware.move_before ActionDispatch::Flash, Magical::Unicorns
+    #     config.middleware.move_before Rack::Head, Magical::Unicorns
     #
     # This will move the +Magical::Unicorns+ middleware before the
-    # +ActionDispatch::Flash+. You can also move it after:
+    # +Rack::Head+. You can also move it after:
     #
-    #     config.middleware.move_after ActionDispatch::Flash, Magical::Unicorns
+    #     config.middleware.move_after Rack::Head, Magical::Unicorns
     #
     # And finally they can also be removed from the stack completely:
     #
-    #     config.middleware.delete ActionDispatch::Flash
+    #     config.middleware.delete Rack::Head
     #
     class MiddlewareStackProxy
       def initialize(operations = [], delete_operations = [])

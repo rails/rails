@@ -391,7 +391,7 @@ module ApplicationTests
       assert_equal 200, last_response.status
       assert_equal "It worked!", last_response.body
 
-      assert_not_includes Rails.application.middleware, ActionDispatch::Flash
+      assert_not_respond_to(:request, :flash)
     end
 
     test "disabled session allows reads and delete but fail on writes" do

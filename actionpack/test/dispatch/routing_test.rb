@@ -5218,7 +5218,6 @@ class FlashRedirectTest < ActionDispatch::IntegrationTest
   APP = build_app Routes do |middleware|
     middleware.use KeyGeneratorMiddleware
     middleware.use ActionDispatch::Session::CookieStore, key: SessionKey
-    middleware.use ActionDispatch::Flash
     middleware.delete ActionDispatch::ShowExceptions
   end
 

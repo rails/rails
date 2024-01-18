@@ -77,7 +77,9 @@ module Rails
           end
 
           unless config.api_only
-            middleware.use ::ActionDispatch::Flash
+            ActionDispatch.deprecator.silence do
+              middleware.use ::ActionDispatch::Flash
+            end
             middleware.use ::ActionDispatch::ContentSecurityPolicy::Middleware
             middleware.use ::ActionDispatch::PermissionsPolicy::Middleware
           end

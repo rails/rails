@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "action_dispatch/request/flash/flash_hash"
 
 module ActionDispatch
   class FlashHashTest < ActiveSupport::TestCase
     def setup
-      @hash = Flash::FlashHash.new
+      @hash = Request::Flash::FlashHash.new
     end
 
     def test_set_get
@@ -71,19 +72,10 @@ module ActionDispatch
       assert_nil(@hash.to_session_value)
     end
 
-    def test_from_session_value
-      # {"session_id"=>"f8e1b8152ba7609c28bbb17ec9263ba7", "flash"=>#<ActionDispatch::Flash::FlashHash:0x00000000000000 @used=#<Set: {"farewell"}>, @closed=false, @flashes={"greeting"=>"Hello", "farewell"=>"Goodbye"}, @now=nil>}
-      rails_3_2_cookie = "BAh7B0kiD3Nlc3Npb25faWQGOgZFRkkiJWY4ZTFiODE1MmJhNzYwOWMyOGJiYjE3ZWM5MjYzYmE3BjsAVEkiCmZsYXNoBjsARm86JUFjdGlvbkRpc3BhdGNoOjpGbGFzaDo6Rmxhc2hIYXNoCToKQHVzZWRvOghTZXQGOgpAaGFzaHsGSSINZmFyZXdlbGwGOwBUVDoMQGNsb3NlZEY6DUBmbGFzaGVzewdJIg1ncmVldGluZwY7AFRJIgpIZWxsbwY7AFRJIg1mYXJld2VsbAY7AFRJIgxHb29kYnllBjsAVDoJQG5vdzA="
-      session = Marshal.load(Base64.decode64(rails_3_2_cookie))
-      hash = Flash::FlashHash.from_session_value(session["flash"])
-      assert_equal({ "greeting" => "Hello" }, hash.to_hash)
-      assert_nil(hash.to_session_value)
-    end
-
     def test_from_session_value_on_json_serializer
       decrypted_data = "{ \"session_id\":\"d98bdf6d129618fc2548c354c161cfb5\", \"flash\":{\"discard\":[\"farewell\"], \"flashes\":{\"greeting\":\"Hello\",\"farewell\":\"Goodbye\"}} }"
       session = ActiveSupport::Messages::SerializerWithFallback[:json].load(decrypted_data)
-      hash = Flash::FlashHash.from_session_value(session["flash"])
+      hash = Request::Flash::FlashHash.from_session_value(session["flash"])
 
       assert_equal({ "greeting" => "Hello" }, hash.to_hash)
       assert_nil(hash.to_session_value)

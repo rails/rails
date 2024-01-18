@@ -124,7 +124,6 @@ use ActionDispatch::Callbacks
 use ActiveRecord::Migration::CheckPending
 use ActionDispatch::Cookies
 use ActionDispatch::Session::CookieStore
-use ActionDispatch::Flash
 use ActionDispatch::ContentSecurityPolicy::Middleware
 use Rack::Head
 use Rack::ConditionalGet
@@ -218,7 +217,6 @@ If you want to remove session related middleware, do the following:
 # config/application.rb
 config.middleware.delete ActionDispatch::Cookies
 config.middleware.delete ActionDispatch::Session::CookieStore
-config.middleware.delete ActionDispatch::Flash
 ```
 
 And to remove browser related middleware,
@@ -326,10 +324,6 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 **`ActionDispatch::Session::CookieStore`**
 
 * Responsible for storing the session in cookies.
-
-**`ActionDispatch::Flash`**
-
-* Sets up the flash keys. Only available if [`config.session_store`][] is set to a value.
 
 [`config.session_store`]: configuring.html#config-session-store
 

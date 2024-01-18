@@ -70,5 +70,13 @@ module ActionDispatch
 
       ActionDispatch.test_app = app
     end
+
+    initializer "action_dispatch.flash" do |app|
+      unless app.config.api_only
+        ActiveSupport.on_load(:action_dispatch_request) do
+          ActionDispatch::Request::Flash.use!
+        end
+      end
+    end
   end
 end

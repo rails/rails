@@ -26,6 +26,7 @@ module ActionDispatch
     include ActionDispatch::PermissionsPolicy::Request
     include Rack::Request::Env
 
+    autoload :Flash,   "action_dispatch/request/flash"
     autoload :Session, "action_dispatch/request/session"
     autoload :Utils,   "action_dispatch/request/utils"
 

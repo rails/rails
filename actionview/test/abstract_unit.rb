@@ -103,6 +103,8 @@ end
 
 class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   def self.build_app(routes = nil)
+    ActionDispatch::Request::Flash.use!
+
     routes ||= ActionDispatch::Routing::RouteSet.new.tap { |rs|
       rs.draw { }
     }
@@ -111,7 +113,6 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
       middleware.use ActionDispatch::DebugExceptions
       middleware.use ActionDispatch::Callbacks
       middleware.use ActionDispatch::Cookies
-      middleware.use ActionDispatch::Flash
       middleware.use Rack::Head
       yield(middleware) if block_given?
     end
