@@ -35,7 +35,7 @@ if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].pr
         assert_equal "hello.txt", details["filename"]
         assert_equal 6, details["byte_size"]
         assert_equal checksum, details["checksum"]
-        assert_equal metadata, details["metadata"].deep_transform_keys(&:to_sym)
+        assert_equal metadata.deep_stringify_keys, details["metadata"].deep_stringify_keys
         assert_equal "text/plain", details["content_type"]
         assert_match SERVICE_CONFIGURATIONS[:s3][:bucket], details["direct_upload"]["url"]
         assert_match(/s3(-[-a-z0-9]+)?\.(\S+)?amazonaws\.com/, details["direct_upload"]["url"])
@@ -81,7 +81,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
         assert_equal "hello.txt", details["filename"]
         assert_equal 6, details["byte_size"]
         assert_equal checksum, details["checksum"]
-        assert_equal metadata, details["metadata"].deep_transform_keys(&:to_sym)
+        assert_equal metadata.deep_stringify_keys, details["metadata"].deep_stringify_keys
         assert_equal "text/plain", details["content_type"]
         assert_match %r{storage\.googleapis\.com/#{@config[:bucket]}}, details["direct_upload"]["url"]
         assert_equal({ "Content-MD5" => checksum, "Content-Disposition" => "inline; filename=\"hello.txt\"; filename*=UTF-8''hello.txt", "x-goog-meta-my_key_3" => "my_value_3" }, details["direct_upload"]["headers"])
