@@ -183,9 +183,9 @@ module ActiveSupport
           target.const_get(name)
         end
 
-        def method_missing(called, *args, &block)
+        def method_missing(...)
           @deprecator.warn(@message, caller_locations)
-          target.__send__(called, *args, &block)
+          target.__send__(...)
         end
     end
   end

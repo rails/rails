@@ -219,6 +219,10 @@ module ActiveRecord
         role_type = options[:foreign_type] || "#{role}_type"
         role_id   = options[:foreign_key] || "#{role}_id"
 
+        define_singleton_method "#{role}_types" do
+          types.map(&:to_s)
+        end
+
         define_method "#{role}_class" do
           public_send(role_type).constantize
         end

@@ -115,25 +115,35 @@ module ActiveRecord
         GeneratedAttributeMethods::LOCK.synchronize do
           return false if @attribute_methods_generated
 
-          superclass.define_attribute_methods unless superclass == Base
+          superclass.define_attribute_methods unless base_class?
 
           unless abstract_class?
             load_schema
             super(attribute_names)
-          end
-
-          ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
-            aliases_by_attribute_name.each do |old_name, new_names|
-              new_names.each do |new_name|
-                generate_alias_attribute_methods(code_generator, new_name, old_name)
-              end
-            end
+            alias_attribute :id_value, :id if _has_attribute?("id")
           end
 
           @attribute_methods_generated = true
-          @alias_attributes_mass_generated = true
+
+          generate_alias_attributes
         end
         true
+      end
+
+      def generate_alias_attributes # :nodoc:
+        superclass.generate_alias_attributes unless superclass == Base
+
+        return if @alias_attributes_mass_generated
+
+        ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
+          aliases_by_attribute_name.each do |old_name, new_names|
+            new_names.each do |new_name|
+              generate_alias_attribute_methods(code_generator, new_name, old_name)
+            end
+          end
+        end
+
+        @alias_attributes_mass_generated = true
       end
 
       def undefine_attribute_methods # :nodoc:

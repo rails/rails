@@ -1,3 +1,33 @@
+*   Fix single quote escapes on default generated MySQL columns
+
+    MySQL 5.7.5+ supports generated columns, which can be used to create a column that is computed from an expression.
+
+    Previously, the schema dump would output a string with double escapes for generated columns with single quotes in the default expression.
+
+    This would result in issues when importing the schema on a fresh instance of a MySQL database.
+
+    Now, the string will not be escaped and will be valid Ruby upon importing of the schema.
+
+    *Yash Kapadia*
+
+*   Fix Migrations with versions older than 7.1 validating options given to
+    `add_reference` and `t.references`.
+
+    *Hartley McGuire*
+
+*   Add `<role>_types` class method to `ActiveRecord::DelegatedType` so that the delegated types can be instrospected
+
+    *JP Rosevear*
+
+*   Make `schema_dump`, `query_cache`, `replica` and `database_tasks` configurable via `DATABASE_URL`
+
+    This wouldn't always work previously because boolean values would be interpreted as strings.
+
+    e.g. `DATABASE_URL=postgres://localhost/foo?schema_dump=false` now properly disable dumping the schema
+    cache.
+
+    *Mike Coutermarsh*, *Jean Boussier*
+
 *   Introduce `ActiveRecord::Transactions::ClassMethods#set_callback`
 
      It is identical to `ActiveSupport::Callbacks::ClassMethods#set_callback`

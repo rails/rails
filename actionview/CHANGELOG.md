@@ -11,7 +11,9 @@
 
     *Sean Doyle*
 
-*   Rename `ActionView::TestCase::Behavior::{Content,RenderedViewContent}`
+*   Rename `ActionView::TestCase::Behavior::Content` to `ActionView::TestCase::Behavior::RenderedViewContent`
+
+    Make `RenderedViewContent` inherit from `String`. Make private API with `:nodoc:`
 
     *Sean Doyle*
 

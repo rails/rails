@@ -211,17 +211,22 @@ module ActiveSupport
         # If the key is not found it is created and set to +amount+.
         def modify_value(name, amount, options)
           file_name = normalize_key(name, options)
+          options = merged_options(options)
+          key = normalize_key(name, options)
+          version = normalize_version(name, options)
+          amount = Integer(amount)
 
           lock_file(file_name) do
-            options = merged_options(options)
+            entry = read_entry(key, **options)
 
-            if num = read(name, options)
-              num = num.to_i + amount
-              write(name, num, options)
-              num
-            else
-              write(name, Integer(amount), options)
+            if !entry || entry.expired? || entry.mismatched?(version)
+              write(name, amount, options)
               amount
+            else
+              num = entry.value.to_i + amount
+              entry = Entry.new(num, expires_at: entry.expires_at, version: entry.version)
+              write_entry(key, entry)
+              num
             end
           end
         end

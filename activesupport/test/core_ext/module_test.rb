@@ -76,7 +76,7 @@ Product = Struct.new(:name) do
 end
 
 module ExtraMissing
-  def method_missing(sym, *args)
+  def method_missing(sym, ...)
     if sym == :extra_missing
       42
     else

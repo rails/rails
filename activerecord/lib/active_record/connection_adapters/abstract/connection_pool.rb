@@ -16,7 +16,7 @@ module ActiveRecord
       include ConnectionAdapters::AbstractPool
 
       class NullConfig # :nodoc:
-        def method_missing(*)
+        def method_missing(...)
           nil
         end
       end

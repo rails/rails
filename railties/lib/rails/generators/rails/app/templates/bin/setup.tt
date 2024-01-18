@@ -18,7 +18,7 @@ FileUtils.chdir APP_ROOT do
 <% if using_node? -%>
 
   # Install JavaScript dependencies
-  system("yarn check --check-files") || system!("yarn install")
+  system("yarn install --check-files")
 <% elsif using_bun? -%>
 
   # Install JavaScript dependencies

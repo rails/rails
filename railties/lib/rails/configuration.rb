@@ -141,7 +141,7 @@ module Rails
       end
 
       def method_missing(method, *args)
-        method = method.to_s.delete_suffix("=").to_sym
+        method = method.name.delete_suffix("=").to_sym
 
         if args.empty?
           if method == :rails
