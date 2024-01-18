@@ -4,13 +4,13 @@ require "abstract_unit"
 
 class RateLimitedController < ActionController::Base
   self.cache_store = ActiveSupport::Cache::MemoryStore.new
-  rate_limit to: 2, within: 2.seconds, by: -> { Thread.current[:redis_test_seggregation] }, only: :limited_to_two
+  rate_limit to: 2, within: 2.seconds, only: :limited_to_two
 
   def limited_to_two
     head :ok
   end
 
-  rate_limit to: 2, within: 2.seconds, by: -> { Thread.current[:redis_test_seggregation] }, with: -> { head :forbidden }, only: :limited_with
+  rate_limit to: 2, within: 2.seconds, by: -> { params[:rate_limit_key] }, with: -> { head :forbidden }, only: :limited_with
   def limited_with
     head :ok
   end
@@ -42,6 +42,16 @@ class RateLimitingTest < ActionController::TestCase
       get :limited_to_two
       assert_response :ok
     end
+  end
+
+  test "limit by" do
+    get :limited_with
+    get :limited_with
+    get :limited_with
+    assert_response :forbidden
+
+    get :limited_with, params: { rate_limit_key: "other" }
+    get :limited_with
   end
 
   test "limited with" do
