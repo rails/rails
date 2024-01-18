@@ -1581,7 +1581,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
     assert_not_nil record.id
     assert record.id > 0
-  end if current_adapter?(:PostgreSQLAdapter)
+  end if supports_insert_returning? && !current_adapter?(:SQLite3Adapter)
 end
 
 class QueryConstraintsTest < ActiveRecord::TestCase
