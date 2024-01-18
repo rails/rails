@@ -300,6 +300,14 @@ module ActiveRecord
     @global_executor_concurrency ||= nil
   end
 
+  ##
+  # :singleton-method:
+  #
+  # Specifies whether the `ActiveRecord::Base.connection` acquires a permanent
+  # connection lease. Defaults to true.
+  singleton_class.attr_accessor :cache_connection_checkout
+  self.cache_connection_checkout = true
+
   singleton_class.attr_accessor :index_nested_attribute_errors
   self.index_nested_attribute_errors = false
 

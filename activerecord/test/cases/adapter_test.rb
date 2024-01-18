@@ -8,8 +8,25 @@ require "models/author"
 require "models/event"
 
 module ActiveRecord
+  module LazyAdapterTests
+    def after_setup
+      super
+      ActiveRecord::Base.release_connection
+      @_cache_connection_checkout_was = ActiveRecord.cache_connection_checkout
+      ActiveRecord.cache_connection_checkout = false
+
+      @connection = ActiveRecord::Base.deprecated_connection
+      assert_equal ActiveRecord::ConnectionAdapters::LazyConnectionProxy, @connection.__class__
+    end
+
+    def before_teardown
+      ActiveRecord.cache_connection_checkout = @_cache_connection_checkout_was
+      super
+    end
+  end
+
   class AdapterTest < ActiveRecord::TestCase
-    def setup
+    setup do
       @connection = ActiveRecord::Base.lease_connection
       @connection.materialize_transactions
     end
@@ -180,19 +197,10 @@ module ActiveRecord
     end
 
     def test_table_alias
-      def @connection.test_table_alias_length() 10; end
-      class << @connection
-        alias_method :old_table_alias_length, :table_alias_length
-        alias_method :table_alias_length,     :test_table_alias_length
-      end
-
-      assert_equal "posts",      @connection.table_alias_for("posts")
-      assert_equal "posts_comm", @connection.table_alias_for("posts_comments")
-      assert_equal "dbo_posts",  @connection.table_alias_for("dbo.posts")
-
-      class << @connection
-        remove_method :table_alias_length
-        alias_method :table_alias_length, :old_table_alias_length
+      @connection.stub(:table_alias_length, 10) do
+        assert_equal "posts",      @connection.table_alias_for("posts")
+        assert_equal "posts_comm", @connection.table_alias_for("posts_comments")
+        assert_equal "dbo_posts",  @connection.table_alias_for("dbo.posts")
       end
     end
 
@@ -323,6 +331,10 @@ module ActiveRecord
     end
   end
 
+  class LazyAdapterTest < AdapterTest
+    include LazyAdapterTests
+  end
+
   class AdapterForeignKeyTest < ActiveRecord::TestCase
     self.use_transactional_tests = false
 
@@ -385,6 +397,10 @@ module ActiveRecord
           @connection.execute "INSERT INTO fk_test_has_fk (fk_id) VALUES (#{fk_id})"
         end
       end
+  end
+
+  class LazyAdapterForeignKeyTest < AdapterForeignKeyTest
+    include LazyAdapterTests
   end
 
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase
@@ -491,6 +507,10 @@ module ActiveRecord
           ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, fixture_name)
         end
       end
+  end
+
+  class LazyAdapterTestWithoutTransaction < AdapterTestWithoutTransaction
+    include LazyAdapterTests
   end
 
   class AdapterConnectionTest < ActiveRecord::TestCase
@@ -850,6 +870,10 @@ module ActiveRecord
           end
         end
       end
+  end
+
+  class LazyAdapterThreadSafetyTest < AdapterThreadSafetyTest
+    include LazyAdapterTests
   end
 end
 

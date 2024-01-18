@@ -51,6 +51,135 @@ module ActiveRecord
       end
     end
 
+    class LazyConnectionProxy < BasicObject # :nodoc:
+      attr_reader :pool
+
+      def initialize(pool)
+        @pool = pool
+        @adapter_class = pool.db_config.adapter_class
+        @connection = nil
+      end
+
+      def inspect
+        "#<ActiveRecord::ConnectionAdapters::LazyConnectionProxy:#{object_id}>"
+      end
+
+      define_method(:__class__, ::Kernel.instance_method(:class))
+      define_method(:object_id, ::Kernel.instance_method(:object_id))
+      define_method(:nil?, ::Kernel.instance_method(:nil?))
+
+      def class
+        @adapter_class
+      end
+
+      def clear_query_cache
+        @pool.query_cache&.clear
+      end
+
+      def query_cache
+        @pool.query_cache
+      end
+
+      def enable_query_cache!
+        @pool.enable_query_cache!
+      end
+
+      def disable_query_cache!
+        @pool.disable_query_cache!
+      end
+
+      def is_a?(class_or_module)
+        @adapter_class <= class_or_module
+      end
+
+      def transaction_open?
+        if @connection
+          @connection.transaction_open?
+        else
+          false
+        end
+      end
+
+      def current_transaction
+        if @connection
+          @connection.current_transaction
+        else
+          TransactionManager::NULL_TRANSACTION
+        end
+      end
+
+      def materialize_transactions
+        if @connection
+          @connection.materialize_transactions
+        end
+      end
+
+      def disconnect!
+        if @connection
+          @connection.disconnect!
+        end
+      end
+
+      def verify!
+        if @connection
+          @connection.verify!
+        else
+          true
+        end
+      end
+
+      def active?
+        if @connection
+          @connection.active?
+        else
+          true
+        end
+      end
+
+      def clear_cache!
+        if @connection
+          @connection.clear_cache!
+        end
+      end
+
+      def respond_to?(method, include_private = false)
+        if include_private
+          @adapter_class.private_method_defined?(method)
+        else
+          @adapter_class.method_defined?(method)
+        end
+      end
+
+      private
+        define_method(:__callee__, ::Kernel.instance_method(:__callee__))
+        define_method(:original_respond_to?, ::Kernel.instance_method(:respond_to?))
+
+        def method_missing(name, ...)
+          # ::Kernel.p name
+          @pool.with_connection do |connection|
+            connection_was, @connection = @connection, connection
+            result = connection.public_send(name, ...)
+            # Protect from #tap and other methods returning self
+            if connection.equal?(result)
+              result = self
+            end
+            result
+          ensure
+            @connection = connection_was
+          end
+        end
+
+        # NOTE: none of this is final, this is mostly to spot tests that assume `.connection` leases a connection
+        def reject_stateful_method!(...)
+          ::Kernel.raise "Can't call `##{__callee__}` on a lazy connection"
+        end
+        public alias_method :hash, :reject_stateful_method!
+        public alias_method :extend, :reject_stateful_method!
+        public alias_method :class_eval, :reject_stateful_method!
+        public alias_method :raw_connection, :reject_stateful_method!
+        public alias_method :disable_lazy_transactions!, :reject_stateful_method!
+    end
+
     # = Active Record Connection Pool
     #
     # Connection pool base class for managing Active Record database
@@ -119,11 +248,13 @@ module ActiveRecord
     #   are now explicitly documented
     class ConnectionPool
       class Lease # :nodoc:
+        attr_reader :lazy_connection
         attr_accessor :connection, :sticky
 
-        def initialize
+        def initialize(lazy_connection)
           @connection = nil
           @sticky = false
+          @lazy_connection = lazy_connection
         end
 
         def release
@@ -184,14 +315,15 @@ module ActiveRecord
           end
         end
 
-        def initialize
+        def initialize(pool)
           @mutex = Mutex.new
           @map = WeakKeyMap.new
+          @pool = pool
         end
 
         def [](context)
           @mutex.synchronize do
-            @map[context] ||= Lease.new
+            @map[context] ||= Lease.new(LazyConnectionProxy.new(@pool))
           end
         end
 
@@ -239,7 +371,7 @@ module ActiveRecord
         # that case +conn.owner+ attr should be consulted.
         # Access and modification of <tt>@leases</tt> does not require
         # synchronization.
-        @leases = LeaseRegistry.new
+        @leases = LeaseRegistry.new(self)
 
         @connections         = []
         @automatic_reconnect = true
@@ -304,6 +436,11 @@ module ActiveRecord
           and will be removed in Rails 7.3. Use #lease_connection instead.
         MSG
         lease_connection
+      end
+
+      def active_connection # :nodoc:
+        lease = connection_lease
+        lease.connection || lease.lazy_connection
       end
 
       def pin_connection!(lock_thread) # :nodoc:

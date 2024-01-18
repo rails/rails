@@ -24,6 +24,7 @@ ActiveRecord.deprecator.debug = true
 
 # ActiveRecord::Base.connection is only soft deprecated but we remove it
 # in the test suite to ensure we're not using it internally.
+ActiveRecord::ConnectionHandling.alias_method(:deprecated_connection, :connection)
 ActiveRecord::ConnectionHandling.remove_method(:connection)
 
 # Disable available locale checks to avoid warnings running the test suite.

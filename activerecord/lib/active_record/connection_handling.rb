@@ -256,11 +256,17 @@ module ActiveRecord
       connection_pool.lease_connection
     end
 
-    alias_method :connection, :lease_connection
+    def connection
+      if ActiveRecord.cache_connection_checkout
+        connection_pool.lease_connection
+      else
+        connection_pool.active_connection
+      end
+    end
 
     # Return the currently leased connection into the pool
     def release_connection
-      connection.release_connection
+      connection_pool.release_connection
     end
 
     # Checkouts a connection from the pool, yield it and then check it back in.
