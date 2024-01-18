@@ -33,6 +33,51 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     assert_invalid_key_cant_read_attribute(post, :body)
   end
 
+  test "swapping key_providers via with_encryption_context" do
+    key_provider1 = ActiveRecord::Encryption::DerivedSecretKeyProvider.new(SecureRandom.base64(32))
+    key_provider2 = ActiveRecord::Encryption::DerivedSecretKeyProvider.new(SecureRandom.base64(32))
+
+    post1 = post2 = nil
+
+    ActiveRecord::Encryption.with_encryption_context key_provider: key_provider1 do
+      post1 = EncryptedPost.create!(title: "post1!", body: "first post!")
+    end
+
+    ActiveRecord::Encryption.with_encryption_context key_provider: key_provider2 do
+      post2 = EncryptedPost.create!(title: "post2!", body: "second post!")
+    end
+
+    post1.reload
+    assert_raises ActiveRecord::Encryption::Errors::Decryption do
+      post1.title
+    end
+
+    post2.reload
+    assert_raises ActiveRecord::Encryption::Errors::Decryption do
+      post2.title
+    end
+
+    ActiveRecord::Encryption.with_encryption_context key_provider: key_provider1 do
+      post1.reload
+      assert_equal "post1!", post1.title
+
+      post2.reload
+      assert_raises ActiveRecord::Encryption::Errors::Decryption do
+        post2.title
+      end
+    end
+
+    ActiveRecord::Encryption.with_encryption_context key_provider: key_provider2 do
+      post2.reload
+      assert_equal "post2!", post2.title
+
+      post1.reload
+      assert_raises ActiveRecord::Encryption::Errors::Decryption do
+        post1.title
+      end
+    end
+  end
+
   test "ignores nil values" do
     assert_nil EncryptedBook.create!(name: nil).name
   end
