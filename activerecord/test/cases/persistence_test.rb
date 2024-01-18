@@ -25,6 +25,7 @@ require "models/cpk"
 require "models/chat_message"
 require "models/default"
 require "models/post_with_prefetched_pk"
+require "models/pk_autopopulated_by_a_trigger_record"
 
 class PersistenceTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :accounts, :minimalistics, :authors, :author_addresses,
@@ -1538,6 +1539,13 @@ class PersistenceTest < ActiveRecord::TestCase
 
     assert_equal("blue", ClothingItem.find_by(id: clothing_item.id).color)
   end
+
+  def test_model_with_no_auto_populated_fields_still_returns_primary_key_after_insert
+    record = PkAutopopulatedByATriggerRecord.create
+
+    assert_not_nil record.id
+    assert record.id > 0
+  end if current_adapter?(:PostgreSQLAdapter)
 end
 
 class QueryConstraintsTest < ActiveRecord::TestCase
