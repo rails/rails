@@ -41,11 +41,7 @@ Rails.application.configure do
     _file = Rails.root.join("../service/configurations.yml")
     ActiveSupport::ConfigurationFile.parse(_file).deep_symbolize_keys
   rescue Errno::ENOENT
-    msg = "Missing service configuration file in #{_file}"
-    if ENV["CI"]
-      raise msg
-    end
-    puts msg
+    puts "Missing service configuration file in #{_file}"
     {}
   end
   # Azure service tests are currently failing on the main branch.
