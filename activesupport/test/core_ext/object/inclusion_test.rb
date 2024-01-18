@@ -63,4 +63,10 @@ class InTest < ActiveSupport::TestCase
     assert_nil "stuff".presence_in(%w( lots of crap ))
     assert_raise(ArgumentError) { 1.presence_in(1) }
   end
+
+  def test_absence_in
+    assert_nil "stuff".absence_in(%w( lots of stuff ))
+    assert_equal "stuff", "stuff".absence_in(%w( lots of crap ))
+    assert_raise(ArgumentError) { 1.absence_in(1) }
+  end
 end

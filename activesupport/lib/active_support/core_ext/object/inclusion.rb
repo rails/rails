@@ -34,4 +34,17 @@ class Object
   def presence_in(another_object)
     in?(another_object) ? self : nil
   end
+
+  # Returns the receiver if it's not included in the argument otherwise returns +nil+.
+  # Argument must be any object which responds to +#include?+. Usage:
+  #
+  #   params[:bucket_type].absence_in %w( main private )
+  #
+  # This will throw an +ArgumentError+ if the argument doesn't respond to +#include?+.
+  #
+  # @return [Object]
+
+  def absence_in(another_object)
+    in?(another_object) ? nil : self
+  end
 end
