@@ -110,7 +110,10 @@ class ClientsController < ApplicationController
 end
 ```
 
+NOTE: The `params` hash is not a plain old Ruby Hash; instead, it is an [`ActionController::Parameters`][] object. While it behaves like Hash, it does not inherit from Hash.
+
 [`params`]: https://api.rubyonrails.org/classes/ActionController/StrongParameters.html#method-i-params
+[`ActionController::Parameters`]: https://api.rubyonrails.org/classes/ActionController/Parameters.html
 
 ### Hash and Array Parameters
 
