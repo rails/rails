@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "tempfile"
+
 require "isolation/abstract_unit"
 require "console_helpers"
 
@@ -123,9 +125,9 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     assert_output "> ", @primary
   end
 
-  def spawn_console(options, wait_for_prompt: true)
+  def spawn_console(options, wait_for_prompt: true, env: {})
     pid = Process.spawn(
-      { "TERM" => "dumb" },
+      { "TERM" => "dumb" }.merge(env),
       "#{app_path}/bin/rails console #{options}",
       in: @replica, out: @replica, err: @replica
     )
@@ -208,5 +210,41 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     write_prompt "a = 1", "a = 1"
     write_prompt "puts Rails.env", "puts Rails.env\r\ntest"
     @primary.puts "quit"
+  end
+
+  def test_production_console_prompt
+    options = "-e production -- --nocolorize"
+    spawn_console(options)
+
+    write_prompt "123", "prod:001> 123"
+  end
+
+  def test_development_console_prompt
+    options = "-e development -- --nocolorize"
+    spawn_console(options)
+
+    write_prompt "123", "dev:001> 123"
+  end
+
+  def test_test_console_prompt
+    options = "-e test -- --nocolorize"
+    spawn_console(options)
+
+    write_prompt "123", "test:001> 123"
+  end
+
+  def test_console_respects_user_defined_prompt_mode
+    irbrc = Tempfile.new("irbrc")
+    irbrc.write <<-RUBY
+      IRB.conf[:PROMPT_MODE] = :SIMPLE
+    RUBY
+    irbrc.close
+
+    options = "-e test -- --nocolorize"
+    spawn_console(options, env: { "IRBRC" => irbrc.path })
+
+    write_prompt "123", ">> 123"
+  ensure
+    File.unlink(irbrc)
   end
 end

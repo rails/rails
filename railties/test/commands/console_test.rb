@@ -99,6 +99,25 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     ENV["IRB_USE_AUTOCOMPLETE"] = original_use_autocomplete
   end
 
+  def test_prompt_env_colorization
+    irb_console = Rails::Console::IRBConsole.new
+    red = "\e[31m"
+    green = "\e[32m"
+    clear = "\e[0m"
+
+    Rails.env = "development"
+    assert_equal("#{green}dev#{clear}", irb_console.colorized_env)
+
+    Rails.env = "test"
+    assert_equal("#{green}test#{clear}", irb_console.colorized_env)
+
+    Rails.env = "production"
+    assert_equal("#{red}prod#{clear}", irb_console.colorized_env)
+
+    Rails.env = "custom_env"
+    assert_equal("custom_env", irb_console.colorized_env)
+  end
+
   def test_default_environment_with_no_rails_env
     with_rails_env nil do
       start
