@@ -1,3 +1,53 @@
+*   `bin/rails` now prints its help message when given an unrecognized bare
+    option.
+
+    __Before__
+
+      ```console
+      $ bin/rails -v
+      Rails 7.2.0.alpha
+
+      $ bin/rails -V
+      rake, version 13.0.6
+
+      $ bin/rails -s
+      Running 0 tests in a single process (parallelization threshold is 50)
+      ...
+
+      $ bin/rails -S
+      invalid option: -S
+      ```
+
+    __After__
+
+      ```console
+      $ bin/rails -v
+      Rails 7.2.0.alpha
+
+      $ bin/rails -V
+      Usage:
+        bin/rails COMMAND [options]
+
+      You must specify a command. The most common commands are:
+      ...
+
+      $ bin/rails -s
+      Usage:
+        bin/rails COMMAND [options]
+
+      You must specify a command. The most common commands are:
+      ...
+
+      $ bin/rails -S
+      Usage:
+        bin/rails COMMAND [options]
+
+      You must specify a command. The most common commands are:
+      ...
+      ```
+
+    *Jonathan Hefner*
+
 *   Ensure `autoload_paths`, `autoload_once_paths`, `eager_load_paths`, and
     `load_paths` only have directories when initialized from engine defaults.
     Previously, files under the `app` directory could end up there too.

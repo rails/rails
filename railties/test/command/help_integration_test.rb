@@ -7,6 +7,11 @@ class Rails::Command::HelpIntegrationTest < ActiveSupport::TestCase
   setup :build_app
   teardown :teardown_app
 
+  test "prints help on unrecognized bare option" do
+    assert_match "You must specify a command.", rails("--zzz")
+    assert_match "You must specify a command.", rails("-z")
+  end
+
   test "prints helpful error on unrecognized command" do
     output = rails "vershen", allow_failure: true
 
@@ -33,7 +38,17 @@ class Rails::Command::HelpIntegrationTest < ActiveSupport::TestCase
     assert_equal help, output
   end
 
-  test "excludes application Rake tasks from command listing" do
+  test "prints Rake tasks on --tasks / -T option" do
+    app_file "lib/tasks/my_task.rake", <<~RUBY
+      desc "my_task"
+      task :my_task
+    RUBY
+
+    assert_match "my_task", rails("--tasks")
+    assert_match "my_task", rails("-T")
+  end
+
+  test "excludes application Rake tasks from command list via --help" do
     app_file "Rakefile", <<~RUBY, "a"
       desc "my_task"
       task :my_task_1
