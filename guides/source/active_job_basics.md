@@ -184,6 +184,7 @@ documentation for instructions on starting your queue backend.
 
 Here is a noncomprehensive list of documentation:
 
+- [Solid Queue](https://github.com/basecamp/solid_queue#readme)
 - [Sidekiq](https://github.com/mperham/sidekiq/wiki/Active-Job)
 - [Resque](https://github.com/resque/resque/wiki/ActiveJob)
 - [Sneakers](https://github.com/jondot/sneakers/wiki/How-To:-Rails-Background-Jobs-with-ActiveJob)
