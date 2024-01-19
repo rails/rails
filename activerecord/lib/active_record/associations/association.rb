@@ -32,6 +32,12 @@ module ActiveRecord
     # The association of <tt>blog.posts</tt> has the object +blog+ as its
     # <tt>owner</tt>, the collection of its posts as <tt>target</tt>, and
     # the <tt>reflection</tt> object represents a <tt>:has_many</tt> macro.
+    # Unless you explicitly disable validation with
+    # <tt>validate: false</tt>, validation will take place when:
+    #
+    # * you explicitly enable validation; <tt>validate: true</tt>
+    # * you use autosave; <tt>autosave: true</tt>
+    # * the association is a +has_many+ association
     class Association # :nodoc:
       attr_accessor :owner
       attr_reader :target, :reflection, :disable_joins
