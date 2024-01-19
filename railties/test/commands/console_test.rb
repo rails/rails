@@ -58,47 +58,6 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert_equal "IRB", Rails::Console.new(app).console.name
   end
 
-  def test_console_disables_IRB_auto_completion_in_non_local
-    original_use_autocomplete = ENV["IRB_USE_AUTOCOMPLETE"]
-    ENV["IRB_USE_AUTOCOMPLETE"] = nil
-
-    with_rack_env "production" do
-      app = build_app(nil)
-      assert_not_predicate Rails.env, :local?
-      assert_equal "IRB", Rails::Console.new(app).console.name
-      assert_equal "false", ENV["IRB_USE_AUTOCOMPLETE"]
-    end
-  ensure
-    ENV["IRB_USE_AUTOCOMPLETE"] = original_use_autocomplete
-  end
-
-  def test_console_accepts_override_on_IRB_auto_completion_flag
-    original_use_autocomplete = ENV["IRB_USE_AUTOCOMPLETE"]
-    ENV["IRB_USE_AUTOCOMPLETE"] = "true"
-
-    with_rack_env "production" do
-      app = build_app(nil)
-      assert_equal "IRB", Rails::Console.new(app).console.name
-      assert_equal "true", ENV["IRB_USE_AUTOCOMPLETE"]
-    end
-  ensure
-    ENV["IRB_USE_AUTOCOMPLETE"] = original_use_autocomplete
-  end
-
-  def test_console_doesnt_disable_IRB_auto_completion_in_local
-    original_use_autocomplete = ENV["IRB_USE_AUTOCOMPLETE"]
-    ENV["IRB_USE_AUTOCOMPLETE"] = nil
-
-    with_rails_env nil do
-      app = build_app(nil)
-      assert_predicate Rails.env, :local?
-      assert_equal "IRB", Rails::Console.new(app).console.name
-      assert_nil ENV["IRB_USE_AUTOCOMPLETE"]
-    end
-  ensure
-    ENV["IRB_USE_AUTOCOMPLETE"] = original_use_autocomplete
-  end
-
   def test_prompt_env_colorization
     irb_console = Rails::Console::IRBConsole.new
     red = "\e[31m"
@@ -186,7 +145,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     end
 
     def build_app(console)
-      mocked_console = Class.new do
+      mocked_app = Class.new do
         attr_accessor :sandbox
         attr_reader :console, :disable_sandbox, :sandbox_by_default
 
@@ -199,9 +158,11 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
         end
 
         def load_console
+          require "rails/console/app"
+          require "rails/console/helpers"
         end
       end
-      mocked_console.new(console)
+      mocked_app.new(console)
     end
 
     def parse_arguments(args)
