@@ -28,7 +28,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   # :method:
   #
   # Returns the associated ActiveStorage::Blob.
-  belongs_to :blob, class_name: "ActiveStorage::Blob", autosave: true
+  belongs_to :blob, class_name: "ActiveStorage::Blob", autosave: true, inverse_of: :attachments
 
   delegate_missing_to :blob
   delegate :signed_id, to: :blob
