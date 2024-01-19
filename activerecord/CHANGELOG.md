@@ -1,3 +1,11 @@
+*   Consistently raise an `ArgumentError` when passing an invalid argument to a nested attributes association writer.
+
+    Previously, this would only raise on collection associations and produce a generic error on singular associations.
+
+    Now, it will raise on both collection and singular associations.
+
+    *Joshua Young*
+
 *   Fix single quote escapes on default generated MySQL columns
 
     MySQL 5.7.5+ supports generated columns, which can be used to create a column that is computed from an expression.
