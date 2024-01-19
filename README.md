@@ -15,12 +15,12 @@ application into three layers: Model, View, and Controller, each with a specific
 The _**Model layer**_ represents the domain model (such as Account, Product,
 Person, Post, etc.) and encapsulates the business logic specific to
 your application. In Rails, database-backed model classes are derived from
-`ActiveRecord::Base`. [Active Record](activerecord/README.rdoc) allows you to present the data from
+`ActiveRecord::Base`. [Active Record](https://api.rubyonrails.org/classes/ActiveRecord.html) allows you to present the data from
 database rows as objects and embellish these data objects with business logic
 methods.
 Although most Rails models are backed by a database, models can also be ordinary
 Ruby classes, or Ruby classes that implement a set of interfaces as provided by
-the [Active Model](activemodel/README.rdoc) module.
+the [Active Model](https://api.rubyonrails.org/classes/ActiveModel.html) module.
 
 ## View layer
 
@@ -28,7 +28,7 @@ The _**View layer**_ is composed of "templates" that are responsible for providi
 appropriate representations of your application's resources. Templates can
 come in a variety of formats, but most view templates are HTML with embedded
 Ruby code (ERB files). Views are typically rendered to generate a controller response
-or to generate the body of an email. In Rails, View generation is handled by [Action View](actionview/README.rdoc).
+or to generate the body of an email. In Rails, View generation is handled by [Action View](https://api.rubyonrails.org/classes/ActionView.html).
 
 ## Controller layer
 
@@ -42,17 +42,17 @@ are bundled together in [Action Pack](actionpack/README.rdoc).
 
 ## Frameworks and libraries
 
-[Active Record](activerecord/README.rdoc), [Active Model](activemodel/README.rdoc), [Action Pack](actionpack/README.rdoc), and [Action View](actionview/README.rdoc) can each be used independently outside Rails.
+[Active Record](https://api.rubyonrails.org/classes/ActiveRecord.html), [Active Model](https://api.rubyonrails.org/classes/ActiveModel.html), [Action Pack](actionpack/README.rdoc), and [Action View](https://api.rubyonrails.org/classes/ActionView.html) can each be used independently outside Rails.
 
 In addition to that, Rails also comes with:
 
-- [Action Mailer](actionmailer/README.rdoc), a library to generate and send emails
-- [Action Mailbox](actionmailbox/README.md), a library to receive emails within a Rails application
-- [Active Job](activejob/README.md), a framework for declaring jobs and making them run on a variety of queuing backends
-- [Action Cable](actioncable/README.md), a framework to integrate WebSockets with a Rails application
-- [Active Storage](activestorage/README.md), a library to attach cloud and local files to Rails applications
-- [Action Text](actiontext/README.md), a library to handle rich text content
-- [Active Support](activesupport/README.rdoc), a collection of utility classes and standard library extensions that are useful for Rails, and may also be used independently outside Rails
+- [Action Mailer](https://api.rubyonrails.org/classes/ActionMailer.html), a library to generate and send emails
+- [Action Mailbox](https://api.rubyonrails.org/classes/ActionMailbox.html), a library to receive emails within a Rails application
+- [Active Job](https://api.rubyonrails.org/classes/ActiveJob.html), a framework for declaring jobs and making them run on a variety of queuing backends
+- [Action Cable](https://api.rubyonrails.org/classes/ActionCable.html), a framework to integrate WebSockets with a Rails application
+- [Active Storage](https://api.rubyonrails.org/classes/ActiveStorage.html), a library to attach cloud and local files to Rails applications
+- [Action Text](https://api.rubyonrails.org/classes/ActionText.html), a library to handle rich text content
+- [Active Support](https://api.rubyonrails.org/classes/ActiveSupport.html), a collection of utility classes and standard library extensions that are useful for Rails, and may also be used independently outside Rails
 
 ## Getting Started
 
