@@ -86,12 +86,7 @@ module ActiveRecord
         # - "schema.name".table_name
         # - "schema.name"."table.name"
         def quote_table_name(name) # :nodoc:
-          QUOTED_TABLE_NAMES[name] ||= Utils.extract_schema_qualified_name(name.to_s).quoted.freeze
-        end
-
-        # Quotes schema names for use in SQL queries.
-        def quote_schema_name(name)
-          PG::Connection.quote_ident(name)
+          QUOTED_TABLE_NAMES[name] ||= -Utils.extract_schema_qualified_name(name.to_s).quoted.freeze
         end
 
         def quote_table_name_for_assignment(table, attr)
@@ -102,6 +97,9 @@ module ActiveRecord
         def quote_column_name(name) # :nodoc:
           QUOTED_COLUMN_NAMES[name] ||= PG::Connection.quote_ident(super).freeze
         end
+
+        # Quotes schema names for use in SQL queries.
+        alias_method :quote_schema_name, :quote_column_name
 
         # Quote date/time values for use in SQL input.
         def quoted_date(value) # :nodoc:
