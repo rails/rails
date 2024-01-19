@@ -40,6 +40,8 @@ class Rails::Command::HelpIntegrationTest < ActiveSupport::TestCase
 
   test "prints Rake tasks on --tasks / -T option" do
     app_file "lib/tasks/my_task.rake", <<~RUBY
+      Rake.application.clear
+
       desc "my_task"
       task :my_task
     RUBY
