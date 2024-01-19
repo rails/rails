@@ -12,6 +12,53 @@ module Rails
       end
     end
 
+    class IRBConsole
+      def initialize
+        require "irb"
+        require "irb/completion"
+        IRB::WorkSpace.prepend(BacktraceCleaner)
+
+        if !Rails.env.local?
+          # Use env var here so users can override them with env var too
+          ENV["IRB_USE_AUTOCOMPLETE"] ||= "false"
+        end
+      end
+
+      def name
+        "IRB"
+      end
+
+      def start
+        IRB.setup(nil)
+
+        env = colorized_env
+
+        IRB.conf[:PROMPT][:RAILS_PROMPT] = {
+          PROMPT_I: "#{env}:%03n> ",
+          PROMPT_S: "#{env}:%03n%l ",
+          PROMPT_C: "#{env}:%03n* ",
+          RETURN: "=> %s\n"
+        }
+
+        # Respect user's choice of prompt mode.
+        IRB.conf[:PROMPT_MODE] = :RAILS_PROMPT if IRB.conf[:PROMPT_MODE] == :DEFAULT
+        IRB::Irb.new.run(IRB.conf)
+      end
+
+      def colorized_env
+        case Rails.env
+        when "development"
+          IRB::Color.colorize("dev", [:GREEN])
+        when "test"
+          IRB::Color.colorize("test", [:GREEN])
+        when "production"
+          IRB::Color.colorize("prod", [:RED])
+        else
+          Rails.env
+        end
+      end
+    end
+
     def self.start(*args)
       new(*args).start
     end
@@ -31,18 +78,7 @@ module Rails
 
       app.load_console
 
-      @console = app.config.console || begin
-        require "irb"
-        require "irb/completion"
-
-        IRB::WorkSpace.prepend(BacktraceCleaner)
-
-        if !Rails.env.local?
-          ENV["IRB_USE_AUTOCOMPLETE"] ||= "false"
-        end
-
-        IRB
-      end
+      @console = app.config.console || IRBConsole.new
     end
 
     def sandbox?

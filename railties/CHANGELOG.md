@@ -1,3 +1,18 @@
+*   Rails console now indicates the current Rails environment:
+
+    ```txt
+    dev:001> # for RAILS_ENV=development
+    test:001> # for RAILS_ENV=test
+    prod:001> # for RAILS_ENV=production
+    my_env:001> # for RAILS_ENV=my_env
+    ```
+
+    The environment name will also be colorized when the environment is
+    `development` (green), `test` (green), or `production` (red), if your
+    terminal supports it.
+
+    *Stan Lo*
+
 *   `bin/rails` now prints its help message when given an unrecognized bare
     option.
 
