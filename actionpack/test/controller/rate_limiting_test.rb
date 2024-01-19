@@ -20,7 +20,6 @@ class RateLimitingTest < ActionController::TestCase
   tests RateLimitedController
 
   setup do
-    Thread.current[:redis_test_seggregation] = Random.hex(10)
     RateLimitedController.cache_store.clear
   end
 
@@ -51,7 +50,7 @@ class RateLimitingTest < ActionController::TestCase
     assert_response :forbidden
 
     get :limited_with, params: { rate_limit_key: "other" }
-    get :limited_with
+    assert_response :ok
   end
 
   test "limited with" do
