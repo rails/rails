@@ -225,7 +225,7 @@
     This is in line with examples in Rails docs and puts the code in line with the intention -
     the potential use of strings or symbols.
 
-    It is recommended to cast the attribute input to your desired type as if you you are overriding that methid.
+    It is recommended to cast the attribute input to your desired type as if you you are overriding that method.
 
     *Martin Larochelle*
 
