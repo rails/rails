@@ -6,7 +6,7 @@ module ActiveRecord
       :find, :find_by, :find_by!, :take, :take!, :sole, :find_sole_by, :first, :first!, :last, :last!,
       :second, :second!, :third, :third!, :fourth, :fourth!, :fifth, :fifth!,
       :forty_two, :forty_two!, :third_to_last, :third_to_last!, :second_to_last, :second_to_last!,
-      :exists?, :any?, :many?, :none?, :one?,
+      :exists?, :any?, :many?, :none?, :one?, :exactly?, :at_least?, :at_most?, :less_than?, :more_than?,
       :first_or_create, :first_or_create!, :first_or_initialize,
       :find_or_create_by, :find_or_create_by!, :find_or_initialize_by,
       :create_or_find_by, :create_or_find_by!,
