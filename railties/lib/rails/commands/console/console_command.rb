@@ -13,7 +13,9 @@ module Rails
     end
 
     class IRBConsole
-      def initialize
+      def initialize(app)
+        @app = app
+
         require "irb"
         require "irb/completion"
 
@@ -33,11 +35,13 @@ module Rails
         end
 
         env = colorized_env
+        app_name = @app.class.module_parent_name.underscore.dasherize
+        prompt_prefix = "#{app_name}(#{env})"
 
         IRB.conf[:PROMPT][:RAILS_PROMPT] = {
-          PROMPT_I: "#{env}:%03n> ",
-          PROMPT_S: "#{env}:%03n%l ",
-          PROMPT_C: "#{env}:%03n* ",
+          PROMPT_I: "#{prompt_prefix}> ",
+          PROMPT_S: "#{prompt_prefix}%l ",
+          PROMPT_C: "#{prompt_prefix}* ",
           RETURN: "=> %s\n"
         }
 
@@ -79,7 +83,7 @@ module Rails
 
       app.load_console
 
-      @console = app.config.console || IRBConsole.new
+      @console = app.config.console || IRBConsole.new(app)
     end
 
     def sandbox?

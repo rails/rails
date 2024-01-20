@@ -216,21 +216,21 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     options = "-e production"
     spawn_console(options)
 
-    write_prompt "123", "prod:001> 123"
+    write_prompt "123", "app-template(prod)> 123"
   end
 
   def test_development_console_prompt
     options = "-e development"
     spawn_console(options)
 
-    write_prompt "123", "dev:001> 123"
+    write_prompt "123", "app-template(dev)> 123"
   end
 
   def test_test_console_prompt
     options = "-e test"
     spawn_console(options)
 
-    write_prompt "123", "test:001> 123"
+    write_prompt "123", "app-template(test)> 123"
   end
 
   def test_console_respects_user_defined_prompt_mode
