@@ -838,11 +838,20 @@ module ActionController
     alias_method :delete_if, :reject!
 
     # Returns a new +ActionController::Parameters+ instance with +nil+ values removed.
+    #
+    #   params = ActionController::Parameters.new(person: nil)
+    #   params.compact # => #<ActionController::Parameters {} permitted: false>
     def compact
       new_instance_with_inherited_permitted_status(@parameters.compact)
     end
 
     # Removes all +nil+ values in place and returns +self+, or +nil+ if no changes were made.
+    #
+    #   params = ActionController::Parameters.new(person: nil)
+    #   params.compact! # => #<ActionController::Parameters {} permitted: false>
+    #
+    #   params = ActionController::Parameters.new(person: { name: "Francesco" })
+    #   params.compact! # => nil
     def compact!
       self if @parameters.compact!
     end
