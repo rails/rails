@@ -16,12 +16,9 @@ module Rails
       def initialize
         require "irb"
         require "irb/completion"
-        IRB::WorkSpace.prepend(BacktraceCleaner)
 
-        if !Rails.env.local?
-          # Use env var here so users can override them with env var too
-          ENV["IRB_USE_AUTOCOMPLETE"] ||= "false"
-        end
+        IRB::WorkSpace.prepend(BacktraceCleaner)
+        IRB::ExtendCommandBundle.include(Rails::ConsoleMethods)
       end
 
       def name
@@ -30,6 +27,10 @@ module Rails
 
       def start
         IRB.setup(nil)
+
+        if !Rails.env.local? && !ENV.key?("IRB_USE_AUTOCOMPLETE")
+          IRB.conf[:USE_AUTOCOMPLETE] = false
+        end
 
         env = colorized_env
 
@@ -108,9 +109,6 @@ module Rails
         puts "Loading #{Rails.env} environment (Rails #{Rails.version})"
       end
 
-      if defined?(console::ExtendCommandBundle)
-        console::ExtendCommandBundle.include(Rails::ConsoleMethods)
-      end
       console.start
     end
   end
