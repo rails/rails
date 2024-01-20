@@ -1667,6 +1667,13 @@ module ActiveRecord
         #
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for sets
         #   <tt>:autosave</tt> to <tt>true</tt>.
+        
+        #   Unless you explicitly disable validation with
+        #   <tt>validate: false</tt>, validation will take place when:
+        #
+        #   * you explicitly enable validation; <tt>validate: true</tt>
+        #   * you use autosave; <tt>autosave: true</tt>
+        #   * the association is a +has_many+ association
         # [+:touch+]
         #   If true, the associated object will be touched (the +updated_at+ / +updated_on+ attributes set to current time)
         #   when this record is either saved or destroyed. If you specify a symbol, that attribute
@@ -1838,6 +1845,13 @@ module ActiveRecord
         #
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for
         #   sets <tt>:autosave</tt> to <tt>true</tt>.
+
+        #   Unless you explicitly disable validation with
+        #   <tt>validate: false</tt>, validation will take place when:
+        #
+        #   * you explicitly enable validation; <tt>validate: true</tt>
+        #   * you use autosave; <tt>autosave: true</tt>
+        #   * the association is a +has_many+ association
         # [+:touch+]
         #   If true, the associated object will be touched (the +updated_at+ / +updated_on+ attributes set to current time)
         #   when this record is either saved or destroyed. If you specify a symbol, that attribute
