@@ -127,7 +127,7 @@ module ActiveRecord
       # Note: depending on your database connector, the result returned by this
       # method may be manually memory managed. Consider using #exec_query
       # wrapper instead.
-      def execute(sql, name = nil, allow_retry: false)
+      def execute(sql, name = nil, allow_retry: ActiveRecord._internal_always_retry_queries_on_execute)
         internal_execute(sql, name, allow_retry: allow_retry)
       end
 
@@ -527,7 +527,7 @@ module ActiveRecord
           end
         end
 
-        def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
+        def raw_execute(sql, name, async: false, allow_retry: ActiveRecord._internal_always_retry_queries_on_execute, materialize_transactions: true)
           raise NotImplementedError
         end
 

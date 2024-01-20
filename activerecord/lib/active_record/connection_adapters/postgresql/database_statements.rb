@@ -49,7 +49,7 @@ module ActiveRecord
           @notice_receiver_sql_warnings = []
         end
 
-        def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
+        def raw_execute(sql, name, async: false, allow_retry: ActiveRecord._internal_always_retry_queries_on_execute, materialize_transactions: true)
           log(sql, name, async: async) do
             with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
               result = conn.async_exec(sql)

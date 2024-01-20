@@ -112,7 +112,7 @@ module ActiveRecord
         end
 
         private
-          def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: false)
+          def raw_execute(sql, name, async: false, allow_retry: ActiveRecord._internal_always_retry_queries_on_execute, materialize_transactions: false)
             log(sql, name, async: async) do
               with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
                 result = conn.execute(sql)

@@ -697,6 +697,8 @@ module ActiveRecord
       end
 
       test "can reconnect and retry queries under limit when retry deadline is set" do
+        original_retry = ActiveRecord._internal_always_retry_queries_on_execute
+        ActiveRecord._internal_always_retry_queries_on_execute = true
         attempts = 0
         @connection.stub(:retry_deadline, 0.1) do
           @connection.send(:with_raw_connection, allow_retry: true) do
@@ -706,6 +708,8 @@ module ActiveRecord
             end
           end
         end
+      ensure
+        ActiveRecord._internal_always_retry_queries_on_execute = original_retry
       end
 
       test "does not reconnect and retry queries when retries are disabled" do
@@ -721,10 +725,12 @@ module ActiveRecord
       end
 
       test "does not reconnect and retry queries that exceed retry deadline" do
+        original_retry = ActiveRecord._internal_always_retry_queries_on_execute
+        ActiveRecord._internal_always_retry_queries_on_execute = true
         assert_raises(ActiveRecord::ConnectionFailed) do
           attempts = 0
           @connection.stub(:retry_deadline, 0.1) do
-            @connection.send(:with_raw_connection, allow_retry: true) do
+            @connection.send(:with_raw_connection) do
               if attempts == 0
                 sleep(0.2)
                 attempts += 1
@@ -733,6 +739,8 @@ module ActiveRecord
             end
           end
         end
+      ensure
+        ActiveRecord._internal_always_retry_queries_on_execute = original_retry
       end
 
       test "#execute is retryable" do
