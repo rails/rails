@@ -59,7 +59,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
   end
 
   def test_prompt_env_colorization
-    irb_console = Rails::Console::IRBConsole.new
+    irb_console = Rails::Console::IRBConsole.new(app)
     red = "\e[31m"
     green = "\e[32m"
     clear = "\e[0m"
