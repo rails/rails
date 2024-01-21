@@ -30,7 +30,7 @@ require "active_job/deprecator"
 require "global_id"
 
 # :markup: markdown
-# :include: activejob/README.md
+# :include: ../README.md
 module ActiveJob
   extend ActiveSupport::Autoload
 

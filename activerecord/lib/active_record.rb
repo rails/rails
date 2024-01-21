@@ -34,7 +34,7 @@ require "active_record/deprecator"
 require "active_model/attribute_set"
 require "active_record/errors"
 
-# :include: activerecord/README.rdoc
+# :include: ../README.rdoc
 module ActiveRecord
   extend ActiveSupport::Autoload
 
