@@ -1866,19 +1866,49 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_automatically_added_where_references
+    post = Post.create!(title: "title", body: "body")
+    comment = Comment.create!(post: post, body: "body")
+
     scope = Post.where(comments: { body: "Bla" })
     assert_equal ["comments"], scope.references_values
 
     scope = Post.where("comments.body" => "Bla")
     assert_equal ["comments"], scope.references_values
+
+    scope = Post.where(comments: Comment.containing_the_letter_e)
+    assert_equal ["comments"], scope.references_values
+
+    scope = Post.where(comments: [comment])
+    assert_equal ["comments"], scope.references_values
+
+    scope = Comment.where(post: post)
+    assert_equal ["post"], scope.references_values
+
+    scope = Comment.where(post: post.id)
+    assert_equal ["post"], scope.references_values
   end
 
   def test_automatically_added_where_not_references
+    post = Post.create!(title: "title", body: "body")
+    comment = Comment.create!(post: post, body: "body")
+
     scope = Post.where.not(comments: { body: "Bla" })
     assert_equal ["comments"], scope.references_values
 
     scope = Post.where.not("comments.body" => "Bla")
     assert_equal ["comments"], scope.references_values
+
+    scope = Post.where.not(comments: Comment.containing_the_letter_e)
+    assert_equal ["comments"], scope.references_values
+
+    scope = Post.where.not(comments: [comment])
+    assert_equal ["comments"], scope.references_values
+
+    scope = Comment.where.not(post: post)
+    assert_equal ["post"], scope.references_values
+
+    scope = Comment.where.not(post: post.id)
+    assert_equal ["post"], scope.references_values
   end
 
   def test_automatically_added_having_references

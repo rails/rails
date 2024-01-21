@@ -25,9 +25,9 @@ module ActiveRecord
       expand_from_hash(attributes, &block)
     end
 
-    def self.references(attributes)
+    def self.references(attributes, associations: nil)
       attributes.each_with_object([]) do |(key, value), result|
-        if value.is_a?(Hash)
+        if value.is_a?(Hash) || associations&.key?(key)
           result << Arel.sql(key)
         elsif (idx = key.rindex("."))
           result << Arel.sql(key[0, idx])
