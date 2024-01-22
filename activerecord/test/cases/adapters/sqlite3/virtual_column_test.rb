@@ -17,6 +17,7 @@ if ActiveRecord::Base.lease_connection.supports_virtual_columns?
         t.virtual :upper_name, type: :string, as: "UPPER(name)", stored: true
         t.virtual :lower_name, type: :string, as: "LOWER(name)", stored: false
         t.virtual :octet_name, type: :integer, as: "LENGTH(name)"
+        t.virtual :mutated_name, type: :string, as: "REPLACE(name, 'l', 'L')"
         t.integer :column1
       end
       VirtualColumn.create(name: "Rails", column1: 10)
@@ -56,6 +57,14 @@ if ActiveRecord::Base.lease_connection.supports_virtual_columns?
       assert_predicate column, :virtual?
       assert_not_predicate column, :virtual_stored?
       assert_equal 5, VirtualColumn.take.octet_name
+    end
+
+    def test_virtual_column_with_comma_in_definition
+      column = VirtualColumn.columns_hash["mutated_name"]
+      assert_predicate column, :virtual?
+      assert_not_predicate column, :virtual_stored?
+      assert_not_nil column.default_function
+      assert_equal "RaiLs", VirtualColumn.take.mutated_name
     end
 
     def test_change_table_with_stored_generated_column
