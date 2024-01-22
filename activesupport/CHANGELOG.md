@@ -1,3 +1,20 @@
+*   Include `IPAddr#prefix` when serializing an `IPAddr` using the
+    `ActiveSupport::MessagePack` serializer. This change is backward and forward
+    compatible — old payloads can still be read, and new payloads will be
+    readable by older versions of Rails.
+
+    *Taiki Komaba*
+
+*   Add `default:` support for `ActiveSupport::CurrentAttributes.attribute`
+
+    ```ruby
+    class Current < ActiveSupport::CurrentAttributes
+      attribute :counter, default: 0
+    end
+    ```
+
+    *Sean Doyle*
+
 *   Yield instance to `Object#with` block
 
     ```ruby
@@ -13,7 +30,7 @@
 
     *Jonathan Hefner*
 
-*   Fix `Time.now/DateTime.now/Date.today' to return results in a system timezone after `#travel_to'.
+*   Fix `Time.now/DateTime.now/Date.today` to return results in a system timezone after `#travel_to`.
 
     There is a bug in the current implementation of #travel_to:
     it remembers a timezone of its argument, and all stubbed methods start

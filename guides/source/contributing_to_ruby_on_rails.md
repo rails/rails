@@ -49,9 +49,7 @@ Having a way to reproduce your issue will help people confirm, investigate, and 
 * Template for Action Mailbox issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailbox.rb)
 * Generic template for other issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/generic.rb)
 
-These templates include the boilerplate code to set up a test case against either a released version of Rails (`*_gem.rb`) or edge Rails (`*_main.rb`).
-
-Copy the content of the appropriate template into a `.rb` file and make the necessary changes to demonstrate the issue. You can execute it by running `ruby the_file.rb` in your terminal. If all goes well, you should see your test case failing.
+These templates include the boilerplate code to set up a test case. Copy the content of the appropriate template into a `.rb` file and make the necessary changes to demonstrate the issue. You can execute it by running `ruby the_file.rb` in your terminal. If all goes well, you should see your test case failing.
 
 You can then share your executable test case as a [gist](https://gist.github.com) or paste the content into the issue description.
 

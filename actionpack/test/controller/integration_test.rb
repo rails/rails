@@ -151,8 +151,8 @@ class IntegrationTestTest < ActiveSupport::TestCase
   # try to delegate these methods to the session object.
   def test_does_not_prevent_method_missing_passing_up_to_ancestors
     mixin = Module.new do
-      def method_missing(name, *args)
-        name.to_s == "foo" ? "pass" : super
+      def method_missing(name, ...)
+        name == :foo ? "pass" : super
       end
     end
     @test.class.superclass.include(mixin)

@@ -32,19 +32,13 @@ PATH
       activerecord (= 7.2.0.alpha)
       activestorage (= 7.2.0.alpha)
       activesupport (= 7.2.0.alpha)
-      mail (>= 2.7.1)
-      net-imap
-      net-pop
-      net-smtp
+      mail (>= 2.8.0)
     actionmailer (7.2.0.alpha)
       actionpack (= 7.2.0.alpha)
       actionview (= 7.2.0.alpha)
       activejob (= 7.2.0.alpha)
       activesupport (= 7.2.0.alpha)
-      mail (~> 2.5, >= 2.5.4)
-      net-imap
-      net-pop
-      net-smtp
+      mail (>= 2.8.0)
       rails-dom-testing (~> 2.2)
     actionpack (7.2.0.alpha)
       actionview (= 7.2.0.alpha)
@@ -305,12 +299,8 @@ GEM
       rexml
     kramdown-parser-gfm (1.1.0)
       kramdown (~> 2.0)
-    kredis (1.7.0)
-      activemodel (>= 6.0.0)
-      activesupport (>= 6.0.0)
-      redis (>= 4.2, < 6)
     language_server-protocol (3.17.0.3)
-    libxml-ruby (4.1.2)
+    libxml-ruby (5.0.0)
     listen (3.8.0)
       rb-fsevent (~> 0.10, >= 0.10.3)
       rb-inotify (~> 0.9, >= 0.9.10)
@@ -333,7 +323,7 @@ GEM
     mini_magick (4.12.0)
     mini_mime (1.1.5)
     mini_portile2 (2.8.5)
-    minitest (5.20.0)
+    minitest (5.21.1)
     minitest-bisect (1.7.0)
       minitest-server (~> 1.0)
       path_expander (~> 1.1)
@@ -617,7 +607,6 @@ DEPENDENCIES
   jbuilder
   jsbundling-rails
   json (>= 2.0.0, != 2.7.0)
-  kredis (>= 1.7.0)
   libxml-ruby
   listen (~> 3.3)
   mdl (!= 0.13.0)
@@ -677,4 +666,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   2.3.22
+   2.5.4

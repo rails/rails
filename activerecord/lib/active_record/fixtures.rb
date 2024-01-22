@@ -268,6 +268,8 @@ module ActiveRecord
   #     name: Reginald the Pirate
   #     monkey_id: 1
   #
+  # <code></code>
+  #
   #   ### in monkeys.yml
   #
   #   george:
@@ -284,6 +286,8 @@ module ActiveRecord
   #   reginald:
   #     name: Reginald the Pirate
   #     monkey: george
+  #
+  # <code></code>
   #
   #   ### in monkeys.yml
   #
@@ -305,6 +309,8 @@ module ActiveRecord
   #   ### in fruit.rb
   #
   #   belongs_to :eater, polymorphic: true
+  #
+  # <code></code>
   #
   #   ### in fruits.yml
   #
@@ -331,6 +337,8 @@ module ActiveRecord
   #     id: 1
   #     name: George the Monkey
   #
+  # <code></code>
+  #
   #   ### in fruits.yml
   #
   #   apple:
@@ -344,6 +352,8 @@ module ActiveRecord
   #   grape:
   #     id: 3
   #     name: grape
+  #
+  # <code></code>
   #
   #   ### in fruits_monkeys.yml
   #
@@ -367,6 +377,8 @@ module ActiveRecord
   #     id: 1
   #     name: George the Monkey
   #     fruits: apple, orange, grape
+  #
+  # <code></code>
   #
   #   ### in fruits.yml
   #
@@ -467,6 +479,8 @@ module ActiveRecord
   #     belongs_to :author
   #   end
   #
+  # <code></code>
+  #
   #   # books.yml
   #   alices_adventure_in_wonderland:
   #     author_id: <%= ActiveRecord::FixtureSet.identify(:lewis_carroll) %>
@@ -481,6 +495,8 @@ module ActiveRecord
   #     belongs_to :order, query_constraints: [:shop_id, :order_id]
   #     belongs_to :book, query_constraints: [:author_id, :book_id]
   #   end
+  #
+  # <code></code>
   #
   #   # book_orders.yml
   #   alices_adventure_in_wonderland_in_books:

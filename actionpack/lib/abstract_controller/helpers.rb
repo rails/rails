@@ -82,6 +82,9 @@ module AbstractController
       # Given an array of values like the ones accepted by +helper+, this method
       # returns an array with the corresponding modules, in the same order.
       #
+      #   ActionController::Base.modules_for_helpers(["application", "chart", "rubygems"])
+      #   # => [ApplicationHelper, ChartHelper, RubygemsHelper]
+      #
       #--
       # Implemented by Resolution#modules_for_helpers.
 

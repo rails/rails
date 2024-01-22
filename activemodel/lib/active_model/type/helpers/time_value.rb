@@ -94,7 +94,13 @@ module ActiveModel
               end
 
               if $8
-                offset = $8 == "Z" ? 0 : $8.to_i * 3600 + $9.to_i * 60
+                offset = \
+                  if $8 == "Z"
+                    0
+                  else
+                    offset_h, offset_m = $8.to_i, $9.to_i
+                    offset_h.to_i * 3600 + (offset_h.negative? ? -1 : 1) * offset_m * 60
+                  end
               end
 
               new_time($1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, usec, offset)

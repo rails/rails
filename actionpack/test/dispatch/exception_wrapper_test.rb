@@ -83,6 +83,14 @@ module ActionDispatch
      end
     end
 
+    test "#source_extracts works with nil backtrace_locations" do
+      exception = begin eval "class Foo; yield; end"; rescue SyntaxError => ex; ex; end
+
+      wrapper = ExceptionWrapper.new(nil, exception)
+
+      assert_empty wrapper.source_extracts
+    end
+
     if defined?(ErrorHighlight) && Gem::Version.new(ErrorHighlight::VERSION) >= Gem::Version.new("0.4.0")
       test "#source_extracts works with error_highlight" do
         lineno = __LINE__

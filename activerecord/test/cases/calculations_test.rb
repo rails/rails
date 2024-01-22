@@ -1242,6 +1242,11 @@ class CalculationsTest < ActiveRecord::TestCase
       count = ShipPart.count
       assert_async_equal count, ShipPart.async_count
     end
+
+    ShipPart.cache do
+      count = ShipPart.async_count
+      assert_async_equal count.value, ShipPart.async_count
+    end
   end
 
   def test_pluck_joined_with_polymorphic_relation

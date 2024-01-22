@@ -154,7 +154,7 @@ module ActionController
     public :_compute_redirect_to_location
 
     # Verifies the passed +location+ is an internal URL that's safe to redirect to and returns it, or nil if not.
-    # Useful to wrap a params provided redirect URL and fallback to an alternate URL to redirect to:
+    # Useful to wrap a params provided redirect URL and fall back to an alternate URL to redirect to:
     #
     #   redirect_to url_from(params[:redirect_url]) || root_url
     #

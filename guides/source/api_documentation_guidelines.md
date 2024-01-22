@@ -167,13 +167,11 @@ used. Instead of:
 * his or hers... use theirs.
 * himself or herself... use themselves.
 
-English
--------
+### American English
 
 Please use American English (*color*, *center*, *modularize*, etc). See [a list of American and British English spelling differences here](https://en.wikipedia.org/wiki/American_and_British_English_spelling_differences).
 
-Oxford Comma
-------------
+### Oxford Comma
 
 Please use the [Oxford comma](https://en.wikipedia.org/wiki/Serial_comma)
 ("red, white, and blue", instead of "red, white and blue").

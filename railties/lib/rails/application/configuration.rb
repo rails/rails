@@ -585,7 +585,7 @@ module Rails
           end
         end
 
-        def respond_to_missing?(symbol, *)
+        def respond_to_missing?(symbol, _)
           true
         end
       end

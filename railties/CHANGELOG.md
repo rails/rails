@@ -1,19 +1,109 @@
-*   Set `config.action_view.annotate_rendered_view_with_filenames` to `true` in the
-    development environment.
+*   Rails console now indicates application name and the current Rails environment:
+
+    ```txt
+    my-app(dev)> # for RAILS_ENV=development
+    my-app(test)> # for RAILS_ENV=test
+    my-app(prod)> # for RAILS_ENV=production
+    my-app(my_env)> # for RAILS_ENV=my_env
+    ```
+
+    The application name is derived from the application's module name from `config/application.rb`.
+    For example, `MyApp` will displayed as `my-app` in the prompt.
+
+    Additionally, the environment name will be colorized when the environment is
+    `development` (green), `test` (green), or `production` (red), if your
+    terminal supports it.
+
+    *Stan Lo*
+
+*   `bin/rails` now prints its help message when given an unrecognized bare
+    option.
+
+    __Before__
+
+      ```console
+      $ bin/rails -v
+      Rails 7.2.0.alpha
+
+      $ bin/rails -V
+      rake, version 13.0.6
+
+      $ bin/rails -s
+      Running 0 tests in a single process (parallelization threshold is 50)
+      ...
+
+      $ bin/rails -S
+      invalid option: -S
+      ```
+
+    __After__
+
+      ```console
+      $ bin/rails -v
+      Rails 7.2.0.alpha
+
+      $ bin/rails -V
+      Usage:
+        bin/rails COMMAND [options]
+
+      You must specify a command. The most common commands are:
+      ...
+
+      $ bin/rails -s
+      Usage:
+        bin/rails COMMAND [options]
+
+      You must specify a command. The most common commands are:
+      ...
+
+      $ bin/rails -S
+      Usage:
+        bin/rails COMMAND [options]
+
+      You must specify a command. The most common commands are:
+      ...
+      ```
+
+    *Jonathan Hefner*
+
+*   Ensure `autoload_paths`, `autoload_once_paths`, `eager_load_paths`, and
+    `load_paths` only have directories when initialized from engine defaults.
+    Previously, files under the `app` directory could end up there too.
+
+    *Takumasa Ochi*
+
+*   Prevent unnecessary application reloads in development.
+
+    Previously, some files outside autoload paths triggered unnecessary reloads.
+    With this fix, application reloads according to `Rails.autoloaders.main.dirs`,
+    thereby preventing unnecessary reloads.
+
+    *Takumasa Ochi*
+
+*   Use `oven-sh/setup-bun` in GitHub CI when generating an app with Bun.
+
+    *TangRufus*
+
+*   Disable `pidfile` generation in the `production` environment.
+
+    *Hans Schnedlitz*
+
+*   Set `config.action_view.annotate_rendered_view_with_filenames` to `true` in
+    the `development` environment.
 
     *Adrian Marin*
 
-*   Support `BACKTRACE` ENV variable to turn off backtrace cleaning.
+*   Support the `BACKTRACE` environment variable to turn off backtrace cleaning.
 
     Useful for debugging framework code:
 
     ```sh
-    BACKTRACE=1 ./bin/rails server
+    BACKTRACE=1 bin/rails server
     ```
 
     *Alex Ghiculescu*
 
-*   Raise `ArgumentError` when reading `config.x.something` with arguments
+*   Raise `ArgumentError` when reading `config.x.something` with arguments:
 
     ```ruby
     config.x.this_works.this_raises true # raises ArgumentError
@@ -21,7 +111,7 @@
 
     *Sean Doyle*
 
-*   Add default PWA files for manifest and service-worker that are served from `app/views/pwa` and can be dynamically rendered through erb. Mount these files explicitly at the root with default routes in the generated routes file.
+*   Add default PWA files for manifest and service-worker that are served from `app/views/pwa` and can be dynamically rendered through ERB. Mount these files explicitly at the root with default routes in the generated routes file.
 
     *DHH*
 
@@ -29,20 +119,20 @@
 
     *DHH*
 
-*   Add GitHub CI files for dependabot, brakeman, rubocop, and running tests by default. Can be skipped with --skip-ci.
+*   Add GitHub CI files for Dependabot, Brakeman, RuboCop, and running tests by default. Can be skipped with `--skip-ci`.
 
     *DHH*
 
-*   Add brakeman gem by default for static analysis of security vulnerabilities. Allow skipping with --skip-brakeman option.
+*   Add Brakeman by default for static analysis of security vulnerabilities. Allow skipping with `--skip-brakeman option`.
 
     *vipulnsward*
 
-*   Add RuboCop with rules from rubocop-rails-omakase by default. Skip with --skip-rubocop.
+*   Add RuboCop with rules from `rubocop-rails-omakase` by default. Skip with `--skip-rubocop`.
 
     *DHH* and *zzak*
 
-*   Use `bin/rails runner --skip-executor` option to not wrap the runner script
-    with an Executor.
+*   Use `bin/rails runner --skip-executor` to not wrap the runner script with an
+    Executor.
 
     *Ben Sheldon*
 
@@ -52,7 +142,7 @@
 
     *Chedli Bourguiba*
 
-*   Fix running `db:system:change` when app has no Dockerfile.
+*   Fix running `db:system:change` when the app has no Dockerfile.
 
     *Hartley McGuire*
 
@@ -71,7 +161,7 @@
 
     *Christian Schmidt*
 
-*   Enable YJIT by default on new applications running Ruby 3.3+
+*   Enable YJIT by default on new applications running Ruby 3.3+.
 
     Adds a `config/initializers/enable_yjit.rb` initializer that enables YJIT
     when running on Ruby 3.3+.
@@ -89,7 +179,7 @@
 *   Use numeric UID and GID in Dockerfile template
 
     The Dockerfile generated by `rails new` sets the default user and group
-    by name instead of UID:GID. This can cause the following error in kubernetes:
+    by name instead of UID:GID. This can cause the following error in Kubernetes:
 
     ```
     container has runAsNonRoot and image has non-numeric user (rails), cannot verify user is non-root
@@ -101,13 +191,12 @@
 
 *   Disallow invalid values for rails new options.
 
-    The `--database`, `--asset-pipeline`, `--css`, and `--javascript` flags for
-    `rails new` can all take different options. This change adds checks to
-    options to make sure the user enters the correct value.
+    The `--database`, `--asset-pipeline`, `--css`, and `--javascript` options
+    for `rails new` take different arguments. This change validates them.
 
     *Tony Drake*, *Akhil G Krishnan*, *Petrik de Heus*
 
-*   Conditionally print `$stdout` when invoking `run_generator`
+*   Conditionally print `$stdout` when invoking `run_generator`.
 
     In an effort to improve the developer experience when debugging
     generator tests, we add the ability to conditionally print `$stdout`

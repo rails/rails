@@ -24,14 +24,6 @@ module ActiveSupport
         end
       end
 
-      if Process.respond_to?(:_fork) # Ruby 3.1+
-        def check!
-          # We trust the `_fork` callback
-        end
-      else
-        alias_method :check!, :after_fork_callback
-      end
-
       def hook!
         ::Process.singleton_class.prepend(CoreExt)
       end

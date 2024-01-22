@@ -34,7 +34,9 @@ module ActiveJob
       end
     end
 
-    ActiveJob::Base.include(TestQueueAdapter)
+    ActiveSupport.on_load(:active_job) do
+      ActiveJob::Base.include(TestQueueAdapter)
+    end
 
     def before_setup # :nodoc:
       test_adapter = queue_adapter_for_test

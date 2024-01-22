@@ -52,6 +52,10 @@ module ActiveModel
     # Returns a hash of the given methods with their names as keys and returned
     # values as values.
     #
+    #   person = Person.new(id: 1, name: "bob")
+    #   person.slice(:id, :name)
+    #   => { "id" => 1, "name" => "bob" }
+    #
     #--
     # Implemented by ActiveModel::Access#slice.
 
@@ -61,6 +65,10 @@ module ActiveModel
     # :call-seq: values_at(*methods)
     #
     # Returns an array of the values returned by the given methods.
+    #
+    #   person = Person.new(id: 1, name: "bob")
+    #   person.values_at(:id, :name)
+    #   => [1, "bob"]
     #
     #--
     # Implemented by ActiveModel::Access#values_at.

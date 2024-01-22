@@ -201,7 +201,7 @@ module ActionDispatch
     # more information.
     #
     # For debugging purposes, when called with arguments this method will
-    # fallback to Object#method
+    # fall back to Object#method
     def method(*args)
       if args.empty?
         @method ||= check_method(

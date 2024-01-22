@@ -24,7 +24,7 @@ class String
   #
   # The second argument, +indent_string+, specifies which indent string to
   # use. The default is +nil+, which tells the method to make a guess by
-  # peeking at the first indented line, and fallback to a space if there is
+  # peeking at the first indented line, and fall back to a space if there is
   # none.
   #
   #   "  foo".indent(2)        # => "    foo"

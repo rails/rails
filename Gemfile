@@ -87,7 +87,6 @@ else
   gem "rack", git: "https://github.com/rack/rack.git", branch: "main"
 end
 
-gem "kredis", ">= 1.7.0", require: false
 gem "useragent", require: false
 
 # Active Job
@@ -132,7 +131,7 @@ local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
-  gem "minitest-bisect"
+  gem "minitest-bisect", require: false
   gem "minitest-ci", require: false
   gem "minitest-retry"
 

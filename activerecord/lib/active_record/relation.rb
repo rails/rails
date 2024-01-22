@@ -1040,7 +1040,7 @@ module ActiveRecord
       def exec_main_query(async: false)
         if @none
           if async
-            return FutureResult::Complete.new([])
+            return FutureResult.wrap([])
           else
             return []
           end

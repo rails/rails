@@ -32,6 +32,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     ActiveRecord::Base.send(:attribute_method_patterns).concat(@old_matchers)
   end
 
+  test "#id_value alias is defined if id column exist" do
+    new_topic_model = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+    end
+
+    new_topic_model.define_attribute_methods
+    assert_includes new_topic_model.attribute_names, "id"
+    assert_includes new_topic_model.attribute_aliases, "id_value"
+  end
+
   test "aliasing `id` attribute allows reading the column value" do
     topic = Topic.create(id: 123_456, title: "title").becomes(TitlePrimaryKeyTopic)
 

@@ -180,7 +180,6 @@ module ActionDispatch
       # once.
       config = request.get_header("action_dispatch.show_exceptions")
 
-      # Include true and false for backwards compatibility.
       case config
       when :none
         false

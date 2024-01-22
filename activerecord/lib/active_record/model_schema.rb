@@ -431,8 +431,12 @@ module ActiveRecord
       end
 
       def _returning_columns_for_insert # :nodoc:
-        @_returning_columns_for_insert ||= columns.filter_map do |c|
-          c.name if connection.return_value_after_insert?(c)
+        @_returning_columns_for_insert ||= begin
+          auto_populated_columns = columns.filter_map do |c|
+            c.name if connection.return_value_after_insert?(c)
+          end
+
+          auto_populated_columns.empty? ? Array(primary_key) : auto_populated_columns
         end
       end
 

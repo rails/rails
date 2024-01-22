@@ -47,6 +47,15 @@ module ActiveRecord
 
     Canceled = Class.new(ActiveRecordError)
 
+    def self.wrap(result)
+      case result
+      when self, Complete
+        result
+      else
+        Complete.new(result)
+      end
+    end
+
     delegate :empty?, :to_a, to: :result
     delegate_missing_to :result
 

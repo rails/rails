@@ -126,7 +126,10 @@ module ActiveStorage
 
         scope :"with_attached_#{name}", -> {
           if ActiveStorage.track_variants
-            includes("#{name}_attachment": { blob: { variant_records: { image_attachment: :blob } } })
+            includes("#{name}_attachment": { blob: {
+              variant_records: { image_attachment: :blob },
+              preview_image_attachment: { blob: { variant_records: { image_attachment: :blob } } }
+            } })
           else
             includes("#{name}_attachment": :blob)
           end
@@ -223,7 +226,10 @@ module ActiveStorage
 
         scope :"with_attached_#{name}", -> {
           if ActiveStorage.track_variants
-            includes("#{name}_attachments": { blob: { variant_records: { image_attachment: :blob } } })
+            includes("#{name}_attachments": { blob: {
+              variant_records: { image_attachment: :blob },
+              preview_image_attachment: { blob: { variant_records: { image_attachment: :blob } } }
+            } })
           else
             includes("#{name}_attachments": :blob)
           end

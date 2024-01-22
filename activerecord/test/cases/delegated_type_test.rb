@@ -24,6 +24,10 @@ class DelegatedTypeTest < ActiveRecord::TestCase
     end
   end
 
+  test "delegated types" do
+    assert_equal ["Message", "Comment"], Entry.entryable_types
+  end
+
   test "delegated class" do
     assert_equal Message, @entry_with_message.entryable_class
     assert_equal Comment, @entry_with_comment.entryable_class

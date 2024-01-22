@@ -132,7 +132,8 @@ module ActiveJob
       #     queue_as :default
       #
       #     after_enqueue do |job|
-      #       $statsd.increment "enqueue-video-job.success"
+      #       result = job.successfully_enqueued? ? "success" : "failure"
+      #       $statsd.increment "enqueue-video-job.#{result}"
       #     end
       #
       #     def perform(video_id)

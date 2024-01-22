@@ -1029,3 +1029,55 @@ class CallbacksOnMultipleInstancesInATransactionTest < ActiveRecord::TestCase
     end
   end
 end
+
+class SetCallbackTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  class TopicWithHistory < ActiveRecord::Base
+    self.table_name = :topics
+    self.run_commit_callbacks_on_first_saved_instances_in_transaction = true
+
+    def self.clear_history
+      @@history = []
+    end
+
+    def self.history
+      @@history ||= []
+    end
+  end
+
+  class TopicWithCallbacksOnUpdate < TopicWithHistory
+    after_commit :after_commit_on_update_1, on: :update
+    after_update_commit :after_commit_on_update_2
+
+    private
+      def after_commit_on_update_1
+        self.class.history << :after_commit_on_update_1
+      end
+
+      def after_commit_on_update_2
+        self.class.history << :after_commit_on_update_2
+      end
+  end
+
+  def test_set_callback_with_on
+    topic = TopicWithCallbacksOnUpdate.create!(title: "New topic", written_on: Date.today)
+    assert_empty TopicWithCallbacksOnUpdate.history
+
+    topic.update!(title: "Updated topic 1")
+    expected_history = [:after_commit_on_update_2, :after_commit_on_update_1]
+    assert_equal expected_history, TopicWithCallbacksOnUpdate.history
+
+    TopicWithCallbacksOnUpdate.skip_callback(:commit, :after, :after_commit_on_update_2)
+    topic.update!(title: "Updated topic 2")
+    expected_history << :after_commit_on_update_1
+    assert_equal expected_history, TopicWithCallbacksOnUpdate.history
+
+    TopicWithCallbacksOnUpdate.set_callback(:commit, :after, :after_commit_on_update_2, on: :update)
+    topic = TopicWithCallbacksOnUpdate.create!(title: "New topic", written_on: Date.today)
+    topic.update!(title: "Updated topic 3")
+    expected_history << :after_commit_on_update_2
+    expected_history << :after_commit_on_update_1
+    assert_equal expected_history, TopicWithCallbacksOnUpdate.history
+  end
+end

@@ -21,10 +21,10 @@ jobs:
           bundler-cache: true
 
       - name: Scan for security vulnerabilities in Ruby dependencies
-        run: bin/brakeman
+        run: bin/brakeman --no-pager
+
 <% end -%>
 <%- if options[:javascript] == "importmap" -%>
-
   scan_js:
     runs-on: ubuntu-latest
 
@@ -40,9 +40,9 @@ jobs:
 
       - name: Scan for security vulnerabilities in JavaScript dependencies
         run: bin/importmap audit
+
 <% end -%>
 <%- unless skip_rubocop? -%>
-
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -57,8 +57,8 @@ jobs:
 
       - name: Lint code for consistent style
         run: bin/rubocop -f github
-<% end -%>
 
+<% end -%>
   test:
     runs-on: ubuntu-latest
 
@@ -109,6 +109,12 @@ jobs:
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+      <%- if using_bun? -%>
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: <%= dockerfile_bun_version %>
+      <%- end -%>
 
       - name: Run tests
         env:

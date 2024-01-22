@@ -21,7 +21,7 @@
 
     *DHH*
 
-*   Add rate limiting API using Redis and the [Kredis limiter type](https://github.com/rails/kredis/blob/main/lib/kredis/types/limiter.rb).
+*   Add rate limiting API.
 
     ```ruby
     class SessionsController < ApplicationController
@@ -34,7 +34,7 @@
     end
     ```
 
-    *DHH*
+    *DHH*, *Jean Boussier*
 
 *   Add `image/svg+xml` to the compressible content types of ActionDispatch::Static
 

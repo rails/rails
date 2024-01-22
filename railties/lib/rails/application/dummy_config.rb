@@ -9,9 +9,9 @@ class DummyConfig # :nodoc:
     "DummyConfig"
   end
 
-  def method_missing(selector, *args, &blk)
+  def method_missing(selector, ...)
     if @config.respond_to?(selector)
-      @config.send(selector, *args, &blk)
+      @config.send(selector, ...)
     else
       self
     end

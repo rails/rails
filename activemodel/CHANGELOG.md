@@ -1,3 +1,8 @@
+*   Fix a bug where type casting of string to `Time` and `DateTime` doesn't
+    calculate minus minute value in TZ offset correctly.
+
+    *Akira Matsuda*
+
 *   Port the `type_for_attribute` method to Active Model. Classes that include
     `ActiveModel::Attributes` will now provide this method. This method behaves
     the same for Active Model as it does for Active Record.

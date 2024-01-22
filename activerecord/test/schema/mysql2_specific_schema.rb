@@ -23,6 +23,7 @@ ActiveRecord::Schema.define do
     t.string :char2, limit: 50, default: "a varchar field"
     if ActiveRecord::TestCase.supports_default_expression?
       t.binary :uuid, limit: 36, default: -> { "(uuid())" }
+      t.string :char2_concatenated, default: -> { "(concat(`char2`, '-'))" }
     end
   end
 

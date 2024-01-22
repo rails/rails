@@ -630,7 +630,7 @@ module ActiveRecord
 
           result = internal_exec_query(sql, name, binds, prepare: prepare)
           if async
-            FutureResult::Complete.new(result)
+            FutureResult.wrap(result)
           else
             result
           end

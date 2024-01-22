@@ -2,6 +2,7 @@
 
 # Ignore git directory.
 /.git/
+/.gitignore
 
 # Ignore bundler config.
 /.bundle
@@ -46,3 +47,7 @@
 # Ignore CI service files.
 /.github
 <% end -%>
+
+# Ignore Docker-related files
+/.dockerignore
+/Dockerfile*

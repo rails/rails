@@ -72,7 +72,7 @@ module ActionController
   #
   # will try to check if +Admin::User+ or +User+ model exists, and use it to
   # determine the wrapper key respectively. If both models don't exist,
-  # it will then fallback to use +user+ as the key.
+  # it will then fall back to use +user+ as the key.
   #
   # To disable this functionality for a controller:
   #

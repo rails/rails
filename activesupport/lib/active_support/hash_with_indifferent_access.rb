@@ -393,7 +393,7 @@ module ActiveSupport
 
     private
       def convert_key(key)
-        key.kind_of?(Symbol) ? key.name : key
+        Symbol === key ? key.name : key
       end
 
       def convert_value(value, conversion: nil)

@@ -32,7 +32,7 @@ require "active_support/broadcast_logger"
 require "active_support/lazy_load_hooks"
 require "active_support/core_ext/date_and_time/compatibility"
 
-# :include: activesupport/README.rdoc
+# :include: ../README.rdoc
 module ActiveSupport
   extend ActiveSupport::Autoload
 

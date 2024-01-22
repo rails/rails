@@ -1,3 +1,7 @@
+*   Do not trigger immediate loading of `ActiveJob::Base` when loading `ActiveJob::TestHelper`.
+
+    *Maxime Réty*
+
 *   Preserve the serialized timezone when deserializing `ActiveSupport::TimeWithZone` arguments.
 
     *Joshua Young*

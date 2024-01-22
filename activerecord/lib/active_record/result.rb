@@ -195,7 +195,7 @@ module ActiveRecord
       EMPTY = new([].freeze, [].freeze, {}.freeze).freeze
       private_constant :EMPTY
 
-      EMPTY_ASYNC = FutureResult::Complete.new(EMPTY).freeze
+      EMPTY_ASYNC = FutureResult.wrap(EMPTY).freeze
       private_constant :EMPTY_ASYNC
   end
 end
