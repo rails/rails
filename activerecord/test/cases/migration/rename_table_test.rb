@@ -79,6 +79,18 @@ module ActiveRecord
         assert_equal "index_octopi_on_url", index.name
       end
 
+      def test_rename_table_with_long_table_name_and_index
+        long_name = "a" * connection.table_name_length
+
+        add_index :test_models, :url
+        rename_table :test_models, long_name
+
+        index = connection.indexes(long_name).first
+        assert_includes index.columns, "url"
+      ensure
+        rename_table long_name, :test_models
+      end
+
       def test_rename_table_does_not_rename_custom_named_index
         add_index :test_models, :url, name: "special_url_idx"
 
