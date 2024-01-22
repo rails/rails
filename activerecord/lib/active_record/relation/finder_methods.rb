@@ -412,6 +412,7 @@ module ActiveRecord
     # argument.
     def raise_record_not_found_exception!(ids = nil, result_size = nil, expected_size = nil, key = primary_key, not_found_ids = nil) # :nodoc:
       conditions = " [#{arel.where_sql(klass)}]" unless where_clause.empty?
+      ids ||= where_clause.to_h[key]
 
       name = @klass.name
 

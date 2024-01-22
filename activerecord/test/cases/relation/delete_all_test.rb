@@ -64,7 +64,9 @@ class DeleteAllTest < ActiveRecord::TestCase
     end
 
     posts_to_be_deleted.each do |deleted_post|
-      assert_raise(ActiveRecord::RecordNotFound) { deleted_post.reload }
+      exception = assert_raise(ActiveRecord::RecordNotFound) { deleted_post.reload }
+
+      assert_equal deleted_post.id, exception.id
     end
   end
 
