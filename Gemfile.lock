@@ -9,7 +9,7 @@ GIT
 
 GIT
   remote: https://github.com/rails/sdoc.git
-  revision: 08b4252b1f5d185890562f4106d24f3afa944e40
+  revision: e9bb867eba81f48c402a129e688e810ec1fa387c
   branch: main
   specs:
     sdoc (3.0.0.alpha)
