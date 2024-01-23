@@ -543,7 +543,7 @@ GEM
     timeout (0.4.1)
     tomlrb (2.0.3)
     trailblazer-option (0.1.2)
-    trilogy (2.6.0)
+    trilogy (2.7.0)
     turbo-rails (1.5.0)
       actionpack (>= 6.0.0)
       activejob (>= 6.0.0)
@@ -654,7 +654,7 @@ DEPENDENCIES
   syntax_tree (= 6.1.1)
   tailwindcss-rails
   terser (>= 1.1.4)
-  trilogy (>= 2.5.0)
+  trilogy (>= 2.7.0)
   turbo-rails
   tzinfo-data
   useragent

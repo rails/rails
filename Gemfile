@@ -158,7 +158,7 @@ platforms :ruby, :windows do
   group :db do
     gem "pg", "~> 1.3"
     gem "mysql2", "~> 0.5"
-    gem "trilogy", ">= 2.5.0"
+    gem "trilogy", ">= 2.7.0"
   end
 end
 

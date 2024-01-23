@@ -100,7 +100,7 @@ module Rails
 
             assert_file("Gemfile") do |content|
               assert_match "# Use trilogy as the database for Active Record", content
-              assert_match 'gem "trilogy", "~> 2.4"', content
+              assert_match 'gem "trilogy", "~> 2.7"', content
             end
 
             assert_file("Dockerfile") do |content|

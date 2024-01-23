@@ -2,7 +2,7 @@
 
 require "active_record/connection_adapters/abstract_mysql_adapter"
 
-gem "trilogy", "~> 2.4"
+gem "trilogy", "~> 2.7"
 require "trilogy"
 
 require "active_record/connection_adapters/trilogy/database_statements"
@@ -209,10 +209,11 @@ module ActiveRecord
           end
 
           case exception
-          when Errno::EPIPE, SocketError, IOError
+          when SocketError, IOError
             return ConnectionFailed.new(message, connection_pool: @pool)
           when ::Trilogy::Error
-            if /Connection reset by peer|TRILOGY_CLOSED_CONNECTION|TRILOGY_INVALID_SEQUENCE_ID|TRILOGY_UNEXPECTED_PACKET/.match?(exception.message)
+            if /TRILOGY_CLOSED_CONNECTION|TRILOGY_INVALID_SEQUENCE_ID|TRILOGY_UNEXPECTED_PACKET/.match?(exception.message) ||
+                exception.is_a?(SystemCallError)
               return ConnectionFailed.new(message, connection_pool: @pool)
             end
           end
