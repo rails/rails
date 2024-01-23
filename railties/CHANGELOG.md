@@ -11,7 +11,7 @@
     For example, `MyApp` will displayed as `my-app` in the prompt.
 
     Additionally, the environment name will be colorized when the environment is
-    `development` (green), `test` (green), or `production` (red), if your
+    `development` (blue), `test` (blue), or `production` (red), if your
     terminal supports it.
 
     *Stan Lo*

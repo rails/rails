@@ -62,14 +62,14 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     app = build_app(nil)
     irb_console = Rails::Console.new(app).console
     red = "\e[31m"
-    green = "\e[32m"
+    blue = "\e[34m"
     clear = "\e[0m"
 
     Rails.env = "development"
-    assert_equal("#{green}dev#{clear}", irb_console.colorized_env)
+    assert_equal("#{blue}dev#{clear}", irb_console.colorized_env)
 
     Rails.env = "test"
-    assert_equal("#{green}test#{clear}", irb_console.colorized_env)
+    assert_equal("#{blue}test#{clear}", irb_console.colorized_env)
 
     Rails.env = "production"
     assert_equal("#{red}prod#{clear}", irb_console.colorized_env)
