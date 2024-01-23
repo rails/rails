@@ -1072,6 +1072,27 @@ class RenderTest < ActionController::TestCase
     assert_equal "Hello world!", @response.body
   end
 
+  def test_unnested_rendering_with_fallback
+    @controller = Fun::GamesController.new
+    def @controller.hello_world
+      render partial: ::Customer.new("Rendered"), locals: { greeting: "Hello" }
+    end
+
+    get :hello_world
+    assert_equal "Hello: Rendered", @response.body
+  end
+
+  def test_unnested_rendering_without_fallback
+    @controller = Fun::GamesController.new
+    def @controller.hello_world
+      render partial: Post.new
+    end
+
+    assert_raises ActionView::MissingTemplate, match: "Missing partial posts/_post" do
+      get :hello_world
+    end
+  end
+
   # :ported:
   def test_nested_rendering
     @controller = Fun::GamesController.new
