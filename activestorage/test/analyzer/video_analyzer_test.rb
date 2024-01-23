@@ -29,6 +29,15 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
     assert_includes [90, -90], metadata[:angle]
   end
 
+  test "analyzing a rotated HDR video" do
+    blob = create_file_blob(filename: "rotated_hdr_video.mov", content_type: "video/quicktime")
+    metadata = extract_metadata_from(blob)
+
+    assert_equal 1080.0, metadata[:width]
+    assert_equal 1920.0, metadata[:height]
+    assert_equal(-90, metadata[:angle])
+  end
+
   test "analyzing a video with rectangular samples" do
     blob = create_file_blob(filename: "video_with_rectangular_samples.mp4", content_type: "video/mp4")
     metadata = extract_metadata_from(blob)

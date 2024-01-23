@@ -55,9 +55,13 @@ module ActiveStorage
       def angle
         if tags["rotate"]
           Integer(tags["rotate"])
-        elsif side_data && side_data[0] && side_data[0]["rotation"]
-          Integer(side_data[0]["rotation"])
+        elsif display_matrix && display_matrix["rotation"]
+          Integer(display_matrix["rotation"])
         end
+      end
+
+      def display_matrix
+        side_data.detect { |data| data["side_data_type"] == "Display Matrix" }
       end
 
       def display_aspect_ratio
