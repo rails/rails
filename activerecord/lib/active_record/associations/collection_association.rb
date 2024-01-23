@@ -421,9 +421,10 @@ module ActiveRecord
 
         def replace_common_records_in_memory(new_target, original_target)
           common_records = intersection(new_target, original_target)
+          target_index_map = ENV['WITH_ON2_FIX'] == '1' ? @target.each_with_index.to_h : {}
           common_records.each do |record|
             skip_callbacks = true
-            replace_on_target(record, skip_callbacks, replace: true)
+            replace_on_target(record, skip_callbacks, replace: true, target_index_map: target_index_map)
           end
         end
 
@@ -446,9 +447,19 @@ module ActiveRecord
           records
         end
 
-        def replace_on_target(record, skip_callbacks, replace:, inversing: false)
-          if replace && (!record.new_record? || @replaced_or_added_targets.include?(record))
-            index = @target.index(record)
+        def replace_on_target(record, skip_callbacks, replace:, inversing: false, target_index_map: {})
+          if ENV['WITH_ON2_FIX'] == '1'
+            if replace
+              if !record.new_record?
+                index = target_index_map[record] || @target.index(record)
+              else @replaced_or_added_targets.include?(record)
+                index = @target.index(record)
+              end
+            end
+          else
+            if replace && (!record.new_record? || @replaced_or_added_targets.include?(record))
+              index = @target.index(record)
+            end
           end
 
           catch(:abort) do

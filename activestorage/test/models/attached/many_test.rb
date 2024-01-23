@@ -14,6 +14,124 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     ActiveStorage::Blob.all.each(&:delete)
   end
 
+  test "attaching multiple new blobs from Hashes to a new record one by one|random_db65fe1c" do
+    ENV['WITH_ON2_FIX'] = '0'
+    user_1 = User.create!(name: "Jason")
+    user_1.highlights.attach(
+      1000.times.map do |i|
+        {
+          io: StringIO.new("Example string inside text_file_#{i}"),
+          filename: "text_file_#{i}.txt",
+          content_type: "text/plain",
+        }
+      end
+    )
+    user_1.save!
+    user_1.reload
+
+    # Without the fix
+    RubyProf.start
+    Benchmark.bm(30) do |x|
+      x.report("attach performance without fix") do
+        user_1.highlights.attach(
+          {
+            io: StringIO.new("another text file. wow."),
+            filename: "text_file_another.txt",
+            content_type: "text/plain",
+          }
+        )
+      end
+    end
+    result = RubyProf.stop
+    printer = RubyProf::FlameGraphPrinter.new(result)
+    printer.print(File.new(Rails.root.join('flamegraph_1'), "w+"))
+
+    assert_equal 1001, user_1.highlights.count
+    assert_equal "text_file_another.txt", user_1.highlights.last.filename.to_s
+    assert_equal "text_file_another.txt", user_1.highlights_attachments.last.filename.to_s
+    assert_equal "text_file_another.txt", user_1.highlights_blobs.last.filename.to_s
+
+    # With the fix
+    ENV['WITH_ON2_FIX'] = '1'
+
+    user_2 = User.create!(name: "Richard")
+    user_2.highlights.attach(
+      1000.times.map do |i|
+        {
+          io: StringIO.new("Example string inside text_file_#{i}"),
+          filename: "text_file_#{i}.txt",
+          content_type: "text/plain",
+        }
+      end
+    )
+    user_2.save!
+    user_2.reload
+
+    RubyProf.start
+    Benchmark.bm(30) do |x|
+      x.report("attach performance with fix") do
+        user_2.highlights.attach(
+          {
+            io: StringIO.new("another text file. wow."),
+            filename: "text_file_another.txt",
+            content_type: "text/plain",
+          }
+        )
+      end
+    end
+    result = RubyProf.stop
+    printer = RubyProf::FlameGraphPrinter.new(result)
+    printer.print(File.new(Rails.root.join('flamegraph_2'), "w+"))
+
+    assert_equal 1001, user_2.highlights.count
+    assert_equal "text_file_another.txt", user_2.highlights.last.filename.to_s
+    assert_equal "text_file_another.txt", user_2.highlights_attachments.last.filename.to_s
+    assert_equal "text_file_another.txt", user_2.highlights_blobs.last.filename.to_s
+
+    ENV['WITH_ON2_FIX'] = '0'
+
+    # With manual attachment
+    user_3 = User.create!(name: "Lauren")
+    user_3.highlights.attach(
+      1000.times.map do |i|
+        {
+          io: StringIO.new("Example string inside text_file_#{i}"),
+          filename: "text_file_#{i}.txt",
+          content_type: "text/plain",
+        }
+      end
+    )
+    user_3.save!
+    user_3.reload
+
+    RubyProf.start
+    Benchmark.bm(30) do |x|
+      x.report("attach performance manual") do
+        ApplicationRecord.transaction do
+          blob = ActiveStorage::Blob.create_and_upload!(
+            io: StringIO.new("another text file. wow."),
+            filename: "text_file_another.txt",
+            content_type: "text/plain",
+          )
+          user_3.highlights_attachments.create!(
+            blob_id: blob.id,
+            name: 'highlights',
+          )
+          user_3.save!
+        end
+      end
+    end
+    result = RubyProf.stop
+    printer = RubyProf::FlameGraphPrinter.new(result)
+    printer.print(File.new(Rails.root.join('flamegraph_3'), "w+"))
+
+    assert_equal 1001, user_3.highlights.count
+    assert_equal "text_file_another.txt", user_3.highlights.last.filename.to_s
+    assert_equal "text_file_another.txt", user_3.highlights_attachments.last.filename.to_s
+    assert_equal "text_file_another.txt", user_3.highlights_blobs.last.filename.to_s
+  end
+
+
   test "attaching existing blobs to an existing record" do
     @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
     assert_equal "funky.jpg", @user.highlights.first.filename.to_s

@@ -3,6 +3,10 @@
 source "https://rubygems.org"
 gemspec
 
+# Perf gems
+gem "ruby-prof"
+gem "ruby-prof-flamegraph"
+
 gem "minitest", ">= 5.15.0"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
