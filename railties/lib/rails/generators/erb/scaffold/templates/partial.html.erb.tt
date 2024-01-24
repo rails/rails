@@ -1,3 +1,5 @@
+<%%# locals: (<%= singular_name %>:) %>
+
 <div id="<%%= dom_id <%= singular_name %> %>">
 <% attributes.reject(&:password_digest?).each do |attribute| -%>
   <p>

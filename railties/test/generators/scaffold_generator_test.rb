@@ -88,6 +88,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/views/product_lines/_form.html.erb" do |test|
+      assert_match "<%# locals: (product_line:) %>", test
       assert_match "product_line", test
       assert_no_match "@product_line", test
     end
@@ -286,6 +287,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/views/admin/roles/_role.html.erb" do |content|
+      assert_match "<%# locals: (role:) %>", content
       assert_match "role", content
       assert_no_match "admin_role", content
     end

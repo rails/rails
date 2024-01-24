@@ -1,3 +1,5 @@
+<%%# locals: (<%= model_resource_name %>:) %>
+
 <%%= form_with(model: <%= model_resource_name %>) do |form| %>
   <%% if <%= singular_table_name %>.errors.any? %>
     <div style="color: red">

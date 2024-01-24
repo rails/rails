@@ -1,3 +1,7 @@
+*   Scaffold template files using strict locals
+
+    *Sean Doyle*
+
 *   Rails console now indicates application name and the current Rails environment:
 
     ```txt
