@@ -29,6 +29,23 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_nothing_raised { @user.avatar.download }
   end
 
+  test "creating a record with a Tempfile as attachable attribute" do
+    Tempfile.open("active-storage-test") do |tempfile|
+      @user = User.create!(name: "Dorian", avatar: tempfile)
+
+      assert @user.avatar.filename.to_s.start_with?("active-storage-test")
+      assert_not_nil @user.avatar_attachment
+      assert_not_nil @user.avatar_blob
+    end
+  end
+
+  test "uploads the tempfile when passing a Tempfile as attachable attribute" do
+    Tempfile.open("active-storage-test") do |tempfile|
+      @user = User.create!(name: "Dorian", avatar: tempfile)
+      assert_nothing_raised { @user.avatar.download }
+    end
+  end
+
   test "creating a record with a Pathname as attachable attribute" do
     @user = User.create!(name: "Dorian", avatar: file_fixture("image.gif"))
 

@@ -1,3 +1,13 @@
+*   Accept Tempfile as ActiveStorage attachable.
+
+    ```ruby
+    tempfile = Tempfile.open(["users", ".csv"])
+    write_csv_to(tempfile)
+    export.csv.attach(tempfile)
+    ```
+
+    *Shouichi Kamiya*
+
 *   Require image processing backend upfront when Active Storage is being loaded.
 
     This removes extra overhead when processing first variant after deploy and improves copy-on-write for preforking web servers.
