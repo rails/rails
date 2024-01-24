@@ -36,6 +36,8 @@ gem "json", ">= 2.0.0", "!=2.7.0"
 # Workaround until Ruby ships with cgi version 0.3.6 or higher.
 gem "cgi", ">= 0.3.6", require: false
 
+gem "prism"
+
 group :lint do
   gem "syntax_tree", "6.1.1", require: false
 end
