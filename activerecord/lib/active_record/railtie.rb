@@ -308,6 +308,13 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
+    # This configures the Migrator for general usage.
+    initializer "active_record.initialize_migrator" do
+      ActiveSupport.on_load(:active_record) do
+        ActiveRecord::Migrator.migrations_paths = ActiveRecord::Tasks::DatabaseTasks.migrations_paths
+      end
+    end
+
     # Expose database runtime for logging.
     initializer "active_record.log_runtime" do
       require "active_record/railties/controller_runtime"
