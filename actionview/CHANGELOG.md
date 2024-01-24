@@ -1,3 +1,7 @@
+*   Raise `ArgumentError` if `:formats` are not all valid (e.g., `[:txt, :html]` instead of `[:text, :html]`)
+
+    *Riccardo Odone*
+
 *   Raise `ArgumentError` if `:renderable` object does not respond to `#render_in`
 
     *Sean Doyle*

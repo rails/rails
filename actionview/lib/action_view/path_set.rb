@@ -43,6 +43,8 @@ module ActionView # :nodoc:
     end
 
     def find_all(path, prefixes, partial, details, details_key, locals)
+      ensure_valid_formats!(details.fetch(:formats))
+
       search_combinations(prefixes) do |resolver, prefix|
         templates = resolver.find_all(path, prefix, partial, details, details_key, locals)
         return templates unless templates.empty?
@@ -55,6 +57,13 @@ module ActionView # :nodoc:
     end
 
     private
+      def ensure_valid_formats!(candidates)
+        return if Template::Types.valid_symbols?(candidates)
+
+        invalid_formats = candidates - Template::Types.symbols
+        raise ArgumentError, "Invalid formats: #{invalid_formats.map(&:inspect).join(", ")}"
+      end
+
       def search_combinations(prefixes)
         prefixes = Array(prefixes)
         prefixes.each do |prefix|
