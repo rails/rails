@@ -1010,6 +1010,13 @@ ActiveRecord::Schema.define do
     t.integer :indestructible_tags_count, default: 0
     t.integer :tags_with_destroy_count, default: 0
     t.integer :tags_with_nullify_count, default: 0
+    default_posted_at_function = if ActiveRecord::TestCase.current_adapter?(:SQLite3Adapter)
+      "datetime('now')"
+    else
+      "CURRENT_TIMESTAMP"
+    end
+
+    t.timestamp :published_at, default: -> { default_posted_at_function }
   end
 
   create_table :postesques, force: true do |t|

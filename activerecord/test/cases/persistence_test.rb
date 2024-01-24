@@ -1582,6 +1582,13 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_nil record.id
     assert record.id > 0
   end if supports_insert_returning? && !current_adapter?(:SQLite3Adapter)
+
+  def test_columns_with_default_function_are_not_overridden_after_creation
+    freeze_time
+    post = Post.create!(title: "post", body: "body", published_at: 3.days.ago)
+    assert_equal 3.days.ago, post.published_at
+    assert_equal 3.days.ago, post.reload.published_at
+  end
 end
 
 class QueryConstraintsTest < ActiveRecord::TestCase

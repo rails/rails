@@ -197,7 +197,7 @@ if ActiveRecord::Base.connection.supports_views?
         book = PrintedBook.create! name: "Rails in Action", status: 0, format: "paperback"
         assert_not_nil book.id
         assert book.id > 0
-      end if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter) && supports_insert_returning?
+      end
 
       def test_update_record_to_fail_view_conditions
         book = PrintedBook.first

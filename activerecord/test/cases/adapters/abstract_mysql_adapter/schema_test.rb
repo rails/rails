@@ -125,4 +125,8 @@ class MysqlAnsiQuotesTest < ActiveRecord::AbstractMysqlTestCase
     assert_equal([["lessons_students", "students", :cascade]],
                  fks.map { |fk| [fk.from_table, fk.to_table, fk.on_delete] })
   end
+
+  def test_returning_column_names_list_only_contains_one_id_column_if_returning_is_not_supported
+    assert_equal ["id"], Post._returning_columns_for_insert
+  end unless supports_insert_returning?
 end

@@ -325,6 +325,14 @@ module ActiveRecord
         SQL
       end
 
+      def return_value_after_insert?(column) # :nodoc:
+        if supports_insert_returning?
+          super
+        else
+          column.auto_increment?
+        end
+      end
+
       def change_table_comment(table_name, comment_or_changes) # :nodoc:
         comment = extract_new_comment_value(comment_or_changes)
         comment = "" if comment.nil?
