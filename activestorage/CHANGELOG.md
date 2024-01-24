@@ -1,3 +1,13 @@
+*   Accept Tempfile as ActiveStorage attachable
+
+    ```ruby
+    tempfile = Tempfile.open(["users", ".csv"])
+    write_csv_to(tempfile)
+    export.csv.attach(tempfile)
+    ```
+
+    *Shouichi Kamiya*
+
 *   Fix N+1 query when fetching preview images for non-image assets
 
     *Aaron Patterson & Justin Searls*
