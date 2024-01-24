@@ -12,6 +12,10 @@ class Rails::Command::HelpIntegrationTest < ActiveSupport::TestCase
     assert_match "You must specify a command.", rails("-z")
   end
 
+  test "allows --trace option" do
+    assert_match "Invoke default", rails("--trace")
+  end
+
   test "prints helpful error on unrecognized command" do
     output = rails "vershen", allow_failure: true
 
