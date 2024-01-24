@@ -24,7 +24,7 @@ silence_warnings do
   Encoding.default_internal = Encoding::UTF_8
 end
 
-# :include: railties/README.rdoc
+# :include: ../README.rdoc
 module Rails
   extend ActiveSupport::Autoload
   extend ActiveSupport::Benchmarkable
