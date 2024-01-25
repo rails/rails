@@ -132,7 +132,8 @@ module ActiveSupport
           end
         end
 
-        Delegation.generate(singleton_class, names.flat_map { |name| [name, "#{name}="] }, to: :instance, as: self, nilable: false)
+        Delegation.generate(singleton_class, names, to: :instance, nilable: false, signature: "")
+        Delegation.generate(singleton_class, names.map { |n| "#{n}=" }, to: :instance, nilable: false, signature: "value")
 
         self.defaults = defaults.merge(names.index_with { default })
       end

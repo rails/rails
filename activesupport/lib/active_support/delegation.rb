@@ -20,7 +20,7 @@ module ActiveSupport
     RESERVED_METHOD_NAMES = (RUBY_RESERVED_KEYWORDS + %w(_ arg args block)).to_set.freeze
 
     class << self
-      def generate(owner, methods, location: nil, to: nil, prefix: nil, allow_nil: nil, nilable: true, private: nil, as: nil)
+      def generate(owner, methods, location: nil, to: nil, prefix: nil, allow_nil: nil, nilable: true, private: nil, as: nil, signature: nil)
         unless to
           raise ArgumentError, "Delegation needs a target. Supply a keyword argument 'to' (e.g. delegate :hello, to: :greeter)."
         end
@@ -65,7 +65,9 @@ module ActiveSupport
           # Attribute writer methods only accept one argument. Makes sure []=
           # methods still accept two arguments.
           definition = \
-            if /[^\]]=\z/.match?(method)
+            if signature
+              signature
+            elsif /[^\]]=\z/.match?(method)
               "arg"
             else
               method_object = if receiver_class
