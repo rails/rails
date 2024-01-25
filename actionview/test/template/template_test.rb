@@ -155,7 +155,7 @@ class TestERBTemplate < ActiveSupport::TestCase
       render(foo: "bar")
     end
 
-    assert_match(/no locals accepted/, error.message)
+    assert_match(/no locals accepted for hello template/, error.message)
   end
 
   def test_locals_can_not_be_specified_with_positional_arguments
@@ -170,6 +170,25 @@ class TestERBTemplate < ActiveSupport::TestCase
   def test_locals_can_be_specified_with_splat_arguments
     @template = new_template("<%# locals: (**etc) -%><%= etc[:foo] %>")
     assert_equal "bar", render(foo: "bar")
+  end
+
+  def test_locals_can_be_specified_with_keyword_and_splat_arguments
+    @template = new_template("<%# locals: (id:, **attributes) -%>\n<%= tag.hr(id: id, **attributes) %>")
+    assert_equal '<hr id="1" class="h-1">', render(id: 1, class: "h-1")
+  end
+
+  def test_locals_cannot_be_specified_with_positional_arguments
+    @template = new_template("<%# locals: (argument = 'content') -%>\n<%= argument %>")
+    assert_raises ActionView::Template::Error, match: "`argument` set as non-keyword argument for hello template. Locals can only be set as keyword arguments." do
+      render
+    end
+  end
+
+  def test_locals_cannot_be_specified_with_block_arguments
+    @template = new_template("<%# locals: (&block) -%>\n<%= tag.div(&block) %>")
+    assert_raises ActionView::Template::Error, match: "`block` set as non-keyword argument for hello template. Locals can only be set as keyword arguments." do
+      render { "content" }
+    end
   end
 
   def test_locals_can_be_specified
@@ -188,7 +207,7 @@ class TestERBTemplate < ActiveSupport::TestCase
       render
     end
 
-    assert_match(/missing local: :message/, error.message)
+    assert_match(/missing local: :message for hello template/, error.message)
   end
 
   def test_extra_locals_raises_error
@@ -197,7 +216,7 @@ class TestERBTemplate < ActiveSupport::TestCase
       render(message: "Hi", foo: "bar")
     end
 
-    assert_match(/unknown local: :foo/, error.message)
+    assert_match(/unknown local: :foo for hello template/, error.message)
   end
 
   def test_rails_injected_locals_does_not_raise_error_if_not_passed

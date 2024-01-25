@@ -148,6 +148,20 @@ module ActionView
     #     <p><%= alert %></p>
     #   <% end %>
     #
+    # By default, templates will accept any <tt>locals</tt> as keyword arguments
+    # and make them available to <tt>local_assigns</tt>. To restrict what
+    # <tt>local_assigns</tt> a template will accept, add a <tt>locals:</tt> magic comment:
+    #
+    #   <%# locals: (headline:, alerts: []) %>
+    #
+    #   <h1><%= headline %></h1>
+    #
+    #   <% alerts.each do |alert| %>
+    #     <p><%= alert %></p>
+    #   <% end %>
+    #
+    # Read more about strict locals in {Action View Overview}[https://guides.rubyonrails.org/action_view_overview.html#strict-locals]
+    # in the guides.
 
     eager_autoload do
       autoload :Error
