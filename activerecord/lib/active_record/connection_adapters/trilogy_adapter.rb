@@ -13,7 +13,6 @@ module ActiveRecord
       ER_BAD_DB_ERROR = 1049
       ER_DBACCESS_DENIED_ERROR = 1044
       ER_ACCESS_DENIED_ERROR = 1045
-      ER_SERVER_SHUTDOWN = 1053
 
       ADAPTER_NAME = "Trilogy"
 
@@ -200,12 +199,6 @@ module ActiveRecord
         def translate_exception(exception, message:, sql:, binds:)
           if exception.is_a?(::Trilogy::TimeoutError) && !exception.error_code
             return ActiveRecord::AdapterTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          end
-          error_code = exception.error_code if exception.respond_to?(:error_code)
-
-          case error_code
-          when ER_SERVER_SHUTDOWN
-            return ConnectionFailed.new(message, connection_pool: @pool)
           end
 
           case exception
