@@ -113,7 +113,7 @@ module ActiveRecord
     #   are now explicitly documented
     class ConnectionPool
       include MonitorMixin
-      include QueryCache::ConnectionPoolConfiguration
+      prepend QueryCache::ConnectionPoolConfiguration
       include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout
