@@ -18,7 +18,7 @@ module ActionCable
         end
       end
 
-      delegate :channel_name, to: :class, as: ClassMethods
+      ActiveSupport::Delegation.generate(self, [:channel_name], to: :class, as: ClassMethods)
     end
   end
 end

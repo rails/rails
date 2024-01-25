@@ -35,7 +35,7 @@ module ActionCable
         end
       end
 
-      delegate :broadcasting_for, :broadcast_to, to: :class, as: ClassMethods
+      ActiveSupport::Delegation.generate(self, [:broadcasting_for, :broadcast_to], to: :class, as: ClassMethods)
     end
   end
 end

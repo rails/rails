@@ -157,7 +157,7 @@ class Module
   #   Foo.new("Bar").name # raises NoMethodError: undefined method `name'
   #
   # The target method must be public, otherwise it will raise +NoMethodError+.
-  def delegate(*methods, to: nil, prefix: nil, allow_nil: nil, private: nil, as: nil)
+  def delegate(*methods, to: nil, prefix: nil, allow_nil: nil, private: nil)
     ::ActiveSupport::Delegation.generate(
       self,
       methods,
@@ -166,7 +166,6 @@ class Module
       prefix: prefix,
       allow_nil: allow_nil,
       private: private,
-      as: as,
     )
   end
 

@@ -132,7 +132,7 @@ module ActiveSupport
           end
         end
 
-        singleton_class.delegate(*names.flat_map { |name| [name, "#{name}="] }, to: :instance, as: self)
+        Delegation.generate(singleton_class, names.flat_map { |name| [name, "#{name}="] }, to: :instance, as: self)
 
         self.defaults = defaults.merge(names.index_with { default })
       end
@@ -184,7 +184,7 @@ module ActiveSupport
           return if name == :initialize
           return unless public_method_defined?(name)
           return if respond_to?(name, true)
-          singleton_class.delegate(name, to: :instance, as: self)
+          Delegation.generate(singleton_class, [name], to: :instance, as: self)
         end
     end
 
