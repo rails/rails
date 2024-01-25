@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/dependencies"
 require "active_support/core_ext/name_error"
 
@@ -10,8 +12,8 @@ module AbstractController
     included do
       class_attribute :_helper_methods, default: Array.new
 
-      # This is here so that it is always higher in the inheritance chain than
-      # the definition in lib/action_view/rendering.rb
+      # This is here so that it is always higher in the inheritance chain than the
+      # definition in lib/action_view/rendering.rb
       redefine_singleton_method(:_helpers) do
         if @_helpers ||= nil
           @_helpers
@@ -60,9 +62,9 @@ module AbstractController
     extend Resolution
 
     module ClassMethods
-      # When a class is inherited, wrap its helper module in a new module.
-      # This ensures that the parent class's module can be changed
-      # independently of the child class's.
+      # When a class is inherited, wrap its helper module in a new module. This
+      # ensures that the parent class's module can be changed independently of the
+      # child class's.
       def inherited(klass)
         # Inherited from parent by default
         klass._helpers = nil
@@ -79,49 +81,48 @@ module AbstractController
       # :method: modules_for_helpers
       # :call-seq: modules_for_helpers(modules_or_helper_prefixes)
       #
-      # Given an array of values like the ones accepted by +helper+, this method
+      # Given an array of values like the ones accepted by `helper`, this method
       # returns an array with the corresponding modules, in the same order.
       #
-      #   ActionController::Base.modules_for_helpers(["application", "chart", "rubygems"])
-      #   # => [ApplicationHelper, ChartHelper, RubygemsHelper]
+      #     ActionController::Base.modules_for_helpers(["application", "chart", "rubygems"])
+      #     # => [ApplicationHelper, ChartHelper, RubygemsHelper]
       #
       #--
       # Implemented by Resolution#modules_for_helpers.
 
-      ##
-      # :method: all_helpers_from_path
+      # :method: # all_helpers_from_path
       # :call-seq: all_helpers_from_path(path)
       #
       # Returns a list of helper names in a given path.
       #
-      #   ActionController::Base.all_helpers_from_path 'app/helpers'
-      #   # => ["application", "chart", "rubygems"]
+      #     ActionController::Base.all_helpers_from_path 'app/helpers'
+      #     # => ["application", "chart", "rubygems"]
       #
       #--
       # Implemented by Resolution#all_helpers_from_path.
 
       # Declare a controller method as a helper. For example, the following
-      # makes the +current_user+ and +logged_in?+ controller methods available
+      # makes the `current_user` and `logged_in?` controller methods available
       # to the view:
-      #   class ApplicationController < ActionController::Base
-      #     helper_method :current_user, :logged_in?
+      #     class ApplicationController < ActionController::Base
+      #       helper_method :current_user, :logged_in?
       #
-      #     private
-      #       def current_user
-      #         @current_user ||= User.find_by(id: session[:user])
-      #       end
+      #       private
+      #         def current_user
+      #           @current_user ||= User.find_by(id: session[:user])
+      #         end
       #
-      #       def logged_in?
-      #         current_user != nil
-      #       end
-      #   end
+      #         def logged_in?
+      #           current_user != nil
+      #         end
+      #     end
       #
       # In a view:
-      #  <% if logged_in? -%>Welcome, <%= current_user.name %><% end -%>
+      #     <% if logged_in? -%>Welcome, <%= current_user.name %><% end -%>
       #
-      # ==== Parameters
-      # * <tt>method[, method]</tt> - A name or names of a method on the controller
-      #   to be made available on the view.
+      # #### Parameters
+      # *   `method[, method]` - A name or names of a method on the controller to be
+      #     made available on the view.
       def helper_method(*methods)
         methods.flatten!
         self._helper_methods += methods
@@ -131,7 +132,7 @@ module AbstractController
 
         methods.each do |method|
           # def current_user(*args, &block)
-          #   controller.send(:'current_user', *args, &block)
+          #     controller.send(:'current_user', *args, &block)
           # end
           _helpers_for_modification.class_eval <<~ruby_eval.lines.map(&:strip).join(";"), file, line
             def #{method}(...)
@@ -143,54 +144,54 @@ module AbstractController
 
       # Includes the given modules in the template class.
       #
-      # Modules can be specified in different ways. All of the following calls
-      # include +FooHelper+:
+      # Modules can be specified in different ways. All of the following calls include
+      # `FooHelper`:
       #
-      #   # Module, recommended.
-      #   helper FooHelper
+      #     # Module, recommended.
+      #     helper FooHelper
       #
-      #   # String/symbol without the "helper" suffix, camel or snake case.
-      #   helper "Foo"
-      #   helper :Foo
-      #   helper "foo"
-      #   helper :foo
+      #     # String/symbol without the "helper" suffix, camel or snake case.
+      #     helper "Foo"
+      #     helper :Foo
+      #     helper "foo"
+      #     helper :foo
       #
-      # The last two assume that <tt>"foo".camelize</tt> returns "Foo".
+      # The last two assume that `"foo".camelize` returns "Foo".
       #
-      # When strings or symbols are passed, the method finds the actual module
-      # object using String#constantize. Therefore, if the module has not been
-      # yet loaded, it has to be autoloadable, which is normally the case.
+      # When strings or symbols are passed, the method finds the actual module object
+      # using String#constantize. Therefore, if the module has not been yet loaded, it
+      # has to be autoloadable, which is normally the case.
       #
-      # Namespaces are supported. The following calls include +Foo::BarHelper+:
+      # Namespaces are supported. The following calls include `Foo::BarHelper`:
       #
-      #   # Module, recommended.
-      #   helper Foo::BarHelper
+      #     # Module, recommended.
+      #     helper Foo::BarHelper
       #
-      #   # String/symbol without the "helper" suffix, camel or snake case.
-      #   helper "Foo::Bar"
-      #   helper :"Foo::Bar"
-      #   helper "foo/bar"
-      #   helper :"foo/bar"
+      #     # String/symbol without the "helper" suffix, camel or snake case.
+      #     helper "Foo::Bar"
+      #     helper :"Foo::Bar"
+      #     helper "foo/bar"
+      #     helper :"foo/bar"
       #
-      # The last two assume that <tt>"foo/bar".camelize</tt> returns "Foo::Bar".
+      # The last two assume that `"foo/bar".camelize` returns "Foo::Bar".
       #
-      # The method accepts a block too. If present, the block is evaluated in
-      # the context of the controller helper module. This simple call makes the
-      # +wadus+ method available in templates of the enclosing controller:
+      # The method accepts a block too. If present, the block is evaluated in the
+      # context of the controller helper module. This simple call makes the `wadus`
+      # method available in templates of the enclosing controller:
       #
-      #   helper do
-      #     def wadus
-      #       "wadus"
+      #     helper do
+      #       def wadus
+      #         "wadus"
+      #       end
       #     end
-      #   end
       #
       # Furthermore, all the above styles can be mixed together:
       #
-      #   helper FooHelper, "woo", "bar/baz" do
-      #     def wadus
-      #       "wadus"
+      #     helper FooHelper, "woo", "bar/baz" do
+      #       def wadus
+      #         "wadus"
+      #       end
       #     end
-      #   end
       #
       def helper(*args, &block)
         modules_for_helpers(args).each do |mod|
@@ -201,8 +202,8 @@ module AbstractController
         _helpers_for_modification.module_eval(&block) if block_given?
       end
 
-      # Clears up all existing helpers in this class, only keeping the helper
-      # with the same name as this class.
+      # Clears up all existing helpers in this class, only keeping the helper with the
+      # same name as this class.
       def clear_helpers
         inherited_helper_methods = _helper_methods
         self._helpers = Module.new
@@ -221,8 +222,8 @@ module AbstractController
 
       private
         def define_helpers_module(klass, helpers = nil)
-          # In some tests inherited is called explicitly. In that case, just
-          # return the module from the first time it was defined
+          # In some tests inherited is called explicitly. In that case, just return the
+          # module from the first time it was defined
           return klass.const_get(:HelperMethods) if klass.const_defined?(:HelperMethods, false)
 
           mod = Module.new

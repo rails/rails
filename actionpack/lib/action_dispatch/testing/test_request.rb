@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/core_ext/hash/indifferent_access"
 require "rack/utils"
 
@@ -11,7 +13,7 @@ module ActionDispatch
       "HTTP_USER_AGENT"          => "Rails Testing".b,
     )
 
-    # Create a new test request with default +env+ values.
+    # Create a new test request with default `env` values.
     def self.create(env = {})
       env = Rails.application.env_config.merge(env) if defined?(Rails.application) && Rails.application
       env["rack.request.cookie_hash"] ||= {}.with_indifferent_access
