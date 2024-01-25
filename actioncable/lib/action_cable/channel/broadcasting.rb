@@ -23,19 +23,26 @@ module ActionCable
           serialize_broadcasting([ channel_name, model ])
         end
 
-        def serialize_broadcasting(object) # :nodoc:
-          case
-          when object.is_a?(Array)
-            object.map { |m| serialize_broadcasting(m) }.join(":")
-          when object.respond_to?(:to_gid_param)
-            object.to_gid_param
-          else
-            object.to_param
+        private
+          def serialize_broadcasting(object) # :nodoc:
+            case
+            when object.is_a?(Array)
+              object.map { |m| serialize_broadcasting(m) }.join(":")
+            when object.respond_to?(:to_gid_param)
+              object.to_gid_param
+            else
+              object.to_param
+            end
           end
-        end
       end
 
-      ActiveSupport::Delegation.generate(self, [:broadcasting_for, :broadcast_to], to: :class, as: ClassMethods)
+      def broadcasting_for(model)
+        self.class.broadcasting_for(model)
+      end
+
+      def broadcast_to(model, message)
+        self.class.broadcast_to(model, message)
+      end
     end
   end
 end
