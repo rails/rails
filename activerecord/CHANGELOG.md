@@ -1,3 +1,10 @@
+*   Fix eager loading of composite primary key associations.
+
+    `relation.eager_load(:other_model)` could load the wrong records if `other_model`
+    had a composite primary key.
+
+    *Nikita Vasilevsky*
+
 *   Fix async queries returning a doubly wrapped result when hitting the query cache.
 
     *fatkodima*
