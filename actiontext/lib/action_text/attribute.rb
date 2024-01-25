@@ -76,6 +76,7 @@ module ActionText
         includes(rich_text_association_names)
       end
 
+      # Returns the names of all rich text associations.
       def rich_text_association_names
         reflect_on_all_associations(:has_one).collect(&:name).select { |n| n.start_with?("rich_text_") }
       end

@@ -39,7 +39,16 @@ module ActionText
     serialize :body, coder: ActionText::Content
     delegate :to_s, :nil?, to: :body
 
+    ##
+    # :method: record
+    #
+    # Returns the associated record.
     belongs_to :record, polymorphic: true, touch: true
+
+    ##
+    # :method: embeds
+    #
+    # Returns the <tt>ActiveStorage::Blob</tt>s of the embedded files.
     has_many_attached :embeds
 
     before_save do
