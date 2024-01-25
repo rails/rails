@@ -7,9 +7,8 @@ class Rails::Command::HelpIntegrationTest < ActiveSupport::TestCase
   setup :build_app
   teardown :teardown_app
 
-  test "prints help on unrecognized bare option" do
-    assert_match "You must specify a command.", rails("--zzz")
-    assert_match "You must specify a command.", rails("-z")
+  test "when passing --trace it invokes default" do
+    assert_match "Invoke default", rails("--trace")
   end
 
   test "prints helpful error on unrecognized command" do
