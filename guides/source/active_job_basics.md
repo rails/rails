@@ -21,7 +21,7 @@ What is Active Job?
 Active Job is a framework for declaring jobs and making them run on a variety
 of queuing backends. These jobs can be everything from regularly scheduled
 clean-ups, to billing charges, to mailings. Anything that can be chopped up
-into small units of work and run in parallel, really.
+into small units of work and run in parallel.
 
 
 The Purpose of Active Job
@@ -196,7 +196,7 @@ Here is a noncomprehensive list of documentation:
 Queues
 ------
 
-Most of the adapters support multiple queues. With Active Job you can schedule
+Most adapters support multiple queues. With Active Job you can schedule
 the job to run on a specific queue using [`queue_as`][]:
 
 ```ruby
@@ -268,13 +268,6 @@ end
 # on your staging environment
 ```
 
-If you want more control on what queue a job will be run you can pass a `:queue`
-option to `set`:
-
-```ruby
-MyJob.set(queue: :another_queue).perform_later(record)
-```
-
 To control the queue from the job level you can pass a block to `queue_as`. The
 block will be executed in the job context (so it can access `self.arguments`),
 and it must return the queue name:
@@ -300,12 +293,66 @@ end
 ProcessVideoJob.perform_later(Video.last)
 ```
 
+If you want more control on what queue a job will be run you can pass a `:queue`
+option to `set`:
+
+```ruby
+MyJob.set(queue: :another_queue).perform_later(record)
+```
+
 NOTE: Make sure your queuing backend "listens" on your queue name. For some
 backends you need to specify the queues to listen to.
 
 [`config.active_job.queue_name_delimiter`]: configuring.html#config-active-job-queue-name-delimiter
 [`config.active_job.queue_name_prefix`]: configuring.html#config-active-job-queue-name-prefix
 [`queue_as`]: https://api.rubyonrails.org/classes/ActiveJob/QueueName/ClassMethods.html#method-i-queue_as
+
+Priority
+--------------
+
+Some adapters support priorities at the job level, where jobs can be prioritised relative to others in the queue or across all queues.
+
+You can schedule a job to run with a specific priority using [`queue_with_priority`][]:
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  queue_with_priority 10
+  # ...
+end
+```
+
+Note that this will not have any effect with adapters that do not support priorities.
+
+Similar to `queue_as`, you can also pass a block to `queue_with_priority` to be evaluated in the job context:
+
+```ruby
+class ProcessVideoJob < ApplicationJob
+  queue_with_priority do
+    video = self.arguments.first
+    if video.owner.premium?
+      0
+    else
+      10
+    end
+  end
+
+  def perform(video)
+    # Process video
+  end
+end
+```
+
+```ruby
+ProcessVideoJob.perform_later(Video.last)
+```
+
+You can also pass a `:priority` option to `set`:
+
+```ruby
+MyJob.set(priority: 50).perform_later(record)
+```
+
+[`queue_with_priority`]: https://api.rubyonrails.org/classes/ActiveJob/QueuePriority/ClassMethods.html#method-i-queue_with_priority
 
 Callbacks
 ---------
