@@ -270,6 +270,7 @@ ActiveRecord::Schema.define do
     t.string :commentable_title
     t.string :commentable_author
     t.string :commentable_type
+    t.text :text
   end
 
   create_table :cpk_reviews, force: true do |t|
