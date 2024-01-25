@@ -221,7 +221,7 @@ module ActiveSupport
         end
     end
 
-    Delegation.generate(self, [:to_f, :positive?, :negative?, :zero?, :abs], to: :@value, as: Integer)
+    Delegation.generate(self, [:to_f, :positive?, :negative?, :zero?, :abs], to: :@value, as: Integer, nilable: false)
 
     def initialize(value, parts, variable = nil) # :nodoc:
       @value, @parts = value, parts

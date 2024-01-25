@@ -20,7 +20,7 @@ module ActiveSupport
     RESERVED_METHOD_NAMES = (RUBY_RESERVED_KEYWORDS + %w(_ arg args block)).to_set.freeze
 
     class << self
-      def generate(owner, methods, location: nil, to: nil, prefix: nil, allow_nil: nil, private: nil, as: nil)
+      def generate(owner, methods, location: nil, to: nil, prefix: nil, allow_nil: nil, nilable: true, private: nil, as: nil)
         unless to
           raise ArgumentError, "Delegation needs a target. Supply a keyword argument 'to' (e.g. delegate :hello, to: :greeter)."
         end
@@ -49,6 +49,7 @@ module ActiveSupport
         elsif to.is_a?(Module)
           to.singleton_class
         elsif receiver == "self.class"
+          nilable = false # self.class can't possibly be nil
           owner.singleton_class
         end
 
@@ -98,7 +99,12 @@ module ActiveSupport
           # On the other hand it could be that the target has side-effects,
           # whereas conceptually, from the user point of view, the delegator should
           # be doing one call.
-          if allow_nil
+          if nilable == false
+            method_def <<
+              "def #{method_name}(#{definition})" <<
+              "  (#{receiver}).#{method}(#{definition})" <<
+              "end"
+          elsif allow_nil
             method = method.to_s
 
             method_def <<
