@@ -48,7 +48,7 @@ module ActionText
     ##
     # :method: embeds
     #
-    # Returns the <tt>ActiveStorage::Blob</tt>s of the embedded files.
+    # Returns the `ActiveStorage::Blob`s of the embedded files.
     has_many_attached :embeds
 
     before_save do
