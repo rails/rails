@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "rack/session/abstract/id"
 require "active_support/core_ext/hash/conversions"
 require "active_support/core_ext/object/to_query"
@@ -16,10 +18,10 @@ module ActionController
   end
 
   module Live
-    # Disable controller / rendering threads in tests. User tests can access
-    # the database on the main thread, so they could open a txn, then the
-    # controller thread will open a new connection and try to access data
-    # that's only visible to the main thread's txn. This is the problem in #23483.
+    # Disable controller / rendering threads in tests. User tests can access the
+    # database on the main thread, so they could open a txn, then the controller
+    # thread will open a new connection and try to access data that's only visible
+    # to the main thread's txn. This is the problem in #23483.
     silence_redefinition_of_method :new_controller_thread
     def new_controller_thread # :nodoc:
       yield
@@ -29,8 +31,8 @@ module ActionController
     Buffer.queue_size = nil
   end
 
-  # ActionController::TestCase will be deprecated and moved to a gem in the future.
-  # Please use ActionDispatch::IntegrationTest going forward.
+  # ActionController::TestCase will be deprecated and moved to a gem in the
+  # future. Please use ActionDispatch::IntegrationTest going forward.
   class TestRequest < ActionDispatch::TestRequest # :nodoc:
     DEFAULT_ENV = ActionDispatch::TestRequest::DEFAULT_ENV.dup
     DEFAULT_ENV.delete "PATH_INFO"
@@ -232,116 +234,125 @@ module ActionController
       end
   end
 
-  # = Action Controller Test Case
+  # # Action Controller Test Case
   #
-  # Superclass for ActionController functional tests. Functional tests allow you to
-  # test a single controller action per test method.
+  # Superclass for ActionController functional tests. Functional tests allow you
+  # to test a single controller action per test method.
   #
-  # == Use integration style controller tests over functional style controller tests.
+  # ## Use integration style controller tests over functional style controller tests.
   #
-  # \Rails discourages the use of functional tests in favor of integration tests
+  # Rails discourages the use of functional tests in favor of integration tests
   # (use ActionDispatch::IntegrationTest).
   #
-  # New \Rails applications no longer generate functional style controller tests and they should
-  # only be used for backward compatibility. Integration style controller tests perform actual
-  # requests, whereas functional style controller tests merely simulate a request. Besides,
-  # integration tests are as fast as functional tests and provide lot of helpers such as +as+,
-  # +parsed_body+ for effective testing of controller actions including even API endpoints.
+  # New Rails applications no longer generate functional style controller tests
+  # and they should only be used for backward compatibility. Integration style
+  # controller tests perform actual requests, whereas functional style controller
+  # tests merely simulate a request. Besides, integration tests are as fast as
+  # functional tests and provide lot of helpers such as `as`, `parsed_body` for
+  # effective testing of controller actions including even API endpoints.
   #
-  # == Basic example
+  # ## Basic example
   #
   # Functional tests are written as follows:
-  # 1. First, one uses the +get+, +post+, +patch+, +put+, +delete+, or +head+ method to simulate
-  #    an HTTP request.
-  # 2. Then, one asserts whether the current state is as expected. "State" can be anything:
-  #    the controller's HTTP response, the database contents, etc.
+  # 1.  First, one uses the `get`, `post`, `patch`, `put`, `delete`, or `head`
+  #     method to simulate an HTTP request.
+  # 2.  Then, one asserts whether the current state is as expected. "State" can be
+  #     anything: the controller's HTTP response, the database contents, etc.
+  #
   #
   # For example:
   #
-  #   class BooksControllerTest < ActionController::TestCase
-  #     def test_create
-  #       # Simulate a POST response with the given HTTP parameters.
-  #       post(:create, params: { book: { title: "Love Hina" }})
+  #     class BooksControllerTest < ActionController::TestCase
+  #       def test_create
+  #         # Simulate a POST response with the given HTTP parameters.
+  #         post(:create, params: { book: { title: "Love Hina" }})
   #
-  #       # Asserts that the controller tried to redirect us to
-  #       # the created book's URI.
-  #       assert_response :found
+  #         # Asserts that the controller tried to redirect us to
+  #         # the created book's URI.
+  #         assert_response :found
   #
-  #       # Asserts that the controller really put the book in the database.
-  #       assert_not_nil Book.find_by(title: "Love Hina")
+  #         # Asserts that the controller really put the book in the database.
+  #         assert_not_nil Book.find_by(title: "Love Hina")
+  #       end
   #     end
-  #   end
   #
   # You can also send a real document in the simulated HTTP request.
   #
-  #   def test_create
-  #     json = {book: { title: "Love Hina" }}.to_json
-  #     post :create, body: json
-  #   end
+  #     def test_create
+  #       json = {book: { title: "Love Hina" }}.to_json
+  #       post :create, body: json
+  #     end
   #
-  # == Special instance variables
+  # ## Special instance variables
   #
-  # ActionController::TestCase will also automatically provide the following instance
-  # variables for use in the tests:
+  # ActionController::TestCase will also automatically provide the following
+  # instance variables for use in the tests:
   #
-  # <b>@controller</b>::
-  #      The controller instance that will be tested.
-  # <b>@request</b>::
-  #      An ActionController::TestRequest, representing the current HTTP
-  #      request. You can modify this object before sending the HTTP request. For example,
-  #      you might want to set some session properties before sending a GET request.
-  # <b>@response</b>::
-  #      An ActionDispatch::TestResponse object, representing the response
-  #      of the last HTTP response. In the above example, <tt>@response</tt> becomes valid
-  #      after calling +post+. If the various assert methods are not sufficient, then you
-  #      may use this object to inspect the HTTP response in detail.
+  # **@controller**
+  # :   The controller instance that will be tested.
+  # **@request**
+  # :   An ActionController::TestRequest, representing the current HTTP request.
+  #     You can modify this object before sending the HTTP request. For example,
+  #     you might want to set some session properties before sending a GET
+  #     request.
+  # **@response**
+  # :   An ActionDispatch::TestResponse object, representing the response of the
+  #     last HTTP response. In the above example, `@response` becomes valid after
+  #     calling `post`. If the various assert methods are not sufficient, then you
+  #     may use this object to inspect the HTTP response in detail.
   #
-  # == Controller is automatically inferred
+  #
+  # ## Controller is automatically inferred
   #
   # ActionController::TestCase will automatically infer the controller under test
   # from the test class name. If the controller cannot be inferred from the test
-  # class name, you can explicitly set it with +tests+.
+  # class name, you can explicitly set it with `tests`.
   #
-  #   class SpecialEdgeCaseWidgetsControllerTest < ActionController::TestCase
-  #     tests WidgetController
-  #   end
+  #     class SpecialEdgeCaseWidgetsControllerTest < ActionController::TestCase
+  #       tests WidgetController
+  #     end
   #
-  # == \Testing controller internals
+  # ## Testing controller internals
   #
-  # In addition to these specific assertions, you also have easy access to various collections that the regular test/unit assertions
-  # can be used against. These collections are:
+  # In addition to these specific assertions, you also have easy access to various
+  # collections that the regular test/unit assertions can be used against. These
+  # collections are:
   #
-  # * session: Objects being saved in the session.
-  # * flash: The flash objects currently in the session.
-  # * cookies: \Cookies being sent to the user on this request.
+  # *   session: Objects being saved in the session.
+  # *   flash: The flash objects currently in the session.
+  # *   cookies: Cookies being sent to the user on this request.
+  #
   #
   # These collections can be used just like any other hash:
   #
-  #   assert_equal "Dave", cookies[:name] # makes sure that a cookie called :name was set as "Dave"
-  #   assert flash.empty? # makes sure that there's nothing in the flash
+  #     assert_equal "Dave", cookies[:name] # makes sure that a cookie called :name was set as "Dave"
+  #     assert flash.empty? # makes sure that there's nothing in the flash
   #
-  # On top of the collections, you have the complete URL that a given action redirected to available in <tt>redirect_to_url</tt>.
+  # On top of the collections, you have the complete URL that a given action
+  # redirected to available in `redirect_to_url`.
   #
-  # For redirects within the same controller, you can even call follow_redirect and the redirect will be followed, triggering another
-  # action call which can then be asserted against.
+  # For redirects within the same controller, you can even call follow_redirect
+  # and the redirect will be followed, triggering another action call which can
+  # then be asserted against.
   #
-  # == Manipulating session and cookie variables
+  # ## Manipulating session and cookie variables
   #
-  # Sometimes you need to set up the session and cookie variables for a test.
-  # To do this just assign a value to the session or cookie collection:
+  # Sometimes you need to set up the session and cookie variables for a test. To
+  # do this just assign a value to the session or cookie collection:
   #
-  #   session[:key] = "value"
-  #   cookies[:key] = "value"
+  #     session[:key] = "value"
+  #     cookies[:key] = "value"
   #
   # To clear the cookies for a test just clear the cookie collection:
   #
-  #   cookies.clear
+  #     cookies.clear
   #
-  # == \Testing named routes
+  # ## Testing named routes
   #
-  # If you're using named routes, they can be easily tested using the original named routes' methods straight in the test case.
+  # If you're using named routes, they can be easily tested using the original
+  # named routes' methods straight in the test case.
   #
-  #  assert_redirected_to page_url(title: 'foo')
+  #     assert_redirected_to page_url(title: 'foo')
   class TestCase < ActiveSupport::TestCase
     singleton_class.attr_accessor :executor_around_each_request
 
@@ -354,12 +365,12 @@ module ActionController
       attr_reader :response, :request
 
       module ClassMethods
-        # Sets the controller class name. Useful if the name can't be inferred from test class.
-        # Normalizes +controller_class+ before using.
+        # Sets the controller class name. Useful if the name can't be inferred from test
+        # class. Normalizes `controller_class` before using.
         #
-        #   tests WidgetController
-        #   tests :widget
-        #   tests 'widget'
+        #     tests WidgetController
+        #     tests :widget
+        #     tests 'widget'
         def tests(controller_class)
           case controller_class
           when String, Symbol
@@ -392,21 +403,24 @@ module ActionController
 
       # Simulate a GET request with the given parameters.
       #
-      # - +action+: The controller action to call.
-      # - +params+: The hash with HTTP parameters that you want to pass. This may be +nil+.
-      # - +body+: The request body with a string that is appropriately encoded
-      #   (<tt>application/x-www-form-urlencoded</tt> or <tt>multipart/form-data</tt>).
-      # - +session+: A hash of parameters to store in the session. This may be +nil+.
-      # - +flash+: A hash of parameters to store in the flash. This may be +nil+.
+      # *   `action`: The controller action to call.
+      # *   `params`: The hash with HTTP parameters that you want to pass. This may be
+      #     `nil`.
+      # *   `body`: The request body with a string that is appropriately encoded
+      #     (`application/x-www-form-urlencoded` or `multipart/form-data`).
+      # *   `session`: A hash of parameters to store in the session. This may be
+      #     `nil`.
+      # *   `flash`: A hash of parameters to store in the flash. This may be `nil`.
       #
-      # You can also simulate POST, PATCH, PUT, DELETE, and HEAD requests with
-      # +post+, +patch+, +put+, +delete+, and +head+.
-      # Example sending parameters, session, and setting a flash message:
       #
-      #   get :show,
-      #     params: { id: 7 },
-      #     session: { user_id: 1 },
-      #     flash: { notice: 'This is flash message' }
+      # You can also simulate POST, PATCH, PUT, DELETE, and HEAD requests with `post`,
+      # `patch`, `put`, `delete`, and `head`. Example sending parameters, session, and
+      # setting a flash message:
+      #
+      #     get :show,
+      #       params: { id: 7 },
+      #       session: { user_id: 1 },
+      #       flash: { notice: 'This is flash message' }
       #
       # Note that the request method is not verified. The different methods are
       # available to make the tests more expressive.
@@ -417,67 +431,71 @@ module ActionController
       end
 
       # Simulate a POST request with the given parameters and set/volley the response.
-      # See +get+ for more details.
+      # See `get` for more details.
       def post(action, **args)
         process(action, method: "POST", **args)
       end
 
-      # Simulate a PATCH request with the given parameters and set/volley the response.
-      # See +get+ for more details.
+      # Simulate a PATCH request with the given parameters and set/volley the
+      # response. See `get` for more details.
       def patch(action, **args)
         process(action, method: "PATCH", **args)
       end
 
       # Simulate a PUT request with the given parameters and set/volley the response.
-      # See +get+ for more details.
+      # See `get` for more details.
       def put(action, **args)
         process(action, method: "PUT", **args)
       end
 
-      # Simulate a DELETE request with the given parameters and set/volley the response.
-      # See +get+ for more details.
+      # Simulate a DELETE request with the given parameters and set/volley the
+      # response. See `get` for more details.
       def delete(action, **args)
         process(action, method: "DELETE", **args)
       end
 
       # Simulate a HEAD request with the given parameters and set/volley the response.
-      # See +get+ for more details.
+      # See `get` for more details.
       def head(action, **args)
         process(action, method: "HEAD", **args)
       end
 
-      # Simulate an HTTP request to +action+ by specifying request method,
-      # parameters and set/volley the response.
+      # Simulate an HTTP request to `action` by specifying request method, parameters
+      # and set/volley the response.
       #
-      # - +action+: The controller action to call.
-      # - +method+: Request method used to send the HTTP request. Possible values
-      #   are +GET+, +POST+, +PATCH+, +PUT+, +DELETE+, +HEAD+. Defaults to +GET+. Can be a symbol.
-      # - +params+: The hash with HTTP parameters that you want to pass. This may be +nil+.
-      # - +body+: The request body with a string that is appropriately encoded
-      #   (<tt>application/x-www-form-urlencoded</tt> or <tt>multipart/form-data</tt>).
-      # - +session+: A hash of parameters to store in the session. This may be +nil+.
-      # - +flash+: A hash of parameters to store in the flash. This may be +nil+.
-      # - +format+: Request format. Defaults to +nil+. Can be string or symbol.
-      # - +as+: Content type. Defaults to +nil+. Must be a symbol that corresponds
-      #   to a mime type.
+      # *   `action`: The controller action to call.
+      # *   `method`: Request method used to send the HTTP request. Possible values
+      #     are `GET`, `POST`, `PATCH`, `PUT`, `DELETE`, `HEAD`. Defaults to `GET`.
+      #     Can be a symbol.
+      # *   `params`: The hash with HTTP parameters that you want to pass. This may be
+      #     `nil`.
+      # *   `body`: The request body with a string that is appropriately encoded
+      #     (`application/x-www-form-urlencoded` or `multipart/form-data`).
+      # *   `session`: A hash of parameters to store in the session. This may be
+      #     `nil`.
+      # *   `flash`: A hash of parameters to store in the flash. This may be `nil`.
+      # *   `format`: Request format. Defaults to `nil`. Can be string or symbol.
+      # *   `as`: Content type. Defaults to `nil`. Must be a symbol that corresponds
+      #     to a mime type.
       #
-      # Example calling +create+ action and sending two params:
       #
-      #   process :create,
-      #     method: 'POST',
-      #     params: {
-      #       user: { name: 'Gaurish Sharma', email: 'user@example.com' }
-      #     },
-      #     session: { user_id: 1 },
-      #     flash: { notice: 'This is flash message' }
+      # Example calling `create` action and sending two params:
       #
-      # To simulate +GET+, +POST+, +PATCH+, +PUT+, +DELETE+, and +HEAD+ requests
-      # prefer using #get, #post, #patch, #put, #delete and #head methods
-      # respectively which will make tests more expressive.
+      #     process :create,
+      #       method: 'POST',
+      #       params: {
+      #         user: { name: 'Gaurish Sharma', email: 'user@example.com' }
+      #       },
+      #       session: { user_id: 1 },
+      #       flash: { notice: 'This is flash message' }
+      #
+      # To simulate `GET`, `POST`, `PATCH`, `PUT`, `DELETE`, and `HEAD` requests
+      # prefer using #get, #post, #patch, #put, #delete and #head methods respectively
+      # which will make tests more expressive.
       #
       # It's not recommended to make more than one request in the same test. Instance
       # variables that are set in one request will not persist to the next request,
-      # but it's not guaranteed that all \Rails internal state will be reset. Prefer
+      # but it's not guaranteed that all Rails internal state will be reset. Prefer
       # ActionDispatch::IntegrationTest for making multiple requests in the same test.
       #
       # Note that the request method is not verified.
@@ -654,8 +672,8 @@ module ActionController
         end
 
         def check_required_ivars
-          # Check for required instance variables so we can give an
-          # understandable error message.
+          # Check for required instance variables so we can give an understandable error
+          # message.
           [:@routes, :@controller, :@request, :@response].each do |iv_name|
             if !instance_variable_defined?(iv_name) || instance_variable_get(iv_name).nil?
               raise "#{iv_name} is nil: make sure you set it in your test's setup method."

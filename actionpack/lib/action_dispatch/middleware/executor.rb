@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "rack/body_proxy"
 
 module ActionDispatch

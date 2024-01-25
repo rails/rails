@@ -1,57 +1,60 @@
 # frozen_string_literal: true
 
-module ActionDispatch
-  # = Action Dispatch \SSL
-  #
-  # This middleware is added to the stack when <tt>config.force_ssl = true</tt>, and is passed
-  # the options set in +config.ssl_options+. It does three jobs to enforce secure HTTP
-  # requests:
-  #
-  # 1. <b>TLS redirect</b>: Permanently redirects +http://+ requests to +https://+
-  #    with the same URL host, path, etc. Enabled by default. Set +config.ssl_options+
-  #    to modify the destination URL
-  #    (e.g. <tt>redirect: { host: "secure.widgets.com", port: 8080 }</tt>), or set
-  #    <tt>redirect: false</tt> to disable this feature.
-  #
-  #    Requests can opt-out of redirection with +exclude+:
-  #
-  #      config.ssl_options = { redirect: { exclude: -> request { /healthcheck/.match?(request.path) } } }
-  #
-  #    Cookies will not be flagged as secure for excluded requests.
-  #
-  # 2. <b>Secure cookies</b>: Sets the +secure+ flag on cookies to tell browsers they
-  #    must not be sent along with +http://+ requests. Enabled by default. Set
-  #    +config.ssl_options+ with <tt>secure_cookies: false</tt> to disable this feature.
-  #
-  # 3. <b>HTTP Strict Transport Security (HSTS)</b>: Tells the browser to remember
-  #    this site as TLS-only and automatically redirect non-TLS requests.
-  #    Enabled by default. Configure +config.ssl_options+ with <tt>hsts: false</tt> to disable.
-  #
-  #    Set +config.ssl_options+ with <tt>hsts: { ... }</tt> to configure HSTS:
-  #
-  #    * +expires+: How long, in seconds, these settings will stick. The minimum
-  #      required to qualify for browser preload lists is 1 year. Defaults to
-  #      2 years (recommended).
-  #
-  #    * +subdomains+: Set to +true+ to tell the browser to apply these settings
-  #      to all subdomains. This protects your cookies from interception by a
-  #      vulnerable site on a subdomain. Defaults to +true+.
-  #
-  #    * +preload+: Advertise that this site may be included in browsers'
-  #      preloaded HSTS lists. HSTS protects your site on every visit <i>except the
-  #      first visit</i> since it hasn't seen your HSTS header yet. To close this
-  #      gap, browser vendors include a baked-in list of HSTS-enabled sites.
-  #      Go to https://hstspreload.org to submit your site for inclusion.
-  #      Defaults to +false+.
-  #
-  #    To turn off HSTS, omitting the header is not enough. Browsers will remember the
-  #    original HSTS directive until it expires. Instead, use the header to tell browsers to
-  #    expire HSTS immediately. Setting <tt>hsts: false</tt> is a shortcut for
-  #    <tt>hsts: { expires: 0 }</tt>.
-  class SSL
-    # :stopdoc:
+# :markup: markdown
 
-    # Default to 2 years as recommended on hstspreload.org.
+module ActionDispatch
+  # # Action Dispatch SSL
+  #
+  # This middleware is added to the stack when `config.force_ssl = true`, and is
+  # passed the options set in `config.ssl_options`. It does three jobs to enforce
+  # secure HTTP requests:
+  #
+  # 1.  **TLS redirect**: Permanently redirects `http://` requests to `https://`
+  #     with the same URL host, path, etc. Enabled by default. Set
+  #     `config.ssl_options` to modify the destination URL (e.g. `redirect: {
+  #     host: "secure.widgets.com", port: 8080 }`), or set `redirect: false` to
+  #     disable this feature.
+  #
+  #     Requests can opt-out of redirection with `exclude`:
+  #
+  #         config.ssl_options = { redirect: { exclude: -> request { /healthcheck/.match?(request.path) } } }
+  #
+  #     Cookies will not be flagged as secure for excluded requests.
+  #
+  # 2.  **Secure cookies**: Sets the `secure` flag on cookies to tell browsers
+  #     they must not be sent along with `http://` requests. Enabled by default.
+  #     Set `config.ssl_options` with `secure_cookies: false` to disable this
+  #     feature.
+  #
+  # 3.  **HTTP Strict Transport Security (HSTS)**: Tells the browser to remember
+  #     this site as TLS-only and automatically redirect non-TLS requests. Enabled
+  #     by default. Configure `config.ssl_options` with `hsts: false` to disable.
+  #
+  #     Set `config.ssl_options` with `hsts: { ... }` to configure HSTS:
+  #
+  #     *   `expires`: How long, in seconds, these settings will stick. The
+  #         minimum required to qualify for browser preload lists is 1 year.
+  #         Defaults to 2 years (recommended).
+  #
+  #     *   `subdomains`: Set to `true` to tell the browser to apply these
+  #         settings to all subdomains. This protects your cookies from
+  #         interception by a vulnerable site on a subdomain. Defaults to `true`.
+  #
+  #     *   `preload`: Advertise that this site may be included in browsers'
+  #         preloaded HSTS lists. HSTS protects your site on every visit *except
+  #         the first visit* since it hasn't seen your HSTS header yet. To close
+  #         this gap, browser vendors include a baked-in list of HSTS-enabled
+  #         sites. Go to https://hstspreload.org to submit your site for
+  #         inclusion. Defaults to `false`.
+  #
+  #
+  #     To turn off HSTS, omitting the header is not enough. Browsers will
+  #     remember the original HSTS directive until it expires. Instead, use the
+  #     header to tell browsers to expire HSTS immediately. Setting `hsts: false`
+  #     is a shortcut for `hsts: { expires: 0 }`.
+  #
+  class SSL
+    # :stopdoc: Default to 2 years as recommended on hstspreload.org.
     HSTS_EXPIRES_IN = 63072000
 
     PERMANENT_REDIRECT_REQUEST_METHODS = %w[GET HEAD] # :nodoc:
@@ -93,8 +96,8 @@ module ActionDispatch
 
       def normalize_hsts_options(options)
         case options
-        # Explicitly disabling HSTS clears the existing setting from browsers
-        # by setting expiry to 0.
+        # Explicitly disabling HSTS clears the existing setting from browsers by setting
+        # expiry to 0.
         when false
           self.class.default_hsts_options.merge(expires: 0)
         # Default to enabled, with default options.

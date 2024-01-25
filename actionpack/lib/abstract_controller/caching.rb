@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module AbstractController
   module Caching
     extend ActiveSupport::Concern
