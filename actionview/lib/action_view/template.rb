@@ -524,12 +524,15 @@ module ActionView
         end
       end
 
+      RUBY_RESERVED_KEYWORDS = ::ActiveSupport::Delegation::RUBY_RESERVED_KEYWORDS
+      private_constant :RUBY_RESERVED_KEYWORDS
+
       def locals_code
         return "" if strict_locals?
 
         # Only locals with valid variable names get set directly. Others will
         # still be available in local_assigns.
-        locals = @locals - Module::RUBY_RESERVED_KEYWORDS
+        locals = @locals - RUBY_RESERVED_KEYWORDS
 
         locals = locals.grep(/\A(?![A-Z0-9])(?:[[:alnum:]_]|[^\0-\177])+\z/)
 

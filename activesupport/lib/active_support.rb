@@ -63,6 +63,7 @@ module ActiveSupport
     autoload :Callbacks
     autoload :Configurable
     autoload :Deprecation
+    autoload :Delegation
     autoload :Digest
     autoload :ExecutionContext
     autoload :Gzip

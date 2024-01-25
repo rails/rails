@@ -18,7 +18,9 @@ module ActionCable
         end
       end
 
-      delegate :channel_name, to: :class, as: ClassMethods
+      def channel_name
+        self.class.channel_name
+      end
     end
   end
 end
