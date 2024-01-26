@@ -292,6 +292,36 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_nil @user.password_salt
   end
 
+  test "password_cost" do
+    @user.password = "secret"
+    assert_equal @user.password_cost, BCrypt::Engine::MIN_COST
+  end
+
+  test "custom_cost_password_cost should return the configured custom cost" do
+    @user.custom_cost_password = "secret"
+    assert_equal @user.custom_cost_password_cost, BCrypt::Engine::MIN_COST + 1
+  end
+
+  test "password_cost should return nil when password is nil" do
+    @user.password = nil
+    assert_nil @user.password_cost
+  end
+
+  test "password_cost should return nil when password digest is nil" do
+    @user.password_digest = nil
+    assert_nil @user.password_cost
+  end
+
+  test "custom password cost should be between bcrypt min and max costs" do
+    assert_raises ArgumentError do
+      User::InstanceMethodsOnActivation.new(:bad_password_cost, reset_token: false, cost: BCrypt::Engine::MIN_COST - 1)
+    end
+
+    assert_raises ArgumentError do
+      User::InstanceMethodsOnActivation.new(:bad_password_cost, reset_token: false, cost: BCrypt::Engine::MAX_COST + 1)
+    end
+  end
+
   test "Password digest cost defaults to bcrypt default cost when min_cost is false" do
     ActiveModel::SecurePassword.min_cost = false
 
