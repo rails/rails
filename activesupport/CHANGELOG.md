@@ -1,3 +1,18 @@
+*   Introduce `ActiveSupport::TestCase.around`
+
+    Add a callback, which runs between `TestCase#setup` and `TestCase#teardown`.
+    Yields the test class instance and the test case to the block:
+
+    ```ruby
+    class ClientTest < ActiveSupport::TestCase
+      around do |test_case, block|
+        Client.with(stubbed: true, &block)
+      end
+    end
+    ```
+
+    *Sean Doyle*
+
 *   Make flaky parallel tests easier to diagnose by deterministically assigning
     tests to workers.
 
