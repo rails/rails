@@ -325,6 +325,20 @@ module ActiveRecord
       ENV["SCHEMA_CACHE"] = old_path
     end
 
+    def test_cache_dump_default_filename_with_custom_db_dir
+      old_path = ENV["SCHEMA_CACHE"]
+      ENV.delete("SCHEMA_CACHE")
+
+      config = DatabaseConfigurations::HashConfig.new("development", "primary", {})
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "my_db") do
+        path = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(config)
+        assert_equal "my_db/schema_cache.yml", path
+      end
+    ensure
+      ENV["SCHEMA_CACHE"] = old_path
+    end
+
     def test_deprecated_cache_dump_default_filename
       old_path = ENV["SCHEMA_CACHE"]
       ENV.delete("SCHEMA_CACHE")

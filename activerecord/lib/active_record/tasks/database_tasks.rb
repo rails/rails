@@ -439,13 +439,10 @@ module ActiveRecord
 
       def cache_dump_filename(db_config_or_name, schema_cache_path: nil)
         if db_config_or_name.is_a?(DatabaseConfigurations::DatabaseConfig)
-          filename = if db_config_or_name.primary?
-            "schema_cache.yml"
-          else
-            "#{db_config_or_name.name}_schema_cache.yml"
-          end
-
-          schema_cache_path || db_config_or_name.schema_cache_path || ENV["SCHEMA_CACHE"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
+          schema_cache_path ||
+            db_config_or_name.schema_cache_path ||
+            ENV["SCHEMA_CACHE"] ||
+            db_config_or_name.default_schema_cache_path(ActiveRecord::Tasks::DatabaseTasks.db_dir)
         else
           ActiveRecord.deprecator.deprecation_warning(<<~MSG.squish)
             Passing a database name to `cache_dump_filename` is deprecated and will be removed in Rails 7.3. Pass a

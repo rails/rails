@@ -113,8 +113,12 @@ module ActiveRecord
         configuration_hash[:schema_cache_path]
       end
 
-      def default_schema_cache_path
-        "db/schema_cache.yml"
+      def default_schema_cache_path(db_dir = "db")
+        if primary?
+          File.join(db_dir, "schema_cache.yml")
+        else
+          File.join(db_dir, "#{name}_schema_cache.yml")
+        end
       end
 
       def lazy_schema_cache_path
