@@ -267,9 +267,15 @@ https://actionmailbox:PASSWORD@example.com/rails/action_mailbox/sendgrid/inbound
 
 NOTE: When configuring your SendGrid Inbound Parse webhook, be sure to check the box labeled **“Post the raw, full MIME message.”** Action Mailbox needs the raw MIME message to work.
 
-## Examples
+## Process Incoming Email
 
-Configure basic routing:
+Processing incoming emails usually entails using the email content to create models, update views, queue background work, etc. in your Rails application.
+
+Before you can start processing incoming emails, you'll need to setup Action Mailbox routing and create mailboxes.
+
+**Configure mailbox routing**
+
+Routes for Action Mailbox are added to the `application_mailbox.rb` file. The regular expression matches the incoming email's `to` field.
 
 ```ruby
 # app/mailboxes/application_mailbox.rb
@@ -279,12 +285,18 @@ class ApplicationMailbox < ActionMailbox::Base
 end
 ```
 
-Then set up a mailbox:
+For example, the above will match any email sent to `save@` to a 'forwards' mailbox. Which we need to create.
+
+**Create a mailbox**
 
 ```bash
 # Generate new mailbox
 $ bin/rails generate mailbox forwards
 ```
+
+This creates a `ForwardsMailbox` class with a `process` method.
+
+**Process email**
 
 ```ruby
 # app/mailboxes/forwards_mailbox.rb
