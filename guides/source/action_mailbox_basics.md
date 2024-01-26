@@ -20,26 +20,30 @@ What is Action Mailbox?
 
 Action Mailbox routes incoming emails to controller-like mailboxes for processing in your Rails application. Action Mailbox is for receiving inbound email, while [Action Mailer](https://guides.rubyonrails.org/action_mailer_basics.html) is for *sending* emails from your Rails application.
 
-These inbound emails are routed asynchronously using Active Job to one or several dedicated mailboxes, which are capable of interacting directly with the rest of your domain model.
+The inbound emails are routed asynchronously using Active Job to one or several dedicated mailboxes. These emails are turned into `InboundEmail` records using Active Record, which are capable of interacting directly with the rest of your domain model.
 
-The inbound emails are turned into `InboundEmail` records using Active Record and feature lifecycle tracking, storage of the original email on cloud storage via Active Storage, and responsible data handling with on-by-default incineration.
+`InboundEmail` records also provide lifecycle tracking, storage of the original email via Active Storage, and responsible data handling with on-by-default incineration.
 
 Action Mailbox ships with ingresses for external email providers such as Mailgun, Mandrill, Postmark, and SendGrid. You can also handle inbound mails directly via the built-in Exim, Postfix, and Qmail ingresses.
 
-Action Mailbox has a number of moving parts. You will first need to install Action Mailbox. Then configure a chosen ingress for handling incoming email. You then configure Action Mailbox routing, create mailboxes and process incoming emails.
-
-Processing incoming emails usually entails using the email content to create models and update views in your Rails application. Some example use cases are [todo]
-
 ## Setup
 
-Install migrations needed for `InboundEmail` and ensure Active Storage is set up:
+Action Mailbox has a few moving parts. First you'll run the Action Mailbox installer. Then configure a chosen ingress for handling incoming email. You're then ready to add Action Mailbox routing, create mailboxes and start processing incoming emails.
 
-```bash
-$ bin/rails action_mailbox:install
-$ bin/rails db:migrate
-```
+To start let's install Action Mailbox:
 
-## Configuration
+1. `bin/rails action_mailbox:install` - this will create an `application_mailbox.rb` file and copy over migrations.
+2. `bin/rails db:migrate` - this will run the Action Mailbox and Active Storage migrations.
+
+The Action Mailbox table `action_mailbox_inbound_emails` stores incoming message and their processing 'status'.
+
+At this point you can start your rails server and check out `http://localhost:3000/rails/conductor/action_mailbox/inbound_emails`.
+
+The next step is to configure an ingress in your Rails application to specify how incoming emails should be received.
+
+## Ingress Configuration
+
+Configuring ingress involves setting up credentials and endpoint information for the chosen email service. Here are the steps for each of the supported ingress.
 
 ### Exim
 
