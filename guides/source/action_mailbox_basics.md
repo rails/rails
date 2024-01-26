@@ -18,19 +18,17 @@ After reading this guide, you will know:
 What is Action Mailbox?
 -----------------------
 
-Action Mailbox routes incoming emails to controller-like mailboxes for
-processing in Rails. It ships with ingresses for Mailgun, Mandrill, Postmark,
-and SendGrid. You can also handle inbound mails directly via the built-in Exim,
-Postfix, and Qmail ingresses.
+Action Mailbox routes incoming emails to controller-like mailboxes for processing in your Rails application. Action Mailbox is for receiving inbound email, while [Action Mailer](https://guides.rubyonrails.org/action_mailer_basics.html) is for *sending* emails from your Rails application.
 
-The inbound emails are turned into `InboundEmail` records using Active Record
-and feature lifecycle tracking, storage of the original email on cloud storage
-via Active Storage, and responsible data handling with
-on-by-default incineration.
+These inbound emails are routed asynchronously using Active Job to one or several dedicated mailboxes, which are capable of interacting directly with the rest of your domain model.
 
-These inbound emails are routed asynchronously using Active Job to one or
-several dedicated mailboxes, which are capable of interacting directly
-with the rest of your domain model.
+The inbound emails are turned into `InboundEmail` records using Active Record and feature lifecycle tracking, storage of the original email on cloud storage via Active Storage, and responsible data handling with on-by-default incineration.
+
+Action Mailbox ships with ingresses for external email providers such as Mailgun, Mandrill, Postmark, and SendGrid. You can also handle inbound mails directly via the built-in Exim, Postfix, and Qmail ingresses.
+
+Action Mailbox has a number of moving parts. You will first need to install Action Mailbox. Then configure a chosen ingress for handling incoming email. You then configure Action Mailbox routing, create mailboxes and process incoming emails.
+
+Processing incoming emails usually entails using the email content to create models and update views in your Rails application. Some example use cases are [todo]
 
 ## Setup
 
