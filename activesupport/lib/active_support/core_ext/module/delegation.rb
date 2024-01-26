@@ -2,7 +2,7 @@
 
 class Module
   require "active_support/delegation"
-  DelegationError = ActiveSupport::DelegationError # :nodoc:
+  const_set(:DelegationError,  ActiveSupport::DelegationError) # :nodoc:
 
   # Provides a +delegate+ class method to easily expose contained objects'
   # public methods as your own.
