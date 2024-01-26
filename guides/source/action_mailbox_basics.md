@@ -338,21 +338,13 @@ end
 
 ## Incineration of InboundEmails
 
-By default, an [`InboundEmail`][] that has been processed will be
-incinerated after 30 days. The InboundEmail is considered as processed
-when its status changes to delivered, failed or bounced.
-This ensures you're not holding on to people's data willy-nilly
-after they may have canceled their accounts or deleted their
-content. The intention is that after you've processed an email, you should have
-extracted all the data you needed and turned it into domain models and content
-on your side of the application. The InboundEmail simply stays in the system
-for the extra time to provide debugging and forensics options.
+By default, an [`InboundEmail`][] that has been processed will be incinerated after 30 days. The InboundEmail is considered as processed when its status changes to `delivered`, `failed` or `bounced`.
 
-The actual incineration is done via the `IncinerationJob` that's scheduled
-to run after [`config.action_mailbox.incinerate_after`][] time. This value is
-by default set to `30.days`, but you can change it in your production.rb
-configuration. (Note that this far-future incineration scheduling relies on
-your job queue being able to hold jobs for that long.)
+The actual incineration is done via the `IncinerationJob` that's scheduled to run after [`config.action_mailbox.incinerate_after`][] time. This value is set to `30.days` by default, but you can change it in your production.rb configuration. (Note that this far-future incineration scheduling relies on your job queue being able to hold jobs for that long.)
+
+Default data incineration ensures that you're not holding on to people's data unnecessarily after they may have canceled their accounts or deleted their content.
+
+The intention with Action Mailbox processing is that as you process an email, you should extract all the data you need from the email and persist into domain models in your application. The `InboundEmail` simply stays in the system for the extra time to allow for debugging and forensic and then will be deleted.
 
 [`InboundEmail`]: https://api.rubyonrails.org/classes/ActionMailbox/InboundEmail.html
 [`config.action_mailbox.incinerate_after`]: configuring.html#config-action-mailbox-incinerate-after
