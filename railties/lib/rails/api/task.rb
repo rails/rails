@@ -146,8 +146,6 @@ module Rails
       end
 
       def configure_rdoc_files
-        rdoc_files.include(api_main)
-
         RDOC_FILES.each do |component, cfg|
           cdr = component_root_dir(component)
 
@@ -172,6 +170,9 @@ module Rails
           # Nothing to do
           exit(0) if rdoc_files.empty?
         end
+
+        # This must come after the mtime comparison to ensure the main page is not excluded.
+        rdoc_files.include(api_main)
       end
 
       # These variables are used by the sdoc template
