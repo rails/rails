@@ -112,6 +112,11 @@
 
     *Mike Dalessio*
 
+*   Ensure an uncaught exception when rendering a Turbo Frame properly breaks
+    out of the Frame and shows the `DebugView` error page in development.
+
+    *Joé Dupuis*
+
 *   The `with_routing` helper can now be called at the class level. When called at the class level, the routes will
     be setup before each test, and reset after every test. For example:
 
