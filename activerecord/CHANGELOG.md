@@ -1,3 +1,11 @@
+*   Fix loading of schema cache for multiple databases.
+
+    Before this change, if you have multiple databases configured in your
+    application, and had schema cache present, Rails would load the same
+    cache to all databases.
+
+    *Rafael Mendonça França*
+
 *   Fix eager loading of composite primary key associations.
 
     `relation.eager_load(:other_model)` could load the wrong records if `other_model`
