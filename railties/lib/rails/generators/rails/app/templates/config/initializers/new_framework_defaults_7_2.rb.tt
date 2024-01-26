@@ -27,3 +27,17 @@
 # expected format can disable validation by setting this config to `false`.
 #++
 # Rails.application.config.active_record.validate_migration_timestamps = true
+
+###
+# Controls whether Active Record will automatically look for an inverse relations
+# with a pluralized name.
+#
+# Example:
+#   class Comment < ActiveRecord::Base
+#     belongs_to :post
+#   end
+#
+# In the above case Active Record will now try to infer a `:comments` relation
+# on `Post`, while previously it would only look for `:comment`.
+#++
+# Rails.application.config.active_record.automatically_invert_plural_associations = true
