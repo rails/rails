@@ -255,7 +255,11 @@ module ActiveStorage
       end
     end
 
-    def attachment_changes # :nodoc:
+    ##
+    # :method: attachment_changes
+    #
+    # Returns a Hash of any changes to attachments with unsaved changes, keyed on the attachment’s name.
+    def attachment_changes
       @attachment_changes ||= {}
     end
 

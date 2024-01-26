@@ -675,6 +675,17 @@ user.avatar.purge_later
 [Attached::One#purge]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-purge
 [Attached::One#purge_later]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-purge_later
 
+Checking for Changes
+--------------------
+
+To check if a model’s attachments have been updated (perhaps to perform some action
+on them prior to saving), check [`attachment_changes`](Attached::Model#attachment_changes) on
+the model:
+
+```ruby
+user.avatar.attachment_changes.any?
+```
+
 Serving Files
 -------------
 
