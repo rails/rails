@@ -20,17 +20,16 @@ module ActiveRecord
     class HashConfig < DatabaseConfig
       attr_reader :configuration_hash
 
-
       # Initialize a new +HashConfig+ object
       #
-      # ==== Options
+      # ==== Parameters
       #
-      # * <tt>:env_name</tt> - The \Rails environment, i.e. "development".
-      # * <tt>:name</tt> - The db config name. In a standard two-tier
+      # * <tt>env_name</tt> - The \Rails environment, i.e. "development".
+      # * <tt>name</tt> - The db config name. In a standard two-tier
       #   database configuration this will default to "primary". In a multiple
       #   database three-tier database configuration this corresponds to the name
       #   used in the second tier, for example "primary_readonly".
-      # * <tt>:config</tt> - The config hash. This is the hash that contains the
+      # * <tt>configuration_hash</tt> - The config hash. This is the hash that contains the
       #   database adapter, name, and other important information for database
       #   connections.
       def initialize(env_name, name, configuration_hash)
