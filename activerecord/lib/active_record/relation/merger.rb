@@ -84,7 +84,7 @@ module ActiveRecord
         def merge_select_values
           return if other.select_values.empty?
 
-          if other.model == relation.model
+          if other.model.base_class == relation.model.base_class
             relation.select_values += other.select_values if relation.select_values != other.select_values
           else
             relation.select_values += other.instance_eval do
@@ -96,7 +96,7 @@ module ActiveRecord
         def merge_preloads
           return if other.preload_values.empty? && other.includes_values.empty?
 
-          if other.model == relation.model
+          if other.model.base_class == relation.model.base_class
             relation.preload_values |= other.preload_values unless other.preload_values.empty?
             relation.includes_values |= other.includes_values unless other.includes_values.empty?
           else
@@ -117,7 +117,7 @@ module ActiveRecord
         def merge_joins
           return if other.joins_values.empty?
 
-          if other.model == relation.model
+          if other.model.base_class == relation.model.base_class
             relation.joins_values |= other.joins_values
           else
             associations, others = other.joins_values.partition do |join|
@@ -136,7 +136,7 @@ module ActiveRecord
         def merge_outer_joins
           return if other.left_outer_joins_values.empty?
 
-          if other.model == relation.model
+          if other.model.base_class == relation.model.base_class
             relation.left_outer_joins_values |= other.left_outer_joins_values
           else
             associations, others = other.left_outer_joins_values.partition do |join|
