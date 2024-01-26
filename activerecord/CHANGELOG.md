@@ -1,3 +1,9 @@
+*   Deprecate passing strings to `ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename`.
+
+    A `ActiveRecord::DatabaseConfigurations::DatabaseConfig` object should be passed instead.
+
+    *Rafael Mendonça França*
+
 *   Add row_count field to sql.active_record notification
 
     This field returns the amount of rows returned by the query that emitted the notification.

@@ -315,8 +315,24 @@ module ActiveRecord
       old_path = ENV["SCHEMA_CACHE"]
       ENV.delete("SCHEMA_CACHE")
 
+      config = DatabaseConfigurations::HashConfig.new("development", "primary", {})
+
       ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
-        path = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename("primary")
+        path = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(config)
+        assert_equal "db/schema_cache.yml", path
+      end
+    ensure
+      ENV["SCHEMA_CACHE"] = old_path
+    end
+
+    def test_deprecated_cache_dump_default_filename
+      old_path = ENV["SCHEMA_CACHE"]
+      ENV.delete("SCHEMA_CACHE")
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
+        path = assert_deprecated(ActiveRecord.deprecator) do
+          ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename("primary")
+        end
         assert_equal "db/schema_cache.yml", path
       end
     ensure
@@ -327,8 +343,24 @@ module ActiveRecord
       old_path = ENV["SCHEMA_CACHE"]
       ENV.delete("SCHEMA_CACHE")
 
+      config = DatabaseConfigurations::HashConfig.new("development", "alternate", {})
+
       ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
-        path = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename("alternate")
+        path = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(config)
+        assert_equal "db/alternate_schema_cache.yml", path
+      end
+    ensure
+      ENV["SCHEMA_CACHE"] = old_path
+    end
+
+    def test_deprecated_cache_dump_alternate_filename
+      old_path = ENV["SCHEMA_CACHE"]
+      ENV.delete("SCHEMA_CACHE")
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
+        path = assert_deprecated(ActiveRecord.deprecator) do
+          ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename("alternate")
+        end
         assert_equal "db/alternate_schema_cache.yml", path
       end
     ensure
@@ -339,8 +371,24 @@ module ActiveRecord
       old_path = ENV["SCHEMA_CACHE"]
       ENV["SCHEMA_CACHE"] = "tmp/something.yml"
 
+      config = DatabaseConfigurations::HashConfig.new("development", "primary", {})
+
       ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
-        path = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename("primary")
+        path = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(config)
+        assert_equal "tmp/something.yml", path
+      end
+    ensure
+      ENV["SCHEMA_CACHE"] = old_path
+    end
+
+    def test_deprecated_cache_dump_filename_with_env_override
+      old_path = ENV["SCHEMA_CACHE"]
+      ENV["SCHEMA_CACHE"] = "tmp/something.yml"
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
+        path = assert_deprecated(ActiveRecord.deprecator) do
+          ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename("primary")
+        end
         assert_equal "tmp/something.yml", path
       end
     ensure
@@ -351,8 +399,39 @@ module ActiveRecord
       old_path = ENV["SCHEMA_CACHE"]
       ENV.delete("SCHEMA_CACHE")
 
+      config = DatabaseConfigurations::HashConfig.new("development", "primary", { schema_cache_path:  "tmp/something.yml" })
+
       ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
-        path = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename("primary", schema_cache_path: "tmp/something.yml")
+        path = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(config)
+        assert_equal "tmp/something.yml", path
+      end
+    ensure
+      ENV["SCHEMA_CACHE"] = old_path
+    end
+
+
+    def test_cache_dump_filename_with_path_from_the_argument_has_precedence
+      old_path = ENV["SCHEMA_CACHE"]
+      ENV.delete("SCHEMA_CACHE")
+
+      config = DatabaseConfigurations::HashConfig.new("development", "primary", { schema_cache_path:  "tmp/something.yml" })
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
+        path = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(config, schema_cache_path: "tmp/another.yml")
+        assert_equal "tmp/another.yml", path
+      end
+    ensure
+      ENV["SCHEMA_CACHE"] = old_path
+    end
+
+    def test_deprecated_cache_dump_filename_with_path_from_the_argument
+      old_path = ENV["SCHEMA_CACHE"]
+      ENV.delete("SCHEMA_CACHE")
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
+        path = assert_deprecated(ActiveRecord.deprecator) do
+          ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename("primary", schema_cache_path: "tmp/something.yml")
+        end
         assert_equal "tmp/something.yml", path
       end
     ensure

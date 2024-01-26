@@ -437,14 +437,29 @@ module ActiveRecord
         end
       end
 
-      def cache_dump_filename(db_config_name, schema_cache_path: nil)
-        filename = if ActiveRecord::Base.configurations.primary?(db_config_name)
-          "schema_cache.yml"
-        else
-          "#{db_config_name}_schema_cache.yml"
-        end
+      def cache_dump_filename(db_config_or_name, schema_cache_path: nil)
+        if db_config_or_name.is_a?(DatabaseConfigurations::DatabaseConfig)
+          filename = if db_config_or_name.primary?
+            "schema_cache.yml"
+          else
+            "#{db_config_or_name.name}_schema_cache.yml"
+          end
 
-        schema_cache_path || ENV["SCHEMA_CACHE"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
+          schema_cache_path || db_config_or_name.schema_cache_path || ENV["SCHEMA_CACHE"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
+        else
+          ActiveRecord.deprecator.deprecation_warning(<<~MSG.squish)
+            Passing a database name to `cache_dump_filename` is deprecated and will be removed in Rails 7.3. Pass a
+            `ActiveRecord::DatabaseConfigurations::DatabaseConfig` object instead.
+          MSG
+
+          filename = if ActiveRecord::Base.configurations.primary?(db_config_or_name)
+            "schema_cache.yml"
+          else
+            "#{db_config_or_name}_schema_cache.yml"
+          end
+
+          schema_cache_path || ENV["SCHEMA_CACHE"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
+        end
       end
 
       def load_schema_current(format = ActiveRecord.schema_format, file = nil, environment = env)
