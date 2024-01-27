@@ -233,6 +233,23 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     write_prompt "123", "app-template(test)> 123"
   end
 
+  def test_custom_console_prompt
+    options = "-e production"
+    spawn_console(options, env: { "RAILS_PROMPT_PREFIX" => "custom-env" })
+
+    write_prompt "123", "app-template(custom-env)> 123"
+  end
+
+  def test_custom_with_color_console_prompt
+    options = "-e production"
+    spawn_console(options, env: {
+      "RAILS_PROMPT_PREFIX" => "custom-env",
+      "RAILS_PROMPT_COLOR" => "BLUE",
+    })
+
+    write_prompt "123", "app-template(custom-env)> 123"
+  end
+
   def test_console_respects_user_defined_prompt_mode
     irbrc = Tempfile.new("irbrc")
     irbrc.write <<-RUBY

@@ -51,6 +51,17 @@ module Rails
       end
 
       def colorized_env
+        rails_prompt_prefix = ENV.fetch("RAILS_PROMPT_PREFIX", nil)
+        return colorized_env_from_rails_env unless rails_prompt_prefix
+
+        rails_prompt_color = ENV.fetch("RAILS_PROMPT_COLOR", color_from_rails_env)
+        return rails_prompt_prefix unless rails_prompt_color &&
+                                          rails_prompt_color.to_sym.in?([:BLUE, :CYAN, :GREEN, :MAGENTA, :RED])
+
+        IRB::Color.colorize(rails_prompt_prefix, [rails_prompt_color.to_sym])
+      end
+
+      def colorized_env_from_rails_env
         case Rails.env
         when "development"
           IRB::Color.colorize("dev", [:BLUE])
@@ -60,6 +71,14 @@ module Rails
           IRB::Color.colorize("prod", [:RED])
         else
           Rails.env
+        end
+      end
+
+      def color_from_rails_env
+        if Rails.env.production?
+          :RED
+        elsif Rails.env.local?
+          :BLUE
         end
       end
     end

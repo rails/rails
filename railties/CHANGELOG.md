@@ -14,7 +14,14 @@
     `development` (blue), `test` (blue), or `production` (red), if your
     terminal supports it.
 
-    *Stan Lo*
+    Additionally, you can customize the prompt with `RAILS_PROMPT_PREFIX` in case of having
+    multiple environments (e.g. different regions like "eu-west-1", "us-north-1") but all using
+    the same `Rails.env` as `production`.
+
+    Also the color can be overriden with `RAILS_PROMPT_COLOR` if set to one of the following colors
+    `BLUE`, `CYAN`, `GREEN`, `MAGENTA`, `RED`.
+
+    *Stan Lo*, *Nathan Samson*
 
 *   Ensure `autoload_paths`, `autoload_once_paths`, `eager_load_paths`, and
     `load_paths` only have directories when initialized from engine defaults.
