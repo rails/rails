@@ -197,6 +197,24 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     end
   end
 
+  test "tracking is determined by the default config when no option is passed" do
+    result = create_file_blob.variant(resize_to_limit: [100, 100]).processed
+
+    assert_instance_of ActiveStorage::Variant, result
+  end
+
+  test "creates a VariantWithRecord when told to track" do
+    result = create_file_blob.variant(track: true, resize_to_limit: [100, 100]).processed
+
+    assert_instance_of ActiveStorage::VariantWithRecord, result
+  end
+
+  test "creates a Variant (without record) when told to not track" do
+    result = create_file_blob.variant(track: false, resize_to_limit: [100, 100]).processed
+
+    assert_instance_of ActiveStorage::Variant, result
+  end
+
   test "content_type not recognized by marcel isn't included as variable" do
     blob = create_file_blob(filename: "racecar.jpg")
 

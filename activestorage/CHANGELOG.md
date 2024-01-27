@@ -1,3 +1,8 @@
+*   Added the option to pass the `track` option when generating a variant to allow
+    for finer control of tracking.
+
+    *Jace Bayless*
+
 *   Fix N+1 query when fetching preview images for non-image assets
 
     *Aaron Patterson & Justin Searls*

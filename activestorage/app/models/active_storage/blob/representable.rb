@@ -31,9 +31,9 @@ module ActiveStorage::Blob::Representable
   # Raises ActiveStorage::InvariableError if the variant processor cannot
   # transform the blob. To determine whether a blob is variable, call
   # ActiveStorage::Blob#variable?.
-  def variant(transformations)
+  def variant(variation = nil, track: ActiveStorage.track_variants, **transformations)
     if variable?
-      variant_class.new(self, ActiveStorage::Variation.wrap(transformations).default_to(default_variant_transformations))
+      variant_class(track).new(self, ActiveStorage::Variation.wrap(variation || transformations).default_to(default_variant_transformations))
     else
       raise ActiveStorage::InvariableError
     end
@@ -123,7 +123,7 @@ module ActiveStorage::Blob::Representable
       end
     end
 
-    def variant_class
-      ActiveStorage.track_variants ? ActiveStorage::VariantWithRecord : ActiveStorage::Variant
+    def variant_class(track)
+      track ? ActiveStorage::VariantWithRecord : ActiveStorage::Variant
     end
 end
