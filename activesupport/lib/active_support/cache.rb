@@ -725,7 +725,11 @@ module ActiveSupport
 
       # Increments an integer value in the cache.
       #
-      # Options are passed to the underlying cache implementation.
+      # * +:expires_in+ - Sets a relative expiration time for the cache entry,
+      #   specified in seconds, when the entry is created (first incremented).
+      #   This option is ignored when incrementing existing, non-expired entries.
+      #
+      # Other options are passed to the underlying cache implementation.
       #
       # Some implementations may not support this method.
       def increment(name, amount = 1, options = nil)
