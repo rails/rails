@@ -257,8 +257,6 @@ module Rails
     def tmp
       empty_directory_with_keep_file "tmp"
       empty_directory_with_keep_file "tmp/pids"
-      empty_directory "tmp/cache"
-      empty_directory "tmp/cache/assets"
     end
 
     def vendor
@@ -461,7 +459,6 @@ module Rails
         if options[:api]
           remove_dir "app/assets"
           remove_dir "lib/assets"
-          remove_dir "tmp/cache/assets"
         end
       end
 
