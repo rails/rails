@@ -13,6 +13,7 @@ module Rails
   module Generators
     class AppBase < Base # :nodoc:
       include Database
+      include Devcontainer
       include AppName
 
       NODE_LTS_VERSION = "18.15.0"
@@ -108,6 +109,9 @@ module Rails
 
         class_option :skip_ci,             type: :boolean, default: nil,
                                            desc: "Skip GitHub CI files"
+
+        class_option :skip_devcontainer,   type: :boolean, default: false,
+                                           desc: "Skip devcontainer files"
 
         class_option :dev,                 type: :boolean, default: nil,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
@@ -398,6 +402,10 @@ module Rails
 
       def skip_ci?
         options[:skip_ci]
+      end
+
+      def skip_devcontainer?
+        options[:skip_devcontainer]
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)

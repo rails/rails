@@ -8,6 +8,7 @@ module Rails
       module System
         class ChangeGenerator < Base # :nodoc:
           include Database
+          include Devcontainer
           include AppName
 
           class_option :to, required: true,
@@ -54,6 +55,14 @@ module Rails
             end
           end
 
+          def edit_devcontainer_files
+            devcontainer_path = File.expand_path(".devcontainer", destination_root)
+            return unless File.exist?(devcontainer_path)
+
+            edit_devcontainer_json
+            edit_compose_yaml
+          end
+
           private
             def all_database_gems
               DATABASES.map { |database| gem_for_database(database) }
@@ -87,6 +96,59 @@ module Rails
             def gem_entry_for(*gem_name_and_version)
               gem_name_and_version.map! { |segment| "\"#{segment}\"" }
               "gem #{gem_name_and_version.join(", ")}"
+            end
+
+            def edit_devcontainer_json
+              devcontainer_json_path = File.expand_path(".devcontainer/devcontainer.json", destination_root)
+              return unless File.exist?(devcontainer_json_path)
+
+              container_env = JSON.parse(File.read(devcontainer_json_path))["containerEnv"]
+              db_name = db_name_for_devcontainer
+
+              if container_env["DB_HOST"]
+                if db_name
+                  container_env["DB_HOST"] = db_name
+                else
+                  container_env.delete("DB_HOST")
+                end
+              else
+                if db_name
+                  container_env["DB_HOST"] = db_name
+                end
+              end
+
+              new_json = JSON.pretty_generate(container_env, indent: "  ", object_nl: "\n  ")
+
+              gsub_file(".devcontainer/devcontainer.json", /("containerEnv"\s*:\s*){[^}]*}/, "\\1#{new_json}")
+            end
+
+            def edit_compose_yaml
+              compose_yaml_path = File.expand_path(".devcontainer/compose.yaml", destination_root)
+              return unless File.exist?(compose_yaml_path)
+
+              compose_config = YAML.load_file(compose_yaml_path)
+
+              db_service_names.each do |db_service_name|
+                compose_config["services"].delete(db_service_name)
+                compose_config["volumes"]&.delete("#{db_service_name}-data")
+                compose_config["services"]["rails-app"]["depends_on"]&.delete(db_service_name)
+              end
+
+              db_service = db_service_for_devcontainer
+
+              if db_service
+                compose_config["services"].merge!(db_service)
+                compose_config["volumes"] = { db_volume_name_for_devcontainer => nil }.merge(compose_config["volumes"] || {})
+                compose_config["services"]["rails-app"]["depends_on"] = [
+                  db_name_for_devcontainer,
+                  compose_config["services"]["rails-app"]["depends_on"]
+                ].flatten.compact
+              end
+
+              compose_config.delete("volumes") unless compose_config["volumes"]&.any?
+              compose_config["services"]["rails-app"].delete("depends_on") unless compose_config["services"]["rails-app"]["depends_on"]&.any?
+
+              File.write(compose_yaml_path, compose_config.to_yaml)
             end
         end
       end

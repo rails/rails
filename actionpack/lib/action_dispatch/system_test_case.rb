@@ -161,7 +161,7 @@ module ActionDispatch
       self.driver = SystemTesting::Driver.new(driver, **driver_options, &capabilities)
     end
 
-    # Configuration for the System Test application server
+    # Configuration for the System Test application server.
     #
     # By default this is localhost. This method allows the host and port to be specified manually.
     def self.served_by(host:, port:)
