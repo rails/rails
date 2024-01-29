@@ -298,6 +298,27 @@ This creates a `ForwardsMailbox` class with a `process` method.
 
 **Process email**
 
+When processing an `InboundEmail`, you can get the parsed version of the email as a [`Mail`][] object with `InboundEmail#mail`. You can also access the raw source directly using the `#source` method. Some relevant fields:
+
+- mail.to
+- mail.date
+- mail.subject
+- mail.decoded
+
+Once an email has been routed to the matching Mailbox and processed, Action Mailbox updates the email status stored in `action_mailbox_inbound_emails` table with one of the following values:
+
+- Pending: Just received by one of the ingress controllers and scheduled for routing.
+- Processing: During active processing, while a specific mailbox is running its process method.
+- Delivered: Successfully processed by the specific mailbox.
+- Failed: An exception was raised during the specific mailbox’s execution of the #process method.
+- Bounced: Rejected processing by the specific mailbox and bounced to sender.
+
+If the email is marked either `delivered`, `failed`, or `bounced` it's considered 'processed' and marked for incineration.
+
+[`Mail`]: https://github.com/mikel/mail
+
+## Example
+
 ```ruby
 # app/mailboxes/forwards_mailbox.rb
 class ForwardsMailbox < ApplicationMailbox
