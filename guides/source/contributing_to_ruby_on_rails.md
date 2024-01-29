@@ -47,6 +47,7 @@ Having a way to reproduce your issue will help people confirm, investigate, and 
 * Template for Active Storage issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_storage.rb)
 * Template for Action Mailer issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailer.rb)
 * Template for Action Mailbox issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailbox.rb)
+* Template for Active Support issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_support.rb)
 * Generic template for other issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/generic.rb)
 
 These templates include the boilerplate code to set up a test case. Copy the content of the appropriate template into a `.rb` file and make the necessary changes to demonstrate the issue. You can execute it by running `ruby the_file.rb` in your terminal. If all goes well, you should see your test case failing.
