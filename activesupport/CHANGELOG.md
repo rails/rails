@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveSupport::Deprecation` delegation to instance.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `SafeBuffer#clone_empty`.
 
     *Rafael Mendonça França*
