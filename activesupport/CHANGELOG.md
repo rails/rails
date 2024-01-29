@@ -1,3 +1,7 @@
+*   Remove deprecated `SafeBuffer#clone_empty`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `#to_default_s` from `Array`, `Date`, `DateTime` and `Time`.
 
     *Rafael Mendonça França*
