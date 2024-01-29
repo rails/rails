@@ -108,6 +108,23 @@ module Rails
         file.unlink
       end
 
+      def test_rc_lines_with_comments
+        file = Tempfile.new "myrcfile"
+        file.puts "--hello # --world"
+        file.puts "--love"
+        file.puts "# --hate"
+        file.flush
+
+        scrubber = Class.new(ARGVScrubber) {
+          define_method(:puts) { |msg| }
+        }.new ["new", "--rc=#{file.path}"]
+        args = scrubber.prepare!
+        assert_equal ["--hello", "--love"], args
+      ensure
+        file.close
+        file.unlink
+      end
+
       def test_new_rc_option
         file = Tempfile.new "myrcfile"
         file.puts "--hello-world"
