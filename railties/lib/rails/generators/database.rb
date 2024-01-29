@@ -90,6 +90,14 @@ module Rails
             "/opt/lampp/var/mysql/mysql.sock"         # xampp for linux
           ].find { |f| File.exist?(f) } unless Gem.win_platform?
         end
+
+        def mysql_database_host
+          if options[:skip_devcontainer]
+            "localhost"
+          else
+            "<%= ENV.fetch(\"DB_HOST\") { \"localhost\" } %>"
+          end
+        end
     end
   end
 end

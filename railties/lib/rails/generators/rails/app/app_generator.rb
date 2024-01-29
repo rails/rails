@@ -266,6 +266,14 @@ module Rails
     def config_target_version
       @config_target_version || Rails::VERSION::STRING.to_f
     end
+
+    def devcontainer
+      empty_directory ".devcontainer"
+
+      template ".devcontainer/devcontainer.json"
+      template ".devcontainer/Dockerfile"
+      template ".devcontainer/compose.yaml"
+    end
   end
 
   module Generators
@@ -453,6 +461,11 @@ module Rails
 
       def create_storage_files
         build(:storage)
+      end
+
+      def create_devcontainer_files
+        return if skip_devcontainer? || options[:dummy_app]
+        build(:devcontainer)
       end
 
       def delete_app_assets_if_api_option
