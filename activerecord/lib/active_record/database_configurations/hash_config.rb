@@ -1,52 +1,54 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActiveRecord
   class DatabaseConfigurations
-    # = Active Record Database Hash Config
+    # # Active Record Database Hash Config
     #
-    # A +HashConfig+ object is created for each database configuration entry that
-    # is created from a hash.
+    # A `HashConfig` object is created for each database configuration entry that is
+    # created from a hash.
     #
     # A hash config:
     #
-    #   { "development" => { "database" => "db_name" } }
+    #     { "development" => { "database" => "db_name" } }
     #
     # Becomes:
     #
-    #   #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10
-    #     @env_name="development", @name="primary", @config={database: "db_name"}>
+    #     #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10
+    #       @env_name="development", @name="primary", @config={database: "db_name"}>
     #
     # See ActiveRecord::DatabaseConfigurations for more info.
     class HashConfig < DatabaseConfig
       attr_reader :configuration_hash
 
-      # Initialize a new +HashConfig+ object
+      # Initialize a new `HashConfig` object
       #
-      # ==== Parameters
+      # #### Parameters
       #
-      # * <tt>env_name</tt> - The \Rails environment, i.e. "development".
-      # * <tt>name</tt> - The db config name. In a standard two-tier
-      #   database configuration this will default to "primary". In a multiple
-      #   database three-tier database configuration this corresponds to the name
-      #   used in the second tier, for example "primary_readonly".
-      # * <tt>configuration_hash</tt> - The config hash. This is the hash that contains the
-      #   database adapter, name, and other important information for database
-      #   connections.
+      # *   `env_name` - The Rails environment, i.e. "development".
+      # *   `name` - The db config name. In a standard two-tier database configuration
+      #     this will default to "primary". In a multiple database three-tier database
+      #     configuration this corresponds to the name used in the second tier, for
+      #     example "primary_readonly".
+      # *   `configuration_hash` - The config hash. This is the hash that contains the
+      #     database adapter, name, and other important information for database
+      #     connections.
+      #
       def initialize(env_name, name, configuration_hash)
         super(env_name, name)
         @configuration_hash = configuration_hash.symbolize_keys.freeze
       end
 
       # Determines whether a database configuration is for a replica / readonly
-      # connection. If the +replica+ key is present in the config, +replica?+ will
-      # return +true+.
+      # connection. If the `replica` key is present in the config, `replica?` will
+      # return `true`.
       def replica?
         configuration_hash[:replica]
       end
 
-      # The migrations paths for a database configuration. If the
-      # +migrations_paths+ key is present in the config, +migrations_paths+
-      # will return its value.
+      # The migrations paths for a database configuration. If the `migrations_paths`
+      # key is present in the config, `migrations_paths` will return its value.
       def migrations_paths
         configuration_hash[:migrations_paths]
       end
@@ -91,8 +93,8 @@ module ActiveRecord
         (configuration_hash[:checkout_timeout] || 5).to_f
       end
 
-      # +reaping_frequency+ is configurable mostly for historical reasons, but it could
-      # also be useful if someone wants a very low +idle_timeout+.
+      # `reaping_frequency` is configurable mostly for historical reasons, but it
+      # could also be useful if someone wants a very low `idle_timeout`.
       def reaping_frequency
         configuration_hash.fetch(:reaping_frequency, 60)&.to_f
       end
@@ -106,9 +108,8 @@ module ActiveRecord
         configuration_hash[:adapter]&.to_s
       end
 
-      # The path to the schema cache dump file for a database.
-      # If omitted, the filename will be read from ENV or a
-      # default will be derived.
+      # The path to the schema cache dump file for a database. If omitted, the
+      # filename will be read from ENV or a default will be derived.
       def schema_cache_path
         configuration_hash[:schema_cache_path]
       end
@@ -129,14 +130,14 @@ module ActiveRecord
         Base.configurations.primary?(name)
       end
 
-      # Determines whether to dump the schema/structure files and the
-      # filename that should be used.
+      # Determines whether to dump the schema/structure files and the filename that
+      # should be used.
       #
-      # If +configuration_hash[:schema_dump]+ is set to +false+ or +nil+
-      # the schema will not be dumped.
+      # If `configuration_hash[:schema_dump]` is set to `false` or `nil` the schema
+      # will not be dumped.
       #
-      # If the config option is set that will be used. Otherwise \Rails
-      # will generate the filename from the database config name.
+      # If the config option is set that will be used. Otherwise Rails will generate
+      # the filename from the database config name.
       def schema_dump(format = ActiveRecord.schema_format)
         if configuration_hash.key?(:schema_dump)
           if config = configuration_hash[:schema_dump]
