@@ -1,3 +1,7 @@
+*   Remove deprecated `#to_default_s` from `Array`, `Date`, `DateTime` and `Time`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to passing `Dalli::Client` instances to `MemCacheStore`.
 
     *Rafael Mendonça França*

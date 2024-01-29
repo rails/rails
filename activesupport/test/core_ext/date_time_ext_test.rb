@@ -13,13 +13,6 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   include DateAndTimeBehavior
   include TimeZoneTestHelpers
 
-  def test_to_default_s
-    datetime = DateTime.new(2005, 2, 21, 14, 30, 0, 0)
-    assert_deprecated(ActiveSupport.deprecator) do
-      assert_match(/^2005-02-21T14:30:00(Z|\+00:00)$/, datetime.to_default_s)
-    end
-  end
-
   def test_to_fs
     datetime = DateTime.new(2005, 2, 21, 14, 30, 0, 0)
     assert_equal "2005-02-21 14:30:00",                 datetime.to_fs(:db)
