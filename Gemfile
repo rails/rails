@@ -127,6 +127,7 @@ end
 # Action Mailbox
 gem "aws-sdk-sns", require: false
 gem "webmock"
+gem "httpclient", github: "nahi/httpclient", branch: "master", require: false
 
 # Add your own local bundler stuff.
 local_gemfile = File.expand_path(".Gemfile", __dir__)
