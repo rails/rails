@@ -202,11 +202,10 @@ module ActiveRecord
           end
 
           case exception
-          when SocketError, IOError
+          when ::Trilogy::ConnectionClosed, ::Trilogy::EOFError
             return ConnectionFailed.new(message, connection_pool: @pool)
           when ::Trilogy::Error
-            if /TRILOGY_CLOSED_CONNECTION|TRILOGY_INVALID_SEQUENCE_ID|TRILOGY_UNEXPECTED_PACKET/.match?(exception.message) ||
-                exception.is_a?(SystemCallError)
+            if exception.is_a?(SystemCallError) || exception.message.include?("TRILOGY_INVALID_SEQUENCE_ID")
               return ConnectionFailed.new(message, connection_pool: @pool)
             end
           end
