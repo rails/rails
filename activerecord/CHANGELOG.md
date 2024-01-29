@@ -1,3 +1,15 @@
+*   Add an option to `ActiveRecord::Encryption::Encryptor` to disable compression
+
+    Allow compression to be disabled by setting `compress: false`
+
+    ```ruby
+      class User
+        encrypts :name, encryptor: ActiveRecord::Encryption::Encryptor.new(compress: false)
+      end
+    ```
+
+    *Donal McBreen*
+
 *   Deprecate passing strings to `ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename`.
 
     A `ActiveRecord::DatabaseConfigurations::DatabaseConfig` object should be passed instead.
