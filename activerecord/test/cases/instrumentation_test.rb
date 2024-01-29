@@ -111,6 +111,42 @@ module ActiveRecord
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
 
+    def test_payload_row_count_on_select_all
+      10.times { Book.create(name: "row count book 1") }
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
+        if payload[:sql].match?("SELECT")
+          assert_equal 10, payload[:row_count]
+        end
+      end
+      Book.where(name: "row count book 1").to_a
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    end
+
+    def test_payload_row_count_on_pluck
+      10.times { Book.create(name: "row count book 2") }
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
+        if payload[:sql].match?("SELECT")
+          assert_equal 10, payload[:row_count]
+        end
+      end
+      Book.where(name: "row count book 2").pluck(:name)
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    end
+
+    def test_payload_row_count_on_raw_sql
+      10.times { Book.create(name: "row count book 3") }
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
+        if payload[:sql].match?("SELECT")
+          assert_equal 10, payload[:row_count]
+        end
+      end
+      ActiveRecord::Base.connection.execute("SELECT * FROM books WHERE name='row count book 3';")
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    end
+
     def test_payload_connection_with_query_cache_disabled
       connection = Book.connection
       subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
