@@ -100,6 +100,38 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "The Fifth Topic of the day", records[2].title
   end
 
+  def test_exactly
+    count = Topic.count
+    assert Topic.exactly?(count)
+    assert_equal false, Topic.exactly?(count + 1)
+    assert_equal false, Topic.exactly?(count - 1)
+  end
+
+  def test_at_least
+    count = Topic.count
+    assert Topic.at_least?(count)
+    assert_equal false, Topic.at_least?(count + 1)
+  end
+
+  def test_at_most
+    count = Topic.count
+    assert Topic.at_most?(count)
+    assert Topic.at_most?(count + 1)
+    assert_equal false, Topic.at_most?(count - 1)
+  end
+
+  def test_less_than
+    count = Topic.count
+    assert Topic.less_than?(count + 1)
+    assert_equal false, Topic.less_than?(count)
+  end
+
+  def test_more_than
+    count = Topic.count
+    assert Topic.more_than?(count - 1)
+    assert_equal false, Topic.more_than?(count)
+  end
+
   def test_find_with_ids_and_order_clause
     # The order clause takes precedence over the informed ids
     records = Topic.order(:author_name).find([5, 3, 1])

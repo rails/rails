@@ -402,6 +402,51 @@ module ActiveRecord
 
     alias :member? :include?
 
+    # Returns true if the relation has exactly N records (where N is the supplied parameter)
+    # or false otherwise
+    #
+    #   Person.exactly?(5)
+    #   Person.where(['name LIKE ?', "%#{query}%"]).exactly?(5)
+    def exactly?(expected)
+      limit(expected + 1).count == expected
+    end
+
+    # Returns true if the relation has at least N records (where N is the supplied parameter)
+    # or false otherwise
+    #
+    #   Person.at_least?(5)
+    #   Person.where(['name LIKE ?', "%#{query}%"]).at_least?(5)
+    def at_least?(expected)
+      limit(expected).count == expected
+    end
+
+    # Returns true if the relation has at most N records (where N is the supplied parameter)
+    # or false otherwise
+    #
+    #   Person.at_most?(5)
+    #   Person.where(['name LIKE ?', "%#{query}%"]).at_most?(5)
+    def at_most?(expected)
+      limit(expected + 1).count <= expected
+    end
+
+    # Returns true if the relation has less than N records (where N is the supplied parameter)
+    # or false otherwise
+    #
+    #   Person.less_than?(5)
+    #   Person.where(['name LIKE ?', "%#{query}%"]).less_than?(5)
+    def less_than?(expected)
+      limit(expected).count < expected
+    end
+
+    # Returns true if the relation has more than N records (where N is the supplied parameter)
+    # or false otherwise
+    #
+    #   Person.more_than?(5)
+    #   Person.where(['name LIKE ?', "%#{query}%"]).more_than?(5)
+    def more_than?(expected)
+      limit(expected + 1).count == expected + 1
+    end
+
     # This method is called whenever no records are found with either a single
     # id or multiple ids and raises an ActiveRecord::RecordNotFound exception.
     #

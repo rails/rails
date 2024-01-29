@@ -1,3 +1,15 @@
+*   Adds the following methods to `ActiveRecord::Relation::FinderMethods`:
+    * `exactly?` returns true if the relation contains exactly N records, false otherwise.
+    * `at_least?` returns true if the relation contains at least N records, false otherwise.
+    * `at_most?` returns true if the relation contains at most N records, false otherwise.
+    * `less_than?` returns true if the relation contains less than N records, false otherwise.
+    * `more_than?` returns true if the relation contains more than N records, false otherwise.
+
+    These methods will perform a `limit(N).count` on the relation which is more efficient
+    than doing `count`.
+
+    *Jordi Noguera*
+
 *   Consistently raise an `ArgumentError` when passing an invalid argument to a nested attributes association writer.
 
     Previously, this would only raise on collection associations and produce a generic error on singular associations.
