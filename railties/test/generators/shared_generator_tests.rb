@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "find"
 require "shellwords"
 require "env_helpers"
 
@@ -51,6 +52,30 @@ module SharedGeneratorTests
 
   def test_skeleton_is_created
     run_generator
+
+    generated_files_and_folders = []
+
+    Find.find(destination_root) do |absolute_path|
+      next if absolute_path == destination_root
+
+      pathname = Pathname.new(absolute_path)
+      git_folder = pathname.basename.to_s == ".git"
+
+      if git_folder || pathname.file?
+        generated_files_and_folders << pathname
+          .relative_path_from(destination_root)
+          .to_s
+      elsif pathname.directory? && pathname.children.empty?
+        flunk "`#{pathname} was generated but is an empty directory"
+      end
+
+      Find.prune if git_folder
+    end
+
+    # assert differences first for better error messages
+    assert_empty generated_files_and_folders.difference(default_files)
+    assert_empty default_files.difference(generated_files_and_folders)
+    assert_equal generated_files_and_folders.sort, default_files, "The expected list of generated files is not alphabetical"
 
     default_files.each { |path| assert_file path }
   end

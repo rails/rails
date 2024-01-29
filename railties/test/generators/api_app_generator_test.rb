@@ -189,7 +189,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          config/initializers/permissions_policy.rb
          lib/assets
          test/helpers
-         tmp/cache/assets
          public/404.html
          public/422.html
          public/426.html
