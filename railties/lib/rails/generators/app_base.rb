@@ -599,6 +599,7 @@ module Rails
       end
 
       def css_gemfile_entry
+        return if options[:api]
         return unless options[:css]
 
         if !using_js_runtime? && options[:css] == "tailwind"

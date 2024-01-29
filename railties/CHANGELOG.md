@@ -1,3 +1,7 @@
+*   Skip CSS when generating APIs.
+
+    *Ruy Rocha*
+
 *   Rails console now indicates application name and the current Rails environment:
 
     ```txt
