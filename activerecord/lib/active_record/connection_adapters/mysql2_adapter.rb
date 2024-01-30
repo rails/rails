@@ -140,7 +140,11 @@ module ActiveRecord
         def connect
           @raw_connection = self.class.new_client(@connection_parameters)
         rescue ConnectionNotEstablished => ex
-          raise ex.set_pool(@pool)
+          if ex.message.include?("Can't connect to local server through socket") && @connection_parameters[:host] == "localhost"
+            raise CannotConnectThroughSocketOnLocalhost
+          else
+            raise ex.set_pool(@pool)
+          end
         end
 
         def reconnect
