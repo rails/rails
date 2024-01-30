@@ -36,6 +36,7 @@ module ActiveSupport
     # used in logging, like info, debug, warn, and so on.
     module TestHelper
       def setup # :nodoc:
+        super
         @logger   = MockLogger.new
         @notifier = ActiveSupport::Notifications::Fanout.new
 
@@ -49,6 +50,7 @@ module ActiveSupport
       def teardown # :nodoc:
         set_logger(nil)
         ActiveSupport::Notifications.notifier = @old_notifier
+        super
       end
 
       class MockLogger

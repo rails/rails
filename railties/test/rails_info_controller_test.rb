@@ -12,7 +12,7 @@ class InfoControllerTest < ActionController::TestCase
   tests Rails::InfoController
   Rails.application.config.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
 
-  def setup
+  setup do
     Rails.application.routes.draw do
       namespace :test do
         get :nested_route, to: "test#show"

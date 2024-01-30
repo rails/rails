@@ -241,14 +241,16 @@ end
 
 # common test methods
 module RequestForgeryProtectionTests
-  def setup
-    @token = Base64.urlsafe_encode64("railstestrailstestrailstestrails")
-    @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
-    ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
-  end
+  def self.included(base_class)
+    base_class.setup do
+      @token = Base64.urlsafe_encode64("railstestrailstestrailstestrails")
+      @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
+      ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
+    end
 
-  def teardown
-    ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
+    base_class.teardown do
+      ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
+    end
   end
 
   def test_should_render_form_with_token_tag
@@ -743,7 +745,7 @@ class RequestForgeryProtectionControllerUsingNullSessionTest < ActionController:
     end
   end
 
-  def setup
+  setup do
     @request.env[ActionDispatch::Cookies::GENERATOR_KEY] = NullSessionDummyKeyGenerator.new
     @request.env[ActionDispatch::Cookies::COOKIES_ROTATIONS] = ActiveSupport::Messages::RotationConfiguration.new
   end
@@ -832,10 +834,9 @@ class PrependProtectForgeryBaseControllerTest < ActionController::TestCase
 end
 
 class FreeCookieControllerTest < ActionController::TestCase
-  def setup
+  setup do
     @controller = FreeCookieController.new
     @token      = "cf50faa3fe97702ca1ae"
-    super
   end
 
   def test_should_not_render_form_with_token_tag
@@ -869,8 +870,7 @@ class FreeCookieControllerTest < ActionController::TestCase
 end
 
 class CustomAuthenticityParamControllerTest < ActionController::TestCase
-  def setup
-    super
+  setup do
     @old_logger = ActionController::Base.logger
     @logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
     @token = Base64.urlsafe_encode64(SecureRandom.random_bytes(32))
@@ -878,9 +878,8 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
     ActionController::Base.request_forgery_protection_token = @token
   end
 
-  def teardown
+  teardown do
     ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
-    super
   end
 
   def test_should_not_warn_if_form_authenticity_param_matches_form_authenticity_token
@@ -908,12 +907,12 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
 end
 
 class PerFormTokensControllerTest < ActionController::TestCase
-  def setup
+  setup do
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
   end
 
-  def teardown
+  teardown do
     ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
   end
 
@@ -1216,10 +1215,9 @@ class CookieCsrfTokenStorageStrategyControllerTest < ActionController::TestCase
     end
   end
 
-  def setup
+  setup do
     @request.env[ActionDispatch::Cookies::GENERATOR_KEY] = NullSessionDummyKeyGenerator.new
     @request.env[ActionDispatch::Cookies::COOKIES_ROTATIONS] = ActiveSupport::Messages::RotationConfiguration.new
-    super
   end
 
   def test_csrf_token_is_stored_in_cookie

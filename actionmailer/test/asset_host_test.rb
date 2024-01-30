@@ -12,13 +12,13 @@ class AssetHostMailer < ActionMailer::Base
 end
 
 class AssetHostTest < ActionMailer::TestCase
-  def setup
+  setup do
     AssetHostMailer.configure do |c|
       c.asset_host = "http://www.example.com"
     end
   end
 
-  def teardown
+  teardown do
     restore_delivery_method
   end
 

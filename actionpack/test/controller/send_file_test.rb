@@ -81,7 +81,7 @@ end
 class SendFileTest < ActionController::TestCase
   include TestFileUtils
 
-  def setup
+  setup do
     @controller = SendFileController.new
   end
 

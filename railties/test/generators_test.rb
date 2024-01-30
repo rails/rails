@@ -7,12 +7,12 @@ require "rails/generators/test_unit/model/model_generator"
 class GeneratorsTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
 
-  def setup
+  setup do
     @path = File.expand_path("lib", Rails.root)
     $LOAD_PATH.unshift(@path)
   end
 
-  def teardown
+  teardown do
     $LOAD_PATH.delete(@path)
   end
 

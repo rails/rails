@@ -611,7 +611,7 @@ end
 class AnotherTestHelperMailerTest < ActionMailer::TestCase
   tests TestHelperMailer
 
-  def setup
+  setup do
     @test_var = "a value"
   end
 
