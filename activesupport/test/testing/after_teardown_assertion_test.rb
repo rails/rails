@@ -15,8 +15,6 @@ class AfterTeardownAssertionTest < ActiveSupport::TestCase
 
   attr_writer :witness
 
-  MyError = Class.new(StandardError)
-
   teardown do
     flunk "Test raises a Minitest::Assertion error, all after_teardown should still get called"
   end
