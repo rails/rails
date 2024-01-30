@@ -1,7 +1,4 @@
-* 
-* Run `ActiveSupport::TestCase` `setup` and `teardown` callbacks in `setup` and `teardown` Minitest Lifecycle hooks instead of `before_setup` and `after_teardown` (respectively).
-
-    *Tristan Starck*
+* Run `ActiveSupport::TestCase` `setup` and `teardown` callbacks in `setup` and `teardown` Minitest Lifecycle hooks instead of `before_setup` and `after_teardown` (respectively).   
 * Include `IPAddr#prefix` when serializing an `IPAddr` using the
     `ActiveSupport::MessagePack` serializer. This change is backward and forward
     compatible — old payloads can still be read, and new payloads will be
