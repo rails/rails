@@ -288,4 +288,18 @@
 
     *Tristan Fellows*
 
+*   Add `negative_scopes` to the ActiveRecord::Enum.
+
+    To disable these auto-generated negative scopes in an enum, use the `negative_scopes: false` option as shown below:
+
+    ```ruby
+    class Post < ActiveRecord::Base
+      enum status: [:started, :not_started, :completed], negative_scopes: false
+    end
+    ```
+
+    With `negative_scopes: false`, Rails will not generate the typical negative scopes, thus avoiding conflicts.
+
+    *Jay Ang*
+
 Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/activerecord/CHANGELOG.md) for previous changes.

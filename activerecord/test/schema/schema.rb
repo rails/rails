@@ -138,6 +138,7 @@ ActiveRecord::Schema.define do
     t.column :font_size, :integer, **default_zero
     t.column :difficulty, :integer, **default_zero
     t.column :cover, :string, default: "hard"
+    t.column :explicit_negative_status, :integer, **default_zero
     t.string :isbn
     t.string :external_id
     t.column :original_name, :string
