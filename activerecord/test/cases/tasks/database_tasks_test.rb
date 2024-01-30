@@ -7,30 +7,28 @@ require "models/college"
 
 module ActiveRecord
   module DatabaseTasksSetupper
-    def self.included(base_class)
-      base_class.setup do
-        @mysql_tasks, @postgresql_tasks, @sqlite_tasks = Array.new(
-          3,
-          Class.new do
-            def create; end
-            def drop; end
-            def purge; end
-            def charset; end
-            def charset_current; end
-            def collation; end
-            def collation_current; end
-            def structure_dump(*); end
-            def structure_load(*); end
-          end.new
-        )
+    def setup
+      @mysql_tasks, @postgresql_tasks, @sqlite_tasks = Array.new(
+        3,
+        Class.new do
+          def create; end
+          def drop; end
+          def purge; end
+          def charset; end
+          def charset_current; end
+          def collation; end
+          def collation_current; end
+          def structure_dump(*); end
+          def structure_load(*); end
+        end.new
+      )
 
-        $stdout, @original_stdout = StringIO.new, $stdout
-        $stderr, @original_stderr = StringIO.new, $stderr
-      end
+      $stdout, @original_stdout = StringIO.new, $stdout
+      $stderr, @original_stderr = StringIO.new, $stderr
+    end
 
-      base_class.teardown do
-        $stdout, $stderr = @original_stdout, @original_stderr
-      end
+    def teardown
+      $stdout, $stderr = @original_stdout, @original_stderr
     end
 
     def with_stubbed_new(&block)
@@ -63,11 +61,11 @@ module ActiveRecord
     if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       self.use_transactional_tests = false
 
-      setup do
+      def setup
         recreate_metadata_tables
       end
 
-      teardown do
+      def teardown
         recreate_metadata_tables
       end
 
@@ -496,14 +494,14 @@ module ActiveRecord
   end
 
   class DatabaseTasksCreateAllTest < ActiveRecord::TestCase
-    setup do
+    def setup
       @configurations = { "development" => { "adapter" => "abstract", "database" => "my-db" } }
 
       $stdout, @original_stdout = StringIO.new, $stdout
       $stderr, @original_stderr = StringIO.new, $stderr
     end
 
-    teardown do
+    def teardown
       $stdout, $stderr = @original_stdout, @original_stderr
     end
 
@@ -584,7 +582,7 @@ module ActiveRecord
   class DatabaseTasksCreateCurrentTest < ActiveRecord::TestCase
     include DatabaseTasksHelper
 
-    setup do
+    def setup
       @configurations = {
         "development" => { "adapter" => "abstract", "database" => "dev-db" },
         "test"        => { "adapter" => "abstract", "database" => "test-db" },
@@ -707,7 +705,7 @@ module ActiveRecord
   class DatabaseTasksCreateCurrentThreeTierTest < ActiveRecord::TestCase
     include DatabaseTasksHelper
 
-    setup do
+    def setup
       @configurations = {
         "development" => {
           "primary" => { "adapter" => "abstract", "database" => "dev-db" },
@@ -840,14 +838,14 @@ module ActiveRecord
   end
 
   class DatabaseTasksDropAllTest < ActiveRecord::TestCase
-    setup do
+    def setup
       @configurations = { development: { "adapter" => "abstract", "database" => "my-db" } }
 
       $stdout, @original_stdout = StringIO.new, $stdout
       $stderr, @original_stderr = StringIO.new, $stderr
     end
 
-    teardown do
+    def teardown
       $stdout, $stderr = @original_stdout, @original_stderr
     end
 
@@ -926,7 +924,7 @@ module ActiveRecord
   class DatabaseTasksDropCurrentTest < ActiveRecord::TestCase
     include DatabaseTasksHelper
 
-    setup do
+    def setup
       @configurations = {
         "development" => { "adapter" => "abstract", "database" => "dev-db" },
         "test"        => { "adapter" => "abstract", "database" => "test-db" },
@@ -1017,7 +1015,7 @@ module ActiveRecord
   class DatabaseTasksDropCurrentThreeTierTest < ActiveRecord::TestCase
     include DatabaseTasksHelper
 
-    setup do
+    def setup
       @configurations = {
         "development" => {
           "primary" => { "adapter" => "abstract", "database" => "dev-db" },
@@ -1258,7 +1256,7 @@ module ActiveRecord
 
   class DatabaseTasksMigrateStatusTest < DatabaseTasksMigrationTestCase
     if current_adapter?(:SQLite3Adapter) && !in_memory_db?
-      setup do
+      def setup
         @schema_migration = ActiveRecord::Base.connection.schema_migration
       end
 
@@ -1400,7 +1398,6 @@ module ActiveRecord
       fixtures :courses, :colleges
 
       def setup
-        super
         connection = ARUnit2Model.connection
         @schema_migration = connection.schema_migration
         @schema_migration.create_table
@@ -1418,7 +1415,6 @@ module ActiveRecord
         @internal_metadata.delete_all_entries
         clean_up_connection_handler
         ActiveRecord::Base.configurations = @old_configurations
-        super
       end
 
       def test_truncate_tables
@@ -1468,7 +1464,7 @@ module ActiveRecord
   class DatabaseTasksTruncateAllWithMultipleDatabasesTest < ActiveRecord::TestCase
     include DatabaseTasksHelper
 
-    setup do
+    def setup
       @configurations = {
         "development" => {
           "primary" => { "adapter" => "abstract", "database" => "dev-db" },

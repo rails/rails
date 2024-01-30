@@ -5,7 +5,7 @@ require "abstract_unit"
 class HealthControllerTest < ActionController::TestCase
   tests Rails::HealthController
 
-  setup do
+  def setup
     Rails.application.routes.draw do
       get "/up" => "rails/health#show", as: :rails_health_check
     end

@@ -26,7 +26,7 @@ end
 class ConditionalGetApiTest < ActionController::TestCase
   tests ConditionalGetApiController
 
-  setup do
+  def setup
     @last_modified = Time.now.utc.beginning_of_day.httpdate
   end
 

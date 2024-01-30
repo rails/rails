@@ -9,11 +9,11 @@ module ApplicationTests
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
 
-    setup do
+    def setup
       build_app(initializers: true)
     end
 
-    teardown do
+    def teardown
       teardown_app
     end
 
