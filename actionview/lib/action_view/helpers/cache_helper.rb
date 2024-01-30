@@ -268,7 +268,7 @@ module ActionView
       end
 
       def fragment_for(name = {}, options = nil, &block)
-        if (content = read_fragment_for(name, options)) && (!options[:blanks_ok] && content.present?)
+        if (content = read_fragment_for(name, options)) && (!(options || {})[:blanks_ok] && content.present?)
           @view_renderer.cache_hits[@current_template&.virtual_path] = :hit if defined?(@view_renderer)
           content
         else
