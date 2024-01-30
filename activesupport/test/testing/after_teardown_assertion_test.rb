@@ -2,16 +2,15 @@
 
 require_relative "../abstract_unit"
 
-module OtherAfterTeardown
-  def after_teardown
-    super
-
-    @witness = true
-  end
-end
-
 class AfterTeardownAssertionTest < ActiveSupport::TestCase
-  include OtherAfterTeardown
+  module OtherAfterTeardown
+    def after_teardown
+      super
+
+      @witness = true
+    end
+  end
+  include AfterTeardownAssertionTest::OtherAfterTeardown
 
   attr_writer :witness
 
