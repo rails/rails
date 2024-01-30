@@ -394,6 +394,18 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     assert_predicate OtherEncryptedPost.type_for_attribute(:title).scheme.previous_schemes, :one?
   end
 
+  test "binary data can be encrypted" do
+    all_bytes = (0..255).map(&:chr).join
+    assert_equal all_bytes, EncryptedBookWithBinary.create!(logo: all_bytes).logo
+  end
+
+  test "binary data can be encrypted uncompressed" do
+    low_bytes = (0..127).map(&:chr).join
+    high_bytes = (128..255).map(&:chr).join
+    assert_equal low_bytes, EncryptedBookWithBinary.create!(logo: low_bytes).logo
+    assert_equal high_bytes, EncryptedBookWithBinary.create!(logo: high_bytes).logo
+  end
+
   private
     def build_derived_key_provider_with(hash_digest_class)
       ActiveRecord::Encryption.with_encryption_context(key_generator: ActiveRecord::Encryption::KeyGenerator.new(hash_digest_class: hash_digest_class)) do

@@ -85,11 +85,13 @@ module ActiveRecord
           with_context do
             unless value.nil?
               if @default && @default == value
-                value
+                decrypted_value = value
               else
-                encryptor.decrypt(value, **decryption_options)
+                decrypted_value = encryptor.decrypt(value, **decryption_options)
               end
             end
+
+            reserialize(decrypted_value)
           end
         rescue ActiveRecord::Encryption::Errors::Base => error
           if previous_types_without_clean_text.blank?
@@ -131,7 +133,7 @@ module ActiveRecord
 
         def encrypt(value)
           with_context do
-            encryptor.encrypt(value, **encryption_options)
+            reserialize(encryptor.encrypt(value, **encryption_options))
           end
         end
 
@@ -149,6 +151,14 @@ module ActiveRecord
 
         def clean_text_scheme
           @clean_text_scheme ||= ActiveRecord::Encryption::Scheme.new(downcase: downcase?, encryptor: ActiveRecord::Encryption::NullEncryptor.new)
+        end
+
+        def reserialize(value)
+          if cast_type.binary?
+            cast_type.serialize(value)
+          else
+            value
+          end
         end
     end
   end

@@ -43,3 +43,9 @@ class EncryptedBookWithUnencryptedDataOptedIn < ActiveRecord::Base
   validates :name, uniqueness: true
   encrypts :name, deterministic: true, support_unencrypted_data: true
 end
+
+class EncryptedBookWithBinary < ActiveRecord::Base
+  self.table_name = "encrypted_books"
+
+  encrypts :logo
+end
