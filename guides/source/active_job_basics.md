@@ -310,7 +310,7 @@ backends you need to specify the queues to listen to.
 Priority
 --------------
 
-Some adapters support priorities at the job level, where jobs can be prioritised relative to others in the queue or across all queues.
+Some adapters support priorities at the job level, where jobs can be prioritized relative to others in the queue or across all queues.
 
 You can schedule a job to run with a specific priority using [`queue_with_priority`][]:
 
