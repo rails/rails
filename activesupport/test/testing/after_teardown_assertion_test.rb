@@ -10,7 +10,7 @@ module OtherAfterTeardown
   end
 end
 
-class AfterTeardownTest < ActiveSupport::TestCase
+class AfterTeardownAssertionTest < ActiveSupport::TestCase
   include OtherAfterTeardown
 
   attr_writer :witness
