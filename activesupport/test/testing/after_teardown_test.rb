@@ -2,26 +2,26 @@
 
 require_relative "../abstract_unit"
 
-module OtherTeardown
-  def teardown
+module OtherAfterTeardown
+  def after_teardown
     super
 
     @witness = true
   end
 end
 
-class TeardownTest < ActiveSupport::TestCase
-  include OtherTeardown
+class AfterTeardownTest < ActiveSupport::TestCase
+  include OtherAfterTeardown
 
   attr_writer :witness
 
   MyError = Class.new(StandardError)
 
   teardown do
-    raise MyError, "Test raises an error, all teardown should still get called"
+    raise MyError, "Test raises an error, all after_teardown should still get called"
   end
 
-  def teardown
+  def after_teardown
     assert_changes -> { failures.count }, from: 0, to: 1 do
       super
     end
@@ -30,7 +30,7 @@ class TeardownTest < ActiveSupport::TestCase
     failures.clear
   end
 
-  def test_teardown_raise_but_all_teardown_method_are_called
+  def test_teardown_raise_but_all_after_teardown_method_are_called
     assert true
   end
 end
