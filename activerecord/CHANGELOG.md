@@ -1,3 +1,13 @@
+*   Add support for `--server falcon` and `--server puma` to `rails new`.
+
+    Allow the `rails new` command to generate a new application with a different server than the default `puma`.
+
+    ```bash
+    rails new my_app --server falcon
+    ```
+
+    *Samuel Williams*
+
 *   Add an option to `ActiveRecord::Encryption::Encryptor` to disable compression
 
     Allow compression to be disabled by setting `compress: false`

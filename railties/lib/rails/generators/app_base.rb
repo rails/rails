@@ -22,6 +22,8 @@ module Rails
       CSS_OPTIONS = %w( tailwind bootstrap bulma postcss sass )
       ASSET_PIPELINE_OPTIONS = %w( none sprockets propshaft )
 
+      SERVER_OPTIONS = ["puma", "falcon"]
+
       attr_accessor :rails_template
       add_shebang_option!
 
@@ -37,6 +39,10 @@ module Rails
 
         class_option :template,            type: :string, aliases: "-m",
                                            desc: "Path to some #{name} template (can be a filesystem path or URL)"
+
+        class_option :server,              type: :string, aliases: "-s",
+                                           enum: SERVER_OPTIONS,
+                                           desc: "Preconfigure for selected server"
 
         class_option :database,            type: :string, aliases: "-d", default: "sqlite3",
                                            enum: DATABASES,
@@ -281,7 +287,11 @@ module Rails
       end
 
       def web_server_gemfile_entry # :doc:
-        GemfileEntry.new "puma", ">= 5.0", "Use the Puma web server [https://github.com/puma/puma]"
+        if options[:server] == "falcon"
+          GemfileEntry.new "falcon", ">= 0.28.0", "Use the Falcon web server [https://github.com/socketry/falcon]"
+        else
+          GemfileEntry.new "puma", ">= 5.0", "Use the Puma web server [https://github.com/puma/puma]"
+        end
       end
 
       def asset_pipeline_gemfile_entry

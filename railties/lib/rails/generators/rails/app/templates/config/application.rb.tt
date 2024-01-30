@@ -38,5 +38,10 @@ module <%= app_const_base %>
     # Don't generate system test files.
     config.generators.system_tests = nil
 <%- end -%>
+<%- if options.server == "falcon" -%>
+
+    # Fiber per request isolation level.
+    config.active_support.isolation_level = :fiber
+<%- end -%>
   end
 end

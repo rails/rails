@@ -505,6 +505,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "puma", /"\W+ \d/
   end
 
+  def test_generator_server_falcon
+    run_generator [destination_root, "--server", "falcon"]
+    assert_gem "falcon", /"\W+ \d/
+    assert_file "config/application.rb", /isolation_level = :fiber/
+  end
+
   def test_action_cable_redis_gems
     run_generator
     assert_file "Gemfile", /^# gem "redis"/
