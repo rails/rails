@@ -1,3 +1,15 @@
+*   Introduce `SystemTestCase#served_by` for configuring the System Test application server
+
+    By default this is localhost. This method allows the host and port to be specified manually.
+
+    ```ruby
+    class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+      served_by host: "testserver", port: 45678
+    end
+    ```
+
+    *Andrew Novoselac & Rafael Mendonça França*
+
 *   `bin/rails test` will no longer load files named `*_test.rb` if they are located in the `fixtures` folder.
 
     *Edouard Chin*
