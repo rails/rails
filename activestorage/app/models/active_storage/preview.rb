@@ -50,7 +50,9 @@ class ActiveStorage::Preview
   # Processing a preview generates an image from its blob and attaches the preview image to the blob. Because the preview
   # image is stored with the blob, it is only generated once.
   def processed
-    process unless processed?
+    blob.with_lock do
+      process unless processed?
+    end
     variant.processed if variant?
     self
   end
