@@ -606,8 +606,8 @@ module ActiveRecord
       self
     end
 
-    # Allows to specify an <code>ORDER BY</code> clause to a query based on a given +column+,
-    # ordered and filtered by the specific set of +values+.
+    # Applies an <tt>ORDER BY</tt> clause based on a given +column+,
+    # ordered and filtered by a specific set of +values+.
     #
     #   User.in_order_of(:id, [1, 5, 3])
     #   # SELECT "users".* FROM "users"
@@ -625,7 +625,7 @@ module ActiveRecord
     #     enum :status, [ :active, :archived ]
     #   end
     #
-    #   Conversation.in_order_of(:status, %w(archived active))
+    #   Conversation.in_order_of(:status, [:archived, :active])
     #   # SELECT "conversations".* FROM "conversations"
     #   #   WHERE "conversations"."status" IN (1, 0)
     #   #   ORDER BY CASE
@@ -635,7 +635,7 @@ module ActiveRecord
     #
     # +values+ can also include +nil+.
     #
-    #   Conversation.in_order_of(:status, %w(nil archived active))
+    #   Conversation.in_order_of(:status, [nil, :archived, :active])
     #   # SELECT "conversations".* FROM "conversations"
     #   #   WHERE ("conversations"."status" IN (1, 0) OR "conversations"."status" IS NULL)
     #   #   ORDER BY CASE
