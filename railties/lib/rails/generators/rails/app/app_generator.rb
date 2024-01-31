@@ -257,8 +257,6 @@ module Rails
     def tmp
       empty_directory_with_keep_file "tmp"
       empty_directory_with_keep_file "tmp/pids"
-      empty_directory "tmp/cache"
-      empty_directory "tmp/cache/assets"
     end
 
     def vendor
@@ -461,7 +459,6 @@ module Rails
         if options[:api]
           remove_dir "app/assets"
           remove_dir "lib/assets"
-          remove_dir "tmp/cache/assets"
         end
       end
 
@@ -661,7 +658,7 @@ module Rails
         end
 
         def read_rc_file(railsrc)
-          extra_args = File.readlines(railsrc).flat_map(&:split)
+          extra_args = File.readlines(railsrc).flat_map.each { |line| line.split("#", 2).first.split }
           puts "Using #{extra_args.join(" ")} from #{railsrc}"
           extra_args
         end

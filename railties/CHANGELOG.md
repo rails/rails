@@ -1,3 +1,12 @@
+*   Commented out lines in .railsrc file should not be treated as arguments when using
+    rails new generator command. Update ARGVScrubber to ignore text after # symbols.
+
+    *Willian Tenfen*
+
+*   Skip CSS when generating APIs.
+
+    *Ruy Rocha*
+
 *   Rails console now indicates application name and the current Rails environment:
 
     ```txt

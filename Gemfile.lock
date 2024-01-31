@@ -8,6 +8,13 @@ GIT
       websocket
 
 GIT
+  remote: https://github.com/nahi/httpclient.git
+  revision: d57cc6d5ffee1b566b5c189fe6dc8cc89570b812
+  branch: master
+  specs:
+    httpclient (2.8.3)
+
+GIT
   remote: https://github.com/rails/sdoc.git
   revision: e9bb867eba81f48c402a129e688e810ec1fa387c
   branch: main
@@ -273,7 +280,6 @@ GEM
       os (>= 0.9, < 2.0)
       signet (>= 0.16, < 2.a)
     hashdiff (1.1.0)
-    httpclient (2.8.3)
     i18n (1.14.1)
       concurrent-ruby (~> 1.0)
     image_processing (1.12.2)
@@ -603,6 +609,7 @@ DEPENDENCIES
   delayed_job
   delayed_job_active_record
   google-cloud-storage (~> 1.11)
+  httpclient!
   image_processing (~> 1.2)
   importmap-rails (>= 1.2.3)
   jbuilder
