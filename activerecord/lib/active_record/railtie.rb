@@ -134,49 +134,11 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
-    initializer "active_record.use_schema_cache_dump" do
-      ActiveRecord::ConnectionAdapters::SchemaReflection.use_schema_cache_dump = config.active_record.use_schema_cache_dump
-    end
+    initializer "active_record.copy_schema_cache_config" do
+      active_record_config = config.active_record
 
-    initializer "active_record.check_schema_cache_dump" do
-      check_schema_cache_dump_version = config.active_record.check_schema_cache_dump_version
-
-      ActiveRecord::ConnectionAdapters::SchemaReflection.check_schema_cache_dump_version = check_schema_cache_dump_version
-
-      if config.active_record.use_schema_cache_dump && !config.active_record.lazily_load_schema_cache
-        config.after_initialize do |app|
-          ActiveSupport.on_load(:active_record) do
-            db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).first
-            next if db_config.nil?
-
-            filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(db_config)
-
-            cache = ActiveRecord::ConnectionAdapters::SchemaCache._load_from(filename)
-            next if cache.nil?
-
-            if check_schema_cache_dump_version
-              current_version = begin
-                ActiveRecord::Migrator.current_version
-              rescue ActiveRecordError => error
-                warn "Failed to validate the schema cache because of #{error.class}: #{error.message}"
-                nil
-              end
-
-              if current_version.nil?
-                connection_pool.schema_reflection.clear!
-                next
-              elsif cache.schema_version != current_version
-                warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the schema cache file is #{cache.schema_version}."
-                connection_pool.schema_reflection.clear!
-                next
-              end
-            end
-
-            Rails.logger.info("Using schema cache file #{filename}")
-            connection_pool.schema_reflection.set_schema_cache(cache)
-          end
-        end
-      end
+      ActiveRecord::ConnectionAdapters::SchemaReflection.use_schema_cache_dump = active_record_config.use_schema_cache_dump
+      ActiveRecord::ConnectionAdapters::SchemaReflection.check_schema_cache_dump_version = active_record_config.check_schema_cache_dump_version
     end
 
     initializer "active_record.define_attribute_methods" do |app|
