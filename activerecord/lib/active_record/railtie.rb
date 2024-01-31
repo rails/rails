@@ -146,6 +146,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
         config.after_initialize do |app|
           ActiveSupport.on_load(:active_record) do
             db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).first
+            next if db_config.nil?
 
             filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(
               db_config.name,
