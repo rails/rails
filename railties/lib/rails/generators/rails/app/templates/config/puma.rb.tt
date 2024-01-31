@@ -32,12 +32,10 @@ if rails_env == "production"
   # It defaults to 1 because it's impossible to reliably detect how many
   # CPU cores are available. Make sure to set the `WEB_CONCURRENCY` environment
   # variable to match the number of processors.
-  processors_count = Integer(ENV.fetch("WEB_CONCURRENCY") { 1 })
-  if processors_count > 1
-    workers processors_count
-  else
-    preload_app!
-  end
+  workers_count = Integer(ENV.fetch("WEB_CONCURRENCY") { 1 })
+  workers workers_count if workers_count > 1
+
+  preload_app!
 end
 
 # Specifies the `port` that Puma will listen on to receive requests; default is 3000.
