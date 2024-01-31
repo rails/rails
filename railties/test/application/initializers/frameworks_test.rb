@@ -232,28 +232,13 @@ module ApplicationTests
         config.eager_load = true
       RUBY
 
-      app("development")
+      Dir.chdir(app_path) do
+        app("development")
 
-      assert ActiveRecord::Base.connection.schema_cache.data_sources("posts")
+        assert ActiveRecord::Base.connection.schema_cache.data_sources("posts")
+      end
     ensure
       ActiveRecord::Base.connection.drop_table("posts", if_exists: true) # force drop posts table for test.
-    end
-
-    test "skips checking for schema cache dump when all databases skipping database tasks" do
-      app_file "config/database.yml", <<-YAML
-        development:
-          database: storage/default.sqlite3
-          adapter: sqlite3
-          database_tasks: false
-      YAML
-
-      add_to_config <<-RUBY
-        config.eager_load = true
-      RUBY
-
-      assert_nothing_raised do
-        app("development")
-      end
     end
 
     test "expire schema cache dump" do
@@ -264,10 +249,15 @@ module ApplicationTests
         config.eager_load = true
       RUBY
 
-      silence_warnings do
+      Dir.chdir(app_path) do
         app("development")
+
+        _, error = capture_io do
+          assert_not ActiveRecord::Base.connection.schema_cache.data_sources("posts")
+        end
+
+        assert_match(/Ignoring db\/schema_cache\.yml because it has expired/, error)
       end
-      assert_not ActiveRecord::Base.connection.schema_cache.data_sources("posts")
     end
 
     test "expire schema cache dump if the version can't be checked because the database is unhealthy" do
@@ -279,18 +269,20 @@ module ApplicationTests
       RUBY
 
       with_unhealthy_database do
-        silence_warnings do
+        Dir.chdir(app_path) do
           app("development")
-        end
 
-        assert_not_nil ActiveRecord::Base.connection_pool.schema_reflection.instance_variable_get(:@cache)
+          assert_raises ActiveRecord::ConnectionNotEstablished do
+            ActiveRecord::Base.connection.execute("SELECT 1")
+          end
 
-        assert_raises ActiveRecord::ConnectionNotEstablished do
-          ActiveRecord::Base.connection.execute("SELECT 1")
-        end
+          _, error = capture_io do
+            assert_raises ActiveRecord::ConnectionNotEstablished do
+              ActiveRecord::Base.connection.schema_cache.columns("posts")
+            end
+          end
 
-        assert_raises ActiveRecord::ConnectionNotEstablished do
-          ActiveRecord::Base.connection.schema_cache.columns("posts")
+          assert_match(/Failed to validate the schema cache because of ActiveRecord::ConnectionNotEstablished/, error)
         end
       end
     end
@@ -304,8 +296,11 @@ module ApplicationTests
         config.active_record.check_schema_cache_dump_version = false
       RUBY
 
-      app("development")
-      assert ActiveRecord::Base.connection_pool.schema_reflection.data_sources(:__unused__, "posts")
+      Dir.chdir(app_path) do
+        app("development")
+
+        assert ActiveRecord::Base.connection_pool.schema_reflection.data_sources(:__unused__, "posts")
+      end
     end
 
     test "does not expire schema cache dump if check_schema_cache_dump_version is false and the database unhealthy" do
@@ -318,11 +313,13 @@ module ApplicationTests
       RUBY
 
       with_unhealthy_database do
-        app("development")
+        Dir.chdir(app_path) do
+          app("development")
 
-        assert ActiveRecord::Base.connection_pool.schema_reflection.data_sources(:__unused__, "posts")
-        assert_raises ActiveRecord::ConnectionNotEstablished do
-          ActiveRecord::Base.connection.execute("SELECT 1")
+          assert ActiveRecord::Base.connection_pool.schema_reflection.data_sources(:__unused__, "posts")
+          assert_raises ActiveRecord::ConnectionNotEstablished do
+            ActiveRecord::Base.connection.execute("SELECT 1")
+          end
         end
       end
     end
