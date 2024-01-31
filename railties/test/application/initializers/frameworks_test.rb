@@ -327,6 +327,22 @@ module ApplicationTests
       end
     end
 
+    test "define attribute methods when schema cache is present and check_schema_cache_dump_version is false" do
+      rails %w(generate model post title:string)
+      rails %w(db:migrate db:schema:cache:dump)
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.active_record.check_schema_cache_dump_version = false
+      RUBY
+
+      Dir.chdir(app_path) do
+        app
+
+        assert_predicate Post, :attribute_methods_generated?
+      end
+    end
+
     test "active record establish_connection uses Rails.env if DATABASE_URL is not set" do
       require "#{app_path}/config/environment"
       orig_database_url = ENV.delete("DATABASE_URL")
