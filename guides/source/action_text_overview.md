@@ -78,6 +78,7 @@ Once you have added the `has_rich_text` class method to the model, you can then 
   </div>
 <% end %>
 ```
+
 This will display a Trix editor that provides the functionality to create and update your rich text accordingly. Styling updates for the editor can be made in `actiontext.css`.
 
 Finally, in order to ensure that you can accept updates from the editor, you will need to permit the the referenced attribute as a parameter in the relevant controller:
@@ -107,7 +108,6 @@ Instances of `ActionText::RichText` can be directly embedded into a page because
 
 NOTE: If there's an attached resource within `content` field, it might not show properly unless you have *libvips/libvips42* package installed locally on your machine.
 Check their [install docs](https://www.libvips.org/install.html) on how to get it.
-
 
 ## Customizing the Rich Text Content Editor (Trix)
 
@@ -250,7 +250,6 @@ Hence, the resulting HTML rendered by Action Text would look something like:
 ```html
 <p>Hello, <action-text-attachment sgid="BAh7CEkiCG…"><span><img src="..."> Jane Doe</span></action-text-attachment>.</p>
 ```
-
 
 ### Rendering a different partial for the action-text-attachment
 
