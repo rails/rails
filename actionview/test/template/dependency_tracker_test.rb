@@ -225,7 +225,7 @@ module SharedTrackerTests
   end
 end
 
-class ERBTrackerTest < Minitest::Test
+class ERBTrackerTest < ActiveSupport::TestCase
   include SharedTrackerTests
 
   def make_tracker(name, template)
@@ -266,7 +266,7 @@ module RubyTrackerTests
   end
 end
 
-class RipperRubyTrackerTest < Minitest::Test
+class RipperRubyTrackerTest < ActiveSupport::TestCase
   include SharedTrackerTests
   include RubyTrackerTests
 
@@ -275,7 +275,7 @@ class RipperRubyTrackerTest < Minitest::Test
   end
 end
 
-class PrismRubyTrackerTest < Minitest::Test
+class PrismRubyTrackerTest < ActiveSupport::TestCase
   include SharedTrackerTests
   include RubyTrackerTests
 
