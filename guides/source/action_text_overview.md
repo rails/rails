@@ -11,7 +11,6 @@ After reading this guide, you will know:
 * What action text is and how to install and configure Action Text.
 * How to create, render, style and customize rich text content.
 * How to handle attachments.
-* How to style rich text content and attachments.
 
 --------------------------------------------------------------------------------
 
