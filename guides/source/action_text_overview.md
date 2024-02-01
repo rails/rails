@@ -201,7 +201,7 @@ An example can be found here:
 
 ```ruby
 class Person < ApplicationRecord
- include ActionText::Attachable
+  include ActionText::Attachable
 end
 
 person = Person.create! name: "Javan"
