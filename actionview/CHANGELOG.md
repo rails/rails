@@ -17,7 +17,7 @@
 
     *Sean Doyle*
 
-*   Raise `ArgumentError` when `nil` is passed as `model:` argument value to the `form_with` method.
+*   Deprecate passing `nil` as value for the `model:` argument to the `form_with` method.
 
     *Collin Jilbert*
 

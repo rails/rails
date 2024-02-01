@@ -340,11 +340,10 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_when_given_nil_model_argument
-    error = assert_raises(ArgumentError) do
+    assert_deprecated(ActionView.deprecator) do
       form_with(model: nil) do
       end
     end
-    assert_equal "The :model argument cannot be nil", error.message
   end
 
   def test_form_with
