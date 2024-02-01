@@ -153,6 +153,11 @@ class CookiesTest < ActionController::TestCase
 
     alias delete_cookie logout
 
+    def force_delete_cookie
+      cookies.delete("user_name", force: true)
+      head :ok
+    end
+
     def delete_cookie_with_path
       cookies.delete("user_name", path: "/beaten")
       head :ok
@@ -585,6 +590,18 @@ class CookiesTest < ActionController::TestCase
     request.cookies.clear
     get :delete_cookie
     assert_empty @response.cookies
+  end
+
+  def test_force_delete_cookie_marks_deleted
+    request.cookies.clear
+    cookies.delete(:user_name, force: true)
+    assert cookies.deleted?("user_name")
+  end
+
+  def test_force_delete_cookie_sets_header
+    request.cookies.clear
+    get :force_delete_cookie
+    assert_set_cookie_header "user_name=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
   end
 
   def test_deleted_cookie_predicate
