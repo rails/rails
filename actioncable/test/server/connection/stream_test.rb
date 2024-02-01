@@ -4,7 +4,7 @@ require "test_helper"
 require "minitest/mock"
 require "stubs/test_server"
 
-class ActionCable::Connection::StreamTest < ActionCable::TestCase
+class ActionCable::Server::Connection::StreamTest < ActionCable::TestCase
   class Connection < ActionCable::Connection::Base
     attr_reader :connected, :websocket, :errors
 
