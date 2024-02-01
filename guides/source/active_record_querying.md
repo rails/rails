@@ -1459,7 +1459,7 @@ SELECT books.* FROM books
   INNER JOIN reviews ON reviews.book_id = books.id
 ```
 
-Or, in English: "return all books with their author that have at least one review". Note again that books with multiple reviews will show up multiple times.
+Or, in English: "return all books that have an author and at least one review". Note again that books with multiple reviews will show up multiple times.
 
 ##### Joining Nested Associations (Single Level)
 

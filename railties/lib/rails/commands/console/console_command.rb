@@ -53,9 +53,9 @@ module Rails
       def colorized_env
         case Rails.env
         when "development"
-          IRB::Color.colorize("dev", [:GREEN])
+          IRB::Color.colorize("dev", [:BLUE])
         when "test"
-          IRB::Color.colorize("test", [:GREEN])
+          IRB::Color.colorize("test", [:BLUE])
         when "production"
           IRB::Color.colorize("prod", [:RED])
         else

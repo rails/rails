@@ -1729,6 +1729,26 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal(expected_tag_ids.sort, blog_post.tags.map(&:id).sort)
   end
 
+  test "preloading belongs_to CPK model with one of the keys being shared between models" do
+    post1 = Cpk::Post.create!(title: "post1", author: "the_same_author")
+    Cpk::Comment.create!(post: post1, text: "great post1!")
+
+    post2 = Cpk::Post.create!(title: "post2", author: "the_same_author")
+    Cpk::Comment.create!(post: post2, text: "great post2!")
+
+    comments = Cpk::Comment.eager_load(:post).to_a
+    expected = {
+      "great post1!" => "post1",
+      "great post2!" => "post2"
+    }
+
+    actual = comments.each_with_object({}) do |comment, hash|
+      hash[comment.text] = comment.post.title
+    end
+
+    assert_equal expected, actual
+  end
+
   test "preloading belongs_to with cpk" do
     order = Cpk::Order.create!(shop_id: 2)
     order_agreement = Cpk::OrderAgreement.create!(order: order)

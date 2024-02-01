@@ -1,7 +1,7 @@
 # See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.191.1/containers/ruby/.devcontainer/base.Dockerfile
 
-# [Choice] Ruby version: 3, 3.0, 2, 2.7, 2.6
-ARG VARIANT="3"
+# [Choice] Ruby version: 3, 3.3, 3.2, 3.1, 3.0, 2, 2.7, 2.6
+ARG VARIANT="3.3"
 FROM mcr.microsoft.com/devcontainers/ruby:${VARIANT}
 
 # [Choice] Node.js version: none, lts/*, 16, 14, 12, 10

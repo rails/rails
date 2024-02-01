@@ -36,6 +36,8 @@ gem "json", ">= 2.0.0", "!=2.7.0"
 # Workaround until Ruby ships with cgi version 0.3.6 or higher.
 gem "cgi", ">= 0.3.6", require: false
 
+gem "prism"
+
 group :lint do
   gem "syntax_tree", "6.1.1", require: false
 end
@@ -125,6 +127,7 @@ end
 # Action Mailbox
 gem "aws-sdk-sns", require: false
 gem "webmock"
+gem "httpclient", github: "nahi/httpclient", branch: "master", require: false
 
 # Add your own local bundler stuff.
 local_gemfile = File.expand_path(".Gemfile", __dir__)
@@ -158,7 +161,7 @@ platforms :ruby, :windows do
   group :db do
     gem "pg", "~> 1.3"
     gem "mysql2", "~> 0.5"
-    gem "trilogy", ">= 2.5.0"
+    gem "trilogy", ">= 2.7.0"
   end
 end
 

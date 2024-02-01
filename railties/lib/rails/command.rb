@@ -130,16 +130,14 @@ module Rails
 
         def split_namespace(namespace)
           case namespace
+          when /^(.+):(\w+)$/
+            [$1, $2]
+          when ""
+            ["help", "help"]
           when HELP_MAPPINGS, "help"
             ["help", "help_extended"]
           when VERSION_MAPPINGS
             ["version", "version"]
-          when "--tasks", "-T"
-            ["", ""]
-          when /^-/, ""
-            ["help", "help"]
-          when /^(.+):(\w+)$/
-            [$1, $2]
           else
             [namespace, namespace]
           end

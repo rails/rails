@@ -1,3 +1,12 @@
+*   Commented out lines in .railsrc file should not be treated as arguments when using
+    rails new generator command. Update ARGVScrubber to ignore text after # symbols.
+
+    *Willian Tenfen*
+
+*   Skip CSS when generating APIs.
+
+    *Ruy Rocha*
+
 *   Rails console now indicates application name and the current Rails environment:
 
     ```txt
@@ -11,60 +20,10 @@
     For example, `MyApp` will displayed as `my-app` in the prompt.
 
     Additionally, the environment name will be colorized when the environment is
-    `development` (green), `test` (green), or `production` (red), if your
+    `development` (blue), `test` (blue), or `production` (red), if your
     terminal supports it.
 
     *Stan Lo*
-
-*   `bin/rails` now prints its help message when given an unrecognized bare
-    option.
-
-    __Before__
-
-      ```console
-      $ bin/rails -v
-      Rails 7.2.0.alpha
-
-      $ bin/rails -V
-      rake, version 13.0.6
-
-      $ bin/rails -s
-      Running 0 tests in a single process (parallelization threshold is 50)
-      ...
-
-      $ bin/rails -S
-      invalid option: -S
-      ```
-
-    __After__
-
-      ```console
-      $ bin/rails -v
-      Rails 7.2.0.alpha
-
-      $ bin/rails -V
-      Usage:
-        bin/rails COMMAND [options]
-
-      You must specify a command. The most common commands are:
-      ...
-
-      $ bin/rails -s
-      Usage:
-        bin/rails COMMAND [options]
-
-      You must specify a command. The most common commands are:
-      ...
-
-      $ bin/rails -S
-      Usage:
-        bin/rails COMMAND [options]
-
-      You must specify a command. The most common commands are:
-      ...
-      ```
-
-    *Jonathan Hefner*
 
 *   Ensure `autoload_paths`, `autoload_once_paths`, `eager_load_paths`, and
     `load_paths` only have directories when initialized from engine defaults.

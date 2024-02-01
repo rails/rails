@@ -358,6 +358,38 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     assert_includes error.message, "/var/invalid.sock"
   end
 
+  test "EPIPE raises ActiveRecord::ConnectionFailed" do
+    assert_raises(ActiveRecord::ConnectionFailed) do
+      @conn.raw_connection.stub(:query, -> (*) { raise Trilogy::SyscallError::EPIPE }) do
+        @conn.execute("SELECT 1")
+      end
+    end
+  end
+
+  test "ETIMEDOUT raises ActiveRecord::ConnectionFailed" do
+    assert_raises(ActiveRecord::ConnectionFailed) do
+      @conn.raw_connection.stub(:query, -> (*) { raise Trilogy::SyscallError::ETIMEDOUT }) do
+        @conn.execute("SELECT 1")
+      end
+    end
+  end
+
+  test "ECONNREFUSED raises ActiveRecord::ConnectionFailed" do
+    assert_raises(ActiveRecord::ConnectionFailed) do
+      @conn.raw_connection.stub(:query, -> (*) { raise Trilogy::SyscallError::ECONNREFUSED }) do
+        @conn.execute("SELECT 1")
+      end
+    end
+  end
+
+  test "ECONNRESET raises ActiveRecord::ConnectionFailed" do
+    assert_raises(ActiveRecord::ConnectionFailed) do
+      @conn.raw_connection.stub(:query, -> (*) { raise Trilogy::SyscallError::ECONNRESET }) do
+        @conn.execute("SELECT 1")
+      end
+    end
+  end
+
   # Create a temporary subscription to verify notification is sent.
   # Optionally verify the notification payload includes expected types.
   def assert_notification(notification, expected_payload = {}, &block)

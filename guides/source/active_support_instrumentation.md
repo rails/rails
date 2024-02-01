@@ -365,6 +365,7 @@ The `:cache_hits` key is only included if the collection is rendered with `cache
 | `:statement_name`    | SQL Statement name                       |
 | `:async`             | `true` if query is loaded asynchronously |
 | `:cached`            | `true` is added when cached queries used |
+| `:row_count`         | Number of rows returned by the query     |
 
 Adapters may add their own data as well.
 
@@ -375,7 +376,8 @@ Adapters may add their own data as well.
   connection: <ActiveRecord::ConnectionAdapters::SQLite3Adapter:0x00007f9f7a838850>,
   binds: [<ActiveModel::Attribute::WithCastValue:0x00007fe19d15dc00>],
   type_casted_binds: [11],
-  statement_name: nil
+  statement_name: nil,
+  row_count: 5
 }
 ```
 

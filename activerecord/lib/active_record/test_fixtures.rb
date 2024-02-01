@@ -13,6 +13,7 @@ module ActiveRecord
 
     def after_teardown # :nodoc:
       super
+    ensure
       teardown_fixtures
     end
 

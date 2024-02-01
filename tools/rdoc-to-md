@@ -1,0 +1,214 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "optparse"
+require "pathname"
+require "strscan"
+
+require "rdoc"
+require "prism"
+
+OPTIONS = {}
+
+OptionParser
+  .new do |opts|
+    opts.banner = "Usage: rdoc-to-md RAILS_ROOT [options]"
+
+    opts.on("-a", "Apply changes")
+    opts.on("--only=FOLDERS", Array)
+  end
+  .parse!(into: OPTIONS)
+
+RAILS_PATH = File.expand_path("..", __dir__)
+
+folders = Dir["#{RAILS_PATH}/*/*.gemspec"].map { |p| Pathname.new(p).dirname }
+
+unless OPTIONS[:only].nil?
+  folders.filter! { |path| OPTIONS[:only].include?(File.basename(path)) }
+end
+
+class Comment
+  class << self
+    def from(comment_nodes)
+      comments_source_lines = source_lines_for(comment_nodes)
+
+      if comments_source_lines.first == "##"
+        MetaComment
+      else
+        Comment
+      end.new(comments_source_lines)
+    end
+
+    private
+      def source_lines_for(comment_nodes)
+        comment_nodes.map { _1.location.slice }
+      end
+  end
+
+  def initialize(source_lines)
+    @source_lines = source_lines
+
+    strip_hash_prefix!
+  end
+
+  def write!(out, indentation)
+    as_markdown.each_line do |new_markdown_line|
+      out << commented(new_markdown_line, indentation).rstrip << "\n"
+    end
+  end
+
+  private
+    attr_reader :source_lines
+
+    def strip_hash_prefix!
+      source_lines.each { |line|
+        line.delete_prefix!("#")
+        line.delete_prefix!(" ")
+      }
+    end
+
+    def commented(markdown, indentation)
+      (" " * indentation) + "# " + markdown
+    end
+
+    def as_markdown
+      converter.convert(source_lines.join("\n"))
+    end
+
+    def converter
+      RDoc::Markup::ToMarkdown.new
+    end
+end
+
+class MetaComment < Comment
+  def write!(out, indentation)
+    spaces = " " * indentation
+
+    out << spaces << "##\n"                                # ##
+    out << commented(source_lines[1], indentation) << "\n" # # :method: ...
+
+    super
+  end
+
+  private
+    def as_markdown
+      converter.convert(content_after_directive)
+    end
+
+    def content_after_directive
+      source_lines[2..].join("\n")
+    end
+end
+
+class CommentVisitor < Prism::BasicVisitor
+  attr_reader :new_comments, :old_comment_lines
+
+  def initialize
+    # starting line => full block comment
+    @new_comments = {}
+    @old_comment_lines = Set.new
+  end
+
+  def method_missing(_, node)
+    comments = node.location.comments
+    process(comments) if process?(comments)
+
+    visit_child_nodes(node)
+  end
+
+  private
+    def process?(comments)
+      return false if comments.empty?
+
+      if comments.any?(&:trailing?)
+        return false if comments.all?(&:trailing?)
+
+        raise "only some comments are trailing?"
+      end
+
+      true
+    end
+
+    def process(comments)
+      old_comment_range = line_range_for(comments)
+      old_comment_range.each { @old_comment_lines << _1 }
+
+      @new_comments[old_comment_range.begin] = Comment.from(comments)
+    end
+
+    def line_range_for(comments)
+      comments.first.location.start_line..comments.last.location.start_line
+    end
+end
+
+class CodeBlockConverter
+  def initialize(file_path)
+    @file_path = file_path
+
+    @parse_result = Prism.parse_file(@file_path)
+    @parse_result.attach_comments!
+
+    @cv = CommentVisitor.new
+    @source = @parse_result.source.source
+
+    @parse_result.value.accept(@cv)
+  end
+
+  def convert!
+    new_source = output
+
+    if @source.include?(MD_DIRECTIVE) || new_source == @source
+      $stdout.write "."
+    else
+      File.write(@file_path, output)
+      $stdout.write "C"
+    end
+  end
+
+  def print
+    if output != @source
+      $stdout.write "C"
+    else
+      $stdout.write "."
+    end
+  end
+
+  private
+    MD_DIRECTIVE = "# :markup: markdown"
+
+    def output
+      out = +""
+
+      @source.each_line.with_index do |old_line, i|
+        line_number = i + 1
+
+        out << "\n" << MD_DIRECTIVE << "\n" if line_number == 2
+
+        if @cv.old_comment_lines.include?(line_number)
+          if new_comment = @cv.new_comments[line_number]
+            indentation = old_line.index("#")
+
+            new_comment.write!(out, indentation)
+          end
+        else
+          out << old_line
+        end
+      end
+
+      out
+    end
+end
+
+folders.each do |folder|
+  ruby_files = Dir["#{folder}/{app,lib}/**/*.rb"]
+
+  ruby_files.each do |file_path|
+    converter = CodeBlockConverter.new(file_path)
+
+    if OPTIONS[:a]
+      converter.convert!
+    else
+      converter.print
+    end
+  end
+end
