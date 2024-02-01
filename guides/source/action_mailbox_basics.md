@@ -267,13 +267,13 @@ https://actionmailbox:PASSWORD@example.com/rails/action_mailbox/sendgrid/inbound
 
 NOTE: When configuring your SendGrid Inbound Parse webhook, be sure to check the box labeled **“Post the raw, full MIME message.”** Action Mailbox needs the raw MIME message to work.
 
-## Process Incoming Email
+## Processing Incoming Email
 
 Processing incoming emails usually entails using the email content to create models, update views, queue background work, etc. in your Rails application.
 
 Before you can start processing incoming emails, you'll need to setup Action Mailbox routing and create mailboxes.
 
-**Configure mailbox routing**
+### Configure mailbox routing
 
 Routes for Action Mailbox are added to the `application_mailbox.rb` file. The regular expression matches the incoming email's `to` field.
 
@@ -287,7 +287,7 @@ end
 
 For example, the above will match any email sent to `save@` to a 'forwards' mailbox. Which we need to create.
 
-**Create a mailbox**
+### Create a mailbox
 
 ```bash
 # Generate new mailbox
@@ -296,14 +296,27 @@ $ bin/rails generate mailbox forwards
 
 This creates a `ForwardsMailbox` class with a `process` method.
 
-**Process email**
+### Process email
 
-When processing an `InboundEmail`, you can get the parsed version of the email as a [`Mail`][] object with `InboundEmail#mail`. You can also access the raw source directly using the `#source` method. Some relevant fields:
+When processing an `InboundEmail`, you can get the parsed version of the email as a [`Mail`][] object with `InboundEmail#mail`. You can also get the raw source directly using the `#source` method. With `Mail` object, you can access the relevant fields, such as `mail.to`, `mail.body.decoded`, etc.
 
-- mail.to
-- mail.date
-- mail.subject
-- mail.decoded
+```bash
+$ mail
+#<Mail::Message:33780, Multipart: false, Headers: <Date: Wed, 31 Jan 2024 22:18:40 -0600>, <From: someone@hey.com>, <To: save@example.com>, <Message-ID: <65bb1ba066830_50303a70397e@Bhumis-MacBook-Pro.local.mail>>, <In-Reply-To: >, <Subject: Hello Action Mailbox>, <Mime-Version: 1.0>, <Content-Type: text/plain; charset=UTF-8>, <Content-Transfer-Encoding: 7bit>, <x-original-to: >>
+$ mail.to
+["save@example.com"]
+$ mail.from
+["someone@hey.com"]
+$ mail.date
+Wed, 31 Jan 2024 22:18:40 -0600
+$ mail.subject
+"Hello Action Mailbox"
+$ mail.body
+#<Mail::Body:0x00007fc74cbf46c0 @boundary=nil, @preamble=nil, @epilogue=nil, @charset="US-ASCII", @part_sort_order=["text/plain", "text/enriched", "text/html", "multipart/alternative"], @parts=[], @raw_source="This is the body of the email message.", @ascii_only=true, @encoding="7bit">
+$ mail.body.decoded
+"This is the body of the email message."
+```
+### Inbound Email Status
 
 Once an email has been routed to the matching Mailbox and processed, Action Mailbox updates the email status stored in `action_mailbox_inbound_emails` table with one of the following values:
 
