@@ -30,10 +30,13 @@ module ActionView
 
           compiled_source = template.handler.call(template, template.source)
 
-          @parser_class.new(@name, compiled_source).render_calls.filter_map do |render_call|
-            next if render_call.end_with?("/_")
+          dependencies = @parser_class.new(@name, compiled_source).render_calls.filter_map do |render_call|
             render_call.gsub(%r|/_|, "/")
           end
+
+          wildcards, explicits = dependencies.partition { |dependency| dependency.end_with?("/*") }
+
+          (explicits + resolve_directories(wildcards)).uniq
         end
 
         def explicit_dependencies
