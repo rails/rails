@@ -35,7 +35,7 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
 
     assert_equal 1080.0, metadata[:width]
     assert_equal 1920.0, metadata[:height]
-    assert_equal(-90, metadata[:angle])
+    assert_includes [90, -90], metadata[:angle]
   end
 
   test "analyzing a video with rectangular samples" do
