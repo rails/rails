@@ -1473,7 +1473,7 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal parrot.id, found_parrot.id
 
     # Manually update the 'name' attribute in the DB directly
-    assert_equal 1, ActiveRecord::Base.connection.query_cache.length
+    assert_equal 1, ActiveRecord::Base.connection.query_cache.size
     ActiveRecord::Base.uncached do
       found_parrot.name = "Mary"
       found_parrot.save

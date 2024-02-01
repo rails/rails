@@ -46,10 +46,10 @@ class QueryCacheTest < ActiveRecord::TestCase
     mw = middleware { |env|
       Post.first
       query_cache = ActiveRecord::Base.connection.query_cache
-      assert_equal 1, query_cache.length, query_cache.keys
+      assert_equal 1, query_cache.size, query_cache.inspect
       Post.connection.execute("SELECT 1")
       query_cache = ActiveRecord::Base.connection.query_cache
-      assert_equal 0, query_cache.length, query_cache.keys
+      assert_equal 0, query_cache.size, query_cache.inspect
     }
     mw.call({})
 
@@ -62,10 +62,10 @@ class QueryCacheTest < ActiveRecord::TestCase
     mw = middleware { |env|
       Post.first
       query_cache = ActiveRecord::Base.connection.query_cache
-      assert_equal 1, query_cache.length, query_cache.keys
+      assert_equal 1, query_cache.size, query_cache.inspect
       Post.connection.exec_query("SELECT 1")
       query_cache = ActiveRecord::Base.connection.query_cache
-      assert_equal 0, query_cache.length, query_cache.keys
+      assert_equal 0, query_cache.size, query_cache.inspect
     }
     mw.call({})
 
@@ -78,13 +78,13 @@ class QueryCacheTest < ActiveRecord::TestCase
     mw = middleware { |env|
       Post.first
       query_cache = ActiveRecord::Base.connection.query_cache
-      assert_equal 1, query_cache.length, query_cache.keys
+      assert_equal 1, query_cache.size, query_cache.inspect
       Post.connection.uncached do
         # should clear the cache
         Post.create!(title: "a new post", body: "and a body")
       end
       query_cache = ActiveRecord::Base.connection.query_cache
-      assert_equal 0, query_cache.length, query_cache.keys
+      assert_equal 0, query_cache.size, query_cache.inspect
     }
     mw.call({})
 
@@ -98,7 +98,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       Task.find 1
       Task.find 1
       query_cache = ActiveRecord::Base.connection.query_cache
-      assert_equal 1, query_cache.length, query_cache.keys
+      assert_equal 1, query_cache.size, query_cache.inspect
       raise "lol borked"
     }
     assert_raises(RuntimeError) { mw.call({}) }
@@ -270,7 +270,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       Task.find 1
       Task.find 1
       query_cache = ActiveRecord::Base.connection.query_cache
-      assert_equal 1, query_cache.length, query_cache.keys
+      assert_equal 1, query_cache.size, query_cache.inspect
       [200, {}, nil]
     }
     mw.call({})
@@ -637,6 +637,8 @@ class QueryCacheTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection_pool.lock_thread = true
 
     assert_cache :off
+    ActiveRecord::Base.connection.enable_query_cache!
+    assert_cache :clean
 
     thread_a = Thread.new do
       middleware { |env|
@@ -668,7 +670,11 @@ class QueryCacheTest < ActiveRecord::TestCase
       case state
       when :off
         assert_not connection.query_cache_enabled, "cache should be off"
-        assert_predicate connection.query_cache, :empty?, "cache should be empty"
+        if connection.query_cache.nil?
+          assert_nil connection.query_cache
+        else
+          assert_predicate connection.query_cache, :empty?, "cache should be nil or empty"
+        end
       when :clean
         assert connection.query_cache_enabled, "cache should be on"
         assert_predicate connection.query_cache, :empty?, "cache should be empty"
@@ -800,7 +806,7 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   end
 
   def test_find
-    assert_called(Task.connection, :clear_query_cache) do
+    assert_called(Task.connection.query_cache, :clear) do
       assert_not Task.connection.query_cache_enabled
       Task.cache do
         assert Task.connection.query_cache_enabled
@@ -817,9 +823,19 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
     end
   end
 
+  def test_enable_disable
+    assert_called(Task.connection.query_cache, :clear, times: 1) do
+      Task.cache { }
+    end
+
+    assert_called(Task.connection.query_cache, :clear, times: 1) do
+      Task.cache { Task.cache { } }
+    end
+  end
+
   def test_update
-    assert_called(Task.connection, :clear_query_cache, times: 2) do
-      Task.cache do
+    Task.cache do
+      assert_called(Task.connection.query_cache, :clear, times: 1) do
         task = Task.find(1)
         task.starting = Time.now.utc
         task.save!
@@ -828,16 +844,16 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   end
 
   def test_destroy
-    assert_called(Task.connection, :clear_query_cache, times: 2) do
-      Task.cache do
+    Task.cache do
+      assert_called(Task.connection.query_cache, :clear, times: 1) do
         Task.find(1).destroy
       end
     end
   end
 
   def test_insert
-    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
-      Task.cache do
+    Task.cache do
+      assert_called(ActiveRecord::Base.connection.query_cache, :clear, times: 1) do
         Task.create!
       end
     end
@@ -846,40 +862,46 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   def test_insert_all
     skip unless supports_insert_on_duplicate_skip?
 
-    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
-      Task.cache { Task.insert({ starting: Time.now }) }
-    end
+    Task.cache do
+      assert_called(ActiveRecord::Base.connection.query_cache, :clear, times: 1) do
+        Task.insert({ starting: Time.now })
+      end
 
-    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
-      Task.cache { Task.insert_all([{ starting: Time.now }]) }
+      assert_called(ActiveRecord::Base.connection.query_cache, :clear, times: 1) do
+        Task.insert_all([{ starting: Time.now }])
+      end
     end
   end
 
   def test_insert_all_bang
-    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
-      Task.cache { Task.insert!({ starting: Time.now }) }
-    end
+    Task.cache do
+      assert_called(ActiveRecord::Base.connection.query_cache, :clear, times: 1) do
+        Task.insert!({ starting: Time.now })
+      end
 
-    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
-      Task.cache { Task.insert_all!([{ starting: Time.now }]) }
+      assert_called(ActiveRecord::Base.connection.query_cache, :clear, times: 1) do
+        Task.insert_all!([{ starting: Time.now }])
+      end
     end
   end
 
   def test_upsert_all
     skip unless supports_insert_on_duplicate_update?
 
-    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
-      Task.cache { Task.upsert({ starting: Time.now }) }
-    end
+    Task.cache do
+      assert_called(ActiveRecord::Base.connection.query_cache, :clear, times: 1) do
+        Task.upsert({ starting: Time.now })
+      end
 
-    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
-      Task.cache { Task.upsert_all([{ starting: Time.now }]) }
+      assert_called(ActiveRecord::Base.connection.query_cache, :clear, times: 1) do
+        Task.upsert_all([{ starting: Time.now }])
+      end
     end
   end
 
   def test_cache_is_expired_by_habtm_update
-    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
-      ActiveRecord::Base.cache do
+    ActiveRecord::Base.cache do
+      assert_called(ActiveRecord::Base.connection.query_cache, :clear, times: 1) do
         c = Category.first
         p = Post.first
         p.categories << c
@@ -888,8 +910,8 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   end
 
   def test_cache_is_expired_by_habtm_delete
-    assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
-      ActiveRecord::Base.cache do
+    ActiveRecord::Base.cache do
+      assert_called(ActiveRecord::Base.connection.query_cache, :clear, times: 1) do
         p = Post.find(1)
         assert_predicate p.categories, :any?
         p.categories.delete_all
