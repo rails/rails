@@ -595,6 +595,9 @@ module Rails
         # ActiveStorage preview support
         packages << "libvips" unless skip_active_storage?
 
+        # jemalloc for memory optimization
+        packages << "libjemalloc2"
+
         packages.compact.sort
       end
 
