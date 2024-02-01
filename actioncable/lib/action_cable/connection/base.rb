@@ -70,9 +70,9 @@ module ActionCable
         @worker_pool = server.worker_pool
         @logger = new_tagged_logger
 
-        @websocket      = ActionCable::Connection::WebSocket.new(env, self, event_loop)
-        @subscriptions  = ActionCable::Connection::Subscriptions.new(self)
-        @message_buffer = ActionCable::Connection::MessageBuffer.new(self)
+        @websocket      = Server::Connection::WebSocket.new(env, self, event_loop)
+        @subscriptions  = Subscriptions.new(self)
+        @message_buffer = Server::Connection::MessageBuffer.new(self)
 
         @_internal_subscriptions = nil
         @started_at = Time.now
