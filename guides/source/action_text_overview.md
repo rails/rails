@@ -24,9 +24,9 @@ Action Text facilitates the handling and display of Rich Text Content. Rich Text
 
 Action Text includes a WYSIWYG editor called Trix, which is used in web applications to provide users with a user-friendly interface for creating and editing rich text content. It handles everything from providing enriching capabilities like the formatting of text, adding links or quotes, embedding images, and much much more. You can view an example of the Trix editor [here](https://trix-editor.org/).
 
-Most WYSIWYG editors are wrappers around HTML’s `contenteditable`` and `execCommand APIs. These APIs were designed by Microsoft to support live editing of web pages in Internet Explorer 5.5. They were eventually reverse-engineered and copied by other browsers. Consequently, these APIs were never fully specified or documented, and because WYSIWYG HTML editors are enormous in scope, each browser's implementation has its own set of bugs and quirks. Hence, JavaScript developers are often left to resolve the inconsistencies.
+Most WYSIWYG editors are wrappers around HTML’s `contenteditable` and `execCommand` APIs. These APIs were designed by Microsoft to support live editing of web pages in Internet Explorer 5.5. They were eventually reverse-engineered and copied by other browsers. Consequently, these APIs were never fully specified or documented, and because WYSIWYG HTML editors are enormous in scope, each browser's implementation has its own set of bugs and quirks. Hence, JavaScript developers are often left to resolve the inconsistencies.
 
-Trix sidesteps these inconsistencies by treating contenteditable as an I/O device: when input makes its way to the editor, Trix converts that input into an editing operation on its internal document model, then re-renders that document back into the editor. This gives Trix complete control over what happens after every keystroke and avoids the need to use execCommand and the inconsistencies that come along with it.
+Trix sidesteps these inconsistencies by treating`contenteditable` as an I/O device: when input makes its way to the editor, Trix converts that input into an editing operation on its internal document model, then re-renders that document back into the editor. This gives Trix complete control over what happens after every keystroke and avoids the need to use `execCommand` and the inconsistencies that come along with it.
 
 **Action Text and the Trix Editor**
 
@@ -43,7 +43,7 @@ In order to install Action Text and start working with rich text content in your
 
 The `action_text:install` command will do the following:
 
-- Install the Yarn packages for `trix` and `@rails/actiontext` and adds them to the `application.js`.
+- Installs the Yarn packages for `trix` and `@rails/actiontext` and adds them to the `application.js`.
 - Adds an `image_processing` gem from Active Storage for image analysis and transformations of the embedded images and other attachments. Please refer to the Active Storage Overview guide for more information about the `image_processing` gem.
 - Adds migrations to create the following tables that store rich text content and attachments; namely `action_text_rich_texts`, `active_storage_blobs`, `active_storage_attachments`, `active_storage_variant_records`. Later on, we’ll discuss the polymorphic association of this table to your existing models.
 - Creates `actiontext.css` and imports it into `application.css`. The Trix stylesheet is also included in the `application.css` file.
@@ -67,7 +67,7 @@ class Blog < ApplicationRecord
 end
 ```
 
-Note: The `content` column will not need to be added to your Blog table. `has_rich_text` helps to associate it with the `action_text_rich_texts` table that has been created and links it back to your model. You also may choose to name the attribute to be something different to `content`.
+NOTE: The `content` column will not need to be added to your Blog table. `has_rich_text` helps to associate it with the `action_text_rich_texts` table that has been created and links it back to your model. You also may choose to name the attribute to be something different to `content`.
 Once you have added the `has_rich_text` class method to the model, you can then update your views to make use of the rich text editor (Trix) for that field. In order to do so, use a  `rich_text_area` for the form field.
 
 ```html+erb
@@ -98,13 +98,13 @@ Since Action Text depends on polymorphic associations, which, in turn, involve s
 
 ## Rendering Rich Text Content
 
-Instances of ActionText::RichText can be directly embedded into a page because they have already sanitized their content for a safe render. You can display the content as follows:
+Instances of `ActionText::RichText` can be directly embedded into a page because they have already sanitized their content for a safe render. You can display the content as follows:
 
 ```erb
 <%= @message.content %>
 ```
 
-`ActionText::RichText#to_s` safely transforms RichText into an HTML String. On the other hand `ActionText::RichText#to_plain_text` returns a string that is not HTML safe and should not be rendered in browsers. You can learn more about Action Text's sanitization process in the documentation for the ActionText::RichText class.
+`ActionText::RichText#to_s` safely transforms RichText into an HTML String. On the other hand `ActionText::RichText#to_plain_text` returns a string that is not HTML safe and should not be rendered in browsers. You can learn more about Action Text's sanitization process in the [documentation](https://edgeapi.rubyonrails.org/classes/ActionText/RichText.html) for the `ActionText::RichText` class.
 
 NOTE: If there's an attached resource within `content` field, it might not show properly unless you have *libvips/libvips42* package installed locally on your machine.
 Check their [install docs](https://www.libvips.org/install.html) on how to get it.
@@ -116,7 +116,7 @@ There may be times when you want to update the presentation of the editor to mee
 
 ### Removing or Adding Trix Styles
 
-By default, Action Text will render rich text content inside an element with the `.trix-content` class. This is set in /views/layouts/action_text/contents/_content.html.erb.  Elements with this class are then styled by the trix stylesheet.
+By default, Action Text will render rich text content inside an element with the `.trix-content` class. This is set in `/views/layouts/action_text/contents/_content.html.erb`.  Elements with this class are then styled by the trix stylesheet.
 
 If you’d like to update any of the trix styles, you can add your own custom styles in `app/assets/stylesheets/actiontext.css`.
 
@@ -139,7 +139,7 @@ To customize the HTML container element that's rendered around rich text content
 
 ### Customizing HTML for Embedded Images and Attachments
 
-To customize the HTML rendered for embedded images and other attachments (known as blobs), edit the `app/views/active_storage/blobs/_blob.html.erb`` template created by the installer:
+To customize the HTML rendered for embedded images and other attachments (known as blobs), edit the `app/views/active_storage/blobs/_blob.html.erb` template created by the installer:
 
 
 ```html+erb
@@ -171,7 +171,7 @@ When uploading an image within your rich text editor, it uses Action Text which 
 - [ffmpeg](http://ffmpeg.org/) v3.4+ for video previews and ffprobe for video/audio analysis
 - [poppler](https://poppler.freedesktop.org/) or [muPDF](https://mupdf.com/) for PDF previews
 
-You shoudl familiarize yourself with the licensing implications of installing the above. Some but not all of these libraries are required and they are dependent on the kind of uploads you are expecting within the editor. A common error that users encounter when working with Action Text and Active Storage is that images do not render correctly in the editor. This is usually due to the libvips dependency not being installed.
+You should familiarize yourself with the licensing implications of installing the above. Some, but not all of these libraries are required and they are dependent on the kind of uploads you are expecting within the editor. A common error that users encounter when working with Action Text and Active Storage is that images do not render correctly in the editor. This is usually due to the `libvips` dependency not being installed.
 
 
 ### Signed GlobalId
@@ -180,7 +180,7 @@ In addition to attachments uploaded through Active Storage, Action Text can also
 
 A Global ID is an app wide URI that uniquely identifies a model instance: `gid://YourApp/Some::Model/id`. This is helpful when you need a single identifier to reference different classes of objects.
 
-When using this method, ActionText requires attachments to have a signed global ID (sgid). By default, all ActiveRecord models in a Rails app mix-in `GlobalID::Identification` concern. So they can be resolved by a signed global id and are therefore `ActionText::Attachable` compatible.
+When using this method, ActionText requires attachments to have a signed global ID (sgid). By default, all ActiveRecord models in a Rails app mix-in `GlobalID::Identification` concern. So they can be resolved by a signed global ID and are therefore `ActionText::Attachable` compatible.
 
 Action Text minifies the HTML you insert on save, so that it can re-render it with up-to-date content later on. This makes it so that you can reference models and always display the current content when those records change.
 
@@ -208,7 +208,7 @@ end
 person = Person.create! name: "Javan"
 html = %Q(<action-text-attachment sgid="#{person.attachable_sgid}"></action-text-attachment>)
 content = ActionText::Content.new(html)
-content                                               1§§§§§§§.attachables # => [person]
+content.attachables # => [person]
 ```
 
 ### Rendering an Action Text Attachment
@@ -228,7 +228,7 @@ user.to_global_id.to_s #=> gid://MyRailsApp/User/1
 user.to_signed_global_id.to_s #=> BAh7CEkiCG…
 ```
 
-Note: We can mix `GlobalID::Identification` into any model with a `#find(id)` class method. Support is automatically included in Active Record.
+NOTE: We can mix `GlobalID::Identification` into any model with a `#find(id)` class method. Support is automatically included in Active Record.
 
 The above code will return our identifier to uniquely identify a model instance.
 
@@ -255,7 +255,7 @@ Hence, the resulting HTML rendered by Action Text would look something like:
 
 ### Rendering a different partial for the action-text-attachment
 
-To render a different partial for the attachable, define User#to_attachable_partial_path:
+To render a different partial for the attachable, define `User#to_attachable_partial_path`:
 
 ```ruby
 class User < ApplicationRecord
@@ -276,7 +276,7 @@ Then declare that partial. The User instance will be available as the user parti
 
 If Action Text is unable to resolve the User instance (for example, if the record has been deleted), then a default fallback partial will be rendered.
 
-Rails provides a global partial for missing attachments. This partial is installed in your application at views/action_text/attachables/missing_attachable and can be modified if you want to render different HTML.
+Rails provides a global partial for missing attachments. This partial is installed in your application at `views/action_text/attachables/missing_attachable` and can be modified if you want to render different HTML.
 
 To render a different missing attachment partial, define a class-level `to_missing_attachable_partial_path` method:
 
@@ -297,7 +297,7 @@ Then declare that partial.
 
 ### An attachable via an API
 
-If your architecture does not follow the traditional Rails server side rendered pattern, then you may perhaps find yourself with a backend API (for example, using JSON) that will need a separate endpoint for uploading files. The endpoint will be required to create an ActiveStorage::Blob and return its attachable_sgid:
+If your architecture does not follow the traditional Rails server side rendered pattern, then you may perhaps find yourself with a backend API (for example, using JSON) that will need a separate endpoint for uploading files. The endpoint will be required to create an `ActiveStorage::Blob` and return its `attachable_sgid`:
 
 ```json
 {
@@ -315,7 +315,7 @@ Thereafter, you can take the `attachable_sgid` and insert it in rich text conten
 
 ### Avoiding N+1 Queries
 
-If you wish to preload the dependent ActionText::RichText model, assuming your rich text field is named content, you can use the named scope:
+If you wish to preload the dependent `ActionText::RichText` model, assuming your rich text field is named `content`, you can use the named scope:
 
 ```ruby
 Message.all.with_rich_text_content # Preload the body without attachments.
