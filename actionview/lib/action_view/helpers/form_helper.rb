@@ -754,7 +754,7 @@ module ActionView
       #     form_with(**options.merge(builder: LabellingFormBuilder), &block)
       #   end
       def form_with(model: false, scope: nil, url: nil, format: nil, **options, &block)
-        raise ArgumentError, "The :model argument cannot be nil" if model.nil?
+        ActionView.deprecator.warn("Passing nil to the :model argument is deprecated and will be raise in Rails 7.3") if model.nil?
 
         options = { allow_method_names_outside_object: true, skip_default_ids: !form_with_generates_ids }.merge!(options)
 
