@@ -3,7 +3,7 @@
 require "test_helper"
 require "stubs/test_server"
 
-class ActionCable::Connection::ClientSocketTest < ActionCable::TestCase
+class ActionCable::Server::Connection::ClientSocketTest < ActionCable::TestCase
   class Connection < ActionCable::Connection::Base
     attr_reader :connected, :websocket, :errors
 
