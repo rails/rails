@@ -59,6 +59,14 @@ module Rails
             edit_compose_yaml
           end
 
+          def move_migrations
+            if database.name == "sqlite3"
+              move_solid_cache_migrations from: "db/migrate", to: "db/cache/migrate"
+            else
+              move_solid_cache_migrations from: "db/cache/migrate", to: "db/migrate"
+            end
+          end
+
           private
             def all_database_gems
               Database.all.map { |database| database.gem }
@@ -198,6 +206,18 @@ module Rails
               return @devcontainer if defined?(@devcontainer)
 
               @devcontainer = File.exist?(File.expand_path(".devcontainer", destination_root))
+            end
+
+            def move_solid_cache_migrations(from:, to:)
+              migrations_from_folder = File.expand_path(from, destination_root)
+              migrations_to_folder = File.expand_path(to, destination_root)
+              if (migration_files = Dir.glob(migrations_from_folder + "/*.solid_cache.rb")).any?
+                empty_directory migrations_to_folder
+                migration_files.each do |migration_file|
+                  copy_file migration_file, File.join(migrations_to_folder, File.basename(migration_file))
+                  remove_file migration_file
+                end
+              end
             end
         end
       end

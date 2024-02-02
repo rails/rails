@@ -4,86 +4,88 @@ require "generators/generators_test_helper"
 require "rails/generators/rails/app/app_generator"
 require "generators/shared_generator_tests"
 
-DEFAULT_APP_FILES = %w(
-  .dockerignore
-  .git
-  .gitattributes
-  .github/dependabot.yml
-  .github/workflows/ci.yml
-  .gitignore
-  .rubocop.yml
-  .ruby-version
-  Dockerfile
-  Gemfile
-  README.md
-  Rakefile
-  app/assets/images/.keep
-  app/assets/stylesheets/application.css
-  app/controllers/application_controller.rb
-  app/controllers/concerns/.keep
-  app/helpers/application_helper.rb
-  app/jobs/application_job.rb
-  app/mailers/application_mailer.rb
-  app/models/application_record.rb
-  app/models/concerns/.keep
-  app/views/layouts/application.html.erb
-  app/views/layouts/mailer.html.erb
-  app/views/layouts/mailer.text.erb
-  app/views/pwa/manifest.json.erb
-  app/views/pwa/service-worker.js
-  bin/brakeman
-  bin/dev
-  bin/docker-entrypoint
-  bin/rails
-  bin/rake
-  bin/rubocop
-  bin/setup
-  bin/thrust
-  config.ru
-  config/application.rb
-  config/boot.rb
-  config/cable.yml
-  config/credentials.yml.enc
-  config/database.yml
-  config/environment.rb
-  config/environments/development.rb
-  config/environments/production.rb
-  config/environments/test.rb
-  config/initializers/assets.rb
-  config/initializers/content_security_policy.rb
-  config/initializers/filter_parameter_logging.rb
-  config/initializers/inflections.rb
-  config/locales/en.yml
-  config/master.key
-  config/puma.rb
-  config/routes.rb
-  config/storage.yml
-  db/seeds.rb
-  lib/tasks/.keep
-  log/.keep
-  public/404.html
-  public/406-unsupported-browser.html
-  public/422.html
-  public/500.html
-  public/icon.png
-  public/icon.svg
-  public/robots.txt
-  script/.keep
-  storage/.keep
-  test/application_system_test_case.rb
-  test/controllers/.keep
-  test/fixtures/files/.keep
-  test/helpers/.keep
-  test/integration/.keep
-  test/mailers/.keep
-  test/models/.keep
-  test/system/.keep
-  test/test_helper.rb
-  tmp/.keep
-  tmp/pids/.keep
-  tmp/storage/.keep
-  vendor/.keep
-)
+DEFAULT_APP_FILES = [
+  ".dockerignore",
+  ".git",
+  ".gitattributes",
+  ".github/dependabot.yml",
+  ".github/workflows/ci.yml",
+  ".gitignore",
+  ".rubocop.yml",
+  ".ruby-version",
+  "Dockerfile",
+  "Gemfile",
+  "README.md",
+  "Rakefile",
+  "app/assets/images/.keep",
+  "app/assets/stylesheets/application.css",
+  "app/controllers/application_controller.rb",
+  "app/controllers/concerns/.keep",
+  "app/helpers/application_helper.rb",
+  "app/jobs/application_job.rb",
+  "app/mailers/application_mailer.rb",
+  "app/models/application_record.rb",
+  "app/models/concerns/.keep",
+  "app/views/layouts/application.html.erb",
+  "app/views/layouts/mailer.html.erb",
+  "app/views/layouts/mailer.text.erb",
+  "app/views/pwa/manifest.json.erb",
+  "app/views/pwa/service-worker.js",
+  "bin/brakeman",
+  "bin/dev",
+  "bin/docker-entrypoint",
+  "bin/rails",
+  "bin/rake",
+  "bin/rubocop",
+  "bin/setup",
+  "bin/thrust",
+  "config.ru",
+  "config/application.rb",
+  "config/boot.rb",
+  "config/cable.yml",
+  "config/credentials.yml.enc",
+  "config/database.yml",
+  "config/environment.rb",
+  "config/environments/development.rb",
+  "config/environments/production.rb",
+  "config/environments/test.rb",
+  "config/initializers/assets.rb",
+  "config/initializers/content_security_policy.rb",
+  "config/initializers/filter_parameter_logging.rb",
+  "config/initializers/inflections.rb",
+  "config/locales/en.yml",
+  "config/master.key",
+  "config/puma.rb",
+  "config/routes.rb",
+  "config/solid_cache.yml",
+  "config/storage.yml",
+  %r{^db/cache/migrate/\d{14}_create_solid_cache_entries.solid_cache.rb$},
+  "db/seeds.rb",
+  "lib/tasks/.keep",
+  "log/.keep",
+  "public/404.html",
+  "public/406-unsupported-browser.html",
+  "public/422.html",
+  "public/500.html",
+  "public/icon.png",
+  "public/icon.svg",
+  "public/robots.txt",
+  "script/.keep",
+  "storage/.keep",
+  "test/application_system_test_case.rb",
+  "test/controllers/.keep",
+  "test/fixtures/files/.keep",
+  "test/helpers/.keep",
+  "test/integration/.keep",
+  "test/mailers/.keep",
+  "test/models/.keep",
+  "test/system/.keep",
+  "test/test_helper.rb",
+  "tmp/.keep",
+  "tmp/pids/.keep",
+  "tmp/storage/.keep",
+  "vendor/.keep"
+]
 
 class AppGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -693,6 +695,92 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_inclusion_of_solid_cache_files
+    run_generator [destination_root]
+    assert_file "config/solid_cache.yml"
+  end
+
+  def test_solid_cache_skipped
+    generator [destination_root], ["--skip-solid-cache"]
+    run_generator_instance
+    assert_no_file "config/solid_cache.yml"
+    assert_file "config/database.yml" do |content|
+      assert_no_match(/cache:/, content)
+    end
+  end
+
+  def test_solid_cache_sqlite3
+    run_generator [destination_root]
+
+    production_db_config = <<~YAML
+      production:
+        primary:
+          <<: *default
+          database: storage/production.sqlite3
+        cache:
+          <<: *default
+          database: storage/production_cache.sqlite3
+          migrations_paths: "db/cache/migrate"
+    YAML
+    assert_file("config/database.yml") do |content|
+      assert_includes content, production_db_config
+    end
+  end
+
+  def test_solid_cache_mysql
+    run_generator [destination_root, "-d", "mysql"]
+
+    production_db_config = <<~YAML
+      production:
+        primary: &production_primary
+          <<: *default
+          database: tmp_production
+          username: tmp
+          password: <%= ENV["TMP_DATABASE_PASSWORD"] %>
+        cache:
+          <<: *production_primary
+    YAML
+    assert_file("config/database.yml") do |content|
+      assert_includes content, production_db_config
+    end
+  end
+
+  def test_solid_cache_postgresql
+    run_generator [destination_root, "-d", "postgresql"]
+
+    production_db_config = <<~YAML
+      production:
+        primary: &production_primary
+          <<: *default
+          database: tmp_production
+          username: tmp
+          password: <%= ENV["TMP_DATABASE_PASSWORD"] %>
+        cache:
+          <<: *production_primary
+    YAML
+    assert_file("config/database.yml") do |content|
+      assert_includes content, production_db_config
+    end
+  end
+
+  def test_solid_cache_trilogy
+    run_generator [destination_root, "-d", "trilogy"]
+
+    production_db_config = <<~YAML
+      production:
+        primary: &production_primary
+          <<: *default
+          database: tmp_production
+          username: tmp
+          password: <%= ENV["TMP_DATABASE_PASSWORD"] %>
+        cache:
+          <<: *production_primary
+    YAML
+    assert_file("config/database.yml") do |content|
+      assert_includes content, production_db_config
+    end
+  end
+
   def test_usage_read_from_file
     assert_called(File, :read, returns: "USAGE FROM FILE") do
       assert_equal "USAGE FROM FILE", Rails::Generators::AppGenerator.desc
@@ -969,7 +1057,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator_instance
 
     expected_commands = [
-      "credentials:diff --enroll", "importmap:install", "turbo:install stimulus:install"
+      "credentials:diff --enroll", "DATABASE=cache solid_cache:install", "importmap:install", "turbo:install stimulus:install"
     ]
     assert_equal expected_commands, @rails_commands
   end

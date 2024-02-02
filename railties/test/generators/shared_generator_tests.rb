@@ -73,11 +73,14 @@ module SharedGeneratorTests
     end
 
     # assert differences first for better error messages
-    assert_empty generated_files_and_folders.difference(default_files)
-    assert_empty default_files.difference(generated_files_and_folders)
-    assert_equal generated_files_and_folders.sort, default_files, "The expected list of generated files is not alphabetical"
+    remaining_generated_files_and_folders = generated_files_and_folders.dup
+    default_files.each do |file|
+      index = remaining_generated_files_and_folders.index { |path| file.is_a?(Regexp) ? file.match?(path) : file == path }
+      assert_not_nil index, "Expected #{file} to be generated"
+      remaining_generated_files_and_folders.delete_at(index)
+    end
 
-    default_files.each { |path| assert_file path }
+    assert_empty remaining_generated_files_and_folders
 
     assert_file "#{application_path}/config/application.rb", /\s+require\s+["']rails\/all["']/
 
@@ -101,7 +104,7 @@ module SharedGeneratorTests
 
   def test_plugin_new_generate_pretend
     run_generator ["testapp", "--pretend"]
-    default_files.each { |path| assert_no_file File.join("testapp", path) }
+    default_files.each { |path| assert_no_file File.join("testapp", path) unless path.is_a?(Regexp) }
   end
 
   def test_invalid_database_option_raises_an_error

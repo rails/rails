@@ -73,8 +73,13 @@ Rails.application.configure do
   # want to log everything, set the level to "debug".
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
 
+  <%- if options[:skip_solid_cache] -%>
   # Use a different cache store in production.
   # config.cache_store = :mem_cache_store
+  <%- else -%>
+  # Cache with Solid Cache
+  config.cache_store = :solid_cache_store
+  <% end %>
 
   <%- unless options[:skip_active_job] -%>
   # Use a real queuing backend for Active Job (and separate queues per environment).

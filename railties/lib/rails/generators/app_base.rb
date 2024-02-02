@@ -114,6 +114,9 @@ module Rails
         class_option :skip_kamal,          type: :boolean, default: false,
                                            desc: "Skip Kamal setup"
 
+        class_option :skip_solid_cache,    type: :boolean, default: false,
+                                           desc: "Skip Solid Cache setup"
+
         class_option :dev,                 type: :boolean, default: nil,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
 
@@ -158,6 +161,7 @@ module Rails
           css_gemfile_entry,
           jbuilder_gemfile_entry,
           cable_gemfile_entry,
+          solid_cache_gemfile_entry,
         ].flatten.compact.select(&@gem_filter)
       end
 
@@ -390,6 +394,10 @@ module Rails
 
       def skip_asset_pipeline? # :doc:
         options[:skip_asset_pipeline]
+      end
+
+      def skip_solid_cache?
+        options[:skip_solid_cache]
       end
 
       def skip_sprockets?
@@ -638,6 +646,13 @@ module Rails
 
         comment = "Use Redis adapter to run Action Cable in production"
         GemfileEntry.new("redis", ">= 4.0.1", comment, {}, true)
+      end
+
+      def solid_cache_gemfile_entry
+        return if options[:skip_solid_cache]
+
+        comment = "Use Solid Cache for caching (http://github.com/rails/solid_cache)"
+        GemfileEntry.new("solid_cache", ">= 1.0.0", comment, {}, false)
       end
 
       def bundle_command(command, env = {})
