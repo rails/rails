@@ -98,12 +98,10 @@ module ActionCable
         handler = worker_pool_stream_handler(broadcasting, callback || block, coder: coder)
         streams[broadcasting] = handler
 
-        connection.server.executor.post do
-          pubsub.subscribe(broadcasting, handler, lambda do
-            ensure_confirmation_sent
-            logger.info "#{self.class.name} is streaming from #{broadcasting}"
-          end)
-        end
+        pubsub.subscribe(broadcasting, handler, lambda do
+          ensure_confirmation_sent
+          logger.info "#{self.class.name} is streaming from #{broadcasting}"
+        end)
       end
 
       # Start streaming the pubsub queue for the `model` in this channel. Optionally,

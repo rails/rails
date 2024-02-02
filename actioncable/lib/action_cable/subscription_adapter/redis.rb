@@ -65,12 +65,11 @@ module ActionCable
           @config_options ||= config.cable.deep_symbolize_keys.merge(id: identifier)
         end
 
-        class Listener < SubscriberMap
+        class Listener < SubscriberMap::Async
           def initialize(adapter, config_options, executor)
-            super()
+            super(executor)
 
             @adapter = adapter
-            @executor = executor
 
             @subscribe_callbacks = Hash.new { |h, k| h[k] = [] }
             @subscription_lock = Mutex.new
@@ -151,10 +150,6 @@ module ActionCable
             @subscription_lock.synchronize do
               when_connected { @subscribed_client.unsubscribe(channel) }
             end
-          end
-
-          def invoke_callback(*)
-            @executor.post { super }
           end
 
           private
