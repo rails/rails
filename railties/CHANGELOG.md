@@ -1,3 +1,17 @@
+*   When encountering an Unrecognized Command Error, while running `rails` commands, the developer will be
+    given the option to run the suggested corrections.
+
+    ```txt
+    bin/rails action_txt:install
+    Unrecognized command "action_txt:install"
+
+    Did you mean?  action_text:install [Yn] Y
+    Installing JavaScript dependencies
+    ...
+    ```
+
+    *Andrew Novoselac & Gannon McGibbon*
+
 *   Allow Actionable Errors encountered when running tests to be retried.
 
     ```txt

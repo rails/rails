@@ -11,11 +11,32 @@ class Rails::Command::HelpIntegrationTest < ActiveSupport::TestCase
     assert_match "Invoke default", rails("--trace")
   end
 
-  test "prints helpful error on unrecognized command" do
+  test "prints helpful error on unrecognized command and allows command to be re-run" do
+    app_file("config/boot.rb", <<~RUBY, "a+")
+     require "rails/command"
+
+     module Rails
+       module Command
+         class UnrecognizedCommandCorrector
+           def yes?(statement, color = nil)
+             raise ArgumentError unless statement == "\nDid you mean?  version [Yn]"
+             true
+           end
+         end
+
+         class << self
+           def tty?
+             true
+           end
+         end
+       end
+     end
+    RUBY
+
     output = rails "vershen", allow_failure: true
 
     assert_match %(Unrecognized command "vershen"), output
-    assert_match "Did you mean?  version", output
+    assert_match Rails::VERSION::STRING, output
   end
 
   test "loads Rake tasks only once on unrecognized command" do

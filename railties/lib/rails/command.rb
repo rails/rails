@@ -44,6 +44,21 @@ module Rails
       end
     end
 
+    class UnrecognizedCommandCorrector < Thor::Shell::Basic
+      def correct(error)
+        if defined?(DidYouMean::Correctable) && defined?(DidYouMean::SpellChecker)
+          say error.original_message
+
+          error.corrections.detect do |correction|
+            correction if yes? DidYouMean.formatter.message_for([correction]) + " [Yn]"
+          end
+        else
+          say error.detailed_message
+          nil
+        end
+      end
+    end
+
     include Behavior
 
     HELP_MAPPINGS = %w(-h -? --help).to_set
@@ -76,6 +91,9 @@ module Rails
       rescue UnrecognizedCommandError => error
         if error.name == full_namespace && command && command_name == full_namespace
           command.perform("help", [], config)
+        elsif tty?
+          correction = UnrecognizedCommandCorrector.new.correct(error)
+          return invoke(correction, args, **config) if correction
         else
           puts error.detailed_message
         end
@@ -166,6 +184,10 @@ module Rails
 
         def file_lookup_paths # :doc:
           @file_lookup_paths ||= [ "{#{lookup_paths.join(',')}}", "**", "*_command.rb" ]
+        end
+
+        def tty?
+          STDOUT.tty?
         end
     end
   end
