@@ -324,6 +324,10 @@ module Rails
         when "7.2"
           load_defaults "7.1"
 
+          if respond_to?(:active_storage)
+            active_storage.web_image_content_types = %w( image/png image/jpeg image/gif image/webp )
+          end
+
           if respond_to?(:active_record)
             active_record.validate_migration_timestamps = true
           end

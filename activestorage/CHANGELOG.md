@@ -1,3 +1,8 @@
+*   Add `image/webp` to `config.active_storage.web_image_content_types` when `load_defaults "7.2"`
+    is set.
+
+    *Lewis Buckley*
+
 *   Fix JSON-encoding of `ActiveStorage::Filename` instances.
 
     *Jonathan del Strother*
