@@ -7,21 +7,21 @@ module ActionCable
     class Async < Inline # :nodoc:
       private
         def new_subscriber_map
-          AsyncSubscriberMap.new(server.event_loop)
+          AsyncSubscriberMap.new(executor)
         end
 
         class AsyncSubscriberMap < SubscriberMap
-          def initialize(event_loop)
-            @event_loop = event_loop
+          def initialize(executor)
+            @executor = executor
             super()
           end
 
           def add_subscriber(*)
-            @event_loop.post { super }
+            @executor.post { super }
           end
 
           def invoke_callback(*)
-            @event_loop.post { super }
+            @executor.post { super }
           end
         end
     end

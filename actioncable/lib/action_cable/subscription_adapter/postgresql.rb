@@ -13,6 +13,7 @@ module ActionCable
 
       def initialize(*)
         super
+        @mutex = Mutex.new
         @listener = nil
       end
 
@@ -62,7 +63,7 @@ module ActionCable
         end
 
         def listener
-          @listener || @server.mutex.synchronize { @listener ||= Listener.new(self, @server.event_loop) }
+          @listener || @mutex.synchronize { @listener ||= Listener.new(self, executor) }
         end
 
         def verify!(pg_conn)
@@ -72,11 +73,11 @@ module ActionCable
         end
 
         class Listener < SubscriberMap
-          def initialize(adapter, event_loop)
+          def initialize(adapter, executor)
             super()
 
             @adapter = adapter
-            @event_loop = event_loop
+            @executor = executor
             @queue = Queue.new
 
             @thread = Thread.new do
@@ -95,7 +96,7 @@ module ActionCable
                     case action
                     when :listen
                       pg_conn.exec("LISTEN #{pg_conn.escape_identifier channel}")
-                      @event_loop.post(&callback) if callback
+                      @executor.post(&callback) if callback
                     when :unlisten
                       pg_conn.exec("UNLISTEN #{pg_conn.escape_identifier channel}")
                     when :shutdown
@@ -125,7 +126,7 @@ module ActionCable
           end
 
           def invoke_callback(*)
-            @event_loop.post { super }
+            @executor.post { super }
           end
         end
     end

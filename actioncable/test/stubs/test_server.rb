@@ -36,6 +36,12 @@ class TestServer
     end
   end
 
+  def executor
+    @executor ||= ActionCable::Server::ThreadedExecutor.new.tap do |ex|
+      ex.instance_variable_set(:@executor, Concurrent.global_io_executor)
+    end
+  end
+
   def worker_pool
     @worker_pool ||= ActionCable::Server::Worker.new(max_size: 5)
   end

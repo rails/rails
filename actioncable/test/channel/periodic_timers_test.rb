@@ -68,7 +68,7 @@ class ActionCable::Channel::PeriodicTimersTest < ActionCable::TestCase
     3.times { mock.expect(:shutdown, nil) }
 
     assert_called(
-      @connection.server.event_loop,
+      @connection.server.executor,
       :timer,
       times: 3,
       returns: mock

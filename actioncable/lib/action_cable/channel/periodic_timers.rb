@@ -64,7 +64,7 @@ module ActionCable
         end
 
         def start_periodic_timer(callback, every:)
-          connection.server.event_loop.timer every do
+          connection.server.executor.timer every do
             connection.worker_pool.async_exec self, connection: connection, &callback
           end
         end

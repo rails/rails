@@ -13,7 +13,7 @@ module ActionCable
     # configuration in a Rails config initializer.
     class Configuration
       attr_accessor :logger, :log_tags
-      attr_accessor :connection_class, :worker_pool_size
+      attr_accessor :connection_class, :worker_pool_size, :executor_pool_size
       attr_accessor :disable_request_forgery_protection, :allowed_request_origins, :allow_same_origin_as_host, :filter_parameters
       attr_accessor :cable, :url, :mount_path
       attr_accessor :precompile_assets
@@ -24,6 +24,7 @@ module ActionCable
 
         @connection_class = -> { ActionCable::Connection::Base }
         @worker_pool_size = 4
+        @executor_pool_size = 10
 
         @disable_request_forgery_protection = false
         @allow_same_origin_as_host = true
