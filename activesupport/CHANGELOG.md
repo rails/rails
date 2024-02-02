@@ -1,3 +1,8 @@
+*   Introduce `today_or_future?` method to both `ActiveSupport::TimeWithZone` &
+    `DateAndTime::Calculations`
+
+    *Olivier Simart*
+
 *   Include `IPAddr#prefix` when serializing an `IPAddr` using the
     `ActiveSupport::MessagePack` serializer. This change is backward and forward
     compatible — old payloads can still be read, and new payloads will be

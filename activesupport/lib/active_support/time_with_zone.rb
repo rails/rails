@@ -271,6 +271,12 @@ module ActiveSupport
       utc.future?
     end
 
+    # Returns true if the current object's time falls within
+    # the current day or is in the future.
+    def today_or_future?
+      time.today? || time.future?
+    end
+
     # Returns +true+ if +other+ is equal to current object.
     def eql?(other)
       other.eql?(utc)

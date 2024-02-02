@@ -53,6 +53,11 @@ module DateAndTime
       self > self.class.current
     end
 
+    # Returns true if the date/time is today or in the future.
+    def today_or_future?
+      to_date == ::Date.current || self > self.class.current
+    end
+
     # Returns true if the date/time falls on a Saturday or Sunday.
     def on_weekend?
       WEEKEND_DAYS.include?(wday)
