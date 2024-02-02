@@ -13,7 +13,6 @@ module CommonSubscriptionAdapterTest
   def setup
     server = ActionCable::Server::Base.new
     server.config.cable = cable_config.with_indifferent_access
-    server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
 
     adapter_klass = server.config.pubsub_adapter
 
