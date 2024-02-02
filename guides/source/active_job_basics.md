@@ -39,7 +39,7 @@ runs jobs with an in-process thread pool. Jobs will run asynchronously, but any
 jobs in the queue will be dropped upon restart.
 
 
-Creating a Job
+Create and Enqueue Jobs
 --------------
 
 This section will provide a step-by-step guide to creating a job and enqueuing it.
@@ -144,6 +144,31 @@ ActiveJob.perform_all_later(guest_cleanup_jobs)
 `perform_all_later` logs the number of jobs successfully enqueued, something like `Enqueued 3 jobs to Async (3 GuestsCleanupJob)` if it was called with `ActiveJob.perform_all_later(job1, job2, job3)`. 
 
 The return value of `perform_all_later` is `nil`. Note that this is different from `perform_later`. This may be enhanced to return the number of successfully enqueued job in the future, but for now it's `nil`.
+
+With `perform_all_later` it's possible to enqueue different ActiveJob class instances in the same call. For example 
+
+```ruby
+class ExportDataJob < ApplicationJob
+  def perform(*args)
+    # Export data
+  end
+end
+
+class NotifyGuestsJob < ApplicationJob
+  def perform(*guests)
+    # Email guests
+  end
+end
+
+# Instantiate job instances
+cleanup_job = GuestsCleanupJob.new(guest)
+export_job = ExportDataJob.new(data)
+notify_job = NotifyGuestsJob.new(guest)
+
+# Enqueues job instances from multiple classes at once 
+ApplicationJob.perform_all_later(cleanup_job, export_job, notify_job)
+```
+
 
 [`perform_later`]: https://api.rubyonrails.org/classes/ActiveJob/Enqueuing/ClassMethods.html#method-i-perform_later
 [`set`]: https://api.rubyonrails.org/classes/ActiveJob/Core/ClassMethods.html#method-i-set
