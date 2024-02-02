@@ -5,11 +5,12 @@
 module ActionCable
   module SubscriptionAdapter
     class Base
-      attr_reader :logger, :server
+      private attr_reader :executor
+      private attr_reader :config
 
       def initialize(server)
-        @server = server
-        @logger = @server.logger
+        @executor = server.executor
+        @config = server.config
       end
 
       def broadcast(channel, payload)
@@ -29,7 +30,7 @@ module ActionCable
       end
 
       def identifier
-        @server.config.cable[:id] ||= "ActionCable-PID-#{$$}"
+        config.cable[:id] ||= "ActionCable-PID-#{$$}"
       end
     end
   end

@@ -6,6 +6,29 @@ require "monitor"
 
 module ActionCable
   module Server
+    # A wrapper over ConcurrentRuby::ThreadPoolExecutor and Concurrent::TimerTask
+    class ThreadedExecutor # :nodoc:
+      def initialize(max_size: 10)
+        @executor ||= Concurrent::ThreadPoolExecutor.new(
+          name: "ActionCable server",
+          min_threads: 1,
+          max_threads: max_size,
+          max_queue: 0,
+        )
+      end
+
+      def post(task = nil, &block)
+        task ||= block
+        @executor << task
+      end
+
+      def timer(interval, &block)
+        Concurrent::TimerTask.new(execution_interval: interval, &block).tap(&:execute)
+      end
+
+      def shutdown = @executor.shutdown
+    end
+
     # # Action Cable Server Base
     #
     # A singleton ActionCable::Server instance is available via ActionCable.server.
@@ -31,7 +54,7 @@ module ActionCable
       def initialize(config: self.class.config)
         @config = config
         @mutex = Monitor.new
-        @remote_connections = @event_loop = @worker_pool = @pubsub = nil
+        @remote_connections = @event_loop = @worker_pool = @executor = @pubsub = nil
       end
 
       # Called by Rack to set up the server.
@@ -56,6 +79,10 @@ module ActionCable
           # Shutdown the worker pool
           @worker_pool.halt if @worker_pool
           @worker_pool = nil
+
+          # Shutdown the executor
+          @executor.shutdown if @executor
+          @executor = nil
 
           # Shutdown the pub/sub adapter
           @pubsub.shutdown if @pubsub
@@ -92,9 +119,14 @@ module ActionCable
         @worker_pool || @mutex.synchronize { @worker_pool ||= ActionCable::Server::Worker.new(max_size: config.worker_pool_size) }
       end
 
+      # Executor is used by various actions within Action Cable (e.g., pub/sub operations) to run code asynchronously.
+      def executor
+        @executor || @mutex.synchronize { @executor ||= ThreadedExecutor.new(max_size: config.executor_pool_size) }
+      end
+
       # Adapter used for all streams/broadcasting.
       def pubsub
-        @pubsub || @mutex.synchronize { @pubsub ||= config.pubsub_adapter.new(self) }
+        @pubsub || (executor && @mutex.synchronize { @pubsub ||= config.pubsub_adapter.new(self) })
       end
 
       # All of the identifiers applied to the connection class associated with this
