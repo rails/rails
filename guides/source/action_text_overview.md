@@ -48,7 +48,7 @@ When the Action Text installation creates the `action_text_rich_texts` table, it
 
 Hence, if your models containing Action Text content use UUID values as identifiers, then all models that use Action Text attributes will need to use UUID values for their unique identifiers. The generated migration for Action Text will also need to be updated to specify `type: :uuid` for the record references line.
 
-NOTE: With polymorphic associations, a model can belong to more than one other model, on a single association. Read more about it in the [Active Record Associations guide](https://guides.rubyonrails.org/association_basics.html#polymorphic-associations).
+INFO: With polymorphic associations, a model can belong to more than one other model, on a single association. Read more about it in the [Active Record Associations guide](https://guides.rubyonrails.org/association_basics.html#polymorphic-associations).
 
 ## Creating Rich Text Content
 
