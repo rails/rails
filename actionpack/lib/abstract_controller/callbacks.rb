@@ -18,9 +18,6 @@ module AbstractController
   # * <tt>skip_after_action</tt>
   # * <tt>skip_around_action</tt>
   # * <tt>skip_before_action</tt>
-  #
-  # NOTE: Calling the same callback multiple times will overwrite previous callback definitions.
-  #
   module Callbacks
     extend ActiveSupport::Concern
 
