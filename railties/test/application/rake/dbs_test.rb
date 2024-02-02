@@ -559,6 +559,23 @@ module ApplicationTests
         assert_equal 2, Admin::Book.count
       end
 
+      test "db:schema:load does not raise when test DB config is missing" do
+        app_file "config/database.yml", <<-YAML
+          development:
+            one:
+              adapter: sqlite3
+              database: storage/development_one.sqlite3
+            two:
+              adapter: sqlite3
+              database: storage/development_two.sqlite3
+        YAML
+
+        rails "db:create", "db:migrate"
+        rails "db:schema:load:one"
+      ensure
+        rails "db:drop" rescue nil
+      end
+
       test "db:schema:load does not purge the existing database" do
         rails "runner", "ActiveRecord::Base.connection.create_table(:posts) {|t| t.string :title }"
 

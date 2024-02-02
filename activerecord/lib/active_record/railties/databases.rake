@@ -584,7 +584,7 @@ db_namespace = namespace :db do
         task name => %w(load_config check_protected_environments) do
           ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection_for_each(env: "test", name: name) do |conn|
             db_config = conn.pool.db_config
-            ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
+            ActiveRecord::Tasks::DatabaseTasks.purge(db_config) if db_config
           end
         end
       end

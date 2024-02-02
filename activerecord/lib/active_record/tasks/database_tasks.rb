@@ -500,6 +500,7 @@ module ActiveRecord
       def with_temporary_connection_for_each(env: ActiveRecord::Tasks::DatabaseTasks.env, name: nil, clobber: false, &block) # :nodoc:
         if name
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: env, name: name)
+          return unless db_config
           with_temporary_connection(db_config, clobber: clobber, &block)
         else
           ActiveRecord::Base.configurations.configs_for(env_name: env, name: name).each do |db_config|
