@@ -81,17 +81,15 @@ module ActiveRecord
           @previous_type
         end
 
-        def decrypt(value)
+        def decrypt_as_text(value)
           with_context do
             unless value.nil?
               if @default && @default == value
-                decrypted_value = value
+                value
               else
-                decrypted_value = encryptor.decrypt(value, **decryption_options)
+                encryptor.decrypt(value, **decryption_options)
               end
             end
-
-            reserialize(decrypted_value)
           end
         rescue ActiveRecord::Encryption::Errors::Base => error
           if previous_types_without_clean_text.blank?
@@ -99,6 +97,10 @@ module ActiveRecord
           else
             try_to_deserialize_with_previous_encrypted_types(value)
           end
+        end
+
+        def decrypt(value)
+          reserialize decrypt_as_text(value)
         end
 
         def try_to_deserialize_with_previous_encrypted_types(value)
@@ -131,10 +133,14 @@ module ActiveRecord
           encrypt(casted_value.to_s) unless casted_value.nil?
         end
 
-        def encrypt(value)
+        def encrypt_as_text(value)
           with_context do
-            reserialize(encryptor.encrypt(value, **encryption_options))
+            encryptor.encrypt(value, **encryption_options)
           end
+        end
+
+        def encrypt(value)
+          reserialize encrypt_as_text(value)
         end
 
         def encryptor
