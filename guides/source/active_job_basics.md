@@ -135,17 +135,15 @@ Here is an example calling `perform_all_later` with `GuestCleanupJob` instances:
 ```ruby
 # Create jobs to pass to `perform_all_later`. The arguments to `new` are
 # passed on to `perform`
-job1 = GuestsCleanupJob.new("guest1")
-job2 = GuestsCleanupJob.new("guest2")
-job3 = GuestsCleanupJob.new("guest3")
+guest_cleanup_jobs = User.pluck(:id).map { |id| GuestsCleanupJob.new(guest_id: id) }
 
 # Will enqueue a seperate job for each instance of `GuestCleanupJob`
-ActiveJob.perform_all_later(job1, job2, job3)
+ActiveJob.perform_all_later(guest_cleanup_jobs)
 ```
 
-`perform_all_later` logs the number of jobs successfully enqueued, something like `Enqueued 3 jobs to Async (3 GuestsCleanupJob)`. 
+`perform_all_later` logs the number of jobs successfully enqueued, something like `Enqueued 3 jobs to Async (3 GuestsCleanupJob)` if it was called with `ActiveJob.perform_all_later(job1, job2, job3)`. 
 
-The return value is `nil`. Note that this may be enhance to return the number of successfully enqueued job in the future.
+The return value of `perform_all_later` is `nil`. Note that this is different from `perform_later`. This may be enhanced to return the number of successfully enqueued job in the future, but for now it's `nil`.
 
 [`perform_later`]: https://api.rubyonrails.org/classes/ActiveJob/Enqueuing/ClassMethods.html#method-i-perform_later
 [`set`]: https://api.rubyonrails.org/classes/ActiveJob/Core/ClassMethods.html#method-i-set
