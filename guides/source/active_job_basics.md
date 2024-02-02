@@ -178,7 +178,7 @@ Note that `perform_all_later` does not trigger callbacks on the individual jobs.
 
 For `perform_all_later`, bulk enqueuing needs to be backed by the queue backend.
 
-For example Sidekiq has a `push_bulk` method, which can push a large number of jobs to Redis and prevent the round trip network latency. GoodJob also supports bulk enqueuing with `GoodJob::Bulk.enqueue` method. The new queue backend [`Solid Queue`] has added support for bulk enqueuing as well.
+For example Sidekiq has a `push_bulk` method, which can push a large number of jobs to Redis and prevent the round trip network latency. GoodJob also supports bulk enqueuing with `GoodJob::Bulk.enqueue` method. The new queue backend [`Solid Queue`][] has added support for bulk enqueuing as well.
 
 If the queue backend does *not* support bulk enqueuing, `perform_all_later` will enqueue jobs one by one.
 
