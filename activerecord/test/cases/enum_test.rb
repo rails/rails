@@ -1057,13 +1057,14 @@ class EnumTest < ActiveRecord::TestCase
 
   test "raises for attributes with undeclared type" do
     klass = Class.new(Book) do
+      def self.name; "Book"; end
       enum typeless_genre: [:adventure, :comic]
     end
 
     error = assert_raises(RuntimeError) do
       klass.type_for_attribute(:typeless_genre)
     end
-    assert_match "Undeclared attribute type for enum 'typeless_genre'", error.message
+    assert_match "Undeclared attribute type for enum 'typeless_genre' in Book", error.message
   end
 
   test "supports attributes declared with a explicit type" do

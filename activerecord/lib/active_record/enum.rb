@@ -249,7 +249,7 @@ module ActiveRecord
 
         decorate_attributes([name]) do |_name, subtype|
           if subtype == ActiveModel::Type.default_value
-            raise "Undeclared attribute type for enum '#{name}'. Enums must be" \
+            raise "Undeclared attribute type for enum '#{name}' in #{self.name}. Enums must be" \
               " backed by a database column or declared with an explicit type" \
               " via `attribute`."
           end
