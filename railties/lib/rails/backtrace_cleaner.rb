@@ -10,10 +10,17 @@ module Rails
 
     def initialize
       super
-      @root = "#{Rails.root}/"
+
+      from_prefix = "\tfrom "
       add_filter do |line|
-        line.start_with?(@root) ? line.from(@root.size) : line
+        line.start_with?(from_prefix) ? line.from(from_prefix.size) : line
       end
+
+      root = "#{Rails.root}/"
+      add_filter do |line|
+        line.start_with?(root) ? line.from(root.size) : line
+      end
+
       add_filter do |line|
         if RENDER_TEMPLATE_PATTERN.match?(line)
           line.sub(RENDER_TEMPLATE_PATTERN, "")
@@ -21,6 +28,7 @@ module Rails
           line
         end
       end
+
       add_silencer { |line| !APP_DIRS_PATTERN.match?(line) }
     end
   end
