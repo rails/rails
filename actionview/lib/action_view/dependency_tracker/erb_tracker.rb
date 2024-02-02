@@ -74,7 +74,7 @@ module ActionView
       end
 
       def dependencies
-        render_dependencies + explicit_dependencies
+        WildcardResolver.new(@view_paths, render_dependencies + explicit_dependencies).resolve
       end
 
       attr_reader :name, :template
@@ -98,9 +98,7 @@ module ActionView
             add_dependencies(dependencies, arguments, RENDER_ARGUMENTS)
           end
 
-          wildcards, explicits = dependencies.partition { |dependency| dependency.end_with?("/*") }
-
-          (explicits + resolve_directories(wildcards)).uniq
+          dependencies
         end
 
         def add_dependencies(render_dependencies, arguments, pattern)
@@ -153,24 +151,8 @@ module ActionView
           end
         end
 
-        def resolve_directories(wildcard_dependencies)
-          return [] unless @view_paths
-          return [] if wildcard_dependencies.empty?
-
-          # Remove trailing "/*"
-          prefixes = wildcard_dependencies.map { |query| query[0..-3] }
-
-          @view_paths.flat_map(&:all_template_paths).uniq.filter_map { |path|
-            path.to_s if prefixes.include?(path.prefix)
-          }.sort
-        end
-
         def explicit_dependencies
-          dependencies = source.scan(EXPLICIT_DEPENDENCY).flatten.uniq
-
-          wildcards, explicits = dependencies.partition { |dependency| dependency.end_with?("/*") }
-
-          (explicits + resolve_directories(wildcards)).uniq
+          source.scan(EXPLICIT_DEPENDENCY).flatten.uniq
         end
     end
   end
