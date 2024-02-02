@@ -170,14 +170,22 @@ notify_job = NotifyGuestsJob.new(guest)
 # Enqueues job instances from multiple classes at once 
 ApplicationJob.perform_all_later(cleanup_job, export_job, notify_job)
 ```
+#### Callbacks
+
+Note that `perform_all_later` does not trigger callbacks on the individual jobs. This is inline with other ActiveRecord bulk methods. Since callbacks run on individual jobs, they can't take advantage of the bulk nature of this method. Also there isn't a meaningful semantic for something like `around_enqueue` callback.
 
 #### Queue Backend Support
 
-For `perform_all_later`, bulk enqueuing needs to be backed by the queue backend. For example sidekiq has a push_bulk method, which can push a large number of jobs to Redis and prevent the Redis round trip network latency. The new queue backend [`Solid Queue`] has also added support for bulk enqueuing. If the queue backend does not support bulk enqueuing, `perform_all_later` will enqueue jobs one by one.
+For `perform_all_later`, bulk enqueuing needs to be backed by the queue backend.
+
+For example Sidekiq has a `push_bulk` method, which can push a large number of jobs to Redis and prevent the round trip network latency. GoodJob also supports bulk enqueuing with `GoodJob::Bulk.enqueue` method. The new queue backend [`Solid Queue`] has added support for bulk enqueuing as well.
+
+If the queue backend does not support bulk enqueuing, `perform_all_later` will enqueue jobs one by one.
 
 [`perform_later`]: https://api.rubyonrails.org/classes/ActiveJob/Enqueuing/ClassMethods.html#method-i-perform_later
 [`set`]: https://api.rubyonrails.org/classes/ActiveJob/Core/ClassMethods.html#method-i-set
 [`perform_all_later`]: https://api.rubyonrails.org/v7.1.3/classes/ActiveJob.html#method-c-perform_all_later
+[`Solid Queue`]: https://github.com/basecamp/solid_queue/pull/93
 
 Job Execution
 -------------
@@ -457,6 +465,31 @@ end
 [`before_perform`]: https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-before_perform
 [`around_perform`]: https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-around_perform
 [`after_perform`]: https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-after_perform
+
+### Callbacks with Bulk Enqueuing
+
+When enqueueing jobs in bulk using `perform_all_later`, callbacks will not be triggered on the individual jobs. This is inline with other ActiveRecord bulk methods. Since callbacks run on individual jobs, they can't take advantage of the bulk nature of this method. Also there isn't a meaningful semantic for something like around_enqueue callback.
+
+When enqueueing jobs in bulk using `perform_all_later`, callbacks will not be triggered on the individual jobs. You can instead trigger a callback once all the jobs are enqueued. 
+
+However, the `perform_all_later` method does fire an `enqueue_all.active_job` event which you can subscribe to using `ActiveSupport::Notifications`. 
+
+The event payload contains adapter name, enqueued jobs count, the list of job instances, etc. `successfully_enqueued?` can be used to find out if a given job was successfully enqueued. 
+
+```ruby
+ActiveSupport::Notifications.subscribe "enqueue_all.active_job" do |event|
+  event.name      # => "enqueue_all.active_job"
+  event.duration  # => 30 (in milliseconds)
+  event.payload   # => {
+:adapter=>some_adapter
+:jobs=>[ #<JobInstance1:0x000000010ead96e8 …>, <#<JobInstance2:0x000000010ert96e8 …>]
+:enqueued_count=> 12
+}
+
+  Rails.logger.info "Any successfully enqueued jobs? #{jobs.any?(&:successfully_enqueued?)}"
+end
+```
+
 
 Action Mailer
 ------------
