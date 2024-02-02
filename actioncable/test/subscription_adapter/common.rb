@@ -38,7 +38,10 @@ module CommonSubscriptionAdapterTest
     sleep WAIT_WHEN_NOT_EXPECTING_EVENT
     assert_empty queue
   ensure
-    adapter.unsubscribe(channel, callback) if subscribed.set?
+    if subscribed.set?
+      adapter.unsubscribe(channel, callback)
+      wait_for_pubsub_executor(adapter)
+    end
   end
 
   def test_subscribe_and_unsubscribe
@@ -126,5 +129,11 @@ module CommonSubscriptionAdapterTest
         assert_equal "oranges", queue_2.pop
       end
     end
+  end
+
+  def wait_for_pubsub_executor(adapter)
+    # We use a wrapper over ConcurrentRuby::ThreadPoolExecutor, so we need to dig deeper
+    executor = adapter.instance_variable_get(:@executor).instance_variable_get(:@executor)
+    wait_for_executor(executor)
   end
 end

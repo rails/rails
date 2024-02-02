@@ -71,12 +71,11 @@ module ActionCable
           end
         end
 
-        class Listener < SubscriberMap
+        class Listener < SubscriberMap::Async
           def initialize(adapter, executor)
-            super()
+            super(executor)
 
             @adapter = adapter
-            @executor = executor
             @queue = Queue.new
 
             @thread = Thread.new do
@@ -122,10 +121,6 @@ module ActionCable
 
           def remove_channel(channel)
             @queue.push([:unlisten, channel])
-          end
-
-          def invoke_callback(*)
-            @executor.post { super }
           end
         end
     end
