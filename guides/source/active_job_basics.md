@@ -145,7 +145,9 @@ ActiveJob.perform_all_later(guest_cleanup_jobs)
 
 The return value of `perform_all_later` is `nil`. Note that this is different from `perform_later`. This may be enhanced to return the number of successfully enqueued job in the future, but for now it's `nil`.
 
-With `perform_all_later` it's possible to enqueue different ActiveJob class instances in the same call. For example 
+#### Enqueue Multiple ActiveJob Classes
+
+With `perform_all_later` it's also possible to enqueue different ActiveJob class instances in the same call. For example 
 
 ```ruby
 class ExportDataJob < ApplicationJob
@@ -169,6 +171,9 @@ notify_job = NotifyGuestsJob.new(guest)
 ApplicationJob.perform_all_later(cleanup_job, export_job, notify_job)
 ```
 
+#### Queue Backend Support
+
+For `perform_all_later`, bulk enqueuing needs to be backed by the queue backend. For example sidekiq has a push_bulk method, which can push a large number of jobs to Redis and prevent the Redis round trip network latency. The new queue backend [`Solid Queue`] has also added support for bulk enqueuing. If the queue backend does not support bulk enqueuing, `perform_all_later` will enqueue jobs one by one.
 
 [`perform_later`]: https://api.rubyonrails.org/classes/ActiveJob/Enqueuing/ClassMethods.html#method-i-perform_later
 [`set`]: https://api.rubyonrails.org/classes/ActiveJob/Core/ClassMethods.html#method-i-set
