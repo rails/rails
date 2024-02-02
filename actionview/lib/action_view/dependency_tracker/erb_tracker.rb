@@ -90,15 +90,17 @@ module ActionView
         end
 
         def render_dependencies
-          render_dependencies = []
+          dependencies = []
           render_calls = source.split(/\brender\b/).drop(1)
 
           render_calls.each do |arguments|
-            add_dependencies(render_dependencies, arguments, LAYOUT_DEPENDENCY)
-            add_dependencies(render_dependencies, arguments, RENDER_ARGUMENTS)
+            add_dependencies(dependencies, arguments, LAYOUT_DEPENDENCY)
+            add_dependencies(dependencies, arguments, RENDER_ARGUMENTS)
           end
 
-          render_dependencies.uniq
+          wildcards, explicits = dependencies.partition { |dependency| dependency.end_with?("/*") }
+
+          (explicits + resolve_directories(wildcards)).uniq
         end
 
         def add_dependencies(render_dependencies, arguments, pattern)
@@ -116,12 +118,33 @@ module ActionView
         end
 
         def add_static_dependency(dependencies, dependency, quote_type)
-          if quote_type == '"'
-            # Ignore if there is interpolation
-            return if dependency.include?('#{')
-          end
+          if quote_type == '"' && dependency.include?('#{')
+            scanner = StringScanner.new(dependency)
 
-          if dependency
+            wildcard_dependency = +""
+
+            while !scanner.eos?
+              next unless scanner.scan_until(/\#{/)
+
+              unmatched_brackets = 1
+              wildcard_dependency << scanner.pre_match
+
+              while unmatched_brackets > 0 && !scanner.eos?
+                scanner.scan_until(/[{}]/)
+
+                case scanner.matched
+                when "{"
+                  unmatched_brackets += 1
+                when "}"
+                  unmatched_brackets -= 1
+                end
+              end
+
+              wildcard_dependency << "*"
+            end
+
+            dependencies << wildcard_dependency
+          elsif dependency
             if dependency.include?("/")
               dependencies << dependency
             else

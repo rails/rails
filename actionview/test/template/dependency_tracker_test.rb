@@ -223,6 +223,18 @@ module SharedTrackerTests
 
     assert_equal ["single/\#{quote}"], tracker.dependencies
   end
+
+  def test_dependencies_with_interpolation_are_resolved_with_view_paths
+    view_paths = ActionView::PathSet.new([File.expand_path("../fixtures/digestor", __dir__)])
+
+    template = FakeTemplate.new(%q{
+      <%= render "events/#{quote}" %>
+    }, :erb)
+
+    tracker = make_tracker("interpolation/_string", template, view_paths)
+
+    assert_equal ["events/_completed", "events/_event", "events/index"], tracker.dependencies
+  end
 end
 
 class ERBTrackerTest < ActiveSupport::TestCase
@@ -263,18 +275,6 @@ module RubyTrackerTests
     tracker = make_tracker("messages/show", template)
 
     assert_equal [], tracker.dependencies
-  end
-
-  def test_dependencies_with_interpolation_are_resolved_with_view_paths
-    view_paths = ActionView::PathSet.new([File.expand_path("../fixtures/digestor", __dir__)])
-
-    template = FakeTemplate.new(%q{
-      <%= render "events/#{quote}" %>
-    }, :erb)
-
-    tracker = make_tracker("interpolation/_string", template, view_paths)
-
-    assert_equal ["events/_completed", "events/_event", "events/index"], tracker.dependencies
   end
 end
 
