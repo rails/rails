@@ -11,12 +11,16 @@ After reading this guide, you will know:
 * How to configure important performance settings for Puma
 * How to begin performance testing your application settings
 
+This guide focuses on web servers, which are the primary performance-sensitive component of most web applications. Other components like background jobs and WebSockets can be tuned but won't be covered by this guide.
+
 More information about how to configure your application can be found in the [Configuration Guide](configuring.html).
 
 --------------------------------------------------------------------------------
 
 Choosing an Application Server
 ------------------------------
+
+Puma is Rails' default application server. It works well in most cases. In some cases, you may wish to change to another.
 
 An application server uses a particular concurrency method. For example Unicorn uses processes, Puma and Passenger are hybrid process- and thread-based concurrency, Thin uses EventMachine and Falcon uses Ruby Fibers.
 
@@ -58,7 +62,7 @@ Hybrid concurrency limits the damage from a segmentation fault or other error th
 Choosing Default Settings
 -------------------------
 
-Rails' default settings are chosen for small applications. You can improve performance for your large application that serves a lot of requests by changing settings.
+Rails' default settings aren't appropriate for all application sizes. You can improve performance for your large application that serves a lot of requests by changing settings.
 
 This section contains common sense defaults based on the type and size of your application and the hosts on which it runs. You can improve performance more by testing your application specifically. See "Performance Testing" for details.
 
@@ -76,7 +80,7 @@ To set the number of threads, you can change the call to the +threads+ method in
 
 ### Number of Processes
 
-When using hybrid threads and processes, you should run 1 process per available processor core. Automatic methods to determine the number of cores are unreliable. You should specify the number of processes manually.
+When using hybrid threads and processes, it's best to run 1 process per available processor core. On hosts with less memory you may need to choose a lower value. Automatic methods to determine the number of cores are unreliable. You should specify the number of processes manually.
 
 To set the number of worker processes, you can change the call to the +workers+ method in +config/puma.rb+. Or you can set the +WEB_CONCURRENCY+ environment variable, which will do the same.
 
@@ -86,11 +90,11 @@ Puma creates new workers from a master process. By loading your application code
 
 In a few cases it may not make sense to preload your application. In that case it's possible to turn off application preloading.
 
-Puma preloads your application by default by calling +preload_app!+ in +config/puma.rb+. If you remove this call, your application will not be preloaded.
+Puma preloads your application by default by calling +preload_app!+ in +config/puma.rb+. If you remove this call, your application will not be preloaded unless you specify a command line parameter to preload it.
 
 ### Memory Allocators and Configuration
 
-CRuby normally uses your system's default memory allocator. You can switch to another allocator such as [jemalloc](https://github.com/jemalloc/jemalloc) or [tcmalloc](https://github.com/google/tcmalloc). You can also configure your allocator &mdash; e.g. Linux's glibc malloc allows setting MALLOC_ARENA_MAX=1 to significantly reduce memory use.
+CRuby normally uses your system's default memory allocator. You can switch to another allocator such as [jemalloc](https://github.com/jemalloc/jemalloc) or [tcmalloc](https://github.com/google/tcmalloc). You can also configure your allocator &mdash; e.g. Linux's glibc malloc allows setting MALLOC_ARENA_MAX to a low value like 2 to significantly reduce memory use.
 
 This guide does not cover nonstandard allocators in significant detail. However, they can be a significant optimization relative to the system's default allocator. Long-running thread-based workers can be prone to memory fragmentation, which will reduce performance after many requests. An allocator like jemalloc can help.
 
@@ -123,13 +127,15 @@ Latency is the delay from the time the request is sent until its response is suc
 
 You can change the number of threads in your test to find the best tradeoff between throughput and latency for your application.
 
-You can change the number of processes to trade off performance and expense in many cases. Larger instances will need more processes for best usage. You can vary the size and type of instances from a hosting provider, for instance.
+You can change the number of processes to trade off performance and expense in many cases. Larger hosts with more memory and CPU cores will need more processes for best usage. You can vary the size and type of hosts from a hosting provider.
 
 You can also change other Puma configuration options such as wait_for_less_busy_worker, though you don't normally need to change them.
 
 You can test changes to memory configuration, such as using a different allocator. These are often simple better/worse tests to validate that a particular configuration works better in your production environment.
 
 Increasing the number of iterations will usually give a more exact answer, but require longer for testing.
+
+YJIT is the default JIT in recent versions of CRuby. It reduces CPU usage but takes more memory. It's usually a good idea to enable it, but worth testing.
 
 You should test on the same type of host that will run in production. Testing data for a development laptop will only tell you what settings are best for that development laptop.
 
