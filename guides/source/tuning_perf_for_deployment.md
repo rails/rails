@@ -76,7 +76,7 @@ Rails uses 3 threads per process by default. A well-optimized I/O-heavy Rails ap
 
 The default Puma configuration mentions that "as a rule of thumb, increasing the number of threads will increase how much traffic a given process can handle (throughput), but due to CRuby's Global VM Lock (GVL) it has diminishing returns and will degrade the response time (latency) of the application."
 
-To set the number of threads, you can change the call to the +threads+ method in +config/puma.rb+. Or you can set the +RAILS_MAX_THREADS+ environment variable, which will do the same.
+To set the number of threads, you can change the call to the +threads+ method in +config/puma.rb+. Or you can set the +RAILS_MAX_THREADS+ environment variable, which will do the same. Make sure your +config/database.yml+ file sets +pool+ to be at least as high as the number of threads.
 
 ### Number of Processes
 
