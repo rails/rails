@@ -124,6 +124,29 @@ GuestsCleanupJob.perform_later(guest1, guest2, filter: 'some_filter')
 
 That's it!
 
+### Bulk Enqueuing
+
+You can Enqueue multiple jobs using perform_all_later.
+
+`perform_all_later` is a top-level api on ActiveJob. It accepts instantiated jobs as arguments (note that this is different from `perform_later`). `perform_all_later` does call `perform` under the hood. The arguments passed to `new` will be passed on to `perform` when it's eventually called.
+
+Here is an example calling `perform_all_later` with `GuestCleanupJob` instances:
+
+```ruby
+# Create jobs to pass to `perform_all_later`. The arguments to `new` are
+# passed on to `perform`
+job1 = GuestsCleanupJob.new("guest1")
+job2 = GuestsCleanupJob.new("guest2")
+job3 = GuestsCleanupJob.new("guest3")
+
+# Will enqueue a seperate job for each instance of `GuestCleanupJob`
+ActiveJob.perform_all_later(job1, job2, job3)
+```
+
+`perform_all_later` logs the number of jobs successfully enqueued, something like `Enqueued 3 jobs to Async (3 GuestsCleanupJob)`. 
+
+The return value is `nil`. Note that this may be enhance to return the number of successfully enqueued job in the future.
+
 [`perform_later`]: https://api.rubyonrails.org/classes/ActiveJob/Enqueuing/ClassMethods.html#method-i-perform_later
 [`set`]: https://api.rubyonrails.org/classes/ActiveJob/Core/ClassMethods.html#method-i-set
 
