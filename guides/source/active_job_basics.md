@@ -180,7 +180,7 @@ For `perform_all_later`, bulk enqueuing needs to be backed by the queue backend.
 
 For example Sidekiq has a `push_bulk` method, which can push a large number of jobs to Redis and prevent the round trip network latency. GoodJob also supports bulk enqueuing with `GoodJob::Bulk.enqueue` method. The new queue backend [`Solid Queue`] has added support for bulk enqueuing as well.
 
-If the queue backend does not support bulk enqueuing, `perform_all_later` will enqueue jobs one by one.
+If the queue backend does *not* support bulk enqueuing, `perform_all_later` will enqueue jobs one by one.
 
 [`perform_later`]: https://api.rubyonrails.org/classes/ActiveJob/Enqueuing/ClassMethods.html#method-i-perform_later
 [`set`]: https://api.rubyonrails.org/classes/ActiveJob/Core/ClassMethods.html#method-i-set
@@ -468,28 +468,27 @@ end
 
 ### Callbacks with Bulk Enqueuing
 
-When enqueueing jobs in bulk using `perform_all_later`, callbacks will not be triggered on the individual jobs. This is inline with other ActiveRecord bulk methods. Since callbacks run on individual jobs, they can't take advantage of the bulk nature of this method. Also there isn't a meaningful semantic for something like around_enqueue callback.
+When enqueueing jobs in bulk using `perform_all_later`, callbacks such as `around_enqueue`, will not be triggered on the individual jobs.
 
-When enqueueing jobs in bulk using `perform_all_later`, callbacks will not be triggered on the individual jobs. You can instead trigger a callback once all the jobs are enqueued. 
+ However, the `perform_all_later` method does fire an [`enqueue_all.active_job`][] event which you can subscribe to using `ActiveSupport::Notifications`. 
 
-However, the `perform_all_later` method does fire an `enqueue_all.active_job` event which you can subscribe to using `ActiveSupport::Notifications`. 
-
-The event payload contains adapter name, enqueued jobs count, the list of job instances, etc. `successfully_enqueued?` can be used to find out if a given job was successfully enqueued. 
+The event payload contains the adapter name, enqueued jobs count, the list of job instances, etc. `successfully_enqueued?` can be used to find out if a given job was successfully enqueued. 
 
 ```ruby
 ActiveSupport::Notifications.subscribe "enqueue_all.active_job" do |event|
   event.name      # => "enqueue_all.active_job"
   event.duration  # => 30 (in milliseconds)
   event.payload   # => {
-:adapter=>some_adapter
-:jobs=>[ #<JobInstance1:0x000000010ead96e8 …>, <#<JobInstance2:0x000000010ert96e8 …>]
-:enqueued_count=> 12
-}
+  :adapter=>some_adapter
+  :jobs=>[ #<JobInstance1:0x000000010ead96e8 …>, <#<JobInstance2:0x000000010ert96e8 …>]
+  :enqueued_count=>12
+  }
 
   Rails.logger.info "Any successfully enqueued jobs? #{jobs.any?(&:successfully_enqueued?)}"
 end
 ```
 
+[`enqueue_all.active_job`]: https://guides.rubyonrails.org/active_support_instrumentation.html#enqueue-all-active-job
 
 Action Mailer
 ------------
