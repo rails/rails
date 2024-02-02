@@ -8,7 +8,7 @@ rich text content.
 
 After reading this guide, you will know:
 
-* What action text is and how to install and configure Action Text.
+* What Action Text is, and how to install and configure it.
 * How to create, render, style and customize rich text content.
 * How to handle attachments.
 
@@ -17,7 +17,7 @@ After reading this guide, you will know:
 What is Action Text?
 --------------------
 
-Action Text facilitates the handling and display of Rich Text Content. Rich Text content is text that includes formatting elements such as bold, italics, colors, and hyperlinks, providing a visually enhanced and structured presentation beyond plain text. It allows us to create rich text content, store it in a table, then attach it to any of our models.
+Action Text facilitates the handling and display of rich text content. Rich text content is text that includes formatting elements such as bold, italics, colors, and hyperlinks, providing a visually enhanced and structured presentation beyond plain text. It allows us to create rich text content, store it in a table, then attach it to any of our models.
 
 **The Trix Editor**
 
@@ -34,13 +34,7 @@ Active Storage is included as a dependency of Action Text. When it's time to ren
 
 ## Installation
 
-In order to install Action Text and start working with rich text content in your Rails app:
-
-1. Run `bin/rails action_text:install`
-
-2. After the install command is complete, run `bin/rails db:migrate` to add the action_text and active_storage tables to your app
-
-The `action_text:install` command will do the following:
+To install Action Text and start working with rich text content, run `bin/rails action_text:install`. It will do the following:
 
 - Installs the Yarn packages for `trix` and `@rails/actiontext` and adds them to the `application.js`.
 - Adds an `image_processing` gem from Active Storage for image analysis and transformations of the embedded images and other attachments. Please refer to the Active Storage Overview guide for more information about the `image_processing` gem.
@@ -48,13 +42,17 @@ The `action_text:install` command will do the following:
 - Creates `actiontext.css` and imports it into `application.css`. The Trix stylesheet is also included in the `application.css` file.
 - Adds the default view partials `_content.html` and `_blob.html` to render Action Text content and Active Storage attachment (aka blob) respectively.
 
+Thereafter, run `bin/rails db:migrate` to add the action_text and active_storage tables to your app.
+
 When the Action Text installation creates the `action_text_rich_texts` table, it uses polymorphic relationships so that it can be shared with all your existing models through rich text attributes. This is done through a `record` column which stores the ClassName of your model and `record_id` which stores the relevant ID of your record.
 
 Hence, if your models containing Action Text content use UUID values as identifiers, then all models that use Action Text attributes will need to use UUID values for their unique identifiers. The generated migration for Action Text will also need to be updated to specify `type: :uuid` for the record references line.
 
+NOTE: With polymorphic associations, a model can belong to more than one other model, on a single association. Read more about it in the [Active Record Associations guide](https://guides.rubyonrails.org/association_basics.html#polymorphic-associations).
+
 ## Creating Rich Text Content
 
-To create and render rich text we need to follow some configurations. In this section, we’ll explore these configurations.
+This section explores some of the configurations you'll need to follow in order to create rich text.
 
 The RichText record holds the content produced by the Trix editor in a serialized `body` attribute. It also holds all the references to the embedded files, which are stored using Active Storage. This record is then associated with the Active Record model which desires to have rich text content. The association is made by placing the `has_rich_text` class method in the model that you’d like to add rich text to.
 
@@ -81,7 +79,7 @@ Once you have added the `has_rich_text` class method to the model, you can then 
 
 This will display a Trix editor that provides the functionality to create and update your rich text accordingly. Styling updates for the editor can be made in `actiontext.css`.
 
-Finally, in order to ensure that you can accept updates from the editor, you will need to permit the the referenced attribute as a parameter in the relevant controller:
+Finally, in order to ensure that you can accept updates from the editor, you will need to permit the referenced attribute as a parameter in the relevant controller:
 
 ```ruby
 class BlogsController < ApplicationController
@@ -191,7 +189,7 @@ An Action Text Attachment can look like this:
 <action-text-attachment sgid="BAh7CEkiCG…"></action-text-attachment>
 ```
 
-Action Text renders embedded `<action-text-attachment>` elements by resolving their sgid attribute of the element into an instance. Once resolved, that instance is passed along to a  render helper. As a result the  HTML is embedded as a descendant of the `<action-text-attachment>` element.
+Action Text renders embedded `<action-text-attachment>` elements by resolving their sgid attribute of the element into an instance. Once resolved, that instance is passed along to a render helper. As a result the  HTML is embedded as a descendant of the `<action-text-attachment>` element.
 
 In order to be rendered within Action Text `<action-text-attachment>` element as an attachement, we must include the `ActionText::Attachable` module `implement #to_sgid(**options)` (made available through the `GlobalID::Identification` concern).
 
