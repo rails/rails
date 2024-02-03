@@ -227,7 +227,13 @@ module ActiveModel
     #   person.errors[:name]  # => ["cannot be nil"]
     #   person.errors['name'] # => ["cannot be nil"]
     def [](attribute)
-      messages_for(attribute)
+      messages_array = messages_for(attribute)
+      obj = self
+      messages_array.send(:define_singleton_method, :<<) { |message_string|
+        obj.add(attribute, message_string)
+      }
+
+      messages_array
     end
 
     # Returns all error attribute names
