@@ -24,7 +24,7 @@ The inbound emails are routed asynchronously using [Active Job](https://guides.r
 
 `InboundEmail` records also provide lifecycle tracking, storage of the original email via [Active Storage](https://guides.rubyonrails.org/active_storage_overview.html), and responsible data handling with on-by-default [incineration](#incineration-of-inboundemails).
 
-Action Mailbox ships with ingresses for external email providers such as Mailgun, Mandrill, Postmark, and SendGrid. You can also handle inbound mails directly via the built-in Exim, Postfix, and Qmail ingresses.
+Action Mailbox ships with ingresses which enable your application to receive emails from external email providers such as Mailgun, Mandrill, Postmark, and SendGrid. You can also handle inbound mails directly via the built-in Exim, Postfix, and Qmail ingresses.
 
 ## Setup
 
@@ -46,13 +46,13 @@ This will run the Action Mailbox and Active Storage migrations.
 
 The Action Mailbox table `action_mailbox_inbound_emails` stores incoming messages and their processing 'status'.
 
-At this point you can start your rails server and check out `http://localhost:3000/rails/conductor/action_mailbox/inbound_emails`.
+At this point you can start your rails server and check out `http://localhost:3000/rails/conductor/action_mailbox/inbound_emails`. See [Local Development and Testing](#local-development-and-testing) for more.
 
 The next step is to configure an ingress in your Rails application to specify how incoming emails should be received.
 
 ## Ingress Configuration
 
-Configuring ingress involves setting up credentials and endpoint information for the chosen email service. Here are the steps for each of the supported ingress.
+Configuring ingress involves setting up credentials and endpoint information for the chosen email service. Here are the steps for each of the supported ingresses.
 
 ### Exim
 
