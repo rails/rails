@@ -125,7 +125,7 @@ However, if you’d prefer to provide your own styles instead of using the trix 
 = require trix
 ```
 
-### Customizing the editor container
+### Customizing the Editor Container
 
 To customize the HTML container element that's rendered around rich text content, edit the `app/views/layouts/action_text/contents/_content.html.erb` layout file created by the installer:
 
