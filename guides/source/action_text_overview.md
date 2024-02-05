@@ -36,7 +36,7 @@ It will do the following:
 
 - Installs the Yarn packages for `trix` and `@rails/actiontext` and adds them to the `application.js`.
 - Adds the `image_processing` gem for analysis and transformations of the embedded images and other attachments with Active Storage. Please refer to the [Active Storage Overview](active_storage_overview.html) guide for more information about it.
-- Adds migrations to create the following tables that store rich text content and attachments; namely `action_text_rich_texts`, `active_storage_blobs`, `active_storage_attachments`, `active_storage_variant_records`. Later on, we’ll discuss the polymorphic association of this table to your existing models.
+- Adds migrations to create the following tables that store rich text content and attachments: `action_text_rich_texts`, `active_storage_blobs`, `active_storage_attachments`, `active_storage_variant_records`.
 - Creates `actiontext.css` and imports it into `application.css`. The Trix stylesheet is also included in the `application.css` file.
 - Adds the default view partials `_content.html` and `_blob.html` to render Action Text content and Active Storage attachment (aka blob) respectively.
 
