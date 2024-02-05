@@ -303,7 +303,7 @@ For example, the above will match any email sent to `save@` to a 'forwards' mail
 $ bin/rails generate mailbox forwards
 ```
 
-This creates a `ForwardsMailbox` class with a `process` method.
+This creates `app/mailboxes/forwards_mailbox.rb`, with a `ForwardsMailbox` class and a `process` method.
 
 ### Process Email
 
