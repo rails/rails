@@ -3,7 +3,6 @@
 require "active_support/testing/strict_warnings"
 
 ENV["RAILS_ENV"] ||= "test"
-require_relative "dummy/config/environment.rb"
 
 require "bundler/setup"
 require "active_support"
@@ -14,15 +13,59 @@ require "image_processing/mini_magick"
 
 require "active_record/testing/query_assertions"
 
+require "rails"
+require "active_record/railtie"
+require "active_storage/engine"
+
+SERVICE_CONFIGURATIONS = begin
+  ActiveSupport::ConfigurationFile.parse(File.expand_path("service/configurations.yml", __dir__)).deep_symbolize_keys
+rescue Errno::ENOENT
+  puts "Missing service configuration file in test/service/configurations.yml"
+  {}
+end
+# Azure service tests are currently failing on the main branch.
+# We temporarily disable them while we get things working again.
+if ENV["BUILDKITE"]
+  SERVICE_CONFIGURATIONS.delete(:azure)
+  SERVICE_CONFIGURATIONS.delete(:azure_public)
+end
+
+module ActiveStorage
+  class TestApp < Rails::Application
+    config.eager_load = ENV["CI"].present?
+    config.load_defaults Rails::VERSION::STRING.to_f
+    config.secret_key_base = "secret_key_base"
+    config.root = File.join(__dir__, "support")
+    config.fixture_paths = [File.expand_path("fixtures", __dir__)]
+    config.action_controller.allow_forgery_protection = false
+
+    # Disable logging
+    config.logger = Logger.new(nil)
+
+    config.active_storage.service = :local
+
+    config.active_storage.service_configurations = SERVICE_CONFIGURATIONS.merge(
+      "local" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests") },
+      "local_public" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests"), "public" => true },
+      "disk_mirror_1" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_1") },
+      "disk_mirror_2" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_2") },
+      "disk_mirror_3" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_3") },
+      "mirror" => { "service" => "Mirror", "primary" => "local", "mirrors" => ["disk_mirror_1", "disk_mirror_2", "disk_mirror_3"] }
+    ).deep_stringify_keys
+  end
+end
+
+Rails.application.initialize!
+
 require "active_job"
 ActiveJob::Base.queue_adapter = :test
 ActiveJob::Base.logger = ActiveSupport::Logger.new(nil)
 
 ActiveStorage.logger = ActiveSupport::Logger.new(nil)
 ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
-ActiveStorage::FixtureSet.file_fixture_path = File.expand_path("fixtures/files", __dir__)
 
 class ActiveSupport::TestCase
+  ActiveStorage::FixtureSet.file_fixture_path = File.expand_path("fixtures/files", __dir__)
   self.file_fixture_path = ActiveStorage::FixtureSet.file_fixture_path
 
   include ActiveRecord::TestFixtures
