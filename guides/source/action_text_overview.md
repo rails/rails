@@ -227,7 +227,7 @@ user.to_global_id.to_s #=> gid://MyRailsApp/User/1
 user.to_signed_global_id.to_s #=> BAh7CEkiCG…
 ```
 
-NOTE: We can mix `GlobalID::Identification` into any model with a `#find(id)` class method. Support is automatically included in Active Record.
+NOTE: We can mix `GlobalID::Identification` into any model with a `.find(id)` class method. Support is automatically included in Active Record.
 
 The above code will return our identifier to uniquely identify a model instance.
 
