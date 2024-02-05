@@ -183,11 +183,11 @@ In addition to attachments uploaded through Active Storage, Action Text can also
 
 A Global ID is an app-wide URI that uniquely identifies a model instance: `gid://YourApp/Some::Model/id`. This is helpful when you need a single identifier to reference different classes of objects.
 
-When using this method, Action Text requires attachments to have a signed global ID (sgid). By default, all Active Record models in a Rails app mix-in the `GlobalID::Identification` concern, so they can be resolved by a signed global ID and are therefore `ActionText::Attachable` compatible.
+When using this method, Action Text requires attachments to have a signed global ID (sgid). By default, all Active Record models in a Rails app mix in the `GlobalID::Identification` concern, so they can be resolved by a signed global ID and are therefore `ActionText::Attachable` compatible.
 
 Action Text minifies the HTML you insert on save, so that it can re-render it with up-to-date content later on. This makes it so that you can reference models and always display the current content when those records change.
 
-Action Text will load up the model from the global id and then will render it with the default partial path when you render the content.
+Action Text will load up the model from the global id and then render it with the default partial path when you render the content.
 
 An Action Text Attachment can look like this:
 
@@ -195,9 +195,9 @@ An Action Text Attachment can look like this:
 <action-text-attachment sgid="BAh7CEkiCG…"></action-text-attachment>
 ```
 
-Action Text renders embedded `<action-text-attachment>` elements by resolving their sgid attribute of the element into an instance. Once resolved, that instance is passed along to a render helper. As a result the HTML is embedded as a descendant of the `<action-text-attachment>` element.
+Action Text renders embedded `<action-text-attachment>` elements by resolving their sgid attribute of the element into an instance. Once resolved, that instance is passed along to a render helper. As a result, the HTML is embedded as a descendant of the `<action-text-attachment>` element.
 
-In order to be rendered within Action Text `<action-text-attachment>` element as an attachement, we must include the `ActionText::Attachable` module `implement #to_sgid(**options)` (made available through the `GlobalID::Identification` concern).
+In order to be rendered within Action Text `<action-text-attachment>` element as an attachment, we must include the `ActionText::Attachable` module `implement #to_sgid(**options)` (made available through the `GlobalID::Identification` concern).
 
 It can also optionally declare `#to_attachable_partial_path` to render a custom partial path and `#to_missing_attachable_partial_path` for handling missing records.
 
@@ -299,7 +299,7 @@ Then declare that partial.
 
 ### Attachable via API
 
-If your architecture does not follow the traditional Rails server side rendered pattern, then you may perhaps find yourself with a backend API (for example, using JSON) that will need a separate endpoint for uploading files. The endpoint will be required to create an `ActiveStorage::Blob` and return its `attachable_sgid`:
+If your architecture does not follow the traditional Rails server-side rendered pattern, then you may perhaps find yourself with a backend API (for example, using JSON) that will need a separate endpoint for uploading files. The endpoint will be required to create an `ActiveStorage::Blob` and return its `attachable_sgid`:
 
 ```json
 {
