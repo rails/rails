@@ -111,7 +111,7 @@ Instances of `ActionText::RichText` can be directly embedded into a page because
 
 `ActionText::RichText#to_s` safely transforms RichText into an HTML String. On the other hand `ActionText::RichText#to_plain_text` returns a string that is not HTML safe and should not be rendered in browsers. You can learn more about Action Text's sanitization process in the [documentation](https://api.rubyonrails.org/classes/ActionText/RichText.html) for the `ActionText::RichText` class.
 
-NOTE: If there's an attached resource within `content` field, it might not show properly unless you have the necessary [dependencies for Active Storage](#active-storage) installed.
+NOTE: If there's an attached resource within `content` field, it might not show properly unless you have the necessary [dependencies for Active Storage](active_storage_overview.html#requirements) installed.
 
 ## Customizing the Rich Text Content Editor (Trix)
 
@@ -168,13 +168,9 @@ Currently Action Text supports attachments that are uploaded through Active Stor
 
 ### Active Storage
 
-When uploading an image within your rich text editor, it uses Action Text which in turn uses Active Storage. However, Active Storage has some dependencies which are not provided by Rails. To use the built-in previewers, you must install the following:
+When uploading an image within your rich text editor, it uses Action Text which in turn uses Active Storage. However, Active Storage has [some dependencies](active_storage_overview.html#requirements) which are not provided by Rails. To use the built-in previewers, you must install these libraries.
 
-- (required) [libvips](https://github.com/libvips/libvips) v8.6+ or [ImageMagick](https://imagemagick.org/index.php) for image analysis and transformations like resizing an image
-- [ffmpeg](http://ffmpeg.org/) v3.4+ for video previews and ffprobe for video/audio analysis
-- [poppler](https://poppler.freedesktop.org/) or [muPDF](https://mupdf.com/) for PDF previews
-
-You should familiarize yourself with the licensing implications of installing the above. Some, but not all of these libraries are required and they are dependent on the kind of uploads you are expecting within the editor. A common error that users encounter when working with Action Text and Active Storage is that images do not render correctly in the editor. This is usually due to the `libvips` dependency not being installed.
+Some, but not all of these libraries are required and they are dependent on the kind of uploads you are expecting within the editor. A common error that users encounter when working with Action Text and Active Storage is that images do not render correctly in the editor. This is usually due to the `libvips` dependency not being installed.
 
 
 ### Signed GlobalId
@@ -185,9 +181,9 @@ A Global ID is an app-wide URI that uniquely identifies a model instance: `gid:/
 
 When using this method, Action Text requires attachments to have a signed global ID (sgid). By default, all Active Record models in a Rails app mix in the `GlobalID::Identification` concern, so they can be resolved by a signed global ID and are therefore `ActionText::Attachable` compatible.
 
-Action Text minifies the HTML you insert on save, so that it can re-render it with up-to-date content later on. This makes it so that you can reference models and always display the current content when those records change.
+Action Text references the HTML you insert on save so that it can re-render with up-to-date content later on. This makes it so that you can reference models and always display the current content when those records change.
 
-Action Text will load up the model from the global id and then render it with the default partial path when you render the content.
+Action Text will load up the model from the global ID and then render it with the default partial path when you render the content.
 
 An Action Text Attachment can look like this:
 
