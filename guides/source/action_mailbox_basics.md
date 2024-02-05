@@ -284,7 +284,7 @@ Before you can start processing incoming emails, you'll need to setup Action Mai
 
 ### Configure Routing
 
-Routes for Action Mailbox are added to the `application_mailbox.rb` file. The regular expression matches the incoming email's `to` field.
+After an incoming email is received via the configured ingress, it needs to be forwarded to a mailbox for actual processing by your application. Much like the [Rails router that dispatches URLs to controllers](https://guides.rubyonrails.org/routing.html), routing in Action Mailbox defines which emails go to which mailboxes for processing. They are added to the `application_mailbox.rb` file. The regular expression matches the incoming email's `to` field:
 
 ```ruby
 # app/mailboxes/application_mailbox.rb
