@@ -321,7 +321,7 @@ $ mail.body.decoded
 Once an email has been routed to the matching Mailbox and processed, Action Mailbox updates the email status stored in `action_mailbox_inbound_emails` table with one of the following values:
 
 - Pending: Just received by one of the ingress controllers and scheduled for routing.
-- Processing: During active processing, while a specific mailbox is running its process method.
+- Processing: During active processing, while a specific mailbox is running its `process` method.
 - Delivered: Successfully processed by the specific mailbox.
 - Failed: An exception was raised during the specific mailbox’s execution of the #process method.
 - Bounced: Rejected processing by the specific mailbox and bounced to sender.
