@@ -285,7 +285,7 @@ class ApplicationMailbox < ActionMailbox::Base
 end
 ```
 
-For example, the above will match any email sent to `save@` to a 'forwards' mailbox. Which we need to create.
+For example, the above will match any email sent to `save@` to a 'forwards' mailbox, which we will need to create.
 
 ### Create a mailbox
 
