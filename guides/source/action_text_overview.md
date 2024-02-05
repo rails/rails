@@ -65,7 +65,7 @@ class Blog < ApplicationRecord
 end
 ```
 
-NOTE: The `content` column will not need to be added to your Blog table. `has_rich_text` helps to associate it with the `action_text_rich_texts` table that has been created and links it back to your model. You also may choose to name the attribute to be something different to `content`.
+NOTE: There's no need to add the `content` column to your Blog table. `has_rich_text` associates the content with the `action_text_rich_texts` table that has been created, and links it back to your model. You also may choose to name the attribute to be something different to `content`.
 
 Once you have added the `has_rich_text` class method to the model, you can then update your views to make use of the rich text editor (Trix) for that field. In order to do so, use a `rich_text_area` for the form field.
 
