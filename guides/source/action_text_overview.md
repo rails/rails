@@ -60,7 +60,6 @@ The RichText record holds the content produced by the Trix editor in a serialize
 
 ```ruby
 # app/models/blog.rb
-
 class Blog < ApplicationRecord
   has_rich_text :content
 end
