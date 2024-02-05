@@ -115,7 +115,7 @@ There may be times when you want to update the presentation of the editor to mee
 
 ### Removing or Adding Trix Styles
 
-By default, Action Text will render rich text content inside an element with the `.trix-content` class. This is set in `/views/layouts/action_text/contents/_content.html.erb`.  Elements with this class are then styled by the trix stylesheet.
+By default, Action Text will render rich text content inside an element with the `.trix-content` class. This is set in `app/views/layouts/action_text/contents/_content.html.erb`.  Elements with this class are then styled by the trix stylesheet.
 
 If you’d like to update any of the trix styles, you can add your own custom styles in `app/assets/stylesheets/actiontext.css`.
 
