@@ -18,11 +18,11 @@ After reading this guide, you will know:
 What is Action Mailbox?
 -----------------------
 
-Action Mailbox routes incoming emails to controller-like mailboxes for processing in your Rails application. Action Mailbox is for receiving email, while [Action Mailer](https://guides.rubyonrails.org/action_mailer_basics.html) is for *sending* them.
+Action Mailbox routes incoming emails to controller-like mailboxes for processing in your Rails application. Action Mailbox is for receiving email, while [Action Mailer](action_mailer_basics.html) is for *sending* them.
 
-The inbound emails are routed asynchronously using [Active Job](https://guides.rubyonrails.org/active_job_basics.html) to one or several dedicated mailboxes. These emails are turned into [`InboundEmail`](https://api.rubyonrails.org/classes/ActionMailbox/InboundEmail.html) records using [Active Record](https://guides.rubyonrails.org/active_record_basics.html), which are capable of interacting directly with the rest of your domain model.
+The inbound emails are routed asynchronously using [Active Job](active_job_basics.html) to one or several dedicated mailboxes. These emails are turned into [`InboundEmail`](https://api.rubyonrails.org/classes/ActionMailbox/InboundEmail.html) records using [Active Record](active_record_basics.html), which are capable of interacting directly with the rest of your domain model.
 
-`InboundEmail` records also provide lifecycle tracking, storage of the original email via [Active Storage](https://guides.rubyonrails.org/active_storage_overview.html), and responsible data handling with on-by-default [incineration](#incineration-of-inboundemails).
+`InboundEmail` records also provide lifecycle tracking, storage of the original email via [Active Storage](active_storage_overview.html), and responsible data handling with on-by-default [incineration](#incineration-of-inboundemails).
 
 Action Mailbox ships with ingresses which enable your application to receive emails from external email providers such as Mailgun, Mandrill, Postmark, and SendGrid. You can also handle inbound mails directly via the built-in Exim, Postfix, and Qmail ingresses.
 
