@@ -287,7 +287,7 @@ end
 
 For example, the above will match any email sent to `save@` to a 'forwards' mailbox, which we will need to create.
 
-### Create a mailbox
+### Create a Mailbox
 
 ```bash
 # Generate new mailbox
