@@ -214,7 +214,7 @@ content.attachables # => [person]
 
 The default way that an `<action-text-attachment>` is rendered is through the default path partial.
 
-To illustrated this further, let’s consider a User model:
+To illustrate this further, let’s consider a User model:
 
 ```ruby
 # app/models/user.rb
