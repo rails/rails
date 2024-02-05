@@ -296,7 +296,7 @@ $ bin/rails generate mailbox forwards
 
 This creates a `ForwardsMailbox` class with a `process` method.
 
-### Process email
+### Process Email
 
 When processing an `InboundEmail`, you can get the parsed version of the email as a [`Mail`][] object with `InboundEmail#mail`. You can also get the raw source directly using the `#source` method. With `Mail` object, you can access the relevant fields, such as `mail.to`, `mail.body.decoded`, etc.
 
