@@ -101,7 +101,7 @@ Since Action Text depends on polymorphic associations, which, in turn, involve s
 Instances of `ActionText::RichText` can be directly embedded into a page because they have already sanitized their content for a safe render. You can display the content as follows:
 
 ```erb
-<%= @message.content %>
+<%= @blog.content %>
 ```
 
 `ActionText::RichText#to_s` safely transforms RichText into an HTML String. On the other hand `ActionText::RichText#to_plain_text` returns a string that is not HTML safe and should not be rendered in browsers. You can learn more about Action Text's sanitization process in the [documentation](https://api.rubyonrails.org/classes/ActionText/RichText.html) for the `ActionText::RichText` class.
