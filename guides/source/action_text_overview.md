@@ -195,7 +195,7 @@ Action Text renders embedded `<action-text-attachment>` elements by resolving th
 
 To be rendered within Action Text `<action-text-attachment>` element as an attachment, we must include the `ActionText::Attachable` module `implement #to_sgid(**options)` (made available through the `GlobalID::Identification` concern).
 
-It can also optionally declare `#to_attachable_partial_path` to render a custom partial path and `#to_missing_attachable_partial_path` for handling missing records.
+You can also optionally declare `#to_attachable_partial_path` to render a custom partial path and `#to_missing_attachable_partial_path` for handling missing records.
 
 An example can be found here:
 
