@@ -24,7 +24,7 @@ The inbound emails are routed asynchronously using [Active Job](active_job_basic
 
 `InboundEmail` records also provide lifecycle tracking, storage of the original email via [Active Storage](active_storage_overview.html), and responsible data handling with on-by-default [incineration](#incineration-of-inboundemails).
 
-Action Mailbox ships with ingresses which enable your application to receive emails from external email providers such as Mailgun, Mandrill, Postmark, and SendGrid. You can also handle inbound mails directly via the built-in Exim, Postfix, and Qmail ingresses.
+Action Mailbox ships with ingresses which enable your application to receive emails from external email providers such as Mailgun, Mandrill, Postmark, and SendGrid. You can also handle inbound emails directly via the built-in Exim, Postfix, and Qmail ingresses.
 
 ## Setup
 
@@ -284,7 +284,7 @@ Before you can start processing incoming emails, you'll need to setup Action Mai
 
 ### Configure Routing
 
-After an incoming email is received via the configured ingress, it needs to be forwarded to a mailbox for actual processing by your application. Much like the [Rails router](https://guides.rubyonrails.org/routing.html) that dispatches URLs to controllers, routing in Action Mailbox defines which emails go to which mailboxes for processing. Routes are added to the `application_mailbox.rb` file using regular expression, which matches the incoming email's `to` field:
+After an incoming email is received via the configured ingress, it needs to be forwarded to a mailbox for actual processing by your application. Much like the [Rails router](https://guides.rubyonrails.org/routing.html) that dispatches URLs to controllers, routing in Action Mailbox defines which emails go to which mailboxes for processing. Routes are added to the `application_mailbox.rb` file using regular expression:
 
 ```ruby
 # app/mailboxes/application_mailbox.rb
@@ -294,7 +294,7 @@ class ApplicationMailbox < ActionMailbox::Base
 end
 ```
 
-For example, the above will match any email sent to `save@` to a 'forwards' mailbox, which we will need to create.
+The regular expression matches the incoming email's `to` field. For example, the above will match any email sent to `save@` to a 'forwards' mailbox, which we will need to create.
 
 ### Create a Mailbox
 
@@ -327,7 +327,7 @@ $ mail.body.decoded
 ```
 ### Inbound Email Status
 
-Once an email has been routed to the matching Mailbox and processed, Action Mailbox updates the email status stored in `action_mailbox_inbound_emails` table with one of the following values:
+Once an email has been routed to a matching mailbox and processed, Action Mailbox updates the email status stored in `action_mailbox_inbound_emails` table with one of the following values:
 
 - Pending: Just received by one of the ingress controllers and scheduled for routing.
 - Processing: During active processing, while a specific mailbox is running its `process` method.
