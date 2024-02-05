@@ -35,7 +35,7 @@ To start let's install Action Mailbox:
 1. `bin/rails action_mailbox:install` - this will create an `application_mailbox.rb` file and copy over migrations.
 2. `bin/rails db:migrate` - this will run the Action Mailbox and Active Storage migrations.
 
-The Action Mailbox table `action_mailbox_inbound_emails` stores incoming message and their processing 'status'.
+The Action Mailbox table `action_mailbox_inbound_emails` stores incoming messages and their processing 'status'.
 
 At this point you can start your rails server and check out `http://localhost:3000/rails/conductor/action_mailbox/inbound_emails`.
 
