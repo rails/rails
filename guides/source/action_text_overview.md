@@ -104,7 +104,7 @@ Instances of `ActionText::RichText` can be directly embedded into a page because
 <%= @message.content %>
 ```
 
-`ActionText::RichText#to_s` safely transforms RichText into an HTML String. On the other hand `ActionText::RichText#to_plain_text` returns a string that is not HTML safe and should not be rendered in browsers. You can learn more about Action Text's sanitization process in the [documentation](https://edgeapi.rubyonrails.org/classes/ActionText/RichText.html) for the `ActionText::RichText` class.
+`ActionText::RichText#to_s` safely transforms RichText into an HTML String. On the other hand `ActionText::RichText#to_plain_text` returns a string that is not HTML safe and should not be rendered in browsers. You can learn more about Action Text's sanitization process in the [documentation](https://api.rubyonrails.org/classes/ActionText/RichText.html) for the `ActionText::RichText` class.
 
 NOTE: If there's an attached resource within `content` field, it might not show properly unless you have *libvips/libvips42* package installed locally on your machine.
 Check their [install docs](https://www.libvips.org/install.html) on how to get it.
