@@ -46,7 +46,7 @@ Thereafter, executing the migrations will add the new `action_text_*` and `activ
 $ bin/rails db:migrate
 ```
 
-When the Action Text installation creates the `action_text_rich_texts` table, it uses polymorphic relationships so that it can be shared with all your existing models through rich text attributes. This is done through a `record` column which stores the ClassName of your model and `record_id` which stores the relevant ID of your record.
+When the Action Text installation creates the `action_text_rich_texts` table, it uses a polymorphic relationship so that multiple models can add rich text attributes. This is done through the `record_type` and `record_id` columns, which store the ClassName of the model, and ID of the record, respectively.
 
 Hence, if your models containing Action Text content use UUID values as identifiers, then all models that use Action Text attributes will need to use UUID values for their unique identifiers. The generated migration for Action Text will also need to be updated to specify `type: :uuid` for the record references line.
 
