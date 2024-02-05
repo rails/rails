@@ -49,13 +49,17 @@ $ bin/rails db:migrate
 
 When the Action Text installation creates the `action_text_rich_texts` table, it uses a polymorphic relationship so that multiple models can add rich text attributes. This is done through the `record_type` and `record_id` columns, which store the ClassName of the model, and ID of the record, respectively.
 
+INFO: With polymorphic associations, a model can belong to more than one other model, on a single association. Read more about it in the [Active Record Associations guide](https://guides.rubyonrails.org/association_basics.html#polymorphic-associations).
+
 Hence, if your models containing Action Text content use UUID values as identifiers, then all models that use Action Text attributes will need to use UUID values for their unique identifiers. The generated migration for Action Text will also need to be updated to specify `type: :uuid` for the record references line.
 
-INFO: With polymorphic associations, a model can belong to more than one other model, on a single association. Read more about it in the [Active Record Associations guide](https://guides.rubyonrails.org/association_basics.html#polymorphic-associations).
+```ruby
+ t.uuid "record_id", null: false
+ ```
 
 ## Creating Rich Text Content
 
-This section explores some of the configurations you'll need to follow in order to create rich text.
+This section explores some of the configurations you'll need to follow to create rich text.
 
 The RichText record holds the content produced by the Trix editor in a serialized `body` attribute. It also holds all the references to the embedded files, which are stored using Active Storage. This record is then associated with the Active Record model which desires to have rich text content. The association is made by placing the `has_rich_text` class method in the model that you’d like to add rich text to.
 
@@ -66,9 +70,9 @@ class Blog < ApplicationRecord
 end
 ```
 
-NOTE: There's no need to add the `content` column to your Blog table. `has_rich_text` associates the content with the `action_text_rich_texts` table that has been created, and links it back to your model. You also may choose to name the attribute to be something different to `content`.
+NOTE: There's no need to add the `content` column to your Blog table. `has_rich_text` associates the content with the `action_text_rich_texts` table that has been created, and links it back to your model. You also may choose to name the attribute to be something different from `content`.
 
-Once you have added the `has_rich_text` class method to the model, you can then update your views to make use of the rich text editor (Trix) for that field. In order to do so, use a `rich_text_area` for the form field.
+Once you have added the `has_rich_text` class method to the model, you can then update your views to make use of the rich text editor (Trix) for that field. To do so, use a `rich_text_area` for the form field.
 
 ```html+erb
 <%# app/views/blogs/_form.html.erb %>
@@ -82,7 +86,7 @@ Once you have added the `has_rich_text` class method to the model, you can then 
 
 This will display a Trix editor that provides the functionality to create and update your rich text accordingly. Styling updates for the editor can be made in `actiontext.css`.
 
-Finally, in order to ensure that you can accept updates from the editor, you will need to permit the referenced attribute as a parameter in the relevant controller:
+Finally, to ensure that you can accept updates from the editor, you will need to permit the referenced attribute as a parameter in the relevant controller:
 
 ```ruby
 class BlogsController < ApplicationController
@@ -93,7 +97,7 @@ class BlogsController < ApplicationController
 end
 ```
 
-If the need arises to rename classes that utilize `has_rich_text`, you will also need to update the polymorphic type column `record_type` in the  `action_text_rich_texts` table for the respective rows.
+If the need arises to rename classes that utilize `has_rich_text`, you will also need to update the polymorphic type column `record_type` in the `action_text_rich_texts` table for the respective rows.
 
 Since Action Text depends on polymorphic associations, which, in turn, involve storing class names in the database, it's crucial to keep the data in sync with the class names used in your Ruby code. This synchronization is essential to maintain consistency between the stored data and the class references in your codebase.
 
@@ -177,7 +181,7 @@ You should familiarize yourself with the licensing implications of installing th
 
 In addition to attachments uploaded through Active Storage, Action Text can also embed anything that can be resolved by a Signed GlobalID.
 
-A Global ID is an app wide URI that uniquely identifies a model instance: `gid://YourApp/Some::Model/id`. This is helpful when you need a single identifier to reference different classes of objects.
+A Global ID is an app-wide URI that uniquely identifies a model instance: `gid://YourApp/Some::Model/id`. This is helpful when you need a single identifier to reference different classes of objects.
 
 When using this method, Action Text requires attachments to have a signed global ID (sgid). By default, all Active Record models in a Rails app mix-in the `GlobalID::Identification` concern, so they can be resolved by a signed global ID and are therefore `ActionText::Attachable` compatible.
 
