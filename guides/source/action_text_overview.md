@@ -212,7 +212,7 @@ content.attachables # => [person]
 
 ### Rendering an Action Text Attachment
 
-The default way that an action-text-attachment is rendered is through the default path partial.
+The default way that an `<action-text-attachment>` is rendered is through the default path partial.
 
 To illustrated this further, let’s consider a User model:
 
