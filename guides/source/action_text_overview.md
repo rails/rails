@@ -40,7 +40,11 @@ It will do the following:
 - Creates `actiontext.css` and imports it into `application.css`. The Trix stylesheet is also included in the `application.css` file.
 - Adds the default view partials `_content.html` and `_blob.html` to render Action Text content and Active Storage attachment (aka blob) respectively.
 
-Thereafter, run `bin/rails db:migrate` to add the action_text and active_storage tables to your app.
+Thereafter, executing the migrations will add the new `action_text_*` and `active_storage_*` tables to your app:
+
+```bash
+$ bin/rails db:migrate
+```
 
 When the Action Text installation creates the `action_text_rich_texts` table, it uses polymorphic relationships so that it can be shared with all your existing models through rich text attributes. This is done through a `record` column which stores the ClassName of your model and `record_id` which stores the relevant ID of your record.
 
