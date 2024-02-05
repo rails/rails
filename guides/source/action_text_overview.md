@@ -251,7 +251,7 @@ Hence, the resulting HTML rendered by Action Text would look something like:
 <p>Hello, <action-text-attachment sgid="BAh7CEkiCG…"><span><img src="..."> Jane Doe</span></action-text-attachment>.</p>
 ```
 
-### Rendering a different partial for the action-text-attachment
+### Rendering a Different Partial for the action-text-attachment
 
 To render a different partial for the attachable, define `User#to_attachable_partial_path`:
 
