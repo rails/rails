@@ -191,7 +191,7 @@ An Action Text Attachment can look like this:
 <action-text-attachment sgid="BAh7CEkiCG…"></action-text-attachment>
 ```
 
-Action Text renders embedded `<action-text-attachment>` elements by resolving their sgid attribute of the element into an instance. Once resolved, that instance is passed along to a render helper. As a result the  HTML is embedded as a descendant of the `<action-text-attachment>` element.
+Action Text renders embedded `<action-text-attachment>` elements by resolving their sgid attribute of the element into an instance. Once resolved, that instance is passed along to a render helper. As a result the HTML is embedded as a descendant of the `<action-text-attachment>` element.
 
 In order to be rendered within Action Text `<action-text-attachment>` element as an attachement, we must include the `ActionText::Attachable` module `implement #to_sgid(**options)` (made available through the `GlobalID::Identification` concern).
 
