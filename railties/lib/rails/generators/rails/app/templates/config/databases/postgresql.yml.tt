@@ -19,27 +19,27 @@ default: &default
   # https://guides.rubyonrails.org/configuring.html#database-pooling
   pool: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
 
-development:
-  <<: *default
-  database: <%= app_name %>_development
-
   # The specified database role being used to connect to PostgreSQL.
   # To create additional roles in PostgreSQL see `$ createuser --help`.
   # When left blank, PostgreSQL will use the default role. This is
   # the same name as the operating system user running Rails.
-  #username: <%= app_name %>
+  username: <%%= ENV.fetch("<%= app_name.upcase %>_DATABASE_USER") { "postgres" } %>
 
   # The password associated with the PostgreSQL role (username).
-  #password:
+  password: <%%= ENV.fetch("<%= app_name.upcase %>_DATABASE_PASSWORD") { "postgres" } %>
 
   # Connect on a TCP socket. Omitted by default since the client uses a
   # domain socket that doesn't need configuration. Windows does not have
   # domain sockets, so uncomment these lines.
-  #host: localhost
+  host: <%%= ENV.fetch("<%= app_name.upcase %>_DATABASE_HOST") { "localhost" } %>
 
   # The TCP port the server listens on. Defaults to 5432.
   # If your server runs on a different port number, change accordingly.
   #port: 5432
+
+development:
+  <<: *default
+  database: <%= app_name %>_development
 
   # Schema search path. The server defaults to $user,public
   #schema_search_path: myapp,sharedapp,public
