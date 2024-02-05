@@ -284,7 +284,7 @@ Before you can start processing incoming emails, you'll need to setup Action Mai
 
 ### Configure Routing
 
-After an incoming email is received via the configured ingress, it needs to be forwarded to a mailbox for actual processing by your application. Much like the [Rails router that dispatches URLs to controllers](https://guides.rubyonrails.org/routing.html), routing in Action Mailbox defines which emails go to which mailboxes for processing. They are added to the `application_mailbox.rb` file. The regular expression matches the incoming email's `to` field:
+After an incoming email is received via the configured ingress, it needs to be forwarded to a mailbox for actual processing by your application. Much like the [Rails router](https://guides.rubyonrails.org/routing.html) that dispatches URLs to controllers, routing in Action Mailbox defines which emails go to which mailboxes for processing. Routes are added to the `application_mailbox.rb` file using regular expression, which matches the incoming email's `to` field:
 
 ```ruby
 # app/mailboxes/application_mailbox.rb
@@ -307,7 +307,7 @@ This creates `app/mailboxes/forwards_mailbox.rb`, with a `ForwardsMailbox` class
 
 ### Process Email
 
-When processing an `InboundEmail`, you can get the parsed version of the email as a [`Mail`][] object with `InboundEmail#mail`. You can also get the raw source directly using the `#source` method. With `Mail` object, you can access the relevant fields, such as `mail.to`, `mail.body.decoded`, etc.
+When processing an `InboundEmail`, you can get the parsed version of the email as a [`Mail`](https://github.com/mikel/mail) object with `InboundEmail#mail`. You can also get the raw source directly using the `#source` method. With `Mail` object, you can access the relevant fields, such as `mail.to`, `mail.body.decoded`, etc.
 
 ```bash
 $ mail
@@ -335,9 +335,7 @@ Once an email has been routed to the matching Mailbox and processed, Action Mail
 - Failed: An exception was raised during the specific mailbox’s execution of the #process method.
 - Bounced: Rejected processing by the specific mailbox and bounced to sender.
 
-If the email is marked either `delivered`, `failed`, or `bounced` it's considered 'processed' and marked for incineration.
-
-[`Mail`]: https://github.com/mikel/mail
+If the email is marked either `delivered`, `failed`, or `bounced` it's considered 'processed' and marked for [incineration](#incineration-of-inboundemails).
 
 ## Example
 
@@ -425,10 +423,8 @@ Please refer to the [ActionMailbox::TestHelper API](https://api.rubyonrails.org/
 
 By default, an `InboundEmail` that has been processed will be incinerated after 30 days. The InboundEmail is considered as processed when its status changes to `delivered`, `failed` or `bounced`.
 
-The actual incineration is done via the `IncinerationJob` that's scheduled to run after [`config.action_mailbox.incinerate_after`][] time. This value is set to `30.days` by default, but you can change it in your production.rb configuration. (Note that this far-future incineration scheduling relies on your job queue being able to hold jobs for that long.)
+The actual incineration is done via the [`IncinerationJob`](https://api.rubyonrails.org/classes/ActionMailbox/IncinerationJob.html) that's scheduled to run after [`config.action_mailbox.incinerate_after`](configuring.html#config-action-mailbox-incinerate-after) time. This value is set to `30.days` by default, but you can change it in your production.rb configuration. (Note that this far-future incineration scheduling relies on your job queue being able to hold jobs for that long.)
 
 Default data incineration ensures that you're not holding on to people's data unnecessarily after they may have canceled their accounts or deleted their content.
 
 The intention with Action Mailbox processing is that as you process an email, you should extract all the data you need from the email and persist into domain models in your application. The `InboundEmail` simply stays in the system for the extra time to allow for debugging and forensic and then will be deleted.
-
-[`config.action_mailbox.incinerate_after`]: configuring.html#config-action-mailbox-incinerate-after
