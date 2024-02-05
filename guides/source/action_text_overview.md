@@ -239,7 +239,7 @@ Next, consider some rich text content that embeds an `<action-text-attachment>` 
 
 Action Text uses the "BAh7CEkiCG…" String to resolve the User instance. It then renders it with the default partial path when you render the content.
 
-In this case, the default partial path is the  `users/user` partial:
+In this case, the default partial path is the `users/user` partial:
 
 ```html+erb
 <%# app/views/users/_user.html.erb %>
