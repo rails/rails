@@ -10,10 +10,19 @@ require "action_dispatch/routing/endpoint"
 module ActionDispatch
   module Routing
     class Mapper
+      class BacktraceCleaner < ActiveSupport::BacktraceCleaner # :nodoc:
+        def initialize
+          super
+          remove_silencers!
+          add_core_silencer
+          add_stdlib_silencer
+        end
+      end
+
       URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port]
 
       cattr_accessor :route_source_locations, instance_accessor: false, default: false
-      cattr_accessor :backtrace_cleaner, instance_accessor: false, default: ActiveSupport::BacktraceCleaner.new
+      cattr_accessor :backtrace_cleaner, instance_accessor: false, default: BacktraceCleaner.new
 
       class Constraints < Routing::Endpoint # :nodoc:
         attr_reader :app, :constraints
@@ -366,11 +375,10 @@ module ActionDispatch
                 Thread.each_caller_location do |location|
                   next if location.path.start_with?(action_dispatch_dir)
 
-                  if cleaned_path = Mapper.backtrace_cleaner.clean_frame(location.path)
-                    return "#{cleaned_path}:#{location.lineno}"
-                  else
-                    return nil
-                  end
+                  cleaned_path = Mapper.backtrace_cleaner.clean_frame(location.path)
+                  next if cleaned_path.nil?
+
+                  return "#{cleaned_path}:#{location.lineno}"
                 end
                 nil
               end
@@ -382,11 +390,10 @@ module ActionDispatch
                 caller_locations.each do |location|
                   next if location.path.start_with?(action_dispatch_dir)
 
-                  if cleaned_path = Mapper.backtrace_cleaner.clean_frame(location.path)
-                    return "#{cleaned_path}:#{location.lineno}"
-                  else
-                    return nil
-                  end
+                  cleaned_path = Mapper.backtrace_cleaner.clean_frame(location.path)
+                  next if cleaned_path.nil?
+
+                  return "#{cleaned_path}:#{location.lineno}"
                 end
                 nil
               end
