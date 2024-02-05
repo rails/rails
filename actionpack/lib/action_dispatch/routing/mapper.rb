@@ -10,10 +10,19 @@ require "action_dispatch/routing/endpoint"
 module ActionDispatch
   module Routing
     class Mapper
+      class BacktraceCleaner < ActiveSupport::BacktraceCleaner # :nodoc:
+        def initialize
+          super
+          remove_silencers!
+          add_core_silencer
+          add_stdlib_silencer
+        end
+      end
+
       URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port]
 
       cattr_accessor :route_source_locations, instance_accessor: false, default: false
-      cattr_accessor :backtrace_cleaner, instance_accessor: false, default: ActiveSupport::BacktraceCleaner.new
+      cattr_accessor :backtrace_cleaner, instance_accessor: false, default: BacktraceCleaner.new
 
       class Constraints < Routing::Endpoint # :nodoc:
         attr_reader :app, :constraints
@@ -359,12 +368,35 @@ module ActionDispatch
             Routing::RouteSet::Dispatcher.new raise_on_name_error
           end
 
-          def route_source_location
-            if Mapper.route_source_locations
-              action_dispatch_dir = File.expand_path("..", __dir__)
-              caller_location = caller_locations.find { |location| !location.path.include?(action_dispatch_dir) }
-              cleaned_path = Mapper.backtrace_cleaner.clean([caller_location.path]).first
-              "#{cleaned_path}:#{caller_location.lineno}" if cleaned_path
+          if Thread.respond_to?(:each_caller_location)
+            def route_source_location
+              if Mapper.route_source_locations
+                action_dispatch_dir = File.expand_path("..", __dir__)
+                Thread.each_caller_location do |location|
+                  next if location.path.start_with?(action_dispatch_dir)
+
+                  cleaned_path = Mapper.backtrace_cleaner.clean_frame(location.path)
+                  next if cleaned_path.nil?
+
+                  return "#{cleaned_path}:#{location.lineno}"
+                end
+                nil
+              end
+            end
+          else
+            def route_source_location
+              if Mapper.route_source_locations
+                action_dispatch_dir = File.expand_path("..", __dir__)
+                caller_locations.each do |location|
+                  next if location.path.start_with?(action_dispatch_dir)
+
+                  cleaned_path = Mapper.backtrace_cleaner.clean_frame(location.path)
+                  next if cleaned_path.nil?
+
+                  return "#{cleaned_path}:#{location.lineno}"
+                end
+                nil
+              end
             end
           end
       end

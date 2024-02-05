@@ -10,9 +10,11 @@ module Rails
 
     def initialize
       super
-      @root = "#{Rails.root}/"
       add_filter do |line|
-        line.start_with?(@root) ? line.from(@root.size) : line
+        # We may be called before Rails.root is assigned.
+        # When that happens we fallback to not truncating.
+        @root ||= Rails.root && "#{Rails.root}/"
+        @root && line.start_with?(@root) ? line.from(@root.size) : line
       end
       add_filter do |line|
         if RENDER_TEMPLATE_PATTERN.match?(line)
