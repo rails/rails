@@ -18,11 +18,11 @@ After reading this guide, you will know:
 What is Action Mailbox?
 -----------------------
 
-Action Mailbox routes incoming emails to controller-like mailboxes for processing in your Rails application. Action Mailbox is for receiving inbound email, while [Action Mailer](https://guides.rubyonrails.org/action_mailer_basics.html) is for *sending* emails from your Rails application.
+Action Mailbox routes incoming emails to controller-like mailboxes for processing in your Rails application. Action Mailbox is for receiving email, while [Action Mailer](https://guides.rubyonrails.org/action_mailer_basics.html) is for *sending* them.
 
-The inbound emails are routed asynchronously using Active Job to one or several dedicated mailboxes. These emails are turned into `InboundEmail` records using Active Record, which are capable of interacting directly with the rest of your domain model.
+The inbound emails are routed asynchronously using [Active Job](https://guides.rubyonrails.org/active_job_basics.html) to one or several dedicated mailboxes. These emails are turned into [`InboundEmail`](https://api.rubyonrails.org/classes/ActionMailbox/InboundEmail.html) records using [Active Record](https://guides.rubyonrails.org/active_record_basics.html), which are capable of interacting directly with the rest of your domain model.
 
-`InboundEmail` records also provide lifecycle tracking, storage of the original email via Active Storage, and responsible data handling with on-by-default incineration.
+`InboundEmail` records also provide lifecycle tracking, storage of the original email via [Active Storage](https://guides.rubyonrails.org/active_storage_overview.html), and responsible data handling with on-by-default [incineration](#incineration-of-inboundemails).
 
 Action Mailbox ships with ingresses for external email providers such as Mailgun, Mandrill, Postmark, and SendGrid. You can also handle inbound mails directly via the built-in Exim, Postfix, and Qmail ingresses.
 
@@ -347,7 +347,6 @@ Here is an example of an Action Mailbox that processes emails to create 'forward
 
 If the 'forwarder' does have at least one project, the `record_forward` method creates an Active Record model in the application using the email data `mail.subject` and `mail.content`. Otherwise it sends an email, using Action Mailer, requesting the 'forwarder' to choose a project.
 
-
 ```ruby
 # app/mailboxes/forwards_mailbox.rb
 class ForwardsMailbox < ApplicationMailbox
@@ -424,7 +423,7 @@ Please refer to the [ActionMailbox::TestHelper API](https://api.rubyonrails.org/
 
 ## Incineration of InboundEmails
 
-By default, an [`InboundEmail`][] that has been processed will be incinerated after 30 days. The InboundEmail is considered as processed when its status changes to `delivered`, `failed` or `bounced`.
+By default, an `InboundEmail` that has been processed will be incinerated after 30 days. The InboundEmail is considered as processed when its status changes to `delivered`, `failed` or `bounced`.
 
 The actual incineration is done via the `IncinerationJob` that's scheduled to run after [`config.action_mailbox.incinerate_after`][] time. This value is set to `30.days` by default, but you can change it in your production.rb configuration. (Note that this far-future incineration scheduling relies on your job queue being able to hold jobs for that long.)
 
@@ -432,5 +431,4 @@ Default data incineration ensures that you're not holding on to people's data un
 
 The intention with Action Mailbox processing is that as you process an email, you should extract all the data you need from the email and persist into domain models in your application. The `InboundEmail` simply stays in the system for the extra time to allow for debugging and forensic and then will be deleted.
 
-[`InboundEmail`]: https://api.rubyonrails.org/classes/ActionMailbox/InboundEmail.html
 [`config.action_mailbox.incinerate_after`]: configuring.html#config-action-mailbox-incinerate-after
