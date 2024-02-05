@@ -273,7 +273,7 @@ Processing incoming emails usually entails using the email content to create mod
 
 Before you can start processing incoming emails, you'll need to setup Action Mailbox routing and create mailboxes.
 
-### Configure routing
+### Configure Routing
 
 Routes for Action Mailbox are added to the `application_mailbox.rb` file. The regular expression matches the incoming email's `to` field.
 
