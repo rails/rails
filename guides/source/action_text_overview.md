@@ -72,7 +72,7 @@ end
 
 NOTE: There's no need to add the `content` column to your Blog table. `has_rich_text` associates the content with the `action_text_rich_texts` table that has been created, and links it back to your model. You also may choose to name the attribute to be something different from `content`.
 
-Once you have added the `has_rich_text` class method to the model, you can then update your views to make use of the rich text editor (Trix) for that field. To do so, use a `rich_text_area` for the form field.
+Once you have added the `has_rich_text` class method to the model, you can then update your views to make use of the rich text editor (Trix) for that field. To do so, use a [`rich_text_area`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-rich_text_area) for the form field.
 
 ```html+erb
 <%# app/views/blogs/_form.html.erb %>
@@ -84,7 +84,7 @@ Once you have added the `has_rich_text` class method to the model, you can then 
 <% end %>
 ```
 
-This will display a Trix editor that provides the functionality to create and update your rich text accordingly. Styling updates for the editor can be made in `actiontext.css`.
+This will display a Trix editor that provides the functionality to [create and update your rich text](action_text_overview.html#removing-or-adding-trix-styles) accordingly.
 
 Finally, to ensure that you can accept updates from the editor, you will need to permit the referenced attribute as a parameter in the relevant controller:
 
@@ -115,15 +115,15 @@ NOTE: If there's an attached resource within `content` field, it might not show 
 
 ## Customizing the Rich Text Content Editor (Trix)
 
-There may be times when you want to update the presentation of the editor to meet your stylistic requirements, this section provides guidance on how to do that.
+There may be times when you want to update the presentation of the editor to meet your stylistic requirements, this section guides on how to do that.
 
 ### Removing or Adding Trix Styles
 
 By default, Action Text will render rich text content inside an element with the `.trix-content` class. This is set in `app/views/layouts/action_text/contents/_content.html.erb`.  Elements with this class are then styled by the trix stylesheet.
 
-If you’d like to update any of the trix styles, you can add your own custom styles in `app/assets/stylesheets/actiontext.css`.
+If you’d like to update any of the trix styles, you can add your custom styles in `app/assets/stylesheets/actiontext.css`.
 
-However, if you’d prefer to provide your own styles instead of using the trix stylesheet, you can remove trix from the pre-processor directives in the `app/assets/stylesheets/actiontext.css` file by deleting the following:
+However, if you’d prefer to provide your styles instead of using the trix stylesheet, you can remove trix from the pre-processor directives in the `app/assets/stylesheets/actiontext.css` file by deleting the following:
 
 ```css
 = require trix
@@ -197,7 +197,7 @@ An Action Text Attachment can look like this:
 
 Action Text renders embedded `<action-text-attachment>` elements by resolving their sgid attribute of the element into an instance. Once resolved, that instance is passed along to a render helper. As a result, the HTML is embedded as a descendant of the `<action-text-attachment>` element.
 
-In order to be rendered within Action Text `<action-text-attachment>` element as an attachment, we must include the `ActionText::Attachable` module `implement #to_sgid(**options)` (made available through the `GlobalID::Identification` concern).
+To be rendered within Action Text `<action-text-attachment>` element as an attachment, we must include the `ActionText::Attachable` module `implement #to_sgid(**options)` (made available through the `GlobalID::Identification` concern).
 
 It can also optionally declare `#to_attachable_partial_path` to render a custom partial path and `#to_missing_attachable_partial_path` for handling missing records.
 
