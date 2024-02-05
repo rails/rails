@@ -270,7 +270,7 @@ Then declare that partial. The User instance will be available as the user parti
 <span><%= image_tag user.avatar %> <%= user.name %></span>
 ```
 
-### Rendering a partial for an unresolved instance or missing action-text-attachment
+### Rendering a Partial for an Unresolved Instance or Missing action-text-attachment
 
 If Action Text is unable to resolve the User instance (for example, if the record has been deleted), then a default fallback partial will be rendered.
 
