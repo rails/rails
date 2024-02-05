@@ -32,8 +32,17 @@ Action Mailbox has a few moving parts. First you'll run the Action Mailbox insta
 
 To start let's install Action Mailbox:
 
-1. `bin/rails action_mailbox:install` - this will create an `application_mailbox.rb` file and copy over migrations.
-2. `bin/rails db:migrate` - this will run the Action Mailbox and Active Storage migrations.
+```bash
+$ bin/rails action_mailbox:install
+```
+
+This will create an `application_mailbox.rb` file and copy over migrations.
+
+```bash
+$ bin/rails db:migrate
+```
+
+This will run the Action Mailbox and Active Storage migrations.
 
 The Action Mailbox table `action_mailbox_inbound_emails` stores incoming messages and their processing 'status'.
 
