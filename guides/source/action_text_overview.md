@@ -293,7 +293,7 @@ Then declare that partial.
 <span>Deleted user</span>
 ```
 
-### An attachable via an API
+### Attachable via API
 
 If your architecture does not follow the traditional Rails server side rendered pattern, then you may perhaps find yourself with a backend API (for example, using JSON) that will need a separate endpoint for uploading files. The endpoint will be required to create an `ActiveStorage::Blob` and return its `attachable_sgid`:
 
