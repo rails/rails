@@ -179,7 +179,7 @@ In addition to attachments uploaded through Active Storage, Action Text can also
 
 A Global ID is an app wide URI that uniquely identifies a model instance: `gid://YourApp/Some::Model/id`. This is helpful when you need a single identifier to reference different classes of objects.
 
-When using this method, ActionText requires attachments to have a signed global ID (sgid). By default, all ActiveRecord models in a Rails app mix-in `GlobalID::Identification` concern. So they can be resolved by a signed global ID and are therefore `ActionText::Attachable` compatible.
+When using this method, Action Text requires attachments to have a signed global ID (sgid). By default, all Active Record models in a Rails app mix-in the `GlobalID::Identification` concern, so they can be resolved by a signed global ID and are therefore `ActionText::Attachable` compatible.
 
 Action Text minifies the HTML you insert on save, so that it can re-render it with up-to-date content later on. This makes it so that you can reference models and always display the current content when those records change.
 
