@@ -183,7 +183,7 @@ When using this method, Action Text requires attachments to have a signed global
 
 Action Text minifies the HTML you insert on save, so that it can re-render it with up-to-date content later on. This makes it so that you can reference models and always display the current content when those records change.
 
-ActionText will load up the model from the global id and then will render it with the default partial path when you render the content.
+Action Text will load up the model from the global id and then will render it with the default partial path when you render the content.
 
 An Action Text Attachment can look like this:
 
