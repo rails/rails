@@ -174,7 +174,7 @@ notify_job = NotifyGuestsJob.new(guest)
 ApplicationJob.perform_all_later(cleanup_job, export_job, notify_job)
 ```
 
-#### Callbacks
+#### Bulk Enqueue Callbacks
 
 Note that `perform_all_later` does not trigger callbacks on the individual jobs. This is inline with other ActiveRecord bulk methods. Since callbacks run on individual jobs, they can't take advantage of the bulk nature of this method. Also there isn't a meaningful semantic for something like `around_enqueue` callback.
 
