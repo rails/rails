@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-# Enable jemalloc for reduced memory usage and reduce latency.
+# Enable jemalloc for reduced memory usage and latency.
 if [ -f /usr/lib/*/libjemalloc.so.2 ]; then
   LD_PRELOAD="$(echo /usr/lib/*/libjemalloc.so.2) $LD_PRELOAD"
 fi
