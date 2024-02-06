@@ -55,6 +55,7 @@ module ActiveRecord
                     @pools[frequency].each do |p|
                       p.reap
                       p.flush
+                      p.ensure_minimum_connections
                     rescue WeakRef::RefError
                     end
 

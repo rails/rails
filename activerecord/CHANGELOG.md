@@ -1,3 +1,9 @@
+*   Add an option to `ActiveRecord::ConnectionAdapters::ConnectionPool` and
+    `ActiveRecord::DatabaseConfigurations::HashConfig` to specify a minimum number
+    of connections to keep alive in the database connection pool.
+
+    *Chris AtLee*
+
 *   Support `:source_location` tag option for query log tags
 
     ```ruby

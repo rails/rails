@@ -276,6 +276,51 @@ module ActiveRecord
         assert_equal 0, @pool.connections.length
       end
 
+      def test_min_size_configuration
+        @pool.disconnect!
+
+        config = @db_config.configuration_hash.merge(min_size: 1)
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.name, config)
+
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :writing, :default)
+        @pool = ConnectionPool.new(pool_config)
+
+        @pool.flush
+        assert_equal 1, @pool.connections.length
+      end
+
+      def test_idle_timeout_configuration_with_min_size
+        @pool.disconnect!
+
+        config = @db_config.configuration_hash.merge(idle_timeout: "0.02", min_size: 1)
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.name, config)
+
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :writing, :default)
+        @pool = ConnectionPool.new(pool_config)
+        connections = 2.times.map { @pool.checkout }
+        connections.each { |conn| @pool.checkin(conn) }
+
+        connections.each do |conn|
+          conn.instance_variable_set(
+            :@idle_since,
+            Process.clock_gettime(Process::CLOCK_MONOTONIC) - 0.01
+          )
+        end
+
+        @pool.flush
+        assert_equal 2, @pool.connections.length
+
+        connections.each do |conn|
+          conn.instance_variable_set(
+            :@idle_since,
+            Process.clock_gettime(Process::CLOCK_MONOTONIC) - 0.02
+          )
+        end
+
+        @pool.flush
+        assert_equal 1, @pool.connections.length
+      end
+
       def test_disable_flush
         @pool.disconnect!
 

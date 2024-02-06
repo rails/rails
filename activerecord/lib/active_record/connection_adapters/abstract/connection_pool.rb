@@ -117,7 +117,7 @@ module ActiveRecord
       include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout
-      attr_reader :db_config, :max_size, :reaper, :pool_config, :async_executor, :role, :shard
+      attr_reader :db_config, :max_size, :min_size, :reaper, :pool_config, :async_executor, :role, :shard
       alias :size :max_size
 
       delegate :schema_reflection, :schema_reflection=, :server_version, to: :pool_config
@@ -139,6 +139,7 @@ module ActiveRecord
         @checkout_timeout = db_config.checkout_timeout
         @idle_timeout = db_config.idle_timeout
         @max_size = db_config.pool
+        @min_size = db_config.min_size
 
         # This variable tracks the cache of threads mapped to reserved connections, with the
         # sole purpose of speeding up the +connection+ method. It is not the authoritative
@@ -170,6 +171,10 @@ module ActiveRecord
 
         @reaper = Reaper.new(self, db_config.reaping_frequency)
         @reaper.run
+
+        if @min_size > 0
+          ensure_minimum_connections
+        end
       end
 
       def lock_thread=(lock_thread)
@@ -448,9 +453,24 @@ module ActiveRecord
 
         idle_connections = synchronize do
           return if self.discarded?
-          @connections.select do |conn|
+
+          to_close = @connections.select do |conn|
             !conn.in_use? && conn.seconds_idle >= minimum_idle
-          end.each do |conn|
+          end.sort_by { |conn| -conn.seconds_idle } # sort by longest idle first
+
+          # Ensure that we have at least @min_size connections available.
+          # If the pool is at capacity, then we will remove the longest-idle
+          # connections until @min_size is reached.
+
+          # we're going to remove to_close.size connections, leaving us with connections.size - to_close.size
+          # connections. If that number is less than @min_size, then we need reduce to_close by
+          # to_close.size - (@min_size - connections.size)
+          if @connections.size - to_close.size < @min_size
+            n = (@min_size - (@connections.size - to_close.size))
+            to_close = to_close[n..] || []
+          end
+
+          to_close.each do |conn|
             conn.lease
 
             @available.delete conn
@@ -468,6 +488,26 @@ module ActiveRecord
       def flush!
         reap
         flush(-1)
+      end
+
+      # Ensure that we have a minimum number of connections established.
+      def ensure_minimum_connections
+        return if @connections.size >= @min_size
+
+        new_count = @min_size - @connections.size
+        new_conns = []
+
+        begin
+          new_count.times do
+            conn = checkout
+            new_conns << conn
+            conn.connect!
+          end
+        ensure
+          new_conns.each do |conn|
+            checkin(conn)
+          end
+        end
       end
 
       def num_waiting_in_queue # :nodoc:

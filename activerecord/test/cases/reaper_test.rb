@@ -29,6 +29,9 @@ module ActiveRecord
         def discarded?
           @discarded
         end
+
+        def ensure_minimum_connections
+        end
       end
 
       # A reaper with nil time should never reap connections
