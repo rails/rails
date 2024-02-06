@@ -146,9 +146,9 @@ ActiveJob.perform_all_later(guest_cleanup_jobs)
 
 `perform_all_later` logs the number of jobs successfully enqueued, something like `Enqueued 3 jobs to Async (3 GuestsCleanupJob)` if it was called with `ActiveJob.perform_all_later(job1, job2, job3)`.
 
-The return value of `perform_all_later` is `nil`. Note that this is different from `perform_later`. This may be enhanced to return the number of successfully enqueued job in the future, but for now it's `nil`.
+The return value of `perform_all_later` is `nil`. Note that this is different from `perform_later`, which returns the instance of the queued job class.
 
-#### Enqueue Multiple ActiveJob Classes
+#### Enqueue Multiple Active Job Classes
 
 With `perform_all_later` it's also possible to enqueue different ActiveJob class instances in the same call. For example
 
