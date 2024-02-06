@@ -159,7 +159,6 @@ GEM
     base64 (0.2.0)
     bcrypt (3.1.20)
     beaneater (1.1.3)
-    benchmark-ips (2.13.0)
     bigdecimal (3.1.5)
     bindex (0.8.1)
     bootsnap (1.17.0)
@@ -596,7 +595,6 @@ DEPENDENCIES
   azure-storage-blob (~> 2.0)
   backburner
   bcrypt (~> 3.1.11)
-  benchmark-ips
   bootsnap (>= 1.4.4)
   brakeman
   capybara (>= 3.39)
