@@ -159,7 +159,8 @@ To customize the HTML rendered for embedded images and other attachments (known 
       <span class="attachment__name"><%= blob.filename %></span>
       <span class="attachment__size"><%= number_to_human_size blob.byte_size %></span>
     <% end %>
-  </figcapt
+  </figcaption>
+</figure>
 ```
 
 ## Attachments
