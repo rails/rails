@@ -165,7 +165,7 @@ To customize the HTML rendered for embedded images and other attachments (known 
 
 ## Attachments
 
-Currently Action Text supports attachments that are uploaded through Active Storage as well as attachments that are linked to a Signed GlobalId.
+Currently, Action Text supports attachments that are uploaded through Active Storage as well as attachments that are linked to a Signed GlobalId.
 
 ### Active Storage
 
