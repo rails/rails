@@ -35,7 +35,7 @@ $ bin/rails action_text:install
 
 It will do the following:
 
-- Installs the Yarn packages for `trix` and `@rails/actiontext` and adds them to the `application.js`.
+- Installs the JavaScript packages for `trix` and `@rails/actiontext` and adds them to the `application.js`.
 - Adds the `image_processing` gem for analysis and transformations of the embedded images and other attachments with Active Storage. Please refer to the [Active Storage Overview](active_storage_overview.html) guide for more information about it.
 - Adds migrations to create the following tables that store rich text content and attachments: `action_text_rich_texts`, `active_storage_blobs`, `active_storage_attachments`, `active_storage_variant_records`.
 - Creates `actiontext.css` and imports it into `application.css`. The Trix stylesheet is also included in the `application.css` file.
@@ -64,19 +64,19 @@ This section explores some of the configurations you'll need to follow to create
 The RichText record holds the content produced by the Trix editor in a serialized `body` attribute. It also holds all the references to the embedded files, which are stored using Active Storage. This record is then associated with the Active Record model which desires to have rich text content. The association is made by placing the `has_rich_text` class method in the model that you’d like to add rich text to.
 
 ```ruby
-# app/models/blog.rb
-class Blog < ApplicationRecord
+# app/models/article.rb
+class Article < ApplicationRecord
   has_rich_text :content
 end
 ```
 
-NOTE: There's no need to add the `content` column to your Blog table. `has_rich_text` associates the content with the `action_text_rich_texts` table that has been created, and links it back to your model. You also may choose to name the attribute to be something different from `content`.
+NOTE: There's no need to add the `content` column to your Article table. `has_rich_text` associates the content with the `action_text_rich_texts` table that has been created, and links it back to your model. You also may choose to name the attribute to be something different from `content`.
 
 Once you have added the `has_rich_text` class method to the model, you can then update your views to make use of the rich text editor (Trix) for that field. To do so, use a [`rich_text_area`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-rich_text_area) for the form field.
 
 ```html+erb
-<%# app/views/blogs/_form.html.erb %>
-<%= form_with model: blog do |form| %>
+<%# app/views/articles/_form.html.erb %>
+<%= form_with model: article do |form| %>
   <div class="field">
     <%= form.label :content %>
     <%= form.rich_text_area :content %>
@@ -89,10 +89,10 @@ This will display a Trix editor that provides the functionality to [create and u
 Finally, to ensure that you can accept updates from the editor, you will need to permit the referenced attribute as a parameter in the relevant controller:
 
 ```ruby
-class BlogsController < ApplicationController
+class ArticlesController < ApplicationController
   def create
-    blog = Blog.create! params.require(:blog).permit(:title, :content)
-    redirect_to blog
+    article = Article.create! params.require(:article).permit(:title, :content)
+    redirect_to article
   end
 end
 ```
@@ -106,7 +106,7 @@ Since Action Text depends on polymorphic associations, which, in turn, involve s
 Instances of `ActionText::RichText` can be directly embedded into a page because they have already sanitized their content for a safe render. You can display the content as follows:
 
 ```erb
-<%= @blog.content %>
+<%= @article.content %>
 ```
 
 `ActionText::RichText#to_s` safely transforms RichText into an HTML String. On the other hand `ActionText::RichText#to_plain_text` returns a string that is not HTML safe and should not be rendered in browsers. You can learn more about Action Text's sanitization process in the [documentation](https://api.rubyonrails.org/classes/ActionText/RichText.html) for the `ActionText::RichText` class.
@@ -315,7 +315,7 @@ Thereafter, you can take the `attachable_sgid` and insert it in rich text conten
 If you wish to preload the dependent `ActionText::RichText` model, assuming your rich text field is named `content`, you can use the named scope:
 
 ```ruby
-Blog.all.with_rich_text_content # Preload the body without attachments.
-Blog.all.with_rich_text_content_and_embeds # Preload both body and attachments.
+Article.all.with_rich_text_content # Preload the body without attachments.
+Article.all.with_rich_text_content_and_embeds # Preload both body and attachments.
 ```
 
