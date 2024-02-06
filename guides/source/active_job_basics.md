@@ -124,6 +124,9 @@ GuestsCleanupJob.perform_later(guest1, guest2, filter: 'some_filter')
 
 That's it!
 
+[`perform_later`]: https://api.rubyonrails.org/classes/ActiveJob/Enqueuing/ClassMethods.html#method-i-perform_later
+[`set`]: https://api.rubyonrails.org/classes/ActiveJob/Core/ClassMethods.html#method-i-set
+
 ### Bulk Enqueuing
 
 You can Enqueue multiple jobs at once using [`perform_all_later`](https://api.rubyonrails.org/v7.1.3/classes/ActiveJob.html#method-c-perform_all_later). Bulk Enqueuing reduces the number of round trips to a queue data store like Redis.
@@ -182,9 +185,6 @@ For `perform_all_later`, bulk enqueuing needs to be backed by the queue backend.
 For example Sidekiq has a `push_bulk` method, which can push a large number of jobs to Redis and prevent the round trip network latency. GoodJob also supports bulk enqueuing with `GoodJob::Bulk.enqueue` method. The new queue backend [`Solid Queue`](https://github.com/basecamp/solid_queue/pull/93) has added support for bulk enqueuing as well.
 
 If the queue backend does *not* support bulk enqueuing, `perform_all_later` will enqueue jobs one by one.
-
-[`perform_later`]: https://api.rubyonrails.org/classes/ActiveJob/Enqueuing/ClassMethods.html#method-i-perform_later
-[`set`]: https://api.rubyonrails.org/classes/ActiveJob/Core/ClassMethods.html#method-i-set
 
 Job Execution
 -------------
