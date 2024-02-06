@@ -139,7 +139,7 @@ module ActiveRecord
 
       def test_full_pool_blocking_shares_load_interlock
         skip_fiber_testing
-        @pool.instance_variable_set(:@size, 1)
+        @pool.instance_variable_set(:@max_size, 1)
 
         load_interlock_latch = Concurrent::CountDownLatch.new
         connection_latch = Concurrent::CountDownLatch.new
@@ -416,7 +416,7 @@ module ActiveRecord
       def test_checkout_fairness
         skip_fiber_testing
 
-        @pool.instance_variable_set(:@size, 10)
+        @pool.instance_variable_set(:@max_size, 10)
         expected = (1..@pool.size).to_a.freeze
         # check out all connections so our threads start out waiting
         conns = expected.map { @pool.checkout }
@@ -463,7 +463,7 @@ module ActiveRecord
       def test_checkout_fairness_by_group
         skip_fiber_testing
 
-        @pool.instance_variable_set(:@size, 10)
+        @pool.instance_variable_set(:@max_size, 10)
         # take all the connections
         conns = (1..10).map { @pool.checkout }
         mutex = Mutex.new

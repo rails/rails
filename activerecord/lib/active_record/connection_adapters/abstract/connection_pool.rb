@@ -117,7 +117,8 @@ module ActiveRecord
       include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout
-      attr_reader :db_config, :size, :reaper, :pool_config, :async_executor, :role, :shard
+      attr_reader :db_config, :max_size, :reaper, :pool_config, :async_executor, :role, :shard
+      alias :size :max_size
 
       delegate :schema_reflection, :schema_reflection=, :server_version, to: :pool_config
 
@@ -137,7 +138,7 @@ module ActiveRecord
 
         @checkout_timeout = db_config.checkout_timeout
         @idle_timeout = db_config.idle_timeout
-        @size = db_config.pool
+        @max_size = db_config.pool
 
         # This variable tracks the cache of threads mapped to reserved connections, with the
         # sole purpose of speeding up the +connection+ method. It is not the authoritative
@@ -149,7 +150,7 @@ module ActiveRecord
         # that case +conn.owner+ attr should be consulted.
         # Access and modification of <tt>@thread_cached_conns</tt> does not require
         # synchronization.
-        @thread_cached_conns = Concurrent::Map.new(initial_capacity: @size)
+        @thread_cached_conns = Concurrent::Map.new(initial_capacity: @max_size)
 
         @connections         = []
         @automatic_reconnect = true
@@ -397,7 +398,7 @@ module ActiveRecord
           @available.delete conn
 
           # @available.any_waiting? => true means that prior to removing this
-          # conn, the pool was at its max size (@connections.size == @size).
+          # conn, the pool was at its max size (@connections.size == @max_size).
           # This would mean that any threads stuck waiting in the queue wouldn't
           # know they could checkout_new_connection, so let's do it for them.
           # Because condition-wait loop is encapsulated in the Queue class
@@ -412,7 +413,7 @@ module ActiveRecord
         # would like not to hold the main mutex while checking out new connections.
         # Thus there is some chance that needs_new_connection information is now
         # stale, we can live with that (bulk_make_new_connections will make
-        # sure not to exceed the pool's @size limit).
+        # sure not to exceed the pool's @max_size limit).
         bulk_make_new_connections(1) if needs_new_connection
       end
 
@@ -516,7 +517,7 @@ module ActiveRecord
         # this is unfortunately not concurrent
         def bulk_make_new_connections(num_new_conns_needed)
           num_new_conns_needed.times do
-            # try_to_checkout_new_connection will not exceed pool's @size limit
+            # try_to_checkout_new_connection will not exceed pool's @max_size limit
             if new_conn = try_to_checkout_new_connection
               # make the new_conn available to the starving threads stuck @available Queue
               checkin(new_conn)
@@ -692,17 +693,17 @@ module ActiveRecord
           raise ex.set_pool(self)
         end
 
-        # If the pool is not at a <tt>@size</tt> limit, establish new connection. Connecting
+        # If the pool is not at a <tt>@max_size</tt> limit, establish new connection. Connecting
         # to the DB is done outside main synchronized section.
         #--
         # Implementation constraint: a newly established connection returned by this
         # method must be in the +.leased+ state.
         def try_to_checkout_new_connection
           # first in synchronized section check if establishing new conns is allowed
-          # and increment @now_connecting, to prevent overstepping this pool's @size
+          # and increment @now_connecting, to prevent overstepping this pool's @max_size
           # constraint
           do_checkout = synchronize do
-            if @threads_blocking_new_connections.zero? && (@connections.size + @now_connecting) < @size
+            if @threads_blocking_new_connections.zero? && (@connections.size + @now_connecting) < @max_size
               @now_connecting += 1
             end
           end
