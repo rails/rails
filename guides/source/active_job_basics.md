@@ -126,7 +126,7 @@ That's it!
 
 ### Bulk Enqueuing
 
-You can Enqueue multiple jobs at once using [`perform_all_later`][]. Bulk Enqueuing reduces the number of round trips to a queue data store like Redis.
+You can Enqueue multiple jobs at once using [`perform_all_later`](https://api.rubyonrails.org/v7.1.3/classes/ActiveJob.html#method-c-perform_all_later). Bulk Enqueuing reduces the number of round trips to a queue data store like Redis.
 
 `perform_all_later` is a top-level api on ActiveJob. It accepts instantiated jobs as arguments (note that this is different from `perform_later`). `perform_all_later` does call `perform` under the hood. The arguments passed to `new` will be passed on to `perform` when it's eventually called.
 
@@ -141,13 +141,13 @@ guest_cleanup_jobs = User.pluck(:id).map { |id| GuestsCleanupJob.new(guest_id: i
 ActiveJob.perform_all_later(guest_cleanup_jobs)
 ```
 
-`perform_all_later` logs the number of jobs successfully enqueued, something like `Enqueued 3 jobs to Async (3 GuestsCleanupJob)` if it was called with `ActiveJob.perform_all_later(job1, job2, job3)`. 
+`perform_all_later` logs the number of jobs successfully enqueued, something like `Enqueued 3 jobs to Async (3 GuestsCleanupJob)` if it was called with `ActiveJob.perform_all_later(job1, job2, job3)`.
 
 The return value of `perform_all_later` is `nil`. Note that this is different from `perform_later`. This may be enhanced to return the number of successfully enqueued job in the future, but for now it's `nil`.
 
 #### Enqueue Multiple ActiveJob Classes
 
-With `perform_all_later` it's also possible to enqueue different ActiveJob class instances in the same call. For example 
+With `perform_all_later` it's also possible to enqueue different ActiveJob class instances in the same call. For example
 
 ```ruby
 class ExportDataJob < ApplicationJob
@@ -167,9 +167,10 @@ cleanup_job = GuestsCleanupJob.new(guest)
 export_job = ExportDataJob.new(data)
 notify_job = NotifyGuestsJob.new(guest)
 
-# Enqueues job instances from multiple classes at once 
+# Enqueues job instances from multiple classes at once
 ApplicationJob.perform_all_later(cleanup_job, export_job, notify_job)
 ```
+
 #### Callbacks
 
 Note that `perform_all_later` does not trigger callbacks on the individual jobs. This is inline with other ActiveRecord bulk methods. Since callbacks run on individual jobs, they can't take advantage of the bulk nature of this method. Also there isn't a meaningful semantic for something like `around_enqueue` callback.
@@ -178,14 +179,12 @@ Note that `perform_all_later` does not trigger callbacks on the individual jobs.
 
 For `perform_all_later`, bulk enqueuing needs to be backed by the queue backend.
 
-For example Sidekiq has a `push_bulk` method, which can push a large number of jobs to Redis and prevent the round trip network latency. GoodJob also supports bulk enqueuing with `GoodJob::Bulk.enqueue` method. The new queue backend [`Solid Queue`][] has added support for bulk enqueuing as well.
+For example Sidekiq has a `push_bulk` method, which can push a large number of jobs to Redis and prevent the round trip network latency. GoodJob also supports bulk enqueuing with `GoodJob::Bulk.enqueue` method. The new queue backend [`Solid Queue`](https://github.com/basecamp/solid_queue/pull/93) has added support for bulk enqueuing as well.
 
 If the queue backend does *not* support bulk enqueuing, `perform_all_later` will enqueue jobs one by one.
 
 [`perform_later`]: https://api.rubyonrails.org/classes/ActiveJob/Enqueuing/ClassMethods.html#method-i-perform_later
 [`set`]: https://api.rubyonrails.org/classes/ActiveJob/Core/ClassMethods.html#method-i-set
-[`perform_all_later`]: https://api.rubyonrails.org/v7.1.3/classes/ActiveJob.html#method-c-perform_all_later
-[`Solid Queue`]: https://github.com/basecamp/solid_queue/pull/93
 
 Job Execution
 -------------
@@ -470,9 +469,9 @@ end
 
 When enqueueing jobs in bulk using `perform_all_later`, callbacks such as `around_enqueue`, will not be triggered on the individual jobs.
 
- However, the `perform_all_later` method does fire an [`enqueue_all.active_job`][] event which you can subscribe to using `ActiveSupport::Notifications`. 
+ However, the `perform_all_later` method does fire an [`enqueue_all.active_job`](active_support_instrumentation.html#enqueue-all-active-job) event which you can subscribe to using `ActiveSupport::Notifications`.
 
-The event payload contains the adapter name, enqueued jobs count, the list of job instances, etc. `successfully_enqueued?` can be used to find out if a given job was successfully enqueued. 
+The event payload contains the adapter name, enqueued jobs count, the list of job instances, etc. `successfully_enqueued?` can be used to find out if a given job was successfully enqueued.
 
 ```ruby
 ActiveSupport::Notifications.subscribe "enqueue_all.active_job" do |event|
@@ -487,8 +486,6 @@ ActiveSupport::Notifications.subscribe "enqueue_all.active_job" do |event|
   Rails.logger.info "Any successfully enqueued jobs? #{jobs.any?(&:successfully_enqueued?)}"
 end
 ```
-
-[`enqueue_all.active_job`]: https://guides.rubyonrails.org/active_support_instrumentation.html#enqueue-all-active-job
 
 Action Mailer
 ------------
