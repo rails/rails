@@ -64,7 +64,12 @@ class ClientTest < ActionCable::TestCase
   def setup
     ActionCable.instance_variable_set(:@server, nil)
     server = ActionCable.server
-    server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
+    server.config.logger =
+      if %w[1 t true].include?(ENV["LOG"])
+        Logger.new($stdout).tap { |l| l.level = Logger::DEBUG }
+      else
+        Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
+      end
 
     server.config.cable = ActiveSupport::HashWithIndifferentAccess.new(adapter: "async")
     server.pubsub.define_singleton_method(:wait_subscribers) do |channel, count: nil, timeout: 2|
