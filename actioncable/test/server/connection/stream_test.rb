@@ -5,12 +5,23 @@ require "minitest/mock"
 require "stubs/test_server"
 
 class ActionCable::Server::Connection::StreamTest < ActionCable::TestCase
-  class Connection < ActionCable::Connection::Base
+  class Connection < ActionCable::Server::Connection
+    class Delegate
+      def initialize(conn)
+        @conn = conn
+      end
+
+      def handle_open = @conn.connect
+
+      def handle_close = @conn.disconnect
+    end
+
     attr_reader :connected, :websocket, :errors
 
     def initialize(*)
       super
       @errors = []
+      @app_conn = Delegate.new(self)
     end
 
     def connect
@@ -19,10 +30,6 @@ class ActionCable::Server::Connection::StreamTest < ActionCable::TestCase
 
     def disconnect
       @connected = false
-    end
-
-    def send_async(method, *args)
-      send method, *args
     end
 
     def on_error(message)

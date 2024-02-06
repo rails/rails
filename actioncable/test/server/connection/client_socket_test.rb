@@ -4,12 +4,23 @@ require "test_helper"
 require "stubs/test_server"
 
 class ActionCable::Server::Connection::ClientSocketTest < ActionCable::TestCase
-  class Connection < ActionCable::Connection::Base
+  class Connection < ActionCable::Server::Connection
+    class Delegate
+      def initialize(conn)
+        @conn = conn
+      end
+
+      def handle_open = @conn.connect
+
+      def handle_close = @conn.disconnect
+    end
+
     attr_reader :connected, :websocket, :errors
 
     def initialize(*)
       super
       @errors = []
+      @app_conn = Delegate.new(self)
     end
 
     def connect
@@ -18,10 +29,6 @@ class ActionCable::Server::Connection::ClientSocketTest < ActionCable::TestCase
 
     def disconnect
       @connected = false
-    end
-
-    def send_async(method, *args)
-      send method, *args
     end
 
     def on_error(message)
@@ -58,7 +65,7 @@ class ActionCable::Server::Connection::ClientSocketTest < ActionCable::TestCase
       client.instance_variable_get("@stream")
         .instance_variable_get("@rack_hijack_io")
         .define_singleton_method(:close) { event.set }
-      connection.close(reason: "testing")
+      connection.close
       event.wait
     end
   end

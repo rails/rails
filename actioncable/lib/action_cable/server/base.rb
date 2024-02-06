@@ -9,7 +9,7 @@ module ActionCable
     # A wrapper over ConcurrentRuby::ThreadPoolExecutor and Concurrent::TimerTask
     class ThreadedExecutor # :nodoc:
       def initialize(max_size: 10)
-        @executor ||= Concurrent::ThreadPoolExecutor.new(
+        @executor = Concurrent::ThreadPoolExecutor.new(
           name: "ActionCable server",
           min_threads: 1,
           max_threads: max_size,
@@ -61,7 +61,7 @@ module ActionCable
       def call(env)
         return config.health_check_application.call(env) if env["PATH_INFO"] == config.health_check_path
         setup_heartbeat_timer
-        config.connection_class.call.new(self, env).process
+        Connection.new(self, env).process
       end
 
       # Disconnect all the connections identified by `identifiers` on this server or
