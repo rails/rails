@@ -126,6 +126,7 @@ module ActiveRecord
         @config[:strict] = ConnectionAdapters::SQLite3Adapter.strict_strings_by_default unless @config.key?(:strict)
         @connection_parameters = @config.merge(database: @config[:database].to_s, results_as_hash: true)
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
+        @transaction_mode = nil
       end
 
       def database_exists?
@@ -444,6 +445,18 @@ module ActiveRecord
         if database_version < "3.8.0"
           raise "Your version of SQLite (#{database_version}) is too old. Active Record supports SQLite >= 3.8."
         end
+      end
+
+      def use_deferred_transaction_mode!
+        @transaction_mode = :deferred
+      end
+
+      def use_immediate_transaction_mode!
+        @transaction_mode = :immediate
+      end
+
+      def use_default_transaction_mode!
+        @transaction_mode = nil
       end
 
       class SQLite3Integer < Type::Integer # :nodoc:

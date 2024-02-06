@@ -1,3 +1,9 @@
+*   Ensure SQLite transaction default to IMMEDIATE mode for write operations
+
+    Since Rails applications typically run in a multi-threaded environment, write operations should use SQLite's IMMEDIATE transaction mode to prevent busy exceptions that occur when the default DEFERRED transaction attempts to acquire the database's write lock.
+
+    *Stephen Margheim*
+
 *   Add an option to `ActiveRecord::Encryption::Encryptor` to disable compression
 
     Allow compression to be disabled by setting `compress: false`
