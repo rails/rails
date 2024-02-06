@@ -342,7 +342,7 @@ If the email is marked either `delivered`, `failed`, or `bounced` it's considere
 
 Here is an example of an Action Mailbox that processes emails to create 'forwards' for the user's project.
 
-The `before_processing` callback is used to ensure that certain conditions are met before `process` method is called. In this case, `before_processing` checks that the user has at least on project. Other supported [Action Mailbox callbacks](https://api.rubyonrails.org/classes/ActionMailbox/Callbacks.html) are `after_processing` and `around_processing`.
+The `before_processing` callback is used to ensure that certain conditions are met before `process` method is called. In this case, `before_processing` checks that the user has at least one project. Other supported [Action Mailbox callbacks](https://api.rubyonrails.org/classes/ActionMailbox/Callbacks.html) are `after_processing` and `around_processing`.
 
 The email can be bounced using `bounced_with` if the 'forwarder' has no projects. The 'forwarder' is a `User` with the same email as `mail.from`.
 
