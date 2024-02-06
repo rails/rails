@@ -156,12 +156,12 @@ platforms :ruby, :windows do
   gem "racc", ">=1.4.6", require: false
 
   # Active Record.
-  gem "sqlite3", "~> 1.6", ">= 1.6.6"
+  gem "sqlite3", "~> 1.6", ">= 1.6.6" #
 
   group :db do
     gem "pg", "~> 1.3"
-    gem "mysql2", "~> 0.5"
-    gem "trilogy", ">= 2.7.0"
+    # gem "mysql2", "~> 0.5"
+    # gem "trilogy", ">= 2.7.0"
   end
 end
 

@@ -45,13 +45,31 @@ module ActiveRecord
     # The regular {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] method is replaced
     # with this when the validations module is mixed in, which it is by default.
     def save(**options)
-      perform_validations(options) ? super : false
+      debug_stopwatch("#{self.class.name}#{self.object_id}.save") do
+        if perform_validations(options)
+          @memory = options[:memory] || {}
+          @memory["saved#{self.object_id}"] = true
+          @memory[self.object_id] = false
+          super
+        else
+          false
+        end
+      end
     end
 
     # Attempts to save the record just like {ActiveRecord::Base#save}[rdoc-ref:Base#save] but
     # will raise an ActiveRecord::RecordInvalid exception instead of returning +false+ if the record is not valid.
     def save!(**options)
-      perform_validations(options) ? super : raise_validation_error
+      debug_stopwatch("#{self.class.name}#{self.object_id}.save!") do
+        if perform_validations(options)
+          @memory = options[:memory] || {}
+          @memory["saved#{self.object_id}"] = true
+          @memory[self.object_id] = false
+          super
+        else
+          raise_validation_error
+        end
+      end
     end
 
     # Runs all the validations within the specified context. Returns +true+ if
@@ -66,10 +84,18 @@ module ActiveRecord
     #
     # \Validations with no <tt>:on</tt> option will run no matter the context. \Validations with
     # some <tt>:on</tt> option will only run in the specified context.
-    def valid?(context = nil)
+    def valid?(context = nil, memory = nil)
+    debug_stopwatch("#{self.class.name}#{self.object_id}.valid?") do
       context ||= default_validation_context
+      @memory = memory || {}
+      @memory["valid#{self.object_id}"] = true
+      @memory[self.object_id] = false
+      
+      # puts(memory ? "#{self.class.name}#{self.object_id} - VALID WITH MEMORY #{@memory.inspect}" : "#{self.class.name}#{self.object_id} - VALID  #{@memory.inspect}")
       output = super(context)
+      # puts "#{self.class.name}#{self.object_id} - #{errors.full_messages.inspect}"
       errors.empty? && output
+    end
     end
 
     alias_method :validate, :valid?

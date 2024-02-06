@@ -55,6 +55,11 @@ ActiveRecord::Schema.define do
     t.text :params
     t.references :account
   end
+  
+  create_table :mailing_addresses, force: true do |t|
+    t.string  :name
+    t.integer  :building_id
+  end
 
   create_table :aircraft, force: true do |t|
     t.string :name
@@ -185,6 +190,10 @@ ActiveRecord::Schema.define do
     t.string  :name
     t.boolean :frickinawesome, default: false
     t.string :color
+  end
+
+  create_table :buildings, force: true do |t|
+    t.string  :name
   end
 
   create_table "CamelCase", force: true do |t|
@@ -842,6 +851,20 @@ ActiveRecord::Schema.define do
     t.string      :name
   end
 
+  create_table :sales, force: true do |t|
+    t.string :message
+    t.integer :building_id
+  end
+
+  create_table :expenses, force: true do |t|
+    t.string :message
+    t.integer :building_id
+  end
+  create_table :listings, force: true do |t|
+    t.string :name
+    t.integer :building_id
+  end
+  
   create_table :notifications, force: true do |t|
     t.string :message
   end

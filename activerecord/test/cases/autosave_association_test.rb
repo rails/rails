@@ -40,6 +40,8 @@ require "models/chef"
 require "models/cake_designer"
 require "models/drink_designer"
 require "models/cpk"
+require "models/test_models"
+
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_works_even_when_other_callbacks_update_the_parent_model
@@ -165,6 +167,17 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
 
     assert_not_predicate ship, :valid?
     assert_equal 1, ship.errors[:name].length
+  end
+
+  def test_cyclic_autosaves_do_not_call_validation_and_save_on_the_same_model_multiple_times
+    expense = Expense.new(message: "Expense")
+    sale = Sale.new(message: "Sale")
+    building = Building.new(name: "Building A", expenses: [expense], sales: [sale])
+    listing = Listing.new(building: building)
+
+    assert_called(building, :save, nil, times: 1) do
+      listing.save
+    end
   end
 
   private

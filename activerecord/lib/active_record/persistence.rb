@@ -1217,7 +1217,7 @@ module ActiveRecord
       )
     end
 
-    def create_or_update(**, &block)
+    def create_or_update(**nparams, &block)
       _raise_readonly_record_error if readonly?
       return false if destroyed?
       result = new_record? ? _create_record(&block) : _update_record(&block)
