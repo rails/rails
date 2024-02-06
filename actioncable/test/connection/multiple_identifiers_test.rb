@@ -15,20 +15,17 @@ class ActionCable::Connection::MultipleIdentifiersTest < ActionCable::TestCase
   end
 
   test "multiple connection identifiers" do
-    run_in_eventmachine do
-      open_connection
+    open_connection
 
-      assert_equal "Room#my-room:User#lifo", @connection.connection_identifier
-    end
+    assert_equal "Room#my-room:User#lifo", @connection.connection_identifier
   end
 
   private
     def open_connection
       server = TestServer.new
       env = Rack::MockRequest.env_for "/test", "HTTP_HOST" => "localhost", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket"
-      @connection = Connection.new(server, env)
 
-      @connection.process
-      @connection.send :handle_open
+      @raw_conn = ActionCable::Server::Connection.new(server, env)
+      @connection = Connection.new(server, @raw_conn).tap(&:handle_open)
     end
 end

@@ -162,7 +162,7 @@ module ActionCable
           handler = stream_handler(broadcasting, user_handler, coder: coder)
 
           -> message do
-            connection.worker_pool.async_invoke handler, :call, message, connection: connection
+            connection.perform_work handler, :call, message
           end
         end
 
