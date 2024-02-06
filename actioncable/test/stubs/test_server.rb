@@ -22,7 +22,7 @@ class TestServer
   end
 
   def initialize(subscription_adapter: SuccessAdapter)
-    @logger = ActiveSupport::TaggedLogging.new ActiveSupport::Logger.new(StringIO.new)
+    @logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(%w[1 t true].include?(ENV["LOG"]) ? STDOUT : StringIO.new))
     @config = FakeConfiguration.new(subscription_adapter: subscription_adapter)
     @mutex = Monitor.new
   end
