@@ -148,7 +148,7 @@ ActiveJob.perform_all_later(guest_cleanup_jobs)
 
 The return value of `perform_all_later` is `nil`. Note that this is different from `perform_later`, which returns the instance of the queued job class.
 
-#### Enqueue Multiple ActiveJob Classes
+#### Enqueue Multiple Active Job Classes
 
 With `perform_all_later` it's also possible to enqueue different ActiveJob class instances in the same call. For example
 
