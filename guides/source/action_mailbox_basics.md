@@ -333,7 +333,7 @@ Once an email has been routed to a matching mailbox and processed, Action Mailbo
 - Pending: Just received by one of the ingress controllers and scheduled for routing.
 - Processing: During active processing, while a specific mailbox is running its `process` method.
 - Delivered: Successfully processed by the specific mailbox.
-- Failed: An exception was raised during the specific mailbox’s execution of the #process method.
+- Failed: An exception was raised during the specific mailbox’s execution of the `process` method.
 - Bounced: Rejected processing by the specific mailbox and bounced to sender.
 
 If the email is marked either `delivered`, `failed`, or `bounced` it's considered 'processed' and marked for [incineration](#incineration-of-inboundemails).
