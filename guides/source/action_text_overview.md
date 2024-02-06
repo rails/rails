@@ -244,6 +244,7 @@ In this case, the default partial path is the `users/user` partial:
 ```html+erb
 <%# app/views/users/_user.html.erb %>
 <span><%= image_tag user.avatar %> <%= user.name %></span>
+```
 
 Hence, the resulting HTML rendered by Action Text would look something like:
 
@@ -273,8 +274,6 @@ Then declare that partial. The User instance will be available as the user parti
 ### Rendering a Partial for an Unresolved Instance or Missing action-text-attachment
 
 If Action Text is unable to resolve the User instance (for example, if the record has been deleted), then a default fallback partial will be rendered.
-
-Rails provides a global partial for missing attachments. This partial is installed in your application at `views/action_text/attachables/missing_attachable` and can be modified if you want to render different HTML.
 
 To render a different missing attachment partial, define a class-level `to_missing_attachable_partial_path` method:
 
@@ -316,7 +315,7 @@ Thereafter, you can take the `attachable_sgid` and insert it in rich text conten
 If you wish to preload the dependent `ActionText::RichText` model, assuming your rich text field is named `content`, you can use the named scope:
 
 ```ruby
-Message.all.with_rich_text_content # Preload the body without attachments.
-Message.all.with_rich_text_content_and_embeds # Preload both body and attachments.
+Blog.all.with_rich_text_content # Preload the body without attachments.
+Blog.all.with_rich_text_content_and_embeds # Preload both body and attachments.
 ```
 
