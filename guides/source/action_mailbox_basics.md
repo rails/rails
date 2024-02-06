@@ -294,7 +294,7 @@ class ApplicationMailbox < ActionMailbox::Base
 end
 ```
 
-The regular expression matches the incoming email's `to`, `cc`, or `bcc` fields. For example, the above will match any email sent to `save@` to a 'forwards' mailbox. There are other ways to route an email, see [`ActionMailbox::Base API`](https://api.rubyonrails.org/classes/ActionMailbox/Base.html) for more.  
+The regular expression matches the incoming email's `to`, `cc`, or `bcc` fields. For example, the above will match any email sent to `save@` to a 'forwards' mailbox. There are other ways to route an email, see [`ActionMailbox::Base API`](https://api.rubyonrails.org/classes/ActionMailbox/Base.html) for more.
 
 We need to create that 'forwards' mailbox next.
 
