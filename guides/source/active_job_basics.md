@@ -129,9 +129,9 @@ That's it!
 
 ### Bulk Enqueuing
 
-You can Enqueue multiple jobs at once using [`perform_all_later`](https://api.rubyonrails.org/v7.1.3/classes/ActiveJob.html#method-c-perform_all_later). Bulk Enqueuing reduces the number of round trips to a queue data store like Redis.
+You can enqueue multiple jobs at once using [`perform_all_later`](https://api.rubyonrails.org/v7.1.3/classes/ActiveJob.html#method-c-perform_all_later). Bulk enqueuing reduces the number of round trips to a queue data store like Redis, making it a more performant operation than enqueueing the same jobs individually.
 
-`perform_all_later` is a top-level api on ActiveJob. It accepts instantiated jobs as arguments (note that this is different from `perform_later`). `perform_all_later` does call `perform` under the hood. The arguments passed to `new` will be passed on to `perform` when it's eventually called.
+`perform_all_later` is a top-level api on Active Job. It accepts instantiated jobs as arguments (note that this is different from `perform_later`). `perform_all_later` does call `perform` under the hood. The arguments passed to `new` will be passed on to `perform` when it's eventually called.
 
 Here is an example calling `perform_all_later` with `GuestCleanupJob` instances:
 
@@ -144,13 +144,13 @@ guest_cleanup_jobs = User.pluck(:id).map { |id| GuestsCleanupJob.new(guest_id: i
 ActiveJob.perform_all_later(guest_cleanup_jobs)
 ```
 
-`perform_all_later` logs the number of jobs successfully enqueued, something like `Enqueued 3 jobs to Async (3 GuestsCleanupJob)` if it was called with `ActiveJob.perform_all_later(job1, job2, job3)`.
+`perform_all_later` logs the number of jobs successfully enqueued, for example if `User.pluck(:id).map` above resulted in 3 `guest_cleanup_jobs`, it would log `Enqueued 3 jobs to Async (3 GuestsCleanupJob)` (assuming all were enqueued).
 
 The return value of `perform_all_later` is `nil`. Note that this is different from `perform_later`, which returns the instance of the queued job class.
 
 #### Enqueue Multiple Active Job Classes
 
-With `perform_all_later` it's also possible to enqueue different ActiveJob class instances in the same call. For example
+With `perform_all_later` it's also possible to enqueue different Active Job class instances in the same call. For example
 
 ```ruby
 class ExportDataJob < ApplicationJob
@@ -471,7 +471,7 @@ When enqueueing jobs in bulk using `perform_all_later`, callbacks such as `aroun
 
  However, the `perform_all_later` method does fire an [`enqueue_all.active_job`](active_support_instrumentation.html#enqueue-all-active-job) event which you can subscribe to using `ActiveSupport::Notifications`.
 
-The method `successfully_enqueued?` can be used to find out if a given job was successfully enqueued.
+The method [`successfully_enqueued?`](https://api.rubyonrails.org/classes/ActiveJob/Core.html#method-i-successfully_enqueued-3F) can be used to find out if a given job was successfully enqueued.
 
 Action Mailer
 ------------
