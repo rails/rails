@@ -28,7 +28,7 @@ Action Mailbox ships with ingresses which enable your application to receive ema
 
 ## Setup
 
-Action Mailbox has a few moving parts. First you'll run the Action Mailbox installer. Then configure a chosen ingress for handling incoming email. You're then ready to add Action Mailbox routing, create mailboxes and start processing incoming emails.
+Action Mailbox has a few moving parts. First you'll run the installer. Then configure a chosen ingress for handling incoming email. You're then ready to add Action Mailbox routing, create mailboxes and start processing incoming emails.
 
 To start let's install Action Mailbox:
 
