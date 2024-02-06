@@ -1,3 +1,19 @@
+*   Deprecate defining an `enum` with keyword arguments.
+
+    ```ruby
+    class Function > ApplicationRecord
+      # BAD
+      enum color: [:red, :blue],
+           type: [:instance, :class]
+
+      # GOOD
+      enum :color, [:red, :blue]
+      enum :type, [:instance, :class]
+    end
+    ```
+
+    *Hartley McGuire*
+
 *   Add `active_record.config.validate_migration_timestamps` option for validating migration timestamps.
 
     When set, validates that the timestamp prefix for a migration is no more than a day ahead of
