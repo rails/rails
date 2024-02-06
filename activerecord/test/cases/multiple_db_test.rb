@@ -14,6 +14,10 @@ class MultipleDbTest < ActiveRecord::TestCase
     @entrants = create_fixtures("entrants")
   end
 
+  def teardown
+    clean_up_connection_handler
+  end
+
   def test_connected
     assert_not_nil Entrant.connection
     assert_not_nil Course.connection
@@ -135,5 +139,42 @@ class MultipleDbTest < ActiveRecord::TestCase
     end
 
     assert_equal entrant_conn.pool, entrant_error.connection_pool
+  end
+
+  unless in_memory_db?
+    def test_exception_message_includes_connection_info
+      previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
+
+      config = {
+        "default_env" => {
+          "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+          "primary_shard_one" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one.sqlite3" }
+        }
+      }
+
+      prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+      ActiveRecord::Base.connects_to(shards: {
+        default: { writing: :primary },
+        shard_one: { writing: :primary_shard_one, reading: :primary_shard_one }
+      })
+
+      assert_raises(ActiveRecord::StatementInvalid, match: /Connection: ActiveRecord::Base\(role: reading, shard: shard_one, config name: primary_shard_one\)/) do
+        ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
+          ActiveRecord::Base.connection.execute("select * from nonexistent")
+        end
+      end
+    ensure
+      ActiveRecord::Base.configurations = prev_configs
+      ActiveRecord::Base.establish_connection(:arunit)
+      ENV["RAILS_ENV"] = previous_env
+    end
+
+    def test_exception_message_does_not_include_connection_info_for_single_database
+      error = assert_raises(ActiveRecord::StatementInvalid) do
+        ActiveRecord::Base.connection.execute("select * from nonexistent")
+      end
+      assert_no_match(/Connection: ActiveRecord::Base/, error.message)
+    end
   end
 end

@@ -59,10 +59,27 @@ module ActiveRecord
   class AdapterError < ActiveRecordError
     def initialize(message = nil, connection_pool: nil)
       @connection_pool = connection_pool
+
+      if message && connection_pool && multiple_databases?
+        message = "#{message}\n#{connection_info(connection_pool)}"
+      end
+
       super(message)
     end
 
     attr_reader :connection_pool
+
+    private
+      def multiple_databases?
+        current_environment = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+        db_configs = ActiveRecord::Base.configurations.configs_for(env_name: current_environment)
+        db_configs.size > 1
+      end
+
+      def connection_info(connection_pool)
+        "Connection: #{connection_pool.pool_config.connection_name}"\
+          "(role: #{connection_pool.role}, shard: #{connection_pool.shard}, config name: #{connection_pool.db_config.name})"
+      end
   end
 
   # Raised when connection to the database could not been established (for example when

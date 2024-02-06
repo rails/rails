@@ -1,3 +1,10 @@
+*   Include connection details into the exception messages raised by adapters.
+
+    This provides additional context such as the connection used that led to the exception as well
+    as which role and shard.
+
+    *fatkodima*
+
 *   Add an option to `ActiveRecord::Encryption::Encryptor` to disable compression
 
     Allow compression to be disabled by setting `compress: false`
