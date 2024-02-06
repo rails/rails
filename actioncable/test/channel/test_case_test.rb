@@ -46,13 +46,18 @@ class SubscriptionsTestChannelTest < ActionCable::Channel::TestCase
 
     assert_predicate subscription, :confirmed?
     assert_not subscription.rejected?
-    assert_equal 1, connection.transmissions.size
+    assert_equal 1, socket.transmissions.size
     assert_equal ActionCable::INTERNAL[:message_types][:confirmation],
-                 connection.transmissions.last["type"]
+                 socket.transmissions.last["type"]
   end
 end
 
 class StubConnectionTest < ActionCable::Channel::TestCase
+  class Connection < ActionCable::Connection::Base
+    identified_by :username, :admin
+  end
+
+  tests_connection Connection
   tests SubscriptionsTestChannel
 
   def test_connection_identifiers
@@ -63,6 +68,12 @@ class StubConnectionTest < ActionCable::Channel::TestCase
     assert_equal "John", subscription.username
     assert subscription.admin
     assert_equal "John:true", connection.connection_identifier
+  end
+
+  def test_unknown_identifiers
+    assert_raises NoMethodError do
+      stub_connection non_existing: "John"
+    end
   end
 end
 
@@ -78,9 +89,9 @@ class RejectionTestChannelTest < ActionCable::Channel::TestCase
 
     assert_not subscription.confirmed?
     assert_predicate subscription, :rejected?
-    assert_equal 1, connection.transmissions.size
+    assert_equal 1, socket.transmissions.size
     assert_equal ActionCable::INTERNAL[:message_types][:rejection],
-                 connection.transmissions.last["type"]
+                 socket.transmissions.last["type"]
   end
 end
 
@@ -178,6 +189,12 @@ class PerformTestChannel < ActionCable::Channel::Base
 end
 
 class PerformTestChannelTest < ActionCable::Channel::TestCase
+  class Connection < ActionCable::Connection::Base
+    identified_by :user_id
+  end
+
+  tests_connection Connection
+
   def setup
     stub_connection user_id: 2016
     subscribe id: 5
@@ -222,6 +239,12 @@ class BroadcastsTestChannel < ActionCable::Channel::Base
 end
 
 class BroadcastsTestChannelTest < ActionCable::Channel::TestCase
+  class Connection < ActionCable::Connection::Base
+    identified_by :user_id
+  end
+
+  tests_connection Connection
+
   def setup
     stub_connection user_id: 2017
     subscribe id: 5
