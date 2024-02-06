@@ -325,6 +325,7 @@ $ mail.body
 $ mail.body.decoded
 "This is the body of the email message."
 ```
+
 ### Inbound Email Status
 
 Once an email has been routed to a matching mailbox and processed, Action Mailbox updates the email status stored in `action_mailbox_inbound_emails` table with one of the following values:
