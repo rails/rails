@@ -469,7 +469,7 @@ end
 
 When enqueueing jobs in bulk using `perform_all_later`, callbacks such as `around_enqueue`, will not be triggered on the individual jobs.
 
- However, the `perform_all_later` method does fire an [`enqueue_all.active_job`](active_support_instrumentation.html#enqueue-all-active-job) event which you can subscribe to using `ActiveSupport::Notifications`.
+However, the `perform_all_later` method does fire an [`enqueue_all.active_job`](active_support_instrumentation.html#enqueue-all-active-job) event which you can subscribe to using `ActiveSupport::Notifications`.
 
 The method [`successfully_enqueued?`](https://api.rubyonrails.org/classes/ActiveJob/Core.html#method-i-successfully_enqueued-3F) can be used to find out if a given job was successfully enqueued.
 
