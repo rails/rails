@@ -79,7 +79,7 @@ module ActiveRecord
           fixture_set_names = fixture_set_names.flatten.map(&:to_s)
         end
 
-        self.fixture_table_names |= fixture_set_names
+        self.fixture_table_names = (fixture_table_names | fixture_set_names).sort
         setup_fixture_accessors(fixture_set_names)
       end
 
@@ -131,17 +131,17 @@ module ActiveRecord
 
       @fixture_cache = {}
       @fixture_connections = []
+      @fixture_cache_key = [self.class.fixture_table_names.dup, self.class.fixture_paths.dup, self.class.fixture_class_names.dup]
       @@already_loaded_fixtures ||= {}
       @connection_subscriber = nil
       @saved_pool_configs = Hash.new { |hash, key| hash[key] = {} }
 
       # Load fixtures once and begin transaction.
       if run_in_transaction?
-        if @@already_loaded_fixtures[self.class]
-          @loaded_fixtures = @@already_loaded_fixtures[self.class]
-        else
-          @loaded_fixtures = load_fixtures(config)
-          @@already_loaded_fixtures[self.class] = @loaded_fixtures
+        @loaded_fixtures = @@already_loaded_fixtures[@fixture_cache_key]
+        unless @loaded_fixtures
+          @@already_loaded_fixtures.clear
+          @loaded_fixtures = @@already_loaded_fixtures[@fixture_cache_key] = load_fixtures(config)
         end
 
         # Begin transactions for connections already established
@@ -179,7 +179,7 @@ module ActiveRecord
       # Load fixtures for every test.
       else
         ActiveRecord::FixtureSet.reset_cache
-        @@already_loaded_fixtures[self.class] = nil
+        @@already_loaded_fixtures.clear
         @loaded_fixtures = load_fixtures(config)
       end
 
