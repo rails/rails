@@ -138,7 +138,7 @@ Here is an example calling `perform_all_later` with `GuestCleanupJob` instances:
 ```ruby
 # Create jobs to pass to `perform_all_later`.
 # The arguments to `new` are passed on to `perform`
-guest_cleanup_jobs = User.pluck(:id).map { |id| GuestsCleanupJob.new(guest_id: id) }
+guest_cleanup_jobs = Guest.all.map { |guest| GuestsCleanupJob.new(guest) }
 
 # Will enqueue a seperate job for each instance of `GuestCleanupJob`
 ActiveJob.perform_all_later(guest_cleanup_jobs)
