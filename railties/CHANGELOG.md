@@ -1,3 +1,7 @@
+*   Setup jemalloc in the default Dockerfile for memory optimization.
+
+    *Matt Almeida*, *Jean Boussier*
+
 *   Commented out lines in .railsrc file should not be treated as arguments when using
     rails new generator command. Update ARGVScrubber to ignore text after # symbols.
 

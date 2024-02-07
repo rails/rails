@@ -3,7 +3,7 @@
 source "https://rubygems.org"
 gemspec
 
-gem "minitest", ">= 5.15.0"
+gem "minitest", ">= 5.15.0", "< 5.22.0"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 13"
@@ -142,8 +142,6 @@ group :test do
     gem "stackprof"
     gem "debug", ">= 1.1.0", require: false
   end
-
-  gem "benchmark-ips"
 
   # Needed for Railties tests because it is included in generated apps.
   gem "brakeman"

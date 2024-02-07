@@ -93,7 +93,7 @@ PATH
       connection_pool (>= 2.2.5)
       drb
       i18n (>= 1.6, < 2)
-      minitest (>= 5.1)
+      minitest (>= 5.1, < 5.22.0)
       tzinfo (~> 2.0, >= 2.0.5)
     rails (7.2.0.alpha)
       actioncable (= 7.2.0.alpha)
@@ -159,7 +159,6 @@ GEM
     base64 (0.2.0)
     bcrypt (3.1.20)
     beaneater (1.1.3)
-    benchmark-ips (2.13.0)
     bigdecimal (3.1.5)
     bindex (0.8.1)
     bootsnap (1.17.0)
@@ -596,7 +595,6 @@ DEPENDENCIES
   azure-storage-blob (~> 2.0)
   backburner
   bcrypt (~> 3.1.11)
-  benchmark-ips
   bootsnap (>= 1.4.4)
   brakeman
   capybara (>= 3.39)
@@ -618,7 +616,7 @@ DEPENDENCIES
   libxml-ruby
   listen (~> 3.3)
   mdl (!= 0.13.0)
-  minitest (>= 5.15.0)
+  minitest (>= 5.15.0, < 5.22.0)
   minitest-bisect
   minitest-ci
   minitest-retry

@@ -1,3 +1,15 @@
+*   Support `:source_location` tag option for query log tags
+
+    ```ruby
+    config.active_record.query_log_tags << :source_location
+    ```
+
+    Calculating the caller location is a costly operation and should be used primarily in development
+    (note, there is also a `config.active_record.verbose_query_logs` that serves the same purpose)
+    or occasionally on production for debugging purposes.
+
+    *fatkodima*
+
 *   Add an option to `ActiveRecord::Encryption::Encryptor` to disable compression
 
     Allow compression to be disabled by setting `compress: false`

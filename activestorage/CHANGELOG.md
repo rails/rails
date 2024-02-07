@@ -3,6 +3,10 @@
 
     *Lewis Buckley*
 
+*   Fix JSON-encoding of `ActiveStorage::Filename` instances.
+
+    *Jonathan del Strother*
+
 *   Fix N+1 query when fetching preview images for non-image assets
 
     *Aaron Patterson & Justin Searls*

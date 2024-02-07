@@ -1,5 +1,10 @@
 #!/bin/bash -e
 
+# Enable jemalloc for reduced memory usage and latency.
+if [ -f /usr/lib/*/libjemalloc.so.2 ]; then
+  LD_PRELOAD="$(echo /usr/lib/*/libjemalloc.so.2) $LD_PRELOAD"
+fi
+
 <% unless skip_active_record? -%>
 # If running the rails server then create or migrate existing database
 if [ "${1}" == "./bin/rails" ] && [ "${2}" == "server" ]; then

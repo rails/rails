@@ -415,7 +415,8 @@ To keep using the current cache store, you can turn off cache versioning entirel
             pid:          -> { Process.pid.to_s },
             socket:       ->(context) { context[:connection].pool.db_config.socket },
             db_host:      ->(context) { context[:connection].pool.db_config.host },
-            database:     ->(context) { context[:connection].pool.db_config.database }
+            database:     ->(context) { context[:connection].pool.db_config.database },
+            source_location: -> { QueryLogs.query_source_location }
           )
           ActiveRecord.disable_prepared_statements = true
 
