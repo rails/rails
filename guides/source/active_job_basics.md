@@ -410,7 +410,7 @@ end
 [`around_perform`]: https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-around_perform
 [`after_perform`]: https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-after_perform
 
-Please note that When enqueueing jobs in bulk using `perform_all_later`, callbacks such as `around_enqueue`, will not be triggered on the individual jobs. See [Bulk Enqueuing Callbacks](#bulk-enqueue-callbacks).
+Please note that when enqueueing jobs in bulk using `perform_all_later`, callbacks such as `around_enqueue`, will not be triggered on the individual jobs. See [Bulk Enqueuing Callbacks](#bulk-enqueue-callbacks).
 
 Bulk Enqueuing
 --------------
