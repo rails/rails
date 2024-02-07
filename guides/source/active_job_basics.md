@@ -171,7 +171,7 @@ export_job = ExportDataJob.new(data)
 notify_job = NotifyGuestsJob.new(guest)
 
 # Enqueues job instances from multiple classes at once
-ApplicationJob.perform_all_later(cleanup_job, export_job, notify_job)
+ActiveJob.perform_all_later(cleanup_job, export_job, notify_job)
 ```
 
 #### Bulk Enqueue Callbacks
