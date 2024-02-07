@@ -144,7 +144,7 @@ guest_cleanup_jobs = Guest.all.map { |guest| GuestsCleanupJob.new(guest) }
 ActiveJob.perform_all_later(guest_cleanup_jobs)
 ```
 
-`perform_all_later` logs the number of jobs successfully enqueued, for example if `User.pluck(:id).map` above resulted in 3 `guest_cleanup_jobs`, it would log `Enqueued 3 jobs to Async (3 GuestsCleanupJob)` (assuming all were enqueued).
+`perform_all_later` logs the number of jobs successfully enqueued, for example if `Guest.all.map` above resulted in 3 `guest_cleanup_jobs`, it would log `Enqueued 3 jobs to Async (3 GuestsCleanupJob)` (assuming all were enqueued).
 
 The return value of `perform_all_later` is `nil`. Note that this is different from `perform_later`, which returns the instance of the queued job class.
 
