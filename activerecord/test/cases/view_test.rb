@@ -101,6 +101,8 @@ if ActiveRecord::Base.connection.supports_views?
 
   class ViewWithoutPrimaryKeyTest < ActiveRecord::TestCase
     include SchemaDumpingHelper
+
+    self.use_transactional_tests = false
     fixtures :books
 
     class Paperback < ActiveRecord::Base; end
