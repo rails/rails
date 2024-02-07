@@ -176,7 +176,7 @@ ApplicationJob.perform_all_later(cleanup_job, export_job, notify_job)
 
 #### Bulk Enqueue Callbacks
 
-Note that `perform_all_later` does not trigger callbacks on the individual jobs. This behavior is in line with other Active Record bulk methods. Since callbacks run on individual jobs, they can't take advantage of the bulk nature of this method. Also there isn't a meaningful semantic for something like `around_enqueue` callback.
+Note that `perform_all_later` does not trigger [callbacks](#callbacks) on the individual jobs. This behavior is in line with other Active Record bulk methods. Since callbacks run on individual jobs, they can't take advantage of the bulk nature of this method. Also there isn't a meaningful semantic for something like `around_enqueue` callback.
 
 #### Queue Backend Support
 
