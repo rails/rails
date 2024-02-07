@@ -898,7 +898,7 @@ module ApplicationTests
     end
 
     def test_run_in_parallel_with_threads
-      exercise_parallelization_regardless_of_machine_core_count(with: :threads)
+      exercise_parallelization_regardless_of_machine_core_count(with: :threads, transactional_fixtures: false)
 
       file_name = create_parallel_threads_test_file
 
@@ -1390,7 +1390,7 @@ module ApplicationTests
         RUBY
       end
 
-      def exercise_parallelization_regardless_of_machine_core_count(with:, threshold: 0)
+      def exercise_parallelization_regardless_of_machine_core_count(with:, threshold: 0, transactional_fixtures: true)
         file_content = ERB.new(<<-ERB, trim_mode: "-").result_with_hash(with: with.to_s)
           ENV["RAILS_ENV"] ||= "test"
           require_relative "../config/environment"
@@ -1399,6 +1399,7 @@ module ApplicationTests
           class ActiveSupport::TestCase
             # Run tests in parallel with specified workers
             parallelize(workers: 2, with: :<%= with %>, threshold: #{threshold})
+            self.use_transactional_tests = #{transactional_fixtures}
 
             # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
             fixtures :all

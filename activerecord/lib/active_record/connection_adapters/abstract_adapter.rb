@@ -174,19 +174,13 @@ module ActiveRecord
         @verified = false
       end
 
-      THREAD_LOCK = ActiveSupport::Concurrency::ThreadLoadInterlockAwareMonitor.new
-      private_constant :THREAD_LOCK
-
-      FIBER_LOCK = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
-      private_constant :FIBER_LOCK
-
       def lock_thread=(lock_thread) # :nodoc:
         @lock =
         case lock_thread
         when Thread
-          THREAD_LOCK
+          ActiveSupport::Concurrency::ThreadLoadInterlockAwareMonitor.new
         when Fiber
-          FIBER_LOCK
+          ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
         else
           ActiveSupport::Concurrency::NullLock
         end
