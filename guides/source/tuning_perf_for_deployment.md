@@ -51,6 +51,8 @@ Multiple threads can run in the same process. This avoids multiple copies of sha
 
 With the GVL, using a lot of threads has diminishing returns. A Rails app rarely benefits from more than 6. To have a large number of workers, some other concurrency method should be used.
 
+Similarly, Ruby's garbage collector is "stop-the-world" so when it's triggered all threads have to stop. This also means diminishing returns for large numbers of threads.
+
 Threads are less resilient than processes. Certain errors like segmentation faults can destroy the entire process and all threads inside. A single request allocating a lot of memory can stop all threads while the garbage collector runs.
 
 ### Hybrid Concurrency
@@ -62,7 +64,7 @@ Hybrid concurrency limits the damage from a segmentation fault or other error th
 Choosing Default Settings
 -------------------------
 
-Rails' default settings aren't appropriate for all application sizes. You can improve performance for your large application that serves a lot of requests by changing settings.
+Rails' default settings aren't appropriate for all application sizes. You can improve performance for your I/O-heavy application that serves a lot of requests by changing settings.
 
 This section contains common sense defaults based on the type and size of your application and the hosts on which it runs. You can improve performance more by testing your application specifically. See "Performance Testing" for details.
 
@@ -80,13 +82,13 @@ To set the number of threads, you can change the call to the +threads+ method in
 
 ### Number of Processes
 
-When using hybrid threads and processes, it's best to run 1 process per available processor core. On hosts with less memory you may need to choose a lower value. Automatic methods to determine the number of cores are unreliable. You should specify the number of processes manually.
+When using hybrid threads and processes, it's best to run 1 process per available processor core. On hosts with less memory you may need to choose a lower value. But fewer processes per core will normally result in not using all cores for your application. Automatic methods to determine the number of cores are unreliable. You should specify the number of processes manually.
 
 To set the number of worker processes, you can change the call to the +workers+ method in +config/puma.rb+. Or you can set the +WEB_CONCURRENCY+ environment variable, which will do the same.
 
 ### Preloading
 
-Puma creates new workers from a master process. By loading your application code in the master process, you can avoid doing so after creating the worker. This permits sharing more memory across processes.
+Puma creates new workers from a master process. By loading your application code in the master process, you can avoid doing so after creating the worker. This permits sharing more memory across processes and prevents duplicate work.
 
 In a few cases it may not make sense to preload your application. In that case it's possible to turn off application preloading.
 
@@ -94,9 +96,9 @@ Puma preloads your application by default by calling +preload_app!+ in +config/p
 
 ### Memory Allocators and Configuration
 
-CRuby normally uses your system's default memory allocator. You can switch to another allocator such as [jemalloc](https://github.com/jemalloc/jemalloc) or [tcmalloc](https://github.com/google/tcmalloc). You can also configure your allocator &mdash; e.g. Linux's glibc malloc allows setting MALLOC_ARENA_MAX to a low value like 2 to significantly reduce memory use.
+CRuby normally uses your system's default memory allocator. You can switch to another allocator such as [jemalloc](https://github.com/jemalloc/jemalloc). You can also configure your allocator &mdash; e.g. Linux's glibc malloc allows setting MALLOC_ARENA_MAX to a low value like 2 to significantly reduce memory use.
 
-This guide does not cover nonstandard allocators in significant detail. However, they can be a significant optimization relative to the system's default allocator. Long-running thread-based workers can be prone to memory fragmentation, which will reduce performance after many requests. An allocator like jemalloc can help.
+This guide does not cover nonstandard allocators in significant detail. However, they can be a significant optimization relative to the system's default allocator. Long-running thread-based workers can be prone to memory fragmentation, which will reduce performance after many requests. A different allocator can help. The best tested by the Ruby community is jemalloc.
 
 Performance Testing
 -------------------
