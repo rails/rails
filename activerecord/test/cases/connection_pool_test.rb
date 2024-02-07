@@ -845,6 +845,69 @@ module ActiveRecord
         assert_equal :shard_one, pool.connection.shard
       end
 
+      def test_pin_connection_always_returns_the_same_connection
+        assert_not_predicate @pool, :active_connection?
+        @pool.pin_connection!(true)
+        pinned_connection = @pool.checkout
+
+        assert_not_predicate @pool, :active_connection?
+        assert_same pinned_connection, @pool.connection
+        assert_predicate @pool, :active_connection?
+
+        assert_same pinned_connection, @pool.checkout
+
+        @pool.release_connection
+        assert_not_predicate @pool, :active_connection?
+        assert_same pinned_connection, @pool.checkout
+      end
+
+      def test_pin_connection_connected?
+        skip("Can't test with in-memory dbs") if in_memory_db?
+
+        assert_not_predicate @pool, :connected?
+        @pool.pin_connection!(true)
+        assert_predicate @pool, :connected?
+
+        pin_connection = @pool.checkout
+
+        @pool.disconnect
+        assert_not_predicate @pool, :connected?
+        assert_same pin_connection, @pool.checkout
+        assert_predicate @pool, :connected?
+      end
+
+      def test_pin_connection_synchronize_the_connection
+        assert_equal ActiveSupport::Concurrency::NullLock, @pool.connection.lock
+        @pool.pin_connection!(true)
+        assert_not_equal ActiveSupport::Concurrency::NullLock, @pool.connection.lock
+        @pool.unpin_connection!
+        assert_equal ActiveSupport::Concurrency::NullLock, @pool.connection.lock
+
+        @pool.pin_connection!(false)
+        assert_equal ActiveSupport::Concurrency::NullLock, @pool.connection.lock
+      end
+
+      def test_pin_connection_opens_a_transaction
+        assert_instance_of NullTransaction, @pool.connection.current_transaction
+        @pool.pin_connection!(true)
+        assert_instance_of RealTransaction, @pool.connection.current_transaction
+        @pool.unpin_connection!
+        assert_instance_of NullTransaction, @pool.connection.current_transaction
+      end
+
+      def test_unpin_connection_returns_whether_transaction_has_been_rolledback
+        @pool.pin_connection!(true)
+        assert_equal true, @pool.unpin_connection!
+
+        @pool.pin_connection!(true)
+        @pool.connection.commit_transaction
+        assert_equal false, @pool.unpin_connection!
+
+        @pool.pin_connection!(true)
+        @pool.connection.rollback_transaction
+        assert_equal false, @pool.unpin_connection!
+      end
+
       private
         def with_single_connection_pool
           config = @db_config.configuration_hash.merge(pool: 1)
@@ -871,8 +934,8 @@ module ActiveRecord
       end
 
       def test_lock_thread_allow_fiber_reentrency
-        @pool.lock_thread = true
         connection = @pool.checkout
+        connection.lock_thread = ActiveSupport::IsolatedExecutionState.context
         connection.transaction do
           enumerator = Enumerator.new do |yielder|
             connection.transaction do
