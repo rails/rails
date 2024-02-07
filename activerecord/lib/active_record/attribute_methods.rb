@@ -50,6 +50,20 @@ module ActiveRecord
         super
       end
 
+      # Allows you to make aliases for attributes.
+      #
+      #   class Person < ActiveRecord::Base
+      #     alias_attribute :nickname, :name
+      #   end
+      #
+      #   person = Person.create(name: 'Bob')
+      #   person.name     # => "Bob"
+      #   person.nickname # => "Bob"
+      #
+      # The alias can also be used for querying:
+      #
+      #   Person.where(nickname: "Bob")
+      #   # SELECT "people".* FROM "people" WHERE "people"."name" = "Bob"
       def alias_attribute(new_name, old_name)
         super
 
