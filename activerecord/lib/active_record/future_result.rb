@@ -32,8 +32,11 @@ module ActiveRecord
 
       def instrument(name, payload = {}, &block)
         event = @instrumenter.new_event(name, payload)
-        @events << event
-        event.record(&block)
+        begin
+          event.record(&block)
+        ensure
+          @events << event
+        end
       end
 
       def flush
