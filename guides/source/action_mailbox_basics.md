@@ -332,7 +332,7 @@ $ mail.body.decoded
 
 Once an email has been routed to a matching mailbox and processed, Action Mailbox updates the email status stored in `action_mailbox_inbound_emails` table with one of the following values:
 
-- `pending`: Just received by one of the ingress controllers and scheduled for routing.
+- `pending`: Received by one of the ingress controllers and scheduled for routing.
 - `processing`: During active processing, while a specific mailbox is running its `process` method.
 - `delivered`: Successfully processed by the specific mailbox.
 - `failed`: An exception was raised during the specific mailbox’s execution of the `process` method.
