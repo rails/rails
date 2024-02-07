@@ -119,6 +119,32 @@ module Rails
       ensure
         @notifier.unsubscribe block_sub
       end
+
+      def test_logger_pushes_tags
+        @logger = ActiveSupport::TaggedLogging.new(@logger)
+        set_logger(@logger)
+
+        taggers = ["tag1", ->(_req) { "tag2" }]
+        logger_middleware = TestLogger.new(@logger, taggers: taggers) do
+          # We can't really assert on logging something with the tags, because the MockLogger implementation
+          # does not call the formatter (which is responsible for appending the tags)
+          assert_equal(["tag1", "tag2"], @logger.formatter.current_tags)
+        end
+        block_sub = @notifier.subscribe "request.action_dispatch" do |_event|
+          assert_equal(["tag1", "tag2"], @logger.formatter.current_tags)
+        end
+
+        # Call the app - it should log the inside app message
+        response_body = logger_middleware.call("REQUEST_METHOD" => "GET").last
+        # The tags should still be open as long as the request body isn't closed
+        assert_equal(["tag1", "tag2"], @logger.formatter.current_tags)
+        # And now should fire the request.action_dispatch event and call the event handler
+        response_body.close
+        # And it should also clear the tag stack.
+        assert_equal([], @logger.formatter.current_tags)
+      ensure
+        @notifier.unsubscribe block_sub
+      end
     end
   end
 end
