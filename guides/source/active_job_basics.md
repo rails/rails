@@ -136,8 +136,8 @@ You can enqueue multiple jobs at once using [`perform_all_later`](https://api.ru
 Here is an example calling `perform_all_later` with `GuestCleanupJob` instances:
 
 ```ruby
-# Create jobs to pass to `perform_all_later`. The arguments to `new` are
-# passed on to `perform`
+# Create jobs to pass to `perform_all_later`.
+# The arguments to `new` are passed on to `perform`
 guest_cleanup_jobs = User.pluck(:id).map { |id| GuestsCleanupJob.new(guest_id: id) }
 
 # Will enqueue a seperate job for each instance of `GuestCleanupJob`
