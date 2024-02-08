@@ -964,6 +964,14 @@ module ApplicationTests
       assert_match(%r{cannot load such file.+test/not_exists\.rb}, error)
     end
 
+    def test_did_you_mean_when_specified_file_name_is_close
+      create_test_file :models, "account"
+      output = run_test_command("test/models/accnt.rb")
+
+      assert_match(%r{Could not load test file.+test/models/accnt\.rb}, output)
+      assert_match(%r{Did you mean?.+test/models/account_test\.rb}, output)
+    end
+
     def test_pass_TEST_env_on_rake_test
       create_test_file :models, "account"
       create_test_file :models, "post", pass: false
