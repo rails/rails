@@ -1,3 +1,25 @@
+*   Add `.shard_keys`, `.sharded?`, & `.connected_to_all_shards` methods.
+
+    ```ruby
+    class ShardedBase < ActiveRecord::Base
+        self.abstract_class = true
+
+        connects_to shards: {
+          shard_one: { writing: :shard_one },
+          shard_two: { writing: :shard_two }
+        }
+    end
+
+    class ShardedModel < ShardedBase
+    end
+
+    ShardedModel.shard_keys => [:shard_one, :shard_two]
+    ShardedModel.sharded? => true
+    ShardedBase.connected_to_all_shards { ShardedModel.current_shard } => [:shard_one, :shard_two]
+    ```
+
+    *Nony Dutton*
+
 *   Allow association's `foreign_key` to be composite.
 
     `query_constraints` option was the only way to configure a composite foreign key by passing an `Array`.
