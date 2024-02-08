@@ -1,3 +1,13 @@
+*   Properly synchronize `Mysql2Adapter#active?` and `TrilogyAdapter#active?`
+
+    As well as `disconnect!` and `verify!`.
+
+    This generally isn't a big problem as connections must not be shared between
+    threads, but is required when running transactional tests or system tests
+    and could lead to a SEGV.
+
+    *Jean Boussier*
+
 *   Support `:source_location` tag option for query log tags
 
     ```ruby
