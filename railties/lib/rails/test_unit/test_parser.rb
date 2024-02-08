@@ -12,38 +12,29 @@ if defined?(Prism)
     module TestUnit
       # Parse a test file to extract the line ranges of all tests in both
       # method-style (def test_foo) and declarative-style (test "foo" do)
-      class TestParser < Prism::Visitor
+      module TestParser
         # Helper to translate a method object into the path and line range where
         # the method was defined.
         def self.definition_for(method)
           filepath, start_line = method.source_location
-          Prism.parse_file(filepath).value.accept(new(ranges = {}))
-          (end_line = ranges[start_line]) && [filepath, (start_line..end_line)]
-        end
+          queue = [Prism.parse_file(filepath).value]
 
-        def self.definitions_for(source, filepath)
-          Prism.parse(source, filepath: filepath).value.accept(new(ranges = {}))
-          ranges
-        end
+          while (node = queue.shift)
+            case node.type
+            when :def_node
+              if node.name.start_with?("test") && node.location.start_line == start_line
+                return [filepath, start_line..node.location.end_line]
+              end
+            when :call_node
+              if node.name == :test && node.location.start_line == start_line
+                return [filepath, start_line..node.location.end_line]
+              end
+            end
 
-        attr_reader :ranges
-
-        def initialize(ranges)
-          @ranges = ranges
-        end
-
-        def visit_def_node(node)
-          if node.name.start_with?("test")
-            ranges[node.location.start_line] = node.location.end_line
+            queue.concat(node.compact_child_nodes)
           end
-          super
-        end
 
-        def visit_call_node(node)
-          if node.name == :test
-            ranges[node.location.start_line] = node.location.end_line
-          end
-          super
+          nil
         end
       end
     end

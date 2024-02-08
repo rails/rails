@@ -5,55 +5,61 @@ require "active_support/test_case"
 require "active_support/testing/autorun"
 require "rails/test_unit/test_parser"
 
+class TestParserTestFixture < ActiveSupport::TestCase
+  def test_method
+    assert true
+
+    assert true
+  end
+
+  def test_oneline; assert true; end
+
+  test "declarative" do
+    assert true
+
+    assert true
+  end
+
+  test("declarative w/parens") do
+    assert true
+  end
+
+  self.test "declarative explicit receiver" do
+    assert true
+
+    assert true
+  end
+
+  test("declarative oneline") { assert true }
+
+  test("declarative oneline do") do assert true end
+
+  test("declarative multiline w/ braces") {
+    assert true
+    assert_not false
+  }
+end
+
 class TestParserTest < ActiveSupport::TestCase
   def test_parser
-    example_test = <<~RUBY
-      require "test_helper"
+    actual =
+      TestParserTestFixture
+        .instance_methods(false)
+        .map { |method| TestParserTestFixture.instance_method(method) }
+        .sort_by { |method| method.source_location[1] }
+        .map { |method| [method.name, *Rails::TestUnit::TestParser.definition_for(method)] }
 
-      class ExampleTest < ActiveSupport::TestCase
-        def test_method
-          assert true
+    expected = [
+      [:test_method, __FILE__, 9..13],
+      [:test_oneline, __FILE__, 15..15],
+      [:test_declarative, __FILE__, 17..21],
+      [:"test_declarative_w/parens", __FILE__, 23..25],
+      [:test_declarative_explicit_receiver, __FILE__, 27..31],
+      [:test_declarative_oneline, __FILE__, 33..33],
+      [:test_declarative_oneline_do, __FILE__, 35..35],
+      [:"test_declarative_multiline_w/_braces", __FILE__, 37..40]
+    ]
 
-
-        end
-
-        def test_oneline; assert true; end
-
-        test "declarative" do
-          assert true
-        end
-
-        test("declarative w/parens") do
-          assert true
-
-        end
-
-        self.test "declarative explicit receiver" do
-          assert true
-        end
-
-        test("declarative oneline") { assert true }
-
-        test("declarative oneline do") do assert true end
-
-        test("declarative multiline w/ braces") {
-          assert true
-          refute false
-        }
-      end
-    RUBY
-
-    actual_map = Rails::TestUnit::TestParser.definitions_for(example_test, "example_test.rb")
-    expected_map = {
-      4 => 8,   # test_method
-      10 => 10, # test_oneline
-      12 => 14, # declarative
-      16 => 19, # declarative w/parens
-      21 => 23, # declarative explicit receiver
-      25 => 25, # declarative oneline
-      27 => 27, # declarative oneilne do
-      29 => 32  # declarative multiline w/braces
-    }
-    assert_equal expected_map, actual_map
+    assert_equal expected, actual
   end
 end
