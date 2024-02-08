@@ -1,5 +1,59 @@
 # frozen_string_literal: true
 
+begin
+  require "prism"
+rescue LoadError
+  # If Prism isn't available (because of using an older Ruby version) then we'll
+  # define a fallback parser using ripper.
+end
+
+if defined?(Prism)
+  module Rails
+    module TestUnit
+      # Parse a test file to extract the line ranges of all tests in both
+      # method-style (def test_foo) and declarative-style (test "foo" do)
+      class TestParser < Prism::Visitor
+        # Helper to translate a method object into the path and line range where
+        # the method was defined.
+        def self.definition_for(method)
+          filepath, start_line = method.source_location
+          Prism.parse_file(filepath).value.accept(new(ranges = {}))
+          (end_line = ranges[start_line]) && [filepath, (start_line..end_line)]
+        end
+
+        def self.definitions_for(source, filepath)
+          Prism.parse(source, filepath: filepath).value.accept(new(ranges = {}))
+          ranges
+        end
+
+        attr_reader :ranges
+
+        def initialize(ranges)
+          @ranges = ranges
+        end
+
+        def visit_def_node(node)
+          if node.name.start_with?("test")
+            ranges[node.location.start_line] = node.location.end_line
+          end
+          super
+        end
+
+        def visit_call_node(node)
+          if node.name == :test
+            ranges[node.location.start_line] = node.location.end_line
+          end
+          super
+        end
+      end
+    end
+  end
+
+  # If we have Prism, then we don't need to define the fallback parser using
+  # ripper.
+  return
+end
+
 require "ripper"
 
 module Rails
