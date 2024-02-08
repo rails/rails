@@ -451,9 +451,9 @@ class User < ApplicationRecord
   end
 
   private
-  def thumb_size
-    [100, 100]
-  end
+    def thumb_size
+      [100, 100]
+    end
 end
 ```
 
