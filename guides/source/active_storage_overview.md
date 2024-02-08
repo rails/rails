@@ -450,8 +450,7 @@ class User < ApplicationRecord
     attachable.variant :thumb, resize_to_limit: :thumb_size
   end
 
-private
-
+  private
   def thumb_size
     [100, 100]
   end
