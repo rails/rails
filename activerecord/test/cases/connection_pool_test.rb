@@ -226,7 +226,7 @@ module ActiveRecord
 
       def test_inactive_are_returned_from_dead_thread
         ready = Concurrent::CountDownLatch.new
-        @pool.instance_variable_set(:@size, 1)
+        @pool.instance_variable_set(:@max_size, 1)
 
         child = new_thread do
           @pool.checkout
@@ -269,7 +269,7 @@ module ActiveRecord
 
         idle_conn.instance_variable_set(
           :@idle_since,
-          Process.clock_gettime(Process::CLOCK_MONOTONIC) - 0.02
+          Process.clock_gettime(Process::CLOCK_MONOTONIC) - 0.03
         )
 
         @pool.flush
@@ -313,7 +313,7 @@ module ActiveRecord
         connections.each do |conn|
           conn.instance_variable_set(
             :@idle_since,
-            Process.clock_gettime(Process::CLOCK_MONOTONIC) - 0.02
+            Process.clock_gettime(Process::CLOCK_MONOTONIC) - 0.03
           )
         end
 

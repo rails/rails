@@ -178,12 +178,12 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert async_pool1.is_a?(Concurrent::ThreadPoolExecutor)
     assert async_pool2.is_a?(Concurrent::ThreadPoolExecutor)
 
-    assert_equal 4, async_pool1.min_length
+    assert_equal 0, async_pool1.min_length
     assert_equal 4, async_pool1.max_length
     assert_equal 16, async_pool1.max_queue
     assert_equal :caller_runs, async_pool1.fallback_policy
 
-    assert_equal 4, async_pool2.min_length
+    assert_equal 0, async_pool2.min_length
     assert_equal 4, async_pool2.max_length
     assert_equal 16, async_pool2.max_queue
     assert_equal :caller_runs, async_pool2.fallback_policy
@@ -215,12 +215,12 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert async_pool1.is_a?(Concurrent::ThreadPoolExecutor)
     assert async_pool2.is_a?(Concurrent::ThreadPoolExecutor)
 
-    assert_equal 8, async_pool1.min_length
+    assert_equal 0, async_pool1.min_length
     assert_equal 8, async_pool1.max_length
     assert_equal 32, async_pool1.max_queue
     assert_equal :caller_runs, async_pool1.fallback_policy
 
-    assert_equal 8, async_pool2.min_length
+    assert_equal 0, async_pool2.min_length
     assert_equal 8, async_pool2.max_length
     assert_equal 32, async_pool2.max_queue
     assert_equal :caller_runs, async_pool2.fallback_policy
