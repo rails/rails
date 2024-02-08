@@ -117,7 +117,7 @@ module ActiveRecord
       end
 
       def active?
-        connection&.ping || false
+        connected? && @lock.synchronize { @raw_connection&.ping } || false
       rescue ::Trilogy::Error
         false
       end
@@ -125,18 +125,18 @@ module ActiveRecord
       alias reset! reconnect!
 
       def disconnect!
-        super
-        unless connection.nil?
-          connection.close
-          self.connection = nil
+        @lock.synchronize do
+          super
+          @raw_connection&.close
+          @raw_connection = nil
         end
       end
 
       def discard!
-        super
-        unless connection.nil?
-          connection.discard!
-          self.connection = nil
+        @lock.synchronize do
+          super
+          @raw_connection&.discard!
+          @raw_connection = nil
         end
       end
 
@@ -166,23 +166,15 @@ module ActiveRecord
           exception.error_code if exception.respond_to?(:error_code)
         end
 
-        def connection
-          @raw_connection
-        end
-
-        def connection=(conn)
-          @raw_connection = conn
-        end
-
         def connect
-          self.connection = self.class.new_client(@config)
+          @raw_connection = self.class.new_client(@config)
         rescue ConnectionNotEstablished => ex
           raise ex.set_pool(@pool)
         end
 
         def reconnect
-          connection&.close
-          self.connection = nil
+          @raw_connection&.close
+          @raw_connection = nil
           connect
         end
 
