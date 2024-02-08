@@ -20,14 +20,25 @@ After reading this guide, you will know:
 What is Active Model?
 ---------------------
 
-Active Model is a library containing various modules used in developing
-classes that need some features present on Active Record.
+To understand Active Model, you need to know a little about [Active Record](active_record_basics.html). Active Record is an ORM (Object Relational Mapper) that connects objects whose data requires persistent storage to a relational database. However, it has functionality that is useful outside of the ORM, some of these include validations, callbacks, translations, the ability to create custom attributes etc.
+
+Some of this functionality was abstracted from Active Record to form Active Model. Active Model is a library containing various modules that can be used on plain ruby objects that require model-like features but are not tied to any table in a database.
+
 Some of these modules are explained below.
 
 ### API
 
-`ActiveModel::API` adds the ability for a class to work with Action Pack and
-Action View right out of the box.
+`ActiveModel::API` adds the ability for a class to work with [Action Pack](https://api.rubyonrails.org/files/actionpack/README_rdoc.html) and [Action View](action_view_overview.html) right out of the box.
+
+When including `ActiveModel::API`, other modules are included by default which enables you to get features like:
+
+- [Attribute Assignments]()
+- [Conversions](active_model_basics.html#conversion)
+- [Name Introspections](active_model_basics.html#naming)
+- [Translations](active_model_basics.html#translation)
+- [Validations](active_model_basics.html#validations)
+
+Here is an example of a class that includes `ActiveModel::API` and how it can be used:
 
 ```ruby
 class EmailContact
@@ -44,31 +55,41 @@ class EmailContact
 end
 ```
 
-When including `ActiveModel::API` you get some features like:
-
-- model name introspection
-- conversions
-- translations
-- validations
-
-It also gives you the ability to initialize an object with a hash of attributes,
-much like any Active Record object.
-
 ```irb
 irb> email_contact = EmailContact.new(name: 'David', email: 'david@example.com', message: 'Hello World')
-irb> email_contact.name
+
+irb> email_contact.name #attribute assignments
 => "David"
-irb> email_contact.email
-=> "david@example.com"
-irb> email_contact.valid?
+
+irb> email_contact.to_model == email_contact #conversions
 => true
-irb> email_contact.persisted?
-=> false
+
+irb> email_contact.model_name.name #naming
+=> EmailContact
+
+irb> email_contact.human_attribute_name('name') #translations if locale is set
+=> "Name"
+
+irb> email_contact.valid? #validations
+=> true
 ```
 
 Any class that includes `ActiveModel::API` can be used with `form_with`,
-`render` and any other Action View helper methods, just like Active Record
-objects.
+`render` and any other [Action View helper methods](https://api.rubyonrails.org/classes/ActionView/Helpers.html), just like Active Record objects.
+
+```erb+html
+<%= form_with model: EmailContact.new do |form| %>
+  <%= form.text_field :name %>
+<% end %>
+# =>
+<form action="/email_contacts" method="post" data-remote="true">
+  <input type="text" name="email_contact[title]">
+</form>
+```
+
+```erb+html
+<%= render partial: "email_contact", email_contact: EmailContact.new(name: 'David', email: 'david@example.com', message: 'Hello World') %>
+```
 
 ### Attribute Methods
 
