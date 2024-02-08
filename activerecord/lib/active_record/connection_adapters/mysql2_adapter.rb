@@ -131,7 +131,7 @@ module ActiveRecord
       #++
 
       def active?
-        !!@raw_connection&.ping
+        connected? && @lock.synchronize { @raw_connection&.ping } || false
       end
 
       alias :reset! :reconnect!
@@ -139,15 +139,19 @@ module ActiveRecord
       # Disconnects from the database if already connected.
       # Otherwise, this method does nothing.
       def disconnect!
-        super
-        @raw_connection&.close
-        @raw_connection = nil
+        @lock.synchronize do
+          super
+          @raw_connection&.close
+          @raw_connection = nil
+        end
       end
 
       def discard! # :nodoc:
-        super
-        @raw_connection&.automatic_close = false
-        @raw_connection = nil
+        @lock.synchronize do
+          super
+          @raw_connection&.automatic_close = false
+          @raw_connection = nil
+        end
       end
 
       private
@@ -162,9 +166,11 @@ module ActiveRecord
         end
 
         def reconnect
-          @raw_connection&.close
-          @raw_connection = nil
-          connect
+          @lock.synchronize do
+            @raw_connection&.close
+            @raw_connection = nil
+            connect
+          end
         end
 
         def configure_connection

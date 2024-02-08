@@ -97,24 +97,24 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   end
 
   test "#active? answers false with connection and exception" do
-    @conn.send(:connection).stub(:ping, -> { raise ::Trilogy::BaseError.new }) do
+    @conn.instance_variable_get(:@raw_connection).stub(:ping, -> { raise ::Trilogy::BaseError.new }) do
       assert_equal false, @conn.active?
     end
   end
 
   test "#reconnect answers new connection with existing connection" do
-    old_connection = @conn.send(:connection)
+    old_connection = @conn.instance_variable_get(:@raw_connection)
     @conn.reconnect!
-    connection = @conn.send(:connection)
+    connection = @conn.instance_variable_get(:@raw_connection)
 
     assert_instance_of Trilogy, connection
     assert_not_equal old_connection, connection
   end
 
   test "#reset answers new connection with existing connection" do
-    old_connection = @conn.send(:connection)
+    old_connection = @conn.instance_variable_get(:@raw_connection)
     @conn.reset!
-    connection = @conn.send(:connection)
+    connection = @conn.instance_variable_get(:@raw_connection)
 
     assert_instance_of Trilogy, connection
     assert_not_equal old_connection, connection

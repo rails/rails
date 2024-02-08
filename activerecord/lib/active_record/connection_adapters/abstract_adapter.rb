@@ -711,13 +711,14 @@ module ActiveRecord
         end
       end
 
-
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
-        clear_cache!(new_connection: true)
-        reset_transaction
-        @raw_connection_dirty = false
+        @lock.synchronize do
+          clear_cache!(new_connection: true)
+          reset_transaction
+          @raw_connection_dirty = false
+        end
       end
 
       # Immediately forget this connection ever existed. Unlike disconnect!,
@@ -773,19 +774,17 @@ module ActiveRecord
       # is no longer active, then this method will reconnect to the database.
       def verify!
         unless active?
-          if @unconfigured_connection
-            @lock.synchronize do
-              if @unconfigured_connection
-                @raw_connection = @unconfigured_connection
-                @unconfigured_connection = nil
-                configure_connection
-                @verified = true
-                return
-              end
+          @lock.synchronize do
+            if @unconfigured_connection
+              @raw_connection = @unconfigured_connection
+              @unconfigured_connection = nil
+              configure_connection
+              @verified = true
+              return
             end
-          end
 
-          reconnect!(restore_transactions: true)
+            reconnect!(restore_transactions: true)
+          end
         end
 
         @verified = true

@@ -1,3 +1,14 @@
+*   Properly synchronize `Mysql2Adapter#active?` and `TrilogyAdapter#active?`
+
+    As well as `disconnect!` and `verify!`.
+
+    This generally isn't a big problem as connections must not be shared between
+    threads, but is required when running transactional tests or system tests
+    and could lead to a SEGV.
+
+    *Jean Boussier*
+
+
 *   Fix counter caches when the foreign key is composite.
 
     If the model holding the counter cache had a composite primary key,
