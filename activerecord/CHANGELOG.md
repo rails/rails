@@ -1,3 +1,8 @@
+*   Deprecate config.active_record.warn_on_records_fetched_greater_than now that sql.active_record
+    notification includes row_count field
+
+    *Jason Nochlin*
+
 *   Fix an issue where `ActiveRecord::Encryption` configurations are not ready before the loading
     of Active Record models, when an application is eager loaded. As a result, encrypted attributes
     could be misconfigured in some cases.
