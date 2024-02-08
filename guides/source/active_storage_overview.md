@@ -442,6 +442,22 @@ class User < ApplicationRecord
 end
 ```
 
+You can also make the variants dynamic, by specifying either a record method or a proc responsible for generating the transformation:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :avatar do |attachable|
+    attachable.variant :thumb, resize_to_limit: :thumb_size
+  end
+
+private
+
+  def thumb_size
+    [100, 100]
+  end
+end
+```
+
 Call `avatar.variant(:thumb)` to get a thumb variant of an avatar:
 
 ```erb
