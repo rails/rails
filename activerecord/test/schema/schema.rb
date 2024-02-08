@@ -869,6 +869,21 @@ ActiveRecord::Schema.define do
     t.string :message
   end
 
+
+  create_table :children, force: :cascade do |t|
+    t.string :name
+    t.references :parent
+  end
+
+  create_table :grandparents, force: :cascade do |t|
+    t.string :name
+  end
+  create_table :parents, force: :cascade do |t|
+    t.string :name
+    t.references :grandparent
+  end
+
+
   create_table :numeric_data, force: true do |t|
     t.decimal :bank_balance, precision: 10, scale: 2
     t.decimal :big_bank_balance, precision: 15, scale: 2

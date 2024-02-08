@@ -176,7 +176,41 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
     listing = Listing.new(building: building)
 
     assert_called(building, :save, nil, times: 1) do
+    assert_called(building, :valid?, nil, times: 1) do
       listing.save
+    end
+    end
+  end
+
+  def assert_called_with_native(object, method_name, args, returns: false, **kwargs, &block)
+    mock = Minitest::Mock.new
+    mock.expect(:call, returns, args, **kwargs)
+
+    object.stub(method_name, proc { |*x, **y|  mock.call(*x,**y); object.send("__minitest_stub__#{method_name}", *x, **y) }, &block)
+
+    assert_mock(mock)
+  end
+  
+  def test_autosaves_call_save_or_valid_with_memory_get_passed_to_associations
+    expense = Expense.new(message: "Expense")
+    sale = Sale.new(message: "Sale")
+    building = Building.new(name: "Building A", expenses: [expense], sales: [sale])
+    listing = Listing.new(building: building)
+
+
+    assert_called_with_native(building, :save, [], validate: false, memory: {"saved#{listing.object_id}" => true, listing.object_id => false}) do
+    assert_called_with_native(sale, :save, [], validate: false, memory: {
+      "saved#{listing.object_id}" => true, listing.object_id => false,
+      "saved#{building.object_id}" => true, building.object_id => false,
+      "saved#{sale.object_id}" => true}) do
+    assert_called_with_native(expense, :save, [], validate: false, memory: {
+      "saved#{listing.object_id}" => true, listing.object_id => false,
+      "saved#{building.object_id}" => true, building.object_id => false,
+      "saved#{sale.object_id}" => true, sale.object_id => false,
+      "saved#{expense.object_id}" => true}) do
+      listing.save
+    end
+    end
     end
   end
 
@@ -2231,5 +2265,69 @@ class TestAutosaveAssociationOnABelongsToAssociationDefinedAsRecord < ActiveReco
     assert_nothing_raised do
       translation.save!
     end
+  end
+end
+
+
+class TestCircularAutosaveAssociations < ActiveRecord::TestCase
+  def setup
+    super
+    @parent = Parent.create!(name: "P")
+    @child = Child.new(name: "Hi!")
+    @child.parent = @parent
+
+    @child.save!
+  end
+
+  def test_previous_changes_are_present_after_saves
+    @grandparent = Grandparent.new(name: "G")
+    @parent = Parent.new(name: "P", grandparent: @grandparent)
+    @child = Child.new(name: "Hi!")
+    @child.parent = @parent
+
+    @child.save!
+
+    assert_equal [nil, "G"], @grandparent.previous_changes[:name]
+    assert_equal [nil, "P"], @parent.previous_changes[:name]
+    assert_equal [nil, "Hi!"], @child.previous_changes[:name]
+
+    @parent.class.class_variable_set("@@after_save_foo", 0)
+    @parent.class.class_variable_set("@@after_validation_foo", 0)
+
+    @parent.update!(name: "pp")
+    assert_equal 1, @parent.class.class_variable_get("@@after_save_foo")
+    assert_equal 1, @parent.class.class_variable_get("@@after_validation_foo")
+  end
+
+  # The case below fail, because
+  # https://github.com/rails/rails/blob/v4.2.7.1/activerecord/lib/active_record/autosave_association.rb#L441
+  # there `record.changed_for_autosave?` is true through it's not changed.
+  # It's true because `child` is changed.
+  # Therefore child is being saved in the wrong place, then saved one more time
+  # where it should be saved and as a result we see that `child.previous_changes` is {}
+  def test_previous_changes_are_present_after_save
+    assert_equal [nil, "Hi!"], @child.previous_changes[:name]
+  end
+
+  # This case pass because of another thing
+  # https://github.com/rails/rails/blob/v4.2.7.1/activerecord/lib/active_record/autosave_association.rb#L432
+  # association there is nil. But if I put debugger there and eval `parent` manually it would work
+  # as the third case.
+  def test_prev_changes_pass
+    child2 = Child.create!(name: "2", parent_id: @parent.id)
+    assert_equal [nil, "2"], child2.previous_changes[:name]
+  end
+
+  # This also fail for the same reason as test_prev_changes
+  def test_prev_changes2
+    child3 = Child.create!(name: "3", parent: @parent)
+    assert_equal [nil, "3"], child3.previous_changes[:name]
+  end
+
+  # This case fails because of similar behaviour in different place
+  def test_after_validation
+    @parent.class.class_variable_set("@@after_validation_foo", 0)
+    @parent.update!(name: "pp")
+    assert_equal 1, @parent.class.class_variable_get("@@after_validation_foo")
   end
 end

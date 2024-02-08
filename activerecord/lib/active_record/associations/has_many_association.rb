@@ -58,7 +58,7 @@ module ActiveRecord
         end
       end
 
-      def insert_record(record, validate = true, raise = false)
+      def insert_record(record, validate = true, raise = false, memory = nil)
         set_owner_attributes(record)
         super
       end

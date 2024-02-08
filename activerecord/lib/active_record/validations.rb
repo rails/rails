@@ -45,7 +45,7 @@ module ActiveRecord
     # The regular {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] method is replaced
     # with this when the validations module is mixed in, which it is by default.
     def save(**options)
-      debug_stopwatch("#{self.class.name}#{self.object_id}.save") do
+      debug_stopwatch("#{self.class.name}#{self.object_id}.save(#{options.inspect})") do
         if perform_validations(options)
           @memory = options[:memory] || {}
           @memory["saved#{self.object_id}"] = true
@@ -60,7 +60,7 @@ module ActiveRecord
     # Attempts to save the record just like {ActiveRecord::Base#save}[rdoc-ref:Base#save] but
     # will raise an ActiveRecord::RecordInvalid exception instead of returning +false+ if the record is not valid.
     def save!(**options)
-      debug_stopwatch("#{self.class.name}#{self.object_id}.save!") do
+      debug_stopwatch("#{self.class.name}#{self.object_id}.save!(#{options.inspect})") do
         if perform_validations(options)
           @memory = options[:memory] || {}
           @memory["saved#{self.object_id}"] = true

@@ -426,6 +426,12 @@ module ActiveRecord
             end
 
             records.each do |record|
+              if !@memory.has_key?("saved#{record.object_id}")
+                @memory["saved#{record.object_id}"] = true
+              end
+            end
+            
+            records.each do |record|
               next if record.destroyed?
 
               saved = true
@@ -434,9 +440,9 @@ module ActiveRecord
                 association.set_inverse_instance(record)
 
                 if autosave
-                  saved = association.insert_record(record, false)
+                  saved = association.insert_record(record, false, false, @memory)
                 elsif !reflection.nested?
-                  association_saved = association.insert_record(record)
+                  association_saved = association.insert_record(record, true, false, @memory)
 
                   if reflection.validate?
                     errors.add(reflection.name) unless association_saved

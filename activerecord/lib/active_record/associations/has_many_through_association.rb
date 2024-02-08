@@ -21,7 +21,7 @@ module ActiveRecord
         super
       end
 
-      def insert_record(record, validate = true, raise = false)
+      def insert_record(record, validate = true, raise = false, memory = nil)
         ensure_not_nested
 
         if record.new_record? || record.has_changes_to_save?

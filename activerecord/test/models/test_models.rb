@@ -15,6 +15,30 @@ class Sale < ActiveRecord::Base
   belongs_to :building, autosave: true
 end
 
+
+
+class Child < ActiveRecord::Base
+  belongs_to :parent, inverse_of: :child, autosave: true
+end
+
+
+
+class Grandparent < ActiveRecord::Base
+  has_one :parent, inverse_of: :grandparent, autosave: true
+end
+
+
+class Parent < ActiveRecord::Base
+  has_one :child, inverse_of: :parent, autosave: true
+  belongs_to :grandparent, inverse_of: :parent, autosave: true
+
+  @@after_save_foo = 0
+  @@after_validation_foo = 0
+
+  after_save  -> { @@after_save_foo += 1 }
+  after_validation -> { @@after_validation_foo += 1 }
+
+end
 __END__
 # frozen_string_literal: true
 
