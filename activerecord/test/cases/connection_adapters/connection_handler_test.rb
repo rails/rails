@@ -6,6 +6,8 @@ require "models/person"
 module ActiveRecord
   module ConnectionAdapters
     class ConnectionHandlerTest < ActiveRecord::TestCase
+      self.use_transactional_tests = false
+
       fixtures :people
 
       def setup
@@ -93,6 +95,8 @@ module ActiveRecord
           connection_handler = ActiveRecord::Base.connection_handler
           ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
 
+          setup_transactional_fixtures
+
           assert_nothing_raised do
             ActiveRecord::Base.connects_to(database: { reading: :arunit, writing: :arunit })
           end
@@ -101,6 +105,8 @@ module ActiveRecord
           ro_conn = ActiveRecord::Base.connection_handler.retrieve_connection("ActiveRecord::Base", role: :reading)
 
           assert_equal rw_conn, ro_conn
+
+          teardown_transactional_fixtures
         ensure
           ActiveRecord::Base.connection_handler = connection_handler
         end
