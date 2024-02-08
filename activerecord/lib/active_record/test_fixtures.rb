@@ -130,25 +130,53 @@ module ActiveRecord
       end
 
       @fixture_cache = {}
-      @fixture_connections = []
+      @fixture_connections = {}
       @fixture_cache_key = [self.class.fixture_table_names.dup, self.class.fixture_paths.dup, self.class.fixture_class_names.dup]
       @@already_loaded_fixtures ||= {}
       @connection_subscriber = nil
       @saved_pool_configs = Hash.new { |hash, key| hash[key] = {} }
 
-      # Load fixtures once and begin transaction.
       if run_in_transaction?
+        # Load fixtures once and begin transaction.
         @loaded_fixtures = @@already_loaded_fixtures[@fixture_cache_key]
         unless @loaded_fixtures
           @@already_loaded_fixtures.clear
           @loaded_fixtures = @@already_loaded_fixtures[@fixture_cache_key] = load_fixtures(config)
         end
 
+        setup_transactional_fixtures
+      else
+        # Load fixtures for every test.
+        ActiveRecord::FixtureSet.reset_cache
+        invalidate_already_loaded_fixtures
+        @loaded_fixtures = load_fixtures(config)
+      end
+
+      # Instantiate fixtures for every test if requested.
+      instantiate_fixtures if use_instantiated_fixtures
+    end
+
+    def teardown_fixtures
+      # Rollback changes if a transaction is active.
+      if run_in_transaction?
+        teardown_transactional_fixtures
+      else
+        ActiveRecord::FixtureSet.reset_cache
+      end
+
+      ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
+    end
+
+    private
+      def setup_transactional_fixtures
+        setup_shared_connection_pool
+
         # Begin transactions for connections already established
-        @fixture_connections = enlist_fixture_connections
-        @fixture_connections.each do |connection|
-          connection.begin_transaction joinable: false, _lazy: false
-          connection.pool.lock_thread = true if lock_threads
+        @fixture_connections = ActiveRecord::Base.connection_handler.connection_pool_list(:writing).to_h do |pool|
+          pool.lock_thread = true if lock_threads
+          connection = pool.connection
+          transaction = connection.begin_transaction(joinable: false, _lazy: false)
+          [connection, transaction]
         end
 
         # When connections are established in the future, begin a transaction too
@@ -167,50 +195,38 @@ module ActiveRecord
             if connection
               setup_shared_connection_pool
 
-              if !@fixture_connections.include?(connection)
-                connection.begin_transaction joinable: false, _lazy: false
+              if !@fixture_connections.key?(connection)
                 connection.pool.lock_thread = true if lock_threads
-                @fixture_connections << connection
+                @fixture_connections[connection] = connection.begin_transaction(joinable: false, _lazy: false)
               end
             end
           end
         end
-
-      # Load fixtures for every test.
-      else
-        ActiveRecord::FixtureSet.reset_cache
-        @@already_loaded_fixtures.clear
-        @loaded_fixtures = load_fixtures(config)
       end
 
-      # Instantiate fixtures for every test if requested.
-      instantiate_fixtures if use_instantiated_fixtures
-    end
-
-    def teardown_fixtures
-      # Rollback changes if a transaction is active.
-      if run_in_transaction?
+      def teardown_transactional_fixtures
         ActiveSupport::Notifications.unsubscribe(@connection_subscriber) if @connection_subscriber
-        @fixture_connections.each do |connection|
-          connection.rollback_transaction if connection.transaction_open?
+        @fixture_connections.each do |connection, transaction|
+          begin
+            connection.rollback_transaction(transaction)
+          rescue ActiveRecord::StatementInvalid
+            # Something commited or rolled back the transaction.
+            # We can no longer trust the database state is clean.
+            invalidate_already_loaded_fixtures
+            # We also don't know for sure the connection wasn't
+            # mutated in dangerous ways.
+            connection.disconnect!
+          end
           connection.pool.lock_thread = false
         end
         @fixture_connections.clear
         teardown_shared_connection_pool
-      else
-        ActiveRecord::FixtureSet.reset_cache
       end
 
-      ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
-    end
+      def invalidate_already_loaded_fixtures
+        @@already_loaded_fixtures.clear
+      end
 
-    def enlist_fixture_connections
-      setup_shared_connection_pool
-
-      ActiveRecord::Base.connection_handler.connection_pool_list(:writing).map(&:connection)
-    end
-
-    private
       # Shares the writing connection pool with connections on
       # other handlers.
       #
