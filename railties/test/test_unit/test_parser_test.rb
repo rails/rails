@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/deprecator"
 require "active_support/test_case"
 require "active_support/testing/autorun"
 require "rails/test_unit/test_parser"
@@ -42,7 +43,7 @@ class TestParserTest < ActiveSupport::TestCase
       end
     RUBY
 
-    parser = Rails::TestUnit::TestParser.new(example_test, "example_test.rb")
+    actual_map = Rails::TestUnit::TestParser.definitions_for(example_test, "example_test.rb")
     expected_map = {
       4 => 8,   # test_method
       10 => 10, # test_oneline
@@ -53,6 +54,6 @@ class TestParserTest < ActiveSupport::TestCase
       27 => 27, # declarative oneilne do
       29 => 32  # declarative multiline w/braces
     }
-    assert_equal expected_map, parser.parse
+    assert_equal expected_map, actual_map
   end
 end
