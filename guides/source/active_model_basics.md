@@ -343,24 +343,10 @@ Person.model_name.singular_route_key  # => "person"
 
 ### Model
 
-`ActiveModel::Model` allows implementing models similar to `ActiveRecord::Base`.
+`ActiveModel::Model` includes [ActiveModel::API](active_model_basics.html#api) for the required interface to allow an
+object to interact with Action Pack and Action View, but it will be extended in the future to add more functionality.
 
-```ruby
-class EmailContact
-  include ActiveModel::Model
-
-  attr_accessor :name, :email, :message
-  validates :name, :email, :message, presence: true
-
-  def deliver
-    if valid?
-      # deliver email
-    end
-  end
-end
-```
-
-When including `ActiveModel::Model` you get all the features from `ActiveModel::API`.
+Currently, when including `ActiveModel::Model` you get all the features from `ActiveModel::API`.
 
 ### Serialization
 
