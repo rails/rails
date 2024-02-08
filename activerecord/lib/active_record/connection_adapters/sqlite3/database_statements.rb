@@ -29,7 +29,7 @@ module ActiveRecord
 
           type_casted_binds = type_casted_binds(binds)
 
-          log(sql, name, binds, type_casted_binds, async: async) do
+          log(sql, name, binds, type_casted_binds, async: async) do |notification_payload|
             with_raw_connection do |conn|
               # Don't cache statements if they are not prepared
               unless prepare
@@ -52,7 +52,9 @@ module ActiveRecord
               end
               verified!
 
-              build_result(columns: cols, rows: records)
+              result = build_result(columns: cols, rows: records)
+              notification_payload[:row_count] = result.length
+              result
             end
           end
         end
@@ -113,10 +115,11 @@ module ActiveRecord
 
         private
           def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: false)
-            log(sql, name, async: async) do
+            log(sql, name, async: async) do |notification_payload|
               with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
                 result = conn.execute(sql)
                 verified!
+                notification_payload[:row_count] = result.length
                 result
               end
             end
@@ -136,10 +139,11 @@ module ActiveRecord
             check_if_write_query(sql)
             mark_transaction_written_if_write(sql)
 
-            log(sql, name) do
+            log(sql, name) do |notification_payload|
               with_raw_connection do |conn|
                 result = conn.execute_batch2(sql)
                 verified!
+                notification_payload[:row_count] = result.length
                 result
               end
             end

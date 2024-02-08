@@ -15,9 +15,6 @@ module ActiveJob
   # * <tt>before_perform</tt>
   # * <tt>around_perform</tt>
   # * <tt>after_perform</tt>
-  #
-  # NOTE: Calling the same callback multiple times will overwrite previous callback definitions.
-  #
   module Callbacks
     extend  ActiveSupport::Concern
     include ActiveSupport::Callbacks

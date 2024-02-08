@@ -287,16 +287,6 @@ Inspecting 1 file
 1 file inspected, no offenses detected
 ```
 
-#### Spell Checking
-
-We run [codespell](https://github.com/codespell-project/codespell) with GitHub Actions to check spelling and
-[codespell](https://pypi.org/project/codespell/) runs against a [small custom dictionary](https://github.com/rails/rails/blob/main/codespell.txt).
-`codespell` is written in [Python](https://www.python.org/) and you can run it with:
-
-```bash
-$ codespell --ignore-words=codespell.txt
-```
-
 ### Benchmark Your Code
 
 For changes that might have an impact on performance, please benchmark your

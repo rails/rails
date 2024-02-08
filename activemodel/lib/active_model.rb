@@ -28,7 +28,7 @@ require "active_support/rails"
 require "active_model/version"
 require "active_model/deprecator"
 
-# :include: activemodel/README.rdoc
+# :include: ../README.rdoc
 module ActiveModel
   extend ActiveSupport::Autoload
 

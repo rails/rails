@@ -24,6 +24,7 @@ require "models/user"
 require "models/room"
 require "models/contract"
 require "models/subscription"
+require "models/subscriber"
 require "models/book"
 require "models/branch"
 require "models/cpk"
@@ -197,6 +198,16 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
 
     comment.body = "Kittens are adorable."
     assert_equal comment.body, rating.comment.body, "Changing the original Comment's body should change the Comment's body on the association"
+  end
+
+  def test_belongs_to_should_find_inverse_has_many_automatically
+    book = Book.create!
+    subscriber = book.subscribers.new nick: "Nickname"
+
+    subscriber.save!
+
+    assert_equal [subscriber], book.reload.subscribers
+    assert_equal 1, book.reload.subscribers.count
   end
 
   def test_polymorphic_and_has_many_through_relationships_should_not_have_inverses

@@ -21,7 +21,7 @@ module ActiveJob
       # You can also pass a block that'll be invoked if the retry attempts fail for custom logic rather than letting
       # the exception bubble up. This block is yielded with the job instance as the first and the error instance as the second parameter.
       #
-      # `retry_on` and `discard_on` handlers are searched from bottom to top, and up the class hierarchy. The handler of the first class for
+      # +retry_on+ and +discard_on+ handlers are searched from bottom to top, and up the class hierarchy. The handler of the first class for
       # which <tt>exception.is_a?(klass)</tt> holds true is the one invoked, if any.
       #
       # ==== Options
@@ -84,7 +84,7 @@ module ActiveJob
       #
       # You can also pass a block that'll be invoked. This block is yielded with the job instance as the first and the error instance as the second parameter.
       #
-      # `retry_on` and `discard_on` handlers are searched from bottom to top, and up the class hierarchy. The handler of the first class for
+      # +retry_on+ and +discard_on+ handlers are searched from bottom to top, and up the class hierarchy. The handler of the first class for
       # which <tt>exception.is_a?(klass)</tt> holds true is the one invoked, if any.
       #
       # ==== Example

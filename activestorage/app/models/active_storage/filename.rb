@@ -69,10 +69,6 @@ class ActiveStorage::Filename
     to_s
   end
 
-  def to_json
-    to_s
-  end
-
   def <=>(other)
     to_s.downcase <=> other.to_s.downcase
   end

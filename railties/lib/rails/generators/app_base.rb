@@ -595,10 +595,14 @@ module Rails
         # ActiveStorage preview support
         packages << "libvips" unless skip_active_storage?
 
+        # jemalloc for memory optimization
+        packages << "libjemalloc2"
+
         packages.compact.sort
       end
 
       def css_gemfile_entry
+        return if options[:api]
         return unless options[:css]
 
         if !using_js_runtime? && options[:css] == "tailwind"

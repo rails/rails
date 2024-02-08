@@ -210,13 +210,12 @@ module ActiveSupport
         # Modifies the amount of an integer value that is stored in the cache.
         # If the key is not found it is created and set to +amount+.
         def modify_value(name, amount, options)
-          file_name = normalize_key(name, options)
           options = merged_options(options)
           key = normalize_key(name, options)
           version = normalize_version(name, options)
           amount = Integer(amount)
 
-          lock_file(file_name) do
+          lock_file(key) do
             entry = read_entry(key, **options)
 
             if !entry || entry.expired? || entry.mismatched?(version)

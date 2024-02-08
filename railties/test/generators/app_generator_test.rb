@@ -5,90 +5,88 @@ require "rails/generators/rails/app/app_generator"
 require "generators/shared_generator_tests"
 
 DEFAULT_APP_FILES = %w(
+  .dockerignore
+  .git
   .gitattributes
   .github/dependabot.yml
   .github/workflows/ci.yml
   .gitignore
-  .dockerignore
   .rubocop.yml
   .ruby-version
-  README.md
-  Gemfile
-  Rakefile
   Dockerfile
-  config.ru
+  Gemfile
+  README.md
+  Rakefile
   app/assets/config/manifest.js
-  app/assets/images
-  app/assets/stylesheets
+  app/assets/images/.keep
   app/assets/stylesheets/application.css
   app/channels/application_cable/channel.rb
   app/channels/application_cable/connection.rb
-  app/controllers
   app/controllers/application_controller.rb
-  app/controllers/concerns
-  app/helpers
+  app/controllers/concerns/.keep
   app/helpers/application_helper.rb
-  app/mailers
-  app/mailers/application_mailer.rb
-  app/models
-  app/models/application_record.rb
-  app/models/concerns
-  app/jobs
   app/jobs/application_job.rb
-  app/views/layouts
+  app/mailers/application_mailer.rb
+  app/models/application_record.rb
+  app/models/concerns/.keep
   app/views/layouts/application.html.erb
   app/views/layouts/mailer.html.erb
   app/views/layouts/mailer.text.erb
-  bin/docker-entrypoint
+  app/views/pwa/manifest.json.erb
+  app/views/pwa/service-worker.js
   bin/brakeman
+  bin/docker-entrypoint
   bin/rails
   bin/rake
   bin/rubocop
   bin/setup
+  config.ru
   config/application.rb
   config/boot.rb
   config/cable.yml
+  config/credentials.yml.enc
+  config/database.yml
   config/environment.rb
-  config/environments
   config/environments/development.rb
   config/environments/production.rb
   config/environments/test.rb
-  config/initializers
   config/initializers/assets.rb
   config/initializers/content_security_policy.rb
   config/initializers/enable_yjit.rb
   config/initializers/filter_parameter_logging.rb
   config/initializers/inflections.rb
-  config/locales
+  config/initializers/permissions_policy.rb
   config/locales/en.yml
+  config/master.key
   config/puma.rb
   config/routes.rb
-  config/credentials.yml.enc
   config/storage.yml
-  db
   db/seeds.rb
-  lib
-  lib/tasks
-  lib/assets
-  log
-  public
-  storage
+  lib/assets/.keep
+  lib/tasks/.keep
+  log/.keep
+  public/404.html
+  public/422.html
+  public/426.html
+  public/500.html
+  public/icon.png
+  public/icon.svg
+  public/robots.txt
+  storage/.keep
   test/application_system_test_case.rb
-  test/test_helper.rb
-  test/fixtures
-  test/fixtures/files
   test/channels/application_cable/connection_test.rb
-  test/controllers
-  test/models
-  test/helpers
-  test/mailers
-  test/integration
-  test/system
-  vendor
-  tmp
-  tmp/cache
-  tmp/cache/assets
-  tmp/storage
+  test/controllers/.keep
+  test/fixtures/files/.keep
+  test/helpers/.keep
+  test/integration/.keep
+  test/mailers/.keep
+  test/models/.keep
+  test/system/.keep
+  test/test_helper.rb
+  tmp/.keep
+  tmp/pids/.keep
+  tmp/storage/.keep
+  vendor/.keep
 )
 
 class AppGeneratorTest < Rails::Generators::TestCase
@@ -111,12 +109,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile"
   end
 
-  def test_assets
-    run_generator
-
-    assert_file("app/assets/stylesheets/application.css")
-  end
-
   def test_invalid_javascript_option_raises_an_error
     content = capture(:stderr) { run_generator([destination_root, "-j", "unknown"]) }
     assert_match(/Expected '--javascript' to be one of/, content)
@@ -130,11 +122,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_invalid_css_option_raises_an_error
     content = capture(:stderr) { run_generator([destination_root, "-c", "unknown"]) }
     assert_match(/Expected '--css' to be one of/, content)
-  end
-
-  def test_application_job_file_present
-    run_generator
-    assert_file("app/jobs/application_job.rb")
   end
 
   def test_invalid_application_name_raises_an_error
@@ -181,17 +168,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_app_update(app_moved_root)
 
     assert_file "#{app_moved_root}/config/environment.rb", /Rails\.application\.initialize!/
-  end
-
-  def test_new_application_not_include_api_initializers
-    run_generator
-
-    assert_no_file "config/initializers/cors.rb"
-  end
-
-  def test_new_application_doesnt_need_defaults
-    run_generator
-    assert_empty Dir.glob("config/initializers/new_framework_defaults_*.rb", base: destination_root)
   end
 
   def test_new_application_load_defaults

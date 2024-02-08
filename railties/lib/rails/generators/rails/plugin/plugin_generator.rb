@@ -112,9 +112,12 @@ module Rails
     def generate_test_dummy(force = false)
       opts = options.transform_keys(&:to_sym).except(*DUMMY_IGNORE_OPTIONS)
       opts[:force] = force
+      opts[:skip_brakeman] = true
       opts[:skip_bundle] = true
+      opts[:skip_ci] = true
       opts[:skip_git] = true
       opts[:skip_hotwire] = true
+      opts[:skip_rubocop] = true
       opts[:dummy_app] = true
 
       invoke Rails::Generators::AppGenerator,
@@ -144,7 +147,7 @@ module Rails
     def test_dummy_clean
       inside dummy_path do
         remove_file ".ruby-version"
-        remove_file "db/seeds.rb"
+        remove_dir "db"
         remove_file "Gemfile"
         remove_file "lib/tasks"
         remove_file "public/robots.txt"

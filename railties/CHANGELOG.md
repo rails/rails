@@ -1,3 +1,34 @@
+*   Setup jemalloc in the default Dockerfile for memory optimization.
+
+    *Matt Almeida*, *Jean Boussier*
+
+*   Commented out lines in .railsrc file should not be treated as arguments when using
+    rails new generator command. Update ARGVScrubber to ignore text after # symbols.
+
+    *Willian Tenfen*
+
+*   Skip CSS when generating APIs.
+
+    *Ruy Rocha*
+
+*   Rails console now indicates application name and the current Rails environment:
+
+    ```txt
+    my-app(dev)> # for RAILS_ENV=development
+    my-app(test)> # for RAILS_ENV=test
+    my-app(prod)> # for RAILS_ENV=production
+    my-app(my_env)> # for RAILS_ENV=my_env
+    ```
+
+    The application name is derived from the application's module name from `config/application.rb`.
+    For example, `MyApp` will displayed as `my-app` in the prompt.
+
+    Additionally, the environment name will be colorized when the environment is
+    `development` (blue), `test` (blue), or `production` (red), if your
+    terminal supports it.
+
+    *Stan Lo*
+
 *   Ensure `autoload_paths`, `autoload_once_paths`, `eager_load_paths`, and
     `load_paths` only have directories when initialized from engine defaults.
     Previously, files under the `app` directory could end up there too.

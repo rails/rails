@@ -12,7 +12,15 @@ module ActiveRecord
         @previous_isolation_level = ActiveSupport::IsolatedExecutionState.isolation_level
 
         # Keep a duplicate pool so we do not bother others
-        @db_config = ActiveRecord::Base.connection_pool.db_config
+        config = ActiveRecord::Base.connection_pool.db_config
+        @db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(
+          config.env_name,
+          config.name,
+          config.configuration_hash.merge(
+            checkout_timeout: 0.2, # Reduce checkout_timeout to speedup tests
+          )
+        )
+
         @pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, @db_config, :writing, :default)
         @pool = ConnectionPool.new(@pool_config)
 
@@ -436,7 +444,7 @@ module ActiveRecord
         end
 
         # this should wake up the waiting threads one by one in order
-        conns.each { |conn| @pool.checkin(conn); sleep 0.1 }
+        conns.each { |conn| @pool.checkin(conn); sleep 0.01 }
 
         dispose_held_connections.set
         threads.each(&:join)
@@ -768,11 +776,11 @@ module ActiveRecord
         with_single_connection_pool do |pool|
           pool.with_connection do |connection|
             stats = pool.stat
-            assert_equal({ size: 1, connections: 1, busy: 1, dead: 0, idle: 0, waiting: 0, checkout_timeout: 5 }, stats)
+            assert_equal({ size: 1, connections: 1, busy: 1, dead: 0, idle: 0, waiting: 0, checkout_timeout: 0.2 }, stats)
           end
 
           stats = pool.stat
-          assert_equal({ size: 1, connections: 1, busy: 0, dead: 0, idle: 1, waiting: 0, checkout_timeout: 5 }, stats)
+          assert_equal({ size: 1, connections: 1, busy: 0, dead: 0, idle: 1, waiting: 0, checkout_timeout: 0.2 }, stats)
 
           assert_raise(ThreadError) do
             new_thread do
@@ -782,7 +790,7 @@ module ActiveRecord
           end
 
           stats = pool.stat
-          assert_equal({ size: 1, connections: 1, busy: 0, dead: 1, idle: 0, waiting: 0, checkout_timeout: 5 }, stats)
+          assert_equal({ size: 1, connections: 1, busy: 0, dead: 1, idle: 0, waiting: 0, checkout_timeout: 0.2 }, stats)
         ensure
           Thread.report_on_exception = original_report_on_exception
         end

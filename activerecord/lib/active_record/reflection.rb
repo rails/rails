@@ -708,9 +708,10 @@ module ActiveRecord
         def automatic_inverse_of
           if can_find_inverse_of_automatically?(self)
             inverse_name = ActiveSupport::Inflector.underscore(options[:as] || active_record.name.demodulize).to_sym
+            plural_inverse_name = ActiveSupport::Inflector.pluralize(inverse_name)
 
             begin
-              reflection = klass._reflect_on_association(inverse_name)
+              reflection = klass._reflect_on_association(inverse_name) || klass._reflect_on_association(plural_inverse_name)
             rescue NameError => error
               raise unless error.name.to_s == class_name
 
@@ -720,7 +721,7 @@ module ActiveRecord
             end
 
             if valid_inverse_reflection?(reflection)
-              inverse_name
+              reflection.name
             end
           end
         end

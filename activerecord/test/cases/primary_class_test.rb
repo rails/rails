@@ -3,6 +3,8 @@
 require "cases/helper"
 
 class PrimaryClassTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
   def teardown
     clean_up_connection_handler
   end

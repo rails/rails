@@ -30,7 +30,7 @@ require "active_job/deprecator"
 require "global_id"
 
 # :markup: markdown
-# :include: activejob/README.md
+# :include: ../README.md
 module ActiveJob
   extend ActiveSupport::Autoload
 
@@ -58,7 +58,7 @@ module ActiveJob
   end
 
   ##
-  # :singleton-method:
+  # :singleton-method: verbose_enqueue_logs
   #
   # Specifies if the methods calling background job enqueue should be logged below
   # their relevant enqueue log lines. Defaults to false.

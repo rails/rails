@@ -83,6 +83,14 @@ module RailInspector
       File.write(doc_path, doc.to_s)
     end
 
+    def error_message
+      return unless errors.any?
+
+      errors.join("\n") + "\n" +
+        "Make sure new configurations are added to configuring.md#rails-general-configuration in alphabetical order.\n" +
+        "Errors may be autocorrectable with the --autocorrect flag"
+    end
+
     private
       def doc_path
         @rails_path.join(DOC_PATH)

@@ -44,7 +44,7 @@ Zeitwerk::Loader.for_gem.tap do |loader|
 end.setup
 
 # :markup: markdown
-# :include: actioncable/README.md
+# :include: ../README.md
 module ActionCable
   require_relative "action_cable/version"
   require_relative "action_cable/deprecator"

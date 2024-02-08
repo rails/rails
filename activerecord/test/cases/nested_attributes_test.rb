@@ -422,6 +422,13 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
 
     Pirate.accepts_nested_attributes_for :update_only_ship, update_only: true, allow_destroy: false
   end
+
+  def test_should_raise_an_argument_error_if_something_other_than_a_hash_is_passed_in
+    exception = assert_raise ArgumentError do
+      @pirate.update(ship_attributes: "foo")
+    end
+    assert_equal "Hash expected for `ship` attributes, got String", exception.message
+  end
 end
 
 class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
@@ -598,6 +605,13 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
 
     Ship.accepts_nested_attributes_for :update_only_pirate, update_only: true, allow_destroy: false
   end
+
+  def test_should_raise_an_argument_error_if_something_other_than_a_hash_is_passed_in
+    exception = assert_raise ArgumentError do
+      @ship.update(pirate_attributes: "foo")
+    end
+    assert_equal "Hash expected for `pirate` attributes, got String", exception.message
+  end
 end
 
 module NestedAttributesOnACollectionAssociationTests
@@ -768,7 +782,7 @@ module NestedAttributesOnACollectionAssociationTests
     exception = assert_raise ArgumentError do
       @pirate.public_send(association_setter, "foo")
     end
-    assert_equal %{Hash or Array expected for attribute `#{@association_name}`, got String ("foo")}, exception.message
+    assert_equal %{Hash or Array expected for `#{@association_name}` attributes, got String}, exception.message
   end
 
   def test_should_work_with_update_as_well

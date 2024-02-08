@@ -224,27 +224,31 @@ module ActiveRecord
           assert_match(/nrecognized journal_mode false/, error.message)
         else
           # must use a new, separate database file that hasn't been opened in WAL mode before
-          with_file_connection(database: "fixtures/journal_mode_test.sqlite3", pragmas: { "journal_mode" => "delete" }) do |conn|
-            assert_equal [{ "journal_mode" => "delete" }], conn.execute("PRAGMA journal_mode")
-          end
+          Dir.mktmpdir do |tmpdir|
+            database_file = File.join(tmpdir, "journal_mode_test.sqlite3")
 
-          with_file_connection(database: "fixtures/journal_mode_test.sqlite3", pragmas: { "journal_mode" => :delete }) do |conn|
-            assert_equal [{ "journal_mode" => "delete" }], conn.execute("PRAGMA journal_mode")
-          end
-
-          error = assert_raises(ActiveRecord::StatementInvalid) do
-            with_file_connection(database: "fixtures/journal_mode_test.sqlite3", pragmas: { "journal_mode" => 0 }) do |conn|
-              conn.execute("PRAGMA journal_mode")
+            with_file_connection(database: database_file, pragmas: { "journal_mode" => "delete" }) do |conn|
+              assert_equal [{ "journal_mode" => "delete" }], conn.execute("PRAGMA journal_mode")
             end
-          end
-          assert_match(/unrecognized journal_mode 0/, error.message)
 
-          error = assert_raises(ActiveRecord::StatementInvalid) do
-            with_file_connection(database: "fixtures/journal_mode_test.sqlite3", pragmas: { "journal_mode" => false }) do |conn|
-              conn.execute("PRAGMA journal_mode")
+            with_file_connection(database: database_file, pragmas: { "journal_mode" => :delete }) do |conn|
+              assert_equal [{ "journal_mode" => "delete" }], conn.execute("PRAGMA journal_mode")
             end
+
+            error = assert_raises(ActiveRecord::StatementInvalid) do
+              with_file_connection(database: database_file, pragmas: { "journal_mode" => 0 }) do |conn|
+                conn.execute("PRAGMA journal_mode")
+              end
+            end
+            assert_match(/unrecognized journal_mode 0/, error.message)
+
+            error = assert_raises(ActiveRecord::StatementInvalid) do
+              with_file_connection(database: database_file, pragmas: { "journal_mode" => false }) do |conn|
+                conn.execute("PRAGMA journal_mode")
+              end
+            end
+            assert_match(/unrecognized journal_mode false/, error.message)
           end
-          assert_match(/unrecognized journal_mode false/, error.message)
         end
       end
 

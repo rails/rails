@@ -228,19 +228,6 @@ module MyApp
 end
 ```
 
-$LOAD_PATH{#load_path}
-----------
-
-Autoload paths are added to `$LOAD_PATH` by default. However, Zeitwerk uses absolute file names internally, and your application should not issue `require` calls for autoloadable files, so those directories are actually not needed there. You can opt out with this flag:
-
-```ruby
-config.add_autoload_paths_to_load_path = false
-```
-
-That may speed up legitimate `require` calls a bit since there are fewer lookups. Also, if your application uses [Bootsnap](https://github.com/Shopify/bootsnap), that saves the library from building unnecessary indexes, leading to lower memory usage.
-
-The `lib` directory is not affected by this flag, it is added to `$LOAD_PATH` always.
-
 Reloading
 ---------
 

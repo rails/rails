@@ -8,6 +8,7 @@ require "models/project"
 require "models/developer"
 require "models/company"
 require "models/computer"
+require "models/contract"
 require "models/club"
 require "models/membership"
 

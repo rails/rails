@@ -48,6 +48,15 @@ class ActiveRecord::Encryption::EncryptorTest < ActiveRecord::EncryptionTestCase
     assert cipher_text.bytesize < content.bytesize
   end
 
+  test "content is not compressed, when disabled" do
+    @encryptor = ActiveRecord::Encryption::Encryptor.new(compress: false)
+    content = SecureRandom.hex(5.kilobytes)
+    cipher_text = @encryptor.encrypt(content)
+
+    assert_encrypt_text content
+    assert cipher_text.bytesize > content.bytesize
+  end
+
   test "trying to encrypt custom classes raises a ForbiddenClass exception" do
     assert_raises ActiveRecord::Encryption::Errors::ForbiddenClass do
       @encryptor.encrypt(Struct.new(:name).new("Jorge"))

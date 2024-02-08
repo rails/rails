@@ -5,6 +5,8 @@ require "cases/helper"
 module ActiveRecord
   module ConnectionAdapters
     class SchemaCacheTest < ActiveRecord::TestCase
+      self.use_transactional_tests = false
+
       def setup
         @connection = ARUnit2Model.connection
         @cache = new_bound_reflection

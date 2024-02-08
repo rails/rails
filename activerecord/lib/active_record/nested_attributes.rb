@@ -421,10 +421,15 @@ module ActiveRecord
       # update_only is true, and a <tt>:_destroy</tt> key set to a truthy value,
       # then the existing record will be marked for destruction.
       def assign_nested_attributes_for_one_to_one_association(association_name, attributes)
-        options = nested_attributes_options[association_name]
         if attributes.respond_to?(:permitted?)
           attributes = attributes.to_h
         end
+
+        unless attributes.is_a?(Hash)
+          raise ArgumentError, "Hash expected for `#{association_name}` attributes, got #{attributes.class.name}"
+        end
+
+        options = nested_attributes_options[association_name]
         attributes = attributes.with_indifferent_access
         existing_record = send(association_name)
 
@@ -486,7 +491,7 @@ module ActiveRecord
         end
 
         unless attributes_collection.is_a?(Hash) || attributes_collection.is_a?(Array)
-          raise ArgumentError, "Hash or Array expected for attribute `#{association_name}`, got #{attributes_collection.class.name} (#{attributes_collection.inspect})"
+          raise ArgumentError, "Hash or Array expected for `#{association_name}` attributes, got #{attributes_collection.class.name}"
         end
 
         check_record_limit!(options[:limit], attributes_collection)

@@ -64,8 +64,6 @@ Hence, the cookie serves as temporary authentication for the web application. An
 
 * Instead of stealing a cookie unknown to the attacker, they fix a user's session identifier (in the cookie) known to them. Read more about this so-called session fixation later.
 
-The main objective of most attackers is to make money. The underground prices for stolen bank login accounts range from 0.5%-10% of account balance, $0.5-$30 for credit card numbers ($20-$60 with full details), $0.1-$1.5 for identities (Name, SSN, and DOB), $20-$50 for retailer accounts, and $6-$10 for cloud service provider accounts, according to the [Symantec Internet Security Threat Report (2017)](https://docs.broadcom.com/docs/istr-22-2017-en).
-
 ### Session Storage
 
 NOTE: Rails uses `ActionDispatch::Session::CookieStore` as the default session storage.

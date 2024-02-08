@@ -31,14 +31,10 @@ module ActionView
     rescue LoadError
       require "ripper"
       require_relative "render_parser/ripper_render_parser"
-      Parser = RipperRenderParser
+      Default = RipperRenderParser
     else
       require_relative "render_parser/prism_render_parser"
-      Parser = PrismRenderParser
-    end
-
-    def self.new(name, code)
-      Parser.new(name, code)
+      Default = PrismRenderParser
     end
   end
 end

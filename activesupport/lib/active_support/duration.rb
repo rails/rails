@@ -221,7 +221,7 @@ module ActiveSupport
         end
     end
 
-    delegate :to_f, :positive?, :negative?, :zero?, :abs, to: :@value, as: Integer
+    Delegation.generate(self, [:to_f, :positive?, :negative?, :zero?, :abs], to: :@value, as: Integer, nilable: false)
 
     def initialize(value, parts, variable = nil) # :nodoc:
       @value, @parts = value, parts
@@ -234,7 +234,10 @@ module ActiveSupport
       end
     end
 
-    # Returns a copy of the parts hash that defines the duration
+    # Returns a copy of the parts hash that defines the duration.
+    #
+    #   5.minutes.parts # => {:minutes=>5}
+    #   3.years.parts # => {:years=>3}
     def parts
       @parts.dup
     end

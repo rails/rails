@@ -239,6 +239,23 @@ module ApplicationTests
       ActiveRecord::Base.connection.drop_table("posts", if_exists: true) # force drop posts table for test.
     end
 
+    test "skips checking for schema cache dump when all databases skipping database tasks" do
+      app_file "config/database.yml", <<-YAML
+        development:
+          database: storage/default.sqlite3
+          adapter: sqlite3
+          database_tasks: false
+      YAML
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+      RUBY
+
+      assert_nothing_raised do
+        require "#{app_path}/config/environment"
+      end
+    end
+
     test "expire schema cache dump" do
       rails %w(generate model post title:string)
       rails %w(db:migrate db:schema:cache:dump db:rollback)

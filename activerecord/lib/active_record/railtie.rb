@@ -147,11 +147,9 @@ To keep using the current cache store, you can turn off cache versioning entirel
         config.after_initialize do |app|
           ActiveSupport.on_load(:active_record) do
             db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).first
+            next if db_config.nil?
 
-            filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(
-              db_config.name,
-              schema_cache_path: db_config.schema_cache_path
-            )
+            filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(db_config)
 
             cache = ActiveRecord::ConnectionAdapters::SchemaCache._load_from(filename)
             next if cache.nil?
@@ -417,7 +415,8 @@ To keep using the current cache store, you can turn off cache versioning entirel
             pid:          -> { Process.pid.to_s },
             socket:       ->(context) { context[:connection].pool.db_config.socket },
             db_host:      ->(context) { context[:connection].pool.db_config.host },
-            database:     ->(context) { context[:connection].pool.db_config.database }
+            database:     ->(context) { context[:connection].pool.db_config.database },
+            source_location: -> { QueryLogs.query_source_location }
           )
           ActiveRecord.disable_prepared_statements = true
 

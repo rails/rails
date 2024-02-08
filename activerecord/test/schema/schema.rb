@@ -270,6 +270,7 @@ ActiveRecord::Schema.define do
     t.string :commentable_title
     t.string :commentable_author
     t.string :commentable_type
+    t.text :text
   end
 
   create_table :cpk_reviews, force: true do |t|
@@ -1480,6 +1481,43 @@ ActiveRecord::Schema.define do
   create_table :toooooooooooooooooooooooooooooooooo_long_table_names, force: true do |t|
     t.bigint :toooooooo_long_a_id, null: false
     t.bigint :toooooooo_long_b_id, null: false
+  end
+end
+
+if ActiveRecord::Base.connection.supports_insert_returning? && !ActiveRecord::TestCase.current_adapter?(:SQLite3Adapter)
+  ActiveRecord::Base.connection.create_table :pk_autopopulated_by_a_trigger_records, force: true, id: false do |t|
+    t.integer :id, null: false
+  end
+
+  if ActiveRecord::TestCase.current_adapter?(:PostgreSQLAdapter)
+    ActiveRecord::Base.connection.execute(
+      <<-SQL
+        CREATE OR REPLACE FUNCTION populate_column()
+        RETURNS TRIGGER AS $$
+        DECLARE
+          max_value INTEGER;
+        BEGIN
+            SELECT MAX(id) INTO max_value FROM pk_autopopulated_by_a_trigger_records;
+            NEW.id = COALESCE(max_value, 0) + 1;
+            RETURN NEW;
+        END;
+        $$ LANGUAGE plpgsql;
+
+        CREATE TRIGGER before_insert_trigger
+        BEFORE INSERT ON pk_autopopulated_by_a_trigger_records
+        FOR EACH ROW
+        EXECUTE FUNCTION populate_column();
+      SQL
+    )
+  elsif ActiveRecord::TestCase.current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+    ActiveRecord::Base.connection.execute(
+      <<-SQL
+        CREATE TRIGGER before_insert_trigger
+        BEFORE INSERT ON pk_autopopulated_by_a_trigger_records
+        FOR EACH ROW
+        SET NEW.id = (SELECT COALESCE(MAX(id), 0) + 1 FROM pk_autopopulated_by_a_trigger_records);
+      SQL
+    )
   end
 end
 

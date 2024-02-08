@@ -2,7 +2,7 @@
 
 require "active_record/connection_adapters/abstract_mysql_adapter"
 
-gem "trilogy", "~> 2.4"
+gem "trilogy", "~> 2.7"
 require "trilogy"
 
 require "active_record/connection_adapters/trilogy/database_statements"
@@ -13,7 +13,6 @@ module ActiveRecord
       ER_BAD_DB_ERROR = 1049
       ER_DBACCESS_DENIED_ERROR = 1044
       ER_ACCESS_DENIED_ERROR = 1045
-      ER_SERVER_SHUTDOWN = 1053
 
       ADAPTER_NAME = "Trilogy"
 
@@ -201,18 +200,12 @@ module ActiveRecord
           if exception.is_a?(::Trilogy::TimeoutError) && !exception.error_code
             return ActiveRecord::AdapterTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
           end
-          error_code = exception.error_code if exception.respond_to?(:error_code)
-
-          case error_code
-          when ER_SERVER_SHUTDOWN
-            return ConnectionFailed.new(message, connection_pool: @pool)
-          end
 
           case exception
-          when Errno::EPIPE, SocketError, IOError
+          when ::Trilogy::ConnectionClosed, ::Trilogy::EOFError
             return ConnectionFailed.new(message, connection_pool: @pool)
           when ::Trilogy::Error
-            if /Connection reset by peer|TRILOGY_CLOSED_CONNECTION|TRILOGY_INVALID_SEQUENCE_ID|TRILOGY_UNEXPECTED_PACKET/.match?(exception.message)
+            if exception.is_a?(SystemCallError) || exception.message.include?("TRILOGY_INVALID_SEQUENCE_ID")
               return ConnectionFailed.new(message, connection_pool: @pool)
             end
           end

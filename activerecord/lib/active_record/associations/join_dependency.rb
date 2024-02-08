@@ -254,10 +254,10 @@ module ActiveRecord
 
             if node.primary_key
               keys = Array(node.primary_key).map { |column| aliases.column_alias(node, column) }
-              ids = keys.map { |key| row[key] }
+              id = keys.map { |key| row[key] }
             else
               keys = Array(node.reflection.join_primary_key).map { |column| aliases.column_alias(node, column.to_s) }
-              ids = keys.map { nil } # Avoid id-based model caching.
+              id = keys.map { nil } # Avoid id-based model caching.
             end
 
             if keys.any? { |key| row[key].nil? }
@@ -266,11 +266,9 @@ module ActiveRecord
               next
             end
 
-            ids.each do |id|
-              unless model = seen[ar_parent][node][id]
-                model = construct_model(ar_parent, node, row, model_cache, id, strict_loading_value)
-                seen[ar_parent][node][id] = model if id
-              end
+            unless model = seen[ar_parent][node][id]
+              model = construct_model(ar_parent, node, row, model_cache, id, strict_loading_value)
+              seen[ar_parent][node][id] = model if id
             end
 
             construct(model, node, row, seen, model_cache, strict_loading_value)

@@ -66,7 +66,6 @@ module ActionDispatch
       ActionDispatch::Cookies::CookieJar.always_write_cookie = config.action_dispatch.always_write_cookie
 
       ActionDispatch::Routing::Mapper.route_source_locations = Rails.env.development?
-      ActionDispatch::Routing::Mapper.backtrace_cleaner = Rails.backtrace_cleaner
 
       ActionDispatch.test_app = app
     end

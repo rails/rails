@@ -1156,6 +1156,7 @@ module ActiveRecord
             statement_name:    statement_name,
             async:             async,
             connection:        self,
+            row_count:         0,
             &block
           )
         rescue ActiveRecord::StatementInvalid => ex

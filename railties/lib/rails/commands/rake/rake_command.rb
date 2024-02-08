@@ -18,7 +18,7 @@ module Rails
 
         def perform(task, args, config)
           with_rake(task, *args) do |rake|
-            if unrecognized_task = rake.top_level_tasks.find { |task| !rake.lookup(task[/[^\[]+/]) }
+            if unrecognized_task = (rake.top_level_tasks - ["default"]).find { |task| !rake.lookup(task[/[^\[]+/]) }
               @rake_tasks = rake.tasks
               raise UnrecognizedCommandError.new(unrecognized_task)
             end

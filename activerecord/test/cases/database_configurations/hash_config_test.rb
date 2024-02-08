@@ -141,9 +141,29 @@ module ActiveRecord
         assert_equal "db/schema_cache.yml", config.default_schema_cache_path
       end
 
+      def test_schema_cache_path_default_for_custom_name
+        config = HashConfig.new("default_env", "alternate", adapter: "abstract")
+        assert_equal "db/alternate_schema_cache.yml", config.default_schema_cache_path
+      end
+
+      def test_schema_cache_path_default_for_different_db_dir
+        config = HashConfig.new("default_env", "alternate", adapter: "abstract")
+        assert_equal "my_db/alternate_schema_cache.yml", config.default_schema_cache_path("my_db")
+      end
+
       def test_schema_cache_path_configuration_hash
         config = HashConfig.new("default_env", "primary", { schema_cache_path: "db/config_schema_cache.yml", adapter: "abstract" })
         assert_equal "db/config_schema_cache.yml", config.schema_cache_path
+      end
+
+      def test_lazy_schema_cache_path
+        config = HashConfig.new("default_env", "primary", { schema_cache_path: "db/config_schema_cache.yml", adapter: "abstract" })
+        assert_equal "db/config_schema_cache.yml", config.lazy_schema_cache_path
+      end
+
+      def test_lazy_schema_cache_path_uses_default_if_config_is_not_present
+        config = HashConfig.new("default_env", "alternate", { adapter: "abstract" })
+        assert_equal "db/alternate_schema_cache.yml", config.lazy_schema_cache_path
       end
 
       def test_validate_checks_the_adapter_exists
