@@ -13,7 +13,7 @@ default: &default
   encoding: utf8
   username: sa
   password: <%%= ENV["SA_PASSWORD"] %>
-  host: localhost
+  host: <%%= ENV.fetch("DB_HOST") { "localhost" } %>
 
 development:
   <<: *default

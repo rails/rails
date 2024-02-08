@@ -41,6 +41,7 @@ default: &default
   pool: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   username: <%= app_name %>
   password:
+  host: <%%= ENV.fetch("DB_HOST") { "localhost" } %>
   driver:
 
 development:
