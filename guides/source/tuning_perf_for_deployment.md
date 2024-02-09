@@ -82,7 +82,7 @@ To set the number of threads, you can change the call to the +threads+ method in
 
 ### Number of Processes
 
-When using hybrid threads and processes, it's best to run 1 process per available processor core. On hosts with less memory you may need to choose a lower value. But fewer processes per core will normally result in not using all cores for your application. Automatic methods to determine the number of cores are unreliable. You should specify the number of processes manually.
+When using hybrid threads and processes, it's best to run 1 process per available processor core. On hosts with less memory you may need to choose a lower value. But fewer processes per core will normally result in not using all cores for your application. Automatic methods to determine the number of cores are unreliable, so you should specify the number of processes manually.
 
 To set the number of worker processes, you can change the call to the +workers+ method in +config/puma.rb+. Or you can set the +WEB_CONCURRENCY+ environment variable, which will do the same.
 
