@@ -444,7 +444,7 @@ module ActiveRecord
             ENV["SCHEMA_CACHE"] ||
             db_config_or_name.default_schema_cache_path(ActiveRecord::Tasks::DatabaseTasks.db_dir)
         else
-          ActiveRecord.deprecator.deprecation_warning(<<~MSG.squish)
+          ActiveRecord.deprecator.warn(<<~MSG.squish)
             Passing a database name to `cache_dump_filename` is deprecated and will be removed in Rails 7.3. Pass a
             `ActiveRecord::DatabaseConfigurations::DatabaseConfig` object instead.
           MSG
