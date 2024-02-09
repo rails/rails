@@ -1,3 +1,7 @@
+*   Ensure errors are reported, even when rendered and not raised.
+
+    *Stephen Margheim*
+
 *   Add `allow_browser` to set minimum browser versions for the application.
 
     A browser that's blocked will by default be served the file in `public/426.html` with a HTTP status code of "426 Upgrade Required".

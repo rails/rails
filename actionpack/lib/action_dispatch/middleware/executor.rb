@@ -13,6 +13,10 @@ module ActionDispatch
       begin
         response = @app.call(env)
         returned = response << ::Rack::BodyProxy.new(response.pop) { state.complete! }
+        if (exception = env["action_dispatch.exception"])
+          @executor.error_reporter.report(exception, handled: true, source: "application.action_dispatch")
+        end
+        returned
       rescue => error
         @executor.error_reporter.report(error, handled: false, source: "application.action_dispatch")
         raise
