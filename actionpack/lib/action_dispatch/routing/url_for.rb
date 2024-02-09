@@ -140,6 +140,8 @@ module ActionDispatch
       #   for the named dynamic segments of path. If unused, they will be discarded.
       # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in <tt>"/archive/2009/"</tt>.
       # * <tt>:script_name</tt> - Specifies application path relative to domain root. If provided, prepends application path.
+      # * <tt>:user</tt> - Inline HTTP authentication (only plucked out if <tt>:password</tt> is also present).
+      # * <tt>:password</tt> - Inline HTTP authentication (only plucked out if <tt>:user</tt> is also present).
       #
       # Any other key (<tt>:controller</tt>, <tt>:action</tt>, etc.) given to
       # +url_for+ is forwarded to the Routes module.
