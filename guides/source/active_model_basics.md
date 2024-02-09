@@ -77,6 +77,8 @@ irb> email_contact.valid? #validations
 Any class that includes `ActiveModel::API` can be used with `form_with`,
 `render` and any other [Action View helper methods](https://api.rubyonrails.org/classes/ActionView/Helpers.html), just like Active Record objects.
 
+For example, `form_with` can be used with the above class as follows
+
 ```erb+html
 <%= form_with model: EmailContact.new do |form| %>
   <%= form.text_field :name %>
@@ -87,9 +89,75 @@ Any class that includes `ActiveModel::API` can be used with `form_with`,
 </form>
 ```
 
+`render` can be used to render a partial with the class object as a local variable as follows:
+
 ```erb+html
 <%= render partial: "email_contact", email_contact: EmailContact.new(name: 'David', email: 'david@example.com', message: 'Hello World') %>
 ```
+
+### Attributes
+
+Similar to Active Record attributes, which are typically inferred from the database schema, Active Model Attributes allow you to define data types, set default values, and handle casting and serialization on plain ruby objects. This can be useful for form data which will give produce the Active Record-like conversion for things like dates and booleans on regular objects.
+
+To use Attributes, include the module in your model class and define your attributes using the `attribute` macro. It accepts a name, a cast type, a default value, and any other options supported by the attribute type.
+
+```ruby
+class Person
+  include ActiveModel::Attributes
+
+  attribute :name, :string
+  attribute :date_of_birth, :date
+  attribute :active, :boolean, default: true
+end
+```
+
+```irb
+irb> person = Person.new
+
+irb> person.name = "Jane"
+irb> person.name
+=> "Jane"
+
+#casts the string to a date
+irb> person.date_of_birth = "2020-01-01"
+irb> person.date_of_birth
+=> Wed, 01 Jan 2020
+irb> person.date_of_birth.class
+=> Date
+
+#obtains a default value of true
+irb> person.active
+=> true
+
+#casts the string to a boolean
+irb> person.active = "0"
+irb> person.active
+=> false
+```
+
+There are some additional methods described below that are available when using `ActiveModel::Attributes`.
+
+### Method: Attribute Names
+
+The `attribute_names` method which returns an array of the attribute names.
+
+```ruby
+  Person.attribute_names # => ["name", "date_of_birth", "active"]
+```
+
+### Method: Attributes
+
+The `attributes` method which returns a hash of all the attributes with their names as keys and the values of the attributes as values.
+
+```ruby
+    person = Person.new
+    person.name = "John"
+    person.date_of_birth = "1998-01-01"
+    person.active = false
+
+    person.attributes # => {"name"=>"John", "date_of_birth"=>Thu, 01 Jan 1998, "active"=>false}
+```
+
 
 ### Attribute Methods
 
