@@ -40,6 +40,7 @@ module ActionDispatch
       wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
 
       invoke_interceptors(request, exception, wrapper)
+      Rails.error.report(exception, handled: false, source: "application.action_dispatch")
       raise exception unless wrapper.show?(request)
       render_exception(request, exception, wrapper)
     end
