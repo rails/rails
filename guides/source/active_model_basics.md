@@ -137,7 +137,7 @@ irb> person.active
 
 There are some additional methods described below that are available when using `ActiveModel::Attributes`.
 
-### Method: Attribute Names
+#### Method: Attribute Names
 
 The `attribute_names` method which returns an array of the attribute names.
 
@@ -145,7 +145,7 @@ The `attribute_names` method which returns an array of the attribute names.
   Person.attribute_names # => ["name", "date_of_birth", "active"]
 ```
 
-### Method: Attributes
+#### Method: Attributes
 
 The `attributes` method which returns a hash of all the attributes with their names as keys and the values of the attributes as values.
 
@@ -158,6 +158,57 @@ The `attributes` method which returns a hash of all the attributes with their na
     person.attributes # => {"name"=>"John", "date_of_birth"=>Thu, 01 Jan 1998, "active"=>false}
 ```
 
+### Attribute Assignment
+
+Attribute Assignment allows you to set an object's attributes by passing in a hash of attributes with keys matching the attribute names. This is useful when you want to set multiple attributes at once.
+
+Consider the following class:
+
+```ruby
+class Person
+  include ActiveModel::AttributeAssignment
+  attr_accessor :name, :date_of_birth, :active
+end
+```
+
+You can set multiple attributes at once using the `assign_attributes` method:
+
+```irb
+irb> person = Person.new
+irb> person.assign_attributes(name: "John", date_of_birth: "1998-01-01", active: false)
+irb> person.name
+=> "John"
+irb> person.date_of_birth
+=> Thu, 01 Jan 1998
+irb> person.active
+=> false
+```
+
+If the passed hash the `permitted?` method and the return value of this method is `false`, an `ActiveModel::ForbiddenAttributesError` exception is raised.
+
+The `assign_attributes` method has an alias `attributes=`.
+
+INFO: A method alias is a method that performs the same action as another method, but is called something different.
+
+The following example demonstrates the use of the `attributes=` method to set multiple attributes at once:
+
+```irb
+irb> person = Person.new
+
+# using the `attributes= method` to set multiple attributes at once
+irb> person.attributes = { name: "John", date_of_birth: "1998-01-01", active: false }
+
+irb> person.name
+=> "John"
+
+# using the `assign_attributes` method to set multiple attributes at once
+irb> person.assign_attributes(name: "Jane")
+
+irb> person.name
+=> "Jane"
+irb> person.date_of_birth
+=> "1998-01-01"
+```
 
 ### Attribute Methods
 
