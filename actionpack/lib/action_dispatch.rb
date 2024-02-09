@@ -66,6 +66,7 @@ module ActionDispatch
     autoload :Cookies
     autoload :ActionableExceptions
     autoload :DebugExceptions
+    autoload :ReportErrors
     autoload :DebugLocks
     autoload :DebugView
     autoload :ExceptionWrapper

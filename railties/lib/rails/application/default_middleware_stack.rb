@@ -57,6 +57,7 @@ module Rails
           middleware.use ::Rails::Rack::Logger, config.log_tags
           middleware.use ::ActionDispatch::ShowExceptions, show_exceptions_app
           middleware.use ::ActionDispatch::DebugExceptions, app, config.debug_exception_response_format
+          middleware.use ::ActionDispatch::ReportErrors, app.executor
 
           if config.consider_all_requests_local
             middleware.use ::ActionDispatch::ActionableExceptions
