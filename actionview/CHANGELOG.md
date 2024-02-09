@@ -1,3 +1,7 @@
+*   Restore the ability for template to return any kind of object and not just strings
+
+    *Jean Boussier*
+
 ## Rails 7.1.3 (January 16, 2024) ##
 
 *   Better handle SyntaxError in Action View.

@@ -121,6 +121,14 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "hellopartialhello", render
   end
 
+  def test_rendering_non_string
+    my_object = Object.new
+    eval_handler = ->(_template, source) { source }
+    @template = ActionView::Template.new("my_object", "__id__", eval_handler, virtual_path: "hello", locals: [:my_object])
+    result = render(my_object: my_object)
+    assert_same my_object, result
+  end
+
   def test_resulting_string_is_utf8
     @template = new_template
     assert_equal Encoding::UTF_8, render.encoding
