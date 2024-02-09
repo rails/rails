@@ -1,3 +1,11 @@
+*   Fix counter caches when the foreign key is composite.
+
+    If the model holding the counter cache had a composite primary key,
+    inserting a dependent record would fail with an `ArgumentError`
+    `Expected corresponding value for...`
+
+    *fatkodima*
+
 *   Fix loading of schema cache for multiple databases.
 
     Before this change, if you have multiple databases configured in your
