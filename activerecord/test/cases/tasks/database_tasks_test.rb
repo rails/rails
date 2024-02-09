@@ -400,7 +400,7 @@ module ActiveRecord
       ENV["SCHEMA_CACHE"] = "tmp/something.yml"
 
       ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
-        path = assert_deprecated(ActiveRecord.deprecator) do
+        path = assert_deprecated(/Passing a database name to `cache_dump_filename` is deprecated and will be removed in Rails 7\.3\. Pass a `ActiveRecord::DatabaseConfigurations::DatabaseConfig` object instead\. \(/, ActiveRecord.deprecator) do
           ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename("primary")
         end
         assert_equal "tmp/something.yml", path
