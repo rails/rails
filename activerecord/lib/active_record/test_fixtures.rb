@@ -110,64 +110,64 @@ module ActiveRecord
       end
     end
 
-    def fixture_path # :nodoc:
-      ActiveRecord.deprecator.warn(<<~WARNING)
-        TestFixtures#fixture_path is deprecated and will be removed in Rails 7.2. Use #fixture_paths instead.
-        If multiple fixture paths have been configured with #fixture_paths, then #fixture_path will just return
-        the first path.
-      WARNING
-      fixture_paths.first
-    end
-
-    def run_in_transaction?
-      use_transactional_tests &&
-        !self.class.uses_transaction?(name)
-    end
-
-    def setup_fixtures(config = ActiveRecord::Base)
-      if pre_loaded_fixtures && !use_transactional_tests
-        raise RuntimeError, "pre_loaded_fixtures requires use_transactional_tests"
+    private
+      def fixture_path
+        ActiveRecord.deprecator.warn(<<~WARNING)
+          TestFixtures#fixture_path is deprecated and will be removed in Rails 7.2. Use #fixture_paths instead.
+          If multiple fixture paths have been configured with #fixture_paths, then #fixture_path will just return
+          the first path.
+        WARNING
+        fixture_paths.first
       end
 
-      @fixture_cache = {}
-      @fixture_connections = {}
-      @fixture_cache_key = [self.class.fixture_table_names.dup, self.class.fixture_paths.dup, self.class.fixture_class_names.dup]
-      @@already_loaded_fixtures ||= {}
-      @connection_subscriber = nil
-      @saved_pool_configs = Hash.new { |hash, key| hash[key] = {} }
+      def run_in_transaction?
+        use_transactional_tests &&
+          !self.class.uses_transaction?(name)
+      end
 
-      if run_in_transaction?
-        # Load fixtures once and begin transaction.
-        @loaded_fixtures = @@already_loaded_fixtures[@fixture_cache_key]
-        unless @loaded_fixtures
-          @@already_loaded_fixtures.clear
-          @loaded_fixtures = @@already_loaded_fixtures[@fixture_cache_key] = load_fixtures(config)
+      def setup_fixtures(config = ActiveRecord::Base)
+        if pre_loaded_fixtures && !use_transactional_tests
+          raise RuntimeError, "pre_loaded_fixtures requires use_transactional_tests"
         end
 
-        setup_transactional_fixtures
-      else
-        # Load fixtures for every test.
-        ActiveRecord::FixtureSet.reset_cache
-        invalidate_already_loaded_fixtures
-        @loaded_fixtures = load_fixtures(config)
+        @fixture_cache = {}
+        @fixture_connections = {}
+        @fixture_cache_key = [self.class.fixture_table_names.dup, self.class.fixture_paths.dup, self.class.fixture_class_names.dup]
+        @@already_loaded_fixtures ||= {}
+        @connection_subscriber = nil
+        @saved_pool_configs = Hash.new { |hash, key| hash[key] = {} }
+
+        if run_in_transaction?
+          # Load fixtures once and begin transaction.
+          @loaded_fixtures = @@already_loaded_fixtures[@fixture_cache_key]
+          unless @loaded_fixtures
+            @@already_loaded_fixtures.clear
+            @loaded_fixtures = @@already_loaded_fixtures[@fixture_cache_key] = load_fixtures(config)
+          end
+
+          setup_transactional_fixtures
+        else
+          # Load fixtures for every test.
+          ActiveRecord::FixtureSet.reset_cache
+          invalidate_already_loaded_fixtures
+          @loaded_fixtures = load_fixtures(config)
+        end
+
+        # Instantiate fixtures for every test if requested.
+        instantiate_fixtures if use_instantiated_fixtures
       end
 
-      # Instantiate fixtures for every test if requested.
-      instantiate_fixtures if use_instantiated_fixtures
-    end
+      def teardown_fixtures
+        # Rollback changes if a transaction is active.
+        if run_in_transaction?
+          teardown_transactional_fixtures
+        else
+          ActiveRecord::FixtureSet.reset_cache
+        end
 
-    def teardown_fixtures
-      # Rollback changes if a transaction is active.
-      if run_in_transaction?
-        teardown_transactional_fixtures
-      else
-        ActiveRecord::FixtureSet.reset_cache
+        ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
       end
 
-      ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
-    end
-
-    private
       def setup_transactional_fixtures
         setup_shared_connection_pool
 

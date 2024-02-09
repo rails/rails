@@ -820,19 +820,21 @@ module ActiveRecord
       @threads.each(&:kill)
     end
 
-    test "#active? is synchronized" do
-      threads(2, 25) { @connection.select_all("SELECT 1") }
-      threads(2, 25) { @connection.verify! }
-      threads(2, 25) { @connection.disconnect! }
+    unless in_memory_db?
+      test "#active? is synchronized" do
+        threads(2, 25) { @connection.select_all("SELECT 1") }
+        threads(2, 25) { @connection.verify! }
+        threads(2, 25) { @connection.disconnect! }
 
-      join
-    end
+        join
+      end
 
-    test "#verify! is synchronized" do
-      threads(2, 25) { @connection.verify! }
-      threads(2, 25) { @connection.disconnect! }
+      test "#verify! is synchronized" do
+        threads(2, 25) { @connection.verify! }
+        threads(2, 25) { @connection.disconnect! }
 
-      join
+        join
+      end
     end
 
     private

@@ -6,6 +6,11 @@ require "concurrent/atomic/count_down_latch"
 module ActiveRecord
   module ConnectionAdapters
     module ConnectionPoolTests
+      def self.included(test)
+        super
+        test.use_transactional_tests = false
+      end
+
       attr_reader :pool
 
       def setup
