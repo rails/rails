@@ -704,7 +704,14 @@ Just like the `:status` option for `render`, `:status` for `redirect_to` accepts
 
 #### The Difference Between `render` and `redirect_to`
 
-Sometimes inexperienced developers think of `redirect_to` as a sort of `goto` command, moving execution from one place to another in your Rails code. This is _not_ correct. Your code stops running and waits for a new request from the browser. It just happens that you've told the browser what request it should make next, by sending back an HTTP 302 status code.
+Sometimes inexperienced developers think of `redirect_to` as a sort of `goto`
+command, moving execution from one place to another in your Rails code. This is
+_not_ correct.
+
+The current action will complete, returning a response to the browser. After
+this your code stops running and waits for a new request, it just happens that
+you've told the browser what request it should make next by sending back an
+HTTP 302 status code.
 
 Consider these actions to see the difference:
 
