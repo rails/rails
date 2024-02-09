@@ -161,6 +161,6 @@ A synthetic workload cannot perfectly match your application's production traffi
 
 Your load testing program should allow you to check latencies, including percentile and tail latencies.
 
-For different numbers of processes and threads, or different configurations in general, check the throughput and one or more latencies such as P50, P90 and P99. For very few threads, performance will usually be bad for all of these. Increasing the threads will improve latency up to a point, and then improve throughput but worsen latency after that.
+For different numbers of processes and threads, or different configurations in general, check the throughput and one or more latencies such as P50, P90, and P99. For very few threads, performance will usually be bad for all of these. Increasing the threads will improve latency up to a point, and then improve throughput but worsen latency after that.
 
 Choose a tradeoff between latency and throughput based on your application's needs.
