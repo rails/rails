@@ -102,7 +102,7 @@ module ActiveStorage::Blob::Representable
     previewable? && !preview_image.attached?
   end
 
-  def create_preview_image_later(variations)
+  def create_preview_image_later(variations) # :nodoc:
     ActiveStorage::PreviewImageJob.perform_later(self, variations) if representable?
   end
 
