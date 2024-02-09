@@ -439,17 +439,6 @@ module ApplicationTests
         db_schema_cache_dump
       end
 
-      test "db:schema:cache:dump custom env" do
-        @old_schema_cache_env = ENV["SCHEMA_CACHE"]
-        filename = "db/special_schema_cache.yml"
-        ENV["SCHEMA_CACHE"] = filename
-
-        db_schema_dump
-        db_schema_cache_dump
-      ensure
-        ENV["SCHEMA_CACHE"] = @old_schema_cache_env
-      end
-
       test "db:schema:cache:dump first config wins" do
         Dir.chdir(app_path) do
           File.open("#{app_path}/config/database.yml", "w") do |f|

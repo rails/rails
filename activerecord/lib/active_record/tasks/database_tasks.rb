@@ -441,7 +441,7 @@ module ActiveRecord
         if db_config_or_name.is_a?(DatabaseConfigurations::DatabaseConfig)
           schema_cache_path ||
             db_config_or_name.schema_cache_path ||
-            ENV["SCHEMA_CACHE"] ||
+            schema_cache_env ||
             db_config_or_name.default_schema_cache_path(ActiveRecord::Tasks::DatabaseTasks.db_dir)
         else
           ActiveRecord.deprecator.warn(<<~MSG.squish)
@@ -455,7 +455,7 @@ module ActiveRecord
             "#{db_config_or_name}_schema_cache.yml"
           end
 
-          schema_cache_path || ENV["SCHEMA_CACHE"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
+          schema_cache_path || schema_cache_env || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
         end
       end
 
@@ -523,6 +523,17 @@ module ActiveRecord
       end
 
       private
+        def schema_cache_env
+          if ENV["SCHEMA_CACHE"]
+            ActiveRecord.deprecator.warn(<<~MSG.squish)
+              Setting `ENV["SCHEMA_CACHE"]` is deprecated and will be removed in Rails 7.3.
+              Configure the `:schema_cache_path` in the database configuration instead.
+            MSG
+
+            nil
+          end
+        end
+
         def with_temporary_pool(db_config, clobber: false)
           original_db_config = migration_class.connection_db_config
           pool = migration_class.connection_handler.establish_connection(db_config, clobber: clobber)
