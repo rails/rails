@@ -1,5 +1,6 @@
 **DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
+<!-- notes: add surnames to the name field, use `` at the start for each section `activeModel:<Name of class>`> -->
 Active Model Basics
 ===================
 
@@ -216,36 +217,100 @@ The `ActiveModel::AttributeMethods` module can add custom prefixes and suffixes
 on methods of a class. It is used by defining the prefixes and suffixes and
 which methods on the object will use them.
 
+The requirements to implement `ActiveModel::AttributeMethods` are to:
+- Include `ActiveModel::AttributeMethods` in your class.
+- Call each of its methods you want to add, such as `attribute_method_suffix` or `attribute_method_prefix`.
+- Call the `define_attribute_methods` after the other methods are called to declare the attribute that should be prefixed and suffixed.
+-  Define the various generic `_attribute` methods that you have declared.
+
+And attribute will be replaced by the argument passed in define_attribute_methods. In our case it is name.
+
+```ruby
+class Person
+  include ActiveModel::AttributeMethods
+  attribute_method_affix prefix: 'reset_', suffix: '_to_default!'
+  attribute_method_prefix 'first_'
+  attribute_method_prefix 'last_'
+  attribute_method_suffix '_short?'
+  define_attribute_methods 'name'
+
+
+  attr_accessor :name
+
+  private
+
+  # this will create a method 'first_name'
+  def first_attribute(attribute)
+    send(attribute).split.first
+  end
+
+  # this will create a method 'last_name'
+  def last_attribute(attribute)
+    send(attribute).split.last
+  end
+
+  # this will create a method 'name_short?'
+  def attribute_short?(attribute)
+    send(attribute) < 5
+  end
+
+  # this will create a method 'reset_name_to_default!'
+  def reset_attribute_to_default!(attribute)
+    send("#{attribute}=", "Default Name")
+  end
+
+end
+```
+
+```irb
+irb> person.name = "Jane Doe"
+irb> person.first_name
+=> "Jane"
+irb> person.last_name
+=> "Doe"
+
+irb> person.name_short?
+=> false
+
+irb> person.reset_name_to_default!
+=> "Default Name"
+```
+
+If the method is not defined, it will raise a `method_missing` error.
+
+`ActiveModel::AttributeMethods` also provides aliasing of attribute methods. This can be done by using the `alias_attribute` method.
+
 ```ruby
 class Person
   include ActiveModel::AttributeMethods
 
-  attribute_method_prefix 'reset_'
-  attribute_method_suffix '_highest?'
-  define_attribute_methods 'age'
+  attribute_method_suffix '_short?'
+  define_attribute_methods :name
 
-  attr_accessor :age
+  attr_accessor :name
+
+  alias_attribute :nickname, :name
 
   private
-    def reset_attribute(attribute)
-      send("#{attribute}=", 0)
-    end
 
-    def attribute_highest?(attribute)
-      send(attribute) > 100
-    end
+  def attribute_short?(attribute)
+    send(attribute).length < 5
+  end
+
 end
 ```
 
 ```irb
 irb> person = Person.new
-irb> person.age = 110
-irb> person.age_highest?
+irb> person.name = "Joe"
+irb> person.name
+=> "Joe"
+irb> person.nickname
+=> "Joe"
+irb> person.name_short?
 => true
-irb> person.reset_age
-=> 0
-irb> person.age_highest?
-=> false
+irb> person.nickname_short?
+=> true
 ```
 
 ### Callbacks
