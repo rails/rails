@@ -1,3 +1,7 @@
+*   Copy over .ruby-version prior to initial bundle in generated Dockerfile
+
+    *Rob Zolkos*
+
 *   Setup jemalloc in the default Dockerfile for memory optimization.
 
     *Matt Almeida*, *Jean Boussier*
