@@ -13,13 +13,13 @@ Rake::TestTask.new do |t|
 end
 
 if ENV["encrypted_0fb9444d0374_key"] && ENV["encrypted_0fb9444d0374_iv"]
-  _file = "test/service/configurations.yml"
-  file _file do
-    puts "Generating #{_file} for Active Storage tests..."
-    system "openssl aes-256-cbc -K $encrypted_0fb9444d0374_key -iv $encrypted_0fb9444d0374_iv -in #{_file}.enc -out #{_file} -d"
+  config_file = "test/service/configurations.yml"
+  file config_file do
+    puts "Generating #{config_file} for Active Storage tests..."
+    system "openssl aes-256-cbc -K $encrypted_0fb9444d0374_key -iv $encrypted_0fb9444d0374_iv -in #{config_file}.enc -out #{config_file} -d"
   end
 
-  task test: _file
+  task test: config_file
 end
 
 task :package
