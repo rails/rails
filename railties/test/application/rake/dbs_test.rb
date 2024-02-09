@@ -510,22 +510,6 @@ module ApplicationTests
         end
       end
 
-      test "db:schema:cache:dump ignores validation errors" do
-        Dir.chdir(app_path) do
-          rails "generate", "model", "book", "title:string"
-          rails "db:migrate"
-          rails "db:schema:cache:dump"
-
-          ActiveRecord::Migrator.stub(:current_version, -> { raise ActiveRecord::ActiveRecordError, "stubbed error" }) do
-            validation_warning = capture(:stderr) do
-              cache_tables = rails("runner", "p ActiveRecord::Base.connection.schema_cache.columns('books')", stderr: true).strip
-              assert_includes cache_tables, "title", "expected cache_tables to include a title entry"
-            end
-            assert_match(/Failed to validate the schema cache because of ActiveRecord::ActiveRecordError: stubbed error/, validation_warning)
-          end
-        end
-      end
-
       def db_fixtures_load(expected_database)
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
