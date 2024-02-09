@@ -60,6 +60,7 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 7.2
 
+- [`config.active_storage.web_image_content_types`](#config-active-storage-web-image-content-types): `%w[image/png image/jpeg image/gif image/webp]`
 - [`config.active_record.validate_migration_timestamps`](#config-active-record-validate-migration-timestamps): `true`
 
 #### Default Values for Target Version 7.1
@@ -2865,13 +2866,14 @@ config.active_storage.variable_content_types = %w(image/png image/gif image/jpeg
 
 Accepts an array of strings regarded as web image content types in which
 variants can be processed without being converted to the fallback PNG format.
-If you want to use `WebP` or `AVIF` variants in your application you can add
-`image/webp` or `image/avif` to this array.
-By default, this is defined as:
+For example, if you want to use `AVIF` variants in your application you can add
+`image/avif` to this array.
 
-```ruby
-config.active_storage.web_image_content_types = %w(image/png image/jpeg image/gif)
-```
+The default value depends on the `config.load_defaults` target version:
+| Starting with version | The default value is                            |
+| --------------------- | ----------------------------------------------- |
+| (original)            | `%w(image/png image/jpeg image/gif)`            |
+| 7.2                   | `%w(image/png image/jpeg image/gif image/webp)` |
 
 #### `config.active_storage.content_types_to_serve_as_binary`
 
