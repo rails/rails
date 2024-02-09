@@ -61,16 +61,20 @@ module ActiveSupport
         # Code after a failing test yielded by the block argument will still be executed.
         def around(*args, &block)
           set_callback(:test, :around, *args, &block)
+
+          include AroundCallbackSupport unless self < AroundCallbackSupport
         end
       end
 
-      def send(name, ...) # :nodoc:
-        if name.start_with?("test_")
-          run_callbacks :test do
-            capture_exceptions { super }
+      module AroundCallbackSupport # :nodoc:
+        def send(name, ...) # :nodoc:
+          if name.start_with?("test_")
+            run_callbacks :test do
+              capture_exceptions { super }
+            end
+          else
+            super
           end
-        else
-          super
         end
       end
 

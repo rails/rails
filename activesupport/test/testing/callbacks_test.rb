@@ -35,6 +35,12 @@ class AfterTeardownTest < ActiveSupport::TestCase
   end
 end
 
+class CallbackTest < ActiveSupport::TestCase
+  test "does not override #send" do
+    assert_not_includes self.class.ancestors, ActiveSupport::Testing::SetupAndTeardown::AroundCallbackSupport
+  end
+end
+
 class AroundCallbackTest < ActiveSupport::TestCase
   class Client
     class_attribute :stubbed, default: false
@@ -48,6 +54,10 @@ class AroundCallbackTest < ActiveSupport::TestCase
     Client.stubbed = false
 
     assert_not Client.stubbed
+  end
+
+  test "overrides #send for around callback support" do
+    assert_includes self.class.ancestors, ActiveSupport::Testing::SetupAndTeardown::AroundCallbackSupport
   end
 
   test "changes from around hook are present" do
