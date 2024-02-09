@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "singleton"
 
 module Mime
@@ -65,19 +67,20 @@ module Mime
     end
   end
 
-  # Encapsulates the notion of a MIME type. Can be used at render time, for example, with:
+  # Encapsulates the notion of a MIME type. Can be used at render time, for
+  # example, with:
   #
-  #   class PostsController < ActionController::Base
-  #     def show
-  #       @post = Post.find(params[:id])
+  #     class PostsController < ActionController::Base
+  #       def show
+  #         @post = Post.find(params[:id])
   #
-  #       respond_to do |format|
-  #         format.html
-  #         format.ics { render body: @post.to_ics, mime_type: Mime::Type.lookup("text/calendar")  }
-  #         format.xml { render xml: @post }
+  #         respond_to do |format|
+  #           format.html
+  #           format.ics { render body: @post.to_ics, mime_type: Mime::Type.lookup("text/calendar")  }
+  #           format.xml { render xml: @post }
+  #         end
   #       end
   #     end
-  #   end
   class Type
     attr_reader :symbol
 
@@ -170,8 +173,9 @@ module Mime
         EXTENSION_LOOKUP[extension.to_s]
       end
 
-      # Registers an alias that's not used on MIME type lookup, but can be referenced directly. Especially useful for
-      # rendering different HTML versions depending on the user agent, like an iPhone.
+      # Registers an alias that's not used on MIME type lookup, but can be referenced
+      # directly. Especially useful for rendering different HTML versions depending on
+      # the user agent, like an iPhone.
       def register_alias(string, symbol, extension_synonyms = [])
         register(string, symbol, [], extension_synonyms, true)
       end
@@ -221,11 +225,11 @@ module Mime
         parse_data_with_trailing_star($1) if accept_header =~ TRAILING_STAR_REGEXP
       end
 
-      # For an input of <tt>'text'</tt>, returns <tt>[Mime[:json], Mime[:xml], Mime[:ics],
-      # Mime[:html], Mime[:css], Mime[:csv], Mime[:js], Mime[:yaml], Mime[:text]]</tt>.
+      # For an input of `'text'`, returns `[Mime[:json], Mime[:xml], Mime[:ics],
+      # Mime[:html], Mime[:css], Mime[:csv], Mime[:js], Mime[:yaml], Mime[:text]]`.
       #
-      # For an input of <tt>'application'</tt>, returns <tt>[Mime[:html], Mime[:js],
-      # Mime[:xml], Mime[:yaml], Mime[:atom], Mime[:json], Mime[:rss], Mime[:url_encoded_form]]</tt>.
+      # For an input of `'application'`, returns `[Mime[:html], Mime[:js], Mime[:xml],
+      # Mime[:yaml], Mime[:atom], Mime[:json], Mime[:rss], Mime[:url_encoded_form]]`.
       def parse_data_with_trailing_star(type)
         Mime::SET.select { |m| m.match?(type) }
       end
@@ -234,7 +238,7 @@ module Mime
       #
       # To unregister a MIME type:
       #
-      #   Mime::Type.unregister(:mobile)
+      #     Mime::Type.unregister(:mobile)
       def unregister(symbol)
         symbol = symbol.downcase
         if mime = Mime[symbol]
@@ -350,9 +354,9 @@ module Mime
     def html?; true; end
   end
 
-  # ALL isn't a real MIME type, so we don't register it for lookup with the
-  # other concrete types. It's a wildcard match that we use for +respond_to+
-  # negotiation internals.
+  # ALL isn't a real MIME type, so we don't register it for lookup with the other
+  # concrete types. It's a wildcard match that we use for `respond_to` negotiation
+  # internals.
   ALL = AllType.instance
 
   class NullType

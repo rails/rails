@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "action_dispatch"
 require "action_dispatch/log_subscriber"
 require "active_support/messages/rotation_configuration"
