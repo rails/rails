@@ -1,3 +1,14 @@
+*   Workaround a Ruby bug that can cause a VM crash.
+
+    This would happen if using `TaggerLogger` with a Proc
+    formatter on which you called `object_id`.
+
+    ```
+    [BUG] Object ID seen, but not in mapping table: proc
+    ```
+
+    *Jean Boussier*
+
 *   Fix `ActiveSupport::Notifications.publish_event` to preserve units.
 
     This solves the incorrect reporting of time spent running Active Record
