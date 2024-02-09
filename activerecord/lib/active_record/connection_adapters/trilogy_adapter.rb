@@ -140,7 +140,7 @@ module ActiveRecord
       end
 
       def active?
-        connected? && @lock.synchronize { @raw_connection&.ping } || false
+        !(@raw_connection.nil? || @raw_connection.closed?) && @lock.synchronize { @raw_connection&.ping } || false
       rescue ::Trilogy::Error
         false
       end
