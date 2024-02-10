@@ -1,13 +1,16 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/core_ext/hash/indifferent_access"
 
 module ActionCable
   module Connection
-    # = Action Cable \Connection \Subscriptions
+    # # Action Cable Connection Subscriptions
     #
-    # Collection class for all the channel subscriptions established on a given connection. Responsible for routing incoming commands that arrive on
-    # the connection to the proper channel.
+    # Collection class for all the channel subscriptions established on a given
+    # connection. Responsible for routing incoming commands that arrive on the
+    # connection to the proper channel.
     class Subscriptions # :nodoc:
       def initialize(connection)
         @connection = connection
