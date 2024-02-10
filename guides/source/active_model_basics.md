@@ -1,6 +1,6 @@
 **DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
-<!-- notes: add surnames to the name field, use `` at the start for each section `activeModel:<Name of class>`> -->
+
 Active Model Basics
 ===================
 
@@ -315,10 +315,17 @@ irb> person.nickname_short?
 
 ### Callbacks
 
-`ActiveModel::Callbacks` gives Active Record style callbacks. This provides an
-ability to define callbacks which run at appropriate times.
+`ActiveModel::Callbacks` gives plain ruby objects Active Record style callbacks. This provides an
+ability to define callbacks that run at appropriate times.
 After defining callbacks, you can wrap them with before, after, and around
 custom methods.
+
+You can implement `ActiveModel::Callbacks` by following the steps below:
+
+- Extend `ActiveModel::Callbacks` in your class.
+- Using `define_model_callbacks`, define a list of methods that you want callbacks attached to. When you define a method like `:update`, it will provide all three standard callbacks (before, around and after) for the `:update` method.
+- Wrap the methods you want callbacks on in a block so that the callbacks get a chance to fire.
+- Then in your class, you can use the `before_create`, `after_create`, and `around_create` methods, just as you would in an Active Record model.
 
 ```ruby
 class Person
@@ -327,18 +334,90 @@ class Person
   define_model_callbacks :update
 
   before_update :reset_me
+  after_update :finalize_me
+  around_update :log_me
 
   def update
     run_callbacks(:update) do
-      # This method is called when update is called on an object.
+      puts "update method called"
+      # This is the callback method when update is called on an object.
     end
   end
 
   def reset_me
-    # This method is called when update is called on an object as a before_update callback is defined.
+    puts "reset_me method: called before the update method"
+    # This method is called as a before_update callback when update is called on an object.
+  end
+
+  def finalize_me
+    puts "finalize_me method: called after the update method"
+    # This method is called as an after_update callback when update is called on an object .
+  end
+
+  def log_me
+    puts "log_me method: called around the update method"
+    yield
+    puts "log_me method: block successfully called"
+    # This method is called as a around_update callback when update is called on an object.
   end
 end
 ```
+
+This will yield the following which indicates the order in which the callbacks are being called:
+
+```irb
+irb> person = Person.new
+irb> person.update
+=> reset_me method: called before the update method
+=> log_me method: called around the update method
+=> update method called
+=> block successfully called
+=> finalize_me method: called after the update method
+```
+
+As per the above example, when defining an 'around' callback remember to yield to the block, otherwise, it won't be executed.
+
+
+#### Defining Specific Callbacks
+
+You can choose to have only specific callbacks by passing a hash to the `define_model_callbacks` method:
+
+```ruby
+define_model_callbacks :update, :create,  only: [:after, :before]
+```
+The `only: <type>` hash will apply to all callbacks defined on that method call. To get around this you can call the `define_model_callbacks` method as many times as you need like below:
+
+```ruby
+define_model_callbacks :create,  only: :after
+define_model_callbacks :update,  only: :before
+define_model_callbacks :destroy, only: :around
+```
+
+This will create `after_create`, `before_update`, and `around_destroy` methods only.
+
+#### Defining Callbacks with a Class
+
+You can pass in a class to `before_<type>`, `after_<type>` and `around_<type>`, in which case the callback will call that class's `<action>_<type>` method
+passing the object that the callback is being called on.
+
+```ruby
+  class MyModel
+    extend ActiveModel::Callbacks
+    define_model_callbacks :create
+
+    before_create AnotherClass
+  end
+
+  class AnotherClass
+    def self.before_create( obj )
+      <!-- obj is the MyModel instance that the callback is being called on -->
+    end
+  end
+```
+
+NOTE: `method_name` passed to `define_model_callbacks` must not end with `!`, `?` or `=`. In addition, defining the same callback multiple times will overwrite previous callback definitions.
+
+Like the Active Record methods, the callback chain is aborted as soon as one of the methods throws `:abort`.
 
 ### Conversion
 
