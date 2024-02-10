@@ -223,6 +223,13 @@ module ActiveRecord
       options.transform_keys! { |key| :"#{key[1..-1]}" }
 
       definitions.each { |name, values| _enum(name, values, **options) }
+
+      ActiveRecord.deprecator.warn(<<~MSG)
+        Defining enums with keyword arguments is deprecated and will be removed
+        in Rails 7.3. Positional arguments should be used instead:
+
+        #{definitions.map { |name, values| "enum :#{name}, #{values}" }.join("\n")}
+      MSG
     end
 
     private
