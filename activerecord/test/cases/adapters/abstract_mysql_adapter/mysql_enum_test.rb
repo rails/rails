@@ -11,7 +11,7 @@ class MySQLEnumTest < ActiveRecord::AbstractMysqlTestCase
   class EnumTest < ActiveRecord::Base
     attribute :state, :integer
 
-    enum state: {
+    enum :state, {
       start: 0,
       middle: 1,
       finish: 2
