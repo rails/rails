@@ -545,8 +545,19 @@ class Person
   end
 
   def save
-    # do persistence work
+    # Persist data - clears dirty data and moves `changes` to `previously_changed` and
+    # zmutations_from_database` to `mutations_before_last_save` respectively.
     changes_applied
+  end
+
+  def reload!
+    # Clears all dirty data: current changes and previous changes.
+    clear_changes_information
+  end
+
+  def rollback!
+   # Restore all previous data of the provided attributes.
+    restore_attributes
   end
 end
 ```
