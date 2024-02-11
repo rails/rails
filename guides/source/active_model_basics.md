@@ -421,32 +421,77 @@ Like the Active Record methods, the callback chain is aborted as soon as one of 
 
 ### Conversion
 
-If a class defines `persisted?` and `id` methods, then you can include the
-`ActiveModel::Conversion` module in that class, and call the Rails conversion
-methods on objects of that class.
+`ActiveModel::Conversion` is a collection of methods that allow you to convert your object to different forms for different purposes. A common use case is to convert your object to a string or an integer to build URLs, form fields, and more.
+
+The `ActiveModel::Conversion` module adds the following methods: `to_model`, `to_key`, `to_param`, and `to_partial_path` to our classes.
+
+It is most useful when the class defines `persisted?` and `id` methods. The `persisted?` method should return true if the object has been saved to the database or store, otherwise, it should return `false`. The `id` method should return the id of the object or nil if it is not saved.
 
 ```ruby
 class Person
   include ActiveModel::Conversion
 
-  def persisted?
-    false
+  def initialize(id)
+    @id = id
   end
 
-  def id
-    nil
+  def persisted?
+    true
   end
 end
 ```
 
+#### to_model
+
+The `to_model` method returns the object itself.
+
 ```irb
-irb> person = Person.new
+irb> person = Person.new(1)
 irb> person.to_model == person
 => true
+```
+
+If your model does not act like an Active Model object, then you should define`:to_model` yourself returning a proxy object
+that wraps your object with Active Model compliant methods.
+
+```ruby
+class Person
+  def to_model
+    # a proxy object that wraps your object with Active Model compliant methods.
+    PersonModel.new(self)
+  end
+end
+```
+
+#### to_key
+
+The `to_key` method returns an array of the object's key attributes if any of the attributes are set, whether or not
+the object is persisted. Returns nil if there are no key attributes.
+
+```irb
 irb> person.to_key
-=> nil
+=> [1]
+```
+
+NOTE: A key attribute is an attribute that is used to identify the object. For example, in a database-backed model, the key attribute is the primary key.
+
+#### to_param
+
+The `to_param` method returns a `string` representation of the object's key suitable for use in URLs, or `nil` if `persisted?` is `false`.
+
+```irb
 irb> person.to_param
-=> nil
+=> "1"
+```
+
+#### to_partial_path
+
+The `to_partial_path` method returns a `string` representing the path associated with the object. ActionPack uses this to find a suitable partial to represent the object.
+
+
+```irb
+irb> person.to_partial_path
+=> "people/person"
 ```
 
 ### Dirty
