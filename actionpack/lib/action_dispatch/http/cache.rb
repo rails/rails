@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionDispatch
   module Http
     module Cache
@@ -32,8 +34,8 @@ module ActionDispatch
           end
         end
 
-        # Check response freshness (+Last-Modified+ and ETag) against request
-        # +If-Modified-Since+ and +If-None-Match+ conditions. If both headers are
+        # Check response freshness (`Last-Modified` and ETag) against request
+        # `If-Modified-Since` and `If-None-Match` conditions. If both headers are
         # supplied, both must match, or the request is not considered fresh.
         def fresh?(response)
           last_modified = if_modified_since
@@ -79,25 +81,24 @@ module ActionDispatch
           set_header DATE, utc_time.httpdate
         end
 
-        # This method sets a weak ETag validator on the response so browsers
-        # and proxies may cache the response, keyed on the ETag. On subsequent
-        # requests, the +If-None-Match+ header is set to the cached ETag. If it
-        # matches the current ETag, we can return a <tt>304 Not Modified</tt> response
-        # with no body, letting the browser or proxy know that their cache is
-        # current. Big savings in request time and network bandwidth.
+        # This method sets a weak ETag validator on the response so browsers and proxies
+        # may cache the response, keyed on the ETag. On subsequent requests, the
+        # `If-None-Match` header is set to the cached ETag. If it matches the current
+        # ETag, we can return a `304 Not Modified` response with no body, letting the
+        # browser or proxy know that their cache is current. Big savings in request time
+        # and network bandwidth.
         #
-        # Weak ETags are considered to be semantically equivalent but not
-        # byte-for-byte identical. This is perfect for browser caching of HTML
-        # pages where we don't care about exact equality, just what the user
-        # is viewing.
+        # Weak ETags are considered to be semantically equivalent but not byte-for-byte
+        # identical. This is perfect for browser caching of HTML pages where we don't
+        # care about exact equality, just what the user is viewing.
         #
-        # Strong ETags are considered byte-for-byte identical. They allow a
-        # browser or proxy cache to support +Range+ requests, useful for paging
-        # through a PDF file or scrubbing through a video. Some CDNs only
-        # support strong ETags and will ignore weak ETags entirely.
+        # Strong ETags are considered byte-for-byte identical. They allow a browser or
+        # proxy cache to support `Range` requests, useful for paging through a PDF file
+        # or scrubbing through a video. Some CDNs only support strong ETags and will
+        # ignore weak ETags entirely.
         #
-        # Weak ETags are what we almost always need, so they're the default.
-        # Check out #strong_etag= to provide a strong ETag validator.
+        # Weak ETags are what we almost always need, so they're the default. Check out
+        # #strong_etag= to provide a strong ETag validator.
         def etag=(weak_validators)
           self.weak_etag = weak_validators
         end
@@ -112,12 +113,13 @@ module ActionDispatch
 
         def etag?; etag; end
 
-        # True if an ETag is set, and it's a weak validator (preceded with <tt>W/</tt>).
+        # True if an ETag is set, and it's a weak validator (preceded with `W/`).
         def weak_etag?
           etag? && etag.start_with?('W/"')
         end
 
-        # True if an ETag is set, and it isn't a weak validator (not preceded with <tt>W/</tt>).
+        # True if an ETag is set, and it isn't a weak validator (not preceded with
+        # `W/`).
         def strong_etag?
           etag? && !weak_etag?
         end
@@ -171,10 +173,9 @@ module ActionDispatch
         MUST_REVALIDATE       = "must-revalidate"
 
         def handle_conditional_get!
-          # Normally default cache control setting is handled by ETag
-          # middleware. But, if an etag is already set, the middleware
-          # defaults to `no-cache` unless a default `Cache-Control` value is
-          # previously set. So, set a default one here.
+          # Normally default cache control setting is handled by ETag middleware. But, if
+          # an etag is already set, the middleware defaults to `no-cache` unless a default
+          # `Cache-Control` value is previously set. So, set a default one here.
           if (etag? || last_modified?) && !self._cache_control
             self._cache_control = DEFAULT_CACHE_CONTROL
           end
@@ -186,8 +187,8 @@ module ActionDispatch
           return if control.empty? && cache_control.empty?  # Let middleware handle default behavior
 
           if cache_control.any?
-            # Any caching directive coming from a controller overrides
-            # no-cache/no-store in the default Cache-Control header.
+            # Any caching directive coming from a controller overrides no-cache/no-store in
+            # the default Cache-Control header.
             control.delete(:no_cache)
             control.delete(:no_store)
 

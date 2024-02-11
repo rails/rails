@@ -1807,6 +1807,8 @@ class CopyMigrationsTest < ActiveRecord::TestCase
       @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
       @schema_migration = ActiveRecord::Base.connection.schema_migration
       @internal_metadata = ActiveRecord::Base.connection.internal_metadata
+      @active_record_validate_timestamps_was = ActiveRecord.validate_migration_timestamps
+      ActiveRecord.validate_migration_timestamps = true
       ActiveRecord::Base.connection.schema_cache.clear!
 
       @migrations_path = MIGRATIONS_ROOT + "/temp"
@@ -1816,7 +1818,61 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     def teardown
       @schema_migration.create_table
       @schema_migration.delete_all_versions
+      ActiveRecord.validate_migration_timestamps = @active_record_validate_timestamps_was
       ActiveRecord::Migration.verbose = @verbose_was
+    end
+
+    def test_migration_raises_if_timestamp_greater_than_14_digits
+      with_temp_migration_files(["201801010101010000_test_migration.rb"]) do
+        error = assert_raises(ActiveRecord::InvalidMigrationTimestampError) do
+          @migrator.up(201801010101010000)
+        end
+        assert_match(/Invalid timestamp 201801010101010000 for migration file: test_migration/, error.message)
+      end
+    end
+
+    def test_migration_raises_if_timestamp_is_future_date
+      timestamp = (Time.now.utc + 1.month).strftime("%Y%m%d%H%M%S").to_i
+      with_temp_migration_files(["#{timestamp}_test_migration.rb"]) do
+        error = assert_raises(ActiveRecord::InvalidMigrationTimestampError) do
+          @migrator.up(timestamp)
+        end
+        assert_match(/Invalid timestamp #{timestamp} for migration file: test_migration/, error.message)
+      end
+    end
+
+    def test_migration_succeeds_if_timestamp_is_less_than_one_day_in_the_future
+      timestamp = (Time.now.utc + 1.minute).strftime("%Y%m%d%H%M%S").to_i
+      with_temp_migration_files(["#{timestamp}_test_migration.rb"]) do
+        @migrator.up(timestamp)
+        assert_equal timestamp, @migrator.current_version
+      end
+    end
+
+    def test_migration_succeeds_despite_future_timestamp_if_validate_timestamps_is_false
+      validate_migration_timestamps_was = ActiveRecord.validate_migration_timestamps
+      ActiveRecord.validate_migration_timestamps = false
+
+      timestamp = (Time.now.utc + 1.month).strftime("%Y%m%d%H%M%S").to_i
+      with_temp_migration_files(["#{timestamp}_test_migration.rb"]) do
+        @migrator.up(timestamp)
+        assert_equal timestamp, @migrator.current_version
+      end
+    ensure
+      ActiveRecord.validate_migration_timestamps = validate_migration_timestamps_was
+    end
+
+    def test_migration_succeeds_despite_future_timestamp_if_timestamped_migrations_is_false
+      timestamped_migrations_was = ActiveRecord.timestamped_migrations
+      ActiveRecord.timestamped_migrations = false
+
+      timestamp = (Time.now.utc + 1.month).strftime("%Y%m%d%H%M%S").to_i
+      with_temp_migration_files(["#{timestamp}_test_migration.rb"]) do
+        @migrator.up(timestamp)
+        assert_equal timestamp, @migrator.current_version
+      end
+    ensure
+      ActiveRecord.timestamped_migrations = timestamped_migrations_was
     end
 
     def test_copied_migrations_at_timestamp_boundary_are_valid
@@ -1824,7 +1880,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
       migrations_path_dest = MIGRATIONS_ROOT + "/temp_dest"
       migrations = ["20180101010101_test_migration.rb", "20180101010102_test_migration_two.rb", "20180101010103_test_migration_three.rb"]
 
-      with_temp_migration_files(migrations_path_source, migrations) do
+      with_temp_migration_files(migrations, migrations_path_source) do
         travel_to(Time.utc(2023, 12, 1, 10, 10, 59)) do
           ActiveRecord::Migration.copy(migrations_path_dest, temp: migrations_path_source)
 
@@ -1847,7 +1903,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     end
 
     private
-      def with_temp_migration_files(migrations_dir, filenames)
+      def with_temp_migration_files(filenames, migrations_dir = @migrations_path)
         Dir.mkdir(migrations_dir) unless Dir.exist?(migrations_dir)
 
         paths = []

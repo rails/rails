@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionController # :nodoc:
   module ContentSecurityPolicy
     extend ActiveSupport::Concern
@@ -13,29 +15,28 @@ module ActionController # :nodoc:
     end
 
     module ClassMethods
-      # Overrides parts of the globally configured +Content-Security-Policy+
-      # header:
+      # Overrides parts of the globally configured `Content-Security-Policy` header:
       #
-      #   class PostsController < ApplicationController
-      #     content_security_policy do |policy|
-      #       policy.base_uri "https://www.example.com"
+      #     class PostsController < ApplicationController
+      #       content_security_policy do |policy|
+      #         policy.base_uri "https://www.example.com"
+      #       end
       #     end
-      #   end
       #
-      # Options can be passed similar to +before_action+. For example, pass
-      # <tt>only: :index</tt> to override the header on the index action only:
+      # Options can be passed similar to `before_action`. For example, pass `only:
+      # :index` to override the header on the index action only:
       #
-      #   class PostsController < ApplicationController
-      #     content_security_policy(only: :index) do |policy|
-      #       policy.default_src :self, :https
+      #     class PostsController < ApplicationController
+      #       content_security_policy(only: :index) do |policy|
+      #         policy.default_src :self, :https
+      #       end
       #     end
-      #   end
       #
-      # Pass +false+ to remove the +Content-Security-Policy+ header:
+      # Pass `false` to remove the `Content-Security-Policy` header:
       #
-      #   class PostsController < ApplicationController
-      #     content_security_policy false, only: :index
-      #   end
+      #     class PostsController < ApplicationController
+      #       content_security_policy false, only: :index
+      #     end
       def content_security_policy(enabled = true, **options, &block)
         before_action(options) do
           if block_given?
@@ -50,18 +51,18 @@ module ActionController # :nodoc:
         end
       end
 
-      # Overrides the globally configured +Content-Security-Policy-Report-Only+
+      # Overrides the globally configured `Content-Security-Policy-Report-Only`
       # header:
       #
-      #   class PostsController < ApplicationController
-      #     content_security_policy_report_only only: :index
-      #   end
+      #     class PostsController < ApplicationController
+      #       content_security_policy_report_only only: :index
+      #     end
       #
-      # Pass +false+ to remove the +Content-Security-Policy-Report-Only+ header:
+      # Pass `false` to remove the `Content-Security-Policy-Report-Only` header:
       #
-      #   class PostsController < ApplicationController
-      #     content_security_policy_report_only false, only: :index
-      #   end
+      #     class PostsController < ApplicationController
+      #       content_security_policy_report_only false, only: :index
+      #     end
       def content_security_policy_report_only(report_only = true, **options)
         before_action(options) do
           request.content_security_policy_report_only = report_only

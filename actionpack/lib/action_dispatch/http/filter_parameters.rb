@@ -1,18 +1,21 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/parameter_filter"
 
 module ActionDispatch
   module Http
-    # = Action Dispatch HTTP Filter Parameters
+    # # Action Dispatch HTTP Filter Parameters
     #
     # Allows you to specify sensitive query string and POST parameters to filter
     # from the request log.
     #
-    #   # Replaces values with "[FILTERED]" for keys that match /foo|bar/i.
-    #   env["action_dispatch.parameter_filter"] = [:foo, "bar"]
+    #     # Replaces values with "[FILTERED]" for keys that match /foo|bar/i.
+    #     env["action_dispatch.parameter_filter"] = [:foo, "bar"]
     #
-    # For more information about filter behavior, see ActiveSupport::ParameterFilter.
+    # For more information about filter behavior, see
+    # ActiveSupport::ParameterFilter.
     module FilterParameters
       ENV_MATCH = [/RAW_POST_DATA/, "rack.request.form_vars"] # :nodoc:
       NULL_PARAM_FILTER = ActiveSupport::ParameterFilter.new # :nodoc:
@@ -43,7 +46,8 @@ module ActionDispatch
         @filtered_path ||= query_string.empty? ? path : "#{path}?#{filtered_query_string}"
       end
 
-      # Returns the +ActiveSupport::ParameterFilter+ object used to filter in this request.
+      # Returns the `ActiveSupport::ParameterFilter` object used to filter in this
+      # request.
       def parameter_filter
         @parameter_filter ||= if has_header?("action_dispatch.parameter_filter")
           parameter_filter_for get_header("action_dispatch.parameter_filter")

@@ -807,7 +807,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     belongs_to :author, class_name: "SpecialAuthor"
     has_one :subscription, class_name: "SpecialSubscription", foreign_key: "subscriber_id"
 
-    enum status: [:proposed, :written, :published]
+    enum :status, [:proposed, :written, :published]
   end
 
   class SpecialAuthor < ActiveRecord::Base

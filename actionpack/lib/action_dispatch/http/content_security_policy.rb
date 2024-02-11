@@ -1,28 +1,31 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/core_ext/object/deep_dup"
 require "active_support/core_ext/array/wrap"
 
 module ActionDispatch # :nodoc:
-  # = Action Dispatch Content Security Policy
+  # # Action Dispatch Content Security Policy
   #
-  # Configures the HTTP
-  # {Content-Security-Policy}[https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy]
-  # response header to help protect against XSS and injection attacks.
+  # Configures the HTTP [Content-Security-Policy]
+  # (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)
+  # response header to help protect against XSS and
+  # injection attacks.
   #
   # Example global policy:
   #
-  #   Rails.application.config.content_security_policy do |policy|
-  #     policy.default_src :self, :https
-  #     policy.font_src    :self, :https, :data
-  #     policy.img_src     :self, :https, :data
-  #     policy.object_src  :none
-  #     policy.script_src  :self, :https
-  #     policy.style_src   :self, :https
+  #     Rails.application.config.content_security_policy do |policy|
+  #       policy.default_src :self, :https
+  #       policy.font_src    :self, :https, :data
+  #       policy.img_src     :self, :https, :data
+  #       policy.object_src  :none
+  #       policy.script_src  :self, :https
+  #       policy.style_src   :self, :https
   #
-  #     # Specify URI for violation reports
-  #     policy.report_uri "/csp-violation-report-endpoint"
-  #   end
+  #       # Specify URI for violation reports
+  #       policy.report_uri "/csp-violation-report-endpoint"
+  #     end
   class ContentSecurityPolicy
     class Middleware
       def initialize(app)
@@ -32,8 +35,8 @@ module ActionDispatch # :nodoc:
       def call(env)
         status, headers, _ = response = @app.call(env)
 
-        # Returning CSP headers with a 304 Not Modified is harmful, since nonces in the new
-        # CSP headers might not match nonces in the cached HTML.
+        # Returning CSP headers with a 304 Not Modified is harmful, since nonces in the
+        # new CSP headers might not match nonces in the cached HTML.
         return response if status == 304
 
         return response if policy_present?(headers)
@@ -190,14 +193,14 @@ module ActionDispatch # :nodoc:
       end
     end
 
-    # Specify whether to prevent the user agent from loading any assets over
-    # HTTP when the page uses HTTPS:
+    # Specify whether to prevent the user agent from loading any assets over HTTP
+    # when the page uses HTTPS:
     #
-    #   policy.block_all_mixed_content
+    #     policy.block_all_mixed_content
     #
-    # Pass +false+ to allow it again:
+    # Pass `false` to allow it again:
     #
-    #   policy.block_all_mixed_content false
+    #     policy.block_all_mixed_content false
     #
     def block_all_mixed_content(enabled = true)
       if enabled
@@ -209,11 +212,11 @@ module ActionDispatch # :nodoc:
 
     # Restricts the set of plugins that can be embedded:
     #
-    #   policy.plugin_types "application/x-shockwave-flash"
+    #     policy.plugin_types "application/x-shockwave-flash"
     #
     # Leave empty to allow all plugins:
     #
-    #   policy.plugin_types
+    #     policy.plugin_types
     #
     def plugin_types(*types)
       if types.first
@@ -223,23 +226,25 @@ module ActionDispatch # :nodoc:
       end
     end
 
-    # Enable the {report-uri}[https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri]
-    # directive. Violation reports will be sent to the specified URI:
+    # Enable the [report-uri]
+    # (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri)
+    # directive. Violation reports will be sent to the
+    # specified URI:
     #
-    #   policy.report_uri "/csp-violation-report-endpoint"
+    #     policy.report_uri "/csp-violation-report-endpoint"
     #
     def report_uri(uri)
       @directives["report-uri"] = [uri]
     end
 
-    # Specify asset types for which {Subresource Integrity}[https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity]
-    # is required:
+    # Specify asset types for which [Subresource Integrity]
+    # (https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity) is required:
     #
-    #   policy.require_sri_for :script, :style
+    #     policy.require_sri_for :script, :style
     #
     # Leave empty to not require Subresource Integrity:
     #
-    #   policy.require_sri_for
+    #     policy.require_sri_for
     #
     def require_sri_for(*types)
       if types.first
@@ -249,18 +254,19 @@ module ActionDispatch # :nodoc:
       end
     end
 
-    # Specify whether a {sandbox}[https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/sandbox]
+    # Specify whether a [sandbox]
+    # (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/sandbox)
     # should be enabled for the requested resource:
     #
-    #   policy.sandbox
+    #     policy.sandbox
     #
     # Values can be passed as arguments:
     #
-    #   policy.sandbox "allow-scripts", "allow-modals"
+    #     policy.sandbox "allow-scripts", "allow-modals"
     #
-    # Pass +false+ to disable the sandbox:
+    # Pass `false` to disable the sandbox:
     #
-    #   policy.sandbox false
+    #     policy.sandbox false
     #
     def sandbox(*values)
       if values.empty?
@@ -274,11 +280,11 @@ module ActionDispatch # :nodoc:
 
     # Specify whether user agents should treat any assets over HTTP as HTTPS:
     #
-    #   policy.upgrade_insecure_requests
+    #     policy.upgrade_insecure_requests
     #
-    # Pass +false+ to disable it:
+    # Pass `false` to disable it:
     #
-    #   policy.upgrade_insecure_requests false
+    #     policy.upgrade_insecure_requests false
     #
     def upgrade_insecure_requests(enabled = true)
       if enabled

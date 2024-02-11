@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/notifications"
 
 module ActionDispatch
@@ -29,8 +31,8 @@ module ActionDispatch
 
       def ensure_subscribed
         @mutex.synchronize do
-          # Subscribe to all events, except those beginning with "!"
-          # Ideally we would be more selective of what is being measured
+          # Subscribe to all events, except those beginning with "!" Ideally we would be
+          # more selective of what is being measured
           @subscriber ||= ActiveSupport::Notifications.subscribe(/\A[^!]/, self)
         end
       end

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "action_dispatch/journey/visitors"
 
 module ActionDispatch
@@ -21,9 +23,8 @@ module ActionDispatch
       end
 
       def requirements=(requirements)
-        # inject any regexp requirements for `star` nodes so they can be
-        # determined nullable, which requires knowing if the regex accepts an
-        # empty string.
+        # inject any regexp requirements for `star` nodes so they can be determined
+        # nullable, which requires knowing if the regex accepts an empty string.
         (symbols + stars).each do |node|
           re = requirements[node.to_sym]
           node.regexp = re if re
@@ -51,8 +52,8 @@ module ActionDispatch
               stars << node
 
               if formatted != false
-                # Add a constraint for wildcard route to make it non-greedy and
-                # match the optional format part of the route by default.
+                # Add a constraint for wildcard route to make it non-greedy and match the
+                # optional format part of the route by default.
                 wildcard_options[node.name.to_sym] ||= /.+?/m
               end
             end

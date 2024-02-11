@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "action_dispatch/journey/gtg/transition_table"
 
 module ActionDispatch
@@ -66,9 +68,8 @@ module ActionDispatch
           when Nodes::Group
             true
           when Nodes::Star
-            # the default star regex is /(.+)/ which is NOT nullable
-            # but since different constraints can be provided we must
-            # actually check if this is the case or not.
+            # the default star regex is /(.+)/ which is NOT nullable but since different
+            # constraints can be provided we must actually check if this is the case or not.
             node.regexp.match?("")
           when Nodes::Or
             node.children.any? { |c| nullable?(c) }

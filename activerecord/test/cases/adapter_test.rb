@@ -809,6 +809,50 @@ module ActiveRecord
         end
     end
   end
+
+  class AdapterThreadSafetyTest < ActiveRecord::TestCase
+    setup do
+      @threads = []
+      @connection = ActiveRecord::Base.connection_pool.checkout
+    end
+
+    teardown do
+      @threads.each(&:kill)
+    end
+
+    unless in_memory_db?
+      test "#active? is synchronized" do
+        threads(2, 25) { @connection.select_all("SELECT 1") }
+        threads(2, 25) { @connection.verify! }
+        threads(2, 25) { @connection.disconnect! }
+
+        join
+      end
+
+      test "#verify! is synchronized" do
+        threads(2, 25) { @connection.verify! }
+        threads(2, 25) { @connection.disconnect! }
+
+        join
+      end
+    end
+
+    private
+      def join
+        @threads.shuffle.each(&:join)
+      end
+
+      def threads(count, times)
+        @threads += count.times.map do
+          Thread.new do
+            times.times do
+              yield
+              Thread.pass
+            end
+          end
+        end
+      end
+  end
 end
 
 if ActiveRecord::Base.connection.supports_advisory_locks?

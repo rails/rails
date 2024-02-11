@@ -1,41 +1,48 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionController # :nodoc:
   module AllowBrowser
     extend ActiveSupport::Concern
 
     module ClassMethods
-      # Specify the browser versions that will be allowed to access all actions (or some, as limited by <tt>only:</tt> or <tt>except:</tt>).
-      # Only browsers matched in the hash or named set passed to <tt>versions:</tt> will be blocked if they're below the versions specified.
-      # This means that all other browsers, as well as agents that aren't reporting a user-agent header, will be allowed access.
+      # Specify the browser versions that will be allowed to access all actions (or
+      # some, as limited by `only:` or `except:`). Only browsers matched in the hash
+      # or named set passed to `versions:` will be blocked if they're below the
+      # versions specified. This means that all other browsers, as well as agents that
+      # aren't reporting a user-agent header, will be allowed access.
       #
-      # A browser that's blocked will by default be served the file in public/426.html with a HTTP status code of "426 Upgrade Required".
+      # A browser that's blocked will by default be served the file in public/426.html
+      # with a HTTP status code of "426 Upgrade Required".
       #
-      # In addition to specifically named browser versions, you can also pass <tt>:modern</tt> as the set to restrict support to browsers
-      # natively supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
-      # This includes Safari 17.2+, Chrome 119+, Firefox 121+, Opera 104+.
+      # In addition to specifically named browser versions, you can also pass
+      # `:modern` as the set to restrict support to browsers natively supporting webp
+      # images, web push, badges, import maps, CSS nesting, and CSS :has. This
+      # includes Safari 17.2+, Chrome 119+, Firefox 121+, Opera 104+.
       #
-      # You can use https://caniuse.com to check for browser versions supporting the features you use.
+      # You can use https://caniuse.com to check for browser versions supporting the
+      # features you use.
       #
-      # You can use +ActiveSupport::Notifications+ to subscribe to events of browsers being blocked using the +browser_block.action_controller+
-      # event name.
+      # You can use `ActiveSupport::Notifications` to subscribe to events of browsers
+      # being blocked using the `browser_block.action_controller` event name.
       #
       # Examples:
       #
-      #   class ApplicationController < ActionController::Base
-      #     # Allow only browsers natively supporting webp images, web push, badges, import maps, CSS nesting + :has
-      #     allow_browser versions: :modern
-      #   end
+      #     class ApplicationController < ActionController::Base
+      #       # Allow only browsers natively supporting webp images, web push, badges, import maps, CSS nesting + :has
+      #       allow_browser versions: :modern
+      #     end
       #
-      #   class ApplicationController < ActionController::Base
-      #     # All versions of Chrome and Opera will be allowed, but no versions of "internet explorer" (ie). Safari needs to be 16.4+ and Firefox 121+.
-      #     allow_browser versions: { safari: 16.4, firefox: 121, ie: false }
-      #   end
+      #     class ApplicationController < ActionController::Base
+      #       # All versions of Chrome and Opera will be allowed, but no versions of "internet explorer" (ie). Safari needs to be 16.4+ and Firefox 121+.
+      #       allow_browser versions: { safari: 16.4, firefox: 121, ie: false }
+      #     end
       #
-      #   class MessagesController < ApplicationController
-      #     # In addition to the browsers blocked by ApplicationController, also block Opera below 104 and Chrome below 119 for the show action.
-      #     allow_browser versions: { opera: 104, chrome: 119 }, only: :show
-      #   end
+      #     class MessagesController < ApplicationController
+      #       # In addition to the browsers blocked by ApplicationController, also block Opera below 104 and Chrome below 119 for the show action.
+      #       allow_browser versions: { opera: 104, chrome: 119 }, only: :show
+      #     end
       def allow_browser(versions:, block: -> { render file: Rails.root.join("public/426.html"), layout: false, status: :upgrade_required }, **options)
         before_action -> { allow_browser(versions: versions, block: block) }, **options
       end

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionController
   module TemplateAssertions # :nodoc:
     def assert_template(options = {}, message = nil)

@@ -1,3 +1,7 @@
+*   Ensure logger tags configured with `config.log_tags` are still active in `request.action_dispatch` handlers
+
+    *KJ Tsanaktsidis*
+
 *   Setup jemalloc in the default Dockerfile for memory optimization.
 
     *Matt Almeida*, *Jean Boussier*

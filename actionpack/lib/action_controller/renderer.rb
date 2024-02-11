@@ -1,25 +1,28 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionController
-  # = Action Controller \Renderer
+  # # Action Controller Renderer
   #
   # ActionController::Renderer allows you to render arbitrary templates without
   # being inside a controller action.
   #
-  # You can get a renderer instance by calling +renderer+ on a controller class:
+  # You can get a renderer instance by calling `renderer` on a controller class:
   #
-  #   ApplicationController.renderer
-  #   PostsController.renderer
+  #     ApplicationController.renderer
+  #     PostsController.renderer
   #
   # and render a template by calling the #render method:
   #
-  #   ApplicationController.renderer.render template: "posts/show", assigns: { post: Post.first }
-  #   PostsController.renderer.render :show, assigns: { post: Post.first }
+  #     ApplicationController.renderer.render template: "posts/show", assigns: { post: Post.first }
+  #     PostsController.renderer.render :show, assigns: { post: Post.first }
   #
-  # As a shortcut, you can also call +render+ directly on the controller class itself:
+  # As a shortcut, you can also call `render` directly on the controller class
+  # itself:
   #
-  #   ApplicationController.render template: "posts/show", assigns: { post: Post.first }
-  #   PostsController.render :show, assigns: { post: Post.first }
+  #     ApplicationController.render template: "posts/show", assigns: { post: Post.first }
+  #     PostsController.render :show, assigns: { post: Post.first }
   #
   class Renderer
     attr_reader :controller
@@ -64,45 +67,47 @@ module ActionController
 
     # Creates a new renderer using the same controller, but with a new Rack env.
     #
-    #   ApplicationController.renderer.new(method: "post")
+    #     ApplicationController.renderer.new(method: "post")
     #
     def new(env = nil)
       self.class.new controller, env, @defaults
     end
 
-    # Creates a new renderer using the same controller, but with the given
-    # defaults merged on top of the previous defaults.
+    # Creates a new renderer using the same controller, but with the given defaults
+    # merged on top of the previous defaults.
     def with_defaults(defaults)
       self.class.new controller, @env, @defaults.merge(defaults)
     end
 
     # Initializes a new Renderer.
     #
-    # ==== Parameters
+    # #### Parameters
     #
-    # * +controller+ - The controller class to instantiate for rendering.
-    # * +env+ - The Rack env to use for mocking a request when rendering.
-    #   Entries can be typical Rack env keys and values, or they can be any of
-    #   the following, which will be converted appropriately:
-    #   * +:http_host+ - The HTTP host for the incoming request. Converts to
-    #     Rack's +HTTP_HOST+.
-    #   * +:https+ - Boolean indicating whether the incoming request uses HTTPS.
-    #     Converts to Rack's +HTTPS+.
-    #   * +:method+ - The HTTP method for the incoming request, case-insensitive.
-    #     Converts to Rack's +REQUEST_METHOD+.
-    #   * +:script_name+ - The portion of the incoming request's URL path that
-    #     corresponds to the application. Converts to Rack's +SCRIPT_NAME+.
-    #   * +:input+ - The input stream. Converts to Rack's +rack.input+.
-    # * +defaults+ - Default values for the Rack env. Entries are specified in
-    #   the same format as +env+. +env+ will be merged on top of these values.
-    #   +defaults+ will be retained when calling #new on a renderer instance.
+    # *   `controller` - The controller class to instantiate for rendering.
+    # *   `env` - The Rack env to use for mocking a request when rendering. Entries
+    #     can be typical Rack env keys and values, or they can be any of the
+    #     following, which will be converted appropriately:
+    #     *   `:http_host` - The HTTP host for the incoming request. Converts to
+    #         Rack's `HTTP_HOST`.
+    #     *   `:https` - Boolean indicating whether the incoming request uses HTTPS.
+    #         Converts to Rack's `HTTPS`.
+    #     *   `:method` - The HTTP method for the incoming request,
+    #         case-insensitive. Converts to Rack's `REQUEST_METHOD`.
+    #     *   `:script_name` - The portion of the incoming request's URL path that
+    #         corresponds to the application. Converts to Rack's `SCRIPT_NAME`.
+    #     *   `:input` - The input stream. Converts to Rack's `rack.input`.
     #
-    # If no +http_host+ is specified, the env HTTP host will be derived from the
-    # routes' +default_url_options+. In this case, the +https+ boolean and the
-    # +script_name+ will also be derived from +default_url_options+ if they were
-    # not specified. Additionally, the +https+ boolean will fall back to
-    # +Rails.application.config.force_ssl+ if +default_url_options+ does not
-    # specify a +protocol+.
+    # *   `defaults` - Default values for the Rack env. Entries are specified in the
+    #     same format as `env`. `env` will be merged on top of these values.
+    #     `defaults` will be retained when calling #new on a renderer instance.
+    #
+    #
+    # If no `http_host` is specified, the env HTTP host will be derived from the
+    # routes' `default_url_options`. In this case, the `https` boolean and the
+    # `script_name` will also be derived from `default_url_options` if they were not
+    # specified. Additionally, the `https` boolean will fall back to
+    # `Rails.application.config.force_ssl` if `default_url_options` does not specify
+    # a `protocol`.
     def initialize(controller, env, defaults)
       @controller = controller
       @defaults = defaults
@@ -119,7 +124,8 @@ module ActionController
       @defaults
     end
 
-    # Renders a template to a string, just like ActionController::Rendering#render_to_string.
+    # Renders a template to a string, just like
+    # ActionController::Rendering#render_to_string.
     def render(*args)
       request = ActionDispatch::Request.new(env_for_request)
       request.routes = controller._routes

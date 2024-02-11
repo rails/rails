@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionController
   module BasicImplicitRender # :nodoc:
     def send_action(method, *args)

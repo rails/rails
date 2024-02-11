@@ -1555,6 +1555,7 @@ class BasicsTest < ActiveRecord::TestCase
         post.comments.build
         wr.write Marshal.dump(post)
         wr.close
+        exit!(0)
       end
 
       wr.close

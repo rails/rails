@@ -8,7 +8,7 @@ class BookDestroyAsync < ActiveRecord::Base
   has_many :essays, dependent: :destroy_async, class_name: "EssayDestroyAsync", foreign_key: "book_id"
   has_one :content, dependent: :destroy_async
 
-  enum status: [:proposed, :written, :published]
+  enum :status, [:proposed, :written, :published]
 
   def published!
     super

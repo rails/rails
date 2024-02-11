@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "abstract_controller"
 require "action_dispatch"
 require "action_controller/deprecator"
 require "action_controller/metal/strong_parameters"
 require "action_controller/metal/exceptions"
 
-# = Action Controller
+# # Action Controller
 #
 # Action Controller is a module of Action Pack.
 #

@@ -74,6 +74,8 @@ module RailtiesTest
     end
 
     test "copying migrations" do
+      add_to_config("config.active_record.timestamped_migrations = false")
+
       @plugin.write "db/migrate/1_create_users.rb", <<-RUBY
         class CreateUsers < ActiveRecord::Migration::Current
         end
@@ -125,6 +127,8 @@ module RailtiesTest
     end
 
     test "copying migrations to specific database" do
+      add_to_config("config.active_record.timestamped_migrations = false")
+
       @plugin.write "db/migrate/1_create_users.rb", <<-RUBY
         class CreateUsers < ActiveRecord::Migration::Current
         end
@@ -185,6 +189,8 @@ module RailtiesTest
         RUBY
       end
 
+      add_to_config("config.active_record.timestamped_migrations = false")
+
       @plugin.write "db/migrate/1_create_users.rb", <<-RUBY
         class CreateUsers < ActiveRecord::Migration::Current
         end
@@ -224,6 +230,8 @@ module RailtiesTest
           end
         RUBY
       end
+
+      add_to_config("config.active_record.timestamped_migrations = false")
 
       @core.write "db/migrate/1_create_users.rb", <<-RUBY
         class CreateUsers < ActiveRecord::Migration::Current; end

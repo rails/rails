@@ -177,7 +177,7 @@ module RailsGuides
         anchors = Set.new
         html.scan(/<h\d\s+id="([^"]+)/).flatten.each do |anchor|
           if anchors.member?(anchor)
-            puts "*** DUPLICATE ID: #{anchor}, please make sure that there are no headings with the same name at the same level."
+            puts "*** DUPLICATE ID: '#{anchor}', please make sure that there are no headings with the same name at the same level."
           else
             anchors << anchor
           end

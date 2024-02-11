@@ -477,6 +477,20 @@ to be an error condition in future versions of Rails.
 
 If you still get this warning in the logs, please check the section about autoloading when the application boots in the [autoloading guide](https://guides.rubyonrails.org/v7.0/autoloading_and_reloading_constants.html#autoloading-when-the-application-boots). You'd get a `NameError` in Rails 7 otherwise.
 
+Constants managed by the `once` autoloader can be autoloaded during initialization, and they can be used normally, no need for a `to_prepare` block. However, the `once` autoloader is now set up earlier to support that. If the application has custom inflections, and the `once` autoloader should be aware of them, you need to move the code in `config/initializers/inflections.rb` to the body of the application class definition in `config/application.rb`:
+
+```ruby
+module MyApp
+  class Application < Rails::Application
+    # ...
+
+    ActiveSupport::Inflector.inflections(:en) do |inflect|
+      inflect.acronym "HTML"
+    end
+  end
+end
+```
+
 ### Ability to configure `config.autoload_once_paths`
 
 [`config.autoload_once_paths`][] can be set in the body of the application class defined in `config/application.rb` or in the configuration for environments in `config/environments/*`.

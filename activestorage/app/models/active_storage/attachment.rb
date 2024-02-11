@@ -132,8 +132,18 @@ class ActiveStorage::Attachment < ActiveStorage::Record
     end
 
     def transform_variants_later
-      named_variants.each do |_name, named_variant|
-        blob.preprocessed(named_variant.transformations) if named_variant.preprocessed?(record)
+      preprocessed_variations = named_variants.filter_map { |_name, named_variant|
+        if named_variant.preprocessed?(record)
+          named_variant.transformations
+        end
+      }
+
+      if blob.preview_image_needed_before_processing_variants?
+        blob.create_preview_image_later(preprocessed_variations)
+      else
+        preprocessed_variations.each do |transformations|
+          blob.preprocessed(transformations)
+        end
       end
     end
 

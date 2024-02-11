@@ -223,6 +223,13 @@ module ActiveRecord
       options.transform_keys! { |key| :"#{key[1..-1]}" }
 
       definitions.each { |name, values| _enum(name, values, **options) }
+
+      ActiveRecord.deprecator.warn(<<~MSG)
+        Defining enums with keyword arguments is deprecated and will be removed
+        in Rails 7.3. Positional arguments should be used instead:
+
+        #{definitions.map { |name, values| "enum :#{name}, #{values}" }.join("\n")}
+      MSG
     end
 
     private
@@ -249,7 +256,7 @@ module ActiveRecord
 
         decorate_attributes([name]) do |_name, subtype|
           if subtype == ActiveModel::Type.default_value
-            raise "Undeclared attribute type for enum '#{name}'. Enums must be" \
+            raise "Undeclared attribute type for enum '#{name}' in #{self.name}. Enums must be" \
               " backed by a database column or declared with an explicit type" \
               " via `attribute`."
           end

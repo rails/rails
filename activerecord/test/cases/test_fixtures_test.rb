@@ -6,6 +6,8 @@ require "fileutils"
 require "models/zine"
 
 class TestFixturesTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
   setup do
     @klass = Class.new
     @klass.include(ActiveRecord::TestFixtures)

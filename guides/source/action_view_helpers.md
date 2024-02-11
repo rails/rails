@@ -5,7 +5,7 @@ Action View Helpers
 
 After reading this guide, you will know:
 
-* How to format dates, strings and numbers
+* How to format dates, strings, and numbers
 * How to link to images, videos, stylesheets, etc...
 * How to sanitize content
 * How to localize content
@@ -138,7 +138,8 @@ See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpe
 
 #### picture_tag
 
-Returns an HTML picture tag for the source. It supports passing a String, an Array or a Block.
+Returns an HTML picture tag for the source. It supports passing a String, an
+Array, or a Block.
 
 ```ruby
 picture_tag("icon.webp", "icon.png")
@@ -158,7 +159,8 @@ See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpe
 
 #### preload_link_tag
 
-Returns a link tag that browsers can use to preload the source. The source can be the path of a resource managed by asset pipeline, a full path, or an URI.
+Returns a link tag that browsers can use to preload the source. The source can
+be the path of a resource managed by the asset pipeline, a full path, or a URI.
 
 ```ruby
 preload_link_tag "application.css"

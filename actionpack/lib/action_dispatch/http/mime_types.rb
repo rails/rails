@@ -3,6 +3,8 @@
 # Build list of Mime types for HTTP responses
 # https://www.iana.org/assignments/media-types/
 
+# :markup: markdown
+
 Mime::Type.register "text/html", :html, %w( application/xhtml+xml ), %w( xhtml )
 Mime::Type.register "text/plain", :text, [], %w(txt)
 Mime::Type.register "text/javascript", :js, %w( application/javascript application/x-javascript )

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "action_dispatch/journey/router/utils"
 require "action_dispatch/journey/routes"
 require "action_dispatch/journey/formatter"
@@ -22,8 +24,8 @@ module ActionDispatch
       end
 
       def eager_load!
-        # Eagerly trigger the simulator's initialization so
-        # it doesn't happen during a request cycle.
+        # Eagerly trigger the simulator's initialization so it doesn't happen during a
+        # request cycle.
         simulator
         nil
       end
