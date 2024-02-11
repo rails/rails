@@ -69,17 +69,27 @@ module ActionCable
 
       included do
         on_unsubscribe :stop_all_streams
+
+        prepend History
       end
 
       # Start streaming from the named <tt>broadcasting</tt> pubsub queue. Optionally, you can pass a <tt>callback</tt> that'll be used
       # instead of the default of just transmitting the updates straight to the subscriber.
       # Pass <tt>coder: ActiveSupport::JSON</tt> to decode messages as JSON before passing to the callback.
       # Defaults to <tt>coder: nil</tt> which does no decoding, passes raw messages.
-      def stream_from(broadcasting, callback = nil, coder: nil, &block)
+      def stream_from(broadcasting, callback = nil, coder: nil, save_history: false, &block)
         broadcasting = String(broadcasting)
 
         # Don't send the confirmation until pubsub#subscribe is successful
         defer_subscription_confirmation!
+
+        # Specify if the history of this stream should be saved
+        if save_history
+          save_history = {} if save_history == true
+          save_history[:key] ||= "#{broadcasting}:history"
+
+          streams_history[broadcasting] = save_history
+        end
 
         # Build a stream handler by wrapping the user-provided callback with
         # a decoder or defaulting to a JSON-decoding retransmitter.
@@ -141,6 +151,10 @@ module ActionCable
 
         def streams
           @_streams ||= {}
+        end
+
+        def streams_history
+          @_streams_history ||= {}
         end
 
         # Always wrap the outermost handler to invoke the user handler on the

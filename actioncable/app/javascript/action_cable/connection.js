@@ -144,14 +144,16 @@ Connection.prototype.events = {
         this.subscriptions.confirmSubscription(identifier)
         if (this.reconnectAttempted) {
           this.reconnectAttempted = false
-          return this.subscriptions.notify(identifier, "connected", {reconnected: true})
+          return this.subscriptions.handleReconnect(identifier)
         } else {
           return this.subscriptions.notify(identifier, "connected", {reconnected: false})
         }
       case message_types.rejection:
         return this.subscriptions.reject(identifier)
+      case message_types.history:
+        return this.subscriptions.subscribeToHistory(identifier)
       default:
-        return this.subscriptions.notify(identifier, "received", message)
+        return this.subscriptions.handleReceive(identifier, message)
     }
   },
 

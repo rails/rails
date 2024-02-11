@@ -26,6 +26,18 @@ module ActionCable
         redis_connection_for_broadcasts.publish(channel, payload)
       end
 
+      def save_history(stream_history, payload)
+        redis_connection_for_broadcasts.xadd(stream_history, { message: payload })
+      end
+
+      def read_history(stream_history, since: "0")
+        redis_connection_for_broadcasts.xread(stream_history, since)
+      end
+
+      def delete_history(stream_history, since: "0")
+        redis_connection_for_broadcasts.del(stream_history, since)
+      end
+
       def subscribe(channel, callback, success_callback = nil)
         listener.add_subscriber(channel, callback, success_callback)
       end

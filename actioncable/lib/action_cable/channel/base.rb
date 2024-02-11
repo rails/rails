@@ -186,6 +186,10 @@ module ActionCable
 
         reject_subscription if subscription_rejected?
         ensure_confirmation_sent
+
+        ActiveSupport::Notifications.subscribe("transmit_subscription_confirmation.action_cable") do
+          transmit_history_subscription if subscribed_to_streams_history?
+        end
       end
 
       # Called by the cable connection when it's cut, so the channel has a chance to cleanup with callbacks.
@@ -315,6 +319,18 @@ module ActionCable
           ActiveSupport::Notifications.instrument("transmit_subscription_rejection.action_cable", channel_class: self.class.name) do
             connection.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:rejection]
           end
+        end
+
+        def transmit_history_subscription
+          logger.debug "#{self.class.name} is transmitting the history subscription"
+
+          ActiveSupport::Notifications.instrument("transmit_history_subscription.action_cable", channel_class: self.class.name) do
+            connection.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:history]
+          end
+        end
+
+        def subscribed_to_streams_history?
+          streams_history.present?
         end
     end
   end

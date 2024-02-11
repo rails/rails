@@ -118,7 +118,8 @@ var INTERNAL = {
     disconnect: "disconnect",
     ping: "ping",
     confirmation: "confirm_subscription",
-    rejection: "reject_subscription"
+    rejection: "reject_subscription",
+    history: "history"
   },
   disconnect_reasons: {
     unauthorized: "unauthorized",
@@ -265,9 +266,7 @@ Connection.prototype.events = {
       this.subscriptions.confirmSubscription(identifier);
       if (this.reconnectAttempted) {
         this.reconnectAttempted = false;
-        return this.subscriptions.notify(identifier, "connected", {
-          reconnected: true
-        });
+        return this.subscriptions.handleReconnect(identifier);
       } else {
         return this.subscriptions.notify(identifier, "connected", {
           reconnected: false
@@ -277,8 +276,11 @@ Connection.prototype.events = {
      case message_types.rejection:
       return this.subscriptions.reject(identifier);
 
+     case message_types.history:
+      return this.subscriptions.subscribeToHistory(identifier);
+
      default:
-      return this.subscriptions.notify(identifier, "received", message);
+      return this.subscriptions.handleReceive(identifier, message);
     }
   },
   open() {
@@ -381,6 +383,7 @@ class Subscriptions {
     this.consumer = consumer;
     this.guarantor = new SubscriptionGuarantor(this);
     this.subscriptions = [];
+    this.historySubscriptions = {};
   }
   create(channelName, mixin) {
     const channel = channelName;
@@ -449,6 +452,34 @@ class Subscriptions {
       command: command,
       identifier: identifier
     });
+  }
+  handleReceive(identifier, message) {
+    this.lastReceivedAt = Date.now();
+    return this.notify(identifier, "received", message);
+  }
+  handleReconnect(identifier) {
+    if (this.subscribedToHistory(identifier)) {
+      this.requestHistory(identifier);
+    }
+    return this.notify(identifier, "connected", {
+      reconnected: true
+    });
+  }
+  subscribedToHistory(identifier) {
+    return this.historySubscriptions[identifier];
+  }
+  subscribeToHistory(identifier) {
+    this.historySubscriptions[identifier] = true;
+    return this.historySubscriptions[identifier];
+  }
+  requestHistory(identifier) {
+    return this.findAll(identifier).map((subscription => {
+      this.consumer.send({
+        command: "history",
+        identifier: subscription.identifier,
+        since: this.lastReceivedAt
+      });
+    }));
   }
 }
 

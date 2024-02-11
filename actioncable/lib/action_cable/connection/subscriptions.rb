@@ -19,6 +19,7 @@ module ActionCable
         when "subscribe"   then add data
         when "unsubscribe" then remove data
         when "message"     then perform_action data
+        when "history"     then transmit_history data
         else
           logger.error "Received unrecognized command in #{data.inspect}"
         end
@@ -56,6 +57,13 @@ module ActionCable
 
       def perform_action(data)
         find(data).perform_action ActiveSupport::JSON.decode(data["data"])
+      end
+
+      def transmit_history(data)
+        subscription = find data
+        since        = data["since"]
+
+        subscription.stream_history_transmitter.(since)
       end
 
       def identifiers
