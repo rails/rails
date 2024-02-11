@@ -52,7 +52,7 @@ module ActiveRecord
       assert_equal [], relation.extending_values
     end
 
-    (Relation::SINGLE_VALUE_METHODS - [:lock, :reordering, :reverse_order, :create_with, :skip_query_cache, :strict_loading]).each do |method|
+    (Relation::SINGLE_VALUE_METHODS - [:lock, :reordering, :reverse_order, :create_with, :skip_query_cache, :strict_loading, :distinct]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal :foo, relation.public_send("#{method}_value")
@@ -121,8 +121,14 @@ module ActiveRecord
     end
 
     test "distinct!" do
-      relation.distinct! :foo
-      assert_equal :foo, relation.distinct_value
+      assert relation.distinct!(true).equal?(relation)
+      assert_equal true, relation.distinct_value
+    end
+
+    test "distinct! with a non-boolean value argument" do
+      assert_deprecated(ActiveRecord.deprecator) do
+        relation.distinct!(:name)
+      end
     end
 
     test "skip_query_cache!" do

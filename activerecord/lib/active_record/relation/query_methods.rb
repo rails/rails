@@ -1312,6 +1312,10 @@ module ActiveRecord
 
     # Like #distinct, but modifies relation in place.
     def distinct!(value = true) # :nodoc:
+      unless value == true || value == false
+        ActiveRecord.deprecator.warn("Passing a non-boolean value to distinct is deprecated and will raise in Rails 7.3")
+      end
+
       self.distinct_value = value
       self
     end

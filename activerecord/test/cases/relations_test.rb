@@ -1795,6 +1795,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ["Foo", "Foo"], query.distinct(true).distinct(false).map(&:name)
   end
 
+  def test_distinct_with_a_non_boolean_value_argument
+    assert_deprecated(ActiveRecord.deprecator) do
+      Tag.distinct(:name)
+    end
+  end
+
   def test_doesnt_add_having_values_if_options_are_blank
     scope = Post.having("")
     assert_empty scope.having_clause

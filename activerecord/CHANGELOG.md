@@ -1,3 +1,7 @@
+*   Deprecate passing a non-boolean argument to `#distinct`.
+
+    *Joshua Young*
+
 *   Fix an issue where `ActiveRecord::Encryption` configurations are not ready before the loading
     of Active Record models, when an application is eager loaded. As a result, encrypted attributes
     could be misconfigured in some cases.
