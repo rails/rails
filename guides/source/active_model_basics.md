@@ -496,23 +496,42 @@ irb> person.to_partial_path
 
 ### Dirty
 
+`ActiveModel::Dirty` provides a way to track changes in your object in the same way as Active Record.
+
 An object becomes dirty when it has gone through one or more changes to its
 attributes and has not been saved. `ActiveModel::Dirty` gives the ability to
 check whether an object has been changed or not. It also has attribute-based
-accessor methods. Let's consider a Person class with attributes `first_name`
+accessor methods.
+
+To use `ActiveModel::Dirty`, you need to:
+- Include the module in your class
+- Define the attribute methods that you want to track changes for, using `define_attribute_methods`.
+- Call `[attr_name]_will_change!` before each change to the tracked attribute.
+- Call `changes_applied` after the changes are persisted.
+- Call `clear_changes_information` when you want to reset the changes information.
+- Call `restore_attributes` when you want to restore previous data.
+- You can then use the methods provided by `ActiveModel::Dirty` to query the object for its list of all changed attributes, the original values of the changed attributes, and the changes made to the attributes.
+
+Let's consider a Person class with attributes `first_name`
 and `last_name`:
 
 ```ruby
 class Person
   include ActiveModel::Dirty
+
   define_attribute_methods :first_name, :last_name
+
+  def initialize
+    @first_name = nil
+    @last_name = nil
+  end
 
   def first_name
     @first_name
   end
 
   def first_name=(value)
-    first_name_will_change!
+    first_name_will_change! unless value == @first_name
     @first_name = value
   end
 
@@ -521,12 +540,12 @@ class Person
   end
 
   def last_name=(value)
-    last_name_will_change!
+    last_name_will_change! unless value == @last_name
     @last_name = value
   end
 
   def save
-    # do save work...
+    # do persistence work
     changes_applied
   end
 end
@@ -536,60 +555,103 @@ end
 
 ```irb
 irb> person = Person.new
+
+# A newly instantiated `Person` object is unchanged:
 irb> person.changed?
 => false
 
-irb> person.first_name = "First Name"
+irb> person.first_name = "Jane Doe"
 irb> person.first_name
-=> "First Name"
+=> "Jane Doe"
+```
 
-# Returns true if any of the attributes have unsaved changes.
+**`changed?`** returns true if any of the attributes have unsaved changes, `false` otherwise.
+
+```irb
 irb> person.changed?
 => true
+```
 
-# Returns a list of attributes that have changed before saving.
+**`changed`** returns an array with the name of the attributes with unsaved changes
+
+```irb
 irb> person.changed
 => ["first_name"]
+```
 
-# Returns a Hash of the attributes that have changed with their original values.
+**`changed_attributes`** returns a hash of the attributes with unsaved changes indicating their original values like `attr => original value`.
+
+```irb
 irb> person.changed_attributes
 => {"first_name"=>nil}
+```
 
-# Returns a Hash of changes, with the attribute names as the keys, and the values as an array of the old and new values for that field.
+**`changes`** returns a Hash of changes, with the attribute names as the keys, and the values as an array of the original and new values like `attr => [original value, new value]`.
+
+```
 irb> person.changes
-=> {"first_name"=>[nil, "First Name"]}
+=> {"first_name"=>[nil, "Jane Doe"]}
+```
+
+**`previous_changes`** returns a hash of attributes that were changed before the model was saved.
+
+```irb
+irb> person.save
+irb> person.previous_changes
+=> {"first_name"=>[nil, "Jane Doe"]}
 ```
 
 #### Attribute-based Accessor Methods
 
-Track whether the particular attribute has been changed or not.
-
 ```irb
-irb> person.first_name
-=> "First Name"
+irb> person = Person.new
 
-# attr_name_changed?
+irb> person.changed?
+=> false
+
+irb> person.first_name = "John Doe"
+irb> person.first_name
+=> "John Doe"
+```
+
+**[attr_name]_changed?** checks whether the particular attribute has been changed or not.
+
+```
 irb> person.first_name_changed?
 => true
 ```
 
-Track the previous value of the attribute.
+**[attr_name]_was** tracks the previous value of the attribute.
 
 ```irb
-# attr_name_was accessor
 irb> person.first_name_was
 => nil
 ```
 
-Track both previous and current values of the changed attribute. Returns an array
-if changed, otherwise returns nil.
+**[attr_name]_change** tracks both the previous and current values of the changed attribute. Returns an array if changed, otherwise returns nil.
 
 ```irb
-# attr_name_change
 irb> person.first_name_change
-=> [nil, "First Name"]
+=> [nil, "John Doe"]
 irb> person.last_name_change
 => nil
+```
+
+**[attr_name]_previously_changed?** checks whether the particular attribute has been changed before the model was saved.
+
+```irb
+irb> person.first_name_previously_changed?
+=> false
+irb> person.save
+irb> person.first_name_previously_changed?
+=> true
+```
+
+**[attr_name]_previous_change** tracks both previous and current values of the changed attribute before the model was saved. Returns an array if changed, otherwise returns nil.
+
+```irb
+irb> person.first_name_previous_change
+=> [nil, "John Doe"]
 ```
 
 ### Validations
