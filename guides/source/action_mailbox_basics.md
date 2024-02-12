@@ -326,7 +326,7 @@ $ mail.body
 #<Mail::Body:0x00007fc74cbf46c0 @boundary=nil, @preamble=nil, @epilogue=nil, @charset="US-ASCII", @part_sort_order=["text/plain", "text/enriched", "text/html", "multipart/alternative"], @parts=[], @raw_source="This is the body of the email message.", @ascii_only=true, @encoding="7bit">
 $ mail.body.decoded
 "This is the body of the email message."
-# mail.decode, a shorthand for mail.body.decoded, also works
+# mail.decoded, a shorthand for mail.body.decoded, also works
 $ mail.decoded
 "This is the body of the email message."
 ```
