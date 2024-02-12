@@ -432,4 +432,4 @@ The actual incineration is done via the [`IncinerationJob`](https://api.rubyonra
 
 Default data incineration ensures that you're not holding on to people's data unnecessarily after they may have canceled their accounts or deleted their content.
 
-The intention with Action Mailbox processing is that as you process an email, you should extract all the data you need from the email and persist into domain models in your application. The `InboundEmail` simply stays in the system for the extra time to allow for debugging and forensic and then will be deleted.
+The intention with Action Mailbox processing is that as you process an email, you should extract all the data you need from the email and persist it into domain models in your application. The `InboundEmail` stays in the system for the configured time to allow for debugging and forensics and then will be deleted.
