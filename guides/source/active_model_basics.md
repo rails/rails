@@ -697,7 +697,7 @@ irb> person.email = 'me@vishnuatrai.com'
 irb> person.valid?
 => true
 
-<!-- token uses validate! and will raise an exception whne not set. -->
+<!-- token uses validate! and will raise an exception when not set. -->
 irb> person.token = nil
 irb> person.valid?
 => "Token can't be blank (ActiveModel::StrictValidationFailed)"
@@ -1077,21 +1077,31 @@ a `password` accessor with certain validations on it by default.
 #### Requirements
 
 `ActiveModel::SecurePassword` depends on [`bcrypt`](https://github.com/codahale/bcrypt-ruby 'BCrypt'),
-so include this gem in your `Gemfile` to use `ActiveModel::SecurePassword` correctly.
-In order to make this work, the model must have an accessor named `XXX_digest`.
-Where `XXX` is the attribute name of your desired password.
-The following validations are added automatically:
+so include this gem in your `Gemfile` to use `ActiveModel::SecurePassword`.
 
-1. Password should be present.
-2. Password should be equal to its confirmation (provided `XXX_confirmation` is passed along).
+```ruby
+gem 'bcrypt'
+```
+
+A requires for `ActiveModel::SecurePassword` to have a `password_digest` attribute.
+
+The following validations are added automatically:
+1. Password must be present on creation.
+2. Confirmation of password (using a `password_confirmation` attribute)
 3. The maximum length of a password is 72 bytes (required as `bcrypt`, on which
    ActiveModel::SecurePassword depends, truncates the string to this size before encrypting it).
+
+If password confirmation validation is not needed, simply leave out the value for `password_confirmation` (i.e. don't provide a form field for
+it). When this attribute has a `nil` value, the validation will not be triggered.
+
+For further customization, it is possible to suppress the default validations by passing `validations: false` as an argument.
 
 #### Examples
 
 ```ruby
 class Person
   include ActiveModel::SecurePassword
+
   has_secure_password
   has_secure_password :recovery_password, validations: false
 
