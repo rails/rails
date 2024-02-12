@@ -829,7 +829,6 @@ irb> Person.model_name.uncountable?
 => false
 ```
 
-
 ### Model
 
 `ActiveModel::Model` includes [ActiveModel::API](active_model_basics.html#api) for the required interface to allow an
@@ -839,31 +838,82 @@ Currently, when including `ActiveModel::Model` you get all the features from `Ac
 
 ### Serialization
 
-`ActiveModel::Serialization` provides basic serialization for your object.
-You need to declare an attributes Hash which contains the attributes you want to
+`ActiveModel::Serialization` provides basic serialization to a serializable_hash for your objects.
+You need to declare an attributes Hash which should contain the attributes you want to
 serialize. Attributes must be strings, not symbols.
+
 
 ```ruby
 class Person
   include ActiveModel::Serialization
 
-  attr_accessor :name
+  attr_accessor :name, :age
 
   def attributes
-    { 'name' => nil }
+    # compulsory declaration of attributes to serialize
+    {'name' => nil, 'age' => nil}
+  end
+
+  def capitalized_name
+  # an example of how we can use a method with a serialized hash
+    name.capitalize
   end
 end
 ```
 
-Now you can access a serialized Hash of your object using the `serializable_hash` method.
+Now you can access a serialized Hash of your object using the `serializable_hash` method. Valid options for serializable hash include `:only`, `:except`, `:methods` and `:include`.
 
 ```irb
 irb> person = Person.new
 irb> person.serializable_hash
-=> {"name"=>nil}
-irb> person.name = "Bob"
+=> {"name"=>nil, "age"=>nil}
+irb> person.name = "bob"
+irb> person.age = 22
 irb> person.serializable_hash
-=> {"name"=>"Bob"}
+=> {"name"=>"bob", "age"=>22}
+irb>  person.serializable_hash(methods: :capitalized_name)
+=> {"name"=>"bob", "age"=>22, "capitalized_name"=>"Bob"}
+irb> person.serializable_hash(only: :name)
+=> {"name"=>"bob"}
+irb> person.serializable_hash(except: :name)
+=> {"age"=>22}
+```
+
+An example of `includes` requires a slightly more complex scenario:
+
+```ruby
+  class Person
+   include ActiveModel::Serialization
+   attr_accessor :name, :notes # Emulate has_many :notes
+
+    def attributes
+       {'name' => nil}
+    end
+  end
+
+  class Note
+    include ActiveModel::Serializers::JSON
+    attr_accessor :title, :text
+    def attributes
+      {'title' => nil, 'text' => nil}
+    end
+  end
+```
+
+
+```irb
+irb> note = Note.new
+irb> note.title = 'Weekend Plans'
+irb> note.text = 'Some text here'
+
+irb> person = Person.new
+irb> person.name = 'Napoleon'
+irb> person.notes = [note]
+
+irb> person.serializable_hash
+=> {"name" => "Napoleon"}
+irb> person.serializable_hash(include: { notes: { only: 'title' }})
+=> {"name" => "Napoleon", "notes" => [{"title"=>"Weekend Plans"}]}
 ```
 
 #### ActiveModel::Serializers
@@ -875,7 +925,7 @@ previously discussed `ActiveModel::Serialization` module.
 ##### ActiveModel::Serializers::JSON
 
 To use `ActiveModel::Serializers::JSON` you only need to change the
-module you are including from `ActiveModel::Serialization` to `ActiveModel::Serializers::JSON`.
+module you are including from `ActiveModel::Serialization` to `ActiveModel::Serializers::JSON`. This is because the `ActiveModel::Serializers::JSON` module automatically includes the `ActiveModel::Serialization` module, so there is no need to explicitly include `ActiveModel::Serialization`.
 
 ```ruby
 class Person
@@ -896,13 +946,17 @@ the model.
 irb> person = Person.new
 irb> person.as_json
 => {"name"=>nil}
+irb> person.to_json
+=> "{\"name\":null}"
 irb> person.name = "Bob"
 irb> person.as_json
 => {"name"=>"Bob"}
+irb> person.to_json
+=> "{\"name\":\"Bob\"}"
 ```
 
 You can also define the attributes for a model from a JSON string.
-However, you need to define the `attributes=` method on your class:
+However, you need to define the `attributes=` method in your class:
 
 ```ruby
 class Person
