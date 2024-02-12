@@ -326,6 +326,9 @@ $ mail.body
 #<Mail::Body:0x00007fc74cbf46c0 @boundary=nil, @preamble=nil, @epilogue=nil, @charset="US-ASCII", @part_sort_order=["text/plain", "text/enriched", "text/html", "multipart/alternative"], @parts=[], @raw_source="This is the body of the email message.", @ascii_only=true, @encoding="7bit">
 $ mail.body.decoded
 "This is the body of the email message."
+# mail.decode, a shorthand for mail.body.decoded, also works
+$ mail.decoded
+"This is the body of the email message."
 ```
 
 ### Inbound Email Status
@@ -348,7 +351,7 @@ The `before_processing` callback is used to ensure that certain conditions are m
 
 The email can be bounced using `bounced_with` if the 'forwarder' has no projects. The 'forwarder' is a `User` with the same email as `mail.from`.
 
-If the 'forwarder' does have at least one project, the `record_forward` method creates an Active Record model in the application using the email data `mail.subject` and `mail.content`. Otherwise it sends an email, using Action Mailer, requesting the 'forwarder' to choose a project.
+If the 'forwarder' does have at least one project, the `record_forward` method creates an Active Record model in the application using the email data `mail.subject` and `mail.body.decoded`. Otherwise, it sends an email, using Action Mailer, requesting the 'forwarder' to choose a project.
 
 ```ruby
 # app/mailboxes/forwards_mailbox.rb
@@ -375,7 +378,7 @@ class ForwardsMailbox < ApplicationMailbox
     end
 
     def record_forward
-      forwarder.forwards.create subject: mail.subject, content: mail.content
+      forwarder.forwards.create subject: mail.subject, content: mail.body.decoded
     end
 
     def request_forwarding_project
@@ -417,7 +420,7 @@ class ForwardsMailboxTest < ActionMailbox::TestCase
     recording = people(:david).buckets.first.recordings.last
     assert_equal people(:david), recording.creator
     assert_equal "Status update?", recording.forward.subject
-    assert_match "What's the status?", recording.forward.content.to_s
+    assert_match "What's the status?", recording.forward.decoded.to_s
   end
 end
 ```
