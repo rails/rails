@@ -687,16 +687,57 @@ irb> person = Person.new
 irb> person.token = "2b1f325"
 irb> person.valid?
 => false
+
 irb> person.name = 'vishnu'
 irb> person.email = 'me'
 irb> person.valid?
 => false
+
 irb> person.email = 'me@vishnuatrai.com'
 irb> person.valid?
 => true
+
+<!-- token uses validate! and will raise an exception whne not set. -->
 irb> person.token = nil
 irb> person.valid?
-ActiveModel::StrictValidationFailed
+=> Token can't be blank (ActiveModel::StrictValidationFailed)
+```
+
+#### Validation Methods and Options
+
+You can add validations using some of the following methods:
+- `validate` - adds validation through a method or a block to the class. You can read more about how to use `validate` [here](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validate).
+
+- `validates` - An [attribute can be passed to the `validates` method](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates) and it a shortcut to all default validators.
+- `validates!` or setting `strict: true` - used to define validations that cannot be corrected by end users and are considered exceptional. So each validator defined with bang or `:strict` option set to true will always raise `ActiveModel::StrictValidationFailed` instead of adding to the errors when validation fails
+- `validates_with` - Passes the record off to the class or classes specified and allows them to add errors based on more complex conditions.
+- `validates_each` - Validates each attribute against a block.
+
+Some of the options that can be used with certain validators. To ensure that the option you're looking at can be used with a specific validator, read through the documentation [here](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html).
+
+- `:on` - Specifies the context in which to add the validation, You can pass a symbol or an array of symbols. (e.g. `on: :create` or `on: :custom_validation_context` or `on: [:create, :custom_validation_context]`). Validations without an `:on` option will run no matter the context. Validations with
+some `:on` option will only run in the specified context.
+- `:if` - Specifies a method, proc or string to call to determine if the validation should occur (e.g. `if: :allow_validation`, or `if: Proc.new { |user| user.signup_step > 2 }`). The method, proc or string should return or evaluate to a `true` or `false` value.
+- `:unless` - Specifies a method, proc or string to call to determine if the validation should not occur (e.g. `unless: :skip_validation`, or `unless: Proc.new { |user| user.signup_step <= 2 }`). The method, proc or string should return or evaluate to a `true` or `false` value.
+- `:allow_nil` - Skip validation if the attribute is `nil`.
+- `:allow_blank` - Skip validation if the attribute is blank.
+- `:strict` - If the `:strict` option is set to true will raise ActiveModel::StrictValidationFailed instead of adding the error. `:strict` option can also be set to any other exception.
+
+ NOTE: Calling `validate` multiple times on the same method will overwrite previous definitions.
+
+#### Errors
+
+`ActiveModel::Validations` automatically adds an `errors` method to your instances initialized with a new `ActiveModel::Errors` object, so there is no need for you to do this manually.
+
+You should to run `valid?` on the object to check if it is valid or not. If the object is not valid, it will return `false` and the errors will be added to the `errors` object.
+
+```irb
+irb> person = Person.new
+irb> person.email = "me"
+irb> person.valid?
+=> Token can't be blank (ActiveModel::StrictValidationFailed)
+irb> person.errors
+=>  {:name=>["can't be blank"], :email=>["is invalid"]}
 ```
 
 ### Naming
