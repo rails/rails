@@ -378,23 +378,20 @@ To keep using the current cache store, you can turn off cache versioning entirel
     end
 
     initializer "active_record_encryption.configuration" do |app|
-      auto_filtered_parameters = ActiveRecord::Encryption::AutoFilteredParameters.new(app)
-
-      config.after_initialize do |app|
+      ActiveSupport.on_load(:active_record) do
         ActiveRecord::Encryption.configure \
           primary_key: app.credentials.dig(:active_record_encryption, :primary_key),
           deterministic_key: app.credentials.dig(:active_record_encryption, :deterministic_key),
           key_derivation_salt: app.credentials.dig(:active_record_encryption, :key_derivation_salt),
-          **config.active_record.encryption
+          **app.config.active_record.encryption
 
+        auto_filtered_parameters = ActiveRecord::Encryption::AutoFilteredParameters.new(app)
         auto_filtered_parameters.enable if ActiveRecord::Encryption.config.add_to_filter_parameters
 
-        ActiveSupport.on_load(:active_record) do
-          # Support extended queries for deterministic attributes and validations
-          if ActiveRecord::Encryption.config.extend_queries
-            ActiveRecord::Encryption::ExtendedDeterministicQueries.install_support
-            ActiveRecord::Encryption::ExtendedDeterministicUniquenessValidator.install_support
-          end
+        # Support extended queries for deterministic attributes and validations
+        if ActiveRecord::Encryption.config.extend_queries
+          ActiveRecord::Encryption::ExtendedDeterministicQueries.install_support
+          ActiveRecord::Encryption::ExtendedDeterministicUniquenessValidator.install_support
         end
       end
 
