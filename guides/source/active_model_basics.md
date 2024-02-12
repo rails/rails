@@ -968,7 +968,7 @@ class Person
 
   def attributes=(hash)
     hash.each do |key, value|
-      send("#{key}=", value)
+      public_send("#{key}=", value)
     end
   end
 
@@ -1055,6 +1055,7 @@ to `to_model`. It is perfectly fine for `to_model` to return
 You can find the methods available for the tests [here](https://api.rubyonrails.org/classes/ActiveModel/Lint/Tests.html).
 
 In order to run the tests you can use the following command:
+
 ```bash
 $ bin/rails test
 
@@ -1068,6 +1069,7 @@ Finished in 0.024899s, 240.9735 runs/s, 1204.8677 assertions/s.
 
 6 runs, 30 assertions, 0 failures, 0 errors, 0 skips
 ```
+
 
 ### SecurePassword
 
