@@ -44,7 +44,7 @@ $ bin/rails db:migrate
 
 This will run the Action Mailbox and Active Storage migrations.
 
-The Action Mailbox table `action_mailbox_inbound_emails` stores incoming messages and their processing 'status'.
+The Action Mailbox table `action_mailbox_inbound_emails` stores incoming messages and their processing status.
 
 At this point you can start your rails server and check out `http://localhost:3000/rails/conductor/action_mailbox/inbound_emails`. See [Local Development and Testing](#local-development-and-testing) for more.
 
