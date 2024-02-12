@@ -1,3 +1,11 @@
+*   Fix `ActionDispatch::Executor` middleware to report errors handled by `ActionDispatch::ShowExceptions`.
+
+    In the default production environment, `ShowExceptions` rescue uncaught errors
+    and returns a response. Because if this the executor wouldn't report production
+    errors with the default Rails configuration.
+
+    *Jean Boussier*
+
 *   Add `racc` as a dependency since it will become a bundled gem in Ruby 3.4.0
 
     *Hartley McGuire*

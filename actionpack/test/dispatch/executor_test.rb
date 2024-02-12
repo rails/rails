@@ -140,6 +140,34 @@ class ExecutorTest < ActiveSupport::TestCase
     assert_equal requests_count - 1, completed
   end
 
+  def test_error_reporting
+    raised_error = nil
+    error_report = assert_error_reported do
+      raised_error = assert_raises TypeError do
+        call_and_return_body { 1 + "1" }
+      end
+    end
+    assert_same raised_error, error_report.error
+  end
+
+  def test_error_reporting_with_show_exception
+    middleware = Rack::Lint.new(
+      ActionDispatch::Executor.new(
+        ActionDispatch::ShowExceptions.new(
+          Rack::Lint.new(->(_env) { 1 + "1" }),
+          ->(_env) { [500, {}, ["Oops"]] },
+        ),
+        executor,
+      )
+    )
+
+    env = Rack::MockRequest.env_for("", {})
+    error_report = assert_error_reported do
+      middleware.call(env)
+    end
+    assert_instance_of TypeError, error_report.error
+  end
+
   private
     def call_and_return_body(&block)
       app = middleware(block || proc { [200, {}, "response"] })
