@@ -113,6 +113,26 @@ module ActiveRecord
   #     end
   #   end
   #
+  # == Querying across records
+  #
+  # A consequence of delegated types is that querying attributes spread across multiple classes becomes slightly more
+  # tricky, but not impossible.
+  #
+  # The simplest method is to join the "superclass" to the "subclass" and apply the query parameters (i.e. <tt>#where</tt>)
+  # in appropriate places:
+  #
+  #   Comment.joins(:entry).where(comments: { content: 'Hello!' }, entry: { creator: Current.user } )
+  #
+  # For convenience, add a scope on the concern. Now all classes that implement the concern will automatically include
+  # the method:
+  #
+  #   # app/models/concerns/entryable.rb
+  #   scope :with_entry, ->(attrs) { joins(:entry).where(entry: attrs) }
+  #
+  # Now the query can be shortened significantly:
+  #
+  #   Comment.where(content: 'Hello!').with_entry(creator: Current.user)
+  #
   # == Adding further delegation
   #
   # The delegated type shouldn't just answer the question of what the underlying class is called. In fact, that's
