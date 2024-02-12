@@ -1017,14 +1017,22 @@ Person.human_attribute_name('name') # => "Nome"
 
 ### Lint Tests
 
-`ActiveModel::Lint::Tests` allows you to test whether an object is compliant with
-the Active Model API.
+`ActiveModel::Lint::Tests` allows you to test whether an object is compliant with the Active Model API by including `ActiveModel::Lint::Tests` in your TestCase. It will include tests that tell you whether your object is fully compliant, or if not, which aspects of the API are not implemented.
+
+These tests do not attempt to determine the semantic correctness of the
+returned values. For instance, you could implement `valid?` to
+always return `true`, and the tests would pass. It is up to you to ensure
+that the values are semantically meaningful.
+
+Objects you pass in are expected to return a compliant object from a call
+to `to_model`. It is perfectly fine for `to_model` to return
+`self`.
 
 * `app/models/person.rb`
 
     ```ruby
     class Person
-      include ActiveModel::Model
+      include ActiveModel::API
     end
     ```
 
@@ -1042,6 +1050,9 @@ the Active Model API.
     end
     ```
 
+You can find the methods available for the tests [here](https://api.rubyonrails.org/classes/ActiveModel/Lint/Tests.html).
+
+In order to run the tests you can use the following command:
 ```bash
 $ bin/rails test
 
@@ -1055,10 +1066,6 @@ Finished in 0.024899s, 240.9735 runs/s, 1204.8677 assertions/s.
 
 6 runs, 30 assertions, 0 failures, 0 errors, 0 skips
 ```
-
-An object is not required to implement all APIs in order to work with
-Action Pack. This module only intends to guide in case you want all
-features out of the box.
 
 ### SecurePassword
 
