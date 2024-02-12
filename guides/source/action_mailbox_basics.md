@@ -309,7 +309,7 @@ This creates `app/mailboxes/forwards_mailbox.rb`, with a `ForwardsMailbox` class
 
 ### Process Email
 
-When processing an `InboundEmail`, you can get the parsed version of the email as a [`Mail`](https://github.com/mikel/mail) object with `InboundEmail#mail`. You can also get the raw source directly using the `#source` method. With `Mail` object, you can access the relevant fields, such as `mail.to`, `mail.body.decoded`, etc.
+When processing an `InboundEmail`, you can get the parsed version of the email as a [`Mail`](https://github.com/mikel/mail) object with `InboundEmail#mail`. You can also get the raw source directly using the `#source` method. With the `Mail` object, you can access the relevant fields, such as `mail.to`, `mail.body.decoded`, etc.
 
 ```bash
 $ mail
