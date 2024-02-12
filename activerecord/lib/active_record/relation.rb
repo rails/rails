@@ -255,6 +255,8 @@ module ActiveRecord
     #   the problem of running out of integers, if the underlying table is still stuck on a primary
     #   key of type int (note: All \Rails apps since 5.1+ have defaulted to bigint, which is not liable
     #   to this problem).
+    # * Columns with unique database constraints should not have uniqueness validations defined,
+    #   otherwise #create will fail due to validation errors and #find_by will never be called.
     #
     # This method will return a record if all given attributes are covered by unique constraints
     # (unless the INSERT -> DELETE -> SELECT race condition is triggered), but if creation was attempted
