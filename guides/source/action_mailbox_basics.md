@@ -30,7 +30,7 @@ Action Mailbox ships with ingresses which enable your application to receive ema
 
 Action Mailbox has a few moving parts. First, you'll run the installer. Next, you'll choose and configure an ingress for handling incoming email. You're then ready to add Action Mailbox routing, create mailboxes, and start processing incoming emails.
 
-To start let's install Action Mailbox:
+To start, let's install Action Mailbox:
 
 ```bash
 $ bin/rails action_mailbox:install
