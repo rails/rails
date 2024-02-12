@@ -700,7 +700,7 @@ irb> person.valid?
 <!-- token uses validate! and will raise an exception whne not set. -->
 irb> person.token = nil
 irb> person.valid?
-=> Token can't be blank (ActiveModel::StrictValidationFailed)
+=> "Token can't be blank (ActiveModel::StrictValidationFailed)"
 ```
 
 #### Validation Methods and Options
@@ -750,18 +750,85 @@ will define several accessors using some `ActiveSupport::Inflector` methods.
 class Person
   extend ActiveModel::Naming
 end
-
-Person.model_name.name                # => "Person"
-Person.model_name.singular            # => "person"
-Person.model_name.plural              # => "people"
-Person.model_name.element             # => "person"
-Person.model_name.human               # => "Person"
-Person.model_name.collection          # => "people"
-Person.model_name.param_key           # => "person"
-Person.model_name.i18n_key            # => :person
-Person.model_name.route_key           # => "people"
-Person.model_name.singular_route_key  # => "person"
 ```
+
+**`name`** returns the name of the model
+
+```irb
+irb> Person.model_name.name
+=> "Person"
+```
+
+**`singular`** returns the singular class name of a record or class.
+
+```irb
+irb> Person.model_name.singular
+=> "person"
+```
+
+**`plural`** returns the plural class name of a record or class.
+
+```irb
+irb> Person.model_name.plural
+=> "people"
+```
+
+**`element`** returns a potentially namespaced class name to snake_case.
+
+```irb
+irb> Person.model_name.element
+=> "person"
+```
+
+**`human`** transforms the model name into a more human format, using I18n. By default, it will underscore then humanize the class name.
+
+```irb
+irb> Person.model_name.human
+=> "Person"
+```
+
+**`collection`** returns the name of a table like Rails does for models to table names. It uses the pluralize method on the last word in the string.
+
+```irb
+irb> Person.model_name.collection
+=> "people"
+```
+
+**`param_key`** returns string to use for params names. It differs for namespaced models regarding whether it's inside isolated engine.
+
+```irb
+irb> Person.model_name.param_key
+=> "person"
+```
+
+**`i18n_key`** returns the name of the i18n key
+
+```irb
+irb> Person.model_name.i18n_key
+=> :person
+```
+
+**`route_key`** returns string to use while generating route names. It differs for namespaced models regarding whether it's inside isolated engine.
+
+```irb
+irb> Person.model_name.route_key
+=> "people"
+```
+
+**`singular_route_key`** returns a string to use while generating route names. It differs for namespaced models regarding whether it's inside isolated engine.
+
+```irb
+irb> Person.model_name.singular_route_key
+=> "person"
+```
+
+**`uncountable?`** identifies whether the class name of a record or class is uncountable.
+
+```irb
+irb> Person.model_name.uncountable?
+=> false
+```
+
 
 ### Model
 
