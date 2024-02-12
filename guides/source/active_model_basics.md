@@ -241,28 +241,30 @@ class Person
 
   # this will create a method 'first_name'
   def first_attribute(attribute)
-    send(attribute).split.first
+    public_send(attribute).split.first
   end
 
   # this will create a method 'last_name'
   def last_attribute(attribute)
-    send(attribute).split.last
+    public_send(attribute).split.last
   end
 
   # this will create a method 'name_short?'
   def attribute_short?(attribute)
-    send(attribute) < 5
+    public_send(attribute).length < 5
   end
 
   # this will create a method 'reset_name_to_default!'
   def reset_attribute_to_default!(attribute)
-    send("#{attribute}=", "Default Name")
+    public_send("#{attribute}=", "Default Name")
   end
 
 end
 ```
 
 ```irb
+irb> person = Person.new
+
 irb> person.name = "Jane Doe"
 irb> person.first_name
 => "Jane"
@@ -294,7 +296,7 @@ class Person
   private
 
   def attribute_short?(attribute)
-    send(attribute).length < 5
+    public_send(attribute).length < 5
   end
 
 end
