@@ -176,13 +176,13 @@ module ActiveRecord
       # #connection can be called any number of times; the connection is
       # held in a cache keyed by a thread.
       def connection
-        @thread_cached_conns[connection_cache_key(ActiveSupport::IsolatedExecutionState.context)] ||= checkout
+        @thread_cached_conns[ActiveSupport::IsolatedExecutionState.context] ||= checkout
       end
 
       def pin_connection!(lock_thread) # :nodoc:
         raise "There is already a pinned connection" if @pinned_connection
 
-        @pinned_connection = (@thread_cached_conns[connection_cache_key(ActiveSupport::IsolatedExecutionState.context)] || checkout)
+        @pinned_connection = (@thread_cached_conns[ActiveSupport::IsolatedExecutionState.context] || checkout)
         # Any leased connection must be in @connections otherwise
         # some methods like #connected? won't behave correctly
         unless @connections.include?(@pinned_connection)
@@ -226,7 +226,7 @@ module ActiveRecord
       # #connection or #with_connection methods. Connections obtained through
       # #checkout will not be detected by #active_connection?
       def active_connection?
-        @thread_cached_conns[connection_cache_key(ActiveSupport::IsolatedExecutionState.context)]
+        @thread_cached_conns[ActiveSupport::IsolatedExecutionState.context]
       end
 
       # Signal that the thread is finished with the current connection.
@@ -237,7 +237,7 @@ module ActiveRecord
       # #connection or #with_connection methods, connections obtained through
       # #checkout will not be automatically released.
       def release_connection(owner_thread = ActiveSupport::IsolatedExecutionState.context)
-        if conn = @thread_cached_conns.delete(connection_cache_key(owner_thread))
+        if conn = @thread_cached_conns.delete(owner_thread)
           checkin conn
         end
       end
@@ -252,7 +252,7 @@ module ActiveRecord
       # connection will be properly returned to the pool by the code that checked
       # it out.
       def with_connection
-        unless conn = @thread_cached_conns[connection_cache_key(ActiveSupport::IsolatedExecutionState.context)]
+        unless conn = @thread_cached_conns[ActiveSupport::IsolatedExecutionState.context]
           conn = connection
           fresh_connection = true
         end
@@ -471,6 +471,8 @@ module ActiveRecord
             remove conn
           end
         end
+
+        prune_thread_cache
       end
 
       # Disconnect all connections that have been idle for at least
@@ -556,15 +558,6 @@ module ActiveRecord
               checkin(new_conn)
             end
           end
-        end
-
-        #--
-        # From the discussion on GitHub:
-        #  https://github.com/rails/rails/pull/14938#commitcomment-6601951
-        # This hook-in method allows for easier monkey-patching fixes needed by
-        # JRuby users that use Fibers.
-        def connection_cache_key(thread)
-          thread
         end
 
         # Take control of all existing connections so a "group" action such as
@@ -710,9 +703,16 @@ module ActiveRecord
         #--
         # if owner_thread param is omitted, this must be called in synchronize block
         def remove_connection_from_thread_cache(conn, owner_thread = conn.owner)
-          @thread_cached_conns.delete_pair(connection_cache_key(owner_thread), conn)
+          @thread_cached_conns.delete_pair(owner_thread, conn)
         end
         alias_method :release, :remove_connection_from_thread_cache
+
+        def prune_thread_cache
+          dead_threads = @thread_cached_conns.keys.reject(&:alive?)
+          dead_threads.each do |dead_thread|
+            @thread_cached_conns.delete(dead_thread)
+          end
+        end
 
         def new_connection
           connection = db_config.new_connection
