@@ -634,22 +634,24 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   test "query cache is enabled in threads with shared connection" do
-    ActiveRecord::Base.connection_pool.lock_thread = true
+    ActiveRecord::Base.connection_pool.pin_connection!(ActiveSupport::IsolatedExecutionState.context)
 
-    assert_cache :off
-    ActiveRecord::Base.connection.enable_query_cache!
-    assert_cache :clean
+    begin
+      assert_cache :off
+      ActiveRecord::Base.connection.enable_query_cache!
+      assert_cache :clean
 
-    thread_a = Thread.new do
-      middleware { |env|
-        assert_cache :clean
-        [200, {}, nil]
-      }.call({})
+      thread_a = Thread.new do
+        middleware { |env|
+          assert_cache :clean
+          [200, {}, nil]
+        }.call({})
+      end
+
+      thread_a.join
+    ensure
+      ActiveRecord::Base.connection_pool.unpin_connection!
     end
-
-    thread_a.join
-
-    ActiveRecord::Base.connection_pool.lock_thread = false
   end
 
   private

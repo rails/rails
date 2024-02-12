@@ -56,6 +56,9 @@ class TestFixturesTest < ActiveRecord::TestCase
         end
       end
 
+      ActiveSupport::Notifications.unsubscribe(@connection_subscriber)
+      @connection_subscriber = nil
+
       old_handler = ActiveRecord::Base.connection_handler
       ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
       ActiveRecord::Base.establish_connection(:arunit)
