@@ -196,7 +196,7 @@ class MigrationTest < ActiveRecord::TestCase
 
     # Do not drop table if existence guard option is present
     assert_nothing_raised do
-      class Widgets < ActiveRecord::Base
+      class Widget < ActiveRecord::Base
         self.table_name = :testings
       end
 
