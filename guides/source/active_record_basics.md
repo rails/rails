@@ -7,9 +7,9 @@ This guide is an introduction to Active Record.
 
 After reading this guide, you will know:
 
-* What Object Relational Mapping and Active Record are and how they are used in
-  Rails.
-* How Active Record fits into the Model-View-Controller paradigm.
+* How Active Record fits into the Model-View-Controller (MVC) paradigm.
+* What Object Relational Mapping and Active Record patterns are and how
+  they are used in Rails.
 * How to use Active Record models to manipulate data stored in a relational
   database.
 * Active Record schema naming conventions.
@@ -28,11 +28,7 @@ is a description of an Object Relational Mapping system.
 
 ### The Active Record Pattern
 
-[Active Record was described by Martin Fowler][MFAR] in his book _Patterns of
-Enterprise Application Architecture_. In Active Record, objects carry both
-persistent data and behavior which operates on that data. Active Record takes
-the opinion that ensuring data access logic as part of the object will educate
-users of that object on how to write to and read from the database.
+[Active Record pattern is described by Martin Fowler][MFAR] in the book _Patterns of Enterprise Application Architecture_. Active Record is "an object that wraps a row in a database table, encapsulates the database access, and adds domain logic to that data." Active Record objects carry both data and behavior. Active Record pattern encourages putting data access logic in the domain object. This way users of the object know how to write to and read from the database. Active Record classes match very closely to the record structure of the underlying database.
 
 ### Object Relational Mapping
 
