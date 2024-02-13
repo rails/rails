@@ -20,16 +20,19 @@ module Rails
       def call(env)
         request = ActionDispatch::Request.new(env)
 
-        logger_tag_pop_count = if logger.respond_to?(:push_tags)
+        env["rails.rack_logger_tag_count"] = if logger.respond_to?(:push_tags)
           logger.push_tags(*compute_tags(request)).size
         else
           0
         end
-        call_app(request, env, logger_tag_pop_count)
+
+        call_app(request, env)
       end
 
       private
-        def call_app(request, env, logger_tag_pop_count) # :doc:
+        def call_app(request, env) # :doc:
+          logger_tag_pop_count = env["rails.rack_logger_tag_count"]
+
           instrumenter = ActiveSupport::Notifications.instrumenter
           handle = instrumenter.build_handle("request.action_dispatch", { request: request })
           handle.start
