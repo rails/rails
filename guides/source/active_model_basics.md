@@ -4,17 +4,13 @@
 Active Model Basics
 ===================
 
-This guide should provide you with all you need to get started using model
-classes. Active Model allows for Action Pack helpers to interact with
-plain Ruby objects. Active Model also helps build custom ORMs for use
-outside of the Rails framework.
+This guide will provide you with what you need to get started using Active Model. Active Model provides a way for Action Pack and Action View helpers to interact with plain Ruby objects. It also helps to build custom ORMs for use outside of the Rails framework.
 
 After reading this guide, you will know:
 
-* How an Active Record model behaves.
-* How Callbacks and validations work.
-* How serializers work.
-* How Active Model integrates with the Rails internationalization (i18n) framework.
+* What Active Model is
+* How to use Active Model in your classes.
+* The different modules that are included in Active Model.
 
 --------------------------------------------------------------------------------
 
@@ -33,7 +29,7 @@ Some of these modules are explained below.
 
 When including `ActiveModel::API`, other modules are included by default which enables you to get features like:
 
-- [Attribute Assignments]()
+- [Attribute Assignment](active_model_basics.html#attribute_assignment)
 - [Conversions](active_model_basics.html#conversion)
 - [Name Introspections](active_model_basics.html#naming)
 - [Translations](active_model_basics.html#translation)
@@ -59,7 +55,7 @@ end
 ```irb
 irb> email_contact = EmailContact.new(name: 'David', email: 'david@example.com', message: 'Hello World')
 
-irb> email_contact.name #attribute assignments
+irb> email_contact.name #attribute assignment
 => "David"
 
 irb> email_contact.to_model == email_contact #conversions
@@ -78,19 +74,20 @@ irb> email_contact.valid? #validations
 Any class that includes `ActiveModel::API` can be used with `form_with`,
 `render` and any other [Action View helper methods](https://api.rubyonrails.org/classes/ActionView/Helpers.html), just like Active Record objects.
 
-For example, `form_with` can be used with the above class as follows
+For example, `form_with` can be used to create a form for an `EmailContact` object as follows:
 
 ```erb+html
 <%= form_with model: EmailContact.new do |form| %>
   <%= form.text_field :name %>
 <% end %>
+
 # =>
 <form action="/email_contacts" method="post" data-remote="true">
-  <input type="text" name="email_contact[title]">
+  <input type="text" name="email_contact[name]">
 </form>
 ```
 
-`render` can be used to render a partial with the class object as a local variable as follows:
+`render` can be used to render a partial with the object as a local variable:
 
 ```erb+html
 <%= render partial: "email_contact", email_contact: EmailContact.new(name: 'David', email: 'david@example.com', message: 'Hello World') %>
@@ -98,7 +95,7 @@ For example, `form_with` can be used with the above class as follows
 
 ### Attributes
 
-Similar to Active Record attributes, which are typically inferred from the database schema, Active Model Attributes allow you to define data types, set default values, and handle casting and serialization on plain ruby objects. This can be useful for form data which will give produce the Active Record-like conversion for things like dates and booleans on regular objects.
+Similar to Active Record attributes, which are typically inferred from the database schema, Active Model Attributes allow you to define data types, set default values, and handle casting and serialization on plain ruby objects. This can be useful for form data which will produce Active Record-like conversion for things like dates and booleans on regular objects.
 
 To use Attributes, include the module in your model class and define your attributes using the `attribute` macro. It accepts a name, a cast type, a default value, and any other options supported by the attribute type.
 
@@ -119,44 +116,46 @@ irb> person.name = "Jane"
 irb> person.name
 => "Jane"
 
-#casts the string to a date
+# casts the string to a date set by the attribute
 irb> person.date_of_birth = "2020-01-01"
 irb> person.date_of_birth
 => Wed, 01 Jan 2020
 irb> person.date_of_birth.class
 => Date
 
-#obtains a default value of true
+# obtains the default value set by the attribute
 irb> person.active
 => true
 
-#casts the string to a boolean
+# casts the string to a boolean set by the attribute
 irb> person.active = "0"
 irb> person.active
 => false
 ```
 
-There are some additional methods described below that are available when using `ActiveModel::Attributes`.
+Some additional methods described below are available when using `ActiveModel::Attributes`.
 
 #### Method: Attribute Names
 
 The `attribute_names` method which returns an array of the attribute names.
 
-```ruby
-  Person.attribute_names # => ["name", "date_of_birth", "active"]
+```irb
+irb> Person.attribute_names
+=> ["name", "date_of_birth", "active"]
 ```
 
 #### Method: Attributes
 
-The `attributes` method which returns a hash of all the attributes with their names as keys and the values of the attributes as values.
+The `attributes` method returns a hash of all the attributes with their names as keys and the values of the attributes as values.
 
-```ruby
-    person = Person.new
-    person.name = "John"
-    person.date_of_birth = "1998-01-01"
-    person.active = false
+```irb
+irb> person = Person.new
+irb> person.name = "John"
+irb> person.date_of_birth = "1998-01-01"
+irb> person.active = false
 
-    person.attributes # => {"name"=>"John", "date_of_birth"=>Thu, 01 Jan 1998, "active"=>false}
+irb> person.attributes
+=> {"name"=>"John", "date_of_birth"=>Thu, 01 Jan 1998, "active"=>false}
 ```
 
 ### Attribute Assignment
@@ -168,6 +167,7 @@ Consider the following class:
 ```ruby
 class Person
   include ActiveModel::AttributeAssignment
+
   attr_accessor :name, :date_of_birth, :active
 end
 ```
@@ -176,7 +176,11 @@ You can set multiple attributes at once using the `assign_attributes` method:
 
 ```irb
 irb> person = Person.new
+
+# using the `assign_attributes` method to set multiple attributes at once
 irb> person.assign_attributes(name: "John", date_of_birth: "1998-01-01", active: false)
+
+# check the values of the attributes that were assigned
 irb> person.name
 => "John"
 irb> person.date_of_birth
@@ -185,7 +189,9 @@ irb> person.active
 => false
 ```
 
-If the passed hash the `permitted?` method and the return value of this method is `false`, an `ActiveModel::ForbiddenAttributesError` exception is raised.
+If the passed hash responds to the `permitted?` method and the return value of this method is `false`, an `ActiveModel::ForbiddenAttributesError` exception is raised.
+
+#### Method alias: `attributes=`
 
 The `assign_attributes` method has an alias `attributes=`.
 
