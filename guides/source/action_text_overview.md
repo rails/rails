@@ -54,7 +54,7 @@ INFO: With polymorphic associations, a model can belong to more than one other m
 Hence, if your models containing Action Text content use UUID values as identifiers, then all models that use Action Text attributes will need to use UUID values for their unique identifiers. The generated migration for Action Text will also need to be updated to specify `type: :uuid` for the record references line.
 
 ```ruby
- t.uuid "record_id", null: false
+t.references :record, null: false, polymorphic: true, index: false, type: :uuid
  ```
 
 ## Creating Rich Text Content
@@ -84,7 +84,7 @@ Once you have added the `has_rich_text` class method to the model, you can then 
 <% end %>
 ```
 
-This will display a Trix editor that provides the functionality to [create and update your rich text](action_text_overview.html#removing-or-adding-trix-styles) accordingly.
+This will display a Trix editor that provides the functionality to create and update your rich text accordingly. Later we'll go into details about [how to update the styles for the editor](action_text_overview.html#removing-or-adding-trix-styles).
 
 Finally, to ensure that you can accept updates from the editor, you will need to permit the referenced attribute as a parameter in the relevant controller:
 
@@ -165,7 +165,7 @@ To customize the HTML rendered for embedded images and other attachments (known 
 
 ## Attachments
 
-Currently, Action Text supports attachments that are uploaded through Active Storage as well as attachments that are linked to a Signed GlobalId.
+Currently, Action Text supports attachments that are uploaded through Active Storage as well as attachments that are linked to a Signed GlobalID.
 
 ### Active Storage
 
@@ -174,9 +174,9 @@ When uploading an image within your rich text editor, it uses Action Text which 
 Some, but not all of these libraries are required and they are dependent on the kind of uploads you are expecting within the editor. A common error that users encounter when working with Action Text and Active Storage is that images do not render correctly in the editor. This is usually due to the `libvips` dependency not being installed.
 
 
-### Signed GlobalId
+### Signed GlobalID
 
-In addition to attachments uploaded through Active Storage, Action Text can also embed anything that can be resolved by a Signed GlobalID.
+In addition to attachments uploaded through Active Storage, Action Text can also embed anything that can be resolved by a [Signed GlobalID](https://github.com/rails/globalid#signed-global-ids).
 
 A Global ID is an app-wide URI that uniquely identifies a model instance: `gid://YourApp/Some::Model/id`. This is helpful when you need a single identifier to reference different classes of objects.
 
@@ -194,7 +194,7 @@ An Action Text Attachment can look like this:
 
 Action Text renders embedded `<action-text-attachment>` elements by resolving their sgid attribute of the element into an instance. Once resolved, that instance is passed along to a render helper. As a result, the HTML is embedded as a descendant of the `<action-text-attachment>` element.
 
-To be rendered within Action Text `<action-text-attachment>` element as an attachment, we must include the `ActionText::Attachable` module `implement #to_sgid(**options)` (made available through the `GlobalID::Identification` concern).
+To be rendered within Action Text `<action-text-attachment>` element as an attachment, we must include the `ActionText::Attachable` module, which implements `#to_sgid(**options)` (made available through the `GlobalID::Identification` concern).
 
 You can also optionally declare `#to_attachable_partial_path` to render a custom partial path and `#to_missing_attachable_partial_path` for handling missing records.
 
