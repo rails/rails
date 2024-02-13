@@ -196,7 +196,11 @@ class MigrationTest < ActiveRecord::TestCase
 
     # Do not drop table if existence guard option is present
     assert_nothing_raised do
-      record = Person.create(foo: "Hello, World")
+      class Widgets < ActiveRecord::Base
+        self.table_name = :testings
+      end
+
+      record = Widget.create
       connection.create_table :testings, force: true, if_not_exists: true do |t|
         t.string :foo
       end
