@@ -11,12 +11,12 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   class PostgresqlEnum < ActiveRecord::Base
     self.table_name = "postgresql_enums"
 
-    enum current_mood: {
+    enum :current_mood, {
       sad: "sad",
       okay: "ok", # different spelling
       happy: "happy",
       aliased_field: "happy"
-    }, _prefix: true
+    }, prefix: true
   end
 
   def setup
