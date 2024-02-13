@@ -561,17 +561,28 @@ module Rails
         binfixups
       end
 
+      def dockerfile_base_packages
+        # Add curl to work with the default healthcheck strategy in Kamal
+        packages = ["curl"]
+
+        # ActiveRecord databases
+        packages << base_package_for_database unless skip_active_record?
+
+        # ActiveStorage preview support
+        packages << "libvips" unless skip_active_storage?
+
+        # jemalloc for memory optimization
+        packages << "libjemalloc2"
+
+        packages.compact.sort
+      end
+
       def dockerfile_build_packages
         # start with the essentials
         packages = %w(build-essential git pkg-config)
 
         # add database support
         packages << build_package_for_database unless skip_active_record?
-
-        # ActiveStorage preview support
-        packages << "libvips" unless skip_active_storage?
-
-        packages << "curl" if using_js_runtime?
 
         packages << "unzip" if using_bun?
 
@@ -581,22 +592,6 @@ module Rails
 
           packages << "python-is-python3"
         end
-
-        packages.compact.sort
-      end
-
-      def dockerfile_deploy_packages
-        # Add curl to work with the default healthcheck strategy in Kamal
-        packages = ["curl"]
-
-        # ActiveRecord databases
-        packages << deploy_package_for_database unless skip_active_record?
-
-        # ActiveStorage preview support
-        packages << "libvips" unless skip_active_storage?
-
-        # jemalloc for memory optimization
-        packages << "libjemalloc2"
 
         packages.compact.sort
       end

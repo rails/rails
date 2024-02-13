@@ -67,7 +67,7 @@ module Rails
         end
       end
 
-      def deploy_package_for_database(database = options[:database])
+      def base_package_for_database(database = options[:database])
         case database
         when "mysql" then "default-mysql-client"
         when "postgresql" then "postgresql-client"
