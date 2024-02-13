@@ -1,3 +1,7 @@
+*   `bin/rails test` will no longer load files named `*_test.rb` if they are located in the `fixtures` folder.
+
+    *Edouard Chin*
+
 *   Ensure logger tags configured with `config.log_tags` are still active in `request.action_dispatch` handlers
 
     *KJ Tsanaktsidis*
