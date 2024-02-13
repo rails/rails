@@ -58,6 +58,18 @@ module ActiveRecord
           end
         end
 
+        def with_custom_read_timeout(timeout)
+          @custom_read_timeout = timeout
+          return unless block_given?
+
+          begin
+            yield
+          ensure
+            @custom_read_timeout = nil
+          end
+        end
+        attr_reader :custom_read_timeout
+
         private
           def initialize_type_map(m)
             super

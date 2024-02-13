@@ -46,13 +46,28 @@ module ActiveRecord
             log(sql, name, async: async) do |notification_payload|
               with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
                 sync_timezone_changes(conn)
-                result = conn.query(sql)
-                verified!
-                handle_warnings(sql)
-                notification_payload[:row_count] = result.count
-                result
+                with_custom_read_timeout(conn) do
+                  result = conn.query(sql)
+                  verified!
+                  handle_warnings(sql)
+                  notification_payload[:row_count] = result.count
+                  result
+                end
               end
             end
+          end
+
+          def with_custom_read_timeout(conn)
+            temp_timeout = ActiveRecord::ConnectionAdapters::TrilogyAdapter.custom_read_timeout
+            temp_timeout = temp_timeout.call if temp_timeout.respond_to?(:call)
+
+            return yield(conn) if temp_timeout.nil?
+
+            original_timeout = conn.read_timeout
+            conn.read_timeout = temp_timeout
+            result = yield(conn)
+            conn.read_timeout = original_timeout
+            result
           end
 
           def last_inserted_id(result)
