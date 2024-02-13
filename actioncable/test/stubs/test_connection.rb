@@ -17,6 +17,10 @@ class TestConnection
     @transmissions = []
   end
 
+  def perform_work(receiver, method, *args)
+    receiver.send method, *args
+  end
+
   def transmit(cable_message)
     @transmissions << encode(cable_message)
   end
