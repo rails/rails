@@ -1,3 +1,12 @@
+*   Fix a bug where `previous_changes` can be empty although changes were made.
+
+    In circumstance where `autosave: true` is defined on many relations there
+    are time where this leads to `save` and `valid?` being called multiple times
+    during a save transaction and clearing the changes. They are now only called
+    once.
+
+    *Jonathan Bracy*
+
 *   Fix an issue where `ActiveRecord::Encryption` configurations are not ready before the loading
     of Active Record models, when an application is eager loaded. As a result, encrypted attributes
     could be misconfigured in some cases.
