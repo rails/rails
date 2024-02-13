@@ -906,7 +906,7 @@ The example to utilize the `includes` option requires a slightly more complex sc
    attr_accessor :name, :notes # Emulate has_many :notes
 
     def attributes
-       {'name' => nil}
+       {"name" => nil}
     end
   end
 
@@ -914,7 +914,7 @@ The example to utilize the `includes` option requires a slightly more complex sc
     include ActiveModel::Serializers::JSON
     attr_accessor :title, :text
     def attributes
-      {'title' => nil, 'text' => nil}
+      {"title" => nil, "text" => nil}
     end
   end
 ```
@@ -922,17 +922,17 @@ The example to utilize the `includes` option requires a slightly more complex sc
 
 ```irb
 irb> note = Note.new
-irb> note.title = 'Weekend Plans'
-irb> note.text = 'Some text here'
+irb> note.title = "Weekend Plans"
+irb> note.text = "Some text here"
 
 irb> person = Person.new
-irb> person.name = 'Napoleon'
+irb> person.name = "Napoleon"
 irb> person.notes = [note]
 
 irb> person.serializable_hash
 => {"name" => "Napoleon"}
 
-irb> person.serializable_hash(include: { notes: { only: 'title' }})
+irb> person.serializable_hash(include: { notes: { only: "title" }})
 => {"name" => "Napoleon", "notes" => [{"title"=>"Weekend Plans"}]}
 ```
 
@@ -1085,7 +1085,7 @@ to `to_model`. It is perfectly fine for `to_model` to return
 
 You can find the test methods [here](https://api.rubyonrails.org/classes/ActiveModel/Lint/Tests.html).
 
-In order to run the tests you can use the following command:
+To run the tests you can use the following command:
 
 ```bash
 $ bin/rails test
