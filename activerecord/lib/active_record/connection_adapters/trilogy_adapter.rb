@@ -100,11 +100,11 @@ module ActiveRecord
       end
 
       def initialize(...)
-        if config[:prepared_statements]
+        super
+
+        if @config[:prepared_statements]
           raise ArgumentError, "Trilogy currently doesn't support prepared statements. Remove `prepared_statements: true` from your database configuration."
         end
-
-        super
 
         # Trilogy ignore `socket` if `host is set. We want the opposite to allow
         # configuring UNIX domain sockets via `DATABASE_URL`.
