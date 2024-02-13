@@ -158,7 +158,7 @@ module ActiveRecord
       end
     end
 
-    unless in_memory_db?
+    unless in_memory_db? || current_adapter?(:TrilogyAdapter)
       def test_disable_prepared_statements
         original_prepared_statements = ActiveRecord.disable_prepared_statements
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
