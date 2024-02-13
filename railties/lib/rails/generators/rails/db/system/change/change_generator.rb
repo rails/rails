@@ -44,13 +44,13 @@ module Rails
             dockerfile_path = File.expand_path("Dockerfile", destination_root)
             return unless File.exist?(dockerfile_path)
 
+            base_name = docker_for_database_base
             build_name = docker_for_database_build
-            deploy_name = docker_for_database_deploy
+            if base_name
+              gsub_file("Dockerfile", all_docker_bases_regex, base_name)
+            end
             if build_name
               gsub_file("Dockerfile", all_docker_builds_regex, build_name)
-            end
-            if deploy_name
-              gsub_file("Dockerfile", all_docker_deploys_regex, deploy_name)
             end
           end
 
@@ -59,12 +59,12 @@ module Rails
               DATABASES.map { |database| gem_for_database(database) }
             end
 
-            def all_docker_builds
-              DATABASES.map { |database| docker_for_database_build(database).nil? ? nil : docker_for_database_build(database) }.compact!
+            def all_docker_bases
+              DATABASES.map { |database| docker_for_database_base(database).nil? ? nil : docker_for_database_base(database) }.compact!
             end
 
-            def all_docker_deploys
-              DATABASES.map { |database| docker_for_database_deploy(database).nil? ? nil : docker_for_database_deploy(database) }.compact!
+            def all_docker_builds
+              DATABASES.map { |database| docker_for_database_build(database).nil? ? nil : docker_for_database_build(database) }.compact!
             end
 
             def all_database_gems_regex
@@ -72,12 +72,12 @@ module Rails
               /(\b#{all_database_gem_names.join('\b|\b')}\b)/
             end
 
-            def all_docker_builds_regex
-              /(\b#{all_docker_builds.join('\b|\b')}\b)/
+            def all_docker_bases_regex
+              /(\b#{all_docker_bases.join('\b|\b')}\b)/
             end
 
-            def all_docker_deploys_regex
-              /(\b#{all_docker_deploys.join('\b|\b')}\b)/
+            def all_docker_builds_regex
+              /(\b#{all_docker_builds.join('\b|\b')}\b)/
             end
 
             def gem_entry_regex_for(gem_name)
