@@ -1223,6 +1223,12 @@ module ApplicationTests
       assert_match "1 runs, 1 assertions, 0 failures, 0 errors, 0 skips", output
     end
 
+    def test_run_does_not_load_file_from_the_fixture_folder
+      create_test_file "fixtures", "smoke_foo"
+
+      assert_match "0 runs, 0 assertions, 0 failures, 0 errors, 0 skips", run_test_command("")
+    end
+
     def test_can_exclude_files_from_being_tested_via_default_rails_command_by_setting_DEFAULT_TEST_EXCLUDE_env_var
       create_test_file "smoke", "smoke_foo"
 
