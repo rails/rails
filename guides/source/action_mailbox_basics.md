@@ -311,24 +311,24 @@ This creates `app/mailboxes/forwards_mailbox.rb`, with a `ForwardsMailbox` class
 
 When processing an `InboundEmail`, you can get the parsed version of the email as a [`Mail`](https://github.com/mikel/mail) object with `InboundEmail#mail`. You can also get the raw source directly using the `#source` method. With the `Mail` object, you can access the relevant fields, such as `mail.to`, `mail.body.decoded`, etc.
 
-```bash
-$ mail
-#<Mail::Message:33780, Multipart: false, Headers: <Date: Wed, 31 Jan 2024 22:18:40 -0600>, <From: someone@hey.com>, <To: save@example.com>, <Message-ID: <65bb1ba066830_50303a70397e@Bhumis-MacBook-Pro.local.mail>>, <In-Reply-To: >, <Subject: Hello Action Mailbox>, <Mime-Version: 1.0>, <Content-Type: text/plain; charset=UTF-8>, <Content-Transfer-Encoding: 7bit>, <x-original-to: >>
-$ mail.to
-["save@example.com"]
-$ mail.from
-["someone@hey.com"]
-$ mail.date
-Wed, 31 Jan 2024 22:18:40 -0600
-$ mail.subject
-"Hello Action Mailbox"
-$ mail.body
-#<Mail::Body:0x00007fc74cbf46c0 @boundary=nil, @preamble=nil, @epilogue=nil, @charset="US-ASCII", @part_sort_order=["text/plain", "text/enriched", "text/html", "multipart/alternative"], @parts=[], @raw_source="This is the body of the email message.", @ascii_only=true, @encoding="7bit">
-$ mail.body.decoded
-"This is the body of the email message."
+```irb
+irb> mail
+=> #<Mail::Message:33780, Multipart: false, Headers: <Date: Wed, 31 Jan 2024 22:18:40 -0600>, <From: someone@hey.com>, <To: save@example.com>, <Message-ID: <65bb1ba066830_50303a70397e@Bhumis-MacBook-Pro.local.mail>>, <In-Reply-To: >, <Subject: Hello Action Mailbox>, <Mime-Version: 1.0>, <Content-Type: text/plain; charset=UTF-8>, <Content-Transfer-Encoding: 7bit>, <x-original-to: >>
+irb> mail.to
+=> ["save@example.com"]
+irb> mail.from
+=> ["someone@hey.com"]
+irb> mail.date
+=> Wed, 31 Jan 2024 22:18:40 -0600
+irb> mail.subject
+=> "Hello Action Mailbox"
+irb> mail.body
+=> #<Mail::Body:0x00007fc74cbf46c0 @boundary=nil, @preamble=nil, @epilogue=nil, @charset="US-ASCII", @part_sort_order=["text/plain", "text/enriched", "text/html", "multipart/alternative"], @parts=[], @raw_source="This is the body of the email message.", @ascii_only=true, @encoding="7bit">
+irb> mail.body.decoded
+=> "This is the body of the email message."
 # mail.decoded, a shorthand for mail.body.decoded, also works
-$ mail.decoded
-"This is the body of the email message."
+irb> mail.decoded
+=> "This is the body of the email message."
 ```
 
 ### Inbound Email Status
