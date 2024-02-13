@@ -351,7 +351,7 @@ The `before_processing` callback is used to ensure that certain conditions are m
 
 The email can be bounced using `bounced_with` if the "forwarder" has no projects. The "forwarder" is a `User` with the same email as `mail.from`.
 
-If the "forwarder" does have at least one project, the `record_forward` method creates an Active Record model in the application using the email data `mail.subject` and `mail.body.decoded`. Otherwise, it sends an email, using Action Mailer, requesting the "forwarder" to choose a project.
+If the "forwarder" does have at least one project, the `record_forward` method creates an Active Record model in the application using the email data `mail.subject` and `mail.decoded`. Otherwise, it sends an email, using Action Mailer, requesting the "forwarder" to choose a project.
 
 ```ruby
 # app/mailboxes/forwards_mailbox.rb
