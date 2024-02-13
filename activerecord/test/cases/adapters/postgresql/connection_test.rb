@@ -145,7 +145,7 @@ module ActiveRecord
       assert_predicate @connection, :active?
     ensure
       # Repair all fixture connections so other tests won't break.
-      @fixture_connections.each(&:verify!)
+      @fixture_connection_pools.each { |p| p.connection.verify! }
     end
 
     def test_set_session_variable_true

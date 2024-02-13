@@ -294,6 +294,7 @@ ActiveRecord::Schema.define do
   create_table :cpk_orders, force: true do |t|
     t.integer :shop_id
     t.string :status
+    t.integer :books_count, default: 0
   end
 
   create_table :cpk_order_tags, primary_key: [:order_id, :tag_id], force: true do |t|

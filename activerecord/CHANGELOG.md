@@ -1,3 +1,44 @@
+*   Fix an issue where `ActiveRecord::Encryption` configurations are not ready before the loading
+    of Active Record models, when an application is eager loaded. As a result, encrypted attributes
+    could be misconfigured in some cases.
+
+    *Maxime Réty*
+
+*   Deprecate defining an `enum` with keyword arguments.
+
+    ```ruby
+    class Function > ApplicationRecord
+      # BAD
+      enum color: [:red, :blue],
+           type: [:instance, :class]
+
+      # GOOD
+      enum :color, [:red, :blue]
+      enum :type, [:instance, :class]
+    end
+    ```
+
+    *Hartley McGuire*
+
+*   Add `active_record.config.validate_migration_timestamps` option for validating migration timestamps.
+
+    When set, validates that the timestamp prefix for a migration is no more than a day ahead of
+    the timestamp associated with the current time. This is designed to prevent migrations prefixes
+    from being hand-edited to future timestamps, which impacts migration generation and other
+    migration commands.
+
+    *Adrianna Chang*
+
+*   Properly synchronize `Mysql2Adapter#active?` and `TrilogyAdapter#active?`
+
+    As well as `disconnect!` and `verify!`.
+
+    This generally isn't a big problem as connections must not be shared between
+    threads, but is required when running transactional tests or system tests
+    and could lead to a SEGV.
+
+    *Jean Boussier*
+
 *   Support `:source_location` tag option for query log tags
 
     ```ruby

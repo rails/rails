@@ -143,8 +143,6 @@ group :test do
     gem "debug", ">= 1.1.0", require: false
   end
 
-  gem "benchmark-ips"
-
   # Needed for Railties tests because it is included in generated apps.
   gem "brakeman"
 end

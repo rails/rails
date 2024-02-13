@@ -783,7 +783,7 @@ class MultipleFixturesTest < ActiveRecord::TestCase
   fixtures :developers, :accounts
 
   def test_fixture_table_names
-    assert_equal %w(topics developers accounts), fixture_table_names
+    assert_equal %w(accounts developers topics), fixture_table_names
   end
 end
 
@@ -815,7 +815,7 @@ class OverlappingFixturesTest < ActiveRecord::TestCase
   fixtures :developers, :accounts
 
   def test_fixture_table_names
-    assert_equal %w(topics developers accounts), fixture_table_names
+    assert_equal %w(accounts developers topics), fixture_table_names
   end
 end
 
@@ -1050,12 +1050,16 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def connect!; end
     end.new
 
-    connection.pool = Class.new do
-      def lock_thread=(lock_thread); end
-    end.new
+    pool = connection.pool = Class.new do
+      attr_reader :connection
+      def initialize(connection); @connection = connection; end
+      def release_connection; end
+      def pin_connection!(_); end
+      def unpin_connection!; @connection.rollback_transaction; true; end
+    end.new(connection)
 
-    assert_called_with(connection, :begin_transaction, [], joinable: false, _lazy: false) do
-      fire_connection_notification(connection)
+    assert_called_with(pool, :pin_connection!, [true]) do
+      fire_connection_notification(connection.pool)
     end
   end
 
@@ -1069,14 +1073,19 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def rollback_transaction(*args)
         @rollback_transaction_called = true
       end
+      def lock_thread=(lock_thread); end
       def connect!; end
     end.new
 
     connection.pool = Class.new do
-      def lock_thread=(lock_thread); end
-    end.new
+      attr_reader :connection
+      def initialize(connection); @connection = connection; end
+      def release_connection; end
+      def pin_connection!(_); end
+      def unpin_connection!; @connection.rollback_transaction; true; end
+    end.new(connection)
 
-    fire_connection_notification(connection)
+    fire_connection_notification(connection.pool)
     teardown_fixtures
 
     assert(connection.rollback_transaction_called, "Expected <mock connection>#rollback_transaction to be called but was not")
@@ -1093,17 +1102,21 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     end.new
 
     connection.pool = Class.new do
-      def lock_thread=(lock_thread); end
-    end.new
+      attr_reader :connection
+      def initialize(connection); @connection = connection; end
+      def release_connection; end
+      def pin_connection!(_); end
+      def unpin_connection!; @connection.rollback_transaction; true; end
+    end.new(connection)
 
-    assert_called_with(connection, :begin_transaction, [], joinable: false, _lazy: false) do
-      fire_connection_notification(connection, shard: :shard_two)
+    assert_called_with(connection.pool, :pin_connection!, [true]) do
+      fire_connection_notification(connection.pool, shard: :shard_two)
     end
   end
 
   private
-    def fire_connection_notification(connection, shard: ActiveRecord::Base.default_shard)
-      assert_called_with(ActiveRecord::Base.connection_handler, :retrieve_connection, ["book"], returns: connection, shard: shard) do
+    def fire_connection_notification(pool, shard: ActiveRecord::Base.default_shard)
+      assert_called_with(ActiveRecord::Base.connection_handler, :retrieve_connection_pool, ["book"], returns: pool, shard: shard) do
         message_bus = ActiveSupport::Notifications.instrumenter
         payload = {
           connection_name: "book",
@@ -1152,7 +1165,7 @@ end
 
 class FixturesBrokenRollbackTest < ActiveRecord::TestCase
   def blank_setup
-    @fixture_connections = [ActiveRecord::Base.connection]
+    @fixture_connection_pools = [ActiveRecord::Base.connection_pool]
   end
   alias_method :ar_setup_fixtures, :setup_fixtures
   alias_method :setup_fixtures, :blank_setup
@@ -1162,6 +1175,8 @@ class FixturesBrokenRollbackTest < ActiveRecord::TestCase
   alias_method :ar_teardown_fixtures, :teardown_fixtures
   alias_method :teardown_fixtures, :blank_teardown
   alias_method :teardown, :blank_teardown
+
+  fixtures rand.to_s # bypass fixtures cache
 
   def test_no_rollback_in_teardown_unless_transaction_active
     assert_equal 0, ActiveRecord::Base.connection.open_transactions

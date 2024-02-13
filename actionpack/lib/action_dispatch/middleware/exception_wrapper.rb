@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/syntax_error_proxy"
 require "active_support/core_ext/thread/backtrace/location"
@@ -175,9 +177,8 @@ module ActionDispatch
     end
 
     def show?(request)
-      # We're treating `nil` as "unset", and we want the default setting to be
-      # `:all`. This logic should be extracted to `env_config` and calculated
-      # once.
+      # We're treating `nil` as "unset", and we want the default setting to be `:all`.
+      # This logic should be extracted to `env_config` and calculated once.
       config = request.get_header("action_dispatch.show_exceptions")
 
       case config
@@ -201,7 +202,8 @@ module ActionDispatch
     end
 
     def error_highlight_available?
-      # ErrorHighlight.spot with backtrace_location keyword is available since error_highlight 0.4.0
+      # ErrorHighlight.spot with backtrace_location keyword is available since
+      # error_highlight 0.4.0
       defined?(ErrorHighlight) && Gem::Version.new(ErrorHighlight::VERSION) >= Gem::Version.new("0.4.0")
     end
 

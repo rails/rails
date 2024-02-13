@@ -674,20 +674,30 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
 
         def test_add_foreign_key_is_reversible
+          @connection.drop_table("cities", if_exists: true)
+          @connection.drop_table("houses", if_exists: true)
+
           migration = CreateCitiesAndHousesMigration.new
           silence_stream($stdout) { migration.migrate(:up) }
           assert_equal 1, @connection.foreign_keys("houses").size
-        ensure
           silence_stream($stdout) { migration.migrate(:down) }
+        ensure
+          @connection.drop_table("cities", if_exists: true)
+          @connection.drop_table("houses", if_exists: true)
         end
 
         def test_foreign_key_constraint_is_not_cached_incorrectly
+          @connection.drop_table("cities", if_exists: true)
+          @connection.drop_table("houses", if_exists: true)
+
           migration = CreateCitiesAndHousesMigration.new
           silence_stream($stdout) { migration.migrate(:up) }
           output = dump_table_schema "houses"
           assert_match %r{\s+add_foreign_key "houses",.+on_delete: :cascade$}, output
-        ensure
           silence_stream($stdout) { migration.migrate(:down) }
+        ensure
+          @connection.drop_table("cities", if_exists: true)
+          @connection.drop_table("houses", if_exists: true)
         end
 
         class CreateSchoolsAndClassesMigration < ActiveRecord::Migration::Current
