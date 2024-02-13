@@ -294,9 +294,9 @@ class ApplicationMailbox < ActionMailbox::Base
 end
 ```
 
-The regular expression matches the incoming email's `to`, `cc`, or `bcc` fields. For example, the above will match any email sent to `save@` to a 'forwards' mailbox. There are other ways to route an email, see [`ActionMailbox::Base API`](https://api.rubyonrails.org/classes/ActionMailbox/Base.html) for more.
+The regular expression matches the incoming email's `to`, `cc`, or `bcc` fields. For example, the above will match any email sent to `save@` to a "forwards" mailbox. There are other ways to route an email, see [`ActionMailbox::Base API`](https://api.rubyonrails.org/classes/ActionMailbox/Base.html) for more.
 
-We need to create that 'forwards' mailbox next.
+We need to create that "forwards" mailbox next.
 
 ### Create a Mailbox
 
@@ -341,17 +341,17 @@ Once an email has been routed to a matching mailbox and processed, Action Mailbo
 - `failed`: An exception was raised during the specific mailbox’s execution of the `process` method.
 - `bounced`: Rejected processing by the specific mailbox and bounced to sender.
 
-If the email is marked either `delivered`, `failed`, or `bounced` it's considered 'processed' and marked for [incineration](#incineration-of-inboundemails).
+If the email is marked either `delivered`, `failed`, or `bounced` it's considered "processed" and marked for [incineration](#incineration-of-inboundemails).
 
 ## Example
 
-Here is an example of an Action Mailbox that processes emails to create 'forwards' for the user's project.
+Here is an example of an Action Mailbox that processes emails to create "forwards" for the user's project.
 
 The `before_processing` callback is used to ensure that certain conditions are met before `process` method is called. In this case, `before_processing` checks that the user has at least one project. Other supported [Action Mailbox callbacks](https://api.rubyonrails.org/classes/ActionMailbox/Callbacks.html) are `after_processing` and `around_processing`.
 
-The email can be bounced using `bounced_with` if the 'forwarder' has no projects. The 'forwarder' is a `User` with the same email as `mail.from`.
+The email can be bounced using `bounced_with` if the "forwarder" has no projects. The "forwarder" is a `User` with the same email as `mail.from`.
 
-If the 'forwarder' does have at least one project, the `record_forward` method creates an Active Record model in the application using the email data `mail.subject` and `mail.body.decoded`. Otherwise, it sends an email, using Action Mailer, requesting the 'forwarder' to choose a project.
+If the "forwarder" does have at least one project, the `record_forward` method creates an Active Record model in the application using the email data `mail.subject` and `mail.body.decoded`. Otherwise, it sends an email, using Action Mailer, requesting the "forwarder" to choose a project.
 
 ```ruby
 # app/mailboxes/forwards_mailbox.rb
