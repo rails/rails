@@ -429,7 +429,7 @@ Please refer to the [ActionMailbox::TestHelper API](https://api.rubyonrails.org/
 
 ## Incineration of InboundEmails
 
-By default, an `InboundEmail` that has been processed will be incinerated after 30 days. The InboundEmail is considered as processed when its status changes to `delivered`, `failed`, or `bounced`.
+By default, an `InboundEmail` that has been processed will be incinerated after 30 days. The `InboundEmail` is considered as processed when its status changes to `delivered`, `failed`, or `bounced`.
 
 The actual incineration is done via the [`IncinerationJob`](https://api.rubyonrails.org/classes/ActionMailbox/IncinerationJob.html) that's scheduled to run after [`config.action_mailbox.incinerate_after`](configuring.html#config-action-mailbox-incinerate-after) time. This value is set to `30.days` by default, but you can change it in your production.rb configuration. (Note that this far-future incineration scheduling relies on your job queue being able to hold jobs for that long.)
 
