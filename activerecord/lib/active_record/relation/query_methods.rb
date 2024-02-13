@@ -72,10 +72,19 @@ module ActiveRecord
       #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
       #    # INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"
       #    # WHERE "authors"."id" IS NOT NULL AND "comments"."id" IS NOT NULL
-      def associated(*associations)
+      #
+      # Additionally, you can change join type by one of the allowed types, joins, left_joins and left_outer_joins
+      # Example: Post.where.associated(join_type: :left_joins, :author)
+      #
+      def associated(*associations, join_type: :joins)
+        allowed_types = [:joins, :left_joins, :left_outer_joins]
+        unless allowed_types.include?(join_type.to_sym)
+          raise ArgumentError.new("An `#{join_type}` does not exist on the allowed association `#{allowed_types.join(', ')}`.")
+        end
+
         associations.each do |association|
           reflection = scope_association_reflection(association)
-          @scope.joins!(association)
+          @scope.send("#{join_type}!", association)
           self.not(association => { reflection.association_primary_key => nil })
         end
 
