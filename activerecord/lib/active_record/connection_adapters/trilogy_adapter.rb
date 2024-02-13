@@ -83,6 +83,10 @@ module ActiveRecord
         # matched rather than number of rows updated.
         config[:found_rows] = true
 
+        if config[:prepared_statements]
+          raise ArgumentError, "Trilogy currently doesn't support prepared statements. Remove `prepared_statements: true` from your database configuration."
+        end
+
         super
       end
 

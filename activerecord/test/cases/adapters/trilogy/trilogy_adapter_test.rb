@@ -390,6 +390,12 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     end
   end
 
+  test "setting prepared_statements to true raises" do
+    assert_raises ArgumentError do
+      ActiveRecord::ConnectionAdapters::TrilogyAdapter.new(prepared_statements: true).connect!
+    end
+  end
+
   # Create a temporary subscription to verify notification is sent.
   # Optionally verify the notification payload includes expected types.
   def assert_notification(notification, expected_payload = {}, &block)
