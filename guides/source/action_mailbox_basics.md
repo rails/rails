@@ -378,7 +378,7 @@ class ForwardsMailbox < ApplicationMailbox
     end
 
     def record_forward
-      forwarder.forwards.create subject: mail.subject, content: mail.body.decoded
+      forwarder.forwards.create subject: mail.subject, content: mail.decoded
     end
 
     def request_forwarding_project
