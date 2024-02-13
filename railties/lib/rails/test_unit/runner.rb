@@ -87,7 +87,7 @@ module Rails
           end
 
           def default_test_exclude_glob
-            ENV["DEFAULT_TEST_EXCLUDE"] || "test/{system,dummy}/**/*_test.rb"
+            ENV["DEFAULT_TEST_EXCLUDE"] || "test/{system,dummy,fixtures}/**/*_test.rb"
           end
 
           def regexp_filter?(arg)
