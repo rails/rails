@@ -1,5 +1,5 @@
-*   Deprecate config.active_record.warn_on_records_fetched_greater_than now that sql.active_record
-    notification includes row_count field
+*   Deprecate `config.active_record.warn_on_records_fetched_greater_than` now that `sql.active_record`
+    notification includes `:row_count` field.
 
     *Jason Nochlin*
 
