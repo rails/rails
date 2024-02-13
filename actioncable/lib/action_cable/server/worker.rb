@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/callbacks"
 require "active_support/core_ext/module/attribute_accessors_per_thread"
 require "concurrent"
@@ -25,8 +27,8 @@ module ActionCable
         )
       end
 
-      # Stop processing work: any work that has not already started
-      # running will be discarded from the queue
+      # Stop processing work: any work that has not already started running will be
+      # discarded from the queue
       def halt
         @executor.shutdown
       end
