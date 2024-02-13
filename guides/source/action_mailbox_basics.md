@@ -420,7 +420,7 @@ class ForwardsMailboxTest < ActionMailbox::TestCase
     recording = people(:david).buckets.first.recordings.last
     assert_equal people(:david), recording.creator
     assert_equal "Status update?", recording.forward.subject
-    assert_match "What's the status?", recording.forward.decoded.to_s
+    assert_match "What's the status?", recording.forward.content.to_s
   end
 end
 ```
