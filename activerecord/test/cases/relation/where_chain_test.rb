@@ -43,6 +43,14 @@ module ActiveRecord
       assert_match(/An association named `:cars` does not exist on the model `Post`\./, e.message)
     end
 
+    def test_associated_with_change_join_type
+      Post.where.associated(join_type: :left_joins, :author, :comments).tap do |relation|
+        assert_includes     relation, posts(:welcome)
+        assert_not_includes relation, posts(:sti_habtm)
+        assert_not_includes relation, posts(:authorless)
+      end
+    end
+
     def test_missing_with_association
       assert posts(:authorless).author.blank?
       assert_equal [posts(:authorless)], Post.where.missing(:author).to_a

@@ -1,3 +1,9 @@
+*   Adds support to change join type in the where.associated method that check association presence
+    By default associated method use joins association.
+    ```ruby
+    Post.where.associated(join_type: :left_joins, :author)
+    ```
+
 *   Introduce `TestFixtures#fixture_paths`.
 
     Multiple fixture paths can now be specified using the `#fixture_paths` accessor.
