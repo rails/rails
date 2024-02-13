@@ -53,7 +53,7 @@ end
 ```
 
 ```irb
-irb> email_contact = EmailContact.new(name: 'David', email: 'david@example.com', message: 'Hello World')
+irb> email_contact = EmailContact.new(name: "David", email: "david@example.com", message: "Hello World")
 
 irb> email_contact.name #attribute assignment
 => "David"
@@ -64,7 +64,7 @@ irb> email_contact.to_model == email_contact #conversions
 irb> email_contact.model_name.name #naming
 => EmailContact
 
-irb> email_contact.human_attribute_name('name') #translations if locale is set
+irb> email_contact.human_attribute_name("name") #translations if locale is set
 => "Name"
 
 irb> email_contact.valid? #validations
@@ -90,7 +90,7 @@ For example, `form_with` can be used to create a form for an `EmailContact` obje
 `render` can be used to render a partial with the object as a local variable:
 
 ```erb+html
-<%= render partial: "email_contact", email_contact: EmailContact.new(name: 'David', email: 'david@example.com', message: 'Hello World') %>
+<%= render partial: "email_contact", email_contact: EmailContact.new(name: "David", email: "david@example.com", message: "Hello World") %>
 ```
 
 ### Attributes
@@ -137,7 +137,7 @@ Some additional methods described below are available when using `ActiveModel::A
 
 #### Method: Attribute Names
 
-The `attribute_names` method which returns an array of the attribute names.
+The `attribute_names` method returns an array of attribute names.
 
 ```irb
 irb> Person.attribute_names
@@ -219,10 +219,8 @@ irb> person.date_of_birth
 
 ### Attribute Methods
 
-`ActiveModel::AttributeMethods` provides a way to define methods dynamically for attributes of a model. This module is particularly useful to simplify attribute access and manipulation, and it can add custom prefixes and suffixes
-on methods of a class.
-
-You can defining the prefixes and suffixes and
+`ActiveModel::AttributeMethods` provides a way to define methods dynamically for attributes of a model. This module is particularly useful to simplify attribute access and manipulation, and it can add custom prefixes and suffixes to the methods of a class.
+You can define the prefixes and suffixes and
 which methods on the object will use them as follows:
 1. Include `ActiveModel::AttributeMethods` in your class.
 2. Call each of the methods you want to add, such as `attribute_method_suffix`,  `attribute_method_prefix`, `attribute_method_affix`.
@@ -236,12 +234,12 @@ NOTE: `attribute_method_prefix` and `attribute_method_suffix` are used to define
 class Person
   include ActiveModel::AttributeMethods
 
-  attribute_method_affix prefix: 'reset_', suffix: '_to_default!'
-  attribute_method_prefix 'first_'
-  attribute_method_prefix 'last_'
-  attribute_method_suffix '_short?'
+  attribute_method_affix prefix: "reset_", suffix: "_to_default!"
+  attribute_method_prefix "first_"
+  attribute_method_prefix "last_"
+  attribute_method_suffix "_short?"
 
-  define_attribute_methods 'name'
+  define_attribute_methods "name"
 
   attr_accessor :name
 
@@ -290,7 +288,7 @@ irb> person.reset_name_to_default!
 => "Default Name"
 ```
 
-If you call a method that not defined, it will raise a `method_missing` error.
+If you call a method that is not defined, it will raise a `method_missing` error.
 
 
 #### Method: `alias_attribute`
@@ -338,7 +336,7 @@ irb> person.nickname_short?
 
 ### Callbacks
 
-`ActiveModel::Callbacks` gives plain ruby objects Active Record style callbacks. The callbacks allows you to hook into model lifecycle events, such as `before_update` and `after_create`, as well as to define custom logic to be executed at specific points in the model's lifecycle.
+`ActiveModel::Callbacks` gives plain ruby objects Active Record style callbacks. The callbacks allow you to hook into model lifecycle events, such as `before_update` and `after_create`, as well as to define custom logic to be executed at specific points in the model's lifecycle.
 
 You can implement `ActiveModel::Callbacks` by following the steps below:
 
@@ -446,7 +444,7 @@ Like the Active Record methods, the callback chain is aborted as soon as one of 
 
 The `ActiveModel::Conversion` module adds the following methods: `to_model`, `to_key`, `to_param`, and `to_partial_path` to classes.
 
-The return values of the methods depends on whether`persisted?` is defined and if an `id` is provided. The `persisted?` method should return true if the object has been saved to the database or store, otherwise, it should return `false`. The `id` should reference the id of the object or nil if the object is not saved.
+The return values of the methods depend on whether`persisted`?` is defined and if an `id` is provided. The `persisted?` method should return true if the object has been saved to the database or store, otherwise, it should return `false`. The `id` should reference the id of the object or nil if the object is not saved.
 
 ```ruby
 class Person
@@ -705,12 +703,12 @@ irb> person.token = "2b1f325"
 irb> person.valid?
 => false
 
-irb> person.name = 'vishnu'
-irb> person.email = 'me'
+irb> person.name = "vishnu"
+irb> person.email = "me"
 irb> person.valid?
 => false
 
-irb> person.email = 'me@vishnuatrai.com'
+irb> person.email = "me@vishnuatrai.com"
 irb> person.valid?
 => true
 
@@ -808,7 +806,7 @@ irb> Person.model_name.element
 => "person"
 ```
 
-**`human`** transforms the model name into a more human format, using I18n. By default, it will underscore then humanize the class name.
+**`human`** transforms the model name into a more human format, using I18n. By default, it will underscore and then humanize the class name.
 
 ```irb
 irb> Person.model_name.human
@@ -816,13 +814,7 @@ irb> Person.model_name.human
 ```
 
 **`collection`** returns the name of a table like Rails does for models to table names. It uses the pluralize method on the last word in the string.
-
-```irb
-irb> Person.model_name.collection
-=> "people"
-```
-
-**`param_key`** returns string to use for params names. It differs for namespaced models regarding whether it's inside isolated engine.
+**param_key** returns a string to use for params names. It differs for namespaced models regarding whether it's inside an isolated engine.
 
 ```irb
 irb> Person.model_name.param_key
@@ -830,13 +822,7 @@ irb> Person.model_name.param_key
 ```
 
 **`i18n_key`** returns the name of the i18n key. It underscores the model name and then returns it as a symbol.
-
-```irb
-irb> Person.model_name.i18n_key
-=> :person
-```
-
-**`route_key`** returns string to use while generating route names. It differs for namespaced models regarding whether it's inside isolated engine.
+**route_key** returns a string to use while generating route names. It differs for namespaced models regarding whether it's inside isolated engine.
 
 ```irb
 irb> Person.model_name.route_key
@@ -867,7 +853,6 @@ Currently, when including `ActiveModel::Model` you get the features from [Active
 
 `ActiveModel::Serialization` provides basic serialization to a serializable_hash for your objects. You need to declare an attributes Hash which should contain the attributes you want to serialize. Attributes must be strings, not symbols.
 
-
 ```ruby
 class Person
   include ActiveModel::Serialization
@@ -876,7 +861,7 @@ class Person
 
   def attributes
     # compulsory declaration of attributes to serialize
-    {'name' => nil, 'age' => nil}
+    {"name" => nil, "age" => nil}
   end
 
   def capitalized_name
@@ -968,7 +953,7 @@ class Person
   attr_accessor :name
 
   def attributes
-    { 'name' => nil }
+    { "name" => nil }
   end
 end
 ```
@@ -1013,7 +998,7 @@ class Person
   end
 
   def attributes
-    { 'name' => nil }
+    { "name" => nil }
   end
 end
 ```
@@ -1021,7 +1006,7 @@ end
 Now it is possible to create an instance of `Person` and set attributes using `from_json`.
 
 ```irb
-irb> json = { name: 'Bob' }.to_json
+irb> json = { name: "Bob" }.to_json
 => "{\"name\":\"Bob\"}"
 
 irb> person = Person.new
@@ -1055,11 +1040,11 @@ pt-BR:
   activemodel:
     attributes:
       person:
-        name: 'Nome'
+        name: "Nome"
 ```
 
 ```irb
-irb> Person.human_attribute_name('name')
+irb> Person.human_attribute_name("name")
 => "Nome"
 ```
 
@@ -1129,10 +1114,10 @@ a `password` accessor with certain validations on it by default.
 so include this gem in your `Gemfile` to use `ActiveModel::SecurePassword`.
 
 ```ruby
-gem 'bcrypt'
+gem "bcrypt"
 ```
 
-A requires for `ActiveModel::SecurePassword` to have a `password_digest` attribute.
+`ActiveModel::SecurePassword` requires you to have a `password_digest` attribute.
 
 The following validations are added automatically:
 1. Password must be present on creation.
@@ -1145,7 +1130,6 @@ it). When this attribute has a `nil` value, the validation will not be triggered
 
 For further customization, it is possible to suppress the default validations by passing `validations: false` as an argument.
 
-#### Examples
 
 ```ruby
 class Person
@@ -1166,40 +1150,40 @@ irb> person.valid?
 => false
 
 # When the confirmation doesn't match the password.
-irb> person.password = 'aditya'
-irb> person.password_confirmation = 'nomatch'
+irb> person.password = "aditya"
+irb> person.password_confirmation = "nomatch"
 irb> person.valid?
 => false
 
 # When the length of password exceeds 72.
-irb> person.password = person.password_confirmation = 'a' * 100
+irb> person.password = person.password_confirmation = "a" * 100
 irb> person.valid?
 => false
 
 # When only password is supplied with no password_confirmation.
-irb> person.password = 'aditya'
+irb> person.password = "aditya"
 irb> person.valid?
 => true
 
 # When all validations are passed.
-irb> person.password = person.password_confirmation = 'aditya'
+irb> person.password = person.password_confirmation = "aditya"
 irb> person.valid?
 => true
 
 irb> person.recovery_password = "42password"
 
-irb> person.authenticate('aditya')
+irb> person.authenticate("aditya")
 => #<Person> # == person
-irb> person.authenticate('notright')
+irb> person.authenticate("notright")
 => false
-irb> person.authenticate_password('aditya')
+irb> person.authenticate_password("aditya")
 => #<Person> # == person
-irb> person.authenticate_password('notright')
+irb> person.authenticate_password("notright")
 => false
 
-irb> person.authenticate_recovery_password('42password')
+irb> person.authenticate_recovery_password("42password")
 => #<Person> # == person
-irb> person.authenticate_recovery_password('notright')
+irb> person.authenticate_recovery_password("notright")
 => false
 
 irb> person.password_digest
