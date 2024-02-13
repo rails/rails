@@ -85,7 +85,7 @@ module Rails
             end
 
             assert_file("Dockerfile") do |content|
-              assert_match "build-essential git libvips", content
+              assert_match "build-essential git", content
               assert_match "curl libsqlite3-0 libvips", content
             end
           end
