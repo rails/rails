@@ -40,7 +40,13 @@ require "models/chef"
 require "models/cake_designer"
 require "models/drink_designer"
 require "models/cpk"
-require "models/test_models"
+require "models/child"
+require "models/parent"
+require "models/grandparent"
+require "models/building"
+require "models/listing"
+require "models/sale"
+require "models/expense"
 
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
@@ -167,51 +173,6 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
 
     assert_not_predicate ship, :valid?
     assert_equal 1, ship.errors[:name].length
-  end
-
-  def test_cyclic_autosaves_do_not_call_validation_and_save_on_the_same_model_multiple_times
-    expense = Expense.new(message: "Expense")
-    sale = Sale.new(message: "Sale")
-    building = Building.new(name: "Building A", expenses: [expense], sales: [sale])
-    listing = Listing.new(building: building)
-
-    assert_called(building, :save, nil, times: 1) do
-    assert_called(building, :valid?, nil, times: 1) do
-      listing.save
-    end
-    end
-  end
-
-  def assert_called_with_native(object, method_name, args, returns: false, **kwargs, &block)
-    mock = Minitest::Mock.new
-    mock.expect(:call, returns, args, **kwargs)
-
-    object.stub(method_name, proc { |*x, **y|  mock.call(*x,**y); object.send("__minitest_stub__#{method_name}", *x, **y) }, &block)
-
-    assert_mock(mock)
-  end
-  
-  def test_autosaves_call_save_or_valid_with_memory_get_passed_to_associations
-    expense = Expense.new(message: "Expense")
-    sale = Sale.new(message: "Sale")
-    building = Building.new(name: "Building A", expenses: [expense], sales: [sale])
-    listing = Listing.new(building: building)
-
-
-    assert_called_with_native(building, :save, [], validate: false, memory: {"saved#{listing.object_id}" => true, listing.object_id => false}) do
-    assert_called_with_native(sale, :save, [], validate: false, memory: {
-      "saved#{listing.object_id}" => true, listing.object_id => false,
-      "saved#{building.object_id}" => true, building.object_id => false,
-      "saved#{sale.object_id}" => true}) do
-    assert_called_with_native(expense, :save, [], validate: false, memory: {
-      "saved#{listing.object_id}" => true, listing.object_id => false,
-      "saved#{building.object_id}" => true, building.object_id => false,
-      "saved#{sale.object_id}" => true, sale.object_id => false,
-      "saved#{expense.object_id}" => true}) do
-      listing.save
-    end
-    end
-    end
   end
 
   private
@@ -2330,4 +2291,52 @@ class TestCircularAutosaveAssociations < ActiveRecord::TestCase
     @parent.update!(name: "pp")
     assert_equal 1, @parent.class.class_variable_get("@@after_validation_foo")
   end
+end
+
+class TestCircularAutosaveAssociationsTreeTraversal < ActiveRecord::TestCase
+  def test_cyclic_autosaves_do_not_call_validation_and_save_on_the_same_model_multiple_times
+    expense = Expense.new(message: "Expense")
+    sale = Sale.new(message: "Sale")
+    building = Building.new(name: "Building A", expenses: [expense], sales: [sale])
+    listing = Listing.new(building: building)
+
+    assert_called(building, :save, nil, times: 1) do
+    assert_called(building, :valid?, nil, times: 1) do
+      listing.save
+    end
+    end
+  end
+
+  def assert_called_with_native(object, method_name, args, returns: false, **kwargs, &block)
+    mock = Minitest::Mock.new
+    mock.expect(:call, returns, args, **kwargs)
+
+    object.stub(method_name, proc { |*x, **y|  mock.call(*x,**y); object.send("__minitest_stub__#{method_name}", *x, **y) }, &block)
+
+    assert_mock(mock)
+  end
+  
+  def test_autosaves_call_save_or_valid_with_memory_get_passed_to_associations
+    expense = Expense.new(message: "Expense")
+    sale = Sale.new(message: "Sale")
+    building = Building.new(name: "Building A", expenses: [expense], sales: [sale])
+    listing = Listing.new(building: building)
+
+
+    assert_called_with_native(building, :save, [], validate: false, memory: {"saved#{listing.object_id}" => true, listing.object_id => false}) do
+    assert_called_with_native(sale, :save, [], validate: false, memory: {
+      "saved#{listing.object_id}" => true, listing.object_id => false,
+      "saved#{building.object_id}" => true, building.object_id => false,
+      "saved#{sale.object_id}" => true}) do
+    assert_called_with_native(expense, :save, [], validate: false, memory: {
+      "saved#{listing.object_id}" => true, listing.object_id => false,
+      "saved#{building.object_id}" => true, building.object_id => false,
+      "saved#{sale.object_id}" => true, sale.object_id => false,
+      "saved#{expense.object_id}" => true}) do
+      listing.save
+    end
+    end
+    end
+  end
+
 end

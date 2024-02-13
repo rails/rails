@@ -1,52 +1,5 @@
 # frozen_string_literal: true
 
-$tab_level = 0
-$debug_marks = {}
-def debug_stopwatch(label, trigger=true)
-  $tab_level += 1
-  $debug_marks[label] ||= []
-  $debug_marks[label] << Time.now
-
-  if !trigger  || true
-    yield
-  else
-    puts "@@ 00000.000ms " + "@"*14 + "#{$tab_level}#{"\t"*$tab_level}#{ label }"
-    x = yield
-  
-    time = (Time.now - $debug_marks[label].last) * 1000
-    color = case time
-    when 0..1
-      "32m" # green
-    when 1..10
-      "33m" # brown
-    else
-      "31m" # red
-    end
-    puts "\e[#{color}@@ #{ time.truncate(3).to_s.rjust(10) }ms " + "@"*14 + "#{"\t"*$tab_level}#{ label }\e[0m"
-    x
-  end
-ensure
-  $tab_level -= 1
-  stack = $debug_marks[label]
-  stack.pop
-  $debug_marks.delete(label) if stack.empty?
-end
-
-def debug_lap(label)
-  time = (Time.now - $debug_marks.values.last.last) * 1000
-  color = case time
-  when 0..1
-    "32m" # green
-  when 1..10
-    "33m" # brown
-  else
-    "31m" # red
-  end
-  
-  puts "\e[#{color}@@ #{ time.truncate(3).to_s.rjust(10) }ms " + "@"*14 + "lap#{$tab_level}#{"\t"*$tab_level}#{ label }\e[0m"
-end
-
-
 require "active_support/benchmarkable"
 require "active_support/dependencies"
 require "active_support/descendants_tracker"
