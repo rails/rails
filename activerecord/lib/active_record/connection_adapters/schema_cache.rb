@@ -18,10 +18,6 @@ module ActiveRecord
         @cache_path = cache_path
       end
 
-      def set_schema_cache(cache)
-        @cache = cache
-      end
-
       def clear!
         @cache = empty_cache
 

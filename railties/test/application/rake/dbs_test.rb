@@ -439,17 +439,6 @@ module ApplicationTests
         db_schema_cache_dump
       end
 
-      test "db:schema:cache:dump custom env" do
-        @old_schema_cache_env = ENV["SCHEMA_CACHE"]
-        filename = "db/special_schema_cache.yml"
-        ENV["SCHEMA_CACHE"] = filename
-
-        db_schema_dump
-        db_schema_cache_dump
-      ensure
-        ENV["SCHEMA_CACHE"] = @old_schema_cache_env
-      end
-
       test "db:schema:cache:dump first config wins" do
         Dir.chdir(app_path) do
           File.open("#{app_path}/config/database.yml", "w") do |f|
@@ -507,22 +496,6 @@ module ApplicationTests
             assert_equal "0", cache_size
           end
           assert_match(/Ignoring .*\.yml because it has expired/, expired_warning)
-        end
-      end
-
-      test "db:schema:cache:dump ignores validation errors" do
-        Dir.chdir(app_path) do
-          rails "generate", "model", "book", "title:string"
-          rails "db:migrate"
-          rails "db:schema:cache:dump"
-
-          ActiveRecord::Migrator.stub(:current_version, -> { raise ActiveRecord::ActiveRecordError, "stubbed error" }) do
-            validation_warning = capture(:stderr) do
-              cache_tables = rails("runner", "p ActiveRecord::Base.connection.schema_cache.columns('books')", stderr: true).strip
-              assert_includes cache_tables, "title", "expected cache_tables to include a title entry"
-            end
-            assert_match(/Failed to validate the schema cache because of ActiveRecord::ActiveRecordError: stubbed error/, validation_warning)
-          end
         end
       end
 

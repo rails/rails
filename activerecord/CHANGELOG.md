@@ -1,3 +1,7 @@
+*   Deprecated `ENV["SCHEMA_CACHE"]` in favor of `schema_cache_path` in the database configuration.
+
+    *Rafael Mendonça França*
+
 *   Add `ActiveRecord::Base.with_connection` as a shortcut for leasing a connection for a short duration.
 
     The leased connection is yielded, and for the duration of the block, any call to `ActiveRecord::Base.connection`

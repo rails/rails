@@ -388,8 +388,10 @@ module ActiveRecord
       config = DatabaseConfigurations::HashConfig.new("development", "primary", {})
 
       ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
-        path = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(config)
-        assert_equal "tmp/something.yml", path
+        path = assert_deprecated(/Setting `ENV\["SCHEMA_CACHE"\]` is deprecated and will be removed in Rails 7\.3\. Configure the `:schema_cache_path` in the database configuration instead\. \(/, ActiveRecord.deprecator) do
+          ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(config)
+        end
+        assert_equal "db/schema_cache.yml", path
       end
     ensure
       ENV["SCHEMA_CACHE"] = old_path
@@ -400,10 +402,10 @@ module ActiveRecord
       ENV["SCHEMA_CACHE"] = "tmp/something.yml"
 
       ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
-        path = assert_deprecated(ActiveRecord.deprecator) do
+        path = assert_deprecated(/Passing a database name to `cache_dump_filename` is deprecated and will be removed in Rails 7\.3\. Pass a `ActiveRecord::DatabaseConfigurations::DatabaseConfig` object instead\. \(/, ActiveRecord.deprecator) do
           ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename("primary")
         end
-        assert_equal "tmp/something.yml", path
+        assert_equal "db/schema_cache.yml", path
       end
     ensure
       ENV["SCHEMA_CACHE"] = old_path
