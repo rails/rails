@@ -18,7 +18,10 @@ FileUtils.chdir APP_ROOT do
 <% if using_node? -%>
 
   # Install JavaScript dependencies
-  system("yarn install --check-files")
+  case
+  when File.exist?("yarn.lock") then system("yarn install --check-files")
+  when File.exist?("pnpm-lock.yaml") then system("pnpm install --verify --lockfile")
+  end
 <% elsif using_bun? -%>
 
   # Install JavaScript dependencies
