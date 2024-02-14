@@ -1,3 +1,31 @@
+*   Generate a .devcontainer folder and its contents when creating a new app.
+
+    The .devcontainer folder includes everything needed to boot the app and do development in a remote container.
+
+    The container setup includes:
+     - A redis container for Kredis, ActionCable etc.
+     - A database (SQLite, Postgres, MySQL or MariaDB)
+     - A Headless chrome container for system tests
+     - Active Storage configured to use the local disk and with preview features working
+
+    If any of these options are skipped in the app setup they will not be included in the container configuration.
+
+    These files can be skipped using the `--skip-devcontainer` option.
+
+    *Andrew Novoselac & Rafael Mendonça França*
+
+*   Introduce `SystemTestCase#served_by` for configuring the System Test application server
+
+    By default this is localhost. This method allows the host and port to be specified manually.
+
+    ```ruby
+    class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+      served_by host: "testserver", port: 45678
+    end
+    ```
+
+    *Andrew Novoselac & Rafael Mendonça França*
+
 *   `bin/rails test` will no longer load files named `*_test.rb` if they are located in the `fixtures` folder.
 
     *Edouard Chin*
