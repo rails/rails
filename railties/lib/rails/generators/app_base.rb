@@ -436,8 +436,20 @@ module Rails
         end
       end
 
+      def gem_ruby_entry
+        if Gem::Version.new(Bundler::VERSION) >= Gem::Version.new("2.4.20") # add file: option to #ruby
+          'ruby file: ".ruby-version"'
+        else
+          "ruby \"#{gem_ruby_version}\""
+        end
+      end
+
       def gem_ruby_version
-        Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") ? Gem.ruby_version : RUBY_VERSION
+        if Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") # patch level removed from Gem.ruby_version
+          Gem.ruby_version
+        else
+          RUBY_VERSION
+        end
       end
 
       def rails_prerelease?

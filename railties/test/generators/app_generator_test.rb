@@ -1006,7 +1006,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file "Gemfile" do |content|
-      assert_match(/ruby "#{Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") ? Gem.ruby_version : RUBY_VERSION}"/, content)
+      if Gem::Version.new(Bundler::VERSION) >= Gem::Version.new("2.4.20") # add file: option to #ruby
+        assert_match('ruby file: ".ruby-version"', content)
+      elsif Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") # patch level removed from Gem.ruby_version
+        assert_match("ruby \"#{Gem.ruby_version}\"", content)
+      else
+        assert_match("ruby \"#{RUBY_VERSION}\"", content)
+      end
     end
     assert_file "Dockerfile" do |content|
       assert_match(/ARG RUBY_VERSION=#{Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") ? Gem.ruby_version : RUBY_VERSION}/, content)
