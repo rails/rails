@@ -482,8 +482,10 @@
   function dispatchEvent(element, type, eventInit = {}) {
     const {disabled: disabled} = element;
     const {bubbles: bubbles, cancelable: cancelable, detail: detail} = eventInit;
-    const event = document.createEvent("Event");
-    event.initEvent(type, bubbles || true, cancelable || true);
+    const event = new Event(type, {
+      bubbles: bubbles || true,
+      cancelable: cancelable || true
+    });
     event.detail = detail || {};
     try {
       element.disabled = false;
