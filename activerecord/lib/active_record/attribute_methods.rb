@@ -457,7 +457,7 @@ module ActiveRecord
     #
     # For example:
     #
-    #   class PostsController < ActionController::Base
+    #   class PostsController < ApplicationController
     #     after_action :print_accessed_fields, only: :index
     #
     #     def index
@@ -472,7 +472,7 @@ module ActiveRecord
     #
     # Which allows you to quickly change your code to:
     #
-    #   class PostsController < ActionController::Base
+    #   class PostsController < ApplicationController
     #     def index
     #       @posts = Post.select(:id, :title, :author_id, :updated_at)
     #     end
