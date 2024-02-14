@@ -1,5 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON
-https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Action Text Overview
 ====================
@@ -450,4 +449,3 @@ rich text field is named `content`, you can use the named scope:
 Article.all.with_rich_text_content # Preload the body without attachments.
 Article.all.with_rich_text_content_and_embeds # Preload both body and attachments.
 ```
-
