@@ -39,8 +39,8 @@ module ActiveRecord
           assert_same ActiveRecord::Base.connection, connection
 
           ActiveRecord::Base.with_connection do |connection2|
-            assert_same leased_connection, connection
-            assert_same ActiveRecord::Base.connection, connection
+            assert_same leased_connection, connection2
+            assert_same ActiveRecord::Base.connection, connection2
           end
         end
 
