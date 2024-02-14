@@ -257,7 +257,7 @@ module ActiveRecord
     # Checkouts a connection from the pool, yield it and then check it back in.
     # If a connection was already leased via #connection or a parent call to
     # #with_connection, that same connection is yieled.
-    def with_connection(&block) # :nodoc:
+    def with_connection(&block)
       connection_pool.with_connection(&block)
     end
 
