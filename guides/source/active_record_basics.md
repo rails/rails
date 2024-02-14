@@ -76,21 +76,28 @@ should be needed only in those cases where you can't follow the standard
 convention.
 
 To take advantage of convention over configuration in Active Record, there are
-some naming and schema conventions to follow:
+some naming and schema conventions to follow. And in case you need to, it is possible to [override naming conventions](#overriding-the-naming-conventions).
 
 ### Naming Conventions
 
-By default, Active Record uses some naming conventions to find out how the
-mapping between models and database tables should be created. Rails will
-pluralize your class names to find the respective database table. So, for
-a class `Book`, you should have a database table called **books**. The Rails
-pluralization mechanisms are very powerful, being capable of pluralizing (and
-singularizing) both regular and irregular words. When using class names composed
-of two or more words, the model class name should follow the Ruby conventions,
-using the CamelCase form, while the table name must use the snake_case form. Examples:
+Active Record uses this naming convention to map between models (represented by
+Ruby objects) and database tables:
 
-* Model Class - Singular with the first letter of each word capitalized (e.g., `BookClub`).
-* Database Table - Plural with underscores separating words (e.g., `book_clubs`).
+Rails will pluralize your model's class names to find the respective database
+table. For example, a class named `Book` maps to a database table named
+**books**. The Rails pluralization mechanisms are very powerful and capable of
+pluralizing (and singularizing) both regular and irregular words. This uses the
+[Active Support](active_support_core_extensions.html#pluralize) [pluralize
+method](https://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-pluralize),
+if you're curious.
+
+For class names composed of two or more words, follow the Ruby conventions of using the CamelCase name. The database
+table name, in that case, must use the snake_case form. For example:
+
+* `BookClub` - is the model class, singular with the first letter of each word capitalized
+* `book_clubs` - is the matching database table, plural with underscores separating words
+
+Here are some more examples of model class names and corrosponding table  names:
 
 | Model / Class    | Table / Schema |
 | ---------------- | -------------- |
