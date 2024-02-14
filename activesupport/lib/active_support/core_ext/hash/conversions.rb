@@ -216,7 +216,7 @@ module ActiveSupport
       end
 
       def become_content?(value)
-        value["type"] == "file" || (value["__content__"] && (value.keys.size == 1 || value["__content__"].present?))
+        value["type"] == "file" || (value["__content__"] && (value.keys.size == 1 || value["type"].present?))
       end
 
       def become_array?(value)
