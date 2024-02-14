@@ -831,7 +831,7 @@ You can add validations using some of the following methods:
 - `validates`:An attribute can be passed to the `validates` method and it
   provides a shortcut to all default validators. You can read more about how to
   use `validates`
-  [here](ttps://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates).
+  [here](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates).
 
 - `validates!` or setting `strict: true`: Used to define validations that cannot
   be corrected by end users and are considered exceptional. Each validator
