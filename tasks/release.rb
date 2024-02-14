@@ -98,7 +98,7 @@ npm_version = version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
       sh "gem install --pre #{gem}"
     end
 
-    task push: :build do
+    task push: [:build, :check_utilities] do
       otp = ""
       begin
         otp = " --otp " + `ykman oath accounts code -s rubygems.org`.chomp
@@ -338,4 +338,22 @@ task :announce do
 
     puts ERB.new(template, trim_mode: "<>").result(binding)
   end
+end
+
+# Check that various utilities are working so that when we push gems it won't fail
+task :check_utilities do
+  # try getting an OTP from the yubikey for RubyGems
+  sh "ykman oath accounts code -s rubygems.org"
+
+  # try getting an OTP from the yubikey for npm
+  sh "ykman oath accounts code -s npmjs.com"
+
+  # make sure we're logged in to RubyGems.org
+  sh "gem login"
+
+  # make sure we're logged in to npm
+  sh "npm whoami"
+
+  # make sure gh is logged in
+  sh "gh auth status"
 end
