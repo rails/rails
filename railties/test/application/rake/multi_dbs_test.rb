@@ -58,6 +58,7 @@ module ApplicationTests
       def db_migrate_and_migrate_status
         Dir.chdir(app_path) do
           generate_models_for_animals
+          rails "db:create"
           rails "db:migrate"
           output = rails "db:migrate:status"
           assert_match(/up     \d+  Create books/, output)
@@ -68,6 +69,7 @@ module ApplicationTests
       def db_migrate_and_schema_cache_dump
         Dir.chdir(app_path) do
           generate_models_for_animals
+          rails "db:create"
           rails "db:migrate", "--trace"
           rails "db:schema:cache:dump", "--trace"
           assert File.exist?("db/schema_cache.yml")
@@ -78,6 +80,7 @@ module ApplicationTests
       def db_migrate_and_schema_cache_dump_and_schema_cache_clear
         Dir.chdir(app_path) do
           generate_models_for_animals
+          rails "db:create"
           rails "db:migrate"
           rails "db:schema:cache:dump"
           rails "db:schema:cache:clear"

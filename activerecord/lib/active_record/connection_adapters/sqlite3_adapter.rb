@@ -30,12 +30,8 @@ module ActiveRecord
       class << self
         def new_client(config)
           ::SQLite3::Database.new(config[:database].to_s, config)
-        rescue Errno::ENOENT => error
-          if error.message.include?("No such file or directory")
-            raise ActiveRecord::NoDatabaseError
-          else
-            raise
-          end
+        rescue ::SQLite3::CantOpenException => _error
+          raise ActiveRecord::NoDatabaseError
         end
 
         def dbconsole(config, options = {})
@@ -123,6 +119,7 @@ module ActiveRecord
           end
         end
 
+        @config[:flags] = ::SQLite3::Constants::Open::READWRITE if @config[:flags].nil? && !@config[:readonly]
         @config[:strict] = ConnectionAdapters::SQLite3Adapter.strict_strings_by_default unless @config.key?(:strict)
         @connection_parameters = @config.merge(database: @config[:database].to_s, results_as_hash: true)
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true

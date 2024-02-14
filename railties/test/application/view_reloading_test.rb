@@ -10,7 +10,7 @@ module ApplicationTests
 
     def setup
       build_app
-
+      rails("db:create")
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get 'pages/:id', to: 'pages#show'
@@ -38,7 +38,6 @@ module ApplicationTests
 
       ENV["RAILS_ENV"] = "development"
       require "#{app_path}/config/environment"
-
       get "/pages/foo"
       get "/pages/foo"
       assert_equal 200, last_response.status, last_response.body
