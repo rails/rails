@@ -304,6 +304,40 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
   end
 end
 
+class TestAutosaveAssociationCallbacksOnAHasOneAssociation < ActiveRecord::TestCase
+  class SpecialAccount < Account
+    belongs_to :firm, class_name: "Company", inverse_of: :account
+
+    before_create :update_firm_status
+    after_update :update_firm_name
+    after_create :update_account_status
+
+    def update_firm_status
+      firm.update!(status: :suspended)
+    end
+
+    def update_firm_name
+      firm.update!(name: "Toyota")
+    end
+
+    def update_account_status
+      update(status: "excellent")
+    end
+  end
+
+  def test_should_not_create_duplicate_records_on_before_create
+    firm = Firm.create!(name: "Fujitsu")
+
+    assert_difference "Account.count", +1 do
+      account = SpecialAccount.create!(credit_limit: 0, firm: firm)
+
+      assert_equal "suspended", firm.status
+      assert_equal "Toyota", account.firm.name
+      assert_equal "excellent", account.status
+    end
+  end
+end
+
 class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
   fixtures :companies, :posts, :tags, :taggings
 

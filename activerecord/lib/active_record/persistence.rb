@@ -1247,6 +1247,10 @@ module ActiveRecord
     # Creates a record with values matching those of the instance attributes
     # and returns its id.
     def _create_record(attribute_names = self.attribute_names)
+      if !new_record?
+        return _update_record
+      end
+
       attribute_names = attributes_for_create(attribute_names)
 
       returning_columns = self.class._returning_columns_for_insert
