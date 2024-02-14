@@ -140,26 +140,30 @@ to Active Record instances:
   has many instances of `Comment` will cache the number of existent comments
   for each article.
 
-NOTE: While these column names are optional, they are in fact reserved by Active Record. Steer clear of reserved keywords unless you want the extra functionality. For example, `type` is a reserved keyword used to designate a table using Single Table Inheritance (STI). If you are not using STI, try an analogous keyword like "context", that may still accurately describe the data you are modeling.
+NOTE: While these column names are optional, they are reserved by Active Record.
+Steer clear of reserved keywords unless you want the extra functionality. For
+example, `type` is a reserved keyword used to designate a table using Single
+Table Inheritance (STI). If you are not using STI, use a different word to
+accurately describe the data you are modeling.
 
 Creating Active Record Models
 -----------------------------
 
-When generating an application, an abstract `ApplicationRecord` class will be
-created in `app/models/application_record.rb`. This is the base class for all
-models in an app, and it's what turns a regular ruby class into an Active Record
-model.
+When generating a Rails application, an abstract `ApplicationRecord` class will
+be created in `app/models/application_record.rb`. This is the base class for all
+models in your app, and it's what turns a regular ruby class into an Active
+Record model.
 
-To create Active Record models, subclass the `ApplicationRecord` class and you're good to go:
+To create Active Record models, subclass the `ApplicationRecord` class and
+you're good to go:
 
 ```ruby
 class Product < ApplicationRecord
 end
 ```
 
-This will create a `Product` model, mapped to a `products` table at the
-database. By doing this you'll also have the ability to map the columns of each
-row in that table with the attributes of the instances of your model. Suppose
+This will create a `Product` model, mapped to a `products` table in the
+database. Using `ApplicationRecord`, each column in the table is mapped to attributes of the `Product` class. And an instance of the `Product` can represent a row in the `products` table. Suppose
 that the `products` table was created using an SQL (or one of its extensions) statement like:
 
 ```sql
@@ -171,8 +175,9 @@ CREATE TABLE products (
 ```
 
 The schema above declares a table with two columns: `id` and `name`. Each row of
-this table represents a certain product with these two parameters. Thus, you
-would be able to write code like the following:
+this table can be represented by an instance of the `Product` class, with the
+same two attribures, `id` and `name`. You can access a product's attributes like
+this:
 
 ```ruby
 p = Product.new
