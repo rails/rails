@@ -55,6 +55,8 @@ module ActionDispatch
       METHOD
     end
 
+    TRANSFER_ENCODING = "HTTP_TRANSFER_ENCODING" # :nodoc:
+
     def self.empty
       new({})
     end
@@ -282,7 +284,7 @@ module ActionDispatch
 
     # Returns the content length of the request as an integer.
     def content_length
-      return raw_post.bytesize if headers.key?("Transfer-Encoding")
+      return raw_post.bytesize if has_header?(TRANSFER_ENCODING)
       super.to_i
     end
 
@@ -468,7 +470,7 @@ module ActionDispatch
 
       def read_body_stream
         body_stream.rewind if body_stream.respond_to?(:rewind)
-        return body_stream.read if headers.key?("Transfer-Encoding") # Read body stream until EOF if "Transfer-Encoding" is present
+        return body_stream.read if has_header?(TRANSFER_ENCODING) # Read body stream until EOF if "Transfer-Encoding" is present
         body_stream.read(content_length)
       end
   end
