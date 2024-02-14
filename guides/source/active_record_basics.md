@@ -97,7 +97,7 @@ table name, in that case, must use the snake_case form. For example:
 * `BookClub` - is the model class, singular with the first letter of each word capitalized
 * `book_clubs` - is the matching database table, plural with underscores separating words
 
-Here are some more examples of model class names and corrosponding table  names:
+Here are some more examples of model class names and corrosponding table names:
 
 | Model / Class    | Table / Schema |
 | ---------------- | -------------- |
@@ -109,7 +109,7 @@ Here are some more examples of model class names and corrosponding table  names:
 
 ### Schema Conventions
 
-Active Record uses naming conventions for the columns in database tables,
+Active Record uses conventions for column names in the database tables as well,
 depending on the purpose of these columns.
 
 * **Foreign keys** - These fields should be named following the pattern
