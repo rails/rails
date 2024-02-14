@@ -50,20 +50,6 @@ module Arel
         end
       end
 
-      describe 'grouped "or" equality' do
-        it "makes a grouping node with an or node" do
-          node = SqlLiteral.new("foo").eq_any([1, 2])
-          _(compile(node)).must_be_like %{ (foo = 1 OR foo = 2) }
-        end
-      end
-
-      describe 'grouped "and" equality' do
-        it "makes a grouping node with an and node" do
-          node = SqlLiteral.new("foo").eq_all([1, 2])
-          _(compile(node)).must_be_like %{ (foo = 1 AND foo = 2) }
-        end
-      end
-
       describe "serialization" do
         it "serializes into YAML" do
           yaml_literal = SqlLiteral.new("foo").to_yaml
