@@ -36,6 +36,7 @@ module ActiveRecord
         SchemaReflection.new(nil)
       end
 
+      def schema_cache; end
       def connection_class; end
       def checkin(_); end
       def remove(_); end
@@ -117,7 +118,7 @@ module ActiveRecord
       include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout
-      attr_reader :db_config, :size, :reaper, :pool_config, :async_executor, :role, :shard
+      attr_reader :db_config, :size, :reaper, :pool_config, :async_executor, :role, :shard, :schema_cache
 
       delegate :schema_reflection, :schema_reflection=, :server_version, to: :pool_config
 
@@ -165,6 +166,8 @@ module ActiveRecord
         @pinned_connection = nil
 
         @async_executor = build_async_executor
+
+        @schema_cache = BoundSchemaReflection.new(schema_reflection, self)
 
         @reaper = Reaper.new(self, db_config.reaping_frequency)
         @reaper.run
@@ -588,6 +591,7 @@ module ActiveRecord
             loop do
               synchronize do
                 return if collected_conns.size == @connections.size && @now_connecting == 0
+
                 remaining_timeout = timeout_time - Process.clock_gettime(Process::CLOCK_MONOTONIC)
                 remaining_timeout = 0 if remaining_timeout < 0
                 conn = checkout_for_exclusive_access(remaining_timeout)

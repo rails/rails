@@ -8,6 +8,7 @@ module ActiveRecord
       self.use_transactional_tests = false
 
       def setup
+        @pool = ARUnit2Model.connection_pool
         @connection = ARUnit2Model.connection
         @cache = new_bound_reflection
         @check_schema_cache_dump_version_was = SchemaReflection.check_schema_cache_dump_version
@@ -17,12 +18,12 @@ module ActiveRecord
         SchemaReflection.check_schema_cache_dump_version = @check_schema_cache_dump_version_was
       end
 
-      def new_bound_reflection(connection = @connection)
-        BoundSchemaReflection.new(SchemaReflection.new(nil), connection)
+      def new_bound_reflection(pool = @pool)
+        BoundSchemaReflection.new(SchemaReflection.new(nil), pool)
       end
 
-      def load_bound_reflection(filename, connection = @connection)
-        BoundSchemaReflection.new(SchemaReflection.new(filename), connection).tap do |cache|
+      def load_bound_reflection(filename, pool = @pool)
+        BoundSchemaReflection.new(SchemaReflection.new(filename), pool).tap do |cache|
           cache.load!
         end
       end
@@ -47,7 +48,7 @@ module ActiveRecord
         SchemaReflection.check_schema_cache_dump_version = false
         assert reflection.cached?("courses")
 
-        cache = BoundSchemaReflection.new(reflection, :__unused_connection__)
+        cache = BoundSchemaReflection.new(reflection, :__unused_pool__)
         assert cache.cached?("courses")
       end
 
@@ -352,28 +353,29 @@ module ActiveRecord
           ActiveRecord::Base.establish_connection(new_config)
 
           # cache starts empty
-          assert_nil ActiveRecord::Base.connection.pool.schema_reflection.instance_variable_get(:@cache)
+          assert_nil ActiveRecord::Base.connection_pool.schema_reflection.instance_variable_get(:@cache)
 
           # now we access the cache, causing it to load
-          assert_not_nil ActiveRecord::Base.connection.schema_cache.version
+          assert_not_nil ActiveRecord::Base.schema_cache.version
 
           assert File.exist?(tempfile)
-          assert_not_nil ActiveRecord::Base.connection.pool.schema_reflection.instance_variable_get(:@cache)
+          assert_not_nil ActiveRecord::Base.connection_pool.schema_reflection.instance_variable_get(:@cache)
 
           # assert cache is still empty on new connection (precondition for the
           # following to show it is loading because of the config change)
           ActiveRecord::Base.establish_connection(new_config)
 
           assert File.exist?(tempfile)
-          assert_nil ActiveRecord::Base.connection.pool.schema_reflection.instance_variable_get(:@cache)
+          assert_nil ActiveRecord::Base.connection_pool.schema_reflection.instance_variable_get(:@cache)
 
           # cache is loaded upon connection when lazily loading is on
           old_config = ActiveRecord.lazily_load_schema_cache
           ActiveRecord.lazily_load_schema_cache = true
           ActiveRecord::Base.establish_connection(new_config)
+          ActiveRecord::Base.connection_pool.connection.verify!
 
           assert File.exist?(tempfile)
-          assert_not_nil ActiveRecord::Base.connection.pool.schema_reflection.instance_variable_get(:@cache)
+          assert_not_nil ActiveRecord::Base.connection_pool.schema_reflection.instance_variable_get(:@cache)
         ensure
           ActiveRecord.lazily_load_schema_cache = old_config
           ActiveRecord::Base.establish_connection(:arunit)
