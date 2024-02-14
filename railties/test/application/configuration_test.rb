@@ -3997,6 +3997,11 @@ module ApplicationTests
       assert_includes Rails.application.config.hosts, ".localhost"
     end
 
+    test "hosts include .test in development" do
+      app "development"
+      assert_includes Rails.application.config.hosts, ".test"
+    end
+
     test "hosts reads multiple values from RAILS_DEVELOPMENT_HOSTS" do
       host = "agoodhost.com"
       another_host = "bananapants.com"

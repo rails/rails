@@ -20,7 +20,7 @@ module ActionDispatch
   # info if `config.consider_all_requests_local` is set to true, otherwise the
   # body is empty.
   class HostAuthorization
-    ALLOWED_HOSTS_IN_DEVELOPMENT = [".localhost", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")]
+    ALLOWED_HOSTS_IN_DEVELOPMENT = [".localhost", ".test", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")]
     PORT_REGEX = /(?::\d+)/ # :nodoc:
     SUBDOMAIN_REGEX = /(?:[a-z0-9-]+\.)/i # :nodoc:
     IPV4_HOSTNAME = /(?<host>\d+\.\d+\.\d+\.\d+)#{PORT_REGEX}?/ # :nodoc:
