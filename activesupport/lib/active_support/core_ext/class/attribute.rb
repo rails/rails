@@ -82,9 +82,13 @@ class Class
   # To set a default value for the attribute, pass <tt>default:</tt>, like so:
   #
   #   class_attribute :settings, default: {}
-  def class_attribute(*attrs, instance_accessor: true,
-    instance_reader: instance_accessor, instance_writer: instance_accessor, instance_predicate: true, default: nil)
-
+  def class_attribute(
+    *attrs,
+    instance_accessor: true, instance_reader: instance_accessor, instance_writer: instance_accessor,
+    instance_predicate: true,
+    constantize: false,
+    default: nil
+  )
     class_methods, methods = [], []
     attrs.each do |name|
       unless name.is_a?(Symbol) || name.is_a?(String)
@@ -102,10 +106,12 @@ class Class
         end
       RUBY
 
+      constantize_value = "value = value.constantize if value.is_a?(::String)" if constantize
+
       class_methods << <<~RUBY
         silence_redefinition_of_method def #{name}=(value)
-          redefine_method(:#{name}) { value } if singleton_class?
-          redefine_singleton_method(:#{name}) { value }
+          redefine_method(:#{name}) { #{constantize_value}; value } if singleton_class?
+          redefine_singleton_method(:#{name}) { #{constantize_value}; value }
           value
         end
       RUBY
