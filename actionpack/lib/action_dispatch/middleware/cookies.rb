@@ -277,6 +277,13 @@ module ActionDispatch
       # `secret_key_base` is set. Used by ActionDispatch::Session::CookieStore to
       # avoid the need to introduce new cookie stores.
       def signed_or_encrypted
+        ActiveSupport::Deprecation.warn <<~WARNING.squish
+          ChainedCookieJar#signed_or_encrypted is deprecated and will be
+          removed in Rails 7.1. Usage should be replaced with #encrypted, which
+          has been its effective behavior since Rails 6.0 when secret_key_base
+          became required
+        WARNING
+
         @signed_or_encrypted ||=
           if request.secret_key_base.present?
             encrypted
