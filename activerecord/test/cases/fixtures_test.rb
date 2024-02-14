@@ -148,9 +148,9 @@ class FixturesTest < ActiveRecord::TestCase
 
   if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     def test_bulk_insert_with_multi_statements_enabled
-      orig_connection_class = ActiveRecord::Base.connection.class
+      adapter_name = ActiveRecord::Base.connection.adapter_name
       run_without_connection do |orig_connection|
-        case orig_connection_class::ADAPTER_NAME
+        case adapter_name
         when "Trilogy"
           ActiveRecord::Base.establish_connection(
             orig_connection.merge(multi_statement: true)
@@ -170,7 +170,7 @@ class FixturesTest < ActiveRecord::TestCase
         assert_nothing_raised do
           conn = ActiveRecord::Base.connection
           conn.execute("SELECT 1; SELECT 2;")
-          case orig_connection_class::ADAPTER_NAME
+          case adapter_name
           when "Trilogy"
             conn.raw_connection.next_result while conn.raw_connection.more_results_exist?
           else
@@ -190,7 +190,7 @@ class FixturesTest < ActiveRecord::TestCase
         assert_nothing_raised do
           conn = ActiveRecord::Base.connection
           conn.execute("SELECT 1; SELECT 2;")
-          case orig_connection_class::ADAPTER_NAME
+          case adapter_name
           when "Trilogy"
             conn.raw_connection.next_result while conn.raw_connection.more_results_exist?
           else
@@ -201,9 +201,9 @@ class FixturesTest < ActiveRecord::TestCase
     end
 
     def test_bulk_insert_with_multi_statements_disabled
-      orig_connection_class = ActiveRecord::Base.connection.class
+      adapter_name = ActiveRecord::Base.connection.adapter_name
       run_without_connection do |orig_connection|
-        case orig_connection_class::ADAPTER_NAME
+        case adapter_name
         when "Trilogy"
           ActiveRecord::Base.establish_connection(
             orig_connection.merge(multi_statement: false)
@@ -223,7 +223,7 @@ class FixturesTest < ActiveRecord::TestCase
         assert_raises(ActiveRecord::StatementInvalid) do
           conn = ActiveRecord::Base.connection
           conn.execute("SELECT 1; SELECT 2;")
-          case orig_connection_class::ADAPTER_NAME
+          case adapter_name
           when "Trilogy"
             conn.raw_connection.next_result while conn.raw_connection.more_results_exist?
           else
@@ -239,7 +239,7 @@ class FixturesTest < ActiveRecord::TestCase
         assert_raises(ActiveRecord::StatementInvalid) do
           conn = ActiveRecord::Base.connection
           conn.execute("SELECT 1; SELECT 2;")
-          case orig_connection_class::ADAPTER_NAME
+          case adapter_name
           when "Trilogy"
             conn.raw_connection.next_result while conn.raw_connection.more_results_exist?
           else
