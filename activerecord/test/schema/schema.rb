@@ -56,11 +56,6 @@ ActiveRecord::Schema.define do
     t.references :account
   end
   
-  create_table :mailing_addresses, force: true do |t|
-    t.string  :name
-    t.integer  :building_id
-  end
-
   create_table :aircraft, force: true do |t|
     t.string :name
     t.integer :wheels_count, default: 0, null: false
