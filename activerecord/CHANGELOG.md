@@ -1,3 +1,13 @@
+*   Add `ActiveRecord::Base.with_connection` as a shortcut for leasing a connection for a short duration.
+
+    The leased connection is yielded, and for the duration of the block, any call to `ActiveRecord::Base.connection`
+    will yield that same connection.
+
+    This is useful to perform a few database operations without causing a connection to be leased for the
+    entire duration of the request or job.
+
+    *Jean Boussier*
+
 *   Deprecate `config.active_record.warn_on_records_fetched_greater_than` now that `sql.active_record`
     notification includes `:row_count` field.
 
