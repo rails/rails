@@ -8,7 +8,7 @@ This guide will provide you with what you need to get started using Active Model
 
 After reading this guide, you will know:
 
-* What Active Model is
+* What Active Model is.
 * How to use Active Model in your classes.
 * The different modules that are included in Active Model.
 
@@ -29,10 +29,10 @@ Some of these modules are explained below.
 
 When including `ActiveModel::API`, other modules are included by default which enables you to get features like:
 
-- [Attribute Assignment](active_model_basics.html#attribute_assignment)
-- [Conversions](active_model_basics.html#conversion)
-- [Name Introspections](active_model_basics.html#naming)
-- [Translations](active_model_basics.html#translation)
+- [Attribute Assignment](active_model_basics.html#attribute-assignment)
+- [Conversion](active_model_basics.html#conversion)
+- [Naming](active_model_basics.html#naming)
+- [Translation](active_model_basics.html#translation)
 - [Validations](active_model_basics.html#validations)
 
 Here is an example of a class that includes `ActiveModel::API` and how it can be used:
@@ -55,19 +55,19 @@ end
 ```irb
 irb> email_contact = EmailContact.new(name: "David", email: "david@example.com", message: "Hello World")
 
-irb> email_contact.name #attribute assignment
+irb> email_contact.name # attribute assignment
 => "David"
 
-irb> email_contact.to_model == email_contact #conversions
+irb> email_contact.to_model == email_contact # conversion
 => true
 
-irb> email_contact.model_name.name #naming
+irb> email_contact.model_name.name # naming
 => EmailContact
 
-irb> email_contact.human_attribute_name("name") #translations if locale is set
+irb> email_contact.human_attribute_name("name") # translation if the locale is set
 => "Name"
 
-irb> email_contact.valid? #validations
+irb> email_contact.valid? # validations
 => true
 ```
 
@@ -95,7 +95,7 @@ For example, `form_with` can be used to create a form for an `EmailContact` obje
 
 ### Attributes
 
-Similar to Active Record attributes, which are typically inferred from the database schema, Active Model Attributes allow you to define data types, set default values, and handle casting and serialization on plain ruby objects. This can be useful for form data which will produce Active Record-like conversion for things like dates and booleans on regular objects.
+`ActiveModel::Attributes` allows you to define data types, set default values, and handle casting and serialization on plain ruby objects. This can be useful for form data which will produce Active Record-like conversion for things like dates and booleans on regular objects.
 
 To use Attributes, include the module in your model class and define your attributes using the `attribute` macro. It accepts a name, a cast type, a default value, and any other options supported by the attribute type.
 
@@ -135,7 +135,7 @@ irb> person.active
 
 Some additional methods described below are available when using `ActiveModel::Attributes`.
 
-#### Method: Attribute Names
+#### Method: `attribute_names`
 
 The `attribute_names` method returns an array of attribute names.
 
@@ -144,7 +144,7 @@ irb> Person.attribute_names
 => ["name", "date_of_birth", "active"]
 ```
 
-#### Method: Attributes
+#### Method: `attributes`
 
 The `attributes` method returns a hash of all the attributes with their names as keys and the values of the attributes as values.
 
@@ -160,7 +160,7 @@ irb> person.attributes
 
 ### Attribute Assignment
 
-Attribute Assignment allows you to set an object's attributes by passing in a hash of attributes with keys matching the attribute names. This is useful when you want to set multiple attributes at once.
+`ActiveModel::AttributeAssignment` allows you to set an object's attributes by passing in a hash of attributes with keys matching the attribute names. This is useful when you want to set multiple attributes at once.
 
 Consider the following class:
 
@@ -220,8 +220,8 @@ irb> person.date_of_birth
 ### Attribute Methods
 
 `ActiveModel::AttributeMethods` provides a way to define methods dynamically for attributes of a model. This module is particularly useful to simplify attribute access and manipulation, and it can add custom prefixes and suffixes to the methods of a class.
-You can define the prefixes and suffixes and
-which methods on the object will use them as follows:
+You can define the prefixes and suffixes and which methods on the object will use them as follows:
+
 1. Include `ActiveModel::AttributeMethods` in your class.
 2. Call each of the methods you want to add, such as `attribute_method_suffix`,  `attribute_method_prefix`, `attribute_method_affix`.
 3. Call the `define_attribute_methods` after the other methods to declare the attribute that should be prefixed and suffixed.
@@ -358,25 +358,25 @@ class Person
   def update
     run_callbacks(:update) do
       puts "update method called"
-      # This is the callback method when update is called on an object.
+      # This is the callback method executed when `update` is called on an object.
     end
   end
 
   def reset_me
     puts "reset_me method: called before the update method"
-    # This method is called as a before_update callback when update is called on an object.
+    # When update is called on an object, then this method is called by `before_update` callback
   end
 
   def finalize_me
     puts "finalize_me method: called after the update method"
-    # This method is called as an after_update callback when update is called on an object.
+    # When update is called on an object, then this method is called by `after_update` callback
   end
 
   def log_me
     puts "log_me method: called around the update method"
     yield
     puts "log_me method: block successfully called"
-    # This method is called as an around_update callback when update is called on an object.
+    # When update is called on an object, then this method is called by `around_update` callback
   end
 end
 ```
@@ -387,11 +387,12 @@ The above class will yield the following which indicates the order in which the 
 irb> person = Person.new
 
 irb> person.update
-=> reset_me method: called before the update method
-=> log_me method: called around the update method
-=> update method called
-=> block successfully called
-=> finalize_me method: called after the update method
+reset_me method: called before the update method
+log_me method: called around the update method
+update method called
+log_me method: block successfully called
+finalize_me method: called after the update method
+=> nil
 ```
 
 As per the above example, when defining an 'around' callback remember to `yield` to the block, otherwise, it won't be executed.
@@ -444,7 +445,7 @@ Like the Active Record methods, the callback chain is aborted as soon as one of 
 
 The `ActiveModel::Conversion` module adds the following methods: `to_model`, `to_key`, `to_param`, and `to_partial_path` to classes.
 
-The return values of the methods depend on whether`persisted`?` is defined and if an `id` is provided. The `persisted?` method should return true if the object has been saved to the database or store, otherwise, it should return `false`. The `id` should reference the id of the object or nil if the object is not saved.
+The return values of the methods depend on whether `persisted?` is defined and if an `id` is provided. The `persisted?` method should return true if the object has been saved to the database or store, otherwise, it should return `false`. The `id` should reference the id of the object or nil if the object is not saved.
 
 ```ruby
 class Person
@@ -520,6 +521,7 @@ attributes and has not been saved. It has attribute-based
 accessor methods.
 
 To use `ActiveModel::Dirty`, you need to:
+
 1. Include the module in your class.
 - Define the attribute methods that you want to track changes for, using `define_attribute_methods`.
 2. Call `[attr_name]_will_change!` before each change to the tracked attribute.
@@ -722,32 +724,32 @@ irb> person.valid?
 
 You can add validations using some of the following methods:
 
-- `validate` - adds validation through a method or a block to the class. You can read more about how to use `validate` [here](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validate).
+- `validate`: Adds validation through a method or a block to the class. You can read more about how to use `validate` [here](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validate).
 
-- `validates` - An attribute can be passed to the `validates` method and it provides a shortcut to all default validators. You can read more about how to use `validates` [here](ttps://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates).
+- `validates`:An attribute can be passed to the `validates` method and it provides a shortcut to all default validators. You can read more about how to use `validates` [here](ttps://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates).
 
-- `validates!` or setting `strict: true` - used to define validations that cannot be corrected by end users and are considered exceptional. Each validator defined with a bang or `:strict` option set to true will always raise `ActiveModel::StrictValidationFailed` instead of adding to the errors when validation fails.
+- `validates!` or setting `strict: true`: Used to define validations that cannot be corrected by end users and are considered exceptional. Each validator defined with a bang or `:strict` option set to true will always raise `ActiveModel::StrictValidationFailed` instead of adding to the errors when validation fails.
 
-- `validates_with` - Passes the record off to the class or classes specified and allows them to add errors based on more complex conditions.
+- `validates_with`: Passes the record off to the class or classes specified and allows them to add errors based on more complex conditions.
 
-- `validates_each` - Validates each attribute against a block.
+- `validates_each`: Validates each attribute against a block.
 
 Some of the options below can be used with certain validators. To determine if the option you're using can be used with a specific validator, read through the documentation [here](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html).
 
-- `:on` - Specifies the context in which to add the validation. You can pass a symbol or an array of symbols. (e.g. `on: :create` or `on: :custom_validation_context` or `on: [:create, :custom_validation_context]`). Validations without an `:on` option will run no matter the context. Validations with
+- `:on`: Specifies the context in which to add the validation. You can pass a symbol or an array of symbols. (e.g. `on: :create` or `on: :custom_validation_context` or `on: [:create, :custom_validation_context]`). Validations without an `:on` option will run no matter the context. Validations with
 some `:on` option will only run in the specified context.
 
-- `:if` - Specifies a method, proc or string to call to determine if the validation should occur (e.g. `if: :allow_validation`, or `if: Proc.new { |user| user.signup_step > 2 }`). The method, proc or string should return or evaluate to a `true` or `false` value.
+- `:if`: Specifies a method, proc or string to call to determine if the validation should occur (e.g. `if: :allow_validation`, or `if: Proc.new { |user| user.signup_step > 2 }`). The method, proc or string should return or evaluate to a `true` or `false` value.
 
-- `:unless` - Specifies a method, proc or string to call to determine if the validation should not occur (e.g. `unless: :skip_validation`, or `unless: Proc.new { |user| user.signup_step <= 2 }`). The method, proc or string should return or evaluate to a `true` or `false` value.
+- `:unless`: Specifies a method, proc or string to call to determine if the validation should not occur (e.g. `unless: :skip_validation`, or `unless: Proc.new { |user| user.signup_step <= 2 }`). The method, proc or string should return or evaluate to a `true` or `false` value.
 
-- `:allow_nil` - Skip the validation if the attribute is `nil`.
+- `:allow_nil`: Skip the validation if the attribute is `nil`.
 
-- `:allow_blank` - Skip the validation if the attribute is blank.
+- `:allow_blank`: Skip the validation if the attribute is blank.
 
-- `:strict` - If the `:strict` option is set to true, it will raise ActiveModel::StrictValidationFailed instead of adding the error. `:strict` option can also be set to any other exception.
+- `:strict`: If the `:strict` option is set to true, it will raise ActiveModel::StrictValidationFailed instead of adding the error. `:strict` option can also be set to any other exception.
 
- NOTE: Calling `validate` multiple times on the same method will overwrite previous definitions.
+NOTE: Calling `validate` multiple times on the same method will overwrite previous definitions.
 
 #### Errors
 
@@ -812,9 +814,14 @@ irb> Person.model_name.element
 irb> Person.model_name.human
 => "Person"
 ```
-
 **`collection`** returns the name of a table like Rails does for models to table names. It uses the pluralize method on the last word in the string.
-**param_key** returns a string to use for params names. It differs for namespaced models regarding whether it's inside an isolated engine.
+
+```irb
+irb> Person.model_name.collection
+=> "people"
+```
+
+**`param_key`** returns a string to use for params names. It differs for namespaced models regarding whether it's inside an isolated engine.
 
 ```irb
 irb> Person.model_name.param_key
@@ -822,7 +829,13 @@ irb> Person.model_name.param_key
 ```
 
 **`i18n_key`** returns the name of the i18n key. It underscores the model name and then returns it as a symbol.
-**route_key** returns a string to use while generating route names. It differs for namespaced models regarding whether it's inside isolated engine.
+
+```irb
+irb> Person.model_name.i18n_key
+=> :person
+```
+
+**`route_key`** returns a string to use while generating route names. It differs for namespaced models regarding whether it's inside isolated engine.
 
 ```irb
 irb> Person.model_name.route_key
@@ -851,7 +864,7 @@ Currently, when including `ActiveModel::Model` you get the features from [Active
 
 ### Serialization
 
-`ActiveModel::Serialization` provides basic serialization to a serializable_hash for your objects. You need to declare an attributes Hash which should contain the attributes you want to serialize. Attributes must be strings, not symbols.
+`ActiveModel::Serialization` provides basic serialization to a serializable hash for your objects. You need to declare an attributes Hash which should contain the attributes you want to serialize. Attributes must be strings, not symbols.
 
 ```ruby
 class Person
@@ -960,8 +973,6 @@ end
 
 The `as_json` method, similar to `serializable_hash`, provides a Hash representing
 the model with its keys as a String. The `to_json` method returns a JSON string representing the model.
-
-```ruby
 
 ```irb
 irb> person = Person.new
