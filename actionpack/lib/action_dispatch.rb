@@ -140,6 +140,10 @@ end
 
 autoload :Mime, "action_dispatch/http/mime_type"
 
+ActiveSupport.on_load(:i18n) do
+  I18n.load_path << File.expand_path("action_dispatch/locale/en.yml", __dir__)
+end
+
 ActiveSupport.on_load(:action_view) do
   ActionView::Base.default_formats ||= Mime::SET.symbols
   ActionView::Template.mime_types_implementation = Mime

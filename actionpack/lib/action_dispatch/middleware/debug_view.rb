@@ -69,5 +69,9 @@ module ActionDispatch
     rescue ActionController::BadRequest
       false
     end
+
+    def int_editor(frame)
+      frame[:trace].sub(/([^:]+):([0-9]+)(:.*)?/, "file://#{Rails.root.join("\\1#\\2")}")
+    end
   end
 end
