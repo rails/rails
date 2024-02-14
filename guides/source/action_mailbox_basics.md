@@ -389,7 +389,7 @@ irb> mail.body
 
 ### Inbound Email Status
 
-Once an email has been routed to a matching mailbox and processed, Action
+While the email is being routed to a matching mailbox and processed, Action
 Mailbox updates the email status stored in `action_mailbox_inbound_emails` table
 with one of the following values:
 
