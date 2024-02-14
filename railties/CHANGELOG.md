@@ -1,7 +1,3 @@
-*   Use `ruby file: ".ruby-version"` in generated Gemfile if supported.
-
-    *Hartley McGuire*
-
 *   `bin/rails test` will no longer load files named `*_test.rb` if they are located in the `fixtures` folder.
 
     *Edouard Chin*
