@@ -82,7 +82,7 @@ module ApplicationTests
         assert_match(/up\s+003\s+Three migration/, output)
 
         rails "db:migrate", "VERSION=01_one_migration.rb"
-        output = rails("db:migrate:status")
+        output = rails("db:migrate:status", allow_failure: true)
         assert_match(/up\s+001\s+One migration/, output)
         assert_match(/down\s+002\s+Two migration/, output)
         assert_match(/down\s+003\s+Three migration/, output)
@@ -94,7 +94,7 @@ module ApplicationTests
         assert_match(/up\s+003\s+Three migration/, output)
 
         rails "db:migrate", "VERSION=001"
-        output = rails("db:migrate:status")
+        output = rails("db:migrate:status", allow_failure: true)
         assert_match(/up\s+001\s+One migration/, output)
         assert_match(/down\s+002\s+Two migration/, output)
         assert_match(/down\s+003\s+Three migration/, output)
@@ -173,7 +173,7 @@ module ApplicationTests
 
         rails "db:migrate", "VERSION=0"
 
-        output = rails("db:migrate:status")
+        output = rails("db:migrate:status", allow_failure: true)
         assert_match(/down\s+001\s+One migration/, output)
         assert_match(/down\s+002\s+Two migration/, output)
       end
@@ -213,7 +213,7 @@ module ApplicationTests
         assert_match(/up\s+\d{14}\s+Add email to users/, output)
 
         rails "db:rollback", "STEP=1"
-        output = rails("db:migrate:status")
+        output = rails("db:migrate:status", allow_failure: true)
 
         assert_match(/up\s+\d{14}\s+Create users/, output)
         assert_match(/down\s+\d{14}\s+Add email to users/, output)
@@ -232,7 +232,7 @@ module ApplicationTests
         assert_match(/up\s+\d{3,}\s+Add email to users/, output)
 
         rails "db:rollback", "STEP=1"
-        output = rails("db:migrate:status")
+        output = rails("db:migrate:status", allow_failure: true)
 
         assert_match(/up\s+\d{3,}\s+Create users/, output)
         assert_match(/down\s+\d{3,}\s+Add email to users/, output)
@@ -251,7 +251,7 @@ module ApplicationTests
         assert_match(/up\s+\d{14}\s+Add email to users/, output)
 
         rails "db:rollback", "STEP=2"
-        output = rails("db:migrate:status")
+        output = rails("db:migrate:status", allow_failure: true)
 
         assert_match(/down\s+\d{14}\s+Create users/, output)
         assert_match(/down\s+\d{14}\s+Add email to users/, output)
@@ -276,7 +276,7 @@ module ApplicationTests
         assert_match(/up\s+\d{14}\s+Add email to users/, output)
 
         rails "db:rollback", "STEP=2"
-        output = rails("db:migrate:status")
+        output = rails("db:migrate:status", allow_failure: true)
 
         assert_match(/down\s+\d{14}\s+Create users/, output)
         assert_match(/down\s+\d{14}\s+Add email to users/, output)
@@ -401,7 +401,7 @@ module ApplicationTests
         assert_match(/up\s+\d{3,}\s+Add email to users/, output)
 
         rails "db:rollback", "STEP=2"
-        output = rails("db:migrate:status")
+        output = rails("db:migrate:status", allow_failure: true)
 
         assert_match(/down\s+\d{3,}\s+Create users/, output)
         assert_match(/down\s+\d{3,}\s+Add email to users/, output)

@@ -272,19 +272,29 @@ module ActiveRecord
         db_configs_with_versions
       end
 
-      def migrate_status
+      def migrate_status(exit_on_migrations_needed = true)
         unless migration_connection.schema_migration.table_exists?
           Kernel.abort "Schema migrations table does not exist yet."
         end
 
-        # output
-        puts "\ndatabase: #{migration_connection.pool.db_config.database}\n\n"
-        puts "#{'Status'.center(8)}  #{'Migration ID'.ljust(14)}  Migration Name"
-        puts "-" * 50
-        migration_connection.migration_context.migrations_status.each do |status, version, name|
-          puts "#{status.center(8)}  #{version.ljust(14)}  #{name}"
+        migrations_needed = false
+        migrations = migration_connection.migration_context.migrations_status.map do |status, version, name|
+          migrations_needed = true if status == "down"
+
+          "#{status.center(8)}  #{version.ljust(14)}  #{name}"
         end
+
+        header = "#{'Status'.center(8)}  #{'Migration ID'.ljust(14)}  Migration Name"
+        divider_length = [header.length, migrations.max_by(&:length).length].max
+
+        puts "\ndatabase: #{migration_connection.pool.db_config.database}\n\n"
+        puts header
+        puts "-" * divider_length
+        puts migrations.join("\n")
+
         puts
+
+        Kernel.exit(2) if migrations_needed && exit_on_migrations_needed
       end
 
       def check_target_version
