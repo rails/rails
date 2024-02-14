@@ -27,7 +27,7 @@ module ActionDispatch
       end
 
       # Get a session from the cache.
-      def find_session(env, sid)
+      def find_session(req, sid)
         unless sid && (session = get_session_with_fallback(sid))
           sid, session = generate_sid, {}
         end
@@ -35,7 +35,7 @@ module ActionDispatch
       end
 
       # Set a session in the cache.
-      def write_session(env, sid, session, options)
+      def write_session(req, sid, session, options)
         key = cache_key(sid.private_id)
         if session
           @cache.write(key, session, expires_in: options[:expire_after])
@@ -46,7 +46,7 @@ module ActionDispatch
       end
 
       # Remove a session from the cache.
-      def delete_session(env, sid, options)
+      def delete_session(req, sid, options)
         @cache.delete(cache_key(sid.private_id))
         @cache.delete(cache_key(sid.public_id))
         generate_sid

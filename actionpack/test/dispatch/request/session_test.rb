@@ -167,25 +167,25 @@ module ActionDispatch
       private
         def store
           Class.new {
-            def load_session(env); [1, {}]; end
-            def session_exists?(env); true; end
-            def delete_session(env, id, options); 123; end
+            def load_session(req); [1, {}]; end
+            def session_exists?(req); true; end
+            def delete_session(req, id, options); 123; end
           }.new
         end
 
         def store_with_data
           Class.new {
-            def load_session(env); [1, { "sample_key" => "sample_value" }]; end
-            def session_exists?(env); true; end
-            def delete_session(env, id, options); 123; end
+            def load_session(req); [1, { "sample_key" => "sample_value" }]; end
+            def session_exists?(req); true; end
+            def delete_session(req, id, options); 123; end
           }.new
         end
 
         def store_for_session_that_does_not_exist
           Class.new {
-            def load_session(env); [1, {}]; end
-            def session_exists?(env); false; end
-            def delete_session(env, id, options); 123; end
+            def load_session(req); [1, {}]; end
+            def session_exists?(req); false; end
+            def delete_session(req, id, options); 123; end
           }.new
         end
     end
