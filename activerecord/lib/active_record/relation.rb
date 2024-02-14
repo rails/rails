@@ -526,7 +526,12 @@ module ActiveRecord
 
       group_values_arel_columns = arel_columns(group_values.uniq)
       having_clause_ast = having_clause.ast unless having_clause.empty?
-      stmt = arel.compile_update(values, table[primary_key], having_clause_ast, group_values_arel_columns)
+      key = if klass.composite_primary_key?
+        primary_key.map { |pk| table[pk] }
+      else
+        table[primary_key]
+      end
+      stmt = arel.compile_update(values, key, having_clause_ast, group_values_arel_columns)
       klass.connection.update(stmt, "#{klass} Update All").tap { reset }
     end
 
@@ -659,7 +664,12 @@ module ActiveRecord
 
       group_values_arel_columns = arel_columns(group_values.uniq)
       having_clause_ast = having_clause.ast unless having_clause.empty?
-      stmt = arel.compile_delete(table[primary_key], having_clause_ast, group_values_arel_columns)
+      key = if klass.composite_primary_key?
+        primary_key.map { |pk| table[pk] }
+      else
+        table[primary_key]
+      end
+      stmt = arel.compile_delete(key, having_clause_ast, group_values_arel_columns)
 
       klass.connection.delete(stmt, "#{klass} Delete All").tap { reset }
     end
