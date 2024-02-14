@@ -47,8 +47,7 @@ study them by other means if you would like to learn more.
 
 ### Active Record as an ORM Framework
 
-Active Record gives us several mechanisms, the most important being the ability
-to:
+Active Record gives us the ability to do the following using Ruby objects:
 
 * Represent models and their data.
 * Represent associations between these models.
@@ -68,11 +67,16 @@ Convention over Configuration in Active Record
 When writing applications using other programming languages or frameworks, it
 may be necessary to write a lot of configuration code. This is particularly true
 for ORM frameworks in general. However, if you follow the conventions adopted by
-Rails, you'll need to write very little configuration (in some cases no
-configuration at all) when creating Active Record models. The idea is that if
-you configure your applications in the very same way most of the time then this
-should be the default way. Thus, explicit configuration would be needed
-only in those cases where you can't follow the standard convention.
+Rails, you'll write very little to no configuration code, when creating Active
+Record models.
+
+Rails adopts the idea that if you configure your applications in the same way
+most of the time, then that way should be the default. Explicit configuration
+should be needed only in those cases where you can't follow the standard
+convention.
+
+To take advantage of convention over configuration in Active Record, there are
+some naming and schema conventions to follow:
 
 ### Naming Conventions
 
