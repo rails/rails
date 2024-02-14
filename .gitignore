@@ -9,6 +9,7 @@
 /dist/
 /doc/
 /guides/output/
+/preview/
 Brewfile.lock.json
 debug.log*
 node_modules/
