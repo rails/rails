@@ -197,8 +197,10 @@ class MigrationTest < ActiveRecord::TestCase
     # Do not drop table if existence guard option is present
     assert_nothing_raised do
       record = Person.create
-      connection.create_table :people, force: true, if_not_exists: true
-      record.reload
+      connection.create_table :people, force: true, if_not_exists: true do
+        t.string :first_name
+      end
+      record.reload.persisted?
     end
   ensure
     connection.drop_table :testings, if_exists: true
