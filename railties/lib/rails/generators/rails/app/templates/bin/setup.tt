@@ -21,6 +21,7 @@ FileUtils.chdir APP_ROOT do
   case
   when File.exist?("yarn.lock") then system("yarn install --check-files")
   when File.exist?("pnpm-lock.yaml") then system("pnpm install --verify --lockfile")
+  when File.exist?("package-lock.json") then system("npm install")
   end
 <% elsif using_bun? -%>
 
