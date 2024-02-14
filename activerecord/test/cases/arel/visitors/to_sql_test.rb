@@ -30,6 +30,21 @@ module Arel
         _(sql).must_be_like "VALUES (?)"
       end
 
+      it "does not quote Nodes used as part of a ValuesList" do
+        bind_param = Nodes::BindParam.new(Time.now)
+        node = Nodes::NamedFunction.new("date_trunc", [Nodes.build_quoted("day"), bind_param])
+        values = Nodes::ValuesList.new([[node]])
+        sql = compile values
+        _(sql).must_be_like "VALUES (date_trunc('day', ?))"
+      end
+
+      it "does not quote SqlLiterals used as part of a ValuesList" do
+        node = Arel.sql("true")
+        values = Nodes::ValuesList.new([[node]])
+        sql = compile values
+        _(sql).must_be_like "VALUES (true)"
+      end
+
       it "can define a dispatch method" do
         visited = false
         viz = Class.new(Arel::Visitors::Visitor) {
