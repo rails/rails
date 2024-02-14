@@ -55,7 +55,7 @@ ActiveRecord::Schema.define do
     t.text :params
     t.references :account
   end
-  
+
   create_table :aircraft, force: true do |t|
     t.string :name
     t.integer :wheels_count, default: 0, null: false
@@ -847,6 +847,11 @@ ActiveRecord::Schema.define do
     t.string      :name
   end
 
+  create_table :envelopes, force: :cascade do |t|
+    t.string :name
+    t.references :box
+  end
+
   create_table :sales, force: true do |t|
     t.string :message
     t.integer :building_id
@@ -866,17 +871,13 @@ ActiveRecord::Schema.define do
   end
 
 
-  create_table :children, force: :cascade do |t|
+  create_table :notes, force: :cascade do |t|
     t.string :name
-    t.references :parent
+    t.references :envelope
   end
 
-  create_table :grandparents, force: :cascade do |t|
+  create_table :boxes, force: :cascade do |t|
     t.string :name
-  end
-  create_table :parents, force: :cascade do |t|
-    t.string :name
-    t.references :grandparent
   end
 
 

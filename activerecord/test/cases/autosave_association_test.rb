@@ -40,9 +40,9 @@ require "models/chef"
 require "models/cake_designer"
 require "models/drink_designer"
 require "models/cpk"
-require "models/child"
-require "models/parent"
-require "models/grandparent"
+require "models/note"
+require "models/envelope"
+require "models/box"
 require "models/building"
 require "models/listing"
 require "models/sale"
@@ -2233,20 +2233,20 @@ end
 class TestCircularAutosaveAssociations < ActiveRecord::TestCase
   def setup
     super
-    load_schema
+    # load_schema
     
-    @parent = Parent.create!(name: "P")
-    @child = Child.new(name: "Hi!")
-    @child.parent = @parent
+    @parent = Envelope.create!(name: "P")
+    @child = Note.new(name: "Hi!")
+    @child.envelope = @parent
 
     @child.save!
   end
 
   def test_previous_changes_are_present_after_saves
-    @grandparent = Grandparent.new(name: "G")
-    @parent = Parent.new(name: "P", grandparent: @grandparent)
-    @child = Child.new(name: "Hi!")
-    @child.parent = @parent
+    @grandparent = Box.new(name: "G")
+    @parent = Envelope.new(name: "P", box: @grandparent)
+    @child = Note.new(name: "Hi!")
+    @child.envelope = @parent
 
     @child.save!
 
@@ -2277,13 +2277,13 @@ class TestCircularAutosaveAssociations < ActiveRecord::TestCase
   # association there is nil. But if I put debugger there and eval `parent` manually it would work
   # as the third case.
   def test_prev_changes_pass
-    child2 = Child.create!(name: "2", parent_id: @parent.id)
+    child2 = Note.create!(name: "2", envelope_id: @parent.id)
     assert_equal [nil, "2"], child2.previous_changes[:name]
   end
 
   # This also fail for the same reason as test_prev_changes
   def test_prev_changes2
-    child3 = Child.create!(name: "3", parent: @parent)
+    child3 = Note.create!(name: "3", envelope: @parent)
     assert_equal [nil, "3"], child3.previous_changes[:name]
   end
 
@@ -2296,6 +2296,7 @@ class TestCircularAutosaveAssociations < ActiveRecord::TestCase
 end
 
 class TestCircularAutosaveAssociationsTreeTraversal < ActiveRecord::TestCase
+
   def test_cyclic_autosaves_do_not_call_validation_and_save_on_the_same_model_multiple_times
     expense = Expense.new(message: "Expense")
     sale = Sale.new(message: "Sale")
