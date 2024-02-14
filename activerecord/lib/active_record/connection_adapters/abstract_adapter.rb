@@ -50,7 +50,9 @@ module ActiveRecord
         @schema_cache = nil
         @pool = value
 
-        @pool.schema_reflection.load!(self) if ActiveRecord.lazily_load_schema_cache
+        if @pool && ActiveRecord.lazily_load_schema_cache
+          @pool.schema_reflection.load!(@pool)
+        end
       end
 
       set_callback :checkin, :after, :enable_lazy_transactions!
@@ -321,7 +323,7 @@ module ActiveRecord
       end
 
       def schema_cache
-        @schema_cache ||= BoundSchemaReflection.new(@pool.schema_reflection, self)
+        @pool.schema_cache || (@schema_cache ||= BoundSchemaReflection.for_lone_connection(@pool.schema_reflection, self))
       end
 
       # this method must only be called while holding connection pool's mutex

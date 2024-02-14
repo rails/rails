@@ -235,7 +235,7 @@ module ApplicationTests
       Dir.chdir(app_path) do
         app("development")
 
-        assert ActiveRecord::Base.connection.schema_cache.data_sources("posts")
+        assert ActiveRecord::Base.schema_cache.data_sources("posts")
       end
     ensure
       ActiveRecord::Base.connection.drop_table("posts", if_exists: true) # force drop posts table for test.
@@ -253,7 +253,7 @@ module ApplicationTests
         app("development")
 
         _, error = capture_io do
-          assert_not ActiveRecord::Base.connection.schema_cache.data_sources("posts")
+          assert_not ActiveRecord::Base.schema_cache.data_sources("posts")
         end
 
         assert_match(/Ignoring db\/schema_cache\.yml because it has expired/, error)
@@ -278,7 +278,7 @@ module ApplicationTests
 
           _, error = capture_io do
             assert_raises ActiveRecord::ConnectionNotEstablished do
-              ActiveRecord::Base.connection.schema_cache.columns("posts")
+              ActiveRecord::Base.schema_cache.columns("posts")
             end
           end
 

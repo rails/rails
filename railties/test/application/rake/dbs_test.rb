@@ -403,8 +403,8 @@ module ApplicationTests
         Dir.chdir(app_path) do
           rails "db:schema:cache:dump"
 
-          cache_size = lambda { rails("runner", "p ActiveRecord::Base.connection.schema_cache.size").strip }
-          cache_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.schema_cache.columns('books')").strip }
+          cache_size = lambda { rails("runner", "p ActiveRecord::Base.schema_cache.size").strip }
+          cache_tables = lambda { rails("runner", "p ActiveRecord::Base.schema_cache.columns('books')").strip }
 
           assert_equal "12", cache_size[]
           assert_includes cache_tables[], "id", "expected cache_tables to include an id entry"
@@ -479,7 +479,7 @@ module ApplicationTests
 
           rails "db:schema:cache:dump"
 
-          virtual_column_exists = rails("runner", "p ActiveRecord::Base.connection.schema_cache.columns('books')[2].virtual?").strip
+          virtual_column_exists = rails("runner", "p ActiveRecord::Base.schema_cache.columns('books')[2].virtual?").strip
           assert_equal "true", virtual_column_exists
         end
       end
@@ -492,7 +492,7 @@ module ApplicationTests
           rails "db:migrate"
 
           expired_warning = capture(:stderr) do
-            cache_size = rails("runner", "p ActiveRecord::Base.connection.schema_cache.size", stderr: true).strip
+            cache_size = rails("runner", "p ActiveRecord::Base.schema_cache.size", stderr: true).strip
             assert_equal "0", cache_size
           end
           assert_match(/Ignoring .*\.yml because it has expired/, expired_warning)
