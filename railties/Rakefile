@@ -71,6 +71,7 @@ namespace :test do
 
     dirs = (ENV["TEST_DIR"] || ENV["TEST_DIRS"] || "**").split(",")
     test_options = ENV["TESTOPTS"].to_s.split(/[\s]+/)
+    test_options << "--profile" if ENV["CI"]
 
     test_patterns = dirs.map { |dir| "test/#{dir}/*_test.rb" }
     test_files = Dir[*test_patterns].select do |file|
@@ -143,5 +144,6 @@ Rake::TestTask.new("test:regular") do |t|
   t.pattern = "test/**/*_test.rb"
   t.warning = true
   t.verbose = true
+  t.options = "--profile" if ENV["CI"]
   t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
 end

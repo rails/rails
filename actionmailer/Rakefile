@@ -13,6 +13,7 @@ Rake::TestTask.new { |t|
   t.pattern = "test/**/*_test.rb"
   t.warning = true
   t.verbose = true
+  t.options = "--profile" if ENV["CI"]
   t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
 }
 
