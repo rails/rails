@@ -334,6 +334,7 @@ module ActiveRecord
       # enabled records if they're marked_for_destruction? or destroyed.
       def association_valid?(reflection, record, index = nil)
         return true if record.destroyed? || (reflection.options[:autosave] && record.marked_for_destruction?)
+        return true if !custom_validation_context? && record.persisted? && !record.has_changes_to_save?
 
         context = validation_context if custom_validation_context?
 

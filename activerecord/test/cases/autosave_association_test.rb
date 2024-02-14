@@ -1949,6 +1949,14 @@ module AutosaveAssociationOnACollectionAssociationTests
       @pirate.save!
     end
   end
+
+  def test_should_save_when_children_is_persisted_unchanged_and_invalid
+    parrot = Parrot.new(name: nil)
+    assert parrot.save(validate: false)
+
+    pirate = Pirate.new(parrots: [parrot], catchphrase: "Arrrr")
+    assert pirate.save
+  end
 end
 
 class TestAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCase
