@@ -437,6 +437,11 @@ guest_cleanup_jobs = Guest.all.map { |guest| GuestsCleanupJob.new(guest) }
 
 # Will enqueue a separate job for each instance of `GuestCleanupJob`
 ActiveJob.perform_all_later(guest_cleanup_jobs)
+
+# Can also use `set` method to configure options before bulk enqueuing jobs.
+guest_cleanup_jobs = Guest.all.map { |guest| GuestsCleanupJob.new(guest).set(wait: 1.day) }
+
+ActiveJob.perform_all_later(guest_cleanup_jobs)
 ```
 
 `perform_all_later` logs the number of jobs successfully enqueued, for example
