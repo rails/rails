@@ -1,3 +1,8 @@
+*   Fix the error page that is displayed when a view template is missing to account for nested controller paths in the
+    suggested correct location for the missing template.
+
+    *Joshua Young*
+
 *   Request Forgery takes relative paths into account.
 
     *Stefan Wienert*

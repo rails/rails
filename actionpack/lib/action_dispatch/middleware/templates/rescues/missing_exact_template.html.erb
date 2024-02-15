@@ -11,7 +11,7 @@
     </p>
     <p>
       For example, a <code><%= @exception.controller %>#<%= @exception.action_name %></code> action defined in <code>app/controllers/<%= @exception.controller.controller_path %>_controller.rb</code> should have a corresponding view template
-      in a file named <code>app/views/<%= @exception.controller.controller_name %>/<%= @exception.action_name %>.html.erb</code>.
+      in a file named <code>app/views/<%= @exception.controller.controller_path %>/<%= @exception.action_name %>.html.erb</code>.
     </p>
     <p>
       However, if this controller is an API endpoint responding with 204 (No Content), which does not require a view template because it doesn't serve an HTML response, then this error will occur when trying to access it with a browser. In this particular scenario, you can ignore this error.
