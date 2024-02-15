@@ -436,7 +436,7 @@ The return value of `perform_all_later` is `nil`. Note that this is different fr
 
 ### Enqueue Multiple Active Job Classes
 
-With `perform_all_later` it's also possible to enqueue different Active Job class instances in the same call. For example
+With `perform_all_later`, it's also possible to enqueue different Active Job class instances in the same call. For example:
 
 ```ruby
 class ExportDataJob < ApplicationJob
