@@ -252,13 +252,15 @@ module ActiveRecord
       # connection will be properly returned to the pool by the code that checked
       # it out.
       def with_connection
-        unless conn = @thread_cached_conns[ActiveSupport::IsolatedExecutionState.context]
-          conn = connection
-          fresh_connection = true
+        if conn = @thread_cached_conns[ActiveSupport::IsolatedExecutionState.context]
+          yield conn
+        else
+          begin
+            yield connection
+          ensure
+            release_connection
+          end
         end
-        yield conn
-      ensure
-        release_connection if fresh_connection
       end
 
       # Returns true if a connection has already been opened.
@@ -573,6 +575,8 @@ module ActiveRecord
 
         def attempt_to_checkout_all_existing_connections(raise_on_acquisition_timeout = true)
           collected_conns = synchronize do
+            reap # No need to wait for dead owners
+
             # account for our own connections
             @connections.select { |conn| conn.owner == ActiveSupport::IsolatedExecutionState.context }
           end
