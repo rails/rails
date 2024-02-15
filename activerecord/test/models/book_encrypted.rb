@@ -49,3 +49,10 @@ class EncryptedBookWithBinary < ActiveRecord::Base
 
   encrypts :logo
 end
+
+class EncryptedBookWithSerializedBinary < ActiveRecord::Base
+  self.table_name = "encrypted_books"
+
+  serialize :logo, coder: JSON
+  encrypts :logo
+end

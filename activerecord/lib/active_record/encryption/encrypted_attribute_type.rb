@@ -100,7 +100,7 @@ module ActiveRecord
         end
 
         def decrypt(value)
-          reserialize decrypt_as_text(value)
+          text_to_database_type decrypt_as_text(value)
         end
 
         def try_to_deserialize_with_previous_encrypted_types(value)
@@ -140,7 +140,7 @@ module ActiveRecord
         end
 
         def encrypt(value)
-          reserialize encrypt_as_text(value)
+          text_to_database_type encrypt_as_text(value)
         end
 
         def encryptor
@@ -159,9 +159,9 @@ module ActiveRecord
           @clean_text_scheme ||= ActiveRecord::Encryption::Scheme.new(downcase: downcase?, encryptor: ActiveRecord::Encryption::NullEncryptor.new)
         end
 
-        def reserialize(value)
-          if cast_type.binary?
-            cast_type.serialize(value)
+        def text_to_database_type(value)
+          if value && cast_type.binary?
+            ActiveModel::Type::Binary::Data.new(value)
           else
             value
           end
