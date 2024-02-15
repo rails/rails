@@ -1,3 +1,8 @@
+*   Fix the error page that is displayed when a view template is missing to account for nested controller paths in the
+    suggested correct location for the missing template.
+
+    *Joshua Young*
+
 *   Add `save_and_open_page` helper to IntegrationTest
     `save_and_open_page` is a helpful helper to keep a short feedback loop when working on system tests.
     A similar helper with matching signature has been added to integration tests.
