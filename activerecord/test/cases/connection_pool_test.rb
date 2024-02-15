@@ -978,6 +978,11 @@ module ActiveRecord
         def terminate
           nil
         end
+
+        unless method_defined?(:kill) # RUBY_VERSION <= "3.3"
+          def kill
+          end
+        end
       end
 
       def setup
