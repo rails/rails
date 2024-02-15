@@ -410,14 +410,14 @@ end
 [`around_perform`]: https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-around_perform
 [`after_perform`]: https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-after_perform
 
-Please note that when enqueueing jobs in bulk using `perform_all_later`, callbacks such as `around_enqueue`, will not be triggered on the individual jobs. See [Bulk Enqueuing Callbacks](#bulk-enqueue-callbacks).
+Please note that when enqueuing jobs in bulk using `perform_all_later`, callbacks such as `around_enqueue`, will not be triggered on the individual jobs. See [Bulk Enqueuing Callbacks](#bulk-enqueue-callbacks).
 
 Bulk Enqueuing
 --------------
 
-You can enqueue multiple jobs at once using [`perform_all_later`](https://api.rubyonrails.org/classes/ActiveJob.html#method-c-perform_all_later). Bulk enqueuing reduces the number of round trips to the queue data store (like Redis or a database), making it a more performant operation than enqueueing the same jobs individually.
+You can enqueue multiple jobs at once using [`perform_all_later`](https://api.rubyonrails.org/classes/ActiveJob.html#method-c-perform_all_later). Bulk enqueuing reduces the number of round trips to the queue data store (like Redis or a database), making it a more performant operation than enqueuing the same jobs individually.
 
-`perform_all_later` is a top-level api on Active Job. It accepts instantiated jobs as arguments (note that this is different from `perform_later`). `perform_all_later` does call `perform` under the hood. The arguments passed to `new` will be passed on to `perform` when it's eventually called.
+`perform_all_later` is a top-level API on Active Job. It accepts instantiated jobs as arguments (note that this is different from `perform_later`). `perform_all_later` does call `perform` under the hood. The arguments passed to `new` will be passed on to `perform` when it's eventually called.
 
 Here is an example calling `perform_all_later` with `GuestCleanupJob` instances:
 
@@ -436,7 +436,7 @@ The return value of `perform_all_later` is `nil`. Note that this is different fr
 
 ### Enqueue Multiple Active Job Classes
 
-With `perform_all_later` it's also possible to enqueue different Active Job class instances in the same call. For example
+With `perform_all_later`, it's also possible to enqueue different Active Job class instances in the same call. For example:
 
 ```ruby
 class ExportDataJob < ApplicationJob
@@ -462,7 +462,7 @@ ActiveJob.perform_all_later(cleanup_job, export_job, notify_job)
 
 ### Bulk Enqueue Callbacks
 
-When enqueueing jobs in bulk using `perform_all_later`, callbacks such as `around_enqueue`, will not be triggered on the individual jobs. This behavior is in line with other Active Record bulk methods. Since callbacks run on individual jobs, they can't take advantage of the bulk nature of this method.
+When enqueuing jobs in bulk using `perform_all_later`, callbacks such as `around_enqueue`, will not be triggered on the individual jobs. This behavior is in line with other Active Record bulk methods. Since callbacks run on individual jobs, they can't take advantage of the bulk nature of this method.
 
 However, the `perform_all_later` method does fire an [`enqueue_all.active_job`](active_support_instrumentation.html#enqueue-all-active-job) event which you can subscribe to using `ActiveSupport::Notifications`.
 
@@ -472,7 +472,7 @@ The method [`successfully_enqueued?`](https://api.rubyonrails.org/classes/Active
 
 For `perform_all_later`, bulk enqueuing needs to be backed by the [queue backend](#backends).
 
-For example Sidekiq has a `push_bulk` method, which can push a large number of jobs to Redis and prevent the round trip network latency. GoodJob also supports bulk enqueuing with `GoodJob::Bulk.enqueue` method. The new queue backend [`Solid Queue`](https://github.com/basecamp/solid_queue/pull/93) has added support for bulk enqueuing as well.
+For example, Sidekiq has a `push_bulk` method, which can push a large number of jobs to Redis and prevent the round trip network latency. GoodJob also supports bulk enqueuing with the `GoodJob::Bulk.enqueue` method. The new queue backend [`Solid Queue`](https://github.com/basecamp/solid_queue/pull/93) has added support for bulk enqueuing as well.
 
 If the queue backend does *not* support bulk enqueuing, `perform_all_later` will enqueue jobs one by one.
 
