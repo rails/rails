@@ -1,6 +1,5 @@
 **DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
-
 Active Model Basics
 ===================
 
@@ -331,7 +330,6 @@ irb> person.reset_name_to_default!
 If you call a method that is not defined, it will raise a `method_missing`
 error.
 
-
 #### Method: `alias_attribute`
 
 `ActiveModel::AttributeMethods` also provides aliasing of attribute methods.
@@ -448,7 +446,6 @@ finalize_me method: called after the update method
 
 As per the above example, when defining an 'around' callback remember to `yield`
 to the block, otherwise, it won't be executed.
-
 
 #### Defining Specific Callbacks
 
