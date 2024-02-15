@@ -1,3 +1,20 @@
+*   `ActiveSupport::Cache#with_local_cache` now prevents the local cache
+    from being cleared after each requests.
+
+    This is most useful for testing purposes to assert the state
+    of the cache without to temporary change the cache strategy.
+    For example:
+
+    ```ruby
+      Rails.cache.with_local_cache do
+        get "/customers"
+
+        assert_equal("", Rails.cache.read("cache_key"))
+      end
+    ```
+
+    *Edouard Chin*
+
 *   Include `IPAddr#prefix` when serializing an `IPAddr` using the
     `ActiveSupport::MessagePack` serializer. This change is backward and forward
     compatible — old payloads can still be read, and new payloads will be

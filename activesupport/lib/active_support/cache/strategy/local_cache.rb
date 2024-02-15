@@ -65,7 +65,12 @@ module ActiveSupport
 
         # Use a local cache for the duration of block.
         def with_local_cache(&block)
+          clear_cache = middleware.clear_cache?
+          middleware.clear_cache = false
+
           use_temporary_local_cache(LocalStore.new, &block)
+        ensure
+          middleware.clear_cache = clear_cache
         end
 
         # Middleware class can be inserted as a Rack handler to be local cache for the
