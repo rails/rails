@@ -30,7 +30,7 @@ create custom attributes etc.
 
 Some of this functionality was abstracted from Active Record to form Active
 Model. Active Model is a library containing various modules that can be used on
-plain ruby objects that require model-like features but are not tied to any
+plain Ruby objects that require model-like features but are not tied to any
 table in a database.
 
 Some of these modules are explained below.
@@ -115,7 +115,7 @@ object as follows:
 ### Attributes
 
 `ActiveModel::Attributes` allows you to define data types, set default values,
-and handle casting and serialization on plain ruby objects. This can be useful
+and handle casting and serialization on plain Ruby objects. This can be useful
 for form data which will produce Active Record-like conversion for things like
 dates and booleans on regular objects.
 
@@ -379,7 +379,7 @@ irb> person.nickname_short?
 
 ### Callbacks
 
-`ActiveModel::Callbacks` gives plain ruby objects Active Record style callbacks.
+`ActiveModel::Callbacks` gives plain Ruby objects Active Record style callbacks.
 The callbacks allow you to hook into model lifecycle events, such as
 `before_update` and `after_create`, as well as to define custom logic to be
 executed at specific points in the model's lifecycle.
