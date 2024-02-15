@@ -462,7 +462,7 @@ ActiveJob.perform_all_later(cleanup_job, export_job, notify_job)
 
 ### Bulk Enqueue Callbacks
 
-When enqueueing jobs in bulk using `perform_all_later`, callbacks such as `around_enqueue`, will not be triggered on the individual jobs. This behavior is in line with other Active Record bulk methods. Since callbacks run on individual jobs, they can't take advantage of the bulk nature of this method.
+When enqueuing jobs in bulk using `perform_all_later`, callbacks such as `around_enqueue`, will not be triggered on the individual jobs. This behavior is in line with other Active Record bulk methods. Since callbacks run on individual jobs, they can't take advantage of the bulk nature of this method.
 
 However, the `perform_all_later` method does fire an [`enqueue_all.active_job`](active_support_instrumentation.html#enqueue-all-active-job) event which you can subscribe to using `ActiveSupport::Notifications`.
 
