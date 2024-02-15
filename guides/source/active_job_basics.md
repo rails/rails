@@ -415,7 +415,7 @@ Please note that when enqueuing jobs in bulk using `perform_all_later`, callback
 Bulk Enqueuing
 --------------
 
-You can enqueue multiple jobs at once using [`perform_all_later`](https://api.rubyonrails.org/classes/ActiveJob.html#method-c-perform_all_later). Bulk enqueuing reduces the number of round trips to the queue data store (like Redis or a database), making it a more performant operation than enqueueing the same jobs individually.
+You can enqueue multiple jobs at once using [`perform_all_later`](https://api.rubyonrails.org/classes/ActiveJob.html#method-c-perform_all_later). Bulk enqueuing reduces the number of round trips to the queue data store (like Redis or a database), making it a more performant operation than enqueuing the same jobs individually.
 
 `perform_all_later` is a top-level API on Active Job. It accepts instantiated jobs as arguments (note that this is different from `perform_later`). `perform_all_later` does call `perform` under the hood. The arguments passed to `new` will be passed on to `perform` when it's eventually called.
 
