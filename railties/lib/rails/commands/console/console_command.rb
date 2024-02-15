@@ -1,13 +1,14 @@
 # frozen_string_literal: true
 
 require "rails/command/environment_argument"
+require "rails/full_message_cleaner"
 
 module Rails
   class Console
     module BacktraceCleaner
       def filter_backtrace(bt)
         if result = super
-          Rails.backtrace_cleaner.filter([result]).first
+          Rails.full_message_cleaner.filter([result]).first
         end
       end
     end

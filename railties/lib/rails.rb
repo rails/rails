@@ -57,6 +57,10 @@ module Rails
       @backtrace_cleaner ||= Rails::BacktraceCleaner.new
     end
 
+    def full_message_cleaner
+      @full_message_cleaner ||= Rails::FullMessageCleaner.new
+    end
+
     # Returns a Pathname object of the current \Rails project,
     # otherwise it returns +nil+ if there is no project:
     #

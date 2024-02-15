@@ -1,3 +1,9 @@
+*   Fix overly aggressive backtrace cleaning in the rails console.
+    Console backtraces now show all backtrace lines from within the
+    application code. Non-app lines are still silenced.
+
+    *Josh Broughton*
+
 *   Fix sanitizer vendor configuration in 7.1 defaults.
 
     In apps where rails-html-sanitizer was not eagerly loaded, the sanitizer default could end up
