@@ -21,7 +21,11 @@ module Arel # :nodoc: all
       end
 
       def key=(key)
-        @ast.key = Nodes.build_quoted(key)
+        @ast.key = if key.is_a?(Array)
+          key.map { |k| Nodes.build_quoted(k) }
+        else
+          Nodes.build_quoted(key)
+        end
       end
 
       def key

@@ -930,7 +930,8 @@ module Arel # :nodoc: all
             stmt.limit = nil
             stmt.offset = nil
             stmt.orders = []
-            stmt.wheres = [Nodes::In.new(o.key, [build_subselect(o.key, o)])]
+            columns = Arel::Nodes::Grouping.new(o.key)
+            stmt.wheres = [Nodes::In.new(columns, [build_subselect(o.key, o)])]
             stmt.relation = o.relation.left if has_join_sources?(o)
             stmt.groups = o.groups unless o.groups.empty?
             stmt.havings = o.havings unless o.havings.empty?

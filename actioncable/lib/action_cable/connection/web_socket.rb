@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "websocket/driver"
 
 module ActionCable
   module Connection
-    # = Action Cable \Connection \WebSocket
+    # # Action Cable Connection WebSocket
     #
     # Wrap the real socket to minimize the externally-presented API
     class WebSocket # :nodoc:

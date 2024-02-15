@@ -1,36 +1,39 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/callbacks"
 
 module ActionCable
   module Channel
-    # = Action Cable \Channel \Callbacks
+    # # Action Cable Channel Callbacks
     #
-    # Action Cable Channel provides callback hooks that are invoked during the
-    # life cycle of a channel:
+    # Action Cable Channel provides callback hooks that are invoked during the life
+    # cycle of a channel:
     #
-    # * {before_subscribe}[rdoc-ref:ClassMethods#before_subscribe]
-    # * {after_subscribe}[rdoc-ref:ClassMethods#after_subscribe] (aliased as
-    #   {on_subscribe}[rdoc-ref:ClassMethods#on_subscribe])
-    # * {before_unsubscribe}[rdoc-ref:ClassMethods#before_unsubscribe]
-    # * {after_unsubscribe}[rdoc-ref:ClassMethods#after_unsubscribe] (aliased as
-    #   {on_unsubscribe}[rdoc-ref:ClassMethods#on_unsubscribe])
+    # *   [before_subscribe](rdoc-ref:ClassMethods#before_subscribe)
+    # *   [after_subscribe](rdoc-ref:ClassMethods#after_subscribe) (aliased as
+    #     [on_subscribe](rdoc-ref:ClassMethods#on_subscribe))
+    # *   [before_unsubscribe](rdoc-ref:ClassMethods#before_unsubscribe)
+    # *   [after_unsubscribe](rdoc-ref:ClassMethods#after_unsubscribe) (aliased as
+    #     [on_unsubscribe](rdoc-ref:ClassMethods#on_unsubscribe))
     #
-    # ==== Example
     #
-    #   class ChatChannel < ApplicationCable::Channel
-    #     after_subscribe :send_welcome_message, unless: :subscription_rejected?
-    #     after_subscribe :track_subscription
+    # #### Example
     #
-    #     private
-    #       def send_welcome_message
-    #         broadcast_to(...)
-    #       end
+    #     class ChatChannel < ApplicationCable::Channel
+    #       after_subscribe :send_welcome_message, unless: :subscription_rejected?
+    #       after_subscribe :track_subscription
     #
-    #       def track_subscription
-    #         # ...
-    #       end
-    #   end
+    #       private
+    #         def send_welcome_message
+    #           broadcast_to(...)
+    #         end
+    #
+    #         def track_subscription
+    #           # ...
+    #         end
+    #     end
     #
     module Callbacks
       extend  ActiveSupport::Concern
@@ -46,14 +49,13 @@ module ActionCable
           set_callback(:subscribe, :before, *methods, &block)
         end
 
-        # This callback will be triggered after the Base#subscribed method is
-        # called, even if the subscription was rejected with the Base#reject
-        # method.
+        # This callback will be triggered after the Base#subscribed method is called,
+        # even if the subscription was rejected with the Base#reject method.
         #
         # To trigger the callback only on successful subscriptions, use the
         # Base#subscription_rejected? method:
         #
-        #   after_subscribe :my_method, unless: :subscription_rejected?
+        #     after_subscribe :my_method, unless: :subscription_rejected?
         #
         def after_subscribe(*methods, &block)
           set_callback(:subscribe, :after, *methods, &block)

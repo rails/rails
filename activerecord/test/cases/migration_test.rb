@@ -46,7 +46,7 @@ class MigrationTest < ActiveRecord::TestCase
     @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
     @schema_migration = ActiveRecord::Base.connection.schema_migration
     @internal_metadata = ActiveRecord::Base.connection.internal_metadata
-    ActiveRecord::Base.connection.schema_cache.clear!
+    ActiveRecord::Base.schema_cache.clear!
   end
 
   teardown do
@@ -1809,7 +1809,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
       @internal_metadata = ActiveRecord::Base.connection.internal_metadata
       @active_record_validate_timestamps_was = ActiveRecord.validate_migration_timestamps
       ActiveRecord.validate_migration_timestamps = true
-      ActiveRecord::Base.connection.schema_cache.clear!
+      ActiveRecord::Base.schema_cache.clear!
 
       @migrations_path = MIGRATIONS_ROOT + "/temp"
       @migrator = ActiveRecord::MigrationContext.new(@migrations_path, @schema_migration, @internal_metadata)

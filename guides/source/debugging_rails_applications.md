@@ -704,13 +704,13 @@ Stop by #0  BP - Watch  #<PostsController:0x00007fce69ca5320> @_response_body = 
 In addition to different types of breakpoints, you can also specify options to achieve more advanced debugging workflows. Currently, the debugger supports 4 options:
 
 - `do: <cmd or expr>` - when the breakpoint is triggered, execute the given command/expression and continue the program:
-  - `break Foo#bar do: bt` - when `Foo#bar` is called, print the stack frames
+  - `break Foo#bar do: bt` - when `Foo#bar` is called, print the stack frames.
 - `pre: <cmd or expr>` - when the breakpoint is triggered, execute the given command/expression before stopping:
   - `break Foo#bar pre: info` - when `Foo#bar` is called, print its surrounding variables before stopping.
 - `if: <expr>` - the breakpoint only stops if the result of `<expr`> is true:
-  - `break Post#save if: params[:debug]` - stops at `Post#save` if `params[:debug]` is also true
+  - `break Post#save if: params[:debug]` - stops at `Post#save` if `params[:debug]` is also true.
 - `path: <path_regexp>` - the breakpoint only stops if the event that triggers it (e.g. a method call) happens from the given path:
-  - `break Post#save if: app/services/a_service` - stops at `Post#save` if the method call happens at a method matches Ruby regexp `/app\/services\/a_service/`.
+  - `break Post#save path: app/services/a_service` - stops at `Post#save` if the method call happens at a path that includes `app/services/a_service`.
 
 Please also note that the first 3 options: `do:`, `pre:` and `if:` are also available for the debug statements we mentioned earlier. For example:
 

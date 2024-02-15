@@ -1014,7 +1014,7 @@ module Arel
 
         _(stmt.to_sql).must_be_like %{
           UPDATE "users" SET foo = bar
-          WHERE "users"."id" IN (SELECT "users"."id" FROM "users" LIMIT 1)
+          WHERE ("users"."id") IN (SELECT "users"."id" FROM "users" LIMIT 1)
         }
       end
 
@@ -1028,7 +1028,7 @@ module Arel
 
         _(stmt.to_sql).must_be_like %{
           UPDATE "users" SET foo = bar
-          WHERE "users"."id" IN (SELECT "users"."id" FROM "users" ORDER BY foo)
+          WHERE ("users"."id") IN (SELECT "users"."id" FROM "users" ORDER BY foo)
         }
       end
 
@@ -1053,7 +1053,7 @@ module Arel
         stmt = manager.compile_update({ table[:id] => 1 }, Arel::Attributes::Attribute.new(table, "id"))
 
         _(stmt.to_sql).must_be_like %{
-          UPDATE "users" SET "id" = 1 WHERE "users"."id" IN (SELECT "users"."id" FROM "users" WHERE "users"."foo" = 10 LIMIT 42)
+          UPDATE "users" SET "id" = 1 WHERE ("users"."id") IN (SELECT "users"."id" FROM "users" WHERE "users"."foo" = 10 LIMIT 42)
         }
       end
     end

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support"
 require "active_support/test_case"
 require "active_support/core_ext/hash/indifferent_access"
@@ -18,18 +20,19 @@ module ActionCable
     end
 
     module Assertions
-      # Asserts that the connection is rejected (via +reject_unauthorized_connection+).
+      # Asserts that the connection is rejected (via
+      # `reject_unauthorized_connection`).
       #
-      #   # Asserts that connection without user_id fails
-      #   assert_reject_connection { connect params: { user_id: '' } }
+      #     # Asserts that connection without user_id fails
+      #     assert_reject_connection { connect params: { user_id: '' } }
       def assert_reject_connection(&block)
         assert_raises(Authorization::UnauthorizedError, "Expected to reject connection but no rejection was made", &block)
       end
     end
 
-    # We don't want to use the whole "encryption stack" for connection
-    # unit-tests, but we want to make sure that users test against the correct types
-    # of cookies (i.e. signed or encrypted or plain)
+    # We don't want to use the whole "encryption stack" for connection unit-tests,
+    # but we want to make sure that users test against the correct types of cookies
+    # (i.e. signed or encrypted or plain)
     class TestCookieJar < ActiveSupport::HashWithIndifferentAccess
       def signed
         self[:signed] ||= {}.with_indifferent_access
@@ -56,77 +59,77 @@ module ActionCable
       end
     end
 
-    # = Action Cable \Connection \TestCase
+    # # Action Cable Connection TestCase
     #
     # Unit test Action Cable connections.
     #
-    # Useful to check whether a connection's +identified_by+ gets assigned properly
+    # Useful to check whether a connection's `identified_by` gets assigned properly
     # and that any improper connection requests are rejected.
     #
-    # == Basic example
+    # ## Basic example
     #
     # Unit tests are written as follows:
     #
-    # 1. Simulate a connection attempt by calling +connect+.
-    # 2. Assert state, e.g. identifiers, has been assigned.
+    # 1.  Simulate a connection attempt by calling `connect`.
+    # 2.  Assert state, e.g. identifiers, has been assigned.
     #
     #
-    #   class ApplicationCable::ConnectionTest < ActionCable::Connection::TestCase
-    #     def test_connects_with_proper_cookie
-    #       # Simulate the connection request with a cookie.
-    #       cookies["user_id"] = users(:john).id
+    #     class ApplicationCable::ConnectionTest < ActionCable::Connection::TestCase
+    #       def test_connects_with_proper_cookie
+    #         # Simulate the connection request with a cookie.
+    #         cookies["user_id"] = users(:john).id
     #
-    #       connect
+    #         connect
     #
-    #       # Assert the connection identifier matches the fixture.
-    #       assert_equal users(:john).id, connection.user.id
+    #         # Assert the connection identifier matches the fixture.
+    #         assert_equal users(:john).id, connection.user.id
+    #       end
+    #
+    #       def test_rejects_connection_without_proper_cookie
+    #         assert_reject_connection { connect }
+    #       end
     #     end
     #
-    #     def test_rejects_connection_without_proper_cookie
-    #       assert_reject_connection { connect }
+    # `connect` accepts additional information about the HTTP request with the
+    # `params`, `headers`, `session`, and Rack `env` options.
+    #
+    #     def test_connect_with_headers_and_query_string
+    #       connect params: { user_id: 1 }, headers: { "X-API-TOKEN" => "secret-my" }
+    #
+    #       assert_equal "1", connection.user.id
+    #       assert_equal "secret-my", connection.token
     #     end
-    #   end
     #
-    # +connect+ accepts additional information about the HTTP request with the
-    # +params+, +headers+, +session+, and Rack +env+ options.
+    #     def test_connect_with_params
+    #       connect params: { user_id: 1 }
     #
-    #   def test_connect_with_headers_and_query_string
-    #     connect params: { user_id: 1 }, headers: { "X-API-TOKEN" => "secret-my" }
-    #
-    #     assert_equal "1", connection.user.id
-    #     assert_equal "secret-my", connection.token
-    #   end
-    #
-    #   def test_connect_with_params
-    #     connect params: { user_id: 1 }
-    #
-    #     assert_equal "1", connection.user.id
-    #   end
+    #       assert_equal "1", connection.user.id
+    #     end
     #
     # You can also set up the correct cookies before the connection request:
     #
-    #   def test_connect_with_cookies
-    #     # Plain cookies:
-    #     cookies["user_id"] = 1
+    #     def test_connect_with_cookies
+    #       # Plain cookies:
+    #       cookies["user_id"] = 1
     #
-    #     # Or signed/encrypted:
-    #     # cookies.signed["user_id"] = 1
-    #     # cookies.encrypted["user_id"] = 1
+    #       # Or signed/encrypted:
+    #       # cookies.signed["user_id"] = 1
+    #       # cookies.encrypted["user_id"] = 1
     #
-    #     connect
+    #       connect
     #
-    #     assert_equal "1", connection.user_id
-    #   end
+    #       assert_equal "1", connection.user_id
+    #     end
     #
-    # == \Connection is automatically inferred
+    # ## Connection is automatically inferred
     #
-    # ActionCable::Connection::TestCase will automatically infer the connection under test
-    # from the test class name. If the channel cannot be inferred from the test
-    # class name, you can explicitly set it with +tests+.
+    # ActionCable::Connection::TestCase will automatically infer the connection
+    # under test from the test class name. If the channel cannot be inferred from
+    # the test class name, you can explicitly set it with `tests`.
     #
-    #   class ConnectionTest < ActionCable::Connection::TestCase
-    #     tests ApplicationCable::Connection
-    #   end
+    #     class ConnectionTest < ActionCable::Connection::TestCase
+    #       tests ApplicationCable::Connection
+    #     end
     #
     class TestCase < ActiveSupport::TestCase
       module Behavior
@@ -178,10 +181,10 @@ module ActionCable
         #
         # Accepts request path as the first argument and the following request options:
         #
-        # - params – URL parameters (Hash)
-        # - headers – request headers (Hash)
-        # - session – session data (Hash)
-        # - env – additional Rack env configuration (Hash)
+        # *   params – URL parameters (Hash)
+        # *   headers – request headers (Hash)
+        # *   session – session data (Hash)
+        # *   env – additional Rack env configuration (Hash)
         def connect(path = ActionCable.server.config.mount_path, **request_params)
           path ||= DEFAULT_PATH
 

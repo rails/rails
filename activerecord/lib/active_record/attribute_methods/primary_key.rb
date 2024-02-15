@@ -109,7 +109,7 @@ module ActiveRecord
             elsif base_name && primary_key_prefix_type == :table_name_with_underscore
               base_name.foreign_key
             elsif ActiveRecord::Base != self && table_exists?
-              connection.schema_cache.primary_keys(table_name)
+              schema_cache.primary_keys(table_name)
             else
               "id"
             end

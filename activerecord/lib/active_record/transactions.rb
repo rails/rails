@@ -209,7 +209,9 @@ module ActiveRecord
     module ClassMethods
       # See the ConnectionAdapters::DatabaseStatements#transaction API docs.
       def transaction(**options, &block)
-        connection.transaction(**options, &block)
+        with_connection do |connection|
+          connection.transaction(**options, &block)
+        end
       end
 
       def before_commit(*args, &block) # :nodoc:

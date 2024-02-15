@@ -1,7 +1,7 @@
 // For format details, see https://aka.ms/devcontainer.json.
 {
 	"name": "Rails project development",
-	"dockerComposeFile": "docker-compose.yml",
+	"dockerComposeFile": "compose.yaml",
 	"service": "rails",
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 

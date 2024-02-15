@@ -1,3 +1,28 @@
+*   Deprecated `ENV["SCHEMA_CACHE"]` in favor of `schema_cache_path` in the database configuration.
+
+    *Rafael Mendonça França*
+
+*   Add `ActiveRecord::Base.with_connection` as a shortcut for leasing a connection for a short duration.
+
+    The leased connection is yielded, and for the duration of the block, any call to `ActiveRecord::Base.connection`
+    will yield that same connection.
+
+    This is useful to perform a few database operations without causing a connection to be leased for the
+    entire duration of the request or job.
+
+    *Jean Boussier*
+
+*   Deprecate `config.active_record.warn_on_records_fetched_greater_than` now that `sql.active_record`
+    notification includes `:row_count` field.
+
+    *Jason Nochlin*
+
+*   Fix an issue where `ActiveRecord::Encryption` configurations are not ready before the loading
+    of Active Record models, when an application is eager loaded. As a result, encrypted attributes
+    could be misconfigured in some cases.
+
+    *Maxime Réty*
+
 *   Deprecate defining an `enum` with keyword arguments.
 
     ```ruby

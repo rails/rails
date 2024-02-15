@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "set"
 
 module ActionCable
@@ -12,18 +14,20 @@ module ActionCable
       end
 
       module ClassMethods
-        # Mark a key as being a connection identifier index that can then be used to find the specific connection again later.
-        # Common identifiers are current_user and current_account, but could be anything, really.
+        # Mark a key as being a connection identifier index that can then be used to
+        # find the specific connection again later. Common identifiers are current_user
+        # and current_account, but could be anything, really.
         #
-        # Note that anything marked as an identifier will automatically create a delegate by the same name on any
-        # channel instances created off the connection.
+        # Note that anything marked as an identifier will automatically create a
+        # delegate by the same name on any channel instances created off the connection.
         def identified_by(*identifiers)
           Array(identifiers).each { |identifier| attr_accessor identifier }
           self.identifiers += identifiers
         end
       end
 
-      # Return a single connection identifier that combines the value of all the registered identifiers into a single gid.
+      # Return a single connection identifier that combines the value of all the
+      # registered identifiers into a single gid.
       def connection_identifier
         unless defined? @connection_identifier
           @connection_identifier = connection_gid identifiers.filter_map { |id| instance_variable_get("@#{id}") }

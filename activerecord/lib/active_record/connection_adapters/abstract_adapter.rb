@@ -50,7 +50,9 @@ module ActiveRecord
         @schema_cache = nil
         @pool = value
 
-        @pool.schema_reflection.load!(self) if ActiveRecord.lazily_load_schema_cache
+        if @pool && ActiveRecord.lazily_load_schema_cache
+          @pool.schema_reflection.load!(@pool)
+        end
       end
 
       set_callback :checkin, :after, :enable_lazy_transactions!
@@ -174,19 +176,13 @@ module ActiveRecord
         @verified = false
       end
 
-      THREAD_LOCK = ActiveSupport::Concurrency::ThreadLoadInterlockAwareMonitor.new
-      private_constant :THREAD_LOCK
-
-      FIBER_LOCK = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
-      private_constant :FIBER_LOCK
-
       def lock_thread=(lock_thread) # :nodoc:
         @lock =
         case lock_thread
         when Thread
-          THREAD_LOCK
+          ActiveSupport::Concurrency::ThreadLoadInterlockAwareMonitor.new
         when Fiber
-          FIBER_LOCK
+          ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
         else
           ActiveSupport::Concurrency::NullLock
         end
@@ -327,7 +323,7 @@ module ActiveRecord
       end
 
       def schema_cache
-        @schema_cache ||= BoundSchemaReflection.new(@pool.schema_reflection, self)
+        @pool.schema_cache || (@schema_cache ||= BoundSchemaReflection.for_lone_connection(@pool.schema_reflection, self))
       end
 
       # this method must only be called while holding connection pool's mutex

@@ -1,3 +1,7 @@
+*   Add ".test" as a default allowed host in development to ensure smooth golden-path setup with puma.dev.
+
+    *DHH*
+
 *   Add `allow_browser` to set minimum browser versions for the application.
 
     A browser that's blocked will by default be served the file in `public/426.html` with a HTTP status code of "426 Upgrade Required".

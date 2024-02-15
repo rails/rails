@@ -50,7 +50,7 @@ module ActiveRecord
       end
 
       def key_provider
-        @key_provider ||= @key_provider_param || build_key_provider || default_key_provider
+        @key_provider_param || build_key_provider || default_key_provider
       end
 
       def merge(other_scheme)

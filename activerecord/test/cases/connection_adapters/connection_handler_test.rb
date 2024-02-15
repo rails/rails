@@ -6,8 +6,6 @@ require "models/person"
 module ActiveRecord
   module ConnectionAdapters
     class ConnectionHandlerTest < ActiveRecord::TestCase
-      self.use_transactional_tests = false
-
       fixtures :people
 
       def setup
@@ -95,8 +93,6 @@ module ActiveRecord
           connection_handler = ActiveRecord::Base.connection_handler
           ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
 
-          setup_transactional_fixtures
-
           assert_nothing_raised do
             ActiveRecord::Base.connects_to(database: { reading: :arunit, writing: :arunit })
           end
@@ -105,8 +101,6 @@ module ActiveRecord
           ro_conn = ActiveRecord::Base.connection_handler.retrieve_connection("ActiveRecord::Base", role: :reading)
 
           assert_equal rw_conn, ro_conn
-
-          teardown_transactional_fixtures
         ensure
           ActiveRecord::Base.connection_handler = connection_handler
         end
@@ -452,7 +446,7 @@ module ActiveRecord
         end
 
         def test_retrieve_connection_pool_copies_schema_cache_from_ancestor_pool
-          @pool.connection.schema_cache.add("posts")
+          @pool.schema_cache.add("posts")
 
           rd, wr = IO.pipe
           rd.binmode
@@ -461,7 +455,7 @@ module ActiveRecord
           pid = fork {
             rd.close
             pool = @handler.retrieve_connection_pool(@connection_name)
-            wr.write Marshal.dump pool.connection.schema_cache.size
+            wr.write Marshal.dump pool.schema_cache.size
             wr.close
             exit!
           }
@@ -469,7 +463,7 @@ module ActiveRecord
           wr.close
 
           Process.waitpid pid
-          assert_equal @pool.connection.schema_cache.size, Marshal.load(rd.read)
+          assert_equal @pool.schema_cache.size, Marshal.load(rd.read)
           rd.close
         end
 

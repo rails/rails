@@ -255,6 +255,8 @@ module ActiveRecord
     #   the problem of running out of integers, if the underlying table is still stuck on a primary
     #   key of type int (note: All \Rails apps since 5.1+ have defaulted to bigint, which is not liable
     #   to this problem).
+    # * Columns with unique database constraints should not have uniqueness validations defined,
+    #   otherwise #create will fail due to validation errors and #find_by will never be called.
     #
     # This method will return a record if all given attributes are covered by unique constraints
     # (unless the INSERT -> DELETE -> SELECT race condition is triggered), but if creation was attempted
@@ -591,7 +593,12 @@ module ActiveRecord
 
       group_values_arel_columns = arel_columns(group_values.uniq)
       having_clause_ast = having_clause.ast unless having_clause.empty?
-      stmt = arel.compile_update(values, table[primary_key], having_clause_ast, group_values_arel_columns)
+      key = if klass.composite_primary_key?
+        primary_key.map { |pk| table[pk] }
+      else
+        table[primary_key]
+      end
+      stmt = arel.compile_update(values, key, having_clause_ast, group_values_arel_columns)
       klass.connection.update(stmt, "#{klass} Update All").tap { reset }
     end
 
@@ -724,7 +731,12 @@ module ActiveRecord
 
       group_values_arel_columns = arel_columns(group_values.uniq)
       having_clause_ast = having_clause.ast unless having_clause.empty?
-      stmt = arel.compile_delete(table[primary_key], having_clause_ast, group_values_arel_columns)
+      key = if klass.composite_primary_key?
+        primary_key.map { |pk| table[pk] }
+      else
+        table[primary_key]
+      end
+      stmt = arel.compile_delete(key, having_clause_ast, group_values_arel_columns)
 
       klass.connection.delete(stmt, "#{klass} Delete All").tap { reset }
     end

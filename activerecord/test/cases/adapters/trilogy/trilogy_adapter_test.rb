@@ -167,6 +167,8 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     @conn.cache do
       event_fired = false
       subscription = ->(name, start, finish, id, payload) {
+        next if payload[:name] == "SCHEMA"
+
         event_fired = true
 
         # First, we test keys that are defined by default by the AbstractAdapter
@@ -198,6 +200,8 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
 
       event_fired = false
       subscription = ->(name, start, finish, id, payload) {
+        next if payload[:name] == "SCHEMA"
+
         event_fired = true
 
         # First, we test keys that are defined by default by the AbstractAdapter
@@ -387,6 +391,12 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
       @conn.raw_connection.stub(:query, -> (*) { raise Trilogy::SyscallError::ECONNRESET }) do
         @conn.execute("SELECT 1")
       end
+    end
+  end
+
+  test "setting prepared_statements to true raises" do
+    assert_raises ArgumentError do
+      ActiveRecord::ConnectionAdapters::TrilogyAdapter.new(prepared_statements: true).connect!
     end
   end
 

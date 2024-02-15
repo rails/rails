@@ -18,7 +18,7 @@ default: &default
 <% if mysql_socket -%>
   socket: <%= mysql_socket %>
 <% else -%>
-  host: localhost
+  host: <%= mysql_database_host %>
 <% end -%>
 
 development:

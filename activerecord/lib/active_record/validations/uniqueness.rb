@@ -84,7 +84,7 @@ module ActiveRecord
           attributes = scope + [attr]
           attributes = resolve_attributes(record, attributes)
 
-          klass.connection.schema_cache.indexes(klass.table_name).any? do |index|
+          klass.schema_cache.indexes(klass.table_name).any? do |index|
             index.unique &&
               index.where.nil? &&
               (Array(index.columns) - attributes).empty?

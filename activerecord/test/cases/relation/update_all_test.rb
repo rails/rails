@@ -14,9 +14,11 @@ require "models/topic"
 require "models/tag"
 require "models/tagging"
 require "models/warehouse_thing"
+require "models/cpk"
 
 class UpdateAllTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :comments, :developers, :posts, :people, :pets, :toys, :tags, :taggings, "warehouse-things"
+  fixtures :authors, :author_addresses, :comments, :developers, :posts, :people, :pets, :toys, :tags,
+    :taggings, "warehouse-things", :cpk_orders, :cpk_order_agreements
 
   class TopicWithCallbacks < ActiveRecord::Base
     self.table_name = :topics
@@ -298,6 +300,12 @@ class UpdateAllTest < ActiveRecord::TestCase
         assert_equal now, person.updated_at
       end
     end
+  end
+
+  def test_update_all_composite_model_with_join_subquery
+    agreement = cpk_order_agreements(:order_agreement_three)
+    join_scope = Cpk::Order.joins(:order_agreements).where(order_agreements: { signature: agreement.signature })
+    assert_equal 1, join_scope.update_all(status: "shipped")
   end
 
   # Oracle UPDATE does not support ORDER BY

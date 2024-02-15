@@ -37,7 +37,7 @@ class ConnectionTest < ActiveRecord::AbstractMysqlTestCase
     assert_not_predicate @connection, :active?
   ensure
     # Repair all fixture connections so other tests won't break.
-    @fixture_connections.each_key(&:verify!)
+    @fixture_connection_pools.each { |p| p.connection.verify! }
   end
 
   def test_successful_reconnection_after_timeout_with_manual_reconnect

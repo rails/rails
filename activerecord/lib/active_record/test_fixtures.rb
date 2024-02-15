@@ -131,8 +131,8 @@ module ActiveRecord
         end
 
         @fixture_cache = {}
-        @fixture_connections = {}
         @fixture_cache_key = [self.class.fixture_table_names.dup, self.class.fixture_paths.dup, self.class.fixture_class_names.dup]
+        @fixture_connection_pools = []
         @@already_loaded_fixtures ||= {}
         @connection_subscriber = nil
         @saved_pool_configs = Hash.new { |hash, key| hash[key] = {} }
@@ -163,20 +163,24 @@ module ActiveRecord
           teardown_transactional_fixtures
         else
           ActiveRecord::FixtureSet.reset_cache
+          invalidate_already_loaded_fixtures
         end
 
         ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
+      end
+
+      def invalidate_already_loaded_fixtures
+        @@already_loaded_fixtures.clear
       end
 
       def setup_transactional_fixtures
         setup_shared_connection_pool
 
         # Begin transactions for connections already established
-        @fixture_connections = ActiveRecord::Base.connection_handler.connection_pool_list(:writing).to_h do |pool|
-          pool.lock_thread = true if lock_threads
-          connection = pool.connection
-          transaction = connection.begin_transaction(joinable: false, _lazy: false)
-          [connection, transaction]
+        @fixture_connection_pools = ActiveRecord::Base.connection_handler.connection_pool_list(:writing)
+        @fixture_connection_pools.each do |pool|
+          pool.pin_connection!(lock_threads)
+          pool.connection
         end
 
         # When connections are established in the future, begin a transaction too
@@ -185,19 +189,14 @@ module ActiveRecord
           shard = payload[:shard] if payload.key?(:shard)
 
           if connection_name
-            begin
-              connection = ActiveRecord::Base.connection_handler.retrieve_connection(connection_name, shard: shard)
-              connection.connect! # eagerly validate the connection
-            rescue ConnectionNotEstablished
-              connection = nil
-            end
-
-            if connection
+            pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(connection_name, shard: shard)
+            if pool
               setup_shared_connection_pool
 
-              if !@fixture_connections.key?(connection)
-                connection.pool.lock_thread = true if lock_threads
-                @fixture_connections[connection] = connection.begin_transaction(joinable: false, _lazy: false)
+              unless @fixture_connection_pools.include?(pool)
+                pool.pin_connection!(lock_threads)
+                pool.connection
+                @fixture_connection_pools << pool
               end
             end
           end
@@ -206,25 +205,13 @@ module ActiveRecord
 
       def teardown_transactional_fixtures
         ActiveSupport::Notifications.unsubscribe(@connection_subscriber) if @connection_subscriber
-        @fixture_connections.each do |connection, transaction|
-          begin
-            connection.rollback_transaction(transaction)
-          rescue ActiveRecord::StatementInvalid
-            # Something commited or rolled back the transaction.
-            # We can no longer trust the database state is clean.
-            invalidate_already_loaded_fixtures
-            # We also don't know for sure the connection wasn't
-            # mutated in dangerous ways.
-            connection.disconnect!
-          end
-          connection.pool.lock_thread = false
+        unless @fixture_connection_pools.map(&:unpin_connection!).all?
+          # Something caused the transaction to be committed or rolled back
+          # We can no longer trust the database is in a clean state.
+          @@already_loaded_fixtures.clear
         end
-        @fixture_connections.clear
+        @fixture_connection_pools.clear
         teardown_shared_connection_pool
-      end
-
-      def invalidate_already_loaded_fixtures
-        @@already_loaded_fixtures.clear
       end
 
       # Shares the writing connection pool with connections on

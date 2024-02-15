@@ -23,6 +23,7 @@ module Rails
     autoload :NamedBase,       "rails/generators/named_base"
     autoload :ResourceHelpers, "rails/generators/resource_helpers"
     autoload :TestCase,        "rails/generators/test_case"
+    autoload :Devcontainer,    "rails/generators/devcontainer"
 
     mattr_accessor :namespace
 

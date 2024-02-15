@@ -122,7 +122,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     image = read_image(variant)
     assert_equal "WEBP", image.type
     assert_equal 50, image.width
-    assert_equal 33, image.height
+    assert_includes [33, 34], image.height
   end
 
   test "optimized variation of GIF blob" do

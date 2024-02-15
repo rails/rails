@@ -5,6 +5,7 @@ require "net/http"
 $:.unshift __dir__
 require "tasks/release"
 require "railties/lib/rails/api/task"
+require "tools/preview_docs"
 
 desc "Build gem files for all projects"
 task build: "all:build"
@@ -48,6 +49,20 @@ if ENV["EDGE"]
   Rails::API::EdgeTask.new("rdoc")
 else
   Rails::API::StableTask.new("rdoc")
+end
+
+desc "Generate documentation for previewing"
+task :preview_docs do
+  FileUtils.mkdir_p("preview")
+  PreviewDocs.new.render("preview")
+
+  require "guides/rails_guides"
+  Rake::Task[:rdoc].invoke
+
+  FileUtils.cp_r("doc/rdoc", "preview/api")
+  FileUtils.cp_r("guides/output", "preview/guides")
+
+  system("tar -czf preview.tar.gz preview")
 end
 
 desc "Bump all versions to match RAILS_VERSION"

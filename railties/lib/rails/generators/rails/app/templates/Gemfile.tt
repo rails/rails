@@ -1,8 +1,6 @@
 source "https://rubygems.org"
 
-ruby <%= "\"#{gem_ruby_version}\"" -%>
-
-<% gemfile_entries.each do |gemfile_entry| %>
+<% gemfile_entries.each do |gemfile_entry| -%>
 <%= gemfile_entry %>
 <% end -%>
 <% unless options.minimal? -%>

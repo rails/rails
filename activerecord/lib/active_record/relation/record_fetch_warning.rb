@@ -3,6 +3,9 @@
 module ActiveRecord
   class Relation
     module RecordFetchWarning
+      # Deprecated: subscribe to sql.active_record notifications and
+      # access the row count field to detect large result set sizes.
+      #
       # When this module is prepended to ActiveRecord::Relation and
       # +config.active_record.warn_on_records_fetched_greater_than+ is
       # set to an integer, if the number of records a query returns is

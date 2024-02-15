@@ -140,11 +140,11 @@ module ActiveRecord
         end
 
         def encryption_options
-          @encryption_options ||= { key_provider: key_provider, cipher_options: { deterministic: deterministic? } }.compact
+          { key_provider: key_provider, cipher_options: { deterministic: deterministic? } }.compact
         end
 
         def decryption_options
-          @decryption_options ||= { key_provider: key_provider }.compact
+          { key_provider: key_provider }.compact
         end
 
         def clean_text_scheme

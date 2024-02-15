@@ -634,22 +634,24 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   test "query cache is enabled in threads with shared connection" do
-    ActiveRecord::Base.connection_pool.lock_thread = true
+    ActiveRecord::Base.connection_pool.pin_connection!(ActiveSupport::IsolatedExecutionState.context)
 
-    assert_cache :off
-    ActiveRecord::Base.connection.enable_query_cache!
-    assert_cache :clean
+    begin
+      assert_cache :off
+      ActiveRecord::Base.connection.enable_query_cache!
+      assert_cache :clean
 
-    thread_a = Thread.new do
-      middleware { |env|
-        assert_cache :clean
-        [200, {}, nil]
-      }.call({})
+      thread_a = Thread.new do
+        middleware { |env|
+          assert_cache :clean
+          [200, {}, nil]
+        }.call({})
+      end
+
+      thread_a.join
+    ensure
+      ActiveRecord::Base.connection_pool.unpin_connection!
     end
-
-    thread_a.join
-
-    ActiveRecord::Base.connection_pool.lock_thread = false
   end
 
   private
@@ -806,7 +808,7 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   end
 
   def test_find
-    assert_called(Task.connection.query_cache, :clear) do
+    assert_called(Task.connection.query_cache, :clear, times: 2) do
       assert_not Task.connection.query_cache_enabled
       Task.cache do
         assert Task.connection.query_cache_enabled
@@ -920,9 +922,12 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   end
 
   def test_query_cache_lru_eviction
+    store = ActiveRecord::ConnectionAdapters::QueryCache::Store.new(2)
+    store.enabled = true
+
     connection = Post.connection
-    connection.pool.db_config.stub(:query_cache, 2) do
-      connection.send(:configure_query_cache!)
+    old_store, connection.query_cache = connection.query_cache, store
+    begin
       Post.cache do
         assert_queries_count(2) do
           connection.select_all("SELECT 1")
@@ -943,9 +948,9 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
           connection.select_all("SELECT 2")
         end
       end
+    ensure
+      connection.query_cache = old_store
     end
-  ensure
-    connection.send(:configure_query_cache!)
   end
 
   test "threads use the same connection" do
