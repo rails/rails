@@ -163,6 +163,7 @@ ActiveRecord::Schema.define do
     t.string :format
     t.column :name, :string, default: "<untitled>"
     t.column :original_name, :string
+    t.column :logo, :binary
 
     t.datetime :created_at
     t.datetime :updated_at
