@@ -24,56 +24,56 @@ module ActiveRecord
         nil
       end
 
-      def load!(connection)
-        cache(connection)
+      def load!(pool)
+        cache(pool)
 
         self
       end
 
-      def primary_keys(connection, table_name)
-        cache(connection).primary_keys(connection, table_name)
+      def primary_keys(pool, table_name)
+        cache(pool).primary_keys(pool, table_name)
       end
 
-      def data_source_exists?(connection, name)
-        cache(connection).data_source_exists?(connection, name)
+      def data_source_exists?(pool, name)
+        cache(pool).data_source_exists?(pool, name)
       end
 
-      def add(connection, name)
-        cache(connection).add(connection, name)
+      def add(pool, name)
+        cache(pool).add(pool, name)
       end
 
-      def data_sources(connection, name)
-        cache(connection).data_sources(connection, name)
+      def data_sources(pool, name)
+        cache(pool).data_sources(pool, name)
       end
 
-      def columns(connection, table_name)
-        cache(connection).columns(connection, table_name)
+      def columns(pool, table_name)
+        cache(pool).columns(pool, table_name)
       end
 
-      def columns_hash(connection, table_name)
-        cache(connection).columns_hash(connection, table_name)
+      def columns_hash(pool, table_name)
+        cache(pool).columns_hash(pool, table_name)
       end
 
-      def columns_hash?(connection, table_name)
-        cache(connection).columns_hash?(connection, table_name)
+      def columns_hash?(pool, table_name)
+        cache(pool).columns_hash?(pool, table_name)
       end
 
-      def indexes(connection, table_name)
-        cache(connection).indexes(connection, table_name)
+      def indexes(pool, table_name)
+        cache(pool).indexes(pool, table_name)
       end
 
-      def version(connection)
-        cache(connection).version(connection)
+      def version(pool)
+        cache(pool).version(pool)
       end
 
-      def size(connection)
-        cache(connection).size
+      def size(pool)
+        cache(pool).size
       end
 
-      def clear_data_source_cache!(connection, name)
+      def clear_data_source_cache!(pool, name)
         return if @cache.nil? && !possible_cache_available?
 
-        cache(connection).clear_data_source_cache!(connection, name)
+        cache(pool).clear_data_source_cache!(pool, name)
       end
 
       def cached?(table_name)
@@ -88,9 +88,9 @@ module ActiveRecord
         @cache&.cached?(table_name)
       end
 
-      def dump_to(connection, filename)
+      def dump_to(pool, filename)
         fresh_cache = empty_cache
-        fresh_cache.add_all(connection)
+        fresh_cache.add_all(pool)
         fresh_cache.dump_to(filename)
 
         @cache = fresh_cache
@@ -103,8 +103,8 @@ module ActiveRecord
           new_cache
         end
 
-        def cache(connection)
-          @cache ||= load_cache(connection) || empty_cache
+        def cache(pool)
+          @cache ||= load_cache(pool) || empty_cache
         end
 
         def possible_cache_available?
@@ -113,7 +113,7 @@ module ActiveRecord
             File.file?(@cache_path)
         end
 
-        def load_cache(connection)
+        def load_cache(pool)
           # Can't load if schema dumps are disabled
           return unless possible_cache_available?
 
@@ -122,11 +122,13 @@ module ActiveRecord
 
           if self.class.check_schema_cache_dump_version
             begin
-              current_version = connection.schema_version
+              pool.with_connection do |connection|
+                current_version = connection.schema_version
 
-              if new_cache.version(connection) != current_version
-                warn "Ignoring #{@cache_path} because it has expired. The current schema version is #{current_version}, but the one in the schema cache file is #{new_cache.schema_version}."
-                return
+                if new_cache.version(connection) != current_version
+                  warn "Ignoring #{@cache_path} because it has expired. The current schema version is #{current_version}, but the one in the schema cache file is #{new_cache.schema_version}."
+                  return
+                end
               end
             rescue ActiveRecordError => error
               warn "Failed to validate the schema cache because of #{error.class}: #{error.message}"
@@ -139,9 +141,25 @@ module ActiveRecord
     end
 
     class BoundSchemaReflection
-      def initialize(abstract_schema_reflection, connection)
+      class FakePool # :nodoc
+        def initialize(connection)
+          @connection = connection
+        end
+
+        def with_connection
+          yield @connection
+        end
+      end
+
+      class << self
+        def for_lone_connection(abstract_schema_reflection, connection) # :nodoc:
+          new(abstract_schema_reflection, FakePool.new(connection))
+        end
+      end
+
+      def initialize(abstract_schema_reflection, pool)
         @schema_reflection = abstract_schema_reflection
-        @connection = connection
+        @pool = pool
       end
 
       def clear!
@@ -149,7 +167,7 @@ module ActiveRecord
       end
 
       def load!
-        @schema_reflection.load!(@connection)
+        @schema_reflection.load!(@pool)
       end
 
       def cached?(table_name)
@@ -157,51 +175,51 @@ module ActiveRecord
       end
 
       def primary_keys(table_name)
-        @schema_reflection.primary_keys(@connection, table_name)
+        @schema_reflection.primary_keys(@pool, table_name)
       end
 
       def data_source_exists?(name)
-        @schema_reflection.data_source_exists?(@connection, name)
+        @schema_reflection.data_source_exists?(@pool, name)
       end
 
       def add(name)
-        @schema_reflection.add(@connection, name)
+        @schema_reflection.add(@pool, name)
       end
 
       def data_sources(name)
-        @schema_reflection.data_sources(@connection, name)
+        @schema_reflection.data_sources(@pool, name)
       end
 
       def columns(table_name)
-        @schema_reflection.columns(@connection, table_name)
+        @schema_reflection.columns(@pool, table_name)
       end
 
       def columns_hash(table_name)
-        @schema_reflection.columns_hash(@connection, table_name)
+        @schema_reflection.columns_hash(@pool, table_name)
       end
 
       def columns_hash?(table_name)
-        @schema_reflection.columns_hash?(@connection, table_name)
+        @schema_reflection.columns_hash?(@pool, table_name)
       end
 
       def indexes(table_name)
-        @schema_reflection.indexes(@connection, table_name)
+        @schema_reflection.indexes(@pool, table_name)
       end
 
       def version
-        @schema_reflection.version(@connection)
+        @schema_reflection.version(@pool)
       end
 
       def size
-        @schema_reflection.size(@connection)
+        @schema_reflection.size(@pool)
       end
 
       def clear_data_source_cache!(name)
-        @schema_reflection.clear_data_source_cache!(@connection, name)
+        @schema_reflection.clear_data_source_cache!(@pool, name)
       end
 
       def dump_to(filename)
-        @schema_reflection.dump_to(@connection, filename)
+        @schema_reflection.dump_to(@pool, filename)
       end
     end
 
@@ -209,7 +227,7 @@ module ActiveRecord
     class SchemaCache
       class << self
         def new(connection)
-          BoundSchemaReflection.new(SchemaReflection.new(nil), connection)
+          BoundSchemaReflection.new(SchemaReflection.new(nil), connection.pool)
         end
         deprecate new: "use ActiveRecord::ConnectionAdapters::SchemaReflection instead", deprecator: ActiveRecord.deprecator
 
@@ -289,30 +307,42 @@ module ActiveRecord
         @columns.key?(table_name)
       end
 
-      def primary_keys(connection, table_name)
+      def primary_keys(pool, table_name)
         @primary_keys.fetch(table_name) do
-          if data_source_exists?(connection, table_name)
-            @primary_keys[deep_deduplicate(table_name)] = deep_deduplicate(connection.primary_key(table_name))
+          pool.with_connection do |connection|
+            if data_source_exists?(pool, table_name)
+              @primary_keys[deep_deduplicate(table_name)] = deep_deduplicate(connection.primary_key(table_name))
+            end
           end
         end
       end
 
       # A cached lookup for table existence.
-      def data_source_exists?(connection, name)
+      def data_source_exists?(pool, name)
         return if ignored_table?(name)
-        prepare_data_sources(connection) if @data_sources.empty?
+
+        if @data_sources.empty?
+          tables_to_cache(pool).each do |source|
+            @data_sources[source] = true
+          end
+        end
+
         return @data_sources[name] if @data_sources.key? name
 
-        @data_sources[deep_deduplicate(name)] = connection.data_source_exists?(name)
+        @data_sources[deep_deduplicate(name)] = pool.with_connection do |connection|
+          connection.data_source_exists?(name)
+        end
       end
 
       # Add internal cache for table with +table_name+.
-      def add(connection, table_name)
-        if data_source_exists?(connection, table_name)
-          primary_keys(connection, table_name)
-          columns(connection, table_name)
-          columns_hash(connection, table_name)
-          indexes(connection, table_name)
+      def add(pool, table_name)
+        pool.with_connection do
+          if data_source_exists?(pool, table_name)
+            primary_keys(pool, table_name)
+            columns(pool, table_name)
+            columns_hash(pool, table_name)
+            indexes(pool, table_name)
+          end
         end
       end
 
@@ -322,41 +352,45 @@ module ActiveRecord
       deprecate data_sources: :data_source_exists?, deprecator: ActiveRecord.deprecator
 
       # Get the columns for a table
-      def columns(connection, table_name)
+      def columns(pool, table_name)
         if ignored_table?(table_name)
           raise ActiveRecord::StatementInvalid, "Table '#{table_name}' doesn't exist"
         end
 
         @columns.fetch(table_name) do
-          @columns[deep_deduplicate(table_name)] = deep_deduplicate(connection.columns(table_name))
+          pool.with_connection do |connection|
+            @columns[deep_deduplicate(table_name)] = deep_deduplicate(connection.columns(table_name))
+          end
         end
       end
 
       # Get the columns for a table as a hash, key is the column name
       # value is the column object.
-      def columns_hash(connection, table_name)
+      def columns_hash(pool, table_name)
         @columns_hash.fetch(table_name) do
-          @columns_hash[deep_deduplicate(table_name)] = columns(connection, table_name).index_by(&:name).freeze
+          @columns_hash[deep_deduplicate(table_name)] = columns(pool, table_name).index_by(&:name).freeze
         end
       end
 
       # Checks whether the columns hash is already cached for a table.
-      def columns_hash?(connection, table_name)
+      def columns_hash?(_pool, table_name)
         @columns_hash.key?(table_name)
       end
 
-      def indexes(connection, table_name)
+      def indexes(pool, table_name)
         @indexes.fetch(table_name) do
-          if data_source_exists?(connection, table_name)
-            @indexes[deep_deduplicate(table_name)] = deep_deduplicate(connection.indexes(table_name))
-          else
-            []
+          pool.with_connection do |connection|
+            if data_source_exists?(pool, table_name)
+              @indexes[deep_deduplicate(table_name)] = deep_deduplicate(connection.indexes(table_name))
+            else
+              []
+            end
           end
         end
       end
 
-      def version(connection)
-        @version ||= connection.schema_version
+      def version(pool)
+        @version ||= pool.with_connection(&:schema_version)
       end
 
       def schema_version
@@ -376,12 +410,14 @@ module ActiveRecord
         @indexes.delete name
       end
 
-      def add_all(connection) # :nodoc:
-        tables_to_cache(connection).each do |table|
-          add(connection, table)
-        end
+      def add_all(pool) # :nodoc:
+        pool.with_connection do
+          tables_to_cache(pool).each do |table|
+            add(pool, table)
+          end
 
-        version(connection)
+          version(pool)
+        end
       end
 
       def dump_to(filename)
@@ -406,9 +442,11 @@ module ActiveRecord
       end
 
       private
-        def tables_to_cache(connection)
-          connection.data_sources.reject do |table|
-            ignored_table?(table)
+        def tables_to_cache(pool)
+          pool.with_connection do |connection|
+            connection.data_sources.reject do |table|
+              ignored_table?(table)
+            end
           end
         end
 
@@ -436,12 +474,6 @@ module ActiveRecord
             -value
           else
             value
-          end
-        end
-
-        def prepare_data_sources(connection)
-          tables_to_cache(connection).each do |source|
-            @data_sources[source] = true
           end
         end
 

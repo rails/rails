@@ -433,7 +433,7 @@ module ApplicationTests
       RUBY
 
       app_file "config/initializers/schema_cache.rb", <<-RUBY
-      ActiveRecord::Base.connection.schema_cache.add("posts")
+      ActiveRecord::Base.schema_cache.add("posts")
       RUBY
 
       app "production"
@@ -464,7 +464,7 @@ module ApplicationTests
       RUBY
 
       app_file "config/initializers/schema_cache.rb", <<-RUBY
-      ActiveRecord::Base.connection.schema_cache.add("posts")
+      ActiveRecord::Base.schema_cache.add("posts")
       RUBY
 
       app "production"
@@ -3844,7 +3844,7 @@ module ApplicationTests
           end
         end
 
-        ActiveRecord::Base.connection.schema_cache.add("posts")
+        ActiveRecord::Base.schema_cache.add("posts")
       RUBY
 
       app_file "app/models/post.rb", <<-RUBY
@@ -3884,7 +3884,7 @@ module ApplicationTests
           end
         end
 
-        ActiveRecord::Base.connection.schema_cache.add("posts")
+        ActiveRecord::Base.schema_cache.add("posts")
       RUBY
 
       app "production"

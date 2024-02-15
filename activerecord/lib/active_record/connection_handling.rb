@@ -319,8 +319,12 @@ module ActiveRecord
       connection_handler.remove_connection_pool(name, role: current_role, shard: current_shard)
     end
 
+    def schema_cache # :nodoc:
+      connection_pool.schema_cache
+    end
+
     def clear_cache! # :nodoc:
-      connection.schema_cache.clear!
+      connection_pool.schema_cache.clear!
     end
 
     def clear_active_connections!(role = nil)

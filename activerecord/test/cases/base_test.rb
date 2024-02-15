@@ -128,7 +128,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     Topic.reset_column_information
 
-    Topic.connection.stub(:schema_cache, -> { raise "Some Error" }) do
+    Topic.connection_pool.stub(:schema_cache, -> { raise "Some Error" }) do
       assert_raises RuntimeError do
         Topic.columns_hash
       end
@@ -1485,14 +1485,14 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_clear_cache!
     # preheat cache
-    c1 = Post.connection.schema_cache.columns("posts")
-    assert_not_equal 0, Post.connection.schema_cache.size
+    c1 = Post.schema_cache.columns("posts")
+    assert_not_equal 0, Post.schema_cache.size
 
     ActiveRecord::Base.clear_cache!
-    assert_equal 0, Post.connection.schema_cache.size
+    assert_equal 0, Post.schema_cache.size
 
-    c2 = Post.connection.schema_cache.columns("posts")
-    assert_not_equal 0, Post.connection.schema_cache.size
+    c2 = Post.schema_cache.columns("posts")
+    assert_not_equal 0, Post.schema_cache.size
 
     assert_equal c1, c2
   end
@@ -1761,7 +1761,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "ignored columns are not present in columns_hash" do
-    cache_columns = Developer.connection.schema_cache.columns_hash(Developer.table_name)
+    cache_columns = Developer.schema_cache.columns_hash(Developer.table_name)
     assert_includes cache_columns.keys, "first_name"
     assert_not_includes Developer.columns_hash.keys, "first_name"
     assert_not_includes SubDeveloper.columns_hash.keys, "first_name"
