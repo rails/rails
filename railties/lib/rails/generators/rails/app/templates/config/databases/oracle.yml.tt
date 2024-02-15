@@ -18,7 +18,7 @@
 #
 default: &default
   adapter: oracle_enhanced
-  pool: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  pool: <%%= ENV.fetch("RAILS_MAX_THREADS", 5) %>
   username: <%= app_name %>
   password:
 
