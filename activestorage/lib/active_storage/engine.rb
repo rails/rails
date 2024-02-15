@@ -200,7 +200,7 @@ module ActiveStorage
     initializer "active_storage.fixture_set" do
       ActiveSupport.on_load(:active_record_fixture_set) do
         ActiveStorage::FixtureSet.file_fixture_path ||= Rails.root.join(*[
-          ENV.fetch("FIXTURES_PATH") { File.join("test", "fixtures") },
+          ENV.fetch("FIXTURES_PATH", File.join("test", "fixtures")),
           ENV["FIXTURES_DIR"],
           "files"
         ].compact_blank)

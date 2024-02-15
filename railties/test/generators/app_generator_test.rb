@@ -1346,7 +1346,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/"DB_HOST": "mysql"/, content)
     end
     assert_file("config/database.yml") do |content|
-      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)
+      assert_match(/host: <%= ENV.fetch\("DB_HOST", "localhost"\) %>/, content)
     end
   end
 
@@ -1372,7 +1372,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/"DB_HOST": "mariadb"/, content)
     end
     assert_file("config/database.yml") do |content|
-      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)
+      assert_match(/host: <%= ENV.fetch\("DB_HOST", "localhost"\) %>/, content)
     end
   end
 

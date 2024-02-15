@@ -95,7 +95,7 @@ module Rails
           if options[:skip_devcontainer]
             "localhost"
           else
-            "<%= ENV.fetch(\"DB_HOST\") { \"localhost\" } %>"
+            "<%= ENV.fetch(\"DB_HOST\", \"localhost\") %>"
           end
         end
     end
