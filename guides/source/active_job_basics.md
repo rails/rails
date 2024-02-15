@@ -426,7 +426,7 @@ Here is an example calling `perform_all_later` with `GuestCleanupJob` instances:
 # The arguments to `new` are passed on to `perform`
 guest_cleanup_jobs = Guest.all.map { |guest| GuestsCleanupJob.new(guest) }
 
-# Will enqueue a seperate job for each instance of `GuestCleanupJob`
+# Will enqueue a separate job for each instance of `GuestCleanupJob`
 ActiveJob.perform_all_later(guest_cleanup_jobs)
 ```
 
