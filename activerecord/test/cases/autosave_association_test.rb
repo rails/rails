@@ -2233,7 +2233,6 @@ end
 class TestCircularAutosaveAssociations < ActiveRecord::TestCase
   def setup
     super
-    # load_schema
     
     @parent = Envelope.create!(name: "P")
     @child = Note.new(name: "Hi!")
@@ -2312,9 +2311,9 @@ class TestCircularAutosaveAssociationsTreeTraversal < ActiveRecord::TestCase
 
   def assert_called_with_native(object, method_name, args, returns: false, **kwargs, &block)
     mock = Minitest::Mock.new
-    mock.expect(:call, returns, args, **kwargs)
+    mock.expect(method_name, returns, args, **kwargs)
 
-    object.stub(method_name, proc { |*x, **y|  mock.call(*x,**y); object.send("__minitest_stub__#{method_name}", *x, **y) }, &block)
+    object.stub(method_name, proc { |*x, **y| mock.send(method_name, *x,**y); object.send("__minitest_stub__#{method_name}", *x, **y) }, &block)
 
     assert_mock(mock)
   end
@@ -2342,4 +2341,45 @@ class TestCircularAutosaveAssociationsTreeTraversal < ActiveRecord::TestCase
     end
   end
 
+  def log_method_calls(objects, method_name, method_calls = [], &block)
+    if objects.is_a?(Array) && objects.size > 1
+      object = objects.shift
+      object.stub(method_name, proc { |*x, **y|
+        method_calls << [object.object_id, method_name, x, y.deep_dup]
+        object.send("__minitest_stub__#{method_name}", *x, **y)
+      }) do
+          log_method_calls(objects, method_name, method_calls, &block)
+      end
+    else
+      object = objects.is_a?(Array) ? objects.first : objects
+      object.stub(method_name, proc { |*x, **y|
+        method_calls << [object.object_id, method_name, x, y.deep_dup]
+        object.send("__minitest_stub__#{method_name}", *x, **y)
+      }, &block)
+    end
+  end
+
+  def test_nested_saves_in_callbacks_have_their_own_memory
+    expense = Expense.new(message: "Expense")
+    sale = Sale.new(message: "doublesave")
+    building = Building.new(name: "Building", expenses: [expense], sales: [sale])
+    listing = Listing.new(building: building)
+    
+    method_calls = []
+    log_method_calls([listing, building, sale, expense], :save, method_calls) do
+      listing.save
+    end
+    
+    [
+      [listing.object_id,   :save, [], {}],
+      [building.object_id,  :save, [], {validate: false, memory: {"saved#{listing.object_id}"=>true, listing.object_id=>false}}],
+      [sale.object_id,      :save, [], {validate: false, memory: {"saved#{listing.object_id}"=>true, listing.object_id=>false, "saved#{building.object_id}"=>true, building.object_id=>false, "saved#{sale.object_id}"=>true}}],
+      [building.object_id,  :save, [], {}],
+      [expense.object_id,   :save, [], {validate: false, memory: {"saved#{building.object_id}"=>true, building.object_id=>false, "saved#{expense.object_id}"=>true, expense.object_id=>true}}],
+      [expense.object_id,   :save, [], {validate: false, memory: {"saved#{listing.object_id}"=>true, listing.object_id=>false, "saved#{building.object_id}"=>true, building.object_id=>false, "saved#{sale.object_id}"=>true, sale.object_id=>false, "saved#{expense.object_id}"=>true}}]
+    ].each do |expected|
+      assert_equal expected, method_calls.shift
+    end
+  end
+  
 end

@@ -46,10 +46,15 @@ module ActiveRecord
     # with this when the validations module is mixed in, which it is by default.
     def save(**options)
       if perform_validations(options)
-        @memory = options[:memory] || {}
-        @memory["saved#{self.object_id}"] = true
-        @memory[self.object_id] = false
-        super
+        begin
+          memory_was = @memory
+          @memory = options[:memory] || {}
+          @memory["saved#{self.object_id}"] = true
+          @memory[self.object_id] = false
+          super
+        ensure
+          @memory = memory_was
+        end
       else
         false
       end
@@ -59,10 +64,15 @@ module ActiveRecord
     # will raise an ActiveRecord::RecordInvalid exception instead of returning +false+ if the record is not valid.
     def save!(**options)
       if perform_validations(options)
-        @memory = options[:memory] || {}
-        @memory["saved#{self.object_id}"] = true
-        @memory[self.object_id] = false
-        super
+        begin
+          memory_was = @memory
+          @memory = options[:memory] || {}
+          @memory["saved#{self.object_id}"] = true
+          @memory[self.object_id] = false
+          super
+        ensure
+          @memory = memory_was
+        end
       else
         raise_validation_error
       end
@@ -82,12 +92,15 @@ module ActiveRecord
     # some <tt>:on</tt> option will only run in the specified context.
     def valid?(context = nil, memory = nil)
       context ||= default_validation_context
+      memory_was = @memory
       @memory = memory || {}
       @memory["valid#{self.object_id}"] = true
       @memory[self.object_id] = false
       
       output = super(context)
       errors.empty? && output
+    ensure
+      @memory = memory_was
     end
 
     alias_method :validate, :valid?
