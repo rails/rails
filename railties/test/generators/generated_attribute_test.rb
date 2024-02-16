@@ -228,4 +228,39 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     att = Rails::Generators::GeneratedAttribute.parse("supplier:references:index")
     assert_not_predicate att, :required?
   end
+
+  def test_generated_attribute_to_s
+    att = Rails::Generators::GeneratedAttribute.parse("name")
+    assert_equal "name:string", att.to_s
+  end
+
+  def test_generated_attribute_to_s_with_index
+    att = Rails::Generators::GeneratedAttribute.parse("name:index")
+    assert_equal "name:string:index", att.to_s
+  end
+
+  def test_generated_attribute_to_s_with_uniq_index
+    att = Rails::Generators::GeneratedAttribute.parse("name:uniq")
+    assert_equal "name:string:uniq", att.to_s
+  end
+
+  def test_generated_attribute_to_s_with_limit
+    att = Rails::Generators::GeneratedAttribute.parse("name:text{140}")
+    assert_equal "name:text{140}", att.to_s
+  end
+
+  def test_generated_attribute_to_s_with_size
+    att = Rails::Generators::GeneratedAttribute.parse("name:text{medium}")
+    assert_equal "name:text{medium}", att.to_s
+  end
+
+  def test_generated_attribute_to_s_with_precision_and_scale
+    att = Rails::Generators::GeneratedAttribute.parse("name:decimal{1,2}")
+    assert_equal "name:decimal{1,2}", att.to_s
+  end
+
+  def test_generated_attribute_to_s_with_polymorphic
+    att = Rails::Generators::GeneratedAttribute.parse("name:references{polymorphic}")
+    assert_equal "name:references{polymorphic}", att.to_s
+  end
 end
