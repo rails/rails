@@ -114,7 +114,11 @@ module ActionDispatch
       exception = begin index; rescue TestError => ex; ex; end
       wrapper = ExceptionWrapper.new(@cleaner, TopErrorProxy.new(exception, 1))
 
-      assert_equal [ "lib/file.rb:42:in `index'" ], wrapper.application_trace.map(&:to_s)
+      if RUBY_VERSION >= "3.4"
+        assert_equal [ "lib/file.rb:42:in 'ActionDispatch::ExceptionWrapperTest#index'" ], wrapper.application_trace.map(&:to_s)
+      else
+        assert_equal [ "lib/file.rb:42:in `index'" ], wrapper.application_trace.map(&:to_s)
+      end
     end
 
     test "#status_code returns 400 for Rack::Utils::ParameterTypeError" do
@@ -182,30 +186,57 @@ module ActionDispatch
       exception = begin in_rack; rescue TestError => ex; TopErrorProxy.new(ex, 2); end
       wrapper = ExceptionWrapper.new(@cleaner, exception)
 
-      assert_equal({
-        "Application Trace" => [
-          exception_object_id: exception.object_id,
-          id: 0,
-          trace: "lib/file.rb:42:in `index'"
-        ],
-        "Framework Trace" => [
-          exception_object_id: exception.object_id,
-          id: 1,
-          trace: "/gems/rack.rb:43:in `in_rack'"
-        ],
-        "Full Trace" => [
-          {
+      if RUBY_VERSION >= "3.4"
+        assert_equal({
+          "Application Trace" => [
+            exception_object_id: exception.object_id,
+            id: 0,
+            trace: "lib/file.rb:42:in 'ActionDispatch::ExceptionWrapperTest#index'"
+          ],
+          "Framework Trace" => [
+            exception_object_id: exception.object_id,
+            id: 1,
+            trace: "/gems/rack.rb:43:in 'ActionDispatch::ExceptionWrapperTest#in_rack'"
+          ],
+          "Full Trace" => [
+            {
+              exception_object_id: exception.object_id,
+              id: 0,
+              trace: "lib/file.rb:42:in 'ActionDispatch::ExceptionWrapperTest#index'"
+            },
+            {
+              exception_object_id: exception.object_id,
+              id: 1,
+              trace: "/gems/rack.rb:43:in 'ActionDispatch::ExceptionWrapperTest#in_rack'"
+            }
+          ]
+        }.inspect, wrapper.traces.inspect)
+      else
+        assert_equal({
+          "Application Trace" => [
             exception_object_id: exception.object_id,
             id: 0,
             trace: "lib/file.rb:42:in `index'"
-          },
-          {
+          ],
+          "Framework Trace" => [
             exception_object_id: exception.object_id,
             id: 1,
             trace: "/gems/rack.rb:43:in `in_rack'"
-          }
-        ]
-      }.inspect, wrapper.traces.inspect)
+          ],
+          "Full Trace" => [
+            {
+              exception_object_id: exception.object_id,
+              id: 0,
+              trace: "lib/file.rb:42:in `index'"
+            },
+            {
+              exception_object_id: exception.object_id,
+              id: 1,
+              trace: "/gems/rack.rb:43:in `in_rack'"
+            }
+          ]
+        }.inspect, wrapper.traces.inspect)
+      end
     end
 
     test "#show? returns false when using :rescuable and the exceptions is not rescuable" do
