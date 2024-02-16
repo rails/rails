@@ -2723,11 +2723,12 @@ module ActionView
             association.each do |child|
               if explicit_child_index
                 if explicit_child_index.respond_to?(:call)
-                  if explicit_child_index.arity.zero?
-                    options[:child_index] = explicit_child_index.call
-                  else
-                    options[:child_index] = explicit_child_index.call(child)
-                  end
+                  options[:child_index] =
+                    if explicit_child_index.arity.zero?
+                      explicit_child_index.call
+                    else
+                      explicit_child_index.call(child)
+                    end
                 end
               else
                 options[:child_index] = nested_child_index(name)
