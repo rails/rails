@@ -429,6 +429,13 @@ module ActiveSupport
       #
       #     p cache.fetch("foo") # => nil
       #
+      # * +:early_expiration+ - Specify a number for scaling the probability of early expiration.
+      #    {The research}[https://cseweb.ucsd.edu/~avattani/papers/cache_stampede.pdf]
+      #    shows specifying +1+ works well in practice. Specify a value greater than 1 to
+      #    favor earlier expiration and further reduce dog piling.
+      #
+      #    This approach outperforms +:race_condition_ttl+ if predictability is not a concern.
+      #
       # ==== Dynamic Options
       #
       # In some cases it may be necessary to dynamically compute options based
@@ -467,10 +474,10 @@ module ActiveSupport
             end
           end
 
-          if entry
-            get_entry_value(entry, name, options)
-          else
+          if entry.nil? || options && options[:early_expiration] && entry.should_expire_early?(beta: options[:early_expiration])
             save_block_result_to_cache(name, key, options, &block)
+          elsif entry
+            get_entry_value(entry, name, options)
           end
         elsif options && options[:force]
           raise ArgumentError, "Missing block: Calling `Cache#fetch` with `force: true` requires a block."
@@ -1048,12 +1055,24 @@ module ActiveSupport
         def save_block_result_to_cache(name, key, options)
           options = options.dup
 
-          result = instrument(:generate, key, options) do
-            yield(name, WriteOptions.new(options))
+          result = nil
+          generation_time = nil
+
+          instrument(:generate, key, options) do
+            generation_time = duration do
+              result = yield(name, WriteOptions.new(options))
+            end
           end
 
+          options[:generation_time] = generation_time
           write(name, result, options) unless result.nil? && options[:skip_nil]
           result
+        end
+
+        def duration
+          now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          yield
+          Process.clock_gettime(Process::CLOCK_MONOTONIC) - now
         end
     end
 
