@@ -139,10 +139,10 @@ module ActiveRecord
     # when the application needs to treat one configuration differently. For
     # example, when Rails dumps the schema, the primary configuration's schema
     # file will be named `schema.rb` instead of `primary_schema.rb`.
-    def primary?(name) # :nodoc:
+    def primary?(name, env: default_env) # :nodoc:
       return true if name == "primary"
 
-      first_config = find_db_config(default_env)
+      first_config = find_db_config(env)
       first_config && name == first_config.name
     end
 

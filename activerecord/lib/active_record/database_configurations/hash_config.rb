@@ -127,7 +127,7 @@ module ActiveRecord
       end
 
       def primary? # :nodoc:
-        Base.configurations.primary?(name)
+        Base.configurations.primary?(name, env: env_name)
       end
 
       # Determines whether to dump the schema/structure files and the filename that
