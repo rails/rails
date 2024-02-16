@@ -22,12 +22,12 @@ module ActionCable
         websocket&.alive?
       end
 
-      def transmit(data)
-        websocket&.transmit data
+      def transmit(...)
+        websocket&.transmit(...)
       end
 
-      def close(code = nil, reason = nil)
-        websocket&.close code, reason
+      def close(...)
+        websocket&.close(...)
       end
 
       def protocol
