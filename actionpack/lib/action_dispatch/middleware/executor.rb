@@ -13,7 +13,7 @@ module ActionDispatch
       begin
         response = @app.call(env)
         if rendered_error = env["action_dispatch.exception"]
-          @executor.error_reporter.report(rendered_error, handled: false, source: "application.action_dispatch")
+          @executor.error_reporter.report(rendered_error, handled: false)
         end
         returned = response << ::Rack::BodyProxy.new(response.pop) { state.complete! }
       rescue => error
