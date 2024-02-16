@@ -127,15 +127,24 @@ module ActiveRecord
       def tables(stream)
         sorted_tables = @connection.tables.sort
 
-        sorted_tables.each do |table_name|
-          table(table_name, stream) unless ignored?(table_name)
+        not_ignored_tables = sorted_tables.reject { |table_name| ignored?(table_name) }
+
+        not_ignored_tables.each_with_index do |table_name, index|
+          table(table_name, stream)
+          stream.puts if index < not_ignored_tables.count - 1
         end
 
         # dump foreign keys at the end to make sure all dependent tables exist.
-        if @connection.use_foreign_keys?
-          sorted_tables.each do |tbl|
-            foreign_keys(tbl, stream) unless ignored?(tbl)
+        if @connection.supports_foreign_keys?
+          foreign_keys_stream = StringIO.new
+          not_ignored_tables.each do |tbl|
+            foreign_keys(tbl, foreign_keys_stream)
           end
+
+          foreign_keys_string = foreign_keys_stream.string
+          stream.puts if foreign_keys_string.length > 0
+
+          stream.print foreign_keys_string
         end
       end
 
@@ -196,7 +205,6 @@ module ActiveRecord
           unique_constraints_in_create(table, tbl) if @connection.supports_unique_constraints?
 
           tbl.puts "  end"
-          tbl.puts
 
           stream.print tbl.string
         rescue => e
