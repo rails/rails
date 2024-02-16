@@ -14,7 +14,7 @@ module ActionDispatch
         response = @app.call(env)
         returned = response << ::Rack::BodyProxy.new(response.pop) { state.complete! }
       rescue => error
-        @executor.error_reporter.report(error, handled: false, source: "application.action_dispatch")
+        @executor.error_reporter.report(error, handled: false)
         raise
       ensure
         state.complete! unless returned
