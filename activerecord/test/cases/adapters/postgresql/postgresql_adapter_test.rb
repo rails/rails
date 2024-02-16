@@ -462,14 +462,14 @@ module ActiveRecord
         @connection.create_enum "feeling", ["good", "bad"]
 
         # Runs only SELECT, no type map reloading.
-        assert_queries(1, ignore_none: true) do
+        assert_queries_count(1, include_schema: true) do
           result = @connection.select_all "SELECT 'good'::feeling"
           assert_instance_of(PostgreSQLAdapter::OID::Enum,
                              result.column_types["feeling"])
         end
       ensure
         # Reloads type map.
-        assert_sql(/from pg_type/i) do
+        assert_queries_match(/from pg_type/i, include_schema: true) do
           @connection.drop_enum "feeling", if_exists: true
         end
         reset_connection
@@ -481,13 +481,13 @@ module ActiveRecord
         connection.select_all "SELECT 1" # eagerly initialize the connection
 
         silence_warnings do
-          assert_queries 2, ignore_none: true do
+          assert_queries_count(2, include_schema: true) do
             connection.select_all "select 'pg_catalog.pg_class'::regclass"
           end
-          assert_queries 1, ignore_none: true do
+          assert_queries_count(1, include_schema: true) do
             connection.select_all "select 'pg_catalog.pg_class'::regclass"
           end
-          assert_queries 2, ignore_none: true do
+          assert_queries_count(2, include_schema: true) do
             connection.select_all "SELECT NULL::anyarray"
           end
         end
@@ -534,7 +534,7 @@ module ActiveRecord
             self.table_name = "ex"
           end
           attribute = number_klass.arel_table[:number]
-          assert_queries :any, ignore_none: true do
+          assert_queries_count(include_schema: true) do
             @connection.case_insensitive_comparison(attribute, "foo")
           end
           assert_no_queries do

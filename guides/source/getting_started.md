@@ -93,10 +93,10 @@ current version of Ruby installed:
 
 ```bash
 $ ruby --version
-ruby 2.7.0
+ruby 3.1.0
 ```
 
-Rails requires Ruby version 2.7.0 or later. It is preferred to use the latest Ruby version.
+Rails requires Ruby version 3.1.0 or later. It is preferred to use the latest Ruby version.
 If the version number returned is less than that number (such as 2.3.7, or 1.8.7),
 you'll need to install a fresh copy of Ruby.
 
@@ -190,7 +190,9 @@ of the files and folders that Rails creates by default:
 |vendor/|A place for all third-party code. In a typical Rails application this includes vendored gems.|
 |.dockerignore|This file tells Docker which files it should not copy into the container.|
 |.gitattributes|This file defines metadata for specific paths in a git repository. This metadata can be used by git and other tools to enhance their behavior. See the [gitattributes documentation](https://git-scm.com/docs/gitattributes) for more information.|
+|.github/|Contains GitHub specific files.|
 |.gitignore|This file tells git which files (or patterns) it should ignore. See [GitHub - Ignoring files](https://help.github.com/articles/ignoring-files) for more information about ignoring files.|
+|.rubocop.yml|This file contains the configuration for RuboCop.|
 |.ruby-version|This file contains the default Ruby version.|
 
 Hello, Rails!

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "action_dispatch"
 require "action_dispatch/log_subscriber"
 require "active_support/messages/rotation_configuration"
@@ -66,7 +68,6 @@ module ActionDispatch
       ActionDispatch::Cookies::CookieJar.always_write_cookie = config.action_dispatch.always_write_cookie
 
       ActionDispatch::Routing::Mapper.route_source_locations = Rails.env.development?
-      ActionDispatch::Routing::Mapper.backtrace_cleaner = Rails.backtrace_cleaner
 
       ActionDispatch.test_app = app
     end

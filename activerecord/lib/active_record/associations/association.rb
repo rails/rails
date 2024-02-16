@@ -33,7 +33,8 @@ module ActiveRecord
     # <tt>owner</tt>, the collection of its posts as <tt>target</tt>, and
     # the <tt>reflection</tt> object represents a <tt>:has_many</tt> macro.
     class Association # :nodoc:
-      attr_reader :owner, :target, :reflection, :disable_joins
+      attr_accessor :owner
+      attr_reader :target, :reflection, :disable_joins
 
       delegate :options, to: :reflection
 
@@ -52,7 +53,6 @@ module ActiveRecord
       # Resets the \loaded flag to +false+ and sets the \target to +nil+.
       def reset
         @loaded = false
-        @target = nil
         @stale_state = nil
       end
 

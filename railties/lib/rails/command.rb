@@ -23,7 +23,7 @@ module Rails
         super(message)
       end
 
-      if !Exception.method_defined?(:detailed_message)
+      if !Exception.method_defined?(:detailed_message) # Ruby 3.2+
         def detailed_message(...)
           message
         end

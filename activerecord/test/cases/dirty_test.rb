@@ -362,7 +362,7 @@ class DirtyTest < ActiveRecord::TestCase
     old_updated_on = 1.hour.ago.beginning_of_day
 
     with_partial_writes Pirate, false do
-      assert_queries(2) { 2.times { pirate.save! } }
+      assert_queries_count(6) { 2.times { pirate.save! } }
       Pirate.where(id: pirate.id).update_all(updated_on: old_updated_on)
     end
 
@@ -370,7 +370,7 @@ class DirtyTest < ActiveRecord::TestCase
       assert_no_queries { 2.times { pirate.save! } }
       assert_equal old_updated_on, pirate.reload.updated_on
 
-      assert_queries(1) { pirate.catchphrase = "bar"; pirate.save! }
+      assert_queries_count(3) { pirate.catchphrase = "bar"; pirate.save! }
       assert_not_equal old_updated_on, pirate.reload.updated_on
     end
   end
@@ -379,7 +379,7 @@ class DirtyTest < ActiveRecord::TestCase
     person = Person.new(first_name: "foo")
 
     with_partial_writes Person, false do
-      assert_queries(2) { 2.times { person.save! } }
+      assert_queries_count(6) { 2.times { person.save! } }
       Person.where(id: person.id).update_all(first_name: "baz")
     end
 
@@ -389,7 +389,7 @@ class DirtyTest < ActiveRecord::TestCase
       assert_no_queries { 2.times { person.save! } }
       assert_equal old_lock_version, person.reload.lock_version
 
-      assert_queries(1) { person.first_name = "bar"; person.save! }
+      assert_queries_count(3) { person.first_name = "bar"; person.save! }
       assert_not_equal old_lock_version, person.reload.lock_version
     end
   end
@@ -645,11 +645,11 @@ class DirtyTest < ActiveRecord::TestCase
   test "partial insert" do
     with_partial_writes Person do
       jon = nil
-      assert_sql(/first_name/i) do
-        jon = Person.create! first_name: "Jon"
+      assert_no_queries_match(/followers_count/) do
+        assert_queries_match(/first_name/) do
+          jon = Person.create! first_name: "Jon"
+        end
       end
-
-      assert ActiveRecord::SQLCounter.log_all.none? { |sql| sql.include?("followers_count") }
 
       jon.reload
       assert_equal "Jon", jon.first_name

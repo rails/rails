@@ -64,8 +64,6 @@ Hence, the cookie serves as temporary authentication for the web application. An
 
 * Instead of stealing a cookie unknown to the attacker, they fix a user's session identifier (in the cookie) known to them. Read more about this so-called session fixation later.
 
-The main objective of most attackers is to make money. The underground prices for stolen bank login accounts range from 0.5%-10% of account balance, $0.5-$30 for credit card numbers ($20-$60 with full details), $0.1-$1.5 for identities (Name, SSN, and DOB), $20-$50 for retailer accounts, and $6-$10 for cloud service provider accounts, according to the [Symantec Internet Security Threat Report (2017)](https://docs.broadcom.com/docs/istr-22-2017-en).
-
 ### Session Storage
 
 NOTE: Rails uses `ActionDispatch::Session::CookieStore` as the default session storage.
@@ -661,7 +659,8 @@ SELECT * FROM projects WHERE (name = '') UNION
 
 The result won't be a list of projects (because there is no project with an empty name), but a list of usernames and their password. So hopefully you [securely hashed the passwords](#user-management) in the database! The only problem for the attacker is, that the number of columns has to be the same in both queries. That's why the second query includes a list of ones (1), which will be always the value 1, in order to match the number of columns in the first query.
 
-Also, the second query renames some columns with the AS statement so that the web application displays the values from the user table. Be sure to update your Rails [to at least 2.1.1](https://rorsecurity.info/journal/2008/09/08/sql-injection-issue-in-limit-and-offset-parameter.html).
+Also, the second query renames some columns with the AS statement so that the
+Web application displays the values from the user table.
 
 #### Countermeasures
 
@@ -673,7 +672,7 @@ Instead of passing a string, you can use positional handlers to sanitize tainted
 Model.where("zip_code = ? AND quantity >= ?", entered_zip_code, entered_quantity).first
 ```
 
-The first parameter is a SQL fragment with question marks. The second and third
+The first parameter is an SQL fragment with question marks. The second and third
 parameter will replace the question marks with the value of the variables.
 
 You can also use named handlers, the values will be taken from the hash used:
@@ -707,7 +706,7 @@ The most common entry points are message posts, user comments, and guest books, 
 
 XSS attacks work like this: An attacker injects some code, the web application saves it and displays it on a page, later presented to a victim. Most XSS examples simply display an alert box, but it is more powerful than that. XSS can steal the cookie, hijack the session, redirect the victim to a fake website, display advertisements for the benefit of the attacker, change elements on the website to get confidential information or install malicious software through security holes in the web browser.
 
-During the second half of 2007, there were 88 vulnerabilities reported in Mozilla browsers, 22 in Safari, 18 in IE, and 12 in Opera. The Symantec Global Internet Security threat report also documented 239 browser plug-in vulnerabilities in the last six months of 2007. [Mpack](https://www.pandasecurity.com/en/mediacenter/malware/mpack-uncovered/) is a very active and up-to-date attack framework which exploits these vulnerabilities. For criminal hackers, it is very attractive to exploit a SQL-Injection vulnerability in a web application framework and insert malicious code in every textual table column. In April 2008 more than 510,000 sites were hacked like this, among them the British government, United Nations, and many more high profile targets.
+During the second half of 2007, there were 88 vulnerabilities reported in Mozilla browsers, 22 in Safari, 18 in IE, and 12 in Opera. The Symantec Global Internet Security threat report also documented 239 browser plug-in vulnerabilities in the last six months of 2007. [Mpack](https://www.pandasecurity.com/en/mediacenter/malware/mpack-uncovered/) is a very active and up-to-date attack framework which exploits these vulnerabilities. For criminal hackers, it is very attractive to exploit an SQL-Injection vulnerability in a web application framework and insert malicious code in every textual table column. In April 2008 more than 510,000 sites were hacked like this, among them the British government, United Nations, and many more high profile targets.
 
 #### HTML/JavaScript Injection
 
@@ -865,7 +864,8 @@ This example, again, showed that a restricted list filter is never complete. How
 
 If you want to provide text formatting other than HTML (due to security), use a mark-up language which is converted to HTML on the server-side. [RedCloth](https://github.com/jgarber/redcloth) is such a language for Ruby, but without precautions, it is also vulnerable to XSS.
 
-For example, RedCloth translates `_test_` to `<em>test<em>`, which makes the text italic. However, up to the current version 3.0.4, it is still vulnerable to XSS. Get the [all-new version 4](https://github.com/jgarber/redcloth) that removed serious bugs. However, even that version has [some security bugs](https://rorsecurity.info/journal/2008/10/13/new-redcloth-security.html), so the countermeasures still apply. Here is an example for version 3.0.4:
+For example, RedCloth translates `_test_` to `<em>test<em>`, which makes the
+text italic. However, RedCloth doesn’t filter unsafe html tags by default:
 
 ```ruby
 RedCloth.new('<script>alert(1)</script>').to_html
@@ -1281,10 +1281,11 @@ can be added to script tags by passing `nonce: true` as part of `html_options`:
 <% end -%>
 ```
 
-The same works with `javascript_include_tag`:
+The same works with `javascript_include_tag` and the `stylesheet_link_tag`:
 
 ```html+erb
 <%= javascript_include_tag "script", nonce: true %>
+<%= stylesheet_link_tag "style.css", nonce: true %>
 ```
 
 Use [`csp_meta_tag`](https://api.rubyonrails.org/classes/ActionView/Helpers/CspHelper.html#method-i-csp_meta_tag)

@@ -1,14 +1,17 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "benchmark"
 require "abstract_controller/logger"
 
 module ActionController
-  # = Action Controller \Instrumentation
+  # # Action Controller Instrumentation
   #
-  # Adds instrumentation to several ends in ActionController::Base. It also provides
-  # some hooks related with process_action. This allows an ORM like Active Record
-  # and/or DataMapper to plug in ActionController and show related information.
+  # Adds instrumentation to several ends in ActionController::Base. It also
+  # provides some hooks related with process_action. This allows an ORM like
+  # Active Record and/or DataMapper to plug in ActionController and show related
+  # information.
   #
   # Check ActiveRecord::Railties::ControllerRuntime for an example.
   module Instrumentation
@@ -91,23 +94,23 @@ module ActionController
       # A hook which allows you to clean up any time, wrongly taken into account in
       # views, like database querying time.
       #
-      #   def cleanup_view_runtime
-      #     super - time_taken_in_something_expensive
-      #   end
+      #     def cleanup_view_runtime
+      #       super - time_taken_in_something_expensive
+      #     end
       def cleanup_view_runtime # :doc:
         yield
       end
 
-      # Every time after an action is processed, this method is invoked
-      # with the payload, so you can add more information.
+      # Every time after an action is processed, this method is invoked with the
+      # payload, so you can add more information.
       def append_info_to_payload(payload) # :doc:
         payload[:view_runtime] = view_runtime
       end
 
       module ClassMethods
-        # A hook which allows other frameworks to log what happened during
-        # controller process action. This method should return an array
-        # with the messages to be added.
+        # A hook which allows other frameworks to log what happened during controller
+        # process action. This method should return an array with the messages to be
+        # added.
         def log_process_action(payload) # :nodoc:
           messages, view_runtime = [], payload[:view_runtime]
           messages << ("Views: %.1fms" % view_runtime.to_f) if view_runtime

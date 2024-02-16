@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/array/extract_options"
@@ -10,10 +12,19 @@ require "action_dispatch/routing/endpoint"
 module ActionDispatch
   module Routing
     class Mapper
+      class BacktraceCleaner < ActiveSupport::BacktraceCleaner # :nodoc:
+        def initialize
+          super
+          remove_silencers!
+          add_core_silencer
+          add_stdlib_silencer
+        end
+      end
+
       URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port]
 
       cattr_accessor :route_source_locations, instance_accessor: false, default: false
-      cattr_accessor :backtrace_cleaner, instance_accessor: false, default: ActiveSupport::BacktraceCleaner.new
+      cattr_accessor :backtrace_cleaner, instance_accessor: false, default: BacktraceCleaner.new
 
       class Constraints < Routing::Endpoint # :nodoc:
         attr_reader :app, :constraints
@@ -22,10 +33,10 @@ module ActionDispatch
         CALL  = ->(app, req) { app.call req.env }
 
         def initialize(app, constraints, strategy)
-          # Unwrap Constraints objects. I don't actually think it's possible
-          # to pass a Constraints object to this constructor, but there were
-          # multiple places that kept testing children of this object. I
-          # *think* they were just being defensive, but I have no idea.
+          # Unwrap Constraints objects. I don't actually think it's possible to pass a
+          # Constraints object to this constructor, but there were multiple places that
+          # kept testing children of this object. I **think** they were just being
+          # defensive, but I have no idea.
           if app.is_a?(self.class)
             constraints += app.constraints
             app = app.app
@@ -210,16 +221,23 @@ module ActionDispatch
               # Add a default constraint for :controller path segments that matches namespaced
               # controllers with default routes like :controller/:action/:id(.:format), e.g:
               # GET /admin/products/show/1
-              # => { controller: 'admin/products', action: 'show', id: '1' }
+              # # > { controller: 'admin/products', action: 'show', id: '1' }
               options[:controller] ||= /.+?/
             end
 
             if to.respond_to?(:action) || to.respond_to?(:call)
               options
             else
-              to_endpoint = split_to to
-              controller  = to_endpoint[0] || default_controller
-              action      = to_endpoint[1] || default_action
+              if to.nil?
+                controller = default_controller
+                action = default_action
+              elsif to.is_a?(String) && to.include?("#")
+                to_endpoint = to.split("#").map!(&:-@)
+                controller  = to_endpoint[0]
+                action      = to_endpoint[1]
+              else
+                raise ArgumentError, ":to must respond to `action` or `call`, or it must be a String that includes '#'"
+              end
 
               controller = add_controller_module(controller, modyoule)
 
@@ -308,14 +326,6 @@ module ActionDispatch
             hash
           end
 
-          def split_to(to)
-            if to&.include?("#")
-              to.split("#").map!(&:-@)
-            else
-              []
-            end
-          end
-
           def add_controller_module(controller, modyoule)
             if modyoule && !controller.is_a?(Regexp)
               if controller&.start_with?("/")
@@ -367,11 +377,10 @@ module ActionDispatch
                 Thread.each_caller_location do |location|
                   next if location.path.start_with?(action_dispatch_dir)
 
-                  if cleaned_path = Mapper.backtrace_cleaner.clean_frame(location.path)
-                    return "#{cleaned_path}:#{location.lineno}"
-                  else
-                    return nil
-                  end
+                  cleaned_path = Mapper.backtrace_cleaner.clean_frame(location.path)
+                  next if cleaned_path.nil?
+
+                  return "#{cleaned_path}:#{location.lineno}"
                 end
                 nil
               end
@@ -383,11 +392,10 @@ module ActionDispatch
                 caller_locations.each do |location|
                   next if location.path.start_with?(action_dispatch_dir)
 
-                  if cleaned_path = Mapper.backtrace_cleaner.clean_frame(location.path)
-                    return "#{cleaned_path}:#{location.lineno}"
-                  else
-                    return nil
-                  end
+                  cleaned_path = Mapper.backtrace_cleaner.clean_frame(location.path)
+                  next if cleaned_path.nil?
+
+                  return "#{cleaned_path}:#{location.lineno}"
                 end
                 nil
               end
@@ -395,22 +403,20 @@ module ActionDispatch
           end
       end
 
-      # Invokes Journey::Router::Utils.normalize_path, then ensures that
-      # /(:locale) becomes (/:locale). Except for root cases, where the
-      # former is the correct one.
+      # Invokes Journey::Router::Utils.normalize_path, then ensures that /(:locale)
+      # becomes (/:locale). Except for root cases, where the former is the correct
+      # one.
       def self.normalize_path(path)
         path = Journey::Router::Utils.normalize_path(path)
 
         # the path for a root URL at this point can be something like
         # "/(/:locale)(/:platform)/(:browser)", and we would want
-        # "/(:locale)(/:platform)(/:browser)"
-
-        # reverse "/(", "/((" etc to "(/", "((/" etc
+        # "/(:locale)(/:platform)(/:browser)" reverse "/(", "/((" etc to "(/", "((/" etc
         path.gsub!(%r{/(\(+)/?}, '\1/')
-        # if a path is all optional segments, change the leading "(/" back to
-        # "/(" so it evaluates to "/" when interpreted with no options.
-        # Unless, however, at least one secondary segment consists of a static
-        # part, ex. "(/:locale)(/pages/:page)"
+        # if a path is all optional segments, change the leading "(/" back to "/(" so it
+        # evaluates to "/" when interpreted with no options. Unless, however, at least
+        # one secondary segment consists of a static part, ex.
+        # "(/:locale)(/pages/:page)"
         path.sub!(%r{^(\(+)/}, '/\1') if %r{^(\(+[^)]+\))(\(+/:[^)]+\))*$}.match?(path)
         path
       end
@@ -422,206 +428,202 @@ module ActionDispatch
       module Base
         # Matches a URL pattern to one or more routes.
         #
-        # You should not use the +match+ method in your router
-        # without specifying an HTTP method.
+        # You should not use the `match` method in your router without specifying an
+        # HTTP method.
         #
         # If you want to expose your action to both GET and POST, use:
         #
-        #   # sets :controller, :action, and :id in params
-        #   match ':controller/:action/:id', via: [:get, :post]
+        #     # sets :controller, :action, and :id in params
+        #     match ':controller/:action/:id', via: [:get, :post]
         #
-        # Note that +:controller+, +:action+, and +:id+ are interpreted as URL
-        # query parameters and thus available through +params+ in an action.
+        # Note that `:controller`, `:action`, and `:id` are interpreted as URL query
+        # parameters and thus available through `params` in an action.
         #
-        # If you want to expose your action to GET, use +get+ in the router:
+        # If you want to expose your action to GET, use `get` in the router:
         #
         # Instead of:
         #
-        #   match ":controller/:action/:id"
+        #     match ":controller/:action/:id"
         #
         # Do:
         #
-        #   get ":controller/:action/:id"
+        #     get ":controller/:action/:id"
         #
-        # Two of these symbols are special, +:controller+ maps to the controller
-        # and +:action+ to the controller's action. A pattern can also map
-        # wildcard segments (globs) to params:
+        # Two of these symbols are special, `:controller` maps to the controller and
+        # `:action` to the controller's action. A pattern can also map wildcard segments
+        # (globs) to params:
         #
-        #   get 'songs/*category/:title', to: 'songs#show'
+        #     get 'songs/*category/:title', to: 'songs#show'
         #
-        #   # 'songs/rock/classic/stairway-to-heaven' sets
-        #   #  params[:category] = 'rock/classic'
-        #   #  params[:title] = 'stairway-to-heaven'
+        #     # 'songs/rock/classic/stairway-to-heaven' sets
+        #     #  params[:category] = 'rock/classic'
+        #     #  params[:title] = 'stairway-to-heaven'
         #
-        # To match a wildcard parameter, it must have a name assigned to it.
-        # Without a variable name to attach the glob parameter to, the route
-        # can't be parsed.
+        # To match a wildcard parameter, it must have a name assigned to it. Without a
+        # variable name to attach the glob parameter to, the route can't be parsed.
         #
-        # When a pattern points to an internal route, the route's +:action+ and
-        # +:controller+ should be set in options or hash shorthand. Examples:
+        # When a pattern points to an internal route, the route's `:action` and
+        # `:controller` should be set in options or hash shorthand. Examples:
         #
-        #   match 'photos/:id' => 'photos#show', via: :get
-        #   match 'photos/:id', to: 'photos#show', via: :get
-        #   match 'photos/:id', controller: 'photos', action: 'show', via: :get
+        #     match 'photos/:id' => 'photos#show', via: :get
+        #     match 'photos/:id', to: 'photos#show', via: :get
+        #     match 'photos/:id', controller: 'photos', action: 'show', via: :get
         #
-        # A pattern can also point to a +Rack+ endpoint i.e. anything that
-        # responds to +call+:
+        # A pattern can also point to a `Rack` endpoint i.e. anything that responds to
+        # `call`:
         #
-        #   match 'photos/:id', to: -> (hash) { [200, {}, ["Coming soon"]] }, via: :get
-        #   match 'photos/:id', to: PhotoRackApp, via: :get
-        #   # Yes, controller actions are just rack endpoints
-        #   match 'photos/:id', to: PhotosController.action(:show), via: :get
+        #     match 'photos/:id', to: -> (hash) { [200, {}, ["Coming soon"]] }, via: :get
+        #     match 'photos/:id', to: PhotoRackApp, via: :get
+        #     # Yes, controller actions are just rack endpoints
+        #     match 'photos/:id', to: PhotosController.action(:show), via: :get
         #
         # Because requesting various HTTP verbs with a single action has security
-        # implications, you must either specify the actions in
-        # the via options or use one of the HttpHelpers[rdoc-ref:HttpHelpers]
-        # instead +match+
+        # implications, you must either specify the actions in the via options or use
+        # one of the [HttpHelpers](rdoc-ref:HttpHelpers) instead `match`
         #
-        # === Options
+        # ### Options
         #
         # Any options not seen here are passed on as params with the URL.
         #
-        # [:controller]
-        #   The route's controller.
+        # :controller
+        # :   The route's controller.
         #
-        # [:action]
-        #   The route's action.
+        # :action
+        # :   The route's action.
         #
-        # [:param]
-        #   Overrides the default resource identifier +:id+ (name of the
-        #   dynamic segment used to generate the routes).
-        #   You can access that segment from your controller using
-        #   <tt>params[<:param>]</tt>.
-        #   In your router:
+        # :param
+        # :   Overrides the default resource identifier `:id` (name of the dynamic
+        #     segment used to generate the routes). You can access that segment from
+        #     your controller using `params[<:param>]`. In your router:
         #
-        #      resources :users, param: :name
+        #         resources :users, param: :name
         #
-        #   The +users+ resource here will have the following routes generated for it:
+        #     The `users` resource here will have the following routes generated for it:
         #
-        #      GET       /users(.:format)
-        #      POST      /users(.:format)
-        #      GET       /users/new(.:format)
-        #      GET       /users/:name/edit(.:format)
-        #      GET       /users/:name(.:format)
-        #      PATCH/PUT /users/:name(.:format)
-        #      DELETE    /users/:name(.:format)
+        #         GET       /users(.:format)
+        #         POST      /users(.:format)
+        #         GET       /users/new(.:format)
+        #         GET       /users/:name/edit(.:format)
+        #         GET       /users/:name(.:format)
+        #         PATCH/PUT /users/:name(.:format)
+        #         DELETE    /users/:name(.:format)
         #
-        #   You can override <tt>ActiveRecord::Base#to_param</tt> of a related
-        #   model to construct a URL:
+        #     You can override `ActiveRecord::Base#to_param` of a related model to
+        #     construct a URL:
         #
-        #      class User < ActiveRecord::Base
-        #        def to_param
-        #          name
-        #        end
-        #      end
+        #         class User < ActiveRecord::Base
+        #           def to_param
+        #             name
+        #           end
+        #         end
         #
-        #      user = User.find_by(name: 'Phusion')
-        #      user_path(user)  # => "/users/Phusion"
+        #         user = User.find_by(name: 'Phusion')
+        #         user_path(user)  # => "/users/Phusion"
         #
-        # [:path]
-        #   The path prefix for the routes.
+        # :path
+        # :   The path prefix for the routes.
         #
-        # [:module]
-        #   The namespace for :controller.
+        # :module
+        # :   The namespace for :controller.
         #
-        #     match 'path', to: 'c#a', module: 'sekret', controller: 'posts', via: :get
-        #     # => Sekret::PostsController
+        #         match 'path', to: 'c#a', module: 'sekret', controller: 'posts', via: :get
+        #         # => Sekret::PostsController
         #
-        #   See <tt>Scoping#namespace</tt> for its scope equivalent.
+        #     See `Scoping#namespace` for its scope equivalent.
         #
-        # [:as]
-        #   The name used to generate routing helpers.
+        # :as
+        # :   The name used to generate routing helpers.
         #
-        # [:via]
-        #   Allowed HTTP verb(s) for route.
+        # :via
+        # :   Allowed HTTP verb(s) for route.
         #
-        #      match 'path', to: 'c#a', via: :get
-        #      match 'path', to: 'c#a', via: [:get, :post]
-        #      match 'path', to: 'c#a', via: :all
+        #         match 'path', to: 'c#a', via: :get
+        #         match 'path', to: 'c#a', via: [:get, :post]
+        #         match 'path', to: 'c#a', via: :all
         #
-        # [:to]
-        #   Points to a +Rack+ endpoint. Can be an object that responds to
-        #   +call+ or a string representing a controller's action.
+        # :to
+        # :   Points to a `Rack` endpoint. Can be an object that responds to `call` or a
+        #     string representing a controller's action.
         #
-        #      match 'path', to: 'controller#action', via: :get
-        #      match 'path', to: -> (env) { [200, {}, ["Success!"]] }, via: :get
-        #      match 'path', to: RackApp, via: :get
+        #         match 'path', to: 'controller#action', via: :get
+        #         match 'path', to: -> (env) { [200, {}, ["Success!"]] }, via: :get
+        #         match 'path', to: RackApp, via: :get
         #
-        # [:on]
-        #   Shorthand for wrapping routes in a specific RESTful context. Valid
-        #   values are +:member+, +:collection+, and +:new+. Only use within
-        #   <tt>resource(s)</tt> block. For example:
+        # :on
+        # :   Shorthand for wrapping routes in a specific RESTful context. Valid values
+        #     are `:member`, `:collection`, and `:new`. Only use within `resource(s)`
+        #     block. For example:
         #
-        #      resource :bar do
-        #        match 'foo', to: 'c#a', on: :member, via: [:get, :post]
-        #      end
+        #         resource :bar do
+        #           match 'foo', to: 'c#a', on: :member, via: [:get, :post]
+        #         end
         #
-        #   Is equivalent to:
+        #     Is equivalent to:
         #
-        #      resource :bar do
-        #        member do
-        #          match 'foo', to: 'c#a', via: [:get, :post]
-        #        end
-        #      end
+        #         resource :bar do
+        #           member do
+        #             match 'foo', to: 'c#a', via: [:get, :post]
+        #           end
+        #         end
         #
-        # [:constraints]
-        #   Constrains parameters with a hash of regular expressions
-        #   or an object that responds to <tt>matches?</tt>. In addition, constraints
-        #   other than path can also be specified with any object
-        #   that responds to <tt>===</tt> (e.g. String, Array, Range, etc.).
+        # :constraints
+        # :   Constrains parameters with a hash of regular expressions or an object that
+        #     responds to `matches?`. In addition, constraints other than path can also
+        #     be specified with any object that responds to `===` (e.g. String, Array,
+        #     Range, etc.).
         #
-        #     match 'path/:id', constraints: { id: /[A-Z]\d{5}/ }, via: :get
+        #         match 'path/:id', constraints: { id: /[A-Z]\d{5}/ }, via: :get
         #
-        #     match 'json_only', constraints: { format: 'json' }, via: :get
+        #         match 'json_only', constraints: { format: 'json' }, via: :get
         #
-        #     class PermitList
-        #       def matches?(request) request.remote_ip == '1.2.3.4' end
-        #     end
-        #     match 'path', to: 'c#a', constraints: PermitList.new, via: :get
+        #         class PermitList
+        #           def matches?(request) request.remote_ip == '1.2.3.4' end
+        #         end
+        #         match 'path', to: 'c#a', constraints: PermitList.new, via: :get
         #
-        #   See <tt>Scoping#constraints</tt> for more examples with its scope
-        #   equivalent.
+        #     See `Scoping#constraints` for more examples with its scope equivalent.
         #
-        # [:defaults]
-        #   Sets defaults for parameters
+        # :defaults
+        # :   Sets defaults for parameters
         #
-        #     # Sets params[:format] to 'jpg' by default
-        #     match 'path', to: 'c#a', defaults: { format: 'jpg' }, via: :get
+        #         # Sets params[:format] to 'jpg' by default
+        #         match 'path', to: 'c#a', defaults: { format: 'jpg' }, via: :get
         #
-        #   See <tt>Scoping#defaults</tt> for its scope equivalent.
+        #     See `Scoping#defaults` for its scope equivalent.
         #
-        # [:anchor]
-        #   Boolean to anchor a <tt>match</tt> pattern. Default is true. When set to
-        #   false, the pattern matches any request prefixed with the given path.
+        # :anchor
+        # :   Boolean to anchor a `match` pattern. Default is true. When set to false,
+        #     the pattern matches any request prefixed with the given path.
         #
-        #     # Matches any request starting with 'path'
-        #     match 'path', to: 'c#a', anchor: false, via: :get
+        #         # Matches any request starting with 'path'
+        #         match 'path', to: 'c#a', anchor: false, via: :get
         #
-        # [:format]
-        #   Allows you to specify the default value for optional +format+
-        #   segment or disable it by supplying +false+.
+        # :format
+        # :   Allows you to specify the default value for optional `format` segment or
+        #     disable it by supplying `false`.
+        #
         def match(path, options = nil)
         end
 
         # Mount a Rack-based application to be used within the application.
         #
-        #   mount SomeRackApp, at: "some_route"
+        #     mount SomeRackApp, at: "some_route"
         #
         # Alternatively:
         #
-        #   mount(SomeRackApp => "some_route")
+        #     mount(SomeRackApp => "some_route")
         #
-        # For options, see +match+, as +mount+ uses it internally.
+        # For options, see `match`, as `mount` uses it internally.
         #
-        # All mounted applications come with routing helpers to access them.
-        # These are named after the class specified, so for the above example
-        # the helper is either +some_rack_app_path+ or +some_rack_app_url+.
-        # To customize this helper's name, use the +:as+ option:
+        # All mounted applications come with routing helpers to access them. These are
+        # named after the class specified, so for the above example the helper is either
+        # `some_rack_app_path` or `some_rack_app_url`. To customize this helper's name,
+        # use the `:as` option:
         #
-        #   mount(SomeRackApp => "some_route", as: "exciting")
+        #     mount(SomeRackApp => "some_route", as: "exciting")
         #
-        # This will generate the +exciting_path+ and +exciting_url+ helpers
-        # which can be used to navigate to this mounted app.
+        # This will generate the `exciting_path` and `exciting_url` helpers which can be
+        # used to navigate to this mounted app.
         def mount(app, options = nil)
           if options
             path = options.delete(:at)
@@ -695,7 +697,8 @@ module ActionDispatch
                 prefix_options.reverse_merge!(options[:_recall].slice(*_route.segment_keys))
               end
 
-              # We must actually delete prefix segment keys to avoid passing them to next url_for.
+              # We must actually delete prefix segment keys to avoid passing them to next
+              # url_for.
               _route.segment_keys.each { |k| options.delete(k) }
               _url_helpers.public_send("#{name}_path", prefix_options)
             end
@@ -717,50 +720,50 @@ module ActionDispatch
       end
 
       module HttpHelpers
-        # Define a route that only recognizes HTTP GET.
-        # For supported arguments, see match[rdoc-ref:Base#match]
+        # Define a route that only recognizes HTTP GET. For supported arguments, see
+        # [match](rdoc-ref:Base#match)
         #
-        #   get 'bacon', to: 'food#bacon'
+        #     get 'bacon', to: 'food#bacon'
         def get(*args, &block)
           map_method(:get, args, &block)
         end
 
-        # Define a route that only recognizes HTTP POST.
-        # For supported arguments, see match[rdoc-ref:Base#match]
+        # Define a route that only recognizes HTTP POST. For supported arguments, see
+        # [match](rdoc-ref:Base#match)
         #
-        #   post 'bacon', to: 'food#bacon'
+        #     post 'bacon', to: 'food#bacon'
         def post(*args, &block)
           map_method(:post, args, &block)
         end
 
-        # Define a route that only recognizes HTTP PATCH.
-        # For supported arguments, see match[rdoc-ref:Base#match]
+        # Define a route that only recognizes HTTP PATCH. For supported arguments, see
+        # [match](rdoc-ref:Base#match)
         #
-        #   patch 'bacon', to: 'food#bacon'
+        #     patch 'bacon', to: 'food#bacon'
         def patch(*args, &block)
           map_method(:patch, args, &block)
         end
 
-        # Define a route that only recognizes HTTP PUT.
-        # For supported arguments, see match[rdoc-ref:Base#match]
+        # Define a route that only recognizes HTTP PUT. For supported arguments, see
+        # [match](rdoc-ref:Base#match)
         #
-        #   put 'bacon', to: 'food#bacon'
+        #     put 'bacon', to: 'food#bacon'
         def put(*args, &block)
           map_method(:put, args, &block)
         end
 
-        # Define a route that only recognizes HTTP DELETE.
-        # For supported arguments, see match[rdoc-ref:Base#match]
+        # Define a route that only recognizes HTTP DELETE. For supported arguments, see
+        # [match](rdoc-ref:Base#match)
         #
-        #   delete 'broccoli', to: 'food#broccoli'
+        #     delete 'broccoli', to: 'food#broccoli'
         def delete(*args, &block)
           map_method(:delete, args, &block)
         end
 
-        # Define a route that only recognizes HTTP OPTIONS.
-        # For supported arguments, see match[rdoc-ref:Base#match]
+        # Define a route that only recognizes HTTP OPTIONS. For supported arguments, see
+        # [match](rdoc-ref:Base#match)
         #
-        #   options 'carrots', to: 'food#carrots'
+        #     options 'carrots', to: 'food#carrots'
         def options(*args, &block)
           map_method(:options, args, &block)
         end
@@ -774,91 +777,90 @@ module ActionDispatch
           end
       end
 
-      # You may wish to organize groups of controllers under a namespace.
-      # Most commonly, you might group a number of administrative controllers
-      # under an +admin+ namespace. You would place these controllers under
-      # the <tt>app/controllers/admin</tt> directory, and you can group them
-      # together in your router:
+      # You may wish to organize groups of controllers under a namespace. Most
+      # commonly, you might group a number of administrative controllers under an
+      # `admin` namespace. You would place these controllers under the
+      # `app/controllers/admin` directory, and you can group them together in your
+      # router:
       #
-      #   namespace "admin" do
-      #     resources :posts, :comments
-      #   end
+      #     namespace "admin" do
+      #       resources :posts, :comments
+      #     end
       #
       # This will create a number of routes for each of the posts and comments
-      # controller. For +Admin::PostsController+, \Rails will create:
+      # controller. For `Admin::PostsController`, Rails will create:
       #
-      #   GET       /admin/posts
-      #   GET       /admin/posts/new
-      #   POST      /admin/posts
-      #   GET       /admin/posts/1
-      #   GET       /admin/posts/1/edit
-      #   PATCH/PUT /admin/posts/1
-      #   DELETE    /admin/posts/1
+      #     GET       /admin/posts
+      #     GET       /admin/posts/new
+      #     POST      /admin/posts
+      #     GET       /admin/posts/1
+      #     GET       /admin/posts/1/edit
+      #     PATCH/PUT /admin/posts/1
+      #     DELETE    /admin/posts/1
       #
       # If you want to route /posts (without the prefix /admin) to
-      # +Admin::PostsController+, you could use
+      # `Admin::PostsController`, you could use
       #
-      #   scope module: "admin" do
-      #     resources :posts
-      #   end
-      #
-      # or, for a single case
-      #
-      #   resources :posts, module: "admin"
-      #
-      # If you want to route /admin/posts to +PostsController+
-      # (without the <tt>Admin::</tt> module prefix), you could use
-      #
-      #   scope "/admin" do
-      #     resources :posts
-      #   end
+      #     scope module: "admin" do
+      #       resources :posts
+      #     end
       #
       # or, for a single case
       #
-      #   resources :posts, path: "/admin/posts"
+      #     resources :posts, module: "admin"
       #
-      # In each of these cases, the named routes remain the same as if you did
-      # not use scope. In the last case, the following paths map to
-      # +PostsController+:
+      # If you want to route /admin/posts to `PostsController` (without the `Admin::`
+      # module prefix), you could use
       #
-      #   GET       /admin/posts
-      #   GET       /admin/posts/new
-      #   POST      /admin/posts
-      #   GET       /admin/posts/1
-      #   GET       /admin/posts/1/edit
-      #   PATCH/PUT /admin/posts/1
-      #   DELETE    /admin/posts/1
+      #     scope "/admin" do
+      #       resources :posts
+      #     end
+      #
+      # or, for a single case
+      #
+      #     resources :posts, path: "/admin/posts"
+      #
+      # In each of these cases, the named routes remain the same as if you did not use
+      # scope. In the last case, the following paths map to `PostsController`:
+      #
+      #     GET       /admin/posts
+      #     GET       /admin/posts/new
+      #     POST      /admin/posts
+      #     GET       /admin/posts/1
+      #     GET       /admin/posts/1/edit
+      #     PATCH/PUT /admin/posts/1
+      #     DELETE    /admin/posts/1
       module Scoping
         # Scopes a set of routes to the given default options.
         #
         # Take the following route definition as an example:
         #
-        #   scope path: ":account_id", as: "account" do
-        #     resources :projects
-        #   end
+        #     scope path: ":account_id", as: "account" do
+        #       resources :projects
+        #     end
         #
-        # This generates helpers such as +account_projects_path+, just like +resources+ does.
-        # The difference here being that the routes generated are like /:account_id/projects,
-        # rather than /accounts/:account_id/projects.
+        # This generates helpers such as `account_projects_path`, just like `resources`
+        # does. The difference here being that the routes generated are like
+        # /:account_id/projects, rather than /accounts/:account_id/projects.
         #
-        # === Options
+        # ### Options
         #
-        # Takes same options as <tt>Base#match</tt> and <tt>Resources#resources</tt>.
+        # Takes same options as `Base#match` and `Resources#resources`.
         #
-        #   # route /posts (without the prefix /admin) to +Admin::PostsController+
-        #   scope module: "admin" do
-        #     resources :posts
-        #   end
+        #     # route /posts (without the prefix /admin) to +Admin::PostsController+
+        #     scope module: "admin" do
+        #       resources :posts
+        #     end
         #
-        #   # prefix the posts resource's requests with '/admin'
-        #   scope path: "/admin" do
-        #     resources :posts
-        #   end
+        #     # prefix the posts resource's requests with '/admin'
+        #     scope path: "/admin" do
+        #       resources :posts
+        #     end
         #
-        #   # prefix the routing helper name: +sekret_posts_path+ instead of +posts_path+
-        #   scope as: "sekret" do
-        #     resources :posts
-        #   end
+        #     # prefix the routing helper name: +sekret_posts_path+ instead of +posts_path+
+        #     scope as: "sekret" do
+        #       resources :posts
+        #     end
         def scope(*args)
           options = args.extract_options!.dup
           scope = {}
@@ -915,9 +917,9 @@ module ActionDispatch
 
         # Scopes routes to a specific controller
         #
-        #   controller "food" do
-        #     match "bacon", action: :bacon, via: :get
-        #   end
+        #     controller "food" do
+        #       match "bacon", action: :bacon, via: :get
+        #     end
         def controller(controller)
           @scope = @scope.new(controller: controller)
           yield
@@ -927,42 +929,42 @@ module ActionDispatch
 
         # Scopes routes to a specific namespace. For example:
         #
-        #   namespace :admin do
-        #     resources :posts
-        #   end
+        #     namespace :admin do
+        #       resources :posts
+        #     end
         #
         # This generates the following routes:
         #
-        #       admin_posts GET       /admin/posts(.:format)          admin/posts#index
-        #       admin_posts POST      /admin/posts(.:format)          admin/posts#create
-        #    new_admin_post GET       /admin/posts/new(.:format)      admin/posts#new
-        #   edit_admin_post GET       /admin/posts/:id/edit(.:format) admin/posts#edit
-        #        admin_post GET       /admin/posts/:id(.:format)      admin/posts#show
-        #        admin_post PATCH/PUT /admin/posts/:id(.:format)      admin/posts#update
-        #        admin_post DELETE    /admin/posts/:id(.:format)      admin/posts#destroy
+        #         admin_posts GET       /admin/posts(.:format)          admin/posts#index
+        #         admin_posts POST      /admin/posts(.:format)          admin/posts#create
+        #      new_admin_post GET       /admin/posts/new(.:format)      admin/posts#new
+        #     edit_admin_post GET       /admin/posts/:id/edit(.:format) admin/posts#edit
+        #          admin_post GET       /admin/posts/:id(.:format)      admin/posts#show
+        #          admin_post PATCH/PUT /admin/posts/:id(.:format)      admin/posts#update
+        #          admin_post DELETE    /admin/posts/:id(.:format)      admin/posts#destroy
         #
-        # === Options
+        # ### Options
         #
-        # The +:path+, +:as+, +:module+, +:shallow_path+, and +:shallow_prefix+
-        # options all default to the name of the namespace.
+        # The `:path`, `:as`, `:module`, `:shallow_path`, and `:shallow_prefix` options
+        # all default to the name of the namespace.
         #
-        # For options, see <tt>Base#match</tt>. For +:shallow_path+ option, see
-        # <tt>Resources#resources</tt>.
+        # For options, see `Base#match`. For `:shallow_path` option, see
+        # `Resources#resources`.
         #
-        #   # accessible through /sekret/posts rather than /admin/posts
-        #   namespace :admin, path: "sekret" do
-        #     resources :posts
-        #   end
+        #     # accessible through /sekret/posts rather than /admin/posts
+        #     namespace :admin, path: "sekret" do
+        #       resources :posts
+        #     end
         #
-        #   # maps to +Sekret::PostsController+ rather than +Admin::PostsController+
-        #   namespace :admin, module: "sekret" do
-        #     resources :posts
-        #   end
+        #     # maps to +Sekret::PostsController+ rather than +Admin::PostsController+
+        #     namespace :admin, module: "sekret" do
+        #       resources :posts
+        #     end
         #
-        #   # generates +sekret_posts_path+ rather than +admin_posts_path+
-        #   namespace :admin, as: "sekret" do
-        #     resources :posts
-        #   end
+        #     # generates +sekret_posts_path+ rather than +admin_posts_path+
+        #     namespace :admin, as: "sekret" do
+        #       resources :posts
+        #     end
         def namespace(path, options = {}, &block)
           path = path.to_s
 
@@ -978,70 +980,74 @@ module ActionDispatch
           end
         end
 
-        # === Parameter Restriction
-        # Allows you to constrain the nested routes based on a set of rules.
-        # For instance, in order to change the routes to allow for a dot character in the +id+ parameter:
+        # ### Parameter Restriction
+        # Allows you to constrain the nested routes based on a set of rules. For
+        # instance, in order to change the routes to allow for a dot character in the
+        # `id` parameter:
         #
-        #   constraints(id: /\d+\.\d+/) do
-        #     resources :posts
-        #   end
+        #     constraints(id: /\d+\.\d+/) do
+        #       resources :posts
+        #     end
         #
-        # Now routes such as +/posts/1+ will no longer be valid, but +/posts/1.1+ will be.
-        # The +id+ parameter must match the constraint passed in for this example.
+        # Now routes such as `/posts/1` will no longer be valid, but `/posts/1.1` will
+        # be. The `id` parameter must match the constraint passed in for this example.
         #
         # You may use this to also restrict other parameters:
         #
-        #   resources :posts do
-        #     constraints(post_id: /\d+\.\d+/) do
-        #       resources :comments
+        #     resources :posts do
+        #       constraints(post_id: /\d+\.\d+/) do
+        #         resources :comments
+        #       end
         #     end
-        #   end
         #
-        # === Restricting based on IP
+        # ### Restricting based on IP
         #
         # Routes can also be constrained to an IP or a certain range of IP addresses:
         #
-        #   constraints(ip: /192\.168\.\d+\.\d+/) do
-        #     resources :posts
-        #   end
+        #     constraints(ip: /192\.168\.\d+\.\d+/) do
+        #       resources :posts
+        #     end
         #
-        # Any user connecting from the 192.168.* range will be able to see this resource,
-        # where as any user connecting outside of this range will be told there is no such route.
+        # Any user connecting from the 192.168.* range will be able to see this
+        # resource, where as any user connecting outside of this range will be told
+        # there is no such route.
         #
-        # === Dynamic request matching
+        # ### Dynamic request matching
         #
         # Requests to routes can be constrained based on specific criteria:
         #
-        #    constraints(-> (req) { /iPhone/.match?(req.env["HTTP_USER_AGENT"]) }) do
-        #      resources :iphones
-        #    end
+        #     constraints(-> (req) { /iPhone/.match?(req.env["HTTP_USER_AGENT"]) }) do
+        #       resources :iphones
+        #     end
         #
-        # You are able to move this logic out into a class if it is too complex for routes.
-        # This class must have a +matches?+ method defined on it which either returns +true+
-        # if the user should be given access to that route, or +false+ if the user should not.
+        # You are able to move this logic out into a class if it is too complex for
+        # routes. This class must have a `matches?` method defined on it which either
+        # returns `true` if the user should be given access to that route, or `false` if
+        # the user should not.
         #
-        #    class Iphone
-        #      def self.matches?(request)
-        #        /iPhone/.match?(request.env["HTTP_USER_AGENT"])
-        #      end
-        #    end
+        #     class Iphone
+        #       def self.matches?(request)
+        #         /iPhone/.match?(request.env["HTTP_USER_AGENT"])
+        #       end
+        #     end
         #
-        # An expected place for this code would be +lib/constraints+.
+        # An expected place for this code would be `lib/constraints`.
         #
         # This class is then used like this:
         #
-        #    constraints(Iphone) do
-        #      resources :iphones
-        #    end
+        #     constraints(Iphone) do
+        #       resources :iphones
+        #     end
         def constraints(constraints = {}, &block)
           scope(constraints: constraints, &block)
         end
 
         # Allows you to set default parameters for a route, such as this:
-        #   defaults id: 'home' do
-        #     match 'scoped_pages/(:id)', to: 'pages#show'
-        #   end
-        # Using this, the +:id+ parameter here will default to 'home'.
+        #     defaults id: 'home' do
+        #       match 'scoped_pages/(:id)', to: 'pages#show'
+        #     end
+        #
+        # Using this, the `:id` parameter here will default to 'home'.
         def defaults(defaults = {})
           @scope = @scope.new(defaults: merge_defaults_scope(@scope[:defaults], defaults))
           yield
@@ -1117,48 +1123,46 @@ module ActionDispatch
           end
       end
 
-      # Resource routing allows you to quickly declare all of the common routes
-      # for a given resourceful controller. Instead of declaring separate routes
-      # for your +index+, +show+, +new+, +edit+, +create+, +update+, and +destroy+
-      # actions, a resourceful route declares them in a single line of code:
+      # Resource routing allows you to quickly declare all of the common routes for a
+      # given resourceful controller. Instead of declaring separate routes for your
+      # `index`, `show`, `new`, `edit`, `create`, `update`, and `destroy` actions, a
+      # resourceful route declares them in a single line of code:
       #
-      #  resources :photos
+      #     resources :photos
       #
-      # Sometimes, you have a resource that clients always look up without
-      # referencing an ID. A common example, /profile always shows the profile of
-      # the currently logged in user. In this case, you can use a singular resource
-      # to map /profile (rather than /profile/:id) to the show action.
+      # Sometimes, you have a resource that clients always look up without referencing
+      # an ID. A common example, /profile always shows the profile of the currently
+      # logged in user. In this case, you can use a singular resource to map /profile
+      # (rather than /profile/:id) to the show action.
       #
-      #  resource :profile
+      #     resource :profile
       #
-      # It's common to have resources that are logically children of other
-      # resources:
+      # It's common to have resources that are logically children of other resources:
       #
-      #   resources :magazines do
-      #     resources :ads
-      #   end
+      #     resources :magazines do
+      #       resources :ads
+      #     end
       #
       # You may wish to organize groups of controllers under a namespace. Most
-      # commonly, you might group a number of administrative controllers under
-      # an +admin+ namespace. You would place these controllers under the
-      # <tt>app/controllers/admin</tt> directory, and you can group them together
-      # in your router:
+      # commonly, you might group a number of administrative controllers under an
+      # `admin` namespace. You would place these controllers under the
+      # `app/controllers/admin` directory, and you can group them together in your
+      # router:
       #
-      #   namespace "admin" do
-      #     resources :posts, :comments
-      #   end
+      #     namespace "admin" do
+      #       resources :posts, :comments
+      #     end
       #
-      # By default the +:id+ parameter doesn't accept dots. If you need to
-      # use dots as part of the +:id+ parameter add a constraint which
-      # overrides this restriction, e.g:
+      # By default the `:id` parameter doesn't accept dots. If you need to use dots as
+      # part of the `:id` parameter add a constraint which overrides this restriction,
+      # e.g:
       #
-      #   resources :articles, id: /[^\/]+/
+      #     resources :articles, id: /[^\/]+/
       #
-      # This allows any character other than a slash as part of your +:id+.
-      #
+      # This allows any character other than a slash as part of your `:id`.
       module Resources
-        # CANONICAL_ACTIONS holds all actions that does not need a prefix or
-        # a path appended since they fit properly in their scope level.
+        # CANONICAL_ACTIONS holds all actions that does not need a prefix or a path
+        # appended since they fit properly in their scope level.
         VALID_ON_OPTIONS  = [:new, :collection, :member]
         RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns]
         CANONICAL_ACTIONS = %w(index create new show update destroy)
@@ -1221,8 +1225,8 @@ module ActionDispatch
 
           alias :member_name :singular
 
-          # Checks for uncountable plurals, and appends "_index" if the plural
-          # and singular form are the same.
+          # Checks for uncountable plurals, and appends "_index" if the plural and
+          # singular form are the same.
           def collection_name
             singular == plural ? "#{plural}_index" : plural
           end
@@ -1295,37 +1299,35 @@ module ActionDispatch
           @scope[:path_names].merge!(options)
         end
 
-        # Sometimes, you have a resource that clients always look up without
-        # referencing an ID. A common example, /profile always shows the
-        # profile of the currently logged in user. In this case, you can use
-        # a singular resource to map /profile (rather than /profile/:id) to
-        # the show action:
+        # Sometimes, you have a resource that clients always look up without referencing
+        # an ID. A common example, /profile always shows the profile of the currently
+        # logged in user. In this case, you can use a singular resource to map /profile
+        # (rather than /profile/:id) to the show action:
         #
-        #   resource :profile
+        #     resource :profile
         #
-        # This creates six different routes in your application, all mapping to
-        # the +Profiles+ controller (note that the controller is named after
-        # the plural):
+        # This creates six different routes in your application, all mapping to the
+        # `Profiles` controller (note that the controller is named after the plural):
         #
-        #   GET       /profile/new
-        #   GET       /profile
-        #   GET       /profile/edit
-        #   PATCH/PUT /profile
-        #   DELETE    /profile
-        #   POST      /profile
+        #     GET       /profile/new
+        #     GET       /profile
+        #     GET       /profile/edit
+        #     PATCH/PUT /profile
+        #     DELETE    /profile
+        #     POST      /profile
         #
-        # If you want instances of a model to work with this resource via
-        # record identification (e.g. in +form_with+ or +redirect_to+), you
-        # will need to call resolve[rdoc-ref:CustomUrls#resolve]:
+        # If you want instances of a model to work with this resource via record
+        # identification (e.g. in `form_with` or `redirect_to`), you will need to call
+        # [resolve](rdoc-ref:CustomUrls#resolve):
         #
-        #   resource :profile
-        #   resolve('Profile') { [:profile] }
+        #     resource :profile
+        #     resolve('Profile') { [:profile] }
         #
-        #   # Enables this to work with singular routes:
-        #   form_with(model: @profile) {}
+        #     # Enables this to work with singular routes:
+        #     form_with(model: @profile) {}
         #
-        # === Options
-        # Takes same options as resources[rdoc-ref:#resources]
+        # ### Options
+        # Takes same options as [resources](rdoc-ref:#resources)
         def resource(*resources, &block)
           options = resources.extract_options!.dup
 
@@ -1355,143 +1357,147 @@ module ActionDispatch
           self
         end
 
-        # In \Rails, a resourceful route provides a mapping between HTTP verbs
-        # and URLs and controller actions. By convention, each action also maps
-        # to particular CRUD operations in a database. A single entry in the
-        # routing file, such as
+        # In Rails, a resourceful route provides a mapping between HTTP verbs and URLs
+        # and controller actions. By convention, each action also maps to particular
+        # CRUD operations in a database. A single entry in the routing file, such as
         #
-        #   resources :photos
+        #     resources :photos
         #
-        # creates seven different routes in your application, all mapping to
-        # the +Photos+ controller:
+        # creates seven different routes in your application, all mapping to the
+        # `Photos` controller:
         #
-        #   GET       /photos
-        #   GET       /photos/new
-        #   POST      /photos
-        #   GET       /photos/:id
-        #   GET       /photos/:id/edit
-        #   PATCH/PUT /photos/:id
-        #   DELETE    /photos/:id
+        #     GET       /photos
+        #     GET       /photos/new
+        #     POST      /photos
+        #     GET       /photos/:id
+        #     GET       /photos/:id/edit
+        #     PATCH/PUT /photos/:id
+        #     DELETE    /photos/:id
         #
         # Resources can also be nested infinitely by using this block syntax:
         #
-        #   resources :photos do
-        #     resources :comments
-        #   end
-        #
-        # This generates the following comments routes:
-        #
-        #   GET       /photos/:photo_id/comments
-        #   GET       /photos/:photo_id/comments/new
-        #   POST      /photos/:photo_id/comments
-        #   GET       /photos/:photo_id/comments/:id
-        #   GET       /photos/:photo_id/comments/:id/edit
-        #   PATCH/PUT /photos/:photo_id/comments/:id
-        #   DELETE    /photos/:photo_id/comments/:id
-        #
-        # === Options
-        # Takes same options as match[rdoc-ref:Base#match] as well as:
-        #
-        # [:path_names]
-        #   Allows you to change the segment component of the +edit+ and +new+ actions.
-        #   Actions not specified are not changed.
-        #
-        #     resources :posts, path_names: { new: "brand_new" }
-        #
-        #   The above example will now change /posts/new to /posts/brand_new.
-        #
-        # [:path]
-        #   Allows you to change the path prefix for the resource.
-        #
-        #     resources :posts, path: 'postings'
-        #
-        #   The resource and all segments will now route to /postings instead of /posts.
-        #
-        # [:only]
-        #   Only generate routes for the given actions.
-        #
-        #     resources :cows, only: :show
-        #     resources :cows, only: [:show, :index]
-        #
-        # [:except]
-        #   Generate all routes except for the given actions.
-        #
-        #     resources :cows, except: :show
-        #     resources :cows, except: [:show, :index]
-        #
-        # [:shallow]
-        #   Generates shallow routes for nested resource(s). When placed on a parent resource,
-        #   generates shallow routes for all nested resources.
-        #
-        #     resources :posts, shallow: true do
+        #     resources :photos do
         #       resources :comments
         #     end
         #
-        #   Is the same as:
+        # This generates the following comments routes:
         #
-        #     resources :posts do
-        #       resources :comments, except: [:show, :edit, :update, :destroy]
-        #     end
-        #     resources :comments, only: [:show, :edit, :update, :destroy]
+        #     GET       /photos/:photo_id/comments
+        #     GET       /photos/:photo_id/comments/new
+        #     POST      /photos/:photo_id/comments
+        #     GET       /photos/:photo_id/comments/:id
+        #     GET       /photos/:photo_id/comments/:id/edit
+        #     PATCH/PUT /photos/:photo_id/comments/:id
+        #     DELETE    /photos/:photo_id/comments/:id
         #
-        #   This allows URLs for resources that otherwise would be deeply nested such
-        #   as a comment on a blog post like <tt>/posts/a-long-permalink/comments/1234</tt>
-        #   to be shortened to just <tt>/comments/1234</tt>.
+        # ### Options
+        # Takes same options as [match](rdoc-ref:Base#match) as well as:
         #
-        #   Set <tt>shallow: false</tt> on a child resource to ignore a parent's shallow parameter.
+        # :path_names
+        # :   Allows you to change the segment component of the `edit` and `new`
+        #     actions. Actions not specified are not changed.
         #
-        # [:shallow_path]
-        #   Prefixes nested shallow routes with the specified path.
+        #         resources :posts, path_names: { new: "brand_new" }
         #
-        #     scope shallow_path: "sekret" do
-        #       resources :posts do
-        #         resources :comments, shallow: true
-        #       end
-        #     end
+        #     The above example will now change /posts/new to /posts/brand_new.
         #
-        #   The +comments+ resource here will have the following routes generated for it:
+        # :path
+        # :   Allows you to change the path prefix for the resource.
         #
-        #     post_comments    GET       /posts/:post_id/comments(.:format)
-        #     post_comments    POST      /posts/:post_id/comments(.:format)
-        #     new_post_comment GET       /posts/:post_id/comments/new(.:format)
-        #     edit_comment     GET       /sekret/comments/:id/edit(.:format)
-        #     comment          GET       /sekret/comments/:id(.:format)
-        #     comment          PATCH/PUT /sekret/comments/:id(.:format)
-        #     comment          DELETE    /sekret/comments/:id(.:format)
+        #         resources :posts, path: 'postings'
         #
-        # [:shallow_prefix]
-        #   Prefixes nested shallow route names with specified prefix.
+        #     The resource and all segments will now route to /postings instead of
+        #     /posts.
         #
-        #     scope shallow_prefix: "sekret" do
-        #       resources :posts do
-        #         resources :comments, shallow: true
-        #       end
-        #     end
+        # :only
+        # :   Only generate routes for the given actions.
         #
-        #   The +comments+ resource here will have the following routes generated for it:
+        #         resources :cows, only: :show
+        #         resources :cows, only: [:show, :index]
         #
-        #     post_comments           GET       /posts/:post_id/comments(.:format)
-        #     post_comments           POST      /posts/:post_id/comments(.:format)
-        #     new_post_comment        GET       /posts/:post_id/comments/new(.:format)
-        #     edit_sekret_comment     GET       /comments/:id/edit(.:format)
-        #     sekret_comment          GET       /comments/:id(.:format)
-        #     sekret_comment          PATCH/PUT /comments/:id(.:format)
-        #     sekret_comment          DELETE    /comments/:id(.:format)
+        # :except
+        # :   Generate all routes except for the given actions.
         #
-        # [:format]
-        #   Allows you to specify the default value for optional +format+
-        #   segment or disable it by supplying +false+.
+        #         resources :cows, except: :show
+        #         resources :cows, except: [:show, :index]
         #
-        # [:param]
-        #   Allows you to override the default param name of +:id+ in the URL.
+        # :shallow
+        # :   Generates shallow routes for nested resource(s). When placed on a parent
+        #     resource, generates shallow routes for all nested resources.
         #
-        # === Examples
+        #         resources :posts, shallow: true do
+        #           resources :comments
+        #         end
         #
-        #   # routes call +Admin::PostsController+
-        #   resources :posts, module: "admin"
+        #     Is the same as:
         #
-        #   # resource actions are at /admin/posts.
-        #   resources :posts, path: "admin/posts"
+        #         resources :posts do
+        #           resources :comments, except: [:show, :edit, :update, :destroy]
+        #         end
+        #         resources :comments, only: [:show, :edit, :update, :destroy]
+        #
+        #     This allows URLs for resources that otherwise would be deeply nested such
+        #     as a comment on a blog post like `/posts/a-long-permalink/comments/1234`
+        #     to be shortened to just `/comments/1234`.
+        #
+        #     Set `shallow: false` on a child resource to ignore a parent's shallow
+        #     parameter.
+        #
+        # :shallow_path
+        # :   Prefixes nested shallow routes with the specified path.
+        #
+        #         scope shallow_path: "sekret" do
+        #           resources :posts do
+        #             resources :comments, shallow: true
+        #           end
+        #         end
+        #
+        #     The `comments` resource here will have the following routes generated for
+        #     it:
+        #
+        #         post_comments    GET       /posts/:post_id/comments(.:format)
+        #         post_comments    POST      /posts/:post_id/comments(.:format)
+        #         new_post_comment GET       /posts/:post_id/comments/new(.:format)
+        #         edit_comment     GET       /sekret/comments/:id/edit(.:format)
+        #         comment          GET       /sekret/comments/:id(.:format)
+        #         comment          PATCH/PUT /sekret/comments/:id(.:format)
+        #         comment          DELETE    /sekret/comments/:id(.:format)
+        #
+        # :shallow_prefix
+        # :   Prefixes nested shallow route names with specified prefix.
+        #
+        #         scope shallow_prefix: "sekret" do
+        #           resources :posts do
+        #             resources :comments, shallow: true
+        #           end
+        #         end
+        #
+        #     The `comments` resource here will have the following routes generated for
+        #     it:
+        #
+        #         post_comments           GET       /posts/:post_id/comments(.:format)
+        #         post_comments           POST      /posts/:post_id/comments(.:format)
+        #         new_post_comment        GET       /posts/:post_id/comments/new(.:format)
+        #         edit_sekret_comment     GET       /comments/:id/edit(.:format)
+        #         sekret_comment          GET       /comments/:id(.:format)
+        #         sekret_comment          PATCH/PUT /comments/:id(.:format)
+        #         sekret_comment          DELETE    /comments/:id(.:format)
+        #
+        # :format
+        # :   Allows you to specify the default value for optional `format` segment or
+        #     disable it by supplying `false`.
+        #
+        # :param
+        # :   Allows you to override the default param name of `:id` in the URL.
+        #
+        #
+        # ### Examples
+        #
+        #     # routes call +Admin::PostsController+
+        #     resources :posts, module: "admin"
+        #
+        #     # resource actions are at /admin/posts.
+        #     resources :posts, path: "admin/posts"
         def resources(*resources, &block)
           options = resources.extract_options!.dup
 
@@ -1524,16 +1530,15 @@ module ActionDispatch
 
         # To add a route to the collection:
         #
-        #   resources :photos do
-        #     collection do
-        #       get 'search'
+        #     resources :photos do
+        #       collection do
+        #         get 'search'
+        #       end
         #     end
-        #   end
         #
-        # This will enable \Rails to recognize paths such as <tt>/photos/search</tt>
-        # with GET, and route to the search action of +PhotosController+. It will also
-        # create the <tt>search_photos_url</tt> and <tt>search_photos_path</tt>
-        # route helpers.
+        # This will enable Rails to recognize paths such as `/photos/search` with GET,
+        # and route to the search action of `PhotosController`. It will also create the
+        # `search_photos_url` and `search_photos_path` route helpers.
         def collection(&block)
           unless resource_scope?
             raise ArgumentError, "can't use collection outside resource(s) scope"
@@ -1546,15 +1551,15 @@ module ActionDispatch
 
         # To add a member route, add a member block into the resource block:
         #
-        #   resources :photos do
-        #     member do
-        #       get 'preview'
+        #     resources :photos do
+        #       member do
+        #         get 'preview'
+        #       end
         #     end
-        #   end
         #
-        # This will recognize <tt>/photos/1/preview</tt> with GET, and route to the
-        # preview action of +PhotosController+. It will also create the
-        # <tt>preview_photo_url</tt> and <tt>preview_photo_path</tt> helpers.
+        # This will recognize `/photos/1/preview` with GET, and route to the preview
+        # action of `PhotosController`. It will also create the `preview_photo_url` and
+        # `preview_photo_path` helpers.
         def member(&block)
           unless resource_scope?
             raise ArgumentError, "can't use member outside resource(s) scope"
@@ -1621,29 +1626,28 @@ module ActionDispatch
           !parent_resource.singleton? && @scope[:shallow]
         end
 
-        # Loads another routes file with the given +name+ located inside the
-        # +config/routes+ directory. In that file, you can use the normal
-        # routing DSL, but <i>do not</i> surround it with a
-        # +Rails.application.routes.draw+ block.
+        # Loads another routes file with the given `name` located inside the
+        # `config/routes` directory. In that file, you can use the normal routing DSL,
+        # but *do not* surround it with a `Rails.application.routes.draw` block.
         #
-        #   # config/routes.rb
-        #   Rails.application.routes.draw do
-        #     draw :admin                 # Loads `config/routes/admin.rb`
-        #     draw "third_party/some_gem" # Loads `config/routes/third_party/some_gem.rb`
-        #   end
+        #     # config/routes.rb
+        #     Rails.application.routes.draw do
+        #       draw :admin                 # Loads `config/routes/admin.rb`
+        #       draw "third_party/some_gem" # Loads `config/routes/third_party/some_gem.rb`
+        #     end
         #
-        #   # config/routes/admin.rb
-        #   namespace :admin do
-        #     resources :accounts
-        #   end
+        #     # config/routes/admin.rb
+        #     namespace :admin do
+        #       resources :accounts
+        #     end
         #
-        #   # config/routes/third_party/some_gem.rb
-        #   mount SomeGem::Engine, at: "/some_gem"
+        #     # config/routes/third_party/some_gem.rb
+        #     mount SomeGem::Engine, at: "/some_gem"
         #
-        # <b>CAUTION:</b> Use this feature with care. Having multiple routes
-        # files can negatively impact discoverability and readability. For most
-        # applications — even those with a few hundred routes — it's easier for
-        # developers to have a single routes file.
+        # **CAUTION:** Use this feature with care. Having multiple routes files can
+        # negatively impact discoverability and readability. For most applications —
+        # even those with a few hundred routes — it's easier for developers to have a
+        # single routes file.
         def draw(name)
           path = @draw_paths.find do |_path|
             File.exist? "#{_path}/#{name}.rb"
@@ -1660,12 +1664,12 @@ module ActionDispatch
           instance_eval(File.read(route_path), route_path.to_s)
         end
 
-        # Matches a URL pattern to one or more routes.
-        # For more information, see match[rdoc-ref:Base#match].
+        # Matches a URL pattern to one or more routes. For more information, see
+        # [match](rdoc-ref:Base#match).
         #
-        #   match 'path' => 'controller#action', via: :patch
-        #   match 'path', to: 'controller#action', via: :post
-        #   match 'path', 'otherpath', on: :member, via: :get
+        #     match 'path' => 'controller#action', via: :patch
+        #     match 'path', to: 'controller#action', via: :post
+        #     match 'path', 'otherpath', on: :member, via: :get
         def match(path, *rest, &block)
           if rest.empty? && Hash === path
             options  = path
@@ -1700,19 +1704,19 @@ module ActionDispatch
           end
         end
 
-        # You can specify what \Rails should route "/" to with the root method:
+        # You can specify what Rails should route "/" to with the root method:
         #
-        #   root to: 'pages#main'
+        #     root to: 'pages#main'
         #
-        # For options, see +match+, as +root+ uses it internally.
+        # For options, see `match`, as `root` uses it internally.
         #
         # You can also pass a string which will expand
         #
-        #   root 'pages#main'
+        #     root 'pages#main'
         #
-        # You should put the root route at the top of <tt>config/routes.rb</tt>,
-        # because this means it will be matched first. As this is the most popular route
-        # of most \Rails applications, this is beneficial.
+        # You should put the root route at the top of `config/routes.rb`, because this
+        # means it will be matched first. As this is the most popular route of most
+        # Rails applications, this is beneficial.
         def root(path, options = {})
           if path.is_a?(String)
             options[:to] = path
@@ -1890,9 +1894,9 @@ module ActionDispatch
             candidate = action_name.select(&:present?).join("_")
 
             unless candidate.empty?
-              # If a name was not explicitly given, we check if it is valid
-              # and return nil in case it isn't. Otherwise, we pass the invalid name
-              # forward so the underlying router engine treats it and raises an exception.
+              # If a name was not explicitly given, we check if it is valid and return nil in
+              # case it isn't. Otherwise, we pass the invalid name forward so the underlying
+              # router engine treats it and raises an exception.
               if as.nil?
                 candidate unless !candidate.match?(/\A[_a-z]/i) || has_named_route?(candidate)
               else
@@ -2028,83 +2032,81 @@ module ActionDispatch
           end
       end
 
-      # Routing Concerns allow you to declare common routes that can be reused
-      # inside others resources and routes.
+      # Routing Concerns allow you to declare common routes that can be reused inside
+      # others resources and routes.
       #
-      #   concern :commentable do
-      #     resources :comments
-      #   end
+      #     concern :commentable do
+      #       resources :comments
+      #     end
       #
-      #   concern :image_attachable do
-      #     resources :images, only: :index
-      #   end
+      #     concern :image_attachable do
+      #       resources :images, only: :index
+      #     end
       #
       # These concerns are used in Resources routing:
       #
-      #   resources :messages, concerns: [:commentable, :image_attachable]
+      #     resources :messages, concerns: [:commentable, :image_attachable]
       #
       # or in a scope or namespace:
       #
-      #   namespace :posts do
-      #     concerns :commentable
-      #   end
+      #     namespace :posts do
+      #       concerns :commentable
+      #     end
       module Concerns
         # Define a routing concern using a name.
         #
-        # Concerns may be defined inline, using a block, or handled by
-        # another object, by passing that object as the second parameter.
+        # Concerns may be defined inline, using a block, or handled by another object,
+        # by passing that object as the second parameter.
         #
-        # The concern object, if supplied, should respond to <tt>call</tt>,
-        # which will receive two parameters:
+        # The concern object, if supplied, should respond to `call`, which will receive
+        # two parameters:
         #
-        #   * The current mapper
-        #   * A hash of options which the concern object may use
+        #     * The current mapper
+        #     * A hash of options which the concern object may use
         #
-        # Options may also be used by concerns defined in a block by accepting
-        # a block parameter. So, using a block, you might do something as
-        # simple as limit the actions available on certain resources, passing
-        # standard resource options through the concern:
+        # Options may also be used by concerns defined in a block by accepting a block
+        # parameter. So, using a block, you might do something as simple as limit the
+        # actions available on certain resources, passing standard resource options
+        # through the concern:
         #
-        #   concern :commentable do |options|
-        #     resources :comments, options
-        #   end
-        #
-        #   resources :posts, concerns: :commentable
-        #   resources :archived_posts do
-        #     # Don't allow comments on archived posts
-        #     concerns :commentable, only: [:index, :show]
-        #   end
-        #
-        # Or, using a callable object, you might implement something more
-        # specific to your application, which would be out of place in your
-        # routes file.
-        #
-        #   # purchasable.rb
-        #   class Purchasable
-        #     def initialize(defaults = {})
-        #       @defaults = defaults
+        #     concern :commentable do |options|
+        #       resources :comments, options
         #     end
         #
-        #     def call(mapper, options = {})
-        #       options = @defaults.merge(options)
-        #       mapper.resources :purchases
-        #       mapper.resources :receipts
-        #       mapper.resources :returns if options[:returnable]
+        #     resources :posts, concerns: :commentable
+        #     resources :archived_posts do
+        #       # Don't allow comments on archived posts
+        #       concerns :commentable, only: [:index, :show]
         #     end
-        #   end
         #
-        #   # routes.rb
-        #   concern :purchasable, Purchasable.new(returnable: true)
+        # Or, using a callable object, you might implement something more specific to
+        # your application, which would be out of place in your routes file.
         #
-        #   resources :toys, concerns: :purchasable
-        #   resources :electronics, concerns: :purchasable
-        #   resources :pets do
-        #     concerns :purchasable, returnable: false
-        #   end
+        #     # purchasable.rb
+        #     class Purchasable
+        #       def initialize(defaults = {})
+        #         @defaults = defaults
+        #       end
         #
-        # Any routing helpers can be used inside a concern. If using a
-        # callable, they're accessible from the Mapper that's passed to
-        # <tt>call</tt>.
+        #       def call(mapper, options = {})
+        #         options = @defaults.merge(options)
+        #         mapper.resources :purchases
+        #         mapper.resources :receipts
+        #         mapper.resources :returns if options[:returnable]
+        #       end
+        #     end
+        #
+        #     # routes.rb
+        #     concern :purchasable, Purchasable.new(returnable: true)
+        #
+        #     resources :toys, concerns: :purchasable
+        #     resources :electronics, concerns: :purchasable
+        #     resources :pets do
+        #       concerns :purchasable, returnable: false
+        #     end
+        #
+        # Any routing helpers can be used inside a concern. If using a callable, they're
+        # accessible from the Mapper that's passed to `call`.
         def concern(name, callable = nil, &block)
           callable ||= lambda { |mapper, options| mapper.instance_exec(options, &block) }
           @concerns[name] = callable
@@ -2112,15 +2114,15 @@ module ActionDispatch
 
         # Use the named concerns
         #
-        #   resources :posts do
-        #     concerns :commentable
-        #   end
+        #     resources :posts do
+        #       concerns :commentable
+        #     end
         #
         # Concerns also work in any routes helper that you want to use:
         #
-        #   namespace :posts do
-        #     concerns :commentable
-        #   end
+        #     namespace :posts do
+        #       concerns :commentable
+        #     end
         def concerns(*args)
           options = args.extract_options!
           args.flatten.each do |name|
@@ -2134,53 +2136,55 @@ module ActionDispatch
       end
 
       module CustomUrls
-        # Define custom URL helpers that will be added to the application's
-        # routes. This allows you to override and/or replace the default behavior
-        # of routing helpers, e.g:
+        # Define custom URL helpers that will be added to the application's routes. This
+        # allows you to override and/or replace the default behavior of routing helpers,
+        # e.g:
         #
-        #   direct :homepage do
-        #     "https://rubyonrails.org"
-        #   end
+        #     direct :homepage do
+        #       "https://rubyonrails.org"
+        #     end
         #
-        #   direct :commentable do |model|
-        #     [ model, anchor: model.dom_id ]
-        #   end
+        #     direct :commentable do |model|
+        #       [ model, anchor: model.dom_id ]
+        #     end
         #
-        #   direct :main do
-        #     { controller: "pages", action: "index", subdomain: "www" }
-        #   end
+        #     direct :main do
+        #       { controller: "pages", action: "index", subdomain: "www" }
+        #     end
         #
-        # The return value from the block passed to +direct+ must be a valid set of
-        # arguments for +url_for+ which will actually build the URL string. This can
-        # be one of the following:
+        # The return value from the block passed to `direct` must be a valid set of
+        # arguments for `url_for` which will actually build the URL string. This can be
+        # one of the following:
         #
-        # * A string, which is treated as a generated URL
-        # * A hash, e.g. <tt>{ controller: "pages", action: "index" }</tt>
-        # * An array, which is passed to +polymorphic_url+
-        # * An Active Model instance
-        # * An Active Model class
+        # *   A string, which is treated as a generated URL
+        # *   A hash, e.g. `{ controller: "pages", action: "index" }`
+        # *   An array, which is passed to `polymorphic_url`
+        # *   An Active Model instance
+        # *   An Active Model class
         #
-        # NOTE: Other URL helpers can be called in the block but be careful not to invoke
-        # your custom URL helper again otherwise it will result in a stack overflow error.
         #
-        # You can also specify default options that will be passed through to
-        # your URL helper definition, e.g:
+        # NOTE: Other URL helpers can be called in the block but be careful not to
+        # invoke your custom URL helper again otherwise it will result in a stack
+        # overflow error.
         #
-        #   direct :browse, page: 1, size: 10 do |options|
-        #     [ :products, options.merge(params.permit(:page, :size).to_h.symbolize_keys) ]
-        #   end
+        # You can also specify default options that will be passed through to your URL
+        # helper definition, e.g:
         #
-        # In this instance the +params+ object comes from the context in which the
-        # block is executed, e.g. generating a URL inside a controller action or a view.
-        # If the block is executed where there isn't a +params+ object such as this:
+        #     direct :browse, page: 1, size: 10 do |options|
+        #       [ :products, options.merge(params.permit(:page, :size).to_h.symbolize_keys) ]
+        #     end
         #
-        #   Rails.application.routes.url_helpers.browse_path
+        # In this instance the `params` object comes from the context in which the block
+        # is executed, e.g. generating a URL inside a controller action or a view. If
+        # the block is executed where there isn't a `params` object such as this:
         #
-        # then it will raise a +NameError+. Because of this you need to be aware of the
+        #     Rails.application.routes.url_helpers.browse_path
+        #
+        # then it will raise a `NameError`. Because of this you need to be aware of the
         # context in which you will use your custom URL helper when defining it.
         #
-        # NOTE: The +direct+ method can't be used inside of a scope block such as
-        # +namespace+ or +scope+ and will raise an error if it detects that it is.
+        # NOTE: The `direct` method can't be used inside of a scope block such as
+        # `namespace` or `scope` and will raise an error if it detects that it is.
         def direct(name, options = {}, &block)
           unless @scope.root?
             raise RuntimeError, "The direct method can't be used inside a routes scope block"
@@ -2189,50 +2193,50 @@ module ActionDispatch
           @set.add_url_helper(name, options, &block)
         end
 
-        # Define custom polymorphic mappings of models to URLs. This alters the
-        # behavior of +polymorphic_url+ and consequently the behavior of
-        # +link_to+ and +form_for+ when passed a model instance, e.g:
+        # Define custom polymorphic mappings of models to URLs. This alters the behavior
+        # of `polymorphic_url` and consequently the behavior of `link_to` and `form_for`
+        # when passed a model instance, e.g:
         #
-        #   resource :basket
+        #     resource :basket
         #
-        #   resolve "Basket" do
-        #     [:basket]
-        #   end
+        #     resolve "Basket" do
+        #       [:basket]
+        #     end
         #
-        # This will now generate "/basket" when a +Basket+ instance is passed to
-        # +link_to+ or +form_for+ instead of the standard "/baskets/:id".
+        # This will now generate "/basket" when a `Basket` instance is passed to
+        # `link_to` or `form_for` instead of the standard "/baskets/:id".
         #
-        # NOTE: This custom behavior only applies to simple polymorphic URLs where
-        # a single model instance is passed and not more complicated forms, e.g:
+        # NOTE: This custom behavior only applies to simple polymorphic URLs where a
+        # single model instance is passed and not more complicated forms, e.g:
         #
-        #   # config/routes.rb
-        #   resource :profile
-        #   namespace :admin do
-        #     resources :users
-        #   end
+        #     # config/routes.rb
+        #     resource :profile
+        #     namespace :admin do
+        #       resources :users
+        #     end
         #
-        #   resolve("User") { [:profile] }
+        #     resolve("User") { [:profile] }
         #
-        #   # app/views/application/_menu.html.erb
-        #   link_to "Profile", @current_user
-        #   link_to "Profile", [:admin, @current_user]
+        #     # app/views/application/_menu.html.erb
+        #     link_to "Profile", @current_user
+        #     link_to "Profile", [:admin, @current_user]
         #
-        # The first +link_to+ will generate "/profile" but the second will generate
-        # the standard polymorphic URL of "/admin/users/1".
+        # The first `link_to` will generate "/profile" but the second will generate the
+        # standard polymorphic URL of "/admin/users/1".
         #
-        # You can pass options to a polymorphic mapping - the arity for the block
-        # needs to be two as the instance is passed as the first argument, e.g:
+        # You can pass options to a polymorphic mapping - the arity for the block needs
+        # to be two as the instance is passed as the first argument, e.g:
         #
-        #   resolve "Basket", anchor: "items" do |basket, options|
-        #     [:basket, options]
-        #   end
+        #     resolve "Basket", anchor: "items" do |basket, options|
+        #       [:basket, options]
+        #     end
         #
-        # This generates the URL "/basket#items" because when the last item in an
-        # array passed to +polymorphic_url+ is a hash then it's treated as options
-        # to the URL helper that gets called.
+        # This generates the URL "/basket#items" because when the last item in an array
+        # passed to `polymorphic_url` is a hash then it's treated as options to the URL
+        # helper that gets called.
         #
-        # NOTE: The +resolve+ method can't be used inside of a scope block such as
-        # +namespace+ or +scope+ and will raise an error if it detects that it is.
+        # NOTE: The `resolve` method can't be used inside of a scope block such as
+        # `namespace` or `scope` and will raise an error if it detects that it is.
         def resolve(*args, &block)
           unless @scope.root?
             raise RuntimeError, "The resolve method can't be used inside a routes scope block"

@@ -142,6 +142,10 @@ module TestHelpers
         config.active_support.deprecation = :log
         config.action_controller.allow_forgery_protection = false
       RUBY
+
+      add_to_env_config :development, "config.action_view.annotate_rendered_view_with_filenames = false"
+
+      remove_from_env_config("development", "config.generators.apply_rubocop_autocorrect_after_generate!")
     end
 
     def teardown_app

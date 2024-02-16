@@ -19,13 +19,13 @@ module Rails
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x,
-                    :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
+                    :read_encrypted_secrets, :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
                     :require_master_key, :credentials, :disable_sandbox, :sandbox_by_default,
                     :add_autoload_paths_to_load_path, :rake_eager_load, :server_timing, :log_file_size,
                     :dom_testing_default_html_version
 
-      attr_reader :encoding, :api_only, :loaded_config_version
+      attr_reader :encoding, :api_only, :loaded_config_version, :log_level
 
       def initialize(*)
         super
@@ -323,6 +323,14 @@ module Rails
           end
         when "7.2"
           load_defaults "7.1"
+
+          if respond_to?(:active_storage)
+            active_storage.web_image_content_types = %w( image/png image/jpeg image/gif image/webp )
+          end
+
+          if respond_to?(:active_record)
+            active_record.validate_migration_timestamps = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
@@ -372,6 +380,13 @@ module Rails
 
         @debug_exception_response_format ||= :api
       end
+
+      def log_level=(level)
+        @log_level = level
+        @broadcast_log_level = level
+      end
+
+      attr_reader :broadcast_log_level # :nodoc:
 
       def debug_exception_response_format
         @debug_exception_response_format || :default
@@ -569,14 +584,16 @@ module Rails
         def method_missing(method, *args)
           if method.end_with?("=")
             @configurations[:"#{method[0..-2]}"] = args.first
-          else
+          elsif args.empty?
             @configurations.fetch(method) {
               @configurations[method] = ActiveSupport::OrderedOptions.new
             }
+          else
+            raise ArgumentError, "wrong number of arguments (given #{args.length}, expected 0) when reading configuration `#{method}`"
           end
         end
 
-        def respond_to_missing?(symbol, *)
+        def respond_to_missing?(symbol, _)
           true
         end
       end

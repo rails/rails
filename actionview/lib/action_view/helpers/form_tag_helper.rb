@@ -522,25 +522,6 @@ module ActionView
       #   submit_tag "Edit", class: "edit_button"
       #   # => <input class="edit_button" data-disable-with="Edit" name="commit" type="submit" value="Edit" />
       #
-      # ==== Deprecated: \Rails UJS attributes
-      #
-      # Prior to \Rails 7, \Rails shipped with the JavaScript library called @rails/ujs on by default. Following \Rails 7,
-      # this library is no longer on by default. This library integrated with the following options:
-      #
-      # * <tt>confirm: 'question?'</tt> - If present the unobtrusive JavaScript
-      #   drivers will provide a prompt with the question specified. If the user accepts,
-      #   the form is processed normally, otherwise no action is taken.
-      # * <tt>:disable_with</tt> - Value of this parameter will be used as the value for a
-      #   disabled version of the submit button when the form is submitted. This feature is
-      #   provided by the unobtrusive JavaScript driver. To disable this feature for a single submit tag
-      #   pass <tt>:data => { disable_with: false }</tt> Defaults to value attribute.
-      #
-      #   submit_tag "Complete sale", data: { disable_with: "Submitting..." }
-      #   # => <input name="commit" data-disable-with="Submitting..." type="submit" value="Complete sale" />
-      #
-      #   submit_tag "Save", data: { confirm: "Are you sure?" }
-      #   # => <input name='commit' type='submit' value='Save' data-disable-with="Save" data-confirm="Are you sure?" />
-      #
       def submit_tag(value = "Save changes", options = {})
         options = options.deep_stringify_keys
         tag_options = { "type" => "submit", "name" => "commit", "value" => value }.update(options)
@@ -581,26 +562,6 @@ module ActionView
       #   # => <button name="button" type="button">
       #   #     <strong>Ask me!</strong>
       #   #    </button>
-      #
-      # ==== Deprecated: \Rails UJS attributes
-      #
-      # Prior to \Rails 7, \Rails shipped with a JavaScript library called @rails/ujs on by default. Following \Rails 7,
-      # this library is no longer on by default. This library integrated with the following options:
-      #
-      # * <tt>confirm: 'question?'</tt> - If present, the
-      #   unobtrusive JavaScript drivers will provide a prompt with
-      #   the question specified. If the user accepts, the form is
-      #   processed normally, otherwise no action is taken.
-      # * <tt>:disable_with</tt> - Value of this parameter will be
-      #   used as the value for a disabled version of the submit
-      #   button when the form is submitted. This feature is provided
-      #   by the unobtrusive JavaScript driver.
-      #
-      #   button_tag "Save", data: { confirm: "Are you sure?" }
-      #   # => <button name="button" type="submit" data-confirm="Are you sure?">Save</button>
-      #
-      #   button_tag "Checkout", data: { disable_with: "Please wait..." }
-      #   # => <button data-disable-with="Please wait..." name="button" type="submit">Checkout</button>
       #
       def button_tag(content_or_options = nil, options = nil, &block)
         if content_or_options.is_a? Hash

@@ -9,7 +9,7 @@ module ActiveSupport
 
       def self.included(klass) # :nodoc:
         klass.class_eval do
-          parallelize_me!
+          parallelize_me! unless Minitest.parallel_executor.is_a?(ActiveSupport::Testing::ParallelizeExecutor)
         end
       end
 

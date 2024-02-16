@@ -3,11 +3,7 @@
 source "https://rubygems.org"
 gemspec
 
-if RUBY_VERSION < "3"
-  gem "minitest", ">= 5.15.0", "< 5.16"
-else
-  gem "minitest", ">= 5.15.0"
-end
+gem "minitest", ">= 5.15.0", "< 5.22.0"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 13"
@@ -15,12 +11,7 @@ gem "rake", ">= 13"
 gem "sprockets-rails", ">= 2.0.0"
 gem "propshaft", ">= 0.1.7"
 gem "capybara", ">= 3.39"
-if RUBY_VERSION < "3"
-  gem "selenium-webdriver", "<= 4.9.0"
-  gem "webdrivers"
-else
-  gem "selenium-webdriver", ">= 4.11.0"
-end
+gem "selenium-webdriver", ">= 4.11.0"
 
 gem "rack-cache", "~> 1.2"
 gem "stimulus-rails"
@@ -45,6 +36,8 @@ gem "json", ">= 2.0.0", "!=2.7.0"
 # Workaround until Ruby ships with cgi version 0.3.6 or higher.
 gem "cgi", ">= 0.3.6", require: false
 
+gem "prism"
+
 group :lint do
   gem "syntax_tree", "6.1.1", require: false
 end
@@ -56,10 +49,13 @@ group :rubocop do
   gem "rubocop-performance", require: false
   gem "rubocop-rails", require: false
   gem "rubocop-md", require: false
+
+  # This gem is used in Railties tests so it must be a development dependency.
+  gem "rubocop-rails-omakase", require: false
 end
 
 group :mdl do
-  gem "mdl", require: false
+  gem "mdl", "!= 0.13.0", require: false
 end
 
 group :doc do
@@ -92,6 +88,8 @@ if rack_version != "head"
 else
   gem "rack", git: "https://github.com/rack/rack.git", branch: "main"
 end
+
+gem "useragent", require: false
 
 # Active Job
 group :job do
@@ -129,13 +127,14 @@ end
 # Action Mailbox
 gem "aws-sdk-sns", require: false
 gem "webmock"
+gem "httpclient", github: "nahi/httpclient", branch: "master", require: false
 
 # Add your own local bundler stuff.
 local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
-  gem "minitest-bisect"
+  gem "minitest-bisect", require: false
   gem "minitest-ci", require: false
   gem "minitest-retry"
 
@@ -144,7 +143,8 @@ group :test do
     gem "debug", ">= 1.1.0", require: false
   end
 
-  gem "benchmark-ips"
+  # Needed for Railties tests because it is included in generated apps.
+  gem "brakeman"
 end
 
 platforms :ruby, :windows do
@@ -159,7 +159,7 @@ platforms :ruby, :windows do
   group :db do
     gem "pg", "~> 1.3"
     gem "mysql2", "~> 0.5"
-    gem "trilogy", ">= 2.5.0"
+    gem "trilogy", ">= 2.7.0"
   end
 end
 
@@ -193,6 +193,6 @@ gem "wdm", ">= 0.1.0", platforms: [:windows]
 # The error_highlight gem only works on CRuby 3.1 or later.
 # Also, Rails depends on a new API available since error_highlight 0.4.0.
 # (Note that Ruby 3.1 bundles error_highlight 0.3.0.)
-if RUBY_VERSION >= "3.1" && RUBY_VERSION < "3.2"
+if RUBY_VERSION < "3.2"
   gem "error_highlight", ">= 0.4.0", platforms: [:ruby]
 end

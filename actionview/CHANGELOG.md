@@ -1,3 +1,26 @@
+*   Raise `ArgumentError` if `:renderable` object does not respond to `#render_in`
+
+    *Sean Doyle*
+
+*   Add the `nonce: true` option for `stylesheet_link_tag` helper to support automatic nonce generation for Content Security Policy.
+    Works the same way as `javascript_include_tag nonce: true` does.
+
+    *Akhil G Krishnan*, *AJ Esler*
+
+*   Parse `ActionView::TestCase#rendered` HTML content as `Nokogiri::XML::DocumentFragment` instead of `Nokogiri::XML::Document`
+
+    *Sean Doyle*
+
+*   Rename `ActionView::TestCase::Behavior::Content` to `ActionView::TestCase::Behavior::RenderedViewContent`
+
+    Make `RenderedViewContent` inherit from `String`. Make private API with `:nodoc:`
+
+    *Sean Doyle*
+
+*   Deprecate passing `nil` as value for the `model:` argument to the `form_with` method.
+
+    *Collin Jilbert*
+
 *   Alias `field_set_tag` helper to `fieldset_tag` to match `<fieldset>` element
 
     *Sean Doyle*

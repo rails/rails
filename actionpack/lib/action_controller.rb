@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "abstract_controller"
 require "action_dispatch"
 require "action_controller/deprecator"
 require "action_controller/metal/strong_parameters"
 require "action_controller/metal/exceptions"
 
-# = Action Controller
+# # Action Controller
 #
 # Action Controller is a module of Action Pack.
 #
@@ -27,6 +29,7 @@ module ActionController
   end
 
   autoload_under "metal" do
+    autoload :AllowBrowser
     autoload :ConditionalGet
     autoload :ContentSecurityPolicy
     autoload :Cookies
@@ -46,6 +49,7 @@ module ActionController
     autoload :Logging
     autoload :MimeResponds
     autoload :ParamsWrapper
+    autoload :RateLimiting
     autoload :Redirecting
     autoload :Renderers
     autoload :Rendering
@@ -62,8 +66,11 @@ module ActionController
     autoload :ApiRendering
   end
 
-  autoload :TestCase,           "action_controller/test_case"
-  autoload :TemplateAssertions, "action_controller/test_case"
+  autoload_at "action_controller/test_case" do
+    autoload :TestCase
+    autoload :TestRequest
+    autoload :TemplateAssertions
+  end
 end
 
 # Common Active Support usage in Action Controller

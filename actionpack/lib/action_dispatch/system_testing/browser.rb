@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionDispatch
   module SystemTesting
     class Browser # :nodoc:
@@ -35,8 +37,8 @@ module ActionDispatch
         yield options if block_given?
       end
 
-      # driver_path is lazily initialized by default. Eagerly set it to
-      # avoid race conditions when using parallel tests.
+      # driver_path is lazily initialized by default. Eagerly set it to avoid race
+      # conditions when using parallel tests.
       def preload
         case type
         when :chrome

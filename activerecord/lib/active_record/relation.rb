@@ -3,6 +3,54 @@
 module ActiveRecord
   # = Active Record \Relation
   class Relation
+    class ExplainProxy  # :nodoc:
+      def initialize(relation, options)
+        @relation = relation
+        @options  = options
+      end
+
+      def inspect
+        exec_explain { @relation.send(:exec_queries) }
+      end
+
+      def average(column_name)
+        exec_explain { @relation.average(column_name) }
+      end
+
+      def count(column_name = nil)
+        exec_explain { @relation.count(column_name) }
+      end
+
+      def first(limit = nil)
+        exec_explain { @relation.first(limit) }
+      end
+
+      def last(limit = nil)
+        exec_explain { @relation.last(limit) }
+      end
+
+      def maximum(column_name)
+        exec_explain { @relation.maximum(column_name) }
+      end
+
+      def minimum(column_name)
+        exec_explain { @relation.minimum(column_name) }
+      end
+
+      def pluck(*column_names)
+        exec_explain { @relation.pluck(*column_names) }
+      end
+
+      def sum(identity_or_column = nil)
+        exec_explain { @relation.sum(identity_or_column) }
+      end
+
+      private
+        def exec_explain(&block)
+          @relation.exec_explain(@relation.collecting_queries_for_explain { block.call }, @options)
+        end
+    end
+
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
                             :order, :joins, :left_outer_joins, :references,
                             :extending, :unscope, :optimizer_hints, :annotate,
@@ -207,6 +255,8 @@ module ActiveRecord
     #   the problem of running out of integers, if the underlying table is still stuck on a primary
     #   key of type int (note: All \Rails apps since 5.1+ have defaulted to bigint, which is not liable
     #   to this problem).
+    # * Columns with unique database constraints should not have uniqueness validations defined,
+    #   otherwise #create will fail due to validation errors and #find_by will never be called.
     #
     # This method will return a record if all given attributes are covered by unique constraints
     # (unless the INSERT -> DELETE -> SELECT race condition is triggered), but if creation was attempted
@@ -245,13 +295,30 @@ module ActiveRecord
     # returns the result as a string. The string is formatted imitating the
     # ones printed by the database shell.
     #
+    #   User.all.explain
+    #   # EXPLAIN SELECT `users`.* FROM `users`
+    #   # ...
+    #
     # Note that this method actually runs the queries, since the results of some
     # are needed by the next ones when eager loading is going on.
+    #
+    # To run EXPLAIN on queries created by +first+, +pluck+ and +count+, call
+    # these methods on +explain+:
+    #
+    #   User.all.explain.count
+    #   # EXPLAIN SELECT COUNT(*) FROM `users`
+    #   # ...
+    #
+    # The column name can be passed if required:
+    #
+    #   User.all.explain.maximum(:id)
+    #   # EXPLAIN SELECT MAX(`users`.`id`) FROM `users`
+    #   # ...
     #
     # Please see further details in the
     # {Active Record Query Interface guide}[https://guides.rubyonrails.org/active_record_querying.html#running-explain].
     def explain(*options)
-      exec_explain(collecting_queries_for_explain { exec_queries }, options)
+      ExplainProxy.new(self, options)
     end
 
     # Converts relation objects to Array.
@@ -291,6 +358,11 @@ module ActiveRecord
     end
 
     # Returns true if there are no records.
+    #
+    # When a pattern argument is given, this method checks whether elements in
+    # the Enumerable match the pattern via the case-equality operator (<tt>===</tt>).
+    #
+    #   posts.none?(Comment) # => true or false
     def none?(*args)
       return true if @none
 
@@ -299,6 +371,11 @@ module ActiveRecord
     end
 
     # Returns true if there are any records.
+    #
+    # When a pattern argument is given, this method checks whether elements in
+    # the Enumerable match the pattern via the case-equality operator (<tt>===</tt>).
+    #
+    #    posts.any?(Post) # => true or false
     def any?(*args)
       return false if @none
 
@@ -307,6 +384,11 @@ module ActiveRecord
     end
 
     # Returns true if there is exactly one record.
+    #
+    # When a pattern argument is given, this method checks whether elements in
+    # the Enumerable match the pattern via the case-equality operator (<tt>===</tt>).
+    #
+    #    posts.one?(Post) # => true or false
     def one?(*args)
       return false if @none
 
@@ -511,7 +593,12 @@ module ActiveRecord
 
       group_values_arel_columns = arel_columns(group_values.uniq)
       having_clause_ast = having_clause.ast unless having_clause.empty?
-      stmt = arel.compile_update(values, table[primary_key], having_clause_ast, group_values_arel_columns)
+      key = if klass.composite_primary_key?
+        primary_key.map { |pk| table[pk] }
+      else
+        table[primary_key]
+      end
+      stmt = arel.compile_update(values, key, having_clause_ast, group_values_arel_columns)
       klass.connection.update(stmt, "#{klass} Update All").tap { reset }
     end
 
@@ -644,7 +731,12 @@ module ActiveRecord
 
       group_values_arel_columns = arel_columns(group_values.uniq)
       having_clause_ast = having_clause.ast unless having_clause.empty?
-      stmt = arel.compile_delete(table[primary_key], having_clause_ast, group_values_arel_columns)
+      key = if klass.composite_primary_key?
+        primary_key.map { |pk| table[pk] }
+      else
+        table[primary_key]
+      end
+      stmt = arel.compile_delete(key, having_clause_ast, group_values_arel_columns)
 
       klass.connection.delete(stmt, "#{klass} Delete All").tap { reset }
     end
@@ -960,7 +1052,7 @@ module ActiveRecord
       def exec_main_query(async: false)
         if @none
           if async
-            return FutureResult::Complete.new([])
+            return FutureResult.wrap([])
           else
             return []
           end

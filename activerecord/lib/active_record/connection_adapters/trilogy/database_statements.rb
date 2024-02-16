@@ -43,12 +43,13 @@ module ActiveRecord
 
         private
           def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
-            log(sql, name, async: async) do
+            log(sql, name, async: async) do |notification_payload|
               with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
                 sync_timezone_changes(conn)
                 result = conn.query(sql)
                 verified!
                 handle_warnings(sql)
+                notification_payload[:row_count] = result.count
                 result
               end
             end

@@ -28,7 +28,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   # :method:
   #
   # Returns the associated ActiveStorage::Blob.
-  belongs_to :blob, class_name: "ActiveStorage::Blob", autosave: true
+  belongs_to :blob, class_name: "ActiveStorage::Blob", autosave: true, inverse_of: :attachments
 
   delegate_missing_to :blob
   delegate :signed_id, to: :blob
@@ -42,7 +42,10 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   # Eager load all variant records on an attachment at once.
   #
   #   User.first.avatars.with_all_variant_records
-  scope :with_all_variant_records, -> { includes(blob: { variant_records: { image_attachment: :blob } }) }
+  scope :with_all_variant_records, -> { includes(blob: {
+    variant_records: { image_attachment: :blob },
+    preview_image_attachment: { blob: { variant_records: { image_attachment: :blob } } }
+  }) }
 
   # Synchronously deletes the attachment and {purges the blob}[rdoc-ref:ActiveStorage::Blob#purge].
   def purge
@@ -129,8 +132,18 @@ class ActiveStorage::Attachment < ActiveStorage::Record
     end
 
     def transform_variants_later
-      named_variants.each do |_name, named_variant|
-        blob.preprocessed(named_variant.transformations) if named_variant.preprocessed?(record)
+      preprocessed_variations = named_variants.filter_map { |_name, named_variant|
+        if named_variant.preprocessed?(record)
+          named_variant.transformations
+        end
+      }
+
+      if blob.preview_image_needed_before_processing_variants?
+        blob.create_preview_image_later(preprocessed_variations)
+      else
+        preprocessed_variations.each do |transformations|
+          blob.preprocessed(transformations)
+        end
       end
     end
 

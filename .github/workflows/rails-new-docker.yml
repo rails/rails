@@ -8,16 +8,19 @@ permissions:
 env:
   APP_NAME: devrails
   APP_PATH: dev/devrails
-  BUNDLE_WITHOUT: db:job:cable:storage:ujs
+  BUNDLE_WITHOUT: db:job:cable:storage
 
 jobs:
   rails-new-docker:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: ruby/setup-ruby@v1
+    - name: Remove Gemfile.lock
+      run: rm -f Gemfile.lock
+    - name: Set up Ruby 3.3
+      uses: ruby/setup-ruby@v1
       with:
-        ruby-version: '3.2'
+        ruby-version: 3.3
         bundler-cache: true
     - name: Generate --dev app
       run: |
@@ -33,6 +36,7 @@ jobs:
         podman run --name $APP_NAME \
         -v $(pwd):$(pwd) \
         -e SECRET_KEY_BASE_DUMMY=1 \
+        -e DATABASE_URL=sqlite3:storage/production.sqlite3 \
         -p 3000:3000 $APP_NAME &
     - name: Test container
       run: ruby -r ./.github/workflows/scripts/test-container.rb

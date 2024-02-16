@@ -250,7 +250,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
       self.table_name = "dashboards"
     end
     klass.create! # warmup schema cache
-    assert_queries(3, ignore_none: true) { klass.create! }
+    assert_queries_count(3, include_schema: true) { klass.create! }
   end
 
   def test_assign_id_raises_error_if_primary_key_doesnt_exist
@@ -373,8 +373,8 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   fixtures :cpk_books, :cpk_orders
 
   def setup
+    ActiveRecord::Base.schema_cache.clear!
     @connection = ActiveRecord::Base.connection
-    @connection.schema_cache.clear!
     @connection.create_table(:uber_barcodes, primary_key: ["region", "code"], force: true) do |t|
       t.string :region
       t.integer :code

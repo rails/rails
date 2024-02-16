@@ -50,7 +50,7 @@ module ActiveSupport
         end
 
         def week_mixed_with_date?(parts)
-          parts.key?(:weeks) && (parts.keys & DATE_COMPONENTS).any?
+          parts.key?(:weeks) && parts.keys.intersect?(DATE_COMPONENTS)
         end
 
         def format_seconds(seconds)

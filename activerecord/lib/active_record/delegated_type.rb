@@ -138,7 +138,7 @@ module ActiveRecord
   #
   # Now you can list a bunch of entries, call <tt>Entry#title</tt>, and polymorphism will provide you with the answer.
   #
-  # == Nested Attributes
+  # == Nested \Attributes
   #
   # Enabling nested attributes on a delegated_type association allows you to
   # create the entry and message in one go:
@@ -218,6 +218,10 @@ module ActiveRecord
         primary_key = options[:primary_key] || "id"
         role_type = options[:foreign_type] || "#{role}_type"
         role_id   = options[:foreign_key] || "#{role}_id"
+
+        define_singleton_method "#{role}_types" do
+          types.map(&:to_s)
+        end
 
         define_method "#{role}_class" do
           public_send(role_type).constantize

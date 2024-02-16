@@ -109,7 +109,7 @@ module Minitest
   # Owes great inspiration to test runner trailblazers like RSpec,
   # minitest-reporters, maxitest, and others.
   def self.plugin_rails_init(options)
-    unless options[:full_backtrace] || ENV["BACKTRACE"]
+    unless options[:full_backtrace]
       # Plugin can run without Rails loaded, check before filtering.
       if ::Rails.respond_to?(:backtrace_cleaner)
         Minitest.backtrace_filter = BacktraceFilterWithFallback.new(::Rails.backtrace_cleaner, Minitest.backtrace_filter)

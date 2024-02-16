@@ -654,7 +654,7 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
     @connection.add_index(:topics, :title, unique: true, name: :topics_index)
 
     t = Topic.new(title: "abc")
-    assert_queries(1) do
+    assert_queries_count(1) do
       t.valid?
     end
   end
@@ -665,7 +665,7 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
 
     t = Topic.create!(title: "abc")
     t.author_name = "John"
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       t.valid?
     end
   end
@@ -676,7 +676,7 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
 
     t = Topic.create!(title: "abc")
     t.title = "abc v2"
-    assert_queries(1) do
+    assert_queries_count(1) do
       t.valid?
     end
   end
@@ -688,7 +688,7 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
     t = Topic.create!
     assert_nil t.title
     t.author_name = "John"
-    assert_queries(1) do
+    assert_queries_count(1) do
       t.valid?
     end
   end
@@ -699,7 +699,7 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
 
     t = Topic.create!(title: "abc")
     t.title = "abc v2"
-    assert_queries(1) do
+    assert_queries_count(1) do
       t.valid?
     end
   end
@@ -710,7 +710,7 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
 
     t = Topic.create!(title: "abc")
     t.title = "abc v2"
-    assert_queries(1) do
+    assert_queries_count(1) do
       t.valid?
     end
   end
@@ -723,7 +723,7 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
 
     t = Topic.create!(title: "abc")
     t.author_name = "John"
-    assert_queries(1) do
+    assert_queries_count(1) do
       t.valid?
     end
   end
@@ -734,7 +734,7 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
 
     t = Topic.create!(title: "abc")
     t.author_name = "John"
-    assert_queries(1) do
+    assert_queries_count(1) do
       t.valid?
     end
   end
@@ -745,12 +745,12 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
 
     t = Topic.create!(title: "abc", author_name: "John")
     t.content = "hello world"
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       t.valid?
     end
 
     t.author_name = "Amy"
-    assert_queries(1) do
+    assert_queries_count(1) do
       t.valid?
     end
   end
@@ -764,12 +764,12 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
     t = TopicWithEvent.create!(event: e1)
 
     t.content = "hello world"
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       t.valid?
     end
 
     t.event = e2
-    assert_queries(1) do
+    assert_queries_count(1) do
       t.valid?
     end
   ensure
@@ -792,12 +792,12 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
 
     t = Topic.create!(title: "abc", author_name: "John")
     t.content = "hello world"
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       t.valid?
     end
 
     t.author_name = "Amy"
-    assert_queries(1, ignore_none: false) do
+    assert_queries_count(1) do
       t.valid?
     end
   end
@@ -808,7 +808,7 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
 
     t = Topic.create!(title: "abc", author_name: "John")
     t.content = "hello world"
-    assert_queries(1) do
+    assert_queries_count(1) do
       t.valid?
     end
   end
@@ -821,7 +821,7 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
       t = Topic.create!(title: "abc", author_name: "John")
       t.content = "hello world"
 
-      assert_queries(1) do
+      assert_queries_count(1) do
         t.valid?
       end
     end

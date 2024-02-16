@@ -1,5 +1,137 @@
-*   Use `bin/rails runner --skip-executor` option to not wrap the runner script
-    with an Executor.
+*   Generate a .devcontainer folder and its contents when creating a new app.
+
+    The .devcontainer folder includes everything needed to boot the app and do development in a remote container.
+
+    The container setup includes:
+     - A redis container for Kredis, ActionCable etc.
+     - A database (SQLite, Postgres, MySQL or MariaDB)
+     - A Headless chrome container for system tests
+     - Active Storage configured to use the local disk and with preview features working
+
+    If any of these options are skipped in the app setup they will not be included in the container configuration.
+
+    These files can be skipped using the `--skip-devcontainer` option.
+
+    *Andrew Novoselac & Rafael Mendonça França*
+
+*   Introduce `SystemTestCase#served_by` for configuring the System Test application server
+
+    By default this is localhost. This method allows the host and port to be specified manually.
+
+    ```ruby
+    class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+      served_by host: "testserver", port: 45678
+    end
+    ```
+
+    *Andrew Novoselac & Rafael Mendonça França*
+
+*   `bin/rails test` will no longer load files named `*_test.rb` if they are located in the `fixtures` folder.
+
+    *Edouard Chin*
+
+*   Ensure logger tags configured with `config.log_tags` are still active in `request.action_dispatch` handlers
+
+    *KJ Tsanaktsidis*
+
+*   Setup jemalloc in the default Dockerfile for memory optimization.
+
+    *Matt Almeida*, *Jean Boussier*
+
+*   Commented out lines in .railsrc file should not be treated as arguments when using
+    rails new generator command. Update ARGVScrubber to ignore text after # symbols.
+
+    *Willian Tenfen*
+
+*   Skip CSS when generating APIs.
+
+    *Ruy Rocha*
+
+*   Rails console now indicates application name and the current Rails environment:
+
+    ```txt
+    my-app(dev)> # for RAILS_ENV=development
+    my-app(test)> # for RAILS_ENV=test
+    my-app(prod)> # for RAILS_ENV=production
+    my-app(my_env)> # for RAILS_ENV=my_env
+    ```
+
+    The application name is derived from the application's module name from `config/application.rb`.
+    For example, `MyApp` will displayed as `my-app` in the prompt.
+
+    Additionally, the environment name will be colorized when the environment is
+    `development` (blue), `test` (blue), or `production` (red), if your
+    terminal supports it.
+
+    *Stan Lo*
+
+*   Ensure `autoload_paths`, `autoload_once_paths`, `eager_load_paths`, and
+    `load_paths` only have directories when initialized from engine defaults.
+    Previously, files under the `app` directory could end up there too.
+
+    *Takumasa Ochi*
+
+*   Prevent unnecessary application reloads in development.
+
+    Previously, some files outside autoload paths triggered unnecessary reloads.
+    With this fix, application reloads according to `Rails.autoloaders.main.dirs`,
+    thereby preventing unnecessary reloads.
+
+    *Takumasa Ochi*
+
+*   Use `oven-sh/setup-bun` in GitHub CI when generating an app with Bun.
+
+    *TangRufus*
+
+*   Disable `pidfile` generation in the `production` environment.
+
+    *Hans Schnedlitz*
+
+*   Set `config.action_view.annotate_rendered_view_with_filenames` to `true` in
+    the `development` environment.
+
+    *Adrian Marin*
+
+*   Support the `BACKTRACE` environment variable to turn off backtrace cleaning.
+
+    Useful for debugging framework code:
+
+    ```sh
+    BACKTRACE=1 bin/rails server
+    ```
+
+    *Alex Ghiculescu*
+
+*   Raise `ArgumentError` when reading `config.x.something` with arguments:
+
+    ```ruby
+    config.x.this_works.this_raises true # raises ArgumentError
+    ```
+
+    *Sean Doyle*
+
+*   Add default PWA files for manifest and service-worker that are served from `app/views/pwa` and can be dynamically rendered through ERB. Mount these files explicitly at the root with default routes in the generated routes file.
+
+    *DHH*
+
+*   Updated system tests to now use headless Chrome by default for the new applications.
+
+    *DHH*
+
+*   Add GitHub CI files for Dependabot, Brakeman, RuboCop, and running tests by default. Can be skipped with `--skip-ci`.
+
+    *DHH*
+
+*   Add Brakeman by default for static analysis of security vulnerabilities. Allow skipping with `--skip-brakeman option`.
+
+    *vipulnsward*
+
+*   Add RuboCop with rules from `rubocop-rails-omakase` by default. Skip with `--skip-rubocop`.
+
+    *DHH* and *zzak*
+
+*   Use `bin/rails runner --skip-executor` to not wrap the runner script with an
+    Executor.
 
     *Ben Sheldon*
 
@@ -9,7 +141,7 @@
 
     *Chedli Bourguiba*
 
-*   Fix running `db:system:change` when app has no Dockerfile.
+*   Fix running `db:system:change` when the app has no Dockerfile.
 
     *Hartley McGuire*
 
@@ -28,7 +160,7 @@
 
     *Christian Schmidt*
 
-*   Enable YJIT by default on new applications running Ruby 3.3+
+*   Enable YJIT by default on new applications running Ruby 3.3+.
 
     Adds a `config/initializers/enable_yjit.rb` initializer that enables YJIT
     when running on Ruby 3.3+.
@@ -46,7 +178,7 @@
 *   Use numeric UID and GID in Dockerfile template
 
     The Dockerfile generated by `rails new` sets the default user and group
-    by name instead of UID:GID. This can cause the following error in kubernetes:
+    by name instead of UID:GID. This can cause the following error in Kubernetes:
 
     ```
     container has runAsNonRoot and image has non-numeric user (rails), cannot verify user is non-root
@@ -58,13 +190,12 @@
 
 *   Disallow invalid values for rails new options.
 
-    The `--database`, `--asset-pipeline`, `--css`, and `--javascript` flags for
-    `rails new` can all take different options. This change adds checks to
-    options to make sure the user enters the correct value.
+    The `--database`, `--asset-pipeline`, `--css`, and `--javascript` options
+    for `rails new` take different arguments. This change validates them.
 
     *Tony Drake*, *Akhil G Krishnan*, *Petrik de Heus*
 
-*   Conditionally print `$stdout` when invoking `run_generator`
+*   Conditionally print `$stdout` when invoking `run_generator`.
 
     In an effort to improve the developer experience when debugging
     generator tests, we add the ability to conditionally print `$stdout`

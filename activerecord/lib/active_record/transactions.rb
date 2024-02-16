@@ -209,7 +209,9 @@ module ActiveRecord
     module ClassMethods
       # See the ConnectionAdapters::DatabaseStatements#transaction API docs.
       def transaction(**options, &block)
-        connection.transaction(**options, &block)
+        with_connection do |connection|
+          connection.transaction(**options, &block)
+        end
       end
 
       def before_commit(*args, &block) # :nodoc:
@@ -264,6 +266,25 @@ module ActiveRecord
       def after_rollback(*args, &block)
         set_options_for_callbacks!(args, prepend_option)
         set_callback(:rollback, :after, *args, &block)
+      end
+
+      # Similar to ActiveSupport::Callbacks::ClassMethods#set_callback, but with
+      # support for options available on #after_commit and #after_rollback callbacks.
+      def set_callback(name, *filter_list, &block)
+        options = filter_list.extract_options!
+        filter_list << options
+
+        if name.in?([:commit, :rollback]) && options[:on]
+          fire_on = Array(options[:on])
+          assert_valid_transaction_action(fire_on)
+          options[:if] = [
+            -> { transaction_include_any_action?(fire_on) },
+            *options[:if]
+          ]
+        end
+
+
+        super(name, *filter_list, &block)
       end
 
       private

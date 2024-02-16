@@ -780,6 +780,8 @@ The PostgreSQL adapter uses Active Record's connection pool, and thus the
 application's `config/database.yml` database configuration, for its connection.
 This may change in the future. [#27214](https://github.com/rails/rails/issues/27214)
 
+NOTE: PostgreSQL has a [8000 bytes limit](https://www.postgresql.org/docs/current/sql-notify.html) on `NOTIFY` (the command used under the hood for sending notifications) which might be a constraint when dealing with large payloads.
+
 ### Allowed Request Origins
 
 Action Cable will only accept requests from specified origins, which are

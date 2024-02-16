@@ -63,7 +63,7 @@ class HasManyAssociationsTestPrimaryKeys < ActiveRecord::TestCase
     subscriber = Subscriber.new(nick: "webster132")
     assert_not_predicate subscriber.subscriptions, :loaded?
 
-    assert_queries 1 do
+    assert_queries_count 1 do
       assert_equal 2, subscriber.subscriptions.size
     end
 
@@ -74,7 +74,7 @@ class HasManyAssociationsTestPrimaryKeys < ActiveRecord::TestCase
     author = Author.new(name: "David")
     assert_not_predicate author.essays, :loaded?
 
-    assert_queries 1 do
+    assert_queries_count 1 do
       assert_equal 1, author.essays.size
     end
 
@@ -109,7 +109,7 @@ class HasManyAssociationsTestPrimaryKeys < ActiveRecord::TestCase
     author = Author.new
     assert_not_predicate author.essays, :loaded?
 
-    assert_queries 0 do
+    assert_queries_count 0 do
       assert_equal 0, author.essays.size
     end
   end
@@ -486,7 +486,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     self.table_name = "books"
 
     belongs_to :author
-    enum last_read: { unread: 0, reading: 2, read: 3, forgotten: nil }
+    enum :last_read, { unread: 0, reading: 2, read: 3, forgotten: nil }
   end
 
   def test_association_enum_works_properly
@@ -560,14 +560,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     company = companies(:first_firm)
     new_clients = []
 
-    assert_queries(0) do
+    assert_queries_count(0) do
       new_clients << company.clients_of_firm.build(name: "Another Client")
       new_clients << company.clients_of_firm.build(name: "Another Client II")
       new_clients << company.clients_of_firm.build(name: "Another Client III")
     end
 
     assert_not_predicate company.clients_of_firm, :loaded?
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_same new_clients[0], company.clients_of_firm.third
       assert_same new_clients[1], company.clients_of_firm.fourth
       assert_same new_clients[2], company.clients_of_firm.fifth
@@ -581,14 +581,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     company = companies(:first_firm)
     new_clients = []
 
-    assert_queries(0) do
+    assert_queries_count(0) do
       new_clients << company.clients_of_firm.build(name: "Another Client")
       new_clients << company.clients_of_firm.build(name: "Another Client II")
       new_clients << company.clients_of_firm.build(name: "Another Client III")
     end
 
     assert_not_predicate company.clients_of_firm, :loaded?
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_same new_clients[0], company.clients_of_firm.third!
       assert_same new_clients[1], company.clients_of_firm.fourth!
       assert_same new_clients[2], company.clients_of_firm.fifth!
@@ -834,7 +834,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_not_predicate firm.clients, :loaded?
 
-    assert_queries(4) do
+    assert_queries_count(4) do
       firm.clients.find_each(batch_size: 1) { |c| assert_equal firm.id, c.firm_id }
     end
 
@@ -844,7 +844,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_find_each_with_conditions
     firm = companies(:first_firm)
 
-    assert_queries(2) do
+    assert_queries_count(2) do
       firm.clients.where(name: "Microsoft").find_each(batch_size: 1) do |c|
         assert_equal firm.id, c.firm_id
         assert_equal "Microsoft", c.name
@@ -859,7 +859,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_not_predicate firm.clients, :loaded?
 
-    assert_queries(2) do
+    assert_queries_count(2) do
       firm.clients.find_in_batches(batch_size: 2) do |clients|
         clients.each { |c| assert_equal firm.id, c.firm_id }
       end
@@ -937,9 +937,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, connection.query_cache.size
 
     # Clear the cache and fetch the clients again, populating the cache with a query
-    assert_queries(1) { firm.clients.reload }
+    assert_queries_count(1) { firm.clients.reload }
     # This query is cached, so it shouldn't make a real SQL query
-    assert_queries(0) { firm.clients.load }
+    assert_queries_count(0) { firm.clients.load }
 
     assert_equal 1, connection.query_cache.size
   ensure
@@ -1106,14 +1106,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_transactions_when_adding_to_new_record
     firm = Firm.new
-    assert_queries(0) do
+    assert_queries_count(0) do
       firm.clients_of_firm.concat(Client.new("name" => "Natural Company"))
     end
   end
 
   def test_inverse_on_before_validate
     firm = companies(:first_firm)
-    assert_queries(1) do
+    assert_queries_count(3) do
       firm.clients_of_firm << Client.new("name" => "Natural Company")
     end
   end
@@ -1121,7 +1121,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_new_aliased_to_build
     company = companies(:first_firm)
 
-    new_client = assert_queries(0) { company.clients_of_firm.new("name" => "Another Client") }
+    new_client = assert_queries_count(0) { company.clients_of_firm.new("name" => "Another Client") }
     assert_not_predicate company.clients_of_firm, :loaded?
 
     assert_equal "Another Client", new_client.name
@@ -1132,7 +1132,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_build
     company = companies(:first_firm)
 
-    new_client = assert_queries(0) { company.clients_of_firm.build("name" => "Another Client") }
+    new_client = assert_queries_count(0) { company.clients_of_firm.build("name" => "Another Client") }
     assert_not_predicate company.clients_of_firm, :loaded?
 
     assert_equal "Another Client", new_client.name
@@ -1190,7 +1190,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_build_many
     company = companies(:first_firm)
 
-    new_clients = assert_queries(0) { company.clients_of_firm.build([{ "name" => "Another Client" }, { "name" => "Another Client II" }]) }
+    new_clients = assert_queries_count(0) { company.clients_of_firm.build([{ "name" => "Another Client" }, { "name" => "Another Client II" }]) }
     assert_equal 2, new_clients.size
   end
 
@@ -1205,7 +1205,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal 1, first_topic.replies.length
 
-    assert_queries(0) do
+    assert_queries_count(0) do
       first_topic.replies.build(title: "Not saved", content: "Superstars")
       assert_equal 2, first_topic.replies.size
     end
@@ -1216,7 +1216,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_build_via_block
     company = companies(:first_firm)
 
-    new_client = assert_queries(0) { company.clients_of_firm.build { |client| client.name = "Another Client" } }
+    new_client = assert_queries_count(0) { company.clients_of_firm.build { |client| client.name = "Another Client" } }
     assert_not_predicate company.clients_of_firm, :loaded?
 
     assert_equal "Another Client", new_client.name
@@ -1227,7 +1227,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_build_many_via_block
     company = companies(:first_firm)
 
-    new_clients = assert_queries(0) do
+    new_clients = assert_queries_count(0) do
       company.clients_of_firm.build([{ "name" => "Another Client" }, { "name" => "Another Client II" }]) do |client|
         client.name = "changed"
       end
@@ -1244,7 +1244,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, first_firm.clients_of_firm.size
     first_firm.clients_of_firm.reset
 
-    assert_queries(1) do
+    assert_queries_count(3) do
       first_firm.clients_of_firm.create(name: "Superstars")
     end
 
@@ -1323,7 +1323,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     query_constraints = /#{blog_id} = .* AND #{id} = .*/
     expectation = /DELETE.*WHERE.* \(#{query_constraints} OR #{query_constraints}\)/
 
-    assert_match(expectation, sql.first)
+    assert_match(expectation, sql.second)
 
     blog_post.reload
 
@@ -1396,7 +1396,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     reply1 = Reply.create!(title: "re: zoom", content: "speedy quick!")
     reply2 = Reply.create!(title: "re: zoom 2", content: "OMG lol!")
 
-    assert_queries(4) do
+    assert_queries_count(6) do
       topic.replies << [reply1, reply2]
     end
 
@@ -1429,7 +1429,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     categorization1 = Categorization.create!
     categorization2 = Categorization.create!
 
-    assert_queries(4) do
+    assert_queries_count(6) do
       category.categorizations << [categorization1, categorization2]
     end
 
@@ -1591,7 +1591,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_transaction_when_deleting_new_record
     firm = Firm.new
-    assert_queries(0) do
+    assert_queries_count(0) do
       client = Client.new("name" => "New Client")
       firm.clients_of_firm << client
       firm.clients_of_firm.destroy(client)
@@ -2107,7 +2107,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_transactions_when_replacing_on_new_record
     firm = Firm.new
-    assert_queries(0) do
+    assert_queries_count(0) do
       firm.clients_of_firm = [Client.new("name" => "New Client")]
     end
   end
@@ -2162,7 +2162,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_get_ids_for_association_on_new_record_does_not_try_to_find_records
     company = Company.new
-    assert_queries(0) do
+    assert_queries_count(0) do
       company.contract_ids
     end
 
@@ -2243,7 +2243,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     firm.reload
     assert_not_predicate firm.clients, :loaded?
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_equal true, firm.clients.include?(client)
     end
     assert_not_predicate firm.clients, :loaded?
@@ -2283,7 +2283,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm.clients.build(name: "Foo")
     assert_not_predicate firm.clients, :loaded?
 
-    assert_queries 1 do
+    assert_queries_count 1 do
       firm.clients.first
       firm.clients.second
       firm.clients.last
@@ -2299,7 +2299,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_not_predicate author.topics_without_type, :loaded?
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :SQLite3Adapter)
         assert_equal fourth, author.topics_without_type.first
         assert_equal third, author.topics_without_type.second
@@ -2315,7 +2315,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm.clients.create(name: "Foo")
     assert_not_predicate firm.clients, :loaded?
 
-    assert_queries 3 do
+    assert_queries_count 3 do
       firm.clients.first
       firm.clients.second
       firm.clients.last
@@ -2339,7 +2339,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm.clients.create(name: "Foo")
     assert_not_predicate firm.clients, :loaded?
 
-    assert_queries 2 do
+    assert_queries_count 2 do
       firm.clients.first(2)
       firm.clients.last(2)
     end
@@ -2349,7 +2349,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_calling_many_should_count_instead_of_loading_association
     firm = companies(:first_firm)
-    assert_queries(1) do
+    assert_queries_count(1) do
       firm.clients.many?  # use count query
     end
     assert_not_predicate firm.clients, :loaded?
@@ -2363,7 +2363,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_subsequent_calls_to_many_should_use_query
     firm = companies(:first_firm)
-    assert_queries(2) do
+    assert_queries_count(2) do
       firm.clients.many?
       firm.clients.many?
     end
@@ -2371,7 +2371,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_calling_many_should_defer_to_collection_if_using_a_block
     firm = companies(:first_firm)
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_not_called(firm.clients, :size) do
         firm.clients.many? { true }
       end
@@ -2397,7 +2397,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_calling_none_should_count_instead_of_loading_association
     firm = companies(:first_firm)
-    assert_queries(1) do
+    assert_queries_count(1) do
       firm.clients.none?  # use count query
     end
     assert_not_predicate firm.clients, :loaded?
@@ -2411,7 +2411,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_calling_none_should_defer_to_collection_if_using_a_block
     firm = companies(:first_firm)
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_not_called(firm.clients, :size) do
         firm.clients.none? { true }
       end
@@ -2433,7 +2433,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_calling_one_should_count_instead_of_loading_association
     firm = companies(:first_firm)
-    assert_queries(1) do
+    assert_queries_count(1) do
       firm.clients.one?  # use count query
     end
     assert_not_predicate firm.clients, :loaded?
@@ -2447,7 +2447,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_subsequent_calls_to_one_should_use_query
     firm = companies(:first_firm)
-    assert_queries(2) do
+    assert_queries_count(2) do
       firm.clients.one?
       firm.clients.one?
     end
@@ -2455,7 +2455,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_calling_one_should_defer_to_collection_if_using_a_block
     firm = companies(:first_firm)
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_not_called(firm.clients, :size) do
         firm.clients.one? { true }
       end
@@ -2748,7 +2748,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_not_predicate post.taggings_with_delete_all, :loaded?
 
     # 2 queries: one DELETE and another to update the counter cache
-    assert_queries(2) do
+    assert_queries_count(2) do
       post.taggings_with_delete_all.delete_all
     end
   end
@@ -3034,11 +3034,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     car_two = Car.create!
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_equal 1, car.bulbs.size
     end
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_equal 0, car_two.bulbs.size
     end
   end
@@ -3066,11 +3066,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     car_two = Car.create!
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_not_empty car.bulbs
     end
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_empty car_two.bulbs
     end
   end

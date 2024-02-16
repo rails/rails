@@ -194,6 +194,20 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     assert_equal expected_html.strip, replaced_fragment.to_html
   end
 
+  test "delegates pattern matching to Nokogiri" do
+    content = ActionText::Content.new <<~HTML
+      <h1 id="hello-world">Hello, world</h1>
+
+      <div>The body</div>
+    HTML
+
+    content => [h1, div]
+
+    assert_pattern { h1 => { name: "h1", content: "Hello, world", attributes: [{ name: "id", value: "hello-world" }] } }
+    refute_pattern { h1 => { name: "h1", content: "Goodbye, world" } }
+    assert_pattern { div => { content: "The body" } }
+  end
+
   private
     def content_from_html(html)
       ActionText::Content.new(html).tap do |content|

@@ -72,17 +72,16 @@ module ActiveRecord
         MUTEX.synchronize do
           return if method_defined?(method)
 
-          if /\A[a-zA-Z_]\w*[!?]?\z/.match?(method) && !DELEGATION_RESERVED_METHOD_NAMES.include?(method.to_s)
+          if /\A[a-zA-Z_]\w*[!?]?\z/.match?(method) && !::ActiveSupport::Delegation::RESERVED_METHOD_NAMES.include?(method.to_s)
             module_eval <<-RUBY, __FILE__, __LINE__ + 1
               def #{method}(...)
                 scoping { klass.#{method}(...) }
               end
             RUBY
           else
-            define_method(method) do |*args, &block|
-              scoping { klass.public_send(method, *args, &block) }
+            define_method(method) do |*args, **kwargs, &block|
+              scoping { klass.public_send(method, *args, **kwargs, &block) }
             end
-            ruby2_keywords(method)
           end
         end
       end
@@ -101,7 +100,7 @@ module ActiveRecord
              :to_sentence, :to_fs, :to_formatted_s, :as_json,
              :shuffle, :split, :slice, :index, :rindex, to: :records
 
-    delegate :primary_key, :connection, to: :klass
+    delegate :primary_key, :connection, :transaction, to: :klass
 
     module ClassSpecificRelation # :nodoc:
       extend ActiveSupport::Concern
@@ -113,17 +112,16 @@ module ActiveRecord
       end
 
       private
-        def method_missing(method, *args, &block)
+        def method_missing(method, ...)
           if @klass.respond_to?(method)
             unless Delegation.uncacheable_methods.include?(method)
               @klass.generate_relation_method(method)
             end
-            scoping { @klass.public_send(method, *args, &block) }
+            scoping { @klass.public_send(method, ...) }
           else
             super
           end
         end
-        ruby2_keywords(:method_missing)
     end
 
     module ClassMethods # :nodoc:

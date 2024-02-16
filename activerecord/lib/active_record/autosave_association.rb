@@ -547,10 +547,6 @@ module ActiveRecord
         end
       end
 
-      def custom_validation_context?
-        validation_context && [:create, :update].exclude?(validation_context)
-      end
-
       def _ensure_no_duplicate_errors
         errors.uniq!
       end

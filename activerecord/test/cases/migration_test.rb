@@ -46,7 +46,7 @@ class MigrationTest < ActiveRecord::TestCase
     @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
     @schema_migration = ActiveRecord::Base.connection.schema_migration
     @internal_metadata = ActiveRecord::Base.connection.internal_metadata
-    ActiveRecord::Base.connection.schema_cache.clear!
+    ActiveRecord::Base.schema_cache.clear!
   end
 
   teardown do
@@ -1238,7 +1238,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         raise "need an expected query count for #{classname}"
       }
 
-      assert_queries(expected_query_count) do
+      assert_queries_count(expected_query_count) do
         with_bulk_change_table do |t|
           t.column :name, :string
           t.string :qualification, :experience
@@ -1278,7 +1278,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       [:qualification, :experience].each { |c| assert column(c) }
 
-      assert_queries(1) do
+      assert_queries_count(1) do
         with_bulk_change_table do |t|
           t.remove :qualification, :experience
           t.string :qualification_experience
@@ -1296,7 +1296,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       assert column(:title)
 
-      assert_queries(1) do
+      assert_queries_count(1) do
         with_bulk_change_table do |t|
           t.timestamps
           t.remove :title
@@ -1314,7 +1314,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       [:created_at, :updated_at].each { |c| assert column(c) }
 
-      assert_queries(1) do
+      assert_queries_count(1) do
         with_bulk_change_table do |t|
           t.remove_timestamps
           t.string :title
@@ -1341,7 +1341,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         raise "need an expected query count for #{classname}"
       }
 
-      assert_queries(expected_query_count) do
+      assert_queries_count(expected_query_count) do
         with_bulk_change_table do |t|
           t.index :username, unique: true, name: :awesome_username_index
           t.index [:name, :age], comment: "This is a comment"
@@ -1375,7 +1375,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         raise "need an expected query count for #{classname}"
       }
 
-      assert_queries(expected_query_count) do
+      assert_queries_count(expected_query_count) do
         with_bulk_change_table do |t|
           t.remove_index :name
           t.index :name, name: :new_name_index, unique: true
@@ -1406,7 +1406,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         raise "need an expected query count for #{classname}"
       }
 
-      assert_queries(expected_query_count, ignore_none: true) do
+      assert_queries_count(expected_query_count, include_schema: true) do
         with_bulk_change_table do |t|
           t.change :name, :string, default: "NONAME"
           t.change :birthdate, :datetime, comment: "This is a comment"
@@ -1437,7 +1437,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         raise "need an expected query count for #{classname}"
       }
 
-      assert_queries(expected_query_count, ignore_none: true) do
+      assert_queries_count(expected_query_count, include_schema: true) do
         with_bulk_change_table do |t|
           t.change :name, :string, default: "NONAME"
           t.change :birthdate, :datetime
@@ -1508,7 +1508,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         raise "need an expected query count for #{classname}"
       }
 
-      assert_queries(expected_query_count) do
+      assert_queries_count(expected_query_count) do
         with_bulk_change_table do |t|
           t.remove_index name: :username_index
           t.index :username, name: :username_index, unique: true
@@ -1576,7 +1576,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         end
       }.new
 
-      assert_queries(1) do
+      assert_queries_count(1) do
         migration.migrate(:down)
       end
 
@@ -1807,7 +1807,9 @@ class CopyMigrationsTest < ActiveRecord::TestCase
       @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
       @schema_migration = ActiveRecord::Base.connection.schema_migration
       @internal_metadata = ActiveRecord::Base.connection.internal_metadata
-      ActiveRecord::Base.connection.schema_cache.clear!
+      @active_record_validate_timestamps_was = ActiveRecord.validate_migration_timestamps
+      ActiveRecord.validate_migration_timestamps = true
+      ActiveRecord::Base.schema_cache.clear!
 
       @migrations_path = MIGRATIONS_ROOT + "/temp"
       @migrator = ActiveRecord::MigrationContext.new(@migrations_path, @schema_migration, @internal_metadata)
@@ -1816,7 +1818,61 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     def teardown
       @schema_migration.create_table
       @schema_migration.delete_all_versions
+      ActiveRecord.validate_migration_timestamps = @active_record_validate_timestamps_was
       ActiveRecord::Migration.verbose = @verbose_was
+    end
+
+    def test_migration_raises_if_timestamp_greater_than_14_digits
+      with_temp_migration_files(["201801010101010000_test_migration.rb"]) do
+        error = assert_raises(ActiveRecord::InvalidMigrationTimestampError) do
+          @migrator.up(201801010101010000)
+        end
+        assert_match(/Invalid timestamp 201801010101010000 for migration file: test_migration/, error.message)
+      end
+    end
+
+    def test_migration_raises_if_timestamp_is_future_date
+      timestamp = (Time.now.utc + 1.month).strftime("%Y%m%d%H%M%S").to_i
+      with_temp_migration_files(["#{timestamp}_test_migration.rb"]) do
+        error = assert_raises(ActiveRecord::InvalidMigrationTimestampError) do
+          @migrator.up(timestamp)
+        end
+        assert_match(/Invalid timestamp #{timestamp} for migration file: test_migration/, error.message)
+      end
+    end
+
+    def test_migration_succeeds_if_timestamp_is_less_than_one_day_in_the_future
+      timestamp = (Time.now.utc + 1.minute).strftime("%Y%m%d%H%M%S").to_i
+      with_temp_migration_files(["#{timestamp}_test_migration.rb"]) do
+        @migrator.up(timestamp)
+        assert_equal timestamp, @migrator.current_version
+      end
+    end
+
+    def test_migration_succeeds_despite_future_timestamp_if_validate_timestamps_is_false
+      validate_migration_timestamps_was = ActiveRecord.validate_migration_timestamps
+      ActiveRecord.validate_migration_timestamps = false
+
+      timestamp = (Time.now.utc + 1.month).strftime("%Y%m%d%H%M%S").to_i
+      with_temp_migration_files(["#{timestamp}_test_migration.rb"]) do
+        @migrator.up(timestamp)
+        assert_equal timestamp, @migrator.current_version
+      end
+    ensure
+      ActiveRecord.validate_migration_timestamps = validate_migration_timestamps_was
+    end
+
+    def test_migration_succeeds_despite_future_timestamp_if_timestamped_migrations_is_false
+      timestamped_migrations_was = ActiveRecord.timestamped_migrations
+      ActiveRecord.timestamped_migrations = false
+
+      timestamp = (Time.now.utc + 1.month).strftime("%Y%m%d%H%M%S").to_i
+      with_temp_migration_files(["#{timestamp}_test_migration.rb"]) do
+        @migrator.up(timestamp)
+        assert_equal timestamp, @migrator.current_version
+      end
+    ensure
+      ActiveRecord.timestamped_migrations = timestamped_migrations_was
     end
 
     def test_copied_migrations_at_timestamp_boundary_are_valid
@@ -1824,7 +1880,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
       migrations_path_dest = MIGRATIONS_ROOT + "/temp_dest"
       migrations = ["20180101010101_test_migration.rb", "20180101010102_test_migration_two.rb", "20180101010103_test_migration_three.rb"]
 
-      with_temp_migration_files(migrations_path_source, migrations) do
+      with_temp_migration_files(migrations, migrations_path_source) do
         travel_to(Time.utc(2023, 12, 1, 10, 10, 59)) do
           ActiveRecord::Migration.copy(migrations_path_dest, temp: migrations_path_source)
 
@@ -1847,7 +1903,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     end
 
     private
-      def with_temp_migration_files(migrations_dir, filenames)
+      def with_temp_migration_files(filenames, migrations_dir = @migrations_path)
         Dir.mkdir(migrations_dir) unless Dir.exist?(migrations_dir)
 
         paths = []

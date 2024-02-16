@@ -82,8 +82,8 @@ for setup instructions.
 
 IMPORTANT: Several gems have JavaScript components that are released as npm
 packages, so you must have Node.js installed, have an npm account (npmjs.com),
-and be a package owner for `@rails/actioncable`, `@rails/actiontext`,
-`@rails/activestorage`, and `@rails/ujs`. You can check this by making sure your
+and be a package owner for `@rails/actioncable`, `@rails/actiontext`, and
+`@rails/activestorage`. You can check this by making sure your
 npm user (`npm whoami`) is listed as an owner (`npm owner ls <pkg>`) of each
 package. Do not release until you're set up with npm!
 

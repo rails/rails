@@ -345,15 +345,15 @@ module ActiveRecord
           end
         end
 
-        records = records.sort_by { |record| record.id }
+        records.sort_by!(&:id)
 
         if order == :desc
           records.reverse!
         end
 
-        (0...records.size).step(batch_limit).each do |start|
+        records.each_slice(batch_limit) do |subrecords|
           subrelation = relation.spawn
-          subrelation.load_records(records[start, batch_limit])
+          subrelation.load_records(subrecords)
 
           yield subrelation
         end

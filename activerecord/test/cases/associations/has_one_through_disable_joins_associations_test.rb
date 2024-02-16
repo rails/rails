@@ -8,6 +8,7 @@ require "models/project"
 require "models/developer"
 require "models/company"
 require "models/computer"
+require "models/contract"
 require "models/club"
 require "models/membership"
 
@@ -37,8 +38,8 @@ class HasOneThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
 
   def test_nil_on_disable_joins_through
     member = members(:blarpy_winkup)
-    assert_nil assert_queries(1) { member.organization }
-    assert_nil assert_queries(1) { member.organization_without_joins }
+    assert_nil assert_queries_count(1) { member.organization }
+    assert_nil assert_queries_count(1) { member.organization_without_joins }
   end
 
   def test_preload_on_disable_joins_through

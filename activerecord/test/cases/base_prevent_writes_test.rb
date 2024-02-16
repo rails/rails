@@ -51,13 +51,13 @@ class BasePreventWritesTest < ActiveRecord::TestCase
       Bird.create!(name: "Bluejay")
 
       ActiveRecord::Base.while_preventing_writes do
-        assert_queries(2) { Bird.where(name: "Bluejay").explain }
+        assert_queries_count(2) { Bird.where(name: "Bluejay").explain.inspect }
       end
     end
 
     test "an empty transaction does not raise if preventing writes" do
       ActiveRecord::Base.while_preventing_writes do
-        assert_queries(2, ignore_none: true) do
+        assert_queries_count(2, include_schema: true) do
           Bird.transaction do
             ActiveRecord::Base.connection.materialize_transactions
           end

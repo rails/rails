@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "stringio"
 require "uri"
 require "rack/test"
@@ -10,54 +12,53 @@ require "action_dispatch/testing/request_encoder"
 module ActionDispatch
   module Integration # :nodoc:
     module RequestHelpers
-      # Performs a GET request with the given parameters. See ActionDispatch::Integration::Session#process
-      # for more details.
+      # Performs a GET request with the given parameters. See
+      # ActionDispatch::Integration::Session#process for more details.
       def get(path, **args)
         process(:get, path, **args)
       end
 
-      # Performs a POST request with the given parameters. See ActionDispatch::Integration::Session#process
-      # for more details.
+      # Performs a POST request with the given parameters. See
+      # ActionDispatch::Integration::Session#process for more details.
       def post(path, **args)
         process(:post, path, **args)
       end
 
-      # Performs a PATCH request with the given parameters. See ActionDispatch::Integration::Session#process
-      # for more details.
+      # Performs a PATCH request with the given parameters. See
+      # ActionDispatch::Integration::Session#process for more details.
       def patch(path, **args)
         process(:patch, path, **args)
       end
 
-      # Performs a PUT request with the given parameters. See ActionDispatch::Integration::Session#process
-      # for more details.
+      # Performs a PUT request with the given parameters. See
+      # ActionDispatch::Integration::Session#process for more details.
       def put(path, **args)
         process(:put, path, **args)
       end
 
-      # Performs a DELETE request with the given parameters. See ActionDispatch::Integration::Session#process
-      # for more details.
+      # Performs a DELETE request with the given parameters. See
+      # ActionDispatch::Integration::Session#process for more details.
       def delete(path, **args)
         process(:delete, path, **args)
       end
 
-      # Performs a HEAD request with the given parameters. See ActionDispatch::Integration::Session#process
-      # for more details.
+      # Performs a HEAD request with the given parameters. See
+      # ActionDispatch::Integration::Session#process for more details.
       def head(path, **args)
         process(:head, path, **args)
       end
 
-      # Performs an OPTIONS request with the given parameters. See ActionDispatch::Integration::Session#process
-      # for more details.
+      # Performs an OPTIONS request with the given parameters. See
+      # ActionDispatch::Integration::Session#process for more details.
       def options(path, **args)
         process(:options, path, **args)
       end
 
-      # Follow a single redirect response. If the last response was not a
-      # redirect, an exception will be raised. Otherwise, the redirect is
-      # performed on the location header. If the redirection is a 307 or 308 redirect,
-      # the same HTTP verb will be used when redirecting, otherwise a GET request
-      # will be performed. Any arguments are passed to the
-      # underlying request.
+      # Follow a single redirect response. If the last response was not a redirect, an
+      # exception will be raised. Otherwise, the redirect is performed on the location
+      # header. If the redirection is a 307 or 308 redirect, the same HTTP verb will
+      # be used when redirecting, otherwise a GET request will be performed. Any
+      # arguments are passed to the underlying request.
       #
       # The HTTP_REFERER header will be set to the previous url.
       def follow_redirect!(headers: {}, **args)
@@ -79,13 +80,13 @@ module ActionDispatch
       end
     end
 
-    # An instance of this class represents a set of requests and responses
-    # performed sequentially by a test process. Because you can instantiate
-    # multiple sessions and run them side-by-side, you can also mimic (to some
-    # limited extent) multiple simultaneous users interacting with your system.
+    # An instance of this class represents a set of requests and responses performed
+    # sequentially by a test process. Because you can instantiate multiple sessions
+    # and run them side-by-side, you can also mimic (to some limited extent)
+    # multiple simultaneous users interacting with your system.
     #
     # Typically, you will instantiate a new session using Runner#open_session,
-    # rather than instantiating a \Session directly.
+    # rather than instantiating a Session directly.
     class Session
       DEFAULT_HOST = "www.example.com"
 
@@ -107,8 +108,8 @@ module ActionDispatch
       # The Accept header to send.
       attr_accessor :accept
 
-      # A map of the cookies returned by the last response, and which will be
-      # sent with the next request.
+      # A map of the cookies returned by the last response, and which will be sent
+      # with the next request.
       def cookies
         _mock_session.cookie_jar
       end
@@ -127,7 +128,7 @@ module ActionDispatch
 
       include ActionDispatch::Routing::UrlFor
 
-      # Create and initialize a new \Session instance.
+      # Create and initialize a new Session instance.
       def initialize(app)
         super()
         @app = app
@@ -147,11 +148,10 @@ module ActionDispatch
         end
       end
 
-      # Resets the instance. This can be used to reset the state information
-      # in an existing session instance, so it can be used from a clean-slate
-      # condition.
+      # Resets the instance. This can be used to reset the state information in an
+      # existing session instance, so it can be used from a clean-slate condition.
       #
-      #   session.reset!
+      #     session.reset!
       def reset!
         @https = false
         @controller = @request = @response = nil
@@ -166,63 +166,61 @@ module ActionDispatch
                            "*/*;q=0.5"
 
         unless defined? @named_routes_configured
-          # the helpers are made protected by default--we make them public for
-          # easier access during testing and troubleshooting.
+          # the helpers are made protected by default--we make them public for easier
+          # access during testing and troubleshooting.
           @named_routes_configured = true
         end
       end
 
       # Specify whether or not the session should mimic a secure HTTPS request.
       #
-      #   session.https!
-      #   session.https!(false)
+      #     session.https!
+      #     session.https!(false)
       def https!(flag = true)
         @https = flag
       end
 
-      # Returns +true+ if the session is mimicking a secure HTTPS request.
+      # Returns `true` if the session is mimicking a secure HTTPS request.
       #
-      #   if session.https?
-      #     ...
-      #   end
+      #     if session.https?
+      #       ...
+      #     end
       def https?
         @https
       end
 
       # Performs the actual request.
       #
-      # - +method+: The HTTP method (GET, POST, PATCH, PUT, DELETE, HEAD, OPTIONS)
-      #   as a symbol.
-      # - +path+: The URI (as a String) on which you want to perform the
-      #   request.
-      # - +params+: The HTTP parameters that you want to pass. This may
-      #   be +nil+,
-      #   a Hash, or a String that is appropriately encoded
-      #   (<tt>application/x-www-form-urlencoded</tt> or
-      #   <tt>multipart/form-data</tt>).
-      # - +headers+: Additional headers to pass, as a Hash. The headers will be
-      #   merged into the Rack env hash.
-      # - +env+: Additional env to pass, as a Hash. The headers will be
-      #   merged into the Rack env hash.
-      # - +xhr+: Set to +true+ if you want to make an Ajax request.
-      #   Adds request headers characteristic of XMLHttpRequest e.g. HTTP_X_REQUESTED_WITH.
-      #   The headers will be merged into the Rack env hash.
-      # - +as+: Used for encoding the request with different content type.
-      #   Supports +:json+ by default and will set the appropriate request headers.
-      #   The headers will be merged into the Rack env hash.
+      # *   `method`: The HTTP method (GET, POST, PATCH, PUT, DELETE, HEAD, OPTIONS)
+      #     as a symbol.
+      # *   `path`: The URI (as a String) on which you want to perform the request.
+      # *   `params`: The HTTP parameters that you want to pass. This may be `nil`, a
+      #     Hash, or a String that is appropriately encoded
+      #     (`application/x-www-form-urlencoded` or `multipart/form-data`).
+      # *   `headers`: Additional headers to pass, as a Hash. The headers will be
+      #     merged into the Rack env hash.
+      # *   `env`: Additional env to pass, as a Hash. The headers will be merged into
+      #     the Rack env hash.
+      # *   `xhr`: Set to `true` if you want to make an Ajax request. Adds request
+      #     headers characteristic of XMLHttpRequest e.g. HTTP_X_REQUESTED_WITH. The
+      #     headers will be merged into the Rack env hash.
+      # *   `as`: Used for encoding the request with different content type. Supports
+      #     `:json` by default and will set the appropriate request headers. The
+      #     headers will be merged into the Rack env hash.
+      #
       #
       # This method is rarely used directly. Use RequestHelpers#get,
-      # RequestHelpers#post, or other standard HTTP methods in integration
-      # tests. +#process+ is only required when using a request method that
-      # doesn't have a method defined in the integration tests.
+      # RequestHelpers#post, or other standard HTTP methods in integration tests.
+      # `#process` is only required when using a request method that doesn't have a
+      # method defined in the integration tests.
       #
       # This method returns the response status, after performing the request.
-      # Furthermore, if this method was called from an ActionDispatch::IntegrationTest object,
-      # then that object's <tt>@response</tt> instance variable will point to a Response object
-      # which one can use to inspect the details of the response.
+      # Furthermore, if this method was called from an ActionDispatch::IntegrationTest
+      # object, then that object's `@response` instance variable will point to a
+      # Response object which one can use to inspect the details of the response.
       #
       # Example:
-      #   process :get, '/author', params: { since: 201501011400 }
+      #     process :get, '/author', params: { since: 201501011400 }
       def process(method, path, params: nil, headers: nil, env: nil, xhr: false, as: nil)
         request_encoder = RequestEncoder.encoder(as)
         headers ||= {}
@@ -283,8 +281,8 @@ module ActionDispatch
 
         session = Rack::Test::Session.new(_mock_session)
 
-        # NOTE: rack-test v0.5 doesn't build a default uri correctly
-        # Make sure requested path is always a full URI.
+        # NOTE: rack-test v0.5 doesn't build a default uri correctly Make sure requested
+        # path is always a full URI.
         session.request(build_full_uri(path, request_env), request_env)
 
         @request_count += 1
@@ -302,7 +300,7 @@ module ActionDispatch
 
       # Set the host name to use in the next request.
       #
-      #   session.host! "www.example.com"
+      #     session.host! "www.example.com"
       alias :host! :host=
 
       private
@@ -344,16 +342,16 @@ module ActionDispatch
         @integration_session ||= create_session(app)
       end
 
-      # Reset the current session. This is useful for testing multiple sessions
-      # in a single test case.
+      # Reset the current session. This is useful for testing multiple sessions in a
+      # single test case.
       def reset!
         @integration_session = create_session(app)
       end
 
       def create_session(app)
         klass = APP_SESSIONS[app] ||= Class.new(Integration::Session) {
-          # If the app is a Rails app, make url_helpers available on the session.
-          # This makes app.url_for and app.foo_path available in the console.
+          # If the app is a Rails app, make url_helpers available on the session. This
+          # makes app.url_for and app.foo_path available in the console.
           if app.respond_to?(:routes) && app.routes.is_a?(ActionDispatch::Routing::RouteSet)
             include app.routes.url_helpers
             include app.routes.mounted_helpers
@@ -383,16 +381,15 @@ module ActionDispatch
         RUBY
       end
 
-      # Open a new session instance. If a block is given, the new session is
-      # yielded to the block before being returned.
+      # Open a new session instance. If a block is given, the new session is yielded
+      # to the block before being returned.
       #
-      #   session = open_session do |sess|
-      #     sess.extend(CustomAssertions)
-      #   end
+      #     session = open_session do |sess|
+      #       sess.extend(CustomAssertions)
+      #     end
       #
-      # By default, a single session is automatically created for you, but you
-      # can use this method to open multiple sessions that ought to be tested
-      # simultaneously.
+      # By default, a single session is automatically created for you, but you can use
+      # this method to open multiple sessions that ought to be tested simultaneously.
       def open_session
         dup.tap do |session|
           session.reset!
@@ -409,8 +406,8 @@ module ActionDispatch
         root_session ? root_session.assertions = assertions : super
       end
 
-      # Copy the instance variables from the current session instance into the
-      # test instance.
+      # Copy the instance variables from the current session instance into the test
+      # instance.
       def copy_session_variables! # :nodoc:
         @controller = @integration_session.controller
         @response   = @integration_session.response
@@ -431,212 +428,213 @@ module ActionDispatch
       end
 
       # Delegate unhandled messages to the current session instance.
-      def method_missing(method, *args, &block)
+      def method_missing(method, ...)
         if integration_session.respond_to?(method)
-          integration_session.public_send(method, *args, &block).tap do
+          integration_session.public_send(method, ...).tap do
             copy_session_variables!
           end
         else
           super
         end
       end
-      ruby2_keywords(:method_missing)
     end
   end
 
-  # An integration test spans multiple controllers and actions,
-  # tying them all together to ensure they work together as expected. It tests
-  # more completely than either unit or functional tests do, exercising the
-  # entire stack, from the dispatcher to the database.
+  # An integration test spans multiple controllers and actions, tying them all
+  # together to ensure they work together as expected. It tests more completely
+  # than either unit or functional tests do, exercising the entire stack, from the
+  # dispatcher to the database.
   #
-  # At its simplest, you simply extend <tt>IntegrationTest</tt> and write your
-  # tests using the Integration::RequestHelpers#get and/or
+  # At its simplest, you simply extend `IntegrationTest` and write your tests
+  # using the Integration::RequestHelpers#get and/or
   # Integration::RequestHelpers#post methods:
   #
-  #   require "test_helper"
+  #     require "test_helper"
   #
-  #   class ExampleTest < ActionDispatch::IntegrationTest
-  #     fixtures :people
+  #     class ExampleTest < ActionDispatch::IntegrationTest
+  #       fixtures :people
   #
-  #     def test_login
-  #       # get the login page
-  #       get "/login"
-  #       assert_equal 200, status
+  #       def test_login
+  #         # get the login page
+  #         get "/login"
+  #         assert_equal 200, status
   #
-  #       # post the login and follow through to the home page
-  #       post "/login", params: { username: people(:jamis).username,
-  #         password: people(:jamis).password }
-  #       follow_redirect!
-  #       assert_equal 200, status
-  #       assert_equal "/home", path
-  #     end
-  #   end
-  #
-  # However, you can also have multiple session instances open per test, and
-  # even extend those instances with assertions and methods to create a very
-  # powerful testing DSL that is specific for your application. You can even
-  # reference any named routes you happen to have defined.
-  #
-  #   require "test_helper"
-  #
-  #   class AdvancedTest < ActionDispatch::IntegrationTest
-  #     fixtures :people, :rooms
-  #
-  #     def test_login_and_speak
-  #       jamis, david = login(:jamis), login(:david)
-  #       room = rooms(:office)
-  #
-  #       jamis.enter(room)
-  #       jamis.speak(room, "anybody home?")
-  #
-  #       david.enter(room)
-  #       david.speak(room, "hello!")
+  #         # post the login and follow through to the home page
+  #         post "/login", params: { username: people(:jamis).username,
+  #           password: people(:jamis).password }
+  #         follow_redirect!
+  #         assert_equal 200, status
+  #         assert_equal "/home", path
+  #       end
   #     end
   #
-  #     private
+  # However, you can also have multiple session instances open per test, and even
+  # extend those instances with assertions and methods to create a very powerful
+  # testing DSL that is specific for your application. You can even reference any
+  # named routes you happen to have defined.
   #
-  #       module CustomAssertions
-  #         def enter(room)
-  #           # reference a named route, for maximum internal consistency!
-  #           get(room_url(id: room.id))
-  #           assert(...)
-  #           ...
-  #         end
+  #     require "test_helper"
   #
-  #         def speak(room, message)
-  #           post "/say/#{room.id}", xhr: true, params: { message: message }
-  #           assert(...)
-  #           ...
-  #         end
+  #     class AdvancedTest < ActionDispatch::IntegrationTest
+  #       fixtures :people, :rooms
+  #
+  #       def test_login_and_speak
+  #         jamis, david = login(:jamis), login(:david)
+  #         room = rooms(:office)
+  #
+  #         jamis.enter(room)
+  #         jamis.speak(room, "anybody home?")
+  #
+  #         david.enter(room)
+  #         david.speak(room, "hello!")
   #       end
   #
-  #       def login(who)
-  #         open_session do |sess|
-  #           sess.extend(CustomAssertions)
-  #           who = people(who)
-  #           sess.post "/login", params: { username: who.username,
-  #             password: who.password }
-  #           assert(...)
+  #       private
+  #
+  #         module CustomAssertions
+  #           def enter(room)
+  #             # reference a named route, for maximum internal consistency!
+  #             get(room_url(id: room.id))
+  #             assert(...)
+  #             ...
+  #           end
+  #
+  #           def speak(room, message)
+  #             post "/say/#{room.id}", xhr: true, params: { message: message }
+  #             assert(...)
+  #             ...
+  #           end
   #         end
-  #       end
-  #   end
+  #
+  #         def login(who)
+  #           open_session do |sess|
+  #             sess.extend(CustomAssertions)
+  #             who = people(who)
+  #             sess.post "/login", params: { username: who.username,
+  #               password: who.password }
+  #             assert(...)
+  #           end
+  #         end
+  #     end
   #
   # Another longer example would be:
   #
   # A simple integration test that exercises multiple controllers:
   #
-  #   require "test_helper"
+  #     require "test_helper"
   #
-  #   class UserFlowsTest < ActionDispatch::IntegrationTest
-  #     test "login and browse site" do
-  #       # login via https
-  #       https!
-  #       get "/login"
-  #       assert_response :success
+  #     class UserFlowsTest < ActionDispatch::IntegrationTest
+  #       test "login and browse site" do
+  #         # login via https
+  #         https!
+  #         get "/login"
+  #         assert_response :success
   #
-  #       post "/login", params: { username: users(:david).username, password: users(:david).password }
-  #       follow_redirect!
-  #       assert_equal '/welcome', path
-  #       assert_equal 'Welcome david!', flash[:notice]
+  #         post "/login", params: { username: users(:david).username, password: users(:david).password }
+  #         follow_redirect!
+  #         assert_equal '/welcome', path
+  #         assert_equal 'Welcome david!', flash[:notice]
   #
-  #       https!(false)
-  #       get "/articles/all"
-  #       assert_response :success
-  #       assert_select 'h1', 'Articles'
+  #         https!(false)
+  #         get "/articles/all"
+  #         assert_response :success
+  #         assert_select 'h1', 'Articles'
+  #       end
   #     end
-  #   end
   #
   # As you can see the integration test involves multiple controllers and
   # exercises the entire stack from database to dispatcher. In addition you can
-  # have multiple session instances open simultaneously in a test and extend
-  # those instances with assertion methods to create a very powerful testing
-  # DSL (domain-specific language) just for your application.
+  # have multiple session instances open simultaneously in a test and extend those
+  # instances with assertion methods to create a very powerful testing DSL
+  # (domain-specific language) just for your application.
   #
   # Here's an example of multiple sessions and custom DSL in an integration test
   #
-  #   require "test_helper"
+  #     require "test_helper"
   #
-  #   class UserFlowsTest < ActionDispatch::IntegrationTest
-  #     test "login and browse site" do
-  #       # User david logs in
-  #       david = login(:david)
-  #       # User guest logs in
-  #       guest = login(:guest)
+  #     class UserFlowsTest < ActionDispatch::IntegrationTest
+  #       test "login and browse site" do
+  #         # User david logs in
+  #         david = login(:david)
+  #         # User guest logs in
+  #         guest = login(:guest)
   #
-  #       # Both are now available in different sessions
-  #       assert_equal 'Welcome david!', david.flash[:notice]
-  #       assert_equal 'Welcome guest!', guest.flash[:notice]
+  #         # Both are now available in different sessions
+  #         assert_equal 'Welcome david!', david.flash[:notice]
+  #         assert_equal 'Welcome guest!', guest.flash[:notice]
   #
-  #       # User david can browse site
-  #       david.browses_site
-  #       # User guest can browse site as well
-  #       guest.browses_site
+  #         # User david can browse site
+  #         david.browses_site
+  #         # User guest can browse site as well
+  #         guest.browses_site
   #
-  #       # Continue with other assertions
+  #         # Continue with other assertions
+  #       end
+  #
+  #       private
+  #
+  #         module CustomDsl
+  #           def browses_site
+  #             get "/products/all"
+  #             assert_response :success
+  #             assert_select 'h1', 'Products'
+  #           end
+  #         end
+  #
+  #         def login(user)
+  #           open_session do |sess|
+  #             sess.extend(CustomDsl)
+  #             u = users(user)
+  #             sess.https!
+  #             sess.post "/login", params: { username: u.username, password: u.password }
+  #             assert_equal '/welcome', sess.path
+  #             sess.https!(false)
+  #           end
+  #         end
   #     end
   #
-  #     private
+  # See the [request helpers documentation]
+  # (rdoc-ref:ActionDispatch::Integration::RequestHelpers) for help
+  # on how to use `get`, etc.
   #
-  #       module CustomDsl
-  #         def browses_site
-  #           get "/products/all"
-  #           assert_response :success
-  #           assert_select 'h1', 'Products'
+  # ### Changing the request encoding
+  #
+  # You can also test your JSON API easily by setting what the request should be
+  # encoded as:
+  #
+  #     require "test_helper"
+  #
+  #     class ApiTest < ActionDispatch::IntegrationTest
+  #       test "creates articles" do
+  #         assert_difference -> { Article.count } do
+  #           post articles_path, params: { article: { title: "Ahoy!" } }, as: :json
   #         end
+  #
+  #         assert_response :success
+  #         assert_equal({ id: Article.last.id, title: "Ahoy!" }, response.parsed_body)
   #       end
-  #
-  #       def login(user)
-  #         open_session do |sess|
-  #           sess.extend(CustomDsl)
-  #           u = users(user)
-  #           sess.https!
-  #           sess.post "/login", params: { username: u.username, password: u.password }
-  #           assert_equal '/welcome', sess.path
-  #           sess.https!(false)
-  #         end
-  #       end
-  #   end
-  #
-  # See the {request helpers documentation}[rdoc-ref:ActionDispatch::Integration::RequestHelpers] for help on how to
-  # use +get+, etc.
-  #
-  # === Changing the request encoding
-  #
-  # You can also test your JSON API easily by setting what the request should
-  # be encoded as:
-  #
-  #   require "test_helper"
-  #
-  #   class ApiTest < ActionDispatch::IntegrationTest
-  #     test "creates articles" do
-  #       assert_difference -> { Article.count } do
-  #         post articles_path, params: { article: { title: "Ahoy!" } }, as: :json
-  #       end
-  #
-  #       assert_response :success
-  #       assert_equal({ id: Article.last.id, title: "Ahoy!" }, response.parsed_body)
   #     end
-  #   end
   #
-  # The +as+ option passes an "application/json" Accept header (thereby setting
+  # The `as` option passes an "application/json" Accept header (thereby setting
   # the request format to JSON unless overridden), sets the content type to
   # "application/json" and encodes the parameters as JSON.
   #
-  # Calling TestResponse#parsed_body on the response parses the response body based on the
-  # last response MIME type.
+  # Calling TestResponse#parsed_body on the response parses the response body
+  # based on the last response MIME type.
   #
-  # Out of the box, only <tt>:json</tt> is supported. But for any custom MIME
-  # types you've registered, you can add your own encoders with:
+  # Out of the box, only `:json` is supported. But for any custom MIME types
+  # you've registered, you can add your own encoders with:
   #
-  #   ActionDispatch::IntegrationTest.register_encoder :wibble,
-  #     param_encoder: -> params { params.to_wibble },
-  #     response_parser: -> body { body }
+  #     ActionDispatch::IntegrationTest.register_encoder :wibble,
+  #       param_encoder: -> params { params.to_wibble },
+  #       response_parser: -> body { body }
   #
-  # Where +param_encoder+ defines how the params should be encoded and
-  # +response_parser+ defines how the response body should be parsed through
+  # Where `param_encoder` defines how the params should be encoded and
+  # `response_parser` defines how the response body should be parsed through
   # TestResponse#parsed_body.
   #
-  # Consult the {Rails Testing Guide}[https://guides.rubyonrails.org/testing.html] for more.
+  # Consult the [Rails Testing Guide](https://guides.rubyonrails.org/testing.html)
+  # for more.
 
   class IntegrationTest < ActiveSupport::TestCase
     include TestProcess::FixtureFile

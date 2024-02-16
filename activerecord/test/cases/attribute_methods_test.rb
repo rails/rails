@@ -32,6 +32,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     ActiveRecord::Base.send(:attribute_method_patterns).concat(@old_matchers)
   end
 
+  test "#id_value alias is defined if id column exist" do
+    new_topic_model = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+    end
+
+    new_topic_model.define_attribute_methods
+    assert_includes new_topic_model.attribute_names, "id"
+    assert_includes new_topic_model.attribute_aliases, "id_value"
+  end
+
   test "aliasing `id` attribute allows reading the column value" do
     topic = Topic.create(id: 123_456, title: "title").becomes(TitlePrimaryKeyTopic)
 
@@ -1034,11 +1044,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
     topic = topic_class.new(title: "New topic")
     assert_equal("New topic", topic.subject_to_be_undefined)
+    assert_equal true, topic_class.method_defined?(:subject_to_be_undefined)
     topic_class.undefine_attribute_methods
+    assert_equal false, topic_class.method_defined?(:subject_to_be_undefined)
 
-    assert_raises(NoMethodError, match: /undefined method `subject_to_be_undefined'/) do
-      topic.subject_to_be_undefined
-    end
+    topic.subject_to_be_undefined
+    assert_equal true, topic_class.method_defined?(:subject_to_be_undefined)
+
+    topic_class.undefine_attribute_methods
+    assert_equal true, topic.respond_to?(:subject_to_be_undefined)
+    assert_equal true, topic_class.method_defined?(:subject_to_be_undefined)
   end
 
   test "#define_attribute_methods brings back undefined aliases" do
@@ -1052,11 +1067,11 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal("New topic", topic.title_alias_to_be_undefined)
     topic_class.undefine_attribute_methods
 
-    assert_not_respond_to topic, :title_alias_to_be_undefined
+    assert_equal false, topic_class.method_defined?(:title_alias_to_be_undefined)
 
     topic_class.define_attribute_methods
 
-    assert_respond_to topic, :title_alias_to_be_undefined
+    assert_equal true, topic_class.method_defined?(:title_alias_to_be_undefined)
     assert_equal "New topic", topic.title_alias_to_be_undefined
   end
 
@@ -1366,7 +1381,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     self.table_name = "books"
 
     attribute :status, :string
-    enum status: {
+
+    enum :status, {
       pending: "0",
       completed: "1",
     }

@@ -40,7 +40,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_belongs_to
     client = Client.find(3)
     first_firm = companies(:first_firm)
-    assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
+    assert_queries_match(/LIMIT|ROWNUM <=|FETCH FIRST/) do
       assert_equal first_firm, client.firm
       assert_equal first_firm.name, client.firm.name
     end
@@ -451,7 +451,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     Company.where(id: odegy_account.firm_id).update_all(name: "ODEGY")
     assert_equal "Odegy", odegy_account.firm.name
 
-    assert_queries(1) { odegy_account.reload_firm }
+    assert_queries_count(1) { odegy_account.reload_firm }
 
     assert_no_queries { odegy_account.firm }
     assert_equal "ODEGY", odegy_account.firm.name
@@ -473,10 +473,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, connection.query_cache.size
 
     # Clear the cache and fetch the firm again, populating the cache with a query
-    assert_queries(1) { odegy_account.reload_firm }
+    assert_queries_count(1) { odegy_account.reload_firm }
 
     # This query is not cached anymore, so it should make a real SQL query
-    assert_queries(1) { Account.find(odegy_account_id) }
+    assert_queries_count(1) { Account.find(odegy_account_id) }
   ensure
     ActiveRecord::Base.connection.disable_query_cache!
   end
@@ -489,7 +489,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal "Odegy", odegy_account.firm.name
 
     assert_no_queries { odegy_account.reset_firm }
-    assert_queries(1) { odegy_account.firm }
+    assert_queries_count(1) { odegy_account.firm }
     assert_equal "ODEGY", odegy_account.firm.name
   end
 
@@ -717,7 +717,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_belongs_to_counter_after_save
     topic = Topic.create!(title: "monday night")
 
-    assert_queries(2) do
+    assert_queries_count(4) do
       topic.replies.create!(title: "re: monday night", content: "football")
     end
 
@@ -754,7 +754,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     debate.touch(time: time)
     debate2.touch(time: time)
 
-    assert_queries(3) do
+    assert_queries_count(5) do
       reply.parent_title = "debate"
       reply.save!
     end
@@ -765,7 +765,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     debate.touch(time: time)
     debate2.touch(time: time)
 
-    assert_queries(3) do
+    assert_queries_count(5) do
       reply.topic_with_primary_key = debate2
       reply.save!
     end
@@ -778,7 +778,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     line_item = LineItem.create!
     Invoice.create!(line_items: [line_item])
 
-    assert_queries(1) { line_item.touch }
+    assert_queries_count(3) { line_item.touch }
   end
 
   def test_belongs_to_with_touch_on_multiple_records
@@ -786,14 +786,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     line_item2 = LineItem.create!(amount: 2)
     Invoice.create!(line_items: [line_item, line_item2])
 
-    assert_queries(1) do
+    assert_queries_count(3) do
       LineItem.transaction do
         line_item.touch
         line_item2.touch
       end
     end
 
-    assert_queries(2) do
+    assert_queries_count(6) do
       line_item.touch
       line_item2.touch
     end
@@ -818,14 +818,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     line_item.invoice = nil
 
-    assert_queries(2) { line_item.touch }
+    assert_queries_count(4) { line_item.touch }
   end
 
   def test_belongs_to_with_touch_option_on_update
     line_item = LineItem.create!
     Invoice.create!(line_items: [line_item])
 
-    assert_queries(2) { line_item.update amount: 10 }
+    assert_queries_count(4) { line_item.update amount: 10 }
   end
 
   def test_belongs_to_with_touch_option_on_empty_update
@@ -839,7 +839,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     line_item = LineItem.create!
     Invoice.create!(line_items: [line_item])
 
-    assert_queries(2) { line_item.destroy }
+    assert_queries_count(4) { line_item.destroy }
   end
 
   def test_belongs_to_with_touch_option_on_destroy_with_destroyed_parent
@@ -847,7 +847,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     invoice   = Invoice.create!(line_items: [line_item])
     invoice.destroy
 
-    assert_queries(1) { line_item.destroy }
+    assert_queries_count(3) { line_item.destroy }
   end
 
   def test_belongs_to_with_touch_option_on_touch_and_reassigned_parent
@@ -856,7 +856,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     line_item.invoice = Invoice.create!
 
-    assert_queries(3) { line_item.touch }
+    assert_queries_count(5) { line_item.touch }
   end
 
   def test_belongs_to_counter_after_update
@@ -933,7 +933,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_dont_find_target_when_saving_foreign_key_after_stale_association_loaded
     client = Client.create!(name: "Test client", firm_with_basic_id: Firm.find(1))
     client.firm_id = Firm.create!(name: "Test firm").id
-    assert_queries(1) { client.save! }
+    assert_queries_count(3) { client.save! }
   end
 
   def test_field_name_same_as_foreign_key
@@ -1740,14 +1740,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     ship = ShipRequired.create!(name: "Medusa", developer: david)
     assert_equal david, ship.developer
 
-    assert_queries(2) do # UPDATE and SELECT to check developer presence
+    assert_queries_count(4) do # UPDATE and SELECT to check developer presence
       ship.update!(developer_id: jamis.id)
     end
 
     ship.update_column(:developer_id, nil)
     ship.reload
 
-    assert_queries(2) do # UPDATE and SELECT to check developer presence
+    assert_queries_count(4) do # UPDATE and SELECT to check developer presence
       ship.update!(developer_id: david.id)
     end
   end
@@ -1757,7 +1757,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     ship = ShipRequired.create!(name: "Medusa", developer: david)
     ship.reload # unload developer association
 
-    assert_queries(1) do # UPDATE only, no SELECT to check developer presence
+    assert_queries_count(3) do # UPDATE only, no SELECT to check developer presence
       ship.update!(name: "Leviathan")
     end
   end
@@ -1776,7 +1776,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     ship = model.create!(name: "Medusa", developer: david)
     ship.reload # unload developer association
 
-    assert_queries(2) do # UPDATE and SELECT to check developer presence
+    assert_queries_count(4) do # UPDATE and SELECT to check developer presence
       ship.update!(name: "Leviathan")
     end
   ensure

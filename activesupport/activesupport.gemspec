@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "A toolkit of support libraries and Ruby core extensions extracted from the Rails framework."
   s.description = "A toolkit of support libraries and Ruby core extensions extracted from the Rails framework. Rich support for multibyte strings, internationalization, time zones, and testing."
 
-  s.required_ruby_version = ">= 2.7.0"
+  s.required_ruby_version = ">= 3.1.0"
 
   s.license = "MIT"
 
@@ -38,8 +38,8 @@ Gem::Specification.new do |s|
   s.add_dependency "tzinfo",          "~> 2.0", ">= 2.0.5"
   s.add_dependency "concurrent-ruby", "~> 1.0", ">= 1.0.2"
   s.add_dependency "connection_pool", ">= 2.2.5"
-  s.add_dependency "minitest",        ">= 5.1"
+  s.add_dependency "minitest",        ">= 5.1", "< 5.22.0"
   s.add_dependency "base64"
   s.add_dependency "drb"
-  s.add_dependency "bigdecimal",      "< 3.1.5"
+  s.add_dependency "bigdecimal"
 end

@@ -2,6 +2,7 @@
 
 # Ignore git directory.
 /.git/
+/.gitignore
 
 # Ignore bundler config.
 /.bundle
@@ -41,3 +42,12 @@
 !/app/assets/builds/.keep
 /public/assets
 <% end -%>
+<% unless options.skip_ci? -%>
+
+# Ignore CI service files.
+/.github
+<% end -%>
+
+# Ignore Docker-related files
+/.dockerignore
+/Dockerfile*

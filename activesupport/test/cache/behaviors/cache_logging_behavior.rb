@@ -77,7 +77,7 @@ module CacheLoggingBehavior
       assert_match pattern, io.string
     end
 
-    def key_pattern(key, namespace: defined?(@namespace) && @namespace)
+    def key_pattern(key, namespace: @namespace)
       /#{Regexp.escape namespace.to_s}#{":" if namespace}#{Regexp.escape key}/
     end
 end

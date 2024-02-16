@@ -78,6 +78,7 @@ module Rails
         if config.eager_load
           ActiveSupport.run_load_hooks(:before_eager_load, self)
           Zeitwerk::Loader.eager_load_all
+          Rails.eager_load!
           config.eager_load_namespaces.each(&:eager_load!)
 
           if config.reloading_enabled?
@@ -160,6 +161,7 @@ module Rails
         reloader.eager_load = app.config.eager_load
         reloader.execute
         reloaders << reloader
+
         app.reloader.to_run do
           # We configure #execute rather than #execute_if_updated because if
           # autoloaded constants are cleared we need to reload routes also in
@@ -174,6 +176,8 @@ module Rails
           reloader.execute
           ActiveSupport.run_load_hooks(:after_routes_loaded, self)
         end
+
+        ActiveSupport.run_load_hooks(:after_routes_loaded, self)
       end
 
       # Set clearing dependencies after the finisher hook to ensure paths

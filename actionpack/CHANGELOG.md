@@ -1,3 +1,45 @@
+*   Add ".test" as a default allowed host in development to ensure smooth golden-path setup with puma.dev.
+
+    *DHH*
+
+*   Add `allow_browser` to set minimum browser versions for the application.
+
+    A browser that's blocked will by default be served the file in `public/426.html` with a HTTP status code of "426 Upgrade Required".
+
+    ```ruby
+    class ApplicationController < ActionController::Base
+      # Allow only browsers natively supporting webp images, web push, badges, import maps, CSS nesting + :has
+      allow_browser versions: :modern
+    end
+
+    class ApplicationController < ActionController::Base
+      # All versions of Chrome and Opera will be allowed, but no versions of "internet explorer" (ie). Safari needs to be 16.4+ and Firefox 121+.
+      allow_browser versions: { safari: 16.4, firefox: 121, ie: false }
+    end
+
+    class MessagesController < ApplicationController
+      # In addition to the browsers blocked by ApplicationController, also block Opera below 104 and Chrome below 119 for the show action.
+      allow_browser versions: { opera: 104, chrome: 119 }, only: :show
+    end
+    ```
+
+    *DHH*
+
+*   Add rate limiting API.
+
+    ```ruby
+    class SessionsController < ApplicationController
+      rate_limit to: 10, within: 3.minutes, only: :create
+    end
+
+    class SignupsController < ApplicationController
+      rate_limit to: 1000, within: 10.seconds,
+        by: -> { request.domain }, with: -> { redirect_to busy_controller_url, alert: "Too many signups!" }, only: :new
+    end
+    ```
+
+    *DHH*, *Jean Boussier*
+
 *   Add `image/svg+xml` to the compressible content types of ActionDispatch::Static
 
     *Georg Ledermann*

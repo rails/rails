@@ -158,7 +158,7 @@ module ActiveRecord
       end
     end
 
-    unless in_memory_db?
+    unless in_memory_db? || current_adapter?(:TrilogyAdapter)
       def test_disable_prepared_statements
         original_prepared_statements = ActiveRecord.disable_prepared_statements
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
@@ -736,7 +736,7 @@ module ActiveRecord
       end
 
       test "#execute is retryable" do
-        conn_id = case @connection.class::ADAPTER_NAME
+        conn_id = case @connection.adapter_name
                   when "Mysql2"
                     @connection.execute("SELECT CONNECTION_ID()").to_a[0][0]
                   when "Trilogy"
@@ -754,7 +754,7 @@ module ActiveRecord
 
       private
         def raw_transaction_open?(connection)
-          case connection.class::ADAPTER_NAME
+          case connection.adapter_name
           when "PostgreSQL"
             connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
           when "Mysql2", "Trilogy"
@@ -779,7 +779,7 @@ module ActiveRecord
         end
 
         def remote_disconnect(connection)
-          case connection.class::ADAPTER_NAME
+          case connection.adapter_name
           when "PostgreSQL"
             unless connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
               connection.instance_variable_get(:@raw_connection).async_exec("begin")
@@ -796,7 +796,7 @@ module ActiveRecord
 
         def kill_connection_from_server(connection_id)
           conn = @connection.pool.checkout
-          case conn.class::ADAPTER_NAME
+          case conn.adapter_name
           when "Mysql2", "Trilogy"
             conn.execute("KILL #{connection_id}")
           when "PostgreSQL"
@@ -808,6 +808,50 @@ module ActiveRecord
           conn.close
         end
     end
+  end
+
+  class AdapterThreadSafetyTest < ActiveRecord::TestCase
+    setup do
+      @threads = []
+      @connection = ActiveRecord::Base.connection_pool.checkout
+    end
+
+    teardown do
+      @threads.each(&:kill)
+    end
+
+    unless in_memory_db?
+      test "#active? is synchronized" do
+        threads(2, 25) { @connection.select_all("SELECT 1") }
+        threads(2, 25) { @connection.verify! }
+        threads(2, 25) { @connection.disconnect! }
+
+        join
+      end
+
+      test "#verify! is synchronized" do
+        threads(2, 25) { @connection.verify! }
+        threads(2, 25) { @connection.disconnect! }
+
+        join
+      end
+    end
+
+    private
+      def join
+        @threads.shuffle.each(&:join)
+      end
+
+      def threads(count, times)
+        @threads += count.times.map do
+          Thread.new do
+            times.times do
+              yield
+              Thread.pass
+            end
+          end
+        end
+      end
   end
 end
 

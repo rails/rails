@@ -12,7 +12,13 @@ class ActiveRecord::Encryption::EncryptorTest < ActiveRecord::EncryptionTestCase
     assert_encrypt_text("my secret text")
   end
 
-  test "decrypt and invalid string will raise a Decryption error" do
+  test "trying to decrypt something else than a string will raise a Decryption error" do
+    assert_raises(ActiveRecord::Encryption::Errors::Decryption) do
+      @encryptor.decrypt(:it_can_only_decrypt_strings)
+    end
+  end
+
+  test "decrypt an invalid string will raise a Decryption error" do
     assert_raises(ActiveRecord::Encryption::Errors::Decryption) do
       @encryptor.decrypt("some test that does not make sense")
     end
@@ -40,6 +46,15 @@ class ActiveRecord::Encryption::EncryptorTest < ActiveRecord::EncryptionTestCase
 
     assert_encrypt_text content
     assert cipher_text.bytesize < content.bytesize
+  end
+
+  test "content is not compressed, when disabled" do
+    @encryptor = ActiveRecord::Encryption::Encryptor.new(compress: false)
+    content = SecureRandom.hex(5.kilobytes)
+    cipher_text = @encryptor.encrypt(content)
+
+    assert_encrypt_text content
+    assert cipher_text.bytesize > content.bytesize
   end
 
   test "trying to encrypt custom classes raises a ForbiddenClass exception" do

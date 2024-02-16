@@ -191,10 +191,10 @@ render(partial: 'hotels/hotel', collection: @hotels, cached: true)
 
 Will load a file named `hotels/hotel.erb`.
 
-Another option is to include the full filename of the partial to render.
+Another option is to include the `formats` attribute to the partial to render.
 
 ```ruby
-render(partial: 'hotels/hotel.html.erb', collection: @hotels, cached: true)
+render(partial: 'hotels/hotel', collection: @hotels, formats: :html, cached: true)
 ```
 
 Will load a file named `hotels/hotel.html.erb` in any file MIME type, for example you could include this partial in a JavaScript file.

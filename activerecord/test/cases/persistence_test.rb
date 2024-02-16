@@ -25,6 +25,7 @@ require "models/cpk"
 require "models/chat_message"
 require "models/default"
 require "models/post_with_prefetched_pk"
+require "models/pk_autopopulated_by_a_trigger_record"
 
 class PersistenceTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :accounts, :minimalistics, :authors, :author_addresses,
@@ -1472,7 +1473,7 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal parrot.id, found_parrot.id
 
     # Manually update the 'name' attribute in the DB directly
-    assert_equal 1, ActiveRecord::Base.connection.query_cache.length
+    assert_equal 1, ActiveRecord::Base.connection.query_cache.size
     ActiveRecord::Base.uncached do
       found_parrot.name = "Mary"
       found_parrot.save
@@ -1523,7 +1524,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_uses_query_constraints_config
     clothing_item = clothing_items(:green_t_shirt)
-    sql = capture_sql { clothing_item.update(description: "Lovely green t-shirt")  }.first
+    sql = capture_sql { clothing_item.update(description: "Lovely green t-shirt")  }.second
     assert_match(/WHERE .*clothing_type/, sql)
     assert_match(/WHERE .*color/, sql)
   end
@@ -1531,7 +1532,7 @@ class PersistenceTest < ActiveRecord::TestCase
   def test_save_uses_query_constraints_config
     clothing_item = clothing_items(:green_t_shirt)
     clothing_item.description = "Lovely green t-shirt"
-    sql = capture_sql { clothing_item.save }.first
+    sql = capture_sql { clothing_item.save }.second
     assert_match(/WHERE .*clothing_type/, sql)
     assert_match(/WHERE .*color/, sql)
   end
@@ -1545,7 +1546,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_destroy_uses_query_constraints_config
     clothing_item = clothing_items(:green_t_shirt)
-    sql = capture_sql { clothing_item.destroy }.first
+    sql = capture_sql { clothing_item.destroy }.second
     assert_match(/WHERE .*clothing_type/, sql)
     assert_match(/WHERE .*color/, sql)
   end
@@ -1559,7 +1560,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_attribute_uses_query_constraints_config
     clothing_item = clothing_items(:green_t_shirt)
-    sql = capture_sql { clothing_item.update_attribute(:description, "Lovely green t-shirt") }.first
+    sql = capture_sql { clothing_item.update_attribute(:description, "Lovely green t-shirt") }.second
     assert_match(/WHERE .*clothing_type/, sql)
     assert_match(/WHERE .*color/, sql)
   end
@@ -1568,12 +1569,19 @@ class PersistenceTest < ActiveRecord::TestCase
     clothing_item = clothing_items(:green_t_shirt)
     clothing_item.color = "blue"
     clothing_item.description = "Now it's a blue t-shirt"
-    sql = capture_sql { clothing_item.save }.first
+    sql = capture_sql { clothing_item.save }.second
     assert_match(/WHERE .*clothing_type/, sql)
     assert_match(/WHERE .*color/, sql)
 
     assert_equal("blue", ClothingItem.find_by(id: clothing_item.id).color)
   end
+
+  def test_model_with_no_auto_populated_fields_still_returns_primary_key_after_insert
+    record = PkAutopopulatedByATriggerRecord.create
+
+    assert_not_nil record.id
+    assert record.id > 0
+  end if supports_insert_returning? && !current_adapter?(:SQLite3Adapter)
 end
 
 class QueryConstraintsTest < ActiveRecord::TestCase

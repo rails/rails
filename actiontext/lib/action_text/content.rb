@@ -1,29 +1,32 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionText
-  # = Action Text \Content
+  # # Action Text Content
   #
-  # The +ActionText::Content+ class wraps an HTML fragment to add support for
+  # The `ActionText::Content` class wraps an HTML fragment to add support for
   # parsing, rendering and serialization. It can be used to extract links and
-  # attachments, convert the fragment to plain text, or serialize the fragment
-  # to the database.
+  # attachments, convert the fragment to plain text, or serialize the fragment to
+  # the database.
   #
   # The ActionText::RichText record serializes the `body` attribute as
-  # +ActionText::Content+.
+  # `ActionText::Content`.
   #
-  #   class Message < ActiveRecord::Base
-  #     has_rich_text :content
-  #   end
+  #     class Message < ActiveRecord::Base
+  #       has_rich_text :content
+  #     end
   #
-  #   message = Message.create!(content: "<h1>Funny times!</h1>")
-  #   body = message.content.body # => #<ActionText::Content "<div class=\"trix-conte...">
-  #   body.to_s # => "<h1>Funny times!</h1>"
-  #   body.to_plain_text # => "Funny times!"
+  #     message = Message.create!(content: "<h1>Funny times!</h1>")
+  #     body = message.content.body # => #<ActionText::Content "<div class=\"trix-conte...">
+  #     body.to_s # => "<h1>Funny times!</h1>"
+  #     body.to_plain_text # => "Funny times!"
   class Content
     include Rendering, Serialization
 
     attr_reader :fragment
 
+    delegate :deconstruct, to: :fragment
     delegate :blank?, :empty?, :html_safe, :present?, to: :to_html # Delegating to to_html to avoid including the layout
 
     class << self
@@ -46,19 +49,19 @@ module ActionText
 
     # Extracts links from the HTML fragment:
     #
-    #   html = '<a href="http://example.com/">Example</a>'
-    #   content = ActionText::Content.new(html)
-    #   content.links # => ["http://example.com/"]
+    #     html = '<a href="http://example.com/">Example</a>'
+    #     content = ActionText::Content.new(html)
+    #     content.links # => ["http://example.com/"]
     def links
       @links ||= fragment.find_all("a[href]").map { |a| a["href"] }.uniq
     end
 
     # Extracts +ActionText::Attachment+s from the HTML fragment:
     #
-    #   attachable = ActiveStorage::Blob.first
-    #   html = %Q(<action-text-attachment sgid="#{attachable.attachable_sgid}" caption="Captioned"></action-text-attachment>)
-    #   content = ActionText::Content.new(html)
-    #   content.attachments # => [#<ActionText::Attachment attachable=#<ActiveStorage::Blob...
+    #     attachable = ActiveStorage::Blob.first
+    #     html = %Q(<action-text-attachment sgid="#{attachable.attachable_sgid}" caption="Captioned"></action-text-attachment>)
+    #     content = ActionText::Content.new(html)
+    #     content.attachments # => [#<ActionText::Attachment attachable=#<ActiveStorage::Blob...
     def attachments
       @attachments ||= attachment_nodes.map do |node|
         attachment_for_node(node)
@@ -77,10 +80,10 @@ module ActionText
 
     # Extracts +ActionText::Attachable+s from the HTML fragment:
     #
-    #   attachable = ActiveStorage::Blob.first
-    #   html = %Q(<action-text-attachment sgid="#{attachable.attachable_sgid}" caption="Captioned"></action-text-attachment>)
-    #   content = ActionText::Content.new(html)
-    #   content.attachables # => [attachable]
+    #     attachable = ActiveStorage::Blob.first
+    #     html = %Q(<action-text-attachment sgid="#{attachable.attachable_sgid}" caption="Captioned"></action-text-attachment>)
+    #     content = ActionText::Content.new(html)
+    #     content.attachables # => [attachable]
     def attachables
       @attachables ||= attachment_nodes.map do |node|
         ActionText::Attachable.from_node(node)
@@ -106,19 +109,20 @@ module ActionText
       self.class.new(content, canonicalize: false)
     end
 
-    # Returns a plain-text version of the markup contained by the content,
-    # with tags removed but HTML entities encoded.
+    # Returns a plain-text version of the markup contained by the content, with tags
+    # removed but HTML entities encoded.
     #
-    #   content = ActionText::Content.new("<h1>Funny times!</h1>")
-    #   content.to_plain_text # => "Funny times!"
+    #     content = ActionText::Content.new("<h1>Funny times!</h1>")
+    #     content.to_plain_text # => "Funny times!"
     #
-    #   content = ActionText::Content.new("<div onclick='action()'>safe<script>unsafe</script></div>")
-    #   content.to_plain_text # => "safeunsafe"
+    #     content = ActionText::Content.new("<div onclick='action()'>safe<script>unsafe</script></div>")
+    #     content.to_plain_text # => "safeunsafe"
     #
-    # NOTE: that the returned string is not HTML safe and should not be rendered in browsers.
+    # NOTE: that the returned string is not HTML safe and should not be rendered in
+    # browsers.
     #
-    #   content = ActionText::Content.new("&lt;script&gt;alert()&lt;/script&gt;")
-    #   content.to_plain_text # => "<script>alert()</script>"
+    #     content = ActionText::Content.new("&lt;script&gt;alert()&lt;/script&gt;")
+    #     content.to_plain_text # => "<script>alert()</script>"
     def to_plain_text
       render_attachments(with_full_attributes: false, &:to_plain_text).fragment.to_plain_text
     end
@@ -141,11 +145,11 @@ module ActionText
 
     # Safely transforms Content into an HTML String.
     #
-    #   content = ActionText::Content.new(content: "<h1>Funny times!</h1>")
-    #   content.to_s # => "<h1>Funny times!</h1>"
+    #     content = ActionText::Content.new(content: "<h1>Funny times!</h1>")
+    #     content.to_s # => "<h1>Funny times!</h1>"
     #
-    #   content = ActionText::Content.new("<div onclick='action()'>safe<script>unsafe</script></div>")
-    #   content.to_s # => "<div>safeunsafe</div>"
+    #     content = ActionText::Content.new("<div onclick='action()'>safe<script>unsafe</script></div>")
+    #     content.to_s # => "<div>safeunsafe</div>"
     def to_s
       to_rendered_html_with_layout
     end

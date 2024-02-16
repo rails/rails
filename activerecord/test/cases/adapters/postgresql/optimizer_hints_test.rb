@@ -12,7 +12,7 @@ class PostgresqlOptimizerHintsTest < ActiveRecord::PostgreSQLTestCase
     end
 
     def test_optimizer_hints
-      assert_sql(%r{\ASELECT /\*\+ SeqScan\(posts\) \*/}) do
+      assert_queries_match(%r{\ASELECT /\*\+ SeqScan\(posts\) \*/}) do
         posts = Post.optimizer_hints("SeqScan(posts)")
         posts = posts.select(:id).where(author_id: [0, 1])
         assert_includes posts.explain, "Seq Scan on posts"
@@ -20,7 +20,7 @@ class PostgresqlOptimizerHintsTest < ActiveRecord::PostgreSQLTestCase
     end
 
     def test_optimizer_hints_with_count_subquery
-      assert_sql(%r{\ASELECT /\*\+ SeqScan\(posts\) \*/}) do
+      assert_queries_match(%r{\ASELECT /\*\+ SeqScan\(posts\) \*/}) do
         posts = Post.optimizer_hints("SeqScan(posts)")
         posts = posts.select(:id).where(author_id: [0, 1]).limit(5)
         assert_equal 5, posts.count
@@ -28,13 +28,13 @@ class PostgresqlOptimizerHintsTest < ActiveRecord::PostgreSQLTestCase
     end
 
     def test_optimizer_hints_is_sanitized
-      assert_sql(%r{\ASELECT /\*\+ SeqScan\(posts\) \*/}) do
+      assert_queries_match(%r{\ASELECT /\*\+ SeqScan\(posts\) \*/}) do
         posts = Post.optimizer_hints("/*+ SeqScan(posts) */")
         posts = posts.select(:id).where(author_id: [0, 1])
         assert_includes posts.explain, "Seq Scan on posts"
       end
 
-      assert_sql(%r{\ASELECT /\*\+  "posts"\.\*,  \*/}) do
+      assert_queries_match(%r{\ASELECT /\*\+  "posts"\.\*,  \*/}) do
         posts = Post.optimizer_hints("**// \"posts\".*, //**")
         posts = posts.select(:id).where(author_id: [0, 1])
         assert_equal({ "id" => 1 }, posts.first.as_json)
@@ -42,7 +42,7 @@ class PostgresqlOptimizerHintsTest < ActiveRecord::PostgreSQLTestCase
     end
 
     def test_optimizer_hints_with_unscope
-      assert_sql(%r{\ASELECT "posts"\."id"}) do
+      assert_queries_match(%r{\ASELECT "posts"\."id"}) do
         posts = Post.optimizer_hints("/*+ SeqScan(posts) */")
         posts = posts.select(:id).where(author_id: [0, 1])
         posts.unscope(:optimizer_hints).load
@@ -50,7 +50,7 @@ class PostgresqlOptimizerHintsTest < ActiveRecord::PostgreSQLTestCase
     end
 
     def test_optimizer_hints_with_or
-      assert_sql(%r{\ASELECT /\*\+ SeqScan\(posts\) \*/}) do
+      assert_queries_match(%r{\ASELECT /\*\+ SeqScan\(posts\) \*/}) do
         Post.optimizer_hints("SeqScan(posts)").or(Post.all).load
       end
 

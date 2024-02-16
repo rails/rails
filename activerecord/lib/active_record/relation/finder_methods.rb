@@ -87,6 +87,14 @@ module ActiveRecord
     #
     #   Person.where(name: 'Spartacus', rating: 4).pluck(:field1, :field2)
     #   # returns an Array of the required fields.
+    #
+    # ==== Edge Cases
+    #
+    #   Person.find(37)          # raises ActiveRecord::RecordNotFound exception if the record with the given ID does not exist.
+    #   Person.find([37])        # raises ActiveRecord::RecordNotFound exception if the record with the given ID in the input array does not exist.
+    #   Person.find(nil)         # raises ActiveRecord::RecordNotFound exception if the argument is nil.
+    #   Person.find([])          # returns an empty array if the argument is an empty array.
+    #   Person.find              # raises ActiveRecord::RecordNotFound exception if the argument is not provided.
     def find(*args)
       return super if block_given?
       find_with_ids(*args)

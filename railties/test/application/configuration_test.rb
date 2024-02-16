@@ -31,16 +31,12 @@ class ::MySanitizerVendor < ::Rails::HTML::Sanitizer
   end
 end
 
-class MyLogRecorder < Logger
-  def initialize
-    @io = StringIO.new
-    super(@io)
-  end
-
-  def recording
-    @io.string
-  end
+class ::MyCustomKeyProvider
+  attr_reader :primary_key
+  def initialize(primary_key); @primary_key = primary_key; end
 end
+
+class ::MyOldKeyProvider; end
 
 module ApplicationTests
   class ConfigurationTest < ActiveSupport::TestCase
@@ -79,7 +75,6 @@ module ApplicationTests
     def setup
       build_app
       suppress_default_config
-      suppress_sqlite3_warning
     end
 
     def teardown
@@ -94,14 +89,6 @@ module ApplicationTests
     def restore_default_config
       FileUtils.rm_rf("#{app_path}/config/environments")
       FileUtils.mv("#{app_path}/config/__environments__", "#{app_path}/config/environments")
-    end
-
-    def suppress_sqlite3_warning
-      add_to_config "config.active_record.sqlite3_production_warning = false"
-    end
-
-    def restore_sqlite3_warning
-      remove_from_config ".*config.active_record.sqlite3_production_warning.*\n"
     end
 
     test "Rails.env does not set the RAILS_ENV environment variable which would leak out into rake tasks" do
@@ -446,7 +433,7 @@ module ApplicationTests
       RUBY
 
       app_file "config/initializers/schema_cache.rb", <<-RUBY
-      ActiveRecord::Base.connection.schema_cache.add("posts")
+      ActiveRecord::Base.schema_cache.add("posts")
       RUBY
 
       app "production"
@@ -477,7 +464,7 @@ module ApplicationTests
       RUBY
 
       app_file "config/initializers/schema_cache.rb", <<-RUBY
-      ActiveRecord::Base.connection.schema_cache.add("posts")
+      ActiveRecord::Base.schema_cache.add("posts")
       RUBY
 
       app "production"
@@ -1947,6 +1934,31 @@ module ApplicationTests
         application.config.log_level = :debug
       end
       assert_equal Logger::DEBUG, Rails.logger.level
+    end
+
+    test "config.log_level does not override the level of the broadcast with the default value" do
+      add_to_config <<-RUBY
+        stdout = Logger.new(STDOUT, level: Logger::INFO)
+        stderr = Logger.new(STDERR, level: Logger::ERROR)
+        config.logger = ActiveSupport::BroadcastLogger.new(stdout, stderr)
+      RUBY
+
+      app "development"
+
+      assert_equal([Logger::INFO, Logger::ERROR], Rails.logger.broadcasts.map(&:level))
+    end
+
+    test "config.log_level overrides the level of the broadcast when a custom value is set" do
+      add_to_config <<-RUBY
+        stdout = Logger.new(STDOUT)
+        stderr = Logger.new(STDERR)
+        config.logger = ActiveSupport::BroadcastLogger.new(stdout, stderr)
+        config.log_level = :warn
+      RUBY
+
+      app "development"
+
+      assert_equal([Logger::WARN, Logger::WARN], Rails.logger.broadcasts.map(&:level))
     end
 
     test "config.logger when logger is already a Broadcast Logger" do
@@ -3814,6 +3826,74 @@ module ApplicationTests
       assert_not_includes ActiveRecord::Base.filter_attributes, :content
     end
 
+    test "ActiveRecord::Encryption.config is ready for encrypted attributes when app is lazy loaded" do
+      add_to_config <<-RUBY
+        config.enable_reloading = false
+        config.eager_load = false
+      RUBY
+
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        Rails.application.config.active_record.encryption.primary_key = "dummy_key"
+        Rails.application.config.active_record.encryption.previous = [ { key_provider: MyOldKeyProvider.new } ]
+
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveRecord::Migration.verbose = false
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :posts do |t|
+            t.string :content
+          end
+        end
+
+        ActiveRecord::Base.schema_cache.add("posts")
+      RUBY
+
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+          encrypts :content, key_provider: MyCustomKeyProvider.new(ActiveRecord::Encryption.config.primary_key)
+        end
+      RUBY
+
+      app "development"
+
+      assert_kind_of ::MyOldKeyProvider, Post.attribute_types["content"].previous_schemes.first.key_provider
+      assert_kind_of ::MyCustomKeyProvider, Post.attribute_types["content"].scheme.key_provider
+      assert_equal "dummy_key", Post.attribute_types["content"].scheme.key_provider.primary_key
+    end
+
+    test "ActiveRecord::Encryption.config is ready for encrypted attributes when app is eager loaded" do
+      add_to_config <<-RUBY
+        config.enable_reloading = false
+        config.eager_load = true
+      RUBY
+
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+          encrypts :content, key_provider: MyCustomKeyProvider.new(ActiveRecord::Encryption.config.primary_key)
+        end
+      RUBY
+
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        Rails.application.config.active_record.encryption.primary_key = "dummy_key"
+        Rails.application.config.active_record.encryption.previous = [ { key_provider: MyOldKeyProvider.new } ]
+
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveRecord::Migration.verbose = false
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :posts do |t|
+            t.string :content
+          end
+        end
+
+        ActiveRecord::Base.schema_cache.add("posts")
+      RUBY
+
+      app "production"
+
+      assert_kind_of ::MyOldKeyProvider, Post.attribute_types["content"].previous_schemes.first&.key_provider
+      assert_kind_of ::MyCustomKeyProvider, Post.attribute_types["content"].scheme.key_provider
+      assert_equal "dummy_key", Post.attribute_types["content"].scheme.key_provider.primary_key
+    end
+
     test "ActiveStorage.routes_prefix can be configured via config.active_storage.routes_prefix" do
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do
@@ -3915,6 +3995,11 @@ module ApplicationTests
     test "hosts include .localhost in development" do
       app "development"
       assert_includes Rails.application.config.hosts, ".localhost"
+    end
+
+    test "hosts include .test in development" do
+      app "development"
+      assert_includes Rails.application.config.hosts, ".test"
     end
 
     test "hosts reads multiple values from RAILS_DEVELOPMENT_HOSTS" do
@@ -4059,57 +4144,6 @@ module ApplicationTests
       app "development"
 
       assert_equal false, Rails.application.env_config["action_dispatch.log_rescued_responses"]
-    end
-
-    test "logs a warning when running SQLite3 in production" do
-      restore_sqlite3_warning
-      app_file "config/initializers/active_record.rb", <<~RUBY
-        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
-      RUBY
-      add_to_config "config.logger = MyLogRecorder.new"
-
-      app "production"
-
-      assert_match(/You are running SQLite in production, this is generally not recommended/, Rails.logger.recording)
-    end
-
-    test "doesn't log a warning when running SQLite3 in production and sqlite3_production_warning=false" do
-      app_file "config/initializers/active_record.rb", <<~RUBY
-        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
-      RUBY
-      add_to_config "config.logger = MyLogRecorder.new"
-
-      app "production"
-
-      assert_no_match(/You are running SQLite in production, this is generally not recommended/, Rails.logger.recording)
-    end
-
-    test "doesn't log a warning when running MySQL in production" do
-      restore_sqlite3_warning
-      original_configurations = ActiveRecord::Base.configurations
-      ActiveRecord::Base.configurations = { production: { db1: { adapter: "mysql2" } } }
-      app_file "config/initializers/active_record.rb", <<~RUBY
-        ActiveRecord::Base.establish_connection(adapter: "mysql2")
-      RUBY
-      add_to_config "config.logger = MyLogRecorder.new"
-
-      app "production"
-
-      assert_no_match(/You are running SQLite in production, this is generally not recommended/, Rails.logger.recording)
-    ensure
-      ActiveRecord::Base.configurations = original_configurations
-    end
-
-    test "doesn't log a warning when running SQLite3 in development" do
-      restore_sqlite3_warning
-      app_file "config/initializers/active_record.rb", <<~RUBY
-        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
-      RUBY
-      add_to_config "config.logger = MyLogRecorder.new"
-
-      app "development"
-
-      assert_no_match(/You are running SQLite in production, this is generally not recommended/, Rails.logger.recording)
     end
 
     test "app starts with LocalCache middleware" do

@@ -33,6 +33,51 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     assert_invalid_key_cant_read_attribute(post, :body)
   end
 
+  test "swapping key_providers via with_encryption_context" do
+    key_provider1 = ActiveRecord::Encryption::DerivedSecretKeyProvider.new(SecureRandom.base64(32))
+    key_provider2 = ActiveRecord::Encryption::DerivedSecretKeyProvider.new(SecureRandom.base64(32))
+
+    post1 = post2 = nil
+
+    ActiveRecord::Encryption.with_encryption_context key_provider: key_provider1 do
+      post1 = EncryptedPost.create!(title: "post1!", body: "first post!")
+    end
+
+    ActiveRecord::Encryption.with_encryption_context key_provider: key_provider2 do
+      post2 = EncryptedPost.create!(title: "post2!", body: "second post!")
+    end
+
+    post1.reload
+    assert_raises ActiveRecord::Encryption::Errors::Decryption do
+      post1.title
+    end
+
+    post2.reload
+    assert_raises ActiveRecord::Encryption::Errors::Decryption do
+      post2.title
+    end
+
+    ActiveRecord::Encryption.with_encryption_context key_provider: key_provider1 do
+      post1.reload
+      assert_equal "post1!", post1.title
+
+      post2.reload
+      assert_raises ActiveRecord::Encryption::Errors::Decryption do
+        post2.title
+      end
+    end
+
+    ActiveRecord::Encryption.with_encryption_context key_provider: key_provider2 do
+      post2.reload
+      assert_equal "post2!", post2.title
+
+      post1.reload
+      assert_raises ActiveRecord::Encryption::Errors::Decryption do
+        post1.title
+      end
+    end
+  end
+
   test "ignores nil values" do
     assert_nil EncryptedBook.create!(name: nil).name
   end
@@ -347,6 +392,25 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
       support_sha1_for_non_deterministic_encryption: true
 
     assert_predicate OtherEncryptedPost.type_for_attribute(:title).scheme.previous_schemes, :one?
+  end
+
+  test "binary data can be encrypted" do
+    all_bytes = (0..255).map(&:chr).join
+    assert_equal all_bytes, EncryptedBookWithBinary.create!(logo: all_bytes).logo
+    assert_nil EncryptedBookWithBinary.create!(logo: nil).logo
+    assert_equal "", EncryptedBookWithBinary.create!(logo: "").logo
+  end
+
+  test "binary data can be encrypted uncompressed" do
+    low_bytes = (0..127).map(&:chr).join
+    high_bytes = (128..255).map(&:chr).join
+    assert_equal low_bytes, EncryptedBookWithBinary.create!(logo: low_bytes).logo
+    assert_equal high_bytes, EncryptedBookWithBinary.create!(logo: high_bytes).logo
+  end
+
+  test "serialized binary data can be encrypted" do
+    json_bytes = (32..127).map(&:chr)
+    assert_equal json_bytes, EncryptedBookWithSerializedBinary.create!(logo: json_bytes).logo
   end
 
   private

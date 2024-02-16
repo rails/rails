@@ -58,6 +58,11 @@ NOTE: If you need to apply configuration directly to a class, use a [lazy load h
 
 Below are the default values associated with each target version. In cases of conflicting values, newer versions take precedence over older versions.
 
+#### Default Values for Target Version 7.2
+
+- [`config.active_record.validate_migration_timestamps`](#config-active-record-validate-migration-timestamps): `true`
+- [`config.active_storage.web_image_content_types`](#config-active-storage-web-image-content-types): `%w[image/png image/jpeg image/gif image/webp]`
+
 #### Default Values for Target Version 7.1
 
 - [`config.action_dispatch.debug_exception_log_level`](#config-action-dispatch-debug-exception-log-level): `:error`
@@ -202,20 +207,12 @@ Sets the host for the assets. Useful when CDNs are used for hosting assets, or w
 
 #### `config.assume_ssl`
 
-Makes application believe that all requests are arriving over SSL. This is useful when proxying through a load balancer that terminates SSL, the forwarded request will appear as though its HTTP instead of HTTPS to the application. This makes redirects and cookie security target HTTP instead of HTTPS. This middleware makes the server assume that the proxy already terminated SSL, and that the request really is HTTPS.
+Makes application believe that all requests are arriving over SSL. This is useful when proxying through a load balancer that terminates SSL, the forwarded request will appear as though it's HTTP instead of HTTPS to the application. This makes redirects and cookie security target HTTP instead of HTTPS. This middleware makes the server assume that the proxy already terminated SSL, and that the request really is HTTPS.
 
 #### `config.autoflush_log`
 
 Enables writing log file output immediately instead of buffering. Defaults to
 `true`.
-
-#### `config.autoload_once_paths`
-
-Accepts an array of paths from which Rails will autoload constants that won't be wiped per request. Relevant if reloading is enabled, which it is by default in the `development` environment. Otherwise, all autoloading happens only once. All elements of this array must also be in `autoload_paths`. Default is an empty array.
-
-#### `config.autoload_paths`
-
-Accepts an array of paths from which Rails will autoload constants. Default is an empty array. Since [Rails 6](upgrading_ruby_on_rails.html#autoloading), it is not recommended to adjust this. See [Autoloading and Reloading Constants](autoloading_and_reloading_constants.html#autoload-paths).
 
 #### `config.autoload_lib(ignore:)`
 
@@ -234,6 +231,14 @@ Please, see more details in the [autoloading guide](autoloading_and_reloading_co
 The method `config.autoload_lib_once` is similar to `config.autoload_lib`, except that it adds `lib` to `config.autoload_once_paths` instead.
 
 By calling `config.autoload_lib_once`, classes and modules in `lib` can be autoloaded, even from application initializers, but won't be reloaded.
+
+#### `config.autoload_once_paths`
+
+Accepts an array of paths from which Rails will autoload constants that won't be wiped per request. Relevant if reloading is enabled, which it is by default in the `development` environment. Otherwise, all autoloading happens only once. All elements of this array must also be in `autoload_paths`. Default is an empty array.
+
+#### `config.autoload_paths`
+
+Accepts an array of paths from which Rails will autoload constants. Default is an empty array. Since [Rails 6](upgrading_ruby_on_rails.html#autoloading), it is not recommended to adjust this. See [Autoloading and Reloading Constants](autoloading_and_reloading_constants.html#autoload-paths).
 
 #### `config.beginning_of_week`
 
@@ -309,10 +314,6 @@ Sets the format used in responses when errors occur in the development environme
 #### `config.disable_sandbox`
 
 Controls whether or not someone can start a console in sandbox mode. This is helpful to avoid a long running session of sandbox console, that could lead a database server to run out of memory. Defaults to `false`.
-
-#### `config.sandbox_by_default`
-
-When `true`, rails console starts in sandbox mode. To start rails console in non-sandbox mode, `--no-sandbox` must be specified. This is helpful to avoid accidental writing to the production database. Defaults to `false`.
 
 #### `config.dom_testing_default_html_version`
 
@@ -539,6 +540,10 @@ Enables or disables reloading of classes only when tracked files change. By defa
 
 Causes the app to not boot if a master key hasn't been made available through `ENV["RAILS_MASTER_KEY"]` or the `config/master.key` file.
 
+#### `config.sandbox_by_default`
+
+When `true`, rails console starts in sandbox mode. To start rails console in non-sandbox mode, `--no-sandbox` must be specified. This is helpful to avoid accidental writing to the production database. Defaults to `false`.
+
 #### `config.secret_key_base`
 
 The fallback for specifying the input secret for an application's key generator.
@@ -697,6 +702,7 @@ The full set of methods that can be used in this block are as follows:
 * `scaffold_controller` different from `resource_controller`, defines which generator to use for generating a _scaffolded_ controller when using `bin/rails generate scaffold`. Defaults to `:scaffold_controller`.
 * `test_framework` defines which test framework to use. Defaults to `false` and will use minitest by default.
 * `template_engine` defines which template engine to use, such as ERB or Haml. Defaults to `:erb`.
+* `apply_rubocop_autocorrect_after_generate!` applies RuboCop's autocorrect feature after Rails generators are run.
 
 ### Configuring Middleware
 
@@ -1047,9 +1053,23 @@ Specifies if an error should be raised if the order of a query is ignored during
 
 Controls whether migrations are numbered with serial integers or with timestamps. The default is `true`, to use timestamps, which are preferred if there are multiple developers working on the same application.
 
+#### `config.active_record.validate_migration_timestamps`
+
+Controls whether to validate migration timestamps. When set, an error will be raised if the
+timestamp prefix for a migration is more than a day ahead of the timestamp associated with the
+current time. This is done to prevent forward-dating of migration files, which can impact migration
+generation and other migration commands. `config.active_record.timestamped_migrations` must be set to `true`.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.2                   | `true`               |
+
 #### `config.active_record.db_warnings_action`
 
-Controls the action to be taken when a SQL query produces a warning. The following options are available:
+Controls the action to be taken when an SQL query produces a warning. The following options are available:
 
   * `:ignore` - Database warnings will be ignored. This is the default.
 
@@ -1410,9 +1430,9 @@ NOTE: When this is set to `true` database prepared statements will be automatica
 
 #### `config.active_record.query_log_tags`
 
-Define an `Array` specifying the key/value tags to be inserted in an SQL
-comment. Defaults to `[ :application ]`, a predefined tag returning the
-application name.
+Define an `Array` specifying the key/value tags to be inserted in an SQL comment. Defaults to
+`[ :application, :controller, :action, :job ]`. The available tags are: `:application`, `:controller`,
+`:namespaced_controller`, `:action`, `:job`, and `:source_location`.
 
 #### `config.active_record.query_log_tags_format`
 
@@ -1480,8 +1500,12 @@ queries can be executed concurrently.
 
 Defaults to `4`.
 
-This number must be considered in accordance with the database pool size configured in `database.yml`. The connection pool
-should be large enough to accommodate both the foreground threads (.e.g web server or job worker threads) and background threads.
+This number must be considered in accordance with the database connection pool size configured in `database.yml`. The connection pool
+should be large enough to accommodate both the foreground threads (ie. web server or job worker threads) and background threads.
+
+For each process, Rails will create one global query executor that uses this many threads to process async queries. Thus, the pool size
+should be at least `thread_count + global_executor_concurrency + 1`. For example, if your web server has a maximum of 3 threads,
+and `global_executor_concurrency` is set to 4, then your pool size should be at least 8.
 
 #### `config.active_record.allow_deprecated_singular_associations_name`
 
@@ -1947,16 +1971,25 @@ information. It defaults to `true`.
 
 #### `config.action_dispatch.rescue_responses`
 
-Configures what exceptions are assigned to an HTTP status. It accepts a hash and you can specify pairs of exception/status. By default, this is defined as:
+Configures what exceptions are assigned to an HTTP status. It accepts a hash and you can specify pairs of exception/status.
 
 ```ruby
-config.action_dispatch.rescue_responses = {
+# It's good to use #[]= or #merge! to respect the default values
+config.action_dispatch.rescue_responses['MyAuthenticationError'] = :unauthorized
+```
+
+Use `ActionDispatch::ExceptionWrapper.rescue_responses` to observe the configuration. By default, it is defined as:
+
+```ruby
+{
   'ActionController::RoutingError' => :not_found,
   'AbstractController::ActionNotFound' => :not_found,
   'ActionController::MethodNotAllowed' => :method_not_allowed,
   'ActionController::UnknownHttpMethod' => :method_not_allowed,
   'ActionController::NotImplemented' => :not_implemented,
   'ActionController::UnknownFormat' => :not_acceptable,
+  'ActionDispatch::Http::MimeNegotiation::InvalidType' => :not_acceptable,
+  'ActionController::MissingExactTemplate' => :not_acceptable,
   'ActionController::InvalidAuthenticityToken' => :unprocessable_entity,
   'ActionController::InvalidCrossOriginRequest' => :unprocessable_entity,
   'ActionDispatch::Http::Parameters::ParseError' => :bad_request,
@@ -2009,6 +2042,25 @@ The default value depends on the `config.load_defaults` target version:
 
 Enables logging those unhandled exceptions configured in `rescue_responses`. It
 defaults to `true`.
+
+#### `config.action_dispatch.show_exceptions`
+
+The `config.action_dispatch.show_exceptions` configuration controls how Action Pack (specifically the [`ActionDispatch::ShowExceptions`](/configuring.html#actiondispatch-showexceptions) middleware) handles exceptions raised while responding to requests.
+
+Setting the value to `:all` configures Action Pack to rescue from exceptions and render corresponding error pages. For example, Action Pack would rescue from an `ActiveRecord::RecordNotFound` exception and render the contents of `public/404.html` with a `404 Not found` status code.
+
+Setting the value to `:rescueable` configures Action Pack rescue from exceptions defined in [`config.action_dispatch.rescue_responses`](/configuring.html#config-action-dispatch-rescue-responses), and raise all others. For example, Action Pack would rescue from `ActiveRecord::RecordNotFound`, but would raise a `NoMethodError`.
+
+Setting the value to `:none` configures Action Pack raise all exceptions.
+
+* `:all` - render error pages for all exceptions
+* `:rescuable` - render error pages for exceptions declared by [`config.action_dispatch.rescue_responses`](/configuring.html#config-action-dispatch-rescue-responses)
+* `:none` - raise all exceptions
+
+| Starting with version | The default value is  |
+| --------------------- | --------------------- |
+| (original)            | `true`                |
+| 7.1                   | `:all`                |
 
 #### `ActionDispatch::Callbacks.before`
 
@@ -2285,10 +2337,17 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.action_mailer.sendmail_settings`
 
-Allows detailed configuration for the `sendmail` delivery method. It accepts a hash of options, which can include any of these options:
+Allows detailed configuration for the `:sendmail` delivery method. It accepts a hash of options, which can include any of these options:
 
 * `:location` - The location of the sendmail executable. Defaults to `/usr/sbin/sendmail`.
 * `:arguments` - The command line arguments. Defaults to `%w[ -i ]`.
+
+#### `config.action_mailer.file_settings`
+
+Configures the `:file` delivery method. It accepts a hash of options, which can include:
+
+* `:location` - The location where files are saved. Defaults to `"#{Rails.root}/tmp/mails"`.
+* `:extension` - The file extension. Defaults to the empty string.
 
 #### `config.action_mailer.raise_delivery_errors`
 
@@ -2537,15 +2596,25 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.active_support.deprecation`
 
-Configures the behavior of deprecation warnings. The options are `:raise`, `:stderr`, `:log`, `:notify`, and `:silence`.
+Configures the behavior of deprecation warnings. See
+[`Deprecation::Behavior`][deprecation_behavior] for a description of the
+available options.
 
-In the default generated `config/environments` files, this is set to `:log` for development and `:stderr` for test, and it is omitted for production in favor of [`config.active_support.report_deprecations`](#config-active-support-report-deprecations).
+In the default generated `config/environments` files, this is set to `:log` for
+development and `:stderr` for test, and it is omitted for production in favor of
+[`config.active_support.report_deprecations`](#config-active-support-report-deprecations).
+
+[deprecation_behavior]: https://api.rubyonrails.org/classes/ActiveSupport/Deprecation/Behavior.html#method-i-behavior-3D
 
 #### `config.active_support.disallowed_deprecation`
 
-Configures the behavior of disallowed deprecation warnings. The options are `:raise`, `:stderr`, `:log`, `:notify`, and `:silence`.
+Configures the behavior of disallowed deprecation warnings. See
+[`Deprecation::Behavior`][deprecation_behavior] for a description of the
+available options.
 
-In the default generated `config/environments` files, this is set to `:raise` for both development and test, and it is omitted for production in favor of [`config.active_support.report_deprecations`](#config-active-support-report-deprecations).
+In the default generated `config/environments` files, this is set to `:raise`
+for both development and test, and it is omitted for production in favor of
+[`config.active_support.report_deprecations`](#config-active-support-report-deprecations).
 
 #### `config.active_support.disallowed_deprecation_warnings`
 
@@ -2797,13 +2866,14 @@ config.active_storage.variable_content_types = %w(image/png image/gif image/jpeg
 
 Accepts an array of strings regarded as web image content types in which
 variants can be processed without being converted to the fallback PNG format.
-If you want to use `WebP` or `AVIF` variants in your application you can add
-`image/webp` or `image/avif` to this array.
-By default, this is defined as:
+For example, if you want to use `AVIF` variants in your application you can add
+`image/avif` to this array.
 
-```ruby
-config.active_storage.web_image_content_types = %w(image/png image/jpeg image/gif)
-```
+The default value depends on the `config.load_defaults` target version:
+| Starting with version | The default value is                            |
+| --------------------- | ----------------------------------------------- |
+| (original)            | `%w(image/png image/jpeg image/gif)`            |
+| 7.2                   | `%w(image/png image/jpeg image/gif image/webp)` |
 
 #### `config.active_storage.content_types_to_serve_as_binary`
 
@@ -3587,7 +3657,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 Database Pooling
 ----------------
 
-Active Record database connections are managed by `ActiveRecord::ConnectionAdapters::ConnectionPool` which ensures that a connection pool synchronizes the amount of thread access to a limited number of database connections. This limit defaults to 5 and can be configured in `database.yml`.
+Active Record database connections are managed by [`ActiveRecord::ConnectionAdapters::ConnectionPool`][] which ensures that a connection pool synchronizes the amount of thread access to a limited number of database connections. This limit defaults to 5 and can be configured in `database.yml`.
 
 ```yaml
 development:
@@ -3614,6 +3684,7 @@ connection pool by incrementing the `pool` option in `database.yml`
 
 NOTE. If you are running in a multi-threaded environment, there could be a chance that several threads may be accessing multiple connections simultaneously. So depending on your current request load, you could very well have multiple threads contending for a limited number of connections.
 
+[`ActiveRecord::ConnectionAdapters::ConnectionPool`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/ConnectionPool.html
 
 Custom Configuration
 --------------------

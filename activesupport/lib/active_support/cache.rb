@@ -86,13 +86,7 @@ module ActiveSupport
         case store
         when Symbol
           options = parameters.extract_options!
-          # clean this up once Ruby 2.7 support is dropped
-          # see https://github.com/rails/rails/pull/41522#discussion_r581186602
-          if options.empty?
-            retrieve_store_class(store).new(*parameters)
-          else
-            retrieve_store_class(store).new(*parameters, **options)
-          end
+          retrieve_store_class(store).new(*parameters, **options)
         when Array
           lookup_store(*store)
         when nil
@@ -160,8 +154,8 @@ module ActiveSupport
     # Some implementations may not support all methods beyond the basic cache
     # methods of #fetch, #write, #read, #exist?, and #delete.
     #
-    # ActiveSupport::Cache::Store can store any Ruby object that is supported by
-    # its +coder+'s +dump+ and +load+ methods.
+    # +ActiveSupport::Cache::Store+ can store any Ruby object that is supported
+    # by its +coder+'s +dump+ and +load+ methods.
     #
     #   cache = ActiveSupport::Cache::MemoryStore.new
     #
@@ -344,7 +338,7 @@ module ActiveSupport
 
       # Silences the logger within a block.
       def mute
-        previous_silence, @silence = defined?(@silence) && @silence, true
+        previous_silence, @silence = @silence, true
         yield
       ensure
         @silence = previous_silence
@@ -370,8 +364,8 @@ module ActiveSupport
       #
       # ==== Options
       #
-      # Internally, +fetch+ calls #read_entry, and calls #write_entry on a cache
-      # miss. Thus, +fetch+ supports the same options as #read and #write.
+      # Internally, +fetch+ calls +read_entry+, and calls +write_entry+ on a
+      # cache miss. Thus, +fetch+ supports the same options as #read and #write.
       # Additionally, +fetch+ supports the following options:
       #
       # * <tt>force: true</tt> - Forces a cache "miss," meaning we treat the
@@ -1072,6 +1066,10 @@ module ActiveSupport
         end
     end
 
+    # Enables the dynamic configuration of Cache entry options while ensuring
+    # that conflicting options are not both set. When a block is given to
+    # ActiveSupport::Cache::Store#fetch, the second argument will be an
+    # instance of +WriteOptions+.
     class WriteOptions
       def initialize(options) # :nodoc:
         @options = options
@@ -1089,6 +1087,9 @@ module ActiveSupport
         @options[:expires_in]
       end
 
+      # Sets the Cache entry's +expires_in+ value. If an +expires_at+ option was
+      # previously set, this will unset it since +expires_in+ and +expires_at+
+      # cannot both be set.
       def expires_in=(expires_in)
         @options.delete(:expires_at)
         @options[:expires_in] = expires_in
@@ -1098,6 +1099,9 @@ module ActiveSupport
         @options[:expires_at]
       end
 
+      # Sets the Cache entry's +expires_at+ value. If an +expires_in+ option was
+      # previously set, this will unset it since +expires_at+ and +expires_in+
+      # cannot both be set.
       def expires_at=(expires_at)
         @options.delete(:expires_in)
         @options[:expires_at] = expires_at

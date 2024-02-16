@@ -283,18 +283,28 @@ TIP: `send_file` is often a faster and better option if a layout isn't required.
 
 #### Rendering Objects
 
-Rails can render objects responding to `:render_in`.
+Rails can render objects responding to `#render_in`. The format can be controlled by defining `#format` on the object.
 
 ```ruby
-render MyRenderable.new
+class Greeting
+  def render_in(view_context)
+    view_context.render html: "Hello, World"
+  end
+
+  def format
+    :html
+  end
+end
+
+render Greeting.new
+# => "Hello World"
 ```
 
-This calls `render_in` on the provided object with the current view context.
-
-You can also provide the object by using the `:renderable` option to `render`:
+This calls `render_in` on the provided object with the current view context. You can also provide the object by using the `:renderable` option to `render`:
 
 ```ruby
-render renderable: MyRenderable.new
+render renderable: Greeting.new
+# => "Hello World"
 ```
 
 #### Options for `render`
@@ -704,7 +714,14 @@ Just like the `:status` option for `render`, `:status` for `redirect_to` accepts
 
 #### The Difference Between `render` and `redirect_to`
 
-Sometimes inexperienced developers think of `redirect_to` as a sort of `goto` command, moving execution from one place to another in your Rails code. This is _not_ correct. Your code stops running and waits for a new request from the browser. It just happens that you've told the browser what request it should make next, by sending back an HTTP 302 status code.
+Sometimes inexperienced developers think of `redirect_to` as a sort of `goto`
+command, moving execution from one place to another in your Rails code. This is
+_not_ correct.
+
+The current action will complete, returning a response to the browser. After
+this your code stops running and waits for a new request, it just happens that
+you've told the browser what request it should make next by sending back an
+HTTP 302 status code.
 
 Consider these actions to see the difference:
 

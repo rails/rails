@@ -45,7 +45,7 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_builder_self_closing_tag_with_content
-    assert_equal "<svg><circle><desc>A circle</desc></circle></svg>", tag.svg { tag.circle { tag.desc "A circle" } }
+    assert_equal "<svg><circle r=\"5\"><desc>A circle</desc></circle></svg>", tag.svg { tag.circle(r: "5") { tag.desc "A circle" } }
   end
 
   def test_tag_builder_defines_methods_to_build_html_elements

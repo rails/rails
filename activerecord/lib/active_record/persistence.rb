@@ -115,7 +115,7 @@ module ActiveRecord
       # ==== Options
       #
       # [:returning]
-      #   (PostgreSQL and MariaDB only) An array of attributes to return for all successfully
+      #   (PostgreSQL, SQLite3, and MariaDB only) An array of attributes to return for all successfully
       #   inserted records, which by default is the primary key.
       #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
       #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
@@ -205,7 +205,7 @@ module ActiveRecord
       # ==== Options
       #
       # [:returning]
-      #   (PostgreSQL and MariaDB only) An array of attributes to return for all successfully
+      #   (PostgreSQL, SQLite3, and MariaDB only) An array of attributes to return for all successfully
       #   inserted records, which by default is the primary key.
       #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
       #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
@@ -271,7 +271,7 @@ module ActiveRecord
       # ==== Options
       #
       # [:returning]
-      #   (PostgreSQL and MariaDB only) An array of attributes to return for all successfully
+      #   (PostgreSQL, SQLite3, and MariaDB only) An array of attributes to return for all successfully
       #   inserted records, which by default is the primary key.
       #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
       #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
@@ -456,7 +456,7 @@ module ActiveRecord
       end
 
       # Accepts a list of attribute names to be used in the WHERE clause
-      # of SELECT / UPDATE / DELETE queries and in the ORDER BY clause for `#first` and `#last` finder methods.
+      # of SELECT / UPDATE / DELETE queries and in the ORDER BY clause for +#first+ and +#last+ finder methods.
       #
       #   class Developer < ActiveRecord::Base
       #     query_constraints :company_id, :id
@@ -469,7 +469,7 @@ module ActiveRecord
       #   developer.update!(name: "Nikita")
       #   # UPDATE "developers" SET "name" = 'Nikita' WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
       #
-      #   It is possible to update attribute used in the query_by clause:
+      #   # It is possible to update an attribute used in the query_constraints clause:
       #   developer.update!(company_id: 2)
       #   # UPDATE "developers" SET "company_id" = 2 WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
       #
@@ -1078,6 +1078,7 @@ module ActiveRecord
       end
 
       @association_cache = fresh_object.instance_variable_get(:@association_cache)
+      @association_cache.each_value { |association| association.owner = self }
       @attributes = fresh_object.instance_variable_get(:@attributes)
       @new_record = false
       @previously_new_record = false

@@ -538,6 +538,11 @@ class CreatePictures < ActiveRecord::Migration[7.2]
 end
 ```
 
+NOTE: Since polymorphic associations rely on storing class names in the
+database, that data must remain synchronized with the class name used by the
+Ruby code. When renaming a class, make sure to update the data in the
+polymorphic type column.
+
 ![Polymorphic Association Diagram](images/association_basics/polymorphic.png)
 
 ### Associations between Models with Composite Primary Keys
@@ -788,7 +793,33 @@ module MyApplication
 end
 ```
 
-This will work fine, because both the `Supplier` and the `Account` class are defined within the same scope. But the following will _not_ work, because `Supplier` and `Account` are defined in different scopes:
+This will work fine, because both the `Supplier` and the `Account` class are defined within the same scope (`MyApplication::Business`). This organization allows structuring models into folders based on their scope, without having to explicitly add the scope to every association:
+
+```ruby
+# app/models/my_application/business/supplier.rb
+module MyApplication
+  module Business
+    class Supplier < ApplicationRecord
+      has_one :account
+    end
+  end
+end
+```
+
+```ruby
+# app/models/my_application/business/account.rb
+module MyApplication
+  module Business
+    class Account < ApplicationRecord
+      belongs_to :supplier
+    end
+  end
+end
+```
+
+It is crucial to note that this does not affect the naming of your tables. For instance, if there is a `MyApplication::Business::Supplier` model, there must also be a `my_application_business_suppliers` table.
+
+Note that the following will _not_ work, because `Supplier` and `Account` are defined in different scopes (`MyApplication::Business` and `MyApplication::Billing`):
 
 ```ruby
 module MyApplication
@@ -2976,6 +3007,7 @@ With this definition complete, our `Entry` delegator now provides the following 
 
 | Method | Return |
 |---|---|
+| `Entry.entryable_types` | ["Message", "Comment"] |
 | `Entry#entryable_class` | Message or Comment |
 | `Entry#entryable_name` | "message" or "comment" |
 | `Entry.messages` | `Entry.where(entryable_type: "Message")` |

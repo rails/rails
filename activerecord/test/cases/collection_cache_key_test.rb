@@ -152,7 +152,7 @@ module ActiveRecord
     test "it triggers at most one query" do
       developers = Developer.where(name: "David")
 
-      assert_queries(1) { developers.cache_key }
+      assert_queries_count(1) { developers.cache_key }
       assert_no_queries { developers.cache_key }
     end
 

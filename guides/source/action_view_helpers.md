@@ -5,7 +5,7 @@ Action View Helpers
 
 After reading this guide, you will know:
 
-* How to format dates, strings and numbers
+* How to format dates, strings, and numbers
 * How to link to images, videos, stylesheets, etc...
 * How to sanitize content
 * How to localize content
@@ -43,6 +43,8 @@ audio_tag("sound")
 # => <audio src="/audios/sound"></audio>
 ```
 
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-audio_tag) for more information.
+
 #### auto_discovery_link_tag
 
 Returns a link tag that browsers and feed readers can use to auto-detect an RSS, Atom, or JSON feed.
@@ -52,6 +54,8 @@ auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", { title: "RSS F
 # => <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="http://www.example.com/feed.rss" />
 ```
 
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-auto_discovery_link_tag) for more information.
+
 #### favicon_link_tag
 
 Returns a link tag for a favicon managed by the asset pipeline. The `source` can be a full path or a file that exists in your assets directory.
@@ -60,6 +64,8 @@ Returns a link tag for a favicon managed by the asset pipeline. The `source` can
 favicon_link_tag
 # => <link href="/assets/favicon.ico" rel="icon" type="image/x-icon" />
 ```
+
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-favicon_link_tag) for more information.
 
 #### image_path
 
@@ -76,6 +82,8 @@ image_path("edit.png")
 # => /assets/edit-2d1a2db63fc738690021fedb5a65b68e.png
 ```
 
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-image_path) for more information.
+
 #### image_url
 
 Computes the URL to an image asset in the `app/assets/images` directory. This will call `image_path` internally and merge with your current host or your asset host.
@@ -84,6 +92,8 @@ Computes the URL to an image asset in the `app/assets/images` directory. This wi
 image_url("edit.png") # => http://www.example.com/assets/edit.png
 ```
 
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-image_url) for more information.
+
 #### image_tag
 
 Returns an HTML image tag for the source. The source can be a full path or a file that exists in your `app/assets/images` directory.
@@ -91,6 +101,8 @@ Returns an HTML image tag for the source. The source can be a full path or a fil
 ```ruby
 image_tag("icon.png") # => <img src="/assets/icon.png" />
 ```
+
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-image_tag) for more information.
 
 #### javascript_include_tag
 
@@ -101,6 +113,8 @@ javascript_include_tag "common"
 # => <script src="/assets/common.js"></script>
 ```
 
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-javascript_include_tag) for more information.
+
 #### javascript_path
 
 Computes the path to a JavaScript asset in the `app/assets/javascripts` directory. If the source filename has no extension, `.js` will be appended. Full paths from the document root will be passed through. Used internally by `javascript_include_tag` to build the script path.
@@ -108,6 +122,8 @@ Computes the path to a JavaScript asset in the `app/assets/javascripts` director
 ```ruby
 javascript_path "common" # => /assets/common.js
 ```
+
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-javascript_path) for more information.
 
 #### javascript_url
 
@@ -118,9 +134,12 @@ javascript_url "common"
 # => http://www.example.com/assets/common.js
 ```
 
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-javascript_url) for more information.
+
 #### picture_tag
 
-Returns an HTML picture tag for the source. It supports passing a String, an Array or a Block.
+Returns an HTML picture tag for the source. It supports passing a String, an
+Array, or a Block.
 
 ```ruby
 picture_tag("icon.webp", "icon.png")
@@ -136,14 +155,19 @@ This generates the following HTML:
 </picture>
 ```
 
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-picture_tag) for more information.
+
 #### preload_link_tag
 
-Returns a link tag that browsers can use to preload the source. The source can be the path of a resource managed by asset pipeline, a full path, or an URI.
+Returns a link tag that browsers can use to preload the source. The source can
+be the path of a resource managed by the asset pipeline, a full path, or a URI.
 
 ```ruby
 preload_link_tag "application.css"
 # => <link rel="preload" href="/assets/application.css" as="style" type="text/css" />
 ```
+
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-preload_link_tag) for more information.
 
 #### stylesheet_link_tag
 
@@ -154,6 +178,8 @@ stylesheet_link_tag "application"
 # => <link href="/assets/application.css" rel="stylesheet" />
 ```
 
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-stylesheet_link_tag) for more information.
+
 #### stylesheet_path
 
 Computes the path to a stylesheet asset in the `app/assets/stylesheets` directory. If the source filename has no extension, `.css` will be appended. Full paths from the document root will be passed through. Used internally by `stylesheet_link_tag` to build the stylesheet path.
@@ -161,6 +187,8 @@ Computes the path to a stylesheet asset in the `app/assets/stylesheets` director
 ```ruby
 stylesheet_path "application" # => /assets/application.css
 ```
+
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-stylesheet_path) for more information.
 
 #### stylesheet_url
 
@@ -171,6 +199,8 @@ stylesheet_url "application"
 # => http://www.example.com/assets/application.css
 ```
 
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-stylesheet_path) for more information.
+
 #### video_tag
 
 Generate an HTML video tag with source(s), either as a single tag for a string source or nested source tags within an array for multiple sources. The `sources` can be full paths, files in your public videos directory, or Active Storage attachments.
@@ -179,6 +209,8 @@ Generate an HTML video tag with source(s), either as a single tag for a string s
 video_tag("trailer")
 # => <video src="/videos/trailer"></video>
 ```
+
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-video_tag) for more information.
 
 ### AtomFeedHelper
 
@@ -225,6 +257,8 @@ atom_feed do |feed|
 end
 ```
 
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AtomFeedHelper.html#method-i-atom_feed) for more information.
+
 ### BenchmarkHelper
 
 #### benchmark
@@ -239,6 +273,8 @@ Allows you to measure the execution time of a block in a template and records th
 
 This would add something like "Process data files (0.34523)" to the log, which you can then use to compare timings when optimizing your code.
 
+See the [API Documentation](https://api.rubyonrails.org/classes/ActiveSupport/Benchmarkable.html#method-i-benchmark) for more information.
+
 ### CacheHelper
 
 #### cache
@@ -252,6 +288,8 @@ A method for caching fragments of a view rather than an entire action or page. T
 ```
 
 [`AbstractController::Caching::Fragments`]: https://api.rubyonrails.org/classes/AbstractController/Caching/Fragments.html
+
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/CacheHelper.html#method-i-cache) for more information.
 
 ### CaptureHelper
 
@@ -277,6 +315,8 @@ The captured variable can then be used anywhere else.
   </body>
 </html>
 ```
+
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/CaptureHelper.html#method-i-capture) for more information.
 
 #### content_for
 
@@ -308,6 +348,8 @@ For example, let's say we have a standard application layout, but also a special
 <% end %>
 ```
 
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/CaptureHelper.html#method-i-content_for) for more information.
+
 ### DateHelper
 
 #### distance_of_time_in_words
@@ -321,6 +363,8 @@ distance_of_time_in_words(Time.now, Time.now + 15.seconds, include_seconds: true
 # => less than 20 seconds
 ```
 
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-distance_of_time_in_words) for more information.
+
 #### time_ago_in_words
 
 Like `distance_of_time_in_words`, but where `to_time` is fixed to `Time.now`.
@@ -329,7 +373,11 @@ Like `distance_of_time_in_words`, but where `to_time` is fixed to `Time.now`.
 time_ago_in_words(3.minutes.from_now) # => 3 minutes
 ```
 
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-time_ago_in_words) for more information.
+
 ### DebugHelper
+
+#### debug
 
 Returns a `pre` tag that has object dumped by YAML. This creates a very readable way to inspect an object.
 
@@ -348,6 +396,8 @@ third:
 - 3
 </pre>
 ```
+
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/DebugHelper.html#method-i-debug) for more information.
 
 ### FormHelper
 
@@ -380,6 +430,8 @@ alert('All is good')
 </script>
 ```
 
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/JavaScriptHelper.html#method-i-javascript_tag) for more information.
+
 ### NumberHelper
 
 Provides methods for converting numbers into formatted strings. Methods are provided for phone numbers, currency, percentage, precision, positional notation, and file size.
@@ -392,6 +444,8 @@ Formats a number into a currency string (e.g., $13.65).
 number_to_currency(1234567890.50) # => $1,234,567,890.50
 ```
 
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_to_currency) for more information.
+
 #### number_to_human
 
 Pretty prints (formats and approximates) a number so it is more readable by users; useful for numbers that can get very large.
@@ -400,6 +454,8 @@ Pretty prints (formats and approximates) a number so it is more readable by user
 number_to_human(1234)    # => 1.23 Thousand
 number_to_human(1234567) # => 1.23 Million
 ```
+
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_to_human) for more information.
 
 #### number_to_human_size
 
@@ -410,6 +466,8 @@ number_to_human_size(1234)    # => 1.21 KB
 number_to_human_size(1234567) # => 1.18 MB
 ```
 
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_to_human_size) for more information.
+
 #### number_to_percentage
 
 Formats a number as a percentage string.
@@ -417,6 +475,8 @@ Formats a number as a percentage string.
 ```ruby
 number_to_percentage(100, precision: 0) # => 100%
 ```
+
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_to_percentage) for more information.
 
 #### number_to_phone
 
@@ -426,6 +486,8 @@ Formats a number into a phone number (US by default).
 number_to_phone(1235551234) # => 123-555-1234
 ```
 
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_to_phone) for more information.
+
 #### number_with_delimiter
 
 Formats a number with grouped thousands using a delimiter.
@@ -433,6 +495,8 @@ Formats a number with grouped thousands using a delimiter.
 ```ruby
 number_with_delimiter(12345678) # => 12,345,678
 ```
+
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_with_delimiter) for more information.
 
 #### number_with_precision
 
@@ -442,6 +506,8 @@ Formats a number with the specified level of `precision`, which defaults to 3.
 number_with_precision(111.2345)               # => 111.235
 number_with_precision(111.2345, precision: 2) # => 111.23
 ```
+
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_with_precision) for more information.
 
 ### SanitizeHelper
 
@@ -469,9 +535,13 @@ class Application < Rails::Application
 end
 ```
 
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-sanitize) for more information.
+
 #### sanitize_css(style)
 
 Sanitizes a block of CSS code.
+
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-sanitize_css) for more information.
 
 #### strip_links(html)
 
@@ -492,6 +562,8 @@ strip_links('Blog: <a href="http://myblog.com/">Visit</a>.')
 # => Blog: Visit.
 ```
 
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-strip_links) for more information.
+
 #### strip_tags(html)
 
 Strips all HTML tags from the html, including comments.
@@ -508,6 +580,8 @@ strip_tags("<b>Bold</b> no more!  <a href='more.html'>See more</a>")
 ```
 
 NB: The output may still contain unescaped '<', '>', '&' characters and confuse browsers.
+
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-strip_tags) for more information.
 
 ### UrlHelper
 
@@ -562,7 +636,7 @@ would output:
 </a>
 ```
 
-See [the API Documentation for more information](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to)
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to) for more information.
 
 #### button_to
 
@@ -583,7 +657,7 @@ would roughly output something like:
 </form>
 ```
 
-See [the API Documentation for more information](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-button_to)
+See the [API Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-button_to) for more information.
 
 ### CsrfHelper
 

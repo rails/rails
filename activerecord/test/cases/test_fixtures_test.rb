@@ -6,6 +6,8 @@ require "fileutils"
 require "models/zine"
 
 class TestFixturesTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
   setup do
     @klass = Class.new
     @klass.include(ActiveRecord::TestFixtures)
@@ -53,6 +55,9 @@ class TestFixturesTest < ActiveRecord::TestCase
           assert_equal("Hello", zines(:going_out).title)
         end
       end
+
+      ActiveSupport::Notifications.unsubscribe(@connection_subscriber)
+      @connection_subscriber = nil
 
       old_handler = ActiveRecord::Base.connection_handler
       ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new

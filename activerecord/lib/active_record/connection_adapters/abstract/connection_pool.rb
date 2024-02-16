@@ -16,7 +16,7 @@ module ActiveRecord
       include ConnectionAdapters::AbstractPool
 
       class NullConfig # :nodoc:
-        def method_missing(*)
+        def method_missing(...)
           nil
         end
       end
@@ -36,6 +36,7 @@ module ActiveRecord
         SchemaReflection.new(nil)
       end
 
+      def schema_cache; end
       def connection_class; end
       def checkin(_); end
       def remove(_); end
@@ -68,12 +69,10 @@ module ActiveRecord
     # Connections can be obtained and used from a connection pool in several
     # ways:
     #
-    # 1. Simply use {ActiveRecord::Base.connection}[rdoc-ref:ConnectionHandling.connection]
-    #    as with Active Record 2.1 and
-    #    earlier (pre-connection-pooling). Eventually, when you're done with
-    #    the connection(s) and wish it to be returned to the pool, you call
+    # 1. Simply use {ActiveRecord::Base.connection}[rdoc-ref:ConnectionHandling.connection].
+    #    When you're done with the connection(s) and wish it to be returned to the pool, you call
     #    {ActiveRecord::Base.connection_handler.clear_active_connections!}[rdoc-ref:ConnectionAdapters::ConnectionHandler#clear_active_connections!].
-    #    This will be the default behavior for Active Record when used in conjunction with
+    #    This is the default behavior for Active Record when used in conjunction with
     #    Action Pack's request handling cycle.
     # 2. Manually check out a connection from the pool with
     #    {ActiveRecord::Base.connection_pool.checkout}[rdoc-ref:#checkout]. You are responsible for
@@ -115,11 +114,11 @@ module ActiveRecord
     #   are now explicitly documented
     class ConnectionPool
       include MonitorMixin
-      include QueryCache::ConnectionPoolConfiguration
+      prepend QueryCache::ConnectionPoolConfiguration
       include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout
-      attr_reader :db_config, :size, :reaper, :pool_config, :async_executor, :role, :shard
+      attr_reader :db_config, :size, :reaper, :pool_config, :async_executor, :role, :shard, :schema_cache
 
       delegate :schema_reflection, :schema_reflection=, :server_version, to: :pool_config
 
@@ -164,25 +163,14 @@ module ActiveRecord
         @threads_blocking_new_connections = 0
 
         @available = ConnectionLeasingQueue.new self
-
-        @lock_thread = false
+        @pinned_connection = nil
 
         @async_executor = build_async_executor
 
+        @schema_cache = BoundSchemaReflection.new(schema_reflection, self)
+
         @reaper = Reaper.new(self, db_config.reaping_frequency)
         @reaper.run
-      end
-
-      def lock_thread=(lock_thread)
-        if lock_thread
-          @lock_thread = ActiveSupport::IsolatedExecutionState.context
-        else
-          @lock_thread = nil
-        end
-
-        if (active_connection = @thread_cached_conns[connection_cache_key(current_thread)])
-          active_connection.lock_thread = @lock_thread
-        end
       end
 
       # Retrieve the connection associated with the current thread, or call
@@ -191,7 +179,42 @@ module ActiveRecord
       # #connection can be called any number of times; the connection is
       # held in a cache keyed by a thread.
       def connection
-        @thread_cached_conns[connection_cache_key(current_thread)] ||= checkout
+        @thread_cached_conns[ActiveSupport::IsolatedExecutionState.context] ||= checkout
+      end
+
+      def pin_connection!(lock_thread) # :nodoc:
+        raise "There is already a pinned connection" if @pinned_connection
+
+        @pinned_connection = (@thread_cached_conns[ActiveSupport::IsolatedExecutionState.context] || checkout)
+        # Any leased connection must be in @connections otherwise
+        # some methods like #connected? won't behave correctly
+        unless @connections.include?(@pinned_connection)
+          @connections << @pinned_connection
+        end
+
+        @pinned_connection.lock_thread = ActiveSupport::IsolatedExecutionState.context if lock_thread
+        @pinned_connection.verify! # eagerly validate the connection
+        @pinned_connection.begin_transaction joinable: false, _lazy: false
+      end
+
+      def unpin_connection! # :nodoc:
+        raise "There isn't a pinned connection #{object_id}" unless @pinned_connection
+
+        clean = true
+        @pinned_connection.lock.synchronize do
+          connection, @pinned_connection = @pinned_connection, nil
+          if connection.transaction_open?
+            connection.rollback_transaction
+          else
+            # Something committed or rolled back the transaction
+            clean = false
+            connection.reset!
+          end
+          connection.lock_thread = nil
+          checkin(connection)
+        end
+
+        clean
       end
 
       def connection_class # :nodoc:
@@ -206,7 +229,7 @@ module ActiveRecord
       # #connection or #with_connection methods. Connections obtained through
       # #checkout will not be detected by #active_connection?
       def active_connection?
-        @thread_cached_conns[connection_cache_key(current_thread)]
+        @thread_cached_conns[ActiveSupport::IsolatedExecutionState.context]
       end
 
       # Signal that the thread is finished with the current connection.
@@ -217,7 +240,7 @@ module ActiveRecord
       # #connection or #with_connection methods, connections obtained through
       # #checkout will not be automatically released.
       def release_connection(owner_thread = ActiveSupport::IsolatedExecutionState.context)
-        if conn = @thread_cached_conns.delete(connection_cache_key(owner_thread))
+        if conn = @thread_cached_conns.delete(owner_thread)
           checkin conn
         end
       end
@@ -232,13 +255,15 @@ module ActiveRecord
       # connection will be properly returned to the pool by the code that checked
       # it out.
       def with_connection
-        unless conn = @thread_cached_conns[connection_cache_key(ActiveSupport::IsolatedExecutionState.context)]
-          conn = connection
-          fresh_connection = true
+        if conn = @thread_cached_conns[ActiveSupport::IsolatedExecutionState.context]
+          yield conn
+        else
+          begin
+            yield connection
+          ensure
+            release_connection
+          end
         end
-        yield conn
-      ensure
-        release_connection if fresh_connection
       end
 
       # Returns true if a connection has already been opened.
@@ -278,6 +303,7 @@ module ActiveRecord
               conn.disconnect!
             end
             @connections = []
+            @thread_cached_conns.clear
             @available.clear
           end
         end
@@ -362,9 +388,19 @@ module ActiveRecord
       # Raises:
       # - ActiveRecord::ConnectionTimeoutError no connection can be obtained from the pool.
       def checkout(checkout_timeout = @checkout_timeout)
-        connection = checkout_and_verify(acquire_connection(checkout_timeout))
-        connection.lock_thread = @lock_thread
-        connection
+        if @pinned_connection
+          synchronize do
+            @pinned_connection.verify!
+            # Any leased connection must be in @connections otherwise
+            # some methods like #connected? won't behave correctly
+            unless @connections.include?(@pinned_connection)
+              @connections << @pinned_connection
+            end
+          end
+          @pinned_connection
+        else
+          checkout_and_verify(acquire_connection(checkout_timeout))
+        end
       end
 
       # Check-in a database connection back into the pool, indicating that you
@@ -373,6 +409,8 @@ module ActiveRecord
       # +conn+: an AbstractAdapter object, which was obtained by earlier by
       # calling #checkout on this pool.
       def checkin(conn)
+        return if @pinned_connection.equal?(conn)
+
         conn.lock.synchronize do
           synchronize do
             remove_connection_from_thread_cache conn
@@ -381,7 +419,6 @@ module ActiveRecord
               conn.expire
             end
 
-            conn.lock_thread = nil
             @available.add conn
           end
         end
@@ -439,6 +476,8 @@ module ActiveRecord
             remove conn
           end
         end
+
+        prune_thread_cache
       end
 
       # Disconnect all connections that have been idle for at least
@@ -475,8 +514,7 @@ module ActiveRecord
         @available.num_waiting
       end
 
-      # Return connection pool's usage statistic
-      # Example:
+      # Returns the connection pool's usage statistic.
       #
       #    ActiveRecord::Base.connection_pool.stat # => { size: 15, connections: 1, busy: 1, dead: 0, idle: 0, waiting: 0, checkout_timeout: 5 }
       def stat
@@ -527,19 +565,6 @@ module ActiveRecord
           end
         end
 
-        #--
-        # From the discussion on GitHub:
-        #  https://github.com/rails/rails/pull/14938#commitcomment-6601951
-        # This hook-in method allows for easier monkey-patching fixes needed by
-        # JRuby users that use Fibers.
-        def connection_cache_key(thread)
-          thread
-        end
-
-        def current_thread
-          @lock_thread || ActiveSupport::IsolatedExecutionState.context
-        end
-
         # Take control of all existing connections so a "group" action such as
         # reload/disconnect can be performed safely. It is no longer enough to
         # wrap it in +synchronize+ because some pool's actions are allowed
@@ -553,6 +578,8 @@ module ActiveRecord
 
         def attempt_to_checkout_all_existing_connections(raise_on_acquisition_timeout = true)
           collected_conns = synchronize do
+            reap # No need to wait for dead owners
+
             # account for our own connections
             @connections.select { |conn| conn.owner == ActiveSupport::IsolatedExecutionState.context }
           end
@@ -564,6 +591,7 @@ module ActiveRecord
             loop do
               synchronize do
                 return if collected_conns.size == @connections.size && @now_connecting == 0
+
                 remaining_timeout = timeout_time - Process.clock_gettime(Process::CLOCK_MONOTONIC)
                 remaining_timeout = 0 if remaining_timeout < 0
                 conn = checkout_for_exclusive_access(remaining_timeout)
@@ -683,9 +711,16 @@ module ActiveRecord
         #--
         # if owner_thread param is omitted, this must be called in synchronize block
         def remove_connection_from_thread_cache(conn, owner_thread = conn.owner)
-          @thread_cached_conns.delete_pair(connection_cache_key(owner_thread), conn)
+          @thread_cached_conns.delete_pair(owner_thread, conn)
         end
         alias_method :release, :remove_connection_from_thread_cache
+
+        def prune_thread_cache
+          dead_threads = @thread_cached_conns.keys.reject(&:alive?)
+          dead_threads.each do |dead_thread|
+            @thread_cached_conns.delete(dead_thread)
+          end
+        end
 
         def new_connection
           connection = db_config.new_connection

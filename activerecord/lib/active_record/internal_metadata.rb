@@ -91,7 +91,7 @@ module ActiveRecord
     end
 
     def table_exists?
-      connection.schema_cache.data_source_exists?(table_name)
+      @connection.schema_cache.data_source_exists?(table_name)
     end
 
     private

@@ -55,9 +55,6 @@ module ActiveRecord
     # about the model. The model needs to pass a connection specification name to the handler,
     # in order to look up the correct connection pool.
     class ConnectionHandler
-      FINALIZER = lambda { |_| ActiveSupport::ForkTracker.check! }
-      private_constant :FINALIZER
-
       class StringConnectionName # :nodoc:
         attr_reader :name
 
@@ -77,9 +74,6 @@ module ActiveRecord
       def initialize
         # These caches are keyed by pool_config.connection_name (PoolConfig#connection_name).
         @connection_name_to_pool_manager = Concurrent::Map.new(initial_capacity: 2)
-
-        # Backup finalizer: if the forked child skipped Kernel#fork the early discard has not occurred
-        ObjectSpace.define_finalizer self, FINALIZER
       end
 
       def prevent_writes # :nodoc:
@@ -188,7 +182,10 @@ module ActiveRecord
           role = ActiveRecord::Base.current_role
         end
 
-        each_connection_pool(role).each(&:release_connection)
+        each_connection_pool(role).each do |pool|
+          pool.release_connection
+          pool.disable_query_cache!
+        end
       end
 
       # Clears the cache which maps classes.
@@ -229,20 +226,7 @@ module ActiveRecord
       # opened and set as the active connection for the class it was defined
       # for (not necessarily the current class).
       def retrieve_connection(connection_name, role: ActiveRecord::Base.current_role, shard: ActiveRecord::Base.current_shard) # :nodoc:
-        pool = retrieve_connection_pool(connection_name, role: role, shard: shard)
-
-        unless pool
-          if shard != ActiveRecord::Base.default_shard
-            message = "No connection pool for '#{connection_name}' found for the '#{shard}' shard."
-          elsif role != ActiveRecord::Base.default_role
-            message = "No connection pool for '#{connection_name}' found for the '#{role}' role."
-          else
-            message = "No connection pool for '#{connection_name}' found."
-          end
-
-          raise ConnectionNotEstablished, message
-        end
-
+        pool = retrieve_connection_pool(connection_name, role: role, shard: shard, strict: true)
         pool.connection
       end
 
@@ -262,9 +246,22 @@ module ActiveRecord
       # Retrieving the connection pool happens a lot, so we cache it in @connection_name_to_pool_manager.
       # This makes retrieving the connection pool O(1) once the process is warm.
       # When a connection is established or removed, we invalidate the cache.
-      def retrieve_connection_pool(connection_name, role: ActiveRecord::Base.current_role, shard: ActiveRecord::Base.current_shard)
-        pool_config = get_pool_manager(connection_name)&.get_pool_config(role, shard)
-        pool_config&.pool
+      def retrieve_connection_pool(connection_name, role: ActiveRecord::Base.current_role, shard: ActiveRecord::Base.current_shard, strict: false)
+        pool = get_pool_manager(connection_name)&.get_pool_config(role, shard)&.pool
+
+        if strict && !pool
+          if shard != ActiveRecord::Base.default_shard
+            message = "No connection pool for '#{connection_name}' found for the '#{shard}' shard."
+          elsif role != ActiveRecord::Base.default_role
+            message = "No connection pool for '#{connection_name}' found for the '#{role}' role."
+          else
+            message = "No connection pool for '#{connection_name}' found."
+          end
+
+          raise ConnectionNotEstablished, message
+        end
+
+        pool
       end
 
       private

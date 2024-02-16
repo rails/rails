@@ -10,7 +10,6 @@ module ApplicationTests
 
     def setup
       build_app(multi_db: true)
-      add_to_config "config.active_record.sqlite3_production_warning = false"
       rails("generate", "scaffold", "Pet", "name:string", "--database=animals")
       app_file "app/models/user.rb", <<-RUBY
         class User < ActiveRecord::Base
@@ -148,6 +147,23 @@ module ApplicationTests
       comment = last_response.body.strip
 
       assert_equal("/*action='index',controller='users',database='storage%2Fproduction_animals.sqlite3'*/", comment)
+    end
+
+    test "source_location information is added if enabled" do
+      add_to_config <<~RUBY
+        config.active_record.query_log_tags_enabled = true
+        config.active_record.query_log_tags = [ :source_location ]
+
+        # Remove silencers, so we won't get all backtrace lines filtered.
+        Rails.backtrace_cleaner.remove_silencers!
+      RUBY
+
+      boot_app
+
+      get "/", {}, { "HTTPS" => "on" }
+      comment = last_response.body.strip
+
+      assert_match(/source_location='.*'/, comment)
     end
 
     test "controller tags are not doubled up if already configured" do
