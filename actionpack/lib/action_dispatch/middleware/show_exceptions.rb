@@ -41,6 +41,7 @@ module ActionDispatch
         wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
         status  = wrapper.status_code
         request.set_header "action_dispatch.exception", wrapper.unwrapped_exception
+        request.set_header "action_dispatch.report_exception", !wrapper.rescue_response?
         request.set_header "action_dispatch.original_path", request.path_info
         request.set_header "action_dispatch.original_request_method", request.raw_request_method
         fallback_to_html_format_if_invalid_mime_type(request)

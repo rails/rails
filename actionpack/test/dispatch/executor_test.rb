@@ -142,7 +142,7 @@ class ExecutorTest < ActiveSupport::TestCase
 
   def test_error_reporting
     raised_error = nil
-    error_report = assert_error_reported do
+    error_report = assert_error_reported(executor) do
       raised_error = assert_raises TypeError do
         call_and_return_body { 1 + "1" }
       end
@@ -162,10 +162,36 @@ class ExecutorTest < ActiveSupport::TestCase
     )
 
     env = Rack::MockRequest.env_for("", {})
-    error_report = assert_error_reported do
+    error_report = assert_error_reported(executor) do
       middleware.call(env)
     end
     assert_instance_of TypeError, error_report.error
+  end
+
+  class BusinessAsUsual < StandardError; end
+
+  def test_handled_error_is_not_reported
+    old_rescue_responses = ActionDispatch::ExceptionWrapper.rescue_responses
+    middleware = Rack::Lint.new(
+      ActionDispatch::Executor.new(
+        ActionDispatch::ShowExceptions.new(
+          Rack::Lint.new(->(_env) { raise BusinessAsUsual }),
+          ->(env) { [418, {}, ["I'm a teapot"]] },
+        ),
+        executor,
+      )
+    )
+
+    env = Rack::MockRequest.env_for("", {})
+
+    ActionDispatch::ExceptionWrapper.rescue_responses = { BusinessAsUsual.name => 418 }
+
+    assert_no_error_reported(executor) do
+      response = middleware.call(env)
+      assert_equal 418, response[0]
+    end
+  ensure
+    ActionDispatch::ExceptionWrapper.rescue_responses = old_rescue_responses
   end
 
   private
@@ -181,5 +207,70 @@ class ExecutorTest < ActiveSupport::TestCase
 
     def executor
       @executor ||= Class.new(ActiveSupport::Executor)
+    end
+
+    class ErrorCollector
+      Report = Struct.new(:error, :handled, :severity, :context, :source, keyword_init: true)
+      class Report
+        alias_method :handled?, :handled
+      end
+
+      def record(executor)
+        subscribe(executor)
+        recorders = ActiveSupport::IsolatedExecutionState[:active_support_error_reporter_assertions] ||= []
+        reports = []
+        recorders << reports
+        begin
+          yield
+          reports
+        ensure
+          recorders.delete_if { |r| reports.equal?(r) }
+        end
+      end
+
+      def report(error, **kwargs)
+        report = Report.new(error: error, **kwargs)
+        ActiveSupport::IsolatedExecutionState[:active_support_error_reporter_assertions]&.each do |reports|
+          reports << report
+        end
+        true
+      end
+
+      private
+        def subscribe(executor)
+          return if @subscribed
+
+          if executor.error_reporter
+            executor.error_reporter.subscribe(self)
+            @subscribed = true
+          else
+            raise Minitest::Assertion, "No error reporter is configured"
+          end
+        end
+    end
+
+    def assert_no_error_reported(executor, &block)
+      reports = ErrorCollector.new.record(executor) do
+        _assert_nothing_raised_or_warn("assert_no_error_reported", &block)
+      end
+      assert_predicate(reports, :empty?)
+    end
+
+    def assert_error_reported(error_class = StandardError, executor, &block)
+      reports = ErrorCollector.new.record(executor) do
+        _assert_nothing_raised_or_warn("assert_error_reported", &block)
+      end
+
+      if reports.empty?
+        assert(false, "Expected a #{error_class.name} to be reported, but there were no errors reported.")
+      elsif (report = reports.find { |r| error_class === r.error })
+        self.assertions += 1
+        report
+      else
+        message = "Expected a #{error_class.name} to be reported, but none of the " \
+          "#{reports.size} reported errors matched:  \n" \
+          "#{reports.map { |r| r.error.class.name }.join("\n  ")}"
+        assert(false, message)
+      end
     end
 end
