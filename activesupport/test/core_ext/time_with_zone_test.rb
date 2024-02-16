@@ -1080,7 +1080,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     e = assert_raises(NoMethodError) {
       @twz.this_method_does_not_exist
     }
-    assert_match(/undefined method `this_method_does_not_exist' for.*ActiveSupport::TimeWithZone/, e.message)
+    assert_match(/undefined method [`']this_method_does_not_exist' for.*ActiveSupport::TimeWithZone/, e.message)
     assert_no_match "rescue", e.backtrace.first
   end
 end
