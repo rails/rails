@@ -968,7 +968,11 @@ class DeprecationTest < ActiveSupport::TestCase
   test "warn deprecation can blame code generated with eval" do
     @deprecator.behavior = ->(message, *) { @message = message }
     generated_method_that_call_deprecation(@deprecator)
-    assert_equal "DEPRECATION WARNING: Here (called from generated_method_that_call_deprecation at /path/to/template.html.erb:2)", @message
+    if RUBY_VERSION >= "3.4"
+      assert_equal "DEPRECATION WARNING: Here (called from DeprecationTest#generated_method_that_call_deprecation at /path/to/template.html.erb:2)", @message
+    else
+      assert_equal "DEPRECATION WARNING: Here (called from generated_method_that_call_deprecation at /path/to/template.html.erb:2)", @message
+    end
   end
 
   private
