@@ -128,13 +128,20 @@ module ActiveRecord
           pool = ConnectionPool.new(pool_config)
           pool.checkout
 
+          # We currently have a bug somewhere which leads for this test case to be deadlocked
+          # and timeout after 30 minutes on the CI. Until that bug is fixed, this test is made
+          # to timeout after a short period of time to reduce the damage.
+          reader, writer = IO.pipe
+
           pid = fork do
+            reader.close
             pool = ConnectionPool.new(pool_config)
 
             conn, child = new_conn_in_thread(pool)
             child.terminate
 
             wait_for_conn_idle(conn)
+            writer.close
             if conn.in_use?
               exit!(1)
             else
@@ -142,8 +149,14 @@ module ActiveRecord
             end
           end
 
-          Process.waitpid(pid)
-          assert_predicate $?, :success?
+          writer.close
+          completed = reader.wait_readable(20)
+          reader.close
+          unless completed
+            Process.kill("ABRT", pid)
+          end
+          _, status = Process.wait2(pid)
+          assert_predicate status, :success?
         ensure
           pool.discard!
         end
