@@ -912,7 +912,7 @@ module ActiveRecord
           # Nothing we can do if we are in a transaction because all commands
           # will raise InFailedSQLTransaction
           if in_transaction?
-            raise ActiveRecord::PreparedStatementCacheExpired.new(e.cause.message)
+            raise ActiveRecord::PreparedStatementCacheExpired.new(e.cause.message, connection_pool: @pool)
           else
             @lock.synchronize do
               # outside of transactions we can simply flush this query and retry
