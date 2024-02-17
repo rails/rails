@@ -117,9 +117,9 @@ module ActiveStorage::Blob::Representable
 
     def default_variant_format
       if web_image?
-        format || :png
+        format || :webp
       else
-        :png
+        :webp
       end
     end
 
