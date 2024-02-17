@@ -49,6 +49,12 @@ module ActiveRecord
             assert_deprecated(ActiveRecord.deprecator) { Post.where("title = ?", 0.seconds).count }
           end
         end
+
+        def test_where_with_two_dimensional_array_for_string_column_using_bind_parameters
+          values = [["hello", "misc post by bob"], ["hullo", "misc post by mary"], ["invalid", "not existing"]]
+          count = Post.where("(body, title) IN (?)", values).count
+          assert_equal 2, count
+        end
       end
     end
   end

@@ -65,6 +65,8 @@ module ActiveRecord
             quote(encode_array(value))
           when Range
             quote(encode_range(value))
+          when Array
+            "(#{value.map { |v| quote(v) }.join(', ')})"
           else
             super
           end
