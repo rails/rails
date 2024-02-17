@@ -3,6 +3,22 @@
 
     *Jason Nochlin*
 
+*   The fix ensures that the association is joined using the appropriate join type
+    (either inner join or left outer join) based on the existing joins in the scope.
+
+    This prevents unintentional overrides of existing join types and ensures consistency in the generated SQL queries.
+
+    Example:
+
+
+
+    ```ruby
+    # `associated` will use `LEFT JOIN` instead of using `JOIN`
+    Post.left_joins(:author).where.associated(:author)
+    ```
+
+    *Saleh Alhaddad*
+
 *   Fix an issue where `ActiveRecord::Encryption` configurations are not ready before the loading
     of Active Record models, when an application is eager loaded. As a result, encrypted attributes
     could be misconfigured in some cases.
