@@ -1,3 +1,10 @@
+*   Handle empty array value in query builder's tuple syntax
+
+    Interpret `.where([:col1, :col2] => [])` as a reqeust to fetch an empty relation,
+    similar to `where(col: [])`.
+
+    *Dmytro Soltys*
+
 *   Fix `has_one` association autosave setting the foreign key attribute when it is unchanged.
 
     This behaviour is also inconsistent with autosaving `belongs_to` and can have unintended side effects like raising

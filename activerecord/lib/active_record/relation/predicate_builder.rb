@@ -2,6 +2,8 @@
 
 module ActiveRecord
   class PredicateBuilder # :nodoc:
+    EMPTY_RELATION_QUERY = ["1=0"]
+
     require "active_record/relation/predicate_builder/array_handler"
     require "active_record/relation/predicate_builder/basic_object_handler"
     require "active_record/relation/predicate_builder/range_handler"
@@ -74,11 +76,12 @@ module ActiveRecord
 
     protected
       def expand_from_hash(attributes, &block)
-        return ["1=0"] if attributes.empty?
+        return EMPTY_RELATION_QUERY if attributes.empty?
 
         attributes.flat_map do |key, value|
           if key.is_a?(Array)
-            queries = Array(value).map do |ids_set|
+            values = Array(value).presence || [Array.new(key.length) { [] }]
+            queries = values.map do |ids_set|
               raise ArgumentError, "Expected corresponding value for #{key} to be an Array" unless ids_set.is_a?(Array)
               expand_from_hash(key.zip(ids_set).to_h)
             end

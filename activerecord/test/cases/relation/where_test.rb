@@ -107,6 +107,10 @@ module ActiveRecord
       assert_equal [first_topic, third_topic].sort, Topic.where(key => conditions).sort
     end
 
+    def test_where_with_tuple_syntax_and_empty_array
+      assert_empty Topic.where([:id] => [])
+    end
+
     def test_where_with_tuple_syntax_on_composite_models
       book_one = Cpk::Book.create!(id: [1, 2])
       book_two = Cpk::Book.create!(id: [3, 4])

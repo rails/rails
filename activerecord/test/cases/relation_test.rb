@@ -420,9 +420,31 @@ module ActiveRecord
       end
     end
 
+    test "no queries on impossible condition" do
+      assert_queries_count(0) do
+        Post.excluding(Post.where(id: [])).invert_where.load
+      end
+
+      assert_queries_count(0) do
+        Post.where(id: []).and(Post.where(author_id: [])).load
+      end
+
+      assert_queries_count(0) do
+        Post.where(id: 999999999999999999999999999999999999999).load
+      end
+
+      assert_queries_count(0) do
+        Post.where(id: 1).and(Post.where(author_id: [])).load
+      end
+    end
+
     test "no queries on empty IN" do
       assert_queries_count(0) do
         Post.where(id: []).load
+      end
+
+      assert_queries_count(0) do
+        Post.where([:id, :author_id] => []).load
       end
     end
 
@@ -430,17 +452,29 @@ module ActiveRecord
       assert_queries_count(1) do
         Post.where(id: []).unscope(where: :id).load
       end
+
+      assert_queries_count(1) do
+        Post.where([:id, :author_id] => []).unscope(where: [:id, :author_id]).load
+      end
     end
 
     test "no queries on empty relation exists?" do
       assert_queries_count(0) do
         Post.where(id: []).exists?(123)
       end
+
+      assert_queries_count(0) do
+        Post.where([:id, :author_id] => []).exists?(123)
+      end
     end
 
     test "no queries on empty condition exists?" do
       assert_queries_count(0) do
         Post.all.exists?(id: [])
+      end
+
+      assert_queries_count(0) do
+        Post.all.exists?([:id] => [])
       end
     end
 
