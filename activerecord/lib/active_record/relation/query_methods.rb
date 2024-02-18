@@ -1745,9 +1745,12 @@ module ActiveRecord
         return if with_values.empty?
 
         with_statements = with_values.map do |with_value|
-          raise ArgumentError, "Unsupported argument type: #{with_value} #{with_value.class}" unless with_value.is_a?(Hash)
-
-          build_with_value_from_hash(with_value)
+          case with_value
+          when Hash then build_with_value_from_hash(with_value)
+          when Arel::Nodes::Cte then with_value
+          else
+            raise ArgumentError, "Unsupported argument type: #{with_value} #{with_value.class}"
+          end
         end
 
         arel.with(with_statements)
