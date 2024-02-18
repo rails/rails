@@ -2892,6 +2892,14 @@ The default value depends on the `config.load_defaults` target version:
 | 6.0                   | `:active_storage_analysis` |
 | 6.1                   | `nil`                |
 
+#### `config.active_storage.queues.mirror`
+
+Accepts a symbol indicating the Active Job queue to use for direct upload mirroring jobs. When this option is `nil`, mirroring jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). The default is `nil`.
+
+#### `config.active_storage.queues.preview_image`
+
+Accepts a symbol indicating the Active Job queue to use for preprocessing previews of images. When this option is `nil`, jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). The default is `nil`.
+
 #### `config.active_storage.queues.purge`
 
 Accepts a symbol indicating the Active Job queue to use for purge jobs. When this option is `nil`, purge jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
@@ -2903,9 +2911,9 @@ The default value depends on the `config.load_defaults` target version:
 | 6.0                   | `:active_storage_purge` |
 | 6.1                   | `nil`                |
 
-#### `config.active_storage.queues.mirror`
+#### `config.active_storage.queues.transform`
 
-Accepts a symbol indicating the Active Job queue to use for direct upload mirroring jobs. When this option is `nil`, mirroring jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). The default is `nil`.
+Accepts a symbol indicating the Active Job queue to use for preprocessing variants. When this option is `nil`, jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). The default is `nil`.
 
 #### `config.active_storage.logger`
 
