@@ -18,7 +18,7 @@ module ActionController # :nodoc:
       #
       # In addition to specifically named browser versions, you can also pass
       # `:modern` as the set to restrict support to browsers natively supporting webp
-      # images, web push, badges, import maps, CSS nesting, and CSS :has. This
+      # images, web push, import maps, CSS nesting, and CSS :has. This
       # includes Safari 17.2+, Chrome 120+, Firefox 121+, Opera 106+.
       #
       # You can use https://caniuse.com to check for browser versions supporting the
@@ -30,7 +30,7 @@ module ActionController # :nodoc:
       # Examples:
       #
       #     class ApplicationController < ActionController::Base
-      #       # Allow only browsers natively supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has
+      #       # Allow only browsers natively supporting webp images, web push, import maps, CSS nesting, and CSS :has
       #       allow_browser versions: :modern
       #     end
       #
