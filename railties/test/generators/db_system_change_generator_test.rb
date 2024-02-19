@@ -100,7 +100,7 @@ module Rails
             assert_compose_file do |compose_config|
               assert_includes compose_config["services"]["rails-app"]["depends_on"], "mysql"
 
-              expected_postgres_config = {
+              expected_mysql_config = {
                 "image" => "mysql/mysql-server:8.0",
                 "restart" => "unless-stopped",
                 "environment" => {
@@ -111,7 +111,7 @@ module Rails
                 "networks" => ["default"],
               }
 
-              assert_equal expected_postgres_config, compose_config["services"]["mysql"]
+              assert_equal expected_mysql_config, compose_config["services"]["mysql"]
               assert_includes compose_config["volumes"].keys, "mysql-data"
             end
           end
@@ -165,7 +165,7 @@ module Rails
             assert_compose_file do |compose_config|
               assert_includes compose_config["services"]["rails-app"]["depends_on"], "mariadb"
 
-              expected_postgres_config = {
+              expected_mariadb_config = {
                 "image" => "mariadb:10.5",
                 "restart" => "unless-stopped",
                 "networks" => ["default"],
@@ -175,7 +175,7 @@ module Rails
                 },
               }
 
-              assert_equal expected_postgres_config, compose_config["services"]["mariadb"]
+              assert_equal expected_mariadb_config, compose_config["services"]["mariadb"]
               assert_includes compose_config["volumes"].keys, "mariadb-data"
             end
           end
