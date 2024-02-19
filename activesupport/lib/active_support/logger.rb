@@ -13,6 +13,10 @@ module ActiveSupport
     #   logger = Logger.new(STDOUT)
     #   ActiveSupport::Logger.logger_outputs_to?(logger, STDOUT)
     #   # => true
+    #
+    #   logger = Logger.new('/var/log/rails.log')
+    #   ActiveSupport::Logger.logger_outputs_to?('var/log/rails.log', STDOUT)
+    #   # => true
     def self.logger_outputs_to?(logger, *sources)
       loggers = if logger.is_a?(BroadcastLogger)
         logger.broadcasts
@@ -21,9 +25,9 @@ module ActiveSupport
       end
 
       logdevs = loggers.map { |logger| logger.instance_variable_get(:@logdev) }
-      logger_sources = logdevs.filter_map { |logdev| logdev.dev if logdev.respond_to?(:dev) }
+      logger_sources = logdevs.filter_map { |logdev| logdev.try(:filename) || logdev.try(:dev) }
 
-      sources.intersect?(logger_sources)
+      normalize_sources(sources).intersect?(normalize_sources(logger_sources))
     end
 
     def initialize(*args, **kwargs)
@@ -38,5 +42,14 @@ module ActiveSupport
         "#{String === msg ? msg : msg.inspect}\n"
       end
     end
+
+    private
+      def self.normalize_sources(sources)
+        sources.map do |source|
+          source = source.path if source.respond_to?(:path)
+          source = File.realpath(source) if source.is_a?(String) && File.exist?(source)
+          source
+        end
+      end
   end
 end
