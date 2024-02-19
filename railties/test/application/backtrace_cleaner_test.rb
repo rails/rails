@@ -19,7 +19,11 @@ module ApplicationTests
 
       app("development")
       get "/"
-      assert_includes last_response.body, "app/app/controllers/foo_controller.rb:4:in `index'"
+      if RUBY_VERSION >= "3.4"
+        assert_includes last_response.body, "app/app/controllers/foo_controller.rb:4:in 'FooController#index'"
+      else
+        assert_includes last_response.body, "app/app/controllers/foo_controller.rb:4:in `index'"
+      end
       assert_not_includes last_response.body, "rails/railties/test/env_helpers.rb"
     end
 
@@ -29,7 +33,11 @@ module ApplicationTests
 
         app("development")
         get "/"
-        assert_includes last_response.body, "app/app/controllers/foo_controller.rb:4:in `index'"
+        if RUBY_VERSION >= "3.4"
+          assert_includes last_response.body, "app/app/controllers/foo_controller.rb:4:in 'FooController#index'"
+        else
+          assert_includes last_response.body, "app/app/controllers/foo_controller.rb:4:in `index'"
+        end
         assert_includes last_response.body, "rails/railties/test/env_helpers.rb"
       end
     end

@@ -1304,7 +1304,9 @@ Allows specifying the maximum number of records that will be destroyed in a back
 
 #### `config.active_record.queues.destroy`
 
-Allows specifying the Active Job queue to use for destroy jobs. When this option is `nil`, purge jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). It defaults to `nil`.
+Allows specifying the Active Job queue to use for destroy jobs. When this option
+is `nil`, purge jobs are sent to the default Active Job queue (see
+[`config.active_job.default_queue_name`][]). It defaults to `nil`.
 
 #### `config.active_record.enumerate_columns_in_select_statements`
 
@@ -2266,7 +2268,9 @@ config.action_mailbox.incinerate_after = 14.days
 
 #### `config.action_mailbox.queues.incineration`
 
-Accepts a symbol indicating the Active Job queue to use for incineration jobs. When this option is `nil`, incineration jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
+Accepts a symbol indicating the Active Job queue to use for incineration jobs.
+When this option is `nil`, incineration jobs are sent to the default Active Job
+queue (see [`config.active_job.default_queue_name`][]).
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -2277,7 +2281,9 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.action_mailbox.queues.routing`
 
-Accepts a symbol indicating the Active Job queue to use for routing jobs. When this option is `nil`, routing jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
+Accepts a symbol indicating the Active Job queue to use for routing jobs. When
+this option is `nil`, routing jobs are sent to the default Active Job queue (see
+[`config.active_job.default_queue_name`][]).
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -2428,7 +2434,10 @@ Specifies whether the mailer templates should perform fragment caching or not. I
 
 #### `config.action_mailer.deliver_later_queue_name`
 
-Specifies the Active Job queue to use for the default delivery job (see `config.action_mailer.delivery_job`). When this option is set to `nil`, delivery jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
+Specifies the Active Job queue to use for the default delivery job (see
+`config.action_mailer.delivery_job`). When this option is set to `nil`, delivery
+jobs are sent to the default Active Job queue (see
+[`config.active_job.default_queue_name`][]).
 
 Mailer classes can override this to use a different queue. Note that this only applies when using the default delivery job. If your mailer is using a custom job, its queue will be used.
 
@@ -2713,6 +2722,8 @@ Can be used to change the default queue name. By default this is `"default"`.
 config.active_job.default_queue_name = :medium_priority
 ```
 
+[`config.active_job.default_queue_name`]: #config-active-job-default-queue-name
+
 #### `config.active_job.queue_name_prefix`
 
 Allows you to set an optional, non-blank, queue name prefix for all jobs. By default it is blank and not used.
@@ -2895,7 +2906,9 @@ config.active_storage.content_types_allowed_inline = %w(image/png image/gif imag
 
 #### `config.active_storage.queues.analysis`
 
-Accepts a symbol indicating the Active Job queue to use for analysis jobs. When this option is `nil`, analysis jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
+Accepts a symbol indicating the Active Job queue to use for analysis jobs. When
+this option is `nil`, analysis jobs are sent to the default Active Job queue
+(see [`config.active_job.default_queue_name`][]).
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -2904,9 +2917,25 @@ The default value depends on the `config.load_defaults` target version:
 | 6.0                   | `:active_storage_analysis` |
 | 6.1                   | `nil`                |
 
+#### `config.active_storage.queues.mirror`
+
+Accepts a symbol indicating the Active Job queue to use for direct upload
+mirroring jobs. When this option is `nil`, mirroring jobs are sent to the
+default Active Job queue (see [`config.active_job.default_queue_name`][]). The
+default is `nil`.
+
+#### `config.active_storage.queues.preview_image`
+
+Accepts a symbol indicating the Active Job queue to use for preprocessing
+previews of images. When this option is `nil`, jobs are sent to the default
+Active Job queue (see [`config.active_job.default_queue_name`][]). The default
+is `nil`.
+
 #### `config.active_storage.queues.purge`
 
-Accepts a symbol indicating the Active Job queue to use for purge jobs. When this option is `nil`, purge jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
+Accepts a symbol indicating the Active Job queue to use for purge jobs. When
+this option is `nil`, purge jobs are sent to the default Active Job queue (see
+[`config.active_job.default_queue_name`][]).
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -2915,9 +2944,11 @@ The default value depends on the `config.load_defaults` target version:
 | 6.0                   | `:active_storage_purge` |
 | 6.1                   | `nil`                |
 
-#### `config.active_storage.queues.mirror`
+#### `config.active_storage.queues.transform`
 
-Accepts a symbol indicating the Active Job queue to use for direct upload mirroring jobs. When this option is `nil`, mirroring jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). The default is `nil`.
+Accepts a symbol indicating the Active Job queue to use for preprocessing
+variants. When this option is `nil`, jobs are sent to the default Active Job
+queue (see [`config.active_job.default_queue_name`][]). The default is `nil`.
 
 #### `config.active_storage.logger`
 

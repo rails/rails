@@ -122,7 +122,7 @@ module ApplicationTests
     def test_runner_detects_bad_script_name
       output = rails("runner", "iuiqwiourowe", allow_failure: true)
       assert_not_predicate $?, :success?
-      assert_match "undefined local variable or method `iuiqwiourowe' for", output
+      assert_match(/undefined local variable or method [`']iuiqwiourowe' for/, output)
     end
 
     def test_environment_with_rails_env

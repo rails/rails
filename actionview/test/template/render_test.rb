@@ -316,7 +316,7 @@ module RenderTestCases
     renderable = Object.new
     renderable.define_singleton_method(:render_in) { |*| nil.render_in }
 
-    assert_raises NoMethodError, match: "undefined method `render_in' for nil" do
+    assert_raises NoMethodError, match: /undefined method [`']render_in' for nil/ do
       @view.render renderable: renderable
     end
   end
@@ -390,7 +390,7 @@ module RenderTestCases
 
   def test_undefined_method_error_references_named_class
     e = assert_raises(ActionView::Template::Error) { @view.render(inline: "<%= undefined %>") }
-    assert_match(/undefined local variable or method `undefined'/, e.message)
+    assert_match(/undefined local variable or method [`']undefined'/, e.message)
   end
 
   def test_render_renderable_object

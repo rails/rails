@@ -19,23 +19,23 @@ module ActionCable
       end
 
       def alive?
-        websocket && websocket.alive?
+        websocket&.alive?
       end
 
-      def transmit(data)
-        websocket.transmit data
+      def transmit(...)
+        websocket&.transmit(...)
       end
 
-      def close
-        websocket.close
+      def close(...)
+        websocket&.close(...)
       end
 
       def protocol
-        websocket.protocol
+        websocket&.protocol
       end
 
       def rack_response
-        websocket.rack_response
+        websocket&.rack_response
       end
 
       private

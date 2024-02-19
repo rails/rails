@@ -426,7 +426,7 @@ class ModuleTest < ActiveSupport::TestCase
       DecoratedReserved.new(@david).private_name
     end
 
-    assert_match(/undefined method `private_name' for/, e.message)
+    assert_match(/undefined method [`']private_name' for/, e.message)
   end
 
   def test_delegate_missing_to_does_not_delegate_to_fake_methods
@@ -434,7 +434,7 @@ class ModuleTest < ActiveSupport::TestCase
       DecoratedReserved.new(@david).my_fake_method
     end
 
-    assert_match(/undefined method `my_fake_method' for/, e.message)
+    assert_match(/undefined method [`']my_fake_method' for/, e.message)
   end
 
   def test_delegate_missing_to_raises_delegation_error_if_target_nil

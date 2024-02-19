@@ -135,7 +135,11 @@ module ActiveRecord
 
         def encrypt_as_text(value)
           with_context do
-            encryptor.encrypt(value, **encryption_options)
+            encryptor.encrypt(value, **encryption_options).tap do |encrypted|
+              if !cast_type.binary? && encrypted.encoding == Encoding::BINARY
+                raise Errors::Encoding, "Binary encoded data can only be stored in binary columns"
+              end
+            end
           end
         end
 
