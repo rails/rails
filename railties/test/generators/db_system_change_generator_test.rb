@@ -168,7 +168,7 @@ module Rails
               expected_postgres_config = {
                 "image" => "mariadb:10.5",
                 "restart" => "unless-stopped",
-                "networks" => ["dqefault"],
+                "networks" => ["default"],
                 "volumes" => ["mariadb-data:/var/lib/mysql"],
                 "environment" => {
                   "MARIADB_ALLOW_EMPTY_ROOT_PASSWORD" => true,
