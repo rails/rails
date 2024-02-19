@@ -129,6 +129,13 @@ class SymbolIgnoredDeveloper < ActiveRecord::Base
   attribute :last_name
 end
 
+class SymbolPermittedDeveloper < ActiveRecord::Base
+  self.table_name = "developers"
+  self.permitted_columns = [:created_at, :updated_at]
+
+  attribute :last_name
+end
+
 class AuditLog < ActiveRecord::Base
   belongs_to :developer, validate: true
   belongs_to :unvalidated_developer, class_name: "Developer"
@@ -360,6 +367,12 @@ class DeveloperName < ActiveRecord::Type::String
   end
 end
 
+class SubDeveloperWithPermittedColumns < Developer
+  attribute :name, DeveloperName.new
+
+  self.permitted_columns = ["id", "last_name", "salary"]
+end
+
 class AttributedDeveloper < ActiveRecord::Base
   self.table_name = "developers"
 
@@ -371,4 +384,21 @@ end
 class ColumnNamesCachedDeveloper < ActiveRecord::Base
   self.table_name = "developers"
   self.ignored_columns += ["name"] if column_names.include?("name")
+end
+
+class DeveloperWithPermittedColumns < ActiveRecord::Base
+  self.table_name = "developers"
+
+  attribute :name, DeveloperName.new
+
+  self.permitted_columns = ["created_at", "updated_at", "last_name"]
+end
+
+class DeveloperWithPermittedAndIgnoredColumns < ActiveRecord::Base
+  self.table_name = "developers"
+
+  attribute :name, DeveloperName.new
+
+  self.permitted_columns += ["first_name"] if column_names.include?("first_name")
+  self.ignored_columns += ["first_name"] if column_names.include?("first_name")
 end

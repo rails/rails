@@ -174,6 +174,7 @@ module ActiveRecord
       self.protected_environments = ["production"]
 
       self.ignored_columns = [].freeze
+      self.permitted_columns = [].freeze
 
       delegate :type_for_attribute, :column_for_attribute, to: :class
 
@@ -328,6 +329,12 @@ module ActiveRecord
         @ignored_columns || superclass.ignored_columns
       end
 
+      # The list of columns of that the model should permit. Only permitted columns will
+      # have attribute accessors defined and be referenced in SQL queries.
+      def permitted_columns
+        @permitted_columns || superclass.permitted_columns
+      end
+
       # Sets the columns names the model should ignore. Ignored columns won't have attribute
       # accessors defined, and won't be referenced in SQL queries.
       #
@@ -362,6 +369,43 @@ module ActiveRecord
       def ignored_columns=(columns)
         reload_schema_from_cache
         @ignored_columns = columns.map(&:to_s).freeze
+      end
+
+      # Sets the column names the model should permit. Only permitted columns will have attribute
+      # accessors defined and be referenced in SQL queries.
+      #
+      # An inverse of `#ignored_columns`, this method enables explicit declaration of columns that
+      # a model has access to. This approach is particularly helpful when removing references to
+      # an attribute since it can be easy to forget to mark an attribute as ignored.
+      #
+      # For example, given a model where you want to drop the "category" attribute and db column,
+      # first remove it from the permitted list:
+      #
+      #   class Project < ActiveRecord::Base
+      #     # schema:
+      #     #   id         :bigint
+      #     #   name       :string, limit: 255
+      #     #   category   :string, limit: 255
+      #
+      #     # before
+      #     self.permitted_columns += [:id, :name, :category]
+      #     # after
+      #     self.permitted_columns += [:id, :name]
+      #   end
+      #
+      # The schema still contains "category", but now the model omits it, so any meta-driven code or
+      # schema caching will not attempt to use the column:
+      #
+      #   Project.columns_hash["category"] => nil
+      #
+      # You will get an error if accessing that attribute directly, so ensure all usages of the
+      # column are removed (automated tests can help you find any usages).
+      #
+      #   user = Project.create!(name: "First Project")
+      #   user.category # => raises NoMethodError
+      def permitted_columns=(columns)
+        reload_schema_from_cache
+        @permitted_columns = columns.map(&:to_s).freeze
       end
 
       def sequence_name
@@ -572,6 +616,7 @@ module ActiveRecord
           child_class.reload_schema_from_cache(false)
           child_class.class_eval do
             @ignored_columns = nil
+            @permitted_columns = nil
           end
         end
 
@@ -585,7 +630,8 @@ module ActiveRecord
           end
 
           columns_hash = schema_cache.columns_hash(table_name)
-          columns_hash = columns_hash.except(*ignored_columns) unless ignored_columns.empty?
+          columns_hash = columns_hash.slice(*permitted_columns) if permitted_columns.present?
+          columns_hash = columns_hash.except(*ignored_columns) if ignored_columns.present?
           @columns_hash = columns_hash.freeze
         end
 

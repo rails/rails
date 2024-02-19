@@ -1768,6 +1768,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_includes SymbolIgnoredDeveloper.columns_hash.keys, "first_name"
   end
 
+  test "only permitted columns are present in columns hash" do
+    cache_columns = DeveloperWithPermittedColumns.schema_cache.columns_hash(DeveloperWithPermittedColumns.table_name)
+    assert_includes cache_columns.keys, "first_name"
+    assert_not_includes DeveloperWithPermittedColumns.columns_hash.keys, "first_name"
+    assert_not_includes SubDeveloperWithPermittedColumns.columns_hash.keys, "first_name"
+    assert_not_includes SymbolPermittedDeveloper.columns_hash.keys, "first_name"
+  end
+
   test ".columns_hash raises an error if the record has an empty table name" do
     expected_message = "FirstAbstractClass has no table configured. Set one with FirstAbstractClass.table_name="
     exception = assert_raises(ActiveRecord::TableNotSpecified) do
@@ -1788,6 +1796,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_respond_to SymbolIgnoredDeveloper.new, :first_name?
   end
 
+  test "only permitted columns have attribute methods" do
+    assert_not_respond_to SubDeveloperWithPermittedColumns.new, :first_name
+    assert_not_respond_to SubDeveloperWithPermittedColumns.new, :first_name=
+    assert_not_respond_to SubDeveloperWithPermittedColumns.new, :first_name?
+  end
+
   test "ignored columns don't prevent explicit declaration of attribute methods" do
     assert_respond_to Developer.new, :last_name
     assert_respond_to Developer.new, :last_name=
@@ -1798,6 +1812,20 @@ class BasicsTest < ActiveRecord::TestCase
     assert_respond_to SymbolIgnoredDeveloper.new, :last_name
     assert_respond_to SymbolIgnoredDeveloper.new, :last_name=
     assert_respond_to SymbolIgnoredDeveloper.new, :last_name?
+  end
+
+  test "columns excluded from permitted columns don't prevent explicit declaration of attribute methods" do
+    assert_respond_to DeveloperWithPermittedColumns.new, :name
+    assert_respond_to DeveloperWithPermittedColumns.new, :name=
+    assert_respond_to DeveloperWithPermittedColumns.new, :name?
+    assert_respond_to SubDeveloperWithPermittedColumns.new, :name
+    assert_respond_to SubDeveloperWithPermittedColumns.new, :name=
+    assert_respond_to SubDeveloperWithPermittedColumns.new, :name?
+  end
+
+  test "permitted columns are stored as an array of string" do
+    assert_equal(%w(created_at updated_at last_name), DeveloperWithPermittedColumns.permitted_columns)
+    assert_equal(%w(created_at updated_at), SymbolPermittedDeveloper.permitted_columns)
   end
 
   test "ignored columns are stored as an array of string" do
@@ -1816,6 +1844,21 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_respond_to developer, :first_name=
   end
 
+  test "when #reload is called, attribue methods for columns excluded from permitted columns are not defined" do
+    developer = SubDeveloperWithPermittedColumns.create!(name: "Developer")
+    assert_not_respond_to developer, :first_name
+    assert_not_respond_to developer, :first_name=
+
+    developer.reload
+
+    assert_not_respond_to developer, :first_name
+    assert_not_respond_to developer, :first_name=
+  end
+
+  test "when a column is defined as both permitted and ignored, it is ignored" do
+    assert_not_includes DeveloperWithPermittedAndIgnoredColumns.columns_hash.keys, "first_name"
+  end
+
   test "when ignored attribute is loaded, cast type should be preferred over DB type" do
     developer = AttributedDeveloper.create
     developer.update_column :name, "name"
@@ -1825,6 +1868,10 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "when assigning new ignored columns it invalidates cache for column names" do
+    assert_not_includes ColumnNamesCachedDeveloper.column_names, "name"
+  end
+
+  test "when assigning new permitted columns it invalidates cache for column names" do
     assert_not_includes ColumnNamesCachedDeveloper.column_names, "name"
   end
 
@@ -1838,10 +1885,28 @@ class BasicsTest < ActiveRecord::TestCase
     assert query.include?("name")
   end
 
+  test "only permitted columns are included in SELECT" do
+    query = SubDeveloperWithPermittedColumns.all.to_sql.downcase
+
+    # absent from permitted_columns
+    assert_not query.include?("first_name")
+
+    # present in permitted_columns
+    assert query.include?("id")
+  end
+
   test "column names are quoted when using #from clause and model has ignored columns" do
     assert_not_empty Developer.ignored_columns
     query = Developer.from("developers").to_sql
     quoted_id = "#{Developer.quoted_table_name}.#{Developer.quoted_primary_key}"
+
+    assert_match(/SELECT #{Regexp.escape(quoted_id)}.* FROM developers/, query)
+  end
+
+  test "column names are quoted when using #from clause and model has permitted columns" do
+    assert_not_empty SubDeveloperWithPermittedColumns.permitted_columns
+    query = SubDeveloperWithPermittedColumns.from("developers").to_sql
+    quoted_id = "#{SubDeveloperWithPermittedColumns.quoted_table_name}.#{SubDeveloperWithPermittedColumns.quoted_primary_key}"
 
     assert_match(/SELECT #{Regexp.escape(quoted_id)}.* FROM developers/, query)
   end

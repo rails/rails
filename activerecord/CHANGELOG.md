@@ -1,3 +1,10 @@
+*   Add `permitted_columns` to ActiveRecord::ModelSchema
+
+    Adds `permitted_columns` getter and setter, which acts as an inverse of `ignored_columns`.
+    When set on a model, only columns specified in `permitted_columns` will be referenced.
+
+    *Scott Hudson*
+
 *   Add ActiveRecord::Encryption::MessagePackMessageSerializer
 
     Serialize data to the MessagePack format, for efficient storage in binary columns.
