@@ -119,7 +119,7 @@ class Hash
         object.each_with_object(self.class.new) do |(key, value), result|
           result[yield(key)] = _deep_transform_keys_in_object(value, &block)
         end
-      when ActionController::Parameters
+      when defined?(ActionController::Parameters) && ActionController::Parameters
         if object.permitted?
           object.to_h.deep_transform_keys(&block)
         else
@@ -140,7 +140,7 @@ class Hash
           object[yield(key)] = _deep_transform_keys_in_object!(value, &block)
         end
         object
-      when ActionController::Parameters
+      when defined?(ActionController::Parameters) && ActionController::Parameters
         if object.permitted?
           object.to_h.deep_transform_keys!(&block)
         else
