@@ -693,26 +693,4 @@ class SerializedAttributeTestWithYamlSafeLoad < SerializedAttributeTest
     topic = Topic.new(content: Time.now)
     assert topic.save
   end
-
-  def test_recognizes_coder_as_deprecated_positional_argument
-    some_coder = Struct.new(:foo) do
-      def self.dump(value)
-        value.foo
-      end
-
-      def self.load(value)
-        new(value)
-      end
-    end
-
-    assert_deprecated(/Please pass the coder as a keyword argument/, ActiveRecord.deprecator) do
-      Topic.serialize(:content, some_coder)
-    end
-  end
-
-  def test_recognizes_type_as_deprecated_positional_argument
-    assert_deprecated(/Please pass the class as a keyword argument/, ActiveRecord.deprecator) do
-      Topic.serialize(:content, Hash)
-    end
-  end
 end

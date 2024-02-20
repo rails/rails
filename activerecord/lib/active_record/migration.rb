@@ -696,23 +696,6 @@ module ActiveRecord
         delegate || superclass.nearest_delegate
       end
 
-      # Raises ActiveRecord::PendingMigrationError error if any migrations are pending.
-      #
-      # This is deprecated in favor of +check_all_pending!+
-      def check_pending!(connection = ActiveRecord::Tasks::DatabaseTasks.migration_connection)
-        ActiveRecord.deprecator.warn(<<-MSG.squish)
-          The `check_pending!` method is deprecated in favor of `check_all_pending!`. The
-          new implementation will loop through all available database configurations and find
-          pending migrations. The prior implementation did not permit this.
-        MSG
-
-        pending_migrations = connection.migration_context.open.pending_migrations
-
-        if pending_migrations.any?
-          raise ActiveRecord::PendingMigrationError.new(pending_migrations: pending_migrations)
-        end
-      end
-
       # Raises ActiveRecord::PendingMigrationError error if any migrations are pending
       # for all database configurations in an environment.
       def check_all_pending!
@@ -1222,28 +1205,6 @@ module ActiveRecord
     attr_reader :migrations_paths, :schema_migration, :internal_metadata
 
     def initialize(migrations_paths, schema_migration = nil, internal_metadata = nil)
-      if schema_migration == SchemaMigration
-        ActiveRecord.deprecator.warn(<<-MSG.squish)
-          SchemaMigration no longer inherits from ActiveRecord::Base. If you want
-          to use the default connection, remove this argument. If you want to use a
-          specific connection, instantiate MigrationContext with the connection's schema
-          migration, for example `MigrationContext.new(path, Dog.connection.schema_migration)`.
-        MSG
-
-        schema_migration = nil
-      end
-
-      if internal_metadata == InternalMetadata
-        ActiveRecord.deprecator.warn(<<-MSG.squish)
-          SchemaMigration no longer inherits from ActiveRecord::Base. If you want
-          to use the default connection, remove this argument. If you want to use a
-          specific connection, instantiate MigrationContext with the connection's internal
-          metadata, for example `MigrationContext.new(path, nil, Dog.connection.internal_metadata)`.
-        MSG
-
-        internal_metadata = nil
-      end
-
       @migrations_paths = migrations_paths
       @schema_migration = schema_migration || SchemaMigration.new(connection)
       @internal_metadata = internal_metadata || InternalMetadata.new(connection)

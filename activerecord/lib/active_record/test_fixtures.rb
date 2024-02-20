@@ -53,20 +53,6 @@ module ActiveRecord
         self.fixture_class_names = fixture_class_names.merge(class_names.stringify_keys)
       end
 
-      def fixture_path # :nodoc:
-        ActiveRecord.deprecator.warn(<<~WARNING)
-          TestFixtures.fixture_path is deprecated and will be removed in Rails 7.2. Use .fixture_paths instead.
-          If multiple fixture paths have been configured with .fixture_paths, then .fixture_path will just return
-          the first path.
-        WARNING
-        fixture_paths.first
-      end
-
-      def fixture_path=(path) # :nodoc:
-        ActiveRecord.deprecator.warn("TestFixtures.fixture_path= is deprecated and will be removed in Rails 7.2. Use .fixture_paths= instead.")
-        self.fixture_paths = Array(path)
-      end
-
       def fixtures(*fixture_set_names)
         if fixture_set_names.first == :all
           raise StandardError, "No fixture path found. Please set `#{self}.fixture_paths`." if fixture_paths.blank?
@@ -111,15 +97,6 @@ module ActiveRecord
     end
 
     private
-      def fixture_path
-        ActiveRecord.deprecator.warn(<<~WARNING)
-          TestFixtures#fixture_path is deprecated and will be removed in Rails 7.2. Use #fixture_paths instead.
-          If multiple fixture paths have been configured with #fixture_paths, then #fixture_path will just return
-          the first path.
-        WARNING
-        fixture_paths.first
-      end
-
       def run_in_transaction?
         use_transactional_tests &&
           !self.class.uses_transaction?(name)

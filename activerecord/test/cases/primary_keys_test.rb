@@ -45,14 +45,11 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal 1, id
   end
 
-  def test_read_attribute_with_custom_primary_key
+  def test_read_attribute_with_custom_primary_key_does_not_return_it_when_reading_the_id_attribute
     keyboard = Keyboard.create!
-    msg = "Using read_attribute(:id) to read the primary key value is deprecated. Use #id instead."
-    id = assert_deprecated(msg, ActiveRecord.deprecator) do
-      keyboard.read_attribute(:id)
-    end
+    id = keyboard.read_attribute(:id)
 
-    assert_equal keyboard.key_number, id
+    assert_nil id
   end
 
   def test_read_attribute_with_composite_primary_key

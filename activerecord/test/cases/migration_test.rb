@@ -79,22 +79,6 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migration.verbose = @verbose_was
   end
 
-  def test_passing_a_schema_migration_class_to_migration_context_is_deprecated
-    migrations_path = MIGRATIONS_ROOT + "/valid"
-    migrator = assert_deprecated(ActiveRecord.deprecator) { ActiveRecord::MigrationContext.new(migrations_path, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata) }
-    migrator.up
-
-    assert_equal 3, migrator.current_version
-    assert_equal false, migrator.needs_migration?
-
-    migrator.down
-    assert_equal 0, migrator.current_version
-    assert_equal true, migrator.needs_migration?
-
-    @schema_migration.create_version(3)
-    assert_equal true, migrator.needs_migration?
-  end
-
   def test_migration_context_with_default_schema_migration
     migrations_path = MIGRATIONS_ROOT + "/valid"
     migrator = ActiveRecord::MigrationContext.new(migrations_path)

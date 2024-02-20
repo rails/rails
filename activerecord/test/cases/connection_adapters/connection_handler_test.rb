@@ -293,22 +293,6 @@ module ActiveRecord
         assert_same klass2.connection, ActiveRecord::Base.connection
       end
 
-      def test_remove_connection_with_name_argument_is_deprecated
-        klass2 = Class.new(Base) { def self.name; "klass2"; end }
-
-        assert_same klass2.connection, ActiveRecord::Base.connection
-
-        pool = klass2.establish_connection(ActiveRecord::Base.connection_pool.db_config.configuration_hash)
-        assert_same klass2.connection, pool.connection
-        assert_not_same klass2.connection, ActiveRecord::Base.connection
-
-        assert_deprecated(ActiveRecord.deprecator) do
-          ActiveRecord::Base.remove_connection("klass2")
-        end
-      ensure
-        ActiveRecord::Base.establish_connection :arunit
-      end
-
       class ApplicationRecord < ActiveRecord::Base
         self.abstract_class = true
       end

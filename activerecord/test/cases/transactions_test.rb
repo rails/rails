@@ -17,11 +17,6 @@ class TransactionTest < ActiveRecord::TestCase
 
   def setup
     @first, @second = Topic.find(1, 2).sort_by(&:id)
-    @commit_transaction_on_non_local_return_was = ActiveRecord.commit_transaction_on_non_local_return
-  end
-
-  def teardown
-    ActiveRecord.commit_transaction_on_non_local_return = @commit_transaction_on_non_local_return_was
   end
 
   def test_rollback_dirty_changes
@@ -343,49 +338,7 @@ class TransactionTest < ActiveRecord::TestCase
     assert_predicate Topic.find(1), :approved?, "First should have been approved"
   end
 
-  def test_rollback_with_return
-    committed = false
-
-    Topic.connection.class_eval do
-      alias :real_commit_db_transaction :commit_db_transaction
-      define_method(:commit_db_transaction) do
-        committed = true
-        real_commit_db_transaction
-      end
-    end
-
-    assert_deprecated(ActiveRecord.deprecator) do
-      transaction_with_return
-    end
-    assert_not committed
-
-    assert_not_predicate Topic.find(1), :approved?
-    assert_predicate Topic.find(2), :approved?
-  ensure
-    Topic.connection.class_eval do
-      remove_method :commit_db_transaction
-      alias :commit_db_transaction :real_commit_db_transaction rescue nil
-    end
-  end
-
-  def test_rollback_on_ruby_timeout
-    assert_deprecated(ActiveRecord.deprecator) do
-      catch do |timeout|
-        Topic.transaction do
-          @first.approved = true
-          @first.save!
-
-          throw timeout
-        end
-      end
-    end
-
-    assert_not_predicate Topic.find(1), :approved?
-  end
-
-  def test_break_from_transaction_7_1_behavior
-    ActiveRecord.commit_transaction_on_non_local_return = true
-
+  def test_break_from_transaction_commits
     @first.transaction do
       assert_not_predicate @first, :approved?
       @first.update!(approved: true)
@@ -401,9 +354,7 @@ class TransactionTest < ActiveRecord::TestCase
     assert_predicate Topic.find(2), :approved?, "Second should have been approved"
   end
 
-  def test_thow_from_transaction_7_1_behavior
-    ActiveRecord.commit_transaction_on_non_local_return = true
-
+  def test_throw_from_transaction_commits
     catch(:not_an_error) do
       @first.transaction do
         assert_not_predicate @first, :approved?
@@ -433,9 +384,7 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
-  def test_return_from_transaction_7_1_behavior
-    ActiveRecord.commit_transaction_on_non_local_return = true
-
+  def test_return_from_transaction_commits
     _test_return_from_transaction_7_1_behavior
     assert_predicate Topic.find(1), :approved?, "First should have been approved"
     assert_predicate Topic.find(2), :approved?, "Second should have been approved"

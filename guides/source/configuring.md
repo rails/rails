@@ -69,10 +69,8 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
 - [`config.action_text.sanitizer_vendor`](#config-action-text-sanitizer-vendor): `Rails::HTML::Sanitizer.best_supported_vendor`
 - [`config.action_view.sanitizer_vendor`](#config-action-view-sanitizer-vendor): `Rails::HTML::Sanitizer.best_supported_vendor`
-- [`config.active_record.allow_deprecated_singular_associations_name`](#config-active-record-allow-deprecated-singular-associations-name): `false`
 - [`config.active_record.before_committed_on_all_records`](#config-active-record-before-committed-on-all-records): `true`
 - [`config.active_record.belongs_to_required_validates_foreign_key`](#config-active-record-belongs-to-required-validates-foreign-key): `false`
-- [`config.active_record.commit_transaction_on_non_local_return`](#config-active-record-commit-transaction-on-non-local-return): `true`
 - [`config.active_record.default_column_serializer`](#config-active-record-default-column-serializer): `nil`
 - [`config.active_record.encryption.hash_digest_class`](#config-active-record-encryption-hash-digest-class): `OpenSSL::Digest::SHA256`
 - [`config.active_record.encryption.support_sha1_for_non_deterministic_encryption`](#config-active-record-encryption-support-sha1-for-non-deterministic-encryption): `false`
@@ -1323,39 +1321,6 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `false`              |
 | 7.0                   | `true`               |
 
-#### `config.active_record.commit_transaction_on_non_local_return`
-
-Defines whether `return`, `break` and `throw` inside a `transaction` block cause the transaction to be
-committed or rolled back. e.g.:
-
-```ruby
-Model.transaction do
-  model.save
-  return
-  other_model.save # not executed
-end
-```
-
-If set to `false`, it will be rolled back.
-
-If set to `true`, the above transaction will be committed.
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `false`              |
-| 7.1                   | `true`               |
-
-Historically only raised errors would trigger a rollback, but in Ruby `2.3`, the `timeout` library
-started using `throw` to interrupt execution which had the adverse effect of committing open transactions.
-
-To solve this, in Active Record 6.1 the behavior was changed to instead rollback the transaction as it was safer
-than to potentially commit an incomplete transaction.
-
-Using `return`, `break` or `throw` inside a `transaction` block was essentially deprecated from Rails 6.1 onwards.
-
-However with the release of `timeout 0.4.0`, `Timeout.timeout` now raises an error again, and Active Record is able
-to return to its original, less surprising, behavior.
-
 #### `config.active_record.raise_on_assign_to_attr_readonly`
 
 Enable raising on assignment to attr_readonly attributes. The previous
@@ -1508,31 +1473,6 @@ should be large enough to accommodate both the foreground threads (ie. web serve
 For each process, Rails will create one global query executor that uses this many threads to process async queries. Thus, the pool size
 should be at least `thread_count + global_executor_concurrency + 1`. For example, if your web server has a maximum of 3 threads,
 and `global_executor_concurrency` is set to 4, then your pool size should be at least 8.
-
-#### `config.active_record.allow_deprecated_singular_associations_name`
-
-This enables deprecated behavior wherein singular associations can be referred to by their plural name in `where` clauses. Setting this to `false` is more performant.
-
-```ruby
-class Comment < ActiveRecord::Base
-  belongs_to :post
-end
-
-Comment.where(post: post_id).count  # => 5
-
-# When `allow_deprecated_singular_associations_name` is true:
-Comment.where(posts: post_id).count # => 5 (deprecation warning)
-
-# When `allow_deprecated_singular_associations_name` is false:
-Comment.where(posts: post_id).count # => error
-```
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `true`               |
-| 7.1                   | `false`              |
 
 #### `config.active_record.yaml_column_permitted_classes`
 
