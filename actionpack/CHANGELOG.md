@@ -1,3 +1,7 @@
+*   Fix ReDoS in Accept header parsing
+
+    CVE-2024-26142
+
 ## Rails 7.1.3 (January 16, 2024) ##
 
 *   Fix including `Rails.application.routes.url_helpers` directly in an
