@@ -101,6 +101,10 @@ module ActiveRecord
           super(*EncryptedQuery.process_arguments(self, args, true))
         end
 
+        def missing?(*args)
+          !exists?(args)
+        end
+
         def scope_for_create
           return super unless klass.deterministic_encrypted_attributes&.any?
 
