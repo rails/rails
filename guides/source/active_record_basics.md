@@ -151,12 +151,13 @@ Creating Active Record Models
 -----------------------------
 
 When generating a Rails application, an abstract `ApplicationRecord` class will
-be created in `app/models/application_record.rb`. This is the base class for all
-models in your app, and it's what turns a regular ruby class into an Active
-Record model.
+be created in `app/models/application_record.rb`. The `ApplicationRecord` class
+inherits from [`ActiveRecord::Base`](https://api.rubyonrails.org/classes/ActiveRecord/Base.html) and it's what turns a regular ruby class into
+an Active Record model.
 
-To create Active Record models, subclass the `ApplicationRecord` class and
-you're good to go:
+`ApplicationRecord` is the base class for all models in your app. To create
+Active Record models, subclass the `ApplicationRecord` class and you're good to
+go:
 
 ```ruby
 class Product < ApplicationRecord
@@ -179,7 +180,7 @@ Database tables in Rails are typically created using [Active Record Migrations](
 ```irb
 $ rails generate migration CreateProducts name:string
 
-# Note: the `id` column, as the primary key, is autometically created by convension
+# Note: the `id` column, as the primary key, is autometically created by convension. As are `created_at` and `updated_at` columns.
 
 # /db/migrate/20240220143807_create_products.rb
 class CreateProducts < ActiveRecord::Migration
@@ -198,10 +199,14 @@ and `name`. Each row of this table can be represented by an instance of the
 `Product` class, with the same two attribures, `id` and `name`. You can access a
 product's attributes like this:
 
-```ruby
+```irb
 p = Product.new
-p.name = "Some Book"
-puts p.name # "Some Book"
+=> #<Product:0x00007f95c7ca94f0 id: nil, name: nil, created_at: nil, updated_at: nil>
+
+p.name = "pen"
+=> "pen"
+p.name
+=> "pen"
 ```
 
 Overriding the Naming Conventions
