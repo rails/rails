@@ -268,7 +268,7 @@ CRUD: Reading and Writing Data
 
 CRUD is an acronym for the four verbs we use to operate on data: **C**reate,
 **R**ead, **U**pdate and **D**elete. Active Record automatically creates methods
-to allow an application to read and manipulate data stored within its tables.
+to allow you to read and manipulate data stored in your application's database tables. Active Record makes it seamless to perform CRUD operations by providing these high-level methods and abstracting away the details of database interactions.
 
 ### Create
 
@@ -289,9 +289,13 @@ Using the `new` method, an object can be instantiated without being saved:
 user = User.new
 user.name = "David"
 user.occupation = "Code Artist"
-```
 
-A call to `user.save` will commit the record to the database.
+# The `user` is not yet saved to the database
+
+user.save
+
+# Now the `user` record is committed to the database.
+```
 
 Finally, if a block is provided, both `create` and `new` will yield the new
 object to that block for initialization, while only `create` will persist
@@ -302,6 +306,8 @@ user = User.new do |u|
   u.name = "David"
   u.occupation = "Code Artist"
 end
+
+user.save
 ```
 
 ### Read
@@ -310,22 +316,25 @@ Active Record provides a rich API for accessing data within a database. Below
 are a few examples of different data access methods provided by Active Record.
 
 ```ruby
-# return a collection with all users
+# Return a collection with all users
 users = User.all
 ```
 
 ```ruby
-# return the first user
+# Return the first user
 user = User.first
 ```
 
 ```ruby
-# return the first user named David
+# Return the first user named David
 david = User.find_by(name: 'David')
+
+# Shorthand for User.find_by(id: 42)
+user = User.find(42)
 ```
 
 ```ruby
-# find all users named David who are Code Artists and sort by created_at in reverse chronological order
+# Find all users with a given `name` and `occupation`, sort by created_at in reverse chronological order
 users = User.where(name: 'David', occupation: 'Code Artist').order(created_at: :desc)
 ```
 
@@ -351,7 +360,7 @@ user = User.find_by(name: 'David')
 user.update(name: 'Dave')
 ```
 
-This is most useful when updating several attributes at once.
+This is useful when updating several attributes at once. Similar to `.create`, using `.update` will commit the updated records to the database.
 
 If you'd like to update several records in bulk **without callbacks or
 validations**, you can update the database directly using `update_all`:
@@ -362,8 +371,7 @@ User.update_all max_login_attempts: 3, must_change_password: true
 
 ### Delete
 
-Likewise, once retrieved, an Active Record object can be destroyed, which removes
-it from the database.
+Likewise, once retrieved, an Active Record object can be destroyed, which removes it from the database.
 
 ```ruby
 user = User.find_by(name: 'David')
