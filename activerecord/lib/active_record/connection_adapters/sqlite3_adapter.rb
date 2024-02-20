@@ -263,7 +263,7 @@ module ActiveRecord
 
         unless result.blank?
           tables = result.map { |row| row["table"] }
-          raise ActiveRecord::StatementInvalid.new("Foreign key violations found: #{tables.join(", ")}", sql: sql)
+          raise ActiveRecord::StatementInvalid.new("Foreign key violations found: #{tables.join(", ")}", sql: sql, connection_pool: @pool)
         end
       end
 
@@ -481,7 +481,7 @@ module ActiveRecord
           else
             internal_exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA")
           end
-          raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
+          raise ActiveRecord::StatementInvalid.new("Could not find table '#{table_name}'", connection_pool: @pool) if structure.empty?
           table_structure_with_collation(table_name, structure)
         end
         alias column_definitions table_structure

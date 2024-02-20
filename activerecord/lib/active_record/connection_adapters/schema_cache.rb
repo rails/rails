@@ -354,7 +354,7 @@ module ActiveRecord
       # Get the columns for a table
       def columns(pool, table_name)
         if ignored_table?(table_name)
-          raise ActiveRecord::StatementInvalid, "Table '#{table_name}' doesn't exist"
+          raise ActiveRecord::StatementInvalid.new("Table '#{table_name}' doesn't exist", connection_pool: pool)
         end
 
         @columns.fetch(table_name) do
