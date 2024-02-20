@@ -180,6 +180,7 @@ Database tables in Rails are typically created using [Active Record Migrations](
 ```bash
 $ rails generate migration CreateProducts name:string
 ```
+
 and results in this:
 
 ```ruby
