@@ -72,8 +72,7 @@ Record models.
 
 Rails adopts the idea that if you configure your applications in the same way
 most of the time, then that way should be the default. Explicit configuration
-should be needed only in those cases where you can't follow the standard
-convention.
+should be needed only in those cases where you can't follow the convention.
 
 To take advantage of convention over configuration in Active Record, there are
 some naming and schema conventions to follow. And in case you need to, it is possible to [override naming conventions](#overriding-the-naming-conventions).
@@ -91,8 +90,9 @@ pluralizing (and singularizing) both regular and irregular words. This uses the
 method](https://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-pluralize),
 if you're curious.
 
-For class names composed of two or more words, follow the Ruby conventions of using the CamelCase name. The database
-table name, in that case, must use the snake_case form. For example:
+For class names composed of two or more words, the model class name will follow
+the Ruby conventions of using a CamelCase name. The database table name, in that
+case, will be a snake_case name. For example:
 
 * `BookClub` - is the model class, singular with the first letter of each word capitalized
 * `book_clubs` - is the matching database table, plural with underscores separating words
@@ -103,7 +103,7 @@ Here are some more examples of model class names and corrosponding table names:
 | ---------------- | -------------- |
 | `Article`        | `articles`     |
 | `LineItem`       | `line_items`   |
-| `Deer`           | `deers`        |
+| `Product`        | `products`     |
 | `Mouse`          | `mice`         |
 | `Person`         | `people`       |
 
@@ -112,39 +112,40 @@ Here are some more examples of model class names and corrosponding table names:
 Active Record uses conventions for column names in the database tables as well,
 depending on the purpose of these columns.
 
+* **Primary keys** - By default, Active Record will use an integer column named
+  `id` as the table's primary key (`bigint` for PostgreSQL and MySQL, `integer`
+  for SQLite). When using [Active Record
+  Migrations](active_record_migrations.html) to create your tables, this column
+  will be automatically created.
 * **Foreign keys** - These fields should be named following the pattern
   `singularized_table_name_id` (e.g., `item_id`, `order_id`). These are the
   fields that Active Record will look for when you create associations between
   your models.
-* **Primary keys** - By default, Active Record will use an integer column named
-  `id` as the table's primary key (`bigint` for PostgreSQL and MySQL, `integer`
-  for SQLite). When using [Active Record Migrations](active_record_migrations.html)
-  to create your tables, this column will be automatically created.
 
-There are also some optional column names that will add additional features
-to Active Record instances:
+There are also some optional column names that will add additional features to
+Active Record instances:
 
 * `created_at` - Automatically gets set to the current date and time when the
   record is first created.
 * `updated_at` - Automatically gets set to the current date and time whenever
   the record is created or updated.
 * `lock_version` - Adds [optimistic
-  locking](https://api.rubyonrails.org/classes/ActiveRecord/Locking.html) to
-  a model.
+  locking](https://api.rubyonrails.org/classes/ActiveRecord/Locking.html) to a
+  model.
 * `type` - Specifies that the model uses [Single Table
   Inheritance](https://api.rubyonrails.org/classes/ActiveRecord/Base.html#class-ActiveRecord::Base-label-Single+table+inheritance).
-* `(association_name)_type` - Stores the type for
-  [polymorphic associations](association_basics.html#polymorphic-associations).
+* `(association_name)_type` - Stores the type for [polymorphic
+  associations](association_basics.html#polymorphic-associations).
 * `(table_name)_count` - Used to cache the number of belonging objects on
-  associations. For example, a `comments_count` column in an `Article` class that
-  has many instances of `Comment` will cache the number of existent comments
-  for each article.
+  associations. For example, a `comments_count` column in an `Article` class
+  that has many instances of `Comment` will cache the number of existent
+  comments for each article.
 
 NOTE: While these column names are optional, they are reserved by Active Record.
-Steer clear of reserved keywords unless you want the extra functionality. For
-example, `type` is a reserved keyword used to designate a table using Single
-Table Inheritance (STI). If you are not using STI, use a different word to
-accurately describe the data you are modeling.
+Steer clear of reserved keywords when naming your table's columns. For example,
+`type` is a reserved keyword used to designate a table using Single Table
+Inheritance (STI). If you are not using STI, use a different word to accurately
+describe the data you are modeling.
 
 Creating Active Record Models
 -----------------------------
@@ -163,8 +164,7 @@ end
 ```
 
 This will create a `Product` model, mapped to a `products` table in the
-database. Using `ApplicationRecord`, each column in the table is mapped to attributes of the `Product` class. And an instance of the `Product` can represent a row in the `products` table. Suppose
-that the `products` table was created using an SQL (or one of its extensions) statement like:
+database. Using `ApplicationRecord`, each column in the table is mapped to attributes of the `Product` class. And an instance of the `Product` can represent a row in the `products` table. The `products` table can be created using an SQL statement like this:
 
 ```sql
 CREATE TABLE products (
@@ -174,10 +174,29 @@ CREATE TABLE products (
 );
 ```
 
-The schema above declares a table with two columns: `id` and `name`. Each row of
-this table can be represented by an instance of the `Product` class, with the
-same two attribures, `id` and `name`. You can access a product's attributes like
-this:
+Database tables in Rails are typically created using [Active Record Migrations](#migrations) and not raw SQL. A migration for the `products` table above can be generated like this:
+
+```irb
+$ rails generate migration CreateProducts name:string
+
+# Note: the `id` column, as the primary key, is autometically created by convension
+
+# /db/migrate/20240220143807_create_products.rb
+class CreateProducts < ActiveRecord::Migration
+  def change
+    create_table :products do |t|
+      t.string :name
+
+      t.timestamps
+    end
+  end
+end
+```
+
+The SQL as well as the migration above declare a table with two columns: `id`
+and `name`. Each row of this table can be represented by an instance of the
+`Product` class, with the same two attribures, `id` and `name`. You can access a
+product's attributes like this:
 
 ```ruby
 p = Product.new
