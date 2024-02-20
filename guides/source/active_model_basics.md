@@ -94,7 +94,7 @@ Active Record objects.
 For example, `form_with` can be used to create a form for an `EmailContact`
 object as follows:
 
-```erb+html
+```html+erb
 <%= form_with model: EmailContact.new do |form| %>
   <%= form.text_field :name %>
 <% end %>
