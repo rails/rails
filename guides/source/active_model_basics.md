@@ -259,8 +259,8 @@ on the object will use them as follows:
 1. Include `ActiveModel::AttributeMethods` in your class.
 2. Call each of the methods you want to add, such as `attribute_method_suffix`,
    `attribute_method_prefix`, `attribute_method_affix`.
-3. Call the `define_attribute_methods` after the other methods to declare the
-   attribute that should be prefixed and suffixed.
+3. Call `define_attribute_methods` after the other methods to declare the
+   attribute(s) that should be prefixed and suffixed.
 4.  Define the various generic `_attribute` methods that you have declared. The
     parameter `attribute` in these methods will be replaced by the argument
     passed in `define_attribute_methods`. In our case it is `name`.
