@@ -282,7 +282,7 @@ module ApplicationTests
             end
           end
 
-          assert_match(/Failed to validate the schema cache because of ActiveRecord::ConnectionNotEstablished/, error)
+          assert_match(/Failed to validate the schema cache because of ActiveRecord::(ConnectionNotEstablished|DatabaseConnectionError)/, error)
         end
       end
     end
