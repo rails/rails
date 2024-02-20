@@ -200,7 +200,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal false, Topic.exists?(9999999999999999999999999999999)
     assert_equal false, Topic.exists?(Topic.new.id)
 
-    assert_raise(NoMethodError) { Topic.exists?([1, 2]) }
+    assert_raise(ArgumentError) { Topic.exists?([1, 2]) }
   end
 
   def test_exists_with_scope

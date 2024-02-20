@@ -99,6 +99,14 @@ module ActiveRecord
       end
     end
 
+    def capture_sql_and_binds
+      counter = SQLCounter.new
+      ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
+        yield
+        counter.log_full
+      end
+    end
+
     # Redefine existing assertion method to explicitly not materialize transactions.
     def assert_queries_match(match, count: nil, include_schema: false, &block)
       counter = SQLCounter.new

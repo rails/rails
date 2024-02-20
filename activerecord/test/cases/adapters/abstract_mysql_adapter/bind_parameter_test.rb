@@ -49,7 +49,7 @@ module ActiveRecord
         end
 
         def test_where_with_string_for_string_column_using_bind_parameters
-          assert_quoted_as "'Welcome to the weblog'", "Welcome to the weblog"
+          assert_quoted_as "'Welcome to the weblog'", "Welcome to the weblog", match: 1
         end
 
         def test_where_with_integer_for_string_column_using_bind_parameters
@@ -73,14 +73,16 @@ module ActiveRecord
         end
 
         private
-          def assert_quoted_as(expected, value)
+          def assert_quoted_as(expected, value, match: 0)
             relation = Post.where("title = ?", value)
             assert_equal(
               %{SELECT `posts`.* FROM `posts` WHERE (title = #{expected})},
               relation.to_sql,
             )
-            assert_nothing_raised do # Make sure SQL is valid
-              relation.to_a
+            if match == 0
+              assert_empty relation.to_a
+            else
+              assert_equal match, relation.count
             end
           end
       end

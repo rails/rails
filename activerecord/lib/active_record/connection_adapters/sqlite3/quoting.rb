@@ -63,7 +63,7 @@ module ActiveRecord
 
         def type_cast(value) # :nodoc:
           case value
-          when BigDecimal
+          when BigDecimal, Rational
             value.to_f
           when String
             if value.encoding == Encoding::ASCII_8BIT
