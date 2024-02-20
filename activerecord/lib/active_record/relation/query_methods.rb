@@ -75,8 +75,9 @@ module ActiveRecord
       def associated(*associations)
         associations.each do |association|
           reflection = scope_association_reflection(association)
+          alias_table_names = alias_prediction()
           @scope.joins!(association)
-          if reflection.options[:class_name]
+          if reflection.options[:class_name] && alias_table_names.include?(reflection.table_name)
             self.not(association => { reflection.association_primary_key => nil })
           else
             self.not(reflection.table_name => { reflection.association_primary_key => nil })
@@ -107,8 +108,9 @@ module ActiveRecord
       def missing(*associations)
         associations.each do |association|
           reflection = scope_association_reflection(association)
+          alias_table_names = alias_prediction()
           @scope.left_outer_joins!(association)
-          if reflection.options[:class_name]
+          if reflection.options[:class_name] && alias_table_names.include?(reflection.table_name)
             @scope.where!(association => { reflection.association_primary_key => nil })
           else
             @scope.where!(reflection.table_name => { reflection.association_primary_key => nil })
@@ -125,6 +127,18 @@ module ActiveRecord
             raise ArgumentError.new("An association named `:#{association}` does not exist on the model `#{@scope.name}`.")
           end
           reflection
+        end
+
+        def alias_prediction
+          alias_table_names = []
+          alias_table_names.push(@scope.table_name)
+          if @scope.values[:joins]
+            @scope.values[:joins].each do |join|
+              current_join = scope_association_reflection(join)
+              alias_table_names.push(current_join.table_name)
+            end
+          end
+          alias_table_names
         end
     end
 

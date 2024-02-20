@@ -8,7 +8,8 @@ require "models/essay"
 require "models/comment"
 require "models/categorization"
 require "models/book"
-
+require "models/goal"
+require "models/goal_state"
 module ActiveRecord
   class WhereChainTest < ActiveRecord::TestCase
     fixtures :posts, :comments, :authors, :humans, :essays, :author_addresses, :books
@@ -92,6 +93,18 @@ module ActiveRecord
       assert_equal Author.find(2), Author.order(id: :desc).joins(:reading_listing).where.associated(:reading_listing).extending(Author::NamedExtension).first
     end
 
+    def test_associated_merge_or
+      goal = Goal.create!
+      GoalState.create!(goal_id: goal.id)
+      assert_equal goal, Goal.associated_state.first
+    end
+
+    def test_associated_simple_or
+      goal = Goal.create!
+      GoalState.create!(goal_id: goal.id)
+      assert_equal goal, Goal.associated_state_simple_or.first
+    end
+
     def test_missing_with_association
       assert_predicate posts(:authorless).author, :blank?
       assert_equal [posts(:authorless)], Post.where.missing(:author).to_a
@@ -165,6 +178,16 @@ module ActiveRecord
 
     def test_missing_with_enum_extended_late
       assert_equal Author.find(2), Author.order(id: :desc).joins(:reading_listing).where.missing(:unread_listing).extending(Author::NamedExtension).first
+    end
+
+    def test_missing_merge_or
+      goal = Goal.create!
+      assert_equal goal, Goal.no_state.first
+    end
+
+    def test_missing_simple_or
+      goal = Goal.create!
+      assert_equal goal, Goal.no_state_simple_or.first
     end
 
     def test_not_inverts_where_clause
