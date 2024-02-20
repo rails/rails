@@ -35,7 +35,8 @@ Some of these modules are explained below.
 
 ### API
 
-`ActiveModel::API` adds the ability for a class to work with [Action
+[`ActiveModel::API`](https://api.rubyonrails.org/classes/ActiveModel/API.html)
+adds the ability for a class to work with [Action
 Pack](https://api.rubyonrails.org/files/actionpack/README_rdoc.html) and [Action
 View](action_view_overview.html) right out of the box.
 
