@@ -58,8 +58,6 @@ class Time
     end
   end
   alias_method :to_formatted_s, :to_fs
-  alias_method :to_default_s, :to_s
-  deprecate to_default_s: :to_s, deprecator: ActiveSupport.deprecator
 
   # Returns a formatted string of the offset from UTC, or an alternative
   # string if the time zone is already UTC.

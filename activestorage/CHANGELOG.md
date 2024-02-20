@@ -1,3 +1,11 @@
+*   Remove deprecated `config.active_storage.silence_invalid_content_types_warning`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `config.active_storage.replace_on_assign_to_many`.
+
+    *Rafael Mendonça França*
+
 *   Add `image/webp` to `config.active_storage.web_image_content_types` when `load_defaults "7.2"`
     is set.
 

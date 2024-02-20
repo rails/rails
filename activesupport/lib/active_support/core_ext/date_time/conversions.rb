@@ -40,10 +40,6 @@ class DateTime
     end
   end
   alias_method :to_formatted_s, :to_fs
-  if instance_methods(false).include?(:to_s)
-    alias_method :to_default_s, :to_s
-    deprecate to_default_s: :to_s, deprecator: ActiveSupport.deprecator
-  end
 
 
   # Returns a formatted string of the offset from UTC, or an alternative

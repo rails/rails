@@ -6,10 +6,6 @@ module CacheStoreFormatVersionBehavior
   extend ActiveSupport::Concern
 
   FORMAT_VERSION_SIGNATURES = {
-    6.1 => [
-      "\x04\x08o".b, # Marshal.dump(entry)
-      "\x04\x08o".b, # Marshal.dump(entry.compressed(...))
-    ],
     7.0 => [
       "\x00\x04\x08[".b, # "\x00" + Marshal.dump(entry.pack)
       "\x01\x78".b,      # "\x01" + Zlib::Deflate.deflate(...)
@@ -121,12 +117,6 @@ module CacheStoreFormatVersionBehavior
 
   private
     def with_format(format_version, &block)
-      if format_version == 6.1
-        assert_deprecated(ActiveSupport.deprecator) do
-          ActiveSupport::Cache.with(format_version: format_version, &block)
-        end
-      else
-        ActiveSupport::Cache.with(format_version: format_version, &block)
-      end
+      ActiveSupport::Cache.with(format_version: format_version, &block)
     end
 end

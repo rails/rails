@@ -41,46 +41,6 @@ module ActiveSupport
 
       prepend Strategy::LocalCache
 
-      module DupLocalCache
-        class DupLocalStore < DelegateClass(Strategy::LocalCache::LocalStore)
-          def write_entry(_key, entry)
-            if entry.is_a?(Entry)
-              entry.dup_value!
-            end
-            super
-          end
-
-          def fetch_entry(key)
-            entry = super do
-              new_entry = yield
-              if entry.is_a?(Entry)
-                new_entry.dup_value!
-              end
-              new_entry
-            end
-            entry = entry.dup
-
-            if entry.is_a?(Entry)
-              entry.dup_value!
-            end
-
-            entry
-          end
-        end
-
-        private
-          def local_cache
-            if ActiveSupport::Cache.format_version == 6.1
-              if local_cache = super
-                DupLocalStore.new(local_cache)
-              end
-            else
-              super
-            end
-          end
-      end
-      prepend DupLocalCache
-
       KEY_MAX_SIZE = 250
       ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/n
 
@@ -114,7 +74,6 @@ module ActiveSupport
       #
       # If no addresses are provided, but <tt>ENV['MEMCACHE_SERVERS']</tt> is defined, it will be used instead. Otherwise,
       # +MemCacheStore+ will connect to localhost:11211 (the default memcached port).
-      # Passing a +Dalli::Client+ instance is deprecated and will be removed. Please pass an address instead.
       def initialize(*addresses)
         addresses = addresses.flatten
         options = addresses.extract_options!
@@ -126,19 +85,12 @@ module ActiveSupport
         unless [String, Dalli::Client, NilClass].include?(addresses.first.class)
           raise ArgumentError, "First argument must be an empty array, address, or array of addresses."
         end
-        if addresses.first.is_a?(Dalli::Client)
-          ActiveSupport.deprecator.warn(<<~MSG)
-            Initializing MemCacheStore with a Dalli::Client is deprecated and will be removed in Rails 7.2.
-            Use memcached server addresses instead.
-          MSG
-          @data = addresses.first
-        else
-          @mem_cache_options = options.dup
-          # The value "compress: false" prevents duplicate compression within Dalli.
-          @mem_cache_options[:compress] = false
-          (OVERRIDDEN_OPTIONS - %i(compress)).each { |name| @mem_cache_options.delete(name) }
-          @data = self.class.build_mem_cache(*(addresses + [@mem_cache_options]))
-        end
+
+        @mem_cache_options = options.dup
+        # The value "compress: false" prevents duplicate compression within Dalli.
+        @mem_cache_options[:compress] = false
+        (OVERRIDDEN_OPTIONS - %i(compress)).each { |name| @mem_cache_options.delete(name) }
+        @data = self.class.build_mem_cache(*(addresses + [@mem_cache_options]))
       end
 
       def inspect
@@ -226,20 +178,6 @@ module ActiveSupport
       end
 
       private
-        def default_serializer
-          if Cache.format_version == 6.1
-            ActiveSupport.deprecator.warn <<~EOM
-              Support for `config.active_support.cache_format_version = 6.1` has been deprecated and will be removed in Rails 7.2.
-
-              Check the Rails upgrade guide at https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#new-activesupport-cache-serialization-format
-              for more information on how to upgrade.
-            EOM
-            Cache::SerializerWithFallback[:passthrough]
-          else
-            super
-          end
-        end
-
         # Read an entry from the cache.
         def read_entry(key, **options)
           deserialize_entry(read_serialized_entry(key, **options), **options)

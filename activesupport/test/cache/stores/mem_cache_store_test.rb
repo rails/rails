@@ -297,14 +297,6 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
-  def test_uses_provided_dalli_client_if_present
-    assert_deprecated(ActiveSupport.deprecator) do
-      host = "custom_host"
-      cache = lookup_store(Dalli::Client.new(host))
-      assert_equal [host], servers(cache)
-    end
-  end
-
   def test_forwards_string_addresses_if_present
     expected_addresses = ["first", "second"]
     cache = lookup_store(expected_addresses)
@@ -379,14 +371,12 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     assert_equal({}, @cache.send(:read_multi_entries, [key]))
   end
 
-  def test_deprecated_connection_pool_works
-    assert_deprecated(ActiveSupport.deprecator) do
-      cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, pool_size: 2, pool_timeout: 1)
-      pool = cache.instance_variable_get(:@data) # loads 'connection_pool' gem
-      assert_kind_of ::ConnectionPool, pool
-      assert_equal 2, pool.size
-      assert_equal 1, pool.instance_variable_get(:@timeout)
-    end
+  def test_pool_options_work
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, pool: { size: 2, timeout: 1 })
+    pool = cache.instance_variable_get(:@data) # loads 'connection_pool' gem
+    assert_kind_of ::ConnectionPool, pool
+    assert_equal 2, pool.size
+    assert_equal 1, pool.instance_variable_get(:@timeout)
   end
 
   def test_connection_pooling_by_default

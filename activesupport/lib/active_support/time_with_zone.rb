@@ -479,15 +479,10 @@ module ActiveSupport
       @to_datetime ||= utc.to_datetime.new_offset(Rational(utc_offset, 86_400))
     end
 
-    # Returns an instance of +Time+, either with the same UTC offset
-    # as +self+ or in the local system timezone depending on the setting
-    # of +ActiveSupport.to_time_preserves_timezone+.
+    # Returns an instance of +Time+ with the same UTC offset
+    # as +self+.
     def to_time
-      if preserve_timezone
-        @to_time_with_instance_offset ||= getlocal(utc_offset)
-      else
-        @to_time_with_system_offset ||= getlocal
-      end
+      @to_time_with_instance_offset ||= getlocal(utc_offset)
     end
 
     # So that +self+ <tt>acts_like?(:time)</tt>.

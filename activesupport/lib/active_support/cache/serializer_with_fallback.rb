@@ -63,28 +63,6 @@ module ActiveSupport
           end
         end
 
-        module Marshal61WithFallback
-          include SerializerWithFallback
-          extend self
-
-          MARSHAL_SIGNATURE = "\x04\x08".b.freeze
-
-          def dump(entry)
-            Marshal.dump(entry)
-          end
-
-          def dump_compressed(entry, threshold)
-            Marshal.dump(entry.compressed(threshold))
-          end
-
-          alias_method :_load, :marshal_load
-          public :_load
-
-          def dumped?(dumped)
-            dumped.start_with?(MARSHAL_SIGNATURE)
-          end
-        end
-
         module Marshal70WithFallback
           include SerializerWithFallback
           extend self
@@ -165,7 +143,6 @@ module ActiveSupport
 
         SERIALIZERS = {
           passthrough: PassthroughWithFallback,
-          marshal_6_1: Marshal61WithFallback,
           marshal_7_0: Marshal70WithFallback,
           marshal_7_1: Marshal71WithFallback,
           message_pack: MessagePackWithFallback,

@@ -819,13 +819,6 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_to_default_s
-    time = Time.utc(2005, 2, 21, 17, 44, 30.12345678901)
-    assert_deprecated(ActiveSupport.deprecator) do
-      assert_equal time.to_default_s, time.to_s
-    end
-  end
-
   def test_to_fs
     time = Time.utc(2005, 2, 21, 17, 44, 30.12345678901)
     assert_equal time.to_s,                         time.to_fs(:doesnt_exist)

@@ -28,10 +28,6 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
       info "#{color("rad", :green, bold: true, underline: true)}, #{color("isn't it?", :yellow, italic: true)}"
     end
 
-    def deprecated(event)
-      info "#{color("bogus", :red, true)}"
-    end
-
     def puke(event)
       raise "puke"
     end
@@ -69,13 +65,6 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
     ActiveSupport::LogSubscriber.colorize_logging = true
     @log_subscriber.baz(nil)
     assert_equal "\e[1;4m\e[32mrad\e[0m, \e[3m\e[33misn't it?\e[0m", @logger.logged(:info).last
-  end
-
-  def test_deprecated_bold_format_for_messages
-    ActiveSupport::LogSubscriber.colorize_logging = true
-    assert_deprecated(ActiveSupport.deprecator) do
-      @log_subscriber.deprecated(nil)
-    end
   end
 
   def test_does_not_set_color_if_colorize_logging_is_set_to_false

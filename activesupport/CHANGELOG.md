@@ -1,3 +1,47 @@
+*   Remove deprecated `ActiveSupport::Deprecation` delegation to instance.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `SafeBuffer#clone_empty`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `#to_default_s` from `Array`, `Date`, `DateTime` and `Time`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to passing `Dalli::Client` instances to `MemCacheStore`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `config.active_support.use_rfc4122_namespaced_uuids`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `config.active_support.remove_deprecated_time_with_zone_name`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `config.active_support.disable_to_s_conversion`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to bolding log text with positional boolean in `ActiveSupport::LogSubscriber#color`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated constants `ActiveSupport::LogSubscriber::CLEAR` and `ActiveSupport::LogSubscriber::BOLD`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support for `config.active_support.cache_format_version = 6.1`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `:pool_size` and `:pool_timeout` options for the cache storage.
+
+    *Rafael Mendonça França*
+
 *   Include `IPAddr#prefix` when serializing an `IPAddr` using the
     `ActiveSupport::MessagePack` serializer. This change is backward and forward
     compatible — old payloads can still be read, and new payloads will be
@@ -14,6 +58,18 @@
     ```
 
     *Sean Doyle*
+
+*   Remove deprecated support for the pre-Ruby 2.4 behavior of `to_time` returning a `Time` object with local timezone.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `config.active_support.to_time_preserves_timezone`.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `DateAndTime::Compatibility.preserve_timezone`.
+
+    *Rafael Mendonça França*
 
 *   Yield instance to `Object#with` block
 
