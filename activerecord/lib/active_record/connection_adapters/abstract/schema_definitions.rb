@@ -86,6 +86,7 @@ module ActiveRecord
         :collation,
         :comment,
         :primary_key,
+        :foreign_key,
         :if_exists,
         :if_not_exists
       ]

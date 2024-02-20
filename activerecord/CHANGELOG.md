@@ -1,3 +1,22 @@
+*   Add foreign key in the same statement as adding a column for PostgreSQL.
+
+    ```ruby
+    add_reference :pictures, :users, foreign_key: true
+    ```
+
+    ```sql
+    -- Before
+    ALTER TABLE "pictures" ADD "users_id" bigint
+    ALTER TABLE "pictures" ADD CONSTRAINT "fk_rails_fc5f872279" FOREIGN KEY ("users_id") REFERENCES "users" ("id")
+
+    -- After
+    ALTER TABLE "pictures" ADD "users_id" bigint CONSTRAINT "fk_rails_fc5f872279" REFERENCES "users" ("id")
+    ```
+
+    This completely skips the foreign key validation and performs orders of magnitude faster on large tables.
+
+    *fatkodima*, *Cody Cutrer*
+
 *   Add ActiveRecord::Encryption::MessagePackMessageSerializer
 
     Serialize data to the MessagePack format, for efficient storage in binary columns.

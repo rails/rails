@@ -535,6 +535,10 @@ module ActiveRecord
           super
         end
 
+        def add_reference(table_name, ref_name, **options)
+          PostgreSQL::ReferenceDefinition.new(ref_name, **options).add(table_name, self)
+        end
+
         def foreign_keys(table_name)
           scope = quoted_scope(table_name)
           fk_info = internal_exec_query(<<~SQL, "SCHEMA", allow_retry: true, materialize_transactions: false)
