@@ -177,9 +177,12 @@ CREATE TABLE products (
 
 Database tables in Rails are typically created using [Active Record Migrations](#migrations) and not raw SQL. A migration for the `products` table above can be generated like this:
 
-```irb
+```bash
 $ rails generate migration CreateProducts name:string
+```
+and results in this:
 
+```ruby
 # Note: the `id` column, as the primary key, is autometically created by convension. As are `created_at` and `updated_at` columns.
 
 # /db/migrate/20240220143807_create_products.rb
