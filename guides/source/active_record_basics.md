@@ -360,7 +360,7 @@ user = User.find_by(name: 'David')
 user.update(name: 'Dave')
 ```
 
-This is useful when updating several attributes at once. Similar to `.create`, using `.update` will commit the updated records to the database.
+This is useful when updating several attributes at once. Similar to `create`, using `update` will commit the updated records to the database.
 
 If you'd like to update several records in bulk **without callbacks or
 validations**, you can update the database directly using `update_all`:
@@ -393,9 +393,7 @@ Validations
 -----------
 
 Active Record allows you to validate the state of a model before it gets written
-into the database. There are several methods that you can use to check your
-models and validate that an attribute value is not empty, is unique and not
-already in the database, follows a specific format, and many more.
+into the database. There are several methods that allow for diffrent types of validations. For example, validate that an attribute value is not empty, is unique, is not already in the database, follows a specific format, and many more.
 
 Methods like `save`, `create` and `update` validate a model before persisting
 it to the database. When a model is invalid these methods return `false` and no
@@ -425,9 +423,7 @@ Callbacks
 ---------
 
 Active Record callbacks allow you to attach code to certain events in the
-life-cycle of your models. This enables you to add behavior to your models by
-transparently executing code when those events occur, like when you create a new
-record, update it, destroy it, and so on.
+life-cycle of your models. This enables you to add behavior to your models by executing code when those events occur, like when you create a new record, update it, destroy it, and so on.
 
 ```ruby
 class User < ApplicationRecord
