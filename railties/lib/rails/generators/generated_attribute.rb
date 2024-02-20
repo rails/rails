@@ -239,6 +239,31 @@ module Rails
           end
         end
       end
+
+      def to_s
+        if has_uniq_index?
+          "#{name}:#{type}#{print_attribute_options}:uniq"
+        elsif has_index?
+          "#{name}:#{type}#{print_attribute_options}:index"
+        else
+          "#{name}:#{type}#{print_attribute_options}"
+        end
+      end
+
+      private
+        def print_attribute_options
+          if attr_options.empty?
+            ""
+          elsif attr_options[:size]
+            "{#{attr_options[:size]}}"
+          elsif attr_options[:limit]
+            "{#{attr_options[:limit]}}"
+          elsif attr_options[:precision] && attr_options[:scale]
+            "{#{attr_options[:precision]},#{attr_options[:scale]}}"
+          else
+            "{#{attr_options.keys.join(",")}}"
+          end
+        end
     end
   end
 end
