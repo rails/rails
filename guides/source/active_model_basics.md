@@ -11,8 +11,8 @@ outside of the Rails framework.
 After reading this guide, you will know:
 
 * What Active Model is, and how it relates to Active Record.
-* How to use Active Model in your classes.
 * The different modules that are included in Active Model.
+* How to use Active Model in your classes.
 
 --------------------------------------------------------------------------------
 
