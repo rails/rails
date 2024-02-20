@@ -10,39 +10,46 @@ module ActiveRecord
         fixtures :posts
 
         def test_where_with_string_for_string_column_using_bind_parameters
-          count = Post.where("title = ?", "Welcome to the weblog").count
-          assert_equal 1, count
+          assert_quoted_as "'Welcome to the weblog'", "Welcome to the weblog"
         end
 
         def test_where_with_integer_for_string_column_using_bind_parameters
-          count = Post.where("title = ?", 0).count
-          assert_equal 0, count
+          assert_quoted_as "0", 0
         end
 
         def test_where_with_float_for_string_column_using_bind_parameters
-          count = Post.where("title = ?", 0.0).count
-          assert_equal 0, count
+          assert_quoted_as "0.0", 0.0
         end
 
         def test_where_with_boolean_for_string_column_using_bind_parameters
-          count = Post.where("title = ?", false).count
-          assert_equal 0, count
+          assert_quoted_as "0", false
         end
 
         def test_where_with_decimal_for_string_column_using_bind_parameters
-          count = Post.where("title = ?", BigDecimal(0)).count
-          assert_equal 0, count
+          assert_quoted_as "0.0", BigDecimal(0)
         end
 
         def test_where_with_rational_for_string_column_using_bind_parameters
-          count = Post.where("title = ?", Rational(0)).count
-          assert_equal 0, count
+          assert_quoted_as "0/1", Rational(0)
         end
 
         def test_where_with_duration_for_string_column_using_bind_parameters
-          count = assert_deprecated(ActiveRecord.deprecator) { Post.where("title = ?", 0.seconds).count }
-          assert_equal 0, count
+          assert_deprecated(ActiveRecord.deprecator) do
+            assert_quoted_as "0", 0.seconds
+          end
         end
+
+        private
+          def assert_quoted_as(expected, value)
+            relation = Post.where("title = ?", value)
+            assert_equal(
+              %{SELECT "posts".* FROM "posts" WHERE (title = #{expected})},
+              relation.to_sql,
+            )
+            assert_nothing_raised do # Make sure SQL is valid
+              relation.to_a
+            end
+          end
       end
     end
   end
