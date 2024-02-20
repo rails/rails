@@ -43,11 +43,11 @@ View](action_view_overview.html) right out of the box.
 When including `ActiveModel::API`, other modules are included by default which
 enables you to get features like:
 
-- [Attribute Assignment](active_model_basics.html#attribute-assignment)
-- [Conversion](active_model_basics.html#conversion)
-- [Naming](active_model_basics.html#naming)
-- [Translation](active_model_basics.html#translation)
-- [Validations](active_model_basics.html#validations)
+- [Attribute Assignment](#attribute-assignment)
+- [Conversion](#conversion)
+- [Naming](#naming)
+- [Translation](#translation)
+- [Validations](#validations)
 
 Here is an example of a class that includes `ActiveModel::API` and how it can be
 used:
