@@ -303,7 +303,6 @@ class Person
   def reset_attribute_to_default!(attribute)
     public_send("#{attribute}=", "Default Name")
   end
-
 end
 ```
 
