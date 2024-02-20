@@ -90,4 +90,15 @@
 
     *Rafael Mendonça França*
 
+*   Add parameter filter capability for redirect locations.
+
+    It uses the `config.filter_parameters` to match what needs to be filtered.
+    The result would be like this:
+
+        Redirected to http://secret.foo.bar?username=roque&password=[FILTERED]
+
+    Fixes #14055.
+
+    *Roque Pinel*, *Trevor Turk*, *tonytonyjan*
+
 Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/actionpack/CHANGELOG.md) for previous changes.

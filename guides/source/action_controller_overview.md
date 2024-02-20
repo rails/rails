@@ -1210,7 +1210,8 @@ You can set it to a String, a Regexp, or an array of both.
 config.filter_redirect.concat ['s3.amazonaws.com', /private_path/]
 ```
 
-Matching URLs will be marked as '[FILTERED]'.
+Matching URLs will be replaced with '[FILTERED]'. However, if you only wish to filter the parameters, not the whole URLs,
+please take a look at [Parameters Filtering](#parameters-filtering).
 
 Rescue
 ------
