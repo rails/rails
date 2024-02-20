@@ -421,7 +421,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_application_name_is_normalized_in_config
     run_generator [File.join(destination_root, "MyWebSite"), "-d", "postgresql"]
-    assert_file "MyWebSite/app/views/layouts/application.html.erb", /<title><%= content_for(:title) || "MyWebSite" %><\/title>/
+    assert_file "MyWebSite/app/views/layouts/application.html.erb", /content_for\(:title\) \|\| "MyWebSite"/
     assert_file "MyWebSite/config/database.yml", /my_web_site_production/
   end
 
