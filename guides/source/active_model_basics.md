@@ -107,7 +107,7 @@ object as follows:
 
 `render` can be used to render a partial with the object as a local variable:
 
-```erb+html
+```html+erb
 <%= render partial: "email_contact", email_contact: EmailContact.new(name: "David", email: "david@example.com", message: "Hello World") %>
 ```
 
