@@ -73,7 +73,7 @@ module ActiveRecord
           end
 
           def force_equality?(value)
-            value.is_a?(::Array)
+            value.is_a?(::Array) && !value.first.is_a?(::Array)
           end
 
           private

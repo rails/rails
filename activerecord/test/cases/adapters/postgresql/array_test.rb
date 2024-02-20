@@ -347,6 +347,12 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     assert_equal record, PgArray.where(tags: tags).take
   end
 
+  def test_where_by_attribute_with_array_of_arrays
+    PgArray.create!(tags: ["black"])
+    PgArray.create!(tags: ["blue"])
+    assert_equal 2, PgArray.where(tags: [["black"], ["blue"]]).count
+  end
+
   def test_uniqueness_validation
     klass = Class.new(PgArray) do
       validates_uniqueness_of :tags

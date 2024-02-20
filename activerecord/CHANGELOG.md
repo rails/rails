@@ -1,3 +1,10 @@
+*   Support `IN` queries of array columns.
+
+    Use `where(tags: [["tag1"], ["tag2"]])` to produce an `tags IN ({'tag1'}, {'tag2'})`,
+    similarly to how it works with non-array columns.
+
+    *Greg Navis*
+
 *   Add ActiveRecord::Encryption::MessagePackMessageSerializer
 
     Serialize data to the MessagePack format, for efficient storage in binary columns.
