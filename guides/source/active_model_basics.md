@@ -327,7 +327,7 @@ irb> person.reset_name_to_default!
 => "Default Name"
 ```
 
-If you call a method that is not defined, it will raise a `method_missing`
+If you call a method that is not defined, it will raise a `NoMethodError`
 error.
 
 #### Method: `alias_attribute`
