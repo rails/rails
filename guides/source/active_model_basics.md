@@ -146,7 +146,7 @@ irb> person.date_of_birth
 irb> person.date_of_birth.class
 => Date
 
-# obtains the default value set by the attribute
+# uses the default value set by the attribute
 irb> person.active
 => true
 
