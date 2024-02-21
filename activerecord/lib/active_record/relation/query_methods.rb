@@ -1918,7 +1918,9 @@ module ActiveRecord
         args.each do |arg|
           next unless arg.is_a?(Hash)
           arg.each do |_key, value|
-            unless VALID_DIRECTIONS.include?(value)
+            if value.is_a?(Hash)
+              validate_order_args([value])
+            elsif VALID_DIRECTIONS.exclude?(value)
               raise ArgumentError,
                 "Direction \"#{value}\" is invalid. Valid directions are: #{VALID_DIRECTIONS.to_a.inspect}"
             end
@@ -1926,9 +1928,13 @@ module ActiveRecord
         end
       end
 
+      def flattened_args(order_args)
+        order_args.flat_map { |e| (e.is_a?(Hash) || e.is_a?(Array)) ? flattened_args(e.to_a) : e }
+      end
+
       def preprocess_order_args(order_args)
         @klass.disallow_raw_sql!(
-          order_args.flat_map { |a| a.is_a?(Hash) ? a.keys : a },
+          flattened_args(order_args),
           permit: connection.column_name_with_order_matcher
         )
 
@@ -1943,14 +1949,20 @@ module ActiveRecord
           when Symbol
             order_column(arg.to_s).asc
           when Hash
-            arg.map { |field, dir|
-              case field
-              when Arel::Nodes::SqlLiteral, Arel::Nodes::Node, Arel::Attribute
-                field.public_send(dir.downcase)
+            arg.map do |key, value|
+              if value.is_a?(Hash)
+                value.map do |field, dir|
+                  order_column([key.to_s, field.to_s].join(".")).public_send(dir.downcase)
+                end
               else
-                order_column(field.to_s).public_send(dir.downcase)
+                case key
+                when Arel::Nodes::SqlLiteral, Arel::Nodes::Node, Arel::Attribute
+                  key.public_send(value.downcase)
+                else
+                  order_column(key.to_s).public_send(value.downcase)
+                end
               end
-            }
+            end
           else
             arg
           end
@@ -1964,18 +1976,20 @@ module ActiveRecord
       end
 
       def column_references(order_args)
-        references = order_args.flat_map do |arg|
+        order_args.flat_map do |arg|
           case arg
           when String, Symbol
             arg
           when Hash
-            arg.keys.map do |key|
-              key if key.is_a?(String) || key.is_a?(Symbol)
-            end
+            arg.keys.select { |e| e.is_a?(String) || e.is_a?(Symbol) }
           end
-        end
-        references.map! { |arg| arg =~ /^\W?(\w+)\W?\./ && $1 }.compact!
-        references
+        end.filter_map do |arg|
+          arg =~ /^\W?(\w+)\W?\./ && $1
+        end +
+        order_args
+          .select { |e| e.is_a?(Hash) }
+          .flat_map { |e| e.map { |k, v| k if v.is_a?(Hash) } }
+          .compact
       end
 
       def order_column(field)
