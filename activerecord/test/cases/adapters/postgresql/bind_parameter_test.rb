@@ -10,44 +10,40 @@ module ActiveRecord
         fixtures :posts
 
         def test_where_with_string_for_string_column_using_bind_parameters
-          assert_quoted_as "'Welcome to the weblog'", "Welcome to the weblog"
+          assert_quoted_as "'Welcome to the weblog'", "Welcome to the weblog", match: 1
         end
 
         def test_where_with_integer_for_string_column_using_bind_parameters
-          assert_quoted_as "0", 0, valid: false
+          assert_quoted_as "0", 0
         end
 
         def test_where_with_float_for_string_column_using_bind_parameters
-          assert_quoted_as "0.0", 0.0, valid: false
+          assert_quoted_as "0.0", 0.0
         end
 
         def test_where_with_boolean_for_string_column_using_bind_parameters
-          assert_quoted_as "FALSE", false, valid: false
+          assert_quoted_as "FALSE", false
         end
 
         def test_where_with_decimal_for_string_column_using_bind_parameters
-          assert_quoted_as "0.0", BigDecimal(0), valid: false
+          assert_quoted_as "0.0", BigDecimal(0)
         end
 
         def test_where_with_rational_for_string_column_using_bind_parameters
-          assert_quoted_as "0/1", Rational(0), valid: false
+          assert_quoted_as "0/1", Rational(0)
         end
 
         private
-          def assert_quoted_as(expected, value, valid: true)
+          def assert_quoted_as(expected, value, match: 0)
             relation = Post.where("title = ?", value)
             assert_equal(
               %{SELECT "posts".* FROM "posts" WHERE (title = #{expected})},
               relation.to_sql,
             )
-            if valid
-              assert_nothing_raised do # Make sure SQL is valid
-                relation.to_a
-              end
+            if match == 0
+              assert_empty relation.to_a
             else
-              assert_raises ActiveRecord::StatementInvalid do
-                relation.to_a
-              end
+              assert_equal match, relation.count
             end
           end
       end

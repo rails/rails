@@ -146,14 +146,20 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     only_david = Author.where("#{author_id} IN (?)", david)
 
-    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-      assert_queries_match(/WHERE \(#{Regexp.escape(author_id)} IN \('1'\)\)\z/) do
-        assert_equal [david], only_david.merge(only_david)
+    matcher = if Author.connection.prepared_statements
+      if current_adapter?(:PostgreSQLAdapter)
+        /WHERE \(#{Regexp.escape(author_id)} IN \(\$1\)\)\z/
+      else
+        /WHERE \(#{Regexp.escape(author_id)} IN \(\?\)\)\z/
       end
+    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      /WHERE \(#{Regexp.escape(author_id)} IN \('1'\)\)\z/
     else
-      assert_queries_match(/WHERE \(#{Regexp.escape(author_id)} IN \(1\)\)\z/) do
-        assert_equal [david], only_david.merge(only_david)
-      end
+      /WHERE \(#{Regexp.escape(author_id)} IN \(1\)\)\z/
+    end
+
+    assert_queries_match(matcher) do
+      assert_equal [david], only_david.merge(only_david)
     end
   end
 

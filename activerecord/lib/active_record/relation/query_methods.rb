@@ -1512,9 +1512,21 @@ module ActiveRecord
       def build_where_clause(opts, rest = []) # :nodoc:
         opts = sanitize_forbidden_attributes(opts)
 
+        if opts.is_a?(Array)
+          opts, *rest = opts
+        end
+
         case opts
-        when String, Array
-          parts = [klass.sanitize_sql(rest.empty? ? opts : [opts, *rest])]
+        when String
+          if rest.empty?
+            parts = [Arel.sql(opts)]
+          elsif rest.first.is_a?(Hash) && /:\w+/.match?(opts)
+            parts = [build_named_bound_sql_literal(opts, rest.first)]
+          elsif opts.include?("?")
+            parts = [build_bound_sql_literal(opts, rest)]
+          else
+            parts = [klass.sanitize_sql(rest.empty? ? opts : [opts, *rest])]
+          end
         when Hash
           opts = opts.transform_keys do |key|
             if key.is_a?(Array)
@@ -1548,6 +1560,46 @@ module ActiveRecord
     private
       def async
         spawn.async!
+      end
+
+      def build_named_bound_sql_literal(statement, values)
+        bound_values = values.transform_values do |value|
+          if ActiveRecord::Relation === value
+            Arel.sql(value.to_sql)
+          elsif value.respond_to?(:map) && !value.acts_like?(:string)
+            values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
+            values.empty? ? nil : values
+          else
+            value = value.id_for_database if value.respond_to?(:id_for_database)
+            value
+          end
+        end
+
+        begin
+          Arel::Nodes::BoundSqlLiteral.new("(#{statement})", nil, bound_values)
+        rescue Arel::BindError => error
+          raise ActiveRecord::PreparedStatementInvalid, error.message
+        end
+      end
+
+      def build_bound_sql_literal(statement, values)
+        bound_values = values.map do |value|
+          if ActiveRecord::Relation === value
+            Arel.sql(value.to_sql)
+          elsif value.respond_to?(:map) && !value.acts_like?(:string)
+            values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
+            values.empty? ? nil : values
+          else
+            value = value.id_for_database if value.respond_to?(:id_for_database)
+            value
+          end
+        end
+
+        begin
+          Arel::Nodes::BoundSqlLiteral.new("(#{statement})", bound_values, nil)
+        rescue Arel::BindError => error
+          raise ActiveRecord::PreparedStatementInvalid, error.message
+        end
       end
 
       def lookup_table_klass_from_join_dependencies(table_name)
