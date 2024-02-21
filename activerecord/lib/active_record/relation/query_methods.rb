@@ -1929,7 +1929,7 @@ module ActiveRecord
       end
 
       def flattened_args(order_args)
-        order_args.flat_map { |e| e.class.in?([Hash, Array]) ? flattened_args(e.to_a) : e }
+        order_args.flat_map { |e| (e.is_a?(Hash) || e.is_a?(Array)) ? flattened_args(e.to_a) : e }
       end
 
       def preprocess_order_args(order_args)
