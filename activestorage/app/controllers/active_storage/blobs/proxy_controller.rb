@@ -4,6 +4,7 @@
 class ActiveStorage::Blobs::ProxyController < ActiveStorage::BaseController
   include ActiveStorage::SetBlob
   include ActiveStorage::SetHeaders
+  include ActiveStorage::DisableSession
 
   def show
     http_cache_forever public: true do
