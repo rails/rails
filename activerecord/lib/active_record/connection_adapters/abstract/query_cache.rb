@@ -29,18 +29,13 @@ module ActiveRecord
       end
 
       class Store # :nodoc:
-        attr_reader :enabled
+        attr_accessor :enabled
         alias_method :enabled?, :enabled
 
         def initialize(max_size)
           @map = {}
           @max_size = max_size
           @enabled = false
-        end
-
-        def enabled=(enabled)
-          clear if @enabled && !enabled
-          @enabled = enabled
         end
 
         def size

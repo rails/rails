@@ -91,6 +91,24 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert_cache :off
   end
 
+  def test_reads_dont_clear_disabled_cache
+    assert_cache :off
+
+    mw = middleware { |env|
+      Post.first
+      query_cache = ActiveRecord::Base.connection.query_cache
+      assert_equal 1, query_cache.size, query_cache.inspect
+      Post.connection.uncached do
+        Post.count # shouldn't clear the cache
+      end
+      query_cache = ActiveRecord::Base.connection.query_cache
+      assert_equal 1, query_cache.size, query_cache.inspect
+    }
+    mw.call({})
+
+    assert_cache :off
+  end
+
   def test_exceptional_middleware_clears_and_disables_cache_on_error
     assert_cache :off
 
@@ -808,7 +826,7 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   end
 
   def test_find
-    assert_called(Task.connection.query_cache, :clear, times: 2) do
+    assert_called(Task.connection.query_cache, :clear, times: 1) do
       assert_not Task.connection.query_cache_enabled
       Task.cache do
         assert Task.connection.query_cache_enabled
