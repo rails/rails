@@ -7,8 +7,18 @@ module ActiveSupport
     def translate(key, **options)
       if html_safe_translation_key?(key)
         html_safe_options = html_escape_translation_options(options)
-        translation = I18n.translate(key, **html_safe_options)
-        html_safe_translation(translation)
+
+        exception = false
+        exception_handler = ->(*args) do
+          exception = true
+          I18n.exception_handler.call(*args)
+        end
+        translation = I18n.translate(key, **html_safe_options, exception_handler: exception_handler)
+        if exception
+          translation
+        else
+          html_safe_translation(translation)
+        end
       else
         I18n.translate(key, **options)
       end
