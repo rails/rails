@@ -1,3 +1,8 @@
+## Rails 7.1.3.1 (February 21, 2024) ##
+
+*   No changes.
+
+
 ## Rails 7.1.3 (January 16, 2024) ##
 
 *   Do not trigger immediate loading of `ActiveJob::Base` when loading `ActiveJob::TestHelper`.

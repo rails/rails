@@ -6,6 +6,16 @@
 
     *Jean Boussier*
 
+## Rails 7.1.3.1 (February 21, 2024) ##
+
+*   Fix possible XSS vulnerability with the `translate` method in controllers
+
+    CVE-2024-26143
+
+*   Fix ReDoS in Accept header parsing
+
+    CVE-2024-26142
+
 ## Rails 7.1.3 (January 16, 2024) ##
 
 *   Fix including `Rails.application.routes.url_helpers` directly in an

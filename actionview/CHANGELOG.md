@@ -2,6 +2,11 @@
 
     *Jean Boussier*
 
+## Rails 7.1.3.1 (February 21, 2024) ##
+
+*   No changes.
+
+
 ## Rails 7.1.3 (January 16, 2024) ##
 
 *   Better handle SyntaxError in Action View.

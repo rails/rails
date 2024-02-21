@@ -59,6 +59,11 @@
 
     *Hartley McGuire*
 
+## Rails 7.1.3.1 (February 21, 2024) ##
+
+*   No changes.
+
+
 ## Rails 7.1.3 (January 16, 2024) ##
 
 *   Fix Migrations with versions older than 7.1 validating options given to
