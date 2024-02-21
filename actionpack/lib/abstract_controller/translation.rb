@@ -25,7 +25,25 @@ module AbstractController
 
       i18n_raise = options.fetch(:raise, self.raise_on_missing_translations)
 
-      ActiveSupport::HtmlSafeTranslation.translate(key, **options, raise: i18n_raise)
+      if options[:default]
+        options[:default] = [options[:default]] unless options[:default].is_a?(Array)
+        options[:default] = options[:default].map do |value|
+          value.is_a?(String) ? ERB::Util.html_escape(value) : value
+        end
+      end
+
+      unless i18n_raise
+        options[:default] = [] unless options[:default]
+        options[:default] << MISSING_TRANSLATION
+      end
+
+      result = ActiveSupport::HtmlSafeTranslation.translate(key, **options, raise: i18n_raise)
+
+      if result == MISSING_TRANSLATION
+        +"translation missing: #{key}"
+      else
+        result
+      end
     end
     alias :t :translate
 
@@ -34,5 +52,9 @@ module AbstractController
       I18n.localize(object, **options)
     end
     alias :l :localize
+
+    private
+      MISSING_TRANSLATION = -(2**60)
+      private_constant :MISSING_TRANSLATION
   end
 end

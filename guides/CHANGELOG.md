@@ -1,3 +1,8 @@
+## Rails 7.0.8.1 (February 21, 2024) ##
+
+*   No changes.
+
+
 ## Rails 7.0.8 (September 09, 2023) ##
 
 *   No changes.

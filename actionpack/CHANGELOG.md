@@ -11,6 +11,12 @@
     *Hartley McGuire*
 
 
+## Rails 7.0.8.1 (February 21, 2024) ##
+
+*   Fix possible XSS vulnerability with the `translate` method in controllers
+
+    CVE-2024-26143
+
 ## Rails 7.0.8 (September 09, 2023) ##
 
 *   Fix `HostAuthorization` potentially displaying the value of the
