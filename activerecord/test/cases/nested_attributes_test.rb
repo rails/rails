@@ -943,6 +943,14 @@ module NestedAttributesLimitTests
                                                       "car" => { name: "The Happening" } } }
     end
   end
+
+  def test_limit_with_destroyable_records
+    assert_nothing_raised do
+      @pirate.attributes = { parrots_attributes: { "foo" => { name: "Lovely Day" },
+                                                      "bar" => { name: "Blown Away" },
+                                                      "car" => { name: "The Happening", _destroy: true } } }
+    end
+  end
 end
 
 class TestNestedAttributesLimitNumeric < ActiveRecord::TestCase

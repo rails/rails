@@ -562,7 +562,11 @@ module ActiveRecord
               limit
             end
 
-          if limit && attributes_collection.size > limit
+          attributes_collection_for_limit = attributes_collection.values.reject do |value|
+            value.with_indifferent_access.key?(:_destroy)
+          end
+
+          if limit && attributes_collection_for_limit.size > limit
             raise TooManyRecords, "Maximum #{limit} records are allowed. Got #{attributes_collection.size} records instead."
           end
         end
