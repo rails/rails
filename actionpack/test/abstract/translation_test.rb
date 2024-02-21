@@ -152,15 +152,19 @@ module AbstractController
       def test_translate_marks_translation_with_missing_html_key_as_safe_html
         @controller.stub :action_name, :index do
           translation = @controller.t("<tag>.html")
-          assert_equal "translation missing: <tag>.html", translation
           assert_equal false, translation.html_safe?
+          assert_equal "Translation missing: en.<tag>.html", translation
         end
       end
       def test_translate_marks_translation_with_missing_nested_html_key_as_safe_html
         @controller.stub :action_name, :index do
           translation = @controller.t(".<tag>.html")
-          assert_equal "translation missing: abstract_controller.testing.translation.index.<tag>.html", translation
           assert_equal false, translation.html_safe?
+          assert_equal(<<~MSG.strip, translation)
+            Translation missing. Options considered were:
+            - en.abstract_controller.testing.translation.index.<tag>.html
+            - en.abstract_controller.testing.translation.<tag>.html
+          MSG
         end
       end
     end
