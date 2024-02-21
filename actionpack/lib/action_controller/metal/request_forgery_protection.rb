@@ -635,6 +635,15 @@ module ActionController # :nodoc:
 
       def normalize_action_path(action_path) # :doc:
         uri = URI.parse(action_path)
+
+        if uri.relative? && (action_path.blank? || !action_path.start_with?("/"))
+          uri = URI.parse(request.path)
+          # add the action path to the request.path
+          uri.path += "/#{action_path}"
+          # relative path with "./path"
+          uri.path.gsub!("/./", "/")
+        end
+
         uri.path.chomp("/")
       end
 
