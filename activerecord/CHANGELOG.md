@@ -1,3 +1,10 @@
+*   Fix `has_one` association autosave setting the foreign key attribute when it is unchanged.
+
+    This behaviour is also inconsistent with autosaving `belongs_to` and can have unintended side effects like raising
+    an `ActiveRecord::ReadOnlyAttributeError` when the foreign key attribute is marked as read-only.
+
+    *Joshua Young*
+
 *   Fix an issue where `ActiveRecord::Encryption` configurations are not ready before the loading
     of Active Record models, when an application is eager loaded. As a result, encrypted attributes
     could be misconfigured in some cases.
