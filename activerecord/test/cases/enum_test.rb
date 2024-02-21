@@ -313,6 +313,26 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "'unknown' is not a valid status", e.message
   end
 
+  test "enum with array arguments and integer columns" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, [:proposed, :written]
+    end
+
+    assert_equal 0, klass.create!(status: :proposed).status_for_database
+    assert_equal 1, klass.create!(status: :written).status_for_database
+  end
+
+  test "enum with array arguments and string columns" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :cover, [:hard, :soft]
+    end
+
+    assert_equal "hard", klass.create!(cover: :hard).cover_for_database
+    assert_equal "soft", klass.create!(cover: :soft).cover_for_database
+  end
+
   test "validation with 'validate: true' option" do
     klass = Class.new(ActiveRecord::Base) do
       def self.name; "Book"; end
@@ -1109,7 +1129,7 @@ class EnumTest < ActiveRecord::TestCase
       end
     end
 
-    error = assert_raises(RuntimeError) do
+    error = assert_raises(ActiveRecord::UndeclaredAttributeTypeForEnumError) do
       klass.type_for_attribute(:typeless_genre)
     end
     assert_match "Undeclared attribute type for enum 'typeless_genre' in Book", error.message

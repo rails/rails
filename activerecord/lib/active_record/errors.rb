@@ -455,6 +455,10 @@ module ActiveRecord
     end
   end
 
+  # Raised when enums are not backed by a database column or not declared with an explicit type via `attribute`.
+  class UndeclaredAttributeTypeForEnumError < ActiveRecordError
+  end
+
   # Raised when a relation cannot be mutated because it's already loaded.
   #
   #   class Task < ActiveRecord::Base

@@ -44,4 +44,13 @@ class MySQLEnumTest < ActiveRecord::AbstractMysqlTestCase
     enum_test = EnumTest.create!(state: :middle)
     assert_equal "middle", enum_test.state
   end
+
+  def test_enum_with_array_arguments
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "enum_tests"
+      enum :enum_column, [:text, :blob, :tiny, :medium, :long, :unsigned, :bigint]
+    end
+
+    assert_equal "tiny", klass.create!(enum_column: :tiny).enum_column
+  end
 end

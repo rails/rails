@@ -256,7 +256,8 @@ module ActiveRecord
 
         decorate_attributes([name]) do |_name, subtype|
           if subtype == ActiveModel::Type.default_value
-            raise "Undeclared attribute type for enum '#{name}' in #{self.name}. Enums must be" \
+            raise UndeclaredAttributeTypeForEnumError,
+              "Undeclared attribute type for enum '#{name}' in #{self.name}. Enums must be" \
               " backed by a database column or declared with an explicit type" \
               " via `attribute`."
           end
@@ -275,7 +276,7 @@ module ActiveRecord
             suffix == true ? "_#{name}" : "_#{suffix}"
           end
 
-          pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
+          pairs = values.respond_to?(:each_pair) ? values.each_pair : enum_typed_pairs(name, values)
           pairs.each do |label, value|
             enum_values[label] = value
             label = label.to_s
@@ -330,6 +331,20 @@ module ActiveRecord
               # scope :not_active, -> { where.not(status: 0) }
               klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
               klass.scope "not_#{value_method_name}", -> { where.not(name => value) }
+            end
+          end
+
+          def enum_typed_pairs(name, values)
+            attribute_type = begin
+              klass.type_for_attribute(name).subtype
+            rescue UndeclaredAttributeTypeForEnumError
+              ActiveModel::Type.default_value
+            end
+
+            if attribute_type.type.in?([:integer, nil])
+              values.each_with_index
+            else
+              values.index_with { |v| attribute_type.cast(v) }
             end
           end
       end
