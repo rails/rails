@@ -533,8 +533,7 @@ module ActiveRecord
         @connection.lock.synchronize do
           transaction = begin_transaction(isolation: isolation, joinable: joinable)
           begin
-            ret = yield
-            ret
+            yield
           rescue Exception => error
             rollback_transaction
             after_failure_actions(transaction, error)
