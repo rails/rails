@@ -1,3 +1,8 @@
+## Rails 7.1.3.1 (February 21, 2024) ##
+
+*   No changes.
+
+
 ## Rails 7.1.3 (January 16, 2024) ##
 
 *   Make sure `config.after_routes_loaded` hook runs on boot.
