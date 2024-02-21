@@ -792,7 +792,7 @@ module ActionController
     # from the root hash and from all nested hashes and arrays. The values are unchanged.
     def deep_transform_keys(&block)
       new_instance_with_inherited_permitted_status(
-        @parameters.deep_transform_keys(&block)
+        _deep_transform_keys_in_object(@parameters, &block).to_unsafe_h
       )
     end
 
@@ -800,7 +800,7 @@ module ActionController
     # changed keys. This includes the keys from the root hash and from all
     # nested hashes and arrays. The values are unchanged.
     def deep_transform_keys!(&block)
-      @parameters.deep_transform_keys!(&block)
+      @parameters = _deep_transform_keys_in_object(@parameters, &block).to_unsafe_h
       self
     end
 
@@ -1032,6 +1032,46 @@ module ActionController
           self.class.new(value, @logging_context)
         else
           value
+        end
+      end
+
+      def _deep_transform_keys_in_object(object, &block)
+        case object
+        when Hash
+          object.each_with_object(self.class.new) do |(key, value), result|
+            result[yield(key)] = _deep_transform_keys_in_object(value, &block)
+          end
+        when Parameters
+          if object.permitted?
+            object.to_h.deep_transform_keys(&block)
+          else
+            object.to_unsafe_h.deep_transform_keys(&block)
+          end
+        when Array
+          object.map { |e| _deep_transform_keys_in_object(e, &block) }
+        else
+          object
+        end
+      end
+
+      def _deep_transform_keys_in_object!(object, &block)
+        case object
+        when Hash
+          object.keys.each do |key|
+            value = object.delete(key)
+            object[yield(key)] = _deep_transform_keys_in_object!(value, &block)
+          end
+          object
+        when Parameters
+          if object.permitted?
+            object.to_h.deep_transform_keys!(&block)
+          else
+            object.to_unsafe_h.deep_transform_keys!(&block)
+          end
+        when Array
+          object.map! { |e| _deep_transform_keys_in_object!(e, &block) }
+        else
+          object
         end
       end
 
