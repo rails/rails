@@ -12,9 +12,13 @@
 
     CVE-2024-26143
 
+    *ooooooo-q + Aaron Patterson*
+
 *   Fix ReDoS in Accept header parsing
 
     CVE-2024-26142
+
+    *Aaron Patterson*
 
 ## Rails 7.1.3 (January 16, 2024) ##
 
