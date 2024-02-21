@@ -72,10 +72,26 @@ module ActiveRecord
       #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
       #    # INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"
       #    # WHERE "authors"."id" IS NOT NULL AND "comments"."id" IS NOT NULL
+      #
+      # You can define join type in the scope and +associated+ will not use `JOIN` by default.
+      #
+      #    Post.left_joins(:author).where.associated(:author)
+      #    # SELECT "posts".* FROM "posts"
+      #    # LEFT OUTER JOIN "authors" "authors"."id" = "posts"."author_id"
+      #    # WHERE "authors"."id" IS NOT NULL
+      #
+      #    Post.left_joins(:comments).where.associated(:author)
+      #    # SELECT "posts".* FROM "posts"
+      #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+      #    # LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+      #   #  WHERE "author"."id" IS NOT NULL
       def associated(*associations)
         associations.each do |association|
           reflection = scope_association_reflection(association)
-          @scope.joins!(association)
+          unless @scope.joins_values.include?(reflection.name) || @scope.left_outer_joins_values.include?(reflection.name)
+            @scope.joins!(association)
+          end
+
           if reflection.options[:class_name]
             self.not(association => { reflection.association_primary_key => nil })
           else
