@@ -505,4 +505,12 @@
 
     *Tristan Fellows*
 
+*   Allow for more complex hash arguments for `order` which mimics `where` in `ActiveRecord::Relation`.
+
+    ```ruby
+    Topic.includes(:posts).order(posts: { created_at: :desc })
+    ```
+
+    *Myles Boone*
+
 Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/activerecord/CHANGELOG.md) for previous changes.
