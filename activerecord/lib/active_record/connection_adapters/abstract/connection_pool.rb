@@ -113,6 +113,25 @@ module ActiveRecord
     # * private methods that require being called in a +synchronize+ blocks
     #   are now explicitly documented
     class ConnectionPool
+      class Lease # :nodoc:
+        attr_accessor :connection, :sticky
+
+        def initialize
+          @connection = nil
+          @sticky = false
+        end
+
+        def clear(connection)
+          if @connection == connection
+            @connection = nil
+            @sticky = false
+            true
+          else
+            false
+          end
+        end
+      end
+
       include MonitorMixin
       prepend QueryCache::ConnectionPoolConfiguration
       include ConnectionAdapters::AbstractPool
@@ -148,9 +167,9 @@ module ActiveRecord
         # then that +thread+ does indeed own that +conn+. However, an absence of such
         # mapping does not mean that the +thread+ doesn't own the said connection. In
         # that case +conn.owner+ attr should be consulted.
-        # Access and modification of <tt>@thread_cached_conns</tt> does not require
+        # Access and modification of <tt>@thread_connection_leases</tt> does not require
         # synchronization.
-        @thread_cached_conns = Concurrent::Map.new(initial_capacity: @size)
+        @thread_connection_leases = Concurrent::Map.new(initial_capacity: @size)
 
         @connections         = []
         @automatic_reconnect = true
@@ -179,13 +198,15 @@ module ActiveRecord
       # #connection can be called any number of times; the connection is
       # held in a cache keyed by a thread.
       def connection
-        @thread_cached_conns[ActiveSupport::IsolatedExecutionState.context] ||= checkout
+        lease = connection_lease
+        lease.sticky = true
+        lease.connection ||= checkout
       end
 
       def pin_connection!(lock_thread) # :nodoc:
         raise "There is already a pinned connection" if @pinned_connection
 
-        @pinned_connection = (@thread_cached_conns[ActiveSupport::IsolatedExecutionState.context] || checkout)
+        @pinned_connection = (connection_lease&.connection || checkout)
         # Any leased connection must be in @connections otherwise
         # some methods like #connected? won't behave correctly
         unless @connections.include?(@pinned_connection)
@@ -227,7 +248,7 @@ module ActiveRecord
       # #connection or #with_connection methods. Connections obtained through
       # #checkout will not be detected by #active_connection?
       def active_connection?
-        @thread_cached_conns[ActiveSupport::IsolatedExecutionState.context]
+        connection_lease.connection
       end
 
       # Signal that the thread is finished with the current connection.
@@ -237,8 +258,20 @@ module ActiveRecord
       # This method only works for connections that have been obtained through
       # #connection or #with_connection methods, connections obtained through
       # #checkout will not be automatically released.
-      def release_connection(owner_thread = ActiveSupport::IsolatedExecutionState.context)
-        if conn = @thread_cached_conns.delete(owner_thread)
+      def release_connection(existing_lease = nil)
+        lease = if existing_lease
+          if @thread_connection_leases.delete_pair(ActiveSupport::IsolatedExecutionState.context, existing_lease)
+            # The connection may have been reaped, so we shouldn't try to check it back in
+            # if it's no longer in use.
+            if existing_lease.connection&.in_use?
+              existing_lease
+            end
+          end
+        else
+          @thread_connection_leases.delete(ActiveSupport::IsolatedExecutionState.context)
+        end
+
+        if conn = lease&.connection
           checkin conn
         end
       end
@@ -253,13 +286,14 @@ module ActiveRecord
       # connection will be properly returned to the pool by the code that checked
       # it out.
       def with_connection
-        if conn = @thread_cached_conns[ActiveSupport::IsolatedExecutionState.context]
-          yield conn
+        lease = connection_lease
+        if lease.connection
+          yield lease.connection
         else
           begin
-            yield connection
+            yield lease.connection = checkout
           ensure
-            release_connection
+            release_connection(lease) unless lease.sticky
           end
         end
       end
@@ -301,7 +335,7 @@ module ActiveRecord
               conn.disconnect!
             end
             @connections = []
-            @thread_cached_conns.clear
+            @thread_connection_leases.clear
             @available.clear
           end
         end
@@ -328,7 +362,7 @@ module ActiveRecord
           @connections.each do |conn|
             conn.discard!
           end
-          @connections = @available = @thread_cached_conns = nil
+          @connections = @available = @thread_connection_leases = nil
         end
       end
 
@@ -535,6 +569,12 @@ module ActiveRecord
       end
 
       private
+        def connection_lease
+          @thread_connection_leases.compute_if_absent(ActiveSupport::IsolatedExecutionState.context) do
+            Lease.new
+          end
+        end
+
         def build_async_executor
           case ActiveRecord.async_query_executor
           when :multi_thread_pool
@@ -709,14 +749,17 @@ module ActiveRecord
         #--
         # if owner_thread param is omitted, this must be called in synchronize block
         def remove_connection_from_thread_cache(conn, owner_thread = conn.owner)
-          @thread_cached_conns.delete_pair(owner_thread, conn)
+          lease = @thread_connection_leases[owner_thread]
+          if lease&.clear(conn)
+            @thread_connection_leases.delete(owner_thread)
+          end
         end
         alias_method :release, :remove_connection_from_thread_cache
 
         def prune_thread_cache
-          dead_threads = @thread_cached_conns.keys.reject(&:alive?)
+          dead_threads = @thread_connection_leases.keys.reject(&:alive?)
           dead_threads.each do |dead_thread|
-            @thread_cached_conns.delete(dead_thread)
+            @thread_connection_leases.delete(dead_thread)
           end
         end
 
