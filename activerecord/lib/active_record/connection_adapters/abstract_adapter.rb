@@ -49,10 +49,6 @@ module ActiveRecord
         return if value.eql?(@pool)
         @schema_cache = nil
         @pool = value
-
-        if @pool && ActiveRecord.lazily_load_schema_cache
-          @pool.schema_reflection.load!(@pool)
-        end
       end
 
       set_callback :checkin, :after, :enable_lazy_transactions!

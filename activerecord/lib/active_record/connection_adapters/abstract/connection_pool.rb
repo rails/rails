@@ -113,6 +113,90 @@ module ActiveRecord
     # * private methods that require being called in a +synchronize+ blocks
     #   are now explicitly documented
     class ConnectionPool
+      class Lease # :nodoc:
+        attr_accessor :connection, :sticky
+
+        def initialize
+          @connection = nil
+          @sticky = false
+        end
+
+        def release
+          conn = @connection
+          @connection = nil
+          @sticky = false
+          conn
+        end
+
+        def clear(connection)
+          if @connection == connection
+            @connection = nil
+            @sticky = false
+            true
+          else
+            false
+          end
+        end
+      end
+
+      if ObjectSpace.const_defined?(:WeakKeyMap) # RUBY_VERSION >= 3.3
+        WeakKeyMap = ::ObjectSpace::WeakKeyMap # :nodoc:
+      else
+        class WeakKeyMap # :nodoc:
+          def initialize
+            @map = ObjectSpace::WeakMap.new
+            @values = nil
+            @size = 0
+          end
+
+          alias_method :clear, :initialize
+
+          def [](key)
+            prune if @map.size != @size
+            @map[key]
+          end
+
+          def []=(key, value)
+            @map[key] = value
+            prune if @map.size != @size
+            value
+          end
+
+          def delete(key)
+            if value = self[key]
+              self[key] = nil
+              prune
+            end
+            value
+          end
+
+          private
+            def prune(force = false)
+              @values = @map.values
+              @size = @map.size
+            end
+        end
+      end
+
+      class LeaseRegistry # :nodoc:
+        def initialize
+          @mutex = Mutex.new
+          @map = WeakKeyMap.new
+        end
+
+        def [](context)
+          @mutex.synchronize do
+            @map[context] ||= Lease.new
+          end
+        end
+
+        def clear
+          @mutex.synchronize do
+            @map = WeakKeyMap.new
+          end
+        end
+      end
+
       include MonitorMixin
       prepend QueryCache::ConnectionPoolConfiguration
       include ConnectionAdapters::AbstractPool
@@ -148,9 +232,9 @@ module ActiveRecord
         # then that +thread+ does indeed own that +conn+. However, an absence of such
         # mapping does not mean that the +thread+ doesn't own the said connection. In
         # that case +conn.owner+ attr should be consulted.
-        # Access and modification of <tt>@thread_cached_conns</tt> does not require
+        # Access and modification of <tt>@leases</tt> does not require
         # synchronization.
-        @thread_cached_conns = Concurrent::Map.new(initial_capacity: @size)
+        @leases = LeaseRegistry.new
 
         @connections         = []
         @automatic_reconnect = true
@@ -203,14 +287,18 @@ module ActiveRecord
       #
       # #connection can be called any number of times; the connection is
       # held in a cache keyed by a thread.
-      def connection
-        @thread_cached_conns[ActiveSupport::IsolatedExecutionState.context] ||= checkout
+      def lease_connection
+        lease = connection_lease
+        lease.sticky = true
+        lease.connection ||= checkout
       end
+
+      alias_method :connection, :lease_connection # TODO: deprecate
 
       def pin_connection!(lock_thread) # :nodoc:
         raise "There is already a pinned connection" if @pinned_connection
 
-        @pinned_connection = (@thread_cached_conns[ActiveSupport::IsolatedExecutionState.context] || checkout)
+        @pinned_connection = (connection_lease&.connection || checkout)
         # Any leased connection must be in @connections otherwise
         # some methods like #connected? won't behave correctly
         unless @connections.include?(@pinned_connection)
@@ -252,7 +340,7 @@ module ActiveRecord
       # #connection or #with_connection methods. Connections obtained through
       # #checkout will not be detected by #active_connection?
       def active_connection?
-        @thread_cached_conns[ActiveSupport::IsolatedExecutionState.context]
+        connection_lease.connection
       end
 
       # Signal that the thread is finished with the current connection.
@@ -262,10 +350,12 @@ module ActiveRecord
       # This method only works for connections that have been obtained through
       # #connection or #with_connection methods, connections obtained through
       # #checkout will not be automatically released.
-      def release_connection(owner_thread = ActiveSupport::IsolatedExecutionState.context)
-        if conn = @thread_cached_conns.delete(owner_thread)
+      def release_connection(existing_lease = nil)
+        if conn = connection_lease.release
           checkin conn
+          return true
         end
+        false
       end
 
       # Yields a connection from the connection pool to the block. If no connection
@@ -278,13 +368,14 @@ module ActiveRecord
       # connection will be properly returned to the pool by the code that checked
       # it out.
       def with_connection
-        if conn = @thread_cached_conns[ActiveSupport::IsolatedExecutionState.context]
-          yield conn
+        lease = connection_lease
+        if lease.connection
+          yield lease.connection
         else
           begin
-            yield connection
+            yield lease.connection = checkout
           ensure
-            release_connection
+            release_connection(lease) unless lease.sticky
           end
         end
       end
@@ -326,7 +417,7 @@ module ActiveRecord
               conn.disconnect!
             end
             @connections = []
-            @thread_cached_conns.clear
+            @leases.clear
             @available.clear
           end
         end
@@ -353,7 +444,7 @@ module ActiveRecord
           @connections.each do |conn|
             conn.discard!
           end
-          @connections = @available = @thread_cached_conns = nil
+          @connections = @available = @leases = nil
         end
       end
 
@@ -436,7 +527,7 @@ module ActiveRecord
 
         conn.lock.synchronize do
           synchronize do
-            remove_connection_from_thread_cache conn
+            connection_lease.clear(conn)
 
             conn._run_checkin_callbacks do
               conn.expire
@@ -560,6 +651,10 @@ module ActiveRecord
       end
 
       private
+        def connection_lease
+          @leases[ActiveSupport::IsolatedExecutionState.context]
+        end
+
         def build_async_executor
           case ActiveRecord.async_query_executor
           when :multi_thread_pool
@@ -734,16 +829,9 @@ module ActiveRecord
         #--
         # if owner_thread param is omitted, this must be called in synchronize block
         def remove_connection_from_thread_cache(conn, owner_thread = conn.owner)
-          @thread_cached_conns.delete_pair(owner_thread, conn)
+          @leases[owner_thread].clear(conn)
         end
         alias_method :release, :remove_connection_from_thread_cache
-
-        def prune_thread_cache
-          dead_threads = @thread_cached_conns.keys.reject(&:alive?)
-          dead_threads.each do |dead_thread|
-            @thread_cached_conns.delete(dead_thread)
-          end
-        end
 
         def new_connection
           connection = db_config.new_connection
@@ -788,6 +876,12 @@ module ActiveRecord
         def adopt_connection(conn)
           conn.pool = self
           @connections << conn
+
+          # We just created the first connection, it's time to load the schema
+          # cache if that wasn't eagerly done before
+          if @schema_cache.nil? && ActiveRecord.lazily_load_schema_cache
+            schema_cache.load!
+          end
         end
 
         def checkout_new_connection

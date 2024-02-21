@@ -250,8 +250,17 @@ module ActiveRecord
     # Returns the connection currently associated with the class. This can
     # also be used to "borrow" the connection to do database work unrelated
     # to any of the specific Active Records.
-    def connection
-      connection_pool.connection
+    # The connection will remain leased for the entire duration of the request
+    # or job, or until +#release_connection+ is called.
+    def lease_connection
+      connection_pool.lease_connection
+    end
+
+    alias_method :connection, :lease_connection
+
+    # Return the currently leased connection into the pool
+    def release_connection
+      connection.release_connection
     end
 
     # Checkouts a connection from the pool, yield it and then check it back in.
