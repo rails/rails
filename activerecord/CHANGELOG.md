@@ -1,3 +1,10 @@
+*   Fix `has_one` association autosave setting the foreign key attribute when it is unchanged.
+
+    This behaviour is also inconsistent with autosaving `belongs_to` and can have unintended side effects like raising
+    an `ActiveRecord::ReadOnlyAttributeError` when the foreign key attribute is marked as read-only.
+
+    *Joshua Young*
+
 *   Remove deprecated behavior that would rollback a transaction block when exited using `return`, `break` or `throw`.
 
     *Rafael Mendonça França*
