@@ -387,17 +387,23 @@ Once an Active Record object has been retrieved, its attributes can be modified
 and it can be saved to the database.
 
 ```ruby
-user = User.find_by(name: 'David')
-user.name = 'Dave'
-user.save
+book = Book.find_by(author: "J.R.R. Tolkien")
+book.title = "The Lord of the Rings: The Fellowship of the Ring"
+book.save
 ```
 
 A shorthand for this is to use a hash mapping attribute names to the desired
 value, like so:
 
 ```ruby
-user = User.find_by(name: 'David')
-user.update(name: 'Dave')
+book = Book.find_by(author: "J.R.R. Tolkien")
+book.update(title: "The Lord of the Rings: The Fellowship of the Ring")
+```
+
+the `update` results in the following SQL:
+
+```sql
+ UPDATE "books" SET "title" = ?, "updated_at" = ? WHERE "books"."id" = ?  [["title", "The Lord of the Rings: The Fellowship of the Ring"], ["updated_at", "2024-02-22 20:51:13.487064"], ["id", 104]]
 ```
 
 This is useful when updating several attributes at once. Similar to `create`, using `update` will commit the updated records to the database.
@@ -406,7 +412,7 @@ If you'd like to update several records in bulk **without callbacks or
 validations**, you can update the database directly using `update_all`:
 
 ```ruby
-User.update_all max_login_attempts: 3, must_change_password: true
+Book.update_all status: "already own"
 ```
 
 ### Delete
@@ -414,19 +420,25 @@ User.update_all max_login_attempts: 3, must_change_password: true
 Likewise, once retrieved, an Active Record object can be destroyed, which removes it from the database.
 
 ```ruby
-user = User.find_by(name: 'David')
-user.destroy
+book = Book.find_by(author: "J.R.R. Tolkien")
+book.destroy
+```
+
+The `destroy` results in this SQL:
+
+```sql
+DELETE FROM "books" WHERE "books"."id" = ?  [["id", 104]]
 ```
 
 If you'd like to delete several records in bulk, you may use `destroy_by`
 or `destroy_all` method:
 
 ```ruby
-# find and delete all users named David
-User.destroy_by(name: 'David')
+# Find and delete all books by Douglas Adams
+Book.destroy_by(author: "Douglas Adams")
 
-# delete all users
-User.destroy_all
+# Felete all books
+Book.destroy_all
 ```
 
 Validations
