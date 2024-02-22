@@ -16,8 +16,9 @@ module ActiveRecord
       def setup
         super
         @connection = ActiveRecord::Base.connection
-        @schema_migration = @connection.schema_migration
-        @internal_metadata = @connection.internal_metadata
+        @pool = ActiveRecord::Base.connection_pool
+        @schema_migration = @pool.schema_migration
+        @internal_metadata = @pool.internal_metadata
         @verbose_was = ActiveRecord::Migration.verbose
         ActiveRecord::Migration.verbose = false
 
@@ -828,8 +829,9 @@ class BaseCompatibilityTest < ActiveRecord::TestCase
 
   def setup
     @connection = ActiveRecord::Base.connection
-    @schema_migration = @connection.schema_migration
-    @internal_metadata = @connection.internal_metadata
+    @pool = ActiveRecord::Base.connection_pool
+    @schema_migration = @pool.schema_migration
+    @internal_metadata = @pool.internal_metadata
 
     @verbose_was = ActiveRecord::Migration.verbose
     ActiveRecord::Migration.verbose = false
@@ -916,8 +918,9 @@ module LegacyPolymorphicReferenceIndexTestCases
 
   def setup
     @connection = ActiveRecord::Base.connection
-    @schema_migration = @connection.schema_migration
-    @internal_metadata = @connection.internal_metadata
+    @pool = ActiveRecord::Base.connection_pool
+    @schema_migration = @pool.schema_migration
+    @internal_metadata = @pool.internal_metadata
     @verbose_was = ActiveRecord::Migration.verbose
     ActiveRecord::Migration.verbose = false
 
@@ -1055,7 +1058,7 @@ module LegacyPrimaryKeyTestCases
     def teardown
       @migration.migrate(:down) if @migration
       ActiveRecord::Migration.verbose = @verbose_was
-      ActiveRecord::Base.connection.schema_migration.delete_all_versions rescue nil
+      ActiveRecord::Base.connection_pool.schema_migration.delete_all_versions rescue nil
       LegacyPrimaryKey.reset_column_information
     end
 

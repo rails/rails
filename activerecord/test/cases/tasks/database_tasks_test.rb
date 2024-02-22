@@ -71,9 +71,9 @@ module ActiveRecord
 
       def test_raises_an_error_when_called_with_protected_environment
         protected_environments = ActiveRecord::Base.protected_environments
-        current_env            = ActiveRecord::Base.connection.migration_context.current_environment
+        current_env            = ActiveRecord::Base.connection_pool.migration_context.current_environment
 
-        ActiveRecord::Base.connection.internal_metadata[:environment] = current_env
+        ActiveRecord::Base.connection_pool.internal_metadata[:environment] = current_env
 
         assert_called_on_instance_of(
           ActiveRecord::MigrationContext,
@@ -97,9 +97,9 @@ module ActiveRecord
 
       def test_raises_an_error_when_called_with_protected_environment_which_name_is_a_symbol
         protected_environments = ActiveRecord::Base.protected_environments
-        current_env            = ActiveRecord::Base.connection.migration_context.current_environment
+        current_env            = ActiveRecord::Base.connection_pool.migration_context.current_environment
 
-        ActiveRecord::Base.connection.internal_metadata[:environment] = current_env
+        ActiveRecord::Base.connection_pool.internal_metadata[:environment] = current_env
 
         assert_called_on_instance_of(
           ActiveRecord::MigrationContext,
@@ -121,9 +121,9 @@ module ActiveRecord
       end
 
       def test_raises_an_error_if_no_migrations_have_been_made
-        connection = ActiveRecord::Base.connection
-        internal_metadata = connection.internal_metadata
-        schema_migration = connection.schema_migration
+        pool = ActiveRecord::Base.connection_pool
+        internal_metadata = pool.internal_metadata
+        schema_migration = pool.schema_migration
         schema_migration.create_table
         schema_migration.create_version("1")
 
@@ -135,17 +135,18 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
         end
       ensure
+        pool.automatic_reconnect = true
         schema_migration.delete_version("1")
         internal_metadata.create_table
       end
 
       private
       def recreate_metadata_tables
-        schema_migration = ActiveRecord::Base.connection.schema_migration
+        schema_migration = ActiveRecord::Base.connection_pool.schema_migration
         schema_migration.drop_table
         schema_migration.create_table
 
-        internal_metadata = ActiveRecord::Base.connection.internal_metadata
+        internal_metadata = ActiveRecord::Base.connection_pool.internal_metadata
         internal_metadata.drop_table
         internal_metadata.create_table
       end
@@ -161,22 +162,22 @@ module ActiveRecord
 
         with_multi_db_configurations(env) do
           protected_environments = ActiveRecord::Base.protected_environments
-          current_env = ActiveRecord::Base.connection.migration_context.current_environment
+          current_env = ActiveRecord::Base.connection_pool.migration_context.current_environment
           assert_equal current_env, env
 
           ActiveRecord::Base.establish_connection(:primary)
-          ActiveRecord::Base.connection.internal_metadata.create_table_and_set_flags(current_env)
+          ActiveRecord::Base.connection_pool.internal_metadata.create_table_and_set_flags(current_env)
 
           ActiveRecord::Base.establish_connection(:secondary)
-          ActiveRecord::Base.connection.internal_metadata.create_table_and_set_flags(current_env)
+          ActiveRecord::Base.connection_pool.internal_metadata.create_table_and_set_flags(current_env)
 
           assert_not_includes protected_environments, current_env
           # Assert not raises
           ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!(env)
 
           ActiveRecord::Base.establish_connection(:secondary)
-          connection = ActiveRecord::Base.connection
-          schema_migration = connection.schema_migration
+          pool = ActiveRecord::Base.connection_pool
+          schema_migration = pool.schema_migration
           schema_migration.create_table
           schema_migration.create_version("1")
 
@@ -211,8 +212,8 @@ module ActiveRecord
         ensure
           [:primary, :secondary].each do |db|
             ActiveRecord::Base.establish_connection(db)
-            ActiveRecord::Base.connection.schema_migration.delete_all_versions
-            ActiveRecord::Base.connection.internal_metadata.delete_all_entries
+            ActiveRecord::Base.connection_pool.schema_migration.delete_all_versions
+            ActiveRecord::Base.connection_pool.internal_metadata.delete_all_entries
           end
           ActiveRecord::Base.configurations = old_configurations
           ActiveRecord::Base.establish_connection(:arunit)
@@ -1259,7 +1260,7 @@ module ActiveRecord
   class DatabaseTasksMigrateStatusTest < DatabaseTasksMigrationTestCase
     if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       def setup
-        @schema_migration = ActiveRecord::Base.connection.schema_migration
+        @schema_migration = ActiveRecord::Base.connection_pool.schema_migration
       end
 
       def test_migrate_status_table
@@ -1400,12 +1401,12 @@ module ActiveRecord
       fixtures :courses, :colleges
 
       def setup
-        connection = ARUnit2Model.connection
-        @schema_migration = connection.schema_migration
+        pool = ARUnit2Model.connection_pool
+        @schema_migration = pool.schema_migration
         @schema_migration.create_table
         @schema_migration.create_version(@schema_migration.table_name)
 
-        @internal_metadata = connection.internal_metadata
+        @internal_metadata = pool.internal_metadata
         @internal_metadata.create_table
         @internal_metadata[@internal_metadata.table_name] = nil
 

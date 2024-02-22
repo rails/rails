@@ -17,14 +17,14 @@ module ActiveRecord
 
       def setup
         super
-        @schema_migration = ActiveRecord::Base.connection.schema_migration
+        @schema_migration = ActiveRecord::Base.connection_pool.schema_migration
         @schema_migration.create_table
         @schema_migration.delete_all_versions
-        @internal_metadata = ActiveRecord::Base.connection.internal_metadata
+        @internal_metadata = ActiveRecord::Base.connection_pool.internal_metadata
       end
 
       teardown do
-        @schema_migration.delete_all_versions
+        @schema_migration&.delete_all_versions
       end
 
       def test_migration_should_be_run_without_logger

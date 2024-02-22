@@ -2,22 +2,22 @@
 
 module SchemaDumpingHelper
   def dump_table_schema(*tables)
-    connection = ActiveRecord::Base.connection
+    pool = ActiveRecord::Base.connection_pool
     old_ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
-    ActiveRecord::SchemaDumper.ignore_tables = connection.data_sources - tables
+    ActiveRecord::SchemaDumper.ignore_tables = pool.connection.data_sources - tables
 
     output, = capture_io do
-      ActiveRecord::SchemaDumper.dump(connection)
+      ActiveRecord::SchemaDumper.dump(pool)
     end
     output
   ensure
     ActiveRecord::SchemaDumper.ignore_tables = old_ignore_tables
   end
 
-  def dump_all_table_schema(ignore_tables = [], connection: ActiveRecord::Base.connection)
+  def dump_all_table_schema(ignore_tables = [], pool: ActiveRecord::Base.connection_pool)
     old_ignore_tables, ActiveRecord::SchemaDumper.ignore_tables = ActiveRecord::SchemaDumper.ignore_tables, ignore_tables
     output, = capture_io do
-      ActiveRecord::SchemaDumper.dump(connection)
+      ActiveRecord::SchemaDumper.dump(pool)
     end
     output
   ensure

@@ -173,6 +173,22 @@ module ActiveRecord
         @reaper.run
       end
 
+      def migration_context # :nodoc:
+        MigrationContext.new(migrations_paths, schema_migration, internal_metadata)
+      end
+
+      def migrations_paths # :nodoc:
+        db_config.migrations_paths || Migrator.migrations_paths
+      end
+
+      def schema_migration # :nodoc:
+        SchemaMigration.new(self)
+      end
+
+      def internal_metadata # :nodoc:
+        InternalMetadata.new(self)
+      end
+
       # Retrieve the connection associated with the current thread, or call
       # #checkout to obtain one if necessary.
       #

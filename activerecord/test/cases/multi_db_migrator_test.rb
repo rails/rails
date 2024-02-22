@@ -21,24 +21,24 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
 
   def setup
     super
-    @connection_a = ActiveRecord::Base.connection
-    @connection_b = ARUnit2Model.connection
+    @pool_a = ActiveRecord::Base.connection_pool
+    @pool_b = ARUnit2Model.connection_pool
 
-    @connection_a.schema_migration.create_table
-    @connection_b.schema_migration.create_table
+    @pool_a.schema_migration.create_table
+    @pool_b.schema_migration.create_table
 
-    @connection_a.schema_migration.delete_all_versions rescue nil
-    @connection_b.schema_migration.delete_all_versions rescue nil
+    @pool_a.schema_migration.delete_all_versions rescue nil
+    @pool_b.schema_migration.delete_all_versions rescue nil
 
     @path_a = MIGRATIONS_ROOT + "/valid"
     @path_b = MIGRATIONS_ROOT + "/to_copy"
 
-    @schema_migration_a = @connection_a.schema_migration
-    @internal_metadata_a = @connection_a.internal_metadata
+    @schema_migration_a = @pool_a.schema_migration
+    @internal_metadata_a = @pool_a.internal_metadata
     @migrations_a = ActiveRecord::MigrationContext.new(@path_a, @schema_migration_a, @internal_metadata_a).migrations
 
-    @schema_migration_b = @connection_b.schema_migration
-    @internal_metadata_b = @connection_b.internal_metadata
+    @schema_migration_b = @pool_b.schema_migration
+    @internal_metadata_b = @pool_b.internal_metadata
     @migrations_b = ActiveRecord::MigrationContext.new(@path_b, @schema_migration_b, @internal_metadata_b).migrations
 
     @migrations_a_list = [[1, "ValidPeopleHaveLastNames"], [2, "WeNeedReminders"], [3, "InnocentJointable"]]
@@ -56,8 +56,8 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection_a.schema_migration.delete_all_versions rescue nil
-    @connection_b.schema_migration.delete_all_versions rescue nil
+    @pool_q.schema_migration.delete_all_versions rescue nil
+    @pool_b.schema_migration.delete_all_versions rescue nil
 
     ActiveRecord::Migration.verbose = @verbose_was
     ActiveRecord::Migration.class_eval do
@@ -70,9 +70,9 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
 
   def test_schema_migration_is_different_for_different_connections
     assert_not_equal @schema_migration_a, @schema_migration_b
-    assert_not_equal @schema_migration_a.connection, @schema_migration_b.connection
-    assert_equal "ActiveRecord::Base", @schema_migration_a.connection.pool.pool_config.connection_name
-    assert_equal "ARUnit2Model", @schema_migration_b.connection.pool.pool_config.connection_name
+    assert_not_equal @schema_migration_a.instance_variable_get(:@pool), @schema_migration_b.instance_variable_get(:@pool)
+    assert_equal "ActiveRecord::Base", @pool_a.pool_config.connection_name
+    assert_equal "ARUnit2Model", @pool_b.pool_config.connection_name
   end
 
   def test_finds_migrations
@@ -157,17 +157,17 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
     migrator = migrator.new(@path_a, @schema_migration_a, @internal_metadata_a)
 
     @schema_migration_a.drop_table
-    assert_not @connection_a.table_exists?("schema_migrations")
+    assert_not @pool_a.connection.table_exists?("schema_migrations")
     migrator.migrate(1)
-    assert @connection_a.table_exists?("schema_migrations")
+    assert @pool_a.connection.table_exists?("schema_migrations")
 
     _, migrator = migrator_class(3)
     migrator = migrator.new(@path_b, @schema_migration_b, @internal_metadata_b)
 
     @schema_migration_b.drop_table
-    assert_not @connection_b.table_exists?("schema_migrations")
+    assert_not @pool_b.connection.table_exists?("schema_migrations")
     migrator.migrate(1)
-    assert @connection_b.table_exists?("schema_migrations")
+    assert @pool_b.connection.table_exists?("schema_migrations")
   end
 
   def test_migrator_forward
