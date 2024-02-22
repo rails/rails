@@ -131,6 +131,13 @@ class RangeTest < ActiveSupport::TestCase
     assert_not_operator((...3), :overlap?, (3..))
   end
 
+  def test_include_uses_ruby_include
+    assert((1..3).include?(1.5))
+    assert(("a".."d").include?("c"))
+
+    assert_not(("a".."d").include?("cc")) # As opposed to `=== 'cc'` => `true`
+  end
+
   def test_should_include_identical_inclusive
     assert((1..10).include?(1..10))
   end
@@ -143,8 +150,10 @@ class RangeTest < ActiveSupport::TestCase
     assert((1..10).include?(1...11))
   end
 
-  def test_include_returns_false_for_backwards
+  def test_include_returns_false_for_backwards_ranges
     assert_not((1..10).include?(5..3))
+    assert_not((10..1).include?(3..5))
+    assert_not((10..1).include?(5..3))
   end
 
   # Match quirky plain-Ruby behavior
@@ -158,10 +167,12 @@ class RangeTest < ActiveSupport::TestCase
 
   def test_should_include_range_with_endless_range
     assert((1..).include?(2..4))
+    assert_not((2..4).include?(1..))
   end
 
   def test_should_not_include_range_with_endless_range
     assert_not((1..).include?(0..4))
+    assert_not((0..4).include?(1..))
   end
 
   def test_include_with_beginless_range
@@ -170,10 +181,20 @@ class RangeTest < ActiveSupport::TestCase
 
   def test_should_include_range_with_beginless_range
     assert((..2).include?(-1..1))
+    assert((..2).include?(..1))
   end
 
   def test_should_not_include_range_with_beginless_range
     assert_not((..2).include?(-1..3))
+    assert_not((..1).include?(..2))
+    assert_not((-1..1).include?(..2))
+  end
+
+  def test_case_equality_uses_ruby_case_equality
+    assert((1..3) === 1.5)
+    assert(("a".."d") === "c")
+
+    assert(("a".."d") === "cc") # As opposed to `.include?('cc')` => `false`
   end
 
   def test_should_compare_identical_inclusive
@@ -199,18 +220,25 @@ class RangeTest < ActiveSupport::TestCase
 
   def test_should_compare_range_with_endless_range
     assert((1..) === (2..4))
+    assert((1..) === (1..))
+    assert((1..) === (2..))
   end
 
   def test_should_not_compare_range_with_endless_range
     assert_not((1..) === (0..4))
+    assert_not((0..4) === (1..))
+    assert_not((2..) === (1..))
   end
 
   def test_should_compare_range_with_beginless_range
     assert((..2) === (-1..1))
+    assert((..2) === (..1))
   end
 
   def test_should_not_compare_range_with_beginless_range
     assert_not((..2) === (-1..3))
+    assert_not((..1) === (..2))
+    assert_not((-1..3) === (..2))
   end
 
   def test_exclusive_end_should_not_include_identical_with_inclusive_end
