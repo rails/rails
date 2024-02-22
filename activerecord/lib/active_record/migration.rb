@@ -161,8 +161,7 @@ module ActiveRecord
 
     def initialize(message = nil, pending_migrations: nil)
       if pending_migrations.nil?
-        connection = ActiveRecord::Tasks::DatabaseTasks.migration_connection
-        pending_migrations = connection.migration_context.open.pending_migrations
+        pending_migrations = connection_pool.migration_context.open.pending_migrations
       end
 
       super(message || detailed_migration_message(pending_migrations))
@@ -183,8 +182,8 @@ module ActiveRecord
         message
       end
 
-      def connection
-        ActiveRecord::Tasks::DatabaseTasks.migration_connection
+      def connection_pool
+        ActiveRecord::Tasks::DatabaseTasks.migration_connection_pool
       end
   end
 
@@ -701,8 +700,8 @@ module ActiveRecord
       def check_all_pending!
         pending_migrations = []
 
-        ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection_for_each(env: env) do |connection|
-          if pending = connection.migration_context.open.pending_migrations
+        ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(env: env) do |pool|
+          if pending = pool.migration_context.open.pending_migrations
             pending_migrations << pending
           end
         end
@@ -773,8 +772,8 @@ module ActiveRecord
           pending_migrations = []
 
           ActiveRecord::Base.configurations.configs_for(env_name: env).each do |db_config|
-            ActiveRecord::PendingMigrationConnection.establish_temporary_connection(db_config) do |conn|
-              if pending = conn.migration_context.open.pending_migrations
+            ActiveRecord::PendingMigrationConnection.with_temporary_pool(db_config) do |pool|
+              if pending = pool.migration_context.open.pending_migrations
                 pending_migrations << pending
               end
             end
@@ -799,6 +798,7 @@ module ActiveRecord
       @name       = name
       @version    = version
       @connection = nil
+      @pool       = nil
     end
 
     def execution_strategy
@@ -1034,6 +1034,10 @@ module ActiveRecord
       @connection || ActiveRecord::Tasks::DatabaseTasks.migration_connection
     end
 
+    def connection_pool
+      @pool || ActiveRecord::Tasks::DatabaseTasks.migration_connection_pool
+    end
+
     def method_missing(method, *arguments, &block)
       say_with_time "#{method}(#{format_arguments(arguments)})" do
         unless connection.respond_to? :revert
@@ -1206,8 +1210,8 @@ module ActiveRecord
 
     def initialize(migrations_paths, schema_migration = nil, internal_metadata = nil)
       @migrations_paths = migrations_paths
-      @schema_migration = schema_migration || SchemaMigration.new(connection)
-      @internal_metadata = internal_metadata || InternalMetadata.new(connection)
+      @schema_migration = schema_migration || SchemaMigration.new(connection_pool)
+      @internal_metadata = internal_metadata || InternalMetadata.new(connection_pool)
     end
 
     # Runs the migrations in the +migrations_path+.
@@ -1339,11 +1343,12 @@ module ActiveRecord
     end
 
     def last_stored_environment # :nodoc:
-      return nil unless connection.internal_metadata.enabled?
+      internal_metadata = connection_pool.internal_metadata
+      return nil unless internal_metadata.enabled?
       return nil if current_version == 0
-      raise NoEnvironmentInSchemaError unless connection.internal_metadata.table_exists?
+      raise NoEnvironmentInSchemaError unless internal_metadata.table_exists?
 
-      environment = connection.internal_metadata[:environment]
+      environment = internal_metadata[:environment]
       raise NoEnvironmentInSchemaError unless environment
       environment
     end
@@ -1351,6 +1356,10 @@ module ActiveRecord
     private
       def connection
         ActiveRecord::Tasks::DatabaseTasks.migration_connection
+      end
+
+      def connection_pool
+        ActiveRecord::Tasks::DatabaseTasks.migration_connection_pool
       end
 
       def migration_files
@@ -1397,8 +1406,9 @@ module ActiveRecord
       # For cases where a table doesn't exist like loading from schema cache
       def current_version
         connection = ActiveRecord::Tasks::DatabaseTasks.migration_connection
+        connection_pool = ActiveRecord::Tasks::DatabaseTasks.migration_connection_pool
         schema_migration = SchemaMigration.new(connection)
-        internal_metadata = InternalMetadata.new(connection)
+        internal_metadata = InternalMetadata.new(connection_pool)
 
         MigrationContext.new(migrations_paths, schema_migration, internal_metadata).current_version
       end

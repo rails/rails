@@ -13,15 +13,11 @@ module ActiveRecord
     class NullInternalMetadata # :nodoc:
     end
 
-    attr_reader :connection, :arel_table
+    attr_reader :arel_table
 
-    def initialize(connection)
-      @connection = connection
+    def initialize(pool)
+      @pool = pool
       @arel_table = Arel::Table.new(table_name)
-    end
-
-    def enabled?
-      connection.use_metadata_table?
     end
 
     def primary_key
@@ -36,50 +32,66 @@ module ActiveRecord
       "#{ActiveRecord::Base.table_name_prefix}#{ActiveRecord::Base.internal_metadata_table_name}#{ActiveRecord::Base.table_name_suffix}"
     end
 
+    def enabled?
+      @pool.db_config.use_metadata_table?
+    end
+
     def []=(key, value)
       return unless enabled?
 
-      update_or_create_entry(key, value)
+      @pool.with_connection do |connection|
+        update_or_create_entry(connection, key, value)
+      end
     end
 
     def [](key)
       return unless enabled?
 
-      if entry = select_entry(key)
-        entry[value_key]
+      @pool.with_connection do |connection|
+        if entry = select_entry(connection, key)
+          entry[value_key]
+        end
       end
     end
 
     def delete_all_entries
       dm = Arel::DeleteManager.new(arel_table)
 
-      connection.delete(dm, "#{self.class} Destroy")
+      @pool.with_connection do |connection|
+        connection.delete(dm, "#{self.class} Destroy")
+      end
     end
 
     def count
       sm = Arel::SelectManager.new(arel_table)
       sm.project(*Arel::Nodes::Count.new([Arel.star]))
 
-      connection.select_values(sm, "#{self.class} Count").first
+      @pool.with_connection do |connection|
+        connection.select_values(sm, "#{self.class} Count").first
+      end
     end
 
     def create_table_and_set_flags(environment, schema_sha1 = nil)
       return unless enabled?
 
-      create_table
-      update_or_create_entry(:environment, environment)
-      update_or_create_entry(:schema_sha1, schema_sha1) if schema_sha1
+      @pool.with_connection do |connection|
+        create_table
+        update_or_create_entry(connection, :environment, environment)
+        update_or_create_entry(connection, :schema_sha1, schema_sha1) if schema_sha1
+      end
     end
 
     # Creates an internal metadata table with columns +key+ and +value+
     def create_table
       return unless enabled?
 
-      unless connection.table_exists?(table_name)
-        connection.create_table(table_name, id: false) do |t|
-          t.string :key, **connection.internal_string_options_for_primary_key
-          t.string :value
-          t.timestamps
+      @pool.with_connection do |connection|
+        unless connection.table_exists?(table_name)
+          connection.create_table(table_name, id: false) do |t|
+            t.string :key, **connection.internal_string_options_for_primary_key
+            t.string :value
+            t.timestamps
+          end
         end
       end
     end
@@ -87,49 +99,51 @@ module ActiveRecord
     def drop_table
       return unless enabled?
 
-      connection.drop_table table_name, if_exists: true
+      @pool.with_connection do |connection|
+        connection.drop_table table_name, if_exists: true
+      end
     end
 
     def table_exists?
-      @connection.schema_cache.data_source_exists?(table_name)
+      @pool.schema_cache.data_source_exists?(table_name)
     end
 
     private
-      def update_or_create_entry(key, value)
-        entry = select_entry(key)
+      def update_or_create_entry(connection, key, value)
+        entry = select_entry(connection, key)
 
         if entry
           if entry[value_key] != value
-            update_entry(key, value)
+            update_entry(connection, key, value)
           else
             entry[value_key]
           end
         else
-          create_entry(key, value)
+          create_entry(connection, key, value)
         end
       end
 
-      def current_time
+      def current_time(connection)
         connection.default_timezone == :utc ? Time.now.utc : Time.now
       end
 
-      def create_entry(key, value)
+      def create_entry(connection, key, value)
         im = Arel::InsertManager.new(arel_table)
         im.insert [
           [arel_table[primary_key], key],
           [arel_table[value_key], value],
-          [arel_table[:created_at], current_time],
-          [arel_table[:updated_at], current_time]
+          [arel_table[:created_at], current_time(connection)],
+          [arel_table[:updated_at], current_time(connection)]
         ]
 
         connection.insert(im, "#{self.class} Create", primary_key, key)
       end
 
-      def update_entry(key, new_value)
+      def update_entry(connection, key, new_value)
         um = Arel::UpdateManager.new(arel_table)
         um.set [
           [arel_table[value_key], new_value],
-          [arel_table[:updated_at], current_time]
+          [arel_table[:updated_at], current_time(connection)]
         ]
 
         um.where(arel_table[primary_key].eq(key))
@@ -137,7 +151,7 @@ module ActiveRecord
         connection.update(um, "#{self.class} Update")
       end
 
-      def select_entry(key)
+      def select_entry(connection, key)
         sm = Arel::SelectManager.new(arel_table)
         sm.project(Arel::Nodes::SqlLiteral.new("*"))
         sm.where(arel_table[primary_key].eq(Arel::Nodes::BindParam.new(key)))
