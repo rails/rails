@@ -602,7 +602,7 @@ approach is helpful if you want to organize your S3 Bucket files better.
 )
 ```
 
-This way the file will get saved in the folder `[S3_BUCKET]/development/blog_content/` 
+This way the file will get saved in the folder `[S3_BUCKET]/development/blog_content/`
 when you test this from your development environment. Note that if you use the key
 parameter, you have to ensure the key to be unique for the upload to go through. It is
 recommended to append the filename with a unique random key, something like:
