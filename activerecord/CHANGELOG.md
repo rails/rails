@@ -1,3 +1,8 @@
+*   Fix an issue where the IDs reader method did not return expected results for preloaded associations
+    in models using composite primary keys.
+
+    *Jay Ang*
+
 *   Fix `has_one` association autosave setting the foreign key attribute when it is unchanged.
 
     This behaviour is also inconsistent with autosaving `belongs_to` and can have unintended side effects like raising
