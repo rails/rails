@@ -323,34 +323,63 @@ INSERT INTO "books" ("title", "author", "created_at", "updated_at") VALUES (?, ?
 
 ### Read
 
-Active Record provides a rich API for accessing data within a database. Below
-are a few examples of different data access methods provided by Active Record.
+Active Record provides a rich API for accessing data within a database. You can query a single record or multiple records, filter them by any attribute, order them, group them, select specific fields, and do anything you can do with SQL.
 
 ```ruby
-# Return a collection with all users
-users = User.all
+# Return a collection with all books
+books = Book.all
 ```
 
 ```ruby
-# Return the first user
-user = User.first
+# Return a single book
+first_book = Book.first
+last_book = Book.last
+random_book = Book.take
+```
+
+The above results in the following SQL:
+
+```sql
+# Book.first
+SELECT "books".* FROM "books" ORDER BY "books"."id" ASC LIMIT ?  [["LIMIT", 1]]
+
+# Book.last
+SELECT "books".* FROM "books" ORDER BY "books"."id" DESC LIMIT ?  [["LIMIT", 1]]
+
+# Book.take
+SELECT "books".* FROM "books" LIMIT ?  [["LIMIT", 1]]
+```
+
+We can also find specific books with `find_by` and `where`:
+
+```ruby
+# Return the first book by the given author
+book = Book.find_by(author: "J.R.R. Tolkien")
+
+# Shorthand for Book.find_by(id: 42)
+book = Book.find(42)
+```
+
+The above resulting in this SQL:
+
+```sql
+SELECT "books".* FROM "books" WHERE "books"."author" = ? LIMIT ?  [["author", "J.R.R. Tolkien"], ["LIMIT", 1]]
+
+SELECT "books".* FROM "books" WHERE "books"."id" = ? LIMIT ?  [["id", 42], ["LIMIT", 1]]
 ```
 
 ```ruby
-# Return the first user named David
-david = User.find_by(name: 'David')
-
-# Shorthand for User.find_by(id: 42)
-user = User.find(42)
+# Find all books with a given an author, sort by created_at in reverse chronological order
+hitchhiker_series = Book.where(author: "Douglas Adams").order(created_at: :desc)
 ```
 
-```ruby
-# Find all users with a given `name` and `occupation`, sort by created_at in reverse chronological order
-users = User.where(name: 'David', occupation: 'Code Artist').order(created_at: :desc)
+resulting in this SQL:
+
+```sql
+SELECT "books".* FROM "books" WHERE "books"."author" = ? ORDER BY "books"."created_at" DESC [["author", "Douglas Adams"]]
 ```
 
-You can learn more about querying an Active Record model in the [Active Record
-Query Interface](active_record_querying.html) guide.
+There are many more Active Record methods to read and query record. You can learn all about them in the [Active Record Query Interface](active_record_querying.html) guide.
 
 ### Update
 
