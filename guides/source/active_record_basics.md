@@ -269,7 +269,11 @@ CRUD: Reading and Writing Data
 
 CRUD is an acronym for the four verbs we use to operate on data: **C**reate,
 **R**ead, **U**pdate and **D**elete. Active Record automatically creates methods
-to allow you to read and manipulate data stored in your application's database tables. Active Record makes it seamless to perform CRUD operations by providing these high-level methods and abstracting away the details of database interactions.
+to allow you to read and manipulate data stored in your application's database tables.
+
+Active Record makes it seamless to perform CRUD operations by using these high-level methods that abstract away database access details. Note that all of these convenient methods result in SQL statement(s) that are executed against the underlying database.
+
+The examples below show a few of the CRUD methods as well as the resulting SQL statements.
 
 ### Create
 
@@ -277,25 +281,25 @@ Active Record objects can be created from a hash, a block, or have their
 attributes manually set after creation. The `new` method will return a new
 object while `create` will return the object and save it to the database.
 
-For example, given a model `User` with attributes of `name` and `occupation`,
+For example, given a `Book` model with attributes of `title` and `author`,
 the `create` method call will create and save a new record into the database:
 
 ```ruby
-user = User.create(name: "David", occupation: "Code Artist")
+book = Book.create(title: "The Lord of the Rings", author: "J.R.R. Tolkien")
 ```
 
-Using the `new` method, an object can be instantiated without being saved:
+While the `new` method will instantiate an object without saving it to the database:
 
 ```ruby
-user = User.new
-user.name = "David"
-user.occupation = "Code Artist"
+book = Book.new
+book.title = "The Hobbit"
+book.author = "J.R.R. Tolkien"
 
-# The `user` is not yet saved to the database
+# The above `book` is not yet saved to the database
 
-user.save
+book.save
 
-# Now the `user` record is committed to the database.
+# Now the `book` record is committed to the database.
 ```
 
 Finally, if a block is provided, both `create` and `new` will yield the new
@@ -303,12 +307,18 @@ object to that block for initialization, while only `create` will persist
 the resulting object to the database:
 
 ```ruby
-user = User.new do |u|
-  u.name = "David"
-  u.occupation = "Code Artist"
+book = Book.new do |b|
+  b.title = "Metaprogramming Ruby 2"
+  b.author = "Paolo Perrotta"
 end
 
-user.save
+book.save
+```
+
+The resulting SQL statement from both `book.save` and `Book.create` look something like this:
+
+```sql
+INSERT INTO "books" ("title", "author", "created_at", "updated_at") VALUES (?, ?, ?, ?) RETURNING "id"  [["title", "Metaprogramming Ruby 2"], ["author", "Paolo Perrotta"], ["created_at", "2024-02-22 20:01:18.469952"], ["updated_at", "2024-02-22 20:01:18.469952"]]
 ```
 
 ### Read
