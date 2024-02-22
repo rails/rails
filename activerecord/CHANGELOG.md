@@ -1,3 +1,11 @@
+*   Retry SELECT queries on connection-related exceptions
+
+    SELECT queries are idempotent and thus safe to retry automatically. Previously,
+    adapters such as `TrilogyAdapter` would raise `ActiveRecord::ConnectionFailed: Trilogy::EOFError`
+    when encountering a connection error mid-request during a SELECT query.
+
+    *Adrianna Chang*, *Gannon McGibbon*
+
 *   Fix `has_one` association autosave setting the foreign key attribute when it is unchanged.
 
     This behaviour is also inconsistent with autosaving `belongs_to` and can have unintended side effects like raising

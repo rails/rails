@@ -626,17 +626,25 @@ module ActiveRecord
         assert_predicate @connection, :active?
       end
 
-      test "querying after a failed query restores and succeeds" do
+      test "querying after a failed non-retryable query restores and succeeds" do
         Post.first # Connection verified (and prepared statement pool populated if enabled)
 
         remote_disconnect @connection
 
         assert_raises(ActiveRecord::ConnectionFailed) do
-          Post.first # Connection no longer verified after failed query
+          @connection.execute("INSERT INTO posts(title, body) VALUES ('foo', 'bar')")
         end
 
         assert Post.first # Verifying the connection causes a reconnect and the query succeeds
+        assert_predicate @connection, :active?
+      end
 
+      test "select queries are retried and result in a reconnect" do
+        Post.first # Connection verified (and prepared statement pool populated if enabled)
+
+        remote_disconnect @connection
+
+        assert Post.first
         assert_predicate @connection, :active?
       end
 
