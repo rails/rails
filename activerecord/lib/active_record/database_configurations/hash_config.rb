@@ -154,6 +154,10 @@ module ActiveRecord
         !replica? && !!configuration_hash.fetch(:database_tasks, true)
       end
 
+      def use_metadata_table? # :nodoc:
+        configuration_hash.fetch(:use_metadata_table, true)
+      end
+
       private
         def schema_file_type(format)
           case format

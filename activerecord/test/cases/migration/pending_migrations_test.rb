@@ -24,7 +24,7 @@ module ActiveRecord
         end
 
         def run_migrations
-          migrator = Base.connection.migration_context
+          migrator = Base.connection_pool.migration_context
           capture(:stdout) { migrator.migrate }
         end
 

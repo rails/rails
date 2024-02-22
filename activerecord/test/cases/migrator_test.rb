@@ -21,10 +21,11 @@ class MigratorTest < ActiveRecord::TestCase
 
   def setup
     super
-    @schema_migration = ActiveRecord::Base.connection.schema_migration
+    @pool = ActiveRecord::Base.connection_pool
+    @schema_migration = @pool.schema_migration
     @schema_migration.create_table
     @schema_migration.delete_all_versions rescue nil
-    @internal_metadata = ActiveRecord::Base.connection.internal_metadata
+    @internal_metadata = @pool.internal_metadata
     @verbose_was = ActiveRecord::Migration.verbose
     ActiveRecord::Migration.message_count = 0
     ActiveRecord::Migration.class_eval do
@@ -89,9 +90,7 @@ class MigratorTest < ActiveRecord::TestCase
   end
 
   def test_finds_migrations
-    schema_migration = ActiveRecord::Base.connection.schema_migration
-    internal_metadata = ActiveRecord::Base.connection.internal_metadata
-    migrations = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/valid", schema_migration, internal_metadata).migrations
+    migrations = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/valid", @schema_migration, @internal_metadata).migrations
 
     [[1, "ValidPeopleHaveLastNames"], [2, "WeNeedReminders"], [3, "InnocentJointable"]].each_with_index do |pair, i|
       assert_equal migrations[i].version, pair.first
@@ -100,9 +99,7 @@ class MigratorTest < ActiveRecord::TestCase
   end
 
   def test_finds_migrations_in_subdirectories
-    schema_migration = ActiveRecord::Base.connection.schema_migration
-    internal_metadata = ActiveRecord::Base.connection.internal_metadata
-    migrations = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/valid_with_subdirectories", schema_migration, internal_metadata).migrations
+    migrations = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/valid_with_subdirectories", @schema_migration, @internal_metadata).migrations
 
     [[1, "ValidPeopleHaveLastNames"], [2, "WeNeedReminders"], [3, "InnocentJointable"]].each_with_index do |pair, i|
       assert_equal migrations[i].version, pair.first
@@ -111,10 +108,8 @@ class MigratorTest < ActiveRecord::TestCase
   end
 
   def test_finds_migrations_from_two_directories
-    schema_migration = ActiveRecord::Base.connection.schema_migration
-    internal_metadata = ActiveRecord::Base.connection.internal_metadata
     directories = [MIGRATIONS_ROOT + "/valid_with_timestamps", MIGRATIONS_ROOT + "/to_copy_with_timestamps"]
-    migrations = ActiveRecord::MigrationContext.new(directories, schema_migration, internal_metadata).migrations
+    migrations = ActiveRecord::MigrationContext.new(directories, @schema_migration, @internal_metadata).migrations
 
     [[20090101010101, "PeopleHaveHobbies"],
      [20090101010202, "PeopleHaveDescriptions"],
@@ -127,18 +122,14 @@ class MigratorTest < ActiveRecord::TestCase
   end
 
   def test_finds_migrations_in_numbered_directory
-    schema_migration = ActiveRecord::Base.connection.schema_migration
-    internal_metadata = ActiveRecord::Base.connection.internal_metadata
-    migrations = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/10_urban", schema_migration, internal_metadata).migrations
+    migrations = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/10_urban", @schema_migration, @internal_metadata).migrations
     assert_equal 9, migrations[0].version
     assert_equal "AddExpressions", migrations[0].name
   end
 
   def test_relative_migrations
-    schema_migration = ActiveRecord::Base.connection.schema_migration
-    internal_metadata = ActiveRecord::Base.connection.internal_metadata
     list = Dir.chdir(MIGRATIONS_ROOT) do
-      ActiveRecord::MigrationContext.new("valid", schema_migration, internal_metadata).migrations
+      ActiveRecord::MigrationContext.new("valid", @schema_migration, @internal_metadata).migrations
     end
 
     migration_proxy = list.find { |item|
@@ -158,8 +149,6 @@ class MigratorTest < ActiveRecord::TestCase
 
   def test_migrations_status
     path = MIGRATIONS_ROOT + "/valid"
-    schema_migration = ActiveRecord::Base.connection.schema_migration
-    internal_metadata = ActiveRecord::Base.connection.internal_metadata
 
     @schema_migration.create_version(2)
     @schema_migration.create_version(10)
@@ -169,14 +158,11 @@ class MigratorTest < ActiveRecord::TestCase
       ["up",   "002", "We need reminders"],
       ["down", "003", "Innocent jointable"],
       ["up",   "010", "********** NO FILE **********"],
-    ], ActiveRecord::MigrationContext.new(path, schema_migration, internal_metadata).migrations_status
+    ], ActiveRecord::MigrationContext.new(path, @schema_migration, @internal_metadata).migrations_status
   end
 
   def test_migrations_status_order_new_and_old_version
     path = MIGRATIONS_ROOT + "/old_and_new_versions"
-    schema_migration = ActiveRecord::Base.connection.schema_migration
-    internal_metadata = ActiveRecord::Base.connection.internal_metadata
-
     @schema_migration.create_version(230)
     @schema_migration.create_version(231)
     @schema_migration.create_version(20210716122844)
@@ -187,13 +173,11 @@ class MigratorTest < ActiveRecord::TestCase
       ["up", "231", "Add people last name"],
       ["up", "20210716122844", "Add people description"],
       ["up", "20210716123013", "Add people number of legs"],
-    ], ActiveRecord::MigrationContext.new(path, schema_migration, internal_metadata).migrations_status
+    ], ActiveRecord::MigrationContext.new(path, @schema_migration, @internal_metadata).migrations_status
   end
 
   def test_migrations_status_order_new_and_old_version_applied_out_of_order
     path = MIGRATIONS_ROOT + "/old_and_new_versions"
-    schema_migration = ActiveRecord::Base.connection.schema_migration
-    internal_metadata = ActiveRecord::Base.connection.internal_metadata
 
     @schema_migration.create_version(230)
     @schema_migration.create_version(231)
@@ -209,13 +193,11 @@ class MigratorTest < ActiveRecord::TestCase
       ["up", "231", "Add people last name"],
       ["down", "20210716122844", "Add people description"],
       ["up", "20210716123013", "Add people number of legs"],
-    ], ActiveRecord::MigrationContext.new(path, schema_migration, internal_metadata).migrations_status
+    ], ActiveRecord::MigrationContext.new(path, @schema_migration, @internal_metadata).migrations_status
   end
 
   def test_migrations_status_in_subdirectories
     path = MIGRATIONS_ROOT + "/valid_with_subdirectories"
-    schema_migration = ActiveRecord::Base.connection.schema_migration
-    internal_metadata = ActiveRecord::Base.connection.internal_metadata
 
     @schema_migration.create_version(2)
     @schema_migration.create_version(10)
@@ -225,14 +207,12 @@ class MigratorTest < ActiveRecord::TestCase
       ["up",   "002", "We need reminders"],
       ["down", "003", "Innocent jointable"],
       ["up",   "010", "********** NO FILE **********"],
-    ], ActiveRecord::MigrationContext.new(path, schema_migration, internal_metadata).migrations_status
+    ], ActiveRecord::MigrationContext.new(path, @schema_migration, @internal_metadata).migrations_status
   end
 
   def test_migrations_status_with_schema_define_in_subdirectories
     path = MIGRATIONS_ROOT + "/valid_with_subdirectories"
     prev_paths = ActiveRecord::Migrator.migrations_paths
-    schema_migration = ActiveRecord::Base.connection.schema_migration
-    internal_metadata = ActiveRecord::Base.connection.internal_metadata
     ActiveRecord::Migrator.migrations_paths = path
 
     ActiveRecord::Schema.define(version: 3) do
@@ -242,15 +222,13 @@ class MigratorTest < ActiveRecord::TestCase
       ["up", "001", "Valid people have last names"],
       ["up", "002", "We need reminders"],
       ["up", "003", "Innocent jointable"],
-    ], ActiveRecord::MigrationContext.new(path, schema_migration, internal_metadata).migrations_status
+    ], ActiveRecord::MigrationContext.new(path, @schema_migration, @internal_metadata).migrations_status
   ensure
     ActiveRecord::Migrator.migrations_paths = prev_paths
   end
 
   def test_migrations_status_from_two_directories
     paths = [MIGRATIONS_ROOT + "/valid_with_timestamps", MIGRATIONS_ROOT + "/to_copy_with_timestamps"]
-    schema_migration = ActiveRecord::Base.connection.schema_migration
-    internal_metadata = ActiveRecord::Base.connection.internal_metadata
 
     @schema_migration.create_version("20100101010101")
     @schema_migration.create_version("20160528010101")
@@ -262,7 +240,7 @@ class MigratorTest < ActiveRecord::TestCase
       ["down", "20100201010101", "Valid with timestamps we need reminders"],
       ["down", "20100301010101", "Valid with timestamps innocent jointable"],
       ["up",   "20160528010101", "********** NO FILE **********"],
-    ], ActiveRecord::MigrationContext.new(paths, schema_migration, internal_metadata).migrations_status
+    ], ActiveRecord::MigrationContext.new(paths, @schema_migration, @internal_metadata).migrations_status
   end
 
   def test_migrator_interleaved_migrations
@@ -310,8 +288,8 @@ class MigratorTest < ActiveRecord::TestCase
 
   def test_current_version
     @schema_migration.create_version("1000")
-    schema_migration = ActiveRecord::Base.connection.schema_migration
-    internal_metadata = ActiveRecord::Base.connection.internal_metadata
+    schema_migration = ActiveRecord::Base.connection_pool.schema_migration
+    internal_metadata = ActiveRecord::Base.connection_pool.internal_metadata
     migrator = ActiveRecord::MigrationContext.new("db/migrate", schema_migration, internal_metadata)
     assert_equal 1000, migrator.current_version
   end
@@ -426,7 +404,7 @@ class MigratorTest < ActiveRecord::TestCase
   end
 
   def test_migrator_going_down_due_to_version_target
-    schema_migration = ActiveRecord::Base.connection.schema_migration
+    schema_migration = ActiveRecord::Base.connection_pool.schema_migration
     calls, migrator = migrator_class(3)
     migrator = migrator.new("valid", schema_migration)
 
@@ -443,7 +421,7 @@ class MigratorTest < ActiveRecord::TestCase
   end
 
   def test_migrator_output_when_running_multiple_migrations
-    schema_migration = ActiveRecord::Base.connection.schema_migration
+    schema_migration = ActiveRecord::Base.connection_pool.schema_migration
     _, migrator = migrator_class(3)
     migrator = migrator.new("valid", schema_migration)
 
@@ -459,7 +437,7 @@ class MigratorTest < ActiveRecord::TestCase
   end
 
   def test_migrator_output_when_running_single_migration
-    schema_migration = ActiveRecord::Base.connection.schema_migration
+    schema_migration = ActiveRecord::Base.connection_pool.schema_migration
     _, migrator = migrator_class(1)
     migrator = migrator.new("valid", schema_migration)
 
@@ -469,7 +447,7 @@ class MigratorTest < ActiveRecord::TestCase
   end
 
   def test_migrator_rollback
-    schema_migration = ActiveRecord::Base.connection.schema_migration
+    schema_migration = ActiveRecord::Base.connection_pool.schema_migration
     _, migrator = migrator_class(3)
     migrator = migrator.new("valid", schema_migration)
 
@@ -490,7 +468,7 @@ class MigratorTest < ActiveRecord::TestCase
   end
 
   def test_migrator_db_has_no_schema_migrations_table
-    schema_migration = ActiveRecord::Base.connection.schema_migration
+    schema_migration = ActiveRecord::Base.connection_pool.schema_migration
     _, migrator = migrator_class(3)
     migrator = migrator.new("valid", schema_migration)
 
@@ -501,7 +479,7 @@ class MigratorTest < ActiveRecord::TestCase
   end
 
   def test_migrator_forward
-    schema_migration = ActiveRecord::Base.connection.schema_migration
+    schema_migration = ActiveRecord::Base.connection_pool.schema_migration
     _, migrator = migrator_class(3)
     migrator = migrator.new("/valid", schema_migration)
     migrator.migrate(1)
@@ -518,7 +496,7 @@ class MigratorTest < ActiveRecord::TestCase
     # migrate up to 1
     @schema_migration.create_version("1")
 
-    schema_migration = ActiveRecord::Base.connection.schema_migration
+    schema_migration = ActiveRecord::Base.connection_pool.schema_migration
     calls, migrator = migrator_class(3)
     migrator = migrator.new("valid", schema_migration)
     migrator.migrate
@@ -527,7 +505,7 @@ class MigratorTest < ActiveRecord::TestCase
   end
 
   def test_get_all_versions
-    schema_migration = ActiveRecord::Base.connection.schema_migration
+    schema_migration = ActiveRecord::Base.connection_pool.schema_migration
     _, migrator = migrator_class(3)
     migrator = migrator.new("valid", schema_migration)
 

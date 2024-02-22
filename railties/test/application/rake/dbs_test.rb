@@ -616,8 +616,8 @@ module ApplicationTests
         app_file "db/schema.rb", ""
         rails "db:setup"
 
-        test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::Base.connection.internal_metadata[:environment]").strip }
-        development_environment = lambda { rails("runner", "puts ActiveRecord::Base.connection.internal_metadata[:environment]").strip }
+        test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::Base.connection_pool.internal_metadata[:environment]").strip }
+        development_environment = lambda { rails("runner", "puts ActiveRecord::Base.connection_pool.internal_metadata[:environment]").strip }
 
         assert_equal "test", test_environment.call
         assert_equal "development", development_environment.call
@@ -637,7 +637,7 @@ module ApplicationTests
         app_file "db/schema.rb", ""
         rails "db:test:prepare"
 
-        test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::Base.connection.internal_metadata[:environment]").strip }
+        test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::Base.connection_pool.internal_metadata[:environment]").strip }
 
         assert_equal "test", test_environment.call
 
@@ -739,8 +739,8 @@ module ApplicationTests
           tables = rails("runner", "p ActiveRecord::Base.connection.tables.sort").strip
           assert_equal('["ar_internal_metadata", "books", "recipes", "schema_migrations"]', tables)
 
-          test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::Base.connection.internal_metadata[:environment]").strip }
-          development_environment = lambda { rails("runner", "puts ActiveRecord::Base.connection.internal_metadata[:environment]").strip }
+          test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::Base.connection_pool.internal_metadata[:environment]").strip }
+          development_environment = lambda { rails("runner", "puts ActiveRecord::Base.connection_pool.internal_metadata[:environment]").strip }
 
           assert_equal "development", development_environment.call
           assert_equal "test", test_environment.call

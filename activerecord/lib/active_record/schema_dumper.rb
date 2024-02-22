@@ -41,8 +41,10 @@ module ActiveRecord
     cattr_accessor :unique_ignore_pattern, default: /^uniq_rails_[0-9a-f]{10}$/
 
     class << self
-      def dump(connection = ActiveRecord::Base.connection, stream = $stdout, config = ActiveRecord::Base)
-        connection.create_schema_dumper(generate_options(config)).dump(stream)
+      def dump(pool = ActiveRecord::Base.connection_pool, stream = $stdout, config = ActiveRecord::Base)
+        pool.with_connection do |connection|
+          connection.create_schema_dumper(generate_options(config)).dump(stream)
+        end
         stream
       end
 
@@ -68,9 +70,9 @@ module ActiveRecord
     private
       attr_accessor :table_name
 
-      def initialize(connection, options = {})
+      def initialize(connection, version, options = {})
         @connection = connection
-        @version = connection.migration_context.current_version rescue nil
+        @version = connection.pool.migration_context.current_version rescue nil
         @options = options
         @ignore_tables = [
           ActiveRecord::Base.schema_migrations_table_name,

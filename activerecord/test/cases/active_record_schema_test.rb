@@ -9,7 +9,8 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     @original_verbose = ActiveRecord::Migration.verbose
     ActiveRecord::Migration.verbose = false
     @connection = ActiveRecord::Base.connection
-    @schema_migration = @connection.schema_migration
+    @pool = ActiveRecord::Base.connection_pool
+    @schema_migration = @pool.schema_migration
     @schema_migration.delete_all_versions
   end
 
@@ -72,7 +73,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
         t.column :flavor, :string
       end
     end
-    assert_equal 7, @connection.migration_context.current_version
+    assert_equal 7, @pool.migration_context.current_version
   ensure
     ActiveRecord::Base.table_name_prefix = old_table_name_prefix
     @connection.drop_table :nep_fruits
