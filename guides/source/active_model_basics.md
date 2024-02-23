@@ -66,7 +66,7 @@ class EmailContact
 
   def deliver
     if valid?
-      # deliver email
+      # Deliver email
     end
   end
 end
@@ -75,19 +75,19 @@ end
 ```irb
 irb> email_contact = EmailContact.new(name: "David", email: "david@example.com", message: "Hello World")
 
-irb> email_contact.name # attribute assignment
+irb> email_contact.name # Attribute Assignment
 => "David"
 
-irb> email_contact.to_model == email_contact # conversion
+irb> email_contact.to_model == email_contact # Conversion
 => true
 
-irb> email_contact.model_name.name # naming
+irb> email_contact.model_name.name # Naming
 => "EmailContact"
 
-irb> EmailContact.human_attribute_name("name") # translation if the locale is set
+irb> EmailContact.human_attribute_name("name") # Translation if the locale is set
 => "Name"
 
-irb> email_contact.valid? # validations
+irb> email_contact.valid? # Validations
 => true
 
 irb> empty_contact = EmailContact.new
@@ -155,11 +155,11 @@ irb> person.date_of_birth
 irb> person.date_of_birth.class
 => Date
 
-# uses the default value set by the attribute
+# Uses the default value set by the attribute
 irb> person.active
 => true
 
-# casts the integer to a boolean set by the attribute
+# Casts the integer to a boolean set by the attribute
 irb> person.active = 0
 irb> person.active
 => false
@@ -207,7 +207,7 @@ end
 ```irb
 irb> person = Person.new
 
-# use assign_attributes to set multiple attributes at once
+# Use assign_attributes to set multiple attributes at once
 irb> person.assign_attributes(name: "John", date_of_birth: "1998-01-01", active: false)
 
 irb> person.name
@@ -258,17 +258,10 @@ multiple attributes at once:
 ```irb
 irb> person = Person.new
 
-# using the `attributes= method` to set multiple attributes at once
 irb> person.attributes = { name: "John", date_of_birth: "1998-01-01", active: false }
 
 irb> person.name
 => "John"
-
-# using the `assign_attributes` method to set multiple attributes at once
-irb> person.assign_attributes(name: "Jane")
-
-irb> person.name
-=> "Jane"
 irb> person.date_of_birth
 => "1998-01-01"
 ```
@@ -288,7 +281,7 @@ on the object will use them as follows:
    attribute(s) that should be prefixed and suffixed.
 4.  Define the various generic `_attribute` methods that you have declared. The
     parameter `attribute` in these methods will be replaced by the argument
-    passed in `define_attribute_methods`. In our case it is `name`.
+    passed in `define_attribute_methods`. In the example below it's `name`.
 
 NOTE: `attribute_method_prefix` and `attribute_method_suffix` are used to define
 the prefixes and suffixes that will be used to create the methods.
@@ -300,8 +293,7 @@ class Person
   include ActiveModel::AttributeMethods
 
   attribute_method_affix prefix: "reset_", suffix: "_to_default!"
-  attribute_method_prefix "first_"
-  attribute_method_prefix "last_"
+  attribute_method_prefix "first_", "last_"
   attribute_method_suffix "_short?"
 
   define_attribute_methods "name"
@@ -310,22 +302,22 @@ class Person
 
   private
 
-  # this will create a method 'first_name'
+  # attribute method call for 'first_name'
   def first_attribute(attribute)
     public_send(attribute).split.first
   end
 
-  # this will create a method 'last_name'
+  # attribute method call for 'last_name'
   def last_attribute(attribute)
     public_send(attribute).split.last
   end
 
-  # this will create a method 'name_short?'
+  # attribute method call for 'name_short?'
   def attribute_short?(attribute)
     public_send(attribute).length < 5
   end
 
-  # this will create a method 'reset_name_to_default!'
+  # attribute method call 'reset_name_to_default!'
   def reset_attribute_to_default!(attribute)
     public_send("#{attribute}=", "Default Name")
   end
@@ -334,7 +326,6 @@ end
 
 ```irb
 irb> person = Person.new
-
 irb> person.name = "Jane Doe"
 
 # utilizing the `first_name` and `last_name` prefix methods
@@ -364,7 +355,7 @@ This can be done by using the `alias_attribute` method.
 class Person
   include ActiveModel::AttributeMethods
 
-  attribute_method_suffix '_short?'
+  attribute_method_suffix "_short?"
   define_attribute_methods :name
 
   attr_accessor :name
@@ -376,15 +367,12 @@ class Person
   def attribute_short?(attribute)
     public_send(attribute).length < 5
   end
-
 end
 ```
 
 ```irb
 irb> person = Person.new
-
 irb> person.name = "Joe"
-
 irb> person.name
 => "Joe"
 
@@ -401,22 +389,24 @@ irb> person.nickname_short?
 
 ### Callbacks
 
-[`ActiveModel::Callbacks`](https://api.rubyonrails.org/classes/ActiveModel/Callbacks.html) gives plain Ruby objects Active Record style callbacks.
-The callbacks allow you to hook into model lifecycle events, such as
-`before_update` and `after_create`, as well as to define custom logic to be
-executed at specific points in the model's lifecycle.
+[`ActiveModel::Callbacks`](https://api.rubyonrails.org/classes/ActiveModel/Callbacks.html)
+gives plain Ruby objects [Active Record style
+callbacks](https://guides.rubyonrails.org/active_record_callbacks.html). The
+callbacks allow you to hook into model lifecycle events, such as `before_update`
+and `after_create`, as well as to define custom logic to be executed at specific
+points in the model's lifecycle.
 
 You can implement `ActiveModel::Callbacks` by following the steps below:
 
 1. Extend `ActiveModel::Callbacks` in your class.
 2. Using `define_model_callbacks`, define a list of methods that you want
    callbacks attached to. When you define a method like `:update`, it will
-   provide all three standard callbacks (before, around and after) for the
+   provide all three standard callbacks (`before`, `around` and `after`) for the
    `:update` method.
 3. Wrap the methods you want callbacks on in a block so that the callbacks get a
    chance to fire.
-4. Then in your class, you can use the `before_create`, `after_create`, and
-   `around_create` methods, just as you would in an Active Record model.
+4. Then in your class, you can use the `before_update`, `after_update`, and
+   `around_update` methods, just as you would in an Active Record model.
 
 ```ruby
 class Person
@@ -431,18 +421,20 @@ class Person
   def update
     run_callbacks(:update) do
       puts "update method called"
-      # This is the callback method executed when `update` is called on an object.
+      # this is the callback method executed when `update` is called on an object.
     end
   end
 
+  private
+
   def reset_me
     puts "reset_me method: called before the update method"
-    # When update is called on an object, then this method is called by `before_update` callback
+    # when update is called on an object, then this method is called by `before_update` callback
   end
 
   def finalize_me
     puts "finalize_me method: called after the update method"
-    # When update is called on an object, then this method is called by `after_update` callback
+    # when update is called on an object, then this method is called by `after_update` callback
   end
 
   def log_me
@@ -478,7 +470,7 @@ You can choose to create specific callbacks by passing a hash to the
 `define_model_callbacks` method:
 
 ```ruby
-define_model_callbacks :update, :create,  only: [:after, :before]
+define_model_callbacks :update, :create, only: [:after, :before]
 ```
 
 The `only: <type>` hash will apply to all callbacks defined on that method call.
@@ -486,8 +478,8 @@ To get around this you can call the `define_model_callbacks` method as many
 times as you need like below:
 
 ```ruby
-define_model_callbacks :create,  only: :after
-define_model_callbacks :update,  only: :before
+define_model_callbacks :create, only: :after
+define_model_callbacks :update, only: :before
 define_model_callbacks :destroy, only: :around
 ```
 
@@ -501,18 +493,16 @@ which case the callback will call that class's `<action>_<type>` method thus
 passing the object that the callback is being called on.
 
 ```ruby
-  class MyModel
-    extend ActiveModel::Callbacks
-    define_model_callbacks :create
-
-    before_create AnotherClass
+class Person
+  extend ActiveModel::Callbacks
+  define_model_callbacks :create
+  before_create PersonCallbacks
+end
+class PersonCallbacks
+  def self.before_create(obj)
+    # `obj` is the Person instance that the callback is being called on
   end
-
-  class AnotherClass
-    def self.before_create(obj)
-      # obj is the MyModel instance that the callback is being called on
-    end
-  end
+end
 ```
 
 NOTE: `method_name` passed to `define_model_callbacks` must not end with `!`,
@@ -541,6 +531,7 @@ saved.
 ```ruby
 class Person
   include ActiveModel::Conversion
+  attr_accessor :id
 
   def initialize(id)
     @id = id
@@ -569,7 +560,7 @@ Active Model compliant methods.
 ```ruby
 class Person
   def to_model
-    # a proxy object that wraps your object with Active Model compliant methods.
+    # A proxy object that wraps your object with Active Model compliant methods.
     PersonModel.new(self)
   end
 end
@@ -602,7 +593,7 @@ irb> person.to_param
 #### to_partial_path
 
 The `to_partial_path` method returns a `string` representing the path associated
-with the object. ActionPack uses this to find a suitable partial to represent
+with the object. Action Pack uses this to find a suitable partial to represent
 the object.
 
 ```irb
@@ -625,13 +616,13 @@ attributes and has not been saved. It has attribute-based accessor methods.
 To use `ActiveModel::Dirty`, you need to:
 
 1. Include the module in your class.
-- Define the attribute methods that you want to track changes for, using
+2. Define the attribute methods that you want to track changes for, using
   `define_attribute_methods`.
-2. Call `[attr_name]_will_change!` before each change to the tracked attribute.
-3. Call `changes_applied` after the changes are persisted.
-4. Call `clear_changes_information` when you want to reset the changes
+3. Call `[attr_name]_will_change!` before each change to the tracked attribute.
+4. Call `changes_applied` after the changes are persisted.
+5. Call `clear_changes_information` when you want to reset the changes
    information.
-5. Call `restore_attributes` when you want to restore previous data.
+6. Call `restore_attributes` when you want to restore previous data.
 
 You can then use the methods provided by `ActiveModel::Dirty` to query the
 object for its list of all changed attributes, the original values of the
@@ -679,7 +670,7 @@ class Person
   end
 
   def rollback!
-   # Restore all previous data of the provided attributes.
+   # Restores all previous data of the provided attributes.
     restore_attributes
   end
 end
@@ -736,6 +727,9 @@ irb> person.changes
 model was saved.
 
 ```irb
+irb> person.previous_changes
+=> {}
+
 irb> person.save
 irb> person.previous_changes
 => {"first_name"=>[nil, "Jane Doe"]}
@@ -754,7 +748,7 @@ irb> person.first_name
 => "John Doe"
 ```
 
-**[attr_name]_changed?** checks whether the particular attribute has been
+**`[attr_name]_changed?`** checks whether the particular attribute has been
 changed or not.
 
 ```
@@ -762,15 +756,16 @@ irb> person.first_name_changed?
 => true
 ```
 
-**[attr_name]_was** tracks the previous value of the attribute.
+**`[attr_name]_was`** tracks the previous value of the attribute.
 
 ```irb
 irb> person.first_name_was
 => nil
 ```
 
-**[attr_name]_change** tracks both the previous and current values of the
-changed attribute. Returns an array if changed, otherwise returns nil.
+**`[attr_name]_change`** tracks both the previous and current values of the
+changed attribute. Returns an array with `[original value, new value]` if
+changed, otherwise returns `nil`.
 
 ```irb
 irb> person.first_name_change
@@ -779,7 +774,7 @@ irb> person.last_name_change
 => nil
 ```
 
-**[attr_name]_previously_changed?** checks whether the particular attribute has
+**`[attr_name]_previously_changed?`** checks whether the particular attribute has
 been changed before the model was saved.
 
 ```irb
@@ -790,9 +785,9 @@ irb> person.first_name_previously_changed?
 => true
 ```
 
-**[attr_name]_previous_change** tracks both previous and current values of the
-changed attribute before the model was saved. Returns an array if changed,
-otherwise returns nil.
+**`[attr_name]_previous_change`** tracks both previous and current values of the
+changed attribute before the model was saved. Returns an array with `[original
+value, new value]` if changed, otherwise returns `nil`.
 
 ```irb
 irb> person.first_name_previous_change
@@ -835,7 +830,7 @@ irb> person.email = "me@vishnuatrai.com"
 irb> person.valid?
 => true
 
-# token uses validate! and will raise an exception when not set.
+# `token` uses validate! and will raise an exception when not set.
 irb> person.token = nil
 irb> person.valid?
 => "Token can't be blank (ActiveModel::StrictValidationFailed)"
@@ -849,7 +844,7 @@ You can add validations using some of the following methods:
   read more about how to use `validate`
   [here](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validate).
 
-- `validates`:An attribute can be passed to the `validates` method and it
+- `validates`: An attribute can be passed to the `validates` method and it
   provides a shortcut to all default validators. You can read more about how to
   use `validates`
   [here](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates).
@@ -1035,12 +1030,12 @@ class Person
   attr_accessor :name, :age
 
   def attributes
-    # compulsory declaration of attributes to serialize
+    # Compulsory declaration of attributes to serialize
     {"name" => nil, "age" => nil}
   end
 
   def capitalized_name
-  # an example of how we can define a method that will be included a serialized hash
+  # An example of how we can define a method that will be included a serialized hash
     name.capitalize
   end
 end
@@ -1056,21 +1051,21 @@ irb> person = Person.new
 irb> person.serializable_hash
 => {"name"=>nil, "age"=>nil}
 
-# setting the name and age attributes and then serializing the object
+# Setting the name and age attributes and then serializing the object
 irb> person.name = "bob"
 irb> person.age = 22
 irb> person.serializable_hash
 => {"name"=>"bob", "age"=>22}
 
-# using the methods option to include the capitalized_name method
+# Using the methods option to include the capitalized_name method
 irb>  person.serializable_hash(methods: :capitalized_name)
 => {"name"=>"bob", "age"=>22, "capitalized_name"=>"Bob"}
 
-# using the only method to include only the name attribute
+# Using the only method to include only the name attribute
 irb> person.serializable_hash(only: :name)
 => {"name"=>"bob"}
 
-# using the except method to exclude the name attribute
+# Using the except method to exclude the name attribute
 irb> person.serializable_hash(except: :name)
 => {"age"=>22}
 ```
@@ -1147,11 +1142,11 @@ JSON string representing the model.
 ```irb
 irb> person = Person.new
 
-# a Hash representing the model with its keys as a String
+# A Hash representing the model with its keys as a String
 irb> person.as_json
 => {"name"=>nil}
 
-# a JSON string representing the model
+# A JSON string representing the model
 irb> person.to_json
 => "{\"name\":null}"
 
@@ -1193,7 +1188,7 @@ irb> json = { name: "Bob" }.to_json
 
 irb> person = Person.new
 
-# defining the attributes for a model from a JSON string
+# Defining the attributes for a model from a JSON string
 irb> person.from_json(json)
 => #<Person:0x00000100c773f0 @name="Bob">
 
