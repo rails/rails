@@ -411,7 +411,9 @@ class ActionsTest < Rails::Generators::TestCase
       end
     RUBY
     action(:initializer, "constants.rb") { code }
-    assert_initializer "constants.rb", code.strip_heredoc
+    assert_initializer "constants.rb" do |content|
+      assert_equal(content, code.strip_heredoc)
+    end
   end
 
   test "generate" do

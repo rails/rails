@@ -138,8 +138,8 @@ module Rails
         #   assert_initializer "mail_interceptors.rb" do |initializer|
         #     assert_match(/SandboxEmailInterceptor/, initializer)
         #   end
-        def assert_initializer(name, *contents)
-          assert_file("config/initializers/#{name}", *contents)
+        def assert_initializer(name, *contents, &block)
+          assert_file("config/initializers/#{name}", *contents, &block)
         end
       end
     end
