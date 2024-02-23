@@ -40,7 +40,7 @@ module ActiveRecord
         end
 
         def configured_migrate_path
-          return unless database = options[:database]
+          return unless database
 
           config = ActiveRecord::Base.configurations.configs_for(
             env_name: Rails.env,
@@ -48,6 +48,10 @@ module ActiveRecord
           )
 
           Array(config&.migrations_paths).first
+        end
+
+        def database
+          options.fetch(:database, ActiveRecord.default_database_for_generators)
         end
     end
   end

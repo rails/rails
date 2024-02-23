@@ -406,6 +406,12 @@ module ActiveRecord
   self.migration_strategy = Migration::DefaultStrategy
 
   ##
+  # :singleton-method: default_database_for_generators
+  # Specify the default database to generate migrations for.
+  singleton_class.attr_accessor :default_database_for_generators
+  self.default_database_for_generators = nil
+
+  ##
   # :singleton-method: dump_schema_after_migration
   # Specify whether schema dump should happen at the end of the
   # bin/rails db:migrate command. This is true by default, which is useful for the

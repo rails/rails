@@ -1122,6 +1122,11 @@ end
 config.active_record.migration_strategy = CustomMigrationStrategy
 ```
 
+#### `config.active_record.default_database_for_generators`
+
+Controls the default database for which new migrations / models get created when using the generator.
+The default value is `nil`.
+
 #### `config.active_record.lock_optimistically`
 
 Controls whether Active Record will use optimistic locking and is `true` by default.

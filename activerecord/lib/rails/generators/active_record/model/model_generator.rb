@@ -75,7 +75,7 @@ module ActiveRecord
         end
 
         def database
-          options[:database]
+          options.fetch(:database, ActiveRecord.default_database_for_generators)
         end
 
         def parent

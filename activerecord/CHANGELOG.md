@@ -1,3 +1,10 @@
+*   Define generators default database configuration
+
+    By default, migrations / models will get generated for the primary database.
+    Users can modify this behaviour in order to point to another database instead.
+
+    *Sinclert Pérez*
+
 *   Remove deprecated behavior that would rollback a transaction block when exited using `return`, `break` or `throw`.
 
     *Rafael Mendonça França*
