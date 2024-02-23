@@ -485,9 +485,10 @@ only.
 
 #### Defining Callbacks with a Class
 
-You can pass a class to `before_<type>`, `after_<type>` and `around_<type>`, in
-which case the callback will call that class's `<action>_<type>` method thus
-passing the object that the callback is being called on.
+You can pass a class to `before_<type>`, `after_<type>` and `around_<type>` for
+more control over when and in what context your callbacks are triggered. The
+callback will trigger that class's <action>_<type> method, passing an instance
+of the class as an argument.
 
 ```ruby
 class Person
@@ -520,7 +521,7 @@ The `ActiveModel::Conversion` module adds the following methods: `to_model`,
 `to_key`, `to_param`, and `to_partial_path` to classes.
 
 The return values of the methods depend on whether `persisted?` is defined and
-if an `id` is provided. The `persisted?` method should return true if the object
+if an `id` is provided. The `persisted?` method should return `true` if the object
 has been saved to the database or store, otherwise, it should return `false`.
 The `id` should reference the id of the object or nil if the object is not
 saved.
@@ -551,7 +552,7 @@ irb> person.to_model == person
 ```
 
 If your model does not act like an Active Model object, then you should
-define`:to_model` yourself returning a proxy object that wraps your object with
+define `:to_model` yourself returning a proxy object that wraps your object with
 Active Model compliant methods.
 
 ```ruby
@@ -704,7 +705,7 @@ irb> person.changed_attributes
 => {"first_name" => nil}
 ```
 
-**`changes`** returns a Hash of changes, with the attribute names as the keys,
+**`changes`** returns a hash of changes, with the attribute names as the keys,
 and the values as an array of the original and new values like `attr =>
 [original value, new value]`.
 
@@ -810,12 +811,12 @@ irb> person.token = "2b1f325"
 irb> person.valid?
 => false
 
-irb> person.name = "vishnu"
+irb> person.name = "Jane Doe"
 irb> person.email = "me"
 irb> person.valid?
 => false
 
-irb> person.email = "me@vishnuatrai.com"
+irb> person.email = "jane.doe@gmail.com"
 irb> person.valid?
 => true
 
@@ -1023,7 +1024,7 @@ person.age  # => "18"
 ### Serialization
 
 [`ActiveModel::Serialization`](https://api.rubyonrails.org/classes/ActiveModel/Serialization.html) provides basic serialization to a serializable hash
-for your objects. You need to declare an attributes Hash which should contain
+for your objects. You need to declare an attributes hash which should contain
 the attributes you want to serialize. Attributes must be strings, not symbols.
 
 ```ruby
@@ -1112,12 +1113,10 @@ irb> person.serializable_hash(include: { notes: { only: "title" }})
 => {"name" => "Napoleon", "notes" => [{"title" => "Weekend Plans"}]}
 ```
 
-#### ActiveModel::Serializers
+#### ActiveModel::Serializers::JSON
 
 Active Model also provides the [`ActiveModel::Serializers::JSON`](https://api.rubyonrails.org/classes/ActiveModel/Serializers/JSON.html) module for JSON
 serializing / deserializing.
-
-##### ActiveModel::Serializers::JSON
 
 To use the JSON serialization, change the module you are including from
 `ActiveModel::Serialization` to `ActiveModel::Serializers::JSON`. It already
@@ -1135,8 +1134,8 @@ class Person
 end
 ```
 
-The `as_json` method, similar to `serializable_hash`, provides a Hash
-representing the model with its keys as a String. The `to_json` method returns a
+The `as_json` method, similar to `serializable_hash`, provides a hash
+representing the model with its keys as a string. The `to_json` method returns a
 JSON string representing the model.
 
 ```irb
