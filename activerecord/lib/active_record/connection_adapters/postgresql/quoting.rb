@@ -4,8 +4,61 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module Quoting
+        extend ActiveSupport::Concern
+
         QUOTED_COLUMN_NAMES = Concurrent::Map.new # :nodoc:
         QUOTED_TABLE_NAMES = Concurrent::Map.new # :nodoc:
+
+        module ClassMethods # :nodoc:
+          def column_name_matcher
+            /
+              \A
+              (
+                (?:
+                  # "schema_name"."table_name"."column_name"::type_name | function(one or no argument)::type_name
+                  ((?:\w+\.|"\w+"\.){,2}(?:\w+|"\w+")(?:::\w+)? | \w+\((?:|\g<2>)\)(?:::\w+)?)
+                )
+                (?:(?:\s+AS)?\s+(?:\w+|"\w+"))?
+              )
+              (?:\s*,\s*\g<1>)*
+              \z
+            /ix
+          end
+
+          def column_name_with_order_matcher
+            /
+              \A
+              (
+                (?:
+                  # "schema_name"."table_name"."column_name"::type_name | function(one or no argument)::type_name
+                  ((?:\w+\.|"\w+"\.){,2}(?:\w+|"\w+")(?:::\w+)? | \w+\((?:|\g<2>)\)(?:::\w+)?)
+                )
+                (?:\s+COLLATE\s+"\w+")?
+                (?:\s+ASC|\s+DESC)?
+                (?:\s+NULLS\s+(?:FIRST|LAST))?
+              )
+              (?:\s*,\s*\g<1>)*
+              \z
+            /ix
+          end
+
+          # Quotes column names for use in SQL queries.
+          def quote_column_name(name) # :nodoc:
+            QUOTED_COLUMN_NAMES[name] ||= PG::Connection.quote_ident(name.to_s).freeze
+          end
+
+          # Checks the following cases:
+          #
+          # - table_name
+          # - "table.name"
+          # - schema_name.table_name
+          # - schema_name."table.name"
+          # - "schema.name".table_name
+          # - "schema.name"."table.name"
+          def quote_table_name(name) # :nodoc:
+            QUOTED_TABLE_NAMES[name] ||= Utils.extract_schema_qualified_name(name.to_s).quoted.freeze
+          end
+        end
 
         class IntegerOutOf64BitRange < StandardError
           def initialize(msg)
@@ -77,29 +130,14 @@ module ActiveRecord
           end
         end
 
-        # Checks the following cases:
-        #
-        # - table_name
-        # - "table.name"
-        # - schema_name.table_name
-        # - schema_name."table.name"
-        # - "schema.name".table_name
-        # - "schema.name"."table.name"
-        def quote_table_name(name) # :nodoc:
-          QUOTED_TABLE_NAMES[name] ||= -Utils.extract_schema_qualified_name(name.to_s).quoted.freeze
-        end
-
         def quote_table_name_for_assignment(table, attr)
           quote_column_name(attr)
         end
 
-        # Quotes column names for use in SQL queries.
-        def quote_column_name(name) # :nodoc:
-          QUOTED_COLUMN_NAMES[name] ||= PG::Connection.quote_ident(super).freeze
-        end
-
         # Quotes schema names for use in SQL queries.
-        alias_method :quote_schema_name, :quote_column_name
+        def quote_schema_name(schema_name)
+          quote_column_name(schema_name)
+        end
 
         # Quote date/time values for use in SQL input.
         def quoted_date(value) # :nodoc:
@@ -152,44 +190,6 @@ module ActiveRecord
           verify! if type_map.nil?
           type_map.lookup(column.oid, column.fmod, column.sql_type)
         end
-
-        def column_name_matcher
-          COLUMN_NAME
-        end
-
-        def column_name_with_order_matcher
-          COLUMN_NAME_WITH_ORDER
-        end
-
-        COLUMN_NAME = /
-          \A
-          (
-            (?:
-              # "schema_name"."table_name"."column_name"::type_name | function(one or no argument)::type_name
-              ((?:\w+\.|"\w+"\.){,2}(?:\w+|"\w+")(?:::\w+)? | \w+\((?:|\g<2>)\)(?:::\w+)?)
-            )
-            (?:(?:\s+AS)?\s+(?:\w+|"\w+"))?
-          )
-          (?:\s*,\s*\g<1>)*
-          \z
-        /ix
-
-        COLUMN_NAME_WITH_ORDER = /
-          \A
-          (
-            (?:
-              # "schema_name"."table_name"."column_name"::type_name | function(one or no argument)::type_name
-              ((?:\w+\.|"\w+"\.){,2}(?:\w+|"\w+")(?:::\w+)? | \w+\((?:|\g<2>)\)(?:::\w+)?)
-            )
-            (?:\s+COLLATE\s+"\w+")?
-            (?:\s+ASC|\s+DESC)?
-            (?:\s+NULLS\s+(?:FIRST|LAST))?
-          )
-          (?:\s*,\s*\g<1>)*
-          \z
-        /ix
-
-        private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER
 
         private
           def lookup_cast_type(sql_type)

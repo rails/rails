@@ -286,6 +286,10 @@ module ActiveRecord
       connection_pool.db_config
     end
 
+    def adapter_class # :nodoc:
+      connection_pool.db_config.adapter_class
+    end
+
     def connection_pool
       connection_handler.retrieve_connection_pool(connection_specification_name, role: current_role, shard: current_shard, strict: true)
     end
