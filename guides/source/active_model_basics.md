@@ -184,7 +184,7 @@ keys and the values of the attributes as values.
 
 ```irb
 irb> person.attributes
-=> {"name"=>"Jane", "date_of_birth"=> Wed, 01 Jan 2020, "active"=>false}
+=> {"name" => "Jane", "date_of_birth" => Wed, 01 Jan 2020, "active" => false}
 ```
 
 ### Attribute Assignment
@@ -229,7 +229,7 @@ irb> person = Person.new
 
 # using strong parameters checks, build a hash of attributes similar to params from a request
 irb> params = ActionController::Parameters.new(name: "John")
-=> #<ActionController::Parameters {"name"=>"John"} permitted: false>
+=> #<ActionController::Parameters {"name" => "John"} permitted: false>
 
 irb> person.assign_attributes(params)
 => # raises ActiveModel::ForbiddenAttributesError
@@ -238,7 +238,7 @@ irb> person.name
 
 # permit the attributes we want to allow assignment
 irb> permitted_params = params.permit(:name)
-=> #<ActionController::Parameters {"name"=>"John"} permitted: true>
+=> #<ActionController::Parameters {"name" => "John"} permitted: true>
 
 irb> person.assign_attributes(permitted_params)
 irb> person.name
@@ -328,17 +328,14 @@ end
 irb> person = Person.new
 irb> person.name = "Jane Doe"
 
-# utilizing the `first_name` and `last_name` prefix methods
 irb> person.first_name
 => "Jane"
 irb> person.last_name
 => "Doe"
 
-# utilizing the `name_short?` suffix method
 irb> person.name_short?
 => false
 
-# utilizing the `reset_name_to_default!` prefix and suffix methods
 irb> person.reset_name_to_default!
 => "Default Name"
 ```
@@ -403,8 +400,8 @@ You can implement `ActiveModel::Callbacks` by following the steps below:
    callbacks attached to. When you define a method like `:update`, it will
    provide all three standard callbacks (`before`, `around` and `after`) for the
    `:update` method.
-3. Wrap the methods you want callbacks on in a block so that the callbacks get a
-   chance to fire.
+3. Within the defined method, use `run_callbacks` which will run the callback
+   for the provided event when fired.
 4. Then in your class, you can use the `before_update`, `after_update`, and
    `around_update` methods, just as you would in an Active Record model.
 
@@ -418,30 +415,30 @@ class Person
   after_update :finalize_me
   around_update :log_me
 
+  # `define_model_callbacks` method containing `run_callbacks` which runs the callback for the given event
   def update
     run_callbacks(:update) do
       puts "update method called"
-      # this is the callback method executed when `update` is called on an object.
     end
   end
 
   private
 
+  # when update is called on an object, then this method is called by `before_update` callback
   def reset_me
     puts "reset_me method: called before the update method"
-    # when update is called on an object, then this method is called by `before_update` callback
   end
 
+  # when update is called on an object, then this method is called by `after_update` callback
   def finalize_me
     puts "finalize_me method: called after the update method"
-    # when update is called on an object, then this method is called by `after_update` callback
   end
 
+  # when update is called on an object, then this method is called by `around_update` callback
   def log_me
     puts "log_me method: called around the update method"
     yield
     puts "log_me method: block successfully called"
-    # When update is called on an object, then this method is called by `around_update` callback
   end
 end
 ```
@@ -634,6 +631,7 @@ Let's consider a Person class with attributes `first_name` and `last_name`:
 class Person
   include ActiveModel::Dirty
 
+  attr_reader :first_name, :last_name
   define_attribute_methods :first_name, :last_name
 
   def initialize
@@ -641,17 +639,9 @@ class Person
     @last_name = nil
   end
 
-  def first_name
-    @first_name
-  end
-
   def first_name=(value)
     first_name_will_change! unless value == @first_name
     @first_name = value
-  end
-
-  def last_name
-    @last_name
   end
 
   def last_name=(value)
@@ -711,7 +701,7 @@ indicating their original values like `attr => original value`.
 
 ```irb
 irb> person.changed_attributes
-=> {"first_name"=>nil}
+=> {"first_name" => nil}
 ```
 
 **`changes`** returns a Hash of changes, with the attribute names as the keys,
@@ -720,7 +710,7 @@ and the values as an array of the original and new values like `attr =>
 
 ```
 irb> person.changes
-=> {"first_name"=>[nil, "Jane Doe"]}
+=> {"first_name" => [nil, "Jane Doe"]}
 ```
 
 **`previous_changes`** returns a hash of attributes that were changed before the
@@ -732,7 +722,7 @@ irb> person.previous_changes
 
 irb> person.save
 irb> person.previous_changes
-=> {"first_name"=>[nil, "Jane Doe"]}
+=> {"first_name" => [nil, "Jane Doe"]}
 ```
 
 #### Attribute-based Accessor Methods
@@ -796,12 +786,11 @@ irb> person.first_name_previous_change
 
 ### Validations
 
-The [`ActiveModel::Validations`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html) module adds the ability to validate objects and
-it is important for ensuring data integrity and consistency within your
-application. By incorporating validations into your models, you can define rules
-that govern the correctness of attribute values before they are saved to the
-database. This helps prevent invalid data from being persisted, maintaining the
-integrity of your database records.
+The [`ActiveModel::Validations`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html)
+module adds the ability to validate objects and it is important for ensuring
+data integrity and consistency within your application. By incorporating
+validations into your models, you can define rules that govern the correctness
+of attribute values, and prevent invalid data.
 
 ```ruby
 class Person
@@ -907,7 +896,7 @@ irb> person.valid?
 => Token can't be blank (ActiveModel::StrictValidationFailed)
 
 irb> person.errors.to_hash
-=> {:name=>["can't be blank"], :email=>["is invalid"]}
+=> {:name => ["can't be blank"], :email => ["is invalid"]}
 
 irb> person.errors.full_messages
 => ["Name can't be blank", "Email is invalid"]
@@ -915,9 +904,10 @@ irb> person.errors.full_messages
 
 ### Naming
 
-[`ActiveModel::Naming`](https://api.rubyonrails.org/classes/ActiveModel/Naming.html) adds several class methods which make naming and routing
-easier to manage. The module defines the `model_name` class method which will
-define several accessors using some `ActiveSupport::Inflector` methods.
+[`ActiveModel::Naming`](https://api.rubyonrails.org/classes/ActiveModel/Naming.html)
+adds a class method and helper methods which make naming and routing easier to
+manage. The module defines the `model_name` class method which will define
+several accessors using some [`ActiveSupport::Inflector`](https://api.rubyonrails.org/classes/ActiveSupport/Inflector.html) methods.
 
 ```ruby
 class Person
@@ -939,7 +929,7 @@ irb> Person.model_name.singular
 => "person"
 ```
 
-**`plural`** returns the plural class name of a record or class.
+**`plural`** returns the "plural" class name of a record or class.
 
 ```irb
 irb> Person.model_name.plural
@@ -947,6 +937,8 @@ irb> Person.model_name.plural
 ```
 
 **`element`** removes the namespace and returns the "singular" snake_cased name.
+It is generally used For Action Pack and/or Action View helpers to aid in
+rendering the name of partials/forms.
 ```irb
 irb> Person.model_name.element
 => "person"
@@ -959,16 +951,16 @@ default, it will underscore and then humanize the class name.
 irb> Person.model_name.human
 => "Person"
 ```
-**`collection`** returns the name of a table like Rails does for models to table
-names. It uses the pluralize method on the last word in the string.
+**`collection`** removes the namespace and returns the "plural" snake_cased
+name. It is generally used For Action Pack and/or Action View helpers to aid in
+rendering the name of partials/forms.
 
 ```irb
 irb> Person.model_name.collection
 => "people"
 ```
 
-**`param_key`** returns a string to use for params names. It differs for
-namespaced models regarding whether it's inside an isolated engine.
+**`param_key`** returns a string to use for params names.
 
 ```irb
 irb> Person.model_name.param_key
@@ -983,8 +975,7 @@ irb> Person.model_name.i18n_key
 => :person
 ```
 
-**`route_key`** returns a string to use while generating route names. It differs
-for namespaced models regarding whether it's inside isolated engine.
+**`route_key`** returns a string to use while generating route names.
 
 ```irb
 irb> Person.model_name.route_key
@@ -992,7 +983,6 @@ irb> Person.model_name.route_key
 ```
 
 **`singular_route_key`** returns a string to use while generating route names.
-It differs for namespaced models regarding whether it's inside isolated engine.
 
 ```irb
 irb> Person.model_name.singular_route_key
@@ -1007,14 +997,28 @@ irb> Person.model_name.uncountable?
 => false
 ```
 
+NOTE: Some `Naming` methods, like `param_key`, `route_key` and
+`singular_route_key`, differ for namespaced models based on whether it's inside
+an isolated [Engine](https://guides.rubyonrails.org/engines.html).
+
 ### Model
 
-`ActiveModel::Model` includes ActiveModel::API for the required interface to
+[`ActiveModel::Model`](https://api.rubyonrails.org/classes/ActiveModel/Model.html) includes [ActiveModel::API](#api). for the required interface to
 allow an object to interact with Action Pack and Action View, but it will be
 extended in the future to add more functionality.
 
-Currently, when including `ActiveModel::Model` you get the features from
-[ActiveModel::API](active_model_basics.html#api).
+```ruby
+class Person
+  include ActiveModel::Model
+  attr_accessor :name, :age
+end
+```
+
+```irb
+person = Person.new(name: 'bob', age: '18')
+person.name # => "bob"
+person.age  # => "18"
+``
 
 ### Serialization
 
@@ -1048,25 +1052,25 @@ Now you can access a serialized Hash of your object using the
 irb> person = Person.new
 
 irb> person.serializable_hash
-=> {"name"=>nil, "age"=>nil}
+=> {"name" => nil, "age" => nil}
 
 # Setting the name and age attributes and then serializing the object
 irb> person.name = "bob"
 irb> person.age = 22
 irb> person.serializable_hash
-=> {"name"=>"bob", "age"=>22}
+=> {"name" => "bob", "age" => 22}
 
 # Using the methods option to include the capitalized_name method
 irb>  person.serializable_hash(methods: :capitalized_name)
-=> {"name"=>"bob", "age"=>22, "capitalized_name"=>"Bob"}
+=> {"name" => "bob", "age" => 22, "capitalized_name" => "Bob"}
 
 # Using the only method to include only the name attribute
 irb> person.serializable_hash(only: :name)
-=> {"name"=>"bob"}
+=> {"name" => "bob"}
 
 # Using the except method to exclude the name attribute
 irb> person.serializable_hash(except: :name)
-=> {"age"=>22}
+=> {"age" => 22}
 ```
 
 The example to utilize the `includes` option requires a slightly more complex
@@ -1105,7 +1109,7 @@ irb> person.serializable_hash
 => {"name" => "Napoleon"}
 
 irb> person.serializable_hash(include: { notes: { only: "title" }})
-=> {"name" => "Napoleon", "notes" => [{"title"=>"Weekend Plans"}]}
+=> {"name" => "Napoleon", "notes" => [{"title" => "Weekend Plans"}]}
 ```
 
 #### ActiveModel::Serializers
@@ -1140,7 +1144,7 @@ irb> person = Person.new
 
 # A Hash representing the model with its keys as a String
 irb> person.as_json
-=> {"name"=>nil}
+=> {"name" => nil}
 
 # A JSON string representing the model
 irb> person.to_json
@@ -1148,7 +1152,7 @@ irb> person.to_json
 
 irb> person.name = "Bob"
 irb> person.as_json
-=> {"name"=>"Bob"}
+=> {"name" => "Bob"}
 
 irb> person.to_json
 => "{\"name\":\"Bob\"}"
@@ -1301,6 +1305,7 @@ gem "bcrypt"
 attribute.
 
 The following validations are added automatically:
+
 1. Password must be present on creation.
 2. Confirmation of password (using a `password_confirmation` attribute).
 3. The maximum length of a password is 72 bytes (required as `bcrypt` truncates
@@ -1355,6 +1360,7 @@ irb> person.valid?
 
 irb> person.recovery_password = "42password"
 
+# `authenticate` is an alias for `authenticate_password`
 irb> person.authenticate("aditya")
 => #<Person> # == person
 irb> person.authenticate("notright")
