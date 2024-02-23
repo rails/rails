@@ -159,8 +159,8 @@ irb> person.date_of_birth.class
 irb> person.active
 => true
 
-# casts the string to a boolean set by the attribute
-irb> person.active = "0"
+# casts the integer to a boolean set by the attribute
+irb> person.active = 0
 irb> person.active
 => false
 ```
@@ -183,20 +183,16 @@ The `attributes` method returns a hash of all the attributes with their names as
 keys and the values of the attributes as values.
 
 ```irb
-irb> person = Person.new
-irb> person.name = "John"
-irb> person.date_of_birth = "1998-01-01"
-irb> person.active = false
-
 irb> person.attributes
-=> {"name"=>"John", "date_of_birth"=>Thu, 01 Jan 1998, "active"=>false}
+=> {"name"=>"Jane", "date_of_birth"=> Wed, 01 Jan 2020, "active"=>false}
 ```
 
 ### Attribute Assignment
 
-[`ActiveModel::AttributeAssignment`](https://api.rubyonrails.org/classes/ActiveModel/AttributeAssignment.html) allows you to set an object's attributes by
-passing in a hash of attributes with keys matching the attribute names. This is
-useful when you want to set multiple attributes at once.
+[`ActiveModel::AttributeAssignment`](https://api.rubyonrails.org/classes/ActiveModel/AttributeAssignment.html)
+allows you to set an object's attributes by passing in a hash of attributes with
+keys matching the attribute names. This is useful when you want to set multiple
+attributes at once.
 
 Consider the following class:
 
@@ -208,15 +204,12 @@ class Person
 end
 ```
 
-You can set multiple attributes at once using the `assign_attributes` method:
-
 ```irb
 irb> person = Person.new
 
-# using the `assign_attributes` method to set multiple attributes at once
+# use assign_attributes to set multiple attributes at once
 irb> person.assign_attributes(name: "John", date_of_birth: "1998-01-01", active: false)
 
-# check the values of the attributes that were assigned
 irb> person.name
 => "John"
 irb> person.date_of_birth
@@ -228,6 +221,29 @@ irb> person.active
 If the passed hash responds to the `permitted?` method and the return value of
 this method is `false`, an `ActiveModel::ForbiddenAttributesError` exception is
 raised.
+
+NOTE: permitted? is for ["strong params"](https://guides.rubyonrails.org/action_controller_overview.html#strong-parameters) integration, i.e. if assigning a params attribute coming from a request.
+
+```irb
+irb> person = Person.new
+
+# using strong parameters checks, build a hash of attributes similar to params from a request
+irb> params = ActionController::Parameters.new(name: "John")
+=> #<ActionController::Parameters {"name"=>"John"} permitted: false>
+
+irb> person.assign_attributes(params)
+=> # raises ActiveModel::ForbiddenAttributesError
+irb> person.name
+=> nil
+
+# permit the attributes we want to allow assignment
+irb> permitted_params = params.permit(:name)
+=> #<ActionController::Parameters {"name"=>"John"} permitted: true>
+
+irb> person.assign_attributes(permitted_params)
+irb> person.name
+=> "John"
+```
 
 #### Method alias: `attributes=`
 
