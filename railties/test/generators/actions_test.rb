@@ -401,7 +401,7 @@ class ActionsTest < Rails::Generators::TestCase
 
   def test_initializer_should_write_date_to_file_in_config_initializers
     action :initializer, "constants.rb", "MY_CONSTANT = 42"
-    assert_file "config/initializers/constants.rb", "MY_CONSTANT = 42\n"
+    assert_initializer "constants.rb", "MY_CONSTANT = 42\n"
   end
 
   def test_initializer_should_write_date_to_file_with_block_in_config_initializers
@@ -411,7 +411,7 @@ class ActionsTest < Rails::Generators::TestCase
       end
     RUBY
     action(:initializer, "constants.rb") { code }
-    assert_file "config/initializers/constants.rb", code.strip_heredoc
+    assert_initializer "constants.rb", code.strip_heredoc
   end
 
   test "generate" do
