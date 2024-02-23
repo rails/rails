@@ -122,7 +122,7 @@ object as follows:
 
 ### Attributes
 
-`ActiveModel::Attributes` allows you to define data types, set default values,
+[`ActiveModel::Attributes`](https://api.rubyonrails.org/classes/ActiveModel/Attributes.html) allows you to define data types, set default values,
 and handle casting and serialization on plain Ruby objects. This can be useful
 for form data which will produce Active Record-like conversion for things like
 dates and booleans on regular objects.
@@ -194,7 +194,7 @@ irb> person.attributes
 
 ### Attribute Assignment
 
-`ActiveModel::AttributeAssignment` allows you to set an object's attributes by
+[`ActiveModel::AttributeAssignment`](https://api.rubyonrails.org/classes/ActiveModel/AttributeAssignment.html) allows you to set an object's attributes by
 passing in a hash of attributes with keys matching the attribute names. This is
 useful when you want to set multiple attributes at once.
 
@@ -259,7 +259,7 @@ irb> person.date_of_birth
 
 ### Attribute Methods
 
-`ActiveModel::AttributeMethods` provides a way to define methods dynamically for
+[`ActiveModel::AttributeMethods`](https://api.rubyonrails.org/classes/ActiveModel/AttributeMethods.html) provides a way to define methods dynamically for
 attributes of a model. This module is particularly useful to simplify attribute
 access and manipulation, and it can add custom prefixes and suffixes to the
 methods of a class. You can define the prefixes and suffixes and which methods
@@ -385,7 +385,7 @@ irb> person.nickname_short?
 
 ### Callbacks
 
-`ActiveModel::Callbacks` gives plain Ruby objects Active Record style callbacks.
+[`ActiveModel::Callbacks`](https://api.rubyonrails.org/classes/ActiveModel/Callbacks.html) gives plain Ruby objects Active Record style callbacks.
 The callbacks allow you to hook into model lifecycle events, such as
 `before_update` and `after_create`, as well as to define custom logic to be
 executed at specific points in the model's lifecycle.
@@ -508,7 +508,7 @@ the methods throws `:abort`.
 
 ### Conversion
 
-`ActiveModel::Conversion` is a collection of methods that allow you to convert
+[`ActiveModel::Conversion`](https://api.rubyonrails.org/classes/ActiveModel/Conversion.html) is a collection of methods that allow you to convert
 your object to different forms for different purposes. A common use case is to
 convert your object to a string or an integer to build URLs, form fields, and
 more.
@@ -596,7 +596,7 @@ irb> person.to_partial_path
 
 ### Dirty
 
-`ActiveModel::Dirty` is useful for tracking changes made to model attributes
+[`ActiveModel::Dirty`](https://api.rubyonrails.org/classes/ActiveModel/Dirty.html) is useful for tracking changes made to model attributes
 before they are saved. This functionality allows you to determine which
 attributes have been modified, what their previous and current values are, and
 perform actions based on those changes. It's particularly handy for auditing,
@@ -785,7 +785,7 @@ irb> person.first_name_previous_change
 
 ### Validations
 
-The `ActiveModel::Validations` module adds the ability to validate objects and
+The [`ActiveModel::Validations`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html) module adds the ability to validate objects and
 it is important for ensuring data integrity and consistency within your
 application. By incorporating validations into your models, you can define rules
 that govern the correctness of attribute values before they are saved to the
@@ -904,7 +904,7 @@ irb> person.errors
 
 ### Naming
 
-`ActiveModel::Naming` adds several class methods which make naming and routing
+[`ActiveModel::Naming`](https://api.rubyonrails.org/classes/ActiveModel/Naming.html) adds several class methods which make naming and routing
 easier to manage. The module defines the `model_name` class method which will
 define several accessors using some `ActiveSupport::Inflector` methods.
 
@@ -1008,7 +1008,7 @@ Currently, when including `ActiveModel::Model` you get the features from
 
 ### Serialization
 
-`ActiveModel::Serialization` provides basic serialization to a serializable hash
+[`ActiveModel::Serialization`](https://api.rubyonrails.org/classes/ActiveModel/Serialization.html) provides basic serialization to a serializable hash
 for your objects. You need to declare an attributes Hash which should contain
 the attributes you want to serialize. Attributes must be strings, not symbols.
 
@@ -1100,7 +1100,7 @@ irb> person.serializable_hash(include: { notes: { only: "title" }})
 
 #### ActiveModel::Serializers
 
-Active Model also provides the `ActiveModel::Serializers::JSON` module for JSON
+Active Model also provides the [`ActiveModel::Serializers::JSON`](https://api.rubyonrails.org/classes/ActiveModel/Serializers/JSON.html) module for JSON
 serializing / deserializing.
 
 ##### ActiveModel::Serializers::JSON
@@ -1187,7 +1187,7 @@ irb> person.name
 
 ### Translation
 
-`ActiveModel::Translation` provides integration between your object and the
+[`ActiveModel::Translation`](https://api.rubyonrails.org/classes/ActiveModel/Translation.html) provides integration between your object and the
 Rails internationalization (i18n) framework.
 
 ```ruby
@@ -1217,7 +1217,7 @@ irb> Person.human_attribute_name("name")
 
 ### Lint Tests
 
-`ActiveModel::Lint::Tests` allows you to test whether an object is compliant
+[`ActiveModel::Lint::Tests`](https://api.rubyonrails.org/classes/ActiveModel/Lint/Tests.html) allows you to test whether an object is compliant
 with the Active Model API by including `ActiveModel::Lint::Tests` in your
 TestCase. It will include tests that tell you whether your object is fully
 compliant, or if not, which aspects of the API are not implemented.
@@ -1273,7 +1273,7 @@ Finished in 0.024899s, 240.9735 runs/s, 1204.8677 assertions/s.
 
 ### SecurePassword
 
-`ActiveModel::SecurePassword` provides a way to securely store any password in
+[`ActiveModel::SecurePassword`](https://api.rubyonrails.org/classes/ActiveModel/SecurePassword.html) provides a way to securely store any password in
 an encrypted form. When you include this module, a `has_secure_password` class
 method is provided which defines a `password` accessor with certain validations
 on it by default.
