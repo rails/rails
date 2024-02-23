@@ -840,25 +840,21 @@ irb> person.valid?
 
 You can add validations using some of the following methods:
 
-- `validate`: Adds validation through a method or a block to the class. You can
-  read more about how to use `validate`
-  [here](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validate).
+- [`validate`](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validate): Adds validation through a method or a block to the class.
 
-- `validates`: An attribute can be passed to the `validates` method and it
-  provides a shortcut to all default validators. You can read more about how to
-  use `validates`
-  [here](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates).
+- [`validates`](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates): An attribute can be passed to the `validates` method and it
+  provides a shortcut to all default validators.
 
-- `validates!` or setting `strict: true`: Used to define validations that cannot
+- [`validates!`](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates-21) or setting `strict: true`: Used to define validations that cannot
   be corrected by end users and are considered exceptional. Each validator
   defined with a bang or `:strict` option set to true will always raise
   `ActiveModel::StrictValidationFailed` instead of adding to the errors when
   validation fails.
 
-- `validates_with`: Passes the record off to the class or classes specified and
+- [`validates_with`](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates_with): Passes the record off to the class or classes specified and
   allows them to add errors based on more complex conditions.
 
-- `validates_each`: Validates each attribute against a block.
+- [`validates_each`](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates_each): Validates each attribute against a block.
 
 Some of the options below can be used with certain validators. To determine if
 the option you're using can be used with a specific validator, read through the
@@ -869,7 +865,8 @@ documentation
 symbol or an array of symbols. (e.g. `on: :create` or `on:
 :custom_validation_context` or `on: [:create, :custom_validation_context]`).
 Validations without an `:on` option will run no matter the context. Validations
-with some `:on` option will only run in the specified context.
+with some `:on` option will only run in the specified context. You can pass the
+context when validating via `valid?(:context)`.
 
 - `:if`: Specifies a method, proc or string to call to determine if the
   validation should occur (e.g. `if: :allow_validation`, or `if: Proc.new {
@@ -886,7 +883,7 @@ with some `:on` option will only run in the specified context.
 - `:allow_blank`: Skip the validation if the attribute is blank.
 
 - `:strict`: If the `:strict` option is set to true, it will raise
-  ActiveModel::StrictValidationFailed instead of adding the error. `:strict`
+  `ActiveModel::StrictValidationFailed` instead of adding the error. `:strict`
   option can also be set to any other exception.
 
 NOTE: Calling `validate` multiple times on the same method will overwrite
@@ -895,7 +892,7 @@ previous definitions.
 #### Errors
 
 `ActiveModel::Validations` automatically adds an `errors` method to your
-instances initialized with a new `ActiveModel::Errors` object, so there is no
+instances initialized with a new [`ActiveModel::Errors`](https://api.rubyonrails.org/classes/ActiveModel/Errors.html) object, so there is no
 need for you to do this manually.
 
 Run `valid?` on the object to check if the object is valid or not. If the object
@@ -909,8 +906,11 @@ irb> person.email = "me"
 irb> person.valid?
 => Token can't be blank (ActiveModel::StrictValidationFailed)
 
-irb> person.errors
-=>  {:name=>["can't be blank"], :email=>["is invalid"]}
+irb> person.errors.to_hash
+=> {:name=>["can't be blank"], :email=>["is invalid"]}
+
+irb> person.errors.full_messages
+=> ["Name can't be blank", "Email is invalid"]
 ```
 
 ### Naming
@@ -925,7 +925,7 @@ class Person
 end
 ```
 
-**`name`** returns the name of the model
+**`name`** returns the name of the model.
 
 ```irb
 irb> Person.model_name.name
@@ -946,8 +946,7 @@ irb> Person.model_name.plural
 => "people"
 ```
 
-**`element`** returns a potentially namespaced class name to snake_case.
-
+**`element`** removes the namespace and returns the "singular" snake_cased name.
 ```irb
 irb> Person.model_name.element
 => "person"
@@ -1030,13 +1029,13 @@ class Person
   attr_accessor :name, :age
 
   def attributes
-    # Compulsory declaration of attributes to serialize
+    # declaration of attributes that will be serialized
     {"name" => nil, "age" => nil}
   end
 
   def capitalized_name
-  # An example of how we can define a method that will be included a serialized hash
-    name.capitalize
+    # declared methods can be later included in the serialized hash
+    name&.capitalize
   end
 end
 ```
@@ -1075,23 +1074,23 @@ scenario as defined below:
 
 ```ruby
   class Person
-   include ActiveModel::Serialization
-   attr_accessor :name, :notes # Emulate has_many :notes
+    include ActiveModel::Serialization
+    attr_accessor :name, :notes # Emulate has_many :notes
 
     def attributes
-       {"name" => nil}
+      {"name" => nil}
     end
   end
 
   class Note
-    include ActiveModel::Serializers::JSON
+    include ActiveModel::Serialization
     attr_accessor :title, :text
+
     def attributes
       {"title" => nil, "text" => nil}
     end
   end
 ```
-
 
 ```irb
 irb> note = Note.new
@@ -1116,12 +1115,9 @@ serializing / deserializing.
 
 ##### ActiveModel::Serializers::JSON
 
-To use `ActiveModel::Serializers::JSON` you only need to change the module you
-are including from `ActiveModel::Serialization` to
-`ActiveModel::Serializers::JSON`. This is because the
-`ActiveModel::Serializers::JSON` module automatically includes the
-`ActiveModel::Serialization` module, so there is no need to explicitly include
-`ActiveModel::Serialization`.
+To use the JSON serialization, change the module you are including from
+`ActiveModel::Serialization` to `ActiveModel::Serializers::JSON`. It already
+includes the former, so there is no need to explicitly include it.
 
 ```ruby
 class Person
@@ -1199,7 +1195,7 @@ irb> person.name
 ### Translation
 
 [`ActiveModel::Translation`](https://api.rubyonrails.org/classes/ActiveModel/Translation.html) provides integration between your object and the
-Rails internationalization (i18n) framework.
+[Rails internationalization (i18n) framework](https://guides.rubyonrails.org/i18n.html).
 
 ```ruby
 class Person
@@ -1211,9 +1207,8 @@ With the `human_attribute_name` method, you can transform attribute names into a
 more human-readable format. The human-readable format is defined in your locale
 file(s).
 
-  config/locales/app.pt-BR.yml
-
 ```yaml
+# config/locales/app.pt-BR.yml
 pt-BR:
   activemodel:
     attributes:
@@ -1223,14 +1218,19 @@ pt-BR:
 
 ```irb
 irb> Person.human_attribute_name("name")
+=> "Name"
+
+irb> I18n.locale = :"pt-BR"
+=> :"pt-BR"
+irb> Person.human_attribute_name("name")
 => "Nome"
 ```
 
 ### Lint Tests
 
 [`ActiveModel::Lint::Tests`](https://api.rubyonrails.org/classes/ActiveModel/Lint/Tests.html) allows you to test whether an object is compliant
-with the Active Model API by including `ActiveModel::Lint::Tests` in your
-TestCase. It will include tests that tell you whether your object is fully
+with the Active Model API. By including `ActiveModel::Lint::Tests` in your
+TestCase, it will include tests that tell you whether your object is fully
 compliant, or if not, which aspects of the API are not implemented.
 
 These tests do not attempt to determine the semantic correctness of the returned
@@ -1289,11 +1289,9 @@ an encrypted form. When you include this module, a `has_secure_password` class
 method is provided which defines a `password` accessor with certain validations
 on it by default.
 
-#### Requirements
-
 `ActiveModel::SecurePassword` depends on
 [`bcrypt`](https://github.com/codahale/bcrypt-ruby 'BCrypt'), so include this
-gem in your `Gemfile` to use `ActiveModel::SecurePassword`.
+gem in your `Gemfile` to use it.
 
 ```ruby
 gem "bcrypt"
@@ -1304,12 +1302,11 @@ attribute.
 
 The following validations are added automatically:
 1. Password must be present on creation.
-2. Confirmation of password (using a `password_confirmation` attribute)
-3. The maximum length of a password is 72 bytes (required as `bcrypt`, on which
-   ActiveModel::SecurePassword depends, truncates the string to this size before
-   encrypting it).
+2. Confirmation of password (using a `password_confirmation` attribute).
+3. The maximum length of a password is 72 bytes (required as `bcrypt` truncates
+   the string to this size before encrypting it).
 
-If password confirmation validation is not needed, simply leave out the value
+NOTE: If password confirmation validation is not needed, simply leave out the value
 for `password_confirmation` (i.e. don't provide a form field for it). When this
 attribute has a `nil` value, the validation will not be triggered.
 
@@ -1367,6 +1364,8 @@ irb> person.authenticate_password("aditya")
 irb> person.authenticate_password("notright")
 => false
 
+irb> person.authenticate_recovery_password("aditya")
+=> false
 irb> person.authenticate_recovery_password("42password")
 => #<Person> # == person
 irb> person.authenticate_recovery_password("notright")
