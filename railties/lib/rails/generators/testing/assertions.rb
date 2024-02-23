@@ -121,6 +121,26 @@ module Rails
             assert_equal(value, create_generated_attribute(attribute_type).default)
           end
         end
+
+        # Asserts a given initializer exists. You need to supply a path relative
+        # to the `config/initializers/` directory.
+        #
+        #   assert_initializer "mail_interceptors.rb"
+        #
+        # You can also give extra arguments. If the argument is a regexp, it will check if the
+        # regular expression matches the given file content. If it's a string, it compares the
+        # file with the given string:
+        #
+        #   assert_initializer "mail_interceptors.rb", /SandboxEmailInterceptor/
+        #
+        # Finally, when a block is given, it yields the file content:
+        #
+        #   assert_initializer "mail_interceptors.rb" do |initializer|
+        #     assert_match(/SandboxEmailInterceptor/, initializer)
+        #   end
+        def assert_initializer(name, *contents)
+          assert_file("config/initializers/#{name}", *contents)
+        end
       end
     end
   end
