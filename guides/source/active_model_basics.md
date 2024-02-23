@@ -24,12 +24,17 @@ Record](active_record_basics.html). Active Record is an ORM (Object Relational
 Mapper) that connects objects whose data requires persistent storage to a
 relational database. However, it has functionality that is useful outside of the
 ORM, some of these include validations, callbacks, translations, the ability to
-create custom attributes etc.
+create custom attributes, etc.
 
 Some of this functionality was abstracted from Active Record to form Active
 Model. Active Model is a library containing various modules that can be used on
 plain Ruby objects that require model-like features but are not tied to any
 table in a database.
+
+In summary, while Active Record provides an interface for defining models that
+correspond to database tables, Active Model provides functionality for building
+model-like Ruby classes that don't necessarily need to be backed by a database.
+Active Model can be used independently of Active Record.
 
 Some of these modules are explained below.
 
@@ -77,13 +82,17 @@ irb> email_contact.to_model == email_contact # conversion
 => true
 
 irb> email_contact.model_name.name # naming
-=> EmailContact
+=> "EmailContact"
 
-irb> email_contact.human_attribute_name("name") # translation if the locale is set
+irb> EmailContact.human_attribute_name("name") # translation if the locale is set
 => "Name"
 
 irb> email_contact.valid? # validations
 => true
+
+irb> empty_contact = EmailContact.new
+irb> empty_contact.valid?
+=> false
 ```
 
 Any class that includes `ActiveModel::API` can be used with `form_with`,
@@ -100,15 +109,15 @@ object as follows:
 <% end %>
 
 # =>
-<form action="/email_contacts" method="post" data-remote="true">
-  <input type="text" name="email_contact[name]">
+<form action="/email_contacts" method="post">
+  <input type="text" name="email_contact[name]" id="email_contact_name">
 </form>
 ```
 
 `render` can be used to render a partial with the object as a local variable:
 
 ```html+erb
-<%= render partial: "email_contact", email_contact: EmailContact.new(name: "David", email: "david@example.com", message: "Hello World") %>
+<%= render "email_contact", email_contact: @email_contact %>
 ```
 
 ### Attributes
@@ -118,7 +127,7 @@ and handle casting and serialization on plain Ruby objects. This can be useful
 for form data which will produce Active Record-like conversion for things like
 dates and booleans on regular objects.
 
-To use Attributes, include the module in your model class and define your
+To use `Attributes`, include the module in your model class and define your
 attributes using the `attribute` macro. It accepts a name, a cast type, a
 default value, and any other options supported by the attribute type.
 
