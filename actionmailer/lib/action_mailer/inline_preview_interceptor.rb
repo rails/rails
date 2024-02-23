@@ -49,7 +49,7 @@ module ActionMailer
       end
 
       def data_url(part)
-        "data:#{part.mime_type};base64,#{strict_encode64(part.body.raw_source)}"
+        "data:#{part.mime_type};base64,#{strict_encode64(part.body.decoded)}"
       end
 
       def find_part(cid)

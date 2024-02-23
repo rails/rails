@@ -869,6 +869,54 @@ module ApplicationTests
       assert_equal "inline; filename=pixel.png", email.attachments.inline["pixel.png"].content_disposition
     end
 
+    test "multipart mailer preview read from string" do
+      image_file "pixel.png", "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioca/JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJgggo="
+
+      mailer "notifier", <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            attachments['pixel.png'] = File.binread("#{app_path}/public/images/pixel.png")
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      text_template "notifier/foo", <<-RUBY
+        Hello, World!
+      RUBY
+
+      html_template "notifier/foo", <<-RUBY
+        <p>Hello, World!</p>
+        <%= image_tag attachments['pixel.png'].url %>
+      RUBY
+
+      mailer_preview "notifier", <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            mail = Notifier.foo
+            Mail.read_from_string(mail.to_s)
+          end
+        end
+      RUBY
+
+      app("development")
+
+      get "/rails/mailers/notifier/foo"
+      assert_equal 200, last_response.status
+      assert_match %r[<iframe name="messageBody"], last_response.body
+
+      get "/rails/mailers/notifier/foo?part=text/plain"
+      assert_equal 200, last_response.status
+      assert_match %r[Hello, World!], last_response.body
+
+      get "/rails/mailers/notifier/foo?part=text/html"
+      assert_equal 200, last_response.status
+      assert_match %r[<p>Hello, World!</p>], last_response.body
+      assert_match %r[src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioca/JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJgggo="], last_response.body
+    end
+
     test "multipart mailer preview with attached email" do
       mailer "notifier", <<-RUBY
         class Notifier < ActionMailer::Base
