@@ -1363,7 +1363,7 @@ Rails also makes a counter variable available within a partial called by the col
 <%= product_counter %> # 0 for the first product, 1 for the second product...
 ```
 
-This also works when the partial name is changed using the `as:` option. So if you did `as: :item`, the counter variable would be `item_counter`.
+This also works when the local variable name is changed using the `as:` option. So if you did `as: :item`, the counter variable would be `item_counter`.
 
 #### Spacer Templates
 
