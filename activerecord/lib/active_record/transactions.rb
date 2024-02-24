@@ -188,6 +188,16 @@ module ActiveRecord
     # #after_commit is a good spot to put in a hook to clearing a cache since clearing it from
     # within a transaction could trigger the cache to be regenerated before the database is updated.
     #
+    # *Warning*: Callbacks are deduplicated according to the callback and method.
+    # This means you cannot have multiple <tt>after_xxx_commit</tt> shortcuts calling the same method.
+    #
+    #   after_create_commit :do_foo #This will NOT fire
+    #   after_save_commit :do_foo
+    #
+    # Instead, use after_commit directly
+    #
+    #   after_commit :do_foo, on: [:create, :save]
+    #
     # === Caveats
     #
     # If you're on MySQL, then do not use Data Definition Language (DDL) operations in nested
@@ -237,24 +247,32 @@ module ActiveRecord
       end
 
       # Shortcut for <tt>after_commit :hook, on: [ :create, :update ]</tt>.
+      #
+      # *Warning*: only one <tt>after_xxx_commit</tt> shortcut can call any given method
       def after_save_commit(*args, &block)
         set_options_for_callbacks!(args, on: [ :create, :update ], **prepend_option)
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: :create</tt>.
+      #
+      # *Warning*: only one <tt>after_xxx_commit</tt> shortcut can call any given method
       def after_create_commit(*args, &block)
         set_options_for_callbacks!(args, on: :create, **prepend_option)
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: :update</tt>.
+      #
+      # *Warning*: only one <tt>after_xxx_commit</tt> shortcut can call any given method
       def after_update_commit(*args, &block)
         set_options_for_callbacks!(args, on: :update, **prepend_option)
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: :destroy</tt>.
+      #
+      # *Warning*: only one <tt>after_xxx_commit</tt> shortcut can call any given method
       def after_destroy_commit(*args, &block)
         set_options_for_callbacks!(args, on: :destroy, **prepend_option)
         set_callback(:commit, :after, *args, &block)
