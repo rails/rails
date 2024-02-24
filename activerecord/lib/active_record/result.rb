@@ -130,6 +130,14 @@ module ActiveRecord
       end
     end
 
+    def column_type(name, index, type_overrides)
+      type_overrides.fetch(name) do
+        column_types.fetch(index) do
+          column_types.fetch(name, Type.default_value)
+        end
+      end
+    end
+
     def initialize_copy(other)
       @columns      = columns.dup
       @rows         = rows.dup
@@ -143,14 +151,6 @@ module ActiveRecord
     end
 
     private
-      def column_type(name, index, type_overrides)
-        type_overrides.fetch(name) do
-          column_types.fetch(index) do
-            column_types.fetch(name, Type.default_value)
-          end
-        end
-      end
-
       def hash_rows
         @hash_rows ||=
           begin
