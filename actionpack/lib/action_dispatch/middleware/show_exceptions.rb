@@ -34,8 +34,11 @@ module ActionDispatch
       request = ActionDispatch::Request.new env
       backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
       wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
+      request.set_header "action_dispatch.exception", wrapper.unwrapped_exception
+      request.set_header "action_dispatch.report_exception", !wrapper.rescue_response?
+
       if wrapper.show?(request)
-        render_exception(request, wrapper)
+        render_exception(request.dup, wrapper)
       else
         raise exception
       end
@@ -44,7 +47,6 @@ module ActionDispatch
     private
       def render_exception(request, wrapper)
         status = wrapper.status_code
-        request.set_header "action_dispatch.exception", wrapper.unwrapped_exception
         request.set_header "action_dispatch.original_path", request.path_info
         request.set_header "action_dispatch.original_request_method", request.raw_request_method
         fallback_to_html_format_if_invalid_mime_type(request)

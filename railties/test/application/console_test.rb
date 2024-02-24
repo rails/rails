@@ -121,7 +121,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   def write_prompt(command, expected_output = nil)
     @primary.puts command
     assert_output command, @primary
-    assert_output expected_output, @primary if expected_output
+    assert_output expected_output, @primary, 100 if expected_output
     assert_output "> ", @primary
   end
 

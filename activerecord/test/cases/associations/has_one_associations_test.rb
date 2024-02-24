@@ -531,7 +531,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal "Account", new_account.firm_name
   end
 
-  def test_create_association_replaces_existing_without_dependent_option
+  def test_creation_failure_replaces_existing_without_dependent_option
     pirate = pirates(:blackbeard)
     orig_ship = pirate.ship
 
@@ -540,16 +540,18 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_not_equal ships(:black_pearl), new_ship
     assert_equal new_ship, pirate.ship
     assert_predicate new_ship, :new_record?
+    assert_predicate new_ship, :invalid?
     assert_nil orig_ship.pirate_id
     assert_not orig_ship.changed? # check it was saved
   end
 
-  def test_create_association_replaces_existing_with_dependent_option
+  def test_creation_failure_replaces_existing_with_dependent_option
     pirate = pirates(:blackbeard).becomes(DestructivePirate)
     orig_ship = pirate.dependent_ship
 
     new_ship = pirate.create_dependent_ship
     assert_predicate new_ship, :new_record?
+    assert_predicate new_ship, :invalid?
     assert_predicate orig_ship, :destroyed?
   end
 

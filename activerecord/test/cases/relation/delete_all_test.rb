@@ -6,9 +6,10 @@ require "models/post"
 require "models/pet"
 require "models/toy"
 require "models/comment"
+require "models/cpk"
 
 class DeleteAllTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :comments, :posts, :pets, :toys
+  fixtures :authors, :author_addresses, :comments, :posts, :pets, :toys, :cpk_orders, :cpk_order_agreements
 
   def test_destroy_all
     davids = Author.where(name: "David")
@@ -127,5 +128,11 @@ class DeleteAllTest < ActiveRecord::TestCase
     assert_equal 1, limited_posts.delete_all
     assert_raise(ActiveRecord::RecordNotFound) { posts(:thinking) }
     assert posts(:welcome)
+  end
+
+  def test_delete_all_composite_model_with_join_subquery
+    agreement = cpk_order_agreements(:order_agreement_three)
+    join_scope = Cpk::Order.joins(:order_agreements).where(order_agreements: { signature: agreement.signature })
+    assert_equal 1, join_scope.delete_all
   end
 end

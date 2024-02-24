@@ -91,6 +91,24 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert_cache :off
   end
 
+  def test_reads_dont_clear_disabled_cache
+    assert_cache :off
+
+    mw = middleware { |env|
+      Post.first
+      query_cache = ActiveRecord::Base.connection.query_cache
+      assert_equal 1, query_cache.size, query_cache.inspect
+      Post.connection.uncached do
+        Post.count # shouldn't clear the cache
+      end
+      query_cache = ActiveRecord::Base.connection.query_cache
+      assert_equal 1, query_cache.size, query_cache.inspect
+    }
+    mw.call({})
+
+    assert_cache :off
+  end
+
   def test_exceptional_middleware_clears_and_disables_cache_on_error
     assert_cache :off
 
@@ -808,7 +826,7 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   end
 
   def test_find
-    assert_called(Task.connection.query_cache, :clear) do
+    assert_called(Task.connection.query_cache, :clear, times: 1) do
       assert_not Task.connection.query_cache_enabled
       Task.cache do
         assert Task.connection.query_cache_enabled
@@ -922,9 +940,12 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   end
 
   def test_query_cache_lru_eviction
+    store = ActiveRecord::ConnectionAdapters::QueryCache::Store.new(2)
+    store.enabled = true
+
     connection = Post.connection
-    connection.pool.db_config.stub(:query_cache, 2) do
-      connection.send(:configure_query_cache!)
+    old_store, connection.query_cache = connection.query_cache, store
+    begin
       Post.cache do
         assert_queries_count(2) do
           connection.select_all("SELECT 1")
@@ -945,9 +966,9 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
           connection.select_all("SELECT 2")
         end
       end
+    ensure
+      connection.query_cache = old_store
     end
-  ensure
-    connection.send(:configure_query_cache!)
   end
 
   test "threads use the same connection" do

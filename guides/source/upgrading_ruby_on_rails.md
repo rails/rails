@@ -283,30 +283,6 @@ const fileInputSelector = Rails.fileInputSelector
 Rails.fileInputSelector(...)
 ```
 
-### `ActionView::TestCase#rendered` no longer returns a `String`
-
-Starting from Rails 7.1, `ActionView::TestCase#rendered` returns an object that
-responds to various format methods (for example, `rendered.html` and
-`rendered.json`). To preserve backward compatibility, the object returned from
-`rendered` will delegate missing methods to the `String` rendered during the
-test. For example, the following [assert_match][] assertion will pass:
-
-```ruby
-assert_match(/some content/i, rendered)
-```
-
-However, if your tests rely on `ActionView::TestCase#rendered` returning an
-instance of `String`, they will fail. To restore the original behavior, you can
-override the `#rendered` method to read from the `@rendered` instance variable:
-
-```ruby
-# config/initializers/action_view.rb
-
-ActiveSupport.on_load :action_view_test_case do
-  attr_reader :rendered
-end
-```
-
 ### `Rails.logger` now returns an `ActiveSupport::BroadcastLogger` instance
 
 The `ActiveSupport::BroadcastLogger` class is a new logger that allows to broadcast logs to different sinks (STDOUT, a log file...) in an easy way.

@@ -93,7 +93,7 @@ class DefaultEngineOptionTest < ActiveRecord::AbstractMysqlTestCase
     ActiveRecord::Base.logger       = @logger_was
     ActiveRecord::Migration.verbose = @verbose_was
     ActiveRecord::Base.connection.drop_table "mysql_table_options", if_exists: true
-    ActiveRecord::Base.connection.schema_migration.delete_all_versions rescue nil
+    ActiveRecord::Base.connection_pool.schema_migration.delete_all_versions rescue nil
   end
 
   test "new migrations do not contain default ENGINE=InnoDB option" do
@@ -113,8 +113,8 @@ class DefaultEngineOptionTest < ActiveRecord::AbstractMysqlTestCase
       end
     end.new
 
-    connection = ActiveRecord::Base.connection
-    ActiveRecord::Migrator.new(:up, [migration], connection.schema_migration, connection.internal_metadata).migrate
+    pool = ActiveRecord::Base.connection_pool
+    ActiveRecord::Migrator.new(:up, [migration], pool.schema_migration, pool.internal_metadata).migrate
 
     assert_match %r{ENGINE=InnoDB}, @log.string
 

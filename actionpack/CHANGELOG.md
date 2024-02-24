@@ -1,3 +1,11 @@
+*   Request Forgery takes relative paths into account.
+
+    *Stefan Wienert*
+
+*   Add ".test" as a default allowed host in development to ensure smooth golden-path setup with puma.dev.
+
+    *DHH*
+
 *   Add `allow_browser` to set minimum browser versions for the application.
 
     A browser that's blocked will by default be served the file in `public/426.html` with a HTTP status code of "426 Upgrade Required".
@@ -85,5 +93,16 @@
 *   Remove deprecated constant `ActionDispatch::IllegalStateError`.
 
     *Rafael Mendonça França*
+
+*   Add parameter filter capability for redirect locations.
+
+    It uses the `config.filter_parameters` to match what needs to be filtered.
+    The result would be like this:
+
+        Redirected to http://secret.foo.bar?username=roque&password=[FILTERED]
+
+    Fixes #14055.
+
+    *Roque Pinel*, *Trevor Turk*, *tonytonyjan*
 
 Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/actionpack/CHANGELOG.md) for previous changes.

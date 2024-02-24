@@ -333,8 +333,19 @@ module ActiveRecord
   singleton_class.attr_accessor :run_after_transaction_callbacks_in_order_defined
   self.run_after_transaction_callbacks_in_order_defined = false
 
-  singleton_class.attr_accessor :commit_transaction_on_non_local_return
-  self.commit_transaction_on_non_local_return = false
+  def self.commit_transaction_on_non_local_return
+    ActiveRecord.deprecator.warn <<-WARNING.squish
+      `Rails.application.config.active_record.commit_transaction_on_non_local_return`
+      is deprecated and will be removed in Rails 7.3.
+    WARNING
+  end
+
+  def self.commit_transaction_on_non_local_return=(value)
+    ActiveRecord.deprecator.warn <<-WARNING.squish
+      `Rails.application.config.active_record.commit_transaction_on_non_local_return`
+      is deprecated and will be removed in Rails 7.3.
+    WARNING
+  end
 
   ##
   # :singleton-method: warn_on_records_fetched_greater_than
@@ -413,20 +424,6 @@ module ActiveRecord
   singleton_class.attr_accessor :dump_schemas
   self.dump_schemas = :schema_search_path
 
-  def self.suppress_multiple_database_warning
-    ActiveRecord.deprecator.warn(<<-MSG.squish)
-      config.active_record.suppress_multiple_database_warning is deprecated and will be removed in Rails 7.2.
-      It no longer has any effect and should be removed from the configuration file.
-    MSG
-  end
-
-  def self.suppress_multiple_database_warning=(value)
-    ActiveRecord.deprecator.warn(<<-MSG.squish)
-      config.active_record.suppress_multiple_database_warning= is deprecated and will be removed in Rails 7.2.
-      It no longer has any effect and should be removed from the configuration file.
-    MSG
-  end
-
   ##
   # :singleton-method: verify_foreign_keys_for_fixtures
   # If true, Rails will verify all foreign keys in the database after loading fixtures.
@@ -436,12 +433,19 @@ module ActiveRecord
   singleton_class.attr_accessor :verify_foreign_keys_for_fixtures
   self.verify_foreign_keys_for_fixtures = false
 
-  ##
-  # :singleton-method: allow_deprecated_singular_associations_name
-  # If true, Rails will continue allowing plural association names in where clauses on singular associations
-  # This behavior will be removed in Rails 7.2.
-  singleton_class.attr_accessor :allow_deprecated_singular_associations_name
-  self.allow_deprecated_singular_associations_name = true
+  def self.allow_deprecated_singular_associations_name
+    ActiveRecord.deprecator.warn <<-WARNING.squish
+      `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
+      is deprecated and will be removed in Rails 7.3.
+    WARNING
+  end
+
+  def self.allow_deprecated_singular_associations_name=(value)
+    ActiveRecord.deprecator.warn <<-WARNING.squish
+      `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
+      is deprecated and will be removed in Rails 7.3.
+    WARNING
+  end
 
   singleton_class.attr_accessor :query_transformers
   self.query_transformers = []

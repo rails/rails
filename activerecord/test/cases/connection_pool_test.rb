@@ -594,9 +594,20 @@ module ActiveRecord
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription
       end
 
+      def test_sets_pool_schema_reflection
+        pool.schema_cache.add(:posts)
+        assert pool.schema_cache.cached?(:posts)
+
+        pool.schema_reflection = SchemaReflection.new("does-not-exist")
+        assert_not pool.schema_cache.cached?(:posts)
+
+        pool.schema_cache.add(:posts)
+        assert pool.schema_cache.cached?(:posts)
+      end
+
       def test_pool_sets_connection_schema_cache
+        pool.schema_cache.add(:posts)
         connection = pool.checkout
-        connection.schema_cache.add(:posts)
 
         pool.with_connection do |conn|
           # We've retrieved a second, distinct, connection from the pool
@@ -977,6 +988,11 @@ module ActiveRecord
 
         def terminate
           nil
+        end
+
+        unless method_defined?(:kill) # RUBY_VERSION <= "3.3"
+          def kill
+          end
         end
       end
 

@@ -1,3 +1,196 @@
+*   Fix `has_one` association autosave setting the foreign key attribute when it is unchanged.
+
+    This behaviour is also inconsistent with autosaving `belongs_to` and can have unintended side effects like raising
+    an `ActiveRecord::ReadOnlyAttributeError` when the foreign key attribute is marked as read-only.
+
+    *Joshua Young*
+
+*   Remove deprecated behavior that would rollback a transaction block when exited using `return`, `break` or `throw`.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `Rails.application.config.active_record.commit_transaction_on_non_local_return`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to pass `rewhere` to `ActiveRecord::Relation#merge`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to pass `deferrable: true` to `add_foreign_key`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to quote `ActiveSupport::Duration`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `#quote_bound_value`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::ConnectionPool#connection_klass`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to apply `#connection_pool_list`, `#active_connections?`, `#clear_active_connections!`,
+    `#clear_reloadable_connections!`, `#clear_all_connections!` and `#flush_idle_connections!` to the connections pools
+    for the current role when the `role` argument isn't provided.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `#all_connection_pools`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::SchemaCache#data_sources`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::SchemaCache.load_from`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `#all_foreign_keys_valid?` from database adapters.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to passing coder and class as second argument to `serialize`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to `ActiveRecord::Base#read_attribute(:id)` to return the custom primary key value.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `TestFixtures.fixture_path`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated behavior to support referring to a singular association by its plural name.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to passing `SchemaMigration` and `InternalMetadata` classes as arguments to
+    `ActiveRecord::MigrationContext`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::Migration.check_pending` method.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::LogSubscriber.runtime` method.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::LogSubscriber.runtime=` method.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::LogSubscriber.reset_runtime` method.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to define `explain` in the connection adapter with 2 arguments.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::ActiveJobRequiredError`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::Base.clear_active_connections!`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::Base.clear_reloadable_connections!`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::Base.clear_all_connections!`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::Base.flush_idle_connections!`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `name` argument from `ActiveRecord::Base.remove_connection`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to call `alias_attribute` with non-existent attribute names.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `Rails.application.config.active_record.suppress_multiple_database_warning`.
+
+    *Rafael Mendonça França*
+
+*   Add ActiveRecord::Encryption::MessagePackMessageSerializer
+
+    Serialize data to the MessagePack format, for efficient storage in binary columns.
+
+    The binary encoding requires around 30% less space than the base64 encoding
+    used by the default serializer.
+
+    *Donal McBreen*
+
+*   Add support for encrypting binary columns
+
+    Ensure encryption and decryption pass `Type::Binary::Data` around for binary data.
+
+    Previously encrypting binary columns with the `ActiveRecord::Encryption::MessageSerializer`
+    incidentally worked for MySQL and SQLite, but not PostgreSQL.
+
+    *Donal McBreen*
+
+*   Deprecated `ENV["SCHEMA_CACHE"]` in favor of `schema_cache_path` in the database configuration.
+
+    *Rafael Mendonça França*
+
+*   Add `ActiveRecord::Base.with_connection` as a shortcut for leasing a connection for a short duration.
+
+    The leased connection is yielded, and for the duration of the block, any call to `ActiveRecord::Base.connection`
+    will yield that same connection.
+
+    This is useful to perform a few database operations without causing a connection to be leased for the
+    entire duration of the request or job.
+
+    *Jean Boussier*
+
+*   Deprecate `config.active_record.warn_on_records_fetched_greater_than` now that `sql.active_record`
+    notification includes `:row_count` field.
+
+    *Jason Nochlin*
+
+*   The fix ensures that the association is joined using the appropriate join type
+    (either inner join or left outer join) based on the existing joins in the scope.
+
+    This prevents unintentional overrides of existing join types and ensures consistency in the generated SQL queries.
+
+    Example:
+
+
+
+    ```ruby
+    # `associated` will use `LEFT JOIN` instead of using `JOIN`
+    Post.left_joins(:author).where.associated(:author)
+    ```
+
+    *Saleh Alhaddad*
+
+*   Fix an issue where `ActiveRecord::Encryption` configurations are not ready before the loading
+    of Active Record models, when an application is eager loaded. As a result, encrypted attributes
+    could be misconfigured in some cases.
+
+    *Maxime Réty*
+
 *   Deprecate defining an `enum` with keyword arguments.
 
     ```ruby
@@ -334,5 +527,13 @@
 *   Add `nulls_last` and working `desc.nulls_first` for MySQL.
 
     *Tristan Fellows*
+
+*   Allow for more complex hash arguments for `order` which mimics `where` in `ActiveRecord::Relation`.
+
+    ```ruby
+    Topic.includes(:posts).order(posts: { created_at: :desc })
+    ```
+
+    *Myles Boone*
 
 Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/activerecord/CHANGELOG.md) for previous changes.

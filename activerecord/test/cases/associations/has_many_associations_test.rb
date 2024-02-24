@@ -171,9 +171,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, counter
     post = posts.first
     assert_equal 0, counter
-    sql = capture_sql { post.comments.to_a }
+    queries = capture_sql_and_binds { post.comments.to_a }
     post.comments.reset
-    assert_not_equal sql, capture_sql { post.comments.to_a }
+    assert_not_equal queries, capture_sql_and_binds { post.comments.to_a }
   end
 
   def test_has_many_build_with_options

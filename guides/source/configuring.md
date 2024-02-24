@@ -69,10 +69,8 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
 - [`config.action_text.sanitizer_vendor`](#config-action-text-sanitizer-vendor): `Rails::HTML::Sanitizer.best_supported_vendor`
 - [`config.action_view.sanitizer_vendor`](#config-action-view-sanitizer-vendor): `Rails::HTML::Sanitizer.best_supported_vendor`
-- [`config.active_record.allow_deprecated_singular_associations_name`](#config-active-record-allow-deprecated-singular-associations-name): `false`
 - [`config.active_record.before_committed_on_all_records`](#config-active-record-before-committed-on-all-records): `true`
 - [`config.active_record.belongs_to_required_validates_foreign_key`](#config-active-record-belongs-to-required-validates-foreign-key): `false`
-- [`config.active_record.commit_transaction_on_non_local_return`](#config-active-record-commit-transaction-on-non-local-return): `true`
 - [`config.active_record.default_column_serializer`](#config-active-record-default-column-serializer): `nil`
 - [`config.active_record.encryption.hash_digest_class`](#config-active-record-encryption-hash-digest-class): `OpenSSL::Digest::SHA256`
 - [`config.active_record.encryption.support_sha1_for_non_deterministic_encryption`](#config-active-record-encryption-support-sha1-for-non-deterministic-encryption): `false`
@@ -1304,7 +1302,9 @@ Allows specifying the maximum number of records that will be destroyed in a back
 
 #### `config.active_record.queues.destroy`
 
-Allows specifying the Active Job queue to use for destroy jobs. When this option is `nil`, purge jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). It defaults to `nil`.
+Allows specifying the Active Job queue to use for destroy jobs. When this option
+is `nil`, purge jobs are sent to the default Active Job queue (see
+[`config.active_job.default_queue_name`][]). It defaults to `nil`.
 
 #### `config.active_record.enumerate_columns_in_select_statements`
 
@@ -1320,39 +1320,6 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 7.0                   | `true`               |
-
-#### `config.active_record.commit_transaction_on_non_local_return`
-
-Defines whether `return`, `break` and `throw` inside a `transaction` block cause the transaction to be
-committed or rolled back. e.g.:
-
-```ruby
-Model.transaction do
-  model.save
-  return
-  other_model.save # not executed
-end
-```
-
-If set to `false`, it will be rolled back.
-
-If set to `true`, the above transaction will be committed.
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `false`              |
-| 7.1                   | `true`               |
-
-Historically only raised errors would trigger a rollback, but in Ruby `2.3`, the `timeout` library
-started using `throw` to interrupt execution which had the adverse effect of committing open transactions.
-
-To solve this, in Active Record 6.1 the behavior was changed to instead rollback the transaction as it was safer
-than to potentially commit an incomplete transaction.
-
-Using `return`, `break` or `throw` inside a `transaction` block was essentially deprecated from Rails 6.1 onwards.
-
-However with the release of `timeout 0.4.0`, `Timeout.timeout` now raises an error again, and Active Record is able
-to return to its original, less surprising, behavior.
 
 #### `config.active_record.raise_on_assign_to_attr_readonly`
 
@@ -1506,31 +1473,6 @@ should be large enough to accommodate both the foreground threads (ie. web serve
 For each process, Rails will create one global query executor that uses this many threads to process async queries. Thus, the pool size
 should be at least `thread_count + global_executor_concurrency + 1`. For example, if your web server has a maximum of 3 threads,
 and `global_executor_concurrency` is set to 4, then your pool size should be at least 8.
-
-#### `config.active_record.allow_deprecated_singular_associations_name`
-
-This enables deprecated behavior wherein singular associations can be referred to by their plural name in `where` clauses. Setting this to `false` is more performant.
-
-```ruby
-class Comment < ActiveRecord::Base
-  belongs_to :post
-end
-
-Comment.where(post: post_id).count  # => 5
-
-# When `allow_deprecated_singular_associations_name` is true:
-Comment.where(posts: post_id).count # => 5 (deprecation warning)
-
-# When `allow_deprecated_singular_associations_name` is false:
-Comment.where(posts: post_id).count # => error
-```
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `true`               |
-| 7.1                   | `false`              |
 
 #### `config.active_record.yaml_column_permitted_classes`
 
@@ -2266,7 +2208,9 @@ config.action_mailbox.incinerate_after = 14.days
 
 #### `config.action_mailbox.queues.incineration`
 
-Accepts a symbol indicating the Active Job queue to use for incineration jobs. When this option is `nil`, incineration jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
+Accepts a symbol indicating the Active Job queue to use for incineration jobs.
+When this option is `nil`, incineration jobs are sent to the default Active Job
+queue (see [`config.active_job.default_queue_name`][]).
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -2277,7 +2221,9 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.action_mailbox.queues.routing`
 
-Accepts a symbol indicating the Active Job queue to use for routing jobs. When this option is `nil`, routing jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
+Accepts a symbol indicating the Active Job queue to use for routing jobs. When
+this option is `nil`, routing jobs are sent to the default Active Job queue (see
+[`config.active_job.default_queue_name`][]).
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -2428,7 +2374,10 @@ Specifies whether the mailer templates should perform fragment caching or not. I
 
 #### `config.action_mailer.deliver_later_queue_name`
 
-Specifies the Active Job queue to use for the default delivery job (see `config.action_mailer.delivery_job`). When this option is set to `nil`, delivery jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
+Specifies the Active Job queue to use for the default delivery job (see
+`config.action_mailer.delivery_job`). When this option is set to `nil`, delivery
+jobs are sent to the default Active Job queue (see
+[`config.active_job.default_queue_name`][]).
 
 Mailer classes can override this to use a different queue. Note that this only applies when using the default delivery job. If your mailer is using a custom job, its queue will be used.
 
@@ -2713,6 +2662,8 @@ Can be used to change the default queue name. By default this is `"default"`.
 config.active_job.default_queue_name = :medium_priority
 ```
 
+[`config.active_job.default_queue_name`]: #config-active-job-default-queue-name
+
 #### `config.active_job.queue_name_prefix`
 
 Allows you to set an optional, non-blank, queue name prefix for all jobs. By default it is blank and not used.
@@ -2895,7 +2846,9 @@ config.active_storage.content_types_allowed_inline = %w(image/png image/gif imag
 
 #### `config.active_storage.queues.analysis`
 
-Accepts a symbol indicating the Active Job queue to use for analysis jobs. When this option is `nil`, analysis jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
+Accepts a symbol indicating the Active Job queue to use for analysis jobs. When
+this option is `nil`, analysis jobs are sent to the default Active Job queue
+(see [`config.active_job.default_queue_name`][]).
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -2904,9 +2857,25 @@ The default value depends on the `config.load_defaults` target version:
 | 6.0                   | `:active_storage_analysis` |
 | 6.1                   | `nil`                |
 
+#### `config.active_storage.queues.mirror`
+
+Accepts a symbol indicating the Active Job queue to use for direct upload
+mirroring jobs. When this option is `nil`, mirroring jobs are sent to the
+default Active Job queue (see [`config.active_job.default_queue_name`][]). The
+default is `nil`.
+
+#### `config.active_storage.queues.preview_image`
+
+Accepts a symbol indicating the Active Job queue to use for preprocessing
+previews of images. When this option is `nil`, jobs are sent to the default
+Active Job queue (see [`config.active_job.default_queue_name`][]). The default
+is `nil`.
+
 #### `config.active_storage.queues.purge`
 
-Accepts a symbol indicating the Active Job queue to use for purge jobs. When this option is `nil`, purge jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
+Accepts a symbol indicating the Active Job queue to use for purge jobs. When
+this option is `nil`, purge jobs are sent to the default Active Job queue (see
+[`config.active_job.default_queue_name`][]).
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -2915,9 +2884,11 @@ The default value depends on the `config.load_defaults` target version:
 | 6.0                   | `:active_storage_purge` |
 | 6.1                   | `nil`                |
 
-#### `config.active_storage.queues.mirror`
+#### `config.active_storage.queues.transform`
 
-Accepts a symbol indicating the Active Job queue to use for direct upload mirroring jobs. When this option is `nil`, mirroring jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). The default is `nil`.
+Accepts a symbol indicating the Active Job queue to use for preprocessing
+variants. When this option is `nil`, jobs are sent to the default Active Job
+queue (see [`config.active_job.default_queue_name`][]). The default is `nil`.
 
 #### `config.active_storage.logger`
 

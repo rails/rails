@@ -89,11 +89,15 @@ module ActiveRecord
       end
 
       class SQLCounter # :nodoc:
-        attr_reader :log, :log_all
+        attr_reader :log_full, :log_all
 
         def initialize
-          @log = []
+          @log_full = []
           @log_all = []
+        end
+
+        def log
+          @log_full.map(&:first)
         end
 
         def call(*, payload)
@@ -101,7 +105,15 @@ module ActiveRecord
 
           sql = payload[:sql]
           @log_all << sql
-          @log << sql unless payload[:name] == "SCHEMA"
+
+          unless payload[:name] == "SCHEMA"
+            bound_values = (payload[:binds] || []).map do |value|
+              value = value.value_for_database if value.respond_to?(:value_for_database)
+              value
+            end
+
+            @log_full << [sql, bound_values]
+          end
         end
       end
     end

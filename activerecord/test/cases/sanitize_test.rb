@@ -91,11 +91,21 @@ class SanitizeTest < ActiveRecord::TestCase
       }
     end
 
-    assert_queries_match(/LIKE '20!% !_reduction!_!!'/) do
+    query = if searchable_post.connection.prepared_statements
+      if current_adapter?(:PostgreSQLAdapter)
+        /title LIKE \$1/
+      else
+        /title LIKE \?/
+      end
+    else
+      /LIKE '20!% !_reduction!_!!'/
+    end
+
+    assert_queries_match(query) do
       searchable_post.search_as_method("20% _reduction_!").to_a
     end
 
-    assert_queries_match(/LIKE '20!% !_reduction!_!!'/) do
+    assert_queries_match(query) do
       searchable_post.search_as_scope("20% _reduction_!").to_a
     end
   end

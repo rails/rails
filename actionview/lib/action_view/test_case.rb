@@ -60,7 +60,7 @@ module ActionView
       include ActiveSupport::Testing::ConstantLookup
 
       delegate :lookup_context, to: :controller
-      attr_accessor :controller, :request, :output_buffer
+      attr_accessor :controller, :request, :output_buffer, :rendered
 
       module ClassMethods
         def inherited(descendant) # :nodoc:
@@ -223,7 +223,7 @@ module ActionView
         @request = @controller.request
         @view_flow = ActionView::OutputFlow.new
         @output_buffer = ActionView::OutputBuffer.new
-        @rendered = +""
+        @rendered = self.class.content_class.new(+"")
 
         test_case_instance = self
         controller_class.define_method(:_test_case) { test_case_instance }
@@ -243,6 +243,9 @@ module ActionView
         @_rendered_views ||= RenderedViewsCollection.new
       end
 
+      ##
+      # :method: rendered
+      #
       # Returns the content rendered by the last +render+ call.
       #
       # The returned object behaves like a string but also exposes a number of methods
@@ -290,9 +293,6 @@ module ActionView
       #
       #     assert_pattern { rendered.json => { title: "Hello, world" } }
       #   end
-      def rendered
-        @_rendered ||= self.class.content_class.new(@rendered)
-      end
 
       def _routes
         @controller._routes if @controller.respond_to?(:_routes)

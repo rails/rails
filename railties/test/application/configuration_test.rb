@@ -31,6 +31,13 @@ class ::MySanitizerVendor < ::Rails::HTML::Sanitizer
   end
 end
 
+class ::MyCustomKeyProvider
+  attr_reader :primary_key
+  def initialize(primary_key); @primary_key = primary_key; end
+end
+
+class ::MyOldKeyProvider; end
+
 module ApplicationTests
   class ConfigurationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
@@ -426,7 +433,7 @@ module ApplicationTests
       RUBY
 
       app_file "config/initializers/schema_cache.rb", <<-RUBY
-      ActiveRecord::Base.connection.schema_cache.add("posts")
+      ActiveRecord::Base.schema_cache.add("posts")
       RUBY
 
       app "production"
@@ -457,7 +464,7 @@ module ApplicationTests
       RUBY
 
       app_file "config/initializers/schema_cache.rb", <<-RUBY
-      ActiveRecord::Base.connection.schema_cache.add("posts")
+      ActiveRecord::Base.schema_cache.add("posts")
       RUBY
 
       app "production"
@@ -2001,22 +2008,6 @@ module ApplicationTests
       assert_not ActiveRecord.verbose_query_logs
     end
 
-    test "config.active_record.suppress_multiple_database_warning getter is deprecated" do
-      app "development"
-
-      assert_deprecated(Rails.application.deprecators[:active_record]) do
-        ActiveRecord.suppress_multiple_database_warning
-      end
-    end
-
-    test "config.active_record.suppress_multiple_database_warning setter is deprecated" do
-      app "development"
-
-      assert_deprecated(Rails.application.deprecators[:active_record]) do
-        ActiveRecord.suppress_multiple_database_warning = true
-      end
-    end
-
     test "config.active_record.use_yaml_unsafe_load is false by default" do
       app "production"
       assert_not ActiveRecord.use_yaml_unsafe_load
@@ -2378,16 +2369,13 @@ module ApplicationTests
       assert_equal({}, Rails.application.config.load_database_yaml)
     end
 
-    test "setup_initial_database_yaml does not print a warning if config.active_record.suppress_multiple_database_warning is true" do
+    test "setup_initial_database_yaml does not print a warning" do
       app_file "config/database.yml", <<-YAML
         <%= Rails.env %>:
           username: bobby
           adapter: sqlite3
           database: 'dev_db'
       YAML
-      add_to_config <<-RUBY
-        config.active_record.suppress_multiple_database_warning = true
-      RUBY
       app "development"
 
       assert_silent do
@@ -2885,32 +2873,6 @@ module ApplicationTests
       app "development"
 
       assert_equal true, ActiveRecord.verify_foreign_keys_for_fixtures
-    end
-
-    test "ActiveRecord.allow_deprecated_singular_associations_name is false by default for new apps" do
-      app "development"
-
-      assert_equal false, ActiveRecord.allow_deprecated_singular_associations_name
-    end
-
-    test "ActiveRecord.allow_deprecated_singular_associations_name is true by default for upgraded apps" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app "development"
-
-      assert_equal true, ActiveRecord.allow_deprecated_singular_associations_name
-    end
-
-    test "ActiveRecord.allow_deprecated_singular_associations_name can be configured via config.active_record.allow_deprecated_singular_associations_name" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_7_1.rb", <<-RUBY
-        Rails.application.config.active_record.allow_deprecated_singular_associations_name = false
-      RUBY
-
-      app "development"
-
-      assert_equal false, ActiveRecord.allow_deprecated_singular_associations_name
     end
 
     test "ActiveRecord::Base.run_commit_callbacks_on_first_saved_instances_in_transaction is false by default for new apps" do
@@ -3819,6 +3781,74 @@ module ApplicationTests
       assert_not_includes ActiveRecord::Base.filter_attributes, :content
     end
 
+    test "ActiveRecord::Encryption.config is ready for encrypted attributes when app is lazy loaded" do
+      add_to_config <<-RUBY
+        config.enable_reloading = false
+        config.eager_load = false
+      RUBY
+
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        Rails.application.config.active_record.encryption.primary_key = "dummy_key"
+        Rails.application.config.active_record.encryption.previous = [ { key_provider: MyOldKeyProvider.new } ]
+
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveRecord::Migration.verbose = false
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :posts do |t|
+            t.string :content
+          end
+        end
+
+        ActiveRecord::Base.schema_cache.add("posts")
+      RUBY
+
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+          encrypts :content, key_provider: MyCustomKeyProvider.new(ActiveRecord::Encryption.config.primary_key)
+        end
+      RUBY
+
+      app "development"
+
+      assert_kind_of ::MyOldKeyProvider, Post.attribute_types["content"].previous_schemes.first.key_provider
+      assert_kind_of ::MyCustomKeyProvider, Post.attribute_types["content"].scheme.key_provider
+      assert_equal "dummy_key", Post.attribute_types["content"].scheme.key_provider.primary_key
+    end
+
+    test "ActiveRecord::Encryption.config is ready for encrypted attributes when app is eager loaded" do
+      add_to_config <<-RUBY
+        config.enable_reloading = false
+        config.eager_load = true
+      RUBY
+
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+          encrypts :content, key_provider: MyCustomKeyProvider.new(ActiveRecord::Encryption.config.primary_key)
+        end
+      RUBY
+
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        Rails.application.config.active_record.encryption.primary_key = "dummy_key"
+        Rails.application.config.active_record.encryption.previous = [ { key_provider: MyOldKeyProvider.new } ]
+
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveRecord::Migration.verbose = false
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :posts do |t|
+            t.string :content
+          end
+        end
+
+        ActiveRecord::Base.schema_cache.add("posts")
+      RUBY
+
+      app "production"
+
+      assert_kind_of ::MyOldKeyProvider, Post.attribute_types["content"].previous_schemes.first&.key_provider
+      assert_kind_of ::MyCustomKeyProvider, Post.attribute_types["content"].scheme.key_provider
+      assert_equal "dummy_key", Post.attribute_types["content"].scheme.key_provider.primary_key
+    end
+
     test "ActiveStorage.routes_prefix can be configured via config.active_storage.routes_prefix" do
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do
@@ -3920,6 +3950,11 @@ module ApplicationTests
     test "hosts include .localhost in development" do
       app "development"
       assert_includes Rails.application.config.hosts, ".localhost"
+    end
+
+    test "hosts include .test in development" do
+      app "development"
+      assert_includes Rails.application.config.hosts, ".test"
     end
 
     test "hosts reads multiple values from RAILS_DEVELOPMENT_HOSTS" do

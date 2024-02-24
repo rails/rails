@@ -141,6 +141,8 @@ module ActiveRecord
             encode_array(value)
           when Range
             encode_range(value)
+          when Rational
+            value.to_f
           else
             super
           end

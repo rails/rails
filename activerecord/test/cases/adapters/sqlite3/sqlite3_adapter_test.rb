@@ -291,14 +291,14 @@ module ActiveRecord
             conn.execute("PRAGMA journal_size_limit")
           end
         end
-        assert_match(/undefined method `to_i'/, error.message)
+        assert_match(/undefined method [`']to_i'/, error.message)
 
         error = assert_raises(ActiveRecord::StatementInvalid) do
           send(method_name, pragmas: { journal_size_limit: :false }) do |conn|
             conn.execute("PRAGMA journal_size_limit")
           end
         end
-        assert_match(/undefined method `to_i'/, error.message)
+        assert_match(/undefined method [`']to_i'/, error.message)
       end
 
       def test_overriding_default_mmap_size_pragma
@@ -317,14 +317,14 @@ module ActiveRecord
               conn.execute("PRAGMA mmap_size")
             end
           end
-          assert_match(/undefined method `to_i'/, error.message)
+          assert_match(/undefined method [`']to_i'/, error.message)
 
           error = assert_raises(ActiveRecord::StatementInvalid) do
             with_memory_connection(pragmas: { mmap_size: :false }) do |conn|
               conn.execute("PRAGMA mmap_size")
             end
           end
-          assert_match(/undefined method `to_i'/, error.message)
+          assert_match(/undefined method [`']to_i'/, error.message)
         else
           with_file_connection(pragmas: { mmap_size: 100 }) do |conn|
             assert_equal [{ "mmap_size" => 100 }], conn.execute("PRAGMA mmap_size")
@@ -339,14 +339,14 @@ module ActiveRecord
               conn.execute("PRAGMA mmap_size")
             end
           end
-          assert_match(/undefined method `to_i'/, error.message)
+          assert_match(/undefined method [`']to_i'/, error.message)
 
           error = assert_raises(ActiveRecord::StatementInvalid) do
             with_file_connection(pragmas: { mmap_size: :false }) do |conn|
               conn.execute("PRAGMA mmap_size")
             end
           end
-          assert_match(/undefined method `to_i'/, error.message)
+          assert_match(/undefined method [`']to_i'/, error.message)
         end
       end
 
@@ -366,14 +366,14 @@ module ActiveRecord
             conn.execute("PRAGMA cache_size")
           end
         end
-        assert_match(/undefined method `to_i'/, error.message)
+        assert_match(/undefined method [`']to_i'/, error.message)
 
         error = assert_raises(ActiveRecord::StatementInvalid) do
           send(method_name, pragmas: { cache_size: :false }) do |conn|
             conn.execute("PRAGMA cache_size")
           end
         end
-        assert_match(/undefined method `to_i'/, error.message)
+        assert_match(/undefined method [`']to_i'/, error.message)
       end
 
       def test_setting_new_pragma

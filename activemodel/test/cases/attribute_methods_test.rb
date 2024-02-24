@@ -262,7 +262,7 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert_equal("Active Model Topic", topic_class.new.subject_to_be_undefined)
     topic_class.undefine_attribute_methods
 
-    assert_raises(NoMethodError, match: /undefined method `subject_to_be_undefined'/) do
+    assert_raises(NoMethodError, match: /undefined method [`']subject_to_be_undefined'/) do
       topic_class.new.subject_to_be_undefined
     end
   end

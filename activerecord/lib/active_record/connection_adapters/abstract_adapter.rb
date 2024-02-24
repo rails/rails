@@ -50,7 +50,9 @@ module ActiveRecord
         @schema_cache = nil
         @pool = value
 
-        @pool.schema_reflection.load!(self) if ActiveRecord.lazily_load_schema_cache
+        if @pool && ActiveRecord.lazily_load_schema_cache
+          @pool.schema_reflection.load!(@pool)
+        end
       end
 
       set_callback :checkin, :after, :enable_lazy_transactions!
@@ -209,10 +211,6 @@ module ActiveRecord
         @config[:replica] || false
       end
 
-      def use_metadata_table?
-        @config.fetch(:use_metadata_table, true)
-      end
-
       def connection_retries
         (@config[:connection_retries] || 1).to_i
       end
@@ -238,22 +236,6 @@ module ActiveRecord
         return false if connection_class.nil?
 
         connection_class.current_preventing_writes
-      end
-
-      def migrations_paths # :nodoc:
-        @config[:migrations_paths] || Migrator.migrations_paths
-      end
-
-      def migration_context # :nodoc:
-        MigrationContext.new(migrations_paths, schema_migration, internal_metadata)
-      end
-
-      def schema_migration # :nodoc:
-        SchemaMigration.new(self)
-      end
-
-      def internal_metadata # :nodoc:
-        InternalMetadata.new(self)
       end
 
       def prepared_statements?
@@ -321,7 +303,7 @@ module ActiveRecord
       end
 
       def schema_cache
-        @schema_cache ||= BoundSchemaReflection.new(@pool.schema_reflection, self)
+        @pool.schema_cache || (@schema_cache ||= BoundSchemaReflection.for_lone_connection(@pool.schema_reflection, self))
       end
 
       # this method must only be called while holding connection pool's mutex
@@ -646,15 +628,6 @@ module ActiveRecord
       end
 
       # Override to check all foreign key constraints in a database.
-      def all_foreign_keys_valid?
-        check_all_foreign_keys_valid!
-        true
-      rescue ActiveRecord::StatementInvalid
-        false
-      end
-      deprecate :all_foreign_keys_valid?, deprecator: ActiveRecord.deprecator
-
-      # Override to check all foreign key constraints in a database.
       # The adapter should raise a +ActiveRecord::StatementInvalid+ if foreign key
       # constraints are not met.
       def check_all_foreign_keys_valid!
@@ -879,7 +852,7 @@ module ActiveRecord
       # numbered migration that has been executed, or 0 if no schema
       # information is present / the database is empty.
       def schema_version
-        migration_context.current_version
+        pool.migration_context.current_version
       end
 
       class << self

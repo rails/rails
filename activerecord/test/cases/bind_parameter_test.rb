@@ -102,7 +102,7 @@ if ActiveRecord::Base.connection.prepared_statements
 
         topics = Topic.where("topics.id = ?", 1)
         assert_equal [1], topics.map(&:id)
-        assert_not_includes statement_cache, to_sql_key(topics.arel)
+        assert_includes statement_cache, to_sql_key(topics.arel)
       end
 
       def test_too_many_binds

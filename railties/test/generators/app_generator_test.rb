@@ -5,6 +5,9 @@ require "rails/generators/rails/app/app_generator"
 require "generators/shared_generator_tests"
 
 DEFAULT_APP_FILES = %w(
+  .devcontainer/Dockerfile
+  .devcontainer/compose.yaml
+  .devcontainer/devcontainer.json
   .dockerignore
   .git
   .gitattributes
@@ -418,7 +421,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_application_name_is_normalized_in_config
     run_generator [File.join(destination_root, "MyWebSite"), "-d", "postgresql"]
-    assert_file "MyWebSite/app/views/layouts/application.html.erb", /<title><%= content_for(:title) || "MyWebSite" %><\/title>/
+    assert_file "MyWebSite/app/views/layouts/application.html.erb", /content_for\(:title\) \|\| "My Web Site"/
     assert_file "MyWebSite/config/database.yml", /my_web_site_production/
   end
 
@@ -1005,11 +1008,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_inclusion_of_ruby_version
     run_generator
 
-    assert_file "Gemfile" do |content|
-      assert_match(/ruby "#{Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") ? Gem.ruby_version : RUBY_VERSION}"/, content)
+    ruby_version = "#{Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") ? Gem.ruby_version : RUBY_VERSION}"
+
+    assert_file ".devcontainer/Dockerfile" do |content|
+      minor_ruby_version = ruby_version.match(/^\d+\.\d+/).to_s
+      assert_match(/ARG RUBY_VERSION=#{minor_ruby_version}$/, content)
     end
     assert_file "Dockerfile" do |content|
-      assert_match(/ARG RUBY_VERSION=#{Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") ? Gem.ruby_version : RUBY_VERSION}/, content)
+      assert_match(/ARG RUBY_VERSION=#{ruby_version}/, content)
     end
     assert_file ".ruby-version" do |content|
       if ENV["RBENV_VERSION"]
@@ -1227,6 +1233,185 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_name_option
     run_generator [destination_root, "--name=my-app"]
     assert_file "config/application.rb", /^module MyApp$/
+  end
+
+  def test_devcontainer
+    run_generator [destination_root, "--name=my-app"]
+
+    assert_file(".devcontainer/devcontainer.json") do |content|
+      assert_match(/"name": "my_app"/, content)
+      assert_match(/"REDIS_URL": "redis:\/\/redis:6379\/1"/, content)
+      assert_match(/"CAPYBARA_SERVER_PORT": "45678"/, content)
+      assert_match(/"SELENIUM_HOST": "selenium"/, content)
+    end
+    assert_file(".devcontainer/Dockerfile") do |content|
+      assert_match(/libvips/, content)
+      assert_match(/ffmpeg/, content)
+      assert_match(/poppler-utils/, content)
+    end
+    assert_compose_file do |compose_config|
+      expected_rails_app_config = {
+        "build" => {
+          "context" => "..",
+          "dockerfile" => ".devcontainer/Dockerfile"
+        },
+        "volumes" => ["../..:/workspaces:cached"],
+        "command" => "sleep infinity",
+        "networks" => ["default"],
+        "ports" => ["45678:45678"],
+        "depends_on" => ["selenium", "redis"]
+      }
+
+      assert_equal expected_rails_app_config, compose_config["services"]["rails-app"]
+
+      expected_selenium_conifg = {
+        "image" => "seleniarm/standalone-chromium",
+        "restart" => "unless-stopped",
+        "networks" => ["default"]
+      }
+
+      assert_equal expected_selenium_conifg, compose_config["services"]["selenium"]
+
+      expected_redis_config = {
+        "image" => "redis:7.2",
+        "restart" => "unless-stopped",
+        "networks" => ["default"],
+        "volumes" => ["redis-data:/data"]
+      }
+
+      assert_equal expected_redis_config, compose_config["services"]["redis"]
+      assert_equal ["redis-data"], compose_config["volumes"].keys
+    end
+  end
+
+  def test_devcontainer_no_redis_skipping_action_cable_and_active_job
+    run_generator [ destination_root, "--skip-action-cable", "--skip-active-job" ]
+
+    assert_compose_file do |compose_config|
+      assert_not_includes compose_config["services"]["rails-app"]["depends_on"], "redis"
+      assert_nil compose_config["services"]["redis"]
+      assert_nil compose_config["volumes"]
+    end
+  end
+
+  def test_devonctainer_postgresql
+    run_generator [ destination_root, "-d", "postgresql" ]
+
+    assert_compose_file do |compose_config|
+      assert_includes compose_config["services"]["rails-app"]["depends_on"], "postgres"
+
+      expected_postgres_config = {
+        "image" => "postgres:16.1",
+        "restart" => "unless-stopped",
+        "networks" => ["default"],
+        "volumes" => ["postgres-data:/var/lib/postgresql/data"],
+        "environment" => {
+          "POSTGRES_USER" => "postgres",
+          "POSTGRES_PASSWORD" => "postgres"
+        }
+      }
+
+      assert_equal expected_postgres_config, compose_config["services"]["postgres"]
+      assert_includes compose_config["volumes"].keys, "postgres-data"
+    end
+    assert_file(".devcontainer/devcontainer.json") do |content|
+      assert_match(/"DB_HOST": "postgres"/, content)
+    end
+    assert_file("config/database.yml") do |content|
+      assert_match(/host: <%= ENV\["DB_HOST"\] %>/, content)
+    end
+  end
+
+  def test_devonctainer_mysql
+    run_generator [ destination_root, "-d", "mysql" ]
+
+    assert_compose_file do |compose_config|
+      assert_includes compose_config["services"]["rails-app"]["depends_on"], "mysql"
+
+      expected_mysql_config = {
+        "image" => "mysql/mysql-server:8.0",
+        "restart" => "unless-stopped",
+        "environment" => {
+          "MYSQL_ALLOW_EMPTY_PASSWORD" => true,
+          "MYSQL_ROOT_HOST" => "%"
+        },
+        "volumes" => ["mysql-data:/var/lib/mysql"],
+        "networks" => ["default"],
+      }
+
+      assert_equal expected_mysql_config, compose_config["services"]["mysql"]
+      assert_includes compose_config["volumes"].keys, "mysql-data"
+    end
+    assert_file(".devcontainer/devcontainer.json") do |content|
+      assert_match(/"DB_HOST": "mysql"/, content)
+    end
+    assert_file("config/database.yml") do |content|
+      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)
+    end
+  end
+
+  def test_devonctainer_mariadb
+    run_generator [ destination_root, "-d", "trilogy" ]
+
+    assert_compose_file do |compose_config|
+      assert_includes compose_config["services"]["rails-app"]["depends_on"], "mariadb"
+      expected_mariadb_config = {
+        "image" => "mariadb:10.5",
+        "restart" => "unless-stopped",
+        "networks" => ["default"],
+        "volumes" => ["mariadb-data:/var/lib/mysql"],
+        "environment" => {
+          "MARIADB_ALLOW_EMPTY_ROOT_PASSWORD" => true,
+        },
+      }
+
+      assert_equal expected_mariadb_config, compose_config["services"]["mariadb"]
+      assert_includes compose_config["volumes"].keys, "mariadb-data"
+    end
+    assert_file(".devcontainer/devcontainer.json") do |content|
+      assert_match(/"DB_HOST": "mariadb"/, content)
+    end
+    assert_file("config/database.yml") do |content|
+      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)
+    end
+  end
+
+  def test_devcontainer_no_selenium_when_skipping_system_test
+    run_generator [ destination_root, "--skip-system-test" ]
+
+    assert_compose_file do |compose_config|
+      assert_not_includes compose_config["services"]["rails-app"]["depends_on"], "selenium"
+      assert_not_includes compose_config["services"].keys, "selenium"
+    end
+    assert_file(".devcontainer/devcontainer.json") do |content|
+      assert_no_match(/CAPYBARA_SERVER_PORT/, content)
+    end
+  end
+
+  def test_devcontainer_no_Dockerfile_packages_when_skipping_active_storage
+    run_generator [ destination_root, "--skip-active-storage" ]
+
+    assert_file(".devcontainer/Dockerfile") do |content|
+      assert_no_match(/libvips/, content)
+      assert_no_match(/ffmpeg/, content)
+      assert_no_match(/poppler-utils/, content)
+    end
+  end
+
+  def test_devcontainer_no_depends_on_when_no_dependencies
+    run_generator [ destination_root, "--minimal" ]
+
+    assert_compose_file do |compose_config|
+      assert_not_includes compose_config["services"]["rails-app"].keys, "depends_on"
+    end
+  end
+
+  def test_skip_devcontainer
+    run_generator [ destination_root, "--skip-devcontainer" ]
+
+    assert_no_file(".devcontainer/devcontainer.json")
+    assert_no_file(".devcontainer/Dockerfile")
+    assert_no_file(".devcontainer/compose.yaml")
   end
 
   private
