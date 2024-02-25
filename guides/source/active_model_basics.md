@@ -271,6 +271,38 @@ irb> person.date_of_birth
 => "1998-01-01"
 ```
 
+##### Why does `assign_attributes` use `()` but `attributes=` use `{}` to pass the same attributes?
+
+Both are method calls, but while `assign_attributes` is
+generally seen as a standard method call that may or may not contain `()`,
+`attributes=` is commonly considered an attribute/property "setter" and does not
+use `()`. Any value can be passed to setters, not only Hashes using `{}` (it
+just so happens that in Ruby hashes may or may not require the explicit
+`{}`).
+
+`assign_attributes` is being called with a hash in the same way
+that `attributes=` is, except the `{}` can be omitted in arguments for method
+calls most of the time, but this would be valid:
+
+```ruby
+>> person.assign_attributes({ name: "Jane" })
+=> {:name=>"Jane"}
+```
+
+`attributes=` can be called with `()` as well:
+
+```ruby
+>> person.attributes = ({ name: "John" })
+=> {:name=>"John"}
+# in this case, however, Ruby doesn't like omitting `{}`:
+>> person.attributes=(name: "John")
+(irb): syntax error, unexpected label (SyntaxError)
+```
+
+Since both `assign_attributes` and `attributes=` are essentially the
+same, they _expect_ a hash as an argument. But that's not a requirement for
+methods/setters.
+
 ### Attribute Methods
 
 [`ActiveModel::AttributeMethods`](https://api.rubyonrails.org/classes/ActiveModel/AttributeMethods.html)
@@ -851,10 +883,10 @@ irb> person.first_name_previous_change
 ### Validations
 
 [`ActiveModel::Validations`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html)
-adds the ability to validate objects and it is important for ensuring
-data integrity and consistency within your application. By incorporating
-validations into your models, you can define rules that govern the correctness
-of attribute values, and prevent invalid data.
+adds the ability to validate objects and it is important for ensuring data
+integrity and consistency within your application. By incorporating validations
+into your models, you can define rules that govern the correctness of attribute
+values, and prevent invalid data.
 
 ```ruby
 class Person
@@ -1024,8 +1056,8 @@ default, it will underscore and then humanize the class name.
 irb> Person.model_name.human
 => "Person"
 ```
-**`collection`** removes the namespace and returns the plural snake_cased
-name. It is generally used For Action Pack and/or Action View helpers to aid in
+**`collection`** removes the namespace and returns the plural snake_cased name.
+It is generally used For Action Pack and/or Action View helpers to aid in
 rendering the name of partials/forms.
 
 ```irb
@@ -1097,9 +1129,10 @@ irb> person.age  # => "18"
 
 ### Serialization
 
-[`ActiveModel::Serialization`](https://api.rubyonrails.org/classes/ActiveModel/Serialization.html) provides basic serialization for your object.
-You need to declare an attributes hash that contains the attributes you want to
-serialize. Attributes must be strings, not symbols.
+[`ActiveModel::Serialization`](https://api.rubyonrails.org/classes/ActiveModel/Serialization.html)
+provides basic serialization for your object. You need to declare an attributes
+hash that contains the attributes you want to serialize. Attributes must be
+strings, not symbols.
 
 ```ruby
 class Person
@@ -1120,8 +1153,8 @@ end
 ```
 
 Now you can access a serialized hash of your object using the
-`serializable_hash` method. Valid options for `serializable_hash` include `:only`,
-`:except`, `:methods` and `:include`.
+`serializable_hash` method. Valid options for `serializable_hash` include
+`:only`, `:except`, `:methods` and `:include`.
 
 ```irb
 irb> person = Person.new
