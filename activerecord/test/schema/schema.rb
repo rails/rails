@@ -283,6 +283,30 @@ ActiveRecord::Schema.define do
     t.string :comment
   end
 
+  create_table :cpk_inventory_item_categories, force: true do |t|
+    t.bigint :shop_id, null: false
+    t.bigint :inventory_item_id, null: false
+    t.bigint :category_id, null: false
+  end
+
+  create_table :cpk_inventory_items, force: true do |t|
+    t.bigint :book_id, null: false
+    t.bigint :shop_id, null: false
+
+    t.index [:shop_id, :book_id], unique: true
+    t.index [:shop_id, :id], unique: true
+  end
+
+  create_table :cpk_categories, force: true do |t|
+    t.string :name, null: false
+    t.bigint :shop_id, null: false
+
+    t.index [:shop_id, :id], unique: true
+  end
+
+  add_foreign_key :cpk_inventory_item_categories, :cpk_inventory_items, column: [:shop_id, :inventory_item_id], primary_key: [:shop_id, :id], on_delete: :cascade
+  add_foreign_key :cpk_inventory_item_categories, :cpk_categories, column: [:shop_id, :category_id], primary_key: [:shop_id, :id], on_delete: :cascade
+
   # not a composite primary key on the db level to get autoincrement behavior for `id` column
   # composite primary key is configured on the model level
   create_table :cpk_orders, force: true do |t|

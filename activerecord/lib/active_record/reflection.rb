@@ -364,6 +364,14 @@ module ActiveRecord
             raise ArgumentError, "A class was passed to `:#{option_name}` but we are expecting a string."
           end
         end
+
+        def collect_stringified(value_or_values)
+          if value_or_values.respond_to?(:map)
+            value_or_values.map { |v| -v.to_s }.freeze
+          else
+            -value_or_values.to_s
+          end
+        end
     end
 
     # Base class for AggregateReflection and AssociationReflection. Objects of
@@ -567,11 +575,7 @@ module ActiveRecord
       def active_record_primary_key
         custom_primary_key = options[:primary_key]
         @active_record_primary_key ||= if custom_primary_key
-          if custom_primary_key.is_a?(Array)
-            custom_primary_key.map { |pk| pk.to_s.freeze }.freeze
-          else
-            custom_primary_key.to_s.freeze
-          end
+          collect_stringified(custom_primary_key)
         elsif active_record.has_query_constraints? || options[:query_constraints]
           active_record.query_constraints_list
         elsif active_record.composite_primary_key?
@@ -917,11 +921,7 @@ module ActiveRecord
       # klass option is necessary to support loading polymorphic associations
       def association_primary_key(klass = nil)
         if primary_key = options[:primary_key]
-          @association_primary_key ||= if primary_key.is_a?(Array)
-            primary_key.map { |pk| pk.to_s.freeze }.freeze
-          else
-            -primary_key.to_s
-          end
+          @association_primary_key ||= collect_stringified(primary_key)
         elsif (klass || self.klass).has_query_constraints? || options[:query_constraints]
           (klass || self.klass).composite_query_constraints_list
         elsif (klass || self.klass).composite_primary_key?
@@ -1074,7 +1074,7 @@ module ActiveRecord
         # Get the "actual" source reflection if the immediate source reflection has a
         # source reflection itself
         if primary_key = actual_source_reflection.options[:primary_key]
-          @association_primary_key ||= -primary_key.to_s
+          @association_primary_key ||= collect_stringified(primary_key)
         else
           primary_key(klass || self.klass)
         end

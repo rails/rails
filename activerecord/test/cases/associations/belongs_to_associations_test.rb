@@ -394,6 +394,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal order_id, book.order_id
   end
 
+  def test_belongs_to_with_query_constraints_for_composite_primary_key
+    inventory_item = Cpk::InventoryItem.create!(book_id: 42, shop_id: 667)
+    category = Cpk::Category.create!(name: "Towel's guide for the galaxy", shop_id: 667)
+    inventory_item.categories << category
+
+    connector = Cpk::InventoryItemCategory.find_by(inventory_item_id: inventory_item.id, category_id: category.id, shop_id: 667)
+
+    assert_predicate connector, :present?
+    assert_equal connector.inventory_item, inventory_item
+    assert_equal connector.category, category
+  end
+
   def test_should_set_composite_foreign_key_on_association_when_key_changes_on_associated_record
     book = Cpk::Book.create!(id: [1, 2], title: "The Well-Grounded Rubyist")
     order = Cpk::Order.create!(id: [1, 2], book: book)

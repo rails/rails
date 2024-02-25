@@ -1,3 +1,10 @@
+*   Handle array values of `belongs_to primary_key:` option
+
+    This behaviour allows users to set query constraints and primary keys on associations themselves,
+    without modifying base classes' parameters.
+
+    *Dmytro Soltys*
+
 *   Strict loading using `:n_plus_one_only` does not eagerly load child associations.
 
     With this change, child associations are no longer eagerly loaded, to
