@@ -224,9 +224,9 @@ If the passed hash responds to the `permitted?` method and the return value of
 this method is `false`, an `ActiveModel::ForbiddenAttributesError` exception is
 raised.
 
-NOTE: permitted? is for ["strong
-params"](https://guides.rubyonrails.org/action_controller_overview.html#strong-parameters)
-integration, i.e. if assigning a params attribute coming from a request.
+NOTE: `permitted?` is used for [strong
+params](https://guides.rubyonrails.org/action_controller_overview.html#strong-parameters)
+integration whereby you are assigning a params attribute from a request.
 
 ```irb
 irb> person = Person.new
@@ -254,8 +254,8 @@ irb> person.name
 The `assign_attributes` method has an alias `attributes=`.
 
 INFO: A method alias is a method that performs the same action as another
-method, but is called something different. Aliases exist primarily for the sake
-of readability and convenience.
+method, but is called something different. Aliases exist for the sake of
+readability and convenience.
 
 The following example demonstrates the use of the `attributes=` method to set
 multiple attributes at once:
@@ -350,10 +350,12 @@ If you call a method that is not defined, it will raise a `NoMethodError` error.
 
 #### Method: `alias_attribute`
 
-`ActiveModel::AttributeMethods` also provides aliasing of attribute methods
-using the `alias_attribute` method to allow developers to refer to an attribute
-by a different name, thus providing readability and flexibility in our
-application models.
+`ActiveModel::AttributeMethods` provides aliasing of attribute methods using the
+`alias_attribute` method.
+
+In the example below, we create an alias attribute for `name` called
+`full_name`. They return the same value, but the alias `full_name` better
+reflects that the attribute includes a first name and last name.
 
 ```ruby
 class Person
@@ -373,9 +375,6 @@ class Person
   end
 end
 ```
-
-In the example below, we create an alias attribute for `name` called `full_name`
-to be more descriptive that the attribute includes the first name and last name.
 
 ```irb
 irb> person = Person.new
@@ -405,15 +404,16 @@ points in the model's lifecycle.
 
 You can implement `ActiveModel::Callbacks` by following the steps below:
 
-1. Extend `ActiveModel::Callbacks` in your class.
-2. Using `define_model_callbacks`, define a list of methods that you want
-   callbacks attached to. When you define a method like `:update`, it will
-   provide all three standard callbacks (`before`, `around` and `after`) for the
-   `:update` method.
-3. Within the defined method, use `run_callbacks` which will run the callback
-   for the provided event when fired.
-4. Then in your class, you can use the `before_update`, `after_update`, and
-   `around_update` methods, just as you would in an Active Record model.
+1. Extend `ActiveModel::Callbacks` within your class.
+2. Employ `define_model_callbacks` to establish a list of methods that should
+   have callbacks associated with them. When you designate a method such as
+   `:update`, it will automatically include all three default callbacks
+   (`before`, `around`, and `after`) for the `:update` event.
+3. Inside the defined method, utilize `run_callbacks`, which will execute the
+   callback chain when the specific event is triggered.
+4. In your class, you can then utilize the `before_update`, `after_update`, and
+   `around_update` methods like how you would use them in an Active Record
+   model.
 
 ```ruby
 class Person
@@ -497,7 +497,7 @@ only.
 
 You can pass a class to `before_<type>`, `after_<type>` and `around_<type>` for
 more control over when and in what context your callbacks are triggered. The
-callback will trigger that class's <action>_<type> method, passing an instance
+callback will trigger that class's `<action>_<type>` method, passing an instance
 of the class as an argument.
 
 ```ruby
@@ -687,7 +687,9 @@ You can then use the methods provided by `ActiveModel::Dirty` to query the
 object for its list of all changed attributes, the original values of the
 changed attributes, and the changes made to the attributes.
 
-Let's consider a Person class with attributes `first_name` and `last_name`:
+Let's consider a Person class with attributes `first_name` and `last_name` and
+determine how we can use `ActiveModel::Dirty` to track changes to these
+attributes.
 
 ```ruby
 class Person
@@ -848,9 +850,8 @@ irb> person.first_name_previous_change
 
 ### Validations
 
-The
 [`ActiveModel::Validations`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html)
-module adds the ability to validate objects and it is important for ensuring
+adds the ability to validate objects and it is important for ensuring
 data integrity and consistency within your application. By incorporating
 validations into your models, you can define rules that govern the correctness
 of attribute values, and prevent invalid data.
@@ -962,7 +963,7 @@ irb> person = Person.new
 
 irb> person.email = "me"
 irb> person.valid?
-=> Token can't be blank (ActiveModel::StrictValidationFailed)
+=> # Raises Token can't be blank (ActiveModel::StrictValidationFailed)
 
 irb> person.errors.to_hash
 => {:name => ["can't be blank"], :email => ["is invalid"]}
@@ -974,7 +975,7 @@ irb> person.errors.full_messages
 ### Naming
 
 [`ActiveModel::Naming`](https://api.rubyonrails.org/classes/ActiveModel/Naming.html)
-adds a class method and helper methods which make naming and routing easier to
+adds a class method and helper methods to make naming and routing easier to
 manage. The module defines the `model_name` class method which will define
 several accessors using some
 [`ActiveSupport::Inflector`](https://api.rubyonrails.org/classes/ActiveSupport/Inflector.html)
@@ -1000,16 +1001,17 @@ irb> Person.model_name.singular
 => "person"
 ```
 
-**`plural`** returns the "plural" class name of a record or class.
+**`plural`** returns the plural class name of a record or class.
 
 ```irb
 irb> Person.model_name.plural
 => "people"
 ```
 
-**`element`** removes the namespace and returns the "singular" snake_cased name.
+**`element`** removes the namespace and returns the singular snake_cased name.
 It is generally used For Action Pack and/or Action View helpers to aid in
 rendering the name of partials/forms.
+
 ```irb
 irb> Person.model_name.element
 => "person"
@@ -1022,7 +1024,7 @@ default, it will underscore and then humanize the class name.
 irb> Person.model_name.human
 => "Person"
 ```
-**`collection`** removes the namespace and returns the "plural" snake_cased
+**`collection`** removes the namespace and returns the plural snake_cased
 name. It is generally used For Action Pack and/or Action View helpers to aid in
 rendering the name of partials/forms.
 
@@ -1075,27 +1077,28 @@ an isolated [Engine](https://guides.rubyonrails.org/engines.html).
 ### Model
 
 [`ActiveModel::Model`](https://api.rubyonrails.org/classes/ActiveModel/Model.html)
-includes [ActiveModel::API](#api). for the required interface to allow an object
-to interact with Action Pack and Action View, but it will be extended in the
-future to add more functionality.
+provides the required interface to allow an object to interact with Action Pack
+and Action View. Currently, it only includes [ActiveModel::API](#api) but it
+will be extended in the future to add more functionality.
 
 ```ruby
 class Person
   include ActiveModel::Model
+
   attr_accessor :name, :age
 end
 ```
 
 ```irb
-person = Person.new(name: 'bob', age: '18')
-person.name # => "bob"
-person.age  # => "18"
-``
+irb> person = Person.new(name: 'bob', age: '18')
+irb> person.name # => "bob"
+irb> person.age  # => "18"
+```
 
 ### Serialization
 
-[`ActiveModel::Serialization`]((https://api.rubyonrails.org/classes/ActiveModel/Serialization.html) provides basic serialization for your object.
-You need to declare an attributes Hash which contains the attributes you want to
+[`ActiveModel::Serialization`](https://api.rubyonrails.org/classes/ActiveModel/Serialization.html) provides basic serialization for your object.
+You need to declare an attributes hash that contains the attributes you want to
 serialize. Attributes must be strings, not symbols.
 
 ```ruby
@@ -1116,8 +1119,8 @@ class Person
 end
 ```
 
-Now you can access a serialized Hash of your object using the
-`serializable_hash` method. Valid options for serializable hash include `:only`,
+Now you can access a serialized hash of your object using the
+`serializable_hash` method. Valid options for `serializable_hash` include `:only`,
 `:except`, `:methods` and `:include`.
 
 ```irb
