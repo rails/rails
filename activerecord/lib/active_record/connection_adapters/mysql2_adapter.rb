@@ -47,6 +47,8 @@ module ActiveRecord
 
             m.register_type %r(^enum)i, Type.lookup(:string, adapter: :mysql2)
             m.register_type %r(^set)i,  Type.lookup(:string, adapter: :mysql2)
+            m.register_type("linestring", MySQL::Type::Linestring.new)
+            m.register_type("multilinestring", MySQL::Type::Multilinestring.new)
           end
       end
 
@@ -196,6 +198,8 @@ module ActiveRecord
         end
 
         ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql2)
+        ActiveRecord::Type.register(:linestring, MySQL::Type::Linestring, adapter: :mysql2)
+        ActiveRecord::Type.register(:multilinestring, MySQL::Type::Multilinestring, adapter: :mysql2)
     end
 
     ActiveSupport.run_load_hooks(:active_record_mysql2adapter, Mysql2Adapter)
