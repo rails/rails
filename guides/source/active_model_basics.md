@@ -273,16 +273,15 @@ irb> person.date_of_birth
 
 ##### Why does `assign_attributes` use `()` but `attributes=` use `{}` to pass the same attributes?
 
-Both are method calls, but while `assign_attributes` is
-generally seen as a standard method call that may or may not contain `()`,
-`attributes=` is commonly considered an attribute/property "setter" and does not
-use `()`. Any value can be passed to setters, not only Hashes using `{}` (it
-just so happens that in Ruby hashes may or may not require the explicit
-`{}`).
+Both are method calls, but while `assign_attributes` is generally seen as a
+standard method call that may or may not contain `()`, `attributes=` is commonly
+considered an attribute/property "setter" and does not use `()`. Any value can
+be passed to setters, not only Hashes using `{}` (it just so happens that in
+Ruby hashes may or may not require the explicit `{}`).
 
-`assign_attributes` is being called with a hash in the same way
-that `attributes=` is, except the `{}` can be omitted in arguments for method
-calls most of the time, but this would be valid:
+`assign_attributes` is being called with a hash in the same way that
+`attributes=` is, except the `{}` can be omitted in arguments for method calls
+most of the time, but this would be valid:
 
 ```ruby
 >> person.assign_attributes({ name: "Jane" })
@@ -299,8 +298,8 @@ calls most of the time, but this would be valid:
 (irb): syntax error, unexpected label (SyntaxError)
 ```
 
-Since both `assign_attributes` and `attributes=` are essentially the
-same, they _expect_ a hash as an argument. But that's not a requirement for
+Since both `assign_attributes` and `attributes=` are essentially the same, they
+_expect_ a hash as an argument. But that's not a requirement for
 methods/setters.
 
 ### Attribute Methods
