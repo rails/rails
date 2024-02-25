@@ -1,3 +1,10 @@
+*   Handle array values of `belongs_to primary_key:` option
+
+    This behaviour allows users to set query constraints and primary keys on associations themselves,
+    without modifying base classes' parameters.
+
+    *Dmytro Soltys*
+
 *   Fix `has_one` association autosave setting the foreign key attribute when it is unchanged.
 
     This behaviour is also inconsistent with autosaving `belongs_to` and can have unintended side effects like raising
