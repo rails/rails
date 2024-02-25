@@ -1213,7 +1213,7 @@ JSON string representing the model.
 ```irb
 irb> person = Person.new
 
-# A Hash representing the model with its keys as a String
+# A hash representing the model with its keys as a string
 irb> person.as_json
 => {"name" => nil}
 
