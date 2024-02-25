@@ -36,6 +36,10 @@ module Another
       redirect_to "http://secret.foo.bar?username=repinel&password=1234"
     end
 
+    def filterable_redirector_bad_uri
+      redirect_to " s:/invalid-string0uri"
+    end
+
     def data_sender
       send_data "cool data", filename: "file.txt"
     end
@@ -294,6 +298,16 @@ class ACLogSubscriberTest < ActionController::TestCase
 
     assert_equal 3, logs.size
     assert_equal "Redirected to http://secret.foo.bar?username=repinel&password=[FILTERED]", logs[1]
+  end
+
+  def test_filter_redirect_bad_uri
+    @request.env["action_dispatch.parameter_filter"] = [/pass.+/]
+
+    get :filterable_redirector_bad_uri
+    wait
+
+    assert_equal 3, logs.size
+    assert_equal "Redirected to [FILTERED]", logs[1]
   end
 
   def test_send_data

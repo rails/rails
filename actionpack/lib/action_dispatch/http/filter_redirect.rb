@@ -42,6 +42,8 @@ module ActionDispatch
           end
         end
         uri.to_s
+      rescue URI::Error
+        FILTERED
       end
     end
   end

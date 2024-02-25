@@ -553,24 +553,24 @@ module ActiveRecord
         @@all_cached_fixtures.clear
       end
 
-      def cache_for_connection(connection)
-        @@all_cached_fixtures[connection]
+      def cache_for_connection_pool(connection_pool)
+        @@all_cached_fixtures[connection_pool]
       end
 
-      def fixture_is_cached?(connection, table_name)
-        cache_for_connection(connection)[table_name]
+      def fixture_is_cached?(connection_pool, table_name)
+        cache_for_connection_pool(connection_pool)[table_name]
       end
 
-      def cached_fixtures(connection, keys_to_fetch = nil)
+      def cached_fixtures(connection_pool, keys_to_fetch = nil)
         if keys_to_fetch
-          cache_for_connection(connection).values_at(*keys_to_fetch)
+          cache_for_connection_pool(connection_pool).values_at(*keys_to_fetch)
         else
-          cache_for_connection(connection).values
+          cache_for_connection_pool(connection_pool).values
         end
       end
 
-      def cache_fixtures(connection, fixtures_map)
-        cache_for_connection(connection).update(fixtures_map)
+      def cache_fixtures(connection_pool, fixtures_map)
+        cache_for_connection_pool(connection_pool).update(fixtures_map)
       end
 
       def instantiate_fixtures(object, fixture_set, load_instances = true)
@@ -588,15 +588,13 @@ module ActiveRecord
         end
       end
 
-      def create_fixtures(fixtures_directories, fixture_set_names, class_names = {}, config = ActiveRecord::Base, &block)
+      def create_fixtures(fixtures_directories, fixture_set_names, class_names = {}, config = ActiveRecord::Base)
         fixture_set_names = Array(fixture_set_names).map(&:to_s)
         class_names.stringify_keys!
 
-        # FIXME: Apparently JK uses this.
-        connection = block_given? ? block : lambda { ActiveRecord::Base.connection }
-
+        connection_pool = config.connection_pool
         fixture_files_to_read = fixture_set_names.reject do |fs_name|
-          fixture_is_cached?(connection.call, fs_name)
+          fixture_is_cached?(connection_pool, fs_name)
         end
 
         if fixture_files_to_read.any?
@@ -604,11 +602,11 @@ module ActiveRecord
             Array(fixtures_directories),
             fixture_files_to_read,
             class_names,
-            connection,
+            connection_pool,
           )
-          cache_fixtures(connection.call, fixtures_map)
+          cache_fixtures(connection_pool, fixtures_map)
         end
-        cached_fixtures(connection.call, fixture_set_names)
+        cached_fixtures(connection_pool, fixture_set_names)
       end
 
       # Returns a consistent, platform-independent identifier for +label+.
@@ -641,7 +639,7 @@ module ActiveRecord
       end
 
       private
-        def read_and_insert(fixtures_directories, fixture_files, class_names, connection) # :nodoc:
+        def read_and_insert(fixtures_directories, fixture_files, class_names, connection_pool) # :nodoc:
           fixtures_map = {}
           directory_glob = "{#{fixtures_directories.join(",")}}"
           fixture_sets = fixture_files.map do |fixture_set_name|
@@ -655,21 +653,21 @@ module ActiveRecord
           end
           update_all_loaded_fixtures(fixtures_map)
 
-          insert(fixture_sets, connection)
+          insert(fixture_sets, connection_pool)
 
           fixtures_map
         end
 
-        def insert(fixture_sets, connection) # :nodoc:
-          fixture_sets_by_connection = fixture_sets.group_by do |fixture_set|
+        def insert(fixture_sets, connection_pool) # :nodoc:
+          fixture_sets_by_pool = fixture_sets.group_by do |fixture_set|
             if fixture_set.model_class
-              fixture_set.model_class.connection
+              fixture_set.model_class.connection_pool
             else
-              connection.call
+              connection_pool
             end
           end
 
-          fixture_sets_by_connection.each do |conn, set|
+          fixture_sets_by_pool.each do |pool, set|
             table_rows_for_connection = Hash.new { |h, k| h[k] = [] }
 
             set.each do |fixture_set|
@@ -678,13 +676,15 @@ module ActiveRecord
               end
             end
 
-            conn.insert_fixtures_set(table_rows_for_connection, table_rows_for_connection.keys)
+            pool.with_connection do |conn|
+              conn.insert_fixtures_set(table_rows_for_connection, table_rows_for_connection.keys)
 
-            check_all_foreign_keys_valid!(conn)
+              check_all_foreign_keys_valid!(conn)
 
-            # Cap primary key sequences to max(pk).
-            if conn.respond_to?(:reset_pk_sequence!)
-              set.each { |fs| conn.reset_pk_sequence!(fs.table_name) }
+              # Cap primary key sequences to max(pk).
+              if conn.respond_to?(:reset_pk_sequence!)
+                set.each { |fs| conn.reset_pk_sequence!(fs.table_name) }
+              end
             end
           end
         end

@@ -160,6 +160,7 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
     assert_not @pool_a.connection.table_exists?("schema_migrations")
     migrator.migrate(1)
     assert @pool_a.connection.table_exists?("schema_migrations")
+    migrator.rollback
 
     _, migrator = migrator_class(3)
     migrator = migrator.new(@path_b, @schema_migration_b, @internal_metadata_b)
@@ -168,6 +169,7 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
     assert_not @pool_b.connection.table_exists?("schema_migrations")
     migrator.migrate(1)
     assert @pool_b.connection.table_exists?("schema_migrations")
+    migrator.rollback
   end
 
   def test_migrator_forward

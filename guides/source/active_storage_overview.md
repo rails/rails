@@ -588,6 +588,41 @@ You can bypass the content type inference from the data by passing in
 If you don’t provide a content type and Active Storage can’t determine the
 file’s content type automatically, it defaults to application/octet-stream.
 
+There is an additional parameter `key` that can be used to specify folders/sub-folders
+in your S3 Bucket. AWS S3 otherwise uses a random key to name your files. This
+approach is helpful if you want to organize your S3 Bucket files better.
+
+```ruby
+@message.images.attach(
+  io: File.open('/path/to/file'),
+  filename: 'file.pdf',
+  content_type: 'application/pdf',
+  key: "#{Rails.env}/blog_content/intuitive_filename.pdf",
+  identify: false
+)
+```
+
+This way the file will get saved in the folder `[S3_BUCKET]/development/blog_content/`
+when you test this from your development environment. Note that if you use the key
+parameter, you have to ensure the key to be unique for the upload to go through. It is
+recommended to append the filename with a unique random key, something like:
+
+```ruby
+def s3_file_key
+  "#{Rails.env}/blog_content/intuitive_filename-#{SecureRandom.uuid}.pdf"
+end
+```
+
+```ruby
+@message.images.attach(
+  io: File.open('/path/to/file'),
+  filename: 'file.pdf',
+  content_type: 'application/pdf',
+  key: s3_file_key,
+  identify: false
+)
+```
+
 ### Replacing vs Adding Attachments
 
 By default in Rails, attaching files to a `has_many_attached` association will replace

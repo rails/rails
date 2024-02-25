@@ -1,3 +1,13 @@
+*   Introduce `Rails::Generators::Testing::Assertions#assert_initializer`
+
+    Compliments the existing `initializer` generator action.
+
+    ```rb
+    assert_initializer "mail_interceptors.rb"
+    ```
+
+    *Steve Polito*
+
 *   Generate a .devcontainer folder and its contents when creating a new app.
 
     The .devcontainer folder includes everything needed to boot the app and do development in a remote container.
