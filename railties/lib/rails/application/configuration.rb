@@ -19,13 +19,13 @@ module Rails
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x,
-                    :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
+                    :read_encrypted_secrets, :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
                     :require_master_key, :credentials, :disable_sandbox, :sandbox_by_default,
                     :add_autoload_paths_to_load_path, :rake_eager_load, :server_timing, :log_file_size,
                     :dom_testing_default_html_version
 
-      attr_reader :encoding, :api_only, :loaded_config_version
+      attr_reader :encoding, :api_only, :loaded_config_version, :log_level
 
       def initialize(*)
         super
@@ -279,8 +279,6 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.run_commit_callbacks_on_first_saved_instances_in_transaction = false
-            active_record.commit_transaction_on_non_local_return = true
-            active_record.allow_deprecated_singular_associations_name = false
             active_record.sqlite3_adapter_strict_strings_by_default = true
             active_record.query_log_tags_format = :sqlcommenter
             active_record.raise_on_assign_to_attr_readonly = true
@@ -305,19 +303,11 @@ module Rails
             action_dispatch.debug_exception_log_level = :error
           end
 
-          if respond_to?(:active_job)
-            active_job.use_big_decimal_serializer = true
-          end
-
           if respond_to?(:active_support)
             active_support.cache_format_version = 7.1
             active_support.message_serializer = :json_allow_marshal
             active_support.use_message_serializer_for_metadata = true
             active_support.raise_on_invalid_cache_expiration_time = true
-          end
-
-          if respond_to?(:action_controller)
-            action_controller.allow_deprecated_parameters_hash_equality = false
           end
 
           if defined?(Rails::HTML::Sanitizer) # nested ifs to avoid linter errors
@@ -331,6 +321,14 @@ module Rails
           end
         when "7.2"
           load_defaults "7.1"
+
+          if respond_to?(:active_storage)
+            active_storage.web_image_content_types = %w( image/png image/jpeg image/gif image/webp )
+          end
+
+          if respond_to?(:active_record)
+            active_record.validate_migration_timestamps = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
@@ -380,6 +378,13 @@ module Rails
 
         @debug_exception_response_format ||= :api
       end
+
+      def log_level=(level)
+        @log_level = level
+        @broadcast_log_level = level
+      end
+
+      attr_reader :broadcast_log_level # :nodoc:
 
       def debug_exception_response_format
         @debug_exception_response_format || :default
@@ -577,14 +582,16 @@ module Rails
         def method_missing(method, *args)
           if method.end_with?("=")
             @configurations[:"#{method[0..-2]}"] = args.first
-          else
+          elsif args.empty?
             @configurations.fetch(method) {
               @configurations[method] = ActiveSupport::OrderedOptions.new
             }
+          else
+            raise ArgumentError, "wrong number of arguments (given #{args.length}, expected 0) when reading configuration `#{method}`"
           end
         end
 
-        def respond_to_missing?(symbol, *)
+        def respond_to_missing?(symbol, _)
           true
         end
       end

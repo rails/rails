@@ -14,9 +14,11 @@ require "models/topic"
 require "models/tag"
 require "models/tagging"
 require "models/warehouse_thing"
+require "models/cpk"
 
 class UpdateAllTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :comments, :developers, :posts, :people, :pets, :toys, :tags, :taggings, "warehouse-things"
+  fixtures :authors, :author_addresses, :comments, :developers, :posts, :people, :pets, :toys, :tags,
+    :taggings, "warehouse-things", :cpk_orders, :cpk_order_agreements
 
   class TopicWithCallbacks < ActiveRecord::Base
     self.table_name = :topics
@@ -300,6 +302,12 @@ class UpdateAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_update_all_composite_model_with_join_subquery
+    agreement = cpk_order_agreements(:order_agreement_three)
+    join_scope = Cpk::Order.joins(:order_agreements).where(order_agreements: { signature: agreement.signature })
+    assert_equal 1, join_scope.update_all(status: "shipped")
+  end
+
   # Oracle UPDATE does not support ORDER BY
   unless current_adapter?(:OracleAdapter)
     def test_update_all_ignores_order_without_limit_from_association
@@ -322,7 +330,7 @@ class UpdateAllTest < ActiveRecord::TestCase
         assert_not test_update_with_order_succeeds.call("id ASC")
       else
         # test that we're failing because the current Arel's engine doesn't support UPDATE ORDER BY queries is using subselects instead
-        assert_sql(/\AUPDATE .+ \(SELECT .* ORDER BY id DESC\)\z/i) do
+        assert_queries_match(/\AUPDATE .+ \(SELECT .* ORDER BY id DESC\)\z/i) do
           test_update_with_order_succeeds.call("id DESC")
         end
       end

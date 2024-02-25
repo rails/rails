@@ -15,7 +15,8 @@ module Rails
   # feature and application sharing.
   #
   # Any +Rails::Engine+ is also a Rails::Railtie, so the same
-  # methods (like <tt>rake_tasks</tt> and +generators+) and configuration
+  # methods (like {rake_tasks}[rdoc-ref:Rails::Railtie::rake_tasks] and
+  # {generators}[rdoc-ref:Rails::Railtie::generators]) and configuration
   # options that are available in railties can also be used in engines.
   #
   # == Creating an Engine
@@ -116,7 +117,7 @@ module Rails
   # An engine can also be a Rack application. It can be useful if you have a Rack application that
   # you would like to provide with some of the +Engine+'s features.
   #
-  # To do that, use the +endpoint+ method:
+  # To do that, use the ::endpoint method:
   #
   #   module MyEngine
   #     class Engine < Rails::Engine
@@ -197,7 +198,7 @@ module Rails
   # named routes from the application will be available to your engine's controllers as well.
   #
   # However, sometimes you want to isolate your engine from the application, especially if your engine
-  # has its own router. To do that, you simply need to call +isolate_namespace+. This method requires
+  # has its own router. To do that, you simply need to call ::isolate_namespace. This method requires
   # you to pass a module where all your controllers, helpers, and models should be nested to:
   #
   #   module MyEngine
@@ -327,7 +328,7 @@ module Rails
   # To use engine's migrations in application you can use the rake task below, which copies them to
   # application's dir:
   #
-  #   rake ENGINE_NAME:install:migrations
+  #   $ rake ENGINE_NAME:install:migrations
   #
   # Note that some of the migrations may be skipped if a migration with the same name already exists
   # in application. In such a situation you must decide whether to leave that migration or rename the
@@ -395,6 +396,12 @@ module Rails
 
             unless mod.respond_to?(:table_name_prefix)
               define_method(:table_name_prefix) { "#{name}_" }
+
+              ActiveSupport.on_load(:active_record) do
+                mod.singleton_class.redefine_method(:table_name_prefix) do
+                  "#{ActiveRecord::Base.table_name_prefix}#{name}_"
+                end
+              end
             end
 
             unless mod.respond_to?(:use_relative_model_naming?)
@@ -620,7 +627,7 @@ module Rails
       next if is_a?(Rails::Application)
 
       fixtures = config.root.join("test", "fixtures")
-      if fixtures_in_root_and_not_in_vendor?(fixtures)
+      if fixtures_in_root_and_not_in_vendor_or_dot_dir?(fixtures)
         ActiveSupport.on_load(:active_record_fixtures) { self.fixture_paths |= ["#{fixtures}/"] }
       end
     end
@@ -728,9 +735,10 @@ module Rails
         end
       end
 
-      def fixtures_in_root_and_not_in_vendor?(fixtures)
+      def fixtures_in_root_and_not_in_vendor_or_dot_dir?(fixtures)
         fixtures.exist? && fixtures.to_s.start_with?(Rails.root.to_s) &&
-          !fixtures.to_s.start_with?(Rails.root.join("vendor").to_s)
+          !fixtures.to_s.start_with?(Rails.root.join("vendor").to_s) &&
+          !fixtures.to_s.start_with?("#{Rails.root}/.".to_s)
       end
 
       def build_request(env)

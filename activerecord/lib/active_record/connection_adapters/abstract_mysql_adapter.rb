@@ -750,7 +750,11 @@ module ActiveRecord
           return if ActiveRecord.db_warnings_action.nil? || @raw_connection.warning_count == 0
 
           @affected_rows_before_warnings = @raw_connection.affected_rows
+          warning_count = @raw_connection.warning_count
           result = @raw_connection.query("SHOW WARNINGS")
+          result = [
+            ["Warning", nil, "Query had warning_count=#{warning_count} but ‘SHOW WARNINGS’ did not return the warnings. Check MySQL logs or database configuration."],
+          ] if result.count == 0
           result.each do |level, code, message|
             warning = SQLWarning.new(message, code, level, sql, @pool)
             next if warning_ignored?(warning)
@@ -772,6 +776,7 @@ module ActiveRecord
         ER_DB_CREATE_EXISTS     = 1007
         ER_FILSORT_ABORT        = 1028
         ER_DUP_ENTRY            = 1062
+        ER_SERVER_SHUTDOWN      = 1053
         ER_NOT_NULL_VIOLATION   = 1048
         ER_NO_REFERENCED_ROW    = 1216
         ER_ROW_IS_REFERENCED    = 1217
@@ -800,7 +805,7 @@ module ActiveRecord
             else
               super
             end
-          when ER_CONNECTION_KILLED, CR_SERVER_GONE_ERROR, CR_SERVER_LOST, ER_CLIENT_INTERACTION_TIMEOUT
+          when ER_CONNECTION_KILLED, ER_SERVER_SHUTDOWN, CR_SERVER_GONE_ERROR, CR_SERVER_LOST, ER_CLIENT_INTERACTION_TIMEOUT
             ConnectionFailed.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_DB_CREATE_EXISTS
             DatabaseAlreadyExists.new(message, sql: sql, binds: binds, connection_pool: @pool)

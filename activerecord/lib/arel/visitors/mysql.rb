@@ -59,9 +59,14 @@ module Arel # :nodoc: all
           infix_value o, collector, " NOT REGEXP "
         end
 
-        # no-op
         def visit_Arel_Nodes_NullsFirst(o, collector)
-          visit o.expr, collector
+          visit(o.expr.expr, collector) << " IS NOT NULL, "
+          visit(o.expr, collector)
+        end
+
+        def visit_Arel_Nodes_NullsLast(o, collector)
+          visit(o.expr.expr, collector) << " IS NULL, "
+          visit(o.expr, collector)
         end
 
         def visit_Arel_Nodes_Cte(o, collector)

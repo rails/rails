@@ -53,7 +53,7 @@ module ActiveRecord
         define_method("regenerate_#{attribute}") { update! attribute => self.class.generate_unique_secure_token(length: length) }
         set_callback on, on == :initialize ? :after : :before do
           if new_record? && !query_attribute(attribute)
-            write_attribute(attribute, self.class.generate_unique_secure_token(length: length))
+            send("#{attribute}=", self.class.generate_unique_secure_token(length: length))
           end
         end
       end

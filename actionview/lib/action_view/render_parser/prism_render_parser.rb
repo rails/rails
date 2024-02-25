@@ -84,7 +84,7 @@ module ActionView
 
           # Here we validate that the options have the keys we expect.
           keys = options.keys
-          return if (keys & RENDER_TYPE_KEYS).empty?
+          return if !keys.intersect?(RENDER_TYPE_KEYS)
           return if (keys - ALL_KNOWN_KEYS).any?
 
           # Finally, we can return a valid set of options.

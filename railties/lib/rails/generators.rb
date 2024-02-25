@@ -23,6 +23,7 @@ module Rails
     autoload :NamedBase,       "rails/generators/named_base"
     autoload :ResourceHelpers, "rails/generators/resource_helpers"
     autoload :TestCase,        "rails/generators/test_case"
+    autoload :Devcontainer,    "rails/generators/devcontainer"
 
     mattr_accessor :namespace
 
@@ -90,7 +91,7 @@ module Rails
       end
 
       # Hold configured generators fallbacks. If a plugin developer wants a
-      # generator group to fallback to another group in case of missing generators,
+      # generator group to fall back to another group in case of missing generators,
       # they can add a fallback.
       #
       # For example, shoulda is considered a test_framework and is an extension

@@ -522,14 +522,6 @@ module ActiveRecord
         end
 
         def add_foreign_key(from_table, to_table, **options)
-          if options[:deferrable] == true
-            ActiveRecord.deprecator.warn(<<~MSG)
-              `deferrable: true` is deprecated in favor of `deferrable: :immediate`, and will be removed in Rails 7.2.
-            MSG
-
-            options[:deferrable] = :immediate
-          end
-
           assert_valid_deferrable(options[:deferrable])
 
           super
@@ -690,6 +682,10 @@ module ActiveRecord
         #   The constraint name. Defaults to <tt>excl_rails_<identifier></tt>.
         # [<tt>:deferrable</tt>]
         #   Specify whether or not the exclusion constraint should be deferrable. Valid values are +false+ or +:immediate+ or +:deferred+ to specify the default behavior. Defaults to +false+.
+        # [<tt>:using</tt>]
+        #   Specify which index method to use when creating this exclusion constraint (e.g. +:btree+, +:gist+ etc).
+        # [<tt>:where</tt>]
+        #   Specify an exclusion constraint on a subset of the table (internally PostgreSQL creates a partial index for this).
         def add_exclusion_constraint(table_name, expression, **options)
           options = exclusion_constraint_options(table_name, expression, options)
           at = create_alter_table(table_name)

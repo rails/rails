@@ -21,18 +21,17 @@ module ActiveSupport
       %r{/lib/mail/parsers/.*assigned but unused variable - testEof}
     )
 
-    def warn(message, *)
+    def warn(message, ...)
       return if SUPPRESSED_WARNINGS.match?(message)
 
       super
 
       return unless message.include?(PROJECT_ROOT)
       return if ALLOWED_WARNINGS.match?(message)
-      return unless ENV["RAILS_STRICT_WARNINGS"] || ENV["CI"]
+      return unless ENV["RAILS_STRICT_WARNINGS"] || ENV["BUILDKITE"]
 
       raise message
     end
-    ruby2_keywords :warn if respond_to?(:ruby2_keywords, true)
   end
 end
 

@@ -21,20 +21,17 @@ module ActiveRecord
             "1"
           when false
             "0"
-          when ActiveSupport::Duration
-            warn_quote_duration_deprecated
-            value.to_s
           else
             value
           end
         end
 
         def quote_column_name(name)
-          QUOTED_COLUMN_NAMES[name] ||= "`#{super.gsub('`', '``')}`"
+          QUOTED_COLUMN_NAMES[name] ||= "`#{super.gsub('`', '``')}`".freeze
         end
 
         def quote_table_name(name)
-          QUOTED_TABLE_NAMES[name] ||= super.gsub(".", "`.`").freeze
+          QUOTED_TABLE_NAMES[name] ||= -super.gsub(".", "`.`").freeze
         end
 
         def unquoted_true

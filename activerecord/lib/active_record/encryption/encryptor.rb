@@ -12,6 +12,14 @@ module ActiveRecord
     # It interacts with a KeyProvider for getting the keys, and delegate to
     # ActiveRecord::Encryption::Cipher the actual encryption algorithm.
     class Encryptor
+      # === Options
+      #
+      # * <tt>:compress</tt> - Boolean indicating whether records should be compressed before encryption.
+      #   Defaults to +true+.
+      def initialize(compress: true)
+        @compress = compress
+      end
+
       # Encrypts +clean_text+ and returns the encrypted result
       #
       # Internally, it will:
@@ -100,7 +108,6 @@ module ActiveRecord
         end
 
         def deserialize_message(message)
-          raise Errors::Encoding unless message.is_a?(String)
           serializer.load message
         rescue ArgumentError, TypeError, Errors::ForbiddenClass
           raise Errors::Encoding
@@ -112,11 +119,15 @@ module ActiveRecord
 
         # Under certain threshold, ZIP compression is actually worse that not compressing
         def compress_if_worth_it(string)
-          if string.bytesize > THRESHOLD_TO_JUSTIFY_COMPRESSION
+          if compress? && string.bytesize > THRESHOLD_TO_JUSTIFY_COMPRESSION
             [compress(string), true]
           else
             [string, false]
           end
+        end
+
+        def compress?
+          @compress
         end
 
         def compress(data)

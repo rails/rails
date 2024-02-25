@@ -6,13 +6,26 @@ require "concurrent/atomic/count_down_latch"
 module ActiveRecord
   module ConnectionAdapters
     module ConnectionPoolTests
+      def self.included(test)
+        super
+        test.use_transactional_tests = false
+      end
+
       attr_reader :pool
 
       def setup
         @previous_isolation_level = ActiveSupport::IsolatedExecutionState.isolation_level
 
         # Keep a duplicate pool so we do not bother others
-        @db_config = ActiveRecord::Base.connection_pool.db_config
+        config = ActiveRecord::Base.connection_pool.db_config
+        @db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(
+          config.env_name,
+          config.name,
+          config.configuration_hash.merge(
+            checkout_timeout: 0.2, # Reduce checkout_timeout to speedup tests
+          )
+        )
+
         @pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, @db_config, :writing, :default)
         @pool = ConnectionPool.new(@pool_config)
 
@@ -216,6 +229,30 @@ module ActiveRecord
         @pool.connections.each { |conn| conn.close if conn.in_use? }
       end
 
+      def test_inactive_are_returned_from_dead_thread
+        ready = Concurrent::CountDownLatch.new
+        @pool.instance_variable_set(:@size, 1)
+
+        child = new_thread do
+          @pool.checkout
+          ready.count_down
+          stop_thread
+        end
+
+        pass_to(child) until ready.wait(0)
+
+        assert_equal 1, active_connections(@pool).size
+
+        child.terminate
+        child.join
+
+        @pool.checkout
+
+        assert_equal 1, active_connections(@pool).size
+      ensure
+        @pool.connections.each { |conn| conn.close if conn.in_use? }
+      end
+
       def test_idle_timeout_configuration
         @pool.disconnect!
 
@@ -412,7 +449,7 @@ module ActiveRecord
         end
 
         # this should wake up the waiting threads one by one in order
-        conns.each { |conn| @pool.checkin(conn); sleep 0.1 }
+        conns.each { |conn| @pool.checkin(conn); sleep 0.01 }
 
         dispose_held_connections.set
         threads.each(&:join)
@@ -557,9 +594,20 @@ module ActiveRecord
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription
       end
 
+      def test_sets_pool_schema_reflection
+        pool.schema_cache.add(:posts)
+        assert pool.schema_cache.cached?(:posts)
+
+        pool.schema_reflection = SchemaReflection.new("does-not-exist")
+        assert_not pool.schema_cache.cached?(:posts)
+
+        pool.schema_cache.add(:posts)
+        assert pool.schema_cache.cached?(:posts)
+      end
+
       def test_pool_sets_connection_schema_cache
+        pool.schema_cache.add(:posts)
         connection = pool.checkout
-        connection.schema_cache.add(:posts)
 
         pool.with_connection do |conn|
           # We've retrieved a second, distinct, connection from the pool
@@ -744,11 +792,11 @@ module ActiveRecord
         with_single_connection_pool do |pool|
           pool.with_connection do |connection|
             stats = pool.stat
-            assert_equal({ size: 1, connections: 1, busy: 1, dead: 0, idle: 0, waiting: 0, checkout_timeout: 5 }, stats)
+            assert_equal({ size: 1, connections: 1, busy: 1, dead: 0, idle: 0, waiting: 0, checkout_timeout: 0.2 }, stats)
           end
 
           stats = pool.stat
-          assert_equal({ size: 1, connections: 1, busy: 0, dead: 0, idle: 1, waiting: 0, checkout_timeout: 5 }, stats)
+          assert_equal({ size: 1, connections: 1, busy: 0, dead: 0, idle: 1, waiting: 0, checkout_timeout: 0.2 }, stats)
 
           assert_raise(ThreadError) do
             new_thread do
@@ -758,7 +806,7 @@ module ActiveRecord
           end
 
           stats = pool.stat
-          assert_equal({ size: 1, connections: 1, busy: 0, dead: 1, idle: 0, waiting: 0, checkout_timeout: 5 }, stats)
+          assert_equal({ size: 1, connections: 1, busy: 0, dead: 1, idle: 0, waiting: 0, checkout_timeout: 0.2 }, stats)
         ensure
           Thread.report_on_exception = original_report_on_exception
         end
@@ -808,6 +856,69 @@ module ActiveRecord
         assert_equal :shard_one, pool.connection.shard
       end
 
+      def test_pin_connection_always_returns_the_same_connection
+        assert_not_predicate @pool, :active_connection?
+        @pool.pin_connection!(true)
+        pinned_connection = @pool.checkout
+
+        assert_not_predicate @pool, :active_connection?
+        assert_same pinned_connection, @pool.connection
+        assert_predicate @pool, :active_connection?
+
+        assert_same pinned_connection, @pool.checkout
+
+        @pool.release_connection
+        assert_not_predicate @pool, :active_connection?
+        assert_same pinned_connection, @pool.checkout
+      end
+
+      def test_pin_connection_connected?
+        skip("Can't test with in-memory dbs") if in_memory_db?
+
+        assert_not_predicate @pool, :connected?
+        @pool.pin_connection!(true)
+        assert_predicate @pool, :connected?
+
+        pin_connection = @pool.checkout
+
+        @pool.disconnect
+        assert_not_predicate @pool, :connected?
+        assert_same pin_connection, @pool.checkout
+        assert_predicate @pool, :connected?
+      end
+
+      def test_pin_connection_synchronize_the_connection
+        assert_equal ActiveSupport::Concurrency::NullLock, @pool.connection.lock
+        @pool.pin_connection!(true)
+        assert_not_equal ActiveSupport::Concurrency::NullLock, @pool.connection.lock
+        @pool.unpin_connection!
+        assert_equal ActiveSupport::Concurrency::NullLock, @pool.connection.lock
+
+        @pool.pin_connection!(false)
+        assert_equal ActiveSupport::Concurrency::NullLock, @pool.connection.lock
+      end
+
+      def test_pin_connection_opens_a_transaction
+        assert_instance_of NullTransaction, @pool.connection.current_transaction
+        @pool.pin_connection!(true)
+        assert_instance_of RealTransaction, @pool.connection.current_transaction
+        @pool.unpin_connection!
+        assert_instance_of NullTransaction, @pool.connection.current_transaction
+      end
+
+      def test_unpin_connection_returns_whether_transaction_has_been_rolledback
+        @pool.pin_connection!(true)
+        assert_equal true, @pool.unpin_connection!
+
+        @pool.pin_connection!(true)
+        @pool.connection.commit_transaction
+        assert_equal false, @pool.unpin_connection!
+
+        @pool.pin_connection!(true)
+        @pool.connection.rollback_transaction
+        assert_equal false, @pool.unpin_connection!
+      end
+
       private
         def with_single_connection_pool
           config = @db_config.configuration_hash.merge(pool: 1)
@@ -834,8 +945,8 @@ module ActiveRecord
       end
 
       def test_lock_thread_allow_fiber_reentrency
-        @pool.lock_thread = true
         connection = @pool.checkout
+        connection.lock_thread = ActiveSupport::IsolatedExecutionState.context
         connection.transaction do
           enumerator = Enumerator.new do |yielder|
             connection.transaction do
@@ -877,6 +988,11 @@ module ActiveRecord
 
         def terminate
           nil
+        end
+
+        unless method_defined?(:kill) # RUBY_VERSION <= "3.3"
+          def kill
+          end
         end
       end
 

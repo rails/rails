@@ -232,8 +232,6 @@ module ApplicationTests
 
       def with_bad_permissions
         Dir.chdir(app_path) do
-          skip "Can't avoid permissions as root" if Process.uid.zero?
-
           set_database_url
           FileUtils.chmod("-w", "db")
           yield
@@ -241,14 +239,25 @@ module ApplicationTests
         end
       end
 
-      test "db:create failure because bad permissions" do
-        with_bad_permissions do
-          output = rails("db:create", allow_failure: true)
-          assert_match("Couldn't create '#{database_url_db_name}' database. Please check your configuration.", output)
-          assert_equal 1, $?.exitstatus
+      unless Process.uid.zero?
+        test "db:create failure because bad permissions" do
+          with_bad_permissions do
+            output = rails("db:create", allow_failure: true)
+            assert_match("Couldn't create '#{database_url_db_name}' database. Please check your configuration.", output)
+            assert_equal 1, $?.exitstatus
+          end
+        end
+
+        test "db:drop failure because bad permissions" do
+          with_database_existing do
+            with_bad_permissions do
+              output = rails("db:drop", allow_failure: true)
+              assert_match(/Couldn't drop/, output)
+              assert_equal 1, $?.exitstatus
+            end
+          end
         end
       end
-
       test "db:create works when schema cache exists and database does not exist" do
         use_postgresql
 
@@ -266,16 +275,6 @@ module ApplicationTests
       test "db:drop failure because database does not exist" do
         output = rails("db:drop:_unsafe", "--trace")
         assert_match(/does not exist/, output)
-      end
-
-      test "db:drop failure because bad permissions" do
-        with_database_existing do
-          with_bad_permissions do
-            output = rails("db:drop", allow_failure: true)
-            assert_match(/Couldn't drop/, output)
-            assert_equal 1, $?.exitstatus
-          end
-        end
       end
 
       test "db:truncate_all truncates all non-internal tables" do
@@ -404,8 +403,8 @@ module ApplicationTests
         Dir.chdir(app_path) do
           rails "db:schema:cache:dump"
 
-          cache_size = lambda { rails("runner", "p ActiveRecord::Base.connection.schema_cache.size").strip }
-          cache_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.schema_cache.columns('books')").strip }
+          cache_size = lambda { rails("runner", "p ActiveRecord::Base.schema_cache.size").strip }
+          cache_tables = lambda { rails("runner", "p ActiveRecord::Base.schema_cache.columns('books')").strip }
 
           assert_equal "12", cache_size[]
           assert_includes cache_tables[], "id", "expected cache_tables to include an id entry"
@@ -438,17 +437,6 @@ module ApplicationTests
 
         db_schema_dump
         db_schema_cache_dump
-      end
-
-      test "db:schema:cache:dump custom env" do
-        @old_schema_cache_env = ENV["SCHEMA_CACHE"]
-        filename = "db/special_schema_cache.yml"
-        ENV["SCHEMA_CACHE"] = filename
-
-        db_schema_dump
-        db_schema_cache_dump
-      ensure
-        ENV["SCHEMA_CACHE"] = @old_schema_cache_env
       end
 
       test "db:schema:cache:dump first config wins" do
@@ -491,7 +479,7 @@ module ApplicationTests
 
           rails "db:schema:cache:dump"
 
-          virtual_column_exists = rails("runner", "p ActiveRecord::Base.connection.schema_cache.columns('books')[2].virtual?").strip
+          virtual_column_exists = rails("runner", "p ActiveRecord::Base.schema_cache.columns('books')[2].virtual?").strip
           assert_equal "true", virtual_column_exists
         end
       end
@@ -504,26 +492,10 @@ module ApplicationTests
           rails "db:migrate"
 
           expired_warning = capture(:stderr) do
-            cache_size = rails("runner", "p ActiveRecord::Base.connection.schema_cache.size", stderr: true).strip
+            cache_size = rails("runner", "p ActiveRecord::Base.schema_cache.size", stderr: true).strip
             assert_equal "0", cache_size
           end
           assert_match(/Ignoring .*\.yml because it has expired/, expired_warning)
-        end
-      end
-
-      test "db:schema:cache:dump ignores validation errors" do
-        Dir.chdir(app_path) do
-          rails "generate", "model", "book", "title:string"
-          rails "db:migrate"
-          rails "db:schema:cache:dump"
-
-          ActiveRecord::Migrator.stub(:current_version, -> { raise ActiveRecord::ActiveRecordError, "stubbed error" }) do
-            validation_warning = capture(:stderr) do
-              cache_tables = rails("runner", "p ActiveRecord::Base.connection.schema_cache.columns('books')", stderr: true).strip
-              assert_includes cache_tables, "title", "expected cache_tables to include a title entry"
-            end
-            assert_match(/Failed to validate the schema cache because of ActiveRecord::ActiveRecordError: stubbed error/, validation_warning)
-          end
         end
       end
 
@@ -644,8 +616,8 @@ module ApplicationTests
         app_file "db/schema.rb", ""
         rails "db:setup"
 
-        test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::Base.connection.internal_metadata[:environment]").strip }
-        development_environment = lambda { rails("runner", "puts ActiveRecord::Base.connection.internal_metadata[:environment]").strip }
+        test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::Base.connection_pool.internal_metadata[:environment]").strip }
+        development_environment = lambda { rails("runner", "puts ActiveRecord::Base.connection_pool.internal_metadata[:environment]").strip }
 
         assert_equal "test", test_environment.call
         assert_equal "development", development_environment.call
@@ -665,7 +637,7 @@ module ApplicationTests
         app_file "db/schema.rb", ""
         rails "db:test:prepare"
 
-        test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::Base.connection.internal_metadata[:environment]").strip }
+        test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::Base.connection_pool.internal_metadata[:environment]").strip }
 
         assert_equal "test", test_environment.call
 
@@ -767,8 +739,8 @@ module ApplicationTests
           tables = rails("runner", "p ActiveRecord::Base.connection.tables.sort").strip
           assert_equal('["ar_internal_metadata", "books", "recipes", "schema_migrations"]', tables)
 
-          test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::Base.connection.internal_metadata[:environment]").strip }
-          development_environment = lambda { rails("runner", "puts ActiveRecord::Base.connection.internal_metadata[:environment]").strip }
+          test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::Base.connection_pool.internal_metadata[:environment]").strip }
+          development_environment = lambda { rails("runner", "puts ActiveRecord::Base.connection_pool.internal_metadata[:environment]").strip }
 
           assert_equal "development", development_environment.call
           assert_equal "test", test_environment.call

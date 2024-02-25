@@ -52,9 +52,8 @@ module ActiveRecord
     end
 
     def primary_keys
-      Array(connection.schema_cache.primary_keys(model.table_name))
+      Array(@model.schema_cache.primary_keys(model.table_name))
     end
-
 
     def skip_duplicates?
       on_duplicate == :skip
@@ -163,9 +162,8 @@ module ActiveRecord
       end
 
       def unique_indexes
-        connection.schema_cache.indexes(model.table_name).select(&:unique)
+        @model.schema_cache.indexes(model.table_name).select(&:unique)
       end
-
 
       def ensure_valid_options_for_connection!
         if returning && !connection.supports_insert_returning?
@@ -301,7 +299,7 @@ module ActiveRecord
           end
 
           def extract_types_from_columns_on(table_name, keys:)
-            columns = connection.schema_cache.columns_hash(table_name)
+            columns = @model.schema_cache.columns_hash(table_name)
 
             unknown_column = (keys - columns.keys).first
             raise UnknownAttributeError.new(model.new, unknown_column) if unknown_column

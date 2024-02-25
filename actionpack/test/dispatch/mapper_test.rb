@@ -127,7 +127,6 @@ module ActionDispatch
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
 
-        # FIXME: is this a desired behavior?
         mapper.get "/one/two/", to: "posts#index", as: :main
         assert_equal "/one/two(.:format)", fakeset.asts.first.to_s
       end

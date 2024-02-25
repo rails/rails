@@ -458,7 +458,8 @@ module ActiveRecord
                 primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
 
                 primary_key_foreign_key_pairs.each do |primary_key, foreign_key|
-                  record[foreign_key] = _read_attribute(primary_key)
+                  association_id = _read_attribute(primary_key)
+                  record[foreign_key] = association_id unless record[foreign_key] == association_id
                 end
                 association.set_inverse_instance(record)
               end
@@ -545,10 +546,6 @@ module ActiveRecord
         else
           record.class.primary_key
         end
-      end
-
-      def custom_validation_context?
-        validation_context && [:create, :update].exclude?(validation_context)
       end
 
       def _ensure_no_duplicate_errors

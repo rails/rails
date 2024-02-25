@@ -1,3 +1,5 @@
+<%% content_for :title, "New <%= human_name.downcase %>" %>
+
 <h1>New <%= human_name.downcase %></h1>
 
 <%%= render "form", <%= singular_table_name %>: @<%= singular_table_name %> %>

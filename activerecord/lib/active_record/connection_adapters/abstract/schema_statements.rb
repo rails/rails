@@ -876,9 +876,12 @@ module ActiveRecord
       # ====== Creating an index with a specific algorithm
       #
       #  add_index(:developers, :name, algorithm: :concurrently)
-      #  # CREATE INDEX CONCURRENTLY developers_on_name on developers (name)
+      #  # CREATE INDEX CONCURRENTLY developers_on_name on developers (name) -- PostgreSQL
       #
-      # Note: only supported by PostgreSQL.
+      #  add_index(:developers, :name, algorithm: :inplace)
+      #  # CREATE INDEX `index_developers_on_name` ON `developers` (`name`) ALGORITHM = INPLACE -- MySQL
+      #
+      # Note: only supported by PostgreSQL and MySQL.
       #
       # Concurrently adding an index is not supported in a transaction.
       #
@@ -1314,7 +1317,7 @@ module ActiveRecord
       end
 
       def dump_schema_information # :nodoc:
-        versions = schema_migration.versions
+        versions = pool.schema_migration.versions
         insert_versions_sql(versions) if versions.any?
       end
 
@@ -1324,8 +1327,9 @@ module ActiveRecord
 
       def assume_migrated_upto_version(version)
         version = version.to_i
-        sm_table = quote_table_name(schema_migration.table_name)
+        sm_table = quote_table_name(pool.schema_migration.table_name)
 
+        migration_context = pool.migration_context
         migrated = migration_context.get_all_versions
         versions = migration_context.migrations.map(&:version)
 
@@ -1835,7 +1839,7 @@ module ActiveRecord
         end
 
         def insert_versions_sql(versions)
-          sm_table = quote_table_name(schema_migration.table_name)
+          sm_table = quote_table_name(pool.schema_migration.table_name)
 
           if versions.is_a?(Array)
             sql = +"INSERT INTO #{sm_table} (version) VALUES\n"

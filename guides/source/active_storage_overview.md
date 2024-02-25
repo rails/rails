@@ -290,7 +290,7 @@ google:
   gsa_email: "foobar@baz.iam.gserviceaccount.com"
 ```
 
-Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/master/google-cloud-storage) gem to your `Gemfile`:
+Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/main/google-cloud-storage) gem to your `Gemfile`:
 
 ```ruby
 gem "google-cloud-storage", "~> 1.11", require: false
@@ -462,6 +462,21 @@ end
 <%= image_tag user.video.preview(:thumb) %>
 ```
 
+If you know in advance that your variants will be accessed, you can specify that
+Rails should generate them ahead of time:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :video do |attachable|
+    attachable.variant :thumb, resize_to_limit: [100, 100], preprocessed: true
+  end
+end
+```
+
+Rails will enqueue a job to generate the variant after the attachment is attached to the record.
+
+NOTE: Since Active Storage relies on polymorphic associations, and [polymorphic associations](./association_basics.html#polymorphic-associations) rely on storing class names in the database, that data must remain synchronized with the class name used by the Ruby code. When renaming classes that use `has_one_attached`, make sure to also update the class names in the `active_storage_attachments.record_type` polymorphic type column of the corresponding rows.
+
 [`has_one_attached`]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_one_attached
 [Attached::One#attach]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-attach
 [Attached::One#attached?]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-attached-3F
@@ -536,6 +551,7 @@ end
 [Attached::Many#attach]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Many.html#method-i-attach
 [Attached::Many#attached?]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Many.html#method-i-attached-3F
 
+NOTE: Since Active Storage relies on polymorphic associations, and [polymorphic associations](./association_basics.html#polymorphic-associations) rely on storing class names in the database, that data must remain synchronized with the class name used by the Ruby code. When renaming classes that use `has_many_attached`, make sure to also update the class names in the `active_storage_attachments.record_type` polymorphic type column of the corresponding rows.
 
 ### Attaching File/IO Objects
 
@@ -571,6 +587,41 @@ You can bypass the content type inference from the data by passing in
 
 If you don’t provide a content type and Active Storage can’t determine the
 file’s content type automatically, it defaults to application/octet-stream.
+
+There is an additional parameter `key` that can be used to specify folders/sub-folders
+in your S3 Bucket. AWS S3 otherwise uses a random key to name your files. This
+approach is helpful if you want to organize your S3 Bucket files better.
+
+```ruby
+@message.images.attach(
+  io: File.open('/path/to/file'),
+  filename: 'file.pdf',
+  content_type: 'application/pdf',
+  key: "#{Rails.env}/blog_content/intuitive_filename.pdf",
+  identify: false
+)
+```
+
+This way the file will get saved in the folder `[S3_BUCKET]/development/blog_content/`
+when you test this from your development environment. Note that if you use the key
+parameter, you have to ensure the key to be unique for the upload to go through. It is
+recommended to append the filename with a unique random key, something like:
+
+```ruby
+def s3_file_key
+  "#{Rails.env}/blog_content/intuitive_filename-#{SecureRandom.uuid}.pdf"
+end
+```
+
+```ruby
+@message.images.attach(
+  io: File.open('/path/to/file'),
+  filename: 'file.pdf',
+  content_type: 'application/pdf',
+  key: s3_file_key,
+  identify: false
+)
+```
 
 ### Replacing vs Adding Attachments
 

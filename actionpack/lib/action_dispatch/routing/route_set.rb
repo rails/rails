@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "action_dispatch/journey"
 require "active_support/core_ext/object/to_query"
 require "active_support/core_ext/module/redefine_method"
@@ -12,10 +14,9 @@ module ActionDispatch
   module Routing
     # :stopdoc:
     class RouteSet
-      # Since the router holds references to many parts of the system
-      # like engines, controllers and the application itself, inspecting
-      # the route set can actually be really slow, therefore we default
-      # alias inspect to to_s.
+      # Since the router holds references to many parts of the system like engines,
+      # controllers and the application itself, inspecting the route set can actually
+      # be really slow, therefore we default alias inspect to to_s.
       alias inspect to_s
 
       class Dispatcher < Routing::Endpoint
@@ -144,8 +145,8 @@ module ActionDispatch
           routes.length
         end
 
-        # Given a +name+, defines name_path and name_url helpers.
-        # Used by 'direct', 'resolve', and 'polymorphic' route helpers.
+        # Given a `name`, defines name_path and name_url helpers. Used by 'direct',
+        # 'resolve', and 'polymorphic' route helpers.
         def add_url_helper(name, defaults, &block)
           helper = CustomUrlHelper.new(name, defaults, &block)
           path_name = :"#{name}_path"
@@ -301,18 +302,18 @@ module ActionDispatch
         end
 
         private
-          # Create a URL helper allowing ordered parameters to be associated
-          # with corresponding dynamic segments, so you can do:
+          # Create a URL helper allowing ordered parameters to be associated with
+          # corresponding dynamic segments, so you can do:
           #
-          #   foo_url(bar, baz, bang)
+          #     foo_url(bar, baz, bang)
           #
           # Instead of:
           #
-          #   foo_url(bar: bar, baz: baz, bang: bang)
+          #     foo_url(bar: bar, baz: baz, bang: bang)
           #
           # Also allow options hash, so you can do:
           #
-          #   foo_url(bar, baz, bang, sort_by: 'baz')
+          #     foo_url(bar, baz, bang, sort_by: 'baz')
           #
           def define_url_helper(mod, name, helper, url_strategy)
             mod.define_method(name) do |*args|
@@ -471,10 +472,9 @@ module ActionDispatch
         include UrlFor
       end
 
-      # Contains all the mounted helpers across different
-      # engines and the `main_app` helper for the application.
-      # You can include this in your classes if you want to
-      # access routes for other engines.
+      # Contains all the mounted helpers across different engines and the `main_app`
+      # helper for the application. You can include this in your classes if you want
+      # to access routes for other engines.
       def mounted_helpers
         MountedHelpers
       end
@@ -564,13 +564,11 @@ module ActionDispatch
 
           url_helpers = routes.named_routes.url_helpers_module
 
-          # Make named_routes available in the module singleton
-          # as well, so one can do:
+          # Make named_routes available in the module singleton as well, so one can do:
           # Rails.application.routes.url_helpers.posts_path
           extend url_helpers
 
-          # Any class that includes this module will get all
-          # named routes...
+          # Any class that includes this module will get all named routes...
           include url_helpers
 
           if supports_path
@@ -585,9 +583,8 @@ module ActionDispatch
             redefine_singleton_method(:_routes) { routes }
           end
 
-          # And an instance method _routes. Note that
-          # UrlFor (included in this module) add extra
-          # conveniences for working with @_routes.
+          # And an instance method _routes. Note that UrlFor (included in this module) add
+          # extra conveniences for working with @_routes.
           define_method(:_routes) { @_routes || routes }
 
           define_method(:_generate_paths_by_default) do
@@ -596,15 +593,15 @@ module ActionDispatch
 
           private :_generate_paths_by_default
 
-          # If the module is included more than once (for example, in a subclass
-          # of an ancestor that includes the module), ensure that the `_routes`
-          # singleton and instance methods return the desired route set by
-          # including a new copy of the module (recursively if necessary). Note
-          # that this method is called for each inclusion, whereas the above
-          # `included` block is run only for the initial inclusion of each copy.
+          # If the module is included more than once (for example, in a subclass of an
+          # ancestor that includes the module), ensure that the `_routes` singleton and
+          # instance methods return the desired route set by including a new copy of the
+          # module (recursively if necessary). Note that this method is called for each
+          # inclusion, whereas the above `included` block is run only for the initial
+          # inclusion of each copy.
           def self.included(base)
             super
-            if !base._routes.equal?(@_proxy._routes)
+            if base.respond_to?(:_routes) && !base._routes.equal?(@_proxy._routes)
               @dup_for_reinclude ||= self.dup
               base.include @dup_for_reinclude
             end
@@ -717,14 +714,14 @@ module ActionDispatch
         end
 
         def normalize_options!
-          # If an explicit :controller was given, always make :action explicit
-          # too, so that action expiry works as expected for things like
+          # If an explicit :controller was given, always make :action explicit too, so
+          # that action expiry works as expected for things like
           #
-          #   generate({controller: 'content'}, {controller: 'content', action: 'show'})
+          #     generate({controller: 'content'}, {controller: 'content', action: 'show'})
           #
-          # (the above is from the unit tests). In the above case, because the
-          # controller was explicitly given, but no action, the action is implied to
-          # be "index", not the recalled action of "show".
+          # (the above is from the unit tests). In the above case, because the controller
+          # was explicitly given, but no action, the action is implied to be "index", not
+          # the recalled action of "show".
 
           if options[:controller]
             options[:action]     ||= "index"
@@ -736,10 +733,9 @@ module ActionDispatch
           end
         end
 
-        # This pulls :controller, :action, and :id out of the recall.
-        # The recall key is only used if there is no key in the options
-        # or if the key in the options is identical. If any of
-        # :controller, :action or :id is not found, don't pull any
+        # This pulls :controller, :action, and :id out of the recall. The recall key is
+        # only used if there is no key in the options or if the key in the options is
+        # identical. If any of :controller, :action or :id is not found, don't pull any
         # more keys from the recall.
         def normalize_controller_action_id!
           use_recall_for(:controller) || return
@@ -747,8 +743,8 @@ module ActionDispatch
           use_recall_for(:id)
         end
 
-        # if the current controller is "foo/bar/baz" and controller: "baz/bat"
-        # is specified, the controller becomes "foo/baz/bat"
+        # if the current controller is "foo/bar/baz" and controller: "baz/bat" is
+        # specified, the controller becomes "foo/baz/bat"
         def use_relative_controller!
           if !named_route && different_controller? && !controller.start_with?("/")
             old_parts = current_controller.split("/")
@@ -790,8 +786,8 @@ module ActionDispatch
           end
       end
 
-      # Generate the path indicated by the arguments, and return an array of
-      # the keys that were not used to generate it.
+      # Generate the path indicated by the arguments, and return an array of the keys
+      # that were not used to generate it.
       def extra_keys(options, recall = {})
         generate_extras(options, recall).last
       end
@@ -828,7 +824,7 @@ module ActionDispatch
         url_for(options, route_name, PATH, nil, reserved)
       end
 
-      # The +options+ argument must be a hash whose keys are *symbols*.
+      # The `options` argument must be a hash whose keys are **symbols**.
       def url_for(options, route_name = nil, url_strategy = UNKNOWN, method_name = nil, reserved = RESERVED_OPTIONS)
         options = default_url_options.merge options
 

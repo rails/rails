@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "cases/helper"
-require "benchmark/ips"
 
 class ActiveRecord::Fixture
   prepend ActiveRecord::Encryption::EncryptedFixtures
@@ -111,45 +110,6 @@ module ActiveRecord::Encryption
         attribute_type.key_provider.keys = original_keys
       end
   end
-
-  module PerformanceHelpers
-    BENCHMARK_DURATION = 1
-    BENCHMARK_WARMUP = 1
-    BASELINE_LABEL = "Baseline"
-    CODE_TO_TEST_LABEL = "Code"
-
-    # Usage:
-    #
-    #     baseline = -> { <some baseline code> }
-    #
-    #     assert_slower_by_at_most 2, baseline: baseline do
-    #       <the code you want to compare against the baseline>
-    #     end
-    def assert_slower_by_at_most(threshold_factor, baseline:, baseline_label: BASELINE_LABEL, code_to_test_label: CODE_TO_TEST_LABEL, duration: BENCHMARK_DURATION, quiet: true, &block_to_test)
-      GC.start
-
-      result = nil
-      output, error = capture_io do
-        result = Benchmark.ips do |x|
-          x.config(time: duration, warmup: BENCHMARK_WARMUP)
-          x.report(code_to_test_label, &block_to_test)
-          x.report(baseline_label, &baseline)
-          x.compare!
-        end
-      end
-
-      baseline_result = result.entries.find { |entry| entry.label == baseline_label }
-      code_to_test_result = result.entries.find { |entry| entry.label == code_to_test_label }
-
-      times_slower = baseline_result.ips / code_to_test_result.ips
-
-      if !quiet || times_slower >= threshold_factor
-        puts "#{output}#{error}"
-      end
-
-      assert times_slower < threshold_factor, "Expecting #{threshold_factor} times slower at most, but got #{times_slower} times slower"
-    end
-  end
 end
 
 # We eager load encrypted attribute types as they are declared, so that they pick up the
@@ -163,7 +123,7 @@ ActiveRecord::Encryption.on_encrypted_attribute_declared do |klass, attribute_na
 end
 
 class ActiveRecord::EncryptionTestCase < ActiveRecord::TestCase
-  include ActiveRecord::Encryption::EncryptionHelpers, ActiveRecord::Encryption::PerformanceHelpers
+  include ActiveRecord::Encryption::EncryptionHelpers
 
   ENCRYPTION_PROPERTIES_TO_RESET = {
     config: %i[ primary_key deterministic_key key_derivation_salt store_key_references hash_digest_class

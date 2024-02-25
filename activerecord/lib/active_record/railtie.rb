@@ -31,7 +31,6 @@ module ActiveRecord
     config.active_record.check_schema_cache_dump_version = true
     config.active_record.maintain_test_schema = true
     config.active_record.has_many_inversing = false
-    config.active_record.sqlite3_production_warning = true
     config.active_record.query_log_tags_enabled = false
     config.active_record.query_log_tags = [ :application ]
     config.active_record.query_log_tags_format = :legacy
@@ -135,51 +134,11 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
-    initializer "active_record.use_schema_cache_dump" do
-      ActiveRecord::ConnectionAdapters::SchemaReflection.use_schema_cache_dump = config.active_record.use_schema_cache_dump
-    end
+    initializer "active_record.copy_schema_cache_config" do
+      active_record_config = config.active_record
 
-    initializer "active_record.check_schema_cache_dump" do
-      check_schema_cache_dump_version = config.active_record.check_schema_cache_dump_version
-
-      ActiveRecord::ConnectionAdapters::SchemaReflection.check_schema_cache_dump_version = check_schema_cache_dump_version
-
-      if config.active_record.use_schema_cache_dump && !config.active_record.lazily_load_schema_cache
-        config.after_initialize do |app|
-          ActiveSupport.on_load(:active_record) do
-            db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).first
-
-            filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(
-              db_config.name,
-              schema_cache_path: db_config.schema_cache_path
-            )
-
-            cache = ActiveRecord::ConnectionAdapters::SchemaCache._load_from(filename)
-            next if cache.nil?
-
-            if check_schema_cache_dump_version
-              current_version = begin
-                ActiveRecord::Migrator.current_version
-              rescue ActiveRecordError => error
-                warn "Failed to validate the schema cache because of #{error.class}: #{error.message}"
-                nil
-              end
-
-              if current_version.nil?
-                connection_pool.schema_reflection.clear!
-                next
-              elsif cache.schema_version != current_version
-                warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the schema cache file is #{cache.schema_version}."
-                connection_pool.schema_reflection.clear!
-                next
-              end
-            end
-
-            Rails.logger.info("Using schema cache file #{filename}")
-            connection_pool.schema_reflection.set_schema_cache(cache)
-          end
-        end
-      end
+      ActiveRecord::ConnectionAdapters::SchemaReflection.use_schema_cache_dump = active_record_config.use_schema_cache_dump
+      ActiveRecord::ConnectionAdapters::SchemaReflection.check_schema_cache_dump_version = active_record_config.check_schema_cache_dump_version
     end
 
     initializer "active_record.define_attribute_methods" do |app|
@@ -226,19 +185,25 @@ To keep using the current cache store, you can turn off cache versioning entirel
 
     initializer "active_record.warn_on_records_fetched_greater_than" do
       if config.active_record.warn_on_records_fetched_greater_than
+        ActiveRecord.deprecator.warn <<~MSG.squish
+          `config.active_record.warn_on_records_fetched_greater_than` is deprecated and will be
+          removed in Rails 7.3.
+          Please subscribe to `sql.active_record` notifications and access the row count field to
+          detect large result set sizes.
+        MSG
         ActiveSupport.on_load(:active_record) do
           require "active_record/relation/record_fetch_warning"
         end
       end
     end
 
-    SQLITE3_PRODUCTION_WARN = "You are running SQLite in production, this is generally not recommended."\
-      " You can disable this warning by setting \"config.active_record.sqlite3_production_warning=false\"."
-    initializer "active_record.sqlite3_production_warning" do
-      if config.active_record.sqlite3_production_warning && Rails.env.production?
-        ActiveSupport.on_load(:active_record_sqlite3adapter) do
-          Rails.logger.warn(SQLITE3_PRODUCTION_WARN)
-        end
+    initializer "active_record.sqlite3_deprecated_warning" do
+      if config.active_record.key?(:sqlite3_production_warning)
+        config.active_record.delete(:sqlite3_production_warning)
+        ActiveRecord.deprecator.warn <<~MSG.squish
+          The `config.active_record.sqlite3_production_warning` configuration no longer has any effect
+          and can be safely removed.
+        MSG
       end
     end
 
@@ -278,7 +243,6 @@ To keep using the current cache store, you can turn off cache versioning entirel
           :query_log_tags,
           :query_log_tags_format,
           :cache_query_log_tags,
-          :sqlite3_production_warning,
           :sqlite3_adapter_strict_strings_by_default,
           :check_schema_cache_dump_version,
           :use_schema_cache_dump
@@ -382,23 +346,20 @@ To keep using the current cache store, you can turn off cache versioning entirel
     end
 
     initializer "active_record_encryption.configuration" do |app|
-      auto_filtered_parameters = ActiveRecord::Encryption::AutoFilteredParameters.new(app)
-
-      config.after_initialize do |app|
+      ActiveSupport.on_load(:active_record) do
         ActiveRecord::Encryption.configure \
           primary_key: app.credentials.dig(:active_record_encryption, :primary_key),
           deterministic_key: app.credentials.dig(:active_record_encryption, :deterministic_key),
           key_derivation_salt: app.credentials.dig(:active_record_encryption, :key_derivation_salt),
-          **config.active_record.encryption
+          **app.config.active_record.encryption
 
+        auto_filtered_parameters = ActiveRecord::Encryption::AutoFilteredParameters.new(app)
         auto_filtered_parameters.enable if ActiveRecord::Encryption.config.add_to_filter_parameters
 
-        ActiveSupport.on_load(:active_record) do
-          # Support extended queries for deterministic attributes and validations
-          if ActiveRecord::Encryption.config.extend_queries
-            ActiveRecord::Encryption::ExtendedDeterministicQueries.install_support
-            ActiveRecord::Encryption::ExtendedDeterministicUniquenessValidator.install_support
-          end
+        # Support extended queries for deterministic attributes and validations
+        if ActiveRecord::Encryption.config.extend_queries
+          ActiveRecord::Encryption::ExtendedDeterministicQueries.install_support
+          ActiveRecord::Encryption::ExtendedDeterministicUniquenessValidator.install_support
         end
       end
 
@@ -419,7 +380,8 @@ To keep using the current cache store, you can turn off cache versioning entirel
             pid:          -> { Process.pid.to_s },
             socket:       ->(context) { context[:connection].pool.db_config.socket },
             db_host:      ->(context) { context[:connection].pool.db_config.host },
-            database:     ->(context) { context[:connection].pool.db_config.database }
+            database:     ->(context) { context[:connection].pool.db_config.database },
+            source_location: -> { QueryLogs.query_source_location }
           )
           ActiveRecord.disable_prepared_statements = true
 

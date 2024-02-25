@@ -102,16 +102,36 @@ module ActiveRecord
   # You create a new record that uses delegated typing by creating the delegator and delegatee at the same time,
   # like so:
   #
-  #   Entry.create! entryable: Comment.new(content: "Hello!"), creator: Current.user
+  #   Entry.create! entryable: Comment.new(content: "Hello!"), creator: Current.user, account: Current.account
   #
   # If you need more complicated composition, or you need to perform dependent validation, you should build a factory
   # method or class to take care of the complicated needs. This could be as simple as:
   #
   #   class Entry < ApplicationRecord
-  #     def self.create_with_comment(content, creator: Current.user)
-  #       create! entryable: Comment.new(content: content), creator: creator
+  #     def self.create_with_comment(content, creator: Current.user, account: Current.account)
+  #       create! entryable: Comment.new(content: content), creator: creator, account: account
   #     end
   #   end
+  #
+  # == Querying across records
+  #
+  # A consequence of delegated types is that querying attributes spread across multiple classes becomes slightly more
+  # tricky, but not impossible.
+  #
+  # The simplest method is to join the "superclass" to the "subclass" and apply the query parameters (i.e. <tt>#where</tt>)
+  # in appropriate places:
+  #
+  #   Comment.joins(:entry).where(comments: { content: 'Hello!' }, entry: { creator: Current.user } )
+  #
+  # For convenience, add a scope on the concern. Now all classes that implement the concern will automatically include
+  # the method:
+  #
+  #   # app/models/concerns/entryable.rb
+  #   scope :with_entry, ->(attrs) { joins(:entry).where(entry: attrs) }
+  #
+  # Now the query can be shortened significantly:
+  #
+  #   Comment.where(content: 'Hello!').with_entry(creator: Current.user)
   #
   # == Adding further delegation
   #
@@ -138,7 +158,7 @@ module ActiveRecord
   #
   # Now you can list a bunch of entries, call <tt>Entry#title</tt>, and polymorphism will provide you with the answer.
   #
-  # == Nested Attributes
+  # == Nested \Attributes
   #
   # Enabling nested attributes on a delegated_type association allows you to
   # create the entry and message in one go:
@@ -218,6 +238,10 @@ module ActiveRecord
         primary_key = options[:primary_key] || "id"
         role_type = options[:foreign_type] || "#{role}_type"
         role_id   = options[:foreign_key] || "#{role}_id"
+
+        define_singleton_method "#{role}_types" do
+          types.map(&:to_s)
+        end
 
         define_method "#{role}_class" do
           public_send(role_type).constantize

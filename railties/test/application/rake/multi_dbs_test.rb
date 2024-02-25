@@ -10,6 +10,7 @@ module ApplicationTests
       def setup
         build_app(multi_db: true)
         FileUtils.rm_rf("#{app_path}/config/environments")
+        add_to_config("config.active_record.timestamped_migrations = false")
       end
 
       def teardown
@@ -779,11 +780,13 @@ module ApplicationTests
       end
 
       test "db:migrate:status works on all databases" do
+        remove_from_config("config.active_record.timestamped_migrations = false")
         require "#{app_path}/config/environment"
         db_migrate_and_migrate_status
       end
 
       test "db:migrate:status:namespace works" do
+        remove_from_config("config.active_record.timestamped_migrations = false")
         require "#{app_path}/config/environment"
         ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
           db_migrate_namespaced db_config.name
@@ -810,25 +813,20 @@ module ApplicationTests
         rails "db:drop" rescue nil
       end
 
-      # Note that schema cache loader depends on the connection and
-      # does not work for all connections.
-      test "schema_cache is loaded on primary db in multi-db app" do
+      test "schema_cache is loaded on all connection db in multi-db app if it exists for the connection" do
         require "#{app_path}/config/environment"
         db_migrate_and_schema_cache_dump
 
-        cache_size_a = rails("runner", "p ActiveRecord::Base.connection.schema_cache.size").strip
+        cache_size_a = rails("runner", "p ActiveRecord::Base.schema_cache.size").strip
         assert_equal "12", cache_size_a
 
-        cache_tables_a = rails("runner", "p ActiveRecord::Base.connection.schema_cache.columns('books')").strip
+        cache_tables_a = rails("runner", "p ActiveRecord::Base.schema_cache.columns('books')").strip
         assert_includes cache_tables_a, "title", "expected cache_tables_a to include a title entry"
 
-        expired_warning = capture(:stderr) do
-          cache_size_b = rails("runner", "p AnimalsBase.connection.schema_cache.size", stderr: true).strip
-          assert_equal "0", cache_size_b
-        end
-        assert_match(/Ignoring .*\.yml because it has expired/, expired_warning)
+        cache_size_b = rails("runner", "p AnimalsBase.schema_cache.size", stderr: true).strip
+        assert_equal "12", cache_size_b, "expected the cache size for animals to be valid since it was dumped"
 
-        cache_tables_b = rails("runner", "p AnimalsBase.connection.schema_cache.columns('dogs')").strip
+        cache_tables_b = rails("runner", "p AnimalsBase.schema_cache.columns('dogs')").strip
         assert_includes cache_tables_b, "name", "expected cache_tables_b to include a name entry"
       end
 

@@ -253,11 +253,14 @@ module ActiveRecord
       # :method: type_for_attribute
       # :call-seq: type_for_attribute(attribute_name, &block)
       #
-      # See ActiveModel::AttributeRegistration::ClassMethods#type_for_attribute.
+      # See ActiveModel::Attributes::ClassMethods#type_for_attribute.
       #
       # This method will access the database and load the model's schema if
       # necessary.
+      #--
+      # Implemented by ActiveModel::AttributeRegistration::ClassMethods#type_for_attribute.
 
+      ##
       protected
         def reload_schema_from_cache(*)
           reset_default_attributes!

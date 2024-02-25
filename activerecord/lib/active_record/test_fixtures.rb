@@ -13,6 +13,7 @@ module ActiveRecord
 
     def after_teardown # :nodoc:
       super
+    ensure
       teardown_fixtures
     end
 
@@ -52,20 +53,6 @@ module ActiveRecord
         self.fixture_class_names = fixture_class_names.merge(class_names.stringify_keys)
       end
 
-      def fixture_path # :nodoc:
-        ActiveRecord.deprecator.warn(<<~WARNING)
-          TestFixtures.fixture_path is deprecated and will be removed in Rails 7.2. Use .fixture_paths instead.
-          If multiple fixture paths have been configured with .fixture_paths, then .fixture_path will just return
-          the first path.
-        WARNING
-        fixture_paths.first
-      end
-
-      def fixture_path=(path) # :nodoc:
-        ActiveRecord.deprecator.warn("TestFixtures.fixture_path= is deprecated and will be removed in Rails 7.2. Use .fixture_paths= instead.")
-        self.fixture_paths = Array(path)
-      end
-
       def fixtures(*fixture_set_names)
         if fixture_set_names.first == :all
           raise StandardError, "No fixture path found. Please set `#{self}.fixture_paths`." if fixture_paths.blank?
@@ -78,7 +65,7 @@ module ActiveRecord
           fixture_set_names = fixture_set_names.flatten.map(&:to_s)
         end
 
-        self.fixture_table_names |= fixture_set_names
+        self.fixture_table_names = (fixture_table_names | fixture_set_names).sort
         setup_fixture_accessors(fixture_set_names)
       end
 
@@ -109,45 +96,68 @@ module ActiveRecord
       end
     end
 
-    def fixture_path # :nodoc:
-      ActiveRecord.deprecator.warn(<<~WARNING)
-        TestFixtures#fixture_path is deprecated and will be removed in Rails 7.2. Use #fixture_paths instead.
-        If multiple fixture paths have been configured with #fixture_paths, then #fixture_path will just return
-        the first path.
-      WARNING
-      fixture_paths.first
-    end
-
-    def run_in_transaction?
-      use_transactional_tests &&
-        !self.class.uses_transaction?(name)
-    end
-
-    def setup_fixtures(config = ActiveRecord::Base)
-      if pre_loaded_fixtures && !use_transactional_tests
-        raise RuntimeError, "pre_loaded_fixtures requires use_transactional_tests"
+    private
+      def run_in_transaction?
+        use_transactional_tests &&
+          !self.class.uses_transaction?(name)
       end
 
-      @fixture_cache = {}
-      @fixture_connections = []
-      @@already_loaded_fixtures ||= {}
-      @connection_subscriber = nil
-      @saved_pool_configs = Hash.new { |hash, key| hash[key] = {} }
-
-      # Load fixtures once and begin transaction.
-      if run_in_transaction?
-        if @@already_loaded_fixtures[self.class]
-          @loaded_fixtures = @@already_loaded_fixtures[self.class]
-        else
-          @loaded_fixtures = load_fixtures(config)
-          @@already_loaded_fixtures[self.class] = @loaded_fixtures
+      def setup_fixtures(config = ActiveRecord::Base)
+        if pre_loaded_fixtures && !use_transactional_tests
+          raise RuntimeError, "pre_loaded_fixtures requires use_transactional_tests"
         end
 
+        @fixture_cache = {}
+        @fixture_cache_key = [self.class.fixture_table_names.dup, self.class.fixture_paths.dup, self.class.fixture_class_names.dup]
+        @fixture_connection_pools = []
+        @@already_loaded_fixtures ||= {}
+        @connection_subscriber = nil
+        @saved_pool_configs = Hash.new { |hash, key| hash[key] = {} }
+
+        if run_in_transaction?
+          # Load fixtures once and begin transaction.
+          @loaded_fixtures = @@already_loaded_fixtures[@fixture_cache_key]
+          unless @loaded_fixtures
+            @@already_loaded_fixtures.clear
+            @loaded_fixtures = @@already_loaded_fixtures[@fixture_cache_key] = load_fixtures(config)
+          end
+
+          setup_transactional_fixtures
+        else
+          # Load fixtures for every test.
+          ActiveRecord::FixtureSet.reset_cache
+          invalidate_already_loaded_fixtures
+          @loaded_fixtures = load_fixtures(config)
+        end
+
+        # Instantiate fixtures for every test if requested.
+        instantiate_fixtures if use_instantiated_fixtures
+      end
+
+      def teardown_fixtures
+        # Rollback changes if a transaction is active.
+        if run_in_transaction?
+          teardown_transactional_fixtures
+        else
+          ActiveRecord::FixtureSet.reset_cache
+          invalidate_already_loaded_fixtures
+        end
+
+        ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
+      end
+
+      def invalidate_already_loaded_fixtures
+        @@already_loaded_fixtures.clear
+      end
+
+      def setup_transactional_fixtures
+        setup_shared_connection_pool
+
         # Begin transactions for connections already established
-        @fixture_connections = enlist_fixture_connections
-        @fixture_connections.each do |connection|
-          connection.begin_transaction joinable: false, _lazy: false
-          connection.pool.lock_thread = true if lock_threads
+        @fixture_connection_pools = ActiveRecord::Base.connection_handler.connection_pool_list(:writing)
+        @fixture_connection_pools.each do |pool|
+          pool.pin_connection!(lock_threads)
+          pool.connection
         end
 
         # When connections are established in the future, begin a transaction too
@@ -156,60 +166,31 @@ module ActiveRecord
           shard = payload[:shard] if payload.key?(:shard)
 
           if connection_name
-            begin
-              connection = ActiveRecord::Base.connection_handler.retrieve_connection(connection_name, shard: shard)
-              connection.connect! # eagerly validate the connection
-            rescue ConnectionNotEstablished
-              connection = nil
-            end
-
-            if connection
+            pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(connection_name, shard: shard)
+            if pool
               setup_shared_connection_pool
 
-              if !@fixture_connections.include?(connection)
-                connection.begin_transaction joinable: false, _lazy: false
-                connection.pool.lock_thread = true if lock_threads
-                @fixture_connections << connection
+              unless @fixture_connection_pools.include?(pool)
+                pool.pin_connection!(lock_threads)
+                pool.connection
+                @fixture_connection_pools << pool
               end
             end
           end
         end
-
-      # Load fixtures for every test.
-      else
-        ActiveRecord::FixtureSet.reset_cache
-        @@already_loaded_fixtures[self.class] = nil
-        @loaded_fixtures = load_fixtures(config)
       end
 
-      # Instantiate fixtures for every test if requested.
-      instantiate_fixtures if use_instantiated_fixtures
-    end
-
-    def teardown_fixtures
-      # Rollback changes if a transaction is active.
-      if run_in_transaction?
+      def teardown_transactional_fixtures
         ActiveSupport::Notifications.unsubscribe(@connection_subscriber) if @connection_subscriber
-        @fixture_connections.each do |connection|
-          connection.rollback_transaction if connection.transaction_open?
-          connection.pool.lock_thread = false
+        unless @fixture_connection_pools.map(&:unpin_connection!).all?
+          # Something caused the transaction to be committed or rolled back
+          # We can no longer trust the database is in a clean state.
+          @@already_loaded_fixtures.clear
         end
-        @fixture_connections.clear
+        @fixture_connection_pools.clear
         teardown_shared_connection_pool
-      else
-        ActiveRecord::FixtureSet.reset_cache
       end
 
-      ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
-    end
-
-    def enlist_fixture_connections
-      setup_shared_connection_pool
-
-      ActiveRecord::Base.connection_handler.connection_pool_list(:writing).map(&:connection)
-    end
-
-    private
       # Shares the writing connection pool with connections on
       # other handlers.
       #
@@ -272,16 +253,16 @@ module ActiveRecord
         use_instantiated_fixtures != :no_instances
       end
 
-      def method_missing(name, *args, **kwargs, &block)
-        if fs_name = fixture_sets[name.to_s]
-          access_fixture(fs_name, *args, **kwargs, &block)
+      def method_missing(method, ...)
+        if fs_name = fixture_sets[method.name]
+          access_fixture(fs_name, ...)
         else
           super
         end
       end
 
-      def respond_to_missing?(name, include_private = false)
-        if include_private && fixture_sets.key?(name.to_s)
+      def respond_to_missing?(method, include_private = false)
+        if include_private && fixture_sets.key?(method.name)
           true
         else
           super

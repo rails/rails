@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_job/arguments"
-
 module ActiveJob
   # Provides behavior for enqueuing jobs.
 
@@ -23,7 +21,7 @@ module ActiveJob
             adapter_jobs.each do |job|
               job.successfully_enqueued = false
               if job.scheduled_at
-                queue_adapter.enqueue_at(job, job._scheduled_at_time.to_f)
+                queue_adapter.enqueue_at(job, job.scheduled_at.to_f)
               else
                 queue_adapter.enqueue(job)
               end
@@ -92,7 +90,7 @@ module ActiveJob
 
       run_callbacks :enqueue do
         if scheduled_at
-          queue_adapter.enqueue_at self, _scheduled_at_time.to_f
+          queue_adapter.enqueue_at self, scheduled_at.to_f
         else
           queue_adapter.enqueue self
         end

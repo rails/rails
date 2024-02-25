@@ -25,19 +25,37 @@ class ActionText::FormHelperTest < ActionView::TestCase
     )
   end
 
-  test "rich text area tag" do
+  test "#rich_text_area_tag helper" do
     message = Message.new
 
-    form_with model: message, scope: :message do |form|
-      rich_text_area_tag :content, message.content, { input: "trix_input_1" }
-    end
+    concat rich_text_area_tag :content, message.content, { input: "trix_input_1" }
 
     assert_dom_equal \
-      '<form action="/messages" accept-charset="UTF-8" method="post">' \
-        '<input type="hidden" name="content" id="trix_input_1" autocomplete="off" />' \
-        '<trix-editor input="trix_input_1" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">' \
-        "</trix-editor>" \
-      "</form>",
+      '<input type="hidden" name="content" id="trix_input_1" autocomplete="off" />' \
+      '<trix-editor input="trix_input_1" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">' \
+      "</trix-editor>",
+      output_buffer
+  end
+
+  test "#rich_text_area helper" do
+    concat rich_text_area :message, :content, input: "trix_input_1"
+
+    assert_dom_equal \
+      '<input type="hidden" name="message[content]" id="trix_input_1" autocomplete="off" />' \
+      '<trix-editor id="message_content" input="trix_input_1" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">' \
+      "</trix-editor>",
+      output_buffer
+  end
+
+  test "#rich_text_area helper renders the :value argument into the hidden field" do
+    message = Message.new content: "<h1>hello world</h1>"
+
+    concat rich_text_area :message, :title, value: message.content, input: "trix_input_1"
+
+    assert_dom_equal \
+      '<input type="hidden" name="message[title]" id="trix_input_1" value="&lt;h1&gt;hello world&lt;/h1&gt;" autocomplete="off" />' \
+      '<trix-editor id="message_title" input="trix_input_1" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">' \
+      "</trix-editor>",
       output_buffer
   end
 

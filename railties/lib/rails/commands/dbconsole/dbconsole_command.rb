@@ -21,25 +21,24 @@ module Rails
     end
 
     def db_config
-      return @db_config if defined?(@db_config)
+      @db_config ||= begin
+        # If the user provided a database, use that. Otherwise find
+        # the first config in the database.yml
+        config = if database
+          @db_config = configurations.configs_for(env_name: environment, name: database, include_hidden: true)
+        else
+          @db_config = configurations.find_db_config(environment)
+        end
 
-      # If the user provided a database, use that. Otherwise find
-      # the first config in the database.yml
-      if database
-        @db_config = configurations.configs_for(env_name: environment, name: database, include_hidden: true)
-      else
-        @db_config = configurations.find_db_config(environment)
+        unless config
+          missing_db = database ? "'#{database}' database is not" : "No databases are"
+          raise ActiveRecord::AdapterNotSpecified,
+            "#{missing_db} configured for '#{environment}'. Available configuration: #{configurations.inspect}"
+        end
+
+        config.validate!
+        config
       end
-
-      unless @db_config
-        missing_db = database ? "'#{database}' database is not" : "No databases are"
-        raise ActiveRecord::AdapterNotSpecified,
-          "#{missing_db} configured for '#{environment}'. Available configuration: #{configurations.inspect}"
-      end
-
-      @db_config.validate!
-
-      @db_config
     end
 
     def database

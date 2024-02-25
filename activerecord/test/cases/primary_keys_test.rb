@@ -45,14 +45,11 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal 1, id
   end
 
-  def test_read_attribute_with_custom_primary_key
+  def test_read_attribute_with_custom_primary_key_does_not_return_it_when_reading_the_id_attribute
     keyboard = Keyboard.create!
-    msg = "Using read_attribute(:id) to read the primary key value is deprecated. Use #id instead."
-    id = assert_deprecated(msg, ActiveRecord.deprecator) do
-      keyboard.read_attribute(:id)
-    end
+    id = keyboard.read_attribute(:id)
 
-    assert_equal keyboard.key_number, id
+    assert_nil id
   end
 
   def test_read_attribute_with_composite_primary_key
@@ -250,7 +247,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
       self.table_name = "dashboards"
     end
     klass.create! # warmup schema cache
-    assert_queries(3, ignore_none: true) { klass.create! }
+    assert_queries_count(3, include_schema: true) { klass.create! }
   end
 
   def test_assign_id_raises_error_if_primary_key_doesnt_exist
@@ -373,8 +370,8 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   fixtures :cpk_books, :cpk_orders
 
   def setup
+    ActiveRecord::Base.schema_cache.clear!
     @connection = ActiveRecord::Base.connection
-    @connection.schema_cache.clear!
     @connection.create_table(:uber_barcodes, primary_key: ["region", "code"], force: true) do |t|
       t.string :region
       t.integer :code

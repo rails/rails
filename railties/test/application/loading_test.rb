@@ -292,6 +292,46 @@ class LoadingTest < ActiveSupport::TestCase
     assert_equal "7", last_response.body
   end
 
+
+  test "routes reloading triggers after_routes_loaded" do
+    add_to_config <<-RUBY
+      config.enable_reloading = true
+    RUBY
+
+    app_file "config/routes.rb", <<-RUBY
+      $counter ||= 1
+      $counter  *= 2
+      Rails.application.routes.draw do
+        get '/c', to: lambda { |env| User.name; [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
+      end
+    RUBY
+
+    app_file "config/initializers/after_routes_loaded.rb", <<-RUBY
+      Rails.configuration.after_routes_loaded do
+        $counter *= 3
+      end
+    RUBY
+
+    app_file "app/models/user.rb", <<-MODEL
+      class User
+        $counter += 1
+      end
+    MODEL
+
+    require "rack/test"
+    extend Rack::Test::Methods
+
+    require "#{rails_root}/config/environment"
+
+    get "/c"
+    assert_equal "7", last_response.body
+
+    app_file "db/schema.rb", ""
+
+    get "/c"
+    assert_equal "43", last_response.body
+  end
+
   test "routes are only loaded once on boot" do
     add_to_config <<-RUBY
       config.enable_reloading = true
@@ -316,9 +356,40 @@ class LoadingTest < ActiveSupport::TestCase
     assert_equal "1", last_response.body
   end
 
+  test "after_routes_loaded runs once on boot" do
+    add_to_config <<-RUBY
+      config.enable_reloading = true
+    RUBY
+
+    app_file "config/routes.rb", <<-RUBY
+      $counter ||= 0
+      $counter += 1
+      Rails.application.routes.draw do
+        get '/c', to: lambda { |env| [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
+      end
+    RUBY
+
+    app_file "config/initializers/after_routes_loaded.rb", <<-RUBY
+      Rails.configuration.after_routes_loaded do
+        $counter *= 3
+      end
+    RUBY
+
+    boot_app "development"
+
+    require "rack/test"
+    extend Rack::Test::Methods
+
+    require "#{rails_root}/config/environment"
+
+    get "/c"
+    assert_equal "3", last_response.body
+  end
+
   test "columns migrations also trigger reloading" do
     add_to_config <<-RUBY
       config.enable_reloading = true
+      config.active_record.timestamped_migrations = false
     RUBY
 
     app_file "config/routes.rb", <<-RUBY
@@ -418,7 +489,6 @@ class LoadingTest < ActiveSupport::TestCase
   end
 
   test "active record query cache hooks are installed before first request in production" do
-    add_to_config "config.active_record.sqlite3_production_warning = false"
     app_file "app/controllers/omg_controller.rb", <<-RUBY
       begin
         class OmgController < ActionController::Metal

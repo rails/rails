@@ -1,31 +1,33 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/core_ext/module/redefine_method"
 
 module ActionCable
-  # = Action Cable Remote Connections
+  # # Action Cable Remote Connections
   #
   # If you need to disconnect a given connection, you can go through the
   # RemoteConnections. You can find the connections you're looking for by
   # searching for the identifier declared on the connection. For example:
   #
-  #   module ApplicationCable
-  #     class Connection < ActionCable::Connection::Base
-  #       identified_by :current_user
-  #       ....
+  #     module ApplicationCable
+  #       class Connection < ActionCable::Connection::Base
+  #         identified_by :current_user
+  #         ....
+  #       end
   #     end
-  #   end
   #
-  #   ActionCable.server.remote_connections.where(current_user: User.find(1)).disconnect
+  #     ActionCable.server.remote_connections.where(current_user: User.find(1)).disconnect
   #
-  # This will disconnect all the connections established for
-  # <tt>User.find(1)</tt>, across all servers running on all machines, because
-  # it uses the internal channel that all of these servers are subscribed to.
+  # This will disconnect all the connections established for `User.find(1)`,
+  # across all servers running on all machines, because it uses the internal
+  # channel that all of these servers are subscribed to.
   #
-  # By default, server sends a "disconnect" message with "reconnect" flag set to true.
-  # You can override it by specifying the +reconnect+ option:
+  # By default, server sends a "disconnect" message with "reconnect" flag set to
+  # true. You can override it by specifying the `reconnect` option:
   #
-  #   ActionCable.server.remote_connections.where(current_user: User.find(1)).disconnect(reconnect: false)
+  #     ActionCable.server.remote_connections.where(current_user: User.find(1)).disconnect(reconnect: false)
   class RemoteConnections
     attr_reader :server
 
@@ -38,10 +40,11 @@ module ActionCable
     end
 
     private
-      # = Action Cable Remote \Connection
+      # # Action Cable Remote Connection
       #
-      # Represents a single remote connection found via <tt>ActionCable.server.remote_connections.where(*)</tt>.
-      # Exists solely for the purpose of calling #disconnect on that connection.
+      # Represents a single remote connection found via
+      # `ActionCable.server.remote_connections.where(*)`. Exists solely for the
+      # purpose of calling #disconnect on that connection.
       class RemoteConnection
         class InvalidIdentifiersError < StandardError; end
 

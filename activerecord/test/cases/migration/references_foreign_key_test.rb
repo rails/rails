@@ -35,7 +35,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
 
         test "foreign keys can be created in one query when index is not added" do
-          assert_queries(1) do
+          assert_queries_count(1) do
             @connection.create_table :testings do |t|
               t.references :testing_parent, foreign_key: true, index: false
             end

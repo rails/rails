@@ -148,6 +148,20 @@ module ActionView
     #     <p><%= alert %></p>
     #   <% end %>
     #
+    # By default, templates will accept any <tt>locals</tt> as keyword arguments
+    # and make them available to <tt>local_assigns</tt>. To restrict what
+    # <tt>local_assigns</tt> a template will accept, add a <tt>locals:</tt> magic comment:
+    #
+    #   <%# locals: (headline:, alerts: []) %>
+    #
+    #   <h1><%= headline %></h1>
+    #
+    #   <% alerts.each do |alert| %>
+    #     <p><%= alert %></p>
+    #   <% end %>
+    #
+    # Read more about strict locals in {Action View Overview}[https://guides.rubyonrails.org/action_view_overview.html#strict-locals]
+    # in the guides.
 
     eager_autoload do
       autoload :Error
@@ -258,7 +272,8 @@ module ActionView
           view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, has_strict_locals: strict_locals?, &block)
           nil
         else
-          view._run(method_name, self, locals, OutputBuffer.new, add_to_stack: add_to_stack, has_strict_locals: strict_locals?, &block)&.to_s
+          result = view._run(method_name, self, locals, OutputBuffer.new, add_to_stack: add_to_stack, has_strict_locals: strict_locals?, &block)
+          result.is_a?(OutputBuffer) ? result.to_s : result
         end
       end
     rescue => e
@@ -524,12 +539,15 @@ module ActionView
         end
       end
 
+      RUBY_RESERVED_KEYWORDS = ::ActiveSupport::Delegation::RUBY_RESERVED_KEYWORDS
+      private_constant :RUBY_RESERVED_KEYWORDS
+
       def locals_code
         return "" if strict_locals?
 
         # Only locals with valid variable names get set directly. Others will
         # still be available in local_assigns.
-        locals = @locals - Module::RUBY_RESERVED_KEYWORDS
+        locals = @locals - RUBY_RESERVED_KEYWORDS
 
         locals = locals.grep(/\A(?![A-Z0-9])(?:[[:alnum:]_]|[^\0-\177])+\z/)
 

@@ -114,6 +114,17 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_equal 8, image.height
   end
 
+  test "resized variation of WEBP blob" do
+    blob = create_file_blob(filename: "valley.webp")
+    variant = blob.variant(resize_to_limit: [50, 50]).processed
+    assert_match(/valley\.webp/, variant.url)
+
+    image = read_image(variant)
+    assert_equal "WEBP", image.type
+    assert_equal 50, image.width
+    assert_includes [33, 34], image.height
+  end
+
   test "optimized variation of GIF blob" do
     blob = create_file_blob(filename: "image.gif", content_type: "image/gif")
 

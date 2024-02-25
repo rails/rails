@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "singleton"
-
 module ActiveSupport
   # = Active Support \Deprecation
   #
@@ -42,6 +40,8 @@ module ActiveSupport
     #
     # So, we define the constant first, and load dependencies later.
     require "active_support/deprecation/instance_delegator"
+    include InstanceDelegator
+
     require "active_support/deprecation/behaviors"
     require "active_support/deprecation/reporting"
     require "active_support/deprecation/disallowed"
@@ -52,7 +52,6 @@ module ActiveSupport
     require "active_support/core_ext/module/deprecation"
     require "concurrent/atomic/thread_local_var"
 
-    include InstanceDelegator
     include Behavior
     include Reporting
     include Disallowed

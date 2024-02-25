@@ -26,8 +26,12 @@ module ActiveStorage
   #     has_one_attached :thumbnail
   #   end
   #
+  # <code></code>
+  #
   #   # fixtures/active_storage/blobs.yml
   #   first_thumbnail_blob: <%= ActiveStorage::FixtureSet.blob filename: "first.png" %>
+  #
+  # <code></code>
   #
   #   # fixtures/active_storage/attachments.yml
   #   first_thumbnail_attachment:

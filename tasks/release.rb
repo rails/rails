@@ -16,8 +16,6 @@ FRAMEWORKS = %w(
   railties
 )
 FRAMEWORK_NAMES = Hash.new { |h, k| k.split(/(?<=active|action)/).map(&:capitalize).join(" ") }
-NPM_PACKAGES = { "actionview" => "ujs" }
-NPM_PACKAGES.default_proc = -> (_, framework) { framework }
 
 root    = File.expand_path("..", __dir__)
 version = File.read("#{root}/RAILS_VERSION").strip
@@ -123,10 +121,8 @@ npm_version = version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
           if /[a-z]/.match?(version)
             npm_tag = " --tag pre"
           else
-            remote_package_version = `npm view @rails/#{NPM_PACKAGES[framework]}@latest version`.chomp
             local_major_version = version.split(".", 4)[0]
-            remote_major_version = remote_package_version.split(".", 4)[0]
-            npm_tag = remote_major_version <= local_major_version ? " --tag latest" : " --tag v#{local_major_version}"
+            npm_tag = " --tag v#{local_major_version}"
           end
 
           sh "npm publish#{npm_tag}#{npm_otp}"

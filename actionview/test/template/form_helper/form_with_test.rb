@@ -339,6 +339,13 @@ class FormWithActsLikeFormForTest < FormWithTest
     super
   end
 
+  def test_form_with_when_given_nil_model_argument
+    assert_deprecated(ActionView.deprecator) do
+      form_with(model: nil) do
+      end
+    end
+  end
+
   def test_form_with
     form_with(model: @post, id: "create-post") do |f|
       concat f.label(:title) { "The Title" }

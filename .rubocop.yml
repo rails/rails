@@ -6,7 +6,7 @@ require:
   - rubocop-md
 
 AllCops:
-  TargetRubyVersion: 2.7
+  TargetRubyVersion: 3.1
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
   # to ignore them, so only the ones explicitly set in this file are enabled.
   DisabledByDefault: true
@@ -69,6 +69,9 @@ Layout/ClosingParenthesisIndentation:
 Layout/CommentIndentation:
   Enabled: true
 
+Layout/DefEndAlignment:
+  Enabled: true
+
 Layout/ElseAlignment:
   Enabled: true
 
@@ -107,6 +110,7 @@ Layout/EmptyLinesAroundModuleBody:
 # Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
 Style/HashSyntax:
   Enabled: true
+  EnforcedShorthandSyntax: either
 
 # Method definitions after `private` or `protected` isolated calls need one
 # extra level of indentation.
@@ -238,8 +242,17 @@ Lint/ErbNewArguments:
 Lint/EnsureReturn:
   Enabled: true
 
+Lint/MissingCopEnableDirective:
+  Enabled: true
+
 # Use my_method(my_arg) not my_method( my_arg ) or my_method my_arg.
 Lint/RequireParentheses:
+  Enabled: true
+
+Lint/RedundantCopDisableDirective:
+  Enabled: true
+
+Lint/RedundantCopEnableDirective:
   Enabled: true
 
 Lint/RedundantStringCoercion:
@@ -261,6 +274,9 @@ Lint/InterpolationCheck:
   Enabled: true
   Exclude:
     - '**/test/**/*'
+
+Lint/SafeNavigationChain:
+  Enabled: true
 
 Style/EvalWithLocation:
   Enabled: true
@@ -302,6 +318,9 @@ Style/RedundantCondition:
   Enabled: true
 
 Style/RedundantDoubleSplatHashBraces:
+  Enabled: true
+
+Style/ArrayIntersect:
   Enabled: true
 
 Performance/BindCall:
@@ -365,6 +384,9 @@ Minitest/AssertWithExpectedArgument:
   Enabled: true
 
 Minitest/LiteralAsActualArgument:
+  Enabled: true
+
+Minitest/NonExecutableTestMethod:
   Enabled: true
 
 Minitest/SkipEnsure:

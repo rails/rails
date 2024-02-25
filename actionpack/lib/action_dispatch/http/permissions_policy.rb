@@ -1,31 +1,33 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/core_ext/object/deep_dup"
 
 module ActionDispatch # :nodoc:
-  # = Action Dispatch \PermissionsPolicy
+  # # Action Dispatch PermissionsPolicy
   #
   # Configures the HTTP
-  # {Feature-Policy}[https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy]
-  # response header to specify which browser features the current document and
-  # its iframes can use.
+  # [Feature-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy)
+  # response header to specify which browser features the current
+  # document and its iframes can use.
   #
   # Example global policy:
   #
-  #   Rails.application.config.permissions_policy do |policy|
-  #     policy.camera      :none
-  #     policy.gyroscope   :none
-  #     policy.microphone  :none
-  #     policy.usb         :none
-  #     policy.fullscreen  :self
-  #     policy.payment     :self, "https://secure.example.com"
-  #   end
+  #     Rails.application.config.permissions_policy do |policy|
+  #       policy.camera      :none
+  #       policy.gyroscope   :none
+  #       policy.microphone  :none
+  #       policy.usb         :none
+  #       policy.fullscreen  :self
+  #       policy.payment     :self, "https://secure.example.com"
+  #     end
   #
-  # The Feature-Policy header has been renamed to Permissions-Policy.
-  # The Permissions-Policy requires a different implementation and isn't
-  # yet supported by all browsers. To avoid having to rename this
-  # middleware in the future we use the new name for the middleware but
-  # keep the old header name and implementation for now.
+  # The Feature-Policy header has been renamed to Permissions-Policy. The
+  # Permissions-Policy requires a different implementation and isn't yet supported
+  # by all browsers. To avoid having to rename this middleware in the future we
+  # use the new name for the middleware but keep the old header name and
+  # implementation for now.
   class PermissionsPolicy
     class Middleware
       def initialize(app)
@@ -85,7 +87,7 @@ module ActionDispatch # :nodoc:
     }.freeze
 
     # List of available permissions can be found at
-    # https://github.com/w3c/webappsec-permissions-policy/blob/master/features.md#policy-controlled-features
+    # https://github.com/w3c/webappsec-permissions-policy/blob/main/features.md#policy-controlled-features
     DIRECTIVES = {
       accelerometer:        "accelerometer",
       ambient_light_sensor: "ambient-light-sensor",
@@ -124,25 +126,6 @@ module ActionDispatch # :nodoc:
 
     DIRECTIVES.each do |name, directive|
       define_method(name) do |*sources|
-        if sources.first
-          @directives[directive] = apply_mappings(sources)
-        else
-          @directives.delete(directive)
-        end
-      end
-    end
-
-    %w[speaker vibrate vr].each do |directive|
-      define_method(directive) do |*sources|
-        ActionDispatch.deprecator.warn(<<~MSG)
-          The `#{directive}` permissions policy directive is deprecated
-          and will be removed in Rails 7.2.
-
-          There is no browser support for this directive, and no plan
-          for browser support in the future. You can just remove this
-          directive from your application.
-        MSG
-
         if sources.first
           @directives[directive] = apply_mappings(sources)
         else

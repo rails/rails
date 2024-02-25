@@ -39,6 +39,8 @@ require "models/sharded"
 require "models/cpk"
 require "models/member_detail"
 require "models/organization"
+require "models/dog"
+require "models/other_dog"
 
 
 class AssociationsTest < ActiveRecord::TestCase
@@ -282,6 +284,14 @@ class AssociationsTest < ActiveRecord::TestCase
 
     assert_predicate blog_post, :persisted?
     assert_equal(blog_post, comment.blog_post_by_id)
+  end
+
+  def test_polymorphic_belongs_to_uses_parent_query_constraints
+    parent_post = sharded_blog_posts(:great_post_blog_one)
+    child_post = Sharded::BlogPost.create!(title: "Child post", blog_id: parent_post.blog_id, parent: parent_post)
+    child_post.reload # reload to forget the parent association
+
+    assert_equal parent_post, child_post.parent
   end
 
   def test_preloads_model_with_query_constraints_by_explicitly_configured_fk_and_pk
@@ -586,7 +596,7 @@ class AssociationProxyTest < ActiveRecord::TestCase
 
     human = Human.find(human.id)
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_equal human, human.interests.where("1=1").first.human
     end
   end
@@ -765,7 +775,8 @@ end
 class PreloaderTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :books, :authors, :tags, :taggings, :essays, :categories, :author_addresses,
            :sharded_blog_posts, :sharded_comments, :sharded_blog_posts_tags, :sharded_tags,
-           :members, :member_details, :organizations, :cpk_orders, :cpk_order_agreements
+           :members, :member_details, :organizations, :cpk_orders, :cpk_order_agreements,
+           :dogs, :other_dogs
 
   def test_preload_with_scope
     post = posts(:welcome)
@@ -780,7 +791,7 @@ class PreloaderTest < ActiveRecord::TestCase
   def test_preload_makes_correct_number_of_queries_on_array
     post = posts(:welcome)
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [post], associations: :comments)
       preloader.call
     end
@@ -790,10 +801,21 @@ class PreloaderTest < ActiveRecord::TestCase
     post = posts(:welcome)
     relation = Post.where(id: post.id)
 
-    assert_queries(2) do
+    assert_queries_count(2) do
       preloader = ActiveRecord::Associations::Preloader.new(records: relation, associations: :comments)
       preloader.call
     end
+  end
+
+  def test_preload_does_not_concatenate_duplicate_records
+    post = posts(:welcome)
+    post.reload
+    post.comments.create!(body: "A new comment")
+
+    ActiveRecord::Associations::Preloader.new(records: [post], associations: :comments).call
+
+    assert_equal post.comments.length, post.comments.count
+    assert_equal post.comments.all.to_a, post.comments
   end
 
   def test_preload_for_hmt_with_conditions
@@ -812,7 +834,7 @@ class PreloaderTest < ActiveRecord::TestCase
     book = books(:awdr)
     post = posts(:welcome)
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [book, post], associations: :author)
       preloader.call
     end
@@ -841,7 +863,7 @@ class PreloaderTest < ActiveRecord::TestCase
       comments(:eager_sti_on_associations_s_comment2),
     ]
 
-    assert_queries(2) do
+    assert_queries_count(2) do
       ActiveRecord::Associations::Preloader.new(records: comments, associations: [:author, :ordinary_post]).call
     end
   end
@@ -849,7 +871,7 @@ class PreloaderTest < ActiveRecord::TestCase
   def test_preload_grouped_queries_of_through_records
     author = authors(:david)
 
-    assert_queries(3) do
+    assert_queries_count(3) do
       ActiveRecord::Associations::Preloader.new(records: [author], associations: [:hello_post_comments, :comments]).call
     end
   end
@@ -860,7 +882,7 @@ class PreloaderTest < ActiveRecord::TestCase
 
     member.reload.organization # load through record
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       ActiveRecord::Associations::Preloader.new(records: [member], associations: :organization_member_details_2).call
     end
 
@@ -884,7 +906,7 @@ class PreloaderTest < ActiveRecord::TestCase
       body: "this post is also about David"
     )
 
-    assert_queries(2) do
+    assert_queries_count(2) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [david, david2, bob], associations: :posts_mentioning_author)
       preloader.call
     end
@@ -905,7 +927,7 @@ class PreloaderTest < ActiveRecord::TestCase
     comment1 = david.posts.first.comments.create!(body: "Hi David!")
     comment2 = david.posts.first.comments.create!(body: "This comment mentions david")
 
-    assert_queries(2) do
+    assert_queries_count(2) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [david, david2, bob], associations: :comments_mentioning_author)
       preloader.call
     end
@@ -942,7 +964,7 @@ class PreloaderTest < ActiveRecord::TestCase
     comment2 = post.comments.create!(body: "hello!")
     comment3 = post3.comments.create!(body: "HI BOB!")
 
-    assert_queries(3) do
+    assert_queries_count(3) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [david, david2, bob], associations: :comments_on_posts_mentioning_author)
       preloader.call
     end
@@ -977,7 +999,7 @@ class PreloaderTest < ActiveRecord::TestCase
     # SELECT "line_item_discount_applications".* FROM "line_item_discount_applications" WHERE "line_item_discount_applications"."line_item_id" = ?
     # SELECT "shipping_line_discount_applications".* FROM "shipping_line_discount_applications" WHERE "shipping_line_discount_applications"."shipping_line_id" = ?
     # SELECT "discounts".* FROM "discounts" WHERE "discounts"."id" IN (?, ?).
-    assert_queries(5) do
+    assert_queries_count(5) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [invoice], associations: [
         line_items: { discount_applications: :discount },
         shipping_lines: { discount_applications: :discount },
@@ -996,7 +1018,7 @@ class PreloaderTest < ActiveRecord::TestCase
     # SELECT "shipping_lines".* FROM shipping_lines WHERE "shipping_lines"."invoice_id" = ?
     # SELECT "shipping_line_discount_applications".* FROM "shipping_line_discount_applications" WHERE "shipping_line_discount_applications"."shipping_line_id" = ?
     # SELECT "discounts".* FROM "discounts" WHERE "discounts"."id" = ?.
-    assert_queries(3) do
+    assert_queries_count(3) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [invoice], associations: [
         line_items: { discount_applications: :discount },
         shipping_lines: { discount_applications: :discount },
@@ -1016,7 +1038,7 @@ class PreloaderTest < ActiveRecord::TestCase
       comments(:eager_sti_on_associations_s_comment2),
     ]
 
-    assert_queries(2) do
+    assert_queries_count(2) do
       preloader = ActiveRecord::Associations::Preloader.new(records: comments, associations: [:author, :post])
       preloader.call
     end
@@ -1034,7 +1056,7 @@ class PreloaderTest < ActiveRecord::TestCase
     #   SELECT FROM posts ... (thinking)
     #   SELECT FROM posts ... (welcome)
     #   SELECT FROM comments ... (comments for both welcome and thinking)
-    assert_queries(4) do
+    assert_queries_count(4) do
       author = Author
         .where(name: "David")
         .includes(thinking_posts: :comments, welcome_posts: :comments)
@@ -1055,7 +1077,7 @@ class PreloaderTest < ActiveRecord::TestCase
     #   SELECT FROM posts ... (thinking)
     #   SELECT FROM posts ... (welcome)
     #   SELECT FROM comments ... (comments for both welcome and thinking)
-    assert_queries(4) do
+    assert_queries_count(4) do
       author = Author
         .where(name: "David")
         .includes(thinking_posts: :comments, welcome_posts: :comments_with_extending)
@@ -1075,7 +1097,7 @@ class PreloaderTest < ActiveRecord::TestCase
     AuthorFavorite.create!(author: mary, favorite_author: bob)
     favorites = AuthorFavorite.all.load
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       preloader = ActiveRecord::Associations::Preloader.new(records: favorites, associations: [:author, :favorite_author])
       preloader.call
     end
@@ -1092,7 +1114,7 @@ class PreloaderTest < ActiveRecord::TestCase
 
     AuthorFavorite.create!(author: mary, favorite_author: bob)
 
-    assert_queries(3) do
+    assert_queries_count(3) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [mary], associations: [:posts, favorite_authors: :posts])
       preloader.call
     end
@@ -1111,7 +1133,7 @@ class PreloaderTest < ActiveRecord::TestCase
 
     associations = { similar_posts: :comments, favorite_authors: { similar_posts: :comments } }
 
-    assert_queries(9) do
+    assert_queries_count(9) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [mary], associations: associations)
       preloader.call
     end
@@ -1131,7 +1153,7 @@ class PreloaderTest < ActiveRecord::TestCase
     with_automatic_scope_inversing(tag_reflection, taggings_reflection) do
       mary.reload
 
-      assert_queries(8) do
+      assert_queries_count(8) do
         preloader = ActiveRecord::Associations::Preloader.new(records: [mary], associations: associations)
         preloader.call
       end
@@ -1146,7 +1168,7 @@ class PreloaderTest < ActiveRecord::TestCase
     # When the scopes differ in the generated SQL:
     # SELECT "authors".* FROM "authors" WHERE (name LIKE '%a%') AND "authors"."id" = ?
     # SELECT "authors".* FROM "authors" WHERE "authors"."id" = ?.
-    assert_queries(2) do
+    assert_queries_count(2) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [post, postesque], associations: :author_with_the_letter_a)
       preloader.call
     end
@@ -1160,7 +1182,7 @@ class PreloaderTest < ActiveRecord::TestCase
     postesque.reload
 
     # When the generated SQL is identical, but one scope has preload values.
-    assert_queries(3) do
+    assert_queries_count(3) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [post, postesque], associations: :author_with_address)
       preloader.call
     end
@@ -1176,7 +1198,7 @@ class PreloaderTest < ActiveRecord::TestCase
     postesque = Postesque.create(author: Author.last)
     postesque.reload
 
-    assert_queries(2) do
+    assert_queries_count(2) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [post, postesque], associations: :author)
       preloader.call
     end
@@ -1184,6 +1206,31 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_no_queries do
       post.author
       postesque.author
+    end
+  end
+
+  def test_multi_database_polymorphic_preload_with_same_table_name
+    dog = dogs(:sophie)
+    dog_comment = comments(:greetings)
+    dog_comment.origin_type = dog.class.name
+    dog_comment.origin_id = dog.id
+
+    other_dog = other_dogs(:lassie)
+    other_dog_comment = comments(:more_greetings)
+    other_dog_comment.origin_type = other_dog.class.name
+    other_dog_comment.origin_id = other_dog.id
+
+    # Both Dog and OtherDog are backed by a table named `dogs`,
+    # however they are stored in different databases and should
+    # therefore result in two separate queries rather than be batched
+    # together.
+    #
+    # Expected
+    #   SELECT FROM dogs ... (Dog)
+    #   SELECT FROM dogs ... (OtherDog)
+    assert_queries_count(2) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [dog_comment, other_dog_comment], associations: :origin)
+      preloader.call
     end
   end
 
@@ -1222,7 +1269,7 @@ class PreloaderTest < ActiveRecord::TestCase
     bob = authors(:bob)
     mary = authors(:mary)
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       ActiveRecord::Associations::Preloader.new(records: [bob_post, mary_post], associations: :author, available_records: [bob]).call
     end
 
@@ -1241,7 +1288,7 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_predicate bob_post.association(:author), :loaded?
     assert_not mary_post.association(:author).loaded?
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       ActiveRecord::Associations::Preloader.new(records: [bob_post, mary_post], associations: :author).call
     end
 
@@ -1255,13 +1302,13 @@ class PreloaderTest < ActiveRecord::TestCase
     author = authors(:david)
     categories = Category.all.to_a
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       # One query to get the middle records (i.e. essays)
       ActiveRecord::Associations::Preloader.new(records: [author], associations: :essay_category, available_records: categories).call
     end
 
     assert_predicate author.association(:essay_category), :loaded?
-    assert categories.map(&:object_id).include?(author.essay_category.object_id)
+    assert categories.map(&:__id__).include?(author.essay_category.__id__)
   end
 
   def test_preload_with_only_some_records_available_with_through_associations
@@ -1273,7 +1320,7 @@ class PreloaderTest < ActiveRecord::TestCase
     dave = authors(:david)
     dave_category = categories(:general)
 
-    assert_queries(2) do
+    assert_queries_count(2) do
       ActiveRecord::Associations::Preloader.new(records: [mary, dave], associations: :essay_category, available_records: [mary_category]).call
     end
 
@@ -1302,24 +1349,24 @@ class PreloaderTest < ActiveRecord::TestCase
     post = posts(:welcome)
     david = authors(:david)
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       ActiveRecord::Associations::Preloader.new(records: [post], associations: :author, scope: Author.where(name: "David"), available_records: [david]).call
     end
 
     assert_predicate post.association(:author), :loaded?
-    assert_not_equal david.object_id, post.author.object_id
+    assert_not_equal david.__id__, post.author.__id__
   end
 
   def test_preload_with_available_records_queries_when_collection
     post = posts(:welcome)
     comments = Comment.all.to_a
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       ActiveRecord::Associations::Preloader.new(records: [post], associations: :comments, available_records: comments).call
     end
 
     assert_predicate post.association(:comments), :loaded?
-    assert_empty post.comments.map(&:object_id) & comments.map(&:object_id)
+    assert_empty post.comments.map(&:__id__) & comments.map(&:__id__)
   end
 
   def test_preload_with_available_records_queries_when_incomplete
@@ -1327,7 +1374,7 @@ class PreloaderTest < ActiveRecord::TestCase
     bob = authors(:bob)
     david = authors(:david)
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       ActiveRecord::Associations::Preloader.new(records: [post], associations: :author, available_records: [bob]).call
     end
 
@@ -1386,6 +1433,15 @@ class PreloaderTest < ActiveRecord::TestCase
 
     assert_predicate comment.association(:blog_post), :loaded?
     assert_equal sharded_blog_posts(:great_post_blog_one), comment.blog_post
+  end
+
+  def test_preload_loaded_belongs_to_association_with_composite_foreign_key
+    comment = sharded_comments(:great_comment_blog_post_one)
+    comment.blog_post
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [comment], associations: :blog_post).call
+    end
   end
 
   def test_preload_has_many_through_association_with_composite_query_constraints
@@ -1452,6 +1508,51 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_match(expectation, preload_sql)
     assert_equal order, loaded_order_agreement.order
   end
+
+  def test_preload_keeps_built_has_many_records_no_ops
+    post = Post.new
+    comment = post.comments.build
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :comments).call
+
+      assert_equal [comment], post.comments.to_a
+    end
+  end
+
+  def test_preload_keeps_built_has_many_records_after_query
+    post = posts(:welcome)
+    comment = post.comments.build
+
+    assert_queries_count(1) do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :comments).call
+
+      assert_includes post.comments.to_a, comment
+    end
+  end
+
+
+  def test_preload_keeps_built_belongs_to_records_no_ops
+    post = Post.new
+    author = post.build_author
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :author).call
+
+      assert_same author, post.author
+    end
+  end
+
+  def test_preload_keeps_built_belongs_to_records_after_query
+    post = posts(:welcome)
+    author = post.build_author
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :author).call
+
+      assert_same author, post.author
+    end
+  end
 end
 
 class GeneratedMethodsTest < ActiveRecord::TestCase
@@ -1497,7 +1598,7 @@ class WithAnnotationsTest < ActiveRecord::TestCase
     assert_not_predicate log, :empty?
     assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
 
-    assert_sql(%r{/\* that tells jokes \*/}) do
+    assert_queries_match(%r{/\* that tells jokes \*/}) do
       pirate.parrot_with_annotation
     end
   end
@@ -1512,7 +1613,7 @@ class WithAnnotationsTest < ActiveRecord::TestCase
     assert_not_predicate log, :empty?
     assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
 
-    assert_sql(%r{/\* that are very colorful \*/}) do
+    assert_queries_match(%r{/\* that are very colorful \*/}) do
       pirate.parrots_with_annotation.first
     end
   end
@@ -1527,7 +1628,7 @@ class WithAnnotationsTest < ActiveRecord::TestCase
     assert_not_predicate log, :empty?
     assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
 
-    assert_sql(%r{/\* that is a rocket \*/}) do
+    assert_queries_match(%r{/\* that is a rocket \*/}) do
       pirate.ship_with_annotation
     end
   end
@@ -1542,7 +1643,7 @@ class WithAnnotationsTest < ActiveRecord::TestCase
     assert_not_predicate log, :empty?
     assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
 
-    assert_sql(%r{/\* that are also parrots \*/}) do
+    assert_queries_match(%r{/\* that are also parrots \*/}) do
       pirate.birds_with_annotation.first
     end
   end
@@ -1557,7 +1658,7 @@ class WithAnnotationsTest < ActiveRecord::TestCase
     assert_not_predicate log, :empty?
     assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
 
-    assert_sql(%r{/\* yarrr \*/}) do
+    assert_queries_match(%r{/\* yarrr \*/}) do
       pirate.treasure_estimates_with_annotation.first
     end
   end
@@ -1572,7 +1673,7 @@ class WithAnnotationsTest < ActiveRecord::TestCase
     assert_not_predicate log, :empty?
     assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
 
-    assert_sql(%r{/\* yarrr \*/}) do
+    assert_queries_match(%r{/\* yarrr \*/}) do
       SpacePirate.includes(:treasure_estimates_with_annotation, :treasures).first
     end
   end

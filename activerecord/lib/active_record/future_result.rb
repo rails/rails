@@ -32,8 +32,11 @@ module ActiveRecord
 
       def instrument(name, payload = {}, &block)
         event = @instrumenter.new_event(name, payload)
-        @events << event
-        event.record(&block)
+        begin
+          event.record(&block)
+        ensure
+          @events << event
+        end
       end
 
       def flush
@@ -47,7 +50,17 @@ module ActiveRecord
 
     Canceled = Class.new(ActiveRecordError)
 
+    def self.wrap(result)
+      case result
+      when self, Complete
+        result
+      else
+        Complete.new(result)
+      end
+    end
+
     delegate :empty?, :to_a, to: :result
+    delegate_missing_to :result
 
     attr_reader :lock_wait
 

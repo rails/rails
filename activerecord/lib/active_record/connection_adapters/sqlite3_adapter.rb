@@ -78,6 +78,15 @@ module ActiveRecord
         json:         { name: "json" },
       }
 
+      DEFAULT_PRAGMAS = {
+        "foreign_keys"        => true,
+        "journal_mode"        => :wal,
+        "synchronous"         => :normal,
+        "mmap_size"           => 134217728, # 128 megabytes
+        "journal_size_limit"  => 67108864, # 64 megabytes
+        "cache_size"          => 2000
+      }
+
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         alias reset clear
 
@@ -186,6 +195,10 @@ module ActiveRecord
         !@memory_database
       end
 
+      def supports_virtual_columns?
+        database_version >= "3.31.0"
+      end
+
       def connected?
         !(@raw_connection.nil? || @raw_connection.closed?)
       end
@@ -250,7 +263,7 @@ module ActiveRecord
 
         unless result.blank?
           tables = result.map { |row| row["table"] }
-          raise ActiveRecord::StatementInvalid.new("Foreign key violations found: #{tables.join(", ")}", sql: sql)
+          raise ActiveRecord::StatementInvalid.new("Foreign key violations found: #{tables.join(", ")}", sql: sql, connection_pool: @pool)
         end
       end
 
@@ -282,6 +295,7 @@ module ActiveRecord
       end
 
       def add_column(table_name, column_name, type, **options) # :nodoc:
+        type = type.to_sym
         if invalid_alter_table_type?(type, options)
           alter_table(table_name) do |definition|
             definition.column(column_name, type, **options)
@@ -462,8 +476,12 @@ module ActiveRecord
         end
 
         def table_structure(table_name)
-          structure = internal_exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA")
-          raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
+          structure = if supports_virtual_columns?
+            internal_exec_query("PRAGMA table_xinfo(#{quote_table_name(table_name)})", "SCHEMA")
+          else
+            internal_exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA")
+          end
+          raise ActiveRecord::StatementInvalid.new("Could not find table '#{table_name}'", connection_pool: @pool) if structure.empty?
           table_structure_with_collation(table_name, structure)
         end
         alias column_definitions table_structure
@@ -502,8 +520,9 @@ module ActiveRecord
         # See: https://www.sqlite.org/lang_altertable.html
         # SQLite has an additional restriction on the ALTER TABLE statement
         def invalid_alter_table_type?(type, options)
-          type.to_sym == :primary_key || options[:primary_key] ||
-            options[:null] == false && options[:default].nil?
+          type == :primary_key || options[:primary_key] ||
+            options[:null] == false && options[:default].nil? ||
+            (type == :virtual && options[:stored])
         end
 
         def alter_table(
@@ -651,10 +670,12 @@ module ActiveRecord
 
         COLLATE_REGEX = /.*"(\w+)".*collate\s+"(\w+)".*/i
         PRIMARY_KEY_AUTOINCREMENT_REGEX = /.*"(\w+)".+PRIMARY KEY AUTOINCREMENT/i
+        GENERATED_ALWAYS_AS_REGEX = /.*"(\w+)".+GENERATED ALWAYS AS \((.+)\) (?:STORED|VIRTUAL)/i
 
         def table_structure_with_collation(table_name, basic_structure)
           collation_hash = {}
           auto_increments = {}
+          generated_columns = {}
 
           column_strings = table_structure_sql(table_name)
 
@@ -664,6 +685,7 @@ module ActiveRecord
               # the value in $1 and $2 respectively.
               collation_hash[$1] = $2 if COLLATE_REGEX =~ column_string
               auto_increments[$1] = true if PRIMARY_KEY_AUTOINCREMENT_REGEX =~ column_string
+              generated_columns[$1] = $2 if GENERATED_ALWAYS_AS_REGEX =~ column_string
             end
 
             basic_structure.map do |column|
@@ -675,6 +697,10 @@ module ActiveRecord
 
               if auto_increments.has_key?(column_name)
                 column["auto_increment"] = true
+              end
+
+              if generated_columns.has_key?(column_name)
+                column["dflt_value"] = generated_columns[column_name]
               end
 
               column
@@ -742,29 +768,14 @@ module ActiveRecord
 
           super
 
-          # Enforce foreign key constraints
-          # https://www.sqlite.org/pragma.html#pragma_foreign_keys
-          # https://www.sqlite.org/foreignkeys.html
-          raw_execute("PRAGMA foreign_keys = ON", "SCHEMA")
-          unless @memory_database
-            # Journal mode WAL allows for greater concurrency (many readers + one writer)
-            # https://www.sqlite.org/pragma.html#pragma_journal_mode
-            raw_execute("PRAGMA journal_mode = WAL", "SCHEMA")
-            # Set more relaxed level of database durability
-            # 2 = "FULL" (sync on every write), 1 = "NORMAL" (sync every 1000 written pages) and 0 = "NONE"
-            # https://www.sqlite.org/pragma.html#pragma_synchronous
-            raw_execute("PRAGMA synchronous = NORMAL", "SCHEMA")
-            # Set the global memory map so all processes can share some data
-            # https://www.sqlite.org/pragma.html#pragma_mmap_size
-            # https://www.sqlite.org/mmap.html
-            raw_execute("PRAGMA mmap_size = #{128.megabytes}", "SCHEMA")
+          pragmas = @config.fetch(:pragmas, {}).stringify_keys
+          DEFAULT_PRAGMAS.merge(pragmas).each do |pragma, value|
+            if ::SQLite3::Pragmas.method_defined?("#{pragma}=")
+              @raw_connection.public_send("#{pragma}=", value)
+            else
+              warn "Unknown SQLite pragma: #{pragma}"
+            end
           end
-          # Impose a limit on the WAL file to prevent unlimited growth
-          # https://www.sqlite.org/pragma.html#pragma_journal_size_limit
-          raw_execute("PRAGMA journal_size_limit = #{64.megabytes}", "SCHEMA")
-          # Set the local connection cache to 2000 pages
-          # https://www.sqlite.org/pragma.html#pragma_cache_size
-          raw_execute("PRAGMA cache_size = 2000", "SCHEMA")
         end
     end
     ActiveSupport.run_load_hooks(:active_record_sqlite3adapter, SQLite3Adapter)

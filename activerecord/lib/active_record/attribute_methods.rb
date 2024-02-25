@@ -20,7 +20,7 @@ module ActiveRecord
       include Serialization
     end
 
-    RESTRICTED_CLASS_METHODS = %w(private public protected allocate new name parent superclass)
+    RESTRICTED_CLASS_METHODS = %w(private public protected allocate new name superclass)
 
     class GeneratedAttributeMethods < Module # :nodoc:
       LOCK = Monitor.new
@@ -33,7 +33,7 @@ module ActiveRecord
           Base.private_instance_methods -
           Base.superclass.instance_methods -
           Base.superclass.private_instance_methods +
-          %i[__id__ dup freeze frozen? hash object_id class clone]
+          %i[__id__ dup freeze frozen? hash class clone]
         ).map { |m| -m.to_s }.to_set.freeze
       end
     end
@@ -49,6 +49,20 @@ module ActiveRecord
         super
       end
 
+      # Allows you to make aliases for attributes.
+      #
+      #   class Person < ActiveRecord::Base
+      #     alias_attribute :nickname, :name
+      #   end
+      #
+      #   person = Person.create(name: 'Bob')
+      #   person.name     # => "Bob"
+      #   person.nickname # => "Bob"
+      #
+      # The alias can also be used for querying:
+      #
+      #   Person.where(nickname: "Bob")
+      #   # SELECT "people".* FROM "people" WHERE "people"."name" = "Bob"
       def alias_attribute(new_name, old_name)
         super
 
@@ -63,61 +77,24 @@ module ActiveRecord
         # alias attributes in Active Record are lazily generated
       end
 
-      def generate_alias_attributes # :nodoc:
-        superclass.generate_alias_attributes unless superclass == Base
-        return if @alias_attributes_mass_generated
-
-        GeneratedAttributeMethods::LOCK.synchronize do
-          return if @alias_attributes_mass_generated
-          ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
-            aliases_by_attribute_name.each do |old_name, new_names|
-              new_names.each do |new_name|
-                generate_alias_attribute_methods(code_generator, new_name, old_name)
-              end
-            end
-          end
-
-          @alias_attributes_mass_generated = true
-        end
-      end
-
       def alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
-        method_name = pattern.method_name(new_name).to_s
-        target_name = pattern.method_name(old_name).to_s
-        parameters = pattern.parameters
         old_name = old_name.to_s
 
-        method_defined = method_defined?(target_name) || private_method_defined?(target_name)
-        manually_defined = method_defined &&
-          !self.instance_method(target_name).owner.is_a?(GeneratedAttributeMethods)
-        reserved_method_name = ::ActiveRecord::AttributeMethods.dangerous_attribute_methods.include?(target_name)
-
         if !abstract_class? && !has_attribute?(old_name)
-          # We only need to issue this deprecation warning once, so we issue it when defining the original reader method.
-          should_warn = target_name == old_name
-          if should_warn
-            ActiveRecord.deprecator.warn(
-              "#{self} model aliases `#{old_name}`, but `#{old_name}` is not an attribute. " \
-              "Starting in Rails 7.2, alias_attribute with non-attribute targets will raise. " \
-              "Use `alias_method :#{new_name}, :#{old_name}` or define the method manually."
-            )
-          end
-          super
-        elsif manually_defined && !reserved_method_name
-          aliased_method_redefined_as_well = method_defined_within?(method_name, self)
-          return if aliased_method_redefined_as_well
-
-          ActiveRecord.deprecator.warn(
-            "#{self} model aliases `#{old_name}` and has a method called `#{target_name}` defined. " \
-            "Starting in Rails 7.2 `#{method_name}` will not be calling `#{target_name}` anymore. " \
-            "You may want to additionally define `#{method_name}` to preserve the current behavior."
-          )
-          super
+          raise ArgumentError, "#{self.name} model aliases `#{old_name}`, but `#{old_name}` is not an attribute. " \
+            "Use `alias_method :#{new_name}, :#{old_name}` or define the method manually."
         else
+          method_name = pattern.method_name(new_name).to_s
+          parameters = pattern.parameters
+
           define_proxy_call(code_generator, method_name, pattern.proxy_target, parameters, old_name,
             namespace: :proxy_alias_attribute
           )
         end
+      end
+
+      def attribute_methods_generated? # :nodoc:
+        @attribute_methods_generated
       end
 
       # Generates all the attribute related methods for columns in the database
@@ -128,15 +105,41 @@ module ActiveRecord
         # attribute methods.
         GeneratedAttributeMethods::LOCK.synchronize do
           return false if @attribute_methods_generated
+
           superclass.define_attribute_methods unless base_class?
-          super(attribute_names)
+
+          unless abstract_class?
+            load_schema
+            super(attribute_names)
+            alias_attribute :id_value, :id if _has_attribute?("id")
+          end
+
           @attribute_methods_generated = true
+
+          generate_alias_attributes
         end
+        true
+      end
+
+      def generate_alias_attributes # :nodoc:
+        superclass.generate_alias_attributes unless superclass == Base
+
+        return if @alias_attributes_mass_generated
+
+        ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
+          aliases_by_attribute_name.each do |old_name, new_names|
+            new_names.each do |new_name|
+              generate_alias_attribute_methods(code_generator, new_name, old_name)
+            end
+          end
+        end
+
+        @alias_attributes_mass_generated = true
       end
 
       def undefine_attribute_methods # :nodoc:
         GeneratedAttributeMethods::LOCK.synchronize do
-          super if defined?(@attribute_methods_generated) && @attribute_methods_generated
+          super if @attribute_methods_generated
           @attribute_methods_generated = false
           @alias_attributes_mass_generated = false
         end
@@ -287,9 +290,7 @@ module ActiveRecord
 
       # If the result is true then check for the select case.
       # For queries selecting a subset of columns, return false for unselected columns.
-      # We check defined?(@attributes) not to issue warnings if called on objects that
-      # have been allocated but not yet initialized.
-      if defined?(@attributes)
+      if @attributes
         if name = self.class.symbol_column_to_string(name.to_sym)
           return _has_attribute?(name)
         end
@@ -458,9 +459,38 @@ module ActiveRecord
     end
 
     private
+      def respond_to_missing?(name, include_private = false)
+        if self.class.define_attribute_methods
+          # Some methods weren't defined yet.
+          return true if self.class.method_defined?(name)
+          return true if include_private && self.class.private_method_defined?(name)
+        end
+
+        super
+      end
+
+      def method_missing(name, ...)
+        unless self.class.attribute_methods_generated?
+          if self.class.method_defined?(name)
+            # The method is explicitly defined in the model, but calls a generated
+            # method with super. So we must resume the call chain at the right setp.
+            last_method = method(name)
+            last_method = last_method.super_method while last_method.super_method
+            self.class.define_attribute_methods
+            if last_method.super_method
+              return last_method.super_method.call(...)
+            end
+          elsif self.class.define_attribute_methods
+            # Some attribute methods weren't generated yet, we retry the call
+            return public_send(name, ...)
+          end
+        end
+
+        super
+      end
+
       def attribute_method?(attr_name)
-        # We check defined? because Syck calls respond_to? before actually calling initialize.
-        defined?(@attributes) && @attributes.key?(attr_name)
+        @attributes&.key?(attr_name)
       end
 
       def attributes_with_values(attribute_names)

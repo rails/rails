@@ -26,6 +26,7 @@ class LoggerTest < ActiveSupport::TestCase
 
     assert_not Logger.logger_outputs_to?(@logger, STDOUT),         "Expected logger_outputs_to? to STDOUT to return false, but was true"
     assert_not Logger.logger_outputs_to?(@logger, STDOUT, STDERR), "Expected logger_outputs_to? to STDOUT or STDERR to return false, but was true"
+    assert_not Logger.logger_outputs_to?(@logger, "log/production.log")
   end
 
   def test_log_outputs_to_with_a_broadcast_logger
@@ -36,6 +37,20 @@ class LoggerTest < ActiveSupport::TestCase
 
     logger.broadcast_to(Logger.new(STDERR))
     assert(Logger.logger_outputs_to?(logger, STDERR))
+  end
+
+  def test_log_outputs_to_with_a_filename
+    t = Tempfile.new ["development", "log"]
+    logger = ActiveSupport::BroadcastLogger.new(Logger.new(t.path))
+
+    assert Logger.logger_outputs_to?(logger, t)
+    assert Logger.logger_outputs_to?(logger, t.path)
+    assert Logger.logger_outputs_to?(logger, File.join(File.dirname(t.path), ".", File.basename(t.path)))
+    assert_not Logger.logger_outputs_to?(logger, "log/production.log")
+    assert_not Logger.logger_outputs_to?(logger, STDOUT)
+  ensure
+    logger.close
+    t.close true
   end
 
   def test_write_binary_data_to_existing_file

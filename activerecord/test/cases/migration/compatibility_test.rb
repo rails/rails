@@ -16,8 +16,9 @@ module ActiveRecord
       def setup
         super
         @connection = ActiveRecord::Base.connection
-        @schema_migration = @connection.schema_migration
-        @internal_metadata = @connection.internal_metadata
+        @pool = ActiveRecord::Base.connection_pool
+        @schema_migration = @pool.schema_migration
+        @internal_metadata = @pool.internal_metadata
         @verbose_was = ActiveRecord::Migration.verbose
         ActiveRecord::Migration.verbose = false
 
@@ -253,33 +254,6 @@ module ActiveRecord
 
           assert_equal "comment", connection.table_comment("testings")
         end
-      end
-
-      def test_options_are_not_validated
-        migration = Class.new(ActiveRecord::Migration[4.2]) {
-          def migrate(x)
-            create_table :tests, wrong_id: false do |t|
-              t.references :some_table, wrong_primary_key: true
-              t.integer :some_id, wrong_unique: true
-              t.string :some_string_column, wrong_null: false
-            end
-
-            add_column :tests, "last_name", :string, wrong_precision: true
-
-            change_column :tests, :some_id, :float, wrong_index: true
-
-            change_table :tests do |t|
-              t.change :some_id, :float, null: false, wrong_index: true
-              t.integer :another_id, wrong_unique: true
-            end
-          end
-        }.new
-
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
-
-        assert connection.table_exists?(:tests)
-      ensure
-        connection.drop_table :tests, if_exists: true
       end
 
       def test_create_table_allows_duplicate_column_names
@@ -681,6 +655,38 @@ module ActiveRecord
   end
 end
 
+module NoOptionValidationTestCases
+  def test_options_are_not_validated
+    migration = Class.new(migration_class) {
+      def migrate(x)
+        create_table :tests, wrong_id: false do |t|
+          t.references :some_table, wrong_primary_key: true
+          t.integer :some_id, wrong_unique: true
+          t.string :some_string_column, wrong_null: false
+        end
+
+        add_column :tests, "last_name", :string, wrong_precision: true
+
+        change_column :tests, :some_id, :float, wrong_index: true
+
+        add_reference :tests, :another_table, invalid_option: :something
+
+        change_table :tests do |t|
+          t.change :some_id, :float, null: false, wrong_index: true
+          t.integer :another_id, wrong_unique: true
+          t.references :yet_another_table, bad: :option
+        end
+      end
+    }.new
+
+    ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+
+    assert connection.table_exists?(:tests)
+  ensure
+    connection.drop_table :tests, if_exists: true
+  end
+end
+
 module DefaultPrecisionImplicitTestCases
   def test_datetime_doesnt_set_precision_on_change_table
     create_migration = Class.new(migration_class) {
@@ -823,8 +829,9 @@ class BaseCompatibilityTest < ActiveRecord::TestCase
 
   def setup
     @connection = ActiveRecord::Base.connection
-    @schema_migration = @connection.schema_migration
-    @internal_metadata = @connection.internal_metadata
+    @pool = ActiveRecord::Base.connection_pool
+    @schema_migration = @pool.schema_migration
+    @internal_metadata = @pool.internal_metadata
 
     @verbose_was = ActiveRecord::Migration.verbose
     ActiveRecord::Migration.verbose = false
@@ -838,6 +845,7 @@ end
 
 class CompatibilityTest7_0 < BaseCompatibilityTest
   include DefaultPrecisionSixTestCases
+  include NoOptionValidationTestCases
 
   private
     def migration_class
@@ -847,6 +855,7 @@ end
 
 class CompatibilityTest6_1 < BaseCompatibilityTest
   include DefaultPrecisionImplicitTestCases
+  include NoOptionValidationTestCases
 
   private
     def migration_class
@@ -856,6 +865,7 @@ end
 
 class CompatibilityTest6_0 < BaseCompatibilityTest
   include DefaultPrecisionImplicitTestCases
+  include NoOptionValidationTestCases
 
   private
     def migration_class
@@ -865,6 +875,7 @@ end
 
 class CompatibilityTest5_2 < BaseCompatibilityTest
   include DefaultPrecisionImplicitTestCases
+  include NoOptionValidationTestCases
 
   private
     def migration_class
@@ -874,6 +885,7 @@ end
 
 class CompatibilityTest5_1 < BaseCompatibilityTest
   include DefaultPrecisionImplicitTestCases
+  include NoOptionValidationTestCases
 
   private
     def migration_class
@@ -883,6 +895,7 @@ end
 
 class CompatibilityTest5_0 < BaseCompatibilityTest
   include DefaultPrecisionImplicitTestCases
+  include NoOptionValidationTestCases
 
   private
     def migration_class
@@ -892,6 +905,7 @@ end
 
 class CompatibilityTest4_2 < BaseCompatibilityTest
   include DefaultPrecisionImplicitTestCases
+  include NoOptionValidationTestCases
 
   private
     def migration_class
@@ -904,8 +918,9 @@ module LegacyPolymorphicReferenceIndexTestCases
 
   def setup
     @connection = ActiveRecord::Base.connection
-    @schema_migration = @connection.schema_migration
-    @internal_metadata = @connection.internal_metadata
+    @pool = ActiveRecord::Base.connection_pool
+    @schema_migration = @pool.schema_migration
+    @internal_metadata = @pool.internal_metadata
     @verbose_was = ActiveRecord::Migration.verbose
     ActiveRecord::Migration.verbose = false
 
@@ -1043,7 +1058,7 @@ module LegacyPrimaryKeyTestCases
     def teardown
       @migration.migrate(:down) if @migration
       ActiveRecord::Migration.verbose = @verbose_was
-      ActiveRecord::Base.connection.schema_migration.delete_all_versions rescue nil
+      ActiveRecord::Base.connection_pool.schema_migration.delete_all_versions rescue nil
       LegacyPrimaryKey.reset_column_information
     end
 

@@ -86,13 +86,7 @@ module ActiveSupport
         case store
         when Symbol
           options = parameters.extract_options!
-          # clean this up once Ruby 2.7 support is dropped
-          # see https://github.com/rails/rails/pull/41522#discussion_r581186602
-          if options.empty?
-            retrieve_store_class(store).new(*parameters)
-          else
-            retrieve_store_class(store).new(*parameters, **options)
-          end
+          retrieve_store_class(store).new(*parameters, **options)
         when Array
           lookup_store(*store)
         when nil
@@ -160,8 +154,8 @@ module ActiveSupport
     # Some implementations may not support all methods beyond the basic cache
     # methods of #fetch, #write, #read, #exist?, and #delete.
     #
-    # ActiveSupport::Cache::Store can store any Ruby object that is supported by
-    # its +coder+'s +dump+ and +load+ methods.
+    # +ActiveSupport::Cache::Store+ can store any Ruby object that is supported
+    # by its +coder+'s +dump+ and +load+ methods.
     #
     #   cache = ActiveSupport::Cache::MemoryStore.new
     #
@@ -344,7 +338,7 @@ module ActiveSupport
 
       # Silences the logger within a block.
       def mute
-        previous_silence, @silence = defined?(@silence) && @silence, true
+        previous_silence, @silence = @silence, true
         yield
       ensure
         @silence = previous_silence
@@ -370,8 +364,8 @@ module ActiveSupport
       #
       # ==== Options
       #
-      # Internally, +fetch+ calls #read_entry, and calls #write_entry on a cache
-      # miss. Thus, +fetch+ supports the same options as #read and #write.
+      # Internally, +fetch+ calls +read_entry+, and calls +write_entry+ on a
+      # cache miss. Thus, +fetch+ supports the same options as #read and #write.
       # Additionally, +fetch+ supports the following options:
       #
       # * <tt>force: true</tt> - Forces a cache "miss," meaning we treat the
@@ -411,31 +405,47 @@ module ActiveSupport
       #   has elapsed.
       #
       #     # Set all values to expire after one minute.
-      #     cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 1.minute)
+      #     cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 1)
       #
-      #     cache.write('foo', 'original value')
+      #     cache.write("foo", "original value")
       #     val_1 = nil
       #     val_2 = nil
-      #     sleep 60
+      #     p cache.read("foo") # => "original value"
       #
-      #     Thread.new do
-      #       val_1 = cache.fetch('foo', race_condition_ttl: 10.seconds) do
+      #     sleep 1 # wait until the cache expires
+      #
+      #     t1 = Thread.new do
+      #       # fetch does the following:
+      #       # 1. gets an recent expired entry
+      #       # 2. extends the expiry by 2 seconds (race_condition_ttl)
+      #       # 3. regenerates the new value
+      #       val_1 = cache.fetch("foo", race_condition_ttl: 2) do
       #         sleep 1
-      #         'new value 1'
+      #         "new value 1"
       #       end
       #     end
       #
-      #     Thread.new do
-      #       val_2 = cache.fetch('foo', race_condition_ttl: 10.seconds) do
-      #         'new value 2'
-      #       end
+      #     # Wait until t1 extends the expiry of the entry
+      #     # but before generating the new value
+      #     sleep 0.1
+      #
+      #     val_2 = cache.fetch("foo", race_condition_ttl: 2) do
+      #       # This block won't be executed because t1 extended the expiry
+      #       "new value 2"
       #     end
       #
-      #     cache.fetch('foo') # => "original value"
-      #     sleep 10 # First thread extended the life of cache by another 10 seconds
-      #     cache.fetch('foo') # => "new value 1"
-      #     val_1 # => "new value 1"
-      #     val_2 # => "original value"
+      #     t1.join
+      #
+      #     p val_1 # => "new value 1"
+      #     p val_2 # => "oritinal value"
+      #     p cache.fetch("foo") # => "new value 1"
+      #
+      #     # The entry requires 3 seconds to expire (expires_in + race_condition_ttl)
+      #     # We have waited 2 seconds already (sleep(1) + t1.join) thus we need to wait 1
+      #     # more second to see the entry expire.
+      #     sleep 1
+      #
+      #     p cache.fetch("foo") # => nil
       #
       # ==== Dynamic Options
       #
@@ -826,7 +836,7 @@ module ActiveSupport
           end
         end
 
-        def deserialize_entry(payload)
+        def deserialize_entry(payload, **)
           payload.nil? ? nil : @coder.load(payload)
         rescue DeserializationError
           nil
@@ -1072,6 +1082,10 @@ module ActiveSupport
         end
     end
 
+    # Enables the dynamic configuration of Cache entry options while ensuring
+    # that conflicting options are not both set. When a block is given to
+    # ActiveSupport::Cache::Store#fetch, the second argument will be an
+    # instance of +WriteOptions+.
     class WriteOptions
       def initialize(options) # :nodoc:
         @options = options
@@ -1089,6 +1103,9 @@ module ActiveSupport
         @options[:expires_in]
       end
 
+      # Sets the Cache entry's +expires_in+ value. If an +expires_at+ option was
+      # previously set, this will unset it since +expires_in+ and +expires_at+
+      # cannot both be set.
       def expires_in=(expires_in)
         @options.delete(:expires_at)
         @options[:expires_in] = expires_in
@@ -1098,6 +1115,9 @@ module ActiveSupport
         @options[:expires_at]
       end
 
+      # Sets the Cache entry's +expires_at+ value. If an +expires_in+ option was
+      # previously set, this will unset it since +expires_at+ and +expires_in+
+      # cannot both be set.
       def expires_at=(expires_at)
         @options.delete(:expires_in)
         @options[:expires_at] = expires_at

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "find"
 require "shellwords"
 require "env_helpers"
 
@@ -51,6 +52,30 @@ module SharedGeneratorTests
 
   def test_skeleton_is_created
     run_generator
+
+    generated_files_and_folders = []
+
+    Find.find(destination_root) do |absolute_path|
+      next if absolute_path == destination_root
+
+      pathname = Pathname.new(absolute_path)
+      git_folder = pathname.basename.to_s == ".git"
+
+      if git_folder || pathname.file?
+        generated_files_and_folders << pathname
+          .relative_path_from(destination_root)
+          .to_s
+      elsif pathname.directory? && pathname.children.empty?
+        flunk "`#{pathname} was generated but is an empty directory"
+      end
+
+      Find.prune if git_folder
+    end
+
+    # assert differences first for better error messages
+    assert_empty generated_files_and_folders.difference(default_files)
+    assert_empty default_files.difference(generated_files_and_folders)
+    assert_equal generated_files_and_folders.sort, default_files, "The expected list of generated files is not alphabetical"
 
     default_files.each { |path| assert_file path }
   end
@@ -393,12 +418,18 @@ module SharedGeneratorTests
 
       generator(positional_args, option_args)
 
+      prerelease_commands = []
+      prerelease_command_rails_gems = []
       rails_gem_pattern = /^gem ["']rails["'], .+/
-      bundle_command_rails_gems = []
+
       @bundle_command_stub = -> (command, *) do
         @bundle_commands << command
-        assert_file File.expand_path("Gemfile", project_path) do |gemfile|
-          bundle_command_rails_gems << gemfile[rails_gem_pattern]
+
+        if command.start_with?("install", "exec rails")
+          prerelease_commands << command
+          assert_file File.expand_path("Gemfile", project_path) do |gemfile|
+            prerelease_command_rails_gems << gemfile[rails_gem_pattern]
+          end
         end
       end
 
@@ -408,13 +439,11 @@ module SharedGeneratorTests
       end
 
       assert_file File.expand_path("Gemfile", project_path) do |gemfile|
-        assert_equal "install", @bundle_commands[0]
-        assert_match "lock --add-platform", @bundle_commands[1]
+        assert_match %r/^install/, prerelease_commands[0]
+        assert_equal gemfile[rails_gem_pattern], prerelease_command_rails_gems[0]
 
-        assert_equal gemfile[rails_gem_pattern], bundle_command_rails_gems[0]
-
-        assert_match %r"^exec rails (?:plugin )?new #{Regexp.escape Shellwords.join(expected_args)}", @bundle_commands[2]
-        assert_equal gemfile[rails_gem_pattern], bundle_command_rails_gems[1]
+        assert_match %r/^exec rails (?:plugin )?new #{Regexp.escape Shellwords.join(expected_args)}/, prerelease_commands[1]
+        assert_equal gemfile[rails_gem_pattern], prerelease_command_rails_gems[1]
       end
     end
 

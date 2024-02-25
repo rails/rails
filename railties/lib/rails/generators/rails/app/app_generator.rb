@@ -15,8 +15,8 @@ module Rails
       %w(template copy_file directory empty_directory inside
          empty_directory_with_keep_file create_file chmod shebang).each do |method|
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{method}(*args, &block)
-            @generator.send(:#{method}, *args, &block)
+          def #{method}(...)
+            @generator.send(:#{method}, ...)
           end
         RUBY
       end
@@ -82,6 +82,16 @@ module Rails
       chmod "bin/docker-entrypoint", 0755 & ~File.umask, verbose: false
     end
 
+    def cifiles
+      empty_directory ".github/workflows"
+      template "github/ci.yml", ".github/workflows/ci.yml"
+      template "github/dependabot.yml", ".github/dependabot.yml"
+    end
+
+    def rubocop
+      template "rubocop.yml", ".rubocop.yml"
+    end
+
     def version_control
       if !options[:skip_git] && !options[:pretend]
         run git_init_command, capture: options[:quiet], abort_on_failure: false
@@ -98,7 +108,8 @@ module Rails
     end
 
     def bin
-      directory "bin" do |content|
+      exclude_pattern = Regexp.union([(/rubocop/ if skip_rubocop?), (/brakeman/ if skip_brakeman?)].compact)
+      directory "bin", { exclude_pattern: exclude_pattern } do |content|
         "#{shebang}\n" + content
       end
       chmod "bin", 0755 & ~File.umask, verbose: false
@@ -246,8 +257,6 @@ module Rails
     def tmp
       empty_directory_with_keep_file "tmp"
       empty_directory_with_keep_file "tmp/pids"
-      empty_directory "tmp/cache"
-      empty_directory "tmp/cache/assets"
     end
 
     def vendor
@@ -255,7 +264,15 @@ module Rails
     end
 
     def config_target_version
-      defined?(@config_target_version) ? @config_target_version : Rails::VERSION::STRING.to_f
+      @config_target_version || Rails::VERSION::STRING.to_f
+    end
+
+    def devcontainer
+      empty_directory ".devcontainer"
+
+      template ".devcontainer/devcontainer.json"
+      template ".devcontainer/Dockerfile"
+      template ".devcontainer/compose.yaml"
     end
   end
 
@@ -367,6 +384,16 @@ module Rails
         build(:dockerfiles)
       end
 
+      def create_rubocop_file
+        return if skip_rubocop?
+        build(:rubocop)
+      end
+
+      def create_cifiles
+        return if skip_ci?
+        build(:cifiles)
+      end
+
       def create_config_files
         build(:config)
       end
@@ -436,11 +463,15 @@ module Rails
         build(:storage)
       end
 
+      def create_devcontainer_files
+        return if skip_devcontainer? || options[:dummy_app]
+        build(:devcontainer)
+      end
+
       def delete_app_assets_if_api_option
         if options[:api]
           remove_dir "app/assets"
           remove_dir "lib/assets"
-          remove_dir "tmp/cache/assets"
         end
       end
 
@@ -465,10 +496,10 @@ module Rails
         if options[:api]
           remove_file "public/404.html"
           remove_file "public/422.html"
+          remove_file "public/426.html"
           remove_file "public/500.html"
-          remove_file "public/apple-touch-icon-precomposed.png"
-          remove_file "public/apple-touch-icon.png"
-          remove_file "public/favicon.ico"
+          remove_file "public/icon.png"
+          remove_file "public/icon.svg"
         end
       end
 
@@ -539,6 +570,7 @@ module Rails
 
       public_task :apply_rails_template
       public_task :run_bundle
+      public_task :add_bundler_platforms
       public_task :generate_bundler_binstub
       public_task :run_javascript
       public_task :run_hotwire
@@ -639,7 +671,7 @@ module Rails
         end
 
         def read_rc_file(railsrc)
-          extra_args = File.readlines(railsrc).flat_map(&:split)
+          extra_args = File.readlines(railsrc).flat_map.each { |line| line.split("#", 2).first.split }
           puts "Using #{extra_args.join(" ")} from #{railsrc}"
           extra_args
         end

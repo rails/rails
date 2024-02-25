@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
-require "env_helpers"
 
 class Minitest::RailsPluginTest < ActiveSupport::TestCase
-  include EnvHelpers
-
   setup do
     @output = StringIO.new("".encode("UTF-8"))
   end
@@ -43,16 +40,6 @@ class Minitest::RailsPluginTest < ActiveSupport::TestCase
 
     with_plugin("-b", initial_backtrace_filter: backtrace_filter) do
       assert_same backtrace_filter, Minitest.backtrace_filter
-    end
-  end
-
-  test "does not replace backtrace filter when BACKTRACE environment variable is set" do
-    backtrace_filter = baseline_backtrace_filter
-
-    switch_env "BACKTRACE", "true" do
-      with_plugin(initial_backtrace_filter: backtrace_filter) do
-        assert_same backtrace_filter, Minitest.backtrace_filter
-      end
     end
   end
 

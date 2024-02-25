@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "stringio"
 
 require "active_support/inflector"
@@ -102,26 +104,26 @@ module ActionDispatch
 
     # Returns true if the request has a header matching the given key parameter.
     #
-    #    request.key? :ip_spoofing_check # => true
+    #     request.key? :ip_spoofing_check # => true
     def key?(key)
       has_header? key
     end
 
-    # HTTP methods from {RFC 2616: Hypertext Transfer Protocol -- HTTP/1.1}[https://www.ietf.org/rfc/rfc2616.txt]
+    # HTTP methods from [RFC 2616: Hypertext Transfer Protocol -- HTTP/1.1](https://www.ietf.org/rfc/rfc2616.txt)
     RFC2616 = %w(OPTIONS GET HEAD POST PUT DELETE TRACE CONNECT)
-    # HTTP methods from {RFC 2518: HTTP Extensions for Distributed Authoring -- WEBDAV}[https://www.ietf.org/rfc/rfc2518.txt]
+    # HTTP methods from [RFC 2518: HTTP Extensions for Distributed Authoring -- WEBDAV](https://www.ietf.org/rfc/rfc2518.txt)
     RFC2518 = %w(PROPFIND PROPPATCH MKCOL COPY MOVE LOCK UNLOCK)
-    # HTTP methods from {RFC 3253: Versioning Extensions to WebDAV}[https://www.ietf.org/rfc/rfc3253.txt]
+    # HTTP methods from [RFC 3253: Versioning Extensions to WebDAV](https://www.ietf.org/rfc/rfc3253.txt)
     RFC3253 = %w(VERSION-CONTROL REPORT CHECKOUT CHECKIN UNCHECKOUT MKWORKSPACE UPDATE LABEL MERGE BASELINE-CONTROL MKACTIVITY)
-    # HTTP methods from {RFC 3648: WebDAV Ordered Collections Protocol}[https://www.ietf.org/rfc/rfc3648.txt]
+    # HTTP methods from [RFC 3648: WebDAV Ordered Collections Protocol](https://www.ietf.org/rfc/rfc3648.txt)
     RFC3648 = %w(ORDERPATCH)
-    # HTTP methods from {RFC 3744: WebDAV Access Control Protocol}[https://www.ietf.org/rfc/rfc3744.txt]
+    # HTTP methods from [RFC 3744: WebDAV Access Control Protocol](https://www.ietf.org/rfc/rfc3744.txt)
     RFC3744 = %w(ACL)
-    # HTTP methods from {RFC 5323: WebDAV SEARCH}[https://www.ietf.org/rfc/rfc5323.txt]
+    # HTTP methods from [RFC 5323: WebDAV SEARCH](https://www.ietf.org/rfc/rfc5323.txt)
     RFC5323 = %w(SEARCH)
-    # HTTP methods from {RFC 4791: Calendaring Extensions to WebDAV}[https://www.ietf.org/rfc/rfc4791.txt]
+    # HTTP methods from [RFC 4791: Calendaring Extensions to WebDAV](https://www.ietf.org/rfc/rfc4791.txt)
     RFC4791 = %w(MKCALENDAR)
-    # HTTP methods from {RFC 5789: PATCH Method for HTTP}[https://www.ietf.org/rfc/rfc5789.txt]
+    # HTTP methods from [RFC 5789: PATCH Method for HTTP](https://www.ietf.org/rfc/rfc5789.txt)
     RFC5789 = %w(PATCH)
 
     HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789
@@ -135,20 +137,19 @@ module ActionDispatch
 
     alias raw_request_method request_method # :nodoc:
 
-    # Returns the HTTP \method that the application should see.
-    # In the case where the \method was overridden by a middleware
-    # (for instance, if a HEAD request was converted to a GET,
-    # or if a _method parameter was used to determine the \method
-    # the application should use), this \method returns the overridden
-    # value, not the original.
+    # Returns the HTTP method that the application should see. In the case where the
+    # method was overridden by a middleware (for instance, if a HEAD request was
+    # converted to a GET, or if a _method parameter was used to determine the method
+    # the application should use), this method returns the overridden value, not the
+    # original.
     def request_method
       @request_method ||= check_method(super)
     end
 
-    # Returns the URI pattern of the matched route for the request,
-    # using the same format as `bin/rails routes`:
+    # Returns the URI pattern of the matched route for the request, using the same
+    # format as `bin/rails routes`:
     #
-    #   request.route_uri_pattern # => "/:controller(/:action(/:id))(.:format)"
+    #     request.route_uri_pattern # => "/:controller(/:action(/:id))(.:format)"
     def route_uri_pattern
       get_header("action_dispatch.route_uri_pattern")
     end
@@ -196,12 +197,11 @@ module ActionDispatch
       HTTP_METHOD_LOOKUP[request_method]
     end
 
-    # Returns the original value of the environment's REQUEST_METHOD,
-    # even if it was overridden by middleware. See #request_method for
-    # more information.
+    # Returns the original value of the environment's REQUEST_METHOD, even if it was
+    # overridden by middleware. See #request_method for more information.
     #
-    # For debugging purposes, when called with arguments this method will
-    # fallback to Object#method
+    # For debugging purposes, when called with arguments this method will fall back
+    # to Object#method
     def method(*args)
       if args.empty?
         @method ||= check_method(
@@ -221,60 +221,61 @@ module ActionDispatch
 
     # Provides access to the request's HTTP headers, for example:
     #
-    #   request.headers["Content-Type"] # => "text/plain"
+    #     request.headers["Content-Type"] # => "text/plain"
     def headers
       @headers ||= Http::Headers.new(self)
     end
 
-    # Early Hints is an HTTP/2 status code that indicates hints to help a client start
-    # making preparations for processing the final response.
+    # Early Hints is an HTTP/2 status code that indicates hints to help a client
+    # start making preparations for processing the final response.
     #
-    # If the env contains +rack.early_hints+ then the server accepts HTTP2 push for Link headers.
+    # If the env contains `rack.early_hints` then the server accepts HTTP2 push for
+    # Link headers.
     #
-    # The +send_early_hints+ method accepts a hash of links as follows:
+    # The `send_early_hints` method accepts a hash of links as follows:
     #
-    #   send_early_hints("Link" => "</style.css>; rel=preload; as=style\n</script.js>; rel=preload")
+    #     send_early_hints("Link" => "</style.css>; rel=preload; as=style\n</script.js>; rel=preload")
     #
-    # If you are using +javascript_include_tag+ or +stylesheet_link_tag+ the
-    # Early Hints headers are included by default if supported.
+    # If you are using `javascript_include_tag` or `stylesheet_link_tag` the Early
+    # Hints headers are included by default if supported.
     def send_early_hints(links)
       env["rack.early_hints"]&.call(links)
     end
 
-    # Returns a +String+ with the last requested path including their params.
+    # Returns a `String` with the last requested path including their params.
     #
-    #    # get '/foo'
-    #    request.original_fullpath # => '/foo'
+    #     # get '/foo'
+    #     request.original_fullpath # => '/foo'
     #
-    #    # get '/foo?bar'
-    #    request.original_fullpath # => '/foo?bar'
+    #     # get '/foo?bar'
+    #     request.original_fullpath # => '/foo?bar'
     def original_fullpath
       @original_fullpath ||= (get_header("ORIGINAL_FULLPATH") || fullpath)
     end
 
-    # Returns the +String+ full path including params of the last URL requested.
+    # Returns the `String` full path including params of the last URL requested.
     #
-    #    # get "/articles"
-    #    request.fullpath # => "/articles"
+    #     # get "/articles"
+    #     request.fullpath # => "/articles"
     #
-    #    # get "/articles?page=2"
-    #    request.fullpath # => "/articles?page=2"
+    #     # get "/articles?page=2"
+    #     request.fullpath # => "/articles?page=2"
     def fullpath
       @fullpath ||= super
     end
 
-    # Returns the original request URL as a +String+.
+    # Returns the original request URL as a `String`.
     #
-    #    # get "/articles?page=2"
-    #    request.original_url # => "http://www.example.com/articles?page=2"
+    #     # get "/articles?page=2"
+    #     request.original_url # => "http://www.example.com/articles?page=2"
     def original_url
       base_url + original_fullpath
     end
 
-    # The +String+ MIME type of the request.
+    # The `String` MIME type of the request.
     #
-    #    # get "/articles"
-    #    request.media_type # => "application/x-www-form-urlencoded"
+    #     # get "/articles"
+    #     request.media_type # => "application/x-www-form-urlencoded"
     def media_type
       content_mime_type&.to_s
     end
@@ -285,7 +286,7 @@ module ActionDispatch
       super.to_i
     end
 
-    # Returns true if the +X-Requested-With+ header contains "XMLHttpRequest"
+    # Returns true if the `X-Requested-With` header contains "XMLHttpRequest"
     # (case-insensitive), which may need to be manually added depending on the
     # choice of JavaScript libraries and frameworks.
     def xml_http_request?
@@ -293,13 +294,13 @@ module ActionDispatch
     end
     alias :xhr? :xml_http_request?
 
-    # Returns the IP address of client as a +String+.
+    # Returns the IP address of client as a `String`.
     def ip
       @ip ||= super
     end
 
-    # Returns the IP address of client as a +String+,
-    # usually set by the RemoteIp middleware.
+    # Returns the IP address of client as a `String`, usually set by the RemoteIp
+    # middleware.
     def remote_ip
       @remote_ip ||= (get_header("action_dispatch.remote_ip") || ip).to_s
     end
@@ -311,12 +312,14 @@ module ActionDispatch
 
     ACTION_DISPATCH_REQUEST_ID = "action_dispatch.request_id" # :nodoc:
 
-    # Returns the unique request id, which is based on either the +X-Request-Id+ header that can
-    # be generated by a firewall, load balancer, or web server, or by the RequestId middleware
-    # (which sets the +action_dispatch.request_id+ environment variable).
+    # Returns the unique request id, which is based on either the `X-Request-Id`
+    # header that can be generated by a firewall, load balancer, or web server, or
+    # by the RequestId middleware (which sets the `action_dispatch.request_id`
+    # environment variable).
     #
-    # This unique ID is useful for tracing a request from end-to-end as part of logging or debugging.
-    # This relies on the Rack variable set by the ActionDispatch::RequestId middleware.
+    # This unique ID is useful for tracing a request from end-to-end as part of
+    # logging or debugging. This relies on the Rack variable set by the
+    # ActionDispatch::RequestId middleware.
     def request_id
       get_header ACTION_DISPATCH_REQUEST_ID
     end
@@ -332,8 +335,8 @@ module ActionDispatch
       (get_header("SERVER_SOFTWARE") && /^([a-zA-Z]+)/ =~ get_header("SERVER_SOFTWARE")) ? $1.downcase : nil
     end
 
-    # Read the request \body. This is useful for web services that need to
-    # work with raw requests directly.
+    # Read the request body. This is useful for web services that need to work with
+    # raw requests directly.
     def raw_post
       unless has_header? "RAW_POST_DATA"
         set_header("RAW_POST_DATA", read_body_stream)
@@ -353,14 +356,13 @@ module ActionDispatch
       end
     end
 
-    # Determine whether the request body contains form-data by checking
-    # the request +Content-Type+ for one of the media-types:
-    # +application/x-www-form-urlencoded+ or +multipart/form-data+. The
-    # list of form-data media types can be modified through the
-    # +FORM_DATA_MEDIA_TYPES+ array.
+    # Determine whether the request body contains form-data by checking the request
+    # `Content-Type` for one of the media-types: `application/x-www-form-urlencoded`
+    # or `multipart/form-data`. The list of form-data media types can be modified
+    # through the `FORM_DATA_MEDIA_TYPES` array.
     #
-    # A request body is not assumed to contain form-data when no
-    # +Content-Type+ header is provided and the request_method is POST.
+    # A request body is not assumed to contain form-data when no `Content-Type`
+    # header is provided and the request_method is POST.
     def form_data?
       FORM_DATA_MEDIA_TYPES.include?(media_type)
     end
@@ -413,8 +415,8 @@ module ActionDispatch
     end
     alias :request_parameters :POST
 
-    # Returns the authorization header regardless of whether it was specified directly or through one of the
-    # proxy alternatives.
+    # Returns the authorization header regardless of whether it was specified
+    # directly or through one of the proxy alternatives.
     def authorization
       get_header("HTTP_AUTHORIZATION")   ||
       get_header("X-HTTP_AUTHORIZATION") ||

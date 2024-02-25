@@ -7,6 +7,7 @@ require "action_view/helpers/form_tag_helper"
 require "action_view/helpers/active_model_helper"
 require "action_view/model_naming"
 require "action_view/record_identifier"
+require "active_support/code_generator"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/string/output_safety"
@@ -436,7 +437,7 @@ module ActionView
 
         case record
         when String, Symbol
-          model       = nil
+          model       = false
           object_name = record
         else
           model       = record
@@ -752,7 +753,9 @@ module ActionView
       #   def labelled_form_with(**options, &block)
       #     form_with(**options.merge(builder: LabellingFormBuilder), &block)
       #   end
-      def form_with(model: nil, scope: nil, url: nil, format: nil, **options, &block)
+      def form_with(model: false, scope: nil, url: nil, format: nil, **options, &block)
+        ActionView.deprecator.warn("Passing nil to the :model argument is deprecated and will raise in Rails 7.3") if model.nil?
+
         options = { allow_method_names_outside_object: true, skip_default_ids: !form_with_generates_ids }.merge!(options)
 
         if model
@@ -1006,8 +1009,8 @@ module ActionView
       #   <% end %>
       #
       # When a collection is used you might want to know the index of each
-      # object into the array. For this purpose, the <tt>index</tt> method
-      # is available in the FormBuilder object.
+      # object in the array. For this purpose, the <tt>index</tt> method is
+      # available in the FormBuilder object.
       #
       #   <%= form_for @person do |person_form| %>
       #     ...
@@ -1117,6 +1120,8 @@ module ActionView
       #     attributes:
       #       post:
       #         cost: "Total cost"
+      #
+      # <code></code>
       #
       #   label(:post, :cost)
       #   # => <label for="post_cost">Total cost</label>
@@ -1779,12 +1784,12 @@ module ActionView
       #
       #   <%= form_for @post do |f| %>
       #     <%= f.text_field :title, name: f.field_name(:title, :subtitle) %>
-      #     <%# => <input type="text" name="post[title][subtitle]">
+      #     <%# => <input type="text" name="post[title][subtitle]"> %>
       #   <% end %>
       #
       #   <%= form_for @post do |f| %>
       #     <%= f.text_field :tag, name: f.field_name(:tag, multiple: true) %>
-      #     <%# => <input type="text" name="post[tag][]">
+      #     <%# => <input type="text" name="post[tag][]"> %>
       #   <% end %>
       #
       def field_name(method, *methods, multiple: false, index: @options[:index])
@@ -2014,16 +2019,20 @@ module ActionView
       #
       # Please refer to the documentation of the base helper for details.
 
-      (field_helpers - [:label, :check_box, :radio_button, :fields_for, :fields, :hidden_field, :file_field]).each do |selector|
-        class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-          def #{selector}(method, options = {})  # def text_field(method, options = {})
-            @template.public_send(               #   @template.public_send(
-              #{selector.inspect},               #     :text_field,
-              @object_name,                      #     @object_name,
-              method,                            #     method,
-              objectify_options(options))        #     objectify_options(options))
-          end                                    # end
-        RUBY_EVAL
+      ActiveSupport::CodeGenerator.batch(self, __FILE__, __LINE__) do |code_generator|
+        (field_helpers - [:label, :check_box, :radio_button, :fields_for, :fields, :hidden_field, :file_field]).each do |selector|
+          code_generator.define_cached_method(selector, namespace: :form_builder) do |batch|
+            batch.push <<-RUBY_EVAL
+              def #{selector}(method, options = {})  # def text_field(method, options = {})
+                @template.public_send(               #   @template.public_send(
+                  #{selector.inspect},               #     :text_field,
+                  @object_name,                      #     @object_name,
+                  method,                            #     method,
+                  objectify_options(options))        #     objectify_options(options))
+              end                                    # end
+            RUBY_EVAL
+          end
+        end
       end
 
       # Creates a scope around a specific model object like form_for, but
@@ -2357,6 +2366,8 @@ module ActionView
       #     attributes:
       #       post:
       #         cost: "Total cost"
+      #
+      # <code></code>
       #
       #   label(:cost)
       #   # => <label for="post_cost">Total cost</label>

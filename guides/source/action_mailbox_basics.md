@@ -3,8 +3,8 @@
 Action Mailbox Basics
 =====================
 
-This guide provides you with all you need to get started in receiving
-emails to your application.
+This guide provides you with all you need to get started in receiving emails to
+your application.
 
 After reading this guide, you will know:
 
@@ -19,29 +19,61 @@ What is Action Mailbox?
 -----------------------
 
 Action Mailbox routes incoming emails to controller-like mailboxes for
-processing in Rails. It ships with ingresses for Mailgun, Mandrill, Postmark,
-and SendGrid. You can also handle inbound mails directly via the built-in Exim,
+processing in your Rails application. Action Mailbox is for receiving email,
+while [Action Mailer](action_mailer_basics.html) is for *sending* them.
+
+The inbound emails are routed asynchronously using [Active
+Job](active_job_basics.html) to one or several dedicated mailboxes. These emails
+are turned into
+[`InboundEmail`](https://api.rubyonrails.org/classes/ActionMailbox/InboundEmail.html)
+records using [Active Record](active_record_basics.html), which are capable of
+interacting directly with the rest of your domain model.
+
+`InboundEmail` records also provide lifecycle tracking, storage of the original
+email via [Active Storage](active_storage_overview.html), and responsible data
+handling with on-by-default [incineration](#incineration-of-inboundemails).
+
+Action Mailbox ships with ingresses which enable your application to receive
+emails from external email providers such as Mailgun, Mandrill, Postmark, and
+SendGrid. You can also handle inbound emails directly via the built-in Exim,
 Postfix, and Qmail ingresses.
-
-The inbound emails are turned into `InboundEmail` records using Active Record
-and feature lifecycle tracking, storage of the original email on cloud storage
-via Active Storage, and responsible data handling with
-on-by-default incineration.
-
-These inbound emails are routed asynchronously using Active Job to one or
-several dedicated mailboxes, which are capable of interacting directly
-with the rest of your domain model.
 
 ## Setup
 
-Install migrations needed for `InboundEmail` and ensure Active Storage is set up:
+Action Mailbox has a few moving parts. First, you'll run the installer. Next,
+you'll choose and configure an ingress for handling incoming email. You're then
+ready to add Action Mailbox routing, create mailboxes, and start processing
+incoming emails.
+
+To start, let's install Action Mailbox:
 
 ```bash
 $ bin/rails action_mailbox:install
+```
+
+This will create an `application_mailbox.rb` file and copy over migrations.
+
+```bash
 $ bin/rails db:migrate
 ```
 
-## Configuration
+This will run the Action Mailbox and Active Storage migrations.
+
+The Action Mailbox table `action_mailbox_inbound_emails` stores incoming
+messages and their processing status.
+
+At this point, you can start your Rails server and check out
+`http://localhost:3000/rails/conductor/action_mailbox/inbound_emails`. See
+[Local Development and Testing](#local-development-and-testing) for more.
+
+The next step is to configure an ingress in your Rails application to specify
+how incoming emails should be received.
+
+## Ingress Configuration
+
+Configuring ingress involves setting up credentials and endpoint information for
+the chosen email service. Here are the steps for each of the supported
+ingresses.
 
 ### Exim
 
@@ -52,22 +84,25 @@ Tell Action Mailbox to accept emails from an SMTP relay:
 config.action_mailbox.ingress = :relay
 ```
 
-Generate a strong password that Action Mailbox can use to authenticate requests to the relay ingress.
+Generate a strong password that Action Mailbox can use to authenticate requests
+to the relay ingress.
 
-Use `bin/rails credentials:edit` to add the password to your application's encrypted credentials under
-`action_mailbox.ingress_password`, where Action Mailbox will automatically find it:
+Use `bin/rails credentials:edit` to add the password to your application's
+encrypted credentials under `action_mailbox.ingress_password`, where Action
+Mailbox will automatically find it:
 
 ```yaml
 action_mailbox:
   ingress_password: ...
 ```
 
-Alternatively, provide the password in the `RAILS_INBOUND_EMAIL_PASSWORD` environment variable.
+Alternatively, provide the password in the `RAILS_INBOUND_EMAIL_PASSWORD`
+environment variable.
 
-Configure Exim to pipe inbound emails to `bin/rails action_mailbox:ingress:exim`,
-providing the `URL` of the relay ingress and the `INGRESS_PASSWORD` you
-previously generated. If your application lived at `https://example.com`, the
-full command would look like this:
+Configure Exim to pipe inbound emails to `bin/rails
+action_mailbox:ingress:exim`, providing the `URL` of the relay ingress and the
+`INGRESS_PASSWORD` you previously generated. If your application lived at
+`https://example.com`, the full command would look like this:
 
 ```bash
 $ bin/rails action_mailbox:ingress:exim URL=https://example.com/rails/action_mailbox/relay/inbound_emails INGRESS_PASSWORD=...
@@ -75,21 +110,21 @@ $ bin/rails action_mailbox:ingress:exim URL=https://example.com/rails/action_mai
 
 ### Mailgun
 
-Give Action Mailbox your
-Mailgun Signing key (which you can find under Settings -> Security & Users -> API security in Mailgun),
-so it can authenticate requests to the Mailgun ingress.
+Give Action Mailbox your Mailgun Signing key (which you can find under Settings
+-> Security & Users -> API security in Mailgun), so it can authenticate requests
+to the Mailgun ingress.
 
 Use `bin/rails credentials:edit` to add your Signing key to your application's
-encrypted credentials under `action_mailbox.mailgun_signing_key`,
-where Action Mailbox will automatically find it:
+encrypted credentials under `action_mailbox.mailgun_signing_key`, where Action
+Mailbox will automatically find it:
 
 ```yaml
 action_mailbox:
   mailgun_signing_key: ...
 ```
 
-Alternatively, provide your Signing key in the `MAILGUN_INGRESS_SIGNING_KEY` environment
-variable.
+Alternatively, provide your Signing key in the `MAILGUN_INGRESS_SIGNING_KEY`
+environment variable.
 
 Tell Action Mailbox to accept emails from Mailgun:
 
@@ -98,10 +133,12 @@ Tell Action Mailbox to accept emails from Mailgun:
 config.action_mailbox.ingress = :mailgun
 ```
 
-[Configure Mailgun](https://documentation.mailgun.com/en/latest/user_manual.html#receiving-forwarding-and-storing-messages)
-to forward inbound emails to `/rails/action_mailbox/mailgun/inbound_emails/mime`.
-If your application lived at `https://example.com`, you would specify the
-fully-qualified URL `https://example.com/rails/action_mailbox/mailgun/inbound_emails/mime`.
+[Configure
+Mailgun](https://documentation.mailgun.com/en/latest/user_manual.html#receiving-forwarding-and-storing-messages)
+to forward inbound emails to
+`/rails/action_mailbox/mailgun/inbound_emails/mime`. If your application lived
+at `https://example.com`, you would specify the fully-qualified URL
+`https://example.com/rails/action_mailbox/mailgun/inbound_emails/mime`.
 
 ### Mandrill
 
@@ -109,8 +146,8 @@ Give Action Mailbox your Mandrill API key, so it can authenticate requests to
 the Mandrill ingress.
 
 Use `bin/rails credentials:edit` to add your API key to your application's
-encrypted credentials under `action_mailbox.mandrill_api_key`,
-where Action Mailbox will automatically find it:
+encrypted credentials under `action_mailbox.mandrill_api_key`, where Action
+Mailbox will automatically find it:
 
 ```yaml
 action_mailbox:
@@ -127,10 +164,12 @@ Tell Action Mailbox to accept emails from Mandrill:
 config.action_mailbox.ingress = :mandrill
 ```
 
-[Configure Mandrill](https://mandrill.zendesk.com/hc/en-us/articles/205583197-Inbound-Email-Processing-Overview)
-to route inbound emails to `/rails/action_mailbox/mandrill/inbound_emails`.
-If your application lived at `https://example.com`, you would specify
-the fully-qualified URL `https://example.com/rails/action_mailbox/mandrill/inbound_emails`.
+[Configure
+Mandrill](https://mandrill.zendesk.com/hc/en-us/articles/205583197-Inbound-Email-Processing-Overview)
+to route inbound emails to `/rails/action_mailbox/mandrill/inbound_emails`. If
+your application lived at `https://example.com`, you would specify the
+fully-qualified URL
+`https://example.com/rails/action_mailbox/mandrill/inbound_emails`.
 
 ### Postfix
 
@@ -141,19 +180,23 @@ Tell Action Mailbox to accept emails from an SMTP relay:
 config.action_mailbox.ingress = :relay
 ```
 
-Generate a strong password that Action Mailbox can use to authenticate requests to the relay ingress.
+Generate a strong password that Action Mailbox can use to authenticate requests
+to the relay ingress.
 
-Use `bin/rails credentials:edit` to add the password to your application's encrypted credentials under
-`action_mailbox.ingress_password`, where Action Mailbox will automatically find it:
+Use `bin/rails credentials:edit` to add the password to your application's
+encrypted credentials under `action_mailbox.ingress_password`, where Action
+Mailbox will automatically find it:
 
 ```yaml
 action_mailbox:
   ingress_password: ...
 ```
 
-Alternatively, provide the password in the `RAILS_INBOUND_EMAIL_PASSWORD` environment variable.
+Alternatively, provide the password in the `RAILS_INBOUND_EMAIL_PASSWORD`
+environment variable.
 
-[Configure Postfix](https://serverfault.com/questions/258469/how-to-configure-postfix-to-pipe-all-incoming-email-to-a-script)
+[Configure
+Postfix](https://serverfault.com/questions/258469/how-to-configure-postfix-to-pipe-all-incoming-email-to-a-script)
 to pipe inbound emails to `bin/rails action_mailbox:ingress:postfix`, providing
 the `URL` of the Postfix ingress and the `INGRESS_PASSWORD` you previously
 generated. If your application lived at `https://example.com`, the full command
@@ -172,12 +215,12 @@ Tell Action Mailbox to accept emails from Postmark:
 config.action_mailbox.ingress = :postmark
 ```
 
-Generate a strong password that Action Mailbox can use to authenticate
-requests to the Postmark ingress.
+Generate a strong password that Action Mailbox can use to authenticate requests
+to the Postmark ingress.
 
 Use `bin/rails credentials:edit` to add the password to your application's
-encrypted credentials under `action_mailbox.ingress_password`,
-where Action Mailbox will automatically find it:
+encrypted credentials under `action_mailbox.ingress_password`, where Action
+Mailbox will automatically find it:
 
 ```yaml
 action_mailbox:
@@ -187,17 +230,20 @@ action_mailbox:
 Alternatively, provide the password in the `RAILS_INBOUND_EMAIL_PASSWORD`
 environment variable.
 
-[Configure Postmark inbound webhook](https://postmarkapp.com/manual#configure-your-inbound-webhook-url)
-to forward inbound emails to `/rails/action_mailbox/postmark/inbound_emails` with the username `actionmailbox`
-and the password you previously generated. If your application lived at `https://example.com`, you would
-configure Postmark with the following fully-qualified URL:
+[Configure Postmark inbound
+webhook](https://postmarkapp.com/manual#configure-your-inbound-webhook-url) to
+forward inbound emails to `/rails/action_mailbox/postmark/inbound_emails` with
+the username `actionmailbox` and the password you previously generated. If your
+application lived at `https://example.com`, you would configure Postmark with
+the following fully-qualified URL:
 
 ```
 https://actionmailbox:PASSWORD@example.com/rails/action_mailbox/postmark/inbound_emails
 ```
 
-NOTE: When configuring your Postmark inbound webhook, be sure to check the box labeled **"Include raw email content in JSON payload"**.
-Action Mailbox needs the raw email content to work.
+NOTE: When configuring your Postmark inbound webhook, be sure to check the box
+labeled **"Include raw email content in JSON payload"**. Action Mailbox needs
+the raw email content to work.
 
 ### Qmail
 
@@ -208,22 +254,25 @@ Tell Action Mailbox to accept emails from an SMTP relay:
 config.action_mailbox.ingress = :relay
 ```
 
-Generate a strong password that Action Mailbox can use to authenticate requests to the relay ingress.
+Generate a strong password that Action Mailbox can use to authenticate requests
+to the relay ingress.
 
-Use `bin/rails credentials:edit` to add the password to your application's encrypted credentials under
-`action_mailbox.ingress_password`, where Action Mailbox will automatically find it:
+Use `bin/rails credentials:edit` to add the password to your application's
+encrypted credentials under `action_mailbox.ingress_password`, where Action
+Mailbox will automatically find it:
 
 ```yaml
 action_mailbox:
   ingress_password: ...
 ```
 
-Alternatively, provide the password in the `RAILS_INBOUND_EMAIL_PASSWORD` environment variable.
+Alternatively, provide the password in the `RAILS_INBOUND_EMAIL_PASSWORD`
+environment variable.
 
-Configure Qmail to pipe inbound emails to `bin/rails action_mailbox:ingress:qmail`,
-providing the `URL` of the relay ingress and the `INGRESS_PASSWORD` you
-previously generated. If your application lived at `https://example.com`, the
-full command would look like this:
+Configure Qmail to pipe inbound emails to `bin/rails
+action_mailbox:ingress:qmail`, providing the `URL` of the relay ingress and the
+`INGRESS_PASSWORD` you previously generated. If your application lived at
+`https://example.com`, the full command would look like this:
 
 ```bash
 $ bin/rails action_mailbox:ingress:qmail URL=https://example.com/rails/action_mailbox/relay/inbound_emails INGRESS_PASSWORD=...
@@ -238,12 +287,12 @@ Tell Action Mailbox to accept emails from SendGrid:
 config.action_mailbox.ingress = :sendgrid
 ```
 
-Generate a strong password that Action Mailbox can use to authenticate
-requests to the SendGrid ingress.
+Generate a strong password that Action Mailbox can use to authenticate requests
+to the SendGrid ingress.
 
 Use `bin/rails credentials:edit` to add the password to your application's
-encrypted credentials under `action_mailbox.ingress_password`,
-where Action Mailbox will automatically find it:
+encrypted credentials under `action_mailbox.ingress_password`, where Action
+Mailbox will automatically find it:
 
 ```yaml
 action_mailbox:
@@ -253,21 +302,36 @@ action_mailbox:
 Alternatively, provide the password in the `RAILS_INBOUND_EMAIL_PASSWORD`
 environment variable.
 
-[Configure SendGrid Inbound Parse](https://sendgrid.com/docs/for-developers/parsing-email/setting-up-the-inbound-parse-webhook/)
-to forward inbound emails to
-`/rails/action_mailbox/sendgrid/inbound_emails` with the username `actionmailbox`
-and the password you previously generated. If your application lived at `https://example.com`,
-you would configure SendGrid with the following URL:
+[Configure SendGrid Inbound
+Parse](https://sendgrid.com/docs/for-developers/parsing-email/setting-up-the-inbound-parse-webhook/)
+to forward inbound emails to `/rails/action_mailbox/sendgrid/inbound_emails`
+with the username `actionmailbox` and the password you previously generated. If
+your application lived at `https://example.com`, you would configure SendGrid
+with the following URL:
 
 ```
 https://actionmailbox:PASSWORD@example.com/rails/action_mailbox/sendgrid/inbound_emails
 ```
 
-NOTE: When configuring your SendGrid Inbound Parse webhook, be sure to check the box labeled **“Post the raw, full MIME message.”** Action Mailbox needs the raw MIME message to work.
+NOTE: When configuring your SendGrid Inbound Parse webhook, be sure to check the
+box labeled **“Post the raw, full MIME message.”** Action Mailbox needs the raw
+MIME message to work.
 
-## Examples
+## Processing Incoming Email
 
-Configure basic routing:
+Processing incoming emails usually entails using the email content to create
+models, update views, queue background work, etc. in your Rails application.
+
+Before you can start processing incoming emails, you'll need to setup Action
+Mailbox routing and create mailboxes.
+
+### Configure Routing
+
+After an incoming email is received via the configured ingress, it needs to be
+forwarded to a mailbox for actual processing by your application. Much like the
+[Rails router](routing.html) that dispatches URLs to controllers, routing in
+Action Mailbox defines which emails go to which mailboxes for processing. Routes
+are added to the `application_mailbox.rb` file using regular expressions:
 
 ```ruby
 # app/mailboxes/application_mailbox.rb
@@ -277,12 +341,89 @@ class ApplicationMailbox < ActionMailbox::Base
 end
 ```
 
-Then set up a mailbox:
+The regular expression matches the incoming email's `to`, `cc`, or `bcc` fields.
+For example, the above will match any email sent to `save@` to a "forwards"
+mailbox. There are other ways to route an email, see
+[`ActionMailbox::Base`](https://api.rubyonrails.org/classes/ActionMailbox/Base.html)
+for more.
+
+We need to create that "forwards" mailbox next.
+
+### Create a Mailbox
 
 ```bash
 # Generate new mailbox
 $ bin/rails generate mailbox forwards
 ```
+
+This creates `app/mailboxes/forwards_mailbox.rb`, with a `ForwardsMailbox` class
+and a `process` method.
+
+### Process Email
+
+When processing an `InboundEmail`, you can get the parsed version of the email
+as a [`Mail`](https://github.com/mikel/mail) object with `InboundEmail#mail`.
+You can also get the raw source directly using the `#source` method. With the
+`Mail` object, you can access the relevant fields, such as `mail.to`,
+`mail.body.decoded`, etc.
+
+```irb
+irb> mail
+=> #<Mail::Message:33780, Multipart: false, Headers: <Date: Wed, 31 Jan 2024 22:18:40 -0600>, <From: someone@hey.com>, <To: save@example.com>, <Message-ID: <65bb1ba066830_50303a70397e@Bhumis-MacBook-Pro.local.mail>>, <In-Reply-To: >, <Subject: Hello Action Mailbox>, <Mime-Version: 1.0>, <Content-Type: text/plain; charset=UTF-8>, <Content-Transfer-Encoding: 7bit>, <x-original-to: >>
+irb> mail.to
+=> ["save@example.com"]
+irb> mail.from
+=> ["someone@hey.com"]
+irb> mail.date
+=> Wed, 31 Jan 2024 22:18:40 -0600
+irb> mail.subject
+=> "Hello Action Mailbox"
+irb> mail.body.decoded
+=> "This is the body of the email message."
+# mail.decoded, a shorthand for mail.body.decoded, also works
+irb> mail.decoded
+=> "This is the body of the email message."
+irb> mail.body
+=> <Mail::Body:0x00007fc74cbf46c0 @boundary=nil, @preamble=nil, @epilogue=nil, @charset="US-ASCII", @part_sort_order=["text/plain", "text/enriched", "text/html", "multipart/alternative"], @parts=[], @raw_source="This is the body of the email message.", @ascii_only=true, @encoding="7bit">
+```
+
+### Inbound Email Status
+
+While the email is being routed to a matching mailbox and processed, Action
+Mailbox updates the email status stored in `action_mailbox_inbound_emails` table
+with one of the following values:
+
+- `pending`: Received by one of the ingress controllers and scheduled for
+  routing.
+- `processing`: During active processing, while a specific mailbox is running
+  its `process` method.
+- `delivered`: Successfully processed by the specific mailbox.
+- `failed`: An exception was raised during the specific mailbox’s execution of
+  the `process` method.
+- `bounced`: Rejected processing by the specific mailbox and bounced to sender.
+
+If the email is marked either `delivered`, `failed`, or `bounced` it's
+considered "processed" and marked for
+[incineration](#incineration-of-inboundemails).
+
+## Example
+
+Here is an example of an Action Mailbox that processes emails to create
+"forwards" for the user's project.
+
+The `before_processing` callback is used to ensure that certain conditions are
+met before `process` method is called. In this case, `before_processing` checks
+that the user has at least one project. Other supported [Action Mailbox
+callbacks](https://api.rubyonrails.org/classes/ActionMailbox/Callbacks.html) are
+`after_processing` and `around_processing`.
+
+The email can be bounced using `bounced_with` if the "forwarder" has no
+projects. The "forwarder" is a `User` with the same email as `mail.from`.
+
+If the "forwarder" does have at least one project, the `record_forward` method
+creates an Active Record model in the application using the email data
+`mail.subject` and `mail.decoded`. Otherwise, it sends an email, using Action
+Mailer, requesting the "forwarder" to choose a project.
 
 ```ruby
 # app/mailboxes/forwards_mailbox.rb
@@ -309,7 +450,7 @@ class ForwardsMailbox < ApplicationMailbox
     end
 
     def record_forward
-      forwarder.forwards.create subject: mail.subject, content: mail.content
+      forwarder.forwards.create subject: mail.subject, content: mail.decoded
     end
 
     def request_forwarding_project
@@ -322,35 +463,15 @@ class ForwardsMailbox < ApplicationMailbox
 end
 ```
 
-## Incineration of InboundEmails
-
-By default, an InboundEmail that has been successfully processed will be
-incinerated after 30 days. This ensures you're not holding on to people's data
-willy-nilly after they may have canceled their accounts or deleted their
-content. The intention is that after you've processed an email, you should have
-extracted all the data you needed and turned it into domain models and content
-on your side of the application. The InboundEmail simply stays in the system
-for the extra time to provide debugging and forensics options.
-
-The actual incineration is done via the `IncinerationJob` that's scheduled
-to run after [`config.action_mailbox.incinerate_after`][] time. This value is
-by default set to `30.days`, but you can change it in your production.rb
-configuration. (Note that this far-future incineration scheduling relies on
-your job queue being able to hold jobs for that long.)
-
-[`config.action_mailbox.incinerate_after`]: configuring.html#config-action-mailbox-incinerate-after
-
-## Working with Action Mailbox in Development
+## Local Development and Testing
 
 It's helpful to be able to test incoming emails in development without actually
 sending and receiving real emails. To accomplish this, there's a conductor
-controller mounted at `/rails/conductor/action_mailbox/inbound_emails`,
-which gives you an index of all the InboundEmails in the system, their
-state of processing, and a form to create a new InboundEmail as well.
+controller mounted at `/rails/conductor/action_mailbox/inbound_emails`, which
+gives you an index of all the InboundEmails in the system, their state of
+processing, and a form to create a new InboundEmail as well.
 
-## Testing Mailboxes
-
-Example:
+Here is and example of testing an inbound email with Action Mailbox TestHelpers.
 
 ```ruby
 class ForwardsMailboxTest < ActionMailbox::TestCase
@@ -376,4 +497,30 @@ class ForwardsMailboxTest < ActionMailbox::TestCase
 end
 ```
 
-Please refer to the [ActionMailbox::TestHelper API](https://api.rubyonrails.org/classes/ActionMailbox/TestHelper.html) for further test helper methods.
+Please refer to the [ActionMailbox::TestHelper
+API](https://api.rubyonrails.org/classes/ActionMailbox/TestHelper.html) for
+further test helper methods.
+
+## Incineration of InboundEmails
+
+By default, an `InboundEmail` that has been processed will be incinerated after
+30 days. The `InboundEmail` is considered as processed when its status changes
+to `delivered`, `failed`, or `bounced`.
+
+The actual incineration is done via the
+[`IncinerationJob`](https://api.rubyonrails.org/classes/ActionMailbox/IncinerationJob.html)
+that's scheduled to run after
+[`config.action_mailbox.incinerate_after`](configuring.html#config-action-mailbox-incinerate-after)
+time. This value is set to `30.days` by default, but you can change it in your
+production.rb configuration. (Note that this far-future incineration scheduling
+relies on your job queue being able to hold jobs for that long.)
+
+Default data incineration ensures that you're not holding on to people's data
+unnecessarily after they may have canceled their accounts or deleted their
+content.
+
+The intention with Action Mailbox processing is that as you process an email,
+you should extract all the data you need from the email and persist it into
+domain models in your application. The `InboundEmail` stays in the system for
+the configured time to allow for debugging and forensics and then will be
+deleted.

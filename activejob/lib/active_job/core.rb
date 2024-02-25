@@ -13,9 +13,7 @@ module ActiveJob
     attr_writer :serialized_arguments
 
     # Time when the job should be performed
-    attr_reader :scheduled_at
-
-    attr_reader :_scheduled_at_time # :nodoc:
+    attr_accessor :scheduled_at
 
     # Job Identifier
     attr_accessor :job_id
@@ -97,7 +95,6 @@ module ActiveJob
       @job_id     = SecureRandom.uuid
       @queue_name = self.class.queue_name
       @scheduled_at = nil
-      @_scheduled_at_time = nil
       @priority   = self.class.priority
       @executions = 0
       @exception_executions = {}
@@ -120,7 +117,7 @@ module ActiveJob
         "locale"     => I18n.locale.to_s,
         "timezone"   => timezone,
         "enqueued_at" => Time.now.utc.iso8601(9),
-        "scheduled_at" => _scheduled_at_time ? _scheduled_at_time.utc.iso8601(9) : nil,
+        "scheduled_at" => scheduled_at ? scheduled_at.utc.iso8601(9) : nil,
       }
     end
 
@@ -174,18 +171,6 @@ module ActiveJob
       self
     end
 
-    def scheduled_at=(value)
-      @_scheduled_at_time = if value.is_a?(Numeric)
-        ActiveJob.deprecator.warn(<<~MSG.squish)
-          Assigning a numeric/epoch value to scheduled_at is deprecated. Use a Time object instead.
-        MSG
-        Time.at(value)
-      else
-        value
-      end
-      @scheduled_at = value
-    end
-
     private
       def serialize_arguments_if_needed(arguments)
         if arguments_serialized?
@@ -211,7 +196,7 @@ module ActiveJob
       end
 
       def arguments_serialized?
-        defined?(@serialized_arguments) && @serialized_arguments
+        @serialized_arguments
       end
   end
 end

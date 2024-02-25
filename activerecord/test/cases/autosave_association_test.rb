@@ -269,19 +269,19 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
   def test_not_resaved_when_unchanged
     firm = Firm.all.merge!(includes: :account).first
     firm.name += "-changed"
-    assert_queries(1) { firm.save! }
+    assert_queries_count(3) { firm.save! }
 
     firm = Firm.first
     firm.account = Account.first
-    assert_queries(Firm.partial_updates? ? 0 : 1) { firm.save! }
+    assert_queries_count(Firm.partial_updates? ? 0 : 1) { firm.save! }
 
     firm = Firm.first.dup
     firm.account = Account.first
-    assert_queries(2) { firm.save! }
+    assert_queries_count(4) { firm.save! }
 
     firm = Firm.first.dup
     firm.account = Account.first.dup
-    assert_queries(2) { firm.save! }
+    assert_queries_count(4) { firm.save! }
   end
 
   def test_callbacks_firing_order_on_create
@@ -301,6 +301,13 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
 
     eye.update(iris_attributes: { color: "blue" })
     assert_equal [false, false, false, false], eye.after_save_callbacks_stack
+  end
+
+  def test_foreign_key_attribute_is_not_set_unless_changed
+    eye = Eye.create!(iris_with_read_only_foreign_key_attributes: { color: "honey" })
+    assert_nothing_raised do
+      eye.update!(override_iris_with_read_only_foreign_key_color: true)
+    end
   end
 end
 
@@ -916,11 +923,11 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
   def test_build_before_save
     company = companies(:first_firm)
 
-    new_client = assert_queries(0) { company.clients_of_firm.build("name" => "Another Client") }
+    new_client = assert_queries_count(0) { company.clients_of_firm.build("name" => "Another Client") }
     assert_not_predicate company.clients_of_firm, :loaded?
 
     company.name += "-changed"
-    assert_queries(2) { assert company.save }
+    assert_queries_count(4) { assert company.save }
     assert_predicate new_client, :persisted?
     assert_equal 3, company.clients_of_firm.reload.size
   end
@@ -928,21 +935,21 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
   def test_build_many_before_save
     company = companies(:first_firm)
 
-    assert_queries(0) { company.clients_of_firm.build([{ "name" => "Another Client" }, { "name" => "Another Client II" }]) }
+    assert_queries_count(0) { company.clients_of_firm.build([{ "name" => "Another Client" }, { "name" => "Another Client II" }]) }
 
     company.name += "-changed"
-    assert_queries(3) { assert company.save }
+    assert_queries_count(5) { assert company.save }
     assert_equal 4, company.clients_of_firm.reload.size
   end
 
   def test_build_via_block_before_save
     company = companies(:first_firm)
 
-    new_client = assert_queries(0) { company.clients_of_firm.build { |client| client.name = "Another Client" } }
+    new_client = assert_queries_count(0) { company.clients_of_firm.build { |client| client.name = "Another Client" } }
     assert_not_predicate company.clients_of_firm, :loaded?
 
     company.name += "-changed"
-    assert_queries(2) { assert company.save }
+    assert_queries_count(4) { assert company.save }
     assert_predicate new_client, :persisted?
     assert_equal 3, company.clients_of_firm.reload.size
   end
@@ -950,14 +957,14 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
   def test_build_many_via_block_before_save
     company = companies(:first_firm)
 
-    assert_queries(0) do
+    assert_queries_count(0) do
       company.clients_of_firm.build([{ "name" => "Another Client" }, { "name" => "Another Client II" }]) do |client|
         client.name = "changed"
       end
     end
 
     company.name += "-changed"
-    assert_queries(3) { assert company.save }
+    assert_queries_count(5) { assert company.save }
     assert_equal 4, company.clients_of_firm.reload.size
   end
 
@@ -1494,7 +1501,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
 
     @parrot = @pirate.parrots.create(name: "some_name")
     @parrot.name = "changed_name"
-    assert_queries(1) { @ship.save! }
+    assert_queries_count(3) { @ship.save! }
     assert_no_queries { @ship.save! }
   end
 
@@ -1598,7 +1605,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
   end
 
   def test_should_not_load_the_associated_model
-    assert_queries(1) { @pirate.catchphrase = "Arr"; @pirate.save! }
+    assert_queries_count(3) { @pirate.catchphrase = "Arr"; @pirate.save! }
   end
 
   def test_mark_for_destruction_is_ignored_without_autosave_true
@@ -1770,7 +1777,7 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
   end
 
   def test_should_not_load_the_associated_model
-    assert_queries(1) { @ship.name = "The Vile Serpent"; @ship.save! }
+    assert_queries_count(3) { @ship.name = "The Vile Serpent"; @ship.save! }
   end
 
   def test_should_save_with_non_nullable_foreign_keys
@@ -1938,11 +1945,11 @@ module AutosaveAssociationOnACollectionAssociationTests
   end
 
   def test_should_not_load_the_associated_models_if_they_were_not_loaded_yet
-    assert_queries(1) { @pirate.catchphrase = "Arr"; @pirate.save! }
+    assert_queries_count(3) { @pirate.catchphrase = "Arr"; @pirate.save! }
 
     @pirate.public_send(@association_name).load_target
 
-    assert_queries(3) do
+    assert_queries_count(5) do
       @pirate.catchphrase = "Yarr"
       new_names = ["Grace OMalley", "Privateers Greed"]
       @pirate.public_send(@association_name).each_with_index { |child, i| child.name = new_names[i] }

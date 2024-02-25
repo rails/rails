@@ -91,6 +91,10 @@ module ActiveRecord
       def schema_cache_path
         raise NotImplementedError
       end
+
+      def use_metadata_table?
+        raise NotImplementedError
+      end
     end
   end
 end

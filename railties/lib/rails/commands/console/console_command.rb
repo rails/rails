@@ -12,6 +12,58 @@ module Rails
       end
     end
 
+    class IRBConsole
+      def initialize(app)
+        @app = app
+
+        require "irb"
+        require "irb/completion"
+
+        IRB::WorkSpace.prepend(BacktraceCleaner)
+        IRB::ExtendCommandBundle.include(Rails::ConsoleMethods)
+      end
+
+      def name
+        "IRB"
+      end
+
+      def start
+        IRB.setup(nil)
+
+        if !Rails.env.local? && !ENV.key?("IRB_USE_AUTOCOMPLETE")
+          IRB.conf[:USE_AUTOCOMPLETE] = false
+        end
+
+        env = colorized_env
+        app_name = @app.class.module_parent_name.underscore.dasherize
+        prompt_prefix = "#{app_name}(#{env})"
+
+        IRB.conf[:PROMPT][:RAILS_PROMPT] = {
+          PROMPT_I: "#{prompt_prefix}> ",
+          PROMPT_S: "#{prompt_prefix}%l ",
+          PROMPT_C: "#{prompt_prefix}* ",
+          RETURN: "=> %s\n"
+        }
+
+        # Respect user's choice of prompt mode.
+        IRB.conf[:PROMPT_MODE] = :RAILS_PROMPT if IRB.conf[:PROMPT_MODE] == :DEFAULT
+        IRB::Irb.new.run(IRB.conf)
+      end
+
+      def colorized_env
+        case Rails.env
+        when "development"
+          IRB::Color.colorize("dev", [:BLUE])
+        when "test"
+          IRB::Color.colorize("test", [:BLUE])
+        when "production"
+          IRB::Color.colorize("prod", [:RED])
+        else
+          Rails.env
+        end
+      end
+    end
+
     def self.start(*args)
       new(*args).start
     end
@@ -31,18 +83,7 @@ module Rails
 
       app.load_console
 
-      @console = app.config.console || begin
-        require "irb"
-        require "irb/completion"
-
-        IRB::WorkSpace.prepend(BacktraceCleaner)
-
-        if !Rails.env.local?
-          ENV["IRB_USE_AUTOCOMPLETE"] ||= "false"
-        end
-
-        IRB
-      end
+      @console = app.config.console || IRBConsole.new(app)
     end
 
     def sandbox?
@@ -72,9 +113,6 @@ module Rails
         puts "Loading #{Rails.env} environment (Rails #{Rails.version})"
       end
 
-      if defined?(console::ExtendCommandBundle)
-        console::ExtendCommandBundle.include(Rails::ConsoleMethods)
-      end
       console.start
     end
   end

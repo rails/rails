@@ -17,11 +17,12 @@ module ActiveRecord
           def eql?(other)
             association_key_name == other.association_key_name &&
               scope.table_name == other.scope.table_name &&
+              scope.connection_specification_name == other.scope.connection_specification_name &&
               scope.values_for_queries == other.scope.values_for_queries
           end
 
           def hash
-            [association_key_name, scope.table_name, scope.values_for_queries].hash
+            [association_key_name, scope.table_name, scope.connection_specification_name, scope.values_for_queries].hash
           end
 
           def records_for(loaders)
@@ -38,6 +39,8 @@ module ActiveRecord
           end
 
           def load_records_for_keys(keys, &block)
+            return [] if keys.empty?
+
             if association_key_name.is_a?(Array)
               query_constraints = Hash.new { |hsh, key| hsh[key] = Set.new }
 
@@ -245,7 +248,8 @@ module ActiveRecord
             association = owner.association(reflection.name)
 
             if reflection.collection?
-              association.target = records
+              not_persisted_records = association.target.reject(&:persisted?)
+              association.target = records + not_persisted_records
             else
               association.target = records.first
             end

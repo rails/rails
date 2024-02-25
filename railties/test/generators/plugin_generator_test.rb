@@ -7,19 +7,70 @@ require "generators/shared_generator_tests"
 require "rails/engine/updater"
 
 DEFAULT_PLUGIN_FILES = %w(
+  .git
   .gitignore
   Gemfile
-  Rakefile
-  README.md
-  bukkits.gemspec
   MIT-LICENSE
-  lib
+  README.md
+  Rakefile
+  bin/test
+  bukkits.gemspec
   lib/bukkits.rb
-  lib/tasks/bukkits_tasks.rake
+  lib/bukkits/railtie.rb
   lib/bukkits/version.rb
+  lib/tasks/bukkits_tasks.rake
   test/bukkits_test.rb
+  test/dummy/Rakefile
+  test/dummy/app/assets/images/.keep
+  test/dummy/app/assets/stylesheets/application.css
+  test/dummy/app/channels/application_cable/channel.rb
+  test/dummy/app/channels/application_cable/connection.rb
+  test/dummy/app/controllers/application_controller.rb
+  test/dummy/app/controllers/concerns/.keep
+  test/dummy/app/helpers/application_helper.rb
+  test/dummy/app/jobs/application_job.rb
+  test/dummy/app/mailers/application_mailer.rb
+  test/dummy/app/models/application_record.rb
+  test/dummy/app/models/concerns/.keep
+  test/dummy/app/views/layouts/application.html.erb
+  test/dummy/app/views/layouts/mailer.html.erb
+  test/dummy/app/views/layouts/mailer.text.erb
+  test/dummy/app/views/pwa/manifest.json.erb
+  test/dummy/app/views/pwa/service-worker.js
+  test/dummy/bin/rails
+  test/dummy/bin/rake
+  test/dummy/bin/setup
+  test/dummy/config.ru
+  test/dummy/config/application.rb
+  test/dummy/config/boot.rb
+  test/dummy/config/cable.yml
+  test/dummy/config/database.yml
+  test/dummy/config/environment.rb
+  test/dummy/config/environments/development.rb
+  test/dummy/config/environments/production.rb
+  test/dummy/config/environments/test.rb
+  test/dummy/config/initializers/content_security_policy.rb
+  test/dummy/config/initializers/enable_yjit.rb
+  test/dummy/config/initializers/filter_parameter_logging.rb
+  test/dummy/config/initializers/inflections.rb
+  test/dummy/config/initializers/permissions_policy.rb
+  test/dummy/config/locales/en.yml
+  test/dummy/config/puma.rb
+  test/dummy/config/routes.rb
+  test/dummy/config/storage.yml
+  test/dummy/lib/assets/.keep
+  test/dummy/log/.keep
+  test/dummy/public/404.html
+  test/dummy/public/422.html
+  test/dummy/public/426.html
+  test/dummy/public/500.html
+  test/dummy/public/icon.png
+  test/dummy/public/icon.svg
+  test/dummy/storage/.keep
+  test/dummy/tmp/.keep
+  test/dummy/tmp/pids/.keep
+  test/dummy/tmp/storage/.keep
   test/test_helper.rb
-  test/dummy
 )
 
 class PluginGeneratorTest < Rails::Generators::TestCase
@@ -68,8 +119,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_generating_without_options
     run_generator
     assert_file "README.md", /Bukkits/
-    assert_no_file "config/routes.rb"
-    assert_no_file "app/assets/config/bukkits_manifest.js"
     assert_file "test/test_helper.rb" do |content|
       assert_match(/require_relative.+test\/dummy\/config\/environment/, content)
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+test\/dummy\/db\/migrate/, content)
@@ -83,13 +132,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       assert_match(/class BukkitsTest < ActiveSupport::TestCase/, content)
       assert_match(/assert Bukkits::VERSION/, content)
     end
-    assert_file "bin/test"
-    assert_no_file "bin/rails"
-  end
-
-  def test_initializes_git_repo
-    run_generator
-    assert_directory ".git"
   end
 
   def test_initializes_git_repo_with_main_branch_without_user_default
@@ -176,12 +218,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "bin/rails", /APP_PATH/
   end
 
-  def test_generating_adds_dummy_app_without_javascript_and_assets_deps
-    run_generator
-
-    assert_file "test/dummy/app/assets/stylesheets/application.css"
-  end
-
   def test_ensure_that_plugin_options_are_not_passed_to_app_generator
     FileUtils.cd(fixtures_root)
     assert_no_match(/It works from file!.*It works_from_file/, run_generator([destination_root, "-m", "lib/template.rb"]))
@@ -244,7 +280,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_generation_runs_bundle_install
+  def test_generation_does_not_run_bundle_install
     generator([destination_root])
     run_generator_instance
 
@@ -606,24 +642,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file ".gitignore" do |contents|
       assert_match(/spec\/dummy/, contents)
     end
-  end
-
-  def test_unnecessary_files_are_not_generated_in_dummy_application
-    run_generator
-    assert_no_file "test/dummy/.gitignore"
-    assert_no_file "test/dummy/.ruby-version"
-    assert_no_file "test/dummy/db/seeds.rb"
-    assert_no_file "test/dummy/Gemfile"
-    assert_no_file "test/dummy/public/robots.txt"
-    assert_no_file "test/dummy/README.md"
-    assert_no_file "test/dummy/config/master.key"
-    assert_no_file "test/dummy/config/credentials.yml.enc"
-    assert_no_file "test/dummy/Dockerfile"
-    assert_no_file "test/dummy/.dockerignore"
-    assert_no_directory "test/dummy/lib/tasks"
-    assert_no_directory "test/dummy/test"
-    assert_no_directory "test/dummy/vendor"
-    assert_no_directory "test/dummy/.git"
   end
 
   def test_skipping_test_files

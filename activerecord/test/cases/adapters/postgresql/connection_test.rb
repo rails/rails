@@ -24,19 +24,19 @@ module ActiveRecord
     end
 
     def test_encoding
-      assert_queries(1, ignore_none: true) do
+      assert_queries_count(1, include_schema: true) do
         assert_not_nil @connection.encoding
       end
     end
 
     def test_collation
-      assert_queries(1, ignore_none: true) do
+      assert_queries_count(1, include_schema: true) do
         assert_not_nil @connection.collation
       end
     end
 
     def test_ctype
-      assert_queries(1, ignore_none: true) do
+      assert_queries_count(1, include_schema: true) do
         assert_not_nil @connection.ctype
       end
     end
@@ -145,7 +145,7 @@ module ActiveRecord
       assert_predicate @connection, :active?
     ensure
       # Repair all fixture connections so other tests won't break.
-      @fixture_connections.each(&:verify!)
+      @fixture_connection_pools.each { |p| p.connection.verify! }
     end
 
     def test_set_session_variable_true

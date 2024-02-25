@@ -21,7 +21,7 @@ module ActiveJob
       # You can also pass a block that'll be invoked if the retry attempts fail for custom logic rather than letting
       # the exception bubble up. This block is yielded with the job instance as the first and the error instance as the second parameter.
       #
-      # `retry_on` and `discard_on` handlers are searched from bottom to top, and up the class hierarchy. The handler of the first class for
+      # +retry_on+ and +discard_on+ handlers are searched from bottom to top, and up the class hierarchy. The handler of the first class for
       # which <tt>exception.is_a?(klass)</tt> holds true is the one invoked, if any.
       #
       # ==== Options
@@ -60,12 +60,6 @@ module ActiveJob
       #    end
       #  end
       def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil, jitter: JITTER_DEFAULT)
-        if wait == :exponentially_longer
-          ActiveJob.deprecator.warn(<<~MSG.squish)
-            `wait: :exponentially_longer` will actually wait polynomially longer and is therefore deprecated.
-            Prefer `wait: :polynomially_longer` to avoid confusion and keep the same behavior.
-          MSG
-        end
         rescue_from(*exceptions) do |error|
           executions = executions_for(exceptions)
           if attempts == :unlimited || executions < attempts
@@ -90,7 +84,7 @@ module ActiveJob
       #
       # You can also pass a block that'll be invoked. This block is yielded with the job instance as the first and the error instance as the second parameter.
       #
-      # `retry_on` and `discard_on` handlers are searched from bottom to top, and up the class hierarchy. The handler of the first class for
+      # +retry_on+ and +discard_on+ handlers are searched from bottom to top, and up the class hierarchy. The handler of the first class for
       # which <tt>exception.is_a?(klass)</tt> holds true is the one invoked, if any.
       #
       # ==== Example
@@ -168,7 +162,7 @@ module ActiveJob
         jitter = jitter == JITTER_DEFAULT ? self.class.retry_jitter : (jitter || 0.0)
 
         case seconds_or_duration_or_algorithm
-        when :exponentially_longer, :polynomially_longer
+        when  :polynomially_longer
           # This delay uses a polynomial backoff strategy, which was previously misnamed as exponential
           delay = executions**4
           delay_jitter = determine_jitter_for_delay(delay, jitter)

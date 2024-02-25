@@ -1050,7 +1050,7 @@ module ActiveRecord
       # query per addressable type.
       # For example, if all the addressables are either of class Person or Company, then a total
       # of 3 queries will be executed. The list of addressable types to load is determined on
-      # the back of the addresses loaded. This is not supported if Active Record has to fallback
+      # the back of the addresses loaded. This is not supported if Active Record has to fall back
       # to the previous implementation of eager loading and will raise ActiveRecord::EagerLoadPolymorphicError.
       # The reason is that the parent model's type is a column value so its corresponding table
       # name cannot be put in the +FROM+/+JOIN+ clauses of that query.
@@ -1825,6 +1825,8 @@ module ActiveRecord
         #   Specify this association is a polymorphic association by passing +true+.
         #   Note: If you've enabled the counter cache, then you may want to add the counter cache attribute
         #   to the +attr_readonly+ list in the associated classes (e.g. <tt>class Post; attr_readonly :comments_count; end</tt>).
+        #   Note: Since polymorphic associations rely on storing class names in the database, make sure to update the class names in the
+        #   <tt>*_type</tt> polymorphic type column of the corresponding rows.
         # [+:validate+]
         #   When set to +true+, validates new objects added to association when saving the parent object. +false+ by default.
         #   If you want to ensure associated objects are revalidated on every update, use +validates_associated+.

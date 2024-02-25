@@ -170,7 +170,7 @@ irb> Event.where("payload->>'kind' = ?", "user_renamed")
 * [type definition](https://www.postgresql.org/docs/current/static/rangetypes.html)
 * [functions and operators](https://www.postgresql.org/docs/current/static/functions-range.html)
 
-This type is mapped to Ruby [`Range`](https://ruby-doc.org/core-2.7.0/Range.html) objects.
+This type is mapped to Ruby [`Range`](https://ruby-doc.org/core-3.1.0/Range.html) objects.
 
 ```ruby
 # db/migrate/20130923065404_create_events.rb
@@ -292,9 +292,9 @@ Declaring an enum attribute in the model adds helper methods and prevents invali
 ```ruby
 # app/models/article.rb
 class Article < ApplicationRecord
-  enum status: {
+  enum :status, {
     draft: "draft", published: "published", archived: "archived"
-  }, _prefix: true
+  }, prefix: true
 end
 ```
 
@@ -449,7 +449,7 @@ irb> user.save!
 * [type definition](https://www.postgresql.org/docs/current/static/datatype-net-types.html)
 
 The types `inet` and `cidr` are mapped to Ruby
-[`IPAddr`](https://ruby-doc.org/stdlib-2.7.0/libdoc/ipaddr/rdoc/IPAddr.html)
+[`IPAddr`](https://ruby-doc.org/stdlib-3.1.0/libdoc/ipaddr/rdoc/IPAddr.html)
 objects. The `macaddr` type is mapped to normal text.
 
 ```ruby

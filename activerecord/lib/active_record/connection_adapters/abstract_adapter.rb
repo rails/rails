@@ -50,7 +50,9 @@ module ActiveRecord
         @schema_cache = nil
         @pool = value
 
-        @pool.schema_reflection.load!(self) if ActiveRecord.lazily_load_schema_cache
+        if @pool && ActiveRecord.lazily_load_schema_cache
+          @pool.schema_reflection.load!(@pool)
+        end
       end
 
       set_callback :checkin, :after, :enable_lazy_transactions!
@@ -174,19 +176,13 @@ module ActiveRecord
         @verified = false
       end
 
-      THREAD_LOCK = ActiveSupport::Concurrency::ThreadLoadInterlockAwareMonitor.new
-      private_constant :THREAD_LOCK
-
-      FIBER_LOCK = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
-      private_constant :FIBER_LOCK
-
       def lock_thread=(lock_thread) # :nodoc:
         @lock =
         case lock_thread
         when Thread
-          THREAD_LOCK
+          ActiveSupport::Concurrency::ThreadLoadInterlockAwareMonitor.new
         when Fiber
-          FIBER_LOCK
+          ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
         else
           ActiveSupport::Concurrency::NullLock
         end
@@ -215,10 +211,6 @@ module ActiveRecord
         @config[:replica] || false
       end
 
-      def use_metadata_table?
-        @config.fetch(:use_metadata_table, true)
-      end
-
       def connection_retries
         (@config[:connection_retries] || 1).to_i
       end
@@ -244,22 +236,6 @@ module ActiveRecord
         return false if connection_class.nil?
 
         connection_class.current_preventing_writes
-      end
-
-      def migrations_paths # :nodoc:
-        @config[:migrations_paths] || Migrator.migrations_paths
-      end
-
-      def migration_context # :nodoc:
-        MigrationContext.new(migrations_paths, schema_migration, internal_metadata)
-      end
-
-      def schema_migration # :nodoc:
-        SchemaMigration.new(self)
-      end
-
-      def internal_metadata # :nodoc:
-        InternalMetadata.new(self)
       end
 
       def prepared_statements?
@@ -327,7 +303,7 @@ module ActiveRecord
       end
 
       def schema_cache
-        @schema_cache ||= BoundSchemaReflection.new(@pool.schema_reflection, self)
+        @pool.schema_cache || (@schema_cache ||= BoundSchemaReflection.for_lone_connection(@pool.schema_reflection, self))
       end
 
       # this method must only be called while holding connection pool's mutex
@@ -652,15 +628,6 @@ module ActiveRecord
       end
 
       # Override to check all foreign key constraints in a database.
-      def all_foreign_keys_valid?
-        check_all_foreign_keys_valid!
-        true
-      rescue ActiveRecord::StatementInvalid
-        false
-      end
-      deprecate :all_foreign_keys_valid?, deprecator: ActiveRecord.deprecator
-
-      # Override to check all foreign key constraints in a database.
       # The adapter should raise a +ActiveRecord::StatementInvalid+ if foreign key
       # constraints are not met.
       def check_all_foreign_keys_valid!
@@ -718,13 +685,14 @@ module ActiveRecord
         end
       end
 
-
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
-        clear_cache!(new_connection: true)
-        reset_transaction
-        @raw_connection_dirty = false
+        @lock.synchronize do
+          clear_cache!(new_connection: true)
+          reset_transaction
+          @raw_connection_dirty = false
+        end
       end
 
       # Immediately forget this connection ever existed. Unlike disconnect!,
@@ -780,19 +748,17 @@ module ActiveRecord
       # is no longer active, then this method will reconnect to the database.
       def verify!
         unless active?
-          if @unconfigured_connection
-            @lock.synchronize do
-              if @unconfigured_connection
-                @raw_connection = @unconfigured_connection
-                @unconfigured_connection = nil
-                configure_connection
-                @verified = true
-                return
-              end
+          @lock.synchronize do
+            if @unconfigured_connection
+              @raw_connection = @unconfigured_connection
+              @unconfigured_connection = nil
+              configure_connection
+              @verified = true
+              return
             end
-          end
 
-          reconnect!(restore_transactions: true)
+            reconnect!(restore_transactions: true)
+          end
         end
 
         @verified = true
@@ -886,7 +852,7 @@ module ActiveRecord
       # numbered migration that has been executed, or 0 if no schema
       # information is present / the database is empty.
       def schema_version
-        migration_context.current_version
+        pool.migration_context.current_version
       end
 
       class << self
@@ -1156,6 +1122,7 @@ module ActiveRecord
             statement_name:    statement_name,
             async:             async,
             connection:        self,
+            row_count:         0,
             &block
           )
         rescue ActiveRecord::StatementInvalid => ex

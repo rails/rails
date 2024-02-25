@@ -191,8 +191,8 @@ module ActiveRecord
       end
 
       def test_quote_duration
-        expected = assert_deprecated(ActiveRecord.deprecator) { @quoter.quote(30.minutes) }
-        assert_equal "1800", expected
+        exception = assert_raises(TypeError) { @quoter.quote(30.minutes) }
+        assert_equal "can't quote ActiveSupport::Duration", exception.message
       end
     end
 

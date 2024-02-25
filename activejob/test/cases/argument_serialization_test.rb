@@ -3,7 +3,6 @@
 require "json"
 require "bigdecimal"
 require "helper"
-require "active_job/arguments"
 require "models/person"
 require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/integer/time"
@@ -50,7 +49,7 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
   end
 
   [ nil, 1, 1.0, 1_000_000_000_000_000_000_000,
-    "a", true, false,
+    "a", true, false, BigDecimal(5),
     :a,
     1.day,
     Date.new(2001, 2, 3),
@@ -78,28 +77,6 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
   ].each do |arg|
     test "serializes #{arg.class} - #{arg.inspect} verbatim" do
       assert_arguments_unchanged arg
-    end
-  end
-
-  test "dangerously treats BigDecimal arguments as primitives not requiring serialization by default" do
-    assert_deprecated(<<~MSG.chomp, ActiveJob.deprecator) do
-      Primitive serialization of BigDecimal job arguments is deprecated as it may serialize via .to_s using certain queue adapters.
-      Enable config.active_job.use_big_decimal_serializer to use BigDecimalSerializer instead, which will be mandatory in Rails 7.2.
-
-      Note that if your application has multiple replicas, you should only enable this setting after successfully deploying your app to Rails 7.1 first.
-      This will ensure that during your deployment all replicas are capable of deserializing arguments serialized with BigDecimalSerializer.
-    MSG
-      assert_equal(
-        BigDecimal(5),
-        *ActiveJob::Arguments.deserialize(ActiveJob::Arguments.serialize([BigDecimal(5)])),
-      )
-    end
-  end
-
-  test "safely serializes BigDecimal arguments if configured to use_big_decimal_serializer" do
-    # BigDecimal(5) example should be moved back up into array above in Rails 7.2
-    with_big_decimal_serializer do
-      assert_arguments_unchanged BigDecimal(5)
     end
   end
 
@@ -296,13 +273,5 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
       ArgumentsRoundTripJob.perform_later(*args) # Actually performed inline
 
       JobBuffer.last_value
-    end
-
-    def with_big_decimal_serializer(temporary = true)
-      original = ActiveJob.use_big_decimal_serializer
-      ActiveJob.use_big_decimal_serializer = temporary
-      yield
-    ensure
-      ActiveJob.use_big_decimal_serializer = original
     end
 end

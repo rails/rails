@@ -5,8 +5,6 @@ require "support/ddl_helper"
 require "models/book"
 require "models/post"
 
-require "active_support/error_reporter/test_helper"
-
 class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   setup do
     @conn = ActiveRecord::Base.connection
@@ -97,24 +95,24 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   end
 
   test "#active? answers false with connection and exception" do
-    @conn.send(:connection).stub(:ping, -> { raise ::Trilogy::BaseError.new }) do
+    @conn.instance_variable_get(:@raw_connection).stub(:ping, -> { raise ::Trilogy::BaseError.new }) do
       assert_equal false, @conn.active?
     end
   end
 
   test "#reconnect answers new connection with existing connection" do
-    old_connection = @conn.send(:connection)
+    old_connection = @conn.instance_variable_get(:@raw_connection)
     @conn.reconnect!
-    connection = @conn.send(:connection)
+    connection = @conn.instance_variable_get(:@raw_connection)
 
     assert_instance_of Trilogy, connection
     assert_not_equal old_connection, connection
   end
 
   test "#reset answers new connection with existing connection" do
-    old_connection = @conn.send(:connection)
+    old_connection = @conn.instance_variable_get(:@raw_connection)
     @conn.reset!
-    connection = @conn.send(:connection)
+    connection = @conn.instance_variable_get(:@raw_connection)
 
     assert_instance_of Trilogy, connection
     assert_not_equal old_connection, connection
@@ -169,6 +167,8 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     @conn.cache do
       event_fired = false
       subscription = ->(name, start, finish, id, payload) {
+        next if payload[:name] == "SCHEMA"
+
         event_fired = true
 
         # First, we test keys that are defined by default by the AbstractAdapter
@@ -200,6 +200,8 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
 
       event_fired = false
       subscription = ->(name, start, finish, id, payload) {
+        next if payload[:name] == "SCHEMA"
+
         event_fired = true
 
         # First, we test keys that are defined by default by the AbstractAdapter
@@ -351,6 +353,51 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     assert_equal connection.pool, error.connection_pool
   ensure
     ActiveRecord::Base.establish_connection :arunit
+  end
+
+  test "socket has precedence over host" do
+    error = assert_raises ActiveRecord::ConnectionNotEstablished do
+      ActiveRecord::ConnectionAdapters::TrilogyAdapter.new(host: "invalid", port: 12345, socket: "/var/invalid.sock").connect!
+    end
+    assert_includes error.message, "/var/invalid.sock"
+  end
+
+  test "EPIPE raises ActiveRecord::ConnectionFailed" do
+    assert_raises(ActiveRecord::ConnectionFailed) do
+      @conn.raw_connection.stub(:query, -> (*) { raise Trilogy::SyscallError::EPIPE }) do
+        @conn.execute("SELECT 1")
+      end
+    end
+  end
+
+  test "ETIMEDOUT raises ActiveRecord::ConnectionFailed" do
+    assert_raises(ActiveRecord::ConnectionFailed) do
+      @conn.raw_connection.stub(:query, -> (*) { raise Trilogy::SyscallError::ETIMEDOUT }) do
+        @conn.execute("SELECT 1")
+      end
+    end
+  end
+
+  test "ECONNREFUSED raises ActiveRecord::ConnectionFailed" do
+    assert_raises(ActiveRecord::ConnectionFailed) do
+      @conn.raw_connection.stub(:query, -> (*) { raise Trilogy::SyscallError::ECONNREFUSED }) do
+        @conn.execute("SELECT 1")
+      end
+    end
+  end
+
+  test "ECONNRESET raises ActiveRecord::ConnectionFailed" do
+    assert_raises(ActiveRecord::ConnectionFailed) do
+      @conn.raw_connection.stub(:query, -> (*) { raise Trilogy::SyscallError::ECONNRESET }) do
+        @conn.execute("SELECT 1")
+      end
+    end
+  end
+
+  test "setting prepared_statements to true raises" do
+    assert_raises ArgumentError do
+      ActiveRecord::ConnectionAdapters::TrilogyAdapter.new(prepared_statements: true).connect!
+    end
   end
 
   # Create a temporary subscription to verify notification is sent.

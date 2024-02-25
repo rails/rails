@@ -81,7 +81,8 @@ module JSONTest
                      [ [1, "a", :b, nil, false], %([1,\"a\",\"b\",null,false]) ]]
 
     HashTests     = [[ { foo: "bar" }, %({\"foo\":\"bar\"}) ],
-                     [ { 1 => 1, 2 => "a", 3 => :b, 4 => nil, 5 => false }, %({\"1\":1,\"2\":\"a\",\"3\":\"b\",\"4\":null,\"5\":false}) ]]
+                     [ { 1 => 1, 2 => "a", 3 => :b, 4 => nil, 5 => false }, %({\"1\":1,\"2\":\"a\",\"3\":\"b\",\"4\":null,\"5\":false}) ],
+                     [ { "a" => 1, :a => 2, :c => { "b" => 3, :b => 4 } }, %({\"a\":2,\"c\":{\"b\":4}}) ]]
 
     RangeTests    = [[ 1..2,     %("1..2")],
                      [ 1...2,    %("1...2")],
@@ -94,7 +95,7 @@ module JSONTest
     ModuleTests   = [[ Module, %("Module") ],
                      [ Class,  %("Class")  ],
                      [ ActiveSupport,                   %("ActiveSupport")                   ],
-                     [ ActiveSupport::MessageEncryptor, %("ActiveSupport::MessageEncryptor") ]]
+                     [ ActiveSupport::Testing, %("ActiveSupport::Testing") ]]
     ObjectTests   = [[ Foo.new(1, 2), %({\"a\":1,\"b\":2}) ]]
     HashlikeTests = [[ Hashlike.new, %({\"bar\":\"world\",\"foo\":\"hello\"}) ]]
     StructTests   = [[ MyStruct.new(:foo, "bar"), %({\"name\":\"foo\",\"value\":\"bar\"}) ],

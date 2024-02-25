@@ -38,7 +38,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_through_executes_limited_query
     boring_club = clubs(:boring_club)
-    assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
+    assert_queries_match(/LIMIT|ROWNUM <=|FETCH FIRST/) do
       assert_equal boring_club, @member.general_club
     end
   end
@@ -165,7 +165,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_through_eager_loading
-    members = assert_queries(3) do # base table, through table, clubs table
+    members = assert_queries_count(3) do # base table, through table, clubs table
       Member.all.merge!(includes: :club, where: ["name = ?", "Groucho Marx"]).to_a
     end
     assert_equal 1, members.size
@@ -173,7 +173,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_through_eager_loading_through_polymorphic
-    members = assert_queries(3) do # base table, through table, clubs table
+    members = assert_queries_count(3) do # base table, through table, clubs table
       Member.all.merge!(includes: :sponsor_club, where: ["name = ?", "Groucho Marx"]).to_a
     end
     assert_equal 1, members.size
@@ -203,7 +203,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_through_nonpreload_eagerloading
-    members = assert_queries(1) do
+    members = assert_queries_count(1) do
       Member.all.merge!(includes: :club, where: ["members.name = ?", "Groucho Marx"], order: "clubs.name").to_a # force fallback
     end
     assert_equal 1, members.size
@@ -211,7 +211,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_through_nonpreload_eager_loading_through_polymorphic
-    members = assert_queries(1) do
+    members = assert_queries_count(1) do
       Member.all.merge!(includes: :sponsor_club, where: ["members.name = ?", "Groucho Marx"], order: "clubs.name").to_a # force fallback
     end
     assert_equal 1, members.size
@@ -220,7 +220,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_through_nonpreload_eager_loading_through_polymorphic_with_more_than_one_through_record
     Sponsor.new(sponsor_club: clubs(:outrageous_club), sponsorable: members(:groucho)).save!
-    members = assert_queries(1) do
+    members = assert_queries_count(1) do
       Member.all.merge!(includes: :sponsor_club, where: ["members.name = ?", "Groucho Marx"], order: "clubs.name DESC").to_a # force fallback
     end
     assert_equal 1, members.size
@@ -290,7 +290,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     @member_detail = MemberDetail.new
     @member.member_detail = @member_detail
     @member.organization = @organization
-    @member_details = assert_queries(3) do
+    @member_details = assert_queries_count(3) do
       MemberDetail.all.merge!(includes: :member_type).to_a
     end
     @new_detail = @member_details[0]
@@ -322,13 +322,13 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_not_nil @member_detail.member_type
     @member_detail.destroy
-    assert_queries(1) do
+    assert_queries_count(1) do
       @member_detail.association(:member_type).reload
       assert_not_nil @member_detail.member_type
     end
 
     @member_detail.member.destroy
-    assert_queries(1) do
+    assert_queries_count(1) do
       @member_detail.association(:member_type).reload
       assert_nil @member_detail.member_type
     end

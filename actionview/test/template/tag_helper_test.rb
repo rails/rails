@@ -27,11 +27,15 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_builder_void_tag_with_forced_content
-    assert_equal "<br>some content</br>", tag.br("some content")
+    assert_deprecated(ActionView.deprecator) do
+      assert_equal "<br>some content</br>", tag.br("some content")
+    end
   end
 
   def test_tag_builder_void_tag_with_empty_content
-    assert_equal "<br></br>", tag.br("")
+    assert_deprecated(ActionView.deprecator) do
+      assert_equal "<br></br>", tag.br("")
+    end
   end
 
   def test_tag_builder_self_closing_tag
@@ -41,7 +45,7 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_builder_self_closing_tag_with_content
-    assert_equal "<svg><circle><desc>A circle</desc></circle></svg>", tag.svg { tag.circle { tag.desc "A circle" } }
+    assert_equal "<svg><circle r=\"5\"><desc>A circle</desc></circle></svg>", tag.svg { tag.circle(r: "5") { tag.desc "A circle" } }
   end
 
   def test_tag_builder_defines_methods_to_build_html_elements

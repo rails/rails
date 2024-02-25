@@ -1,19 +1,24 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "action_dispatch/middleware/session/abstract_store"
 
 module ActionDispatch
   module Session
-    # = Action Dispatch Session \CacheStore
+    # # Action Dispatch Session CacheStore
     #
-    # A session store that uses an ActiveSupport::Cache::Store to store the sessions. This store is most useful
-    # if you don't store critical data in your sessions and you don't need them to live for extended periods
-    # of time.
+    # A session store that uses an ActiveSupport::Cache::Store to store the
+    # sessions. This store is most useful if you don't store critical data in your
+    # sessions and you don't need them to live for extended periods of time.
     #
-    # ==== Options
-    # * <tt>cache</tt>         - The cache to use. If it is not specified, <tt>Rails.cache</tt> will be used.
-    # * <tt>expire_after</tt>  - The length of time a session will be stored before automatically expiring.
-    #   By default, the <tt>:expires_in</tt> option of the cache is used.
+    # #### Options
+    # *   `cache`         - The cache to use. If it is not specified, `Rails.cache`
+    #     will be used.
+    # *   `expire_after`  - The length of time a session will be stored before
+    #     automatically expiring. By default, the `:expires_in` option of the cache
+    #     is used.
+    #
     class CacheStore < AbstractSecureStore
       def initialize(app, options = {})
         @cache = options[:cache] || Rails.cache

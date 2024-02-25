@@ -247,7 +247,7 @@ end
 
 As always, what has been generated for you is just a starting point.
 You can add or remove from it as you see fit by editing the
-`db/migrate/YYYYMMDDHHMMSS_add_details_to_products.rb` file.
+`db/migrate/YYYYMMDDHHMMSS_create_products.rb` file.
 
 ### Creating associations using references
 

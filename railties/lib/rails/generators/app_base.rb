@@ -13,6 +13,7 @@ module Rails
   module Generators
     class AppBase < Base # :nodoc:
       include Database
+      include Devcontainer
       include AppName
 
       NODE_LTS_VERSION = "18.15.0"
@@ -99,6 +100,18 @@ module Rails
 
         class_option :skip_dev_gems,       type: :boolean, default: nil,
                                            desc: "Skip development gems (e.g., web-console)"
+
+        class_option :skip_rubocop,        type: :boolean, default: nil,
+                                           desc: "Skip RuboCop setup"
+
+        class_option :skip_brakeman,       type: :boolean, default: nil,
+                                           desc: "Skip brakeman setup"
+
+        class_option :skip_ci,             type: :boolean, default: nil,
+                                           desc: "Skip GitHub CI files"
+
+        class_option :skip_devcontainer,   type: :boolean, default: false,
+                                           desc: "Skip devcontainer files"
 
         class_option :dev,                 type: :boolean, default: nil,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
@@ -379,6 +392,21 @@ module Rails
         skip_asset_pipeline? || options[:asset_pipeline] != "propshaft"
       end
 
+      def skip_rubocop?
+        options[:skip_rubocop]
+      end
+
+      def skip_brakeman?
+        options[:skip_brakeman]
+      end
+
+      def skip_ci?
+        options[:skip_ci]
+      end
+
+      def skip_devcontainer?
+        options[:skip_devcontainer]
+      end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
         def initialize(name, version, comment, options = {}, commented_out = false)
@@ -541,6 +569,22 @@ module Rails
         binfixups
       end
 
+      def dockerfile_base_packages
+        # Add curl to work with the default healthcheck strategy in Kamal
+        packages = ["curl"]
+
+        # ActiveRecord databases
+        packages << base_package_for_database unless skip_active_record?
+
+        # ActiveStorage preview support
+        packages << "libvips" unless skip_active_storage?
+
+        # jemalloc for memory optimization
+        packages << "libjemalloc2"
+
+        packages.compact.sort
+      end
+
       def dockerfile_build_packages
         # start with the essentials
         packages = %w(build-essential git pkg-config)
@@ -548,54 +592,20 @@ module Rails
         # add database support
         packages << build_package_for_database unless skip_active_record?
 
-        # ActiveStorage preview support
-        packages << "libvips" unless skip_active_storage?
-
-        packages << "curl" if using_js_runtime?
-
         packages << "unzip" if using_bun?
 
         # node support, including support for building native modules
         if using_node?
           packages << "node-gyp" # pkg-config already listed above
 
-          # module build process depends on Python, and debian changed
-          # how python is installed with the bullseye release.  Below
-          # is based on debian release included with the Ruby images on
-          # Dockerhub.
-          case Gem.ruby_version.to_s
-          when /^2\.7/
-            bullseye = Gem.ruby_version >= Gem::Version.new("2.7.4")
-          when /^3\.0/
-            bullseye = Gem.ruby_version >= Gem::Version.new("3.0.2")
-          else
-            bullseye = true
-          end
-
-          if bullseye
-            packages << "python-is-python3"
-          else
-            packages << "python"
-          end
+          packages << "python-is-python3"
         end
 
         packages.compact.sort
       end
 
-      def dockerfile_deploy_packages
-        # Add curl to work with the default healthcheck strategy in Kamal
-        packages = ["curl"]
-
-        # ActiveRecord databases
-        packages << deploy_package_for_database unless skip_active_record?
-
-        # ActiveStorage preview support
-        packages << "libvips" unless skip_active_storage?
-
-        packages.compact.sort
-      end
-
       def css_gemfile_entry
+        return if options[:api]
         return unless options[:css]
 
         if !using_js_runtime? && options[:css] == "tailwind"
@@ -680,19 +690,7 @@ module Rails
       end
 
       def run_bundle
-        if bundle_install?
-          bundle_command("install", "BUNDLE_IGNORE_MESSAGES" => "1")
-
-          # The vast majority of Rails apps will be deployed on `x86_64-linux`.
-          platforms = ["--add-platform=x86_64-linux"]
-
-          # Users that develop on M1 mac may use docker and would need `aarch64-linux` as well.
-          platforms << "--add-platform=aarch64-linux" if RUBY_PLATFORM.start_with?("arm64")
-
-          platforms.each do |platform|
-            bundle_command("lock #{platform}", "BUNDLE_IGNORE_MESSAGES" => "1")
-          end
-        end
+        bundle_command("install --quiet", "BUNDLE_IGNORE_MESSAGES" => "1") if bundle_install?
       end
 
       def run_javascript
@@ -719,6 +717,16 @@ module Rails
           rails_command "dartsass:install"
         else
           rails_command "css:install:#{options[:css]}"
+        end
+      end
+
+      def add_bundler_platforms
+        if bundle_install?
+          # The vast majority of Rails apps will be deployed on `x86_64-linux`.
+          bundle_command("lock --add-platform=x86_64-linux")
+
+          # Users that develop on M1 mac may use docker and would need `aarch64-linux` as well.
+          bundle_command("lock --add-platform=aarch64-linux") if RUBY_PLATFORM.start_with?("arm64")
         end
       end
 

@@ -10,6 +10,7 @@ module ActiveRecord
         @previous_rack_env = ENV.delete("RACK_ENV")
         @previous_rails_env = ENV.delete("RAILS_ENV")
         @adapters_was = ActiveRecord::ConnectionAdapters.instance_variable_get(:@adapters).dup
+        @protocol_adapters = ActiveRecord.protocol_adapters.dup
       end
 
       teardown do
@@ -17,6 +18,7 @@ module ActiveRecord
         ENV["RACK_ENV"] = @previous_rack_env
         ENV["RAILS_ENV"] = @previous_rails_env
         ActiveRecord::ConnectionAdapters.instance_variable_set(:@adapters, @adapters_was)
+        ActiveRecord.protocol_adapters = @protocol_adapters
       end
 
       def resolve_config(config, env_name = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call)
@@ -433,6 +435,59 @@ module ActiveRecord
           database: "foo",
           adapter: "postgresql",
         }, actual.configuration_hash)
+      end
+
+      def test_protocol_adapter_mapping_is_used
+        ENV["DATABASE_URL"] = "mysql://localhost/exampledb"
+        ENV["RAILS_ENV"] = "production"
+
+        actual = resolve_db_config(:production, {})
+        expected = { adapter: "mysql2", database: "exampledb", host: "localhost" }
+
+        assert_equal expected, actual.configuration_hash
+      end
+
+      def test_protocol_adapter_mapping_falls_through_if_non_found
+        ENV["DATABASE_URL"] = "unknown://localhost/exampledb"
+        ENV["RAILS_ENV"] = "production"
+
+        actual = resolve_db_config(:production, {})
+        expected = { adapter: "unknown", database: "exampledb", host: "localhost" }
+
+        assert_equal expected, actual.configuration_hash
+      end
+
+      def test_protocol_adapter_mapping_is_used_and_can_be_updated
+        ActiveRecord.protocol_adapters.potato = "postgresql"
+        ENV["DATABASE_URL"] = "potato://localhost/exampledb"
+        ENV["RAILS_ENV"] = "production"
+
+        actual = resolve_db_config(:production, {})
+        expected = { adapter: "postgresql", database: "exampledb", host: "localhost" }
+
+        assert_equal expected, actual.configuration_hash
+      end
+
+      def test_protocol_adapter_mapping_translates_underscores_to_dashes
+        ActiveRecord.protocol_adapters.custom_protocol = "postgresql"
+        ENV["DATABASE_URL"] = "custom-protocol://localhost/exampledb"
+        ENV["RAILS_ENV"] = "production"
+
+        actual = resolve_db_config(:production, {})
+        expected = { adapter: "postgresql", database: "exampledb", host: "localhost" }
+
+        assert_equal expected, actual.configuration_hash
+      end
+
+      def test_protocol_adapter_mapping_handles_sqlite3_file_urls
+        ActiveRecord.protocol_adapters.custom_protocol = "sqlite3"
+        ENV["DATABASE_URL"] = "custom-protocol:/path/to/db.sqlite3"
+        ENV["RAILS_ENV"] = "production"
+
+        actual = resolve_db_config(:production, {})
+        expected = { adapter: "sqlite3", database: "/path/to/db.sqlite3" }
+
+        assert_equal expected, actual.configuration_hash
       end
     end
   end

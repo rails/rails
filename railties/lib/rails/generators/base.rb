@@ -79,7 +79,7 @@ module Rails
       #
       # For example, if the user invoke the controller generator as:
       #
-      #   bin/rails generate controller Account --test-framework=test_unit
+      #   $ bin/rails generate controller Account --test-framework=test_unit
       #
       # The controller generator will then try to invoke the following generators:
       #
@@ -134,11 +134,11 @@ module Rails
       # All hooks come with switches for user interface. If you do not want
       # to use any test framework, you can do:
       #
-      #   bin/rails generate controller Account --skip-test-framework
+      #   $ bin/rails generate controller Account --skip-test-framework
       #
       # Or similarly:
       #
-      #   bin/rails generate controller Account --no-test-framework
+      #   $ bin/rails generate controller Account --no-test-framework
       #
       # ==== Boolean hooks
       #
@@ -150,7 +150,7 @@ module Rails
       #
       # Then, if you want webrat to be invoked, just supply:
       #
-      #   bin/rails generate controller Account --webrat
+      #   $ bin/rails generate controller Account --webrat
       #
       # The hooks lookup is similar as above:
       #
@@ -222,7 +222,7 @@ module Rails
       end
 
       # Returns the default source root for a given generator. This is used internally
-      # by rails to set its generators source root. If you want to customize your source
+      # by Rails to set its generators source root. If you want to customize your source
       # root, you should use source_root.
       def self.default_source_root
         return unless base_name && generator_name

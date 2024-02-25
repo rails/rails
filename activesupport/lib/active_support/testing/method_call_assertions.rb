@@ -30,22 +30,8 @@ module ActiveSupport
           assert_called(object, method_name, message, times: 0, &block)
         end
 
-        #--
-        # This method is a temporary wrapper for mock.expect as part of
-        # the Minitest 5.16 / Ruby 3.0 kwargs transition. It can go away
-        # when we drop support for Ruby 2.7.
-        if Minitest::Mock.instance_method(:expect).parameters.map(&:first).include?(:keyrest)
-          def expect_called_with(mock, args, returns: false, **kwargs)
-            mock.expect(:call, returns, args, **kwargs)
-          end
-        else
-          def expect_called_with(mock, args, returns: false, **kwargs)
-            if !kwargs.empty?
-              mock.expect(:call, returns, [*args, kwargs])
-            else
-              mock.expect(:call, returns, args)
-            end
-          end
+        def expect_called_with(mock, args, returns: false, **kwargs)
+          mock.expect(:call, returns, args, **kwargs)
         end
 
         def assert_called_on_instance_of(klass, method_name, message = nil, times: 1, returns: nil)

@@ -44,9 +44,10 @@ class MigrationTest < ActiveRecord::TestCase
     end
     Reminder.reset_column_information
     @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
-    @schema_migration = ActiveRecord::Base.connection.schema_migration
-    @internal_metadata = ActiveRecord::Base.connection.internal_metadata
-    ActiveRecord::Base.connection.schema_cache.clear!
+    @pool = ActiveRecord::Base.connection_pool
+    @schema_migration = @pool.schema_migration
+    @internal_metadata = @pool.internal_metadata
+    ActiveRecord::Base.schema_cache.clear!
   end
 
   teardown do
@@ -77,22 +78,6 @@ class MigrationTest < ActiveRecord::TestCase
     Person.reset_column_information
 
     ActiveRecord::Migration.verbose = @verbose_was
-  end
-
-  def test_passing_a_schema_migration_class_to_migration_context_is_deprecated
-    migrations_path = MIGRATIONS_ROOT + "/valid"
-    migrator = assert_deprecated(ActiveRecord.deprecator) { ActiveRecord::MigrationContext.new(migrations_path, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata) }
-    migrator.up
-
-    assert_equal 3, migrator.current_version
-    assert_equal false, migrator.needs_migration?
-
-    migrator.down
-    assert_equal 0, migrator.current_version
-    assert_equal true, migrator.needs_migration?
-
-    @schema_migration.create_version(3)
-    assert_equal true, migrator.needs_migration?
   end
 
   def test_migration_context_with_default_schema_migration
@@ -691,7 +676,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_internal_metadata_stores_environment
-    current_env     = env_name(@internal_metadata.connection)
+    current_env     = env_name(@pool)
     migrations_path = MIGRATIONS_ROOT + "/valid"
     migrator = ActiveRecord::MigrationContext.new(migrations_path, @schema_migration, @internal_metadata)
 
@@ -701,7 +686,7 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_internal_metadata_stores_environment_when_migration_fails
     @internal_metadata.delete_all_entries
-    current_env = env_name(@internal_metadata.connection)
+    current_env = env_name(@pool)
 
     migration = Class.new(ActiveRecord::Migration::Current) {
       def version; 101 end
@@ -719,7 +704,7 @@ class MigrationTest < ActiveRecord::TestCase
     @internal_metadata.delete_all_entries
     @internal_metadata[:foo] = "bar"
 
-    current_env     = env_name(@internal_metadata.connection)
+    current_env = env_name(@pool)
     migrations_path = MIGRATIONS_ROOT + "/valid"
 
     migrator = ActiveRecord::MigrationContext.new(migrations_path, @schema_migration, @internal_metadata)
@@ -730,10 +715,9 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_internal_metadata_not_used_when_not_enabled
     @internal_metadata.drop_table
-    original_config = ActiveRecord::Base.connection.instance_variable_get("@config")
+    original_config = @pool.db_config.instance_variable_get(:@configuration_hash)
     modified_config = original_config.dup.merge(use_metadata_table: false)
-
-    ActiveRecord::Base.connection.instance_variable_set("@config", modified_config)
+    @pool.db_config.instance_variable_set(:@configuration_hash, modified_config)
 
     assert_not @internal_metadata.enabled?
     assert_not @internal_metadata.table_exists?
@@ -745,7 +729,7 @@ class MigrationTest < ActiveRecord::TestCase
     assert_not @internal_metadata[:environment]
     assert_not @internal_metadata.table_exists?
   ensure
-    ActiveRecord::Base.connection.instance_variable_set("@config", original_config)
+    @pool.db_config.instance_variable_set(:@configuration_hash, original_config)
     @internal_metadata.create_table
   end
 
@@ -758,18 +742,18 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_updating_an_existing_entry_into_internal_metadata
     @internal_metadata[:version] = "foo"
-    updated_at = @internal_metadata.send(:select_entry, :version)["updated_at"]
+    updated_at = @internal_metadata.send(:select_entry, @pool.connection, :version)["updated_at"]
     assert_equal "foo", @internal_metadata[:version]
 
     # same version doesn't update timestamps
     @internal_metadata[:version] = "foo"
     assert_equal "foo", @internal_metadata[:version]
-    assert_equal updated_at, @internal_metadata.send(:select_entry, :version)["updated_at"]
+    assert_equal updated_at, @internal_metadata.send(:select_entry, @pool.connection, :version)["updated_at"]
 
     # updated version updates timestamps
     @internal_metadata[:version] = "not_foo"
     assert_equal "not_foo", @internal_metadata[:version]
-    assert_not_equal updated_at, @internal_metadata.send(:select_entry, :version)["updated_at"]
+    assert_not_equal updated_at, @internal_metadata.send(:select_entry, @pool.connection, :version)["updated_at"]
   ensure
     @internal_metadata.delete_all_entries
   end
@@ -778,22 +762,24 @@ class MigrationTest < ActiveRecord::TestCase
     @internal_metadata.drop_table
     assert_not_predicate @internal_metadata, :table_exists?
 
-    @internal_metadata.connection.transaction do
-      @internal_metadata.create_table
-      assert_predicate @internal_metadata, :table_exists?
+    @pool.with_connection do |connection|
+      connection.transaction do
+        @internal_metadata.create_table
+        assert_predicate @internal_metadata, :table_exists?
 
-      @internal_metadata[:version] = "foo"
-      assert_equal "foo", @internal_metadata[:version]
-      raise ActiveRecord::Rollback
-    end
+        @internal_metadata[:version] = "foo"
+        assert_equal "foo", @internal_metadata[:version]
+        raise ActiveRecord::Rollback
+      end
 
-    @internal_metadata.connection.transaction do
-      @internal_metadata.create_table
-      assert_predicate @internal_metadata, :table_exists?
+      connection.transaction do
+        @internal_metadata.create_table
+        assert_predicate @internal_metadata, :table_exists?
 
-      @internal_metadata[:version] = "bar"
-      assert_equal "bar", @internal_metadata[:version]
-      raise ActiveRecord::Rollback
+        @internal_metadata[:version] = "bar"
+        assert_equal "bar", @internal_metadata[:version]
+        raise ActiveRecord::Rollback
+      end
     end
   ensure
     @internal_metadata.create_table
@@ -803,20 +789,22 @@ class MigrationTest < ActiveRecord::TestCase
     @schema_migration.drop_table
     assert_not_predicate @schema_migration, :table_exists?
 
-    @schema_migration.connection.transaction do
-      @schema_migration.create_table
-      assert_predicate @schema_migration, :table_exists?
+    @pool.with_connection do |connection|
+      connection.transaction do
+        @schema_migration.create_table
+        assert_predicate @schema_migration, :table_exists?
 
-      assert_equal "foo", @schema_migration.create_version("foo")
-      raise ActiveRecord::Rollback
-    end
+        assert_equal "foo", @schema_migration.create_version("foo")
+        raise ActiveRecord::Rollback
+      end
 
-    @schema_migration.connection.transaction do
-      @schema_migration.create_table
-      assert_predicate @schema_migration, :table_exists?
+      connection.transaction do
+        @schema_migration.create_table
+        assert_predicate @schema_migration, :table_exists?
 
-      assert_equal "bar", @schema_migration.create_version("bar")
-      raise ActiveRecord::Rollback
+        assert_equal "bar", @schema_migration.create_version("bar")
+        raise ActiveRecord::Rollback
+      end
     end
   ensure
     @schema_migration.create_table
@@ -1158,8 +1146,8 @@ class MigrationTest < ActiveRecord::TestCase
       other_process.join
     end
 
-    def env_name(connection)
-      connection.pool.db_config.env_name
+    def env_name(pool)
+      pool.db_config.env_name
     end
 end
 
@@ -1238,7 +1226,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         raise "need an expected query count for #{classname}"
       }
 
-      assert_queries(expected_query_count) do
+      assert_queries_count(expected_query_count) do
         with_bulk_change_table do |t|
           t.column :name, :string
           t.string :qualification, :experience
@@ -1278,7 +1266,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       [:qualification, :experience].each { |c| assert column(c) }
 
-      assert_queries(1) do
+      assert_queries_count(1) do
         with_bulk_change_table do |t|
           t.remove :qualification, :experience
           t.string :qualification_experience
@@ -1296,7 +1284,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       assert column(:title)
 
-      assert_queries(1) do
+      assert_queries_count(1) do
         with_bulk_change_table do |t|
           t.timestamps
           t.remove :title
@@ -1314,7 +1302,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       [:created_at, :updated_at].each { |c| assert column(c) }
 
-      assert_queries(1) do
+      assert_queries_count(1) do
         with_bulk_change_table do |t|
           t.remove_timestamps
           t.string :title
@@ -1341,7 +1329,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         raise "need an expected query count for #{classname}"
       }
 
-      assert_queries(expected_query_count) do
+      assert_queries_count(expected_query_count) do
         with_bulk_change_table do |t|
           t.index :username, unique: true, name: :awesome_username_index
           t.index [:name, :age], comment: "This is a comment"
@@ -1375,7 +1363,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         raise "need an expected query count for #{classname}"
       }
 
-      assert_queries(expected_query_count) do
+      assert_queries_count(expected_query_count) do
         with_bulk_change_table do |t|
           t.remove_index :name
           t.index :name, name: :new_name_index, unique: true
@@ -1406,7 +1394,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         raise "need an expected query count for #{classname}"
       }
 
-      assert_queries(expected_query_count, ignore_none: true) do
+      assert_queries_count(expected_query_count, include_schema: true) do
         with_bulk_change_table do |t|
           t.change :name, :string, default: "NONAME"
           t.change :birthdate, :datetime, comment: "This is a comment"
@@ -1437,7 +1425,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         raise "need an expected query count for #{classname}"
       }
 
-      assert_queries(expected_query_count, ignore_none: true) do
+      assert_queries_count(expected_query_count, include_schema: true) do
         with_bulk_change_table do |t|
           t.change :name, :string, default: "NONAME"
           t.change :birthdate, :datetime
@@ -1508,7 +1496,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         raise "need an expected query count for #{classname}"
       }
 
-      assert_queries(expected_query_count) do
+      assert_queries_count(expected_query_count) do
         with_bulk_change_table do |t|
           t.remove_index name: :username_index
           t.index :username, name: :username_index, unique: true
@@ -1576,7 +1564,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         end
       }.new
 
-      assert_queries(1) do
+      assert_queries_count(1) do
         migration.migrate(:down)
       end
 
@@ -1800,5 +1788,132 @@ class CopyMigrationsTest < ActiveRecord::TestCase
 
   def test_unknown_migration_version_should_raise_an_argument_error
     assert_raise(ArgumentError) { ActiveRecord::Migration[1.0] }
+  end
+
+  class MigrationValidationTest < ActiveRecord::TestCase
+    def setup
+      @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
+      @schema_migration = ActiveRecord::Base.connection_pool.schema_migration
+      @internal_metadata = ActiveRecord::Base.connection_pool.internal_metadata
+      @active_record_validate_timestamps_was = ActiveRecord.validate_migration_timestamps
+      ActiveRecord.validate_migration_timestamps = true
+      ActiveRecord::Base.schema_cache.clear!
+
+      @migrations_path = MIGRATIONS_ROOT + "/temp"
+      @migrator = ActiveRecord::MigrationContext.new(@migrations_path, @schema_migration, @internal_metadata)
+    end
+
+    def teardown
+      @schema_migration.create_table
+      @schema_migration.delete_all_versions
+      ActiveRecord.validate_migration_timestamps = @active_record_validate_timestamps_was
+      ActiveRecord::Migration.verbose = @verbose_was
+    end
+
+    def test_migration_raises_if_timestamp_greater_than_14_digits
+      with_temp_migration_files(["201801010101010000_test_migration.rb"]) do
+        error = assert_raises(ActiveRecord::InvalidMigrationTimestampError) do
+          @migrator.up(201801010101010000)
+        end
+        assert_match(/Invalid timestamp 201801010101010000 for migration file: test_migration/, error.message)
+      end
+    end
+
+    def test_migration_raises_if_timestamp_is_future_date
+      timestamp = (Time.now.utc + 1.month).strftime("%Y%m%d%H%M%S").to_i
+      with_temp_migration_files(["#{timestamp}_test_migration.rb"]) do
+        error = assert_raises(ActiveRecord::InvalidMigrationTimestampError) do
+          @migrator.up(timestamp)
+        end
+        assert_match(/Invalid timestamp #{timestamp} for migration file: test_migration/, error.message)
+      end
+    end
+
+    def test_migration_succeeds_if_timestamp_is_less_than_one_day_in_the_future
+      timestamp = (Time.now.utc + 1.minute).strftime("%Y%m%d%H%M%S").to_i
+      with_temp_migration_files(["#{timestamp}_test_migration.rb"]) do
+        @migrator.up(timestamp)
+        assert_equal timestamp, @migrator.current_version
+      end
+    end
+
+    def test_migration_succeeds_despite_future_timestamp_if_validate_timestamps_is_false
+      validate_migration_timestamps_was = ActiveRecord.validate_migration_timestamps
+      ActiveRecord.validate_migration_timestamps = false
+
+      timestamp = (Time.now.utc + 1.month).strftime("%Y%m%d%H%M%S").to_i
+      with_temp_migration_files(["#{timestamp}_test_migration.rb"]) do
+        @migrator.up(timestamp)
+        assert_equal timestamp, @migrator.current_version
+      end
+    ensure
+      ActiveRecord.validate_migration_timestamps = validate_migration_timestamps_was
+    end
+
+    def test_migration_succeeds_despite_future_timestamp_if_timestamped_migrations_is_false
+      timestamped_migrations_was = ActiveRecord.timestamped_migrations
+      ActiveRecord.timestamped_migrations = false
+
+      timestamp = (Time.now.utc + 1.month).strftime("%Y%m%d%H%M%S").to_i
+      with_temp_migration_files(["#{timestamp}_test_migration.rb"]) do
+        @migrator.up(timestamp)
+        assert_equal timestamp, @migrator.current_version
+      end
+    ensure
+      ActiveRecord.timestamped_migrations = timestamped_migrations_was
+    end
+
+    def test_copied_migrations_at_timestamp_boundary_are_valid
+      migrations_path_source = MIGRATIONS_ROOT + "/temp_source"
+      migrations_path_dest = MIGRATIONS_ROOT + "/temp_dest"
+      migrations = ["20180101010101_test_migration.rb", "20180101010102_test_migration_two.rb", "20180101010103_test_migration_three.rb"]
+
+      with_temp_migration_files(migrations, migrations_path_source) do
+        travel_to(Time.utc(2023, 12, 1, 10, 10, 59)) do
+          ActiveRecord::Migration.copy(migrations_path_dest, temp: migrations_path_source)
+
+          assert File.exist?(migrations_path_dest + "/20231201101059_test_migration.temp.rb")
+          assert File.exist?(migrations_path_dest + "/20231201101060_test_migration_two.temp.rb")
+          assert File.exist?(migrations_path_dest + "/20231201101061_test_migration_three.temp.rb")
+
+          migrator = ActiveRecord::MigrationContext.new(migrations_path_dest, @schema_migration, @internal_metadata)
+          migrator.up(20231201101059)
+          migrator.up(20231201101060)
+          migrator.up(20231201101061)
+
+          assert_equal 20231201101061, migrator.current_version
+          assert_not migrator.needs_migration?
+        end
+      end
+    ensure
+      File.delete(*Dir[migrations_path_dest + "/*.rb"])
+      Dir.rmdir(migrations_path_dest) if Dir.exist?(migrations_path_dest)
+    end
+
+    private
+      def with_temp_migration_files(filenames, migrations_dir = @migrations_path)
+        Dir.mkdir(migrations_dir) unless Dir.exist?(migrations_dir)
+
+        paths = []
+        filenames.each do |filename|
+          path = File.join(migrations_dir, filename)
+          paths << path
+
+          migration_class = filename.match(ActiveRecord::Migration::MigrationFilenameRegexp)[2].camelize
+
+          File.open(path, "w+") do |file|
+            file << <<~MIGRATION
+          class #{migration_class} < ActiveRecord::Migration::Current
+            def change; end
+          end
+            MIGRATION
+          end
+        end
+
+        yield
+      ensure
+        paths.each { |path| File.delete(path) if File.exist?(path) }
+        Dir.rmdir(migrations_dir) if Dir.exist?(migrations_dir)
+      end
   end
 end

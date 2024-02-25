@@ -66,6 +66,7 @@ If you wish to skip some files from being generated or skip some libraries, you 
 | `--skip-system-test`    | Skip system test files                                      |
 | `--skip-bootsnap`       | Skip bootsnap gem                                           |
 | `--skip-dev-gems`       | Skip adding development gems                                |
+| `--skip-rubocop`        | Skip RuboCop setup                                          |
 
 These are just some of the options that `rails new` accepts. For a full list of options, type `rails new --help`.
 
@@ -184,10 +185,13 @@ $ bin/rails server
 => Rails 7.2.0 application starting in development
 => Run `bin/rails server --help` for more startup options
 Puma starting in single mode...
-* Version 3.12.1 (ruby 2.5.7-p206), codename: Llamas in Pajamas
-* Min threads: 5, max threads: 5
-* Environment: development
-* Listening on tcp://localhost:3000
+* Puma version: 6.4.0 (ruby 3.1.3-p185) ("The Eagle of Durango")
+*  Min threads: 5
+*  Max threads: 5
+*  Environment: development
+*          PID: 5295
+* Listening on http://127.0.0.1:3000
+* Listening on http://[::1]:3000
 Use Ctrl-C to stop
 ```
 
@@ -277,7 +281,7 @@ $ bin/rails generate controller Greetings hello
      invoke    test_unit
 ```
 
-What all did this generate? It made sure a bunch of directories were in our application, and created a controller file, a view file, a functional test file, a helper for the view, a JavaScript file, and a stylesheet file.
+What did all this generate? It made sure a bunch of directories were in our application, and created a controller file, a view file, a functional test file, a helper for the view, a JavaScript file, and a stylesheet file.
 
 Check out the controller and modify it a little (in `app/controllers/greetings_controller.rb`):
 
@@ -454,7 +458,7 @@ $ bin/rails dbconsole --database=animals
 
 ### `bin/rails runner`
 
-`runner` runs Ruby code in the context of Rails non-interactively. For instance:
+`runner` runs Ruby code in the context of the Rails application non-interactively, without having to open Rails `console`. For instance:
 
 ```bash
 $ bin/rails runner "Model.long_running_method"
@@ -508,8 +512,8 @@ $ bin/rails destroy model Oops
 $ bin/rails about
 About your application's environment
 Rails version             7.2.0
-Ruby version              2.7.0 (x86_64-linux)
-RubyGems version          2.7.3
+Ruby version              3.1.0 (x86_64-linux)
+RubyGems version          3.3.7
 Rack version              3.0.8
 JavaScript Runtime        Node.js (V8)
 Middleware:               ActionDispatch::HostAuthorization, Rack::Sendfile, ActionDispatch::Static, ActionDispatch::Executor, ActionDispatch::ServerTiming, ActiveSupport::Cache::Strategy::LocalCache::Middleware, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, ActionDispatch::RemoteIp, Sprockets::Rails::QuietAssets, Rails::Rack::Logger, ActionDispatch::ShowExceptions, WebConsole::Middleware, ActionDispatch::DebugExceptions, ActionDispatch::ActionableExceptions, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, ActionDispatch::ContentSecurityPolicy::Middleware, ActionDispatch::PermissionsPolicy::Middleware, Rack::Head, Rack::ConditionalGet, Rack::ETag, Rack::TempfileReaper

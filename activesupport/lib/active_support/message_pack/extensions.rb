@@ -86,8 +86,9 @@ module ActiveSupport
           unpacker: URI.method(:parse)
 
         registry.register_type 14, IPAddr,
-          packer: :to_s,
-          unpacker: :new
+          packer: method(:write_ipaddr),
+          unpacker: method(:read_ipaddr),
+          recursive: true
 
         registry.register_type 15, Pathname,
           packer: :to_s,
@@ -219,6 +220,18 @@ module ActiveSupport
 
       def read_set(unpacker)
         Set.new(unpacker.read)
+      end
+
+      def write_ipaddr(ipaddr, packer)
+        if ipaddr.prefix < 32 || (ipaddr.ipv6? && ipaddr.prefix < 128)
+          packer.write("#{ipaddr}/#{ipaddr.prefix}")
+        else
+          packer.write(ipaddr.to_s)
+        end
+      end
+
+      def read_ipaddr(unpacker)
+        IPAddr.new(unpacker.read)
       end
 
       def write_hash_with_indifferent_access(hwia, packer)

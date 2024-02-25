@@ -204,7 +204,7 @@ module ActiveRecord
 
       relation = Relation.new(klass)
       relation.merge!(where: ["foo = ?", "bar"])
-      assert_equal Relation::WhereClause.new(["foo = bar"]), relation.where_clause
+      assert_equal Relation::WhereClause.new([Arel.sql("(foo = ?)", "bar")]), relation.where_clause
     end
 
     def test_merging_readonly_false
@@ -331,14 +331,14 @@ module ActiveRecord
 
     def test_relation_with_annotation_includes_comment_in_sql
       post_with_annotation = Post.where(id: 1).annotate("foo")
-      assert_sql(%r{/\* foo \*/}) do
+      assert_queries_match(%r{/\* foo \*/}) do
         assert post_with_annotation.first, "record should be found"
       end
     end
 
     def test_relation_with_annotation_chains_sql_comments
       post_with_annotation = Post.where(id: 1).annotate("foo").annotate("bar")
-      assert_sql(%r{/\* foo \*/ /\* bar \*/}) do
+      assert_queries_match(%r{/\* foo \*/ /\* bar \*/}) do
         assert post_with_annotation.first, "record should be found"
       end
     end
@@ -351,7 +351,7 @@ module ActiveRecord
     def test_relation_with_annotation_includes_comment_in_count_query
       post_with_annotation = Post.annotate("foo")
       all_count = Post.all.to_a.count
-      assert_sql(%r{/\* foo \*/}) do
+      assert_queries_match(%r{/\* foo \*/}) do
         assert_equal all_count, post_with_annotation.count
       end
     end
@@ -421,25 +421,25 @@ module ActiveRecord
     end
 
     test "no queries on empty IN" do
-      assert_queries(0) do
+      assert_queries_count(0) do
         Post.where(id: []).load
       end
     end
 
     test "can unscope empty IN" do
-      assert_queries(1) do
+      assert_queries_count(1) do
         Post.where(id: []).unscope(where: :id).load
       end
     end
 
     test "no queries on empty relation exists?" do
-      assert_queries(0) do
+      assert_queries_count(0) do
         Post.where(id: []).exists?(123)
       end
     end
 
     test "no queries on empty condition exists?" do
-      assert_queries(0) do
+      assert_queries_count(0) do
         Post.all.exists?(id: [])
       end
     end

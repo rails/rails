@@ -7,14 +7,6 @@ module ActiveRecord
   class ActiveRecordError < StandardError
   end
 
-  # DEPRECATED: Previously raised when trying to use a feature in Active Record which
-  # requires Active Job but the gem is not present. Now raises a NameError.
-  include ActiveSupport::Deprecation::DeprecatedConstantAccessor
-  DeprecatedActiveJobRequiredError = Class.new(ActiveRecordError) # :nodoc:
-  deprecate_constant "ActiveJobRequiredError", "ActiveRecord::DeprecatedActiveJobRequiredError",
-    message: "ActiveRecord::ActiveJobRequiredError has been deprecated. If Active Job is not present, a NameError will be raised instead.",
-    deprecator: ActiveRecord.deprecator
-
   # Raised when the single-table inheritance mechanism fails to locate the subclass
   # (for example due to improper usage of column that
   # {ActiveRecord::Base.inheritance_column}[rdoc-ref:ModelSchema::ClassMethods#inheritance_column]
@@ -318,14 +310,15 @@ module ActiveRecord
     class << self
       def db_error(db_name)
         NoDatabaseError.new(<<~MSG)
-          We could not find your database: #{db_name}. Available database configurations can be found in config/database.yml file.
+          We could not find your database: #{db_name}. Available database configurations can be found in config/database.yml.
 
           To resolve this error:
 
-          - Did you create the database for this app, or delete it? You may need to create your database.
-          - Has the database name changed? Check your database.yml config has the correct database name.
+          - Did you not create the database, or did you delete it? To create the database, run:
 
-          To create your database, run:\n\n        bin/rails db:create
+              bin/rails db:create
+
+          - Has the database name changed? Verify that config/database.yml contains the correct database name.
         MSG
       end
     end

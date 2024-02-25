@@ -8,10 +8,10 @@ class SchemaDumperTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
   setup do
-    @schema_migration = ActiveRecord::Base.connection.schema_migration
+    @schema_migration = ActiveRecord::Base.connection_pool.schema_migration
     @schema_migration.create_table
 
-    ARUnit2Model.connection.schema_migration.create_table
+    ARUnit2Model.connection_pool.schema_migration.create_table
   end
 
   def standard_dump
@@ -160,7 +160,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_schema_dump_with_regexp_ignored_table
-    output = dump_all_table_schema([/^courses/], connection: ARUnit2Model.connection)
+    output = dump_all_table_schema([/^courses/], pool: ARUnit2Model.connection_pool)
     assert_no_match %r{create_table "courses"}, output
     assert_match %r{create_table "colleges"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
@@ -566,7 +566,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     migration.migrate(:up)
 
     stream = StringIO.new
-    output = ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream).string
+    output = ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection_pool, stream).string
 
     assert_match %r{create_table "omg_cats"}, output
     assert_no_match %r{create_table "cats"}, output

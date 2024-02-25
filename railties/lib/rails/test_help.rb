@@ -7,19 +7,17 @@
 abort("Abort testing: Your Rails environment is running in production mode!") if Rails.env.production?
 
 require "active_support/test_case"
-require "action_controller"
-require "action_controller/test_case"
-require "action_dispatch/testing/integration"
 require "rails/generators/test_case"
-
 require "active_support/testing/autorun"
 
 require "rails/testing/maintain_test_schema"
 
 if defined?(ActiveRecord::Base)
+  require "active_record/testing/query_assertions"
   ActiveSupport.on_load(:active_support_test_case) do
     include ActiveRecord::TestDatabases
     include ActiveRecord::TestFixtures
+    include ActiveRecord::Assertions::QueryAssertions
 
     self.fixture_paths << "#{Rails.root}/test/fixtures/"
     self.file_fixture_path = "#{Rails.root}/test/fixtures/files"

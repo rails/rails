@@ -360,6 +360,11 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       "/:controller(/:action(/:id))(.:format)",
       controller.request.route_uri_pattern
     )
+
+    assert_equal(
+      "/:controller(/:action(/:id))(.:format)",
+      controller.request.get_header("action_dispatch.route_uri_pattern")
+    )
   end
 
   def test_route_with_colon_first
@@ -1689,7 +1694,7 @@ class RouteSetTest < ActiveSupport::TestCase
     set.draw do
       get "page/:name" => "pages#show", :constraints => lambda { |request|
         name_param = request.params[:name]
-        return true
+        true
       }
     end
     assert_equal({ controller: "pages", action: "show", name: "mypage" },

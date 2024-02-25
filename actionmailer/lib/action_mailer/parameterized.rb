@@ -114,14 +114,13 @@ module ActionMailer
       end
 
       private
-        def method_missing(method_name, *args)
-          if @mailer.action_methods.include?(method_name.to_s)
-            ActionMailer::Parameterized::MessageDelivery.new(@mailer, method_name, @params, *args)
+        def method_missing(method_name, ...)
+          if @mailer.action_methods.include?(method_name.name)
+            ActionMailer::Parameterized::MessageDelivery.new(@mailer, method_name, @params, ...)
           else
             super
           end
         end
-        ruby2_keywords(:method_missing)
 
         def respond_to_missing?(method, include_all = false)
           @mailer.respond_to?(method, include_all)
@@ -129,11 +128,10 @@ module ActionMailer
     end
 
     class MessageDelivery < ActionMailer::MessageDelivery # :nodoc:
-      def initialize(mailer_class, action, params, *args)
-        super(mailer_class, action, *args)
+      def initialize(mailer_class, action, params, ...)
+        super(mailer_class, action, ...)
         @params = params
       end
-      ruby2_keywords(:initialize)
 
       private
         def processed_mailer

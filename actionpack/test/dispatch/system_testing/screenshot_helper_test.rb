@@ -153,8 +153,6 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
   end
 
   test "take_failed_screenshot persists the image path in the test metadata" do
-    skip "Older versions of Minitest don't support test metadata." unless Minitest::Runnable.method_defined?(:metadata)
-
     Rails.stub :root, Pathname.getwd do
       @new_test.stub :passed?, false do
         Capybara::Session.stub :instance_created?, true do

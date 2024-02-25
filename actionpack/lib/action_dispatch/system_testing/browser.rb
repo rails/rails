@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionDispatch
   module SystemTesting
     class Browser # :nodoc:
-      attr_reader :name, :options
+      attr_reader :name
 
       def initialize(name)
         @name = name
@@ -21,13 +23,22 @@ module ActionDispatch
         end
       end
 
-      def configure
-        initialize_options
-        yield options if block_given? && options
+      def options
+        @options ||=
+          case type
+          when :chrome
+            ::Selenium::WebDriver::Chrome::Options.new
+          when :firefox
+            ::Selenium::WebDriver::Firefox::Options.new
+          end
       end
 
-      # driver_path is lazily initialized by default. Eagerly set it to
-      # avoid race conditions when using parallel tests.
+      def configure
+        yield options if block_given?
+      end
+
+      # driver_path is lazily initialized by default. Eagerly set it to avoid race
+      # conditions when using parallel tests.
       def preload
         case type
         when :chrome
@@ -38,16 +49,6 @@ module ActionDispatch
       end
 
       private
-        def initialize_options
-          @options ||=
-            case type
-            when :chrome
-              ::Selenium::WebDriver::Chrome::Options.new
-            when :firefox
-              ::Selenium::WebDriver::Firefox::Options.new
-            end
-        end
-
         def set_default_options
           case name
           when :headless_chrome
@@ -71,10 +72,7 @@ module ActionDispatch
         end
 
         def resolve_driver_path(namespace)
-          namespace::Service.driver_path = ::Selenium::WebDriver::DriverFinder.path(
-            options || namespace::Options.new,
-            namespace::Service
-          )
+          namespace::Service.driver_path = ::Selenium::WebDriver::DriverFinder.path(options, namespace::Service)
         end
     end
   end

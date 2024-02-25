@@ -16,11 +16,11 @@ module ActiveRecord
         end
 
         def quote_table_name(name)
-          QUOTED_TABLE_NAMES[name] ||= super.gsub(".", "\".\"").freeze
+          QUOTED_TABLE_NAMES[name] ||= -super.gsub(".", "\".\"").freeze
         end
 
         def quote_column_name(name)
-          QUOTED_COLUMN_NAMES[name] ||= %Q("#{super.gsub('"', '""')}")
+          QUOTED_COLUMN_NAMES[name] ||= %Q("#{super.gsub('"', '""')}").freeze
         end
 
         def quoted_time(value)
@@ -63,7 +63,7 @@ module ActiveRecord
 
         def type_cast(value) # :nodoc:
           case value
-          when BigDecimal
+          when BigDecimal, Rational
             value.to_f
           when String
             if value.encoding == Encoding::ASCII_8BIT

@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionController
-  # = Action Controller Default Headers
+  # # Action Controller Default Headers
   #
-  # Allows configuring default headers that will be automatically merged into
-  # each response.
+  # Allows configuring default headers that will be automatically merged into each
+  # response.
   module DefaultHeaders
     extend ActiveSupport::Concern
 

@@ -66,7 +66,6 @@ module ActiveModel
 
     NAME_COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?=]?\z/
     CALL_COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?]?\z/
-    FORWARD_PARAMETERS = "*args"
 
     included do
       class_attribute :attribute_aliases, instance_writer: false, default: {}
@@ -225,28 +224,13 @@ module ActiveModel
         method_name = pattern.method_name(new_name).to_s
         target_name = pattern.method_name(old_name).to_s
         parameters = pattern.parameters
-        mangled_name = target_name
 
-        unless NAME_COMPILABLE_REGEXP.match?(target_name)
-          mangled_name = "__temp__#{target_name.unpack1("h*")}"
-        end
+        mangled_name = build_mangled_name(target_name)
 
-        code_generator.define_cached_method(method_name, as: mangled_name, namespace: :alias_attribute) do |batch|
-          body = if CALL_COMPILABLE_REGEXP.match?(target_name)
-            "self.#{target_name}(#{parameters || ''})"
-          else
-            call_args = [":'#{target_name}'"]
-            call_args << parameters if parameters
-            "send(#{call_args.join(", ")})"
-          end
+        call_args = []
+        call_args << parameters if parameters
 
-          modifier = parameters == FORWARD_PARAMETERS ? "ruby2_keywords " : ""
-
-          batch <<
-            "#{modifier}def #{mangled_name}(#{parameters || ''})" <<
-            body <<
-            "end"
-        end
+        define_call(code_generator, method_name, target_name, mangled_name, parameters, call_args, namespace: :alias_attribute)
       end
 
       # Is +new_name+ an alias?
@@ -381,6 +365,8 @@ module ActiveModel
           super
           base.class_eval do
             @attribute_method_patterns_cache = nil
+            @aliases_by_attribute_name = nil
+            @generated_attribute_methods = nil
           end
         end
 
@@ -419,27 +405,36 @@ module ActiveModel
         # using the given `extra` args. This falls back on `send`
         # if the called name cannot be compiled.
         def define_proxy_call(code_generator, name, proxy_target, parameters, *call_args, namespace:)
-          mangled_name = name
-          unless NAME_COMPILABLE_REGEXP.match?(name)
-            mangled_name = "__temp__#{name.unpack1("h*")}"
-          end
+          mangled_name = build_mangled_name(name)
 
           call_args.map!(&:inspect)
           call_args << parameters if parameters
           namespace = :"#{namespace}_#{proxy_target}_#{call_args.join("_")}}"
 
+          define_call(code_generator, name, proxy_target, mangled_name, parameters, call_args, namespace: namespace)
+        end
+
+        def build_mangled_name(name)
+          mangled_name = name
+
+          unless NAME_COMPILABLE_REGEXP.match?(name)
+            mangled_name = "__temp__#{name.unpack1("h*")}"
+          end
+
+          mangled_name
+        end
+
+        def define_call(code_generator, name, target_name, mangled_name, parameters, call_args, namespace:)
           code_generator.define_cached_method(name, as: mangled_name, namespace: namespace) do |batch|
-            body = if CALL_COMPILABLE_REGEXP.match?(proxy_target)
-              "self.#{proxy_target}(#{call_args.join(", ")})"
+            body = if CALL_COMPILABLE_REGEXP.match?(target_name)
+              "self.#{target_name}(#{call_args.join(", ")})"
             else
-              call_args.unshift(":'#{proxy_target}'")
+              call_args.unshift(":'#{target_name}'")
               "send(#{call_args.join(", ")})"
             end
 
-            modifier = parameters == FORWARD_PARAMETERS ? "ruby2_keywords " : ""
-
             batch <<
-              "#{modifier}def #{mangled_name}(#{parameters || ''})" <<
+              "def #{mangled_name}(#{parameters || ''})" <<
               body <<
               "end"
           end
@@ -453,7 +448,7 @@ module ActiveModel
           def initialize(prefix: "", suffix: "", parameters: nil)
             @prefix = prefix
             @suffix = suffix
-            @parameters = parameters.nil? ? FORWARD_PARAMETERS : parameters
+            @parameters = parameters.nil? ? "..." : parameters
             @regex = /\A(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})\z/
             @proxy_target = "#{@prefix}attribute#{@suffix}"
             @method_name = "#{prefix}%s#{suffix}"
@@ -481,24 +476,22 @@ module ActiveModel
     # It's also possible to instantiate related objects, so a <tt>Client</tt>
     # class belonging to the +clients+ table with a +master_id+ foreign key
     # can instantiate master through <tt>Client#master</tt>.
-    def method_missing(method, *args, &block)
+    def method_missing(method, ...)
       if respond_to_without_attributes?(method, true)
         super
       else
-        match = matched_attribute_method(method.to_s)
-        match ? attribute_missing(match, *args, &block) : super
+        match = matched_attribute_method(method.name)
+        match ? attribute_missing(match, ...) : super
       end
     end
-    ruby2_keywords(:method_missing)
 
     # +attribute_missing+ is like +method_missing+, but for attributes. When
     # +method_missing+ is called we check to see if there is a matching
     # attribute method. If so, we tell +attribute_missing+ to dispatch the
     # attribute. This method can be overloaded to customize the behavior.
-    def attribute_missing(match, *args, &block)
-      __send__(match.proxy_target, match.attr_name, *args, &block)
+    def attribute_missing(match, ...)
+      __send__(match.proxy_target, match.attr_name, ...)
     end
-    ruby2_keywords(:attribute_missing)
 
     # A +Person+ instance with a +name+ attribute can ask
     # <tt>person.respond_to?(:name)</tt>, <tt>person.respond_to?(:name=)</tt>,

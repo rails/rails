@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/core_ext/array/extract_options"
 
 module ActionDispatch
@@ -29,32 +31,27 @@ module ActionDispatch
 
       def method_missing(method, *args)
         if @helpers.respond_to?(method)
-          instance_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def #{method}(*args)
-              options = args.extract_options!
-              options = url_options.merge((options || {}).symbolize_keys)
+          options = args.extract_options!
+          options = url_options.merge((options || {}).symbolize_keys)
 
-              if @script_namer
-                options[:script_name] = merge_script_names(
-                  options[:script_name],
-                  @script_namer.call(options)
-                )
-              end
+          if @script_namer
+            options[:script_name] = merge_script_names(
+              options[:script_name],
+              @script_namer.call(options)
+            )
+          end
 
-              args << options
-              @helpers.#{method}(*args)
-            end
-          RUBY
-          public_send(method, *args)
+          args << options
+          @helpers.public_send(method, *args)
         else
           super
         end
       end
 
-      # Keeps the part of the script name provided by the global
-      # context via ENV["SCRIPT_NAME"], which `mount` doesn't know
-      # about since it depends on the specific request, but use our
-      # script name resolver for the mount point dependent part.
+      # Keeps the part of the script name provided by the global context via
+      # [ENV]("SCRIPT_NAME"), which `mount` doesn't know about since it depends on the
+      # specific request, but use our script name resolver for the mount point
+      # dependent part.
       def merge_script_names(previous_script_name, new_script_name)
         return new_script_name unless previous_script_name
 

@@ -98,12 +98,13 @@ module ActiveRecord
           end
 
           def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
-            log(sql, name, async: async) do
+            log(sql, name, async: async) do |notification_payload|
               with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
                 sync_timezone_changes(conn)
                 result = conn.query(sql)
                 verified!
                 handle_warnings(sql)
+                notification_payload[:row_count] = result&.size || 0
                 result
               end
             end
@@ -117,7 +118,7 @@ module ActiveRecord
 
             type_casted_binds = type_casted_binds(binds)
 
-            log(sql, name, binds, type_casted_binds, async: async) do
+            log(sql, name, binds, type_casted_binds, async: async) do |notification_payload|
               with_raw_connection do |conn|
                 sync_timezone_changes(conn)
 
@@ -143,6 +144,7 @@ module ActiveRecord
                 end
 
                 ret = yield stmt, result
+                notification_payload[:row_count] = result&.size || 0
                 result.free if result
                 stmt.close unless cache_stmt
                 ret

@@ -102,7 +102,7 @@ if ActiveRecord::Base.connection.prepared_statements
 
         topics = Topic.where("topics.id = ?", 1)
         assert_equal [1], topics.map(&:id)
-        assert_not_includes statement_cache, to_sql_key(topics.arel)
+        assert_includes statement_cache, to_sql_key(topics.arel)
       end
 
       def test_too_many_binds
@@ -214,7 +214,7 @@ if ActiveRecord::Base.connection.prepared_statements
 
           authors = Author.where(id: [1, 2, 3, nil])
           assert_equal sql, @connection.to_sql(authors.arel)
-          assert_sql(sql) { assert_equal 3, authors.length }
+          assert_queries_match(sql) { assert_equal 3, authors.length }
 
           # prepared_statements: true
           #
@@ -228,7 +228,7 @@ if ActiveRecord::Base.connection.prepared_statements
 
           authors = Author.where(id: [1, 2, 3, 9223372036854775808])
           assert_equal sql, @connection.to_sql(authors.arel)
-          assert_sql(sql) { assert_equal 3, authors.length }
+          assert_queries_match(sql) { assert_equal 3, authors.length }
 
           # prepared_statements: true
           #
@@ -242,7 +242,7 @@ if ActiveRecord::Base.connection.prepared_statements
 
           arel_node = Arel.sql("SELECT #{table}.* FROM #{table} WHERE #{pk} IN (?)", [1, 2, 3])
           assert_equal sql, @connection.to_sql(arel_node)
-          assert_sql(sql) { assert_equal 3, @connection.select_all(arel_node).length }
+          assert_queries_match(sql) { assert_equal 3, @connection.select_all(arel_node).length }
         end
 
         def bind_params(ids)

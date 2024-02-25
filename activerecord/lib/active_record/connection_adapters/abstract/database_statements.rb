@@ -214,7 +214,7 @@ module ActiveRecord
       end
 
       def truncate_tables(*table_names) # :nodoc:
-        table_names -= [schema_migration.table_name, internal_metadata.table_name]
+        table_names -= [pool.schema_migration.table_name, pool.internal_metadata.table_name]
 
         return if table_names.empty?
 
@@ -457,8 +457,8 @@ module ActiveRecord
         statements = table_deletes + fixture_inserts
 
         with_multi_statements do
-          disable_referential_integrity do
-            transaction(requires_new: true) do
+          transaction(requires_new: true) do
+            disable_referential_integrity do
               execute_batch(statements, "Fixtures Load")
             end
           end
@@ -629,7 +629,7 @@ module ActiveRecord
 
           result = internal_exec_query(sql, name, binds, prepare: prepare)
           if async
-            FutureResult::Complete.new(result)
+            FutureResult.wrap(result)
           else
             result
           end

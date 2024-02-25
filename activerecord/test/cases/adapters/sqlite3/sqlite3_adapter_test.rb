@@ -159,7 +159,7 @@ module ActiveRecord
         if in_memory_db?
           assert_equal [{ "foreign_keys" => 1 }], @conn.execute("PRAGMA foreign_keys")
           assert_equal [{ "journal_mode" => "memory" }], @conn.execute("PRAGMA journal_mode")
-          assert_equal [{ "synchronous" => 2 }], @conn.execute("PRAGMA synchronous")
+          assert_equal [{ "synchronous" => 1 }], @conn.execute("PRAGMA synchronous")
           assert_equal [{ "journal_size_limit" => 67108864 }], @conn.execute("PRAGMA journal_size_limit")
           assert_equal [], @conn.execute("PRAGMA mmap_size")
           assert_equal [{ "cache_size" => 2000 }], @conn.execute("PRAGMA cache_size")
@@ -172,6 +172,249 @@ module ActiveRecord
             assert_equal [{ "mmap_size" => 134217728 }], conn.execute("PRAGMA mmap_size")
             assert_equal [{ "cache_size" => 2000 }], conn.execute("PRAGMA cache_size")
           end
+        end
+      end
+
+      def test_overriding_default_foreign_keys_pragma
+        method_name = in_memory_db? ? :with_memory_connection : :with_file_connection
+
+        send(method_name, pragmas: { foreign_keys: false }) do |conn|
+          assert_equal [{ "foreign_keys" => 0 }], conn.execute("PRAGMA foreign_keys")
+        end
+
+        send(method_name, pragmas: { foreign_keys: 0 }) do |conn|
+          assert_equal [{ "foreign_keys" => 0 }], conn.execute("PRAGMA foreign_keys")
+        end
+
+        send(method_name, pragmas: { foreign_keys: "false" }) do |conn|
+          assert_equal [{ "foreign_keys" => 0 }], conn.execute("PRAGMA foreign_keys")
+        end
+
+        error = assert_raises(ActiveRecord::StatementInvalid) do
+          send(method_name, pragmas: { foreign_keys: :false }) do |conn|
+            conn.execute("PRAGMA foreign_keys")
+          end
+        end
+        assert_match(/unrecognized pragma parameter :false/, error.message)
+      end
+
+      def test_overriding_default_journal_mode_pragma
+        # in-memory databases are always only ever in `memory` journal_mode
+        if in_memory_db?
+          with_memory_connection(pragmas: { "journal_mode" => "delete" }) do |conn|
+            assert_equal [{ "journal_mode" => "memory" }], conn.execute("PRAGMA journal_mode")
+          end
+
+          with_memory_connection(pragmas: { "journal_mode" => :delete }) do |conn|
+            assert_equal [{ "journal_mode" => "memory" }], conn.execute("PRAGMA journal_mode")
+          end
+
+          error = assert_raises(ActiveRecord::StatementInvalid) do
+            with_memory_connection(pragmas: { "journal_mode" => 0 }) do |conn|
+              conn.execute("PRAGMA journal_mode")
+            end
+          end
+          assert_match(/nrecognized journal_mode 0/, error.message)
+
+          error = assert_raises(ActiveRecord::StatementInvalid) do
+            with_memory_connection(pragmas: { "journal_mode" => false }) do |conn|
+              conn.execute("PRAGMA journal_mode")
+            end
+          end
+          assert_match(/nrecognized journal_mode false/, error.message)
+        else
+          # must use a new, separate database file that hasn't been opened in WAL mode before
+          Dir.mktmpdir do |tmpdir|
+            database_file = File.join(tmpdir, "journal_mode_test.sqlite3")
+
+            with_file_connection(database: database_file, pragmas: { "journal_mode" => "delete" }) do |conn|
+              assert_equal [{ "journal_mode" => "delete" }], conn.execute("PRAGMA journal_mode")
+            end
+
+            with_file_connection(database: database_file, pragmas: { "journal_mode" => :delete }) do |conn|
+              assert_equal [{ "journal_mode" => "delete" }], conn.execute("PRAGMA journal_mode")
+            end
+
+            error = assert_raises(ActiveRecord::StatementInvalid) do
+              with_file_connection(database: database_file, pragmas: { "journal_mode" => 0 }) do |conn|
+                conn.execute("PRAGMA journal_mode")
+              end
+            end
+            assert_match(/unrecognized journal_mode 0/, error.message)
+
+            error = assert_raises(ActiveRecord::StatementInvalid) do
+              with_file_connection(database: database_file, pragmas: { "journal_mode" => false }) do |conn|
+                conn.execute("PRAGMA journal_mode")
+              end
+            end
+            assert_match(/unrecognized journal_mode false/, error.message)
+          end
+        end
+      end
+
+      def test_overriding_default_synchronous_pragma
+        method_name = in_memory_db? ? :with_memory_connection : :with_file_connection
+
+        send(method_name, pragmas: { synchronous: :full }) do |conn|
+          assert_equal [{ "synchronous" => 2 }], conn.execute("PRAGMA synchronous")
+        end
+
+        send(method_name, pragmas: { synchronous: 2 }) do |conn|
+          assert_equal [{ "synchronous" => 2 }], conn.execute("PRAGMA synchronous")
+        end
+
+        send(method_name, pragmas: { synchronous: "full" }) do |conn|
+          assert_equal [{ "synchronous" => 2 }], conn.execute("PRAGMA synchronous")
+        end
+
+        error = assert_raises(ActiveRecord::StatementInvalid) do
+          send(method_name, pragmas: { synchronous: false }) do |conn|
+            conn.execute("PRAGMA synchronous")
+          end
+        end
+        assert_match(/unrecognized synchronous false/, error.message)
+      end
+
+      def test_overriding_default_journal_size_limit_pragma
+        method_name = in_memory_db? ? :with_memory_connection : :with_file_connection
+
+        send(method_name, pragmas: { journal_size_limit: 100 }) do |conn|
+          assert_equal [{ "journal_size_limit" => 100 }], conn.execute("PRAGMA journal_size_limit")
+        end
+
+        send(method_name, pragmas: { journal_size_limit: "200" }) do |conn|
+          assert_equal [{ "journal_size_limit" => 200 }], conn.execute("PRAGMA journal_size_limit")
+        end
+
+        error = assert_raises(ActiveRecord::StatementInvalid) do
+          send(method_name, pragmas: { journal_size_limit: false }) do |conn|
+            conn.execute("PRAGMA journal_size_limit")
+          end
+        end
+        assert_match(/undefined method [`']to_i'/, error.message)
+
+        error = assert_raises(ActiveRecord::StatementInvalid) do
+          send(method_name, pragmas: { journal_size_limit: :false }) do |conn|
+            conn.execute("PRAGMA journal_size_limit")
+          end
+        end
+        assert_match(/undefined method [`']to_i'/, error.message)
+      end
+
+      def test_overriding_default_mmap_size_pragma
+        # in-memory databases never have an mmap_size
+        if in_memory_db?
+          with_memory_connection(pragmas: { mmap_size: 100 }) do |conn|
+            assert_equal [], conn.execute("PRAGMA mmap_size")
+          end
+
+          with_memory_connection(pragmas: { mmap_size: "200" }) do |conn|
+            assert_equal [], conn.execute("PRAGMA mmap_size")
+          end
+
+          error = assert_raises(ActiveRecord::StatementInvalid) do
+            with_memory_connection(pragmas: { mmap_size: false }) do |conn|
+              conn.execute("PRAGMA mmap_size")
+            end
+          end
+          assert_match(/undefined method [`']to_i'/, error.message)
+
+          error = assert_raises(ActiveRecord::StatementInvalid) do
+            with_memory_connection(pragmas: { mmap_size: :false }) do |conn|
+              conn.execute("PRAGMA mmap_size")
+            end
+          end
+          assert_match(/undefined method [`']to_i'/, error.message)
+        else
+          with_file_connection(pragmas: { mmap_size: 100 }) do |conn|
+            assert_equal [{ "mmap_size" => 100 }], conn.execute("PRAGMA mmap_size")
+          end
+
+          with_file_connection(pragmas: { mmap_size: "200" }) do |conn|
+            assert_equal [{ "mmap_size" => 200 }], conn.execute("PRAGMA mmap_size")
+          end
+
+          error = assert_raises(ActiveRecord::StatementInvalid) do
+            with_file_connection(pragmas: { mmap_size: false }) do |conn|
+              conn.execute("PRAGMA mmap_size")
+            end
+          end
+          assert_match(/undefined method [`']to_i'/, error.message)
+
+          error = assert_raises(ActiveRecord::StatementInvalid) do
+            with_file_connection(pragmas: { mmap_size: :false }) do |conn|
+              conn.execute("PRAGMA mmap_size")
+            end
+          end
+          assert_match(/undefined method [`']to_i'/, error.message)
+        end
+      end
+
+      def test_overriding_default_cache_size_pragma
+        method_name = in_memory_db? ? :with_memory_connection : :with_file_connection
+
+        send(method_name, pragmas: { cache_size: 100 }) do |conn|
+          assert_equal [{ "cache_size" => 100 }], conn.execute("PRAGMA cache_size")
+        end
+
+        send(method_name, pragmas: { cache_size: "200" }) do |conn|
+          assert_equal [{ "cache_size" => 200 }], conn.execute("PRAGMA cache_size")
+        end
+
+        error = assert_raises(ActiveRecord::StatementInvalid) do
+          send(method_name, pragmas: { cache_size: false }) do |conn|
+            conn.execute("PRAGMA cache_size")
+          end
+        end
+        assert_match(/undefined method [`']to_i'/, error.message)
+
+        error = assert_raises(ActiveRecord::StatementInvalid) do
+          send(method_name, pragmas: { cache_size: :false }) do |conn|
+            conn.execute("PRAGMA cache_size")
+          end
+        end
+        assert_match(/undefined method [`']to_i'/, error.message)
+      end
+
+      def test_setting_new_pragma
+        if in_memory_db?
+          with_memory_connection(pragmas: { temp_store: :memory }) do |conn|
+            assert_equal [{ "foreign_keys" => 1 }], conn.execute("PRAGMA foreign_keys")
+            assert_equal [{ "journal_mode" => "memory" }], conn.execute("PRAGMA journal_mode")
+            assert_equal [{ "synchronous" => 1 }], conn.execute("PRAGMA synchronous")
+            assert_equal [{ "journal_size_limit" => 67108864 }], conn.execute("PRAGMA journal_size_limit")
+            assert_equal [], conn.execute("PRAGMA mmap_size")
+            assert_equal [{ "cache_size" => 2000 }], conn.execute("PRAGMA cache_size")
+            assert_equal [{ "temp_store" => 2 }], conn.execute("PRAGMA temp_store")
+          end
+        else
+          with_file_connection(pragmas: { temp_store: :memory }) do |conn|
+            assert_equal [{ "foreign_keys" => 1 }], conn.execute("PRAGMA foreign_keys")
+            assert_equal [{ "journal_mode" => "wal" }], conn.execute("PRAGMA journal_mode")
+            assert_equal [{ "synchronous" => 1 }], conn.execute("PRAGMA synchronous")
+            assert_equal [{ "journal_size_limit" => 67108864 }], conn.execute("PRAGMA journal_size_limit")
+            assert_equal [{ "mmap_size" => 134217728 }], conn.execute("PRAGMA mmap_size")
+            assert_equal [{ "cache_size" => 2000 }], conn.execute("PRAGMA cache_size")
+            assert_equal [{ "temp_store" => 2 }], conn.execute("PRAGMA temp_store")
+          end
+        end
+      end
+
+      def test_setting_invalid_pragma
+        if in_memory_db?
+          warning = capture(:stderr) do
+            with_memory_connection(pragmas: { invalid: true }) do |conn|
+              conn.execute("PRAGMA foreign_keys")
+            end
+          end
+          assert_match(/Unknown SQLite pragma: invalid/, warning)
+        else
+          warning = capture(:stderr) do
+            with_file_connection(pragmas: { invalid: true }) do |conn|
+              conn.execute("PRAGMA foreign_keys")
+            end
+          end
+          assert_match(/Unknown SQLite pragma: invalid/, warning)
         end
       end
 
@@ -263,7 +506,7 @@ module ActiveRecord
           sql = "INSERT INTO ex (number) VALUES (10)"
           name = "foo"
 
-          pragma_query = ["PRAGMA table_info(\"ex\")", "SCHEMA", []]
+          pragma_query = ["PRAGMA table_xinfo(\"ex\")", "SCHEMA", []]
           schema_query = ["SELECT sql FROM (SELECT * FROM sqlite_master UNION ALL SELECT * FROM sqlite_temp_master) WHERE type = 'table' AND name = 'ex'", "SCHEMA", []]
           modified_insert_query = [(sql + ' RETURNING "id"'), name, []]
           assert_logged [pragma_query, schema_query, modified_insert_query] do
@@ -868,8 +1111,18 @@ module ActiveRecord
 
         def with_file_connection(options = {})
           options = options.dup
-          db_config = ActiveRecord::Base.configurations.configurations.find { |config| !config.database.include?(":memory:") }
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit2", name: "primary")
           options[:database] ||= db_config.database
+          conn = SQLite3Adapter.new(options)
+
+          yield(conn)
+        ensure
+          conn.disconnect! if conn
+        end
+
+        def with_memory_connection(options = {})
+          options = options.dup
+          options[:database] = ":memory:"
           conn = SQLite3Adapter.new(options)
 
           yield(conn)

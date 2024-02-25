@@ -589,18 +589,6 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
             assert_match %r{\s+add_foreign_key "astronauts", "rockets", deferrable: :immediate$}, output
           end
-
-          def test_deferrable_true_foreign_key
-            assert_deprecated(ActiveRecord.deprecator) do
-              @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", deferrable: true
-            end
-
-            foreign_keys = @connection.foreign_keys("astronauts")
-            assert_equal 1, foreign_keys.size
-
-            fk = foreign_keys.first
-            assert_equal :immediate, fk.deferrable
-          end
         end
 
         def test_does_not_create_foreign_keys_when_bypassed_by_config
@@ -674,20 +662,30 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
 
         def test_add_foreign_key_is_reversible
+          @connection.drop_table("cities", if_exists: true)
+          @connection.drop_table("houses", if_exists: true)
+
           migration = CreateCitiesAndHousesMigration.new
           silence_stream($stdout) { migration.migrate(:up) }
           assert_equal 1, @connection.foreign_keys("houses").size
-        ensure
           silence_stream($stdout) { migration.migrate(:down) }
+        ensure
+          @connection.drop_table("cities", if_exists: true)
+          @connection.drop_table("houses", if_exists: true)
         end
 
         def test_foreign_key_constraint_is_not_cached_incorrectly
+          @connection.drop_table("cities", if_exists: true)
+          @connection.drop_table("houses", if_exists: true)
+
           migration = CreateCitiesAndHousesMigration.new
           silence_stream($stdout) { migration.migrate(:up) }
           output = dump_table_schema "houses"
           assert_match %r{\s+add_foreign_key "houses",.+on_delete: :cascade$}, output
-        ensure
           silence_stream($stdout) { migration.migrate(:down) }
+        ensure
+          @connection.drop_table("cities", if_exists: true)
+          @connection.drop_table("houses", if_exists: true)
         end
 
         class CreateSchoolsAndClassesMigration < ActiveRecord::Migration::Current

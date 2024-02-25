@@ -101,6 +101,8 @@ if ActiveRecord::Base.connection.supports_views?
 
   class ViewWithoutPrimaryKeyTest < ActiveRecord::TestCase
     include SchemaDumpingHelper
+
+    self.use_transactional_tests = false
     fixtures :books
 
     class Paperback < ActiveRecord::Base; end
@@ -192,6 +194,12 @@ if ActiveRecord::Base.connection.supports_views?
         new_book = PrintedBook.last
         assert_equal "Rails in Action", new_book.name
       end
+
+      def test_insert_record_populates_primary_key
+        book = PrintedBook.create! name: "Rails in Action", status: 0, format: "paperback"
+        assert_not_nil book.id
+        assert book.id > 0
+      end if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter) && supports_insert_returning?
 
       def test_update_record_to_fail_view_conditions
         book = PrintedBook.first

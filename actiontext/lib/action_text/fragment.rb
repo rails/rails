@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionText
   class Fragment
     class << self
@@ -20,6 +22,8 @@ module ActionText
     end
 
     attr_reader :source
+
+    delegate :deconstruct, to: "source.elements"
 
     def initialize(source)
       @source = source

@@ -25,7 +25,7 @@ class ExcludingTest < ActiveRecord::TestCase
   def test_result_set_does_not_include_collection_of_excluded_records_from_a_query
     query = Post.where(id: @post)
 
-    assert_sql(/SELECT #{Regexp.escape Post.connection.quote_table_name("posts.id")} FROM/) do
+    assert_queries_match(/SELECT #{Regexp.escape Post.connection.quote_table_name("posts.id")} FROM/) do
       records = Post.excluding(query).to_a
 
       assert_not_includes records, @post
@@ -35,7 +35,7 @@ class ExcludingTest < ActiveRecord::TestCase
   def test_result_set_does_not_include_collection_of_excluded_records_from_a_loaded_query
     query = Post.where(id: @post).load
 
-    records = assert_queries 1 do
+    records = assert_queries_count 1 do
       Post.excluding(query).to_a
     end
 
@@ -45,7 +45,7 @@ class ExcludingTest < ActiveRecord::TestCase
   def test_result_set_does_not_include_collection_of_excluded_records_and_queries
     thinking = posts(:thinking)
 
-    records = assert_queries 2 do
+    records = assert_queries_count 2 do
       Post.excluding(@post, Post.where(id: thinking)).to_a
     end
 
@@ -72,7 +72,7 @@ class ExcludingTest < ActiveRecord::TestCase
   def test_result_set_through_association_does_not_include_collection_of_excluded_records_from_a_relation
     relation = @post.comments
 
-    assert_sql(/SELECT #{Regexp.escape Comment.connection.quote_table_name("comments.id")} FROM/) do
+    assert_queries_match(/SELECT #{Regexp.escape Comment.connection.quote_table_name("comments.id")} FROM/) do
       records = Comment.excluding(relation).to_a
 
       assert_not_empty records
@@ -84,7 +84,7 @@ class ExcludingTest < ActiveRecord::TestCase
   def test_result_set_through_association_does_not_include_collection_of_excluded_records_from_a_loaded_relation
     relation = @post.comments.load
 
-    records = assert_queries 1 do
+    records = assert_queries_count 1 do
       Comment.excluding(relation).to_a
     end
 
