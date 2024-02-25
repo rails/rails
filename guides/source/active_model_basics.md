@@ -150,7 +150,7 @@ irb> person.name = "Jane"
 irb> person.name
 => "Jane"
 
-# casts the string to a date set by the attribute
+# Casts the string to a date set by the attribute
 irb> person.date_of_birth = "2020-01-01"
 irb> person.date_of_birth
 => Wed, 01 Jan 2020
@@ -209,7 +209,7 @@ end
 ```irb
 irb> person = Person.new
 
-# Use assign_attributes to set multiple attributes at once
+# Set multiple attributes at once
 irb> person.assign_attributes(name: "John", date_of_birth: "1998-01-01", active: false)
 
 irb> person.name
@@ -231,16 +231,16 @@ integration, i.e. if assigning a params attribute coming from a request.
 ```irb
 irb> person = Person.new
 
-# using strong parameters checks, build a hash of attributes similar to params from a request
+# Using strong parameters checks, build a hash of attributes similar to params from a request
 irb> params = ActionController::Parameters.new(name: "John")
 => #<ActionController::Parameters {"name" => "John"} permitted: false>
 
 irb> person.assign_attributes(params)
-=> # raises ActiveModel::ForbiddenAttributesError
+=> # Raises ActiveModel::ForbiddenAttributesError
 irb> person.name
 => nil
 
-# permit the attributes we want to allow assignment
+# Permit the attributes we want to allow assignment
 irb> permitted_params = params.permit(:name)
 => #<ActionController::Parameters {"name" => "John"} permitted: true>
 
@@ -308,22 +308,22 @@ class Person
 
   private
 
-  # attribute method call for 'first_name'
+  # Attribute method call for 'first_name'
   def first_attribute(attribute)
     public_send(attribute).split.first
   end
 
-  # attribute method call for 'last_name'
+  # Attribute method call for 'last_name'
   def last_attribute(attribute)
     public_send(attribute).split.last
   end
 
-  # attribute method call for 'name_short?'
+  # Attribute method call for 'name_short?'
   def attribute_short?(attribute)
     public_send(attribute).length < 5
   end
 
-  # attribute method call 'reset_name_to_default!'
+  # Attribute method call 'reset_name_to_default!'
   def reset_attribute_to_default!(attribute)
     public_send("#{attribute}=", "Default Name")
   end
@@ -434,17 +434,17 @@ class Person
 
   private
 
-  # when update is called on an object, then this method is called by `before_update` callback
+  # When update is called on an object, then this method is called by `before_update` callback
   def reset_me
     puts "reset_me method: called before the update method"
   end
 
-  # when update is called on an object, then this method is called by `after_update` callback
+  # When update is called on an object, then this method is called by `after_update` callback
   def finalize_me
     puts "finalize_me method: called after the update method"
   end
 
-  # when update is called on an object, then this method is called by `around_update` callback
+  # When update is called on an object, then this method is called by `around_update` callback
   def log_me
     puts "log_me method: called around the update method"
     yield
@@ -1105,12 +1105,12 @@ class Person
   attr_accessor :name, :age
 
   def attributes
-    # declaration of attributes that will be serialized
+    # Declaration of attributes that will be serialized
     {"name" => nil, "age" => nil}
   end
 
   def capitalized_name
-    # declared methods can be later included in the serialized hash
+    # Declared methods can be later included in the serialized hash
     name&.capitalize
   end
 end
@@ -1126,21 +1126,21 @@ irb> person = Person.new
 irb> person.serializable_hash
 => {"name" => nil, "age" => nil}
 
-# Setting the name and age attributes and then serializing the object
+# Set the name and age attributes and serialize the object
 irb> person.name = "bob"
 irb> person.age = 22
 irb> person.serializable_hash
 => {"name" => "bob", "age" => 22}
 
-# Using the methods option to include the capitalized_name method
+# Use the methods option to include the capitalized_name method
 irb>  person.serializable_hash(methods: :capitalized_name)
 => {"name" => "bob", "age" => 22, "capitalized_name" => "Bob"}
 
-# Using the only method to include only the name attribute
+# Use the only method to include only the name attribute
 irb> person.serializable_hash(only: :name)
 => {"name" => "bob"}
 
-# Using the except method to exclude the name attribute
+# Use the except method to exclude the name attribute
 irb> person.serializable_hash(except: :name)
 => {"age" => 22}
 ```
@@ -1259,7 +1259,6 @@ irb> json = { name: "Bob" }.to_json
 
 irb> person = Person.new
 
-# Defining the attributes for a model from a JSON string
 irb> person.from_json(json)
 => #<Person:0x00000100c773f0 @name="Bob">
 
