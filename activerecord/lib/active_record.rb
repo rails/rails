@@ -407,7 +407,7 @@ module ActiveRecord
 
   ##
   # :singleton-method: default_database_for_generators
-  # Specify the default database to generate migrations for.
+  # Specify the database that the generators will use by default.
   singleton_class.attr_accessor :default_database_for_generators
   self.default_database_for_generators = nil
 

@@ -1,7 +1,9 @@
 *   Define generators default database configuration
 
-    By default, migrations / models will get generated for the primary database.
-    Users can modify this behaviour in order to point to another database instead.
+    By default, migrations will be generated in the `db/migrate` directory and models
+    will get generated for the first database defined in the `database.yml` configuration.
+
+    Users can modify this behavior with a different default database configuration.
 
     *Sinclert Pérez*
 
