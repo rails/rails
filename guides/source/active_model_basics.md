@@ -551,9 +551,8 @@ overwrite previous callback definitions.
 
 #### Aborting Callbacks
 
-Like the Active Record methods, the callback chain is aborted as soon as one of
-the methods throws `:abort`. In addition, the transaction will also be canceled
-or reversed.
+The callback chain can be aborted at any point in time by throwing `:abort`.
+This is similar to how Active Record callbacks work.
 
 In the example below, since we throw `:abort` before an update in the `reset_me`
 method, the remaining callback chain including `before_update` will be aborted.
