@@ -1151,6 +1151,32 @@ class PerFormTokensControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  def test_handles_query_string
+    get :index, params: { form_path: "./post_one?a=b" }
+
+    form_token = assert_presence_and_fetch_form_csrf_token
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
+    assert_nothing_raised do
+      post :post_one, params: { custom_authenticity_token: form_token }
+    end
+    assert_response :success
+  end
+
+  def test_handles_fragment
+    get :index, params: { form_path: "./post_one#a" }
+
+    form_token = assert_presence_and_fetch_form_csrf_token
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
+    assert_nothing_raised do
+      post :post_one, params: { custom_authenticity_token: form_token }
+    end
+    assert_response :success
+  end
+
   def test_ignores_origin_during_generation
     get :index, params: { form_path: "https://example.com/per_form_tokens/post_one/" }
 
