@@ -503,16 +503,17 @@ to the block, otherwise, it won't be executed.
 
 #### Defining Specific Callbacks
 
-You can choose to create specific callbacks by passing a hash to the
+You can choose to create specific callbacks by passing the `only` option to the
 `define_model_callbacks` method:
 
 ```ruby
 define_model_callbacks :update, :create, only: [:after, :before]
 ```
 
-The `only: <type>` hash will apply to all callbacks defined on that method call.
-To get around this you can call the `define_model_callbacks` method as many
-times as you need like below:
+This will create only the `before_create` / `after_create` and `before_update` /
+ `after_update` callbacks, but skip the `around_*` ones. The option will apply
+to all callbacks defined on that method call. It's possible to call
+`define_model_callbacks` multiple times, to specify different lifecycle events:
 
 ```ruby
 define_model_callbacks :create, only: :after
