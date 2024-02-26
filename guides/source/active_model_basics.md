@@ -555,7 +555,8 @@ The callback chain can be aborted at any point in time by throwing `:abort`.
 This is similar to how Active Record callbacks work.
 
 In the example below, since we throw `:abort` before an update in the `reset_me`
-method, the remaining callback chain including `before_update` will be aborted.
+method, the remaining callback chain including `before_update` will be aborted,
+and the body of the `update` method won't be executed.
 
 ```ruby
 class Person
