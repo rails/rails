@@ -383,9 +383,9 @@ If you call a method that is not defined, it will raise a `NoMethodError` error.
 `ActiveModel::AttributeMethods` provides aliasing of attribute methods using
 `alias_attribute`.
 
-In the example below, we create an alias attribute for `name` called
-`full_name`. They return the same value, but the alias `full_name` better
-reflects that the attribute includes a first name and last name.
+The example below creates an alias attribute for `name` called `full_name`. They
+return the same value, but the alias `full_name` better reflects that the
+attribute includes a first name and last name.
 
 ```ruby
 class Person
