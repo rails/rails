@@ -718,7 +718,7 @@ You can then use the methods provided by `ActiveModel::Dirty` to query the
 object for its list of all changed attributes, the original values of the
 changed attributes, and the changes made to the attributes.
 
-Let's consider a Person class with attributes `first_name` and `last_name` and
+Let's consider a `Person` class with attributes `first_name` and `last_name` and
 determine how we can use `ActiveModel::Dirty` to track changes to these
 attributes.
 
