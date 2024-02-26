@@ -1040,7 +1040,7 @@ irb> Person.model_name.plural
 ```
 
 **`element`** removes the namespace and returns the singular snake_cased name.
-It is generally used For Action Pack and/or Action View helpers to aid in
+It is generally used by Action Pack and/or Action View helpers to aid in
 rendering the name of partials/forms.
 
 ```irb
