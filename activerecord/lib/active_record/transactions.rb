@@ -191,7 +191,7 @@ module ActiveRecord
     # *Warning*: Callbacks are deduplicated according to the callback and method.
     # This means you cannot have multiple <tt>after_xxx_commit</tt> shortcuts calling the same method.
     #
-    #   after_create_commit :do_foo #This will NOT fire
+    #   after_create_commit :do_foo # This will NOT fire
     #   after_save_commit :do_foo
     #
     # Instead, use after_commit directly
@@ -248,7 +248,7 @@ module ActiveRecord
 
       # Shortcut for <tt>after_commit :hook, on: [ :create, :update ]</tt>.
       #
-      # *Warning*: only one <tt>after_xxx_commit</tt> shortcut can call any given method
+      # *Warning*: only one <tt>after_xxx_commit</tt> shortcut can call any given method.
       def after_save_commit(*args, &block)
         set_options_for_callbacks!(args, on: [ :create, :update ], **prepend_option)
         set_callback(:commit, :after, *args, &block)
@@ -256,7 +256,7 @@ module ActiveRecord
 
       # Shortcut for <tt>after_commit :hook, on: :create</tt>.
       #
-      # *Warning*: only one <tt>after_xxx_commit</tt> shortcut can call any given method
+      # *Warning*: only one <tt>after_xxx_commit</tt> shortcut can call any given method.
       def after_create_commit(*args, &block)
         set_options_for_callbacks!(args, on: :create, **prepend_option)
         set_callback(:commit, :after, *args, &block)
@@ -264,7 +264,7 @@ module ActiveRecord
 
       # Shortcut for <tt>after_commit :hook, on: :update</tt>.
       #
-      # *Warning*: only one <tt>after_xxx_commit</tt> shortcut can call any given method
+      # *Warning*: only one <tt>after_xxx_commit</tt> shortcut can call any given method.
       def after_update_commit(*args, &block)
         set_options_for_callbacks!(args, on: :update, **prepend_option)
         set_callback(:commit, :after, *args, &block)
@@ -272,7 +272,7 @@ module ActiveRecord
 
       # Shortcut for <tt>after_commit :hook, on: :destroy</tt>.
       #
-      # *Warning*: only one <tt>after_xxx_commit</tt> shortcut can call any given method
+      # *Warning*: only one <tt>after_xxx_commit</tt> shortcut can call any given method.
       def after_destroy_commit(*args, &block)
         set_options_for_callbacks!(args, on: :destroy, **prepend_option)
         set_callback(:commit, :after, *args, &block)
