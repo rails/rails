@@ -327,6 +327,22 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_database_puts_migrations_in_configured_migrations_paths
+    default_database = "random"
+
+    with_default_database_for_generators(default_database) do
+      with_database_configuration(default_database) do
+        run_generator ["create_books"]
+
+        assert_migration "db/#{default_database}_migrate/create_books.rb" do |content|
+          assert_method :change, content do |change|
+            assert_match(/create_table :books/, change)
+          end
+        end
+      end
+    end
+  end
+
   def test_should_create_empty_migrations_if_name_not_start_with_add_or_remove_or_create
     migration = "delete_books"
     run_generator [migration, "title:string", "content:text"]

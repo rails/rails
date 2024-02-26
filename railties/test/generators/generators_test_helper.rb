@@ -60,6 +60,13 @@ module GeneratorsTestHelper
     ActiveRecord::Base.configurations = original_configurations
   end
 
+  def with_default_database_for_generators(database_name = "secondary")
+    Rails.application.config.active_record.default_database_for_generators = database_name
+    yield
+  ensure
+    Rails.application.config.active_record.default_database_for_generators = nil
+  end
+
   def copy_routes
     routes = File.expand_path("../../lib/rails/generators/rails/app/templates/config/routes.rb.tt", __dir__)
     destination = File.join(destination_root, "config")

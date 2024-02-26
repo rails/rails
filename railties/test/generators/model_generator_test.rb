@@ -154,6 +154,20 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_file "app/models/admin/account.rb", /class Admin::Account < ApplicationRecord/
   end
 
+  def test_model_with_custom_default_database
+    default_database = "random"
+
+    with_default_database_for_generators(default_database) do
+      with_database_configuration(default_database) do
+        run_generator
+
+        assert_file "app/models/random_record.rb", /class RandomRecord < ApplicationRecord/
+        assert_file "app/models/account.rb", /class Account < RandomRecord/
+        assert_migration "db/#{default_database}_migrate/create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration\[[0-9.]+\]/
+      end
+    end
+  end
+
   def test_migration
     run_generator
     assert_migration "db/migrate/create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration\[[0-9.]+\]/
