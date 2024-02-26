@@ -41,8 +41,13 @@ module ActiveRecord
       def checkin(_); end
       def remove(_); end
       def async_executor; end
+
       def db_config
         NULL_CONFIG
+      end
+
+      def dirties_query_cache
+        true
       end
     end
 
