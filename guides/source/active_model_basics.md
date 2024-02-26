@@ -533,9 +533,11 @@ of the class as an argument.
 ```ruby
 class Person
   extend ActiveModel::Callbacks
+
   define_model_callbacks :create
   before_create PersonCallbacks
 end
+
 class PersonCallbacks
   def self.before_create(obj)
     # `obj` is the Person instance that the callback is being called on
