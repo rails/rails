@@ -270,36 +270,19 @@ irb> person.date_of_birth
 => "1998-01-01"
 ```
 
-##### Why does `assign_attributes` use `()` but `attributes=` use `{}` to pass the same attributes?
-
-Both are method calls, but while `assign_attributes` is generally seen as a
-standard method call that may or may not contain `()`, `attributes=` is commonly
-considered an attribute/property "setter" and does not use `()`. Any value can
-be passed to setters, not only Hashes using `{}` (it just so happens that in
-Ruby hashes may or may not require the explicit `{}`).
-
-`assign_attributes` is being called with a hash in the same way that
-`attributes=` is, except the `{}` can be omitted in arguments for method calls
-most of the time, but this would be valid:
-
-```ruby
->> person.assign_attributes({ name: "Jane" })
-=> {:name=>"Jane"}
-```
-
-`attributes=` can be called with `()` as well:
-
-```ruby
->> person.attributes = ({ name: "John" })
-=> {:name=>"John"}
-# in this case, however, Ruby doesn't like omitting `{}`:
->> person.attributes=(name: "John")
-(irb): syntax error, unexpected label (SyntaxError)
-```
-
-Since both `assign_attributes` and `attributes=` are essentially the same, they
-_expect_ a hash as an argument. But that's not a requirement for
-methods/setters.
+INFO: `assign_attributes` and `attributes=` are both method calls, and accept
+the hash of attributes to assign as an argument. In many cases, Ruby allows
+parens `()` from method calls, and curly braces `{}` from hash definitions, to
+be omitted. <br><br>
+"Setter" methods like `attributes=` are commonly written without `()`, even
+though including them works the same, and they require the hash to always
+include `{}`. `person.attributes=({ name: "John" })` is fine, but
+`person.attributes = name: "John"` results in a `SyntaxError`.<br><br>
+Other method calls like `assign_attributes` may or may not contain both parens
+`()` and `{}` for the hash argument. For example, `assign_attributes name:
+"John"` and `assign_attributes({ name: "John" })` are both perfectly valid Ruby
+code, however, `assign_attributes { name: "John" }` is not, because Ruby can't
+differentiate that hash argument from a block, and will raise a `SyntaxError`.
 
 ### Attribute Methods
 
@@ -801,8 +784,7 @@ irb> person.changed_attributes
 ```
 
 **`changes`** returns a hash of changes, with the attribute names as the keys,
-and the values as an array of the original and new values like `attr =>
-[original value, new value]`.
+and the values as an array of the original and new values like `attr => [original value, new value]`.
 
 ```
 irb> person.changes
