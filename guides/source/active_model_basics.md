@@ -455,7 +455,7 @@ class Person
   after_update :finalize_me
   around_update :log_me
 
-  # `define_model_callbacks` method containing `run_callbacks` which runs the callback for the given event
+  # `define_model_callbacks` method containing `run_callbacks` which runs the callback(s) for the given event
   def update
     run_callbacks(:update) do
       puts "update method called"
