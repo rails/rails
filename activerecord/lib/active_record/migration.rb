@@ -1405,9 +1405,8 @@ module ActiveRecord
 
       # For cases where a table doesn't exist like loading from schema cache
       def current_version
-        connection = ActiveRecord::Tasks::DatabaseTasks.migration_connection
         connection_pool = ActiveRecord::Tasks::DatabaseTasks.migration_connection_pool
-        schema_migration = SchemaMigration.new(connection)
+        schema_migration = SchemaMigration.new(connection_pool)
         internal_metadata = InternalMetadata.new(connection_pool)
 
         MigrationContext.new(migrations_paths, schema_migration, internal_metadata).current_version
