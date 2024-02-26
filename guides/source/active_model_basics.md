@@ -1264,8 +1264,8 @@ irb> person.to_json
 => "{\"name\":\"Bob\"}"
 ```
 
-You can also define the attributes for a model from a JSON string. However, you
-need to define the `attributes=` method in your class:
+You can also define the attributes for a model from a JSON string. To do that,
+first define the `attributes=` method in your class:
 
 ```ruby
 class Person
