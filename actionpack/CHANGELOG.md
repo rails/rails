@@ -11,6 +11,8 @@
 *   Fix `raise_on_missing_translations` not working correctly with the
     `translate` method in controllers after the patch for CVE-2024-26143.
 
+    *John Hawthorn*
+
 ## Rails 7.1.3.1 (February 21, 2024) ##
 
 *   Fix possible XSS vulnerability with the `translate` method in controllers
