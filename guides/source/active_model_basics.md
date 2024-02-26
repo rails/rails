@@ -420,7 +420,7 @@ irb> person.name_short?
 
 # `full_name_short?` is the alias for `name_short?`, and returns the same value
 irb> person.full_name_short?
-=> true
+=> false
 ```
 
 ### Callbacks
@@ -500,6 +500,10 @@ finalize_me method: called after the update method
 As per the above example, when defining an 'around' callback remember to `yield`
 to the block, otherwise, it won't be executed.
 
+NOTE: `method_name` passed to `define_model_callbacks` must not end with `!`,
+`?` or `=`. In addition, defining the same callback multiple times will
+overwrite previous callback definitions.
+
 #### Defining Specific Callbacks
 
 You can choose to create specific callbacks by passing the `only` option to the
@@ -544,10 +548,6 @@ class PersonCallbacks
   end
 end
 ```
-
-NOTE: `method_name` passed to `define_model_callbacks` must not end with `!`,
-`?` or `=`. In addition, defining the same callback multiple times will
-overwrite previous callback definitions.
 
 #### Aborting Callbacks
 
