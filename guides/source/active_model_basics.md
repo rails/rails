@@ -775,7 +775,7 @@ irb> person.first_name
 => "Jane Doe"
 ```
 
-**`changed?`** returns true if any of the attributes have unsaved changes,
+**`changed?`** returns `true` if any of the attributes have unsaved changes,
 `false` otherwise.
 
 ```irb
