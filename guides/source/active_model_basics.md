@@ -380,8 +380,8 @@ If you call a method that is not defined, it will raise a `NoMethodError` error.
 
 #### Method: `alias_attribute`
 
-`ActiveModel::AttributeMethods` provides aliasing of attribute methods using the
-`alias_attribute` method.
+`ActiveModel::AttributeMethods` provides aliasing of attribute methods using
+`alias_attribute`.
 
 In the example below, we create an alias attribute for `name` called
 `full_name`. They return the same value, but the alias `full_name` better
