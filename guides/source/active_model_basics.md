@@ -628,7 +628,7 @@ class Person
   end
 
   def persisted?
-    true
+    id.present?
   end
 end
 ```
