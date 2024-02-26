@@ -488,7 +488,6 @@ callbacks are being called:
 
 ```irb
 irb> person = Person.new
-
 irb> person.update
 reset_me method: called before the update method
 log_me method: called around the update method
