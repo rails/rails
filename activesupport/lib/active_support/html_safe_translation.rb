@@ -24,11 +24,11 @@ module ActiveSupport
       end
     end
 
-    private
-      def html_safe_translation_key?(key)
-        /(?:_|\b)html\z/.match?(key)
-      end
+    def html_safe_translation_key?(key)
+      /(?:_|\b)html\z/.match?(key)
+    end
 
+    private
       def html_escape_translation_options(options)
         options.each do |name, value|
           unless i18n_option?(name) || (name == :count && value.is_a?(Numeric))
