@@ -1,7 +1,7 @@
 *   Add filename support for `ActiveSupport::Logger.logger_outputs_to?`
 
     ```ruby
-    logger = Logger.new('/var/log/rails.log')    
+    logger = Logger.new('/var/log/rails.log')
     ActiveSupport::Logger.logger_outputs_to?(logger, '/var/log/rails.log')
     ```
 
