@@ -543,38 +543,6 @@ You can also render a block of code within a partial layout instead of calling `
 
 Supposing we use the same `_box` partial from above, this would produce the same output as the previous example.
 
-View Paths
-----------
-
-When rendering a response, the controller needs to resolve where the different
-views are located. By default, it only looks inside the `app/views` directory.
-
-We can add other locations and give them certain precedence when resolving
-paths using the `prepend_view_path` and `append_view_path` methods.
-
-### Prepend View Path
-
-This can be helpful for example when we want to put views inside a different
-directory for subdomains.
-
-We can do this by using:
-
-```ruby
-prepend_view_path "app/views/#{request.subdomain}"
-```
-
-Then Action View will look first in this directory when resolving views.
-
-### Append View Path
-
-Similarly, we can append paths:
-
-```ruby
-append_view_path "app/views/direct"
-```
-
-This will add `app/views/direct` to the end of the lookup paths.
-
 Helpers
 -------
 
