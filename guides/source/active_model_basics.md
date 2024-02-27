@@ -792,7 +792,7 @@ irb> person.changes
 ```
 
 **`previous_changes`** returns a hash of attributes that were changed before the
-model was saved.
+model was saved (i.e. before `changes_applied` is called).
 
 ```irb
 irb> person.previous_changes
@@ -843,7 +843,8 @@ irb> person.last_name_change
 ```
 
 **`[attr_name]_previously_changed?`** checks whether the particular attribute
-has been changed before the model was saved.
+has been changed before the model was saved (i.e. before `changes_applied` is
+called).
 
 ```irb
 irb> person.first_name_previously_changed?
@@ -854,8 +855,9 @@ irb> person.first_name_previously_changed?
 ```
 
 **`[attr_name]_previous_change`** tracks both previous and current values of the
-changed attribute before the model was saved. Returns an array with `[original
-value, new value]` if changed, otherwise returns `nil`.
+changed attribute before the model was saved (i.e. before `changes_applied` is
+called). Returns an array with `[original value, new value]` if changed,
+otherwise returns `nil`.
 
 ```irb
 irb> person.first_name_previous_change
