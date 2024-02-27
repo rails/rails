@@ -1656,11 +1656,13 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_with_limiting_with_custom_select
     posts = Post.references(:authors).merge(
-      includes: :author, select: 'posts.*, authors.id as "author_id"',
+      includes: :author,
+      select: 'posts.*, authors.id as "joined_author_id"', # give another name to avoid shadowing
       limit: 3, order: "posts.id"
     ).to_a
     assert_equal 3, posts.size
-    assert_equal [1, 1, nil], posts.map(&:author_id)
+    assert_equal [1, 1, 0], posts.map(&:author_id)
+    assert_equal [1, 1, nil], posts.map(&:joined_author_id)
   end
 
   def test_custom_select_takes_precedence_over_original_value
