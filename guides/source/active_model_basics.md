@@ -862,128 +862,25 @@ irb> person.first_name_previous_change
 => [nil, "John Doe"]
 ```
 
-### Validations
+### Model
 
-[`ActiveModel::Validations`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html)
-adds the ability to validate objects and it is important for ensuring data
-integrity and consistency within your application. By incorporating validations
-into your models, you can define rules that govern the correctness of attribute
-values, and prevent invalid data.
+[`ActiveModel::Model`](https://api.rubyonrails.org/classes/ActiveModel/Model.html)
+provides the required interface to allow an object to interact with Action Pack
+and Action View. Currently, it only includes [ActiveModel::API](#api) but it
+will be extended in the future to add more functionality.
 
 ```ruby
 class Person
-  include ActiveModel::Validations
+  include ActiveModel::Model
 
-  attr_accessor :name, :email, :token
-
-  validates :name, presence: true
-  validates_format_of :email, with: /\A([^\s]+)((?:[-a-z0-9]\.)[a-z]{2,})\z/i
-  validates! :token, presence: true
+  attr_accessor :name, :age
 end
 ```
 
 ```irb
-irb> person = Person.new
-irb> person.token = "2b1f325"
-irb> person.valid?
-=> false
-
-irb> person.name = "Jane Doe"
-irb> person.email = "me"
-irb> person.valid?
-=> false
-
-irb> person.email = "jane.doe@gmail.com"
-irb> person.valid?
-=> true
-
-# `token` uses validate! and will raise an exception when not set.
-irb> person.token = nil
-irb> person.valid?
-=> "Token can't be blank (ActiveModel::StrictValidationFailed)"
-```
-
-#### Validation Methods and Options
-
-You can add validations using some of the following methods:
-
-- [`validate`](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validate):
-  Adds validation through a method or a block to the class.
-
-- [`validates`](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates):
-  An attribute can be passed to the `validates` method and it provides a
-  shortcut to all default validators.
-
-- [`validates!`](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates-21)
-  or setting `strict: true`: Used to define validations that cannot be corrected
-  by end users and are considered exceptional. Each validator defined with a
-  bang or `:strict` option set to true will always raise
-  `ActiveModel::StrictValidationFailed` instead of adding to the errors when
-  validation fails.
-
-- [`validates_with`](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates_with):
-  Passes the record off to the class or classes specified and allows them to add
-  errors based on more complex conditions.
-
-- [`validates_each`](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates_each):
-  Validates each attribute against a block.
-
-Some of the options below can be used with certain validators. To determine if
-the option you're using can be used with a specific validator, read through the
-documentation
-[here](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html).
-
-- `:on`: Specifies the context in which to add the validation. You can pass a
-symbol or an array of symbols. (e.g. `on: :create` or `on:
-:custom_validation_context` or `on: [:create, :custom_validation_context]`).
-Validations without an `:on` option will run no matter the context. Validations
-with some `:on` option will only run in the specified context. You can pass the
-context when validating via `valid?(:context)`.
-
-- `:if`: Specifies a method, proc or string to call to determine if the
-  validation should occur (e.g. `if: :allow_validation`, or `if: Proc.new {
-  |user| user.signup_step > 2 }`). The method, proc or string should return or
-  evaluate to a `true` or `false` value.
-
-- `:unless`: Specifies a method, proc or string to call to determine if the
-  validation should not occur (e.g. `unless: :skip_validation`, or `unless:
-  Proc.new { |user| user.signup_step <= 2 }`). The method, proc or string should
-  return or evaluate to a `true` or `false` value.
-
-- `:allow_nil`: Skip the validation if the attribute is `nil`.
-
-- `:allow_blank`: Skip the validation if the attribute is blank.
-
-- `:strict`: If the `:strict` option is set to true, it will raise
-  `ActiveModel::StrictValidationFailed` instead of adding the error. `:strict`
-  option can also be set to any other exception.
-
-NOTE: Calling `validate` multiple times on the same method will overwrite
-previous definitions.
-
-#### Errors
-
-`ActiveModel::Validations` automatically adds an `errors` method to your
-instances initialized with a new
-[`ActiveModel::Errors`](https://api.rubyonrails.org/classes/ActiveModel/Errors.html)
-object, so there is no need for you to do this manually.
-
-Run `valid?` on the object to check if the object is valid or not. If the object
-is not valid, it will return `false` and the errors will be added to the
-`errors` object.
-
-```irb
-irb> person = Person.new
-
-irb> person.email = "me"
-irb> person.valid?
-=> # Raises Token can't be blank (ActiveModel::StrictValidationFailed)
-
-irb> person.errors.to_hash
-=> {:name => ["can't be blank"], :email => ["is invalid"]}
-
-irb> person.errors.full_messages
-=> ["Name can't be blank", "Email is invalid"]
+irb> person = Person.new(name: 'bob', age: '18')
+irb> person.name # => "bob"
+irb> person.age  # => "18"
 ```
 
 ### Naming
@@ -1088,25 +985,101 @@ NOTE: Some `Naming` methods, like `param_key`, `route_key` and
 `singular_route_key`, differ for namespaced models based on whether it's inside
 an isolated [Engine](https://guides.rubyonrails.org/engines.html).
 
-### Model
+### SecurePassword
 
-[`ActiveModel::Model`](https://api.rubyonrails.org/classes/ActiveModel/Model.html)
-provides the required interface to allow an object to interact with Action Pack
-and Action View. Currently, it only includes [ActiveModel::API](#api) but it
-will be extended in the future to add more functionality.
+[`ActiveModel::SecurePassword`](https://api.rubyonrails.org/classes/ActiveModel/SecurePassword.html)
+provides a way to securely store any password in an encrypted form. When you
+include this module, a `has_secure_password` class method is provided which
+defines a `password` accessor with certain validations on it by default.
+
+`ActiveModel::SecurePassword` depends on
+[`bcrypt`](https://github.com/codahale/bcrypt-ruby 'BCrypt'), so include this
+gem in your `Gemfile` to use it.
+
+```ruby
+gem "bcrypt"
+```
+
+`ActiveModel::SecurePassword` requires you to have a `password_digest`
+attribute.
+
+The following validations are added automatically:
+
+1. Password must be present on creation.
+2. Confirmation of password (using a `password_confirmation` attribute).
+3. The maximum length of a password is 72 bytes (required as `bcrypt` truncates
+   the string to this size before encrypting it).
+
+NOTE: If password confirmation validation is not needed, simply leave out the
+value for `password_confirmation` (i.e. don't provide a form field for it). When
+this attribute has a `nil` value, the validation will not be triggered.
+
+For further customization, it is possible to suppress the default validations by
+passing `validations: false` as an argument.
+
 
 ```ruby
 class Person
-  include ActiveModel::Model
+  include ActiveModel::SecurePassword
 
-  attr_accessor :name, :age
+  has_secure_password
+  has_secure_password :recovery_password, validations: false
+
+  attr_accessor :password_digest, :recovery_password_digest
 end
 ```
 
 ```irb
-irb> person = Person.new(name: 'bob', age: '18')
-irb> person.name # => "bob"
-irb> person.age  # => "18"
+irb> person = Person.new
+
+# When password is blank.
+irb> person.valid?
+=> false
+
+# When the confirmation doesn't match the password.
+irb> person.password = "aditya"
+irb> person.password_confirmation = "nomatch"
+irb> person.valid?
+=> false
+
+# When the length of password exceeds 72.
+irb> person.password = person.password_confirmation = "a" * 100
+irb> person.valid?
+=> false
+
+# When only password is supplied with no password_confirmation.
+irb> person.password = "aditya"
+irb> person.valid?
+=> true
+
+# When all validations are passed.
+irb> person.password = person.password_confirmation = "aditya"
+irb> person.valid?
+=> true
+
+irb> person.recovery_password = "42password"
+
+# `authenticate` is an alias for `authenticate_password`
+irb> person.authenticate("aditya")
+=> #<Person> # == person
+irb> person.authenticate("notright")
+=> false
+irb> person.authenticate_password("aditya")
+=> #<Person> # == person
+irb> person.authenticate_password("notright")
+=> false
+
+irb> person.authenticate_recovery_password("aditya")
+=> false
+irb> person.authenticate_recovery_password("42password")
+=> #<Person> # == person
+irb> person.authenticate_recovery_password("notright")
+=> false
+
+irb> person.password_digest
+=> "$2a$04$gF8RfZdoXHvyTjHhiU4ZsO.kQqV9oonYZu31PRE4hLQn3xM2qkpIy"
+irb> person.recovery_password_digest
+=> "$2a$04$iOfhwahFymCs5weB3BNH/uXkTG65HR.qpW.bNhEjFP3ftli3o5DQC"
 ```
 
 ### Serialization
@@ -1319,6 +1292,130 @@ irb> Person.human_attribute_name("name")
 => "Nome"
 ```
 
+### Validations
+
+[`ActiveModel::Validations`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html)
+adds the ability to validate objects and it is important for ensuring data
+integrity and consistency within your application. By incorporating validations
+into your models, you can define rules that govern the correctness of attribute
+values, and prevent invalid data.
+
+```ruby
+class Person
+  include ActiveModel::Validations
+
+  attr_accessor :name, :email, :token
+
+  validates :name, presence: true
+  validates_format_of :email, with: /\A([^\s]+)((?:[-a-z0-9]\.)[a-z]{2,})\z/i
+  validates! :token, presence: true
+end
+```
+
+```irb
+irb> person = Person.new
+irb> person.token = "2b1f325"
+irb> person.valid?
+=> false
+
+irb> person.name = "Jane Doe"
+irb> person.email = "me"
+irb> person.valid?
+=> false
+
+irb> person.email = "jane.doe@gmail.com"
+irb> person.valid?
+=> true
+
+# `token` uses validate! and will raise an exception when not set.
+irb> person.token = nil
+irb> person.valid?
+=> "Token can't be blank (ActiveModel::StrictValidationFailed)"
+```
+
+#### Validation Methods and Options
+
+You can add validations using some of the following methods:
+
+- [`validate`](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validate):
+  Adds validation through a method or a block to the class.
+
+- [`validates`](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates):
+  An attribute can be passed to the `validates` method and it provides a
+  shortcut to all default validators.
+
+- [`validates!`](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates-21)
+  or setting `strict: true`: Used to define validations that cannot be corrected
+  by end users and are considered exceptional. Each validator defined with a
+  bang or `:strict` option set to true will always raise
+  `ActiveModel::StrictValidationFailed` instead of adding to the errors when
+  validation fails.
+
+- [`validates_with`](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates_with):
+  Passes the record off to the class or classes specified and allows them to add
+  errors based on more complex conditions.
+
+- [`validates_each`](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validates_each):
+  Validates each attribute against a block.
+
+Some of the options below can be used with certain validators. To determine if
+the option you're using can be used with a specific validator, read through the
+documentation
+[here](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html).
+
+- `:on`: Specifies the context in which to add the validation. You can pass a
+symbol or an array of symbols. (e.g. `on: :create` or `on:
+:custom_validation_context` or `on: [:create, :custom_validation_context]`).
+Validations without an `:on` option will run no matter the context. Validations
+with some `:on` option will only run in the specified context. You can pass the
+context when validating via `valid?(:context)`.
+
+- `:if`: Specifies a method, proc or string to call to determine if the
+  validation should occur (e.g. `if: :allow_validation`, or `if: Proc.new {
+  |user| user.signup_step > 2 }`). The method, proc or string should return or
+  evaluate to a `true` or `false` value.
+
+- `:unless`: Specifies a method, proc or string to call to determine if the
+  validation should not occur (e.g. `unless: :skip_validation`, or `unless:
+  Proc.new { |user| user.signup_step <= 2 }`). The method, proc or string should
+  return or evaluate to a `true` or `false` value.
+
+- `:allow_nil`: Skip the validation if the attribute is `nil`.
+
+- `:allow_blank`: Skip the validation if the attribute is blank.
+
+- `:strict`: If the `:strict` option is set to true, it will raise
+  `ActiveModel::StrictValidationFailed` instead of adding the error. `:strict`
+  option can also be set to any other exception.
+
+NOTE: Calling `validate` multiple times on the same method will overwrite
+previous definitions.
+
+#### Errors
+
+`ActiveModel::Validations` automatically adds an `errors` method to your
+instances initialized with a new
+[`ActiveModel::Errors`](https://api.rubyonrails.org/classes/ActiveModel/Errors.html)
+object, so there is no need for you to do this manually.
+
+Run `valid?` on the object to check if the object is valid or not. If the object
+is not valid, it will return `false` and the errors will be added to the
+`errors` object.
+
+```irb
+irb> person = Person.new
+
+irb> person.email = "me"
+irb> person.valid?
+=> # Raises Token can't be blank (ActiveModel::StrictValidationFailed)
+
+irb> person.errors.to_hash
+=> {:name => ["can't be blank"], :email => ["is invalid"]}
+
+irb> person.errors.full_messages
+=> ["Name can't be blank", "Email is invalid"]
+```
+
 ### Lint Tests
 
 [`ActiveModel::Lint::Tests`](https://api.rubyonrails.org/classes/ActiveModel/Lint/Tests.html)
@@ -1374,101 +1471,4 @@ Run options: --seed 14596
 Finished in 0.024899s, 240.9735 runs/s, 1204.8677 assertions/s.
 
 6 runs, 30 assertions, 0 failures, 0 errors, 0 skips
-```
-
-### SecurePassword
-
-[`ActiveModel::SecurePassword`](https://api.rubyonrails.org/classes/ActiveModel/SecurePassword.html)
-provides a way to securely store any password in an encrypted form. When you
-include this module, a `has_secure_password` class method is provided which
-defines a `password` accessor with certain validations on it by default.
-
-`ActiveModel::SecurePassword` depends on
-[`bcrypt`](https://github.com/codahale/bcrypt-ruby 'BCrypt'), so include this
-gem in your `Gemfile` to use it.
-
-```ruby
-gem "bcrypt"
-```
-
-`ActiveModel::SecurePassword` requires you to have a `password_digest`
-attribute.
-
-The following validations are added automatically:
-
-1. Password must be present on creation.
-2. Confirmation of password (using a `password_confirmation` attribute).
-3. The maximum length of a password is 72 bytes (required as `bcrypt` truncates
-   the string to this size before encrypting it).
-
-NOTE: If password confirmation validation is not needed, simply leave out the
-value for `password_confirmation` (i.e. don't provide a form field for it). When
-this attribute has a `nil` value, the validation will not be triggered.
-
-For further customization, it is possible to suppress the default validations by
-passing `validations: false` as an argument.
-
-
-```ruby
-class Person
-  include ActiveModel::SecurePassword
-
-  has_secure_password
-  has_secure_password :recovery_password, validations: false
-
-  attr_accessor :password_digest, :recovery_password_digest
-end
-```
-
-```irb
-irb> person = Person.new
-
-# When password is blank.
-irb> person.valid?
-=> false
-
-# When the confirmation doesn't match the password.
-irb> person.password = "aditya"
-irb> person.password_confirmation = "nomatch"
-irb> person.valid?
-=> false
-
-# When the length of password exceeds 72.
-irb> person.password = person.password_confirmation = "a" * 100
-irb> person.valid?
-=> false
-
-# When only password is supplied with no password_confirmation.
-irb> person.password = "aditya"
-irb> person.valid?
-=> true
-
-# When all validations are passed.
-irb> person.password = person.password_confirmation = "aditya"
-irb> person.valid?
-=> true
-
-irb> person.recovery_password = "42password"
-
-# `authenticate` is an alias for `authenticate_password`
-irb> person.authenticate("aditya")
-=> #<Person> # == person
-irb> person.authenticate("notright")
-=> false
-irb> person.authenticate_password("aditya")
-=> #<Person> # == person
-irb> person.authenticate_password("notright")
-=> false
-
-irb> person.authenticate_recovery_password("aditya")
-=> false
-irb> person.authenticate_recovery_password("42password")
-=> #<Person> # == person
-irb> person.authenticate_recovery_password("notright")
-=> false
-
-irb> person.password_digest
-=> "$2a$04$gF8RfZdoXHvyTjHhiU4ZsO.kQqV9oonYZu31PRE4hLQn3xM2qkpIy"
-irb> person.recovery_password_digest
-=> "$2a$04$iOfhwahFymCs5weB3BNH/uXkTG65HR.qpW.bNhEjFP3ftli3o5DQC"
 ```
