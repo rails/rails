@@ -1298,6 +1298,40 @@ en:
       assert_equal "foo", Bukkits.table_name_prefix
     end
 
+    test "respect the engine table_name_prefix method" do
+      @plugin = engine "blog" do |plugin|
+        plugin.write "lib/blog.rb", <<-RUBY
+          require "blog/engine"
+
+          module Blog
+            def self.table_name_prefix
+              ""
+            end
+          end
+        RUBY
+
+        plugin.write "lib/blog/engine.rb", <<-RUBY
+          module Blog
+            class Engine < ::Rails::Engine
+              railtie_name "blog"
+              isolate_namespace(Blog)
+            end
+          end
+        RUBY
+
+        plugin.write "app/models/blog/post.rb", <<-RUBY
+          module Blog
+            class Post < ActiveRecord::Base
+            end
+          end
+        RUBY
+      end
+
+      boot_rails
+
+      assert_equal "posts", Blog::Post.table_name
+    end
+
     test "take ActiveRecord table_name_prefix into consideration when defining table_name_prefix" do
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
