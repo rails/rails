@@ -53,7 +53,7 @@ The final HTML returned to the client is composed of a combination of the `.html
 Templates
 ---------
 
-Action View templates can be written in several ways. If the template file has a `.erb` extension then it uses a mixture of ERB (Embedded Ruby) and HTML. If the template file has a `.builder` extension then the `Builder::XmlMarkup` library is used.
+Action View templates can be written in different formats. If the template file has a `.erb` extension, it uses embedded Ruby to build a HTML response. If it template has a `.jbuilder` extension, it uses the [Jbuilder](https://github.com/rails/jbuilder) gem to build a JSON response. And a file with a `.builder` extension uses the [`Builder::XmlMarkup`](https://github.com/jimweirich/builder) library to generate an XML response.
 
 Rails supports multiple template systems and uses a file extension to distinguish amongst them. For example, an HTML file using the ERB template system will have `.html.erb` as a file extension.
 
