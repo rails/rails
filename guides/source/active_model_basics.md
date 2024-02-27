@@ -323,25 +323,25 @@ class Person
   attr_accessor :name
 
   private
-  # Attribute method call for 'first_name'
-  def first_attribute(attribute)
-    public_send(attribute).split.first
-  end
+    # Attribute method call for 'first_name'
+    def first_attribute(attribute)
+      public_send(attribute).split.first
+    end
 
-  # Attribute method call for 'last_name'
-  def last_attribute(attribute)
-    public_send(attribute).split.last
-  end
+    # Attribute method call for 'last_name'
+    def last_attribute(attribute)
+      public_send(attribute).split.last
+    end
 
-  # Attribute method call for 'name_short?'
-  def attribute_short?(attribute)
-    public_send(attribute).length < 5
-  end
+    # Attribute method call for 'name_short?'
+    def attribute_short?(attribute)
+      public_send(attribute).length < 5
+    end
 
-  # Attribute method call 'reset_name_to_default!'
-  def reset_attribute_to_default!(attribute)
-    public_send("#{attribute}=", "Default Name")
-  end
+    # Attribute method call 'reset_name_to_default!'
+    def reset_attribute_to_default!(attribute)
+      public_send("#{attribute}=", "Default Name")
+    end
 end
 ```
 
@@ -384,9 +384,9 @@ class Person
   alias_attribute :full_name, :name
 
   private
-  def attribute_short?(attribute)
-    public_send(attribute).length < 5
-  end
+    def attribute_short?(attribute)
+      public_send(attribute).length < 5
+    end
 end
 ```
 
@@ -447,22 +447,22 @@ class Person
   end
 
   private
-  # When update is called on an object, then this method is called by `before_update` callback
-  def reset_me
-    puts "reset_me method: called before the update method"
-  end
+    # When update is called on an object, then this method is called by `before_update` callback
+    def reset_me
+      puts "reset_me method: called before the update method"
+    end
 
-  # When update is called on an object, then this method is called by `after_update` callback
-  def finalize_me
-    puts "finalize_me method: called after the update method"
-  end
+    # When update is called on an object, then this method is called by `after_update` callback
+    def finalize_me
+      puts "finalize_me method: called after the update method"
+    end
 
-  # When update is called on an object, then this method is called by `around_update` callback
-  def log_me
-    puts "log_me method: called around the update method"
-    yield
-    puts "log_me method: block successfully called"
-  end
+    # When update is called on an object, then this method is called by `around_update` callback
+    def log_me
+      puts "log_me method: called around the update method"
+      yield
+      puts "log_me method: block successfully called"
+    end
 end
 ```
 
@@ -558,21 +558,21 @@ class Person
   end
 
   private
-  def reset_me
-    puts "reset_me method: called before the update method"
-    throw :abort
-    puts "reset_me method: some code after abort"
-  end
+    def reset_me
+      puts "reset_me method: called before the update method"
+      throw :abort
+      puts "reset_me method: some code after abort"
+    end
 
-  def finalize_me
-    puts "finalize_me method: called after the update method"
-  end
+    def finalize_me
+      puts "finalize_me method: called after the update method"
+    end
 
-  def log_me
-    puts "log_me method: called around the update method"
-    yield
-    puts "log_me method: block successfully called"
-  end
+    def log_me
+      puts "log_me method: called around the update method"
+      yield
+      puts "log_me method: block successfully called"
+    end
 end
 ```
 
