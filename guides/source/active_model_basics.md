@@ -301,7 +301,7 @@ as follows:
    `attribute_method_prefix`, `attribute_method_affix`.
 3. Call `define_attribute_methods` after the other methods to declare the
    attribute(s) that should be prefixed and suffixed.
-4.  Define the various generic `_attribute` methods that you have declared. The
+4. Define the various generic `_attribute` methods that you have declared. The
     parameter `attribute` in these methods will be replaced by the argument
     passed in `define_attribute_methods`. In the example below it's `name`.
 
@@ -323,7 +323,6 @@ class Person
   attr_accessor :name
 
   private
-
   # Attribute method call for 'first_name'
   def first_attribute(attribute)
     public_send(attribute).split.first
@@ -385,7 +384,6 @@ class Person
   alias_attribute :full_name, :name
 
   private
-
   def attribute_short?(attribute)
     public_send(attribute).length < 5
   end
@@ -449,7 +447,6 @@ class Person
   end
 
   private
-
   # When update is called on an object, then this method is called by `before_update` callback
   def reset_me
     puts "reset_me method: called before the update method"
@@ -561,7 +558,6 @@ class Person
   end
 
   private
-
   def reset_me
     puts "reset_me method: called before the update method"
     throw :abort
@@ -940,6 +936,7 @@ default, it will underscore and then humanize the class name.
 irb> Person.model_name.human
 => "Person"
 ```
+
 **`collection`** removes the namespace and returns the plural snake_cased name.
 It is generally used by Action Pack and/or Action View helpers to aid in
 rendering the name of partials/forms.
@@ -1102,7 +1099,7 @@ class Person
 
   def attributes
     # Declaration of attributes that will be serialized
-    {"name" => nil, "age" => nil}
+    { "name" => nil, "age" => nil }
   end
 
   def capitalized_name
@@ -1150,7 +1147,7 @@ scenario as defined below:
     attr_accessor :name, :notes # Emulate has_many :notes
 
     def attributes
-      {"name" => nil}
+      { "name" => nil }
     end
   end
 
@@ -1159,7 +1156,7 @@ scenario as defined below:
     attr_accessor :title, :text
 
     def attributes
-      {"title" => nil, "text" => nil}
+      { "title" => nil, "text" => nil }
     end
   end
 ```
@@ -1365,15 +1362,14 @@ You can add validations using some of the following methods:
 
 Some of the options below can be used with certain validators. To determine if
 the option you're using can be used with a specific validator, read through the
-documentation
-[here](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html).
+documentation [here](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html).
 
 - `:on`: Specifies the context in which to add the validation. You can pass a
-symbol or an array of symbols. (e.g. `on: :create` or `on:
-:custom_validation_context` or `on: [:create, :custom_validation_context]`).
-Validations without an `:on` option will run no matter the context. Validations
-with some `:on` option will only run in the specified context. You can pass the
-context when validating via `valid?(:context)`.
+  symbol or an array of symbols. (e.g. `on: :create` or `on:
+  :custom_validation_context` or `on: [:create, :custom_validation_context]`).
+  Validations without an `:on` option will run no matter the context. Validations
+  with some `:on` option will only run in the specified context. You can pass the
+  context when validating via `valid?(:context)`.
 
 - `:if`: Specifies a method, proc or string to call to determine if the
   validation should occur (e.g. `if: :allow_validation`, or `if: Proc.new {
