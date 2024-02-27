@@ -4,7 +4,7 @@ class Eye < ActiveRecord::Base
   attr_reader :after_create_callbacks_stack
   attr_reader :after_update_callbacks_stack
   attr_reader :after_save_callbacks_stack
-  attr_writer :override_iris_with_read_only_foreign_key_color
+  attr_accessor :override_iris_with_read_only_foreign_key_color
 
   # Callbacks configured before the ones has_one sets up.
   after_create :trace_after_create, if: :iris
@@ -38,7 +38,7 @@ class Eye < ActiveRecord::Base
   accepts_nested_attributes_for :iris_with_read_only_foreign_key
 
   before_save :set_iris_with_read_only_foreign_key_color_to_blue, if: -> {
-    iris_with_read_only_foreign_key && @override_iris_with_read_only_foreign_key_color
+    iris_with_read_only_foreign_key && override_iris_with_read_only_foreign_key_color
   }
 
   def set_iris_with_read_only_foreign_key_color_to_blue
