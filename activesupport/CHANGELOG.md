@@ -1,3 +1,12 @@
+*   Add filename support for `ActiveSupport::Logger.logger_outputs_to?`
+
+    ```ruby
+    logger = Logger.new('/var/log/rails.log')
+    ActiveSupport::Logger.logger_outputs_to?(logger, '/var/log/rails.log')
+    ```
+
+    *Christian Schmidt*
+
 *   Include `IPAddr#prefix` when serializing an `IPAddr` using the
     `ActiveSupport::MessagePack` serializer. This change is backward and forward
     compatible — old payloads can still be read, and new payloads will be

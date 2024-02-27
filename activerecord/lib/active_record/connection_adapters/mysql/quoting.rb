@@ -21,9 +21,6 @@ module ActiveRecord
             "1"
           when false
             "0"
-          when ActiveSupport::Duration
-            warn_quote_duration_deprecated
-            value.to_s
           else
             value
           end

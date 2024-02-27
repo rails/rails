@@ -243,7 +243,7 @@ module ActiveRecord
     # Clears the query cache for all connections associated with the current thread.
     def clear_query_caches_for_current_thread
       connection_handler.each_connection_pool do |pool|
-        pool.connection.clear_query_cache
+        pool.clear_query_cache
       end
     end
 
@@ -299,16 +299,9 @@ module ActiveRecord
       connection_handler.connected?(connection_specification_name, role: current_role, shard: current_shard)
     end
 
-    def remove_connection(name = nil)
-      if name
-        ActiveRecord.deprecator.warn(<<-MSG.squish)
-          The name argument for `#remove_connection` is deprecated without replacement
-          and will be removed in Rails 7.2. `#remove_connection` should always be called
-          on the connection class directly, which makes the name argument obsolete.
-        MSG
-      end
+    def remove_connection
+      name = @connection_specification_name if defined?(@connection_specification_name)
 
-      name ||= @connection_specification_name if defined?(@connection_specification_name)
       # if removing a connection that has a pool, we reset the
       # connection_specification_name so it will use the parent
       # pool.
@@ -327,35 +320,7 @@ module ActiveRecord
       connection_pool.schema_cache.clear!
     end
 
-    def clear_active_connections!(role = nil)
-      deprecation_for_delegation(__method__)
-      connection_handler.clear_active_connections!(role)
-    end
-
-    def clear_reloadable_connections!(role = nil)
-      deprecation_for_delegation(__method__)
-      connection_handler.clear_reloadable_connections!(role)
-    end
-
-    def clear_all_connections!(role = nil)
-      deprecation_for_delegation(__method__)
-      connection_handler.clear_all_connections!(role)
-    end
-
-    def flush_idle_connections!(role = nil)
-      deprecation_for_delegation(__method__)
-      connection_handler.flush_idle_connections!(role)
-    end
-
     private
-      def deprecation_for_delegation(method)
-        ActiveRecord.deprecator.warn(<<-MSG.squish)
-          Calling `ActiveRecord::Base.#{method} is deprecated. Please
-          call the method directly on the connection handler; for
-          example: `ActiveRecord::Base.connection_handler.#{method}`.
-        MSG
-      end
-
       def resolve_config_for_connection(config_or_env)
         raise "Anonymous class is not allowed." unless name
 

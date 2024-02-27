@@ -214,7 +214,7 @@ module ActiveRecord
       end
 
       def truncate_tables(*table_names) # :nodoc:
-        table_names -= [schema_migration.table_name, internal_metadata.table_name]
+        table_names -= [pool.schema_migration.table_name, pool.internal_metadata.table_name]
 
         return if table_names.empty?
 

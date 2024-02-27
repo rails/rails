@@ -179,7 +179,7 @@ module ActiveRecord
         each_current_configuration(env) do |db_config|
           with_temporary_pool(db_config) do
             begin
-              database_initialized = migration_connection.schema_migration.table_exists?
+              database_initialized = migration_connection_pool.schema_migration.table_exists?
             rescue ActiveRecord::NoDatabaseError
               create(db_config)
               retry
@@ -240,7 +240,7 @@ module ActiveRecord
 
         check_target_version
 
-        migration_connection.migration_context.migrate(target_version) do |migration|
+        migration_connection_pool.migration_context.migrate(target_version) do |migration|
           if version.blank?
             scope.blank? || scope == migration.scope
           else
@@ -250,7 +250,7 @@ module ActiveRecord
           Migration.write("No migrations ran. (using #{scope} scope)") if scope.present? && migrations_ran.empty?
         end
 
-        migration_connection.schema_cache.clear!
+        migration_connection_pool.schema_cache.clear!
       ensure
         Migration.verbose = verbose_was
       end
@@ -258,9 +258,9 @@ module ActiveRecord
       def db_configs_with_versions # :nodoc:
         db_configs_with_versions = Hash.new { |h, k| h[k] = [] }
 
-        with_temporary_connection_for_each do |conn|
-          db_config = conn.pool.db_config
-          versions_to_run = conn.migration_context.pending_migration_versions
+        with_temporary_pool_for_each do |pool|
+          db_config = pool.db_config
+          versions_to_run = pool.migration_context.pending_migration_versions
           target_version = ActiveRecord::Tasks::DatabaseTasks.target_version
 
           versions_to_run.each do |version|
@@ -273,15 +273,15 @@ module ActiveRecord
       end
 
       def migrate_status
-        unless migration_connection.schema_migration.table_exists?
+        unless migration_connection_pool.schema_migration.table_exists?
           Kernel.abort "Schema migrations table does not exist yet."
         end
 
         # output
-        puts "\ndatabase: #{migration_connection.pool.db_config.database}\n\n"
+        puts "\ndatabase: #{migration_connection_pool.db_config.database}\n\n"
         puts "#{'Status'.center(8)}  #{'Migration ID'.ljust(14)}  Migration Name"
         puts "-" * 50
-        migration_connection.migration_context.migrations_status.each do |status, version, name|
+        migration_connection_pool.migration_context.migrations_status.each do |status, version, name|
           puts "#{status.center(8)}  #{version.ljust(14)}  #{name}"
         end
         puts
@@ -362,7 +362,7 @@ module ActiveRecord
           raise ArgumentError, "unknown format #{format.inspect}"
         end
 
-        migration_connection.internal_metadata.create_table_and_set_flags(db_config.env_name, schema_sha1(file))
+        migration_connection_pool.internal_metadata.create_table_and_set_flags(db_config.env_name, schema_sha1(file))
       ensure
         Migration.verbose = verbose_was
       end
@@ -374,11 +374,12 @@ module ActiveRecord
 
         return true unless file && File.exist?(file)
 
-        with_temporary_connection(db_config) do |connection|
-          return false unless connection.internal_metadata.enabled?
-          return false unless connection.internal_metadata.table_exists?
+        with_temporary_pool(db_config) do |pool|
+          internal_metadata = pool.internal_metadata
+          return false unless internal_metadata.enabled?
+          return false unless internal_metadata.table_exists?
 
-          connection.internal_metadata[:schema_sha1] == schema_sha1(file)
+          internal_metadata[:schema_sha1] == schema_sha1(file)
         end
       end
 
@@ -411,11 +412,11 @@ module ActiveRecord
         case format
         when :ruby
           File.open(filename, "w:utf-8") do |file|
-            ActiveRecord::SchemaDumper.dump(migration_connection, file)
+            ActiveRecord::SchemaDumper.dump(migration_connection_pool, file)
           end
         when :sql
           structure_dump(db_config, filename)
-          if migration_connection.schema_migration.table_exists?
+          if migration_connection_pool.schema_migration.table_exists?
             File.open(filename, "a") do |f|
               f.puts migration_connection.dump_schema_information
               f.print "\n"
@@ -489,21 +490,21 @@ module ActiveRecord
       #
       # ==== Examples
       #   ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.connection, "tmp/schema_dump.yaml")
-      def dump_schema_cache(conn, filename)
-        conn.schema_cache.dump_to(filename)
+      def dump_schema_cache(conn_or_pool, filename)
+        conn_or_pool.schema_cache.dump_to(filename)
       end
 
       def clear_schema_cache(filename)
         FileUtils.rm_f filename, verbose: false
       end
 
-      def with_temporary_connection_for_each(env: ActiveRecord::Tasks::DatabaseTasks.env, name: nil, clobber: false, &block) # :nodoc:
+      def with_temporary_pool_for_each(env: ActiveRecord::Tasks::DatabaseTasks.env, name: nil, clobber: false, &block) # :nodoc:
         if name
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: env, name: name)
-          with_temporary_connection(db_config, clobber: clobber, &block)
+          with_temporary_pool(db_config, clobber: clobber, &block)
         else
           ActiveRecord::Base.configurations.configs_for(env_name: env, name: name).each do |db_config|
-            with_temporary_connection(db_config, clobber: clobber, &block)
+            with_temporary_pool(db_config, clobber: clobber, &block)
           end
         end
       end
@@ -520,6 +521,10 @@ module ActiveRecord
 
       def migration_connection # :nodoc:
         migration_class.connection
+      end
+
+      def migration_connection_pool # :nodoc:
+        migration_class.connection_pool
       end
 
       private
@@ -626,11 +631,11 @@ module ActiveRecord
 
         def check_current_protected_environment!(db_config)
           with_temporary_pool(db_config) do |pool|
-            connection = pool.connection
-            current = connection.migration_context.current_environment
-            stored  = connection.migration_context.last_stored_environment
+            migration_context = pool.migration_context
+            current = migration_context.current_environment
+            stored  = migration_context.last_stored_environment
 
-            if connection.migration_context.protected_environment?
+            if migration_context.protected_environment?
               raise ActiveRecord::ProtectedEnvironmentError.new(stored)
             end
 

@@ -88,22 +88,10 @@ module ActiveRecord
         connection_name_to_pool_manager.keys
       end
 
-      def all_connection_pools
-        ActiveRecord.deprecator.warn(<<-MSG.squish)
-          The `all_connection_pools` method is deprecated in favor of `connection_pool_list`.
-          Call `connection_pool_list(:all)` to get the same behavior as `all_connection_pools`.
-        MSG
-        connection_name_to_pool_manager.values.flat_map { |m| m.pool_configs.map(&:pool) }
-      end
-
-      # Returns the pools for a connection handler and  given role. If +:all+ is passed,
+      # Returns the pools for a connection handler and given role. If +:all+ is passed,
       # all pools belonging to the connection handler will be returned.
       def connection_pool_list(role = nil)
-        if role.nil?
-          deprecation_for_pool_handling(__method__)
-          role = ActiveRecord::Base.current_role
-          connection_name_to_pool_manager.values.flat_map { |m| m.pool_configs(role).map(&:pool) }
-        elsif role == :all
+        if role.nil? || role == :all
           connection_name_to_pool_manager.values.flat_map { |m| m.pool_configs.map(&:pool) }
         else
           connection_name_to_pool_manager.values.flat_map { |m| m.pool_configs(role).map(&:pool) }
@@ -165,11 +153,6 @@ module ActiveRecord
       # Returns true if there are any active connections among the connection
       # pools that the ConnectionHandler is managing.
       def active_connections?(role = nil)
-        if role.nil?
-          deprecation_for_pool_handling(__method__)
-          role = ActiveRecord::Base.current_role
-        end
-
         each_connection_pool(role).any?(&:active_connection?)
       end
 
@@ -177,11 +160,6 @@ module ActiveRecord
       # and also returns connections to the pool cached by threads that are no
       # longer alive.
       def clear_active_connections!(role = nil)
-        if role.nil?
-          deprecation_for_pool_handling(__method__)
-          role = ActiveRecord::Base.current_role
-        end
-
         each_connection_pool(role).each do |pool|
           pool.release_connection
           pool.disable_query_cache!
@@ -192,20 +170,10 @@ module ActiveRecord
       #
       # See ConnectionPool#clear_reloadable_connections! for details.
       def clear_reloadable_connections!(role = nil)
-        if role.nil?
-          deprecation_for_pool_handling(__method__)
-          role = ActiveRecord::Base.current_role
-        end
-
         each_connection_pool(role).each(&:clear_reloadable_connections!)
       end
 
       def clear_all_connections!(role = nil)
-        if role.nil?
-          deprecation_for_pool_handling(__method__)
-          role = ActiveRecord::Base.current_role
-        end
-
         each_connection_pool(role).each(&:disconnect!)
       end
 
@@ -213,11 +181,6 @@ module ActiveRecord
       #
       # See ConnectionPool#flush! for details.
       def flush_idle_connections!(role = nil)
-        if role.nil?
-          deprecation_for_pool_handling(__method__)
-          role = ActiveRecord::Base.current_role
-        end
-
         each_connection_pool(role).each(&:flush!)
       end
 
@@ -279,23 +242,6 @@ module ActiveRecord
 
         def pool_managers
           connection_name_to_pool_manager.values
-        end
-
-        def deprecation_for_pool_handling(method)
-          roles = []
-          pool_managers.each do |pool_manager|
-            roles << pool_manager.role_names
-          end
-
-          if roles.flatten.uniq.count > 1
-            ActiveRecord.deprecator.warn(<<-MSG.squish)
-              `#{method}` currently only applies to connection pools in the current
-              role (`#{ActiveRecord::Base.current_role}`). In Rails 7.2, this method
-              will apply to all known pools, regardless of role. To affect only those
-              connections belonging to a specific role, pass the role name as an
-              argument. To switch to the new behavior, pass `:all` as the role name.
-            MSG
-          end
         end
 
         def disconnect_pool_from_pool_manager(pool_manager, role, shard)

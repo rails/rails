@@ -105,7 +105,72 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `Rails.application.config.active_record.suppress_multiple_database_warning`.
+
+*   Remove deprecated support to call `alias_attribute` with non-existent attribute names.
+
+*   Remove deprecated `name` argument from `ActiveRecord::Base.remove_connection`.
+
+*   Remove deprecated `ActiveRecord::Base.clear_active_connections!`.
+
+*   Remove deprecated `ActiveRecord::Base.clear_reloadable_connections!`.
+
+*   Remove deprecated `ActiveRecord::Base.clear_all_connections!`.
+
+*   Remove deprecated `ActiveRecord::Base.flush_idle_connections!`.
+
+*   Remove deprecated `ActiveRecord::ActiveJobRequiredError`.
+
+*   Remove deprecated support to define `explain` in the connection adapter with 2 arguments.
+
+*   Remove deprecated `ActiveRecord::LogSubscriber.runtime` method.
+
+*   Remove deprecated `ActiveRecord::LogSubscriber.runtime=` method.
+
+*   Remove deprecated `ActiveRecord::LogSubscriber.reset_runtime` method.
+
+*   Remove deprecated `ActiveRecord::Migration.check_pending` method.
+
+*   Remove deprecated support to passing `SchemaMigration` and `InternalMetadata` classes as arguments to
+    `ActiveRecord::MigrationContext`.
+
+*   Remove deprecated behavior to support referring to a singular association by its plural name.
+
+*   Remove deprecated `TestFixtures.fixture_path`.
+
+*   Remove deprecated support to `ActiveRecord::Base#read_attribute(:id)` to return the custom primary key value.
+
+*   Remove deprecated support to passing coder and class as second argument to `serialize`.
+
+*   Remove deprecated `#all_foreign_keys_valid?` from database adapters.
+
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::SchemaCache.load_from`.
+
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::SchemaCache#data_sources`.
+
+*   Remove deprecated `#all_connection_pools`.
+
+*   Remove deprecated support to apply `#connection_pool_list`, `#active_connections?`, `#clear_active_connections!`,
+    `#clear_reloadable_connections!`, `#clear_all_connections!` and `#flush_idle_connections!` to the connections pools
+    for the current role when the `role` argument isn't provided.
+
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::ConnectionPool#connection_klass`.
+
+*   Remove deprecated `#quote_bound_value`.
+
+*   Remove deprecated support to quote `ActiveSupport::Duration`.
+
+*   Remove deprecated support to pass `deferrable: true` to `add_foreign_key`.
+
+*   Remove deprecated support to pass `rewhere` to `ActiveRecord::Relation#merge`.
+
+*   Remove deprecated behavior that would rollback a transaction block when exited using `return`, `break` or `throw`.
+
 ### Deprecations
+
+*   Deprecate `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
+
+*   Deprecate `Rails.application.config.active_record.commit_transaction_on_non_local_return`
 
 ### Notable changes
 

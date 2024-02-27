@@ -118,9 +118,9 @@ module ActiveRecord
       include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout
-      attr_reader :db_config, :size, :reaper, :pool_config, :async_executor, :role, :shard, :schema_cache
+      attr_reader :db_config, :size, :reaper, :pool_config, :async_executor, :role, :shard
 
-      delegate :schema_reflection, :schema_reflection=, :server_version, to: :pool_config
+      delegate :schema_reflection, :server_version, to: :pool_config
 
       # Creates a new ConnectionPool object. +pool_config+ is a PoolConfig
       # object which describes database connection information (e.g. adapter,
@@ -167,10 +167,35 @@ module ActiveRecord
 
         @async_executor = build_async_executor
 
-        @schema_cache = BoundSchemaReflection.new(schema_reflection, self)
+        @schema_cache = nil
 
         @reaper = Reaper.new(self, db_config.reaping_frequency)
         @reaper.run
+      end
+
+      def schema_cache
+        @schema_cache ||= BoundSchemaReflection.new(schema_reflection, self)
+      end
+
+      def schema_reflection=(schema_reflection)
+        pool_config.schema_reflection = schema_reflection
+        @schema_cache = nil
+      end
+
+      def migration_context # :nodoc:
+        MigrationContext.new(migrations_paths, schema_migration, internal_metadata)
+      end
+
+      def migrations_paths # :nodoc:
+        db_config.migrations_paths || Migrator.migrations_paths
+      end
+
+      def schema_migration # :nodoc:
+        SchemaMigration.new(self)
+      end
+
+      def internal_metadata # :nodoc:
+        InternalMetadata.new(self)
       end
 
       # Retrieve the connection associated with the current thread, or call
@@ -220,8 +245,6 @@ module ActiveRecord
       def connection_class # :nodoc:
         pool_config.connection_class
       end
-      alias :connection_klass :connection_class
-      deprecate :connection_klass, deprecator: ActiveRecord.deprecator
 
       # Returns true if there is an open connection being used for the current thread.
       #

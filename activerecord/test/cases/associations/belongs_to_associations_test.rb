@@ -252,9 +252,9 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, counter
     comment = comments.first
     assert_equal 0, counter
-    sql = capture_sql { comment.post }
+    queries = capture_sql_and_binds { comment.post }
     comment.reload
-    assert_not_equal sql, capture_sql { comment.post }
+    assert_not_equal queries, capture_sql_and_binds { comment.post }
   end
 
   def test_proxy_assignment

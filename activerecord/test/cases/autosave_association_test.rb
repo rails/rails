@@ -302,6 +302,13 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     eye.update(iris_attributes: { color: "blue" })
     assert_equal [false, false, false, false], eye.after_save_callbacks_stack
   end
+
+  def test_foreign_key_attribute_is_not_set_unless_changed
+    eye = Eye.create!(iris_with_read_only_foreign_key_attributes: { color: "honey" })
+    assert_nothing_raised do
+      eye.update!(override_iris_with_read_only_foreign_key_color: true)
+    end
+  end
 end
 
 class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase

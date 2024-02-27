@@ -421,7 +421,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_application_name_is_normalized_in_config
     run_generator [File.join(destination_root, "MyWebSite"), "-d", "postgresql"]
-    assert_file "MyWebSite/app/views/layouts/application.html.erb", /<title><%= content_for(:title) || "MyWebSite" %><\/title>/
+    assert_file "MyWebSite/app/views/layouts/application.html.erb", /content_for\(:title\) \|\| "My Web Site"/
     assert_file "MyWebSite/config/database.yml", /my_web_site_production/
   end
 
@@ -1358,7 +1358,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       expected_mariadb_config = {
         "image" => "mariadb:10.5",
         "restart" => "unless-stopped",
-        "networks" => ["dqefault"],
+        "networks" => ["default"],
         "volumes" => ["mariadb-data:/var/lib/mysql"],
         "environment" => {
           "MARIADB_ALLOW_EMPTY_ROOT_PASSWORD" => true,
