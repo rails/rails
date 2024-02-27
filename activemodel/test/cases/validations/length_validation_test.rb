@@ -496,4 +496,12 @@ class LengthValidationTest < ActiveModel::TestCase
     t.title = ""
     assert_predicate t, :valid?
   end
+
+  def test_validates_length_with_value_format
+    Topic.validates_length_of :title, minimum: 1_000, value_format: -> (value) { "1,000" }
+
+    t = Topic.new("title" => "notvalid", "content" => "whatever")
+    assert_predicate t, :invalid?
+    assert_equal ["is too short (minimum is 1,000 characters)"], t.errors[:title]
+  end
 end

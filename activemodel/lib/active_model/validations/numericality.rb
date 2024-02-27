@@ -2,6 +2,7 @@
 
 require "active_model/validations/comparability"
 require "active_model/validations/resolve_value"
+require "active_model/validations/format_value"
 require "bigdecimal/util"
 
 module ActiveModel
@@ -9,6 +10,7 @@ module ActiveModel
     class NumericalityValidator < EachValidator # :nodoc:
       include Comparability
       include ResolveValue
+      include FormatValue
 
       RANGE_CHECKS = { in: :in? }
       NUMBER_CHECKS = { odd: :odd?, even: :even? }
@@ -53,12 +55,12 @@ module ActiveModel
             end
           elsif RANGE_CHECKS.include?(option)
             unless value.public_send(RANGE_CHECKS[option], option_value)
-              record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
+              record.errors.add(attr_name, option, **filtered_options(value).merge!(count: format_value(record, option_value)))
             end
           elsif COMPARE_CHECKS.include?(option)
             option_value = option_as_number(record, option_value, precision, scale)
             unless value.public_send(COMPARE_CHECKS[option], option_value)
-              record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
+              record.errors.add(attr_name, option, **filtered_options(value).merge!(count: format_value(record, option_value)))
             end
           end
         end

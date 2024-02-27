@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
 require "active_model/validations/resolve_value"
+require "active_model/validations/format_value"
 
 module ActiveModel
   module Validations
     class LengthValidator < EachValidator # :nodoc:
       include ResolveValue
+      include FormatValue
 
       MESSAGES  = { is: :wrong_length, minimum: :too_short, maximum: :too_long }.freeze
       CHECKS    = { is: :==, minimum: :>=, maximum: :<= }.freeze
@@ -56,7 +58,7 @@ module ActiveModel
             next if value_length.public_send(validity_check, check_value)
           end
 
-          errors_options[:count] = check_value
+          errors_options[:count] = format_value(record, check_value)
 
           default_message = options[MESSAGES[key]]
           errors_options[:message] ||= default_message if default_message
