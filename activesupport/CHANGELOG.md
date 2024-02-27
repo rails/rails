@@ -1,7 +1,8 @@
-*   Add filename support for `Logger.logger_outputs_to?`
+*   Add filename support for `ActiveSupport::Logger.logger_outputs_to?`
 
     ```ruby
-    Logger.logger_outputs_to?('/var/log/rails.log')
+    logger = Logger.new('/var/log/rails.log')    
+    ActiveSupport::Logger.logger_outputs_to?(logger, '/var/log/rails.log')
     ```
 
     *Christian Schmidt*
