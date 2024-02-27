@@ -14,18 +14,20 @@ After reading this guide, you will know:
 What is Action View?
 --------------------
 
-In Rails, web requests are handled by [Action Controller](action_controller_overview.html) and Action View. Typically, Action Controller is concerned with communicating with the database and performing CRUD actions where necessary. Action View is then responsible for compiling the response.
+In Rails, [Action Controller](action_controller_overview.html) and Action View work together to handle web requests. Action Controller is concerned with communicating with the model layer (of MVC) and retrieving data. Action View is then responsible for compiling a response to the web request using that data.
 
-Action View templates are written using embedded Ruby in tags mingled with HTML. To avoid cluttering the templates with boilerplate code, several helper classes provide common behavior for forms, dates, and strings. It's also easy to add new helpers to your application as it evolves.
+Action View templates (also referred to simply as "views") are written using Embedded Ruby (ERB), which allows using Ruby code within HTML documents.
+
+Action View provides many [helper](#helpers) classes for dynamically generating HTML tags for forms, dates, and strings. It's also easy to add new helpers to your application as needed.
 
 NOTE: Some features of Action View are tied to Active Record, but that doesn't mean Action View depends on Active Record. Action View is an independent package that can be used with any sort of Ruby libraries.
 
 Using Action View with Rails
 ----------------------------
 
-For each controller, there is an associated directory in the `app/views` directory which holds the template files that make up the views associated with that controller. These files are used to display the view that results from each controller action.
+Action View templates (aka "views") are stored in a subdirectory in the `app/views` directory. There is a subdirectory matching the name of each controller. The view files inside that subdirectory are used to render specific views as a response to controller actions. The template files follow a naming convention.
 
-Let's take a look at what Rails does by default when creating a new resource using the scaffold generator:
+For example, when we use scaffolding to generate an `article` resource, Rails generate the following files in `app/views/articles`:
 
 ```bash
 $ bin/rails generate scaffold article
@@ -42,12 +44,11 @@ $ bin/rails generate scaffold article
       [...]
 ```
 
-There is a naming convention for views in Rails. Typically, the views share their name with the associated controller action, as you can see above.
-For example, the index controller action of the `articles_controller.rb` will use the `index.html.erb` view file in the `app/views/articles` directory.
-The complete HTML returned to the client is composed of a combination of this ERB file, a layout template that wraps it, and all the partials that the view may reference. Within this guide, you will find more detailed documentation about each of these three components.
+The naming convention is that the views share their name with the associated controller action. For example the `index.html.erb`, `edit.html.erb`, etc. above.
 
-As mentioned, the final HTML output is a composition of three Rails elements: `Templates`, `Partials` and `Layouts`.
-Below is a brief overview of each of them.
+By following this naming convention, Rails will automatically find and render the matching view at the end of a controller action, without you having to  specify it. For example, the `index` action in the `articles_controller.rb` will automatically render the `index.html.erb` view inside the `app/views/articles/` directory. The name and the location of the file are both important.
+
+The final HTML returned to the client is composed of a combination of the `.html.erb` ERB file, a layout template that wraps it, and all the partials that the ERB file may reference. In the rest of this guide, you will find more details about each of the three components: `Templates`, `Partials`, `Layouts`.
 
 Templates
 ---------
