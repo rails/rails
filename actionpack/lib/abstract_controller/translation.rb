@@ -23,12 +23,9 @@ module AbstractController
         key = "#{path}.#{action_name}#{key}"
       end
 
-      if ActiveSupport::HtmlSafeTranslation.html_safe_translation_key?(key)
-        if options[:default]
-          options[:default] = [options[:default]] unless options[:default].is_a?(Array)
-          options[:default] = options[:default].map do |value|
-            value.is_a?(String) ? ERB::Util.html_escape(value) : value
-          end
+      if options[:default] && ActiveSupport::HtmlSafeTranslation.html_safe_translation_key?(key)
+        options[:default] = Array(options[:default]).map do |value|
+          value.is_a?(String) ? ERB::Util.html_escape(value) : value
         end
       end
 
