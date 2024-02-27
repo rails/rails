@@ -377,6 +377,38 @@ module ActiveRecord
       skip_query_cache_if_necessary { connection.select_rows(relation.arel, "#{name} Exists?").size == 1 }
     end
 
+    # Returns true if a record missing in the table that matches the +id+ or
+    # conditions given, or false otherwise. The argument can take six forms:
+    #
+    # * Integer - Finds the record with this primary key.
+    # * String - Finds the record with a primary key corresponding to this
+    #   string (such as <tt>'5'</tt>).
+    # * Array - Finds the record that matches these +where+-style conditions
+    #   (such as <tt>['name LIKE ?', "%#{query}%"]</tt>).
+    # * Hash - Finds the record that matches these +where+-style conditions
+    #   (such as <tt>{name: 'David'}</tt>).
+    # * +false+ - Returns always +false+.
+    # * No args - Returns +false+ if the relation is empty, +true+ otherwise.
+    #
+    # For more information about specifying conditions as a hash or array,
+    # see the Conditions section in the introduction to ActiveRecord::Base.
+    #
+    # Note: You can't pass in a condition as a string (like <tt>name =
+    # 'Jamie'</tt>), since it would be sanitized and then queried against
+    # the primary key column, like <tt>id = 'name = \'Jamie\''</tt>.
+    #
+    #   Person.missing?(5)
+    #   Person.missing?('5')
+    #   Person.missing?(['name LIKE ?', "%#{query}%"])
+    #   Person.missing?(id: [1, 4, 8])
+    #   Person.missing?(name: 'David')
+    #   Person.missing?(false)
+    #   Person.missing?
+    #   Person.where(name: 'Spartacus', rating: 4).missing?
+    def missing?(conditions = :none)
+      !exists?(conditions)
+    end
+
     # Returns true if the relation contains the given record or false otherwise.
     #
     # No query is performed if the relation is loaded; the given record is

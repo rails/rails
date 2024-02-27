@@ -1,3 +1,9 @@
+*   Add a new method `.missing?` that is opposite for a `.exists?` method, like `blank?` for `present?` as syntax sugar.
+
+    This method allows to avoid cases, when you need to use `unless` or converting to the negative value like `if !User.exists?(params[:id])`, so now it looks like `if User.missing?(params[:id])`.
+
+    *Ivan Marynych*
+
 *   Fix `has_one` association autosave setting the foreign key attribute when it is unchanged.
 
     This behaviour is also inconsistent with autosaving `belongs_to` and can have unintended side effects like raising

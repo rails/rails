@@ -411,6 +411,22 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_missing
+    assert_equal false, Topic.missing?(1)
+    assert_equal false, Topic.missing?("1")
+    assert_equal false, Topic.missing?(title: "The First Topic")
+    assert_equal false, Topic.missing?(heading: "The First Topic")
+    assert_equal false, Topic.missing?(author_name: "Mary", approved: true)
+    assert_equal false, Topic.missing?(["parent_id = ?", 1])
+    assert_equal false, Topic.missing?(id: [1, 9999])
+
+    assert_equal true, Topic.missing?(45)
+    assert_equal true, Topic.missing?(9999999999999999999999999999999)
+    assert_equal true, Topic.missing?(Topic.new.id)
+
+    assert_raise(ArgumentError) { Topic.missing?([1, 2]) }
+  end
+
   def test_include_when_non_AR_object_passed_on_unloaded_relation
     assert_no_queries do
       assert_equal false, Customer.where(name: "David").include?("I'm not an AR object")
