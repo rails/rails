@@ -469,7 +469,7 @@ module ActiveRecord
         collection = eager_loading? ? apply_join_dependency : self
 
         column = connection.visitor.compile(table[timestamp_column])
-        select_values = "COUNT(*) AS #{connection.quote_column_name("size")}, MAX(%s) AS timestamp"
+        select_values = "COUNT(*) AS #{adapter_class.quote_column_name("size")}, MAX(%s) AS timestamp"
 
         if collection.has_limit_or_offset?
           query = collection.select("#{column} AS collection_cache_key_timestamp")

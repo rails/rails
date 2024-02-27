@@ -6,8 +6,51 @@ module ActiveRecord
   module ConnectionAdapters
     module MySQL
       module Quoting # :nodoc:
+        extend ActiveSupport::Concern
+
         QUOTED_COLUMN_NAMES = Concurrent::Map.new # :nodoc:
         QUOTED_TABLE_NAMES = Concurrent::Map.new # :nodoc:
+
+        module ClassMethods # :nodoc:
+          def column_name_matcher
+            /
+              \A
+              (
+                (?:
+                  # `table_name`.`column_name` | function(one or no argument)
+                  ((?:\w+\.|`\w+`\.)?(?:\w+|`\w+`) | \w+\((?:|\g<2>)\))
+                )
+                (?:(?:\s+AS)?\s+(?:\w+|`\w+`))?
+              )
+              (?:\s*,\s*\g<1>)*
+              \z
+            /ix
+          end
+
+          def column_name_with_order_matcher
+            /
+              \A
+              (
+                (?:
+                  # `table_name`.`column_name` | function(one or no argument)
+                  ((?:\w+\.|`\w+`\.)?(?:\w+|`\w+`) | \w+\((?:|\g<2>)\))
+                )
+                (?:\s+COLLATE\s+(?:\w+|"\w+"))?
+                (?:\s+ASC|\s+DESC)?
+              )
+              (?:\s*,\s*\g<1>)*
+              \z
+            /ix
+          end
+
+          def quote_column_name(name)
+            QUOTED_COLUMN_NAMES[name] ||= "`#{name.to_s.gsub('`', '``')}`".freeze
+          end
+
+          def quote_table_name(name)
+            QUOTED_TABLE_NAMES[name] ||= "`#{name.to_s.gsub('`', '``').gsub(".", "`.`")}`".freeze
+          end
+        end
 
         def cast_bound_value(value)
           case value
@@ -24,14 +67,6 @@ module ActiveRecord
           else
             value
           end
-        end
-
-        def quote_column_name(name)
-          QUOTED_COLUMN_NAMES[name] ||= "`#{super.gsub('`', '``')}`".freeze
-        end
-
-        def quote_table_name(name)
-          QUOTED_TABLE_NAMES[name] ||= -super.gsub(".", "`.`").freeze
         end
 
         def unquoted_true
@@ -81,43 +116,6 @@ module ActiveRecord
             super
           end
         end
-
-        def column_name_matcher
-          COLUMN_NAME
-        end
-
-        def column_name_with_order_matcher
-          COLUMN_NAME_WITH_ORDER
-        end
-
-        COLUMN_NAME = /
-          \A
-          (
-            (?:
-              # `table_name`.`column_name` | function(one or no argument)
-              ((?:\w+\.|`\w+`\.)?(?:\w+|`\w+`) | \w+\((?:|\g<2>)\))
-            )
-            (?:(?:\s+AS)?\s+(?:\w+|`\w+`))?
-          )
-          (?:\s*,\s*\g<1>)*
-          \z
-        /ix
-
-        COLUMN_NAME_WITH_ORDER = /
-          \A
-          (
-            (?:
-              # `table_name`.`column_name` | function(one or no argument)
-              ((?:\w+\.|`\w+`\.)?(?:\w+|`\w+`) | \w+\((?:|\g<2>)\))
-            )
-            (?:\s+COLLATE\s+(?:\w+|"\w+"))?
-            (?:\s+ASC|\s+DESC)?
-          )
-          (?:\s*,\s*\g<1>)*
-          \z
-        /ix
-
-        private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER
       end
     end
   end

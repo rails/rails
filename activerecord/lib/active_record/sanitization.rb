@@ -85,7 +85,7 @@ module ActiveRecord
         if condition.is_a?(Array) && condition.first.to_s.include?("?")
           disallow_raw_sql!(
             [condition.first],
-            permit: connection.column_name_with_order_matcher
+            permit: adapter_class.column_name_with_order_matcher
           )
 
           # Ensure we aren't dealing with a subclass of String that might
@@ -173,7 +173,7 @@ module ActiveRecord
         end
       end
 
-      def disallow_raw_sql!(args, permit: connection.column_name_matcher) # :nodoc:
+      def disallow_raw_sql!(args, permit: adapter_class.column_name_matcher) # :nodoc:
         unexpected = nil
         args.each do |arg|
           next if arg.is_a?(Symbol) || Arel.arel_node?(arg) || permit.match?(arg.to_s.strip)
