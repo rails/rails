@@ -107,8 +107,11 @@ object as follows:
 <%= form_with model: EmailContact.new do |form| %>
   <%= form.text_field :name %>
 <% end %>
+```
 
-# =>
+which results in the following HTML:
+
+```html
 <form action="/email_contacts" method="post">
   <input type="text" name="email_contact[name]" id="email_contact_name">
 </form>
