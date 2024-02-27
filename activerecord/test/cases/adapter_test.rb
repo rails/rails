@@ -92,6 +92,10 @@ module ActiveRecord
       @connection.remove_index(:accounts, name: idx_name) rescue nil
     end
 
+    def test_returns_empty_indexes_for_non_existing_table
+      assert_equal [], @connection.indexes("nonexistingtable")
+    end
+
     def test_remove_index_when_name_and_wrong_column_name_specified
       index_name = "accounts_idx"
 
