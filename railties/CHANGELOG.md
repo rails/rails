@@ -1,3 +1,10 @@
+*   Set `action_mailer.default_url_options` values in `development` and `test`.
+
+    Prior to this commit, new Rails applications would raise `ActionView::Template::Error`
+    if a mailer included a url built with a `*_path` helper.
+
+    *Steve Polito*
+
 *   Introduce `Rails::Generators::Testing::Assertions#assert_initializer`
 
     Compliments the existing `initializer` generator action.
