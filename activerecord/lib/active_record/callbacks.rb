@@ -91,10 +91,18 @@ module ActiveRecord
   #
   #   class Topic < ActiveRecord::Base
   #     before_destroy :delete_parents
+  #     around_update :audit_title
   #
   #     private
   #       def delete_parents
   #         self.class.delete_by(parent_id: id)
+  #       end
+  #
+  #       def audit_title
+  #         was_title = title_was
+  #         yield
+  #         title_changed = (was_title != title)
+  #         Rails.logger.info("Audit Log: Title changed from '#{was_title}' to '#{title}'") if title_changed
   #       end
   #   end
   #

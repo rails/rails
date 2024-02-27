@@ -161,6 +161,20 @@ Here is a list with all the available Active Record callbacks, listed in the sam
 [`around_update`]: https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-around_update
 [`before_update`]: https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-before_update
 
+```ruby
+class User < ApplicationRecord
+  around_update :audit_changes
+
+  private
+    def audit_changes
+      was_email = email_was
+      yield
+      email_changed = (was_email != email)
+      Rails.logger.info("Audit Log: Email changed from '#{was_email}' to '#{email}'") if email_changed
+    end
+end
+```
+
 WARNING. `after_save` runs both on create and update, but always _after_ the more specific callbacks `after_create` and `after_update`, no matter the order in which the macro calls were executed.
 
 ### Destroying an Object
