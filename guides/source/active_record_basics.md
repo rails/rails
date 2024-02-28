@@ -115,7 +115,7 @@ depending on the purpose of these columns.
   for SQLite). When using [Active Record Migrations](#migrations) to create your tables, this column
   will be automatically created.
 * **Foreign keys** - These fields should be named following the pattern
-  `singularized_table_name_id` (e.g., `item_id`, `order_id`). These are the
+  `singularized_table_name_id` (e.g., `order_id`, `line_item_id`). These are the
   fields that Active Record will look for when you create associations between
   your models.
 
