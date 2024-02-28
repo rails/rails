@@ -166,7 +166,9 @@ There is also Fragment Caching for when different parts of the page need to be c
 Partials
 --------
 
-Partial templates - usually just called "partials" - are another device for breaking the rendering process into more manageable chunks. With partials, you can extract pieces of code from your templates to separate files and also reuse them throughout your templates.
+Partial templates - usually just called "partials" - are a way of breaking up the view templates into smaller reusable chunks. With partials, you can extract a piece of code from your main template to separate smaller files and render that file in the main template. You can also pass data to the partial files from the main template. 
+
+Let's see this in-action with some examples:
 
 ### Rendering Partials
 
@@ -176,17 +178,17 @@ To render a partial as part of a view, you use the `render` method within the vi
 <%= render "menu" %>
 ```
 
-This will render a file named `_menu.html.erb` at that point within the view that is being rendered. Note the leading underscore character: partials are named with a leading underscore to distinguish them from regular views, even though they are referred to without the underscore. This holds true even when you're pulling in a partial from another folder:
+This will render a file named `_menu.html.erb` within that view. Partial file names start with leading underscore character by convention. The file name distinguishes partials from regular views. However, no underscore is used when referring to partials for rendering within a view. This is true even when you reference a partial from another directory:
 
 ```erb
 <%= render "application/menu" %>
 ```
 
-That code will pull in the partial from `app/views/application/_menu.html.erb`.
+That code will look for a partial file named `_menu.html.erb` in `app/views/application/`.
 
 ### Using Partials to Simplify Views
 
-One way to use partials is to treat them as the equivalent of subroutines; a way to move details out of a view so that you can grasp what's going on more easily. For example, you might have a view that looks like this:
+One way to use partials is to treat them as the equivalent of methods. A way to move details out of a view so that you can grasp what's going on more easily. For example, you might have a view that looks like this:
 
 ```html+erb
 <%= render "application/ad_banner" %>
