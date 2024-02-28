@@ -1,5 +1,6 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,10 +8,15 @@
   <link rel="stylesheet" type="text/css" href="stylesheets/style.css" data-turbo-track="reload">
   <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
   <link rel="stylesheet" type="text/css" href="stylesheets/highlight.css" data-turbo-track="reload">
-  <link href="images/favicon.ico" rel="icon" type="image/x-icon" />
+  
+  <link rel="icon" href="images/favicon.ico" sizes="any">
+  <link rel="icon" href="images/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="images/icon.png">
+  
   <script src="javascripts/@hotwired--turbo.js" data-turbo-track="reload"></script>
   <script src="javascripts/clipboard.js" data-turbo-track="reload"></script>
   <script src="javascripts/guides.js" data-turbo-track="reload"></script>
+
   <meta property="og:title" content="<%= yield(:page_title) %>" />
   <meta name="description" content="<%= yield(:description) %>" />
   <meta property="og:description" content="<%= yield(:description) %>" />
@@ -18,7 +24,10 @@
   <meta property="og:site_name" content="Ruby on Rails Guides" />
   <meta property="og:image" content="https://avatars.githubusercontent.com/u/4223" />
   <meta property="og:type" content="website" />
+
+  <meta name="theme-color" content="#C81418">
 </head>
+
 <body dir="<%= @direction %>" class="guide">
   <% if badge_version = @edge ? "edge" : @version %>
   <div>
