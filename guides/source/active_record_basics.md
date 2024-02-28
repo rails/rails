@@ -27,21 +27,21 @@ to a database.
 
 Note that it's also possible to model data with Ruby objects that do *not* need to be backed by a database. See [Active Model](active_model_basics.html) for more. So Active Record and Active Model together are the M in MVC.
 
-There is a some industry jargon around Active Record. There is a software architecture pattern by the same name. Active Record in Rails implements this pattern and it's also a description of an Object Relational Mapping system.
+There is a some industry jargon around Active Record. There is a software architecture pattern by the same name. Active Record in Rails implements this pattern and it's also a description of something called [Object Relational Mapping][ORM] system. The below sections explain these terms:
 
 ### The Active Record Pattern
 
-The [Active Record pattern is described by Martin Fowler][MFAR] in the book _Patterns of Enterprise Application Architecture_ as "an object that wraps a row in a database table, encapsulates the database access, and adds domain logic to that data." Active Record objects carry both data and behavior. Active Record pattern encourages putting data access logic in the domain object. This way users of the object know how to write to and read from the database. Active Record classes match very closely to the record structure of the underlying database.
+The [Active Record pattern is described by Martin Fowler][MFAR] in the book _Patterns of Enterprise Application Architecture_ as "an object that wraps a row in a database table, encapsulates the database access, and adds domain logic to that data." Active Record objects carry both data and behavior. Active Record classes match very closely to the record structure of the underlying database. This way users can easily read from and write to the database, as you will see in the examples below.
 
 ### Object Relational Mapping
 
-[Object Relational Mapping][ORM], commonly referred to as ORM, is a technique
-that connects the rich objects of a programming language to tables in a
-relational database management system (RDMS). In the case of a Rails
-application, these are Ruby objects. Using ORM, the attributes of Ruby objects,
-as well as the relationship between objects, can be easily stored and retrieved from
-a database without writing SQL statements directly. Overall, ORMs minimize the
-amount of database access code you have to write.
+Object Relational Mapping, commonly referred to as ORM, is a technique that
+connects the rich objects of a programming language to tables in a relational
+database management system (RDMS). In the case of a Rails application, these are
+Ruby objects. Using ORM, the attributes of Ruby objects, as well as the
+relationship between objects, can be easily stored and retrieved from a database
+without writing SQL statements directly. Overall, ORMs minimize the amount of
+database access code you have to write.
 
 NOTE: Basic knowledge of relational database management systems (RDBMS) and
 structured query language (SQL) is helpful in order to fully understand Active
