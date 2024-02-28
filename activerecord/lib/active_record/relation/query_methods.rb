@@ -1998,6 +1998,12 @@ module ActiveRecord
             arg
           when Hash
             arg.keys.select { |e| e.is_a?(String) || e.is_a?(Symbol) }
+          when Arel::Attribute
+            "#{arg.relation.name}.#{arg.name}"
+          when Arel::Nodes::Ordering
+            if arg.expr.is_a?(Arel::Attribute)
+              "#{arg.expr.relation.name}.#{arg.expr.name}"
+            end
           end
         end.filter_map do |arg|
           arg =~ /^\W?(\w+)\W?\./ && $1
