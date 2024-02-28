@@ -14,11 +14,11 @@ After reading this guide, you will know:
 What is Action View?
 --------------------
 
-In Rails, [Action Controller](action_controller_overview.html) and Action View work together to handle web requests. Action Controller is concerned with communicating with the model layer (of MVC) and retrieving data. Action View is then responsible for compiling a response to the web request using that data.
+Action View is the V in [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller). [Action Controller](action_controller_overview.html) and Action View work together to handle web requests. Action Controller is concerned with communicating with the model layer (of MVC) and retrieving data. Action View is then responsible for compiling a response to the web request using that data.
 
 Action View templates (also referred to simply as "views") are written using Embedded Ruby (ERB), which allows using Ruby code within HTML documents.
 
-Action View provides many [helper](#helpers) classes for dynamically generating HTML tags for forms, dates, and strings. It's also easy to add new helpers to your application as needed.
+Action View provides many [helper](#helpers) classes for dynamically generating HTML tags for forms, dates, and strings. It's also easy to add new custom helpers to your application as needed.
 
 NOTE: Some features of Action View are tied to Active Record, but that doesn't mean Action View depends on Active Record. Action View is an independent package that can be used with any sort of Ruby libraries.
 
@@ -157,9 +157,11 @@ would produce something like:
 </div>
 ```
 
-### Template Caching
+### Caching
 
 By default, Rails will compile each template to a method to render it. In the development environment, when you alter a template, Rails will check the file's modification time and recompile it.
+
+There is also Fragment Caching for when different parts of the page need to be cached and expired separately. Learn more about it in the [caching](caching_with_rails.html#fragment-caching) guide.
 
 Partials
 --------
