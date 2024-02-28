@@ -254,8 +254,8 @@ module ActiveRecord
       end
 
       def method_missing(method, ...)
-        if fs_name = fixture_sets[method.name]
-          access_fixture(fs_name, ...)
+        if fixture_sets.key?(method.name)
+          fixture(method, ...)
         else
           super
         end
@@ -266,6 +266,14 @@ module ActiveRecord
           true
         else
           super
+        end
+      end
+
+      def fixture(fixture_set_name, *fixture_names)
+        if fs_name = fixture_sets[fixture_set_name.name]
+          access_fixture(fs_name, *fixture_names)
+        else
+          raise StandardError, "No fixture set named '#{fixture_set_name.inspect}'"
         end
       end
 
