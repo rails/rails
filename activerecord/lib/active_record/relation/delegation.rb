@@ -100,7 +100,16 @@ module ActiveRecord
              :to_sentence, :to_fs, :to_formatted_s, :as_json,
              :shuffle, :split, :slice, :index, :rindex, to: :records
 
-    delegate :primary_key, :connection, :transaction, to: :klass
+    delegate :primary_key, :connection, :table_name, :transaction, :sanitize_sql_like, :unscoped, to: :klass
+
+    # TODO: scoped delegate
+    [:find_signed, :find_signed!, :delete, :find_by_token_for, :find_by_token_for!, :upsert_all, :insert_all, :insert_all!].each do |method|
+      module_eval <<-RUBY, __FILE__, __LINE__ + 1
+        def #{method}(...)
+          scoping { klass.#{method}(...) }
+        end
+      RUBY
+    end
 
     module ClassSpecificRelation # :nodoc:
       extend ActiveSupport::Concern
@@ -113,7 +122,7 @@ module ActiveRecord
 
       private
         def method_missing(method, ...)
-          if @klass.respond_to?(method)
+          if @klass.respond_to?(method) && !Base.respond_to?(method)
             unless Delegation.uncacheable_methods.include?(method)
               @klass.generate_relation_method(method)
             end

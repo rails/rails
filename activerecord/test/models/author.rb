@@ -209,10 +209,10 @@ class Author < ActiveRecord::Base
   has_many :posts_with_default_include, class_name: "PostWithDefaultInclude"
   has_many :comments_on_posts_with_default_include, through: :posts_with_default_include, source: :comments
 
-  has_many :posts_with_signature, ->(record) { where(arel_table[:title].matches("%by #{record.name.downcase}%")) }, class_name: "Post"
-  has_many :posts_mentioning_author, ->(record = nil) { where(arel_table[:body].matches("%#{record&.name&.downcase}%")) }, class_name: "Post"
+  has_many :posts_with_signature, ->(record) { where(model.arel_table[:title].matches("%by #{record.name.downcase}%")) }, class_name: "Post"
+  has_many :posts_mentioning_author, ->(record = nil) { where(model.arel_table[:body].matches("%#{record&.name&.downcase}%")) }, class_name: "Post"
   has_many :comments_on_posts_mentioning_author, through: :posts_mentioning_author, source: :comments
-  has_many :comments_mentioning_author, ->(record) { where(arel_table[:body].matches("%#{record.name.downcase}%")) }, through: :posts, source: :comments
+  has_many :comments_mentioning_author, ->(record) { where(model.arel_table[:body].matches("%#{record.name.downcase}%")) }, through: :posts, source: :comments
 
   has_one :recent_post, -> { order(id: :desc) }, class_name: "Post"
   has_one :recent_response, through: :recent_post, source: :comments
