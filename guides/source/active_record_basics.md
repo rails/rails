@@ -103,7 +103,6 @@ Here are some more examples of model class names and corresponding table names:
 | `Article`        | `articles`     |
 | `LineItem`       | `line_items`   |
 | `Product`        | `products`     |
-| `Mouse`          | `mice`         |
 | `Person`         | `people`       |
 
 ### Schema Conventions
@@ -113,8 +112,7 @@ depending on the purpose of these columns.
 
 * **Primary keys** - By default, Active Record will use an integer column named
   `id` as the table's primary key (`bigint` for PostgreSQL and MySQL, `integer`
-  for SQLite). When using [Active Record
-  Migrations](active_record_migrations.html) to create your tables, this column
+  for SQLite). When using [Active Record Migrations](#migrations) to create your tables, this column
   will be automatically created.
 * **Foreign keys** - These fields should be named following the pattern
   `singularized_table_name_id` (e.g., `item_id`, `order_id`). These are the
