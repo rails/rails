@@ -21,14 +21,17 @@ What is Active Record?
 ----------------------
 
 Active Record is the M in [MVC][] - the model - which is the layer of the system
-responsible for representing data and business logic. Active Record facilitates
-the creation and use of Ruby objects whose attributes require persistent storage
-to a database. It is an implementation of the Active Record pattern which itself
-is a description of an Object Relational Mapping system.
+responsible for representing data and business logic. Active Record helps you
+create and use Ruby objects whose attributes require persistent storage
+to a database.
+
+Note that it's also possible to model data with Ruby objects that do *not* need to be backed by a database. See [Active Model]() for more. So Active Record and Active Model together are the M in MVC.
+
+There is a some industry jargon around Active Record. There is a software architecture pattern by the same name. Active Record in Rails implements this pattern and it's also a description of an Object Relational Mapping system.
 
 ### The Active Record Pattern
 
-[Active Record pattern is described by Martin Fowler][MFAR] in the book _Patterns of Enterprise Application Architecture_ as "an object that wraps a row in a database table, encapsulates the database access, and adds domain logic to that data." Active Record objects carry both data and behavior. Active Record pattern encourages putting data access logic in the domain object. This way users of the object know how to write to and read from the database. Active Record classes match very closely to the record structure of the underlying database.
+The [Active Record pattern is described by Martin Fowler][MFAR] in the book _Patterns of Enterprise Application Architecture_ as "an object that wraps a row in a database table, encapsulates the database access, and adds domain logic to that data." Active Record objects carry both data and behavior. Active Record pattern encourages putting data access logic in the domain object. This way users of the object know how to write to and read from the database. Active Record classes match very closely to the record structure of the underlying database.
 
 ### Object Relational Mapping
 
