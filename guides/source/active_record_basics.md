@@ -50,7 +50,7 @@ study them by other means if you would like to learn more.
 Active Record gives us the ability to do the following using Ruby objects:
 
 * Represent models and their data.
-* Represent associations between these models.
+* Represent associations between models.
 * Represent inheritance hierarchies through related models.
 * Validate models before they get persisted to the database.
 * Perform database operations in an object-oriented fashion.
@@ -157,12 +157,12 @@ Active Record models, subclass the `ApplicationRecord` class and you're good to
 go:
 
 ```ruby
-class Product < ApplicationRecord
+class Book < ApplicationRecord
 end
 ```
 
-This will create a `Product` model, mapped to a `products` table in the
-database. Using `ApplicationRecord`, each column in the table is mapped to attributes of the `Product` class. And an instance of the `Product` can represent a row in the `products` table. The `products` table can be created using an SQL statement like this:
+This will create a `Book` model, mapped to a `books` table in the
+database, where each column in the table is mapped to attributes of the `Book` class. And an instance of `Book` can represent a row in the `books` table. The `books` table can be created using an SQL statement like this:
 
 ```sql
 CREATE TABLE products (
@@ -175,7 +175,7 @@ CREATE TABLE products (
 Database tables in Rails are typically created using [Active Record Migrations](#migrations) and not raw SQL. A migration for the `products` table above can be generated like this:
 
 ```bash
-$ rails generate migration CreateProducts name:string
+$ rails generate migration CreateBooks title:string author:string
 ```
 
 and results in this:
@@ -183,11 +183,12 @@ and results in this:
 ```ruby
 # Note: the `id` column, as the primary key, is automatically created by convention. As are `created_at` and `updated_at` columns.
 
-# /db/migrate/20240220143807_create_products.rb
-class CreateProducts < ActiveRecord::Migration
+# /db/migrate/20240220143807_create_books.rb
+class CreateBooks < ActiveRecord::Migration
   def change
-    create_table :products do |t|
-      t.string :name
+    create_table :books do |t|
+      t.string :title
+      t.string :author
 
       t.timestamps
     end
@@ -325,9 +326,7 @@ Active Record provides a rich API for accessing data within a database. You can 
 ```ruby
 # Return a collection with all books
 books = Book.all
-```
 
-```ruby
 # Return a single book
 first_book = Book.first
 last_book = Book.last
@@ -337,6 +336,9 @@ random_book = Book.take
 The above results in the following SQL:
 
 ```sql
+# Book.all
+SELECT "books".* FROM "books"
+
 # Book.first
 SELECT "books".* FROM "books" ORDER BY "books"."id" ASC LIMIT ?  [["LIMIT", 1]]
 
@@ -472,7 +474,7 @@ Callbacks
 ---------
 
 Active Record callbacks allow you to attach code to certain events in the
-life-cycle of your models. This enables you to add behavior to your models by executing code when those events occur, like when you create a new record, update it, destroy it, and so on.
+lifecycle of your models. This enables you to add behavior to your models by executing code when those events occur, like when you create a new record, update it, destroy it, and so on.
 
 ```ruby
 class User < ApplicationRecord
