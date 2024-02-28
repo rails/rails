@@ -25,7 +25,7 @@ responsible for representing data and business logic. Active Record helps you
 create and use Ruby objects whose attributes require persistent storage
 to a database.
 
-Note that it's also possible to model data with Ruby objects that do *not* need to be backed by a database. See [Active Model]() for more. So Active Record and Active Model together are the M in MVC.
+Note that it's also possible to model data with Ruby objects that do *not* need to be backed by a database. See [Active Model](active_model_basics.html) for more. So Active Record and Active Model together are the M in MVC.
 
 There is a some industry jargon around Active Record. There is a software architecture pattern by the same name. Active Record in Rails implements this pattern and it's also a description of an Object Relational Mapping system.
 
