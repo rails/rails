@@ -787,7 +787,7 @@ module ActiveRecord
           primary_query_constraints = active_record.query_constraints_list
           owner_pk = active_record.primary_key
 
-          if primary_query_constraints.size != 2
+          if primary_query_constraints.size > 2
             raise ArgumentError, <<~MSG.squish
               The query constraints list on the `#{active_record}` model has more than 2
               attributes. Active Record is unable to derive the query constraints

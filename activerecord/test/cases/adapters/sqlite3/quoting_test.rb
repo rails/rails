@@ -10,6 +10,25 @@ class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
     @conn = ActiveRecord::Base.connection
   end
 
+  def test_quote_string
+    assert_equal "''", @conn.quote_string("'")
+  end
+
+  def test_quote_column_name
+    [@conn, @conn.class].each do |adapter|
+      assert_equal '"foo"', adapter.quote_column_name("foo")
+      assert_equal '"hel""lo"', adapter.quote_column_name(%{hel"lo})
+    end
+  end
+
+  def test_quote_table_name
+    [@conn, @conn.class].each do |adapter|
+      assert_equal '"foo"', adapter.quote_table_name("foo")
+      assert_equal '"foo"."bar"', adapter.quote_table_name("foo.bar")
+      assert_equal '"hel""lo.wol\\d"', adapter.quote_column_name('hel"lo.wol\\d')
+    end
+  end
+
   def test_type_cast_binary_encoding_without_logger
     @conn.extend(Module.new { def logger; end })
     binary = SecureRandom.hex

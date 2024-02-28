@@ -634,7 +634,7 @@ module ActiveRecord
     #   #   END ASC
     #
     def in_order_of(column, values)
-      klass.disallow_raw_sql!([column], permit: connection.column_name_with_order_matcher)
+      klass.disallow_raw_sql!([column], permit: model.adapter_class.column_name_with_order_matcher)
       return spawn.none! if values.empty?
 
       references = column_references([column])
@@ -1848,7 +1848,7 @@ module ActiveRecord
           case field
           when Symbol
             arel_column(field.to_s) do |attr_name|
-              connection.quote_table_name(attr_name)
+              adapter_class.quote_table_name(attr_name)
             end
           when String
             arel_column(field, &:itself)
@@ -1878,7 +1878,7 @@ module ActiveRecord
 
       def table_name_matches?(from)
         table_name = Regexp.escape(table.name)
-        quoted_table_name = Regexp.escape(connection.quote_table_name(table.name))
+        quoted_table_name = Regexp.escape(adapter_class.quote_table_name(table.name))
         /(?:\A|(?<!FROM)\s)(?:\b#{table_name}\b|#{quoted_table_name})(?!\.)/i.match?(from.to_s)
       end
 
@@ -1951,7 +1951,7 @@ module ActiveRecord
       def preprocess_order_args(order_args)
         @klass.disallow_raw_sql!(
           flattened_args(order_args),
-          permit: connection.column_name_with_order_matcher
+          permit: model.adapter_class.column_name_with_order_matcher
         )
 
         validate_order_args(order_args)
@@ -2013,7 +2013,7 @@ module ActiveRecord
           if attr_name == "count" && !group_values.empty?
             table[attr_name]
           else
-            Arel.sql(connection.quote_table_name(attr_name))
+            Arel.sql(adapter_class.quote_table_name(attr_name))
           end
         end
       end

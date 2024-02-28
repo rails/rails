@@ -497,10 +497,6 @@ module ActiveRecord
         end
       end
 
-      def test_quote_string
-        assert_equal "''", @conn.quote_string("'")
-      end
-
       def test_insert_logged
         with_example_table do
           sql = "INSERT INTO ex (number) VALUES (10)"

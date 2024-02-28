@@ -337,6 +337,10 @@ class FakeKlass
       ActiveRecord::Scoping::ScopeRegistry.instance
     end
 
+    def adapter_class
+      Post.adapter_class
+    end
+
     def connection
       Post.connection
     end
