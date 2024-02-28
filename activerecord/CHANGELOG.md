@@ -1,3 +1,12 @@
+*   Expose a generic fixture accessor for fixture names that may conflict with Minitest
+
+    ```ruby
+    assert_equal "Ruby on Rails", web_sites(:rubyonrails).name
+    assert_equal "Ruby on Rails", fixture(:web_sites, :rubyonrails).name
+    ```
+
+    *Jean Boussier*
+
 *   Using `Model.query_constraints` with a single non-primary-key column used to raise as expected, but with an
     incorrect error message. This has been fixed to raise with a more appropriate error message.
 
