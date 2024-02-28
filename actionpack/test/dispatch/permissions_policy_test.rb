@@ -41,6 +41,57 @@ class PermissionsPolicyTest < ActiveSupport::TestCase
   end
 end
 
+class PermissionsPolicyMiddlewareTest < ActionDispatch::IntegrationTest
+  APP = ->(env) { [200, {}, []] }
+
+  POLICY = ActionDispatch::PermissionsPolicy.new do |p|
+    p.gyroscope :self
+  end
+
+  class PolicyConfigMiddleware
+    def initialize(app)
+      @app = app
+    end
+
+    def call(env)
+      env["action_dispatch.permissions_policy"] = POLICY
+      env["action_dispatch.show_exceptions"] = :none
+
+      @app.call(env)
+    end
+  end
+
+  test "html requests will set a policy" do
+    @app = build_app(->(env) { [200, { Rack::CONTENT_TYPE => "text/html" }, []] })
+    # Dummy CONTENT_TYPE to avoid including backport of the following commit in
+    # a security-related patch:
+    # https://github.com/rails/rails/commit/060887d4c55a8b4038dd4662712007d07e74e625
+    get "/index", headers: { Rack::CONTENT_TYPE => 'cant/be-nil' }
+
+    assert_equal "text/html", response.headers['Content-Type']
+    assert_equal "gyroscope 'self'", response.headers['Feature-Policy']
+  end
+
+  test "non-html requests will set a policy" do
+    @app = build_app(->(env) { [200, { Rack::CONTENT_TYPE => "application/json" }, []] })
+    get "/index", headers: { Rack::CONTENT_TYPE => 'cant/be-nil' }
+
+    assert_equal "application/json", response.headers['Content-Type']
+    assert_equal "gyroscope 'self'", response.headers['Feature-Policy']
+  end
+
+  private
+    def build_app(app)
+      PolicyConfigMiddleware.new(
+        Rack::Lint.new(
+          ActionDispatch::PermissionsPolicy::Middleware.new(
+            Rack::Lint.new(app),
+          ),
+        ),
+      )
+    end
+end
+
 class PermissionsPolicyIntegrationTest < ActionDispatch::IntegrationTest
   class PolicyController < ActionController::Base
     permissions_policy only: :index do |f|
