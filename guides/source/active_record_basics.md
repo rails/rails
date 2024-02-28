@@ -162,17 +162,18 @@ end
 ```
 
 This will create a `Book` model, mapped to a `books` table in the
-database, where each column in the table is mapped to attributes of the `Book` class. And an instance of `Book` can represent a row in the `books` table. The `books` table can be created using an SQL statement like this:
+database, where each column in the table is mapped to attributes of the `Book` class. An instance of `Book` can represent a row in the `books` table. The `books` table can be created using an SQL statement like this:
 
 ```sql
-CREATE TABLE products (
+CREATE TABLE books (
   id int(11) NOT NULL auto_increment,
-  name varchar(255),
+  title varchar(255),
+  author varchar(255),
   PRIMARY KEY  (id)
 );
 ```
 
-Database tables in Rails are typically created using [Active Record Migrations](#migrations) and not raw SQL. A migration for the `products` table above can be generated like this:
+Database tables in Rails are typically created using [Active Record Migrations](#migrations) and not raw SQL. A migration for the `books` table above can be generated like this:
 
 ```bash
 $ rails generate migration CreateBooks title:string author:string
@@ -196,19 +197,19 @@ class CreateBooks < ActiveRecord::Migration
 end
 ```
 
-The SQL as well as the migration above declare a table with two columns: `id`
-and `name`. Each row of this table can be represented by an instance of the
-`Product` class with the same two attributes, `id` and `name`. You can access a
-product's attributes like this:
+The SQL as well as the migration above declare a table with three columns: `id`,
+`title`, and `author`. Each row of this table can be represented by an instance
+of the `Book` class with the same three attributes, `id`, `title`, and `author`.
+You can access a book's attributes like this:
 
 ```irb
-p = Product.new
-=> #<Product:0x00007f95c7ca94f0 id: nil, name: nil, created_at: nil, updated_at: nil>
+book = Book.new
+=> #<Book:0x00007fbdf5e9a038 id: nil, title: nil, author: nil, created_at: nil, updated_at: nil>
 
-p.name = "pen"
-=> "pen"
-p.name
-=> "pen"
+book.title = "The Hobbit"
+=> "The Hobbit"
+book.title
+=> "The Hobbit"
 ```
 
 Overriding the Naming Conventions
@@ -224,20 +225,20 @@ can use the `ActiveRecord::Base.table_name=` method to customize the table name
 that should be used:
 
 ```ruby
-class Product < ApplicationRecord
-  self.table_name = "my_products"
+class Book < ApplicationRecord
+  self.table_name = "my_books"
 end
 ```
 
 If you do so, you will have to manually define the class name that is hosting
-the fixtures (`my_products.yml`) using the `set_fixture_class` method in your
+the fixtures (`my_books.yml`) using the `set_fixture_class` method in your
 test definition:
 
 ```ruby
-# test/models/product_test.rb
-class ProductTest < ActiveSupport::TestCase
-  set_fixture_class my_products: Product
-  fixtures :my_products
+# test/models/book_test.rb
+class BookTest < ActiveSupport::TestCase
+  set_fixture_class my_books: Book
+  fixtures :my_books
   # ...
 end
 ```
@@ -246,8 +247,8 @@ It's also possible to override the column that should be used as the table's
 primary key using the `ActiveRecord::Base.primary_key=` method:
 
 ```ruby
-class Product < ApplicationRecord
-  self.primary_key = "product_id"
+class Book < ApplicationRecord
+  self.primary_key = "book_id"
 end
 ```
 
@@ -259,7 +260,7 @@ The application will have to use the [`id_value`][] alias attribute to access th
 
 NOTE: If you try to create a column named `id` which is not the primary key,
 Rails will throw an error during migrations such as:
-`you can't redefine the primary key column 'id' on 'my_products'.`
+`you can't redefine the primary key column 'id' on 'my_books'.`
 `To define a custom primary key, pass { id: false } to create_table.`
 
 CRUD: Reading and Writing Data
