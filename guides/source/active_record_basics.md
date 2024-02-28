@@ -162,7 +162,7 @@ end
 ```
 
 This will create a `Product` model, mapped to a `products` table in the
-database. Using `ApplicationRecord`, each column in the table is mapped to attributes of the `Product` class. And an instance of the `Product` can represent a row in the `products` table. The `products` table can be created using an SQL statement like this:
+database, where each column in the table is mapped to attributes of the `Product` class. An instance of `Product` can represent a row in the `products` table. The `products` table can be created using an SQL statement like this:
 
 ```sql
 CREATE TABLE products (
