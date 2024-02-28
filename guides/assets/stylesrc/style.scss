@@ -33,7 +33,19 @@ $breakpoints: (
 // ----------------------------------------------------------------------------
 // Colors
 
+$rf-brand: #C81418;
+$rf-brand-light: lighten($rf-brand, 5%);
+$rf-brand-dark: darken($rf-brand, 10%);
 
+$gray-100: #FAF9F8;
+$gray-200: #F5F3F1;
+$gray-300: #EBEBEA;
+$gray-400: #DCDCD8;
+$gray-500: #A9A9A8;
+$gray-600: #666666;
+$gray-700: #3A3939;
+$gray-800: #343434;
+$gray-900: #2E2E2E;
 
 // ----------------------------------------------------------------------------
 // Fonts
