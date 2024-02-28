@@ -96,7 +96,7 @@ case, will be a snake_case name. For example:
 * `BookClub` - is the model class, singular with the first letter of each word capitalized
 * `book_clubs` - is the matching database table, plural with underscores separating words
 
-Here are some more examples of model class names and corrosponding table names:
+Here are some more examples of model class names and corresponding table names:
 
 | Model / Class    | Table / Schema |
 | ---------------- | -------------- |
@@ -137,7 +137,7 @@ Active Record instances:
   associations](association_basics.html#polymorphic-associations).
 * `(table_name)_count` - Used to cache the number of belonging objects on
   associations. For example, a `comments_count` column in an `Article` class
-  that has many instances of `Comment` will cache the number of existent
+  that has many instances of `Comment` will cache the number of existing
   comments for each article.
 
 NOTE: While these column names are optional, they are reserved by Active Record.
@@ -151,7 +151,7 @@ Creating Active Record Models
 
 When generating a Rails application, an abstract `ApplicationRecord` class will
 be created in `app/models/application_record.rb`. The `ApplicationRecord` class
-inherits from [`ActiveRecord::Base`](https://api.rubyonrails.org/classes/ActiveRecord/Base.html) and it's what turns a regular ruby class into
+inherits from [`ActiveRecord::Base`](https://api.rubyonrails.org/classes/ActiveRecord/Base.html) and it's what turns a regular Ruby class into
 an Active Record model.
 
 `ApplicationRecord` is the base class for all models in your app. To create
@@ -183,7 +183,7 @@ $ rails generate migration CreateProducts name:string
 and results in this:
 
 ```ruby
-# Note: the `id` column, as the primary key, is autometically created by convension. As are `created_at` and `updated_at` columns.
+# Note: the `id` column, as the primary key, is automatically created by convention. As are `created_at` and `updated_at` columns.
 
 # /db/migrate/20240220143807_create_products.rb
 class CreateProducts < ActiveRecord::Migration
@@ -199,7 +199,7 @@ end
 
 The SQL as well as the migration above declare a table with two columns: `id`
 and `name`. Each row of this table can be represented by an instance of the
-`Product` class, with the same two attribures, `id` and `name`. You can access a
+`Product` class with the same two attributes, `id` and `name`. You can access a
 product's attributes like this:
 
 ```irb
@@ -378,7 +378,7 @@ resulting in this SQL:
 SELECT "books".* FROM "books" WHERE "books"."author" = ? ORDER BY "books"."created_at" DESC [["author", "Douglas Adams"]]
 ```
 
-There are many more Active Record methods to read and query record. You can learn all about them in the [Active Record Query Interface](active_record_querying.html) guide.
+There are many more Active Record methods to read and query records. You can learn more about them in the [Active Record Query Interface](active_record_querying.html) guide.
 
 ### Update
 
@@ -436,7 +436,7 @@ or `destroy_all` method:
 # Find and delete all books by Douglas Adams
 Book.destroy_by(author: "Douglas Adams")
 
-# Felete all books
+# Delete all books
 Book.destroy_all
 ```
 
@@ -444,7 +444,7 @@ Validations
 -----------
 
 Active Record allows you to validate the state of a model before it gets written
-into the database. There are several methods that allow for diffrent types of validations. For example, validate that an attribute value is not empty, is unique, is not already in the database, follows a specific format, and many more.
+into the database. There are several methods that allow for different types of validations. For example, validate that an attribute value is not empty, is unique, is not already in the database, follows a specific format, and many more.
 
 Methods like `save`, `create` and `update` validate a model before persisting
 it to the database. When a model is invalid these methods return `false` and no
