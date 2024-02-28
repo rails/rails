@@ -35,8 +35,8 @@ is a description of an Object Relational Mapping system.
 [Object Relational Mapping][ORM], commonly referred to as ORM, is a technique
 that connects the rich objects of a programming language to tables in a
 relational database management system (RDMS). In the case of a Rails
-application, these are Ruby ojbects. Using ORM, the attributes of Ruby objects,
-as well as relationship between objects, can be easily stored and retrieved from
+application, these are Ruby objects. Using ORM, the attributes of Ruby objects,
+as well as the relationship between objects, can be easily stored and retrieved from
 a database without writing SQL statements directly. Overall, ORMs minimize the
 amount of database access code you have to write.
 
