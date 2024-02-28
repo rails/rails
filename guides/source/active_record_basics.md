@@ -27,7 +27,7 @@ to a database.
 
 Note that it's also possible to model data with Ruby objects that do *not* need to be backed by a database. See [Active Model](active_model_basics.html) for more. So Active Record and Active Model together are the M in MVC.
 
-There is a some industry jargon around Active Record. There is a software architecture pattern by the same name. Active Record in Rails implements this pattern and it's also a description of something called [Object Relational Mapping][ORM] system. The below sections explain these terms:
+There is some industry jargon around Active Record. Active Record in Rails is an implementation of a software architecture pattern by the same name. It's also a description of something called [Object Relational Mapping][ORM] system. The below sections explain these terms:
 
 ### The Active Record Pattern
 
