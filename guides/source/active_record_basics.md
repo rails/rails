@@ -67,8 +67,7 @@ Convention over Configuration in Active Record
 When writing applications using other programming languages or frameworks, it
 may be necessary to write a lot of configuration code. This is particularly true
 for ORM frameworks in general. However, if you follow the conventions adopted by
-Rails, you'll write very little to no configuration code, when creating Active
-Record models.
+Rails, you'll write very little to no configuration code when creating Active Record models.
 
 Rails adopts the idea that if you configure your applications in the same way
 most of the time, then that way should be the default. Explicit configuration
