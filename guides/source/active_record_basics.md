@@ -206,12 +206,12 @@ of the `Book` class with the same three attributes, `id`, `title`, and `author`.
 You can access a book's attributes like this:
 
 ```irb
-book = Book.new
+irb> book = Book.new
 => #<Book:0x00007fbdf5e9a038 id: nil, title: nil, author: nil, created_at: nil, updated_at: nil>
 
-book.title = "The Hobbit"
+irb> book.title = "The Hobbit"
 => "The Hobbit"
-book.title
+irb> book.title
 => "The Hobbit"
 ```
 
