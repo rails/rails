@@ -8,12 +8,13 @@
 /* Same bottom margin for special boxes than for regular paragraphs, this way
 intermediate whitespace looks uniform. */
 
-div.interstitial {
+.interstitial {
   background-repeat: no-repeat;
   background-size: 36px 36px;
   border-radius: $base-border-radius;
   border-width: 2px;
-  margin-bottom: 1.5em;
+  margin-bottom: 1em;
+  padding: 0.5em !important;
 
   /* Remove bottom margin of paragraphs in special boxes, otherwise they get a
   spurious blank area below with the box background. */
@@ -31,6 +32,12 @@ div.interstitial {
     border-color: $note;
     background-color: $note-bkgnd;
     background-image: url("../images/icon_task-list-pin.svg");
+  }
+
+  &.work-in-progress {
+    border-color: $note;
+    background-color: $note-bkgnd;
+    background-image: url("../images/icon_construction-sign.svg");
   }
 
   &.info {
@@ -51,8 +58,9 @@ div.interstitial {
 
   &.important {} // refrenced in old code - actually used?
   &.warning {} // referenced in old code - actually used?
-} // div.interstitial
 
-// Padding and spacing for LTR vs RTL langauge defaults
-:where(body[dir="ltr"]) div.interstitial { background-position: left top; padding-right: 1em; padding-left: 48px; }
-:where(body[dir="rtl"]) div.interstitial { background-position: right top; padding-right: 48px; padding-left: 1em; }
+  // Padding and spacing for LTR vs RTL langauge defaults
+  :where(body[dir="ltr"]) & { background-position: 10px 10px; padding-right: 1em !important; padding-left: 56px !important; }
+  :where(body[dir="rtl"]) & { background-position: calc(100% - 10px) 10px; padding-right: 56px !important; padding-left: 1em !important; }
+} // .interstitial
+

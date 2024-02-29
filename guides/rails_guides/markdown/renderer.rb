@@ -15,7 +15,7 @@ module RailsGuides
         lexer = ::Rouge::Lexer.find_fancy(lexer_language(language))
         formatted_code = formatter.format(lexer.lex(code))
         <<~HTML
-          <div class="code_container">
+          <div class="interstitial code">
           <pre><code class="highlight #{lexer_language(language)}">#{formatted_code}</code></pre>
           <button class="clipboard-button" data-clipboard-text="#{clipboard_content(code, language)}">Copy</button>
           </div>
