@@ -129,7 +129,14 @@ module ActiveRecord
         end
 
         def clear_query_cache
-          query_cache.clear
+          if @pinned_connection
+            # With transactional fixtures, and especially systems test
+            # another thread may use the same connection, but with a different
+            # query cache. So we must clear them all.
+            @thread_query_caches.each_value(&:clear)
+          else
+            query_cache.clear
+          end
         end
 
         private
