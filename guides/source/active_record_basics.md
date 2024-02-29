@@ -155,8 +155,8 @@ be created in `app/models/application_record.rb`. The `ApplicationRecord` class
 inherits from [`ActiveRecord::Base`](https://api.rubyonrails.org/classes/ActiveRecord/Base.html) and it's what turns a regular Ruby class into
 an Active Record model.
 
-`ApplicationRecord` is the base class for all models in your app. To create
-Active Record models, subclass the `ApplicationRecord` class and you're good to
+`ApplicationRecord` is the base class for all Active Record models in your app.
+To create a new model, subclass the `ApplicationRecord` class and you're good to
 go:
 
 ```ruby
