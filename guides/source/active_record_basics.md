@@ -320,6 +320,8 @@ book.save
 The resulting SQL statement from both `book.save` and `Book.create` look something like this:
 
 ```sql
+/* Note that `created_at` and `updated_at` are automatically set */
+
 INSERT INTO "books" ("title", "author", "created_at", "updated_at") VALUES (?, ?, ?, ?) RETURNING "id"  [["title", "Metaprogramming Ruby 2"], ["author", "Paolo Perrotta"], ["created_at", "2024-02-22 20:01:18.469952"], ["updated_at", "2024-02-22 20:01:18.469952"]]
 ```
 
@@ -406,6 +408,8 @@ book.update(title: "The Lord of the Rings: The Fellowship of the Ring")
 the `update` results in the following SQL:
 
 ```sql
+/* Note that `updated_at` is automatically set */
+
  UPDATE "books" SET "title" = ?, "updated_at" = ? WHERE "books"."id" = ?  [["title", "The Lord of the Rings: The Fellowship of the Ring"], ["updated_at", "2024-02-22 20:51:13.487064"], ["id", 104]]
 ```
 
