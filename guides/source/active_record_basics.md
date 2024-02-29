@@ -373,7 +373,7 @@ SELECT "books".* FROM "books" WHERE "books"."id" = ? LIMIT ?  [["id", 42], ["LIM
 
 ```ruby
 # Find all books with a given an author, sort by created_at in reverse chronological order
-hitchhiker_series = Book.where(author: "Douglas Adams").order(created_at: :desc)
+Book.where(author: "Douglas Adams").order(created_at: :desc)
 ```
 
 resulting in this SQL:
