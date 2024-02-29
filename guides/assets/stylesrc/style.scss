@@ -47,6 +47,15 @@ $gray-700: #3A3939;
 $gray-800: #343434;
 $gray-900: #2E2E2E;
 
+$note: #FFD600;
+$note-bkgnd: rgba($note, 15%); // Works for light and dark mode
+
+$tip: #00F0FF;
+$tip-bkgnd: rgba($tip, 15%); // Works for light and dark mode
+
+$stop: $rf-brand;
+$stop-bkgnd: rgba($stop, 15%); // Works for light and dark mode
+
 // ----------------------------------------------------------------------------
 // Fonts
 // These are the same fonts that are used on the marcom site, and they are 
