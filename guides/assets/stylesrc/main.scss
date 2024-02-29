@@ -141,32 +141,27 @@ body.guide {
     
     dt {
       font-weight: bold;
-    }
-  }
-  
-  dd {
-    padding: 0.25em 0 1em;
-    border-bottom: 1px solid $gray-500;
-    margin: 0 0 1em 0;
-  }
+      font-size: 1.125rem;
+      padding: 0.125em 0 0.25em 0;
+      margin-bottom: 0.75em;
 
+      @include media('<phone-wide') {
+        font-size: 1rem;
+      } // @include media('<phone-wide')
+    } // dt
+
+    dd {
+      padding: 0.25em 0 1em;
+      border-bottom: 1px solid $gray-500;
+      margin: 0 0 1em 0;
+    } // dd
+  } // dl
+  
   // :where(&[dir="ltr"]) dd { margin-left: 1.5em; }
   // :where(&[dir="rtl"]) dd { margin-right: 1.5em; }
 
   // :where(&[dir="ltr"]) :is(dd) { margin-left: 0; padding-left: 0; }
   // :where(&[dir="rtl"]) :is(dd) { margin-right: 0; padding-right: 0; }
-  
-  dt {
-    font-size: 1.125rem;
-    padding: 0.125em 0 0.25em 0;
-    margin-bottom: 0.75em;
-  }
-  
-  @media screen and (max-width: 480px) {
-    dt {
-      font-size: 1em;
-    }
-  }
 
   // Code
 
@@ -177,7 +172,7 @@ body.guide {
     margin: 1em 0;
     overflow: auto;
     color: #222;
-  }
+  } // pre, code
   
   p code, ul code {
     background: $gray-200;
@@ -186,11 +181,11 @@ body.guide {
   }
   
   pre, tt, code {
-   white-space: pre-wrap;       /* css-3 */
-   white-space: -moz-pre-wrap !important;  /* Mozilla, since 1999 */
-   white-space: -pre-wrap;      /* Opera 4-6 */
-   white-space: -o-pre-wrap;    /* Opera 7 */
-   word-wrap: break-word;       /* Internet Explorer 5.5+ */
+    // https://caniuse.com/mdn-css_properties_white-space_pre-wrap
+    white-space: pre-wrap;       /* css-3 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
   }
 
   // ----------------------------------------------------------------------------
