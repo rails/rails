@@ -1,3 +1,17 @@
+*   Set up the `debug` for use with an IDE Debugger in local environments.
+
+    Set the `ENV['RUBY_DEBUG_PORT']` environment variable and then configure your editor to connect to the same port.
+
+    VS Code users can use the official rdbg extension, to connect:
+    https://marketplace.visualstudio.com/items?itemName=KoichiSasada.vscode-rdbg
+
+    Neovim users can use DAP to connect. This plugin expects RUBY_DEBUG_PORT to be set to 38698.
+    You can then connect to your debugger server with `:lua require("dap").continue()`
+    and then choosing the "debug current file" option.
+    https://github.com/suketa/nvim-dap-ruby
+
+    *Nate Matykiewicz*
+
 *   Set `action_mailer.default_url_options` values in `development` and `test`.
 
     Prior to this commit, new Rails applications would raise `ActionView::Template::Error`
