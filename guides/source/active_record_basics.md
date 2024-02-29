@@ -215,7 +215,7 @@ irb> book.title
 => "The Hobbit"
 ```
 
-NOTE: You can generate the Active Record model class as well a matching migration with this command `bin/rails generate model Book title:string author:string`. This creates both `/app/models/book.rb` and `/db/migrate/20240220143807_create_books.rb` files.  
+NOTE: You can generate the Active Record model class as well a matching migration with this command `bin/rails generate model Book title:string author:string`. This creates both `/app/models/book.rb` and `/db/migrate/20240220143807_create_books.rb` files.
 
 Overriding the Naming Conventions
 ---------------------------------
