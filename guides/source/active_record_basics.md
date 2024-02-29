@@ -96,8 +96,8 @@ For class names composed of two or more words, the model class name will follow
 the Ruby conventions of using a CamelCase name. The database table name, in that
 case, will be a snake_case name. For example:
 
-* `BookClub` - is the model class, singular with the first letter of each word capitalized
-* `book_clubs` - is the matching database table, plural with underscores separating words
+* `BookClub` - is the model class, singular with the first letter of each word capitalized.
+* `book_clubs` - is the matching database table, plural with underscores separating words.
 
 Here are some more examples of model class names and corresponding table names:
 
