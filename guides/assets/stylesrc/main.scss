@@ -6,8 +6,8 @@ body.guide {
   // Typographic Baseline
   // ----------------------------------------------------------------------------
   
-  font-family: 'Calibre', sans-serif;
-  font-size: 1rem; /* 16px */
+  font-family: 'Calibre', Montserrat, sans-serif;
+  font-size: 1.125rem; /* 18px */
   font-style: normal;
   font-weight: 400;
   font-smoothing: antialiased;
@@ -36,18 +36,39 @@ body.guide {
     hyphenate-limit-chars: 6 3 2; /* Not Safari */
     hyphenate-limit-last: always;
 
-    // Set a width of 45-75 characters, using em as ch has too much variation
-    // between various fonts
-    min-width: 23em;
-    max-width: 38em;
+    @include media('>tablet') {
+      // On larger screens, set a width of 45-75 characters, using em as ch 
+      // has too much variation between various fonts
+      min-width: 23em;
+      max-width: 38em;
+    }
 
-    margin-bottom: 0.75em; // Space after paragraph
+    margin: 0 0 0.75em 0; // Space after paragraph
     text-align: left;
 
     // &::first-line {
     //   font-weight: bold; // do we want to do this? Gives a very specific style that may only make sense on the first line of a larger section
     // }
   } // p
+
+  // Links
+
+  a {
+
+    &:link {
+      color: $rf-brand;
+      text-decoration: underline;
+    }
+
+    &:hover,
+    &:active {
+      color: $rf-brand-dark;
+    }
+
+    &:visited {
+      color: $gray-600;
+    }
+  }
 
   abbr {
     hyphens: manual;
@@ -73,9 +94,12 @@ body.guide {
 
   // Headlines
   // TODO: media queries to increase font size, current sizes are for desktop, so drop base to mobile appropriate and MQ up twice (min width 60/120 em, minheight 30/60em)
+  // Font family is Calibre, declared globally
   h1 {
+    color: $rf-brand;
     font-size: 3rem; /* 48px */
     font-weight: 200; /* Light */
+    line-height: 1em;
   }
 
   h2 {
@@ -110,12 +134,90 @@ body.guide {
     background-size: contain;
   }
 
+  // Definition Lists
+
+  dl {
+    margin: 0;
+    
+    dt {
+      font-weight: bold;
+    }
+  }
+  
+  dd {
+    padding: 0.25em 0 1em;
+    border-bottom: 1px solid $gray-500;
+    margin: 0 0 1em 0;
+  }
+
+  // :where(&[dir="ltr"]) dd { margin-left: 1.5em; }
+  // :where(&[dir="rtl"]) dd { margin-right: 1.5em; }
+
+  // :where(&[dir="ltr"]) :is(dd) { margin-left: 0; padding-left: 0; }
+  // :where(&[dir="rtl"]) :is(dd) { margin-right: 0; padding-right: 0; }
+  
+  dt {
+    font-size: 1.125rem;
+    padding: 0.125em 0 0.25em 0;
+    margin-bottom: 0.75em;
+  }
+  
+  @media screen and (max-width: 480px) {
+    dt {
+      font-size: 1em;
+    }
+  }
+
+  // Code
+
+  pre, code {
+    font-size: 1rem;
+    font-family: "IBM Plex Mono", "Anonymous Pro", "Inconsolata", "Menlo", "Consolas", "Bitstream Vera Sans Mono", "Courier New", monospace;
+    line-height: 1.5;
+    margin: 1em 0;
+    overflow: auto;
+    color: #222;
+  }
+  
+  p code, ul code {
+    background: $gray-200;
+    border-radius: calc($base-border-radius / 2);
+    padding: 1px 3px;
+  }
+  
+  pre, tt, code {
+   white-space: pre-wrap;       /* css-3 */
+   white-space: -moz-pre-wrap !important;  /* Mozilla, since 1999 */
+   white-space: -pre-wrap;      /* Opera 4-6 */
+   white-space: -o-pre-wrap;    /* Opera 7 */
+   word-wrap: break-word;       /* Internet Explorer 5.5+ */
+  }
+
   // ----------------------------------------------------------------------------
   // Layout
   // ----------------------------------------------------------------------------
 
   .wrapper {
+    padding: 1em;
   } // .wrapper
   
+  #feature {
+    background-color: $gray-100;
+
+    // #subCol {
+    //   background-color: $gray-100;
+    //   border-radius: $base-border-radius;
+    //   padding: 0.5em 1em;
+
+    //   dl {
+    //     margin-bottom: 0;
+    //   }
+
+    //   dd {
+    //     border-bottom: none;
+    //     margin-bottom: 0;
+    //   }
+    // }
+  }
   
 } // body.guide
