@@ -231,7 +231,32 @@ rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:i
     MESSAGE
   end
 
-  test "rails routes with expanded option" do
+  test "uses default route formatter if an invalid one is specified" do
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+        resource :post
+        resource :user_permission
+      end
+    RUBY
+
+    output = IO.stub(:console_size, [0, 27]) do
+      run_routes_command([ "-c", "PostController", "-f", "bad-formatter" ])
+    end
+
+    assert_equal <<~OUTPUT, output
+                             Prefix Verb   URI Pattern                                             Controller#Action
+                           new_post GET    /post/new(.:format)                                     posts#new
+                          edit_post GET    /post/edit(.:format)                                    posts#edit
+                               post GET    /post(.:format)                                         posts#show
+                                    PATCH  /post(.:format)                                         posts#update
+                                    PUT    /post(.:format)                                         posts#update
+                                    DELETE /post(.:format)                                         posts#destroy
+                                    POST   /post(.:format)                                         posts#create
+      rails_postmark_inbound_emails POST   /rails/action_mailbox/postmark/inbound_emails(.:format) action_mailbox/ingresses/postmark/inbound_emails#create
+    OUTPUT
+  end
+
+  test "rails routes with expanded formatter" do
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
         get '/cart', to: 'cart#show'
@@ -239,7 +264,7 @@ rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:i
     RUBY
 
     output = IO.stub(:console_size, [0, 27]) do
-      run_routes_command([ "--expanded" ])
+      run_routes_command([ "-f", "expanded" ])
     end
 
     rails_gem_root = File.expand_path("../../../../", __FILE__)
@@ -398,7 +423,7 @@ rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:i
       end
     RUBY
 
-    output = run_routes_command([ "--unused" ])
+    output = run_routes_command(["--unused"])
 
     assert_includes(output, "No unused routes found.")
   end
