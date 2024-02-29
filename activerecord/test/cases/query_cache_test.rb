@@ -672,6 +672,40 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test "query cache is cleared for all thread when a connection is shared" do
+    ActiveRecord::Base.connection_pool.pin_connection!(ActiveSupport::IsolatedExecutionState.context)
+
+    begin
+      assert_cache :off
+      ActiveRecord::Base.connection.enable_query_cache!
+      assert_cache :clean
+
+      Post.first
+      assert_cache :dirty
+
+      thread_a = Thread.new do
+        middleware { |env|
+          assert_cache :dirty # The cache is shared with the main thread
+
+          Post.first
+          assert_cache :dirty
+
+          Post.delete_all
+
+          assert_cache :clean
+
+          [200, {}, nil]
+        }.call({})
+      end
+
+      thread_a.join
+
+      assert_cache :clean
+    ensure
+      ActiveRecord::Base.connection_pool.unpin_connection!
+    end
+  end
+
   private
     def with_temporary_connection_pool(&block)
       pool_config = ActiveRecord::Base.connection.pool.pool_config
