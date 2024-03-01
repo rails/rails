@@ -11,7 +11,7 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.transaction do
       @connection.create_table("bytea_data_type") do |t|
         t.binary "payload"
@@ -87,7 +87,7 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
 
   def test_via_to_sql_with_complicating_connection
     Thread.new do
-      other_conn = ActiveRecord::Base.connection
+      other_conn = ActiveRecord::Base.lease_connection
       other_conn.execute("SET standard_conforming_strings = off")
       other_conn.execute("SET escape_string_warning = off")
     end.join

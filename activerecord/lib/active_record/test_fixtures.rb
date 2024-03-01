@@ -157,7 +157,7 @@ module ActiveRecord
         @fixture_connection_pools = ActiveRecord::Base.connection_handler.connection_pool_list(:writing)
         @fixture_connection_pools.each do |pool|
           pool.pin_connection!(lock_threads)
-          pool.connection
+          pool.lease_connection
         end
 
         # When connections are established in the future, begin a transaction too
@@ -172,7 +172,7 @@ module ActiveRecord
 
               unless @fixture_connection_pools.include?(pool)
                 pool.pin_connection!(lock_threads)
-                pool.connection
+                pool.lease_connection
                 @fixture_connection_pools << pool
               end
             end

@@ -10,7 +10,7 @@ class PostgresqlCitextTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
 
     enable_extension!("citext", @connection)
 

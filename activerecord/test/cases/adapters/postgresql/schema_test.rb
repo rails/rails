@@ -81,7 +81,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.execute "CREATE SCHEMA #{SCHEMA_NAME} CREATE TABLE #{TABLE_NAME} (#{COLUMNS.join(',')})"
     @connection.execute "CREATE TABLE #{SCHEMA_NAME}.\"#{TABLE_NAME}.table\" (#{COLUMNS.join(',')})"
     @connection.execute "CREATE TABLE #{SCHEMA_NAME}.\"#{CAPITALIZED_TABLE_NAME}\" (#{COLUMNS.join(',')})"
@@ -148,9 +148,9 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_habtm_table_name_with_schema
-    ActiveRecord::Base.connection.drop_schema "music", if_exists: true
-    ActiveRecord::Base.connection.create_schema "music"
-    ActiveRecord::Base.connection.execute <<~SQL
+    ActiveRecord::Base.lease_connection.drop_schema "music", if_exists: true
+    ActiveRecord::Base.lease_connection.create_schema "music"
+    ActiveRecord::Base.lease_connection.execute <<~SQL
       CREATE TABLE music.albums (id serial primary key, deleted boolean default false);
       CREATE TABLE music.songs (id serial primary key);
       CREATE TABLE music.albums_songs (album_id integer, song_id integer);
@@ -162,7 +162,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     assert_equal [album.id], Song.joins(:albums).pluck("albums.id")
     assert_equal [album.id], Song.joins(:albums).pluck("music.albums.id")
   ensure
-    ActiveRecord::Base.connection.drop_schema "music", if_exists: true
+    ActiveRecord::Base.lease_connection.drop_schema "music", if_exists: true
   end
 
   def test_drop_schema_with_nonexisting_schema
@@ -181,7 +181,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
-  if ActiveRecord::Base.connection.prepared_statements
+  if ActiveRecord::Base.lease_connection.prepared_statements
     def test_schema_change_with_prepared_stmt
       altered = false
       @connection.exec_query "select * from developers where id = $1", "sql", [bind_param(1)]
@@ -549,7 +549,7 @@ class SchemaForeignKeyTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_schema("my_schema")
   end
 
@@ -598,7 +598,7 @@ class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table "trains" do |t|
       t.string :name
       t.string :position
@@ -642,7 +642,7 @@ class SchemaIndexNullsOrderTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table "trains" do |t|
       t.string :name
       t.text :description
@@ -668,7 +668,7 @@ end
 
 class DefaultsUsingMultipleSchemasAndDomainTest < ActiveRecord::PostgreSQLTestCase
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.drop_schema "schema_1", if_exists: true
     @connection.execute "CREATE SCHEMA schema_1"
     @connection.execute "CREATE DOMAIN schema_1.text AS text"
@@ -724,7 +724,7 @@ class SchemaWithDotsTest < ActiveRecord::PostgreSQLTestCase
   include PGSchemaHelper
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_schema "my.schema"
   end
 
@@ -758,7 +758,7 @@ end
 
 class SchemaJoinTablesTest < ActiveRecord::PostgreSQLTestCase
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_schema("test_schema")
   end
 
@@ -782,7 +782,7 @@ class SchemaIndexIncludeColumnsTest < ActiveRecord::PostgreSQLTestCase
 
   def test_schema_dumps_index_included_columns
     index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_include_index/).first.strip
-    if ActiveRecord::Base.connection.supports_index_include?
+    if ActiveRecord::Base.lease_connection.supports_index_include?
       assert_equal 't.index ["firm_id", "type"], name: "company_include_index", include: ["name", "account_id"]', index_definition
     else
       assert_equal 't.index ["firm_id", "type"], name: "company_include_index"', index_definition
@@ -794,7 +794,7 @@ class SchemaIndexNullsNotDistinctTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table "trains" do |t|
       t.string :name
     end

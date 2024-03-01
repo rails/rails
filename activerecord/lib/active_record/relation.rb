@@ -265,7 +265,7 @@ module ActiveRecord
     def create_or_find_by(attributes, &block)
       transaction(requires_new: true) { create(attributes, &block) }
     rescue ActiveRecord::RecordNotUnique
-      if connection.transaction_open?
+      if lease_connection.transaction_open?
         where(attributes).lock.find_by!(attributes)
       else
         find_by!(attributes)
@@ -278,7 +278,7 @@ module ActiveRecord
     def create_or_find_by!(attributes, &block)
       transaction(requires_new: true) { create!(attributes, &block) }
     rescue ActiveRecord::RecordNotUnique
-      if connection.transaction_open?
+      if lease_connection.transaction_open?
         where(attributes).lock.find_by!(attributes)
       else
         find_by!(attributes)
@@ -468,28 +468,30 @@ module ActiveRecord
       else
         collection = eager_loading? ? apply_join_dependency : self
 
-        column = connection.visitor.compile(table[timestamp_column])
-        select_values = "COUNT(*) AS #{adapter_class.quote_column_name("size")}, MAX(%s) AS timestamp"
+        with_connection do |c|
+          column = c.visitor.compile(table[timestamp_column])
+          select_values = "COUNT(*) AS #{adapter_class.quote_column_name("size")}, MAX(%s) AS timestamp"
 
-        if collection.has_limit_or_offset?
-          query = collection.select("#{column} AS collection_cache_key_timestamp")
-          query._select!(table[Arel.star]) if distinct_value && collection.select_values.empty?
-          subquery_alias = "subquery_for_cache_key"
-          subquery_column = "#{subquery_alias}.collection_cache_key_timestamp"
-          arel = query.build_subquery(subquery_alias, select_values % subquery_column)
-        else
-          query = collection.unscope(:order)
-          query.select_values = [select_values % column]
-          arel = query.arel
-        end
+          if collection.has_limit_or_offset?
+            query = collection.select("#{column} AS collection_cache_key_timestamp")
+            query._select!(table[Arel.star]) if distinct_value && collection.select_values.empty?
+            subquery_alias = "subquery_for_cache_key"
+            subquery_column = "#{subquery_alias}.collection_cache_key_timestamp"
+            arel = query.build_subquery(subquery_alias, select_values % subquery_column)
+          else
+            query = collection.unscope(:order)
+            query.select_values = [select_values % column]
+            arel = query.arel
+          end
 
-        size, timestamp = connection.select_rows(arel, nil).first
+          size, timestamp = c.select_rows(arel, nil).first
 
-        if size
-          column_type = klass.type_for_attribute(timestamp_column)
-          timestamp = column_type.deserialize(timestamp)
-        else
-          size = 0
+          if size
+            column_type = klass.type_for_attribute(timestamp_column)
+            timestamp = column_type.deserialize(timestamp)
+          else
+            size = 0
+          end
         end
       end
 
@@ -599,7 +601,9 @@ module ActiveRecord
         table[primary_key]
       end
       stmt = arel.compile_update(values, key, having_clause_ast, group_values_arel_columns)
-      klass.connection.update(stmt, "#{klass} Update All").tap { reset }
+      klass.with_connection do |c|
+        c.update(stmt, "#{klass} Update All").tap { reset }
+      end
     end
 
     def update(id = :all, attributes) # :nodoc:
@@ -738,7 +742,9 @@ module ActiveRecord
       end
       stmt = arel.compile_delete(key, having_clause_ast, group_values_arel_columns)
 
-      klass.connection.delete(stmt, "#{klass} Delete All").tap { reset }
+      klass.with_connection do |c|
+        c.delete(stmt, "#{klass} Delete All").tap { reset }
+      end
     end
 
     # Finds and destroys all records matching the specified conditions.
@@ -786,17 +792,19 @@ module ActiveRecord
     #
     #   ASYNC Post Load (0.0ms) (db time 2ms)  SELECT "posts".* FROM "posts" LIMIT 100
     def load_async
-      return load if !connection.async_enabled?
+      with_connection do |c|
+        return load if !c.async_enabled?
 
-      unless loaded?
-        result = exec_main_query(async: connection.current_transaction.closed?)
+        unless loaded?
+          result = exec_main_query(async: c.current_transaction.closed?)
 
-        if result.is_a?(Array)
-          @records = result
-        else
-          @future_result = result
+          if result.is_a?(Array)
+            @records = result
+          else
+            @future_result = result
+          end
+          @loaded = true
         end
-        @loaded = true
       end
 
       self
@@ -852,8 +860,9 @@ module ActiveRecord
           relation.to_sql
         end
       else
-        conn = klass.connection
-        conn.unprepared_statement { conn.to_sql(arel) }
+        klass.with_connection do |conn|
+          conn.unprepared_statement { conn.to_sql(arel) }
+        end
       end
     end
 
@@ -938,7 +947,7 @@ module ActiveRecord
     end
 
     def alias_tracker(joins = [], aliases = nil) # :nodoc:
-      ActiveRecord::Associations::AliasTracker.create(connection, table.name, joins, aliases)
+      ActiveRecord::Associations::AliasTracker.create(lease_connection, table.name, joins, aliases)
     end
 
     class StrictLoadingScope # :nodoc:
@@ -1062,13 +1071,15 @@ module ActiveRecord
           if where_clause.contradiction?
             [].freeze
           elsif eager_loading?
-            apply_join_dependency do |relation, join_dependency|
-              if relation.null_relation?
-                [].freeze
-              else
-                relation = join_dependency.apply_column_aliases(relation)
-                @_join_dependency = join_dependency
-                connection.select_all(relation.arel, "SQL", async: async)
+            with_connection do |c|
+              apply_join_dependency do |relation, join_dependency|
+                if relation.null_relation?
+                  [].freeze
+                else
+                  relation = join_dependency.apply_column_aliases(relation)
+                  @_join_dependency = join_dependency
+                  c.select_all(relation.arel, "SQL", async: async)
+                end
               end
             end
           else

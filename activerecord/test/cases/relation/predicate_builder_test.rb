@@ -39,7 +39,7 @@ module ActiveRecord
 
     private
       def topic_title
-        Topic.connection.quote_table_name("topics.title")
+        Topic.lease_connection.quote_table_name("topics.title")
       end
   end
 end

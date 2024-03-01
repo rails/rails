@@ -3,7 +3,7 @@
 require "cases/helper"
 require "models/car"
 
-if ActiveRecord::Base.connection.supports_explain?
+if ActiveRecord::Base.lease_connection.supports_explain?
   class ExplainTest < ActiveRecord::TestCase
     fixtures :cars
 
@@ -11,8 +11,8 @@ if ActiveRecord::Base.connection.supports_explain?
       ActiveRecord::Base
     end
 
-    def connection
-      base.connection
+    def lease_connection
+      base.lease_connection
     end
 
     def test_relation_explain
@@ -159,7 +159,7 @@ if ActiveRecord::Base.connection.supports_explain?
 
         # Minitest's `stub` method is unable to correctly replicate method arguments
         # signature, so we need to do a manual stubbing in this case.
-        metaclass = class << connection; self; end
+        metaclass = lease_connection.singleton_class
         explain_method = metaclass.instance_method(:explain)
         metaclass.define_method(:explain) do |_arel, _binds = [], _options = {}|
           explain_called += 1
@@ -167,8 +167,10 @@ if ActiveRecord::Base.connection.supports_explain?
         end
         yield
       ensure
-        metaclass.undef_method(:explain)
-        metaclass.define_method(:explain, explain_method)
+        if metaclass
+          metaclass.undef_method(:explain)
+          metaclass.define_method(:explain, explain_method)
+        end
       end
 
       def bind_param(name, value)
@@ -176,8 +178,8 @@ if ActiveRecord::Base.connection.supports_explain?
       end
 
       def expected_explain_clause
-        if connection.respond_to?(:build_explain_clause)
-          connection.build_explain_clause
+        if lease_connection.respond_to?(:build_explain_clause)
+          lease_connection.build_explain_clause
         else
           "EXPLAIN for:"
         end

@@ -7,7 +7,7 @@ class TableOptionsTest < ActiveRecord::AbstractMysqlTestCase
   include SchemaDumpingHelper
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   def teardown
@@ -92,12 +92,12 @@ class DefaultEngineOptionTest < ActiveRecord::AbstractMysqlTestCase
   def teardown
     ActiveRecord::Base.logger       = @logger_was
     ActiveRecord::Migration.verbose = @verbose_was
-    ActiveRecord::Base.connection.drop_table "mysql_table_options", if_exists: true
+    ActiveRecord::Base.lease_connection.drop_table "mysql_table_options", if_exists: true
     ActiveRecord::Base.connection_pool.schema_migration.delete_all_versions rescue nil
   end
 
   test "new migrations do not contain default ENGINE=InnoDB option" do
-    ActiveRecord::Base.connection.create_table "mysql_table_options", force: true
+    ActiveRecord::Base.lease_connection.create_table "mysql_table_options", force: true
 
     assert_no_match %r{ENGINE=InnoDB}, @log.string
 

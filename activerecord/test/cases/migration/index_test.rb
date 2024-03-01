@@ -9,7 +9,7 @@ module ActiveRecord
 
       def setup
         super
-        @connection = ActiveRecord::Base.connection
+        @connection = ActiveRecord::Base.lease_connection
         @table_name = :testings
 
         connection.create_table table_name do |t|

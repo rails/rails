@@ -52,7 +52,7 @@ module Arel # :nodoc: all
 
     def to_sql(engine = Table.engine)
       collector = Arel::Collectors::SQLString.new
-      collector = engine.connection.visitor.accept @ast, collector
+      collector = engine.lease_connection.visitor.accept @ast, collector
       collector.value
     end
 

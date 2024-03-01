@@ -4,7 +4,7 @@ require "cases/helper"
 
 class PostgresqlRenameTableTest < ActiveRecord::PostgreSQLTestCase
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   def teardown

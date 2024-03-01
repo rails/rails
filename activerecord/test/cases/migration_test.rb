@@ -40,7 +40,7 @@ class MigrationTest < ActiveRecord::TestCase
   def setup
     super
     %w(reminders people_reminders prefix_reminders_suffix p_things_s).each do |table|
-      Reminder.connection.drop_table(table) rescue nil
+      Reminder.lease_connection.drop_table(table) rescue nil
     end
     Reminder.reset_column_information
     @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
@@ -58,23 +58,23 @@ class MigrationTest < ActiveRecord::TestCase
     @schema_migration.delete_all_versions
 
     %w(things awesome_things prefix_things_suffix p_awesome_things_s).each do |table|
-      Thing.connection.drop_table(table) rescue nil
+      Thing.lease_connection.drop_table(table) rescue nil
     end
     Thing.reset_column_information
 
     %w(reminders people_reminders prefix_reminders_suffix).each do |table|
-      Reminder.connection.drop_table(table) rescue nil
+      Reminder.lease_connection.drop_table(table) rescue nil
     end
     Reminder.reset_table_name
     Reminder.reset_column_information
 
     %w(last_name key bio age height wealth birthday favorite_day
        moment_of_truth male administrator funny).each do |column|
-      Person.connection.remove_column("people", column) rescue nil
+      Person.lease_connection.remove_column("people", column) rescue nil
     end
-    Person.connection.remove_column("people", "first_name") rescue nil
-    Person.connection.remove_column("people", "middle_name") rescue nil
-    Person.connection.add_column("people", "first_name", :string)
+    Person.lease_connection.remove_column("people", "first_name") rescue nil
+    Person.lease_connection.remove_column("people", "middle_name") rescue nil
+    Person.lease_connection.add_column("people", "first_name", :string)
     Person.reset_column_information
 
     ActiveRecord::Migration.verbose = @verbose_was
@@ -153,7 +153,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_create_table_raises_if_already_exists
-    connection = Person.connection
+    connection = Person.lease_connection
     connection.create_table :testings, force: true do |t|
       t.string :foo
     end
@@ -168,7 +168,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_create_table_with_if_not_exists_true
-    connection = Person.connection
+    connection = Person.lease_connection
     connection.create_table :testings, force: true do |t|
       t.string :foo
     end
@@ -183,7 +183,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_create_table_raises_for_long_table_names
-    connection = Person.connection
+    connection = Person.lease_connection
     name_limit = connection.table_name_length
     long_name = "a" * (name_limit + 1)
     short_name = "a" * name_limit
@@ -200,7 +200,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_create_table_with_indexes_and_if_not_exists_true
-    connection = Person.connection
+    connection = Person.lease_connection
     connection.create_table :testings, force: true do |t|
       t.references :people
       t.string :foo
@@ -219,15 +219,15 @@ class MigrationTest < ActiveRecord::TestCase
   def test_create_table_with_force_true_does_not_drop_nonexisting_table
     # using a copy as we need the drop_table method to
     # continue to work for the ensure block of the test
-    temp_conn = Person.connection.dup
+    temp_conn = Person.lease_connection.dup
 
-    assert_not_equal temp_conn, Person.connection
+    assert_not_equal temp_conn, Person.lease_connection
 
     temp_conn.create_table :testings2, force: true do |t|
       t.column :foo, :string
     end
   ensure
-    Person.connection.drop_table :testings2, if_exists: true
+    Person.lease_connection.drop_table :testings2, if_exists: true
   end
 
   def test_remove_column_with_if_not_exists_not_set
@@ -270,7 +270,7 @@ class MigrationTest < ActiveRecord::TestCase
       end
 
       if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-        if ActiveRecord::Base.connection.mariadb?
+        if ActiveRecord::Base.lease_connection.mariadb?
           assert_match(/Can't DROP COLUMN `last_name`; check that it exists/, error.message)
         else
           assert_match(/check that column\/key exists/, error.message)
@@ -344,7 +344,7 @@ class MigrationTest < ActiveRecord::TestCase
   ensure
     Person.reset_column_information
     if Person.column_names.include?("last_name")
-      Person.connection.remove_column("people", "last_name")
+      Person.lease_connection.remove_column("people", "last_name")
     end
   end
 
@@ -372,7 +372,7 @@ class MigrationTest < ActiveRecord::TestCase
   ensure
     Person.reset_column_information
     if Person.column_names.include?("last_name")
-      Person.connection.remove_column("people", "last_name")
+      Person.lease_connection.remove_column("people", "last_name")
     end
   end
 
@@ -402,7 +402,7 @@ class MigrationTest < ActiveRecord::TestCase
   ensure
     Person.reset_column_information
     if Person.column_names.include?("last_name")
-      Person.connection.remove_column("people", "last_name")
+      Person.lease_connection.remove_column("people", "last_name")
     end
   end
 
@@ -430,13 +430,13 @@ class MigrationTest < ActiveRecord::TestCase
   ensure
     Person.reset_column_information
     if Person.column_names.include?("last_name")
-      Person.connection.remove_column("people", "last_name")
+      Person.lease_connection.remove_column("people", "last_name")
     end
   end
 
   def test_migration_instance_has_connection
     migration = Class.new(ActiveRecord::Migration::Current).new
-    assert_equal ActiveRecord::Base.connection, migration.connection
+    assert_equal ActiveRecord::Base.lease_connection, migration.connection
   end
 
   def test_method_missing_delegates_to_connection
@@ -452,7 +452,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_add_table_with_decimals
-    Person.connection.drop_table :big_numbers rescue nil
+    Person.lease_connection.drop_table :big_numbers rescue nil
 
     assert_not_predicate BigNumber, :table_exists?
     GiveMeBigNumbers.up
@@ -565,7 +565,7 @@ class MigrationTest < ActiveRecord::TestCase
     assert migration.went_down, "have not gone down"
   end
 
-  if ActiveRecord::Base.connection.supports_ddl_transactions?
+  if ActiveRecord::Base.lease_connection.supports_ddl_transactions?
     def test_migrator_one_up_with_exception_and_rollback
       assert_no_column Person, :last_name
 
@@ -630,7 +630,7 @@ class MigrationTest < ActiveRecord::TestCase
     ensure
       Person.reset_column_information
       if Person.column_names.include?("last_name")
-        Person.connection.remove_column("people", "last_name")
+        Person.lease_connection.remove_column("people", "last_name")
       end
     end
   end
@@ -742,18 +742,18 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_updating_an_existing_entry_into_internal_metadata
     @internal_metadata[:version] = "foo"
-    updated_at = @internal_metadata.send(:select_entry, @pool.connection, :version)["updated_at"]
+    updated_at = @internal_metadata.send(:select_entry, @pool.lease_connection, :version)["updated_at"]
     assert_equal "foo", @internal_metadata[:version]
 
     # same version doesn't update timestamps
     @internal_metadata[:version] = "foo"
     assert_equal "foo", @internal_metadata[:version]
-    assert_equal updated_at, @internal_metadata.send(:select_entry, @pool.connection, :version)["updated_at"]
+    assert_equal updated_at, @internal_metadata.send(:select_entry, @pool.lease_connection, :version)["updated_at"]
 
     # updated version updates timestamps
     @internal_metadata[:version] = "not_foo"
     assert_equal "not_foo", @internal_metadata[:version]
-    assert_not_equal updated_at, @internal_metadata.send(:select_entry, @pool.connection, :version)["updated_at"]
+    assert_not_equal updated_at, @internal_metadata.send(:select_entry, @pool.lease_connection, :version)["updated_at"]
   ensure
     @internal_metadata.delete_all_entries
   end
@@ -880,134 +880,134 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_create_table_with_binary_column
     assert_nothing_raised {
-      Person.connection.create_table :binary_testings do |t|
+      Person.lease_connection.create_table :binary_testings do |t|
         t.column "data", :binary, null: false
       end
     }
 
-    columns = Person.connection.columns(:binary_testings)
+    columns = Person.lease_connection.columns(:binary_testings)
     data_column = columns.detect { |c| c.name == "data" }
 
     assert_nil data_column.default
   ensure
-    Person.connection.drop_table :binary_testings, if_exists: true
+    Person.lease_connection.drop_table :binary_testings, if_exists: true
   end
 
   unless mysql_enforcing_gtid_consistency?
     def test_create_table_with_query
-      Person.connection.create_table :table_from_query_testings, as: "SELECT id FROM people WHERE id = 1"
+      Person.lease_connection.create_table :table_from_query_testings, as: "SELECT id FROM people WHERE id = 1"
 
-      columns = Person.connection.columns(:table_from_query_testings)
-      assert_equal [1], Person.connection.select_values("SELECT * FROM table_from_query_testings")
+      columns = Person.lease_connection.columns(:table_from_query_testings)
+      assert_equal [1], Person.lease_connection.select_values("SELECT * FROM table_from_query_testings")
       assert_equal 1, columns.length
       assert_equal "id", columns.first.name
     ensure
-      Person.connection.drop_table :table_from_query_testings rescue nil
+      Person.lease_connection.drop_table :table_from_query_testings rescue nil
     end
 
     def test_create_table_with_query_from_relation
-      Person.connection.create_table :table_from_query_testings, as: Person.select(:id).where(id: 1)
+      Person.lease_connection.create_table :table_from_query_testings, as: Person.select(:id).where(id: 1)
 
-      columns = Person.connection.columns(:table_from_query_testings)
-      assert_equal [1], Person.connection.select_values("SELECT * FROM table_from_query_testings")
+      columns = Person.lease_connection.columns(:table_from_query_testings)
+      assert_equal [1], Person.lease_connection.select_values("SELECT * FROM table_from_query_testings")
       assert_equal 1, columns.length
       assert_equal "id", columns.first.name
     ensure
-      Person.connection.drop_table :table_from_query_testings rescue nil
+      Person.lease_connection.drop_table :table_from_query_testings rescue nil
     end
   end
 
   if current_adapter?(:SQLite3Adapter)
     def test_allows_sqlite3_rollback_on_invalid_column_type
-      Person.connection.create_table :something, force: true do |t|
+      Person.lease_connection.create_table :something, force: true do |t|
         t.column :number, :integer
         t.column :name, :string
         t.column :foo, :bar
       end
-      assert Person.connection.column_exists?(:something, :foo)
-      assert_nothing_raised { Person.connection.remove_column :something, :foo, :bar }
-      assert_not Person.connection.column_exists?(:something, :foo)
-      assert Person.connection.column_exists?(:something, :name)
-      assert Person.connection.column_exists?(:something, :number)
+      assert Person.lease_connection.column_exists?(:something, :foo)
+      assert_nothing_raised { Person.lease_connection.remove_column :something, :foo, :bar }
+      assert_not Person.lease_connection.column_exists?(:something, :foo)
+      assert Person.lease_connection.column_exists?(:something, :name)
+      assert Person.lease_connection.column_exists?(:something, :number)
     ensure
-      Person.connection.drop_table :something, if_exists: true
+      Person.lease_connection.drop_table :something, if_exists: true
     end
   end
 
   def test_decimal_scale_without_precision_should_raise
     e = assert_raise(ArgumentError) do
-      Person.connection.create_table :test_decimal_scales, force: true do |t|
+      Person.lease_connection.create_table :test_decimal_scales, force: true do |t|
         t.decimal :scaleonly, scale: 10
       end
     end
 
     assert_equal "Error adding decimal column: precision cannot be empty if scale is specified", e.message
   ensure
-    Person.connection.drop_table :test_decimal_scales, if_exists: true
+    Person.lease_connection.drop_table :test_decimal_scales, if_exists: true
   end
 
   if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter)
     def test_out_of_range_integer_limit_should_raise
       e = assert_raise(ArgumentError) do
-        Person.connection.create_table :test_integer_limits, force: true do |t|
+        Person.lease_connection.create_table :test_integer_limits, force: true do |t|
           t.column :bigone, :integer, limit: 10
         end
       end
 
       assert_includes e.message, "No integer type has byte size 10"
     ensure
-      Person.connection.drop_table :test_integer_limits, if_exists: true
+      Person.lease_connection.drop_table :test_integer_limits, if_exists: true
     end
 
     def test_out_of_range_text_limit_should_raise
       e = assert_raise(ArgumentError) do
-        Person.connection.create_table :test_text_limits, force: true do |t|
+        Person.lease_connection.create_table :test_text_limits, force: true do |t|
           t.text :bigtext, limit: 0xfffffffff
         end
       end
 
       assert_includes e.message, "No text type has byte size #{0xfffffffff}"
     ensure
-      Person.connection.drop_table :test_text_limits, if_exists: true
+      Person.lease_connection.drop_table :test_text_limits, if_exists: true
     end
 
     def test_out_of_range_binary_limit_should_raise
       e = assert_raise(ArgumentError) do
-        Person.connection.create_table :test_binary_limits, force: true do |t|
+        Person.lease_connection.create_table :test_binary_limits, force: true do |t|
           t.binary :bigbinary, limit: 0xfffffffff
         end
       end
 
       assert_includes e.message, "No binary type has byte size #{0xfffffffff}"
     ensure
-      Person.connection.drop_table :test_binary_limits, if_exists: true
+      Person.lease_connection.drop_table :test_binary_limits, if_exists: true
     end
   end
 
   if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     def test_invalid_text_size_should_raise
       e = assert_raise(ArgumentError) do
-        Person.connection.create_table :test_text_sizes, force: true do |t|
+        Person.lease_connection.create_table :test_text_sizes, force: true do |t|
           t.text :bigtext, size: 0xfffffffff
         end
       end
 
       assert_equal "#{0xfffffffff} is invalid :size value. Only :tiny, :medium, and :long are allowed.", e.message
     ensure
-      Person.connection.drop_table :test_text_sizes, if_exists: true
+      Person.lease_connection.drop_table :test_text_sizes, if_exists: true
     end
   end
 
-  if ActiveRecord::Base.connection.supports_advisory_locks?
+  if ActiveRecord::Base.lease_connection.supports_advisory_locks?
     def test_migrator_generates_valid_lock_id
       migration = Class.new(ActiveRecord::Migration::Current).new
       migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata, 100)
 
       lock_id = migrator.send(:generate_migrator_advisory_lock_id)
 
-      assert ActiveRecord::Base.connection.get_advisory_lock(lock_id),
+      assert ActiveRecord::Base.lease_connection.get_advisory_lock(lock_id),
         "the Migrator should have generated a valid lock id, but it didn't"
-      assert ActiveRecord::Base.connection.release_advisory_lock(lock_id),
+      assert ActiveRecord::Base.lease_connection.release_advisory_lock(lock_id),
         "the Migrator should have generated a valid lock id, but it didn't"
     end
 
@@ -1019,7 +1019,7 @@ class MigrationTest < ActiveRecord::TestCase
 
       lock_id = migrator.send(:generate_migrator_advisory_lock_id)
 
-      current_database = ActiveRecord::Base.connection.current_database
+      current_database = ActiveRecord::Base.lease_connection.current_database
       salt = ActiveRecord::Migrator::MIGRATOR_SALT
       expected_id = Zlib.crc32(current_database) * salt
 
@@ -1088,7 +1088,7 @@ class MigrationTest < ActiveRecord::TestCase
         AND query LIKE '%#{lock_id}%'
         SQL
 
-        assert_no_changes -> { ActiveRecord::Base.connection.exec_query(query).rows.flatten } do
+        assert_no_changes -> { ActiveRecord::Base.lease_connection.exec_query(query).rows.flatten } do
           migrator.migrate
         end
       end
@@ -1102,7 +1102,7 @@ class MigrationTest < ActiveRecord::TestCase
       e = assert_raises(ActiveRecord::ConcurrentMigrationError) do
         silence_stream($stderr) do
           migrator.send(:with_advisory_lock) do
-            ActiveRecord::Base.connection.release_advisory_lock(lock_id)
+            ActiveRecord::Base.lease_connection.release_advisory_lock(lock_id)
           end
         end
       end
@@ -1153,7 +1153,7 @@ end
 
 class ReservedWordsMigrationTest < ActiveRecord::TestCase
   def test_drop_index_from_table_named_values
-    connection = Person.connection
+    connection = Person.lease_connection
     connection.create_table :values, force: true do |t|
       t.integer :value
     end
@@ -1169,7 +1169,7 @@ end
 
 class ExplicitlyNamedIndexMigrationTest < ActiveRecord::TestCase
   def test_drop_index_by_name
-    connection = Person.connection
+    connection = Person.lease_connection
     connection.create_table :values, force: true do |t|
       t.integer :value
     end
@@ -1186,7 +1186,7 @@ end
 class IndexForTableWithSchemaMigrationTest < ActiveRecord::TestCase
   if current_adapter?(:PostgreSQLAdapter)
     def test_add_and_remove_index
-      connection = Person.connection
+      connection = Person.lease_connection
       connection.create_schema("my_schema")
       connection.create_table("my_schema.values", force: true) do |t|
         t.integer :value
@@ -1203,21 +1203,21 @@ class IndexForTableWithSchemaMigrationTest < ActiveRecord::TestCase
   end
 end
 
-if ActiveRecord::Base.connection.supports_bulk_alter?
+if ActiveRecord::Base.lease_connection.supports_bulk_alter?
   class BulkAlterTableMigrationsTest < ActiveRecord::TestCase
     def setup
-      @connection = Person.connection
+      @connection = Person.lease_connection
       @connection.create_table(:delete_me, force: true) { |t| }
       Person.reset_column_information
       Person.reset_sequence_name
     end
 
     teardown do
-      Person.connection.drop_table(:delete_me) rescue nil
+      Person.lease_connection.drop_table(:delete_me) rescue nil
     end
 
     def test_adding_multiple_columns
-      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      classname = ActiveRecord::Base.lease_connection.class.name[/[^:]*$/]
       expected_query_count = {
         "Mysql2Adapter"     => 1,
         "TrilogyAdapter"    => 1,
@@ -1320,7 +1320,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         t.integer :age
       end
 
-      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      classname = ActiveRecord::Base.lease_connection.class.name[/[^:]*$/]
       expected_query_count = {
         "Mysql2Adapter"     => 1, # mysql2 supports creating two indexes using one statement
         "TrilogyAdapter"    => 1, # trilogy supports creating two indexes using one statement
@@ -1354,7 +1354,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       assert index(:index_delete_me_on_name)
 
-      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      classname = ActiveRecord::Base.lease_connection.class.name[/[^:]*$/]
       expected_query_count = {
         "Mysql2Adapter"     => 1, # mysql2 supports dropping and creating two indexes using one statement
         "TrilogyAdapter"    => 1, # trilogy supports dropping and creating two indexes using one statement
@@ -1385,7 +1385,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_not column(:name).default
       assert_equal :date, column(:birthdate).type
 
-      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      classname = ActiveRecord::Base.lease_connection.class.name[/[^:]*$/]
       expected_query_count = {
         "Mysql2Adapter"     => 3, # one query for columns, one query for primary key, one query to do the bulk change
         "TrilogyAdapter"    => 3, # one query for columns, one query for primary key, one query to do the bulk change
@@ -1416,7 +1416,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_not column(:name).default
       assert_equal :date, column(:birthdate).type
 
-      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      classname = ActiveRecord::Base.lease_connection.class.name[/[^:]*$/]
       expected_query_count = {
         "Mysql2Adapter"     => 7, # four queries to retrieve schema info, one for bulk change, one for UPDATE, one for NOT NULL
         "TrilogyAdapter"    => 7, # four queries to retrieve schema info, one for bulk change, one for UPDATE, one for NOT NULL
@@ -1452,13 +1452,13 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
         if current_adapter?(:PostgreSQLAdapter)
           assert_equal "gen_random_uuid()", column(:name).default_function
-          Person.connection.execute("INSERT INTO delete_me DEFAULT VALUES")
+          Person.lease_connection.execute("INSERT INTO delete_me DEFAULT VALUES")
         else
           assert_equal "uuid()", column(:name).default_function
-          Person.connection.execute("INSERT INTO delete_me () VALUES ()")
+          Person.lease_connection.execute("INSERT INTO delete_me () VALUES ()")
         end
 
-        person_data = Person.connection.select_one("SELECT * FROM delete_me ORDER BY id DESC")
+        person_data = Person.lease_connection.select_one("SELECT * FROM delete_me ORDER BY id DESC")
         assert_match(/\A(.+)-(.+)-(.+)-(.+)\Z/, person_data.fetch("name"))
       end
     end
@@ -1487,7 +1487,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert index(:username_index)
       assert_not index(:username_index).unique
 
-      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      classname = ActiveRecord::Base.lease_connection.class.name[/[^:]*$/]
       expected_query_count = {
         "Mysql2Adapter"     => 1, # mysql2 supports dropping and creating two indexes using one statement
         "TrilogyAdapter"    => 1, # trilogy supports dropping and creating two indexes using one statement
@@ -1512,7 +1512,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         # Reset columns/indexes cache as we're changing the table
         @columns = @indexes = nil
 
-        Person.connection.change_table(:delete_me, bulk: true, &block)
+        Person.lease_connection.change_table(:delete_me, bulk: true, &block)
       end
 
       def column(name)
@@ -1520,7 +1520,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       end
 
       def columns
-        @columns ||= Person.connection.columns("delete_me")
+        @columns ||= Person.lease_connection.columns("delete_me")
       end
 
       def index(name)
@@ -1528,7 +1528,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       end
 
       def indexes
-        @indexes ||= Person.connection.indexes("delete_me")
+        @indexes ||= Person.lease_connection.indexes("delete_me")
       end
   end # AlterTableMigrationsTest
 
@@ -1536,7 +1536,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
     self.use_transactional_tests = false
 
     def setup
-      @connection = Person.connection
+      @connection = Person.lease_connection
       Person.reset_column_information
       Person.reset_sequence_name
     end

@@ -341,8 +341,8 @@ class FakeKlass
       Post.adapter_class
     end
 
-    def connection
-      Post.connection
+    def lease_connection
+      Post.lease_connection
     end
 
     def table_name

@@ -8,7 +8,7 @@ module ActiveRecord
     attr_reader :on_duplicate, :update_only, :returning, :unique_by, :update_sql
 
     def initialize(model, inserts, on_duplicate:, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil)
-      @model, @connection, @inserts = model, model.connection, inserts.map(&:stringify_keys)
+      @model, @connection, @inserts = model, model.lease_connection, inserts.map(&:stringify_keys)
       @on_duplicate, @update_only, @returning, @unique_by = on_duplicate, update_only, returning, unique_by
       @record_timestamps = record_timestamps.nil? ? model.record_timestamps : record_timestamps
 

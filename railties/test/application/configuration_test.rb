@@ -2926,9 +2926,9 @@ module ApplicationTests
 
       assert_equal false, ActiveRecord::ConnectionAdapters::SQLite3Adapter.strict_strings_by_default
 
-      Post.connection.create_table :posts
+      Post.lease_connection.create_table :posts
       assert_nothing_raised do
-        Post.connection.add_index :posts, :non_existent
+        Post.lease_connection.add_index :posts, :non_existent
       end
     end
 
@@ -2963,9 +2963,9 @@ module ApplicationTests
 
       assert_equal true, ActiveRecord::ConnectionAdapters::SQLite3Adapter.strict_strings_by_default
 
-      Post.connection.create_table :posts
+      Post.lease_connection.create_table :posts
       error = assert_raises(StandardError) do
-        Post.connection.add_index :posts, :non_existent
+        Post.lease_connection.add_index :posts, :non_existent
       end
       assert_match(/no such column: non_existent/, error.message)
     end
@@ -4751,8 +4751,8 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal "potato", ActiveRecord::Base.connection.pool.db_config.adapter
-      assert_equal "SQLite", ActiveRecord::Base.connection.adapter_name
+      assert_equal "potato", ActiveRecord::Base.lease_connection.pool.db_config.adapter
+      assert_equal "SQLite", ActiveRecord::Base.lease_connection.adapter_name
     end
 
     private

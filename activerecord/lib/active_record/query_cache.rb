@@ -42,7 +42,7 @@ module ActiveRecord
       end
 
       ActiveRecord::Base.connection_handler.each_connection_pool do |pool|
-        pool.release_connection if pool.active_connection? && !pool.connection.transaction_open?
+        pool.release_connection if pool.active_connection? && !pool.lease_connection.transaction_open?
       end
     end
 

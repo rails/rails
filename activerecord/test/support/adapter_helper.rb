@@ -4,7 +4,7 @@ module AdapterHelper
   def current_adapter?(*types)
     types.any? do |type|
       ActiveRecord::ConnectionAdapters.const_defined?(type) &&
-        ActiveRecord::Base.connection.is_a?(ActiveRecord::ConnectionAdapters.const_get(type))
+        ActiveRecord::Base.lease_connection.is_a?(ActiveRecord::ConnectionAdapters.const_get(type))
     end
   end
 
@@ -14,14 +14,14 @@ module AdapterHelper
   end
 
   def mysql_enforcing_gtid_consistency?
-    current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && "ON" == ActiveRecord::Base.connection.show_variable("enforce_gtid_consistency")
+    current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && "ON" == ActiveRecord::Base.lease_connection.show_variable("enforce_gtid_consistency")
   end
 
   def supports_default_expression?
     if current_adapter?(:PostgreSQLAdapter)
       true
     elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-      conn = ActiveRecord::Base.connection
+      conn = ActiveRecord::Base.lease_connection
       (conn.mariadb? && conn.database_version >= "10.2.1") ||
         (!conn.mariadb? && conn.database_version >= "8.0.13")
     end
@@ -29,7 +29,7 @@ module AdapterHelper
 
   def supports_non_unique_constraint_name?
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-      conn = ActiveRecord::Base.connection
+      conn = ActiveRecord::Base.lease_connection
       conn.mariadb?
     else
       false
@@ -38,7 +38,7 @@ module AdapterHelper
 
   def supports_text_column_with_default?
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-      conn = ActiveRecord::Base.connection
+      conn = ActiveRecord::Base.lease_connection
       conn.mariadb? && conn.database_version >= "10.2.1"
     else
       true
@@ -62,7 +62,7 @@ module AdapterHelper
     supports_virtual_columns?
   ].each do |method_name|
     define_method method_name do
-      ActiveRecord::Base.connection.public_send(method_name)
+      ActiveRecord::Base.lease_connection.public_send(method_name)
     end
   end
 
