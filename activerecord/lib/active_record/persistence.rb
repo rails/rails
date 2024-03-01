@@ -173,7 +173,7 @@ module ActiveRecord
       #     { id: 2, title: "Eloquent Ruby" }
       #   ])
       def insert_all(attributes, returning: nil, unique_by: nil, record_timestamps: nil)
-        InsertAll.new(self, attributes, on_duplicate: :skip, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps).execute
+        InsertAll.execute(self, attributes, on_duplicate: :skip, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps)
       end
 
       # Inserts a single record into the database in a single SQL INSERT
@@ -240,7 +240,7 @@ module ActiveRecord
       #     { id: 1, title: "Eloquent Ruby", author: "Russ" }
       #   ])
       def insert_all!(attributes, returning: nil, record_timestamps: nil)
-        InsertAll.new(self, attributes, on_duplicate: :raise, returning: returning, record_timestamps: record_timestamps).execute
+        InsertAll.execute(self, attributes, on_duplicate: :raise, returning: returning, record_timestamps: record_timestamps)
       end
 
       # Updates or inserts (upserts) a single record into the database in a
@@ -360,7 +360,7 @@ module ActiveRecord
       #
       #   Book.find_by(isbn: "1").title # => "Eloquent Ruby"
       def upsert_all(attributes, on_duplicate: :update, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil)
-        InsertAll.new(self, attributes, on_duplicate: on_duplicate, update_only: update_only, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps).execute
+        InsertAll.execute(self, attributes, on_duplicate: on_duplicate, update_only: update_only, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps)
       end
 
       # Given an attributes hash, +instantiate+ returns a new instance of
