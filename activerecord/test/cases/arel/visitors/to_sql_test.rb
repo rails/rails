@@ -8,7 +8,7 @@ module Arel
     describe "the to_sql visitor" do
       before do
         @conn = FakeRecord::Base.new
-        @visitor = ToSql.new @conn.connection
+        @visitor = ToSql.new @conn.lease_connection
         @table = Table.new(:users)
         @attr = @table[:id]
       end

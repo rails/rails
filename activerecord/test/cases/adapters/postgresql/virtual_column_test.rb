@@ -3,7 +3,7 @@
 require "cases/helper"
 require "support/schema_dumping_helper"
 
-if ActiveRecord::Base.connection.supports_virtual_columns?
+if ActiveRecord::Base.lease_connection.supports_virtual_columns?
   class PostgresqlVirtualColumnTest < ActiveRecord::PostgreSQLTestCase
     include SchemaDumpingHelper
 
@@ -11,7 +11,7 @@ if ActiveRecord::Base.connection.supports_virtual_columns?
     end
 
     def setup
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       @connection.create_table :virtual_columns, force: true do |t|
         t.string  :name
         t.virtual :upper_name,  type: :string,  as: "UPPER(name)", stored: true

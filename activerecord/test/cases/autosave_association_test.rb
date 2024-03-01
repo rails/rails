@@ -1318,7 +1318,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   end
 
   def test_should_save_new_record_that_has_same_value_as_existing_record_marked_for_destruction_on_field_that_has_unique_index
-    Bird.connection.add_index :birds, :name, unique: true
+    Bird.lease_connection.add_index :birds, :name, unique: true
 
     3.times { |i| @pirate.birds.create(name: "unique_birds_#{i}") }
 
@@ -1328,7 +1328,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
 
     assert_equal 3, @pirate.birds.reload.length
   ensure
-    Bird.connection.remove_index :birds, column: :name
+    Bird.lease_connection.remove_index :birds, column: :name
   end
 
   # Add and remove callbacks tests for association collections.
@@ -1378,7 +1378,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
 
     assert_empty @pirate.reload.parrots
 
-    join_records = Pirate.connection.select_all("SELECT * FROM parrots_pirates WHERE pirate_id = #{@pirate.id}")
+    join_records = Pirate.lease_connection.select_all("SELECT * FROM parrots_pirates WHERE pirate_id = #{@pirate.id}")
     assert_empty join_records
   end
 

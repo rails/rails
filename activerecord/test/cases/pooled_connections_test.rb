@@ -33,10 +33,10 @@ class PooledConnectionsTest < ActiveRecord::TestCase
 
     def test_pooled_connection_remove
       ActiveRecord::Base.establish_connection(@connection.merge(pool: 2, checkout_timeout: 0.5))
-      old_connection = ActiveRecord::Base.connection
+      old_connection = ActiveRecord::Base.lease_connection
       extra_connection = ActiveRecord::Base.connection_pool.checkout
       ActiveRecord::Base.connection_pool.remove(extra_connection)
-      assert_equal ActiveRecord::Base.connection.object_id, old_connection.object_id
+      assert_equal ActiveRecord::Base.lease_connection.object_id, old_connection.object_id
     end
 
     private
@@ -65,7 +65,7 @@ class PooledConnectionsTest < ActiveRecord::TestCase
           conn = ActiveRecord::Base.connection_pool.checkout
           ActiveRecord::Base.connection_pool.checkin conn
           @connection_count += 1
-          ActiveRecord::Base.connection.data_sources
+          ActiveRecord::Base.lease_connection.data_sources
         rescue ActiveRecord::ConnectionTimeoutError
           @timed_out += 1
         end

@@ -8,8 +8,8 @@ class StoredProcedureTest < ActiveRecord::AbstractMysqlTestCase
   fixtures :topics
 
   def setup
-    @connection = ActiveRecord::Base.connection
-    unless ActiveRecord::Base.connection.database_version >= "5.6.0"
+    @connection = ActiveRecord::Base.lease_connection
+    unless ActiveRecord::Base.lease_connection.database_version >= "5.6.0"
       skip("no stored procedure support")
     end
   end

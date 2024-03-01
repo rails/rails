@@ -581,16 +581,18 @@ module ActiveRecord
 
         im = Arel::InsertManager.new(arel_table)
 
-        if values.empty?
-          im.insert(connection.empty_insert_statement_value(primary_key))
-        else
-          im.insert(values.transform_keys { |name| arel_table[name] })
-        end
+        with_connection do |c|
+          if values.empty?
+            im.insert(c.empty_insert_statement_value(primary_key))
+          else
+            im.insert(values.transform_keys { |name| arel_table[name] })
+          end
 
-        connection.insert(
-          im, "#{self} Create", primary_key || false, primary_key_value,
-          returning: returning
-        )
+          c.insert(
+            im, "#{self} Create", primary_key || false, primary_key_value,
+            returning: returning
+          )
+        end
       end
 
       def _update_record(values, constraints) # :nodoc:
@@ -607,7 +609,9 @@ module ActiveRecord
         um.set(values.transform_keys { |name| arel_table[name] })
         um.wheres = constraints
 
-        connection.update(um, "#{self} Update")
+        with_connection do |c|
+          c.update(um, "#{self} Update")
+        end
       end
 
       def _delete_record(constraints) # :nodoc:
@@ -623,7 +627,9 @@ module ActiveRecord
         dm = Arel::DeleteManager.new(arel_table)
         dm.wheres = constraints
 
-        connection.delete(dm, "#{self} Destroy")
+        with_connection do |c|
+          c.delete(dm, "#{self} Destroy")
+        end
       end
 
       private
@@ -1069,7 +1075,7 @@ module ActiveRecord
     #   end
     #
     def reload(options = nil)
-      self.class.connection.clear_query_cache
+      self.class.connection_pool.clear_query_cache
 
       fresh_object = if apply_scoping?(options)
         _find_record((options || {}).merge(all_queries: true))

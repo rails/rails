@@ -1,3 +1,20 @@
+*   Deprecate `ActiveRecord::Base.connection` in favor of `.lease_connection`
+
+    The method has been renamed as `lease_connection` to better reflect that the returned
+    connection will be held for the duration of the request or job.
+
+    This deprecation is a soft deprecation, no warnings will be issued and there is no
+    current plan to remove the method.
+
+    *Jean Boussier*
+
+*   Deprecate `ActiveRecord::ConnectionAdapters::ConnectionPool#connection`
+
+    The method has been renamed as `lease_connection` to better reflect that the returned
+    connection will be held for the duration of the request or job.
+
+    *Jean Boussier*
+
 *   Expose a generic fixture accessor for fixture names that may conflict with Minitest
 
     ```ruby

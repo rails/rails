@@ -5,8 +5,8 @@ module ContactFakeColumns
     base.class_eval do
       establish_connection(adapter: "fake")
 
-      connection.data_sources = [table_name]
-      connection.primary_keys = {
+      lease_connection.data_sources = [table_name]
+      lease_connection.primary_keys = {
         table_name => "id"
       }
 
@@ -27,7 +27,7 @@ module ContactFakeColumns
 
   # mock out self.columns so no pesky db is needed for these tests
   def column(name, sql_type = nil, options = {})
-    connection.merge_column(table_name, name, sql_type, options)
+    lease_connection.merge_column(table_name, name, sql_type, options)
   end
 end
 

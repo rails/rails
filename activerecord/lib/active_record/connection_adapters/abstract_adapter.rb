@@ -23,7 +23,7 @@ module ActiveRecord
     # and +:limit+ options, etc.
     #
     # All the concrete database adapters follow the interface laid down in this class.
-    # {ActiveRecord::Base.connection}[rdoc-ref:ConnectionHandling#connection] returns an AbstractAdapter object, which
+    # {ActiveRecord::Base.lease_connection}[rdoc-ref:ConnectionHandling#lease_connection] returns an AbstractAdapter object, which
     # you can use.
     #
     # Most of the methods in the adapter are useful during migrations. Most

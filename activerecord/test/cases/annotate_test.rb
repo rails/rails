@@ -46,6 +46,6 @@ class AnnotateTest < ActiveRecord::TestCase
 
   private
     def regexp_escape_table_name(name)
-      Regexp.escape(Post.connection.quote_table_name(name))
+      Regexp.escape(Post.lease_connection.quote_table_name(name))
     end
 end

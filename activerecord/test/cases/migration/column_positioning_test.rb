@@ -11,7 +11,7 @@ module ActiveRecord
       def setup
         super
 
-        @connection = ActiveRecord::Base.connection
+        @connection = ActiveRecord::Base.lease_connection
 
         connection.create_table :testings, id: false do |t|
           t.column :first, :integer

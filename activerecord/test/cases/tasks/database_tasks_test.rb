@@ -290,7 +290,7 @@ module ActiveRecord
         ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, dir) do
           path = File.join(dir, "schema_cache.yml")
           assert_not File.file?(path)
-          ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.connection, path)
+          ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.lease_connection, path)
           assert File.file?(path)
         end
       end
@@ -1131,11 +1131,11 @@ module ActiveRecord
       # Use a memory db here to avoid having to rollback at the end
       setup do
         migrations_path = [MIGRATIONS_ROOT, folder_name].join("/")
-        file = ActiveRecord::Base.connection.raw_connection.filename
+        file = ActiveRecord::Base.lease_connection.raw_connection.filename
         @conn = ActiveRecord::Base.establish_connection adapter: "sqlite3",
           database: ":memory:", migrations_paths: migrations_path
         source_db = SQLite3::Database.new file
-        dest_db = ActiveRecord::Base.connection.raw_connection
+        dest_db = ActiveRecord::Base.lease_connection.raw_connection
         backup = SQLite3::Backup.new(dest_db, "main", source_db, "main")
         backup.step(-1)
         backup.finish

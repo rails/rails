@@ -69,7 +69,7 @@ module ActiveRecord
     # Connections can be obtained and used from a connection pool in several
     # ways:
     #
-    # 1. Simply use {ActiveRecord::Base.connection}[rdoc-ref:ConnectionHandling.connection].
+    # 1. Simply use {ActiveRecord::Base.lease_connection}[rdoc-ref:ConnectionHandling.connection].
     #    When you're done with the connection(s) and wish it to be returned to the pool, you call
     #    {ActiveRecord::Base.connection_handler.clear_active_connections!}[rdoc-ref:ConnectionAdapters::ConnectionHandler#clear_active_connections!].
     #    This is the default behavior for Active Record when used in conjunction with
@@ -139,46 +139,46 @@ module ActiveRecord
         end
       end
 
-      if ObjectSpace.const_defined?(:WeakKeyMap) # RUBY_VERSION >= 3.3
-        WeakKeyMap = ::ObjectSpace::WeakKeyMap # :nodoc:
-      else
-        class WeakKeyMap # :nodoc:
-          def initialize
-            @map = ObjectSpace::WeakMap.new
-            @values = nil
-            @size = 0
-          end
-
-          alias_method :clear, :initialize
-
-          def [](key)
-            prune if @map.size != @size
-            @map[key]
-          end
-
-          def []=(key, value)
-            @map[key] = value
-            prune if @map.size != @size
-            value
-          end
-
-          def delete(key)
-            if value = self[key]
-              self[key] = nil
-              prune
-            end
-            value
-          end
-
-          private
-            def prune(force = false)
-              @values = @map.values
-              @size = @map.size
-            end
-        end
-      end
-
       class LeaseRegistry # :nodoc:
+        if ObjectSpace.const_defined?(:WeakKeyMap) # RUBY_VERSION >= 3.3
+          WeakKeyMap = ::ObjectSpace::WeakKeyMap # :nodoc:
+        else
+          class WeakKeyMap # :nodoc:
+            def initialize
+              @map = ObjectSpace::WeakMap.new
+              @values = nil
+              @size = 0
+            end
+
+            alias_method :clear, :initialize
+
+            def [](key)
+              prune if @map.size != @size
+              @map[key]
+            end
+
+            def []=(key, value)
+              @map[key] = value
+              prune if @map.size != @size
+              value
+            end
+
+            def delete(key)
+              if value = self[key]
+                self[key] = nil
+                prune
+              end
+              value
+            end
+
+            private
+              def prune(force = false)
+                @values = @map.values
+                @size = @map.size
+              end
+          end
+        end
+
         def initialize
           @mutex = Mutex.new
           @map = WeakKeyMap.new
@@ -293,7 +293,13 @@ module ActiveRecord
         lease.connection ||= checkout
       end
 
-      alias_method :connection, :lease_connection # TODO: deprecate
+      def connection
+        ActiveRecord.deprecator.warn(<<~MSG)
+          ConnectionPoool#connection is deprecated and will be removed
+          in Rails 7.3. Use #lease_connection instead
+        MSG
+        lease_connection
+      end
 
       def pin_connection!(lock_thread) # :nodoc:
         raise "There is already a pinned connection" if @pinned_connection

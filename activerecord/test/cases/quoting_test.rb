@@ -202,7 +202,7 @@ module ActiveRecord
 
     class TypeCastingTest < ActiveRecord::TestCase
       def setup
-        @conn = ActiveRecord::Base.connection
+        @conn = ActiveRecord::Base.lease_connection
       end
 
       def test_type_cast_symbol
@@ -250,7 +250,7 @@ module ActiveRecord
 
     class QuoteBooleanTest < ActiveRecord::TestCase
       def setup
-        @connection = ActiveRecord::Base.connection
+        @connection = ActiveRecord::Base.lease_connection
       end
 
       def test_quote_returns_frozen_string

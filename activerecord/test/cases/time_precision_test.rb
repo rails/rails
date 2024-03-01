@@ -11,7 +11,7 @@ class TimePrecisionTest < ActiveRecord::TestCase
     class Foo < ActiveRecord::Base; end
 
     setup do
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       Foo.reset_column_information
     end
 

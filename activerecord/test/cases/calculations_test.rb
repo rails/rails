@@ -227,7 +227,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_not_use_alias_for_grouped_field
-    assert_queries_match(/GROUP BY #{Regexp.escape(Account.connection.quote_table_name("accounts.firm_id"))}/i) do
+    assert_queries_match(/GROUP BY #{Regexp.escape(Account.lease_connection.quote_table_name("accounts.firm_id"))}/i) do
       c = Account.group(:firm_id).order("accounts_firm_id").sum(:credit_limit)
       assert_equal [1, 2, 6, 9], c.keys.compact
     end
@@ -468,7 +468,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_calculate_grouped_with_longer_field
-    field = "a" * Account.connection.max_identifier_length
+    field = "a" * Account.lease_connection.max_identifier_length
 
     Account.update_all("#{field} = credit_limit")
 
@@ -1130,7 +1130,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_group_by_with_quoted_count_and_order_by_alias
-    quoted_posts_id = Post.connection.quote_table_name("posts.id")
+    quoted_posts_id = Post.lease_connection.quote_table_name("posts.id")
     expected = { "SpecialPost" => 1, "StiPost" => 1, "Post" => 9 }
     actual = Post.group(:type).order("count_posts_id").count(quoted_posts_id)
     assert_equal expected, actual
@@ -1390,7 +1390,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_count_takes_attribute_type_precedence_over_database_type
     assert_called(
-      Account.connection, :select_all,
+      Account.lease_connection, :select_all,
       returns: ActiveRecord::Result.new(["count"], [["10"]])
     ) do
       result = Account.count
@@ -1401,7 +1401,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_sum_takes_attribute_type_precedence_over_database_type
     assert_called(
-      Account.connection, :select_all,
+      Account.lease_connection, :select_all,
       returns: ActiveRecord::Result.new(["sum"], [[10.to_d]])
     ) do
       result = Account.sum(:credit_limit)
