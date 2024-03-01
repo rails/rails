@@ -295,7 +295,7 @@ module ActiveRecord
 
       def connection
         ActiveRecord.deprecator.warn(<<~MSG)
-          ActiveRecord::ConnectionAdapters::ConnectionPoool#connection is deprecated
+          ActiveRecord::ConnectionAdapters::ConnectionPool#connection is deprecated
           and will be removed in Rails 7.3. Use #lease_connection instead.
         MSG
         lease_connection
