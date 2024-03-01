@@ -39,6 +39,31 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_has_one_with_exception
+    firm = companies(:first_firm)
+    firm.account.destroy!
+
+    assert_raises ActiveRecord::RecordNotFound do
+      firm.account!
+    end
+  end
+
+  def test_has_one_with_exception_returns
+    firm = companies(:first_firm)
+    first_account = Account.find(1)
+
+    assert_equal first_account, firm.account!
+  end
+
+  def test_has_one_with_sole_exception
+    firm = companies(:first_firm)
+    Account.create!(firm: firm, credit_limit: "0")
+
+    assert_raises ActiveRecord::SoleRecordExceeded do
+      firm.account!
+    end
+  end
+
   def test_has_one_does_not_use_order_by
     sql_log = capture_sql { companies(:first_firm).account }
     assert sql_log.all? { |sql| !/order by/i.match?(sql) }, "ORDER BY was used in the query: #{sql_log}"

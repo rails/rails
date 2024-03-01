@@ -12,6 +12,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       super
       mixin = model.generated_association_methods
       name = reflection.name
+      plural_name = reflection.plural_name
 
       define_constructors(mixin, name) unless reflection.polymorphic?
 
@@ -22,6 +23,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
         def reset_#{name}
           association(:#{name}).reset
+        end
+
+        def #{name}!
+          association(:#{name}).owner.send("#{plural_name}").sole
         end
       CODE
     end
