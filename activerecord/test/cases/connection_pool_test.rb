@@ -46,10 +46,6 @@ module ActiveRecord
         ActiveSupport::IsolatedExecutionState.isolation_level = @previous_isolation_level
       end
 
-      def active_connections(pool)
-        pool.connections.find_all(&:in_use?)
-      end
-
       def test_checkout_after_close
         connection = pool.connection
         assert_predicate connection, :in_use?
@@ -89,6 +85,16 @@ module ActiveRecord
             assert conn
             assert_equal 2, active_connections(pool).size
           end
+          assert_equal 1, active_connections(pool).size
+
+          pool.with_connection do |conn|
+            assert conn
+            assert_equal 2, active_connections(pool).size
+            pool.connection # lease
+          end
+
+          assert_equal 2, active_connections(pool).size
+          pool.release_connection
           assert_equal 1, active_connections(pool).size
         }.join
 
@@ -697,15 +703,24 @@ module ActiveRecord
 
       def test_bang_versions_of_disconnect_and_clear_reloadable_connections_if_unable_to_acquire_all_connections_proceed_anyway
         @pool.checkout_timeout = 0.001 # no need to delay test suite by waiting the whole full default timeout
-        [:disconnect!, :clear_reloadable_connections!].each do |group_action_method|
-          @pool.with_connection do |connection|
-            new_thread { @pool.send(group_action_method) }.join
-            # assert connection has been forcefully taken away from us
-            assert_not_predicate @pool, :active_connection?
 
-            # make a new connection for with_connection to clean up
-            @pool.connection
-          end
+        @pool.with_connection do |connection|
+          new_thread { @pool.disconnect! }.join
+          # assert connection has been forcefully taken away from us
+          assert_not_predicate @pool, :active_connection?
+
+          # make a new connection for with_connection to clean up
+          @pool.connection
+        end
+        @pool.release_connection
+
+        @pool.with_connection do |connection|
+          new_thread { @pool.clear_reloadable_connections! }.join
+          # assert connection has been forcefully taken away from us
+          assert_not_predicate @pool, :active_connection?
+
+          # make a new connection for with_connection to clean up
+          @pool.connection
         end
       end
 
@@ -920,6 +935,10 @@ module ActiveRecord
       end
 
       private
+        def active_connections(pool)
+          pool.connections.find_all(&:in_use?)
+        end
+
         def with_single_connection_pool
           config = @db_config.configuration_hash.merge(pool: 1)
           db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", config)

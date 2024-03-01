@@ -11,10 +11,26 @@ module ActiveRecord
 
         ActiveRecord::Base.with_connection do |connection|
           assert_predicate ActiveRecord::Base.connection_pool, :active_connection?
-          assert_same connection, ActiveRecord::Base.connection
         end
 
         assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
+      end
+
+      test "#connection makes the lease permanent even inside #with_connection" do
+        ActiveRecord::Base.connection_pool.release_connection
+        assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
+
+        conn = nil
+        ActiveRecord::Base.with_connection do |connection|
+          conn = connection
+          assert_predicate ActiveRecord::Base.connection_pool, :active_connection?
+          2.times do
+            assert_same connection, ActiveRecord::Base.connection
+          end
+        end
+
+        assert_predicate ActiveRecord::Base.connection_pool, :active_connection?
+        assert_same conn, ActiveRecord::Base.connection
       end
 
       test "#with_connection use the already leased connection if available" do

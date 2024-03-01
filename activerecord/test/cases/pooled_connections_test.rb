@@ -36,7 +36,7 @@ class PooledConnectionsTest < ActiveRecord::TestCase
       old_connection = ActiveRecord::Base.connection
       extra_connection = ActiveRecord::Base.connection_pool.checkout
       ActiveRecord::Base.connection_pool.remove(extra_connection)
-      assert_equal ActiveRecord::Base.connection, old_connection
+      assert_equal ActiveRecord::Base.connection.object_id, old_connection.object_id
     end
 
     private
