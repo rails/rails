@@ -123,6 +123,27 @@ which results in the following HTML:
 <%= render "email_contact", email_contact: @email_contact %>
 ```
 
+### Model
+
+[`ActiveModel::Model`](https://api.rubyonrails.org/classes/ActiveModel/Model.html)
+provides the required interface to allow an object to interact with Action Pack
+and Action View. Currently, it only includes [ActiveModel::API](#api) but it
+will be extended in the future to add more functionality.
+
+```ruby
+class Person
+  include ActiveModel::Model
+
+  attr_accessor :name, :age
+end
+```
+
+```irb
+irb> person = Person.new(name: 'bob', age: '18')
+irb> person.name # => "bob"
+irb> person.age  # => "18"
+```
+
 ### Attributes
 
 [`ActiveModel::Attributes`](https://api.rubyonrails.org/classes/ActiveModel/Attributes.html)
@@ -863,27 +884,6 @@ irb> person.first_name_previous_change
 => [nil, "John Doe"]
 ```
 
-### Model
-
-[`ActiveModel::Model`](https://api.rubyonrails.org/classes/ActiveModel/Model.html)
-provides the required interface to allow an object to interact with Action Pack
-and Action View. Currently, it only includes [ActiveModel::API](#api) but it
-will be extended in the future to add more functionality.
-
-```ruby
-class Person
-  include ActiveModel::Model
-
-  attr_accessor :name, :age
-end
-```
-
-```irb
-irb> person = Person.new(name: 'bob', age: '18')
-irb> person.name # => "bob"
-irb> person.age  # => "18"
-```
-
 ### Naming
 
 [`ActiveModel::Naming`](https://api.rubyonrails.org/classes/ActiveModel/Naming.html)
@@ -1309,7 +1309,7 @@ class Person
   attr_accessor :name, :email, :token
 
   validates :name, presence: true
-  validates_format_of :email, with: /\A([^\s]+)((?:[-a-z0-9]\.)[a-z]{2,})\z/i
+  validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates! :token, presence: true
 end
 ```
@@ -1372,9 +1372,9 @@ documentation [here](https://api.rubyonrails.org/classes/ActiveModel/Validations
   context when validating via `valid?(:context)`.
 
 - `:if`: Specifies a method, proc or string to call to determine if the
-  validation should occur (e.g. `if: :allow_validation`, or `if: Proc.new {
-  |user| user.signup_step > 2 }`). The method, proc or string should return or
-  evaluate to a `true` or `false` value.
+  validation should occur (e.g. `if: :allow_validation`, or `if: -> {
+  signup_step > 2 }`). The method, proc or string should return or evaluate to a
+  `true` or `false` value.
 
 - `:unless`: Specifies a method, proc or string to call to determine if the
   validation should not occur (e.g. `unless: :skip_validation`, or `unless:
