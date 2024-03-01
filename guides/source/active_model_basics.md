@@ -1013,7 +1013,7 @@ module Person
 end
 ```
 
-With this setup, when you use the `form_for` helper to create a form for
+With this setup, when you use the `form_with` helper to create a form for
 creating a new `Person::Profile`, Rails will generate the form with the URL
 `/profiles` instead of `/person/profiles`, because the `model_name` method has
 been overridden to return `Profile`.
