@@ -61,12 +61,16 @@ module ActiveRecord
 
           return target unless load_target || record
 
-          assigning_another_record = target != record
+          record_foreign_key_changed = record && record.will_save_change_to_attribute?(reflection.foreign_key)
+          assigning_another_record = target != record || record_foreign_key_changed
           if assigning_another_record || record.has_changes_to_save?
             save &&= owner.persisted?
 
             transaction_if(save) do
-              remove_target!(options[:dependent]) if target && !target.destroyed? && assigning_another_record
+              if target && assigning_another_record
+                reload if target == record
+                remove_target!(options[:dependent]) if !target.destroyed?
+              end
 
               if record
                 set_owner_attributes(record)
