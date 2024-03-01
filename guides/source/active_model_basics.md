@@ -987,6 +987,37 @@ NOTE: Some `Naming` methods, like `param_key`, `route_key` and
 `singular_route_key`, differ for namespaced models based on whether it's inside
 an isolated [Engine](https://guides.rubyonrails.org/engines.html).
 
+#### Customize the Name of the Model
+
+Sometimes you may want to customize the name of the model that is used in form
+helpers and URL generation. This can be useful in situations where you want to
+use a more user-friendly name for the model, while still being able to reference
+it using its full namespace.
+
+For example, let's say you have a `Person` namespace in your Rails application,
+and you want to create a form for a new `Person::Profile`. By default,
+Rails would generate the form with the URL `/person/profiles`, which includes
+the namespace `person`. However, if you want the URL to simply point to
+`profiles` without the namespace, you can customize the `model_name` method like
+this:
+
+```ruby
+module Person
+  class Profile
+    include ActiveModel::Model
+
+    def self.model_name
+      ActiveModel::Name.new(self, nil, "Profile")
+    end
+  end
+end
+```
+
+With this setup, when you use the `form_for` helper to create a form for
+creating a new `Person::Profile`, Rails will generate the form with the URL
+`/profiles` instead of `/person/profiles`, because the `model_name` method has
+been overridden to return `Profile`.
+
 ### SecurePassword
 
 [`ActiveModel::SecurePassword`](https://api.rubyonrails.org/classes/ActiveModel/SecurePassword.html)
