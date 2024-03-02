@@ -787,8 +787,10 @@ module ActiveRecord
 
         raise ArgumentError, "No fixture files found for #{@name}" if yaml_files.empty?
 
+        forced_model_class = self.model_class
         yaml_files.each_with_object({}) do |file, fixtures|
           FixtureSet::File.open(file) do |fh|
+            next if forced_model_class.nil? && model_class_mismatch(fh.model_class)
             self.model_class ||= fh.model_class if fh.model_class
             self.model_class ||= default_fixture_model_class
             self.ignored_fixtures ||= fh.ignored_fixtures
@@ -802,6 +804,11 @@ module ActiveRecord
       def default_fixture_model_class
         klass = ActiveRecord::FixtureSet.default_fixture_model_name(@name, @config).safe_constantize
         klass if klass && klass < ActiveRecord::Base
+      end
+
+      def model_class_mismatch(fixture_file_model_class)
+        return false if self.model_class.blank? || fixture_file_model_class.blank?
+        self.model_class.to_s != fixture_file_model_class.to_s
       end
   end
 
