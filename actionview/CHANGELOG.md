@@ -1,3 +1,7 @@
+*   Fix label with `for` option not getting prefixed by form `namespace` value
+
+    *Abeid Ahmed*, *Hartley McGuire*, *Jerome Dalbert*
+
 *   Rename `text_area` methods into `textarea`
 
     Old names are still available as aliases.

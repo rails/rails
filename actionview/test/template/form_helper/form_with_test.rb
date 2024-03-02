@@ -1051,6 +1051,20 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, @rendered
   end
 
+  def test_form_with_label_namespace
+    form_with(model: Post.new, namespace: "namespace") do |f|
+      concat f.label(:title, for: "my_title")
+      concat f.text_field(:title, id: "my_title")
+    end
+
+    expected = whole_form("/posts") do
+      "<label for='namespace_my_title'>Title</label>" \
+      "<input id='namespace_my_title' name='post[title]' type='text' />"
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
   def test_form_with_label_error_wrapping
     form_with(model: @post) do |f|
       concat f.label(:author_name, class: "label")
