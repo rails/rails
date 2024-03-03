@@ -157,18 +157,18 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
     migrator = migrator.new(@path_a, @schema_migration_a, @internal_metadata_a)
 
     @schema_migration_a.drop_table
-    assert_not @pool_a.connection.table_exists?("schema_migrations")
+    assert_not @pool_a.lease_connection.table_exists?("schema_migrations")
     migrator.migrate(1)
-    assert @pool_a.connection.table_exists?("schema_migrations")
+    assert @pool_a.lease_connection.table_exists?("schema_migrations")
     migrator.rollback
 
     _, migrator = migrator_class(3)
     migrator = migrator.new(@path_b, @schema_migration_b, @internal_metadata_b)
 
     @schema_migration_b.drop_table
-    assert_not @pool_b.connection.table_exists?("schema_migrations")
+    assert_not @pool_b.lease_connection.table_exists?("schema_migrations")
     migrator.migrate(1)
-    assert @pool_b.connection.table_exists?("schema_migrations")
+    assert @pool_b.lease_connection.table_exists?("schema_migrations")
     migrator.rollback
   end
 
@@ -197,7 +197,7 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
   end
 
   def test_internal_metadata_stores_environment
-    current_env     = ActiveRecord::Base.connection.pool.db_config.env_name
+    current_env     = ActiveRecord::Base.lease_connection.pool.db_config.env_name
     migrations_path = MIGRATIONS_ROOT + "/valid"
     migrator = ActiveRecord::MigrationContext.new(migrations_path, @schema_migration_b, @internal_metadata_b)
 

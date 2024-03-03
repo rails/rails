@@ -147,7 +147,7 @@ module Arel # :nodoc: all
       # Maybe we should just use `Table.engine`?  :'(
       def to_sql(engine = Table.engine)
         collector = Arel::Collectors::SQLString.new
-        collector = engine.connection.visitor.accept self, collector
+        collector = engine.lease_connection.visitor.accept self, collector
         collector.value
       end
 

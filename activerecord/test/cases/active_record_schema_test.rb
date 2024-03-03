@@ -8,7 +8,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
   setup do
     @original_verbose = ActiveRecord::Migration.verbose
     ActiveRecord::Migration.verbose = false
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @pool = ActiveRecord::Base.connection_pool
     @schema_migration = @pool.schema_migration
     @schema_migration.delete_all_versions
@@ -162,7 +162,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     assert @connection.column_exists?(:has_timestamps, :updated_at, null: false)
   end
 
-  if ActiveRecord::Base.connection.supports_bulk_alter?
+  if ActiveRecord::Base.lease_connection.supports_bulk_alter?
     def test_timestamps_without_null_set_null_to_false_on_change_table_with_bulk
       ActiveRecord::Schema.define do
         create_table :has_timestamps
@@ -212,7 +212,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
       assert @connection.column_exists?(:has_timestamps, :updated_at, precision: 6, null: false)
     end
 
-    if ActiveRecord::Base.connection.supports_bulk_alter?
+    if ActiveRecord::Base.lease_connection.supports_bulk_alter?
       def test_timestamps_sets_precision_on_change_table_with_bulk
         ActiveRecord::Schema.define do
           create_table :has_timestamps

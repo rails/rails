@@ -93,7 +93,7 @@ module ActiveRecord
             end
         end
 
-        def checkout(...)
+        def lease_connection
           connection = super
           connection.query_cache ||= query_cache
           connection
@@ -149,7 +149,6 @@ module ActiveRecord
 
         private
           def prune_thread_cache
-            super
             dead_threads = @thread_query_caches.keys.reject(&:alive?)
             dead_threads.each do |dead_thread|
               @thread_query_caches.delete(dead_thread)

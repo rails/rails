@@ -233,7 +233,7 @@ module ActiveRecord # :nodoc:
   #
   # Connections are usually created through
   # {ActiveRecord::Base.establish_connection}[rdoc-ref:ConnectionHandling#establish_connection] and retrieved
-  # by ActiveRecord::Base.connection. All classes inheriting from ActiveRecord::Base will use this
+  # by ActiveRecord::Base.lease_connection. All classes inheriting from ActiveRecord::Base will use this
   # connection. But you can also set a class-specific connection. For example, if Course is an
   # ActiveRecord::Base, but resides in a different database, you can just say <tt>Course.establish_connection</tt>
   # and Course and all of its subclasses will use this connection instead.

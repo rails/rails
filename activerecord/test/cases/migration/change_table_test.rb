@@ -14,7 +14,7 @@ module ActiveRecord
       end
 
       def with_change_table
-        yield ActiveRecord::Base.connection.update_table_definition(:delete_me, @connection)
+        yield ActiveRecord::Base.lease_connection.update_table_definition(:delete_me, @connection)
       end
 
       if Minitest::Mock.instance_method(:expect).parameters.map(&:first).include?(:keyrest)

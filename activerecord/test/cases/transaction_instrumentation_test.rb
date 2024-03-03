@@ -233,8 +233,8 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
       events << event
     end
     Topic.transaction do
-      Topic.connection.materialize_transactions
-      Topic.connection.reconnect!(restore_transactions: true)
+      Topic.lease_connection.materialize_transactions
+      Topic.lease_connection.reconnect!(restore_transactions: true)
     end
 
     assert_equal 2, events.count
@@ -305,7 +305,7 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
 
     error = Class.new(StandardError)
     assert_raises error do
-      ActiveRecord::Base.connection.stub(:commit_db_transaction, -> (*) { raise error }) do
+      ActiveRecord::Base.lease_connection.stub(:commit_db_transaction, -> (*) { raise error }) do
         ActiveRecord::Base.transaction do
           topic.update(title: "Ruby on Rails")
         end
@@ -329,7 +329,7 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
 
       error = Class.new(StandardError)
       assert_raises error do
-        ActiveRecord::Base.connection.stub(:rollback_db_transaction, -> (*) { raise error }) do
+        ActiveRecord::Base.lease_connection.stub(:rollback_db_transaction, -> (*) { raise error }) do
           ActiveRecord::Base.transaction do
             topic.update(title: "Ruby on Rails")
             raise ActiveRecord::Rollback
@@ -351,7 +351,7 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
       error = Class.new(StandardError)
       assert_raises error do
         # Stubbing this method simulates an error that occurs when the transaction is still unmaterilized.
-        Topic.connection.transaction_manager.stub(:rollback_transaction, -> (*) { raise error }) do
+        Topic.lease_connection.transaction_manager.stub(:rollback_transaction, -> (*) { raise error }) do
           Topic.transaction do
             raise ActiveRecord::Rollback
           end

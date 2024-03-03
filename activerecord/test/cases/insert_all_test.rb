@@ -235,7 +235,7 @@ class InsertAllTest < ActiveRecord::TestCase
     skip unless supports_insert_conflict_target?
 
     columns = [:author_id, :name]
-    assert ActiveRecord::Base.connection.index_exists?(:books, columns)
+    assert ActiveRecord::Base.lease_connection.index_exists?(:books, columns)
 
     assert_difference "Book.count", +2 do
       Book.insert_all [{ name: "Remote", author_id: 1 }], unique_by: columns.reverse
@@ -769,7 +769,7 @@ class InsertAllTest < ActiveRecord::TestCase
     error = assert_raises ArgumentError do
       Book.upsert_all [{ name: "Rework", author_id: 1 }], unique_by: :isbn
     end
-    assert_match "#{ActiveRecord::Base.connection.class} does not support :unique_by", error.message
+    assert_match "#{ActiveRecord::Base.lease_connection.class} does not support :unique_by", error.message
   end
 
   private
