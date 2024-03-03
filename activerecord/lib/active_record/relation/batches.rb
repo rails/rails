@@ -373,32 +373,44 @@ module ActiveRecord
           if load
             records = batch_relation.records
             ids = records.map(&:id)
+            ids_size = ids.size
+            ids_last = ids.last
             yielded_relation = where(primary_key => ids)
             yielded_relation.load_records(records)
           elsif (empty_scope && use_ranges != false) || use_ranges
-            ids = batch_relation.ids
-            finish = ids.last
-            if finish
-              yielded_relation = apply_finish_limit(batch_relation, finish, batch_orders)
+            # Efficiently peak at the last id for the next batch using offset and limit.
+            ids_size = batch_limit
+            ids_last = batch_relation.offset(batch_limit - 1).limit(1).ids.first
+            # If the last id is not found using offset, there is at most one more batch of size < batch_limit.
+            # We retry getting the list of ids so that we have the exact size and last id.
+            unless ids_last
+              ids = batch_relation.ids
+              ids_size = ids.size
+              ids_last = ids.last
+            end
+            if ids_last
+              yielded_relation = apply_finish_limit(batch_relation, ids_last, batch_orders)
               yielded_relation = yielded_relation.except(:limit, :order)
               yielded_relation.skip_query_cache!(false)
             end
           else
             ids = batch_relation.ids
+            ids_size = ids.size
+            ids_last = ids.last
             yielded_relation = where(primary_key => ids)
           end
 
-          break if ids.empty?
+          break if ids_size == 0
 
-          primary_key_offset = ids.last
+          primary_key_offset = ids_last
           raise ArgumentError.new("Primary key not included in the custom select clause") unless primary_key_offset
 
           yield yielded_relation
 
-          break if ids.length < batch_limit
+          break if ids_size < batch_limit
 
           if limit_value
-            remaining -= ids.length
+            remaining -= ids_size
 
             if remaining == 0
               # Saves a useless iteration when the limit is a multiple of the
