@@ -709,11 +709,11 @@ class QueryCacheTest < ActiveRecord::TestCase
   def test_query_cache_uncached_dirties
     mw = middleware { |env|
       Post.first
-      assert_no_changes -> { ActiveRecord::Base.connection.query_cache.size } do
+      assert_no_changes -> { ActiveRecord::Base.lease_connection.query_cache.size } do
         Post.uncached(dirties: false) { Post.create!(title: "a new post", body: "and a body") }
       end
 
-      assert_changes -> { ActiveRecord::Base.connection.query_cache.size }, from: 1, to: 0 do
+      assert_changes -> { ActiveRecord::Base.lease_connection.query_cache.size }, from: 1, to: 0 do
         Post.uncached(dirties: true) { Post.create!(title: "a new post", body: "and a body") }
       end
     }
@@ -723,12 +723,12 @@ class QueryCacheTest < ActiveRecord::TestCase
   def test_query_cache_connection_uncached_dirties
     mw = middleware { |env|
       Post.first
-      assert_no_changes -> { ActiveRecord::Base.connection.query_cache.size } do
-        Post.connection.uncached(dirties: false) { Post.create!(title: "a new post", body: "and a body") }
+      assert_no_changes -> { ActiveRecord::Base.lease_connection.query_cache.size } do
+        Post.lease_connection.uncached(dirties: false) { Post.create!(title: "a new post", body: "and a body") }
       end
 
-      assert_changes -> { ActiveRecord::Base.connection.query_cache.size }, from: 1, to: 0 do
-        Post.connection.uncached(dirties: true) { Post.create!(title: "a new post", body: "and a body") }
+      assert_changes -> { ActiveRecord::Base.lease_connection.query_cache.size }, from: 1, to: 0 do
+        Post.lease_connection.uncached(dirties: true) { Post.create!(title: "a new post", body: "and a body") }
       end
     }
     mw.call({})
@@ -737,7 +737,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   def test_query_cache_uncached_dirties_disabled_with_nested_cache
     mw = middleware { |env|
       Post.first
-      assert_changes -> { ActiveRecord::Base.connection.query_cache.size }, from: 1, to: 0 do
+      assert_changes -> { ActiveRecord::Base.lease_connection.query_cache.size }, from: 1, to: 0 do
         Post.uncached(dirties: false) do
           Post.cache do
             Post.create!(title: "a new post", body: "and a body")
@@ -746,9 +746,9 @@ class QueryCacheTest < ActiveRecord::TestCase
       end
 
       Post.first
-      assert_changes -> { ActiveRecord::Base.connection.query_cache.size }, from: 1, to: 0 do
-        Post.connection.uncached(dirties: false) do
-          Post.connection.cache do
+      assert_changes -> { ActiveRecord::Base.lease_connection.query_cache.size }, from: 1, to: 0 do
+        Post.lease_connection.uncached(dirties: false) do
+          Post.lease_connection.cache do
             Post.create!(title: "a new post", body: "and a body")
           end
         end
