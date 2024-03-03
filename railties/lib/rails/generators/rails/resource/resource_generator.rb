@@ -19,7 +19,7 @@ module Rails
 
       class << self
         def desc(description = nil)
-          ERB.new(File.read(usage_path)).result(binding)
+          @desc ||= ERB.new(File.read(usage_path)).result(binding)
         end
       end
     end
