@@ -383,8 +383,10 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "config/routes.rb", /\.routes\.draw do\n  resources :products\n/
   end
 
-  def test_scaffold_generator_with_switch_resource_route_false
-    run_generator [ "posts", "--resource-route=false" ]
+  def test_scaffold_generator_with_switch_no_resource_route
+    output = run_generator [ "posts", "--no-resource-route" ]
+
+    assert_no_match(/error/, output)
     assert_file "config/routes.rb" do |route|
       assert_no_match(/resources :posts$/, route)
     end
