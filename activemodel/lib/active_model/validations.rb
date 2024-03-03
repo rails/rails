@@ -90,6 +90,11 @@ module ActiveModel
       #   or an array of symbols. (e.g. <tt>on: :create</tt> or
       #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
+      # * <tt>:except</tt> - Specifies the contexts where this validation is not active.
+      #   Runs in all validation contexts by default +nil+. You can pass a symbol
+      #   or an array of symbols. (e.g. <tt>except: :create</tt> or
+      #   <tt>except: :custom_validation_context</tt> or
+      #   <tt>except: [:create, :custom_validation_context]</tt>)
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
       # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
       # * <tt>:if</tt> - Specifies a method, proc, or string to call to determine
@@ -105,7 +110,7 @@ module ActiveModel
         validates_with BlockValidator, _merge_attributes(attr_names), &block
       end
 
-      VALID_OPTIONS_FOR_VALIDATE = [:on, :if, :unless, :prepend].freeze # :nodoc:
+      VALID_OPTIONS_FOR_VALIDATE = [:on, :if, :unless, :prepend, :except].freeze # :nodoc:
 
       # Adds a validation method or block to the class. This is useful when
       # overriding the +validate+ instance method becomes too unwieldy and
@@ -156,6 +161,11 @@ module ActiveModel
       #   or an array of symbols. (e.g. <tt>on: :create</tt> or
       #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
+      # * <tt>:except</tt> - Specifies the contexts where this validation is not active.
+      #   Runs in all validation contexts by default +nil+. You can pass a symbol
+      #   or an array of symbols. (e.g. <tt>except: :create</tt> or
+      #   <tt>except: :custom_validation_context</tt> or
+      #   <tt>except: [:create, :custom_validation_context]</tt>)
       # * <tt>:if</tt> - Specifies a method, proc, or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
@@ -181,6 +191,15 @@ module ActiveModel
 
         if options.key?(:on)
           options = options.merge(if: [predicate_for_validation_context(options[:on]), *options[:if]])
+        end
+
+        if options.key?(:except)
+          options = options.dup
+          options[:except] = Array(options[:except])
+          options[:unless] = [
+            ->(o) { (options[:except] & Array(o.validation_context)).any? },
+            *options[:unless]
+          ]
         end
 
         set_callback(:validate, *args, options, &block)
