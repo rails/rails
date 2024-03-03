@@ -20,7 +20,9 @@ module ActiveRecord
           method_names.each do |method_name|
             base.class_eval <<-end_code, __FILE__, __LINE__ + 1
               def #{method_name}(...)
-                ActiveRecord::Base.clear_query_caches_for_current_thread
+                if pool.dirties_query_cache
+                  ActiveRecord::Base.clear_query_caches_for_current_thread
+                end
                 super
               end
             end_code
@@ -29,13 +31,15 @@ module ActiveRecord
       end
 
       class Store # :nodoc:
-        attr_accessor :enabled
+        attr_accessor :enabled, :dirties
         alias_method :enabled?, :enabled
+        alias_method :dirties?, :dirties
 
         def initialize(max_size)
           @map = {}
           @max_size = max_size
           @enabled = false
+          @dirties = true
         end
 
         def size
@@ -96,36 +100,40 @@ module ActiveRecord
         end
 
         # Disable the query cache within the block.
-        def disable_query_cache
+        def disable_query_cache(dirties: true)
           cache = query_cache
-          old, cache.enabled = cache.enabled, false
+          old_enabled, cache.enabled, old_dirties, cache.dirties = cache.enabled, false, cache.dirties, dirties
           begin
             yield
           ensure
-            cache.enabled = old
+            cache.enabled, cache.dirties = old_enabled, old_dirties
           end
         end
 
         def enable_query_cache
           cache = query_cache
-          old, cache.enabled = cache.enabled, true
+          old_enabled, cache.enabled, old_dirties, cache.dirties = cache.enabled, true, cache.dirties, true
           begin
             yield
           ensure
-            cache.enabled = old
+            cache.enabled, cache.dirties = old_enabled, old_dirties
           end
         end
 
         def enable_query_cache!
-          query_cache.enabled = true
+          query_cache.enabled, query_cache.dirties = true, true
         end
 
         def disable_query_cache!
-          query_cache.enabled = false
+          query_cache.enabled, query_cache.dirties = false, true
         end
 
         def query_cache_enabled
           query_cache.enabled
+        end
+
+        def dirties_query_cache
+          query_cache.dirties
         end
 
         def clear_query_cache
@@ -175,8 +183,11 @@ module ActiveRecord
       end
 
       # Disable the query cache within the block.
-      def uncached(&)
-        pool.disable_query_cache(&)
+      #
+      # Set <tt>dirties: false</tt> to prevent query caches on all connections from being cleared by write operations.
+      # (By default, write operations dirty all connections' query caches in case they are replicas whose cache would now be outdated.)
+      def uncached(dirties: true, &)
+        pool.disable_query_cache(dirties: dirties, &)
       end
 
       def disable_query_cache!

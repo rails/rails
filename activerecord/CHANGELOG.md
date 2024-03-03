@@ -1,3 +1,15 @@
+*   Add dirties option to uncached
+
+    This adds a `dirties` option to `ActiveRecord::Base.uncached` and
+    `ActiveRecord::ConnectionAdapters::ConnectionPool#uncached`.
+
+    When set to `true` (the default), writes will clear all query caches belonging to the current thread.
+    When set to `false`, writes to the affected connection pool will not clear any query cache.
+
+    This is needed by Solid Cache so that cache writes do not clear query caches.
+
+    *Donal McBreen*
+
 *   Deprecate `ActiveRecord::Base.connection` in favor of `.lease_connection`
 
     The method has been renamed as `lease_connection` to better reflect that the returned

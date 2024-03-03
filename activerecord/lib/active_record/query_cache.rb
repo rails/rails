@@ -22,9 +22,12 @@ module ActiveRecord
 
       # Disable the query cache within the block if Active Record is configured.
       # If it's not, it will execute the given block.
-      def uncached(&block)
+      #
+      # Set <tt>dirties: false</tt> to prevent query caches on all connections from being cleared by write operations.
+      # (By default, write operations dirty all connections' query caches in case they are replicas whose cache would now be outdated.)
+      def uncached(dirties: true, &block)
         if connected? || !configurations.empty?
-          connection_pool.disable_query_cache(&block)
+          connection_pool.disable_query_cache(dirties: dirties, &block)
         else
           yield
         end
