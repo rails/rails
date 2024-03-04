@@ -38,7 +38,7 @@ The [Active Record pattern is described by Martin Fowler][MFAR] in the book _Pat
 Object Relational Mapping, commonly referred to as ORM, is a technique that
 connects the rich objects of a programming language to tables in a relational
 database management system (RDBMS). In the case of a Rails application, these are
-Ruby objects. Using ORM, the attributes of Ruby objects, as well as the
+Ruby objects. Using an ORM, the attributes of Ruby objects, as well as the
 relationship between objects, can be easily stored and retrieved from a database
 without writing SQL statements directly. Overall, ORMs minimize the amount of
 database access code you have to write.
@@ -86,11 +86,10 @@ Ruby objects) and database tables:
 
 Rails will pluralize your model's class names to find the respective database
 table. For example, a class named `Book` maps to a database table named
-**books**. The Rails pluralization mechanisms are very powerful and capable of
+`books`. The Rails pluralization mechanisms are very powerful and capable of
 pluralizing (and singularizing) both regular and irregular words. This uses the
 [Active Support](active_support_core_extensions.html#pluralize) [pluralize
-method](https://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-pluralize),
-if you're curious.
+method](https://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-pluralize).
 
 For class names composed of two or more words, the model class name will follow
 the Ruby conventions of using a CamelCase name. The database table name, in that
