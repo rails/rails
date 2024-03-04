@@ -874,11 +874,11 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       john.highlights_with_dynamic.attach fixture_file_upload("racecar.jpg")
     end
 
-    josh_variantion = @user.highlights_with_dynamic.first.variant(:thumb).variation
-    john_variantion = john.highlights_with_dynamic.first.variant(:thumb).variation
+    josh_variation = @user.highlights_with_dynamic.first.variant(:thumb).variation
+    john_variation = john.highlights_with_dynamic.first.variant(:thumb).variation
 
-    assert_equal({ format: "jpg", resize_to_limit: [100, 100] }, josh_variantion.transformations)
-    assert_equal({ format: "jpg", resize_to_limit: [200, 200] }, john_variantion.transformations)
+    assert_equal({ format: "jpg", resize_to_limit: [100, 100] }, josh_variation.transformations)
+    assert_equal({ format: "jpg", resize_to_limit: [200, 200] }, john_variation.transformations)
   end
 
   test "creating variation with dynamic variation proc" do
@@ -889,11 +889,11 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       john.highlights_with_dynamic.attach fixture_file_upload("racecar.jpg")
     end
 
-    josh_variantion = @user.highlights_with_dynamic.first.variant(:thumb_proc).variation
-    john_variantion = john.highlights_with_dynamic.first.variant(:thumb_proc).variation
+    josh_variation = @user.highlights_with_dynamic.first.variant(:thumb_proc).variation
+    john_variation = john.highlights_with_dynamic.first.variant(:thumb_proc).variation
 
-    assert_equal({ format: "jpg", resize_to_limit: [100, 100] }, josh_variantion.transformations)
-    assert_equal({ format: "jpg", resize_to_limit: [200, 200] }, john_variantion.transformations)
+    assert_equal({ format: "jpg", resize_to_limit: [100, 100] }, josh_variation.transformations)
+    assert_equal({ format: "jpg", resize_to_limit: [200, 200] }, john_variation.transformations)
   end
 
   test "raises error when unknown variant name is used to generate variant" do
