@@ -287,7 +287,7 @@ attributes manually set after creation. The `new` method will return a new
 object while `create` will return the object and save it to the database.
 
 For example, given a `Book` model with attributes of `title` and `author`,
-the `create` method call will create and save a new record into the database:
+the `create` method call will create an object and save a new record into the database:
 
 ```ruby
 book = Book.create(title: "The Lord of the Rings", author: "J.R.R. Tolkien")
@@ -361,10 +361,10 @@ SELECT "books".* FROM "books" LIMIT ?  [["LIMIT", 1]]
 We can also find specific books with `find_by` and `where`. While `find_by` returns a single record, `where` returns an array:
 
 ```ruby
-# Return the first book with a given title
+# Returns the first book with a given title or `nil` if no book is found.
 book = Book.find_by(title: "Metaprogramming Ruby 2")
 
-# Shorthand for Book.find_by(id: 42)
+# Alternative to Book.find_by(id: 42). Will throw an exception if no matching book is found.
 book = Book.find(42)
 ```
 
