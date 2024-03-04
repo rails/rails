@@ -7,6 +7,13 @@
 /* General
 --------------------------------------- */
 
+@font-face{
+  font-family:'Calibre';
+  font-style:normal;
+  font-weight:600;
+  src:url("../fonts/calibre-semibold.woff2") format("woff2")
+}
+
 .left {float: left; margin-right: 1em;}
 .right {float: right; margin-left: 1em;}
 @media screen and (max-width: 480px) {
@@ -172,10 +179,11 @@ body {
   display: none;
 }
 
-@media screen and (min-width: 1025px) {
+@media screen and (min-width: 768px) {
   .more-info-button {
     display: none;
   }
+
   .more-info-links {
     list-style: none;
     display: inline;
@@ -184,14 +192,14 @@ body {
 
   .more-info {
     display: inline-block;
-  }
-  .more-info:after {
-    content: " |";
-    color: #8a8a8a;
+    font-size: 19px;
+    font-family: "Calibre", sans-serif;
+    line-height: 32px;
+    padding: 0 15px;
   }
 
-  .more-info:last-child:after {
-    content: "";
+  .more-info a, .more-info a:link, .more-info a:visited {
+    text-decoration: none;
   }
 
   #topNav a, #footer a {
@@ -199,7 +207,10 @@ body {
   }
 }
 
-@media screen and (max-width: 1024px) {
+@media screen and (max-width: 768px) {
+  #topNav {
+    height: 106px;
+  }
   #topNav .wrapper { text-align: center; }
   .more-info-button {
     position: relative;
@@ -212,37 +223,65 @@ body {
 
   .more-info-container {
     position: absolute;
-    top: .5em;
+    top: 106px;
     z-index: 20;
     margin: 0 auto;
     left: 0;
     right: 0;
-    width: 20em;
+    width: 100%;
   }
 
   .more-info-links {
     display: block;
     list-style: none;
-    background-color: #c52f24;
-    border-radius: 5px;
-    padding-top: 5.25em;
-    border: 1px #980905 solid;
+    background-color: #222;
+    margin: 0;
   }
+
   .more-info-links.s-hidden {
     display: none;
   }
+
   .more-info {
     padding: .75em;
-    border-top: 1px #980905 solid;
   }
+
   .more-info a, .more-info a:link, .more-info a:visited {
+    font-size: 19px;
+    font-family: "Calibre", sans-serif;
+    line-height: 32px;
     display: block;
     color: white;
     width: 100%;
     height: 100%;
     text-decoration: none;
-    text-transform: uppercase;
   }
+}
+
+.nav__logo {
+  background: #D30001;
+  border-radius: 100%;
+  height: 86px;
+  left: calc(50% - 43px);
+  position: absolute;
+  top: 20px;
+  transition: background 0.25s cubic-bezier(0.33, 1, 0.68, 1);
+  width: 86px;
+  z-index: 100;
+}
+
+.nav__logo::after {
+  background-image: url(../images/logo.svg);
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  content: '';
+  filter: brightness(0) invert(1);
+  height: 24px;
+  left: 9px;
+  position: absolute;
+  top: 26px;
+  width: 67px;
 }
 
 .clipboard-button {
