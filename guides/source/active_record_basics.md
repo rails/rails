@@ -202,7 +202,7 @@ end
 
 The SQL as well as the migration above declare a table with three columns: `id`,
 `title`, and `author`. Each row of this table can be represented by an instance
-of the `Book` class with the same three attributes, `id`, `title`, and `author`.
+of the `Book` class with the same three attributes: `id`, `title` and `author`.
 You can access a book's attributes like this:
 
 ```irb
