@@ -37,7 +37,7 @@ The [Active Record pattern is described by Martin Fowler][MFAR] in the book _Pat
 
 Object Relational Mapping, commonly referred to as ORM, is a technique that
 connects the rich objects of a programming language to tables in a relational
-database management system (RDMS). In the case of a Rails application, these are
+database management system (RDBMS). In the case of a Rails application, these are
 Ruby objects. Using ORM, the attributes of Ruby objects, as well as the
 relationship between objects, can be easily stored and retrieved from a database
 without writing SQL statements directly. Overall, ORMs minimize the amount of
