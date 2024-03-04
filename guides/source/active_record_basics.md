@@ -94,7 +94,7 @@ method](https://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-
 if you're curious.
 
 For class names composed of two or more words, the model class name will follow
-the Ruby conventions of using a CamelCase name. The database table name, in that
+the Ruby conventions of using a UpperCamelCase name. The database table name, in that
 case, will be a snake_case name. For example:
 
 * `BookClub` - is the model class, singular with the first letter of each word capitalized.
