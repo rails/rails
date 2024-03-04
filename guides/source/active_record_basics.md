@@ -87,8 +87,9 @@ Ruby objects) and database tables:
 Rails will pluralize your model's class names to find the respective database
 table. For example, a class named `Book` maps to a database table named
 **books**. The Rails pluralization mechanisms are very powerful and capable of
-pluralizing (and singularizing) both regular and irregular words. This uses the
-[Active Support](active_support_core_extensions.html#pluralize) [pluralize
+pluralizing (and singularizing) both regular and irregular words in the English
+language. This uses the [Active
+Support](active_support_core_extensions.html#pluralize) [pluralize
 method](https://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-pluralize),
 if you're curious.
 
