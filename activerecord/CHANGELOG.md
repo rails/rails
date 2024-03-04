@@ -1,3 +1,8 @@
+*   Fix incorrect callback execution order when `config.active_record.run_after_transaction_callbacks_in_order_defined = true`
+    and using `after_commit` and `after_rollback` callbacks with `prepend: true`.
+
+    *Joshua Young*
+
 *   Fix duplicate callback execution when child autosaves parent with `has_one` and `belongs_to`.
 
     Before, persisting a new child record with a new associated parent record would run `before_validation`,

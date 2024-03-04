@@ -651,6 +651,8 @@ class CallbackOrderTest < ActiveRecord::TestCase
 
       after_commit { |record| record.history << 3 }
       after_commit { |record| record.history << 4 }
+      after_commit(prepend: true) { |record| record.history << "prepend 1" }
+      after_commit(prepend: true) { |record| record.history << "prepend 2" }
       after_save_commit { |record| record.history << "save" }
       after_create_commit { |record| record.history << "create" }
       after_update_commit { |record| record.history << "update" }
@@ -689,12 +691,12 @@ class CallbackOrderTest < ActiveRecord::TestCase
   def test_callbacks_run_in_order_defined_in_model_if_using_run_after_transaction_callbacks_in_order_defined
     topic = TopicWithCallbacksWithSpecificOrderWithSettingTrue.new
     topic.save
-    assert_equal [1, 2, 3, 4, "save", "create"], topic.history
+    assert_equal [1, 2, "prepend 2", "prepend 1", 3, 4, "save", "create"], topic.history
 
     topic.clear_history
     topic.approved = true
     topic.save
-    assert_equal [1, 2, 3, 4, "save", "update"], topic.history
+    assert_equal [1, 2, "prepend 2", "prepend 1", 3, 4, "save", "update"], topic.history
 
     topic.clear_history
     topic.transaction do
@@ -706,18 +708,18 @@ class CallbackOrderTest < ActiveRecord::TestCase
 
     topic.clear_history
     topic.destroy
-    assert_equal [1, 2, 3, 4, "destroy"], topic.history
+    assert_equal [1, 2, "prepend 2", "prepend 1", 3, 4, "destroy"], topic.history
   end
 
-  def test_callbacks_run_in_order_defined_in_model_if_not_using_run_after_transaction_callbacks_in_order_defined
+  def test_callbacks_run_in_reverse_order_defined_in_model_if_not_using_run_after_transaction_callbacks_in_order_defined
     topic = TopicWithCallbacksWithSpecificOrderWithSettingFalse.new
     topic.save
-    assert_equal [1, 2, "create", "save", 4, 3], topic.history
+    assert_equal [1, 2, "create", "save", 4, 3, "prepend 1", "prepend 2"], topic.history
 
     topic.clear_history
     topic.approved = true
     topic.save
-    assert_equal [1, 2, "update", "save", 4, 3], topic.history
+    assert_equal [1, 2, "update", "save", 4, 3, "prepend 1", "prepend 2"], topic.history
 
     topic.clear_history
     topic.transaction do
@@ -729,7 +731,7 @@ class CallbackOrderTest < ActiveRecord::TestCase
 
     topic.clear_history
     topic.destroy
-    assert_equal [1, 2, "destroy", 4, 3], topic.history
+    assert_equal [1, 2, "destroy", 4, 3, "prepend 1", "prepend 2"], topic.history
   end
 end
 
