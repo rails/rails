@@ -2,6 +2,7 @@
 
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/delegation"
+require "active_support/core_ext/string/filters"
 require "active_support/parameter_filter"
 require "concurrent/map"
 
@@ -379,6 +380,11 @@ module ActiveRecord
       def cached_find_by_statement(key, &block) # :nodoc:
         cache = @find_by_statement_cache[lease_connection.prepared_statements]
         cache.compute_if_absent(key) { StatementCache.create(lease_connection, &block) }
+      end
+
+      def table_alias
+        return @table_alias if @table_alias != nil
+        @table_alias = nil
       end
 
       private
