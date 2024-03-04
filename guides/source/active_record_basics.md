@@ -421,7 +421,7 @@ If you'd like to update several records in bulk **without callbacks or
 validations**, you can update the database directly using `update_all`:
 
 ```ruby
-Book.update_all status: "already own"
+Book.update_all(status: "already own")
 ```
 
 ### Delete
