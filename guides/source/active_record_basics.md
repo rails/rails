@@ -37,8 +37,8 @@ The [Active Record pattern is described by Martin Fowler][MFAR] in the book _Pat
 
 Object Relational Mapping, commonly referred to as ORM, is a technique that
 connects the rich objects of a programming language to tables in a relational
-database management system (RDMS). In the case of a Rails application, these are
-Ruby objects. Using ORM, the attributes of Ruby objects, as well as the
+database management system (RDBMS). In the case of a Rails application, these are
+Ruby objects. Using an ORM, the attributes of Ruby objects, as well as the
 relationship between objects, can be easily stored and retrieved from a database
 without writing SQL statements directly. Overall, ORMs minimize the amount of
 database access code you have to write.
@@ -86,7 +86,7 @@ Ruby objects) and database tables:
 
 Rails will pluralize your model's class names to find the respective database
 table. For example, a class named `Book` maps to a database table named
-**books**. The Rails pluralization mechanisms are very powerful and capable of
+`books`. The Rails pluralization mechanisms are very powerful and capable of
 pluralizing (and singularizing) both regular and irregular words in the English
 language. This uses the [Active
 Support](active_support_core_extensions.html#pluralize) [pluralize
@@ -203,7 +203,7 @@ end
 
 The SQL as well as the migration above declare a table with three columns: `id`,
 `title`, and `author`. Each row of this table can be represented by an instance
-of the `Book` class with the same three attributes, `id`, `title`, and `author`.
+of the `Book` class with the same three attributes: `id`, `title` and `author`.
 You can access a book's attributes like this:
 
 ```irb
@@ -422,7 +422,7 @@ If you'd like to update several records in bulk **without callbacks or
 validations**, you can update the database directly using `update_all`:
 
 ```ruby
-Book.update_all status: "already own"
+Book.update_all(status: "already own")
 ```
 
 ### Delete
