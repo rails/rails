@@ -203,7 +203,7 @@ end
 
 The SQL as well as the migration above declare a table with three columns: `id`,
 `title`, and `author`. Each row of this table can be represented by an instance
-of the `Book` class with the same three attributes: `id`, `title` and `author`.
+of the `Book` class with the same three attributes: `id`, `title`, and `author`.
 You can access a book's attributes like this:
 
 ```irb
@@ -339,7 +339,7 @@ books = Book.all
 # Return a single book
 first_book = Book.first
 last_book = Book.last
-random_book = Book.take
+book = Book.take
 ```
 
 The above results in the following SQL:
@@ -358,11 +358,11 @@ SELECT "books".* FROM "books" ORDER BY "books"."id" DESC LIMIT ?  [["LIMIT", 1]]
 SELECT "books".* FROM "books" LIMIT ?  [["LIMIT", 1]]
 ```
 
-We can also find specific books with `find_by` and `where`:
+We can also find specific books with `find_by` and `where`. While `find_by` returns a single record, `where` returns an array:
 
 ```ruby
-# Return the first book by the given author
-book = Book.find_by(author: "J.R.R. Tolkien")
+# Return the first book with a given title
+book = Book.find_by(title: "Metaprogramming Ruby 2")
 
 # Shorthand for Book.find_by(id: 42)
 book = Book.find(42)
@@ -395,7 +395,7 @@ Once an Active Record object has been retrieved, its attributes can be modified
 and it can be saved to the database.
 
 ```ruby
-book = Book.find_by(author: "J.R.R. Tolkien")
+book = Book.find_by(title: "The Lord of the Rings")
 book.title = "The Lord of the Rings: The Fellowship of the Ring"
 book.save
 ```
@@ -404,7 +404,7 @@ A shorthand for this is to use a hash mapping attribute names to the desired
 value, like so:
 
 ```ruby
-book = Book.find_by(author: "J.R.R. Tolkien")
+book = Book.find_by(title: "The Lord of the Rings")
 book.update(title: "The Lord of the Rings: The Fellowship of the Ring")
 ```
 
@@ -430,7 +430,7 @@ Book.update_all(status: "already own")
 Likewise, once retrieved, an Active Record object can be destroyed, which removes it from the database.
 
 ```ruby
-book = Book.find_by(author: "J.R.R. Tolkien")
+book = Book.find_by(title: "The Lord of the Rings")
 book.destroy
 ```
 
