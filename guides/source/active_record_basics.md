@@ -25,9 +25,9 @@ responsible for representing data and business logic. Active Record helps you
 create and use Ruby objects whose attributes require persistent storage
 to a database.
 
-There is some industry jargon around the term "Active Record". Active Record in Rails is an implementation of a software architecture pattern by the same name. It's also a description of something called an [Object Relational Mapping][ORM] system. The below sections explain these terms:
-
 NOTE: It's also possible to model data with Ruby objects that do *not* need to be backed by a database. [Active Model](active_model_basics.html) is commonly used for that in Rails, making Active Record and Active Model both part of the M in MVC, as well as your own plain Ruby objects.
+
+There is some industry jargon around the term "Active Record". Active Record in Rails is an implementation of a software architecture pattern by the same name. It's also a description of something called an [Object Relational Mapping][ORM] system. The below sections explain these terms:
 
 ### The Active Record Pattern
 
@@ -237,8 +237,8 @@ end
 ```
 
 If you do so, you will have to manually define the class name that is hosting
-the fixtures (`my_books.yml`) using the `set_fixture_class` method in your
-test definition:
+[the fixtures](testing.html#the-low-down-on-fixtures) (`my_books.yml`) using the
+`set_fixture_class` method in your test definition:
 
 ```ruby
 # test/models/book_test.rb
@@ -291,6 +291,10 @@ the `create` method call will create an object and save a new record into the da
 
 ```ruby
 book = Book.create(title: "The Lord of the Rings", author: "J.R.R. Tolkien")
+
+# Notice that the `id` is set as this record is committed to the database. 
+book.inspect
+=> "#<Book id: 106, title: \"The Lord of the Rings\", author: \"J.R.R. Tolkien\", created_at: \"2024-03-04 19:15:58.033967000 +0000\", updated_at: \"2024-03-04 19:15:58.033967000 +0000\">"
 ```
 
 While the `new` method will instantiate an object without saving it to the database:
@@ -300,7 +304,12 @@ book = Book.new
 book.title = "The Hobbit"
 book.author = "J.R.R. Tolkien"
 
-# The above `book` is not yet saved to the database
+# Note that the `id` is not set for this object.
+
+book.inspect
+=> "#<Book id: nil, title: \"The Hobbit\", author: \"J.R.R. Tolkien\", created_at: nil, updated_at: nil>"
+
+# The above `book` is not yet saved to the database.
 
 book.save
 
