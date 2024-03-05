@@ -393,14 +393,13 @@ By default `ActionView::Partials::PartialRenderer` has its object in a local var
 <%= render partial: "product" %>
 ```
 
-within `_product` partial we'll get `@product` in the local variable `product`,
-as if we had written:
+within the `_product.html.erb` partial we'll get `@product` instance variable in the local variable `product`, as if we had written:
 
 ```erb
 <%= render partial: "product", locals: { product: @product } %>
 ```
 
-The `object` option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere (e.g. in a different instance variable or in a local variable).
+The `object` option can be used to specify a different name. This is useful when the template's object is elsewhere (e.g. in a different instance variable or in a local variable).
 
 For example, instead of:
 
@@ -408,13 +407,15 @@ For example, instead of:
 <%= render partial: "product", locals: { product: @item } %>
 ```
 
-we would do:
+we can write:
 
 ```erb
 <%= render partial: "product", object: @item %>
 ```
 
-With the `as` option, we can specify a different name for the said local variable. For example, if we wanted it to be `item` instead of `product` we would do:
+This assigns a partial local variable named `product` to the instance variable `@item`. What if we wanted to change the local variable name from `product` by default to something else? We can use the `:as` option for that.
+
+With the `as` option, we can specify a different name for the local variable like this:
 
 ```erb
 <%= render partial: "product", object: @item, as: "item" %>
@@ -428,7 +429,7 @@ This is equivalent to
 
 ### Rendering Collections
 
-Commonly, a template will need to iterate over a collection and render a sub-template for each of the elements. This pattern has been implemented as a single method that accepts an array and renders a partial for each one of the elements in the array.
+It's common for a view to iterate over a collection, such as `@products`, and render a partial template for each object in the collection. This pattern has been implemented as a single method that accepts an array and renders a partial for each one of the elements in the array.
 
 So this example for rendering all the products:
 
@@ -444,15 +445,15 @@ can be rewritten in a single line:
 <%= render partial: "product", collection: @products %>
 ```
 
-When a partial is called with a collection, the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is `_product`, and within it, you can refer to `product` to get the collection member that is being rendered.
+When a partial is called with a collection, the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, since the partial is `_product.html.erb`, you can use `product` to refer to the collection member that is being rendered.
 
-You can use a shorthand syntax for rendering collections. Assuming `@products` is a collection of `Product` instances, you can simply write the following to produce the same result:
+You can also use the following conventions based shorthand syntax for rendering collections. 
 
 ```erb
 <%= render @products %>
 ```
 
-Rails determines the name of the partial to use by looking at the model name in the collection, `Product` in this case. In fact, you can even render a collection made up of instances of different models using this shorthand, and Rails will choose the proper partial for each member of the collection.
+The above assumes that `@products` is a collection of `Product` instances. Rails uses naming conventions to determine the name of the partial to use by looking at the model name in the collection, `Product` in this case. In fact, you can even render a collection made up of instances of different models using this shorthand, and Rails will choose the proper partial for each member of the collection.
 
 ### Spacer Templates
 
@@ -462,7 +463,7 @@ You can also specify a second partial to be rendered between instances of the ma
 <%= render partial: @products, spacer_template: "product_ruler" %>
 ```
 
-Rails will render the `_product_ruler` partial (with no data passed to it) between each pair of `_product` partials.
+Rails will render the `_product_ruler.html.erb` partial (with no data passed to it) between each pair of `_product.html.erb` partials.
 
 ### Strict Locals
 
