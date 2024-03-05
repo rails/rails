@@ -166,25 +166,25 @@ There is also Fragment Caching for when different parts of the page need to be c
 Partials
 --------
 
-Partial templates - usually just called "partials" - are a way of breaking up the view templates into smaller reusable chunks. With partials, you can extract a piece of code from your main template to separate smaller files and render that file in the main template. You can also pass data to the partial files from the main template. 
+Partial templates - usually just called "partials" - are a way of breaking up the view templates into smaller reusable chunks. With partials, you can extract a piece of code from your main template to separate smaller files and render that file in the main template. You can also pass data to the partial files from the main template.
 
-Let's see this in-action with some examples:
+Let's see this in action with some examples:
 
 ### Rendering Partials
 
 To render a partial as part of a view, you use the `render` method within the view:
 
 ```erb
-<%= render "menu" %>
+<%= render "product" %>
 ```
 
-This will render a file named `_menu.html.erb` within that view. Partial file names start with leading underscore character by convention. The file name distinguishes partials from regular views. However, no underscore is used when referring to partials for rendering within a view. This is true even when you reference a partial from another directory:
+This will render a file named `_product.html.erb` within that view. Partial file names start with leading underscore character by convention. The file name distinguishes partials from regular views. However, no underscore is used when referring to partials for rendering within a view. This is true even when you reference a partial from another directory:
 
 ```erb
-<%= render "application/menu" %>
+<%= render "application/product" %>
 ```
 
-That code will look for a partial file named `_menu.html.erb` in `app/views/application/`.
+That code will look for a partial file named `_product.html.erb` in `app/views/application/`.
 
 ### Using Partials to Simplify Views
 
@@ -203,7 +203,11 @@ One way to use partials is to treat them as the equivalent of methods. A way to 
 <%= render "application/footer" %>
 ```
 
-Here, the `_ad_banner.html.erb` and `_footer.html.erb` partials could contain content that is shared among many pages in your application. You don't need to see the details of these sections when you're concentrating on a particular page.
+Here, the `_ad_banner.html.erb` and `_footer.html.erb` partials could contain content that is shared among many pages in your application. You don't need to see the details of these sections when you're focused on a Products' page.
+
+The above example also uses the `_product.html.erb` partial. This partial contains details for rendering an individual product and is used to render each product in the collection `@products`.
+
+### Partial Template Inheritance
 
 TIP: View partials rely on the same [Template
 Inheritance](/layouts_and_rendering.html#template-inheritance) as templates and
@@ -218,22 +222,25 @@ call to `<%= render "ad_banner" %>` by first searching for
 `app/views/products/_ad_banner.html.erb` before falling back to
 `app/views/application/_ad_banner.html.erb`.
 
-### `render` with `locals` Option
+### Passing Data to Partials With `locals` Option
 
-When rendering a partial, each key in the `locals:` option is available as a
-partial-local variable:
+When rendering a partial, we can pass data to the partial from the rendering view. We use the `locals:` options hash for this. Each key in the `locals:` option is available as a partial-local variable:
 
 ```html+erb
 <%# app/views/products/show.html.erb %>
 
-<%= render partial: "products/product", locals: { product: @product } %>
+<%= render partial: "products/product", locals: { my_product: @product } %>
 
 <%# app/views/products/_product.html.erb %>
 
-<%= tag.div id: dom_id(product) do %>
-  <h1><%= product.name %></h1>
+<%= tag.div id: dom_id(my_product) do %>
+  <h1><%= my_product.name %></h1>
 <% end %>
 ```
+
+In the above example, `my_product` is the local variable available in the partial. It was assigned the value of @product in the original view.
+
+Note that typically we'd simply call this local variable `product`. We are using `my_product` to distinguish it from the instance variable name and template name.
 
 If a template refers to a variable that isn't passed into the view as part of
 the `locals:` option, the template will raise an `ActionView::Template::Error`:
@@ -244,8 +251,8 @@ the `locals:` option, the template will raise an `ActionView::Template::Error`:
 <%= tag.div id: dom_id(product) do %>
   <h1><%= product.name %></h1>
 
-  <%# => raises ActionView::Template::Error %>
-  <% related_products.each do |related_product| %>
+  <%# => raises ActionView::Template::Error for `product_reviews` %>
+  <% product_reviews.each do |review| %>
     <%# ... %>
   <% end %>
 <% end %>
@@ -336,19 +343,29 @@ INFO: By default, partials will accept any `locals` as keyword arguments. To def
 
 ### `render` without `partial` and `locals` Options
 
-In the above example, `render` takes 2 options: `partial` and `locals`. But if
-these are the only options you want to pass, you can skip using these options.
+In the above examples, `render` takes 2 options: `partial` and `locals`. But if
+these are the only options you need to use, you can skip the keys, `partial` and `locals` and specify the values only.
+
 For example, instead of:
 
 ```erb
 <%= render partial: "product", locals: { product: @product } %>
 ```
 
-You can also do:
+You can write:
 
 ```erb
 <%= render "product", product: @product %>
 ```
+
+You can also use this shorthand based on conventions:
+
+```erb
+<%= render @product %>
+```
+
+This will look for a partial named `_product.html.erb` in `app/views/products/`, as well as pass a local named `product` set to the value `@product`.
+
 
 ### The `as` and `object` Options
 
