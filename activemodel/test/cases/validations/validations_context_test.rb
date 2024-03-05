@@ -36,8 +36,33 @@ class ValidationsContextTest < ActiveModel::TestCase
     assert topic.valid?(:create), "Validation doesn't run on create if 'on' is set to update"
   end
 
+  test "with a class that adds errors skip_on create and validating a new model with no arguments" do
+    Topic.validates_with(ValidatorThatAddsErrors, skip_on: :update)
+    topic = Topic.new
+    assert topic.valid?(:update), "Validation doesn't run on valid? if 'skip_on' is set to update"
+  end
+
+  test "with a class that adds errors skip_on update and validating a new model" do
+    Topic.validates_with(ValidatorThatAddsErrors, skip_on: :create)
+    topic = Topic.new
+    assert topic.valid?(:create), "Validation doesn't run on create if 'skip_on' is set to create"
+  end
+
   test "with a class that adds errors on create and validating a new model" do
     Topic.validates_with(ValidatorThatAddsErrors, on: :create)
+    topic = Topic.new
+    assert topic.invalid?(:create), "Validation does run on create if 'on' is set to create"
+    assert_includes topic.errors[:base], ERROR_MESSAGE
+  end
+
+  test "with a class that not adds errors on create and validating a new model" do
+    Topic.validates_with(ValidatorThatAddsErrors, skip_on: :create)
+    topic = Topic.new
+    assert topic.valid?(:create), "Validation does run on create if 'skip_on' is set to create"
+  end
+
+  test "with a class that adds errors on create and validating a new model when set skip_on update" do
+    Topic.validates_with(ValidatorThatAddsErrors, skip_on: :update)
     topic = Topic.new
     assert topic.invalid?(:create), "Validation does run on create if 'on' is set to create"
     assert_includes topic.errors[:base], ERROR_MESSAGE
@@ -56,6 +81,17 @@ class ValidationsContextTest < ActiveModel::TestCase
     assert_includes topic.errors[:base], ERROR_MESSAGE
   end
 
+  test "with a class that adds errors on multiple contexts and validating a new model when using skip_on" do
+    Topic.validates_with(ValidatorThatAddsErrors, skip_on: [:context1, :context2])
+
+    topic = Topic.new
+    assert_predicate topic, :invalid?, "Validation ran with no context given when 'skip_on' is set to context1 and context2"
+
+    assert topic.valid?(:context1), "Validation did not run on context1 when 'skip_on' is set to context1 and context2"
+
+    assert topic.valid?(:context2), "Validation did not run on context2 when 'skip_on' is set to context1 and context2"
+  end
+
   test "with a class that validating a model for a multiple contexts" do
     Topic.validates_with(ValidatorThatAddsErrors, on: :context1)
     Topic.validates_with(AnotherValidatorThatAddsErrors, on: :context2)
@@ -66,5 +102,15 @@ class ValidationsContextTest < ActiveModel::TestCase
     assert topic.invalid?([:context1, :context2]), "Validation did not run on context1 when 'on' is set to context1 and context2"
     assert_includes topic.errors[:base], ERROR_MESSAGE
     assert_includes topic.errors[:base], ANOTHER_ERROR_MESSAGE
+  end
+
+  test "with a class that validating a model for a multiple contexts when using skip_on" do
+    Topic.validates_with(ValidatorThatAddsErrors, skip_on: :context1)
+    Topic.validates_with(AnotherValidatorThatAddsErrors, skip_on: :context2)
+
+    topic = Topic.new
+    assert_predicate topic, :invalid?, "Validation ran with no context given when 'skip_on' is set to context1 and context2"
+
+    assert topic.valid?([:context1, :context2]), "Validation did not run on context1 when 'skip_on' is set to context1 and context2"
   end
 end

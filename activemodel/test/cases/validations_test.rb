@@ -168,7 +168,7 @@ class ValidationsTest < ActiveModel::TestCase
       # A common mistake -- we meant to call 'validates'
       Topic.validate :title, presence: true
     end
-    message = "Unknown key: :presence. Valid keys are: :on, :if, :unless, :prepend. Perhaps you meant to call `validates` instead of `validate`?"
+    message = "Unknown key: :presence. Valid keys are: :on, :if, :unless, :prepend, :skip_on. Perhaps you meant to call `validates` instead of `validate`?"
     assert_equal message, error.message
   end
 

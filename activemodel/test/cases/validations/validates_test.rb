@@ -74,6 +74,13 @@ class ValidatesTest < ActiveModel::TestCase
     assert_predicate person, :valid?
   end
 
+  def test_validates_with_skip_on
+    Person.validates :karma, presence: true, email: true, skip_on: :custom
+    person = Person.new
+    assert_predicate person, :invalid?
+    assert person.valid?(:custom)
+  end
+
   def test_validates_with_unless_as_local_conditions
     Person.validates :karma, presence: true, email: { unless: :condition_is_true }
     person = Person.new
