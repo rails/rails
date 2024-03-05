@@ -186,7 +186,8 @@ $ rails generate migration CreateBooks title:string author:string
 and results in this:
 
 ```ruby
-# Note: the `id` column, as the primary key, is automatically created by convention. As are `created_at` and `updated_at` columns.
+# Note:
+# The `id` column, as the primary key, is automatically created by convention. # Columns `created_at` and `updated_at` are added by `t.timestamps` line.
 
 # /db/migrate/20240220143807_create_books.rb
 class CreateBooks < ActiveRecord::Migration
@@ -292,7 +293,7 @@ the `create` method call will create an object and save a new record into the da
 ```ruby
 book = Book.create(title: "The Lord of the Rings", author: "J.R.R. Tolkien")
 
-# Notice that the `id` is set as this record is committed to the database. 
+# Notice that the `id` is set as this record is committed to the database.
 book.inspect
 => "#<Book id: 106, title: \"The Lord of the Rings\", author: \"J.R.R. Tolkien\", created_at: \"2024-03-04 19:15:58.033967000 +0000\", updated_at: \"2024-03-04 19:15:58.033967000 +0000\">"
 ```
