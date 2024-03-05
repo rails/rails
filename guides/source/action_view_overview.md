@@ -447,7 +447,7 @@ can be rewritten in a single line:
 
 When a partial is called with a collection, the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, since the partial is `_product.html.erb`, you can use `product` to refer to the collection member that is being rendered.
 
-You can also use the following conventions based shorthand syntax for rendering collections. 
+You can also use the following conventions based shorthand syntax for rendering collections.
 
 ```erb
 <%= render @products %>
@@ -467,7 +467,9 @@ Rails will render the `_product_ruler.html.erb` partial (with no data passed to 
 
 ### Strict Locals
 
-By default, templates will accept any `locals` as keyword arguments. To define what `locals` a template accepts, add a `locals:` magic comment:
+Action View partial templates will accept any number of `locals` as keyword arguments. You can enforce how many and which `locals` a template accepts, set default value, and more with a `locals:` magic comment.
+
+Here are some examples of the `locals:` magic comment:
 
 ```erb
 <%# app/views/messages/_message.html.erb %>
@@ -476,14 +478,14 @@ By default, templates will accept any `locals` as keyword arguments. To define w
 <%= message %>
 ```
 
-Rendering the partial without a `:message` local variable argument will raise an exception:
+The above makes `message` a required local variable. Rendering the partial without a `:message` local variable argument will raise an exception:
 
 ```ruby
 render "messages/message"
 # => ActionView::Template::Error: missing local: :message for app/views/messages/_message.html.erb
 ```
 
-Default values can also be provided:
+If a default values is set then it can be used if `message` is not passed in `locals:`:
 
 ```erb
 <%# app/views/messages/_message.html.erb %>
@@ -492,30 +494,31 @@ Default values can also be provided:
 <%= message %>
 ```
 
-Rendering the partial without a `:message` local variable uses the provided default value:
+Rendering the partial without a `:message` local variable uses the default value set in the `locals:` magic comment:
 
 ```ruby
 render "messages/message"
 # => "Hello, world!"
 ```
 
-Rendering the partial with additional local variable arguments will raise an exception:
+Rendering the partial with local variables not specified in the `local:` magic comment will also raise an exception:
 
 ```ruby
-render "messages/message", unknown_local: "will raise"
-# => ActionView::Template::Error: missing local: :unknown_local for app/views/messages/_message.html.erb
+render "messages/message", greeting: "will raise"
+# => ActionView::Template::Error: missing local: :greeting for app/views/messages/_message.html.erb
 ```
 
-Optional local variable arguments can be splatted:
+You can allow optional local variable arguments with the double splat `**` operator:
 
 ```erb
+
 <%# app/views/messages/_message.html.erb %>
 
 <%# locals: (message: "Hello, world!", **attributes) -%>
 <%= tag.p(message, **attributes) %>
 ```
 
-Or `locals` can be disabled entirely:
+If you set the `locals:` to empty `()`, partial local variable are disabled entirely:
 
 ```erb
 <%# app/views/messages/_message.html.erb %>
@@ -523,7 +526,7 @@ Or `locals` can be disabled entirely:
 <%# locals: () %>
 ```
 
-Rendering the partial with any local variable arguments will raise an exception:
+Rendering the partial with *any* local variable arguments will raise an exception:
 
 ```ruby
 render "messages/message", unknown_local: "will raise"
