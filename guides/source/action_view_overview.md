@@ -260,7 +260,9 @@ the `locals:` option, the template will raise an `ActionView::Template::Error`:
 
 ### Using `local_assigns`
 
-Each key in the `locals:` option is available as a partial-local variable through the [local_assigns][] helper method:
+There is a helper method [local_assigns][] available in each partial. You can access each key in the `locals:` option using this method. The value of `local_assigns[:some_key]` will be `nil` if the partial was not rendered with `:some_key` set.
+
+For example, `product_reviews` is `nil` in the below example since only `product` is set in `locals:`:
 
 ```html+erb
 <%# app/views/products/show.html.erb %>
@@ -270,8 +272,24 @@ Each key in the `locals:` option is available as a partial-local variable throug
 <%# app/views/products/_product.html.erb %>
 
 <% local_assigns[:product]          # => "#<Product:0x0000000109ec5d10>" %>
-<% local_assigns[:options]          # => nil %>
+<% local_assigns[:product_reviews]  # => nil %>
 ```
+
+One use case for `local_assigns` is optionally passing in a local variable and then conditionally doing something in the partial based on whether the local variable is set. For example:
+
+```html+erb
+<% if local_assigns[:redirect] %>
+  <%= form.hidden_field :redirect, value: true %>
+<% end %>
+```
+
+Another example from Active Storage's `_blob.html.erb`. This one sets the size based on whether `in_gallery` local variable is set when rendering the partial that contains this line:
+
+```html+erb
+<%= image_tag blob.representation(resize_to_limit: local_assigns[:in_gallery] ? [ 800, 600 ] : [ 1024, 768 ]) %>
+```
+
+### `local_assigns` with Pattern Matching
 
 Since `local_assigns` is a `Hash`, it's compatible with [Ruby 3.1's pattern matching assignment operator](https://docs.ruby-lang.org/en/master/syntax/pattern_matching_rdoc.html):
 
