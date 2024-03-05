@@ -112,6 +112,12 @@ depending on the purpose of these columns.
   `id` as the table's primary key (`bigint` for PostgreSQL and MySQL, `integer`
   for SQLite). When using [Active Record Migrations](active_record_migrations.html)
   to create your tables, this column will be automatically created.
+* **Time columns** - Columns that Active Record transforms into `Time` and
+  `DateTime` instances should be named following the pattern `action_at` (e.g.
+  `deleted_at`, `published_at`).
+* **Date columns** - Columns that Active Record transforms into `Date` instances
+  should be named following the pattern `action_on` (e.g. `born_on`,
+  `released_on`).
 
 There are also some optional column names that will add additional features
 to Active Record instances:
