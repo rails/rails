@@ -141,6 +141,7 @@ The non-bang versions don't: `save` and `update` return `false`, and
 
 The following methods skip validations, and will save the object to the
 database regardless of its validity. They should be used with caution.
+Refer to the method documentation to learn more.
 
 * [`decrement!`][]
 * [`decrement_counter`][]
