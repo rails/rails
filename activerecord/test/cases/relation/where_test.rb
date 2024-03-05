@@ -487,6 +487,10 @@ module ActiveRecord
       assert_equal 1, posts.invert_where.first.id
     end
 
+    def test_invert_where_without_where_clause
+      assert_equal Post.count, Post.where(id: 1).unscope(:where).invert_where.count
+    end
+
     def test_nested_conditional_on_enum
       post = Post.first
       Comment.create!(label: :default, post: post, body: "Nice weather today")
