@@ -1026,7 +1026,7 @@ include this module, a `has_secure_password` class method is provided which
 defines a `password` accessor with certain validations on it by default.
 
 `ActiveModel::SecurePassword` depends on
-[`bcrypt`](https://github.com/codahale/bcrypt-ruby 'BCrypt'), so include this
+[`bcrypt`](https://github.com/bcrypt-ruby/bcrypt-ruby 'BCrypt'), so include this
 gem in your `Gemfile` to use it.
 
 ```ruby
