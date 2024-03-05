@@ -187,7 +187,8 @@ and results in this:
 
 ```ruby
 # Note:
-# The `id` column, as the primary key, is automatically created by convention. # Columns `created_at` and `updated_at` are added by `t.timestamps` line.
+# The `id` column, as the primary key, is automatically created by convention.
+# Columns `created_at` and `updated_at` are added by `t.timestamps` line.
 
 # /db/migrate/20240220143807_create_books.rb
 class CreateBooks < ActiveRecord::Migration
