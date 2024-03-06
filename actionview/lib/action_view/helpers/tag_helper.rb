@@ -45,9 +45,6 @@ module ActionView
       PRE_CONTENT_STRINGS["textarea"] = "\n"
 
       class TagBuilder # :nodoc:
-        include CaptureHelper
-        include OutputSafetyHelper
-
         def self.define_element(name, code_generator:, method_name: name.to_s.underscore)
           code_generator.define_cached_method(method_name, namespace: :tag_builder) do |batch|
             batch.push(<<~RUBY) unless instance_methods.include?(method_name.to_sym)
@@ -239,89 +236,89 @@ module ActionView
           tag_options(attributes.to_h).to_s.strip.html_safe
         end
 
-        def tag_string(name, content = nil, options, escape: true, &block)
-          content = @view_context.capture(self, &block) if block
-
-          content_tag_string(name, content, options, escape)
-        end
-
-        def self_closing_tag_string(name, options, escape = true, tag_suffix = " />")
-          "<#{name}#{tag_options(options, escape)}#{tag_suffix}".html_safe
-        end
-
-        def content_tag_string(name, content, options, escape = true)
-          tag_options = tag_options(options, escape) if options
-
-          if escape && content.present?
-            content = ERB::Util.unwrapped_html_escape(content)
-          end
-          "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name]}#{content}</#{name}>".html_safe
-        end
-
-        def tag_options(options, escape = true)
-          return if options.blank?
-          output = +""
-          sep    = " "
-          options.each_pair do |key, value|
-            type = TAG_TYPES[key]
-            if type == :data && value.is_a?(Hash)
-              value.each_pair do |k, v|
-                next if v.nil?
-                output << sep
-                output << prefix_tag_option(key, k, v, escape)
-              end
-            elsif type == :aria && value.is_a?(Hash)
-              value.each_pair do |k, v|
-                next if v.nil?
-
-                case v
-                when Array, Hash
-                  tokens = TagHelper.build_tag_values(v)
-                  next if tokens.none?
-
-                  v = safe_join(tokens, " ")
-                else
-                  v = v.to_s
-                end
-
-                output << sep
-                output << prefix_tag_option(key, k, v, escape)
-              end
-            elsif type == :boolean
-              if value
-                output << sep
-                output << boolean_tag_option(key)
-              end
-            elsif !value.nil?
-              output << sep
-              output << tag_option(key, value, escape)
-            end
-          end
-          output unless output.empty?
-        end
-
-        def boolean_tag_option(key)
-          %(#{key}="#{key}")
-        end
-
-        def tag_option(key, value, escape)
-          key = ERB::Util.xml_name_escape(key) if escape
-
-          case value
-          when Array, Hash
-            value = TagHelper.build_tag_values(value) if key.to_s == "class"
-            value = escape ? safe_join(value, " ") : value.join(" ")
-          when Regexp
-            value = escape ? ERB::Util.unwrapped_html_escape(value.source) : value.source
-          else
-            value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
-          end
-          value = value.gsub('"', "&quot;") if value.include?('"')
-
-          %(#{key}="#{value}")
-        end
-
         private
+          def tag_string(name, content = nil, options, escape: true, &block)
+            content = @view_context.capture(self, &block) if block
+
+            content_tag_string(name, content, options, escape)
+          end
+
+          def self_closing_tag_string(name, options, escape = true, tag_suffix = " />")
+            "<#{name}#{tag_options(options, escape)}#{tag_suffix}".html_safe
+          end
+
+          def content_tag_string(name, content, options, escape = true)
+            tag_options = tag_options(options, escape) if options
+
+            if escape && content.present?
+              content = ERB::Util.unwrapped_html_escape(content)
+            end
+            "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name]}#{content}</#{name}>".html_safe
+          end
+
+          def tag_options(options, escape = true)
+            return if options.blank?
+            output = +""
+            sep    = " "
+            options.each_pair do |key, value|
+              type = TAG_TYPES[key]
+              if type == :data && value.is_a?(Hash)
+                value.each_pair do |k, v|
+                  next if v.nil?
+                  output << sep
+                  output << prefix_tag_option(key, k, v, escape)
+                end
+              elsif type == :aria && value.is_a?(Hash)
+                value.each_pair do |k, v|
+                  next if v.nil?
+
+                  case v
+                  when Array, Hash
+                    tokens = TagHelper.build_tag_values(v)
+                    next if tokens.none?
+
+                    v = @view_context.safe_join(tokens, " ")
+                  else
+                    v = v.to_s
+                  end
+
+                  output << sep
+                  output << prefix_tag_option(key, k, v, escape)
+                end
+              elsif type == :boolean
+                if value
+                  output << sep
+                  output << boolean_tag_option(key)
+                end
+              elsif !value.nil?
+                output << sep
+                output << tag_option(key, value, escape)
+              end
+            end
+            output unless output.empty?
+          end
+
+          def boolean_tag_option(key)
+            %(#{key}="#{key}")
+          end
+
+          def tag_option(key, value, escape)
+            key = ERB::Util.xml_name_escape(key) if escape
+
+            case value
+            when Array, Hash
+              value = TagHelper.build_tag_values(value) if key.to_s == "class"
+              value = escape ? @view_context.safe_join(value, " ") : value.join(" ")
+            when Regexp
+              value = escape ? ERB::Util.unwrapped_html_escape(value.source) : value.source
+            else
+              value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
+            end
+            value = value.gsub('"', "&quot;") if value.include?('"')
+
+            %(#{key}="#{value}")
+          end
+
           def prefix_tag_option(prefix, key, value, escape)
             key = "#{prefix}-#{key.to_s.dasherize}"
             unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
@@ -494,7 +491,16 @@ module ActionView
           tag_builder
         else
           ensure_valid_html5_tag_name(name)
-          "<#{name}#{tag_builder.tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe
+
+          html = tag_builder.public_send(name, **options.to_h, escape: escape)
+          html.delete_suffix!("</#{name}>")
+
+          unless open
+            html.delete_suffix!(">")
+            html.concat(" />")
+          end
+
+          html.html_safe
         end
       end
 
@@ -531,9 +537,9 @@ module ActionView
 
         if block_given?
           options = content_or_options_with_block if content_or_options_with_block.is_a?(Hash)
-          tag_builder.content_tag_string(name, capture(&block), options, escape)
+          tag_builder.public_send(name, capture(&block), escape: escape, **options.to_h)
         else
-          tag_builder.content_tag_string(name, content_or_options_with_block, options, escape)
+          tag_builder.public_send(name, content_or_options_with_block, escape: escape, **options.to_h)
         end
       end
 
