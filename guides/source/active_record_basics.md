@@ -25,7 +25,7 @@ responsible for representing data and business logic. Active Record helps you
 create and use Ruby objects whose attributes require persistent storage
 to a database.
 
-NOTE: It's also possible to model data with Ruby objects that do *not* need to be backed by a database. [Active Model](active_model_basics.html) is commonly used for that in Rails, making Active Record and Active Model both part of the M in MVC, as well as your own plain Ruby objects.
+NOTE: What is the difference between Active Record and Active Model? It's also possible to model data with Ruby objects that do *not* need to be backed by a database. [Active Model](active_model_basics.html) is commonly used for that in Rails, making Active Record and Active Model both part of the M in MVC, as well as your own plain Ruby objects.
 
 There is some industry jargon around the term "Active Record". Active Record in Rails is an implementation of a software architecture pattern by the same name. It's also a description of something called an [Object Relational Mapping][ORM] system. The below sections explain these terms:
 
@@ -218,7 +218,52 @@ irb> book.title
 => "The Hobbit"
 ```
 
-NOTE: You can generate the Active Record model class as well a matching migration with this command `bin/rails generate model Book title:string author:string`. This creates both `/app/models/book.rb` and `/db/migrate/20240220143807_create_books.rb` files.
+NOTE: You can generate the Active Record model class as well as a matching migration with this command `bin/rails generate model Book title:string author:string`. This creates both `/app/models/book.rb` and `/db/migrate/20240220143807_create_books.rb` files.
+
+### Creating Namespaced Models
+
+Active Record models are placed under the `app/models` directory by default. But you may want to organize your models by placing similar models under their own folder and namespace. For example, `order.rb` and `review.rb` under `app/models/product` with `Product::Order` and `Product::Review` class names, respectively. You can create namespaced models with Active Record.
+
+In the case where `Product` module does not already exist, the `generate` command will create everything like this:
+
+```irb
+$ rails generate model Product/Order
+      invoke  active_record
+      create    db/migrate/20240306194227_create_product_orders.rb
+      create    app/models/product/order.rb
+      create    app/models/product.rb
+      invoke    test_unit
+      create      test/models/product/order_test.rb
+      create      test/fixtures/product/orders.yml
+```
+
+In the case where `Product` module already exists, you will be asked to resolve the conflict:
+
+```bash
+$ rails generate model Product/Order
+      invoke  active_record
+      create    db/migrate/20240305140356_create_product_orders.rb
+      create    app/models/product/order.rb
+    conflict    app/models/product.rb
+  Overwrite /Users/bhumi/Code/rails_guides/app/models/product.rb? (enter "h" for help) [Ynaqdhm]
+```
+
+Once the namespaced model generation is successful, the `Product` and `Order` classes looks like this:
+
+```ruby
+# app/models/product.rb
+module Product
+  def self.table_name_prefix
+    "product_"
+  end
+end
+
+# app/models/product/order.rb
+class Product::Order < ApplicationRecord
+end
+```
+
+Setting the [table_name_prefix](https://api.rubyonrails.org/classes/ActiveRecord/ModelSchema.html#method-c-table_name_prefix-3D) in `Product` will allow `Order` model's database table to be named `product_orders`, instead of plain `orders`.
 
 Overriding the Naming Conventions
 ---------------------------------
