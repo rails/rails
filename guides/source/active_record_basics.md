@@ -289,14 +289,14 @@ attributes manually set after creation. The `new` method will return a new
 object while `create` will return the object and save it to the database.
 
 For example, given a `Book` model with attributes of `title` and `author`,
-the `create` method call will create an object and save a new record into the database:
+the `create` method call will create an object and save a new record to the database:
 
 ```ruby
 book = Book.create(title: "The Lord of the Rings", author: "J.R.R. Tolkien")
 
-# Notice that the `id` is set as this record is committed to the database.
-book.inspect
-=> "#<Book id: 106, title: \"The Lord of the Rings\", author: \"J.R.R. Tolkien\", created_at: \"2024-03-04 19:15:58.033967000 +0000\", updated_at: \"2024-03-04 19:15:58.033967000 +0000\">"
+# Notice that the `id` is assigned as this record is committed to the database.
+book.id
+=> 104
 ```
 
 While the `new` method will instantiate an object without saving it to the database:
@@ -307,9 +307,8 @@ book.title = "The Hobbit"
 book.author = "J.R.R. Tolkien"
 
 # Note that the `id` is not set for this object.
-
-book.inspect
-=> "#<Book id: nil, title: \"The Hobbit\", author: \"J.R.R. Tolkien\", created_at: nil, updated_at: nil>"
+book.id
+=> nil
 
 # The above `book` is not yet saved to the database.
 
