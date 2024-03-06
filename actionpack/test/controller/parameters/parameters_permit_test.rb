@@ -529,6 +529,22 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_not_predicate params[:f], :permitted?
   end
 
+  test "deconstruct_keys matches string parameters" do
+    params = ActionController::Parameters.new("f" => { "language_facet" => ["Tibetan"] })
+    case params
+    in {"f": {"language_facet": }}
+      assert_equal ["Tibetan"], language_facet
+    end
+  end
+
+  test "deconstruct_keys matches symbol parameters" do
+    params = ActionController::Parameters.new("f" => { "language_facet" => ["Tibetan"] })
+    case params
+    in {f: {language_facet: }}
+      assert_equal ["Tibetan"], language_facet
+    end
+  end
+
   test "to_h only deep dups Ruby collections" do
     company = Class.new do
       attr_reader :dupped
