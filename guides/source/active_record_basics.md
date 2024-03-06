@@ -294,12 +294,12 @@ the `create` method call will create an object and save a new record to the data
 ```ruby
 book = Book.create(title: "The Lord of the Rings", author: "J.R.R. Tolkien")
 
-# Notice that the `id` is assigned as this record is committed to the database.
-book.id
-=> 104
+# Note that the `id` is assigned as this record is committed to the database.
+book.inspect
+# => "#<Book id: 106, title: \"The Lord of the Rings\", author: \"J.R.R. Tolkien\", created_at: \"2024-03-04 19:15:58.033967000 +0000\", updated_at: \"2024-03-04 19:15:58.033967000 +0000\">"
 ```
 
-While the `new` method will instantiate an object without saving it to the database:
+While the `new` method will instantiate an object *without* saving it to the database:
 
 ```ruby
 book = Book.new
@@ -307,14 +307,15 @@ book.title = "The Hobbit"
 book.author = "J.R.R. Tolkien"
 
 # Note that the `id` is not set for this object.
-book.id
-=> nil
+book.inspect
+# => "#<Book id: nil, title: \"The Hobbit\", author: \"J.R.R. Tolkien\", created_at: nil, updated_at: nil>"
 
 # The above `book` is not yet saved to the database.
 
 book.save
+book.id # => 107
 
-# Now the `book` record is committed to the database.
+# Now the `book` record is committed to the database and has an `id`.
 ```
 
 Finally, if a block is provided, both `create` and `new` will yield the new
