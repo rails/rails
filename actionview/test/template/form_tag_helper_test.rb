@@ -24,15 +24,16 @@ class FormTagHelperTest < ActionView::TestCase
 
   def hidden_fields(options = {})
     method = options[:method]
+    autocomplete = options.fetch(:autocomplete, "off")
     enforce_utf8 = options.fetch(:enforce_utf8, true)
 
     (+"").tap do |txt|
       if enforce_utf8
-        txt << %{<input name="utf8" type="hidden" value="&#x2713;" autocomplete="off" />}
+        txt << %{<input name="utf8" type="hidden" value="&#x2713;" autocomplete="#{autocomplete}" />}
       end
 
       if method && !%w(get post).include?(method.to_s)
-        txt << %{<input name="_method" type="hidden" value="#{method}" autocomplete="off" />}
+        txt << %{<input name="_method" type="hidden" value="#{method}" autocomplete="#{autocomplete}" />}
       end
     end
   end
