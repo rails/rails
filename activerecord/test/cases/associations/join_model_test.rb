@@ -776,6 +776,12 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal("Can't join 'Post' to association named 'nonexistent_relation'; perhaps you misspelled it?", includes_and_eager_load_error.message)
   end
 
+  def test_warn_if_duplicate_column_names_detected
+    assert_called_with(ActiveRecord::Base.logger, :warn, ["Duplicate column names: id"]) do
+      Post.joins(:author).select("*").first
+    end
+  end
+
   private
     # create dynamic Post models to allow different dependency options
     def find_post_with_dependency(post_id, association, association_name, dependency)
