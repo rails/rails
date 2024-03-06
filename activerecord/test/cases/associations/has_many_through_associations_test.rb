@@ -1123,6 +1123,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal expected, Author.eager_load(:lazy_readers_skimmers_or_not_3).last.lazy_readers_skimmers_or_not_3
   end
 
+  def test_has_many_through_with_through_scope_with_joins_and_merge
+    expected = [readers(:michael_welcome).becomes(LazyReader)]
+    assert_equal expected, Author.first.lazy_readers_skimmers_or_not_4
+    assert_equal expected, Author.preload(:lazy_readers_skimmers_or_not_4).first.lazy_readers_skimmers_or_not_4
+    assert_equal expected, Author.eager_load(:lazy_readers_skimmers_or_not_4).first.lazy_readers_skimmers_or_not_4
+  end
+
   def test_duplicated_has_many_through_with_through_scope_with_joins
     Categorization.create!(author: authors(:david), post: posts(:thinking), category: categories(:technology))
 
