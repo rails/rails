@@ -105,6 +105,18 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_equal "Success", body
   end
 
+  test "allows underscore in subdomain when using domain name notation" do
+    @app = build_app(".localhost")
+
+    get "/", env: {
+      "HOST" => "my_app.localhost",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_equal "Success", body
+  end
+
   test "does not allow domain name notation in the HOST header itself" do
     @app = build_app(".example.com")
 

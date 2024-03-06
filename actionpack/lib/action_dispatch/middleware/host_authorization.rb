@@ -22,7 +22,7 @@ module ActionDispatch
   class HostAuthorization
     ALLOWED_HOSTS_IN_DEVELOPMENT = [".localhost", ".test", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")]
     PORT_REGEX = /(?::\d+)/ # :nodoc:
-    SUBDOMAIN_REGEX = /(?:[a-z0-9-]+\.)/i # :nodoc:
+    SUBDOMAIN_REGEX = /(?:[a-z0-9_-]+\.)/i # :nodoc:
     IPV4_HOSTNAME = /(?<host>\d+\.\d+\.\d+\.\d+)#{PORT_REGEX}?/ # :nodoc:
     IPV6_HOSTNAME = /(?<host>[a-f0-9]*:[a-f0-9.:]+)/i # :nodoc:
     IPV6_HOSTNAME_WITH_PORT = /\[#{IPV6_HOSTNAME}\]#{PORT_REGEX}/i # :nodoc:
