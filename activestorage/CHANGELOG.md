@@ -59,4 +59,9 @@
 
     *Yogesh Khater*
 
+*   Default strict loading for `has_one_attached` and `has_many_attached` to
+    `strict_loading_by_default`
+
+    *Adam Rice*
+
 Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/activestorage/CHANGELOG.md) for previous changes.
