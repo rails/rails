@@ -3454,7 +3454,7 @@ initializers, so any initialization code that depends on a given gem having been
 initialized should go into a `config.after_initialize` block.
 
 Load Hooks
-----------------------------
+----------
 
 Rails code can often be referenced on load of an application. Rails is responsible for the load order of these frameworks, so when you load frameworks, such as `ActiveRecord::Base`, prematurely you are violating an implicit contract your application has with Rails. Moreover, by loading code such as `ActiveRecord::Base` on boot of your application you are loading entire frameworks which may slow down your boot time and could cause conflicts with load order and boot of your application.
 
