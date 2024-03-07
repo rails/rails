@@ -1011,8 +1011,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     ruby_version = "#{Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") ? Gem.ruby_version : RUBY_VERSION}"
 
     assert_file ".devcontainer/Dockerfile" do |content|
-      minor_ruby_version = ruby_version.match(/^\d+\.\d+/).to_s
-      assert_match(/ARG RUBY_VERSION=#{minor_ruby_version}$/, content)
+      assert_match(/ARG RUBY_VERSION=#{ruby_version}$/, content)
     end
     assert_file "Dockerfile" do |content|
       assert_match(/ARG RUBY_VERSION=#{ruby_version}/, content)
@@ -1320,6 +1319,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file("config/database.yml") do |content|
       assert_match(/host: <%= ENV\["DB_HOST"\] %>/, content)
     end
+    assert_file(".devcontainer/Dockerfile") do |content|
+      assert_match(/libpq-dev/, content)
+    end
   end
 
   def test_devonctainer_mysql
@@ -1347,6 +1349,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file("config/database.yml") do |content|
       assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "localhost" } %>/, content)
+    end
+    assert_file(".devcontainer/Dockerfile") do |content|
+      assert_match(/default-libmysqlclient-dev/, content)
     end
   end
 
