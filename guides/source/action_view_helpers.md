@@ -100,6 +100,8 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-image_tag)
 for more information.
 
+INFO: Internally, `image_tag` uses [`image_path` from the AssetUrlHelpers](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-image_path) to build the image path. <br><br> If you want to use an image from a different directory, you can use the `image_path` helper to get the path to the image and then use the `image_tag` helper to generate the HTML `image_tag(image_path("icons/icon.png"))`
+
 #### javascript_include_tag
 
 Returns an HTML script tag for each of the sources provided. You can pass in the
@@ -112,9 +114,21 @@ javascript_include_tag "common"
 # => <script src="/assets/common.js"></script>
 ```
 
+You can modify the HTML attributes of the script tag by passing a hash as the last argument.
+
+```ruby
+javascript_include_tag "common", async: true
+# => <script src="/assets/common.js" async="async"></script>
+```
+
+Some of the most common attributes are `async` and `defer`, where `async` will allow the script to be loaded in parallel to be parsed and evaluated as soon as possible and `defer` will indicate that the script is meant to be executed after the document has been parsed.
+
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-javascript_include_tag)
 for more information.
+
+INFO: Internally, `javascript_include_tag` uses [`javascript_path` from the AssetUrlHelpers](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-javascript_path) to build the script path. <br><br>
+If you want to include a JavaScript file from a different directory, you can use the `javascript_path` helper to get the path to the JavaScript file and then use the `javascript_include_tag` helper to generate the HTML `javascript_include_tag(javascript_path("common.js"))`
 
 #### picture_tag
 
@@ -163,6 +177,18 @@ stylesheet_link_tag "application"
 # => <link href="/assets/application.css" rel="stylesheet" />
 ```
 
+You can modify the link attributes by passing a hash as the last argument.
+
+```ruby
+stylesheet_link_tag "application", media: "all"
+# => <link href="/assets/application.css" media="all" rel="stylesheet" />
+```
+
+`media` is used to specify the media type for the link. The most common media types are `all`, `screen`, `print`, and `speech`.
+
+INFO: Internally, `stylesheet_link_tag` uses [`stylesheet_path` from the AssetUrlHelpers](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-stylesheet_path) to build the stylesheet path. <br><br>
+If you want to include a stylesheet file from a different directory, you can use the `stylesheet_path` helper to get the path to the stylesheet file and then use the `stylesheet_link_tag` helper to generate the HTML `stylesheet_link_tag(stylesheet_path("common.js"))`
+
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-stylesheet_link_tag)
 for more information.
@@ -178,111 +204,24 @@ attachments.
 ```ruby
 video_tag("trailer")
 # => <video src="/videos/trailer"></video>
+
+video_tag(["trailer.ogg", "trailer.flv"])
+# => <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
 ```
+
+When the last parameter is a hash you can add HTML attributes using that parameter.
+
+```ruby
+video_tag("trailer", controls: true)
+```
+`controls` is a boolean attribute that indicates whether the video should have controls.
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-video_tag)
 for more information.
 
-
------
-
-#### **image_path
-
-Computes the path to an image asset in the `app/assets/images` directory. Full
-paths from the document root will be passed through. Used internally by
-`image_tag` to build the image path.
-
-```ruby
-image_path("edit.png") # => /assets/edit.png
-```
-
-Fingerprint will be added to the filename if config.assets.digest is set to
-true.
-
-```ruby
-image_path("edit.png")
-# => /assets/edit-2d1a2db63fc738690021fedb5a65b68e.png
-```
-
-See the [API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-image_path)
-for more information.
-
-#### **image_url
-
-Computes the URL to an image asset in the `app/assets/images` directory. This
-will call `image_path` internally and merge with your current host or your asset
-host.
-
-```ruby
-image_url("edit.png") # => http://www.example.com/assets/edit.png
-```
-
-See the [API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-image_url)
-for more information.
-
-#### **javascript_path
-
-Computes the path to a JavaScript asset in the `app/assets/javascripts`
-directory. If the source filename has no extension, `.js` will be appended. Full
-paths from the document root will be passed through. Used internally by
-`javascript_include_tag` to build the script path.
-
-```ruby
-javascript_path "common" # => /assets/common.js
-```
-
-See the [API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-javascript_path)
-for more information.
-
-#### **javascript_url
-
-Computes the URL to a JavaScript asset in the `app/assets/javascripts`
-directory. This will call `javascript_path` internally and merge with your
-current host or your asset host.
-
-```ruby
-javascript_url "common"
-# => http://www.example.com/assets/common.js
-```
-
-See the [API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-javascript_url)
-for more information.
-
-#### **stylesheet_path
-
-Computes the path to a stylesheet asset in the `app/assets/stylesheets`
-directory. If the source filename has no extension, `.css` will be appended.
-Full paths from the document root will be passed through. Used internally by
-`stylesheet_link_tag` to build the stylesheet path.
-
-```ruby
-stylesheet_path "application" # => /assets/application.css
-```
-
-See the [API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-stylesheet_path)
-for more information.
-
-#### **stylesheet_url
-
-Computes the URL to a stylesheet asset in the `app/assets/stylesheets`
-directory. This will call `stylesheet_path` internally and merge with your
-current host or your asset host.
-
-```ruby
-stylesheet_url "application"
-# => http://www.example.com/assets/application.css
-```
-
-See the [API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-stylesheet_path)
-for more information.
-
+INFO: Internally, `video_tag` uses [`video_path` from the AssetUrlHelpers](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-video_path) to build the video path. <br><br>
+If you want to include a video file from a different directory, you can use the `video_path` helper to get the path to the video file and then use the `video_tag` helper to generate the HTML `video_tag(video_path("trailers/trailer.mp4"))`
 
 ### AtomFeedHelper
 
