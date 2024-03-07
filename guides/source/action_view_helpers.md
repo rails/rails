@@ -15,10 +15,7 @@ After reading this guide, you will know:
 Overview of Helpers Provided by Action View
 -------------------------------------------
 
-WIP: Not all the helpers are listed here. For a full list see the [API
-documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html)
-
-The following is only a brief overview summary of the helpers available in
+The following outlines some of the most commonly used helpers available in
 Action View. It's recommended that you review the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html),
 which covers all of the helpers in more detail, but this should serve as a good
@@ -53,7 +50,20 @@ attachments.
 ```ruby
 audio_tag("sound")
 # => <audio src="/audios/sound"></audio>
+
+audio_tag("sound.wav", "sound.mid")
+# => <audio><source src="/audios/sound.wav" /><source src="/audios/sound.mid" /></audio>
 ```
+
+When the last parameter is a hash you can add HTML attributes using that parameter.
+
+```ruby
+audio_tag("sound", controls: true)
+```
+`controls` is a boolean attribute that indicates whether the audio should have controls.
+
+INFO: Internally, `audio_tag` uses [`audio_path` from the AssetUrlHelpers](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-audio_path) to build the audio path. <br><br>
+If you want to include an audio file from a different directory, you can use the `audio_path` helper to get the path to the audio file and then use the `audio_tag` helper to generate the HTML `audio_tag(audio_path("sounds/sound.wav"))`
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-audio_tag)
@@ -192,7 +202,6 @@ If you want to include a stylesheet file from a different directory, you can use
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-stylesheet_link_tag)
 for more information.
-
 
 #### video_tag
 
