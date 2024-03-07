@@ -20,14 +20,21 @@ After reading this guide, you will know:
 What is Active Record?
 ----------------------
 
-Active Record is the M in [MVC][] - the model - which is the layer of the system
-responsible for representing data and business logic. Active Record helps you
-create and use Ruby objects whose attributes require persistent storage
-to a database.
+Active Record is part of the M in [MVC][] - the model - which is the layer of
+the system responsible for representing data and business logic. Active Record
+helps you create and use Ruby objects whose attributes require persistent
+storage to a database.
 
-NOTE: What is the difference between Active Record and Active Model? It's also possible to model data with Ruby objects that do *not* need to be backed by a database. [Active Model](active_model_basics.html) is commonly used for that in Rails, making Active Record and Active Model both part of the M in MVC, as well as your own plain Ruby objects.
+NOTE: What is the difference between Active Record and Active Model? It's
+possible to model data with Ruby objects that do *not* need to be backed by a
+database. [Active Model](active_model_basics.html) is commonly used for that in
+Rails, making Active Record and Active Model both part of the M in MVC, as well
+as your own plain Ruby objects.
 
-There is some industry jargon around the term "Active Record". Active Record in Rails is an implementation of a software architecture pattern by the same name. It's also a description of something called an [Object Relational Mapping][ORM] system. The below sections explain these terms:
+The term "Active Record" also refers to a software architecture pattern. Active
+Record in Rails is an implementation of that pattern. It's also a description of
+something called an [Object Relational Mapping][ORM] system. The below sections
+explain these terms:
 
 ### The Active Record Pattern
 
@@ -240,7 +247,7 @@ $ bin/rails generate model Product::Order
 In the case where `Product` module already exists, you will be asked to resolve the conflict:
 
 ```bash
-$ rails generate model Product/Order
+$ bin/rails generate model Product::Order
       invoke  active_record
       create    db/migrate/20240305140356_create_product_orders.rb
       create    app/models/product/order.rb
@@ -264,6 +271,18 @@ end
 ```
 
 Setting the [table_name_prefix](https://api.rubyonrails.org/classes/ActiveRecord/ModelSchema.html#method-c-table_name_prefix-3D) in `Product` will allow `Order` model's database table to be named `product_orders`, instead of plain `orders`.
+
+The other possibility is that you already have a `Product` model that you want to keep in `app/models`. In that case, you can choose `n` to not overwrite `product.rb`. This will still allow for a namespaced table name for `Product::Order` class:
+
+```ruby
+# app/models/product.rb
+class Product < ApplicationRecord
+  # existing code
+end
+
+Product::Order.table_name
+# => "product_orders"
+```
 
 Overriding the Naming Conventions
 ---------------------------------
