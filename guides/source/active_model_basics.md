@@ -990,7 +990,7 @@ irb> Person.model_name.uncountable?
 
 NOTE: Some `Naming` methods, like `param_key`, `route_key` and
 `singular_route_key`, differ for namespaced models based on whether it's inside
-an isolated [Engine](https://guides.rubyonrails.org/engines.html).
+an isolated [Engine](engines.html).
 
 #### Customize the Name of the Model
 
