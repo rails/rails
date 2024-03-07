@@ -754,7 +754,7 @@ class Person
   end
 
   def save
-    # Persist data - clears dirty data and moves `changes` to `previously_changed`.
+    # Persist data - clears dirty data and moves `changes` to `previous_changes`.
     changes_applied
   end
 
