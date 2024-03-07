@@ -38,14 +38,20 @@ explain these terms:
 
 ### The Active Record Pattern
 
-The [Active Record pattern is described by Martin Fowler][MFAR] in the book _Patterns of Enterprise Application Architecture_ as "an object that wraps a row in a database table, encapsulates the database access, and adds domain logic to that data." Active Record objects carry both data and behavior. Active Record classes match very closely to the record structure of the underlying database. This way users can easily read from and write to the database, as you will see in the examples below.
+The [Active Record pattern is described by Martin Fowler][MFAR] in the book
+_Patterns of Enterprise Application Architecture_ as "an object that wraps a row
+in a database table, encapsulates the database access, and adds domain logic to
+that data." Active Record objects carry both data and behavior. Active Record
+classes match very closely to the record structure of the underlying database.
+This way users can easily read from and write to the database, as you will see
+in the examples below.
 
 ### Object Relational Mapping
 
 Object Relational Mapping, commonly referred to as ORM, is a technique that
 connects the rich objects of a programming language to tables in a relational
-database management system (RDBMS). In the case of a Rails application, these are
-Ruby objects. Using an ORM, the attributes of Ruby objects, as well as the
+database management system (RDBMS). In the case of a Rails application, these
+are Ruby objects. Using an ORM, the attributes of Ruby objects, as well as the
 relationship between objects, can be easily stored and retrieved from a database
 without writing SQL statements directly. Overall, ORMs minimize the amount of
 database access code you have to write.
@@ -77,14 +83,16 @@ Convention over Configuration in Active Record
 When writing applications using other programming languages or frameworks, it
 may be necessary to write a lot of configuration code. This is particularly true
 for ORM frameworks in general. However, if you follow the conventions adopted by
-Rails, you'll write very little to no configuration code when creating Active Record models.
+Rails, you'll write very little to no configuration code when creating Active
+Record models.
 
 Rails adopts the idea that if you configure your applications in the same way
 most of the time, then that way should be the default. Explicit configuration
 should be needed only in those cases where you can't follow the convention.
 
 To take advantage of convention over configuration in Active Record, there are
-some naming and schema conventions to follow. And in case you need to, it is possible to [override naming conventions](#overriding-the-naming-conventions).
+some naming and schema conventions to follow. And in case you need to, it is
+possible to [override naming conventions](#overriding-the-naming-conventions).
 
 ### Naming Conventions
 
@@ -92,20 +100,20 @@ Active Record uses this naming convention to map between models (represented by
 Ruby objects) and database tables:
 
 Rails will pluralize your model's class names to find the respective database
-table. For example, a class named `Book` maps to a database table named
-`books`. The Rails pluralization mechanisms are very powerful and capable of
-pluralizing (and singularizing) both regular and irregular words in the English
-language. This uses the [Active
-Support](active_support_core_extensions.html#pluralize) [pluralize
-method](https://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-pluralize),
-if you're curious.
+table. For example, a class named `Book` maps to a database table named `books`.
+The Rails pluralization mechanisms are very powerful and capable of pluralizing
+(and singularizing) both regular and irregular words in the English language.
+This uses the [Active Support](active_support_core_extensions.html#pluralize)
+[pluralize](https://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-pluralize) method.
 
 For class names composed of two or more words, the model class name will follow
-the Ruby conventions of using a UpperCamelCase name. The database table name, in that
-case, will be a snake_case name. For example:
+the Ruby conventions of using a UpperCamelCase name. The database table name, in
+that case, will be a snake_case name. For example:
 
-* `BookClub` - is the model class, singular with the first letter of each word capitalized.
-* `book_clubs` - is the matching database table, plural with underscores separating words.
+* `BookClub` - is the model class, singular with the first letter of each word
+  capitalized.
+* `book_clubs` - is the matching database table, plural with underscores
+  separating words.
 
 Here are some more examples of model class names and corresponding table names:
 
@@ -123,8 +131,8 @@ depending on the purpose of these columns.
 
 * **Primary keys** - By default, Active Record will use an integer column named
   `id` as the table's primary key (`bigint` for PostgreSQL and MySQL, `integer`
-  for SQLite). When using [Active Record Migrations](#migrations) to create your tables, this column
-  will be automatically created.
+  for SQLite). When using [Active Record Migrations](#migrations) to create your
+  tables, this column will be automatically created.
 * **Foreign keys** - These fields should be named following the pattern
   `singularized_table_name_id` (e.g., `order_id`, `line_item_id`). These are the
   fields that Active Record will look for when you create associations between
@@ -160,8 +168,9 @@ Creating Active Record Models
 
 When generating a Rails application, an abstract `ApplicationRecord` class will
 be created in `app/models/application_record.rb`. The `ApplicationRecord` class
-inherits from [`ActiveRecord::Base`](https://api.rubyonrails.org/classes/ActiveRecord/Base.html) and it's what turns a regular Ruby class into
-an Active Record model.
+inherits from
+[`ActiveRecord::Base`](https://api.rubyonrails.org/classes/ActiveRecord/Base.html)
+and it's what turns a regular Ruby class into an Active Record model.
 
 `ApplicationRecord` is the base class for all Active Record models in your app.
 To create a new model, subclass the `ApplicationRecord` class and you're good to
@@ -172,8 +181,10 @@ class Book < ApplicationRecord
 end
 ```
 
-This will create a `Book` model, mapped to a `books` table in the
-database, where each column in the table is mapped to attributes of the `Book` class. An instance of `Book` can represent a row in the `books` table. The `books` table can be created using an SQL statement like this:
+This will create a `Book` model, mapped to a `books` table in the database,
+where each column in the table is mapped to attributes of the `Book` class. An
+instance of `Book` can represent a row in the `books` table. The `books` table
+can be created using an SQL statement like this:
 
 ```sql
 CREATE TABLE books (
@@ -184,7 +195,9 @@ CREATE TABLE books (
 );
 ```
 
-Database tables in Rails are typically created using [Active Record Migrations](#migrations) and not raw SQL. A migration for the `books` table above can be generated like this:
+Database tables in Rails are typically created using [Active Record
+Migrations](#migrations) and not raw SQL. A migration for the `books` table
+above can be generated like this:
 
 ```bash
 $ bin/rails generate migration CreateBooks title:string author:string
@@ -225,13 +238,21 @@ irb> book.title
 => "The Hobbit"
 ```
 
-NOTE: You can generate the Active Record model class as well as a matching migration with this command `bin/rails generate model Book title:string author:string`. This creates both `/app/models/book.rb` and `/db/migrate/20240220143807_create_books.rb` files.
+NOTE: You can generate the Active Record model class as well as a matching
+migration with this command `bin/rails generate model Book title:string
+author:string`. This creates both `/app/models/book.rb` and
+`/db/migrate/20240220143807_create_books.rb` files.
 
 ### Creating Namespaced Models
 
-Active Record models are placed under the `app/models` directory by default. But you may want to organize your models by placing similar models under their own folder and namespace. For example, `order.rb` and `review.rb` under `app/models/product` with `Product::Order` and `Product::Review` class names, respectively. You can create namespaced models with Active Record.
+Active Record models are placed under the `app/models` directory by default. But
+you may want to organize your models by placing similar models under their own
+folder and namespace. For example, `order.rb` and `review.rb` under
+`app/models/product` with `Product::Order` and `Product::Review` class names,
+respectively. You can create namespaced models with Active Record.
 
-In the case where `Product` module does not already exist, the `generate` command will create everything like this:
+In the case where `Product` module does not already exist, the `generate`
+command will create everything like this:
 
 ```bash
 $ bin/rails generate model Product::Order
@@ -244,7 +265,8 @@ $ bin/rails generate model Product::Order
       create      test/fixtures/product/orders.yml
 ```
 
-In the case where `Product` module already exists, you will be asked to resolve the conflict:
+In the case where `Product` module already exists, you will be asked to resolve
+the conflict:
 
 ```bash
 $ bin/rails generate model Product::Order
@@ -255,7 +277,8 @@ $ bin/rails generate model Product::Order
   Overwrite /Users/bhumi/Code/rails_guides/app/models/product.rb? (enter "h" for help) [Ynaqdhm]
 ```
 
-Once the namespaced model generation is successful, the `Product` and `Order` classes look like this:
+Once the namespaced model generation is successful, the `Product` and `Order`
+classes look like this:
 
 ```ruby
 # app/models/product.rb
@@ -270,9 +293,17 @@ class Product::Order < ApplicationRecord
 end
 ```
 
-Setting the [table_name_prefix](https://api.rubyonrails.org/classes/ActiveRecord/ModelSchema.html#method-c-table_name_prefix-3D) in `Product` will allow `Order` model's database table to be named `product_orders`, instead of plain `orders`.
+Setting the
+[table_name_prefix](https://api.rubyonrails.org/classes/ActiveRecord/ModelSchema.html#method-c-table_name_prefix-3D)
+in `Product` will allow `Order` model's database table to be named
+`product_orders`, instead of plain `orders`.
 
-The other possibility is that you already have a `Product` model that you want to keep in `app/models`. In that case, you can choose `n` to not overwrite `product.rb`. This will still allow for a namespaced table name for `Product::Order` class:
+The other possibility is that you already have a `Product` model that you want
+to keep in `app/models`. In that case, you can choose `n` to not overwrite
+`product.rb` during the `generate` command.
+
+This will still allow for a namespaced table name for `Product::Order` class,
+without needing the `table_name_prefix`:
 
 ```ruby
 # app/models/product.rb
@@ -324,27 +355,33 @@ class Book < ApplicationRecord
 end
 ```
 
-NOTE: **Active Record does not recommend using non-primary key columns named `id`.**
-Using a column named `id` which is not a single-column primary key complicates the access to the column value.
-The application will have to use the [`id_value`][] alias attribute to access the value of the non-PK `id` column.
+NOTE: **Active Record does not recommend using non-primary key columns named
+`id`.** Using a column named `id` which is not a single-column primary key
+complicates the access to the column value. The application will have to use the
+[`id_value`][] alias attribute to access the value of the non-PK `id` column.
 
 [`id_value`]: https://api.rubyonrails.org/classes/ActiveRecord/ModelSchema.html#method-i-id_value
 
 NOTE: If you try to create a column named `id` which is not the primary key,
-Rails will throw an error during migrations such as:
-`you can't redefine the primary key column 'id' on 'my_books'.`
-`To define a custom primary key, pass { id: false } to create_table.`
+Rails will throw an error during migrations such as: `you can't redefine the
+primary key column 'id' on 'my_books'.` `To define a custom primary key, pass {
+id: false } to create_table.`
 
 CRUD: Reading and Writing Data
 ------------------------------
 
 CRUD is an acronym for the four verbs we use to operate on data: **C**reate,
 **R**ead, **U**pdate and **D**elete. Active Record automatically creates methods
-to allow you to read and manipulate data stored in your application's database tables.
+to allow you to read and manipulate data stored in your application's database
+tables.
 
-Active Record makes it seamless to perform CRUD operations by using these high-level methods that abstract away database access details. Note that all of these convenient methods result in SQL statement(s) that are executed against the underlying database.
+Active Record makes it seamless to perform CRUD operations by using these
+high-level methods that abstract away database access details. Note that all of
+these convenient methods result in SQL statement(s) that are executed against
+the underlying database.
 
-The examples below show a few of the CRUD methods as well as the resulting SQL statements.
+The examples below show a few of the CRUD methods as well as the resulting SQL
+statements.
 
 ### Create
 
@@ -352,8 +389,9 @@ Active Record objects can be created from a hash, a block, or have their
 attributes manually set after creation. The `new` method will return a new
 object while `create` will return the object and save it to the database.
 
-For example, given a `Book` model with attributes of `title` and `author`,
-the `create` method call will create an object and save a new record to the database:
+For example, given a `Book` model with attributes of `title` and `author`, the
+`create` method call will create an object and save a new record to the
+database:
 
 ```ruby
 book = Book.create(title: "The Lord of the Rings", author: "J.R.R. Tolkien")
@@ -363,7 +401,8 @@ book.inspect
 # => "#<Book id: 106, title: \"The Lord of the Rings\", author: \"J.R.R. Tolkien\", created_at: \"2024-03-04 19:15:58.033967000 +0000\", updated_at: \"2024-03-04 19:15:58.033967000 +0000\">"
 ```
 
-While the `new` method will instantiate an object *without* saving it to the database:
+While the `new` method will instantiate an object *without* saving it to the
+database:
 
 ```ruby
 book = Book.new
@@ -383,8 +422,8 @@ book.id # => 107
 ```
 
 Finally, if a block is provided, both `create` and `new` will yield the new
-object to that block for initialization, while only `create` will persist
-the resulting object to the database:
+object to that block for initialization, while only `create` will persist the
+resulting object to the database:
 
 ```ruby
 book = Book.new do |b|
@@ -395,7 +434,8 @@ end
 book.save
 ```
 
-The resulting SQL statement from both `book.save` and `Book.create` look something like this:
+The resulting SQL statement from both `book.save` and `Book.create` look
+something like this:
 
 ```sql
 /* Note that `created_at` and `updated_at` are automatically set */
@@ -405,7 +445,9 @@ INSERT INTO "books" ("title", "author", "created_at", "updated_at") VALUES (?, ?
 
 ### Read
 
-Active Record provides a rich API for accessing data within a database. You can query a single record or multiple records, filter them by any attribute, order them, group them, select specific fields, and do anything you can do with SQL.
+Active Record provides a rich API for accessing data within a database. You can
+query a single record or multiple records, filter them by any attribute, order
+them, group them, select specific fields, and do anything you can do with SQL.
 
 ```ruby
 # Return a collection with all books
@@ -433,7 +475,8 @@ SELECT "books".* FROM "books" ORDER BY "books"."id" DESC LIMIT ?  [["LIMIT", 1]]
 SELECT "books".* FROM "books" LIMIT ?  [["LIMIT", 1]]
 ```
 
-We can also find specific books with `find_by` and `where`. While `find_by` returns a single record, `where` returns a list of records:
+We can also find specific books with `find_by` and `where`. While `find_by`
+returns a single record, `where` returns a list of records:
 
 ```ruby
 # Returns the first book with a given title or `nil` if no book is found.
@@ -462,7 +505,8 @@ resulting in this SQL:
 SELECT "books".* FROM "books" WHERE "books"."author" = ? ORDER BY "books"."created_at" DESC [["author", "Douglas Adams"]]
 ```
 
-There are many more Active Record methods to read and query records. You can learn more about them in the [Active Record Query Interface](active_record_querying.html) guide.
+There are many more Active Record methods to read and query records. You can
+learn more about them in the [Active Record Query](active_record_querying.html) guide.
 
 ### Update
 
@@ -491,7 +535,8 @@ the `update` results in the following SQL:
  UPDATE "books" SET "title" = ?, "updated_at" = ? WHERE "books"."id" = ?  [["title", "The Lord of the Rings: The Fellowship of the Ring"], ["updated_at", "2024-02-22 20:51:13.487064"], ["id", 104]]
 ```
 
-This is useful when updating several attributes at once. Similar to `create`, using `update` will commit the updated records to the database.
+This is useful when updating several attributes at once. Similar to `create`,
+using `update` will commit the updated records to the database.
 
 If you'd like to update several records in bulk **without callbacks or
 validations**, you can update the database directly using `update_all`:
@@ -502,7 +547,8 @@ Book.update_all(status: "already own")
 
 ### Delete
 
-Likewise, once retrieved, an Active Record object can be destroyed, which removes it from the database.
+Likewise, once retrieved, an Active Record object can be destroyed, which
+removes it from the database.
 
 ```ruby
 book = Book.find_by(title: "The Lord of the Rings")
@@ -530,14 +576,17 @@ Validations
 -----------
 
 Active Record allows you to validate the state of a model before it gets written
-into the database. There are several methods that allow for different types of validations. For example, validate that an attribute value is not empty, is unique, is not already in the database, follows a specific format, and many more.
+into the database. There are several methods that allow for different types of
+validations. For example, validate that an attribute value is not empty, is
+unique, is not already in the database, follows a specific format, and many
+more.
 
-Methods like `save`, `create` and `update` validate a model before persisting
-it to the database. When a model is invalid these methods return `false` and no
+Methods like `save`, `create` and `update` validate a model before persisting it
+to the database. When a model is invalid these methods return `false` and no
 database operations are performed. All of these methods have a bang counterpart
 (that is, `save!`, `create!` and `update!`), which are stricter in that they
-raise an `ActiveRecord::RecordInvalid` exception when validation fails.
-A quick example to illustrate:
+raise an `ActiveRecord::RecordInvalid` exception when validation fails. A quick
+example to illustrate:
 
 ```ruby
 class User < ApplicationRecord
@@ -560,7 +609,9 @@ Callbacks
 ---------
 
 Active Record callbacks allow you to attach code to certain events in the
-lifecycle of your models. This enables you to add behavior to your models by executing code when those events occur, like when you create a new record, update it, destroy it, and so on.
+lifecycle of your models. This enables you to add behavior to your models by
+executing code when those events occur, like when you create a new record,
+update it, destroy it, and so on.
 
 ```ruby
 class User < ApplicationRecord
@@ -585,8 +636,8 @@ Migrations
 ----------
 
 Rails provides a convenient way to manage changes to a database schema via
-migrations. Migrations are written in a domain-specific language and stored
-in files which are executed against any database that Active Record supports.
+migrations. Migrations are written in a domain-specific language and stored in
+files which are executed against any database that Active Record supports.
 
 Here's a migration that creates a new table called `publications`:
 
@@ -606,14 +657,15 @@ class CreatePublications < ActiveRecord::Migration[7.2]
 end
 ```
 
-Note that the above code is database-agnostic: it will run in MySQL,
-PostgreSQL, SQLite, and others.
+Note that the above code is database-agnostic: it will run in MySQL, PostgreSQL,
+SQLite, and others.
 
-Rails keeps track of which migrations have been committed to the database and stores them
-in a neighboring table in that same database called `schema_migrations`.
+Rails keeps track of which migrations have been committed to the database and
+stores them in a neighboring table in that same database called
+`schema_migrations`.
 
-To run the migration and create the table, you'd run `bin/rails db:migrate`,
-and to roll it back and delete the table, `bin/rails db:rollback`.
+To run the migration and create the table, you'd run `bin/rails db:migrate`, and
+to roll it back and delete the table, `bin/rails db:rollback`.
 
 You can learn more about migrations in the [Active Record Migrations
 guide](active_record_migrations.html).
