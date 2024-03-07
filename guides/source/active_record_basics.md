@@ -248,7 +248,7 @@ $ rails generate model Product/Order
   Overwrite /Users/bhumi/Code/rails_guides/app/models/product.rb? (enter "h" for help) [Ynaqdhm]
 ```
 
-Once the namespaced model generation is successful, the `Product` and `Order` classes looks like this:
+Once the namespaced model generation is successful, the `Product` and `Order` classes look like this:
 
 ```ruby
 # app/models/product.rb
