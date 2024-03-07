@@ -637,10 +637,10 @@ module ActionController # :nodoc:
         uri = URI.parse(action_path)
 
         if uri.relative? && (action_path.blank? || !action_path.start_with?("/"))
-          return normalize_relative_action_path(uri.path)
+          normalize_relative_action_path(uri.path)
+        else
+          uri.path.chomp("/")
         end
-
-        uri.path.chomp("/")
       end
 
       def normalize_relative_action_path(rel_action_path) # :doc:
