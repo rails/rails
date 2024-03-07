@@ -602,7 +602,7 @@ class Person
 end
 ```
 
-```
+```irb
 irb> person = Person.new
 
 irb> person.update
