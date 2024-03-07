@@ -61,7 +61,6 @@
         Active Model also helps build custom ORMs for use outside of
         the Rails framework. This guide provides you with all you need to get
         started using Active Model classes.
-      work_in_progress: true
 -
   name: Views
   documents:
