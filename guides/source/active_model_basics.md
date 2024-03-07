@@ -1327,7 +1327,7 @@ irb> person.name
 
 [`ActiveModel::Translation`](https://api.rubyonrails.org/classes/ActiveModel/Translation.html)
 provides integration between your object and the [Rails internationalization
-(i18n) framework](https://guides.rubyonrails.org/i18n.html).
+(i18n) framework](i18n.html).
 
 ```ruby
 class Person
