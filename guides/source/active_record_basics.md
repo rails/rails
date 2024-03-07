@@ -227,7 +227,7 @@ Active Record models are placed under the `app/models` directory by default. But
 In the case where `Product` module does not already exist, the `generate` command will create everything like this:
 
 ```irb
-$ rails generate model Product/Order
+$ bin/rails generate model Product::Order
       invoke  active_record
       create    db/migrate/20240306194227_create_product_orders.rb
       create    app/models/product/order.rb
