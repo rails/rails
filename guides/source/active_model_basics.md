@@ -117,11 +117,16 @@ which results in the following HTML:
 </form>
 ```
 
-`render` can be used to render a partial with the object as a local variable:
+`render` can be used to render a partial with the object:
 
 ```html+erb
-<%= render "email_contact", email_contact: @email_contact %>
+<%= render @email_contact %>
 ```
+
+NOTE: Avoid passing the object as a local variable if you intend to utilize the
+Active Model API methods. For instance, using <%= render "email_contact",
+email_contact: @email_contact %> will bypass these methods and their
+functionalities.
 
 ### Model
 
