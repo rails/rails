@@ -437,7 +437,7 @@ irb> person.full_name_short?
 
 [`ActiveModel::Callbacks`](https://api.rubyonrails.org/classes/ActiveModel/Callbacks.html)
 gives plain Ruby objects [Active Record style
-callbacks](https://guides.rubyonrails.org/active_record_callbacks.html). The
+callbacks](active_record_callbacks.html). The
 callbacks allow you to hook into model lifecycle events, such as `before_update`
 and `after_create`, as well as to define custom logic to be executed at specific
 points in the model's lifecycle.
