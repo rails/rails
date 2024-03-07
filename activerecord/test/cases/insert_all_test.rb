@@ -337,19 +337,21 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
-  def test_upsert_and_db_warnings
-    skip unless supports_insert_on_duplicate_update?
+  unless in_memory_db?
+    def test_upsert_and_db_warnings
+      skip unless supports_insert_on_duplicate_update?
 
-    begin
-      with_db_warnings_action(:raise) do
-        assert_nothing_raised do
-          Book.upsert({ id: 1001, name: "Remote", author_id: 1 })
+      begin
+        with_db_warnings_action(:raise) do
+          assert_nothing_raised do
+            Book.upsert({ id: 1001, name: "Remote", author_id: 1 })
+          end
         end
+      ensure
+        # We need to explicitly remove the record, because `with_db_warnings_action`
+        # prevents the wrapping transaction to be rolled back.
+        Book.delete(1001)
       end
-    ensure
-      # We need to explicitly remove the record, because `with_db_warnings_action`
-      # prevents the wrapping transaction to be rolled back.
-      Book.delete(1001)
     end
   end
 
