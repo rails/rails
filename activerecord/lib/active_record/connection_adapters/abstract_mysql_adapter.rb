@@ -639,18 +639,37 @@ module ActiveRecord
       end
 
       def build_insert_sql(insert) # :nodoc:
-        sql = +"INSERT #{insert.into} #{insert.values_list}"
+        no_op_column = quote_column_name(insert.keys.first)
 
-        if insert.skip_duplicates?
-          no_op_column = quote_column_name(insert.keys.first)
-          sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{no_op_column}"
-        elsif insert.update_duplicates?
-          sql << " ON DUPLICATE KEY UPDATE "
-          if insert.raw_update_sql?
-            sql << insert.raw_update_sql
-          else
-            sql << insert.touch_model_timestamps_unless { |column| "#{column}<=>VALUES(#{column})" }
-            sql << insert.updatable_columns.map { |column| "#{column}=VALUES(#{column})" }.join(",")
+        # Avoid MySQL 8.0 deprecation warning, see https://dev.mysql.com/worklog/task/?id=13325.
+        if !mariadb? && database_version >= "8.0.0"
+          values_alias = quote_table_name("#{insert.model.table_name}_values")
+          sql = +"INSERT #{insert.into} #{insert.values_list} AS #{values_alias}"
+
+          if insert.skip_duplicates?
+            sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{values_alias}.#{no_op_column}"
+          elsif insert.update_duplicates?
+            sql << " ON DUPLICATE KEY UPDATE "
+            if insert.raw_update_sql?
+              sql << insert.raw_update_sql
+            else
+              sql << insert.touch_model_timestamps_unless { |column| "#{insert.model.quoted_table_name}.#{column}<=>#{values_alias}.#{column}" }
+              sql << insert.updatable_columns.map { |column| "#{column}=#{values_alias}.#{column}" }.join(",")
+            end
+          end
+        else
+          sql = +"INSERT #{insert.into} #{insert.values_list}"
+
+          if insert.skip_duplicates?
+            sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{no_op_column}"
+          elsif insert.update_duplicates?
+            sql << " ON DUPLICATE KEY UPDATE "
+            if insert.raw_update_sql?
+              sql << insert.raw_update_sql
+            else
+              sql << insert.touch_model_timestamps_unless { |column| "#{column}<=>VALUES(#{column})" }
+              sql << insert.updatable_columns.map { |column| "#{column}=VALUES(#{column})" }.join(",")
+            end
           end
         end
 
