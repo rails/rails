@@ -123,10 +123,11 @@ which results in the following HTML:
 <%= render @email_contact %>
 ```
 
-NOTE: Avoid passing the object as a local variable if you intend to utilize the
-Active Model API methods. For instance, using <%= render "email_contact",
-email_contact: @email_contact %> will bypass these methods and their
-functionalities.
+NOTE: You can learn more about how to use `form_with` and `render` with
+`ActiveModel::API` compatible objects in the [Action View Form
+Helpers](form_helpers.html) and [Layouts and
+Rendering](layouts_and_rendering.html)
+guides, respectively.
 
 ### Model
 
