@@ -995,9 +995,10 @@ use a more user-friendly name for the model, while still being able to reference
 it using its full namespace.
 
 For example, let's say you have a `Person` namespace in your Rails application,
-and you want to create a form for a new `Person::Profile`. By default,
-Rails would generate the form with the URL `/person/profiles`, which includes
-the namespace `person`. However, if you want the URL to simply point to
+and you want to create a form for a new `Person::Profile`.
+
+By default, Rails would generate the form with the URL `/person/profiles`, which
+includes the namespace `person`. However, if you want the URL to simply point to
 `profiles` without the namespace, you can customize the `model_name` method like
 this:
 
@@ -1017,6 +1018,33 @@ With this setup, when you use the `form_with` helper to create a form for
 creating a new `Person::Profile`, Rails will generate the form with the URL
 `/profiles` instead of `/person/profiles`, because the `model_name` method has
 been overridden to return `Profile`.
+
+In addition, the path helpers will be generated without the namespace, so you
+can use `profiles_path` instead of `person_profiles_path` to generate the URL
+for the `profiles` resource. To use the `profiles_path` helper, you need to
+define the routes for the `Person::Profile` model in your `config/routes.rb`
+file like this:
+
+```ruby
+Rails.application.routes.draw do
+  resources :profiles
+end
+```
+
+Consequently, you can expect the model to return the following values for
+methods that were described in the previous section:
+
+```irb
+irb> name = ActiveModel::Name.new(Person::Profile, nil, "Profile")
+=> #<ActiveModel::Name:0x000000014c5dbae0
+
+irb> name.singular
+=> "profile"
+irb> name.singular_route_key
+=> "profile"
+irb> name.route_key
+=> "profiles"
+```
 
 ### SecurePassword
 
