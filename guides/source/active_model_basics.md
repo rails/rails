@@ -131,9 +131,9 @@ functionalities.
 ### Model
 
 [`ActiveModel::Model`](https://api.rubyonrails.org/classes/ActiveModel/Model.html)
-provides the required interface to allow an object to interact with Action Pack
-and Action View. Currently, it only includes [ActiveModel::API](#api) but it
-will be extended in the future to add more functionality.
+includes [ActiveModel::API](#api) to interact with Action Pack and Action View
+by default, and is the recommended approach to implement model-like Ruby
+classes. It will be extended in the future to add more functionality.
 
 ```ruby
 class Person
