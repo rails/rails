@@ -5,10 +5,10 @@ Action View Helpers
 
 After reading this guide, you will know:
 
-* How to format dates, strings, and numbers
-* How to link to images, videos, stylesheets, etc...
-* How to sanitize content
-* How to localize content
+* How to format dates, strings, and numbers.
+* How to link to images, videos, stylesheets, etc.
+* How to sanitize content.
+* How to localize content.
 
 --------------------------------------------------------------------------------
 
