@@ -8,7 +8,10 @@
 
   // Features to add to the dev container. More info: https://containers.dev/features.
   "features": {
-    "ghcr.io/devcontainers/features/github-cli:1": {}
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/rails/devcontainer/features/ruby:latest": {
+      "version": "3.2.2"
+    }
   },
 
 <%- if !devcontainer_variables.empty? -%>

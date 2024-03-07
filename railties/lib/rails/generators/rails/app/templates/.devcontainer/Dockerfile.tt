@@ -1,6 +1,6 @@
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
 ARG RUBY_VERSION=<%= devcontainer_ruby_version %>
-FROM mcr.microsoft.com/devcontainers/ruby:1-$RUBY_VERSION-bookworm
+FROM mcr.microsoft.com/devcontainers/base:1-bookworm
 
 <%- unless options.skip_active_storage -%>
 # Install packages needed to build gems
