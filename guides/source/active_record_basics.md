@@ -414,7 +414,7 @@ SELECT "books".* FROM "books" ORDER BY "books"."id" DESC LIMIT ?  [["LIMIT", 1]]
 SELECT "books".* FROM "books" LIMIT ?  [["LIMIT", 1]]
 ```
 
-We can also find specific books with `find_by` and `where`. While `find_by` returns a single record, `where` returns an array:
+We can also find specific books with `find_by` and `where`. While `find_by` returns a single record, `where` returns a list of records:
 
 ```ruby
 # Returns the first book with a given title or `nil` if no book is found.
