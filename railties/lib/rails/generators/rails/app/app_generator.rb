@@ -128,6 +128,11 @@ module Rails
 
       @config_target_version = Rails.application.config.loaded_config_version || "5.0"
 
+      # We have to store the contents of config/application before it possibly
+      # gets overridden in #config to see if sprockets was required before
+      # updating
+      application_file = File.read("config/application.rb")
+
       config
 
       if !options[:skip_action_cable] && !action_cable_config_exist
@@ -164,8 +169,11 @@ module Rails
         end
       end
 
-      if !skip_sprockets?
-        insert_into_file "config/application.rb", %(require "sprockets/railtie"), after: /require\(["']rails\/all["']\)\n/
+      if application_file.match?(/^require[( ]["'](rails\/all|sprockets\/railtie)["']\)?/)
+        @generator.gem "sprockets-rails"
+        run_bundle
+
+        insert_into_file "config/application.rb", %(require "sprockets/railtie"\n), after: /require[( ]["']rails\/all["']\)?\n/
       end
     end
 
@@ -348,7 +356,7 @@ module Rails
 
       def update_active_storage
         unless skip_active_storage?
-          rails_command "active_storage:update", inline: true
+          rails_command "active_storage:update"
         end
       end
       remove_task :update_active_storage
