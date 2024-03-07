@@ -180,7 +180,7 @@ CREATE TABLE books (
 Database tables in Rails are typically created using [Active Record Migrations](#migrations) and not raw SQL. A migration for the `books` table above can be generated like this:
 
 ```bash
-$ rails generate migration CreateBooks title:string author:string
+$ bin/rails generate migration CreateBooks title:string author:string
 ```
 
 and results in this:
