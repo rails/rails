@@ -764,7 +764,7 @@ class Person
   end
 
   def rollback!
-   # Restores all previous data of the provided attributes.
+    # Restores all previous data of the provided attributes.
     restore_attributes
   end
 end
