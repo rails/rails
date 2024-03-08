@@ -1,3 +1,10 @@
+*   Fix sanitizer vendor configuration in 7.1 defaults.
+
+    In apps where rails-html-sanitizer was not eagerly loaded, the sanitizer default could end up
+    being Rails::HTML4::Sanitizer when it should be set to Rails::HTML5::Sanitizer.
+
+    *Mike Dalessio*, *Rafael Mendonça França*
+
 *   Revert the use of `Concurrent.physical_processor_count` in default Puma config
 
     While for many people this saves one config to set, for many others using
