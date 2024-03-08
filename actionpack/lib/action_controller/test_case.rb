@@ -284,13 +284,13 @@ module ActionController
   # ActionController::TestCase will also automatically provide the following instance
   # variables for use in the tests:
   #
-  # <b>@controller</b>::
+  # @controller::
   #      The controller instance that will be tested.
-  # <b>@request</b>::
+  # @request::
   #      An ActionController::TestRequest, representing the current HTTP
   #      request. You can modify this object before sending the HTTP request. For example,
   #      you might want to set some session properties before sending a GET request.
-  # <b>@response</b>::
+  # @response::
   #      An ActionDispatch::TestResponse object, representing the response
   #      of the last HTTP response. In the above example, <tt>@response</tt> becomes valid
   #      after calling +post+. If the various assert methods are not sufficient, then you

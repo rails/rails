@@ -140,11 +140,11 @@ module ActionCable
     # ActionCable::Channel::TestCase will also automatically provide the following instance
     # methods for use in the tests:
     #
-    # <b>connection</b>::
+    # connection::
     #      An ActionCable::Channel::ConnectionStub, representing the current HTTP connection.
-    # <b>subscription</b>::
+    # subscription::
     #      An instance of the current channel, created when you call +subscribe+.
-    # <b>transmissions</b>::
+    # transmissions::
     #      A list of all messages that have been transmitted into the channel.
     #
     #
