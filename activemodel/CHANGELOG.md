@@ -1,3 +1,30 @@
+*   Yield attributes to block when calling `ActiveModel::Serialization::JSON#from_json`
+
+    ```ruby
+    class Person
+      include ActiveModel::Serializers::JSON
+
+      attr_accessor :name, :born_on
+
+      def attributes=(hash)
+        hash.each do |key, value|
+        send("#{key}=", value)
+        end
+      end
+    end
+
+    payload <<~JSON
+      { "name": "Alice", "bornOn": "2024-03-08" }
+    JSON
+
+    person = Person.new
+    person.from_json(payload) { |attributes| attributes.deep_transform_keys!(&:underscore) }
+    person.name # => "Alice"
+    person.born_on # => "2024-03-08"
+    ```
+
+    *Sean Doyle*
+
 *   Fix a bug where type casting of string to `Time` and `DateTime` doesn't
     calculate minus minute value in TZ offset correctly.
 
