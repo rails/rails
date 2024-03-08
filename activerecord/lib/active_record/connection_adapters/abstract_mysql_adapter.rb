@@ -641,8 +641,9 @@ module ActiveRecord
       def build_insert_sql(insert) # :nodoc:
         no_op_column = quote_column_name(insert.keys.first)
 
-        # Avoid MySQL 8.0 deprecation warning, see https://dev.mysql.com/worklog/task/?id=13325.
-        if !mariadb? && database_version >= "8.0.0"
+        # MySQL 8.0.19 replaces `VALUES(<expression>)` clauses with row and column alias names, see https://dev.mysql.com/worklog/task/?id=6312 .
+        # then MySQL 8.0.20 deprecates the `VALUES(<expression>)` see https://dev.mysql.com/worklog/task/?id=13325 .
+        if !mariadb? && database_version >= "8.0.19"
           values_alias = quote_table_name("#{insert.model.table_name}_values")
           sql = +"INSERT #{insert.into} #{insert.values_list} AS #{values_alias}"
 
