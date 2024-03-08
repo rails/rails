@@ -1,11 +1,9 @@
-*   Add `config.action_view.nest_html_attributes_within`
+*   Render `Hash` and keyword options as dasherized HTML attributes
 
     ```ruby
-    config.action_view.nest_html_attributes_within = [:hx]
+    tag.button "POST to /clicked", hx: { post: "/clicked", swap: :outerHTML, data: { json: true } }
 
-    tag.button "POST to /clicked", hx: { post: "/clicked", swap: :outerHTML }
-
-    # => <button hx-post="/clicked" hx-swap="outerHTML">POST to /clicked</button>
+    # => <button hx-post="/clicked" hx-swap="outerHTML" hx-data="{&quot;json&quot;:true}">POST to /clicked</button>
     ```
 
     *Sean Doyle*

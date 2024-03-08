@@ -33,11 +33,13 @@ module ActionView
 
       ARIA_PREFIXES = ["aria", :aria].to_set.freeze
       DATA_PREFIXES = ["data", :data].to_set.freeze
+      CLASS_PREFIXES = ["class", :class].to_set.freeze
 
       TAG_TYPES = {}
       TAG_TYPES.merge! BOOLEAN_ATTRIBUTES.index_with(:boolean)
       TAG_TYPES.merge! DATA_PREFIXES.index_with(:data)
       TAG_TYPES.merge! ARIA_PREFIXES.index_with(:aria)
+      TAG_TYPES.merge! CLASS_PREFIXES.index_with(:class)
       TAG_TYPES.freeze
 
       PRE_CONTENT_STRINGS             = Hash.new { "" }
@@ -47,8 +49,6 @@ module ActionView
       class TagBuilder # :nodoc:
         include CaptureHelper
         include OutputSafetyHelper
-
-        class_attribute :nest_html_attributes_within, instance_accessor: false, default: Set.new
 
         def self.define_element(name, code_generator:, method_name: name.to_s.underscore)
           code_generator.define_cached_method(method_name, namespace: :tag_builder) do |batch|
@@ -266,7 +266,7 @@ module ActionView
           sep    = " "
           options.each_pair do |key, value|
             type = TAG_TYPES[key]
-            if value.is_a?(Hash) && (type == :data || TagBuilder.nest_html_attributes_within.include?(key))
+            if type != :aria && type != :class && value.is_a?(Hash)
               value.each_pair do |k, v|
                 next if v.nil?
                 output << sep
@@ -403,11 +403,8 @@ module ActionView
       #   tag.div data: { city_state: %w( Chicago IL ) }
       #   # => <div data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]"></div>
       #
-      # To support nesting sub-attribute hashes for other keys in addition to
-      # <tt>:data</tt> and <tt>:aria</tt>, configure
-      # <tt>config.action_view.nest_html_attributes_within</tt>:
-      #
-      #   config.action_view.nest_html_attributes_within = [:hx]
+      # In addition to <tt>:data</tt> and <tt>:aria</tt>, nest sub-attribute
+      # hashes for any keys:
       #
       #   tag.button "POST to /clicked", hx: { post: "/clicked", swap: :outerHTML }
       #

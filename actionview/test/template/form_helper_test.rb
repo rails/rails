@@ -2,7 +2,6 @@
 
 require "abstract_unit"
 require "controller/fake_models"
-require "active_support/core_ext/object/with"
 
 class FormHelperTest < ActionView::TestCase
   include RenderERBUtils
@@ -4100,12 +4099,10 @@ class FormHelperTest < ActionView::TestCase
     assert_match %r|data-remote="true"|, @rendered
   end
 
-  def test_form_for_with_configured_nest_html_attributes_within
-    ActionView::Helpers::TagHelper::TagBuilder.with nest_html_attributes_within: [:hx, "hx"] do
-      form_for(@post, html: { hx: { post: "/path" } }) { }
+  def test_form_for_nest_html_attributes_within
+    form_for(@post, html: { hx: { post: "/path", data: { open: false } } }) { }
 
-      assert_dom "form[hx-post=?]", "/path"
-    end
+    assert_dom "form[hx-post=?][hx-data=?]", "/path", { open: false }.to_json
   end
 
   def test_fields_for_returns_block_result

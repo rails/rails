@@ -14,7 +14,6 @@ module ActionView
     config.action_view.image_decoding = nil
     config.action_view.apply_stylesheet_media_default = true
     config.action_view.prepend_content_exfiltration_prevention = false
-    config.action_view.nest_html_attributes_within = []
 
     config.eager_load_namespaces << ActionView
 
@@ -70,14 +69,6 @@ module ActionView
       ActionView::Helpers::AssetTagHelper.image_decoding = app.config.action_view.delete(:image_decoding)
       ActionView::Helpers::AssetTagHelper.preload_links_header = app.config.action_view.delete(:preload_links_header)
       ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default = app.config.action_view.delete(:apply_stylesheet_media_default)
-    end
-
-    config.after_initialize do |app|
-      keys = ActionView::Helpers::TagHelper::TagBuilder.nest_html_attributes_within
-      app.config.action_view.delete(:nest_html_attributes_within).each do |key|
-        keys << key.to_s
-        keys << key.to_sym
-      end
     end
 
     config.after_initialize do |app|
