@@ -234,6 +234,12 @@ If you want to include a video file from a different directory, you can use the 
 
 ### AtomFeedHelper
 
+Atom Feeds are XML -based file format used to syndicate content, and can be used
+by users in feed readers to browse content or by search engines to help discover
+additional information about your site.
+
+AtomHelper is mostly used in Builder templates for creating XML.
+
 #### atom_feed
 
 This helper makes building an Atom feed easy. Here's a full usage example:
