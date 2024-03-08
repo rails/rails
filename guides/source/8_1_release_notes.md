@@ -428,6 +428,16 @@ Please refer to the [Changelog][action-text] for detailed changes.
 
 ### Deprecations
 
+* Deprecate the `ActionText::TrixAttachment` class
+
+* Deprecate the `ActionText::Attachments::TrixConversion` module
+
+* Deprecate `ActionText::Attachable#to_trix_content_attachment_partial_path`. Override `to_editor_content_attachment_partial_path` instead.
+
+* Deprecate `ActionText::RichText#to_trix_html`.
+
+* Deprecate `ActionText::Content#to_trix_html`.
+
 ### Notable changes
 
 Action Mailbox
