@@ -6,6 +6,10 @@ class Person < ApplicationRecord
   end
 
   def to_trix_content_attachment_partial_path
+    to_editor_content_attachment_partial_path
+  end
+
+  def to_editor_content_attachment_partial_path
     "people/trix_content_attachment"
   end
 

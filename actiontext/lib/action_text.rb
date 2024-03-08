@@ -39,9 +39,13 @@ module ActionText
     extend ActiveSupport::Autoload
 
     autoload :Caching
+    autoload :Conversion
     autoload :Minification
     autoload :TrixConversion
   end
+
+  mattr_accessor :editors, default: {}.freeze
+  mattr_accessor :editor
 
   class << self
     def html_document_class
