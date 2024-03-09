@@ -1,0 +1,1063 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ruby on Rails 6.0 Release Notes — Ruby on Rails Guides</title>
+  <link rel="stylesheet" type="text/css" href="stylesheets/style.css" data-turbo-track="reload">
+  <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+  <link rel="stylesheet" type="text/css" href="stylesheets/highlight.css" data-turbo-track="reload">
+  
+  <link rel="icon" href="images/favicon.ico" sizes="any">
+  <link rel="icon" href="images/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="images/icon.png">
+  
+  <script src="javascripts/@hotwired--turbo.js" data-turbo-track="reload"></script>
+  <script src="javascripts/clipboard.js" data-turbo-track="reload"></script>
+  <script src="javascripts/guides.js" data-turbo-track="reload"></script>
+
+  <meta property="og:title" content="Ruby on Rails 6.0 Release Notes — Ruby on Rails Guides" />
+  <meta name="description" content="Ruby on Rails 6.0 Release NotesHighlights in Rails 6.0: Action Mailbox Action Text Parallel Testing Action Cable Testing These release notes cover only the major changes. To learn about various bug fixes and changes, please refer to the changelogs or check out the list of commits in the main Rails repository on GitHub." />
+  <meta property="og:description" content="Ruby on Rails 6.0 Release NotesHighlights in Rails 6.0: Action Mailbox Action Text Parallel Testing Action Cable Testing These release notes cover only the major changes. To learn about various bug fixes and changes, please refer to the changelogs or check out the list of commits in the main Rails repository on GitHub." />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:site_name" content="Ruby on Rails Guides" />
+  <meta property="og:image" content="https://avatars.githubusercontent.com/u/4223" />
+  <meta property="og:type" content="website" />
+
+  <meta name="theme-color" content="#C81418">
+</head>
+
+<body dir="ltr" class="guide">
+  <div>
+    <div id="version-badge">edge</div>
+  </div>
+  <div id="topNav">
+    <div class="wrapper">
+      <strong class="more-info-label">More at <a href="https://rubyonrails.org/">rubyonrails.org:</a> </strong>
+      <span class="red-button more-info-button">
+        More Ruby on Rails
+      </span>
+      <ul class="more-info-links s-hidden">
+        <li class="more-info"><a href="https://rubyonrails.org/blog">Blog</a></li>
+        <li class="more-info"><a href="https://guides.rubyonrails.org/">Guides</a></li>
+        <li class="more-info"><a href="https://api.rubyonrails.org/">API</a></li>
+        <li class="more-info"><a href="https://discuss.rubyonrails.org/">Forum</a></li>
+        <li class="more-info"><a href="https://github.com/rails/rails">Contribute on GitHub</a></li>
+      </ul>
+    </div>
+  </div>
+  <div id="header">
+    <div class="wrapper clearfix">
+      <div class="header-logo"><a href="index.html" title="Return to home page">Guides.rubyonrails.org</a></div>
+      <ul class="nav">
+        <li><a class="nav-item" href="index.html">Home</a></li>
+        <li class="guides-index guides-index-large">
+          <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
+          <div id="guides" class="clearfix" style="display: none;">
+            <hr />
+            <dl class="guides-section-container">
+                <div class="guides-section">
+                  <dt>Start Here</dt>
+                  <dd><a href="getting_started.html">Getting Started with Rails</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Models</dt>
+                  <dd><a href="active_record_basics.html">Active Record Basics</a></dd>
+                  <dd><a href="active_record_migrations.html">Active Record Migrations</a></dd>
+                  <dd><a href="active_record_validations.html">Active Record Validations</a></dd>
+                  <dd><a href="active_record_callbacks.html">Active Record Callbacks</a></dd>
+                  <dd><a href="association_basics.html">Active Record Associations</a></dd>
+                  <dd><a href="active_record_querying.html">Active Record Query Interface</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Views</dt>
+                  <dd><a href="layouts_and_rendering.html">Layouts and Rendering in Rails</a></dd>
+                  <dd><a href="form_helpers.html">Action View Form Helpers</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Controllers</dt>
+                  <dd><a href="action_controller_overview.html">Action Controller Overview</a></dd>
+                  <dd><a href="routing.html">Rails Routing from the Outside In</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Other Components</dt>
+                  <dd><a href="active_support_core_extensions.html">Active Support Core Extensions</a></dd>
+                  <dd><a href="action_mailer_basics.html">Action Mailer Basics</a></dd>
+                  <dd><a href="active_job_basics.html">Active Job Basics</a></dd>
+                  <dd><a href="active_storage_overview.html">Active Storage Overview</a></dd>
+                  <dd><a href="action_cable_overview.html">Action Cable Overview</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Digging Deeper</dt>
+                  <dd><a href="i18n.html">Rails Internationalization (I18n) API</a></dd>
+                  <dd><a href="testing.html">Testing Rails Applications</a></dd>
+                  <dd><a href="security.html">Securing Rails Applications</a></dd>
+                  <dd><a href="error_reporting.html">Error Reporting in Rails Applications</a></dd>
+                  <dd><a href="debugging_rails_applications.html">Debugging Rails Applications</a></dd>
+                  <dd><a href="configuring.html">Configuring Rails Applications</a></dd>
+                  <dd><a href="command_line.html">The Rails Command Line</a></dd>
+                  <dd><a href="asset_pipeline.html">The Asset Pipeline</a></dd>
+                  <dd><a href="working_with_javascript_in_rails.html">Working with JavaScript in Rails</a></dd>
+                  <dd><a href="autoloading_and_reloading_constants.html">Autoloading and Reloading</a></dd>
+                  <dd><a href="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</a></dd>
+                  <dd><a href="caching_with_rails.html">Caching with Rails: An Overview</a></dd>
+                  <dd><a href="api_app.html">Using Rails for API-only Applications</a></dd>
+                  <dd><a href="active_record_multiple_databases.html">Multiple Databases</a></dd>
+                  <dd><a href="active_record_composite_primary_keys.html">Composite Primary Keys</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Extending Rails</dt>
+                  <dd><a href="rails_on_rack.html">Rails on Rack</a></dd>
+                  <dd><a href="generators.html">Creating and Customizing Rails Generators &amp; Templates</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Contributing</dt>
+                  <dd><a href="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</a></dd>
+                  <dd><a href="api_documentation_guidelines.html">API Documentation Guidelines</a></dd>
+                  <dd><a href="ruby_on_rails_guides_guidelines.html">Guides Guidelines</a></dd>
+                  <dd><a href="development_dependencies_install.html">Installing Rails Core Development Dependencies</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Policies</dt>
+                  <dd><a href="maintenance_policy.html">Maintenance Policy</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Release Notes</dt>
+                  <dd><a href="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</a></dd>
+                  <dd><a href="7_1_release_notes.html">Version 7.1 - October 2023</a></dd>
+                  <dd><a href="7_0_release_notes.html">Version 7.0 - December 2021</a></dd>
+                  <dd><a href="6_1_release_notes.html">Version 6.1 - December 2020</a></dd>
+                  <dd><a href="6_0_release_notes.html">Version 6.0 - August 2019</a></dd>
+                  <dd><a href="5_2_release_notes.html">Version 5.2 - April 2018</a></dd>
+                  <dd><a href="5_1_release_notes.html">Version 5.1 - April 2017</a></dd>
+                  <dd><a href="5_0_release_notes.html">Version 5.0 - June 2016</a></dd>
+                  <dd><a href="4_2_release_notes.html">Version 4.2 - December 2014</a></dd>
+                  <dd><a href="4_1_release_notes.html">Version 4.1 - April 2014</a></dd>
+                  <dd><a href="4_0_release_notes.html">Version 4.0 - June 2013</a></dd>
+                  <dd><a href="3_2_release_notes.html">Version 3.2 - January 2012</a></dd>
+                  <dd><a href="3_1_release_notes.html">Version 3.1 - August 2011</a></dd>
+                  <dd><a href="3_0_release_notes.html">Version 3.0 - August 2010</a></dd>
+                  <dd><a href="2_3_release_notes.html">Version 2.3 - March 2009</a></dd>
+                  <dd><a href="2_2_release_notes.html">Version 2.2 - November 2008</a></dd>
+                </div>
+            </dl>
+          </div>
+        </li>
+        <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
+        <li class="guides-index guides-index-small">
+          <select class="guides-index-item nav-item">
+            <option value="index.html">Guides Index</option>
+              <optgroup label="Start Here">
+                  <option value="getting_started.html">Getting Started with Rails</option>
+              </optgroup>
+              <optgroup label="Models">
+                  <option value="active_record_basics.html">Active Record Basics</option>
+                  <option value="active_record_migrations.html">Active Record Migrations</option>
+                  <option value="active_record_validations.html">Active Record Validations</option>
+                  <option value="active_record_callbacks.html">Active Record Callbacks</option>
+                  <option value="association_basics.html">Active Record Associations</option>
+                  <option value="active_record_querying.html">Active Record Query Interface</option>
+              </optgroup>
+              <optgroup label="Views">
+                  <option value="layouts_and_rendering.html">Layouts and Rendering in Rails</option>
+                  <option value="form_helpers.html">Action View Form Helpers</option>
+              </optgroup>
+              <optgroup label="Controllers">
+                  <option value="action_controller_overview.html">Action Controller Overview</option>
+                  <option value="routing.html">Rails Routing from the Outside In</option>
+              </optgroup>
+              <optgroup label="Other Components">
+                  <option value="active_support_core_extensions.html">Active Support Core Extensions</option>
+                  <option value="action_mailer_basics.html">Action Mailer Basics</option>
+                  <option value="active_job_basics.html">Active Job Basics</option>
+                  <option value="active_storage_overview.html">Active Storage Overview</option>
+                  <option value="action_cable_overview.html">Action Cable Overview</option>
+              </optgroup>
+              <optgroup label="Digging Deeper">
+                  <option value="i18n.html">Rails Internationalization (I18n) API</option>
+                  <option value="testing.html">Testing Rails Applications</option>
+                  <option value="security.html">Securing Rails Applications</option>
+                  <option value="error_reporting.html">Error Reporting in Rails Applications</option>
+                  <option value="debugging_rails_applications.html">Debugging Rails Applications</option>
+                  <option value="configuring.html">Configuring Rails Applications</option>
+                  <option value="command_line.html">The Rails Command Line</option>
+                  <option value="asset_pipeline.html">The Asset Pipeline</option>
+                  <option value="working_with_javascript_in_rails.html">Working with JavaScript in Rails</option>
+                  <option value="autoloading_and_reloading_constants.html">Autoloading and Reloading</option>
+                  <option value="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</option>
+                  <option value="caching_with_rails.html">Caching with Rails: An Overview</option>
+                  <option value="api_app.html">Using Rails for API-only Applications</option>
+                  <option value="active_record_multiple_databases.html">Multiple Databases</option>
+                  <option value="active_record_composite_primary_keys.html">Composite Primary Keys</option>
+              </optgroup>
+              <optgroup label="Extending Rails">
+                  <option value="rails_on_rack.html">Rails on Rack</option>
+                  <option value="generators.html">Creating and Customizing Rails Generators &amp; Templates</option>
+              </optgroup>
+              <optgroup label="Contributing">
+                  <option value="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</option>
+                  <option value="api_documentation_guidelines.html">API Documentation Guidelines</option>
+                  <option value="ruby_on_rails_guides_guidelines.html">Guides Guidelines</option>
+                  <option value="development_dependencies_install.html">Installing Rails Core Development Dependencies</option>
+              </optgroup>
+              <optgroup label="Policies">
+                  <option value="maintenance_policy.html">Maintenance Policy</option>
+              </optgroup>
+              <optgroup label="Release Notes">
+                  <option value="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</option>
+                  <option value="7_1_release_notes.html">Version 7.1 - October 2023</option>
+                  <option value="7_0_release_notes.html">Version 7.0 - December 2021</option>
+                  <option value="6_1_release_notes.html">Version 6.1 - December 2020</option>
+                  <option value="6_0_release_notes.html">Version 6.0 - August 2019</option>
+                  <option value="5_2_release_notes.html">Version 5.2 - April 2018</option>
+                  <option value="5_1_release_notes.html">Version 5.1 - April 2017</option>
+                  <option value="5_0_release_notes.html">Version 5.0 - June 2016</option>
+                  <option value="4_2_release_notes.html">Version 4.2 - December 2014</option>
+                  <option value="4_1_release_notes.html">Version 4.1 - April 2014</option>
+                  <option value="4_0_release_notes.html">Version 4.0 - June 2013</option>
+                  <option value="3_2_release_notes.html">Version 3.2 - January 2012</option>
+                  <option value="3_1_release_notes.html">Version 3.1 - August 2011</option>
+                  <option value="3_0_release_notes.html">Version 3.0 - August 2010</option>
+                  <option value="2_3_release_notes.html">Version 2.3 - March 2009</option>
+                  <option value="2_2_release_notes.html">Version 2.2 - November 2008</option>
+              </optgroup>
+          </select>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <hr class="hide" />
+
+  <div id="feature">
+    <div class="wrapper">
+      <h1>Ruby on Rails 6.0 Release Notes</h1><p>Highlights in Rails 6.0:</p>
+<ul>
+<li>Action Mailbox</li>
+<li>Action Text</li>
+<li>Parallel Testing</li>
+<li>Action Cable Testing</li>
+</ul>
+<p>These release notes cover only the major changes. To learn about various bug
+fixes and changes, please refer to the changelogs or check out the <a href="https://github.com/rails/rails/commits/6-0-stable">list of
+commits</a> in the main Rails
+repository on GitHub.</p>
+
+                <div id="subCol">
+            <h3 class="chapter"><img src="images/icon_book-close-bookmark-1.svg" alt="" />Chapters</h3>
+            <ol class="chapters">
+<li><a href="#upgrading-to-rails-6-0">Upgrading to Rails 6.0</a></li>
+<li><a href="#major-features">Major Features</a>
+
+<ul>
+<li><a href="#action-mailbox">Action Mailbox</a></li>
+<li><a href="#action-text">Action Text</a></li>
+<li><a href="#parallel-testing">Parallel Testing</a></li>
+<li><a href="#action-cable-testing">Action Cable Testing</a></li>
+</ul></li>
+<li><a href="#railties">Railties</a>
+
+<ul>
+<li><a href="#railties-removals">Removals</a></li>
+<li><a href="#railties-deprecations">Deprecations</a></li>
+<li><a href="#railties-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#action-cable">Action Cable</a>
+
+<ul>
+<li><a href="#action-cable-removals">Removals</a></li>
+<li><a href="#action-cable-deprecations">Deprecations</a></li>
+<li><a href="#action-cable-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#action-pack">Action Pack</a>
+
+<ul>
+<li><a href="#action-pack-removals">Removals</a></li>
+<li><a href="#action-pack-deprecations">Deprecations</a></li>
+<li><a href="#action-pack-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#action-view">Action View</a>
+
+<ul>
+<li><a href="#action-view-removals">Removals</a></li>
+<li><a href="#action-view-deprecations">Deprecations</a></li>
+<li><a href="#action-view-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#action-mailer">Action Mailer</a>
+
+<ul>
+<li><a href="#action-mailer-removals">Removals</a></li>
+<li><a href="#action-mailer-deprecations">Deprecations</a></li>
+<li><a href="#action-mailer-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#active-record">Active Record</a>
+
+<ul>
+<li><a href="#active-record-removals">Removals</a></li>
+<li><a href="#active-record-deprecations">Deprecations</a></li>
+<li><a href="#active-record-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#active-storage">Active Storage</a>
+
+<ul>
+<li><a href="#active-storage-removals">Removals</a></li>
+<li><a href="#active-storage-deprecations">Deprecations</a></li>
+<li><a href="#active-storage-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#active-model">Active Model</a>
+
+<ul>
+<li><a href="#active-model-removals">Removals</a></li>
+<li><a href="#active-model-deprecations">Deprecations</a></li>
+<li><a href="#active-model-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#active-support">Active Support</a>
+
+<ul>
+<li><a href="#active-support-removals">Removals</a></li>
+<li><a href="#active-support-deprecations">Deprecations</a></li>
+<li><a href="#active-support-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#active-job">Active Job</a>
+
+<ul>
+<li><a href="#active-job-removals">Removals</a></li>
+<li><a href="#active-job-deprecations">Deprecations</a></li>
+<li><a href="#active-job-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#ruby-on-rails-guides">Ruby on Rails Guides</a>
+
+<ul>
+<li><a href="#notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#credits">Credits</a></li>
+</ol>
+
+          </div>
+
+    </div>
+  </div>
+
+  <div id="container">
+    <div class="wrapper">
+      <div id="mainCol">
+        <h2 id="upgrading-to-rails-6-0"><a class="anchorlink" href="#upgrading-to-rails-6-0">1 Upgrading to Rails 6.0</a></h2><p>If you're upgrading an existing application, it's a great idea to have good test
+coverage before going in. You should also first upgrade to Rails 5.2 in case you
+haven't and make sure your application still runs as expected before attempting
+an update to Rails 6.0. A list of things to watch out for when upgrading is
+available in the
+<a href="upgrading_ruby_on_rails.html#upgrading-from-rails-5-2-to-rails-6-0">Upgrading Ruby on Rails</a>
+guide.</p><h2 id="major-features"><a class="anchorlink" href="#major-features">2 Major Features</a></h2><h3 id="action-mailbox"><a class="anchorlink" href="#action-mailbox">2.1 Action Mailbox</a></h3><p><a href="https://github.com/rails/rails/pull/34786">Pull Request</a></p><p><a href="https://github.com/rails/rails/tree/6-0-stable/actionmailbox">Action Mailbox</a> allows you
+to route incoming emails to controller-like mailboxes.
+You can read more about Action Mailbox in the <a href="action_mailbox_basics.html">Action Mailbox Basics</a> guide.</p><h3 id="action-text"><a class="anchorlink" href="#action-text">2.2 Action Text</a></h3><p><a href="https://github.com/rails/rails/pull/34873">Pull Request</a></p><p><a href="https://github.com/rails/rails/tree/6-0-stable/actiontext">Action Text</a>
+brings rich text content and editing to Rails. It includes
+the <a href="https://trix-editor.org">Trix editor</a> that handles everything from formatting
+to links to quotes to lists to embedded images and galleries.
+The rich text content generated by the Trix editor is saved in its own
+RichText model that's associated with any existing Active Record model in the application.
+Any embedded images (or other attachments) are automatically stored using
+Active Storage and associated with the included RichText model.</p><p>You can read more about Action Text in the <a href="action_text_overview.html">Action Text Overview</a> guide.</p><h3 id="parallel-testing"><a class="anchorlink" href="#parallel-testing">2.3 Parallel Testing</a></h3><p><a href="https://github.com/rails/rails/pull/31900">Pull Request</a></p><p><a href="testing.html#parallel-testing">Parallel Testing</a> allows you to parallelize your
+test suite. While forking processes is the default method, threading is
+supported as well. Running tests in parallel reduces the time it takes
+your entire test suite to run.</p><h3 id="action-cable-testing"><a class="anchorlink" href="#action-cable-testing">2.4 Action Cable Testing</a></h3><p><a href="https://github.com/rails/rails/pull/33659">Pull Request</a></p><p><a href="testing.html#testing-action-cable">Action Cable testing tools</a> allow you to test your
+Action Cable functionality at any level: connections, channels, broadcasts.</p><h2 id="railties"><a class="anchorlink" href="#railties">3 Railties</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/6-0-stable/railties/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="railties-removals"><a class="anchorlink" href="#railties-removals">3.1 Removals</a></h3>
+<ul>
+<li><p>  Remove deprecated <code>after_bundle</code> helper inside plugins templates.
+(<a href="https://github.com/rails/rails/commit/4d51efe24e461a2a3ed562787308484cd48370c7">Commit</a>)</p></li>
+<li><p>  Remove deprecated support to <code>config.ru</code> that uses the application
+class as argument of <code>run</code>.
+(<a href="https://github.com/rails/rails/commit/553b86fc751c751db504bcbe2d033eb2bb5b6a0b">Commit</a>)</p></li>
+<li><p>  Remove deprecated <code>environment</code> argument from the rails commands.
+(<a href="https://github.com/rails/rails/commit/e20589c9be09c7272d73492d4b0f7b24e5595571">Commit</a>)</p></li>
+<li><p>  Remove deprecated <code>capify!</code> method in generators and templates.
+(<a href="https://github.com/rails/rails/commit/9d39f81d512e0d16a27e2e864ea2dd0e8dc41b17">Commit</a>)</p></li>
+<li><p>  Remove deprecated <code>config.secret_token</code>.
+(<a href="https://github.com/rails/rails/commit/46ac5fe69a20d4539a15929fe48293e1809a26b0">Commit</a>)</p></li>
+</ul>
+<h3 id="railties-deprecations"><a class="anchorlink" href="#railties-deprecations">3.2 Deprecations</a></h3>
+<ul>
+<li><p>  Deprecate passing Rack server name as a regular argument to <code>rails server</code>.
+(<a href="https://github.com/rails/rails/pull/32058">Pull Request</a>)</p></li>
+<li><p>  Deprecate support for using <code>HOST</code> environment to specify server IP.
+(<a href="https://github.com/rails/rails/pull/32540">Pull Request</a>)</p></li>
+<li><p>  Deprecate accessing hashes returned by <code>config_for</code> by non-symbol keys.
+(<a href="https://github.com/rails/rails/pull/35198">Pull Request</a>)</p></li>
+</ul>
+<h3 id="railties-notable-changes"><a class="anchorlink" href="#railties-notable-changes">3.3 Notable changes</a></h3>
+<ul>
+<li><p>  Add an explicit option <code>--using</code> or <code>-u</code> for specifying the server for the
+<code>rails server</code> command.
+(<a href="https://github.com/rails/rails/pull/32058">Pull Request</a>)</p></li>
+<li><p>  Add ability to see the output of <code>rails routes</code> in expanded format.
+(<a href="https://github.com/rails/rails/pull/32130">Pull Request</a>)</p></li>
+<li><p>  Run the seed database task using inline Active Job adapter.
+(<a href="https://github.com/rails/rails/pull/34953">Pull Request</a>)</p></li>
+<li><p>  Add a command <code>rails db:system:change</code> to change the database of the application.
+(<a href="https://github.com/rails/rails/pull/34832">Pull Request</a>)</p></li>
+<li><p>  Add <code>rails test:channels</code> command to test only Action Cable channels.
+(<a href="https://github.com/rails/rails/pull/34947">Pull Request</a>)</p></li>
+<li><p>  Introduce guard against DNS rebinding attacks.
+(<a href="https://github.com/rails/rails/pull/33145">Pull Request</a>)</p></li>
+<li><p>  Add ability to abort on failure while running generator commands.
+(<a href="https://github.com/rails/rails/pull/34420">Pull Request</a>)</p></li>
+<li><p>  Make Webpacker the default JavaScript compiler for Rails 6.
+(<a href="https://github.com/rails/rails/pull/33079">Pull Request</a>)</p></li>
+<li><p>  Add multiple database support for <code>rails db:migrate:status</code> command.
+(<a href="https://github.com/rails/rails/pull/34137">Pull Request</a>)</p></li>
+<li><p>  Add ability to use different migration paths from multiple databases in
+the generators.
+(<a href="https://github.com/rails/rails/pull/34021">Pull Request</a>)</p></li>
+<li><p>  Add support for multi environment credentials.
+(<a href="https://github.com/rails/rails/pull/33521">Pull Request</a>)</p></li>
+<li><p>  Make <code>null_store</code> as default cache store in test environment.
+(<a href="https://github.com/rails/rails/pull/33773">Pull Request</a>)</p></li>
+</ul>
+<h2 id="action-cable"><a class="anchorlink" href="#action-cable">4 Action Cable</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/6-0-stable/actioncable/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="action-cable-removals"><a class="anchorlink" href="#action-cable-removals">4.1 Removals</a></h3>
+<ul>
+<li>  Replace <code>ActionCable.startDebugging()</code> and <code>ActionCable.stopDebugging()</code>
+with <code>ActionCable.logger.enabled</code>.
+(<a href="https://github.com/rails/rails/pull/34370">Pull Request</a>)</li>
+</ul>
+<h3 id="action-cable-deprecations"><a class="anchorlink" href="#action-cable-deprecations">4.2 Deprecations</a></h3>
+<ul>
+<li>  There are no deprecations for Action Cable in Rails 6.0.</li>
+</ul>
+<h3 id="action-cable-notable-changes"><a class="anchorlink" href="#action-cable-notable-changes">4.3 Notable changes</a></h3>
+<ul>
+<li><p>  Add support for the <code>channel_prefix</code> option for PostgreSQL subscription adapters
+in <code>cable.yml</code>.
+(<a href="https://github.com/rails/rails/pull/35276">Pull Request</a>)</p></li>
+<li><p>  Allow passing a custom configuration to <code>ActionCable::Server::Base</code>.
+(<a href="https://github.com/rails/rails/pull/34714">Pull Request</a>)</p></li>
+<li><p>  Add <code>:action_cable_connection</code> and <code>:action_cable_channel</code> load hooks.
+(<a href="https://github.com/rails/rails/pull/35094">Pull Request</a>)</p></li>
+<li><p>  Add <code>Channel::Base#broadcast_to</code> and <code>Channel::Base.broadcasting_for</code>.
+(<a href="https://github.com/rails/rails/pull/35021">Pull Request</a>)</p></li>
+<li><p>  Close a connection when calling <code>reject_unauthorized_connection</code> from an
+<code>ActionCable::Connection</code>.
+(<a href="https://github.com/rails/rails/pull/34194">Pull Request</a>)</p></li>
+<li><p>  Convert the Action Cable JavaScript package from CoffeeScript to ES2015 and
+publish the source code in the npm distribution.
+(<a href="https://github.com/rails/rails/pull/34370">Pull Request</a>)</p></li>
+<li><p>  Move the configuration of the WebSocket adapter and logger adapter
+from properties of <code>ActionCable</code> to <code>ActionCable.adapters</code>.
+(<a href="https://github.com/rails/rails/pull/34370">Pull Request</a>)</p></li>
+<li><p>  Add an <code>id</code> option to the Redis adapter to distinguish Action Cable's Redis
+connections.
+(<a href="https://github.com/rails/rails/pull/33798">Pull Request</a>)</p></li>
+</ul>
+<h2 id="action-pack"><a class="anchorlink" href="#action-pack">5 Action Pack</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/6-0-stable/actionpack/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="action-pack-removals"><a class="anchorlink" href="#action-pack-removals">5.1 Removals</a></h3>
+<ul>
+<li><p>  Remove deprecated <code>fragment_cache_key</code> helper in favor of <code>combined_fragment_cache_key</code>.
+(<a href="https://github.com/rails/rails/commit/e70d3df7c9b05c129b0fdcca57f66eca316c5cfc">Commit</a>)</p></li>
+<li><p>  Remove deprecated methods in <code>ActionDispatch::TestResponse</code>:
+<code>#success?</code> in favor of <code>#successful?</code>, <code>#missing?</code> in favor of <code>#not_found?</code>,
+<code>#error?</code> in favor of <code>#server_error?</code>.
+(<a href="https://github.com/rails/rails/commit/13ddc92e079e59a0b894e31bf5bb4fdecbd235d1">Commit</a>)</p></li>
+</ul>
+<h3 id="action-pack-deprecations"><a class="anchorlink" href="#action-pack-deprecations">5.2 Deprecations</a></h3>
+<ul>
+<li><p>  Deprecate <code>ActionDispatch::Http::ParameterFilter</code> in favor of <code>ActiveSupport::ParameterFilter</code>.
+(<a href="https://github.com/rails/rails/pull/34039">Pull Request</a>)</p></li>
+<li><p>  Deprecate controller level <code>force_ssl</code> in favor of <code>config.force_ssl</code>.
+(<a href="https://github.com/rails/rails/pull/32277">Pull Request</a>)</p></li>
+</ul>
+<h3 id="action-pack-notable-changes"><a class="anchorlink" href="#action-pack-notable-changes">5.3 Notable changes</a></h3>
+<ul>
+<li><p>  Change <code>ActionDispatch::Response#content_type</code> returning Content-Type
+header as it is.
+(<a href="https://github.com/rails/rails/pull/36034">Pull Request</a>)</p></li>
+<li><p>  Raise an <code>ArgumentError</code> if a resource param contains a colon.
+(<a href="https://github.com/rails/rails/pull/35236">Pull Request</a>)</p></li>
+<li><p>  Allow <code>ActionDispatch::SystemTestCase.driven_by</code> to be called with a block
+to define specific browser capabilities.
+(<a href="https://github.com/rails/rails/pull/35081">Pull Request</a>)</p></li>
+<li><p>  Add <code>ActionDispatch::HostAuthorization</code> middleware that guards against DNS rebinding
+attacks.
+(<a href="https://github.com/rails/rails/pull/33145">Pull Request</a>)</p></li>
+<li><p>  Allow the use of <code>parsed_body</code> in <code>ActionController::TestCase</code>.
+(<a href="https://github.com/rails/rails/pull/34717">Pull Request</a>)</p></li>
+<li><p>  Raise an <code>ArgumentError</code> when multiple root routes exist in the same context
+without <code>as:</code> naming specifications.
+(<a href="https://github.com/rails/rails/pull/34494">Pull Request</a>)</p></li>
+<li><p>  Allow the use of <code>#rescue_from</code> for handling parameter parsing errors.
+(<a href="https://github.com/rails/rails/pull/34341">Pull Request</a>)</p></li>
+<li><p>  Add <code>ActionController::Parameters#each_value</code> for iterating through parameters.
+(<a href="https://github.com/rails/rails/pull/33979">Pull Request</a>)</p></li>
+<li><p>  Encode Content-Disposition filenames on <code>send_data</code> and <code>send_file</code>.
+(<a href="https://github.com/rails/rails/pull/33829">Pull Request</a>)</p></li>
+<li><p>  Expose <code>ActionController::Parameters#each_key</code>.
+(<a href="https://github.com/rails/rails/pull/33758">Pull Request</a>)</p></li>
+<li><p>  Add purpose and expiry metadata inside signed/encrypted cookies to prevent copying the value of
+cookies into one another.
+(<a href="https://github.com/rails/rails/pull/32937">Pull Request</a>)</p></li>
+<li><p>  Raise <code>ActionController::RespondToMismatchError</code> for conflicting <code>respond_to</code> invocations.
+(<a href="https://github.com/rails/rails/pull/33446">Pull Request</a>)</p></li>
+<li><p>  Add an explicit error page for when a template is missing for a request format.
+(<a href="https://github.com/rails/rails/pull/29286">Pull Request</a>)</p></li>
+<li><p>  Introduce <code>ActionDispatch::DebugExceptions.register_interceptor</code>, a way to hook into
+DebugExceptions and process the exception, before being rendered.
+(<a href="https://github.com/rails/rails/pull/23868">Pull Request</a>)</p></li>
+<li><p>  Output only one Content-Security-Policy nonce header value per request.
+(<a href="https://github.com/rails/rails/pull/32602">Pull Request</a>)</p></li>
+<li><p>  Add a module specifically for the Rails default headers configuration
+that can be explicitly included in controllers.
+(<a href="https://github.com/rails/rails/pull/32484">Pull Request</a>)</p></li>
+<li><p>  Add <code>#dig</code> to <code>ActionDispatch::Request::Session</code>.
+(<a href="https://github.com/rails/rails/pull/32446">Pull Request</a>)</p></li>
+</ul>
+<h2 id="action-view"><a class="anchorlink" href="#action-view">6 Action View</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/6-0-stable/actionview/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="action-view-removals"><a class="anchorlink" href="#action-view-removals">6.1 Removals</a></h3>
+<ul>
+<li><p>  Remove deprecated <code>image_alt</code> helper.
+(<a href="https://github.com/rails/rails/commit/60c8a03c8d1e45e48fcb1055ba4c49ed3d5ff78f">Commit</a>)</p></li>
+<li><p>  Remove an empty <code>RecordTagHelper</code> module from which the functionality
+was already moved to the <code>record_tag_helper</code> gem.
+(<a href="https://github.com/rails/rails/commit/5c5ddd69b1e06fb6b2bcbb021e9b8dae17e7cb31">Commit</a>)</p></li>
+</ul>
+<h3 id="action-view-deprecations"><a class="anchorlink" href="#action-view-deprecations">6.2 Deprecations</a></h3>
+<ul>
+<li><p>  Deprecate <code>ActionView::Template.finalize_compiled_template_methods</code> with
+no replacement.
+(<a href="https://github.com/rails/rails/pull/35036">Pull Request</a>)</p></li>
+<li><p>  Deprecate <code>config.action_view.finalize_compiled_template_methods</code> with
+no replacement.
+(<a href="https://github.com/rails/rails/pull/35036">Pull Request</a>)</p></li>
+<li><p>  Deprecate calling private model methods from the <code>options_from_collection_for_select</code> view helper.
+(<a href="https://github.com/rails/rails/pull/33547">Pull Request</a>)</p></li>
+</ul>
+<h3 id="action-view-notable-changes"><a class="anchorlink" href="#action-view-notable-changes">6.3 Notable changes</a></h3>
+<ul>
+<li><p>  Clear Action View cache in development only on file changes, speeding up
+development mode.
+(<a href="https://github.com/rails/rails/pull/35629">Pull Request</a>)</p></li>
+<li><p>  Move all of the Rails npm packages into a <code>@rails</code> scope.
+(<a href="https://github.com/rails/rails/pull/34905">Pull Request</a>)</p></li>
+<li><p>  Only accept formats from registered MIME types.
+(<a href="https://github.com/rails/rails/pull/35604">Pull Request</a>, <a href="https://github.com/rails/rails/pull/35753">Pull Request</a>)</p></li>
+<li><p>  Add allocations to the template and partial rendering server output.
+(<a href="https://github.com/rails/rails/pull/34136">Pull Request</a>)</p></li>
+<li><p>  Add a <code>year_format</code> option to <code>date_select</code> tag, making it possible to
+customize year names.
+(<a href="https://github.com/rails/rails/pull/32190">Pull Request</a>)</p></li>
+<li><p>  Add a <code>nonce: true</code> option for <code>javascript_include_tag</code> helper to
+support automatic nonce generation for a Content Security Policy.
+(<a href="https://github.com/rails/rails/pull/32607">Pull Request</a>)</p></li>
+<li><p>  Add a <code>action_view.finalize_compiled_template_methods</code> configuration to disable or
+enable <code>ActionView::Template</code> finalizers.
+(<a href="https://github.com/rails/rails/pull/32418">Pull Request</a>)</p></li>
+<li><p>  Extract the JavaScript <code>confirm</code> call to its own, overridable method in <code>rails_ujs</code>.
+(<a href="https://github.com/rails/rails/pull/32404">Pull Request</a>)</p></li>
+<li><p>  Add a <code>action_controller.default_enforce_utf8</code> configuration option to handle
+enforcing UTF-8 encoding. This defaults to <code>false</code>.
+(<a href="https://github.com/rails/rails/pull/32125">Pull Request</a>)</p></li>
+<li><p>  Add I18n key style support for locale keys to submit tags.
+(<a href="https://github.com/rails/rails/pull/26799">Pull Request</a>)</p></li>
+</ul>
+<h2 id="action-mailer"><a class="anchorlink" href="#action-mailer">7 Action Mailer</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/6-0-stable/actionmailer/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="action-mailer-removals"><a class="anchorlink" href="#action-mailer-removals">7.1 Removals</a></h3><h3 id="action-mailer-deprecations"><a class="anchorlink" href="#action-mailer-deprecations">7.2 Deprecations</a></h3>
+<ul>
+<li><p>  Deprecate <code>ActionMailer::Base.receive</code> in favor of Action Mailbox.
+(<a href="https://github.com/rails/rails/commit/e3f832a7433a291a51c5df397dc3dd654c1858cb">Commit</a>)</p></li>
+<li><p>  Deprecate <code>DeliveryJob</code> and <code>Parameterized::DeliveryJob</code> in favor of
+<code>MailDeliveryJob</code>.
+(<a href="https://github.com/rails/rails/pull/34591">Pull Request</a>)</p></li>
+</ul>
+<h3 id="action-mailer-notable-changes"><a class="anchorlink" href="#action-mailer-notable-changes">7.3 Notable changes</a></h3>
+<ul>
+<li><p>  Add <code>MailDeliveryJob</code> for delivering both regular and parameterized mail.
+(<a href="https://github.com/rails/rails/pull/34591">Pull Request</a>)</p></li>
+<li><p>  Allow custom email delivery jobs to work with the Action Mailer test assertions.
+(<a href="https://github.com/rails/rails/pull/34339">Pull Request</a>)</p></li>
+<li><p>  Allow specifying a template name for multipart emails with blocks instead of
+using just the action name.
+(<a href="https://github.com/rails/rails/pull/22534">Pull Request</a>)</p></li>
+<li><p>  Add <code>perform_deliveries</code> to payload of <code>deliver.action_mailer</code> notification.
+(<a href="https://github.com/rails/rails/pull/33824">Pull Request</a>)</p></li>
+<li><p>  Improve the logging message when <code>perform_deliveries</code> is false to indicate
+that sending of emails was skipped.
+(<a href="https://github.com/rails/rails/pull/33824">Pull Request</a>)</p></li>
+<li><p>  Allow calling <code>assert_enqueued_email_with</code> without block.
+(<a href="https://github.com/rails/rails/pull/33258">Pull Request</a>)</p></li>
+<li><p>  Perform the enqueued mail delivery jobs in the <code>assert_emails</code> block.
+(<a href="https://github.com/rails/rails/pull/32231">Pull Request</a>)</p></li>
+<li><p>  Allow <code>ActionMailer::Base</code> to unregister observers and interceptors.
+(<a href="https://github.com/rails/rails/pull/32207">Pull Request</a>)</p></li>
+</ul>
+<h2 id="active-record"><a class="anchorlink" href="#active-record">8 Active Record</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/6-0-stable/activerecord/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="active-record-removals"><a class="anchorlink" href="#active-record-removals">8.1 Removals</a></h3>
+<ul>
+<li><p>  Remove deprecated <code>#set_state</code> from the transaction object.
+(<a href="https://github.com/rails/rails/commit/6c745b0c5152a4437163a67707e02f4464493983">Commit</a>)</p></li>
+<li><p>  Remove deprecated <code>#supports_statement_cache?</code> from the database adapters.
+(<a href="https://github.com/rails/rails/commit/5f3ed8784383fb4eb0f9959f31a9c28a991b7553">Commit</a>)</p></li>
+<li><p>  Remove deprecated <code>#insert_fixtures</code> from the database adapters.
+(<a href="https://github.com/rails/rails/commit/400ba786e1d154448235f5f90183e48a1043eece">Commit</a>)</p></li>
+<li><p>  Remove deprecated <code>ActiveRecord::ConnectionAdapters::SQLite3Adapter#valid_alter_table_type?</code>.
+(<a href="https://github.com/rails/rails/commit/45b4d5f81f0c0ca72c18d0dea4a3a7b2ecc589bf">Commit</a>)</p></li>
+<li><p>  Remove support for passing the column name to <code>sum</code> when a block is passed.
+(<a href="https://github.com/rails/rails/commit/91ddb30083430622188d76eb9f29b78131df67f9">Commit</a>)</p></li>
+<li><p>  Remove support for passing the column name to <code>count</code> when a block is passed.
+(<a href="https://github.com/rails/rails/commit/67356f2034ab41305af7218f7c8b2fee2d614129">Commit</a>)</p></li>
+<li><p>  Remove support for delegation of missing methods in a relation to Arel.
+(<a href="https://github.com/rails/rails/commit/d97980a16d76ad190042b4d8578109714e9c53d0">Commit</a>)</p></li>
+<li><p>  Remove support for delegating missing methods in a relation to private methods of the class.
+(<a href="https://github.com/rails/rails/commit/a7becf147afc85c354e5cfa519911a948d25fc4d">Commit</a>)</p></li>
+<li><p>  Remove support for specifying a timestamp name for <code>#cache_key</code>.
+(<a href="https://github.com/rails/rails/commit/0bef23e630f62e38f20b5ae1d1d5dbfb087050ea">Commit</a>)</p></li>
+<li><p>  Remove deprecated <code>ActiveRecord::Migrator.migrations_path=</code>.
+(<a href="https://github.com/rails/rails/commit/90d7842186591cae364fab3320b524e4d31a7d7d">Commit</a>)</p></li>
+<li><p>  Remove deprecated <code>expand_hash_conditions_for_aggregates</code>.
+(<a href="https://github.com/rails/rails/commit/27b252d6a85e300c7236d034d55ec8e44f57a83e">Commit</a>)</p></li>
+</ul>
+<h3 id="active-record-deprecations"><a class="anchorlink" href="#active-record-deprecations">8.2 Deprecations</a></h3>
+<ul>
+<li><p>  Deprecate mismatched case-sensitivity collation comparisons for uniqueness validator.
+(<a href="https://github.com/rails/rails/commit/9def05385f1cfa41924bb93daa187615e88c95b9">Commit</a>)</p></li>
+<li><p>  Deprecate using class level querying methods if the receiver scope has leaked.
+(<a href="https://github.com/rails/rails/pull/35280">Pull Request</a>)</p></li>
+<li><p>  Deprecate <code>config.active_record.sqlite3.represent_boolean_as_integer</code>.
+(<a href="https://github.com/rails/rails/commit/f59b08119bc0c01a00561d38279b124abc82561b">Commit</a>)</p></li>
+<li><p>  Deprecate passing <code>migrations_paths</code> to <code>connection.assume_migrated_upto_version</code>.
+(<a href="https://github.com/rails/rails/commit/c1b14aded27e063ead32fa911aa53163d7cfc21a">Commit</a>)</p></li>
+<li><p>  Deprecate <code>ActiveRecord::Result#to_hash</code> in favor of <code>ActiveRecord::Result#to_a</code>.
+(<a href="https://github.com/rails/rails/commit/16510d609c601aa7d466809f3073ec3313e08937">Commit</a>)</p></li>
+<li><p>  Deprecate methods in <code>DatabaseLimits</code>: <code>column_name_length</code>, <code>table_name_length</code>,
+<code>columns_per_table</code>, <code>indexes_per_table</code>, <code>columns_per_multicolumn_index</code>,
+<code>sql_query_length</code>, and <code>joins_per_query</code>.
+(<a href="https://github.com/rails/rails/commit/e0a1235f7df0fa193c7e299a5adee88db246b44f">Commit</a>)</p></li>
+<li><p>  Deprecate <code>update_attributes</code>/<code>!</code> in favor of <code>update</code>/<code>!</code>.
+(<a href="https://github.com/rails/rails/commit/5645149d3a27054450bd1130ff5715504638a5f5">Commit</a>)</p></li>
+</ul>
+<h3 id="active-record-notable-changes"><a class="anchorlink" href="#active-record-notable-changes">8.3 Notable changes</a></h3>
+<ul>
+<li><p>  Bump the minimum version of the <code>sqlite3</code> gem to 1.4.
+(<a href="https://github.com/rails/rails/pull/35844">Pull Request</a>)</p></li>
+<li><p>  Add <code>rails db:prepare</code> to create a database if it doesn't exist, and run its migrations.
+(<a href="https://github.com/rails/rails/pull/35768">Pull Request</a>)</p></li>
+<li><p>  Add <code>after_save_commit</code> callback as shortcut for <code>after_commit :hook, on: [ :create, :update ]</code>.
+(<a href="https://github.com/rails/rails/pull/35804">Pull Request</a>)</p></li>
+<li><p>  Add <code>ActiveRecord::Relation#extract_associated</code> for extracting associated records from a relation.
+(<a href="https://github.com/rails/rails/pull/35784">Pull Request</a>)</p></li>
+<li><p>  Add <code>ActiveRecord::Relation#annotate</code> for adding SQL comments to ActiveRecord::Relation queries.
+(<a href="https://github.com/rails/rails/pull/35617">Pull Request</a>)</p></li>
+<li><p>  Add support for setting Optimizer Hints on databases.
+(<a href="https://github.com/rails/rails/pull/35615">Pull Request</a>)</p></li>
+<li><p>  Add <code>insert_all</code>/<code>insert_all!</code>/<code>upsert_all</code> methods for doing bulk inserts.
+(<a href="https://github.com/rails/rails/pull/35631">Pull Request</a>)</p></li>
+<li><p>  Add <code>rails db:seed:replant</code> that truncates tables of each database
+for the current environment and loads the seeds.
+(<a href="https://github.com/rails/rails/pull/34779">Pull Request</a>)</p></li>
+<li><p>  Add <code>reselect</code> method, which is a short-hand for <code>unscope(:select).select(fields)</code>.
+(<a href="https://github.com/rails/rails/pull/33611">Pull Request</a>)</p></li>
+<li><p>  Add negative scopes for all enum values.
+(<a href="https://github.com/rails/rails/pull/35381">Pull Request</a>)</p></li>
+<li><p>  Add <code>#destroy_by</code> and <code>#delete_by</code> for conditional removals.
+(<a href="https://github.com/rails/rails/pull/35316">Pull Request</a>)</p></li>
+<li><p>  Add the ability to automatically switch database connections.
+(<a href="https://github.com/rails/rails/pull/35073">Pull Request</a>)</p></li>
+<li><p>  Add the ability to prevent writes to a database for the duration of a block.
+(<a href="https://github.com/rails/rails/pull/34505">Pull Request</a>)</p></li>
+<li><p>  Add an API for switching connections to support multiple databases.
+(<a href="https://github.com/rails/rails/pull/34052">Pull Request</a>)</p></li>
+<li><p>  Make timestamps with precision the default for migrations.
+(<a href="https://github.com/rails/rails/pull/34970">Pull Request</a>)</p></li>
+<li><p>  Support <code>:size</code> option to change text and blob size in MySQL.
+(<a href="https://github.com/rails/rails/pull/35071">Pull Request</a>)</p></li>
+<li><p>  Set both the foreign key and the foreign type columns to NULL for
+polymorphic associations on <code>dependent: :nullify</code> strategy.
+(<a href="https://github.com/rails/rails/pull/28078">Pull Request</a>)</p></li>
+<li><p>  Allow a permitted instance of <code>ActionController::Parameters</code> to be passed as an
+argument to <code>ActiveRecord::Relation#exists?</code>.
+(<a href="https://github.com/rails/rails/pull/34891">Pull Request</a>)</p></li>
+<li><p>  Add support in <code>#where</code> for endless ranges introduced in Ruby 2.6.
+(<a href="https://github.com/rails/rails/pull/34906">Pull Request</a>)</p></li>
+<li><p>  Make <code>ROW_FORMAT=DYNAMIC</code> a default create table option for MySQL.
+(<a href="https://github.com/rails/rails/pull/34742">Pull Request</a>)</p></li>
+<li><p>  Add the ability to disable scopes generated by <code>ActiveRecord.enum</code>.
+(<a href="https://github.com/rails/rails/pull/34605">Pull Request</a>)</p></li>
+<li><p>  Make implicit ordering configurable for a column.
+(<a href="https://github.com/rails/rails/pull/34480">Pull Request</a>)</p></li>
+<li><p>  Bump the minimum PostgreSQL version to 9.3, dropping support for 9.1 and 9.2.
+(<a href="https://github.com/rails/rails/pull/34520">Pull Request</a>)</p></li>
+<li><p>  Make the values of an enum frozen, raising an error when attempting to modify them.
+(<a href="https://github.com/rails/rails/pull/34517">Pull Request</a>)</p></li>
+<li><p>  Make the SQL of <code>ActiveRecord::StatementInvalid</code> errors its own error property
+and include SQL binds as a separate error property.
+(<a href="https://github.com/rails/rails/pull/34468">Pull Request</a>)</p></li>
+<li><p>  Add an <code>:if_not_exists</code> option to <code>create_table</code>.
+(<a href="https://github.com/rails/rails/pull/31382">Pull Request</a>)</p></li>
+<li><p>  Add support for multiple databases to <code>rails db:schema:cache:dump</code>
+and <code>rails db:schema:cache:clear</code>.
+(<a href="https://github.com/rails/rails/pull/34181">Pull Request</a>)</p></li>
+<li><p>  Add support for hash and url configs in database hash of <code>ActiveRecord::Base.connected_to</code>.
+(<a href="https://github.com/rails/rails/pull/34196">Pull Request</a>)</p></li>
+<li><p>  Add support for default expressions and expression indexes for MySQL.
+(<a href="https://github.com/rails/rails/pull/34307">Pull Request</a>)</p></li>
+<li><p>  Add an <code>index</code> option for <code>change_table</code> migration helpers.
+(<a href="https://github.com/rails/rails/pull/23593">Pull Request</a>)</p></li>
+<li><p>  Fix <code>transaction</code> reverting for migrations. Previously, commands inside of a <code>transaction</code>
+in a reverted migration ran uninverted. This change fixes that.
+(<a href="https://github.com/rails/rails/pull/31604">Pull Request</a>)</p></li>
+<li><p>  Allow <code>ActiveRecord::Base.configurations=</code> to be set with a symbolized hash.
+(<a href="https://github.com/rails/rails/pull/33968">Pull Request</a>)</p></li>
+<li><p>  Fix the counter cache to only update if the record is actually saved.
+(<a href="https://github.com/rails/rails/pull/33913">Pull Request</a>)</p></li>
+<li><p>  Add expression indexes support for the SQLite adapter.
+(<a href="https://github.com/rails/rails/pull/33874">Pull Request</a>)</p></li>
+<li><p>  Allow subclasses to redefine autosave callbacks for associated records.
+(<a href="https://github.com/rails/rails/pull/33378">Pull Request</a>)</p></li>
+<li><p>  Bump the minimum MySQL version to 5.5.8.
+(<a href="https://github.com/rails/rails/pull/33853">Pull Request</a>)</p></li>
+<li><p>  Use the utf8mb4 character set by default in MySQL.
+(<a href="https://github.com/rails/rails/pull/33608">Pull Request</a>)</p></li>
+<li><p>  Add the ability to filter out sensitive data in <code>#inspect</code>
+(<a href="https://github.com/rails/rails/pull/33756">Pull Request</a>, <a href="https://github.com/rails/rails/pull/34208">Pull Request</a>)</p></li>
+<li><p>  Change <code>ActiveRecord::Base.configurations</code> to return an object instead of a hash.
+(<a href="https://github.com/rails/rails/pull/33637">Pull Request</a>)</p></li>
+<li><p>  Add database configuration to disable advisory locks.
+(<a href="https://github.com/rails/rails/pull/33691">Pull Request</a>)</p></li>
+<li><p>  Update SQLite3 adapter <code>alter_table</code> method to restore foreign keys.
+(<a href="https://github.com/rails/rails/pull/33585">Pull Request</a>)</p></li>
+<li><p>  Allow the <code>:to_table</code> option of <code>remove_foreign_key</code> to be invertible.
+(<a href="https://github.com/rails/rails/pull/33530">Pull Request</a>)</p></li>
+<li><p>  Fix default value for MySQL time types with specified precision.
+(<a href="https://github.com/rails/rails/pull/33280">Pull Request</a>)</p></li>
+<li><p>  Fix the <code>touch</code> option to behave consistently with <code>Persistence#touch</code> method.
+(<a href="https://github.com/rails/rails/pull/33107">Pull Request</a>)</p></li>
+<li><p>  Raise an exception for duplicate column definitions in Migrations.
+(<a href="https://github.com/rails/rails/pull/33029">Pull Request</a>)</p></li>
+<li><p>  Bump the minimum SQLite version to 3.8.
+(<a href="https://github.com/rails/rails/pull/32923">Pull Request</a>)</p></li>
+<li><p>  Fix parent records to not get saved with duplicate children records.
+(<a href="https://github.com/rails/rails/pull/32952">Pull Request</a>)</p></li>
+<li><p>  Ensure <code>Associations::CollectionAssociation#size</code> and <code>Associations::CollectionAssociation#empty?</code>
+use loaded association ids if present.
+(<a href="https://github.com/rails/rails/pull/32617">Pull Request</a>)</p></li>
+<li><p>  Add support to preload associations of polymorphic associations when not all the records have the requested associations.
+(<a href="https://github.com/rails/rails/commit/75ef18c67c29b1b51314b6c8a963cee53394080b">Commit</a>)</p></li>
+<li><p>  Add <code>touch_all</code> method to <code>ActiveRecord::Relation</code>.
+(<a href="https://github.com/rails/rails/pull/31513">Pull Request</a>)</p></li>
+<li><p>  Add <code>ActiveRecord::Base.base_class?</code> predicate.
+(<a href="https://github.com/rails/rails/pull/32417">Pull Request</a>)</p></li>
+<li><p>  Add custom prefix/suffix options to <code>ActiveRecord::Store.store_accessor</code>.
+(<a href="https://github.com/rails/rails/pull/32306">Pull Request</a>)</p></li>
+<li><p>  Add <code>ActiveRecord::Base.create_or_find_by</code>/<code>!</code> to deal with the SELECT/INSERT race condition in
+<code>ActiveRecord::Base.find_or_create_by</code>/<code>!</code> by leaning on unique constraints in the database.
+(<a href="https://github.com/rails/rails/pull/31989">Pull Request</a>)</p></li>
+<li><p>  Add <code>Relation#pick</code> as short-hand for single-value plucks.
+(<a href="https://github.com/rails/rails/pull/31941">Pull Request</a>)</p></li>
+</ul>
+<h2 id="active-storage"><a class="anchorlink" href="#active-storage">9 Active Storage</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/6-0-stable/activestorage/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="active-storage-removals"><a class="anchorlink" href="#active-storage-removals">9.1 Removals</a></h3><h3 id="active-storage-deprecations"><a class="anchorlink" href="#active-storage-deprecations">9.2 Deprecations</a></h3>
+<ul>
+<li><p>  Deprecate  <code>config.active_storage.queue</code> in favor of <code>config.active_storage.queues.analysis</code>
+and <code>config.active_storage.queues.purge</code>.
+(<a href="https://github.com/rails/rails/pull/34838">Pull Request</a>)</p></li>
+<li><p>  Deprecate <code>ActiveStorage::Downloading</code> in favor of <code>ActiveStorage::Blob#open</code>.
+(<a href="https://github.com/rails/rails/commit/ee21b7c2eb64def8f00887a9fafbd77b85f464f1">Commit</a>)</p></li>
+<li><p>  Deprecate using <code>mini_magick</code> directly for generating image variants in favor of
+<code>image_processing</code>.
+(<a href="https://github.com/rails/rails/commit/697f4a93ad386f9fb7795f0ba68f815f16ebad0f">Commit</a>)</p></li>
+<li><p>  Deprecate <code>:combine_options</code> in Active Storage's ImageProcessing transformer
+without replacement.
+(<a href="https://github.com/rails/rails/commit/697f4a93ad386f9fb7795f0ba68f815f16ebad0f">Commit</a>)</p></li>
+</ul>
+<h3 id="active-storage-notable-changes"><a class="anchorlink" href="#active-storage-notable-changes">9.3 Notable changes</a></h3>
+<ul>
+<li><p>  Add support for generating BMP image variants.
+(<a href="https://github.com/rails/rails/pull/36051">Pull Request</a>)</p></li>
+<li><p>  Add support for generating TIFF image variants.
+(<a href="https://github.com/rails/rails/pull/34824">Pull Request</a>)</p></li>
+<li><p>  Add support for generating progressive JPEG image variants.
+(<a href="https://github.com/rails/rails/pull/34455">Pull Request</a>)</p></li>
+<li><p>  Add <code>ActiveStorage.routes_prefix</code> for configuring the Active Storage generated routes.
+(<a href="https://github.com/rails/rails/pull/33883">Pull Request</a>)</p></li>
+<li><p>  Generate a 404 Not Found response on <code>ActiveStorage::DiskController#show</code> when
+the requested file is missing from the disk service.
+(<a href="https://github.com/rails/rails/pull/33666">Pull Request</a>)</p></li>
+<li><p>  Raise <code>ActiveStorage::FileNotFoundError</code> when the requested file is missing for
+<code>ActiveStorage::Blob#download</code> and <code>ActiveStorage::Blob#open</code>.
+(<a href="https://github.com/rails/rails/pull/33666">Pull Request</a>)</p></li>
+<li><p>  Add a generic <code>ActiveStorage::Error</code> class that Active Storage exceptions inherit from.
+(<a href="https://github.com/rails/rails/commit/18425b837149bc0d50f8d5349e1091a623762d6b">Commit</a>)</p></li>
+<li><p>  Persist uploaded files assigned to a record to storage when the record
+is saved instead of immediately.
+(<a href="https://github.com/rails/rails/pull/33303">Pull Request</a>)</p></li>
+<li><p>  Optionally replace existing files instead of adding to them when assigning to
+a collection of attachments (as in <code>@user.update!(images: [ … ])</code>). Use
+<code>config.active_storage.replace_on_assign_to_many</code> to control this behavior.
+(<a href="https://github.com/rails/rails/pull/33303">Pull Request</a>,
+ <a href="https://github.com/rails/rails/pull/36716">Pull Request</a>)</p></li>
+<li><p>  Add the ability to reflect on defined attachments using the existing
+Active Record reflection mechanism.
+(<a href="https://github.com/rails/rails/pull/33018">Pull Request</a>)</p></li>
+<li><p>  Add <code>ActiveStorage::Blob#open</code>, which downloads a blob to a tempfile on disk
+and yields the tempfile.
+(<a href="https://github.com/rails/rails/commit/ee21b7c2eb64def8f00887a9fafbd77b85f464f1">Commit</a>)</p></li>
+<li><p>  Support streaming downloads from Google Cloud Storage. Require version 1.11+
+of the <code>google-cloud-storage</code> gem.
+(<a href="https://github.com/rails/rails/pull/32788">Pull Request</a>)</p></li>
+<li><p>  Use the <code>image_processing</code> gem for Active Storage variants. This replaces using
+<code>mini_magick</code> directly.
+(<a href="https://github.com/rails/rails/pull/32471">Pull Request</a>)</p></li>
+</ul>
+<h2 id="active-model"><a class="anchorlink" href="#active-model">10 Active Model</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/6-0-stable/activemodel/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="active-model-removals"><a class="anchorlink" href="#active-model-removals">10.1 Removals</a></h3><h3 id="active-model-deprecations"><a class="anchorlink" href="#active-model-deprecations">10.2 Deprecations</a></h3><h3 id="active-model-notable-changes"><a class="anchorlink" href="#active-model-notable-changes">10.3 Notable changes</a></h3>
+<ul>
+<li><p>  Add a configuration option to customize format of the <code>ActiveModel::Errors#full_message</code>.
+(<a href="https://github.com/rails/rails/pull/32956">Pull Request</a>)</p></li>
+<li><p>  Add support for configuring attribute name for <code>has_secure_password</code>.
+(<a href="https://github.com/rails/rails/pull/26764">Pull Request</a>)</p></li>
+<li><p>  Add <code>#slice!</code> method to <code>ActiveModel::Errors</code>.
+(<a href="https://github.com/rails/rails/pull/34489">Pull Request</a>)</p></li>
+<li><p>  Add <code>ActiveModel::Errors#of_kind?</code> to check presence of a specific error.
+(<a href="https://github.com/rails/rails/pull/34866">Pull Request</a>)</p></li>
+<li><p>  Fix <code>ActiveModel::Serializers::JSON#as_json</code> method for timestamps.
+(<a href="https://github.com/rails/rails/pull/31503">Pull Request</a>)</p></li>
+<li><p>  Fix numericality validator to still use value before type cast except Active Record.
+(<a href="https://github.com/rails/rails/pull/33654">Pull Request</a>)</p></li>
+<li><p>  Fix numericality equality validation of <code>BigDecimal</code> and <code>Float</code>
+by casting to <code>BigDecimal</code> on both ends of the validation.
+(<a href="https://github.com/rails/rails/pull/32852">Pull Request</a>)</p></li>
+<li><p>  Fix year value when casting a multiparameter time hash.
+(<a href="https://github.com/rails/rails/pull/34990">Pull Request</a>)</p></li>
+<li><p>  Type cast falsy boolean symbols on boolean attribute as false.
+(<a href="https://github.com/rails/rails/pull/35794">Pull Request</a>)</p></li>
+<li><p>  Return correct date while converting parameters in <code>value_from_multiparameter_assignment</code>
+for <code>ActiveModel::Type::Date</code>.
+(<a href="https://github.com/rails/rails/pull/29651">Pull Request</a>)</p></li>
+<li><p>  Fall back to parent locale before falling back to the <code>:errors</code> namespace while fetching
+error translations.
+(<a href="https://github.com/rails/rails/pull/35424">Pull Request</a>)</p></li>
+</ul>
+<h2 id="active-support"><a class="anchorlink" href="#active-support">11 Active Support</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/6-0-stable/activesupport/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="active-support-removals"><a class="anchorlink" href="#active-support-removals">11.1 Removals</a></h3>
+<ul>
+<li><p>  Remove deprecated <code>#acronym_regex</code> method from <code>Inflections</code>.
+(<a href="https://github.com/rails/rails/commit/0ce67d3cd6d1b7b9576b07fecae3dd5b422a5689">Commit</a>)</p></li>
+<li><p>  Remove deprecated <code>Module#reachable?</code> method.
+(<a href="https://github.com/rails/rails/commit/6eb1d56a333fd2015610d31793ed6281acd66551">Commit</a>)</p></li>
+<li><p>  Remove <code>Kernel#`</code> without any replacement.
+(<a href="https://github.com/rails/rails/pull/31253">Pull Request</a>)</p></li>
+</ul>
+<h3 id="active-support-deprecations"><a class="anchorlink" href="#active-support-deprecations">11.2 Deprecations</a></h3>
+<ul>
+<li><p>  Deprecate using negative integer arguments for <code>String#first</code> and
+<code>String#last</code>.
+(<a href="https://github.com/rails/rails/pull/33058">Pull Request</a>)</p></li>
+<li><p>  Deprecate <code>ActiveSupport::Multibyte::Unicode#downcase/upcase/swapcase</code>
+in favor of <code>String#downcase/upcase/swapcase</code>.
+(<a href="https://github.com/rails/rails/pull/34123">Pull Request</a>)</p></li>
+<li><p>  Deprecate <code>ActiveSupport::Multibyte::Unicode#normalize</code>
+and <code>ActiveSupport::Multibyte::Chars#normalize</code> in favor of
+<code>String#unicode_normalize</code>.
+(<a href="https://github.com/rails/rails/pull/34202">Pull Request</a>)</p></li>
+<li><p>  Deprecate <code>ActiveSupport::Multibyte::Chars.consumes?</code> in favor of
+<code>String#is_utf8?</code>.
+(<a href="https://github.com/rails/rails/pull/34215">Pull Request</a>)</p></li>
+<li><p>  Deprecate <code>ActiveSupport::Multibyte::Unicode#pack_graphemes(array)</code>
+and <code>ActiveSupport::Multibyte::Unicode#unpack_graphemes(string)</code>
+in favor of <code>array.flatten.pack("U*")</code> and <code>string.scan(/\X/).map(&amp;:codepoints)</code>,
+respectively.
+(<a href="https://github.com/rails/rails/pull/34254">Pull Request</a>)</p></li>
+</ul>
+<h3 id="active-support-notable-changes"><a class="anchorlink" href="#active-support-notable-changes">11.3 Notable changes</a></h3>
+<ul>
+<li><p>  Add support for parallel testing.
+(<a href="https://github.com/rails/rails/pull/31900">Pull Request</a>)</p></li>
+<li><p>  Make sure that <code>String#strip_heredoc</code> preserves frozen-ness of strings.
+(<a href="https://github.com/rails/rails/pull/32037">Pull Request</a>)</p></li>
+<li><p>  Add <code>String#truncate_bytes</code> to truncate a string to a maximum bytesize
+without breaking multibyte characters or grapheme clusters.
+(<a href="https://github.com/rails/rails/pull/27319">Pull Request</a>)</p></li>
+<li><p>  Add <code>private</code> option to <code>delegate</code> method in order to delegate to
+private methods. This option accepts <code>true/false</code> as the value.
+(<a href="https://github.com/rails/rails/pull/31944">Pull Request</a>)</p></li>
+<li><p>  Add support for translations through I18n for <code>ActiveSupport::Inflector#ordinal</code>
+and <code>ActiveSupport::Inflector#ordinalize</code>.
+(<a href="https://github.com/rails/rails/pull/32168">Pull Request</a>)</p></li>
+<li><p>  Add <code>before?</code> and <code>after?</code> methods to <code>Date</code>, <code>DateTime</code>,
+<code>Time</code>, and <code>TimeWithZone</code>.
+(<a href="https://github.com/rails/rails/pull/32185">Pull Request</a>)</p></li>
+<li><p>  Fix bug where <code>URI.unescape</code> would fail with mixed Unicode/escaped character
+input.
+(<a href="https://github.com/rails/rails/pull/32183">Pull Request</a>)</p></li>
+<li><p>  Fix bug where <code>ActiveSupport::Cache</code> would massively inflate the storage
+size when compression was enabled.
+(<a href="https://github.com/rails/rails/pull/32539">Pull Request</a>)</p></li>
+<li><p>  Redis cache store: <code>delete_matched</code> no longer blocks the Redis server.
+(<a href="https://github.com/rails/rails/pull/32614">Pull Request</a>)</p></li>
+<li><p>  Fix bug where <code>ActiveSupport::TimeZone.all</code> would fail when tzinfo data for
+any timezone defined in <code>ActiveSupport::TimeZone::MAPPING</code> was missing.
+(<a href="https://github.com/rails/rails/pull/32613">Pull Request</a>)</p></li>
+<li><p>  Add <code>Enumerable#index_with</code> which allows creating a hash from an enumerable
+with the value from a passed block or a default argument.
+(<a href="https://github.com/rails/rails/pull/32523">Pull Request</a>)</p></li>
+<li><p>  Allow <code>Range#===</code> and <code>Range#cover?</code> methods to work with <code>Range</code> argument.
+(<a href="https://github.com/rails/rails/pull/32938">Pull Request</a>)</p></li>
+<li><p>  Support key expiry in <code>increment/decrement</code> operations of RedisCacheStore.
+(<a href="https://github.com/rails/rails/pull/33254">Pull Request</a>)</p></li>
+<li><p>  Add cpu time, idle time, and allocations features to log subscriber events.
+(<a href="https://github.com/rails/rails/pull/33449">Pull Request</a>)</p></li>
+<li><p>  Add support for event object to the Active Support notification system.
+(<a href="https://github.com/rails/rails/pull/33451">Pull Request</a>)</p></li>
+<li><p>  Add support for not caching <code>nil</code> entries by introducing new option <code>skip_nil</code>
+for <code>ActiveSupport::Cache#fetch</code>.
+(<a href="https://github.com/rails/rails/pull/25437">Pull Request</a>)</p></li>
+<li><p>  Add <code>Array#extract!</code> method which removes and returns the elements for which
+block returns a true value.
+(<a href="https://github.com/rails/rails/pull/33137">Pull Request</a>)</p></li>
+<li><p>  Keep an HTML-safe string HTML-safe after slicing.
+(<a href="https://github.com/rails/rails/pull/33808">Pull Request</a>)</p></li>
+<li><p>  Add support for tracing constant autoloads via logging.
+(<a href="https://github.com/rails/rails/commit/c03bba4f1f03bad7dc034af555b7f2b329cf76f5">Commit</a>)</p></li>
+<li><p>  Define <code>unfreeze_time</code> as an alias of <code>travel_back</code>.
+(<a href="https://github.com/rails/rails/pull/33813">Pull Request</a>)</p></li>
+<li><p>  Change <code>ActiveSupport::TaggedLogging.new</code> to return a new logger instance
+instead of mutating the one received as argument.
+(<a href="https://github.com/rails/rails/pull/27792">Pull Request</a>)</p></li>
+<li><p>  Treat <code>#delete_prefix</code>, <code>#delete_suffix</code> and <code>#unicode_normalize</code> methods
+as non HTML-safe methods.
+(<a href="https://github.com/rails/rails/pull/33990">Pull Request</a>)</p></li>
+<li><p>  Fix bug where <code>#without</code> for <code>ActiveSupport::HashWithIndifferentAccess</code>
+would fail with symbol arguments.
+(<a href="https://github.com/rails/rails/pull/34012">Pull Request</a>)</p></li>
+<li><p>  Rename <code>Module#parent</code>, <code>Module#parents</code>, and <code>Module#parent_name</code> to
+<code>module_parent</code>, <code>module_parents</code>, and <code>module_parent_name</code>.
+(<a href="https://github.com/rails/rails/pull/34051">Pull Request</a>)</p></li>
+<li><p>  Add <code>ActiveSupport::ParameterFilter</code>.
+(<a href="https://github.com/rails/rails/pull/34039">Pull Request</a>)</p></li>
+<li><p>  Fix issue where duration was being rounded to a full second when a float
+was added to the duration.
+(<a href="https://github.com/rails/rails/pull/34135">Pull Request</a>)</p></li>
+<li><p>  Make <code>#to_options</code> an alias for <code>#symbolize_keys</code> in
+<code>ActiveSupport::HashWithIndifferentAccess</code>.
+(<a href="https://github.com/rails/rails/pull/34360">Pull Request</a>)</p></li>
+<li><p>  Don't raise an exception anymore if the same block is included multiple times
+for a Concern.
+(<a href="https://github.com/rails/rails/pull/34553">Pull Request</a>)</p></li>
+<li><p>  Preserve key order passed to <code>ActiveSupport::CacheStore#fetch_multi</code>.
+(<a href="https://github.com/rails/rails/pull/34700">Pull Request</a>)</p></li>
+<li><p>  Fix <code>String#safe_constantize</code> to not throw a <code>LoadError</code> for incorrectly
+cased constant references.
+(<a href="https://github.com/rails/rails/pull/34892">Pull Request</a>)</p></li>
+<li><p>  Add <code>Hash#deep_transform_values</code> and <code>Hash#deep_transform_values!</code>.
+(<a href="https://github.com/rails/rails/commit/b8dc06b8fdc16874160f61dcf58743fcc10e57db">Commit</a>)</p></li>
+<li><p>  Add <code>ActiveSupport::HashWithIndifferentAccess#assoc</code>.
+(<a href="https://github.com/rails/rails/pull/35080">Pull Request</a>)</p></li>
+<li><p>  Add <code>before_reset</code> callback to <code>CurrentAttributes</code> and define
+<code>after_reset</code> as an alias of <code>resets</code> for symmetry.
+(<a href="https://github.com/rails/rails/pull/35063">Pull Request</a>)</p></li>
+<li><p>  Revise <code>ActiveSupport::Notifications.unsubscribe</code> to correctly
+handle Regex or other multiple-pattern subscribers.
+(<a href="https://github.com/rails/rails/pull/32861">Pull Request</a>)</p></li>
+<li><p>  Add new autoloading mechanism using Zeitwerk.
+(<a href="https://github.com/rails/rails/commit/e53430fa9af239e21e11548499d814f540d421e5">Commit</a>)</p></li>
+<li><p>  Add <code>Array#including</code> and <code>Enumerable#including</code> to conveniently enlarge
+a collection.
+(<a href="https://github.com/rails/rails/commit/bfaa3091c3c32b5980a614ef0f7b39cbf83f6db3">Commit</a>)</p></li>
+<li><p>  Rename <code>Array#without</code> and <code>Enumerable#without</code> to <code>Array#excluding</code>
+and <code>Enumerable#excluding</code>. Old method names are retained as aliases.
+(<a href="https://github.com/rails/rails/commit/bfaa3091c3c32b5980a614ef0f7b39cbf83f6db3">Commit</a>)</p></li>
+<li><p>  Add support for supplying <code>locale</code> to <code>transliterate</code> and <code>parameterize</code>.
+(<a href="https://github.com/rails/rails/pull/35571">Pull Request</a>)</p></li>
+<li><p>  Fix <code>Time#advance</code> to work with dates before 1001-03-07.
+(<a href="https://github.com/rails/rails/pull/35659">Pull Request</a>)</p></li>
+<li><p>  Update <code>ActiveSupport::Notifications::Instrumenter#instrument</code> to allow
+not passing block.
+(<a href="https://github.com/rails/rails/pull/35705">Pull Request</a>)</p></li>
+<li><p>  Use weak references in descendants tracker to allow anonymous subclasses to
+be garbage collected.
+(<a href="https://github.com/rails/rails/pull/31442">Pull Request</a>)</p></li>
+<li><p>  Calling test methods with <code>with_info_handler</code> method to allow minitest-hooks
+plugin to work.
+(<a href="https://github.com/rails/rails/commit/758ba117a008b6ea2d3b92c53b6a7a8d7ccbca69">Commit</a>)</p></li>
+<li><p>  Preserve <code>html_safe?</code> status on <code>ActiveSupport::SafeBuffer#*</code>.
+(<a href="https://github.com/rails/rails/pull/36012">Pull Request</a>)</p></li>
+</ul>
+<h2 id="active-job"><a class="anchorlink" href="#active-job">12 Active Job</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/6-0-stable/activejob/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="active-job-removals"><a class="anchorlink" href="#active-job-removals">12.1 Removals</a></h3>
+<ul>
+<li>  Remove support for Qu gem.
+(<a href="https://github.com/rails/rails/pull/32300">Pull Request</a>)</li>
+</ul>
+<h3 id="active-job-deprecations"><a class="anchorlink" href="#active-job-deprecations">12.2 Deprecations</a></h3><h3 id="active-job-notable-changes"><a class="anchorlink" href="#active-job-notable-changes">12.3 Notable changes</a></h3>
+<ul>
+<li><p>  Add support for custom serializers for Active Job arguments.
+(<a href="https://github.com/rails/rails/pull/30941">Pull Request</a>)</p></li>
+<li><p>  Add support for executing Active Jobs in the timezone in which
+they were enqueued.
+(<a href="https://github.com/rails/rails/pull/32085">Pull Request</a>)</p></li>
+<li><p>  Allow passing multiple exceptions to <code>retry_on</code>/<code>discard_on</code>.
+(<a href="https://github.com/rails/rails/commit/3110caecbebdad7300daaf26bfdff39efda99e25">Commit</a>)</p></li>
+<li><p>  Allow calling <code>assert_enqueued_with</code> and <code>assert_enqueued_email_with</code> without a block.
+(<a href="https://github.com/rails/rails/pull/33258">Pull Request</a>)</p></li>
+<li><p>  Wrap the notifications for <code>enqueue</code> and <code>enqueue_at</code> in the <code>around_enqueue</code>
+callback instead of <code>after_enqueue</code> callback.
+(<a href="https://github.com/rails/rails/pull/33171">Pull Request</a>)</p></li>
+<li><p>  Allow calling <code>perform_enqueued_jobs</code> without a block.
+(<a href="https://github.com/rails/rails/pull/33626">Pull Request</a>)</p></li>
+<li><p>  Allow calling <code>assert_performed_with</code> without a block.
+(<a href="https://github.com/rails/rails/pull/33635">Pull Request</a>)</p></li>
+<li><p>  Add <code>:queue</code> option to job assertions and helpers.
+(<a href="https://github.com/rails/rails/pull/33635">Pull Request</a>)</p></li>
+<li><p>  Add hooks to Active Job around retries and discards.
+(<a href="https://github.com/rails/rails/pull/33751">Pull Request</a>)</p></li>
+<li><p>  Add a way to test for subset of arguments when performing jobs.
+(<a href="https://github.com/rails/rails/pull/33995">Pull Request</a>)</p></li>
+<li><p>  Include deserialized arguments in jobs returned by Active Job
+test helpers.
+(<a href="https://github.com/rails/rails/pull/34204">Pull Request</a>)</p></li>
+<li><p>  Allow Active Job assertion helpers to accept Proc for <code>only</code>
+keyword.
+(<a href="https://github.com/rails/rails/pull/34339">Pull Request</a>)</p></li>
+<li><p>  Drop microseconds and nanoseconds from the job arguments in assertion helpers.
+(<a href="https://github.com/rails/rails/pull/35713">Pull Request</a>)</p></li>
+</ul>
+<h2 id="ruby-on-rails-guides"><a class="anchorlink" href="#ruby-on-rails-guides">13 Ruby on Rails Guides</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/6-0-stable/guides/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="notable-changes"><a class="anchorlink" href="#notable-changes">13.1 Notable changes</a></h3>
+<ul>
+<li><p>  Add Multiple Databases with Active Record guide.
+(<a href="https://github.com/rails/rails/pull/36389">Pull Request</a>)</p></li>
+<li><p>  Add a section about troubleshooting of autoloading constants.
+(<a href="https://github.com/rails/rails/commit/c03bba4f1f03bad7dc034af555b7f2b329cf76f5">Commit</a>)</p></li>
+<li><p>  Add Action Mailbox Basics guide.
+(<a href="https://github.com/rails/rails/pull/34812">Pull Request</a>)</p></li>
+<li><p>  Add Action Text Overview guide.
+(<a href="https://github.com/rails/rails/pull/34878">Pull Request</a>)</p></li>
+</ul>
+<h2 id="credits"><a class="anchorlink" href="#credits">14 Credits</a></h2><p>See the
+<a href="https://contributors.rubyonrails.org/">full list of contributors to Rails</a>
+for the many people who spent many hours making Rails, the stable and robust
+framework it is. Kudos to all of them.</p>
+
+        <h3>Feedback</h3>
+        <p>
+          You're encouraged to help improve the quality of this guide.
+        </p>
+        <p>
+          Please contribute if you see any typos or factual errors.
+          To get started, you can read our <a href="https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation">documentation contributions</a> section.
+        </p>
+        <p>
+          You may also find incomplete content or stuff that is not up to date.
+          Please do add any missing documentation for main. Make sure to check
+          <a href="https://edgeguides.rubyonrails.org">Edge Guides</a> first to verify
+          if the issues are already fixed or not on the main branch.
+          Check the <a href="ruby_on_rails_guides_guidelines.html">Ruby on Rails Guides Guidelines</a>
+          for style and conventions.
+        </p>
+        <p>
+          If for whatever reason you spot something to fix but cannot patch it yourself, please
+          <a href="https://github.com/rails/rails/issues">open an issue</a>.
+        </p>
+        <p>And last but not least, any kind of discussion regarding Ruby on Rails
+          documentation is very welcome on the <a href="https://discuss.rubyonrails.org/c/rubyonrails-docs">official Ruby on Rails Forum</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="hide" />
+  <div id="footer">
+    <div class="wrapper">
+      <p>This work is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International</a> License</p>
+<p>"Rails", "Ruby on Rails", and the Rails logo are trademarks of David Heinemeier Hansson. All rights reserved.</p>
+
+    </div>
+  </div>
+</body>
+</html>

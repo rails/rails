@@ -1,0 +1,1413 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Active Record and PostgreSQL — Ruby on Rails Guides</title>
+  <link rel="stylesheet" type="text/css" href="stylesheets/style.css" data-turbo-track="reload">
+  <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+  <link rel="stylesheet" type="text/css" href="stylesheets/highlight.css" data-turbo-track="reload">
+  
+  <link rel="icon" href="images/favicon.ico" sizes="any">
+  <link rel="icon" href="images/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="images/icon.png">
+  
+  <script src="javascripts/@hotwired--turbo.js" data-turbo-track="reload"></script>
+  <script src="javascripts/clipboard.js" data-turbo-track="reload"></script>
+  <script src="javascripts/guides.js" data-turbo-track="reload"></script>
+
+  <meta property="og:title" content="Active Record and PostgreSQL — Ruby on Rails Guides" />
+  <meta name="description" content="Active Record and PostgreSQLThis guide covers PostgreSQL specific usage of Active Record.After reading this guide, you will know: How to use PostgreSQL&#39;s datatypes. How to use UUID primary keys. How to include non-key columns in indexes. How to use deferrable foreign keys. How to use unique constraints. How to implement exclusion constraints. How to implement full text search with PostgreSQL. How to back your Active Record models with database views." />
+  <meta property="og:description" content="Active Record and PostgreSQLThis guide covers PostgreSQL specific usage of Active Record.After reading this guide, you will know: How to use PostgreSQL&#39;s datatypes. How to use UUID primary keys. How to include non-key columns in indexes. How to use deferrable foreign keys. How to use unique constraints. How to implement exclusion constraints. How to implement full text search with PostgreSQL. How to back your Active Record models with database views." />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:site_name" content="Ruby on Rails Guides" />
+  <meta property="og:image" content="https://avatars.githubusercontent.com/u/4223" />
+  <meta property="og:type" content="website" />
+
+  <meta name="theme-color" content="#C81418">
+</head>
+
+<body dir="ltr" class="guide">
+  <div>
+    <div id="version-badge">edge</div>
+  </div>
+  <div id="topNav">
+    <div class="wrapper">
+      <strong class="more-info-label">More at <a href="https://rubyonrails.org/">rubyonrails.org:</a> </strong>
+      <span class="red-button more-info-button">
+        More Ruby on Rails
+      </span>
+      <ul class="more-info-links s-hidden">
+        <li class="more-info"><a href="https://rubyonrails.org/blog">Blog</a></li>
+        <li class="more-info"><a href="https://guides.rubyonrails.org/">Guides</a></li>
+        <li class="more-info"><a href="https://api.rubyonrails.org/">API</a></li>
+        <li class="more-info"><a href="https://discuss.rubyonrails.org/">Forum</a></li>
+        <li class="more-info"><a href="https://github.com/rails/rails">Contribute on GitHub</a></li>
+      </ul>
+    </div>
+  </div>
+  <div id="header">
+    <div class="wrapper clearfix">
+      <div class="header-logo"><a href="index.html" title="Return to home page">Guides.rubyonrails.org</a></div>
+      <ul class="nav">
+        <li><a class="nav-item" href="index.html">Home</a></li>
+        <li class="guides-index guides-index-large">
+          <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
+          <div id="guides" class="clearfix" style="display: none;">
+            <hr />
+            <dl class="guides-section-container">
+                <div class="guides-section">
+                  <dt>Start Here</dt>
+                  <dd><a href="getting_started.html">Getting Started with Rails</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Models</dt>
+                  <dd><a href="active_record_basics.html">Active Record Basics</a></dd>
+                  <dd><a href="active_record_migrations.html">Active Record Migrations</a></dd>
+                  <dd><a href="active_record_validations.html">Active Record Validations</a></dd>
+                  <dd><a href="active_record_callbacks.html">Active Record Callbacks</a></dd>
+                  <dd><a href="association_basics.html">Active Record Associations</a></dd>
+                  <dd><a href="active_record_querying.html">Active Record Query Interface</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Views</dt>
+                  <dd><a href="layouts_and_rendering.html">Layouts and Rendering in Rails</a></dd>
+                  <dd><a href="form_helpers.html">Action View Form Helpers</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Controllers</dt>
+                  <dd><a href="action_controller_overview.html">Action Controller Overview</a></dd>
+                  <dd><a href="routing.html">Rails Routing from the Outside In</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Other Components</dt>
+                  <dd><a href="active_support_core_extensions.html">Active Support Core Extensions</a></dd>
+                  <dd><a href="action_mailer_basics.html">Action Mailer Basics</a></dd>
+                  <dd><a href="active_job_basics.html">Active Job Basics</a></dd>
+                  <dd><a href="active_storage_overview.html">Active Storage Overview</a></dd>
+                  <dd><a href="action_cable_overview.html">Action Cable Overview</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Digging Deeper</dt>
+                  <dd><a href="i18n.html">Rails Internationalization (I18n) API</a></dd>
+                  <dd><a href="testing.html">Testing Rails Applications</a></dd>
+                  <dd><a href="security.html">Securing Rails Applications</a></dd>
+                  <dd><a href="error_reporting.html">Error Reporting in Rails Applications</a></dd>
+                  <dd><a href="debugging_rails_applications.html">Debugging Rails Applications</a></dd>
+                  <dd><a href="configuring.html">Configuring Rails Applications</a></dd>
+                  <dd><a href="command_line.html">The Rails Command Line</a></dd>
+                  <dd><a href="asset_pipeline.html">The Asset Pipeline</a></dd>
+                  <dd><a href="working_with_javascript_in_rails.html">Working with JavaScript in Rails</a></dd>
+                  <dd><a href="autoloading_and_reloading_constants.html">Autoloading and Reloading</a></dd>
+                  <dd><a href="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</a></dd>
+                  <dd><a href="caching_with_rails.html">Caching with Rails: An Overview</a></dd>
+                  <dd><a href="api_app.html">Using Rails for API-only Applications</a></dd>
+                  <dd><a href="active_record_multiple_databases.html">Multiple Databases</a></dd>
+                  <dd><a href="active_record_composite_primary_keys.html">Composite Primary Keys</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Extending Rails</dt>
+                  <dd><a href="rails_on_rack.html">Rails on Rack</a></dd>
+                  <dd><a href="generators.html">Creating and Customizing Rails Generators &amp; Templates</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Contributing</dt>
+                  <dd><a href="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</a></dd>
+                  <dd><a href="api_documentation_guidelines.html">API Documentation Guidelines</a></dd>
+                  <dd><a href="ruby_on_rails_guides_guidelines.html">Guides Guidelines</a></dd>
+                  <dd><a href="development_dependencies_install.html">Installing Rails Core Development Dependencies</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Policies</dt>
+                  <dd><a href="maintenance_policy.html">Maintenance Policy</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Release Notes</dt>
+                  <dd><a href="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</a></dd>
+                  <dd><a href="7_1_release_notes.html">Version 7.1 - October 2023</a></dd>
+                  <dd><a href="7_0_release_notes.html">Version 7.0 - December 2021</a></dd>
+                  <dd><a href="6_1_release_notes.html">Version 6.1 - December 2020</a></dd>
+                  <dd><a href="6_0_release_notes.html">Version 6.0 - August 2019</a></dd>
+                  <dd><a href="5_2_release_notes.html">Version 5.2 - April 2018</a></dd>
+                  <dd><a href="5_1_release_notes.html">Version 5.1 - April 2017</a></dd>
+                  <dd><a href="5_0_release_notes.html">Version 5.0 - June 2016</a></dd>
+                  <dd><a href="4_2_release_notes.html">Version 4.2 - December 2014</a></dd>
+                  <dd><a href="4_1_release_notes.html">Version 4.1 - April 2014</a></dd>
+                  <dd><a href="4_0_release_notes.html">Version 4.0 - June 2013</a></dd>
+                  <dd><a href="3_2_release_notes.html">Version 3.2 - January 2012</a></dd>
+                  <dd><a href="3_1_release_notes.html">Version 3.1 - August 2011</a></dd>
+                  <dd><a href="3_0_release_notes.html">Version 3.0 - August 2010</a></dd>
+                  <dd><a href="2_3_release_notes.html">Version 2.3 - March 2009</a></dd>
+                  <dd><a href="2_2_release_notes.html">Version 2.2 - November 2008</a></dd>
+                </div>
+            </dl>
+          </div>
+        </li>
+        <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
+        <li class="guides-index guides-index-small">
+          <select class="guides-index-item nav-item">
+            <option value="index.html">Guides Index</option>
+              <optgroup label="Start Here">
+                  <option value="getting_started.html">Getting Started with Rails</option>
+              </optgroup>
+              <optgroup label="Models">
+                  <option value="active_record_basics.html">Active Record Basics</option>
+                  <option value="active_record_migrations.html">Active Record Migrations</option>
+                  <option value="active_record_validations.html">Active Record Validations</option>
+                  <option value="active_record_callbacks.html">Active Record Callbacks</option>
+                  <option value="association_basics.html">Active Record Associations</option>
+                  <option value="active_record_querying.html">Active Record Query Interface</option>
+              </optgroup>
+              <optgroup label="Views">
+                  <option value="layouts_and_rendering.html">Layouts and Rendering in Rails</option>
+                  <option value="form_helpers.html">Action View Form Helpers</option>
+              </optgroup>
+              <optgroup label="Controllers">
+                  <option value="action_controller_overview.html">Action Controller Overview</option>
+                  <option value="routing.html">Rails Routing from the Outside In</option>
+              </optgroup>
+              <optgroup label="Other Components">
+                  <option value="active_support_core_extensions.html">Active Support Core Extensions</option>
+                  <option value="action_mailer_basics.html">Action Mailer Basics</option>
+                  <option value="active_job_basics.html">Active Job Basics</option>
+                  <option value="active_storage_overview.html">Active Storage Overview</option>
+                  <option value="action_cable_overview.html">Action Cable Overview</option>
+              </optgroup>
+              <optgroup label="Digging Deeper">
+                  <option value="i18n.html">Rails Internationalization (I18n) API</option>
+                  <option value="testing.html">Testing Rails Applications</option>
+                  <option value="security.html">Securing Rails Applications</option>
+                  <option value="error_reporting.html">Error Reporting in Rails Applications</option>
+                  <option value="debugging_rails_applications.html">Debugging Rails Applications</option>
+                  <option value="configuring.html">Configuring Rails Applications</option>
+                  <option value="command_line.html">The Rails Command Line</option>
+                  <option value="asset_pipeline.html">The Asset Pipeline</option>
+                  <option value="working_with_javascript_in_rails.html">Working with JavaScript in Rails</option>
+                  <option value="autoloading_and_reloading_constants.html">Autoloading and Reloading</option>
+                  <option value="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</option>
+                  <option value="caching_with_rails.html">Caching with Rails: An Overview</option>
+                  <option value="api_app.html">Using Rails for API-only Applications</option>
+                  <option value="active_record_multiple_databases.html">Multiple Databases</option>
+                  <option value="active_record_composite_primary_keys.html">Composite Primary Keys</option>
+              </optgroup>
+              <optgroup label="Extending Rails">
+                  <option value="rails_on_rack.html">Rails on Rack</option>
+                  <option value="generators.html">Creating and Customizing Rails Generators &amp; Templates</option>
+              </optgroup>
+              <optgroup label="Contributing">
+                  <option value="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</option>
+                  <option value="api_documentation_guidelines.html">API Documentation Guidelines</option>
+                  <option value="ruby_on_rails_guides_guidelines.html">Guides Guidelines</option>
+                  <option value="development_dependencies_install.html">Installing Rails Core Development Dependencies</option>
+              </optgroup>
+              <optgroup label="Policies">
+                  <option value="maintenance_policy.html">Maintenance Policy</option>
+              </optgroup>
+              <optgroup label="Release Notes">
+                  <option value="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</option>
+                  <option value="7_1_release_notes.html">Version 7.1 - October 2023</option>
+                  <option value="7_0_release_notes.html">Version 7.0 - December 2021</option>
+                  <option value="6_1_release_notes.html">Version 6.1 - December 2020</option>
+                  <option value="6_0_release_notes.html">Version 6.0 - August 2019</option>
+                  <option value="5_2_release_notes.html">Version 5.2 - April 2018</option>
+                  <option value="5_1_release_notes.html">Version 5.1 - April 2017</option>
+                  <option value="5_0_release_notes.html">Version 5.0 - June 2016</option>
+                  <option value="4_2_release_notes.html">Version 4.2 - December 2014</option>
+                  <option value="4_1_release_notes.html">Version 4.1 - April 2014</option>
+                  <option value="4_0_release_notes.html">Version 4.0 - June 2013</option>
+                  <option value="3_2_release_notes.html">Version 3.2 - January 2012</option>
+                  <option value="3_1_release_notes.html">Version 3.1 - August 2011</option>
+                  <option value="3_0_release_notes.html">Version 3.0 - August 2010</option>
+                  <option value="2_3_release_notes.html">Version 2.3 - March 2009</option>
+                  <option value="2_2_release_notes.html">Version 2.2 - November 2008</option>
+              </optgroup>
+          </select>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <hr class="hide" />
+
+  <div id="feature">
+    <div class="wrapper">
+      <h1>Active Record and PostgreSQL</h1><p>This guide covers PostgreSQL specific usage of Active Record.</p><p>After reading this guide, you will know:</p>
+<ul>
+<li>How to use PostgreSQL&#39;s datatypes.</li>
+<li>How to use UUID primary keys.</li>
+<li>How to include non-key columns in indexes.</li>
+<li>How to use deferrable foreign keys.</li>
+<li>How to use unique constraints.</li>
+<li>How to implement exclusion constraints.</li>
+<li>How to implement full text search with PostgreSQL.</li>
+<li>How to back your Active Record models with database views.</li>
+</ul>
+
+
+                <div id="subCol">
+            <h3 class="chapter"><img src="images/icon_book-close-bookmark-1.svg" alt="" />Chapters</h3>
+            <ol class="chapters">
+<li><a href="#datatypes">Datatypes</a>
+
+<ul>
+<li><a href="#bytea">Bytea</a></li>
+<li><a href="#array">Array</a></li>
+<li><a href="#hstore">Hstore</a></li>
+<li><a href="#json-and-jsonb">JSON and JSONB</a></li>
+<li><a href="#range-types">Range Types</a></li>
+<li><a href="#composite-types">Composite Types</a></li>
+<li><a href="#enumerated-types">Enumerated Types</a></li>
+<li><a href="#uuid">UUID</a></li>
+<li><a href="#bit-string-types">Bit String Types</a></li>
+<li><a href="#network-address-types">Network Address Types</a></li>
+<li><a href="#geometric-types">Geometric Types</a></li>
+<li><a href="#interval">Interval</a></li>
+</ul></li>
+<li><a href="#uuid-primary-keys">UUID Primary Keys</a></li>
+<li><a href="#indexing">Indexing</a>
+
+<ul>
+<li><a href="#include">Include</a></li>
+</ul></li>
+<li><a href="#generated-columns">Generated Columns</a></li>
+<li><a href="#deferrable-foreign-keys">Deferrable Foreign Keys</a></li>
+<li><a href="#unique-constraint">Unique Constraint</a></li>
+<li><a href="#exclusion-constraints">Exclusion Constraints</a></li>
+<li><a href="#full-text-search">Full Text Search</a></li>
+<li><a href="#database-views">Database Views</a></li>
+<li><a href="#structure-dumps">Structure Dumps</a></li>
+</ol>
+
+          </div>
+
+    </div>
+  </div>
+
+  <div id="container">
+    <div class="wrapper">
+      <div id="mainCol">
+        <p>In order to use the PostgreSQL adapter you need to have at least version 9.3
+installed. Older versions are not supported.</p><p>To get started with PostgreSQL have a look at the
+<a href="configuring.html#configuring-a-postgresql-database">configuring Rails guide</a>.
+It describes how to properly set up Active Record for PostgreSQL.</p><h2 id="datatypes"><a class="anchorlink" href="#datatypes">1 Datatypes</a></h2><p>PostgreSQL offers a number of specific datatypes. Following is a list of types,
+that are supported by the PostgreSQL adapter.</p><h3 id="bytea"><a class="anchorlink" href="#bytea">1.1 Bytea</a></h3>
+<ul>
+<li><a href="https://www.postgresql.org/docs/current/static/datatype-binary.html">type definition</a></li>
+<li><a href="https://www.postgresql.org/docs/current/static/functions-binarystring.html">functions and operators</a></li>
+</ul>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20140207133952_create_documents.rb</span>
+<span class="n">create_table</span> <span class="ss">:documents</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">binary</span> <span class="s1">'payload'</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20140207133952_create_documents.rb
+create_table :documents do |t|
+  t.binary 'payload'
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># app/models/document.rb</span>
+<span class="k">class</span> <span class="nc">Document</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# app/models/document.rb
+class Document < ApplicationRecord
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># Usage</span>
+<span class="n">data</span> <span class="o">=</span> <span class="no">File</span><span class="p">.</span><span class="nf">read</span><span class="p">(</span><span class="no">Rails</span><span class="p">.</span><span class="nf">root</span> <span class="o">+</span> <span class="s2">"tmp/output.pdf"</span><span class="p">)</span>
+<span class="no">Document</span><span class="p">.</span><span class="nf">create</span> <span class="ss">payload: </span><span class="n">data</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# Usage
+data = File.read(Rails.root + &quot;tmp/output.pdf&quot;)
+Document.create payload: data
+">Copy</button>
+</div>
+<h3 id="array"><a class="anchorlink" href="#array">1.2 Array</a></h3>
+<ul>
+<li><a href="https://www.postgresql.org/docs/current/static/arrays.html">type definition</a></li>
+<li><a href="https://www.postgresql.org/docs/current/static/functions-array.html">functions and operators</a></li>
+</ul>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20140207133952_create_books.rb</span>
+<span class="n">create_table</span> <span class="ss">:books</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="s1">'title'</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="s1">'tags'</span><span class="p">,</span> <span class="ss">array: </span><span class="kp">true</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">integer</span> <span class="s1">'ratings'</span><span class="p">,</span> <span class="ss">array: </span><span class="kp">true</span>
+<span class="k">end</span>
+<span class="n">add_index</span> <span class="ss">:books</span><span class="p">,</span> <span class="ss">:tags</span><span class="p">,</span> <span class="ss">using: </span><span class="s1">'gin'</span>
+<span class="n">add_index</span> <span class="ss">:books</span><span class="p">,</span> <span class="ss">:ratings</span><span class="p">,</span> <span class="ss">using: </span><span class="s1">'gin'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20140207133952_create_books.rb
+create_table :books do |t|
+  t.string 'title'
+  t.string 'tags', array: true
+  t.integer 'ratings', array: true
+end
+add_index :books, :tags, using: 'gin'
+add_index :books, :ratings, using: 'gin'
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># app/models/book.rb</span>
+<span class="k">class</span> <span class="nc">Book</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# app/models/book.rb
+class Book < ApplicationRecord
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># Usage</span>
+<span class="no">Book</span><span class="p">.</span><span class="nf">create</span> <span class="ss">title: </span><span class="s2">"Brave New World"</span><span class="p">,</span>
+            <span class="ss">tags: </span><span class="p">[</span><span class="s2">"fantasy"</span><span class="p">,</span> <span class="s2">"fiction"</span><span class="p">],</span>
+            <span class="ss">ratings: </span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+
+<span class="c1">## Books for a single tag</span>
+<span class="no">Book</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"'fantasy' = ANY (tags)"</span><span class="p">)</span>
+
+<span class="c1">## Books for multiple tags</span>
+<span class="no">Book</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"tags @&gt; ARRAY[?]::varchar[]"</span><span class="p">,</span> <span class="p">[</span><span class="s2">"fantasy"</span><span class="p">,</span> <span class="s2">"fiction"</span><span class="p">])</span>
+
+<span class="c1">## Books with 3 or more ratings</span>
+<span class="no">Book</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"array_length(ratings, 1) &gt;= 3"</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# Usage
+Book.create title: &quot;Brave New World&quot;,
+            tags: [&quot;fantasy&quot;, &quot;fiction&quot;],
+            ratings: [4, 5]
+
+## Books for a single tag
+Book.where(&quot;'fantasy' = ANY (tags)&quot;)
+
+## Books for multiple tags
+Book.where(&quot;tags @> ARRAY[?]::varchar[]&quot;, [&quot;fantasy&quot;, &quot;fiction&quot;])
+
+## Books with 3 or more ratings
+Book.where(&quot;array_length(ratings, 1) >= 3&quot;)
+">Copy</button>
+</div>
+<h3 id="hstore"><a class="anchorlink" href="#hstore">1.3 Hstore</a></h3>
+<ul>
+<li><a href="https://www.postgresql.org/docs/current/static/hstore.html">type definition</a></li>
+<li><a href="https://www.postgresql.org/docs/current/static/hstore.html#id-1.11.7.26.5">functions and operators</a></li>
+</ul>
+<div class="note"><p>You need to enable the <code>hstore</code> extension to use hstore.</p></div><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20131009135255_create_profiles.rb</span>
+<span class="k">class</span> <span class="nc">CreateProfiles</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="n">enable_extension</span> <span class="s1">'hstore'</span> <span class="k">unless</span> <span class="n">extension_enabled?</span><span class="p">(</span><span class="s1">'hstore'</span><span class="p">)</span>
+  <span class="n">create_table</span> <span class="ss">:profiles</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+    <span class="n">t</span><span class="p">.</span><span class="nf">hstore</span> <span class="s1">'settings'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20131009135255_create_profiles.rb
+class CreateProfiles < ActiveRecord::Migration[7.0]
+  enable_extension 'hstore' unless extension_enabled?('hstore')
+  create_table :profiles do |t|
+    t.hstore 'settings'
+  end
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># app/models/profile.rb</span>
+<span class="k">class</span> <span class="nc">Profile</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# app/models/profile.rb
+class Profile < ApplicationRecord
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight irb"><span class="gp">irb&gt;</span><span class="w"> </span><span class="no">Profile</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">settings: </span><span class="p">{</span> <span class="s2">"color"</span> <span class="o">=&gt;</span> <span class="s2">"blue"</span><span class="p">,</span> <span class="s2">"resolution"</span> <span class="o">=&gt;</span> <span class="s2">"800x600"</span> <span class="p">})</span>
+<span class="err">
+</span><span class="gp">irb&gt;</span><span class="w"> </span><span class="n">profile</span> <span class="o">=</span> <span class="no">Profile</span><span class="p">.</span><span class="nf">first</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">profile</span><span class="p">.</span><span class="nf">settings</span>
+<span class="p">=&gt;</span> <span class="p">{</span><span class="s2">"color"</span><span class="o">=&gt;</span><span class="s2">"blue"</span><span class="p">,</span> <span class="s2">"resolution"</span><span class="o">=&gt;</span><span class="s2">"800x600"</span><span class="p">}</span>
+
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">profile</span><span class="p">.</span><span class="nf">settings</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"color"</span> <span class="o">=&gt;</span> <span class="s2">"yellow"</span><span class="p">,</span> <span class="s2">"resolution"</span> <span class="o">=&gt;</span> <span class="s2">"1280x1024"</span><span class="p">}</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">profile</span><span class="p">.</span><span class="nf">save!</span>
+<span class="err">
+</span><span class="gp">irb&gt;</span><span class="w"> </span><span class="no">Profile</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"settings-&gt;'color' = ?"</span><span class="p">,</span> <span class="s2">"yellow"</span><span class="p">)</span>
+<span class="p">=&gt;</span> <span class="kt">#&lt;</span><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Relation</span> <span class="p">[</span><span class="kt">#&lt;</span><span class="no">Profile</span> <span class="ss">id: </span><span class="mi">1</span><span class="p">,</span> <span class="ss">settings: </span><span class="p">{</span><span class="s2">"color"</span><span class="o">=</span><span class="kt">&gt;</span><span class="s2">"yellow"</span><span class="p">,</span> <span class="s2">"resolution"</span><span class="o">=</span><span class="kt">&gt;</span><span class="s2">"1280x1024"</span><span class="p">}</span><span class="o">&gt;</span><span class="p">]</span><span class="o">&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Profile.create(settings: { &quot;color&quot; => &quot;blue&quot;, &quot;resolution&quot; => &quot;800x600&quot; })
+profile = Profile.first
+profile.settings
+profile.settings = {&quot;color&quot; => &quot;yellow&quot;, &quot;resolution&quot; => &quot;1280x1024&quot;}
+profile.save!
+Profile.where(&quot;settings->'color' = ?&quot;, &quot;yellow&quot;)
+">Copy</button>
+</div>
+<h3 id="json-and-jsonb"><a class="anchorlink" href="#json-and-jsonb">1.4 JSON and JSONB</a></h3>
+<ul>
+<li><a href="https://www.postgresql.org/docs/current/static/datatype-json.html">type definition</a></li>
+<li><a href="https://www.postgresql.org/docs/current/static/functions-json.html">functions and operators</a></li>
+</ul>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20131220144913_create_events.rb</span>
+<span class="c1"># ... for json datatype:</span>
+<span class="n">create_table</span> <span class="ss">:events</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">json</span> <span class="s1">'payload'</span>
+<span class="k">end</span>
+<span class="c1"># ... or for jsonb datatype:</span>
+<span class="n">create_table</span> <span class="ss">:events</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">jsonb</span> <span class="s1">'payload'</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20131220144913_create_events.rb
+# ... for json datatype:
+create_table :events do |t|
+  t.json 'payload'
+end
+# ... or for jsonb datatype:
+create_table :events do |t|
+  t.jsonb 'payload'
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># app/models/event.rb</span>
+<span class="k">class</span> <span class="nc">Event</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# app/models/event.rb
+class Event < ApplicationRecord
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight irb"><span class="gp">irb&gt;</span><span class="w"> </span><span class="no">Event</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">payload: </span><span class="p">{</span> <span class="ss">kind: </span><span class="s2">"user_renamed"</span><span class="p">,</span> <span class="ss">change: </span><span class="p">[</span><span class="s2">"jack"</span><span class="p">,</span> <span class="s2">"john"</span><span class="p">]})</span>
+<span class="err">
+</span><span class="gp">irb&gt;</span><span class="w"> </span><span class="n">event</span> <span class="o">=</span> <span class="no">Event</span><span class="p">.</span><span class="nf">first</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">event</span><span class="p">.</span><span class="nf">payload</span>
+<span class="p">=&gt;</span> <span class="p">{</span><span class="s2">"kind"</span><span class="o">=&gt;</span><span class="s2">"user_renamed"</span><span class="p">,</span> <span class="s2">"change"</span><span class="o">=&gt;</span><span class="p">[</span><span class="s2">"jack"</span><span class="p">,</span> <span class="s2">"john"</span><span class="p">]}</span>
+
+<span class="c">## Query based on JSON document
+</span><span class="gp"># The -&gt; operator returns the original JSON type (which might be an object), whereas -&gt;&gt;</span><span class="w"> </span><span class="n">returns</span> <span class="n">text</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="no">Event</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"payload-&gt;&gt;'kind' = ?"</span><span class="p">,</span> <span class="s2">"user_renamed"</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Event.create(payload: { kind: &quot;user_renamed&quot;, change: [&quot;jack&quot;, &quot;john&quot;]})
+event = Event.first
+event.payload
+Event.where(&quot;payload->>'kind' = ?&quot;, &quot;user_renamed&quot;)
+">Copy</button>
+</div>
+<h3 id="range-types"><a class="anchorlink" href="#range-types">1.5 Range Types</a></h3>
+<ul>
+<li><a href="https://www.postgresql.org/docs/current/static/rangetypes.html">type definition</a></li>
+<li><a href="https://www.postgresql.org/docs/current/static/functions-range.html">functions and operators</a></li>
+</ul>
+<p>This type is mapped to Ruby <a href="https://ruby-doc.org/core-3.1.0/Range.html"><code>Range</code></a> objects.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20130923065404_create_events.rb</span>
+<span class="n">create_table</span> <span class="ss">:events</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">daterange</span> <span class="s1">'duration'</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20130923065404_create_events.rb
+create_table :events do |t|
+  t.daterange 'duration'
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># app/models/event.rb</span>
+<span class="k">class</span> <span class="nc">Event</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# app/models/event.rb
+class Event < ApplicationRecord
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight irb"><span class="gp">irb&gt;</span><span class="w"> </span><span class="no">Event</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">duration: </span><span class="no">Date</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="mi">2014</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span><span class="o">..</span><span class="no">Date</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="mi">2014</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+<span class="err">
+</span><span class="gp">irb&gt;</span><span class="w"> </span><span class="n">event</span> <span class="o">=</span> <span class="no">Event</span><span class="p">.</span><span class="nf">first</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">event</span><span class="p">.</span><span class="nf">duration</span>
+<span class="p">=&gt;</span> <span class="no">Tue</span><span class="p">,</span> <span class="mi">11</span> <span class="no">Feb</span> <span class="mi">2014</span><span class="o">...</span><span class="no">Thu</span><span class="p">,</span> <span class="mi">13</span> <span class="no">Feb</span> <span class="mi">2014</span>
+
+<span class="c">## All Events on a given date
+</span><span class="gp">irb&gt;</span><span class="w"> </span><span class="no">Event</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"duration @&gt; ?::date"</span><span class="p">,</span> <span class="no">Date</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="mi">2014</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+<span class="err">
+</span><span class="c">## Working with range bounds
+</span><span class="gp">irb&gt;</span><span class="w"> </span><span class="n">event</span> <span class="o">=</span> <span class="no">Event</span><span class="p">.</span><span class="nf">select</span><span class="p">(</span><span class="s2">"lower(duration) AS starts_at"</span><span class="p">).</span><span class="nf">select</span><span class="p">(</span><span class="s2">"upper(duration) AS ends_at"</span><span class="p">).</span><span class="nf">first</span>
+<span class="err">
+</span><span class="gp">irb&gt;</span><span class="w"> </span><span class="n">event</span><span class="p">.</span><span class="nf">starts_at</span>
+<span class="p">=&gt;</span> <span class="no">Tue</span><span class="p">,</span> <span class="mi">11</span> <span class="no">Feb</span> <span class="mi">2014</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">event</span><span class="p">.</span><span class="nf">ends_at</span>
+<span class="p">=&gt;</span> <span class="no">Thu</span><span class="p">,</span> <span class="mi">13</span> <span class="no">Feb</span> <span class="mi">2014</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Event.create(duration: Date.new(2014, 2, 11)..Date.new(2014, 2, 12))
+event = Event.first
+event.duration
+Event.where(&quot;duration @> ?::date&quot;, Date.new(2014, 2, 12))
+event = Event.select(&quot;lower(duration) AS starts_at&quot;).select(&quot;upper(duration) AS ends_at&quot;).first
+event.starts_at
+event.ends_at
+">Copy</button>
+</div>
+<h3 id="composite-types"><a class="anchorlink" href="#composite-types">1.6 Composite Types</a></h3>
+<ul>
+<li><a href="https://www.postgresql.org/docs/current/static/rowtypes.html">type definition</a></li>
+</ul>
+<p>Currently there is no special support for composite types. They are mapped to
+normal text columns:</p><div class="code_container">
+<pre><code class="highlight sql"><span class="k">CREATE</span> <span class="k">TYPE</span> <span class="n">full_address</span> <span class="k">AS</span>
+<span class="p">(</span>
+  <span class="n">city</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">90</span><span class="p">),</span>
+  <span class="n">street</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">90</span><span class="p">)</span>
+<span class="p">);</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="CREATE TYPE full_address AS
+(
+  city VARCHAR(90),
+  street VARCHAR(90)
+);
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20140207133952_create_contacts.rb</span>
+<span class="n">execute</span> <span class="o">&lt;&lt;-</span><span class="no">SQL</span><span class="sh">
+  CREATE TYPE full_address AS
+  (
+    city VARCHAR(90),
+    street VARCHAR(90)
+  );
+</span><span class="no">SQL</span>
+<span class="n">create_table</span> <span class="ss">:contacts</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">column</span> <span class="ss">:address</span><span class="p">,</span> <span class="ss">:full_address</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20140207133952_create_contacts.rb
+execute <<-SQL
+  CREATE TYPE full_address AS
+  (
+    city VARCHAR(90),
+    street VARCHAR(90)
+  );
+SQL
+create_table :contacts do |t|
+  t.column :address, :full_address
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># app/models/contact.rb</span>
+<span class="k">class</span> <span class="nc">Contact</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# app/models/contact.rb
+class Contact < ApplicationRecord
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight irb"><span class="gp">irb&gt;</span><span class="w"> </span><span class="no">Contact</span><span class="p">.</span><span class="nf">create</span> <span class="ss">address: </span><span class="s2">"(Paris,Champs-Élysées)"</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">contact</span> <span class="o">=</span> <span class="no">Contact</span><span class="p">.</span><span class="nf">first</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">contact</span><span class="p">.</span><span class="nf">address</span>
+<span class="p">=&gt;</span> <span class="s2">"(Paris,Champs-Élysées)"</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">contact</span><span class="p">.</span><span class="nf">address</span> <span class="o">=</span> <span class="s2">"(Paris,Rue Basse)"</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">contact</span><span class="p">.</span><span class="nf">save!</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Contact.create address: &quot;(Paris,Champs-Élysées)&quot;
+contact = Contact.first
+contact.address
+contact.address = &quot;(Paris,Rue Basse)&quot;
+contact.save!
+">Copy</button>
+</div>
+<h3 id="enumerated-types"><a class="anchorlink" href="#enumerated-types">1.7 Enumerated Types</a></h3>
+<ul>
+<li><a href="https://www.postgresql.org/docs/current/static/datatype-enum.html">type definition</a></li>
+</ul>
+<p>The type can be mapped as a normal text column, or to an <a href="https://edgeapi.rubyonrails.org/classes/ActiveRecord/Enum.html"><code>ActiveRecord::Enum</code></a>.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20131220144913_create_articles.rb</span>
+<span class="k">def</span> <span class="nf">change</span>
+  <span class="n">create_enum</span> <span class="ss">:article_status</span><span class="p">,</span> <span class="p">[</span><span class="s2">"draft"</span><span class="p">,</span> <span class="s2">"published"</span><span class="p">,</span> <span class="s2">"archived"</span><span class="p">]</span>
+
+  <span class="n">create_table</span> <span class="ss">:articles</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+    <span class="n">t</span><span class="p">.</span><span class="nf">enum</span> <span class="ss">:status</span><span class="p">,</span> <span class="ss">enum_type: :article_status</span><span class="p">,</span> <span class="ss">default: </span><span class="s2">"draft"</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20131220144913_create_articles.rb
+def change
+  create_enum :article_status, [&quot;draft&quot;, &quot;published&quot;, &quot;archived&quot;]
+
+  create_table :articles do |t|
+    t.enum :status, enum_type: :article_status, default: &quot;draft&quot;, null: false
+  end
+end
+">Copy</button>
+</div>
+<p>You can also create an enum type and add an enum column to an existing table:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20230113024409_add_status_to_articles.rb</span>
+<span class="k">def</span> <span class="nf">change</span>
+  <span class="n">create_enum</span> <span class="ss">:article_status</span><span class="p">,</span> <span class="p">[</span><span class="s2">"draft"</span><span class="p">,</span> <span class="s2">"published"</span><span class="p">,</span> <span class="s2">"archived"</span><span class="p">]</span>
+
+  <span class="n">add_column</span> <span class="ss">:articles</span><span class="p">,</span> <span class="ss">:status</span><span class="p">,</span> <span class="ss">:enum</span><span class="p">,</span> <span class="ss">enum_type: :article_status</span><span class="p">,</span> <span class="ss">default: </span><span class="s2">"draft"</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20230113024409_add_status_to_articles.rb
+def change
+  create_enum :article_status, [&quot;draft&quot;, &quot;published&quot;, &quot;archived&quot;]
+
+  add_column :articles, :status, :enum, enum_type: :article_status, default: &quot;draft&quot;, null: false
+end
+">Copy</button>
+</div>
+<p>The above migrations are both reversible, but you can define separate <code>#up</code> and <code>#down</code> methods if required. Make sure you remove any columns or tables that depend on the enum type before dropping it:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">def</span> <span class="nf">down</span>
+  <span class="n">drop_table</span> <span class="ss">:articles</span>
+
+  <span class="c1"># OR: remove_column :articles, :status</span>
+  <span class="n">drop_enum</span> <span class="ss">:article_status</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="def down
+  drop_table :articles
+
+  # OR: remove_column :articles, :status
+  drop_enum :article_status
+end
+">Copy</button>
+</div>
+<p>Declaring an enum attribute in the model adds helper methods and prevents invalid values from being assigned to instances of the class:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># app/models/article.rb</span>
+<span class="k">class</span> <span class="nc">Article</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">enum</span> <span class="ss">:status</span><span class="p">,</span> <span class="p">{</span>
+    <span class="ss">draft: </span><span class="s2">"draft"</span><span class="p">,</span> <span class="ss">published: </span><span class="s2">"published"</span><span class="p">,</span> <span class="ss">archived: </span><span class="s2">"archived"</span>
+  <span class="p">},</span> <span class="ss">prefix: </span><span class="kp">true</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# app/models/article.rb
+class Article < ApplicationRecord
+  enum :status, {
+    draft: &quot;draft&quot;, published: &quot;published&quot;, archived: &quot;archived&quot;
+  }, prefix: true
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight irb"><span class="gp">irb&gt;</span><span class="w"> </span><span class="n">article</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">create</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">article</span><span class="p">.</span><span class="nf">status</span>
+<span class="p">=&gt;</span> <span class="s2">"draft"</span> <span class="c1"># default status from PostgreSQL, as defined in migration above</span>
+
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">article</span><span class="p">.</span><span class="nf">status_published!</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">article</span><span class="p">.</span><span class="nf">status</span>
+<span class="p">=&gt;</span> <span class="s2">"published"</span>
+
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">article</span><span class="p">.</span><span class="nf">status_archived?</span>
+<span class="p">=&gt;</span> <span class="kp">false</span>
+
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">article</span><span class="p">.</span><span class="nf">status</span> <span class="o">=</span> <span class="s2">"deleted"</span>
+<span class="gr">ArgumentError: 'deleted' is not a valid status
+</span></code></pre>
+<button class="clipboard-button" data-clipboard-text="article = Article.create
+article.status
+article.status_published!
+article.status
+article.status_archived?
+article.status = &quot;deleted&quot;
+">Copy</button>
+</div>
+<p>To rename the enum you can use <code>rename_enum</code> along with updating any model
+usage:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20150718144917_rename_article_status.rb</span>
+<span class="k">def</span> <span class="nf">change</span>
+  <span class="n">rename_enum</span> <span class="ss">:article_status</span><span class="p">,</span> <span class="ss">to: :article_state</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20150718144917_rename_article_status.rb
+def change
+  rename_enum :article_status, to: :article_state
+end
+">Copy</button>
+</div>
+<p>To add a new value you can use <code>add_enum_value</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20150720144913_add_new_state_to_articles.rb</span>
+<span class="k">def</span> <span class="nf">up</span>
+  <span class="n">add_enum_value</span> <span class="ss">:article_state</span><span class="p">,</span> <span class="s2">"archived"</span> <span class="c1"># will be at the end after published</span>
+  <span class="n">add_enum_value</span> <span class="ss">:article_state</span><span class="p">,</span> <span class="s2">"in review"</span><span class="p">,</span> <span class="ss">before: </span><span class="s2">"published"</span>
+  <span class="n">add_enum_value</span> <span class="ss">:article_state</span><span class="p">,</span> <span class="s2">"approved"</span><span class="p">,</span> <span class="ss">after: </span><span class="s2">"in review"</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20150720144913_add_new_state_to_articles.rb
+def up
+  add_enum_value :article_state, &quot;archived&quot; # will be at the end after published
+  add_enum_value :article_state, &quot;in review&quot;, before: &quot;published&quot;
+  add_enum_value :article_state, &quot;approved&quot;, after: &quot;in review&quot;
+end
+">Copy</button>
+</div>
+<div class="note"><p>Enum values can't be dropped, which also means add_enum_value is irreversible. You can read why <a href="https://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com">here</a>.</p></div><p>To rename a value you can use <code>rename_enum_value</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20150722144915_rename_article_state.rb</span>
+<span class="k">def</span> <span class="nf">change</span>
+  <span class="n">rename_enum_value</span> <span class="ss">:article_state</span><span class="p">,</span> <span class="ss">from: </span><span class="s2">"archived"</span><span class="p">,</span> <span class="ss">to: </span><span class="s2">"deleted"</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20150722144915_rename_article_state.rb
+def change
+  rename_enum_value :article_state, from: &quot;archived&quot;, to: &quot;deleted&quot;
+end
+">Copy</button>
+</div>
+<p>Hint: to show all the values of the all enums you have, you can call this query in <code>bin/rails db</code> or <code>psql</code> console:</p><div class="code_container">
+<pre><code class="highlight sql"><span class="k">SELECT</span> <span class="n">n</span><span class="p">.</span><span class="n">nspname</span> <span class="k">AS</span> <span class="n">enum_schema</span><span class="p">,</span>
+       <span class="n">t</span><span class="p">.</span><span class="n">typname</span> <span class="k">AS</span> <span class="n">enum_name</span><span class="p">,</span>
+       <span class="n">e</span><span class="p">.</span><span class="n">enumlabel</span> <span class="k">AS</span> <span class="n">enum_value</span>
+  <span class="k">FROM</span> <span class="n">pg_type</span> <span class="n">t</span>
+      <span class="k">JOIN</span> <span class="n">pg_enum</span> <span class="n">e</span> <span class="k">ON</span> <span class="n">t</span><span class="p">.</span><span class="n">oid</span> <span class="o">=</span> <span class="n">e</span><span class="p">.</span><span class="n">enumtypid</span>
+      <span class="k">JOIN</span> <span class="n">pg_catalog</span><span class="p">.</span><span class="n">pg_namespace</span> <span class="n">n</span> <span class="k">ON</span> <span class="n">n</span><span class="p">.</span><span class="n">oid</span> <span class="o">=</span> <span class="n">t</span><span class="p">.</span><span class="n">typnamespace</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="SELECT n.nspname AS enum_schema,
+       t.typname AS enum_name,
+       e.enumlabel AS enum_value
+  FROM pg_type t
+      JOIN pg_enum e ON t.oid = e.enumtypid
+      JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
+">Copy</button>
+</div>
+<h3 id="uuid"><a class="anchorlink" href="#uuid">1.8 UUID</a></h3>
+<ul>
+<li><a href="https://www.postgresql.org/docs/current/static/datatype-uuid.html">type definition</a></li>
+<li><a href="https://www.postgresql.org/docs/current/static/pgcrypto.html">pgcrypto generator function</a></li>
+<li><a href="https://www.postgresql.org/docs/current/static/uuid-ossp.html">uuid-ossp generator functions</a></li>
+</ul>
+<div class="note"><p>If you're using PostgreSQL earlier than version 13.0 you may need to enable special extensions to use UUIDs. Enable the <code>pgcrypto</code> extension (PostgreSQL &gt;= 9.4) or <code>uuid-ossp</code> extension (for even earlier releases).</p></div><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20131220144913_create_revisions.rb</span>
+<span class="n">create_table</span> <span class="ss">:revisions</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">uuid</span> <span class="ss">:identifier</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20131220144913_create_revisions.rb
+create_table :revisions do |t|
+  t.uuid :identifier
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># app/models/revision.rb</span>
+<span class="k">class</span> <span class="nc">Revision</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# app/models/revision.rb
+class Revision < ApplicationRecord
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight irb"><span class="gp">irb&gt;</span><span class="w"> </span><span class="no">Revision</span><span class="p">.</span><span class="nf">create</span> <span class="ss">identifier: </span><span class="s2">"A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11"</span>
+<span class="err">
+</span><span class="gp">irb&gt;</span><span class="w"> </span><span class="n">revision</span> <span class="o">=</span> <span class="no">Revision</span><span class="p">.</span><span class="nf">first</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">revision</span><span class="p">.</span><span class="nf">identifier</span>
+<span class="p">=&gt;</span> <span class="s2">"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Revision.create identifier: &quot;A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11&quot;
+revision = Revision.first
+revision.identifier
+">Copy</button>
+</div>
+<p>You can use <code>uuid</code> type to define references in migrations:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20150418012400_create_blog.rb</span>
+<span class="n">enable_extension</span> <span class="s1">'pgcrypto'</span> <span class="k">unless</span> <span class="n">extension_enabled?</span><span class="p">(</span><span class="s1">'pgcrypto'</span><span class="p">)</span>
+<span class="n">create_table</span> <span class="ss">:posts</span><span class="p">,</span> <span class="ss">id: :uuid</span>
+
+<span class="n">create_table</span> <span class="ss">:comments</span><span class="p">,</span> <span class="ss">id: :uuid</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="c1"># t.belongs_to :post, type: :uuid</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">references</span> <span class="ss">:post</span><span class="p">,</span> <span class="ss">type: :uuid</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20150418012400_create_blog.rb
+enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
+create_table :posts, id: :uuid
+
+create_table :comments, id: :uuid do |t|
+  # t.belongs_to :post, type: :uuid
+  t.references :post, type: :uuid
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># app/models/post.rb</span>
+<span class="k">class</span> <span class="nc">Post</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">has_many</span> <span class="ss">:comments</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# app/models/post.rb
+class Post < ApplicationRecord
+  has_many :comments
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># app/models/comment.rb</span>
+<span class="k">class</span> <span class="nc">Comment</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">belongs_to</span> <span class="ss">:post</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# app/models/comment.rb
+class Comment < ApplicationRecord
+  belongs_to :post
+end
+">Copy</button>
+</div>
+<p>See <a href="#uuid-primary-keys">this section</a> for more details on using UUIDs as primary key.</p><h3 id="bit-string-types"><a class="anchorlink" href="#bit-string-types">1.9 Bit String Types</a></h3>
+<ul>
+<li><a href="https://www.postgresql.org/docs/current/static/datatype-bit.html">type definition</a></li>
+<li><a href="https://www.postgresql.org/docs/current/static/functions-bitstring.html">functions and operators</a></li>
+</ul>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20131220144913_create_users.rb</span>
+<span class="n">create_table</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">force: </span><span class="kp">true</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">column</span> <span class="ss">:settings</span><span class="p">,</span> <span class="s2">"bit(8)"</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20131220144913_create_users.rb
+create_table :users, force: true do |t|
+  t.column :settings, &quot;bit(8)&quot;
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># app/models/user.rb</span>
+<span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# app/models/user.rb
+class User < ApplicationRecord
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight irb"><span class="gp">irb&gt;</span><span class="w"> </span><span class="no">User</span><span class="p">.</span><span class="nf">create</span> <span class="ss">settings: </span><span class="s2">"01010011"</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">first</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">user</span><span class="p">.</span><span class="nf">settings</span>
+<span class="p">=&gt;</span> <span class="s2">"01010011"</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">user</span><span class="p">.</span><span class="nf">settings</span> <span class="o">=</span> <span class="s2">"0xAF"</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">user</span><span class="p">.</span><span class="nf">settings</span>
+<span class="p">=&gt;</span> <span class="s2">"10101111"</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">user</span><span class="p">.</span><span class="nf">save!</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="User.create settings: &quot;01010011&quot;
+user = User.first
+user.settings
+user.settings = &quot;0xAF&quot;
+user.settings
+user.save!
+">Copy</button>
+</div>
+<h3 id="network-address-types"><a class="anchorlink" href="#network-address-types">1.10 Network Address Types</a></h3>
+<ul>
+<li><a href="https://www.postgresql.org/docs/current/static/datatype-net-types.html">type definition</a></li>
+</ul>
+<p>The types <code>inet</code> and <code>cidr</code> are mapped to Ruby
+<a href="https://ruby-doc.org/stdlib-3.1.0/libdoc/ipaddr/rdoc/IPAddr.html"><code>IPAddr</code></a>
+objects. The <code>macaddr</code> type is mapped to normal text.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20140508144913_create_devices.rb</span>
+<span class="n">create_table</span><span class="p">(</span><span class="ss">:devices</span><span class="p">,</span> <span class="ss">force: </span><span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">inet</span> <span class="s1">'ip'</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">cidr</span> <span class="s1">'network'</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">macaddr</span> <span class="s1">'address'</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20140508144913_create_devices.rb
+create_table(:devices, force: true) do |t|
+  t.inet 'ip'
+  t.cidr 'network'
+  t.macaddr 'address'
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># app/models/device.rb</span>
+<span class="k">class</span> <span class="nc">Device</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# app/models/device.rb
+class Device < ApplicationRecord
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight irb"><span class="gp">irb&gt;</span><span class="w"> </span><span class="n">macbook</span> <span class="o">=</span> <span class="no">Device</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">ip: </span><span class="s2">"192.168.1.12"</span><span class="p">,</span> <span class="ss">network: </span><span class="s2">"192.168.2.0/24"</span><span class="p">,</span> <span class="ss">address: </span><span class="s2">"32:01:16:6d:05:ef"</span><span class="p">)</span>
+<span class="err">
+</span><span class="gp">irb&gt;</span><span class="w"> </span><span class="n">macbook</span><span class="p">.</span><span class="nf">ip</span>
+<span class="p">=&gt;</span> <span class="kt">#&lt;</span><span class="no">IPAddr</span><span class="p">:</span> <span class="no">IPv4</span><span class="p">:</span><span class="mf">192.168</span><span class="o">.</span><span class="mf">1.12</span><span class="o">/</span><span class="mf">255.255</span><span class="o">.</span><span class="mf">255.255</span><span class="kt">&gt;</span>
+
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">macbook</span><span class="p">.</span><span class="nf">network</span>
+<span class="p">=&gt;</span> <span class="kt">#&lt;</span><span class="no">IPAddr</span><span class="p">:</span> <span class="no">IPv4</span><span class="p">:</span><span class="mf">192.168</span><span class="o">.</span><span class="mf">2.0</span><span class="o">/</span><span class="mf">255.255</span><span class="o">.</span><span class="mf">255.0</span><span class="kt">&gt;</span>
+
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">macbook</span><span class="p">.</span><span class="nf">address</span>
+<span class="p">=&gt;</span> <span class="s2">"32:01:16:6d:05:ef"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="macbook = Device.create(ip: &quot;192.168.1.12&quot;, network: &quot;192.168.2.0/24&quot;, address: &quot;32:01:16:6d:05:ef&quot;)
+macbook.ip
+macbook.network
+macbook.address
+">Copy</button>
+</div>
+<h3 id="geometric-types"><a class="anchorlink" href="#geometric-types">1.11 Geometric Types</a></h3>
+<ul>
+<li><a href="https://www.postgresql.org/docs/current/static/datatype-geometric.html">type definition</a></li>
+</ul>
+<p>All geometric types, with the exception of <code>points</code> are mapped to normal text.
+A point is cast to an array containing <code>x</code> and <code>y</code> coordinates.</p><h3 id="interval"><a class="anchorlink" href="#interval">1.12 Interval</a></h3>
+<ul>
+<li><a href="https://www.postgresql.org/docs/current/static/datatype-datetime.html#DATATYPE-INTERVAL-INPUT">type definition</a></li>
+<li><a href="https://www.postgresql.org/docs/current/static/functions-datetime.html">functions and operators</a></li>
+</ul>
+<p>This type is mapped to <a href="https://edgeapi.rubyonrails.org/classes/ActiveSupport/Duration.html"><code>ActiveSupport::Duration</code></a> objects.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20200120000000_create_events.rb</span>
+<span class="n">create_table</span> <span class="ss">:events</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">interval</span> <span class="s1">'duration'</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20200120000000_create_events.rb
+create_table :events do |t|
+  t.interval 'duration'
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># app/models/event.rb</span>
+<span class="k">class</span> <span class="nc">Event</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# app/models/event.rb
+class Event < ApplicationRecord
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight irb"><span class="gp">irb&gt;</span><span class="w"> </span><span class="no">Event</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">duration: </span><span class="mi">2</span><span class="p">.</span><span class="nf">days</span><span class="p">)</span>
+<span class="err">
+</span><span class="gp">irb&gt;</span><span class="w"> </span><span class="n">event</span> <span class="o">=</span> <span class="no">Event</span><span class="p">.</span><span class="nf">first</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">event</span><span class="p">.</span><span class="nf">duration</span>
+<span class="p">=&gt;</span> <span class="mi">2</span> <span class="n">days</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Event.create(duration: 2.days)
+event = Event.first
+event.duration
+">Copy</button>
+</div>
+<h2 id="uuid-primary-keys"><a class="anchorlink" href="#uuid-primary-keys">2 UUID Primary Keys</a></h2><div class="note"><p>You need to enable the <code>pgcrypto</code> (only PostgreSQL &gt;= 9.4) or <code>uuid-ossp</code>
+extension to generate random UUIDs.</p></div><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20131220144913_create_devices.rb</span>
+<span class="n">enable_extension</span> <span class="s1">'pgcrypto'</span> <span class="k">unless</span> <span class="n">extension_enabled?</span><span class="p">(</span><span class="s1">'pgcrypto'</span><span class="p">)</span>
+<span class="n">create_table</span> <span class="ss">:devices</span><span class="p">,</span> <span class="ss">id: :uuid</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:kind</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20131220144913_create_devices.rb
+enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
+create_table :devices, id: :uuid do |t|
+  t.string :kind
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># app/models/device.rb</span>
+<span class="k">class</span> <span class="nc">Device</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# app/models/device.rb
+class Device < ApplicationRecord
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight irb"><span class="gp">irb&gt;</span><span class="w"> </span><span class="n">device</span> <span class="o">=</span> <span class="no">Device</span><span class="p">.</span><span class="nf">create</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">device</span><span class="p">.</span><span class="nf">id</span>
+<span class="p">=&gt;</span> <span class="s2">"814865cd-5a1d-4771-9306-4268f188fe9e"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="device = Device.create
+device.id
+">Copy</button>
+</div>
+<div class="note"><p><code>gen_random_uuid()</code> (from <code>pgcrypto</code>) is assumed if no <code>:default</code> option
+was passed to <code>create_table</code>.</p></div><p>To use the Rails model generator for a table using UUID as the primary key, pass
+<code>--primary-key-type=uuid</code> to the model generator.</p><p>For example:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">rails </span>generate model Device <span class="nt">--primary-key-type</span><span class="o">=</span>uuid kind:string
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="rails generate model Device --primary-key-type=uuid kind:string
+">Copy</button>
+</div>
+<p>When building a model with a foreign key that will reference this UUID, treat
+<code>uuid</code> as the native field type, for example:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">rails </span>generate model Case device_id:uuid
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="rails generate model Case device_id:uuid
+">Copy</button>
+</div>
+<h2 id="indexing"><a class="anchorlink" href="#indexing">3 Indexing</a></h2>
+<ul>
+<li><a href="https://www.postgresql.org/docs/current/sql-createindex.html">index creation</a></li>
+</ul>
+<p>PostgreSQL includes a variety of index options. The following options are
+supported by the PostgreSQL adapter in addition to the
+<a href="https://edgeapi.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_index">common index options</a></p><h3 id="include"><a class="anchorlink" href="#include">3.1 Include</a></h3><p>When creating a new index, non-key columns can be included with the <code>:include</code> option.
+These keys are not used in index scans for searching, but can be read during an index
+only scan without having to visit the associated table.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20131220144913_add_index_users_on_email_include_id.rb</span>
+
+<span class="n">add_index</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">include: :id</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20131220144913_add_index_users_on_email_include_id.rb
+
+add_index :users, :email, include: :id
+">Copy</button>
+</div>
+<p>Multiple columns are supported:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20131220144913_add_index_users_on_email_include_id_and_created_at.rb</span>
+
+<span class="n">add_index</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">include: </span><span class="p">[</span><span class="ss">:id</span><span class="p">,</span> <span class="ss">:created_at</span><span class="p">]</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20131220144913_add_index_users_on_email_include_id_and_created_at.rb
+
+add_index :users, :email, include: [:id, :created_at]
+">Copy</button>
+</div>
+<h2 id="generated-columns"><a class="anchorlink" href="#generated-columns">4 Generated Columns</a></h2><div class="note"><p>Generated columns are supported since version 12.0 of PostgreSQL.</p></div><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20131220144913_create_users.rb</span>
+<span class="n">create_table</span> <span class="ss">:users</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:name</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">virtual</span> <span class="ss">:name_upcased</span><span class="p">,</span> <span class="ss">type: :string</span><span class="p">,</span> <span class="ss">as: </span><span class="s1">'upper(name)'</span><span class="p">,</span> <span class="ss">stored: </span><span class="kp">true</span>
+<span class="k">end</span>
+
+<span class="c1"># app/models/user.rb</span>
+<span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+<span class="k">end</span>
+
+<span class="c1"># Usage</span>
+<span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">name: </span><span class="s1">'John'</span><span class="p">)</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">last</span><span class="p">.</span><span class="nf">name_upcased</span> <span class="c1"># =&gt; "JOHN"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20131220144913_create_users.rb
+create_table :users do |t|
+  t.string :name
+  t.virtual :name_upcased, type: :string, as: 'upper(name)', stored: true
+end
+
+# app/models/user.rb
+class User < ApplicationRecord
+end
+
+# Usage
+user = User.create(name: 'John')
+User.last.name_upcased # => &quot;JOHN&quot;
+">Copy</button>
+</div>
+<h2 id="deferrable-foreign-keys"><a class="anchorlink" href="#deferrable-foreign-keys">5 Deferrable Foreign Keys</a></h2>
+<ul>
+<li><a href="https://www.postgresql.org/docs/current/sql-set-constraints.html">foreign key table constraints</a></li>
+</ul>
+<p>By default, table constraints in PostgreSQL are checked immediately after each statement. It intentionally does not allow creating records where the referenced record is not yet in the referenced table. It is possible to run this integrity check later on when the transactions is committed by adding <code>DEFERRABLE</code> to the foreign key definition though. To defer all checks by default it can be set to <code>DEFERRABLE INITIALLY DEFERRED</code>. Rails exposes this PostgreSQL feature by adding the <code>:deferrable</code> key to the <code>foreign_key</code> options in the <code>add_reference</code> and <code>add_foreign_key</code> methods.</p><p>One example of this is creating circular dependencies in a transaction even if you have created foreign keys:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">add_reference</span> <span class="ss">:person</span><span class="p">,</span> <span class="ss">:alias</span><span class="p">,</span> <span class="ss">foreign_key: </span><span class="p">{</span> <span class="ss">deferrable: :deferred</span> <span class="p">}</span>
+<span class="n">add_reference</span> <span class="ss">:alias</span><span class="p">,</span> <span class="ss">:person</span><span class="p">,</span> <span class="ss">foreign_key: </span><span class="p">{</span> <span class="ss">deferrable: :deferred</span> <span class="p">}</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="add_reference :person, :alias, foreign_key: { deferrable: :deferred }
+add_reference :alias, :person, foreign_key: { deferrable: :deferred }
+">Copy</button>
+</div>
+<p>If the reference was created with the <code>foreign_key: true</code> option, the following transaction would fail when executing the first <code>INSERT</code> statement. It does not fail when the <code>deferrable: :deferred</code> option is set though.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">transaction</span> <span class="k">do</span>
+  <span class="n">person</span> <span class="o">=</span> <span class="no">Person</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">id: </span><span class="no">SecureRandom</span><span class="p">.</span><span class="nf">uuid</span><span class="p">,</span> <span class="ss">alias_id: </span><span class="no">SecureRandom</span><span class="p">.</span><span class="nf">uuid</span><span class="p">,</span> <span class="ss">name: </span><span class="s2">"John Doe"</span><span class="p">)</span>
+  <span class="no">Alias</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">id: </span><span class="n">person</span><span class="p">.</span><span class="nf">alias_id</span><span class="p">,</span> <span class="ss">person_id: </span><span class="n">person</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span> <span class="ss">name: </span><span class="s2">"jaydee"</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="ActiveRecord::Base.connection.transaction do
+  person = Person.create(id: SecureRandom.uuid, alias_id: SecureRandom.uuid, name: &quot;John Doe&quot;)
+  Alias.create(id: person.alias_id, person_id: person.id, name: &quot;jaydee&quot;)
+end
+">Copy</button>
+</div>
+<p>When the <code>:deferrable</code> option is set to <code>:immediate</code>, let the foreign keys keep the default behavior of checking the constraint immediately, but allow manually deferring the checks using <code>set_constraints</code> within a transaction. This will cause the foreign keys to be checked when the transaction is committed:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">transaction</span> <span class="k">do</span>
+  <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">set_constraints</span><span class="p">(</span><span class="ss">:deferred</span><span class="p">)</span>
+  <span class="n">person</span> <span class="o">=</span> <span class="no">Person</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">alias_id: </span><span class="no">SecureRandom</span><span class="p">.</span><span class="nf">uuid</span><span class="p">,</span> <span class="ss">name: </span><span class="s2">"John Doe"</span><span class="p">)</span>
+  <span class="no">Alias</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">id: </span><span class="n">person</span><span class="p">.</span><span class="nf">alias_id</span><span class="p">,</span> <span class="ss">person_id: </span><span class="n">person</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span> <span class="ss">name: </span><span class="s2">"jaydee"</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="ActiveRecord::Base.connection.transaction do
+  ActiveRecord::Base.connection.set_constraints(:deferred)
+  person = Person.create(alias_id: SecureRandom.uuid, name: &quot;John Doe&quot;)
+  Alias.create(id: person.alias_id, person_id: person.id, name: &quot;jaydee&quot;)
+end
+">Copy</button>
+</div>
+<p>By default <code>:deferrable</code> is <code>false</code> and the constraint is always checked immediately.</p><h2 id="unique-constraint"><a class="anchorlink" href="#unique-constraint">6 Unique Constraint</a></h2>
+<ul>
+<li><a href="https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-UNIQUE-CONSTRAINTS">unique constraints</a></li>
+</ul>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20230422225213_create_items.rb</span>
+<span class="n">create_table</span> <span class="ss">:items</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">integer</span> <span class="ss">:position</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">unique_constraint</span> <span class="p">[</span><span class="ss">:position</span><span class="p">],</span> <span class="ss">deferrable: :immediate</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20230422225213_create_items.rb
+create_table :items do |t|
+  t.integer :position, null: false
+  t.unique_constraint [:position], deferrable: :immediate
+end
+">Copy</button>
+</div>
+<p>If you want to change an existing unique index to deferrable, you can use <code>:using_index</code> to create deferrable unique constraints.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">add_unique_constraint</span> <span class="ss">:items</span><span class="p">,</span> <span class="ss">deferrable: :deferred</span><span class="p">,</span> <span class="ss">using_index: </span><span class="s2">"index_items_on_position"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="add_unique_constraint :items, deferrable: :deferred, using_index: &quot;index_items_on_position&quot;
+">Copy</button>
+</div>
+<p>Like foreign keys, unique constraints can be deferred by setting <code>:deferrable</code> to either <code>:immediate</code> or <code>:deferred</code>. By default, <code>:deferrable</code> is <code>false</code> and the constraint is always checked immediately.</p><h2 id="exclusion-constraints"><a class="anchorlink" href="#exclusion-constraints">7 Exclusion Constraints</a></h2>
+<ul>
+<li><a href="https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-EXCLUSION">exclusion constraints</a></li>
+</ul>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20131220144913_create_products.rb</span>
+<span class="n">create_table</span> <span class="ss">:products</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">integer</span> <span class="ss">:price</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">daterange</span> <span class="ss">:availability_range</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span>
+
+  <span class="n">t</span><span class="p">.</span><span class="nf">exclusion_constraint</span> <span class="s2">"price WITH =, availability_range WITH &amp;&amp;"</span><span class="p">,</span> <span class="ss">using: :gist</span><span class="p">,</span> <span class="ss">name: </span><span class="s2">"price_check"</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20131220144913_create_products.rb
+create_table :products do |t|
+  t.integer :price, null: false
+  t.daterange :availability_range, null: false
+
+  t.exclusion_constraint &quot;price WITH =, availability_range WITH &amp;&amp;&quot;, using: :gist, name: &quot;price_check&quot;
+end
+">Copy</button>
+</div>
+<p>Like foreign keys, exclusion constraints can be deferred by setting <code>:deferrable</code> to either <code>:immediate</code> or <code>:deferred</code>. By default, <code>:deferrable</code> is <code>false</code> and the constraint is always checked immediately.</p><h2 id="full-text-search"><a class="anchorlink" href="#full-text-search">8 Full Text Search</a></h2><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20131220144913_create_documents.rb</span>
+<span class="n">create_table</span> <span class="ss">:documents</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:title</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:body</span>
+<span class="k">end</span>
+
+<span class="n">add_index</span> <span class="ss">:documents</span><span class="p">,</span> <span class="s2">"to_tsvector('english', title || ' ' || body)"</span><span class="p">,</span> <span class="ss">using: :gin</span><span class="p">,</span> <span class="ss">name: </span><span class="s1">'documents_idx'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20131220144913_create_documents.rb
+create_table :documents do |t|
+  t.string :title
+  t.string :body
+end
+
+add_index :documents, &quot;to_tsvector('english', title || ' ' || body)&quot;, using: :gin, name: 'documents_idx'
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># app/models/document.rb</span>
+<span class="k">class</span> <span class="nc">Document</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# app/models/document.rb
+class Document < ApplicationRecord
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># Usage</span>
+<span class="no">Document</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">title: </span><span class="s2">"Cats and Dogs"</span><span class="p">,</span> <span class="ss">body: </span><span class="s2">"are nice!"</span><span class="p">)</span>
+
+<span class="c1">## all documents matching 'cat &amp; dog'</span>
+<span class="no">Document</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"to_tsvector('english', title || ' ' || body) @@ to_tsquery(?)"</span><span class="p">,</span>
+                 <span class="s2">"cat &amp; dog"</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# Usage
+Document.create(title: &quot;Cats and Dogs&quot;, body: &quot;are nice!&quot;)
+
+## all documents matching 'cat &amp; dog'
+Document.where(&quot;to_tsvector('english', title || ' ' || body) @@ to_tsquery(?)&quot;,
+                 &quot;cat &amp; dog&quot;)
+">Copy</button>
+</div>
+<p>Optionally, you can store the vector as automatically generated column (from PostgreSQL 12.0):</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20131220144913_create_documents.rb</span>
+<span class="n">create_table</span> <span class="ss">:documents</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:title</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:body</span>
+
+  <span class="n">t</span><span class="p">.</span><span class="nf">virtual</span> <span class="ss">:textsearchable_index_col</span><span class="p">,</span>
+            <span class="ss">type: :tsvector</span><span class="p">,</span> <span class="ss">as: </span><span class="s2">"to_tsvector('english', title || ' ' || body)"</span><span class="p">,</span> <span class="ss">stored: </span><span class="kp">true</span>
+<span class="k">end</span>
+
+<span class="n">add_index</span> <span class="ss">:documents</span><span class="p">,</span> <span class="ss">:textsearchable_index_col</span><span class="p">,</span> <span class="ss">using: :gin</span><span class="p">,</span> <span class="ss">name: </span><span class="s1">'documents_idx'</span>
+
+<span class="c1"># Usage</span>
+<span class="no">Document</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">title: </span><span class="s2">"Cats and Dogs"</span><span class="p">,</span> <span class="ss">body: </span><span class="s2">"are nice!"</span><span class="p">)</span>
+
+<span class="c1">## all documents matching 'cat &amp; dog'</span>
+<span class="no">Document</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"textsearchable_index_col @@ to_tsquery(?)"</span><span class="p">,</span> <span class="s2">"cat &amp; dog"</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20131220144913_create_documents.rb
+create_table :documents do |t|
+  t.string :title
+  t.string :body
+
+  t.virtual :textsearchable_index_col,
+            type: :tsvector, as: &quot;to_tsvector('english', title || ' ' || body)&quot;, stored: true
+end
+
+add_index :documents, :textsearchable_index_col, using: :gin, name: 'documents_idx'
+
+# Usage
+Document.create(title: &quot;Cats and Dogs&quot;, body: &quot;are nice!&quot;)
+
+## all documents matching 'cat &amp; dog'
+Document.where(&quot;textsearchable_index_col @@ to_tsquery(?)&quot;, &quot;cat &amp; dog&quot;)
+">Copy</button>
+</div>
+<h2 id="database-views"><a class="anchorlink" href="#database-views">9 Database Views</a></h2>
+<ul>
+<li><a href="https://www.postgresql.org/docs/current/static/sql-createview.html">view creation</a></li>
+</ul>
+<p>Imagine you need to work with a legacy database containing the following table:</p><div class="code_container">
+<pre><code class="highlight plaintext">rails_pg_guide=# \d "TBL_ART"
+                                        Table "public.TBL_ART"
+   Column   |            Type             |                         Modifiers
+------------+-----------------------------+------------------------------------------------------------
+ INT_ID     | integer                     | not null default nextval('"TBL_ART_INT_ID_seq"'::regclass)
+ STR_TITLE  | character varying           |
+ STR_STAT   | character varying           | default 'draft'::character varying
+ DT_PUBL_AT | timestamp without time zone |
+ BL_ARCH    | boolean                     | default false
+Indexes:
+    "TBL_ART_pkey" PRIMARY KEY, btree ("INT_ID")
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="rails_pg_guide=# \d &quot;TBL_ART&quot;
+                                        Table &quot;public.TBL_ART&quot;
+   Column   |            Type             |                         Modifiers
+------------+-----------------------------+------------------------------------------------------------
+ INT_ID     | integer                     | not null default nextval('&quot;TBL_ART_INT_ID_seq&quot;'::regclass)
+ STR_TITLE  | character varying           |
+ STR_STAT   | character varying           | default 'draft'::character varying
+ DT_PUBL_AT | timestamp without time zone |
+ BL_ARCH    | boolean                     | default false
+Indexes:
+    &quot;TBL_ART_pkey&quot; PRIMARY KEY, btree (&quot;INT_ID&quot;)
+">Copy</button>
+</div>
+<p>This table does not follow the Rails conventions at all.
+Because simple PostgreSQL views are updateable by default,
+we can wrap it as follows:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># db/migrate/20131220144913_create_articles_view.rb</span>
+<span class="n">execute</span> <span class="o">&lt;&lt;-</span><span class="no">SQL</span><span class="sh">
+CREATE VIEW articles AS
+  SELECT "INT_ID" AS id,
+         "STR_TITLE" AS title,
+         "STR_STAT" AS status,
+         "DT_PUBL_AT" AS published_at,
+         "BL_ARCH" AS archived
+  FROM "TBL_ART"
+  WHERE "BL_ARCH" = 'f'
+</span><span class="no">SQL</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# db/migrate/20131220144913_create_articles_view.rb
+execute <<-SQL
+CREATE VIEW articles AS
+  SELECT &quot;INT_ID&quot; AS id,
+         &quot;STR_TITLE&quot; AS title,
+         &quot;STR_STAT&quot; AS status,
+         &quot;DT_PUBL_AT&quot; AS published_at,
+         &quot;BL_ARCH&quot; AS archived
+  FROM &quot;TBL_ART&quot;
+  WHERE &quot;BL_ARCH&quot; = 'f'
+SQL
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># app/models/article.rb</span>
+<span class="k">class</span> <span class="nc">Article</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="nb">self</span><span class="p">.</span><span class="nf">primary_key</span> <span class="o">=</span> <span class="s2">"id"</span>
+  <span class="k">def</span> <span class="nf">archive!</span>
+    <span class="n">update_attribute</span> <span class="ss">:archived</span><span class="p">,</span> <span class="kp">true</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# app/models/article.rb
+class Article < ApplicationRecord
+  self.primary_key = &quot;id&quot;
+  def archive!
+    update_attribute :archived, true
+  end
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight irb"><span class="gp">irb&gt;</span><span class="w"> </span><span class="n">first</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">create!</span> <span class="ss">title: </span><span class="s2">"Winter is coming"</span><span class="p">,</span> <span class="ss">status: </span><span class="s2">"published"</span><span class="p">,</span> <span class="ss">published_at: </span><span class="mi">1</span><span class="p">.</span><span class="nf">year</span><span class="p">.</span><span class="nf">ago</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">second</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">create!</span> <span class="ss">title: </span><span class="s2">"Brace yourself"</span><span class="p">,</span> <span class="ss">status: </span><span class="s2">"draft"</span><span class="p">,</span> <span class="ss">published_at: </span><span class="mi">1</span><span class="p">.</span><span class="nf">month</span><span class="p">.</span><span class="nf">ago</span>
+<span class="err">
+</span><span class="gp">irb&gt;</span><span class="w"> </span><span class="no">Article</span><span class="p">.</span><span class="nf">count</span>
+<span class="p">=&gt;</span> <span class="mi">2</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="n">first</span><span class="p">.</span><span class="nf">archive!</span>
+<span class="gp">irb&gt;</span><span class="w"> </span><span class="no">Article</span><span class="p">.</span><span class="nf">count</span>
+<span class="p">=&gt;</span> <span class="mi">1</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="first = Article.create! title: &quot;Winter is coming&quot;, status: &quot;published&quot;, published_at: 1.year.ago
+second = Article.create! title: &quot;Brace yourself&quot;, status: &quot;draft&quot;, published_at: 1.month.ago
+Article.count
+first.archive!
+Article.count
+">Copy</button>
+</div>
+<div class="note"><p>This application only cares about non-archived <code>Articles</code>. A view also
+allows for conditions so we can exclude the archived <code>Articles</code> directly.</p></div><h2 id="structure-dumps"><a class="anchorlink" href="#structure-dumps">10 Structure Dumps</a></h2><p>If your <code>config.active_record.schema_format</code> is <code>:sql</code>, Rails will call <code>pg_dump</code> to generate a
+structure dump.</p><p>You can use <code>ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags</code> to configure <code>pg_dump</code>.
+For example, to exclude comments from your structure dump, add this to an initializer:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Tasks</span><span class="o">::</span><span class="no">DatabaseTasks</span><span class="p">.</span><span class="nf">structure_dump_flags</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"--no-comments"</span><span class="p">]</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = [&quot;--no-comments&quot;]
+">Copy</button>
+</div>
+
+
+        <h3>Feedback</h3>
+        <p>
+          You're encouraged to help improve the quality of this guide.
+        </p>
+        <p>
+          Please contribute if you see any typos or factual errors.
+          To get started, you can read our <a href="https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation">documentation contributions</a> section.
+        </p>
+        <p>
+          You may also find incomplete content or stuff that is not up to date.
+          Please do add any missing documentation for main. Make sure to check
+          <a href="https://edgeguides.rubyonrails.org">Edge Guides</a> first to verify
+          if the issues are already fixed or not on the main branch.
+          Check the <a href="ruby_on_rails_guides_guidelines.html">Ruby on Rails Guides Guidelines</a>
+          for style and conventions.
+        </p>
+        <p>
+          If for whatever reason you spot something to fix but cannot patch it yourself, please
+          <a href="https://github.com/rails/rails/issues">open an issue</a>.
+        </p>
+        <p>And last but not least, any kind of discussion regarding Ruby on Rails
+          documentation is very welcome on the <a href="https://discuss.rubyonrails.org/c/rubyonrails-docs">official Ruby on Rails Forum</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="hide" />
+  <div id="footer">
+    <div class="wrapper">
+      <p>This work is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International</a> License</p>
+<p>"Rails", "Ruby on Rails", and the Rails logo are trademarks of David Heinemeier Hansson. All rights reserved.</p>
+
+    </div>
+  </div>
+</body>
+</html>

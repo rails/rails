@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Installing Rails Core Development Dependencies — Ruby on Rails Guides</title>
+  <link rel="stylesheet" type="text/css" href="stylesheets/style.css" data-turbo-track="reload">
+  <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+  <link rel="stylesheet" type="text/css" href="stylesheets/highlight.css" data-turbo-track="reload">
+  
+  <link rel="icon" href="images/favicon.ico" sizes="any">
+  <link rel="icon" href="images/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="images/icon.png">
+  
+  <script src="javascripts/@hotwired--turbo.js" data-turbo-track="reload"></script>
+  <script src="javascripts/clipboard.js" data-turbo-track="reload"></script>
+  <script src="javascripts/guides.js" data-turbo-track="reload"></script>
+
+  <meta property="og:title" content="Installing Rails Core Development Dependencies — Ruby on Rails Guides" />
+  <meta name="description" content="Installing Rails Core Development DependenciesThis guide covers how to set up an environment for Ruby on Rails core development.After reading this guide, you will know: How to set up your machine for Rails development" />
+  <meta property="og:description" content="Installing Rails Core Development DependenciesThis guide covers how to set up an environment for Ruby on Rails core development.After reading this guide, you will know: How to set up your machine for Rails development" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:site_name" content="Ruby on Rails Guides" />
+  <meta property="og:image" content="https://avatars.githubusercontent.com/u/4223" />
+  <meta property="og:type" content="website" />
+
+  <meta name="theme-color" content="#C81418">
+</head>
+
+<body dir="ltr" class="guide">
+  <div>
+    <div id="version-badge">edge</div>
+  </div>
+  <div id="topNav">
+    <div class="wrapper">
+      <strong class="more-info-label">More at <a href="https://rubyonrails.org/">rubyonrails.org:</a> </strong>
+      <span class="red-button more-info-button">
+        More Ruby on Rails
+      </span>
+      <ul class="more-info-links s-hidden">
+        <li class="more-info"><a href="https://rubyonrails.org/blog">Blog</a></li>
+        <li class="more-info"><a href="https://guides.rubyonrails.org/">Guides</a></li>
+        <li class="more-info"><a href="https://api.rubyonrails.org/">API</a></li>
+        <li class="more-info"><a href="https://discuss.rubyonrails.org/">Forum</a></li>
+        <li class="more-info"><a href="https://github.com/rails/rails">Contribute on GitHub</a></li>
+      </ul>
+    </div>
+  </div>
+  <div id="header">
+    <div class="wrapper clearfix">
+      <div class="header-logo"><a href="index.html" title="Return to home page">Guides.rubyonrails.org</a></div>
+      <ul class="nav">
+        <li><a class="nav-item" href="index.html">Home</a></li>
+        <li class="guides-index guides-index-large">
+          <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
+          <div id="guides" class="clearfix" style="display: none;">
+            <hr />
+            <dl class="guides-section-container">
+                <div class="guides-section">
+                  <dt>Start Here</dt>
+                  <dd><a href="getting_started.html">Getting Started with Rails</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Models</dt>
+                  <dd><a href="active_record_basics.html">Active Record Basics</a></dd>
+                  <dd><a href="active_record_migrations.html">Active Record Migrations</a></dd>
+                  <dd><a href="active_record_validations.html">Active Record Validations</a></dd>
+                  <dd><a href="active_record_callbacks.html">Active Record Callbacks</a></dd>
+                  <dd><a href="association_basics.html">Active Record Associations</a></dd>
+                  <dd><a href="active_record_querying.html">Active Record Query Interface</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Views</dt>
+                  <dd><a href="layouts_and_rendering.html">Layouts and Rendering in Rails</a></dd>
+                  <dd><a href="form_helpers.html">Action View Form Helpers</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Controllers</dt>
+                  <dd><a href="action_controller_overview.html">Action Controller Overview</a></dd>
+                  <dd><a href="routing.html">Rails Routing from the Outside In</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Other Components</dt>
+                  <dd><a href="active_support_core_extensions.html">Active Support Core Extensions</a></dd>
+                  <dd><a href="action_mailer_basics.html">Action Mailer Basics</a></dd>
+                  <dd><a href="active_job_basics.html">Active Job Basics</a></dd>
+                  <dd><a href="active_storage_overview.html">Active Storage Overview</a></dd>
+                  <dd><a href="action_cable_overview.html">Action Cable Overview</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Digging Deeper</dt>
+                  <dd><a href="i18n.html">Rails Internationalization (I18n) API</a></dd>
+                  <dd><a href="testing.html">Testing Rails Applications</a></dd>
+                  <dd><a href="security.html">Securing Rails Applications</a></dd>
+                  <dd><a href="error_reporting.html">Error Reporting in Rails Applications</a></dd>
+                  <dd><a href="debugging_rails_applications.html">Debugging Rails Applications</a></dd>
+                  <dd><a href="configuring.html">Configuring Rails Applications</a></dd>
+                  <dd><a href="command_line.html">The Rails Command Line</a></dd>
+                  <dd><a href="asset_pipeline.html">The Asset Pipeline</a></dd>
+                  <dd><a href="working_with_javascript_in_rails.html">Working with JavaScript in Rails</a></dd>
+                  <dd><a href="autoloading_and_reloading_constants.html">Autoloading and Reloading</a></dd>
+                  <dd><a href="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</a></dd>
+                  <dd><a href="caching_with_rails.html">Caching with Rails: An Overview</a></dd>
+                  <dd><a href="api_app.html">Using Rails for API-only Applications</a></dd>
+                  <dd><a href="active_record_multiple_databases.html">Multiple Databases</a></dd>
+                  <dd><a href="active_record_composite_primary_keys.html">Composite Primary Keys</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Extending Rails</dt>
+                  <dd><a href="rails_on_rack.html">Rails on Rack</a></dd>
+                  <dd><a href="generators.html">Creating and Customizing Rails Generators &amp; Templates</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Contributing</dt>
+                  <dd><a href="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</a></dd>
+                  <dd><a href="api_documentation_guidelines.html">API Documentation Guidelines</a></dd>
+                  <dd><a href="ruby_on_rails_guides_guidelines.html">Guides Guidelines</a></dd>
+                  <dd><a href="development_dependencies_install.html">Installing Rails Core Development Dependencies</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Policies</dt>
+                  <dd><a href="maintenance_policy.html">Maintenance Policy</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Release Notes</dt>
+                  <dd><a href="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</a></dd>
+                  <dd><a href="7_1_release_notes.html">Version 7.1 - October 2023</a></dd>
+                  <dd><a href="7_0_release_notes.html">Version 7.0 - December 2021</a></dd>
+                  <dd><a href="6_1_release_notes.html">Version 6.1 - December 2020</a></dd>
+                  <dd><a href="6_0_release_notes.html">Version 6.0 - August 2019</a></dd>
+                  <dd><a href="5_2_release_notes.html">Version 5.2 - April 2018</a></dd>
+                  <dd><a href="5_1_release_notes.html">Version 5.1 - April 2017</a></dd>
+                  <dd><a href="5_0_release_notes.html">Version 5.0 - June 2016</a></dd>
+                  <dd><a href="4_2_release_notes.html">Version 4.2 - December 2014</a></dd>
+                  <dd><a href="4_1_release_notes.html">Version 4.1 - April 2014</a></dd>
+                  <dd><a href="4_0_release_notes.html">Version 4.0 - June 2013</a></dd>
+                  <dd><a href="3_2_release_notes.html">Version 3.2 - January 2012</a></dd>
+                  <dd><a href="3_1_release_notes.html">Version 3.1 - August 2011</a></dd>
+                  <dd><a href="3_0_release_notes.html">Version 3.0 - August 2010</a></dd>
+                  <dd><a href="2_3_release_notes.html">Version 2.3 - March 2009</a></dd>
+                  <dd><a href="2_2_release_notes.html">Version 2.2 - November 2008</a></dd>
+                </div>
+            </dl>
+          </div>
+        </li>
+        <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
+        <li class="guides-index guides-index-small">
+          <select class="guides-index-item nav-item">
+            <option value="index.html">Guides Index</option>
+              <optgroup label="Start Here">
+                  <option value="getting_started.html">Getting Started with Rails</option>
+              </optgroup>
+              <optgroup label="Models">
+                  <option value="active_record_basics.html">Active Record Basics</option>
+                  <option value="active_record_migrations.html">Active Record Migrations</option>
+                  <option value="active_record_validations.html">Active Record Validations</option>
+                  <option value="active_record_callbacks.html">Active Record Callbacks</option>
+                  <option value="association_basics.html">Active Record Associations</option>
+                  <option value="active_record_querying.html">Active Record Query Interface</option>
+              </optgroup>
+              <optgroup label="Views">
+                  <option value="layouts_and_rendering.html">Layouts and Rendering in Rails</option>
+                  <option value="form_helpers.html">Action View Form Helpers</option>
+              </optgroup>
+              <optgroup label="Controllers">
+                  <option value="action_controller_overview.html">Action Controller Overview</option>
+                  <option value="routing.html">Rails Routing from the Outside In</option>
+              </optgroup>
+              <optgroup label="Other Components">
+                  <option value="active_support_core_extensions.html">Active Support Core Extensions</option>
+                  <option value="action_mailer_basics.html">Action Mailer Basics</option>
+                  <option value="active_job_basics.html">Active Job Basics</option>
+                  <option value="active_storage_overview.html">Active Storage Overview</option>
+                  <option value="action_cable_overview.html">Action Cable Overview</option>
+              </optgroup>
+              <optgroup label="Digging Deeper">
+                  <option value="i18n.html">Rails Internationalization (I18n) API</option>
+                  <option value="testing.html">Testing Rails Applications</option>
+                  <option value="security.html">Securing Rails Applications</option>
+                  <option value="error_reporting.html">Error Reporting in Rails Applications</option>
+                  <option value="debugging_rails_applications.html">Debugging Rails Applications</option>
+                  <option value="configuring.html">Configuring Rails Applications</option>
+                  <option value="command_line.html">The Rails Command Line</option>
+                  <option value="asset_pipeline.html">The Asset Pipeline</option>
+                  <option value="working_with_javascript_in_rails.html">Working with JavaScript in Rails</option>
+                  <option value="autoloading_and_reloading_constants.html">Autoloading and Reloading</option>
+                  <option value="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</option>
+                  <option value="caching_with_rails.html">Caching with Rails: An Overview</option>
+                  <option value="api_app.html">Using Rails for API-only Applications</option>
+                  <option value="active_record_multiple_databases.html">Multiple Databases</option>
+                  <option value="active_record_composite_primary_keys.html">Composite Primary Keys</option>
+              </optgroup>
+              <optgroup label="Extending Rails">
+                  <option value="rails_on_rack.html">Rails on Rack</option>
+                  <option value="generators.html">Creating and Customizing Rails Generators &amp; Templates</option>
+              </optgroup>
+              <optgroup label="Contributing">
+                  <option value="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</option>
+                  <option value="api_documentation_guidelines.html">API Documentation Guidelines</option>
+                  <option value="ruby_on_rails_guides_guidelines.html">Guides Guidelines</option>
+                  <option value="development_dependencies_install.html">Installing Rails Core Development Dependencies</option>
+              </optgroup>
+              <optgroup label="Policies">
+                  <option value="maintenance_policy.html">Maintenance Policy</option>
+              </optgroup>
+              <optgroup label="Release Notes">
+                  <option value="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</option>
+                  <option value="7_1_release_notes.html">Version 7.1 - October 2023</option>
+                  <option value="7_0_release_notes.html">Version 7.0 - December 2021</option>
+                  <option value="6_1_release_notes.html">Version 6.1 - December 2020</option>
+                  <option value="6_0_release_notes.html">Version 6.0 - August 2019</option>
+                  <option value="5_2_release_notes.html">Version 5.2 - April 2018</option>
+                  <option value="5_1_release_notes.html">Version 5.1 - April 2017</option>
+                  <option value="5_0_release_notes.html">Version 5.0 - June 2016</option>
+                  <option value="4_2_release_notes.html">Version 4.2 - December 2014</option>
+                  <option value="4_1_release_notes.html">Version 4.1 - April 2014</option>
+                  <option value="4_0_release_notes.html">Version 4.0 - June 2013</option>
+                  <option value="3_2_release_notes.html">Version 3.2 - January 2012</option>
+                  <option value="3_1_release_notes.html">Version 3.1 - August 2011</option>
+                  <option value="3_0_release_notes.html">Version 3.0 - August 2010</option>
+                  <option value="2_3_release_notes.html">Version 2.3 - March 2009</option>
+                  <option value="2_2_release_notes.html">Version 2.2 - November 2008</option>
+              </optgroup>
+          </select>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <hr class="hide" />
+
+  <div id="feature">
+    <div class="wrapper">
+      <h1>Installing Rails Core Development Dependencies</h1><p>This guide covers how to set up an environment for Ruby on Rails core development.</p><p>After reading this guide, you will know:</p>
+<ul>
+<li>How to set up your machine for Rails development</li>
+</ul>
+
+
+                <div id="subCol">
+            <h3 class="chapter"><img src="images/icon_book-close-bookmark-1.svg" alt="" />Chapters</h3>
+            <ol class="chapters">
+<li><a href="#other-ways-to-set-up-your-environment">Other Ways to Set Up Your Environment</a></li>
+<li><a href="#local-development">Local Development</a>
+
+<ul>
+<li><a href="#install-git">Install Git</a></li>
+<li><a href="#clone-the-ruby-on-rails-repository">Clone the Ruby on Rails Repository</a></li>
+<li><a href="#install-additional-tools-and-services">Install Additional Tools and Services</a></li>
+<li><a href="#database-configuration">Database Configuration</a></li>
+<li><a href="#install-javascript-dependencies">Install JavaScript Dependencies</a></li>
+<li><a href="#installing-gem-dependencies">Installing Gem Dependencies</a></li>
+<li><a href="#contribute-to-rails">Contribute to Rails</a></li>
+</ul></li>
+</ol>
+
+          </div>
+
+    </div>
+  </div>
+
+  <div id="container">
+    <div class="wrapper">
+      <div id="mainCol">
+        <h2 id="other-ways-to-set-up-your-environment"><a class="anchorlink" href="#other-ways-to-set-up-your-environment">1 Other Ways to Set Up Your Environment</a></h2><p>If you don't want to set up Rails for development on your local machine, you can use Codespaces, the VS Code Remote Plugin, or rails-dev-box. Learn more about these options <a href="contributing_to_ruby_on_rails.html#setting-up-a-development-environment">here</a>.</p><h2 id="local-development"><a class="anchorlink" href="#local-development">2 Local Development</a></h2><p>If you want to develop Ruby on Rails locally on your machine, see the steps below.</p><h3 id="install-git"><a class="anchorlink" href="#install-git">2.1 Install Git</a></h3><p>Ruby on Rails uses Git for source code control. The <a href="https://git-scm.com/">Git homepage</a> has installation instructions. There are a variety of resources online that will help you get familiar with Git.</p><h3 id="clone-the-ruby-on-rails-repository"><a class="anchorlink" href="#clone-the-ruby-on-rails-repository">2.2 Clone the Ruby on Rails Repository</a></h3><p>Navigate to the folder where you want to download the Ruby on Rails source code (it will create its own <code>rails</code> subdirectory) and run:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">git </span>clone https://github.com/rails/rails.git
+<span class="gp">$</span><span class="w"> </span><span class="nb">cd rails</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="git clone https://github.com/rails/rails.git
+cd rails
+">Copy</button>
+</div>
+<h3 id="install-additional-tools-and-services"><a class="anchorlink" href="#install-additional-tools-and-services">2.3 Install Additional Tools and Services</a></h3><p>Some Rails tests depend on additional tools that you need to install before running those specific tests.</p><p>Here's the list of each gems' additional dependencies:</p>
+<ul>
+<li>Action Cable depends on Redis</li>
+<li>Active Record depends on SQLite3, MySQL and PostgreSQL</li>
+<li>Active Storage depends on Yarn (additionally Yarn depends on
+<a href="https://nodejs.org/">Node.js</a>), ImageMagick, libvips, FFmpeg, muPDF,
+Poppler, and on macOS also XQuartz.</li>
+<li>Active Support depends on memcached and Redis</li>
+<li>Railties depend on a JavaScript runtime environment, such as having
+<a href="https://nodejs.org/">Node.js</a> installed.</li>
+</ul>
+<p>Install all the services you need to properly test the full gem you'll be
+making changes to. How to install these services for macOS, Ubuntu, Fedora/CentOS,
+Arch Linux, and FreeBSD are detailed below.</p><div class="note"><p>Redis' documentation discourages installations with package managers as those are usually outdated. Installing from source and bringing the server up is straight forward and well documented on <a href="https://redis.io/download#installation">Redis' documentation</a>.</p></div><div class="note"><p>Active Record tests <em>must</em> pass for at least MySQL, PostgreSQL, and SQLite3. Your patch will be rejected if tested against a single adapter, unless the change and tests are adapter specific.</p></div><p>Below you can find instructions on how to install all of the additional
+tools for different operating systems.</p><h4 id="macos"><a class="anchorlink" href="#macos">2.3.1 macOS</a></h4><p>On macOS you can use <a href="https://brew.sh/">Homebrew</a> to install all of the
+additional tools.</p><p>To install all run:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">brew bundle</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="brew bundle
+">Copy</button>
+</div>
+<p>You'll also need to start each of the installed services. To list all
+available services run:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">brew </span>services list
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="brew services list
+">Copy</button>
+</div>
+<p>You can then start each of the services one by one like this:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">brew </span>services start mysql
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="brew services start mysql
+">Copy</button>
+</div>
+<p>Replace <code>mysql</code> with the name of the service you want to start.</p><h5 id="potential-issues"><a class="anchorlink" href="#potential-issues">2.3.1.1 Potential Issues</a></h5><p>This section details some of the potential issues you may run into with native extensions on macOS, particularly when bundling the mysql2 gem in local development. This documentation is subject to change and may be incorrect as Apple makes changes to the developer environment on Rails.</p><p>In order to compile the <code>mysql2</code> gem on macOS you will need the following:</p>
+<ol>
+<li><code>openssl@1.1</code> installed (not <code>openssl@3</code>)</li>
+<li>Ruby compiled with  <code>openssl@1.1</code></li>
+<li>Set compiler flags in the bundle config for <code>mysql2</code>.</li>
+</ol>
+<p>If both <code>openssl@1.1</code> and <code>openssl@3</code> are installed, you will need to tell Ruby to use <code>openssl@1.1</code> in order for Rails to bundle <code>mysql2</code>.</p><p>In your <code>.bash_profile</code> set the <code>PATH</code> and <code>RUBY_CONFIGURE_OPTS</code> to point to <code>openssl@1.1</code>:</p><div class="code_container">
+<pre><code class="highlight sh"><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="s2">"/usr/local/opt/openssl@1.1/bin:</span><span class="nv">$PATH</span><span class="s2">"</span>
+<span class="nb">export </span><span class="nv">RUBY_CONFIGURE_OPTS</span><span class="o">=</span><span class="s2">"--with-openssl-dir=</span><span class="si">$(</span><span class="nb">brew</span> <span class="nt">--prefix</span> openssl@1.1<span class="si">)</span><span class="s2">"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="export PATH=&quot;/usr/local/opt/openssl@1.1/bin:$PATH&quot;
+export RUBY_CONFIGURE_OPTS=&quot;--with-openssl-dir=$(brew --prefix openssl@1.1)&quot;
+">Copy</button>
+</div>
+<p>In your <code>~/.bundle/config</code> set the following for <code>mysql2</code>. Be sure to delete any other entries for <code>BUNDLE_BUILD__MYSQL2</code>:</p><div class="code_container">
+<pre><code class="highlight plaintext">BUNDLE_BUILD__MYSQL2: "--with-ldflags=-L/usr/local/opt/openssl@1.1/lib --with-cppflags=-L/usr/local/opt/openssl@1.1/include"
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="BUNDLE_BUILD__MYSQL2: &quot;--with-ldflags=-L/usr/local/opt/openssl@1.1/lib --with-cppflags=-L/usr/local/opt/openssl@1.1/include&quot;
+">Copy</button>
+</div>
+<p>By setting these flags before installing Ruby and bundling Rails, you should be able to get your local macOS development environment working.</p><h4 id="ubuntu"><a class="anchorlink" href="#ubuntu">2.3.2 Ubuntu</a></h4><p>To install all run:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">sudo </span>apt-get update
+<span class="gp">$</span><span class="w"> </span><span class="nb">sudo </span>apt-get <span class="nb">install sqlite3 </span>libsqlite3-dev mysql-server libmysqlclient-dev postgresql postgresql-client postgresql-contrib libpq-dev redis-server memcached imagemagick ffmpeg mupdf mupdf-tools libxml2-dev libvips42 poppler-utils
+<span class="go">
+</span><span class="gp">#</span><span class="w"> </span>Install Yarn
+<span class="gp">#</span><span class="w"> </span>Use this <span class="nb">command </span><span class="k">if </span>you <span class="k">do </span>not have Node.js installed
+<span class="gp">#</span><span class="w"> </span>ref: https://github.com/nodesource/distributions#installation-instructions
+<span class="gp">$</span><span class="w"> </span><span class="nb">sudo mkdir</span> <span class="nt">-p</span> /etc/apt/keyrings
+<span class="gp">$</span><span class="w"> </span>curl <span class="nt">--fail</span> <span class="nt">--silent</span> <span class="nt">--show-error</span> <span class="nt">--location</span> https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | <span class="nb">sudo </span>gpg <span class="nt">--dearmor</span> <span class="nt">-o</span> /etc/apt/keyrings/nodesource.gpg
+<span class="gp">$</span><span class="w"> </span><span class="nb">echo</span> <span class="s2">"deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main"</span> | <span class="nb">sudo tee</span> /etc/apt/sources.list.d/nodesource.list
+<span class="gp">$</span><span class="w"> </span><span class="nb">sudo </span>apt-get update
+<span class="gp">$</span><span class="w"> </span><span class="nb">sudo </span>apt-get <span class="nb">install</span> <span class="nt">-y</span> nodejs
+<span class="go">
+</span><span class="gp">#</span><span class="w"> </span>Once you have installed Node.js, <span class="nb">install </span>the <span class="nb">yarn </span>npm package
+<span class="gp">$</span><span class="w"> </span><span class="nb">sudo </span>npm <span class="nb">install</span> <span class="nt">--global</span> <span class="nb">yarn</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="sudo apt-get update
+sudo apt-get install sqlite3 libsqlite3-dev mysql-server libmysqlclient-dev postgresql postgresql-client postgresql-contrib libpq-dev redis-server memcached imagemagick ffmpeg mupdf mupdf-tools libxml2-dev libvips42 poppler-utils
+sudo mkdir -p /etc/apt/keyrings
+curl --fail --silent --show-error --location https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+echo &quot;deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main&quot; | sudo tee /etc/apt/sources.list.d/nodesource.list
+sudo apt-get update
+sudo apt-get install -y nodejs
+sudo npm install --global yarn
+">Copy</button>
+</div>
+<h4 id="fedora-or-centos"><a class="anchorlink" href="#fedora-or-centos">2.3.3 Fedora or CentOS</a></h4><p>To install all run:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">sudo </span>dnf <span class="nb">install </span>sqlite-devel sqlite-libs mysql-server mysql-devel postgresql-server postgresql-devel redis memcached ImageMagick ffmpeg mupdf libxml2-devel vips poppler-utils
+<span class="go">
+</span><span class="gp">#</span><span class="w"> </span>Install Yarn
+<span class="gp">#</span><span class="w"> </span>Use this <span class="nb">command </span><span class="k">if </span>you <span class="k">do </span>not have Node.js installed
+<span class="gp">#</span><span class="w"> </span>ref: https://github.com/nodesource/distributions#installation-instructions-1
+<span class="gp">$</span><span class="w"> </span><span class="nb">sudo </span>dnf <span class="nb">install </span>https://rpm.nodesource.com/pub_20/nodistro/repo/nodesource-release-nodistro-1.noarch.rpm <span class="nt">-y</span>
+<span class="gp">$</span><span class="w"> </span><span class="nb">sudo </span>dnf <span class="nb">install </span>nodejs <span class="nt">-y</span> <span class="nt">--setopt</span><span class="o">=</span>nodesource-nodejs.module_hotfixes<span class="o">=</span>1
+<span class="go">
+</span><span class="gp">#</span><span class="w"> </span>Once you have installed Node.js, <span class="nb">install </span>the <span class="nb">yarn </span>npm package
+<span class="gp">$</span><span class="w"> </span><span class="nb">sudo </span>npm <span class="nb">install</span> <span class="nt">--global</span> <span class="nb">yarn</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="sudo dnf install sqlite-devel sqlite-libs mysql-server mysql-devel postgresql-server postgresql-devel redis memcached ImageMagick ffmpeg mupdf libxml2-devel vips poppler-utils
+sudo dnf install https://rpm.nodesource.com/pub_20/nodistro/repo/nodesource-release-nodistro-1.noarch.rpm -y
+sudo dnf install nodejs -y --setopt=nodesource-nodejs.module_hotfixes=1
+sudo npm install --global yarn
+">Copy</button>
+</div>
+<h4 id="arch-linux"><a class="anchorlink" href="#arch-linux">2.3.4 Arch Linux</a></h4><p>To install all run:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">sudo </span>pacman <span class="nt">-S</span> sqlite mariadb libmariadbclient mariadb-clients postgresql postgresql-libs redis memcached imagemagick ffmpeg mupdf mupdf-tools poppler <span class="nb">yarn </span>libxml2 libvips poppler
+<span class="gp">$</span><span class="w"> </span><span class="nb">sudo </span>mariadb-install-db <span class="nt">--user</span><span class="o">=</span>mysql <span class="nt">--basedir</span><span class="o">=</span>/usr <span class="nt">--datadir</span><span class="o">=</span>/var/lib/mysql
+<span class="gp">$</span><span class="w"> </span><span class="nb">sudo </span>systemctl start redis mariadb memcached
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="sudo pacman -S sqlite mariadb libmariadbclient mariadb-clients postgresql postgresql-libs redis memcached imagemagick ffmpeg mupdf mupdf-tools poppler yarn libxml2 libvips poppler
+sudo mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
+sudo systemctl start redis mariadb memcached
+">Copy</button>
+</div>
+<div class="note"><p>If you are running Arch Linux, MySQL isn't supported anymore so you will need to
+use MariaDB instead (see <a href="https://www.archlinux.org/news/mariadb-replaces-mysql-in-repositories/">this announcement</a>).</p></div><h4 id="freebsd"><a class="anchorlink" href="#freebsd">2.3.5 FreeBSD</a></h4><p>To install all run:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">sudo </span>pkg <span class="nb">install sqlite3 </span>mysql80-client mysql80-server postgresql11-client postgresql11-server memcached imagemagick6 ffmpeg mupdf <span class="nb">yarn </span>libxml2 vips poppler-utils
+<span class="gp">#</span><span class="w"> </span>portmaster databases/redis
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="sudo pkg install sqlite3 mysql80-client mysql80-server postgresql11-client postgresql11-server memcached imagemagick6 ffmpeg mupdf yarn libxml2 vips poppler-utils
+">Copy</button>
+</div>
+<p>Or install everything through ports (these packages are located under the
+<code>databases</code> folder).</p><div class="note"><p>If you run into problems during the installation of MySQL, please see
+<a href="https://dev.mysql.com/doc/refman/en/freebsd-installation.html">the MySQL documentation</a>.</p></div><h4 id="debian"><a class="anchorlink" href="#debian">2.3.6 Debian</a></h4><p>To install all dependencies run:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">sudo </span>apt-get <span class="nb">install sqlite3 </span>libsqlite3-dev default-mysql-server default-libmysqlclient-dev postgresql postgresql-client postgresql-contrib libpq-dev redis-server memcached imagemagick ffmpeg mupdf mupdf-tools libxml2-dev libvips42 poppler-utils
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="sudo apt-get install sqlite3 libsqlite3-dev default-mysql-server default-libmysqlclient-dev postgresql postgresql-client postgresql-contrib libpq-dev redis-server memcached imagemagick ffmpeg mupdf mupdf-tools libxml2-dev libvips42 poppler-utils
+">Copy</button>
+</div>
+<div class="note"><p>If you are running Debian, MariaDB is the default MySQL server, so be aware there may be differences.</p></div><h3 id="database-configuration"><a class="anchorlink" href="#database-configuration">2.4 Database Configuration</a></h3><p>There are couple of additional steps required to configure database engines
+required for running Active Record tests.</p><p>PostgreSQL's authentication works differently. To set up the development environment
+with your development account, on Linux or BSD, you just have to run:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">sudo</span> <span class="nt">-u</span> postgres createuser <span class="nt">--superuser</span> <span class="nv">$USER</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="sudo -u postgres createuser --superuser $USER
+">Copy</button>
+</div>
+<p>and for macOS:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span>createuser <span class="nt">--superuser</span> <span class="nv">$USER</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="createuser --superuser $USER
+">Copy</button>
+</div>
+<div class="note"><p>MySQL will create the users when the databases are created. The task assumes your user is <code>root</code> with no password.</p></div><p>Then, you need to create the test databases for both MySQL and PostgreSQL with:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">cd </span>activerecord
+<span class="gp">$</span><span class="w"> </span><span class="nb">bundle exec rake </span>db:create
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="cd activerecord
+bundle exec rake db:create
+">Copy</button>
+</div>
+<p>You can also create test databases for each database engine separately:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">cd </span>activerecord
+<span class="gp">$</span><span class="w"> </span><span class="nb">bundle exec rake </span>db:mysql:build
+<span class="gp">$</span><span class="w"> </span><span class="nb">bundle exec rake </span>db:postgresql:build
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="cd activerecord
+bundle exec rake db:mysql:build
+bundle exec rake db:postgresql:build
+">Copy</button>
+</div>
+<p>and you can drop the databases using:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">cd </span>activerecord
+<span class="gp">$</span><span class="w"> </span><span class="nb">bundle exec rake </span>db:drop
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="cd activerecord
+bundle exec rake db:drop
+">Copy</button>
+</div>
+<div class="note"><p>Using the Rake task to create the test databases ensures they have the correct character set and collation.</p></div><p>If you're using another database, check the file <code>activerecord/test/config.yml</code> or <code>activerecord/test/config.example.yml</code> for default connection information. You can edit <code>activerecord/test/config.yml</code> to provide different credentials on your machine, but you should not push any of those changes back to Rails.</p><h3 id="install-javascript-dependencies"><a class="anchorlink" href="#install-javascript-dependencies">2.5 Install JavaScript Dependencies</a></h3><p>If you installed Yarn, you will need to install the JavaScript dependencies:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">yarn install</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="yarn install
+">Copy</button>
+</div>
+<h3 id="installing-gem-dependencies"><a class="anchorlink" href="#installing-gem-dependencies">2.6 Installing Gem Dependencies</a></h3><p>Gems are installed with <a href="https://bundler.io/">Bundler</a> which ships by default with Ruby.</p><p>To install the Gemfile for Rails run:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bundle install</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bundle install
+">Copy</button>
+</div>
+<p>If you don't need to run Active Record tests, you can run:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bundle install</span> <span class="nt">--without</span> db
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bundle install --without db
+">Copy</button>
+</div>
+<h3 id="contribute-to-rails"><a class="anchorlink" href="#contribute-to-rails">2.7 Contribute to Rails</a></h3><p>After you've set up everything, read how you can start <a href="contributing_to_ruby_on_rails.html#running-an-application-against-your-local-branch">contributing</a>.</p>
+
+        <h3>Feedback</h3>
+        <p>
+          You're encouraged to help improve the quality of this guide.
+        </p>
+        <p>
+          Please contribute if you see any typos or factual errors.
+          To get started, you can read our <a href="https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation">documentation contributions</a> section.
+        </p>
+        <p>
+          You may also find incomplete content or stuff that is not up to date.
+          Please do add any missing documentation for main. Make sure to check
+          <a href="https://edgeguides.rubyonrails.org">Edge Guides</a> first to verify
+          if the issues are already fixed or not on the main branch.
+          Check the <a href="ruby_on_rails_guides_guidelines.html">Ruby on Rails Guides Guidelines</a>
+          for style and conventions.
+        </p>
+        <p>
+          If for whatever reason you spot something to fix but cannot patch it yourself, please
+          <a href="https://github.com/rails/rails/issues">open an issue</a>.
+        </p>
+        <p>And last but not least, any kind of discussion regarding Ruby on Rails
+          documentation is very welcome on the <a href="https://discuss.rubyonrails.org/c/rubyonrails-docs">official Ruby on Rails Forum</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="hide" />
+  <div id="footer">
+    <div class="wrapper">
+      <p>This work is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International</a> License</p>
+<p>"Rails", "Ruby on Rails", and the Rails logo are trademarks of David Heinemeier Hansson. All rights reserved.</p>
+
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,859 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Action View Helpers — Ruby on Rails Guides</title>
+  <link rel="stylesheet" type="text/css" href="stylesheets/style.css" data-turbo-track="reload">
+  <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+  <link rel="stylesheet" type="text/css" href="stylesheets/highlight.css" data-turbo-track="reload">
+  
+  <link rel="icon" href="images/favicon.ico" sizes="any">
+  <link rel="icon" href="images/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="images/icon.png">
+  
+  <script src="javascripts/@hotwired--turbo.js" data-turbo-track="reload"></script>
+  <script src="javascripts/clipboard.js" data-turbo-track="reload"></script>
+  <script src="javascripts/guides.js" data-turbo-track="reload"></script>
+
+  <meta property="og:title" content="Action View Helpers — Ruby on Rails Guides" />
+  <meta name="description" content="Action View HelpersAfter reading this guide, you will know: How to format dates, strings, and numbers How to link to images, videos, stylesheets, etc... How to sanitize content How to localize content" />
+  <meta property="og:description" content="Action View HelpersAfter reading this guide, you will know: How to format dates, strings, and numbers How to link to images, videos, stylesheets, etc... How to sanitize content How to localize content" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:site_name" content="Ruby on Rails Guides" />
+  <meta property="og:image" content="https://avatars.githubusercontent.com/u/4223" />
+  <meta property="og:type" content="website" />
+
+  <meta name="theme-color" content="#C81418">
+</head>
+
+<body dir="ltr" class="guide">
+  <div>
+    <div id="version-badge">edge</div>
+  </div>
+  <div id="topNav">
+    <div class="wrapper">
+      <strong class="more-info-label">More at <a href="https://rubyonrails.org/">rubyonrails.org:</a> </strong>
+      <span class="red-button more-info-button">
+        More Ruby on Rails
+      </span>
+      <ul class="more-info-links s-hidden">
+        <li class="more-info"><a href="https://rubyonrails.org/blog">Blog</a></li>
+        <li class="more-info"><a href="https://guides.rubyonrails.org/">Guides</a></li>
+        <li class="more-info"><a href="https://api.rubyonrails.org/">API</a></li>
+        <li class="more-info"><a href="https://discuss.rubyonrails.org/">Forum</a></li>
+        <li class="more-info"><a href="https://github.com/rails/rails">Contribute on GitHub</a></li>
+      </ul>
+    </div>
+  </div>
+  <div id="header">
+    <div class="wrapper clearfix">
+      <div class="header-logo"><a href="index.html" title="Return to home page">Guides.rubyonrails.org</a></div>
+      <ul class="nav">
+        <li><a class="nav-item" href="index.html">Home</a></li>
+        <li class="guides-index guides-index-large">
+          <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
+          <div id="guides" class="clearfix" style="display: none;">
+            <hr />
+            <dl class="guides-section-container">
+                <div class="guides-section">
+                  <dt>Start Here</dt>
+                  <dd><a href="getting_started.html">Getting Started with Rails</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Models</dt>
+                  <dd><a href="active_record_basics.html">Active Record Basics</a></dd>
+                  <dd><a href="active_record_migrations.html">Active Record Migrations</a></dd>
+                  <dd><a href="active_record_validations.html">Active Record Validations</a></dd>
+                  <dd><a href="active_record_callbacks.html">Active Record Callbacks</a></dd>
+                  <dd><a href="association_basics.html">Active Record Associations</a></dd>
+                  <dd><a href="active_record_querying.html">Active Record Query Interface</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Views</dt>
+                  <dd><a href="layouts_and_rendering.html">Layouts and Rendering in Rails</a></dd>
+                  <dd><a href="form_helpers.html">Action View Form Helpers</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Controllers</dt>
+                  <dd><a href="action_controller_overview.html">Action Controller Overview</a></dd>
+                  <dd><a href="routing.html">Rails Routing from the Outside In</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Other Components</dt>
+                  <dd><a href="active_support_core_extensions.html">Active Support Core Extensions</a></dd>
+                  <dd><a href="action_mailer_basics.html">Action Mailer Basics</a></dd>
+                  <dd><a href="active_job_basics.html">Active Job Basics</a></dd>
+                  <dd><a href="active_storage_overview.html">Active Storage Overview</a></dd>
+                  <dd><a href="action_cable_overview.html">Action Cable Overview</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Digging Deeper</dt>
+                  <dd><a href="i18n.html">Rails Internationalization (I18n) API</a></dd>
+                  <dd><a href="testing.html">Testing Rails Applications</a></dd>
+                  <dd><a href="security.html">Securing Rails Applications</a></dd>
+                  <dd><a href="error_reporting.html">Error Reporting in Rails Applications</a></dd>
+                  <dd><a href="debugging_rails_applications.html">Debugging Rails Applications</a></dd>
+                  <dd><a href="configuring.html">Configuring Rails Applications</a></dd>
+                  <dd><a href="command_line.html">The Rails Command Line</a></dd>
+                  <dd><a href="asset_pipeline.html">The Asset Pipeline</a></dd>
+                  <dd><a href="working_with_javascript_in_rails.html">Working with JavaScript in Rails</a></dd>
+                  <dd><a href="autoloading_and_reloading_constants.html">Autoloading and Reloading</a></dd>
+                  <dd><a href="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</a></dd>
+                  <dd><a href="caching_with_rails.html">Caching with Rails: An Overview</a></dd>
+                  <dd><a href="api_app.html">Using Rails for API-only Applications</a></dd>
+                  <dd><a href="active_record_multiple_databases.html">Multiple Databases</a></dd>
+                  <dd><a href="active_record_composite_primary_keys.html">Composite Primary Keys</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Extending Rails</dt>
+                  <dd><a href="rails_on_rack.html">Rails on Rack</a></dd>
+                  <dd><a href="generators.html">Creating and Customizing Rails Generators &amp; Templates</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Contributing</dt>
+                  <dd><a href="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</a></dd>
+                  <dd><a href="api_documentation_guidelines.html">API Documentation Guidelines</a></dd>
+                  <dd><a href="ruby_on_rails_guides_guidelines.html">Guides Guidelines</a></dd>
+                  <dd><a href="development_dependencies_install.html">Installing Rails Core Development Dependencies</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Policies</dt>
+                  <dd><a href="maintenance_policy.html">Maintenance Policy</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Release Notes</dt>
+                  <dd><a href="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</a></dd>
+                  <dd><a href="7_1_release_notes.html">Version 7.1 - October 2023</a></dd>
+                  <dd><a href="7_0_release_notes.html">Version 7.0 - December 2021</a></dd>
+                  <dd><a href="6_1_release_notes.html">Version 6.1 - December 2020</a></dd>
+                  <dd><a href="6_0_release_notes.html">Version 6.0 - August 2019</a></dd>
+                  <dd><a href="5_2_release_notes.html">Version 5.2 - April 2018</a></dd>
+                  <dd><a href="5_1_release_notes.html">Version 5.1 - April 2017</a></dd>
+                  <dd><a href="5_0_release_notes.html">Version 5.0 - June 2016</a></dd>
+                  <dd><a href="4_2_release_notes.html">Version 4.2 - December 2014</a></dd>
+                  <dd><a href="4_1_release_notes.html">Version 4.1 - April 2014</a></dd>
+                  <dd><a href="4_0_release_notes.html">Version 4.0 - June 2013</a></dd>
+                  <dd><a href="3_2_release_notes.html">Version 3.2 - January 2012</a></dd>
+                  <dd><a href="3_1_release_notes.html">Version 3.1 - August 2011</a></dd>
+                  <dd><a href="3_0_release_notes.html">Version 3.0 - August 2010</a></dd>
+                  <dd><a href="2_3_release_notes.html">Version 2.3 - March 2009</a></dd>
+                  <dd><a href="2_2_release_notes.html">Version 2.2 - November 2008</a></dd>
+                </div>
+            </dl>
+          </div>
+        </li>
+        <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
+        <li class="guides-index guides-index-small">
+          <select class="guides-index-item nav-item">
+            <option value="index.html">Guides Index</option>
+              <optgroup label="Start Here">
+                  <option value="getting_started.html">Getting Started with Rails</option>
+              </optgroup>
+              <optgroup label="Models">
+                  <option value="active_record_basics.html">Active Record Basics</option>
+                  <option value="active_record_migrations.html">Active Record Migrations</option>
+                  <option value="active_record_validations.html">Active Record Validations</option>
+                  <option value="active_record_callbacks.html">Active Record Callbacks</option>
+                  <option value="association_basics.html">Active Record Associations</option>
+                  <option value="active_record_querying.html">Active Record Query Interface</option>
+              </optgroup>
+              <optgroup label="Views">
+                  <option value="layouts_and_rendering.html">Layouts and Rendering in Rails</option>
+                  <option value="form_helpers.html">Action View Form Helpers</option>
+              </optgroup>
+              <optgroup label="Controllers">
+                  <option value="action_controller_overview.html">Action Controller Overview</option>
+                  <option value="routing.html">Rails Routing from the Outside In</option>
+              </optgroup>
+              <optgroup label="Other Components">
+                  <option value="active_support_core_extensions.html">Active Support Core Extensions</option>
+                  <option value="action_mailer_basics.html">Action Mailer Basics</option>
+                  <option value="active_job_basics.html">Active Job Basics</option>
+                  <option value="active_storage_overview.html">Active Storage Overview</option>
+                  <option value="action_cable_overview.html">Action Cable Overview</option>
+              </optgroup>
+              <optgroup label="Digging Deeper">
+                  <option value="i18n.html">Rails Internationalization (I18n) API</option>
+                  <option value="testing.html">Testing Rails Applications</option>
+                  <option value="security.html">Securing Rails Applications</option>
+                  <option value="error_reporting.html">Error Reporting in Rails Applications</option>
+                  <option value="debugging_rails_applications.html">Debugging Rails Applications</option>
+                  <option value="configuring.html">Configuring Rails Applications</option>
+                  <option value="command_line.html">The Rails Command Line</option>
+                  <option value="asset_pipeline.html">The Asset Pipeline</option>
+                  <option value="working_with_javascript_in_rails.html">Working with JavaScript in Rails</option>
+                  <option value="autoloading_and_reloading_constants.html">Autoloading and Reloading</option>
+                  <option value="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</option>
+                  <option value="caching_with_rails.html">Caching with Rails: An Overview</option>
+                  <option value="api_app.html">Using Rails for API-only Applications</option>
+                  <option value="active_record_multiple_databases.html">Multiple Databases</option>
+                  <option value="active_record_composite_primary_keys.html">Composite Primary Keys</option>
+              </optgroup>
+              <optgroup label="Extending Rails">
+                  <option value="rails_on_rack.html">Rails on Rack</option>
+                  <option value="generators.html">Creating and Customizing Rails Generators &amp; Templates</option>
+              </optgroup>
+              <optgroup label="Contributing">
+                  <option value="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</option>
+                  <option value="api_documentation_guidelines.html">API Documentation Guidelines</option>
+                  <option value="ruby_on_rails_guides_guidelines.html">Guides Guidelines</option>
+                  <option value="development_dependencies_install.html">Installing Rails Core Development Dependencies</option>
+              </optgroup>
+              <optgroup label="Policies">
+                  <option value="maintenance_policy.html">Maintenance Policy</option>
+              </optgroup>
+              <optgroup label="Release Notes">
+                  <option value="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</option>
+                  <option value="7_1_release_notes.html">Version 7.1 - October 2023</option>
+                  <option value="7_0_release_notes.html">Version 7.0 - December 2021</option>
+                  <option value="6_1_release_notes.html">Version 6.1 - December 2020</option>
+                  <option value="6_0_release_notes.html">Version 6.0 - August 2019</option>
+                  <option value="5_2_release_notes.html">Version 5.2 - April 2018</option>
+                  <option value="5_1_release_notes.html">Version 5.1 - April 2017</option>
+                  <option value="5_0_release_notes.html">Version 5.0 - June 2016</option>
+                  <option value="4_2_release_notes.html">Version 4.2 - December 2014</option>
+                  <option value="4_1_release_notes.html">Version 4.1 - April 2014</option>
+                  <option value="4_0_release_notes.html">Version 4.0 - June 2013</option>
+                  <option value="3_2_release_notes.html">Version 3.2 - January 2012</option>
+                  <option value="3_1_release_notes.html">Version 3.1 - August 2011</option>
+                  <option value="3_0_release_notes.html">Version 3.0 - August 2010</option>
+                  <option value="2_3_release_notes.html">Version 2.3 - March 2009</option>
+                  <option value="2_2_release_notes.html">Version 2.2 - November 2008</option>
+              </optgroup>
+          </select>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <hr class="hide" />
+
+  <div id="feature">
+    <div class="wrapper">
+      <h1>Action View Helpers</h1><p>After reading this guide, you will know:</p>
+<ul>
+<li>How to format dates, strings, and numbers</li>
+<li>How to link to images, videos, stylesheets, etc...</li>
+<li>How to sanitize content</li>
+<li>How to localize content</li>
+</ul>
+
+
+                <div id="subCol">
+            <h3 class="chapter"><img src="images/icon_book-close-bookmark-1.svg" alt="" />Chapters</h3>
+            <ol class="chapters">
+<li><a href="#overview-of-helpers-provided-by-action-view">Overview of Helpers Provided by Action View</a>
+
+<ul>
+<li><a href="#assettaghelper">AssetTagHelper</a></li>
+<li><a href="#atomfeedhelper">AtomFeedHelper</a></li>
+<li><a href="#benchmarkhelper">BenchmarkHelper</a></li>
+<li><a href="#cachehelper">CacheHelper</a></li>
+<li><a href="#capturehelper">CaptureHelper</a></li>
+<li><a href="#datehelper">DateHelper</a></li>
+<li><a href="#debughelper">DebugHelper</a></li>
+<li><a href="#formhelper">FormHelper</a></li>
+<li><a href="#javascripthelper">JavaScriptHelper</a></li>
+<li><a href="#numberhelper">NumberHelper</a></li>
+<li><a href="#sanitizehelper">SanitizeHelper</a></li>
+<li><a href="#urlhelper">UrlHelper</a></li>
+<li><a href="#csrfhelper">CsrfHelper</a></li>
+</ul></li>
+</ol>
+
+          </div>
+
+    </div>
+  </div>
+
+  <div id="container">
+    <div class="wrapper">
+      <div id="mainCol">
+        <h2 id="overview-of-helpers-provided-by-action-view"><a class="anchorlink" href="#overview-of-helpers-provided-by-action-view">1 Overview of Helpers Provided by Action View</a></h2><p>WIP: Not all the helpers are listed here. For a full list see the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers.html">API documentation</a></p><p>The following is only a brief overview summary of the helpers available in Action View. It's recommended that you review the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers.html">API Documentation</a>, which covers all of the helpers in more detail, but this should serve as a good starting point.</p><h3 id="assettaghelper"><a class="anchorlink" href="#assettaghelper">1.1 AssetTagHelper</a></h3><p>This module provides methods for generating HTML that links views to assets such as images, JavaScript files, stylesheets, and feeds.</p><p>By default, Rails links to these assets on the current host in the public folder, but you can direct Rails to link to assets from a dedicated assets server by setting <a href="configuring.html#config-asset-host"><code>config.asset_host</code></a> in the application configuration, typically in <code>config/environments/production.rb</code>. For example, let's say your asset host is <code>assets.example.com</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">config</span><span class="p">.</span><span class="nf">asset_host</span> <span class="o">=</span> <span class="s2">"assets.example.com"</span>
+<span class="n">image_tag</span><span class="p">(</span><span class="s2">"rails.png"</span><span class="p">)</span>
+<span class="c1"># =&gt; &lt;img src="http://assets.example.com/images/rails.png" /&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="config.asset_host = &quot;assets.example.com&quot;
+image_tag(&quot;rails.png&quot;)
+# => <img src=&quot;http://assets.example.com/images/rails.png&quot; />
+">Copy</button>
+</div>
+<h4 id="audio-tag"><a class="anchorlink" href="#audio-tag">1.1.1 audio_tag</a></h4><p>Generate an HTML audio tag with source(s), either as a single tag for a string source or nested source tags within an array for multiple sources.
+The <code>sources</code> can be full paths, files in your public audios directory, or Active Storage attachments.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">audio_tag</span><span class="p">(</span><span class="s2">"sound"</span><span class="p">)</span>
+<span class="c1"># =&gt; &lt;audio src="/audios/sound"&gt;&lt;/audio&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="audio_tag(&quot;sound&quot;)
+# => <audio src=&quot;/audios/sound&quot;></audio>
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-audio_tag">API Documentation</a> for more information.</p><h4 id="auto-discovery-link-tag"><a class="anchorlink" href="#auto-discovery-link-tag">1.1.2 auto_discovery_link_tag</a></h4><p>Returns a link tag that browsers and feed readers can use to auto-detect an RSS, Atom, or JSON feed.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">auto_discovery_link_tag</span><span class="p">(</span><span class="ss">:rss</span><span class="p">,</span> <span class="s2">"http://www.example.com/feed.rss"</span><span class="p">,</span> <span class="p">{</span> <span class="ss">title: </span><span class="s2">"RSS Feed"</span> <span class="p">})</span>
+<span class="c1"># =&gt; &lt;link rel="alternate" type="application/rss+xml" title="RSS Feed" href="http://www.example.com/feed.rss" /&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="auto_discovery_link_tag(:rss, &quot;http://www.example.com/feed.rss&quot;, { title: &quot;RSS Feed&quot; })
+# => <link rel=&quot;alternate&quot; type=&quot;application/rss+xml&quot; title=&quot;RSS Feed&quot; href=&quot;http://www.example.com/feed.rss&quot; />
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-auto_discovery_link_tag">API Documentation</a> for more information.</p><h4 id="favicon-link-tag"><a class="anchorlink" href="#favicon-link-tag">1.1.3 favicon_link_tag</a></h4><p>Returns a link tag for a favicon managed by the asset pipeline. The <code>source</code> can be a full path or a file that exists in your assets directory.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">favicon_link_tag</span>
+<span class="c1"># =&gt; &lt;link href="/assets/favicon.ico" rel="icon" type="image/x-icon" /&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="favicon_link_tag
+# => <link href=&quot;/assets/favicon.ico&quot; rel=&quot;icon&quot; type=&quot;image/x-icon&quot; />
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-favicon_link_tag">API Documentation</a> for more information.</p><h4 id="image-path"><a class="anchorlink" href="#image-path">1.1.4 image_path</a></h4><p>Computes the path to an image asset in the <code>app/assets/images</code> directory. Full paths from the document root will be passed through. Used internally by <code>image_tag</code> to build the image path.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">image_path</span><span class="p">(</span><span class="s2">"edit.png"</span><span class="p">)</span> <span class="c1"># =&gt; /assets/edit.png</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="image_path(&quot;edit.png&quot;) # => /assets/edit.png
+">Copy</button>
+</div>
+<p>Fingerprint will be added to the filename if config.assets.digest is set to true.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">image_path</span><span class="p">(</span><span class="s2">"edit.png"</span><span class="p">)</span>
+<span class="c1"># =&gt; /assets/edit-2d1a2db63fc738690021fedb5a65b68e.png</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="image_path(&quot;edit.png&quot;)
+# => /assets/edit-2d1a2db63fc738690021fedb5a65b68e.png
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-image_path">API Documentation</a> for more information.</p><h4 id="image-url"><a class="anchorlink" href="#image-url">1.1.5 image_url</a></h4><p>Computes the URL to an image asset in the <code>app/assets/images</code> directory. This will call <code>image_path</code> internally and merge with your current host or your asset host.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">image_url</span><span class="p">(</span><span class="s2">"edit.png"</span><span class="p">)</span> <span class="c1"># =&gt; http://www.example.com/assets/edit.png</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="image_url(&quot;edit.png&quot;) # => http://www.example.com/assets/edit.png
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-image_url">API Documentation</a> for more information.</p><h4 id="image-tag"><a class="anchorlink" href="#image-tag">1.1.6 image_tag</a></h4><p>Returns an HTML image tag for the source. The source can be a full path or a file that exists in your <code>app/assets/images</code> directory.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">image_tag</span><span class="p">(</span><span class="s2">"icon.png"</span><span class="p">)</span> <span class="c1"># =&gt; &lt;img src="/assets/icon.png" /&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="image_tag(&quot;icon.png&quot;) # => <img src=&quot;/assets/icon.png&quot; />
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-image_tag">API Documentation</a> for more information.</p><h4 id="javascript-include-tag"><a class="anchorlink" href="#javascript-include-tag">1.1.7 javascript_include_tag</a></h4><p>Returns an HTML script tag for each of the sources provided. You can pass in the filename (<code>.js</code> extension is optional) of JavaScript files that exist in your <code>app/assets/javascripts</code> directory for inclusion into the current page or you can pass the full path relative to your document root.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">javascript_include_tag</span> <span class="s2">"common"</span>
+<span class="c1"># =&gt; &lt;script src="/assets/common.js"&gt;&lt;/script&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="javascript_include_tag &quot;common&quot;
+# => <script src=&quot;/assets/common.js&quot;></script>
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-javascript_include_tag">API Documentation</a> for more information.</p><h4 id="javascript-path"><a class="anchorlink" href="#javascript-path">1.1.8 javascript_path</a></h4><p>Computes the path to a JavaScript asset in the <code>app/assets/javascripts</code> directory. If the source filename has no extension, <code>.js</code> will be appended. Full paths from the document root will be passed through. Used internally by <code>javascript_include_tag</code> to build the script path.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">javascript_path</span> <span class="s2">"common"</span> <span class="c1"># =&gt; /assets/common.js</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="javascript_path &quot;common&quot; # => /assets/common.js
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-javascript_path">API Documentation</a> for more information.</p><h4 id="javascript-url"><a class="anchorlink" href="#javascript-url">1.1.9 javascript_url</a></h4><p>Computes the URL to a JavaScript asset in the <code>app/assets/javascripts</code> directory. This will call <code>javascript_path</code> internally and merge with your current host or your asset host.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">javascript_url</span> <span class="s2">"common"</span>
+<span class="c1"># =&gt; http://www.example.com/assets/common.js</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="javascript_url &quot;common&quot;
+# => http://www.example.com/assets/common.js
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-javascript_url">API Documentation</a> for more information.</p><h4 id="picture-tag"><a class="anchorlink" href="#picture-tag">1.1.10 picture_tag</a></h4><p>Returns an HTML picture tag for the source. It supports passing a String, an
+Array, or a Block.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">picture_tag</span><span class="p">(</span><span class="s2">"icon.webp"</span><span class="p">,</span> <span class="s2">"icon.png"</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="picture_tag(&quot;icon.webp&quot;, &quot;icon.png&quot;)
+">Copy</button>
+</div>
+<p>This generates the following HTML:</p><div class="code_container">
+<pre><code class="highlight html"><span class="nt">&lt;picture&gt;</span>
+  <span class="nt">&lt;source</span> <span class="na">srcset=</span><span class="s">"/assets/icon.webp"</span> <span class="na">type=</span><span class="s">"image/webp"</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;source</span> <span class="na">srcset=</span><span class="s">"/assets/icon.png"</span> <span class="na">type=</span><span class="s">"image/png"</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;img</span> <span class="na">src=</span><span class="s">"/assets/icon.png"</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/picture&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<picture>
+  <source srcset=&quot;/assets/icon.webp&quot; type=&quot;image/webp&quot; />
+  <source srcset=&quot;/assets/icon.png&quot; type=&quot;image/png&quot; />
+  <img src=&quot;/assets/icon.png&quot; />
+</picture>
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-picture_tag">API Documentation</a> for more information.</p><h4 id="preload-link-tag"><a class="anchorlink" href="#preload-link-tag">1.1.11 preload_link_tag</a></h4><p>Returns a link tag that browsers can use to preload the source. The source can
+be the path of a resource managed by the asset pipeline, a full path, or a URI.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">preload_link_tag</span> <span class="s2">"application.css"</span>
+<span class="c1"># =&gt; &lt;link rel="preload" href="/assets/application.css" as="style" type="text/css" /&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="preload_link_tag &quot;application.css&quot;
+# => <link rel=&quot;preload&quot; href=&quot;/assets/application.css&quot; as=&quot;style&quot; type=&quot;text/css&quot; />
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-preload_link_tag">API Documentation</a> for more information.</p><h4 id="stylesheet-link-tag"><a class="anchorlink" href="#stylesheet-link-tag">1.1.12 stylesheet_link_tag</a></h4><p>Returns a stylesheet link tag for the sources specified as arguments. If you don't specify an extension, <code>.css</code> will be appended automatically.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">stylesheet_link_tag</span> <span class="s2">"application"</span>
+<span class="c1"># =&gt; &lt;link href="/assets/application.css" rel="stylesheet" /&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="stylesheet_link_tag &quot;application&quot;
+# => <link href=&quot;/assets/application.css&quot; rel=&quot;stylesheet&quot; />
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-stylesheet_link_tag">API Documentation</a> for more information.</p><h4 id="stylesheet-path"><a class="anchorlink" href="#stylesheet-path">1.1.13 stylesheet_path</a></h4><p>Computes the path to a stylesheet asset in the <code>app/assets/stylesheets</code> directory. If the source filename has no extension, <code>.css</code> will be appended. Full paths from the document root will be passed through. Used internally by <code>stylesheet_link_tag</code> to build the stylesheet path.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">stylesheet_path</span> <span class="s2">"application"</span> <span class="c1"># =&gt; /assets/application.css</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="stylesheet_path &quot;application&quot; # => /assets/application.css
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-stylesheet_path">API Documentation</a> for more information.</p><h4 id="stylesheet-url"><a class="anchorlink" href="#stylesheet-url">1.1.14 stylesheet_url</a></h4><p>Computes the URL to a stylesheet asset in the <code>app/assets/stylesheets</code> directory. This will call <code>stylesheet_path</code> internally and merge with your current host or your asset host.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">stylesheet_url</span> <span class="s2">"application"</span>
+<span class="c1"># =&gt; http://www.example.com/assets/application.css</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="stylesheet_url &quot;application&quot;
+# => http://www.example.com/assets/application.css
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-stylesheet_path">API Documentation</a> for more information.</p><h4 id="video-tag"><a class="anchorlink" href="#video-tag">1.1.15 video_tag</a></h4><p>Generate an HTML video tag with source(s), either as a single tag for a string source or nested source tags within an array for multiple sources. The <code>sources</code> can be full paths, files in your public videos directory, or Active Storage attachments.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">video_tag</span><span class="p">(</span><span class="s2">"trailer"</span><span class="p">)</span>
+<span class="c1"># =&gt; &lt;video src="/videos/trailer"&gt;&lt;/video&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="video_tag(&quot;trailer&quot;)
+# => <video src=&quot;/videos/trailer&quot;></video>
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-video_tag">API Documentation</a> for more information.</p><h3 id="atomfeedhelper"><a class="anchorlink" href="#atomfeedhelper">1.2 AtomFeedHelper</a></h3><h4 id="atom-feed"><a class="anchorlink" href="#atom-feed">1.2.1 atom_feed</a></h4><p>This helper makes building an Atom feed easy. Here's a full usage example:</p><p><strong>config/routes.rb</strong></p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:articles</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :articles
+">Copy</button>
+</div>
+<p><strong>app/controllers/articles_controller.rb</strong></p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">def</span> <span class="nf">index</span>
+  <span class="vi">@articles</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">all</span>
+
+  <span class="n">respond_to</span> <span class="k">do</span> <span class="o">|</span><span class="nb">format</span><span class="o">|</span>
+    <span class="nb">format</span><span class="p">.</span><span class="nf">html</span>
+    <span class="nb">format</span><span class="p">.</span><span class="nf">atom</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="def index
+  @articles = Article.all
+
+  respond_to do |format|
+    format.html
+    format.atom
+  end
+end
+">Copy</button>
+</div>
+<p><strong>app/views/articles/index.atom.builder</strong></p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">atom_feed</span> <span class="k">do</span> <span class="o">|</span><span class="n">feed</span><span class="o">|</span>
+  <span class="n">feed</span><span class="p">.</span><span class="nf">title</span><span class="p">(</span><span class="s2">"Articles Index"</span><span class="p">)</span>
+  <span class="n">feed</span><span class="p">.</span><span class="nf">updated</span><span class="p">(</span><span class="vi">@articles</span><span class="p">.</span><span class="nf">first</span><span class="p">.</span><span class="nf">created_at</span><span class="p">)</span>
+
+  <span class="vi">@articles</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">article</span><span class="o">|</span>
+    <span class="n">feed</span><span class="p">.</span><span class="nf">entry</span><span class="p">(</span><span class="n">article</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">entry</span><span class="o">|</span>
+      <span class="n">entry</span><span class="p">.</span><span class="nf">title</span><span class="p">(</span><span class="n">article</span><span class="p">.</span><span class="nf">title</span><span class="p">)</span>
+      <span class="n">entry</span><span class="p">.</span><span class="nf">content</span><span class="p">(</span><span class="n">article</span><span class="p">.</span><span class="nf">body</span><span class="p">,</span> <span class="ss">type: </span><span class="s1">'html'</span><span class="p">)</span>
+
+      <span class="n">entry</span><span class="p">.</span><span class="nf">author</span> <span class="k">do</span> <span class="o">|</span><span class="n">author</span><span class="o">|</span>
+        <span class="n">author</span><span class="p">.</span><span class="nf">name</span><span class="p">(</span><span class="n">article</span><span class="p">.</span><span class="nf">author_name</span><span class="p">)</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="atom_feed do |feed|
+  feed.title(&quot;Articles Index&quot;)
+  feed.updated(@articles.first.created_at)
+
+  @articles.each do |article|
+    feed.entry(article) do |entry|
+      entry.title(article.title)
+      entry.content(article.body, type: 'html')
+
+      entry.author do |author|
+        author.name(article.author_name)
+      end
+    end
+  end
+end
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AtomFeedHelper.html#method-i-atom_feed">API Documentation</a> for more information.</p><h3 id="benchmarkhelper"><a class="anchorlink" href="#benchmarkhelper">1.3 BenchmarkHelper</a></h3><h4 id="benchmark"><a class="anchorlink" href="#benchmark">1.3.1 benchmark</a></h4><p>Allows you to measure the execution time of a block in a template and records the result to the log. Wrap this block around expensive operations or possible bottlenecks to get a time reading for the operation.</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%</span> <span class="n">benchmark</span> <span class="s2">"Process data files"</span> <span class="k">do</span> <span class="cp">%&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="n">expensive_files_operation</span> <span class="cp">%&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<% benchmark &quot;Process data files&quot; do %>
+  <%= expensive_files_operation %>
+<% end %>
+">Copy</button>
+</div>
+<p>This would add something like "Process data files (0.34523)" to the log, which you can then use to compare timings when optimizing your code.</p><p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActiveSupport/Benchmarkable.html#method-i-benchmark">API Documentation</a> for more information.</p><h3 id="cachehelper"><a class="anchorlink" href="#cachehelper">1.4 CacheHelper</a></h3><h4 id="cache"><a class="anchorlink" href="#cache">1.4.1 cache</a></h4><p>A method for caching fragments of a view rather than an entire action or page. This technique is useful for caching pieces like menus, lists of news topics, static HTML fragments, and so on. This method takes a block that contains the content you wish to cache. See <a href="https://edgeapi.rubyonrails.org/classes/AbstractController/Caching/Fragments.html"><code>AbstractController::Caching::Fragments</code></a> for more information.</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%</span> <span class="n">cache</span> <span class="k">do</span> <span class="cp">%&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="n">render</span> <span class="s2">"application/footer"</span> <span class="cp">%&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<% cache do %>
+  <%= render &quot;application/footer&quot; %>
+<% end %>
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/CacheHelper.html#method-i-cache">API Documentation</a> for more information.</p><h3 id="capturehelper"><a class="anchorlink" href="#capturehelper">1.5 CaptureHelper</a></h3><h4 id="capture"><a class="anchorlink" href="#capture">1.5.1 capture</a></h4><p>The <code>capture</code> method allows you to extract part of a template into a variable. You can then use this variable anywhere in your templates or layout.</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%</span> <span class="vi">@greeting</span> <span class="o">=</span> <span class="n">capture</span> <span class="k">do</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;p&gt;</span>Welcome! The date and time is <span class="cp">&lt;%=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">now</span> <span class="cp">%&gt;</span><span class="nt">&lt;/p&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<% @greeting = capture do %>
+  <p>Welcome! The date and time is <%= Time.now %></p>
+<% end %>
+">Copy</button>
+</div>
+<p>The captured variable can then be used anywhere else.</p><div class="code_container">
+<pre><code class="highlight erb"><span class="nt">&lt;html&gt;</span>
+  <span class="nt">&lt;head&gt;</span>
+    <span class="nt">&lt;title&gt;</span>Welcome!<span class="nt">&lt;/title&gt;</span>
+  <span class="nt">&lt;/head&gt;</span>
+  <span class="nt">&lt;body&gt;</span>
+    <span class="cp">&lt;%=</span> <span class="vi">@greeting</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<html>
+  <head>
+    <title>Welcome!</title>
+  </head>
+  <body>
+    <%= @greeting %>
+  </body>
+</html>
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/CaptureHelper.html#method-i-capture">API Documentation</a> for more information.</p><h4 id="content-for"><a class="anchorlink" href="#content-for">1.5.2 content_for</a></h4><p>Calling <code>content_for</code> stores a block of markup in an identifier for later use. You can make subsequent calls to the stored content in other templates or the layout by passing the identifier as an argument to <code>yield</code>.</p><p>For example, let's say we have a standard application layout, but also a special page that requires certain JavaScript that the rest of the site doesn't need. We can use <code>content_for</code> to include this JavaScript on our special page without fattening up the rest of the site.</p><p><strong>app/views/layouts/application.html.erb</strong></p><div class="code_container">
+<pre><code class="highlight erb"><span class="nt">&lt;html&gt;</span>
+  <span class="nt">&lt;head&gt;</span>
+    <span class="nt">&lt;title&gt;</span>Welcome!<span class="nt">&lt;/title&gt;</span>
+    <span class="cp">&lt;%=</span> <span class="k">yield</span> <span class="ss">:special_script</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;/head&gt;</span>
+  <span class="nt">&lt;body&gt;</span>
+    <span class="nt">&lt;p&gt;</span>Welcome! The date and time is <span class="cp">&lt;%=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">now</span> <span class="cp">%&gt;</span><span class="nt">&lt;/p&gt;</span>
+  <span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<html>
+  <head>
+    <title>Welcome!</title>
+    <%= yield :special_script %>
+  </head>
+  <body>
+    <p>Welcome! The date and time is <%= Time.now %></p>
+  </body>
+</html>
+">Copy</button>
+</div>
+<p><strong>app/views/articles/special.html.erb</strong></p><div class="code_container">
+<pre><code class="highlight erb"><span class="nt">&lt;p&gt;</span>This is a special page.<span class="nt">&lt;/p&gt;</span>
+
+<span class="cp">&lt;%</span> <span class="n">content_for</span> <span class="ss">:special_script</span> <span class="k">do</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;script&gt;</span><span class="nf">alert</span><span class="p">(</span><span class="dl">'</span><span class="s1">Hello!</span><span class="dl">'</span><span class="p">)</span><span class="nt">&lt;/script&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<p>This is a special page.</p>
+
+<% content_for :special_script do %>
+  <script>alert('Hello!')</script>
+<% end %>
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/CaptureHelper.html#method-i-content_for">API Documentation</a> for more information.</p><h3 id="datehelper"><a class="anchorlink" href="#datehelper">1.6 DateHelper</a></h3><h4 id="distance-of-time-in-words"><a class="anchorlink" href="#distance-of-time-in-words">1.6.1 distance_of_time_in_words</a></h4><p>Reports the approximate distance in time between two Time or Date objects or integers as seconds. Set <code>include_seconds</code> to true if you want more detailed approximations.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">distance_of_time_in_words</span><span class="p">(</span><span class="no">Time</span><span class="p">.</span><span class="nf">now</span><span class="p">,</span> <span class="no">Time</span><span class="p">.</span><span class="nf">now</span> <span class="o">+</span> <span class="mi">15</span><span class="p">.</span><span class="nf">seconds</span><span class="p">)</span>
+<span class="c1"># =&gt; less than a minute</span>
+<span class="n">distance_of_time_in_words</span><span class="p">(</span><span class="no">Time</span><span class="p">.</span><span class="nf">now</span><span class="p">,</span> <span class="no">Time</span><span class="p">.</span><span class="nf">now</span> <span class="o">+</span> <span class="mi">15</span><span class="p">.</span><span class="nf">seconds</span><span class="p">,</span> <span class="ss">include_seconds: </span><span class="kp">true</span><span class="p">)</span>
+<span class="c1"># =&gt; less than 20 seconds</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="distance_of_time_in_words(Time.now, Time.now + 15.seconds)
+# => less than a minute
+distance_of_time_in_words(Time.now, Time.now + 15.seconds, include_seconds: true)
+# => less than 20 seconds
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-distance_of_time_in_words">API Documentation</a> for more information.</p><h4 id="time-ago-in-words"><a class="anchorlink" href="#time-ago-in-words">1.6.2 time_ago_in_words</a></h4><p>Like <code>distance_of_time_in_words</code>, but where <code>to_time</code> is fixed to <code>Time.now</code>.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">time_ago_in_words</span><span class="p">(</span><span class="mi">3</span><span class="p">.</span><span class="nf">minutes</span><span class="p">.</span><span class="nf">from_now</span><span class="p">)</span> <span class="c1"># =&gt; 3 minutes</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="time_ago_in_words(3.minutes.from_now) # => 3 minutes
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-time_ago_in_words">API Documentation</a> for more information.</p><h3 id="debughelper"><a class="anchorlink" href="#debughelper">1.7 DebugHelper</a></h3><h4 id="debug"><a class="anchorlink" href="#debug">1.7.1 debug</a></h4><p>Returns a <code>pre</code> tag that has object dumped by YAML. This creates a very readable way to inspect an object.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">my_hash</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">'first'</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'second'</span> <span class="o">=&gt;</span> <span class="s1">'two'</span><span class="p">,</span> <span class="s1">'third'</span> <span class="o">=&gt;</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="p">}</span>
+<span class="n">debug</span><span class="p">(</span><span class="n">my_hash</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="my_hash = { 'first' => 1, 'second' => 'two', 'third' => [1, 2, 3] }
+debug(my_hash)
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight html"><span class="nt">&lt;pre</span> <span class="na">class=</span><span class="s">'debug_dump'</span><span class="nt">&gt;</span>---
+first: 1
+second: two
+third:
+- 1
+- 2
+- 3
+<span class="nt">&lt;/pre&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<pre class='debug_dump'>---
+first: 1
+second: two
+third:
+- 1
+- 2
+- 3
+</pre>
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/DebugHelper.html#method-i-debug">API Documentation</a> for more information.</p><h3 id="formhelper"><a class="anchorlink" href="#formhelper">1.8 FormHelper</a></h3><p>Form helpers are designed to make working with models much easier compared to using just standard HTML elements by providing a set of methods for creating forms based on your models. This helper generates the HTML for forms, providing a method for each sort of input (e.g., text, password, select, and so on). When the form is submitted (i.e., when the user hits the submit button or form.submit is called via JavaScript), the form inputs will be bundled into the params object and passed back to the controller.</p><p>You can learn more about form helpers in the <a href="form_helpers.html">Action View Form Helpers
+Guide</a>.</p><h3 id="javascripthelper"><a class="anchorlink" href="#javascripthelper">1.9 JavaScriptHelper</a></h3><p>Provides functionality for working with JavaScript in your views.</p><h4 id="escape-javascript"><a class="anchorlink" href="#escape-javascript">1.9.1 escape_javascript</a></h4><p>Escape carrier returns and single and double quotes for JavaScript segments.</p><h4 id="javascript-tag"><a class="anchorlink" href="#javascript-tag">1.9.2 javascript_tag</a></h4><p>Returns a JavaScript tag wrapping the provided code.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">javascript_tag</span> <span class="s2">"alert('All is good')"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="javascript_tag &quot;alert('All is good')&quot;
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight html"><span class="nt">&lt;script&gt;</span>
+<span class="c1">//</span><span class="o">&lt;!</span><span class="p">[</span><span class="nx">CDATA</span><span class="p">[</span>
+<span class="nf">alert</span><span class="p">(</span><span class="dl">'</span><span class="s1">All is good</span><span class="dl">'</span><span class="p">)</span>
+<span class="c1">//]]&gt;</span>
+<span class="nt">&lt;/script&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<script>
+//<![CDATA[
+alert('All is good')
+//]]>
+</script>
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/JavaScriptHelper.html#method-i-javascript_tag">API Documentation</a> for more information.</p><h3 id="numberhelper"><a class="anchorlink" href="#numberhelper">1.10 NumberHelper</a></h3><p>Provides methods for converting numbers into formatted strings. Methods are provided for phone numbers, currency, percentage, precision, positional notation, and file size.</p><h4 id="number-to-currency"><a class="anchorlink" href="#number-to-currency">1.10.1 number_to_currency</a></h4><p>Formats a number into a currency string (e.g., $13.65).</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">number_to_currency</span><span class="p">(</span><span class="mf">1234567890.50</span><span class="p">)</span> <span class="c1"># =&gt; $1,234,567,890.50</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="number_to_currency(1234567890.50) # => $1,234,567,890.50
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_to_currency">API Documentation</a> for more information.</p><h4 id="number-to-human"><a class="anchorlink" href="#number-to-human">1.10.2 number_to_human</a></h4><p>Pretty prints (formats and approximates) a number so it is more readable by users; useful for numbers that can get very large.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">number_to_human</span><span class="p">(</span><span class="mi">1234</span><span class="p">)</span>    <span class="c1"># =&gt; 1.23 Thousand</span>
+<span class="n">number_to_human</span><span class="p">(</span><span class="mi">1234567</span><span class="p">)</span> <span class="c1"># =&gt; 1.23 Million</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="number_to_human(1234)    # => 1.23 Thousand
+number_to_human(1234567) # => 1.23 Million
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_to_human">API Documentation</a> for more information.</p><h4 id="number-to-human-size"><a class="anchorlink" href="#number-to-human-size">1.10.3 number_to_human_size</a></h4><p>Formats the bytes in size into a more understandable representation; useful for reporting file sizes to users.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">number_to_human_size</span><span class="p">(</span><span class="mi">1234</span><span class="p">)</span>    <span class="c1"># =&gt; 1.21 KB</span>
+<span class="n">number_to_human_size</span><span class="p">(</span><span class="mi">1234567</span><span class="p">)</span> <span class="c1"># =&gt; 1.18 MB</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="number_to_human_size(1234)    # => 1.21 KB
+number_to_human_size(1234567) # => 1.18 MB
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_to_human_size">API Documentation</a> for more information.</p><h4 id="number-to-percentage"><a class="anchorlink" href="#number-to-percentage">1.10.4 number_to_percentage</a></h4><p>Formats a number as a percentage string.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">number_to_percentage</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="ss">precision: </span><span class="mi">0</span><span class="p">)</span> <span class="c1"># =&gt; 100%</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="number_to_percentage(100, precision: 0) # => 100%
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_to_percentage">API Documentation</a> for more information.</p><h4 id="number-to-phone"><a class="anchorlink" href="#number-to-phone">1.10.5 number_to_phone</a></h4><p>Formats a number into a phone number (US by default).</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">number_to_phone</span><span class="p">(</span><span class="mi">1235551234</span><span class="p">)</span> <span class="c1"># =&gt; 123-555-1234</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="number_to_phone(1235551234) # => 123-555-1234
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_to_phone">API Documentation</a> for more information.</p><h4 id="number-with-delimiter"><a class="anchorlink" href="#number-with-delimiter">1.10.6 number_with_delimiter</a></h4><p>Formats a number with grouped thousands using a delimiter.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">number_with_delimiter</span><span class="p">(</span><span class="mi">12345678</span><span class="p">)</span> <span class="c1"># =&gt; 12,345,678</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="number_with_delimiter(12345678) # => 12,345,678
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_with_delimiter">API Documentation</a> for more information.</p><h4 id="number-with-precision"><a class="anchorlink" href="#number-with-precision">1.10.7 number_with_precision</a></h4><p>Formats a number with the specified level of <code>precision</code>, which defaults to 3.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">number_with_precision</span><span class="p">(</span><span class="mf">111.2345</span><span class="p">)</span>               <span class="c1"># =&gt; 111.235</span>
+<span class="n">number_with_precision</span><span class="p">(</span><span class="mf">111.2345</span><span class="p">,</span> <span class="ss">precision: </span><span class="mi">2</span><span class="p">)</span> <span class="c1"># =&gt; 111.23</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="number_with_precision(111.2345)               # => 111.235
+number_with_precision(111.2345, precision: 2) # => 111.23
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_with_precision">API Documentation</a> for more information.</p><h3 id="sanitizehelper"><a class="anchorlink" href="#sanitizehelper">1.11 SanitizeHelper</a></h3><p>The SanitizeHelper module provides a set of methods for scrubbing text of undesired HTML elements.</p><h4 id="sanitize"><a class="anchorlink" href="#sanitize">1.11.1 sanitize</a></h4><p>This sanitize helper will HTML encode all tags and strip all attributes that aren't specifically allowed.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">sanitize</span> <span class="vi">@article</span><span class="p">.</span><span class="nf">body</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="sanitize @article.body
+">Copy</button>
+</div>
+<p>If either the <code>:attributes</code> or <code>:tags</code> options are passed, only the mentioned attributes and tags are allowed and nothing else.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">sanitize</span> <span class="vi">@article</span><span class="p">.</span><span class="nf">body</span><span class="p">,</span> <span class="ss">tags: </span><span class="sx">%w(table tr td)</span><span class="p">,</span> <span class="ss">attributes: </span><span class="sx">%w(id class style)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="sanitize @article.body, tags: %w(table tr td), attributes: %w(id class style)
+">Copy</button>
+</div>
+<p>To change defaults for multiple uses, for example adding table tags to the default:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">class</span> <span class="nc">Application</span> <span class="o">&lt;</span> <span class="no">Rails</span><span class="o">::</span><span class="no">Application</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">action_view</span><span class="p">.</span><span class="nf">sanitized_allowed_tags</span> <span class="o">=</span> <span class="s1">'table'</span><span class="p">,</span> <span class="s1">'tr'</span><span class="p">,</span> <span class="s1">'td'</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="class Application < Rails::Application
+  config.action_view.sanitized_allowed_tags = 'table', 'tr', 'td'
+end
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-sanitize">API Documentation</a> for more information.</p><h4 id="sanitize-css-style"><a class="anchorlink" href="#sanitize-css-style">1.11.2 sanitize_css(style)</a></h4><p>Sanitizes a block of CSS code.</p><p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-sanitize_css">API Documentation</a> for more information.</p><h4 id="strip-links-html"><a class="anchorlink" href="#strip-links-html">1.11.3 strip_links(html)</a></h4><p>Strips all link tags from text leaving just the link text.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">strip_links</span><span class="p">(</span><span class="s1">'&lt;a href="https://rubyonrails.org"&gt;Ruby on Rails&lt;/a&gt;'</span><span class="p">)</span>
+<span class="c1"># =&gt; Ruby on Rails</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="strip_links('<a href=&quot;https://rubyonrails.org&quot;>Ruby on Rails</a>')
+# => Ruby on Rails
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="n">strip_links</span><span class="p">(</span><span class="s1">'emails to &lt;a href="mailto:me@email.com"&gt;me@email.com&lt;/a&gt;.'</span><span class="p">)</span>
+<span class="c1"># =&gt; emails to me@email.com.</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="strip_links('emails to <a href=&quot;mailto:me@email.com&quot;>me@email.com</a>.')
+# => emails to me@email.com.
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="n">strip_links</span><span class="p">(</span><span class="s1">'Blog: &lt;a href="http://myblog.com/"&gt;Visit&lt;/a&gt;.'</span><span class="p">)</span>
+<span class="c1"># =&gt; Blog: Visit.</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="strip_links('Blog: <a href=&quot;http://myblog.com/&quot;>Visit</a>.')
+# => Blog: Visit.
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-strip_links">API Documentation</a> for more information.</p><h4 id="strip-tags-html"><a class="anchorlink" href="#strip-tags-html">1.11.4 strip_tags(html)</a></h4><p>Strips all HTML tags from the html, including comments.
+This functionality is powered by the rails-html-sanitizer gem.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">strip_tags</span><span class="p">(</span><span class="s2">"Strip &lt;i&gt;these&lt;/i&gt; tags!"</span><span class="p">)</span>
+<span class="c1"># =&gt; Strip these tags!</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="strip_tags(&quot;Strip <i>these</i> tags!&quot;)
+# => Strip these tags!
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="n">strip_tags</span><span class="p">(</span><span class="s2">"&lt;b&gt;Bold&lt;/b&gt; no more!  &lt;a href='more.html'&gt;See more&lt;/a&gt;"</span><span class="p">)</span>
+<span class="c1"># =&gt; Bold no more!  See more</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="strip_tags(&quot;<b>Bold</b> no more!  <a href='more.html'>See more</a>&quot;)
+# => Bold no more!  See more
+">Copy</button>
+</div>
+<p>NB: The output may still contain unescaped '&lt;', '&gt;', '&amp;' characters and confuse browsers.</p><p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-strip_tags">API Documentation</a> for more information.</p><h3 id="urlhelper"><a class="anchorlink" href="#urlhelper">1.12 UrlHelper</a></h3><p>Provides methods to make links and get URLs that depend on the routing subsystem.</p><h4 id="url-for"><a class="anchorlink" href="#url-for">1.12.1 url_for</a></h4><p>Returns the URL for the set of <code>options</code> provided.</p><h5 id="url-for-examples"><a class="anchorlink" href="#url-for-examples">1.12.1.1 Examples</a></h5><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">url_for</span> <span class="vi">@profile</span>
+<span class="c1"># =&gt; /profiles/1</span>
+
+<span class="n">url_for</span> <span class="p">[</span> <span class="vi">@hotel</span><span class="p">,</span> <span class="vi">@booking</span><span class="p">,</span> <span class="ss">page: </span><span class="mi">2</span><span class="p">,</span> <span class="ss">line: </span><span class="mi">3</span> <span class="p">]</span>
+<span class="c1"># =&gt; /hotels/1/bookings/1?line=3&amp;page=2</span>
+
+<span class="n">url_for</span> <span class="vi">@post</span> <span class="c1"># given a composite primary key [:blog_id, :id]</span>
+<span class="c1"># =&gt; /posts/1_2</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="url_for @profile
+# => /profiles/1
+
+url_for [ @hotel, @booking, page: 2, line: 3 ]
+# => /hotels/1/bookings/1?line=3&amp;page=2
+
+url_for @post # given a composite primary key [:blog_id, :id]
+# => /posts/1_2
+">Copy</button>
+</div>
+<h4 id="link-to"><a class="anchorlink" href="#link-to">1.12.2 link_to</a></h4><p>Links to a URL derived from <code>url_for</code> under the hood. Primarily used to
+create RESTful resource links, which for this example, boils down to
+when passing models to <code>link_to</code>.</p><p><strong>Examples</strong></p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">link_to</span> <span class="s2">"Profile"</span><span class="p">,</span> <span class="vi">@profile</span>
+<span class="c1"># =&gt; &lt;a href="/profiles/1"&gt;Profile&lt;/a&gt;</span>
+
+<span class="n">link_to</span> <span class="s2">"Book"</span><span class="p">,</span> <span class="vi">@book</span> <span class="c1"># given a composite primary key [:author_id, :id]</span>
+<span class="c1"># =&gt; &lt;a href="/books/2_1"&gt;Book&lt;/a&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="link_to &quot;Profile&quot;, @profile
+# => <a href=&quot;/profiles/1&quot;>Profile</a>
+
+link_to &quot;Book&quot;, @book # given a composite primary key [:author_id, :id]
+# => <a href=&quot;/books/2_1&quot;>Book</a>
+">Copy</button>
+</div>
+<p>You can use a block as well if your link target can't fit in the name parameter. ERB example:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="vi">@profile</span> <span class="k">do</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;strong&gt;</span><span class="cp">&lt;%=</span> <span class="vi">@profile</span><span class="p">.</span><span class="nf">name</span> <span class="cp">%&gt;</span><span class="nt">&lt;/strong&gt;</span> -- <span class="nt">&lt;span&gt;</span>Check it out!<span class="nt">&lt;/span&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= link_to @profile do %>
+  <strong><%= @profile.name %></strong> -- <span>Check it out!</span>
+<% end %>
+">Copy</button>
+</div>
+<p>would output:</p><div class="code_container">
+<pre><code class="highlight html"><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"/profiles/1"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;strong&gt;</span>David<span class="nt">&lt;/strong&gt;</span> -- <span class="nt">&lt;span&gt;</span>Check it out!<span class="nt">&lt;/span&gt;</span>
+<span class="nt">&lt;/a&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<a href=&quot;/profiles/1&quot;>
+  <strong>David</strong> -- <span>Check it out!</span>
+</a>
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to">API Documentation</a> for more information.</p><h4 id="button-to"><a class="anchorlink" href="#button-to">1.12.3 button_to</a></h4><p>Generates a form that submits to the passed URL. The form has a submit button
+with the value of the <code>name</code>.</p><h5 id="button-to-examples"><a class="anchorlink" href="#button-to-examples">1.12.3.1 Examples</a></h5><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">button_to</span> <span class="s2">"Sign in"</span><span class="p">,</span> <span class="n">sign_in_path</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= button_to &quot;Sign in&quot;, sign_in_path %>
+">Copy</button>
+</div>
+<p>would roughly output something like:</p><div class="code_container">
+<pre><code class="highlight html"><span class="nt">&lt;form</span> <span class="na">method=</span><span class="s">"post"</span> <span class="na">action=</span><span class="s">"/sessions"</span> <span class="na">class=</span><span class="s">"button_to"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"submit"</span> <span class="na">value=</span><span class="s">"Sign in"</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/form&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<form method=&quot;post&quot; action=&quot;/sessions&quot; class=&quot;button_to&quot;>
+  <input type=&quot;submit&quot; value=&quot;Sign in&quot; />
+</form>
+">Copy</button>
+</div>
+<p>See the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-button_to">API Documentation</a> for more information.</p><h3 id="csrfhelper"><a class="anchorlink" href="#csrfhelper">1.13 CsrfHelper</a></h3><p>Returns meta tags "csrf-param" and "csrf-token" with the name of the cross-site
+request forgery protection parameter and token, respectively.</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">csrf_meta_tags</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= csrf_meta_tags %>
+">Copy</button>
+</div>
+<div class="note"><p>Regular forms generate hidden fields so they do not use these tags. More
+details can be found in the <a href="security.html#cross-site-request-forgery-csrf">Rails Security Guide</a>.</p></div>
+
+        <h3>Feedback</h3>
+        <p>
+          You're encouraged to help improve the quality of this guide.
+        </p>
+        <p>
+          Please contribute if you see any typos or factual errors.
+          To get started, you can read our <a href="https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation">documentation contributions</a> section.
+        </p>
+        <p>
+          You may also find incomplete content or stuff that is not up to date.
+          Please do add any missing documentation for main. Make sure to check
+          <a href="https://edgeguides.rubyonrails.org">Edge Guides</a> first to verify
+          if the issues are already fixed or not on the main branch.
+          Check the <a href="ruby_on_rails_guides_guidelines.html">Ruby on Rails Guides Guidelines</a>
+          for style and conventions.
+        </p>
+        <p>
+          If for whatever reason you spot something to fix but cannot patch it yourself, please
+          <a href="https://github.com/rails/rails/issues">open an issue</a>.
+        </p>
+        <p>And last but not least, any kind of discussion regarding Ruby on Rails
+          documentation is very welcome on the <a href="https://discuss.rubyonrails.org/c/rubyonrails-docs">official Ruby on Rails Forum</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="hide" />
+  <div id="footer">
+    <div class="wrapper">
+      <p>This work is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International</a> License</p>
+<p>"Rails", "Ruby on Rails", and the Rails logo are trademarks of David Heinemeier Hansson. All rights reserved.</p>
+
+    </div>
+  </div>
+</body>
+</html>
