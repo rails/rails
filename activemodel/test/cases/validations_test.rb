@@ -14,6 +14,7 @@ class ValidationsTest < ActiveModel::TestCase
 
   def teardown
     Topic.clear_validators!
+    Person.clear_validators!
   end
 
   def test_single_field_validation
@@ -452,5 +453,12 @@ class ValidationsTest < ActiveModel::TestCase
     t = Topic.new(author_name: "Admiral")
     assert_predicate t, :invalid?
     assert_equal ["Title is missing. You have failed me for the last time, Admiral."], t.errors[:title]
+  end
+
+  def test_frozen_models_can_be_validated
+    Person.validates :title, presence: true
+    person = Person.new.freeze
+    assert person.frozen?
+    assert_not person.valid?
   end
 end
