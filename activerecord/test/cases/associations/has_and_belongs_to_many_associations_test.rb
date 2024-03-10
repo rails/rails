@@ -1009,4 +1009,14 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     sink = Sink.create! kitchen: Kitchen.new, sources: [Source.new]
     assert_equal 1, sink.sources.count
   end
+
+  def test_unknown_options
+    error = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        has_and_belongs_to_many :books, dependent: :destroy
+      end
+    end
+
+    assert_match(/Unknown key: :dependent/, error.message)
+  end
 end
