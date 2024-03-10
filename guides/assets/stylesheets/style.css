@@ -632,7 +632,7 @@ intermediate whitespace looks uniform. */
   background-color: rgba(255, 214, 0, 0.15);
   background-image: url("../images/icon_task-list-pin.svg");
 }
-.interstitial.work-in-progress {
+.interstitial.work-in-progress, .interstitial.todo {
   border-color: #FFD600;
   background-color: rgba(255, 214, 0, 0.15);
   background-image: url("../images/icon_construction-sign.svg");
@@ -646,6 +646,11 @@ intermediate whitespace looks uniform. */
   border-color: #C81418;
   background-color: rgba(200, 20, 24, 0.15);
   background-image: url("../images/icon_hand-stop.svg");
+}
+.interstitial.question {
+  border-color: #A9A9A8;
+  background-color: #F5F3F1;
+  background-image: url("../images/icon_question-bubble.svg");
 }
 :where(body[dir=ltr]) .interstitial {
   background-position: 10px 10px;
@@ -741,6 +746,28 @@ body.guide h3 {
   font-size: 1.5rem; /* 24px */
   font-weight: 600; /* Semibold */
 }
+body.guide h3 a,
+body.guide h3 a:link,
+body.guide h3 a:visited {
+  color: #2E2E2E;
+}
+body.guide h1 a,
+body.guide h1 a:link, body.guide h2 a,
+body.guide h2 a:link, body.guide h3 a,
+body.guide h3 a:link, body.guide h4 a,
+body.guide h4 a:link {
+  text-decoration: none;
+}
+body.guide h1 a:hover,
+body.guide h1 a:active, body.guide h2 a:hover,
+body.guide h2 a:active, body.guide h3 a:hover,
+body.guide h3 a:active, body.guide h4 a:hover,
+body.guide h4 a:active {
+  text-decoration: underline;
+}
+body.guide h1 span, body.guide h2 span, body.guide h3 span, body.guide h4 span {
+  font-weight: 400;
+}
 body.guide h1, body.guide h2, body.guide h3, body.guide h4, body.guide h5, body.guide h6, body.guide ol, body.guide ol > li {
   font-feature-settings: "kern" 1;
   font-feature-settings: "lnum" 1;
@@ -760,8 +787,20 @@ body.guide h1, body.guide h2, body.guide h3, body.guide h4, body.guide h5, body.
 body.guide hr {
   height: 1em;
   border: 0;
-  background: url(rubyline.svg) center no-repeat;
+  background: url("../images/rubyline.svg") center no-repeat;
   background-size: contain;
+  margin: 1em auto;
+  width: 90%;
+}
+@media (min-width: 769px) {
+  body.guide hr {
+    height: 1.5em;
+  }
+}
+@media (min-width: 1441px) {
+  body.guide hr {
+    height: 2em;
+  }
 }
 body.guide dl {
   margin: 0;

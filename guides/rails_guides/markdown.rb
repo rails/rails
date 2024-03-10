@@ -120,7 +120,7 @@ module RailsGuides
                 end
 
                 node[:id] = dom_id(hierarchy) unless node[:id]
-                node.inner_html = "#{node_index(hierarchy)} #{node.inner_html}"
+                node.inner_html = "<span>#{node_index(hierarchy)}</span> #{node.inner_html}"
               end
             end
 

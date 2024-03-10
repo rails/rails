@@ -100,17 +100,39 @@ body.guide {
     font-size: 3rem; /* 48px */
     font-weight: 200; /* Light */
     line-height: 1em;
-  }
+  } // h1
 
   h2 {
     font-size: 1.875rem; /* 30px */
     font-weight: 700; /* Bold */
-  }
+  } // h2
 
   h3 {
     font-size: 1.5rem; /* 24px */
     font-weight: 600; /* Semibold */
-  }
+
+    a,
+    a:link,
+    a:visited {
+      color: $gray-900;
+    } // a, a:link, a:visited
+  } // h3
+
+  h1, h2, h3, h4 {
+    a,
+    a:link {
+      text-decoration: none;
+    } // a, a:link
+
+    a:hover,
+    a:active {
+      text-decoration: underline;
+    } // a:hover, a:active
+
+    span {
+      font-weight: 400;
+    }
+  } // h1, h2, h3, h4
 
   // Old style numbers look weird in headlines and ordered lists, so use proportional lining numbers
   h1, h2, h3, h4, h5, h6, ol, ol > li {
@@ -130,8 +152,18 @@ body.guide {
   hr {
     height: 1em;
     border: 0;
-    background: url(rubyline.svg) center no-repeat;
+    background: url("../images/rubyline.svg") center no-repeat;
     background-size: contain;
+    margin: 1em auto;
+    width: 90%;
+
+    @include media('>tablet') {
+      height: 1.5em;
+    }
+
+    @include media('>desktop-ultra-wide') {
+      height: 2em;
+    }
   }
 
   // Definition Lists
