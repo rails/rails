@@ -1,7 +1,7 @@
 // ----------------------------------------------------------------------------
 // Containers
 //
-// These are interstitial elements used throughout the guides, providint help,
+// These are interstitial elements used throughout the guides, providing help,
 // context, more info, or warnings to readers. 
 // ----------------------------------------------------------------------------
 
@@ -34,7 +34,8 @@ intermediate whitespace looks uniform. */
     background-image: url("../images/icon_task-list-pin.svg");
   }
 
-  &.work-in-progress {
+  &.work-in-progress,
+  &.todo {
     border-color: $note;
     background-color: $note-bkgnd;
     background-image: url("../images/icon_construction-sign.svg");
@@ -52,12 +53,10 @@ intermediate whitespace looks uniform. */
     background-image: url("../images/icon_hand-stop.svg");
   }
 
-  &.todo {
-
-  }
-
   &.question {
-    
+    border-color: $gray-500;
+    background-color: $gray-200;
+    background-image: url("../images/icon_question-bubble.svg");
   }
 
   &.important {} // refrenced in old code - actually used?
