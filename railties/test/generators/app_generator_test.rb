@@ -534,6 +534,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_gem "selenium-webdriver"
 
     assert_no_directory("test")
+
+    assert_file ".github/workflows/ci.yml" do |file|
+      assert_no_match(/test:.\s*runs-on/m, file)
+    end
   end
 
   def test_generator_if_skip_jbuilder_is_given

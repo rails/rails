@@ -1,3 +1,8 @@
+*   Skip generating a `test` job in ci.yml when a new application is generated with the
+    `--skip-test` option.
+
+    *Steve Polito*
+
 *   Fix sanitizer vendor configuration in 7.1 defaults.
 
     In apps where rails-html-sanitizer was not eagerly loaded, the sanitizer default could end up

@@ -59,6 +59,7 @@ jobs:
         run: bin/rubocop -f github
 
 <% end -%>
+<% unless options[:skip_test] -%>
   test:
     runs-on: ubuntu-latest
 
@@ -134,3 +135,4 @@ jobs:
           name: screenshots
           path: ${{ github.workspace }}/tmp/screenshots
           if-no-files-found: ignore
+<% end -%>
