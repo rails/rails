@@ -313,7 +313,9 @@
   }
 }
 @media (prefers-color-scheme: light) {
-  .highlight { /* Comment */
+  .highlight {
+    color: #fff;
+    /* Comment */
     /* Error */
     /* Keyword */
     /* Literal */
@@ -373,6 +375,9 @@
     /* Generic.Subheading & Diff Unified/Comment? */
     /* Generic.Deleted & Diff Deleted */
     /* Generic.Inserted & Diff Inserted */
+  }
+  .highlight.plaintext, .highlight.console, .highlight.erb {
+    color: #fff;
   }
   .highlight .hll {
     background-color: #272822;

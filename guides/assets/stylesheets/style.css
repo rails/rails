@@ -618,8 +618,9 @@ intermediate whitespace looks uniform. */
   background-size: 36px 36px;
   border-radius: 8px;
   border-width: 2px;
+  min-height: calc(36px + 1.2em);
   margin: 2em auto;
-  padding: 0.25em 0.5em !important;
+  padding: 0.75em;
   position: relative;
   /* Remove bottom margin of paragraphs in special boxes, otherwise they get a
   spurious blank area below with the box background. */
@@ -627,11 +628,16 @@ intermediate whitespace looks uniform. */
 .interstitial p {
   margin-bottom: 0.75em;
 }
+.interstitial p:last-child {
+  margin-bottom: 0;
+}
 .interstitial.code {
   border: none;
   background-color: #2E2E2E;
   background-image: url("../images/icon_file-code.svg");
-  background-position-y: 15px;
+}
+.interstitial.code pre {
+  margin: 0;
 }
 .interstitial.code button.clipboard-button {
   color: #FAF9F8;
@@ -639,7 +645,7 @@ intermediate whitespace looks uniform. */
   border: 1px solid #A9A9A8;
   border-radius: 4px;
   font-size: 0.75em;
-  padding: 0.25em 0.5em;
+  padding: 0.25em 0.5em !important;
   position: absolute;
   bottom: 10px;
   text-transform: uppercase;
@@ -874,6 +880,9 @@ body.guide p code, body.guide ul code {
   background: #F5F3F1;
   border-radius: 4px;
   padding: 1px 3px;
+}
+body.guide p img {
+  max-width: 100%;
 }
 body.guide pre, body.guide tt, body.guide code {
   white-space: pre-wrap; /* css-3 */

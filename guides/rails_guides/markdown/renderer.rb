@@ -112,7 +112,7 @@ module RailsGuides
               else
                 $1.downcase
               end
-            %(<div class="#{css_class}"><p>#{$2.strip}</p></div>)
+            %(<div class="interstitial #{css_class}"><p>#{$2.strip}</p></div>)
           end
         end
 

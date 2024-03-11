@@ -13,21 +13,28 @@ intermediate whitespace looks uniform. */
   background-size: 36px 36px;
   border-radius: $base-border-radius;
   border-width: 2px;
+  min-height: calc(36px + 1.2em);
   margin: 2em auto;
-  padding: 0.25em 0.5em !important;
+  padding: 0.75em;
   position: relative;
 
   /* Remove bottom margin of paragraphs in special boxes, otherwise they get a
   spurious blank area below with the box background. */
   p {
     margin-bottom: 0.75em;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
   }
 
   &.code {
     border: none;
     background-color: $gray-900;
     background-image: url("../images/icon_file-code.svg");
-    background-position-y: 15px;
+    // background-position-y: 15px;
+
+    pre {margin: 0;}
 
     button.clipboard-button {
       color: $gray-100;
@@ -35,7 +42,7 @@ intermediate whitespace looks uniform. */
       border: 1px solid $gray-500;
       border-radius: 4px;
       font-size: 0.75em;
-      padding: 0.25em 0.5em;
+      padding: 0.25em 0.5em !important;
       position: absolute;
         bottom: 10px;
         :where(body[dir="ltr"]) & { right: 10px; }
