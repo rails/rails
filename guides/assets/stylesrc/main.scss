@@ -133,6 +133,12 @@ body.guide {
     font-family: 'Calibre', sans-serif;
     font-size: 1.875rem; /* 30px */
     font-weight: 700; /* Bold */
+
+    a,
+    a:link,
+    a:visited {
+      color: $rf-brand;
+    } // a, a:link, a:visited
   } // h2
 
   h3 {

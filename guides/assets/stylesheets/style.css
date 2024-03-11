@@ -812,6 +812,11 @@ body.guide h2 {
   font-size: 1.875rem; /* 30px */
   font-weight: 700; /* Bold */
 }
+body.guide h2 a,
+body.guide h2 a:link,
+body.guide h2 a:visited {
+  color: #C81418;
+}
 body.guide h3 {
   font-size: 1.5rem; /* 24px */
   font-weight: 600; /* Semibold */
