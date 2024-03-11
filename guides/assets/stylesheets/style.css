@@ -802,6 +802,11 @@ body.guide h1 {
   line-height: 1em;
   margin-top: 0;
 }
+@media (max-width: 1023px) {
+  body.guide h1 {
+    margin-top: 0.5em;
+  }
+}
 body.guide h2 {
   font-family: "Calibre", sans-serif;
   font-size: 1.875rem; /* 30px */
@@ -1072,6 +1077,11 @@ body.guide header#page_header nav#feature_nav ul.nav li {
     background: none;
     border: none;
     font-size: 0.75rem;
+    height: 24px;
+    padding-top: 5px;
+  }
+  body.guide header#page_header nav#feature_nav ul.nav li:first-child {
+    padding-top: 0;
   }
   body.guide header#page_header nav#feature_nav ul.nav li a,
   body.guide header#page_header nav#feature_nav ul.nav li a:link,
@@ -1097,6 +1107,29 @@ body.guide header#page_header nav#feature_nav ul.nav li:last-child {
 }
 body.guide header#page_header nav#feature_nav ul.nav li:last-child select {
   max-width: 100%;
+}
+@media (min-width: 1025px) {
+  body.guide header#page_header nav#feature_nav ul.nav li a#home_nav {
+    background-color: transparent;
+    color: transparent;
+    border: 0;
+    overflow: hidden;
+    text-indent: 100%;
+    text-shadow: none;
+    white-space: nowrap;
+    background-image: url("../images/icon_house-chimney.svg");
+    background-repeat: no-repeat;
+    background-position: top center;
+    display: inline-block;
+    height: 24px;
+    width: 24px;
+  }
+  body.guide header#page_header nav#feature_nav ul.nav li a#home_nav:before {
+    content: "";
+    display: block;
+    height: 100%;
+    width: 0;
+  }
 }
 @media (max-width: 1023px) {
   body.guide header#page_header nav#feature_nav ul.nav li.guides-index-large {

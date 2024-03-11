@@ -168,6 +168,24 @@ $base-border-radius: 8px;
   }
 } // %list-in-disguise
 
+// For image replacement
+%image-replacement {
+  background-color: transparent;
+  color: transparent;
+  border: 0;
+  overflow: hidden;
+  text-indent: 100%;
+  text-shadow: none;
+  white-space: nowrap;
+
+  &:before {
+    content: "";
+    display: block;
+    height: 100%;
+    width: 0;
+  }
+} // %image-replacement
+
 // Clearfix, not used often anymore, but present for times when the browser misbehaves.
 .clearfix, %clearfix {
   &:after,

@@ -125,6 +125,8 @@ body.guide {
     font-weight: 200; /* Light */
     line-height: 1em;
     margin-top: 0;
+
+    @include media('<desktop') { margin-top: 0.5em; }
   } // h1
 
   h2 {
@@ -440,6 +442,10 @@ body.guide {
             background: none;
             border: none;
             font-size: 0.75rem;
+            height: 24px;
+            padding-top: 5px;
+
+            &:first-child {padding-top: 0;}
 
             a,
             a:link,
@@ -467,6 +473,34 @@ body.guide {
             
             select {
               max-width: 100%;
+            }
+          }
+
+          a#home_nav {
+            @include media('>desktop') {
+              // Image replacement
+              background-color: transparent;
+              color: transparent;
+              border: 0;
+              overflow: hidden;
+              text-indent: 100%;
+              text-shadow: none;
+              white-space: nowrap;
+            
+              &:before {
+                content: "";
+                display: block;
+                height: 100%;
+                width: 0;
+              }
+
+              // all the rest
+              background-image: url("../images/icon_house-chimney.svg");
+              background-repeat: no-repeat;
+              background-position: top center;
+              display: inline-block;
+              height: 24px;
+              width: 24px;
             }
           }
 
