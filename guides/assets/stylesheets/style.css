@@ -607,6 +607,10 @@ textarea {
   clear: both;
 }
 
+.hide {
+  visibility: hidden;
+}
+
 /* Same bottom margin for special boxes than for regular paragraphs, this way
 intermediate whitespace looks uniform. */
 .interstitial {
@@ -615,7 +619,8 @@ intermediate whitespace looks uniform. */
   border-radius: 8px;
   border-width: 2px;
   margin-bottom: 1em;
-  padding: 0.5em !important;
+  padding: 0.25em 0.5em !important;
+  position: relative;
   /* Remove bottom margin of paragraphs in special boxes, otherwise they get a
   spurious blank area below with the box background. */
 }
@@ -626,6 +631,24 @@ intermediate whitespace looks uniform. */
   border: none;
   background-color: #2E2E2E;
   background-image: url("../images/icon_file-code.svg");
+  background-position-y: 15px;
+}
+.interstitial.code button.clipboard-button {
+  color: #FAF9F8;
+  background-color: #3A3939;
+  border: 1px solid #A9A9A8;
+  border-radius: 4px;
+  font-size: 0.75em;
+  padding: 0.25em 0.5em;
+  position: absolute;
+  bottom: 10px;
+  text-transform: uppercase;
+}
+:where(body[dir=ltr]) .interstitial.code button.clipboard-button {
+  right: 10px;
+}
+:where(body[dir=rtl]) .interstitial.code button.clipboard-button {
+  left: 10px;
 }
 .interstitial.note {
   border-color: #FFD600;

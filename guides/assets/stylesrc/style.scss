@@ -179,6 +179,10 @@ $base-border-radius: 8px;
   } // &:after
 } // %clearfix // .clearfix, %clearfix
 
+.hide {
+  visibility: hidden;
+}
+
 // ----------------------------------------------------------------------------
 // COMPONENTS
 
