@@ -276,6 +276,24 @@ body.guide {
     word-wrap: break-word;       /* Internet Explorer 5.5+ */
   }
 
+  // Back to Top element
+
+  a.back-to-top {
+    background: url('../images/up_white_arrow.png') no-repeat center center, $rf-brand;
+    background-size: 1em;
+    border-radius: calc($base-border-radius * 2);
+    box-shadow: 0 2px 20px rgba(0,0,0,0.25);
+    padding: 1.5em;
+    position: fixed;
+    right: 1em;
+    bottom: 1em;
+    visibility: hidden;
+  }
+  
+  a.back-to-top.show {
+    visibility: visible;
+  }
+
   // ----------------------------------------------------------------------------
   // Layout
   // ----------------------------------------------------------------------------

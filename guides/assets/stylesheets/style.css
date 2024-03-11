@@ -930,6 +930,20 @@ body.guide pre, body.guide tt, body.guide code {
   white-space: -o-pre-wrap; /* Opera 7 */
   word-wrap: break-word; /* Internet Explorer 5.5+ */
 }
+body.guide a.back-to-top {
+  background: url("../images/up_white_arrow.png") no-repeat center center, #C81418;
+  background-size: 1em;
+  border-radius: 16px;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.25);
+  padding: 1.5em;
+  position: fixed;
+  right: 1em;
+  bottom: 1em;
+  visibility: hidden;
+}
+body.guide a.back-to-top.show {
+  visibility: visible;
+}
 body.guide .wrapper {
   padding: 1em;
 }
