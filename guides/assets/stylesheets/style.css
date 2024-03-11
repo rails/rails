@@ -800,6 +800,7 @@ body.guide h1 {
   font-size: 3rem; /* 48px */
   font-weight: 200; /* Light */
   line-height: 1em;
+  margin-top: 0;
 }
 body.guide h2 {
   font-family: "Calibre", sans-serif;
@@ -885,6 +886,9 @@ body.guide hr {
   body.guide hr {
     height: 2em;
   }
+}
+body.guide hr.hide {
+  height: 0 !important;
 }
 body.guide dl {
   margin: 0;
@@ -1025,7 +1029,7 @@ body.guide header#page_header nav#feature_nav .header-logo a {
   font-weight: 700;
 }
 body.guide header#page_header nav#feature_nav ul.nav {
-  margin: 1em;
+  margin: 1em 1em 0 1em;
 }
 body.guide header#page_header nav#feature_nav ul.nav li {
   background: #F5F3F1;
@@ -1046,7 +1050,7 @@ body.guide header#page_header nav#feature_nav ul.nav li:nth-last-child(2) {
 body.guide header#page_header nav#feature_nav ul.nav li:last-child {
   background: none;
   border: none;
-  padding: 1em 0;
+  padding: 1em 0 0 0;
 }
 body.guide header#page_header nav#feature_nav ul.nav li:last-child select {
   max-width: 100%;

@@ -124,6 +124,7 @@ body.guide {
     font-size: 3rem; /* 48px */
     font-weight: 200; /* Light */
     line-height: 1em;
+    margin-top: 0;
   } // h1
 
   h2 {
@@ -211,6 +212,10 @@ body.guide {
 
     @include media('>desktop-ultra-wide') {
       height: 2em;
+    }
+
+    &.hide {
+      height: 0 !important;
     }
   }
 
@@ -396,7 +401,7 @@ body.guide {
 
       ul.nav {
         @extend %list-in-disguise;
-        margin: 1em;
+        margin: 1em 1em 0 1em;
 
         li {
           background: $gray-200;
@@ -418,7 +423,7 @@ body.guide {
             // the drop down
             background: none;
             border: none;
-            padding: 1em 0;
+            padding: 1em 0 0 0;
             
             select {
               max-width: 100%;
