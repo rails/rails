@@ -521,10 +521,83 @@ body.guide {
           }
         }
       }
+
+
     } // nav#feature_nav
 
   } // header#page_header
 
+  // Desktop guides flyout
+  #guides {
+    background: $gray-200;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.25);
+    display: block;
+    border-radius: $base-border-radius;
+    color: $gray-900;
+    height: 95vh;
+    padding: 2em 2em 1.5em 2em;
+    position: absolute;
+      top: 2vw;
+      right: 2vw;
+    width: 90vw;
+    z-index: 10;
+
+    :where(body[dir="ltr"]) & { right: 2vw; }
+    :where(body[dir="rtl"]) & { left: 2vw; }
+
+    &.visible {
+      display: block !important;
+    }
+
+    .guides-section-container {
+      display: flex;
+      flex-direction: column;
+      flex-wrap: wrap;
+      max-height: 95vh;
+      width: 100%;
+
+      .guides-section {
+        flex: auto;
+        margin: 0 2em 0.5em 0;
+        // min-width: 5em;
+        // max-width: 12em;
+        text-align: left;
+
+        dt, dd {
+          font-weight: 400;
+          font-size: 0.75rem;
+          margin: 0;
+          padding: 0;
+        }
+
+        dt {
+          margin: 0.5em 0;
+          text-transform: uppercase;
+
+        }
+
+        dd {
+          line-height: 1.3;
+          margin-bottom: 0.5em;
+          border-bottom: none;
+
+          a,
+          a:link,
+          a:visited {
+            color: $gray-900;
+            text-decoration: none;
+          }
+      
+          a:hover,
+          a:active {
+            color: $rf-brand;
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+
+  } // #guides
 
   footer#page_footer {
     background-color: $gray-800;

@@ -1146,6 +1146,67 @@ body.guide header#page_header nav#feature_nav ul.nav li:last-child select {
     display: block;
   }
 }
+body.guide #guides {
+  background: #F5F3F1;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.25);
+  display: block;
+  border-radius: 8px;
+  color: #2E2E2E;
+  height: 95vh;
+  padding: 2em 2em 1.5em 2em;
+  position: absolute;
+  top: 2vw;
+  right: 2vw;
+  width: 90vw;
+  z-index: 10;
+}
+:where(body[dir=ltr]) body.guide #guides {
+  right: 2vw;
+}
+:where(body[dir=rtl]) body.guide #guides {
+  left: 2vw;
+}
+body.guide #guides.visible {
+  display: block !important;
+}
+body.guide #guides .guides-section-container {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  max-height: 95vh;
+  width: 100%;
+}
+body.guide #guides .guides-section-container .guides-section {
+  flex: auto;
+  margin: 0 2em 0.5em 0;
+  text-align: left;
+}
+body.guide #guides .guides-section-container .guides-section dt, body.guide #guides .guides-section-container .guides-section dd {
+  font-weight: 400;
+  font-size: 0.75rem;
+  margin: 0;
+  padding: 0;
+}
+body.guide #guides .guides-section-container .guides-section dt {
+  margin: 0.5em 0;
+  text-transform: uppercase;
+}
+body.guide #guides .guides-section-container .guides-section dd {
+  line-height: 1.3;
+  margin-bottom: 0.5em;
+  border-bottom: none;
+}
+body.guide #guides .guides-section-container .guides-section dd a,
+body.guide #guides .guides-section-container .guides-section dd a:link,
+body.guide #guides .guides-section-container .guides-section dd a:visited {
+  color: #2E2E2E;
+  text-decoration: none;
+}
+body.guide #guides .guides-section-container .guides-section dd a:hover,
+body.guide #guides .guides-section-container .guides-section dd a:active {
+  color: #C81418;
+  text-decoration: underline;
+}
 body.guide footer#page_footer {
   background-color: #343434;
   color: #fff;
