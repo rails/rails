@@ -564,15 +564,15 @@ body.guide {
         text-align: left;
 
         dt, dd {
-          font-weight: 400;
-          font-size: 0.75rem;
+          font-weight: 400 !important;
+          font-size: 0.825rem;
           margin: 0;
           padding: 0;
         }
 
         dt {
           margin: 0.5em 0;
-          text-transform: uppercase;
+          font-weight: bold !important;
 
         }
 
@@ -586,6 +586,7 @@ body.guide {
           a:visited {
             color: $gray-900;
             text-decoration: none;
+            font-weight: 400 !important;
           }
       
           a:hover,
