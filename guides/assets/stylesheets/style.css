@@ -950,8 +950,13 @@ body.guide #feature #subCol {
     top: 100px;
     right: 5vw;
     max-height: calc(100vh - 100px);
-    overflow-y: auto;
     width: 30vw;
+  }
+}
+@media (min-width: 1025px) {
+  body.guide #feature #subCol ol {
+    overflow-y: auto;
+    max-height: 73vh;
   }
 }
 body.guide #feature #subCol ol li {

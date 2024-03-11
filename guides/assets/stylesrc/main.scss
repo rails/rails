@@ -316,11 +316,15 @@ body.guide {
           top: 100px;
           right: 5vw;
         max-height: calc(100vh - 100px);
-        overflow-y: auto;
         width: 30vw;
       }
 
       ol {
+        @include media('>desktop') {
+          overflow-y: auto;
+          max-height: 73vh;
+        }
+
         li {
           font-weight: bold;
 
