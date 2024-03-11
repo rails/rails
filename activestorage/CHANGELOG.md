@@ -1,3 +1,7 @@
+*   Add ability to define named variant transformations dynamically.
+
+    *Carlos Palhares*
+
 *   Add `image/webp` to `config.active_storage.web_image_content_types` when `load_defaults "7.2"`
     is set.
 

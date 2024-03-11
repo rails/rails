@@ -166,7 +166,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
         named_variants.fetch(variant_name) do
           record_model_name = record.to_model.model_name.name
           raise ArgumentError, "Cannot find variant :#{variant_name} for #{record_model_name}##{name}"
-        end.transformations
+        end.transformations_for(record)
       else
         transformations
       end
