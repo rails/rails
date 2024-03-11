@@ -372,13 +372,27 @@ for more information.
 #### content_for
 
 Calling `content_for` stores a block of markup in an identifier for later use.
-You can make subsequent calls to the stored content in other templates or the
-layout by passing the identifier as an argument to `yield`.
+You can make subsequent calls to the stored content in other templates, helper
+modules or the layout by passing the identifier as an argument to `yield`.
 
-For example, let's say we have a standard application layout, but also a special
-page that requires certain JavaScript that the rest of the site doesn't need. We
+For example, let's say you have a standard application layout, but also a special
+page that requires certain JavaScript that the rest of the site doesn't need. You
 can use `content_for` to include this JavaScript on our special page without
-fattening up the rest of the site.
+fattening up or affecting the rest of the sites performance.
+
+You define a `content_for` block in the special page's view, and then you
+`yield` it within the layout. For other pages, where the `content_for` block
+isn't utilized, it remains empty, resulting in nothing being yielded.
+
+**app/views/articles/special_page.html.erb**
+
+```html+erb
+<p>This is a special page.</p>
+
+<% content_for :greeting_alert do %>
+  <script>alert('Hello!')</script>
+<% end %>
+```
 
 **app/views/layouts/application.html.erb**
 
@@ -386,23 +400,53 @@ fattening up the rest of the site.
 <html>
   <head>
     <title>Welcome!</title>
-    <%= yield :special_script %>
   </head>
-  <body>
+  <body class="<%= content_for?(:greeting_alert) ? 'bg-white' : 'bg-gray-400' %>">
+    <%= yield :greeting_alert %>
     <p>Welcome! The date and time is <%= Time.now %></p>
   </body>
 </html>
 ```
 
-**app/views/articles/special.html.erb**
+In the above example, we use the `content_for?` predicate method to
+conditionally render a relevant class. This method checks whether any content
+has been captured yet, enabling you to adjust parts of your layout based on the
+content within your views.
 
-```html+erb
-<p>This is a special page.</p>
+Additionally, you can employ `content_for` within a helper module.
 
-<% content_for :special_script do %>
-  <script>alert('Hello!')</script>
-<% end %>
+**app/helpers/greeting_helper.rb**
+
+```ruby
+module GreetingHelper
+  def special_greeting_alert
+    content_for(:greeting_alert) || "Bye!"
+  end
+end
 ```
+
+Now, you can call `special_greeting_alert` in your layout to retrieve the
+content stored in the `content_for` block. If a `content_for` block is set on
+the page, such as in the case of the special page, it will display the greeting
+alert. Otherwise, it will display the default text "Bye!"
+
+`content_for` concatenates the blocks it receives for a specific identifier in
+the order they are provided, unless the flush parameter is set to true. If flush
+is set to true, it replaces the existing blocks for that identifier with the new
+block."
+
+WARNING: `content_for` is ignored in caches. So you shouldn’t use it for
+elements that will be fragment cached.
+
+NOTE: You may be thinking what's the difference between `capture` and
+`content_for`? <br><br>
+`capture` is used to capture a block of markup in a variable, while
+`content_for` is used to store a block of markup in an identifier for later use.
+Internally `content_for` actually calls `capture`. However the key difference
+lies in their behavior when invoked multiple times.<br><br>
+`content_for` can be called repeatedly, adding more markup each time. Each
+subsequent call simply adds onto what's already stored. In contrast, `capture`
+only remembers the latest invocation; previous calls get overwritten.
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/CaptureHelper.html#method-i-content_for)
