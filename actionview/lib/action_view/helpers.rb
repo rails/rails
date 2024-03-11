@@ -26,8 +26,18 @@ require "action_view/helpers/number_helper"
 require "action_view/helpers/rendering_helper"
 require "action_view/helpers/translation_helper"
 
-module ActionView # :nodoc:
-  module Helpers # :nodoc:
+module ActionView
+  # = Action View \Helpers
+  #
+  # Action View \Helpers provide helper methods to use with Action View that can be used for:
+  # - Formatting dates, strings and numbers
+  # - Creating HTML links to images, videos, stylesheets, etc...
+  # - Sanitizing content
+  # - Creating forms
+  # - Localizing content
+  #
+  # You can read more about Action View \Helpers in the {Action View Helpers}[https://guides.rubyonrails.org/action_view_overview.html#helpers] guide.
+  module Helpers
     extend ActiveSupport::Autoload
 
     autoload :Tags
