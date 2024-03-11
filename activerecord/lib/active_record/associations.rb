@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  class AssociationNotFoundError < ConfigurationError # :nodoc:
+  class AssociavtionNotFoundError < ConfigurationError # :nodoc:
     attr_reader :record, :association_name
 
     def initialize(record = nil, association_name = nil)
@@ -1658,8 +1658,15 @@ module ActiveRecord
         #   Specifies type of the source association used by #has_one <tt>:through</tt> queries where the source
         #   association is a polymorphic #belongs_to.
         # [+:validate+]
-        #   When set to +true+, validates new objects added to association when saving the parent object. +false+ by default.
-        #   If you want to ensure associated objects are revalidated on every update, use +validates_associated+.
+        #   If +true+, validates new objects added to association when saving the parent object.
+        #   To ensure associated objects are revalidated on every update, use +validates_associated+.
+        #
+        #   Unless validation is explicitly disabled with
+        #   <tt>validate: false</tt>, validation takes place when:
+        #
+        #   * validation is explicitly enabled using; <tt>validate: true</tt>
+        #   * autosave is enabled; <tt>autosave: true</tt>
+        #   * the association is a +has_many+ association
         # [+:autosave+]
         #   If true, always save the associated object or destroy it if marked for destruction,
         #   when saving the parent object. If false, never save or destroy the associated object.
@@ -1828,8 +1835,15 @@ module ActiveRecord
         #   Note: Since polymorphic associations rely on storing class names in the database, make sure to update the class names in the
         #   <tt>*_type</tt> polymorphic type column of the corresponding rows.
         # [+:validate+]
-        #   When set to +true+, validates new objects added to association when saving the parent object. +false+ by default.
-        #   If you want to ensure associated objects are revalidated on every update, use +validates_associated+.
+        #   If +true+, validates new objects added to association when saving the parent object.
+        #   To ensure associated objects are revalidated on every update, use +validates_associated+.
+        #
+        #   Unless validation is explicitly disabled with
+        #   <tt>validate: false</tt>, validation takes place when:
+        #
+        #   * validation is explicitly enabled using; <tt>validate: true</tt>
+        #   * autosave is enabled; <tt>autosave: true</tt>
+        #   * the association is a +has_many+ association
         # [+:autosave+]
         #   If true, always save the associated object or destroy it if marked for destruction, when
         #   saving the parent object.
