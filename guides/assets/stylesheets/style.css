@@ -599,11 +599,11 @@ textarea {
   box-sizing: border-box;
 }
 
-body.guide nav#topNav .more-info-links {
+body.guide header#page_header nav#feature_nav ul.nav, body.guide nav#topNav .more-info-links {
   margin: 0;
   padding: 0;
 }
-body.guide nav#topNav .more-info-links li {
+body.guide header#page_header nav#feature_nav ul.nav li, body.guide nav#topNav .more-info-links li {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -965,6 +965,11 @@ body.guide nav#topNav {
   padding: 0.5em 0;
   font-size: 0.875rem;
 }
+@media (min-width: 1025px) {
+  body.guide nav#topNav {
+    display: none;
+  }
+}
 body.guide nav#topNav .wrapper {
   text-align: center;
 }
@@ -1018,6 +1023,48 @@ body.guide header#page_header nav#feature_nav .header-logo {
 body.guide header#page_header nav#feature_nav .header-logo a {
   text-decoration: none;
   font-weight: 700;
+}
+body.guide header#page_header nav#feature_nav ul.nav {
+  margin: 1em;
+}
+body.guide header#page_header nav#feature_nav ul.nav li {
+  background: #F5F3F1;
+  border-bottom: 1px solid #EBEBEA;
+  font-size: 1.25em;
+  text-align: center;
+  padding: 1em;
+}
+body.guide header#page_header nav#feature_nav ul.nav li:first-child {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+body.guide header#page_header nav#feature_nav ul.nav li:nth-last-child(2) {
+  border-bottom: none;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+body.guide header#page_header nav#feature_nav ul.nav li:last-child {
+  background: none;
+  border: none;
+  padding: 1em 0;
+}
+body.guide header#page_header nav#feature_nav ul.nav li:last-child select {
+  max-width: 100%;
+}
+@media (max-width: 1023px) {
+  body.guide header#page_header nav#feature_nav ul.nav li.guides-index-large {
+    display: none;
+  }
+}
+@media (min-width: 1025px) {
+  body.guide header#page_header nav#feature_nav ul.nav li.guides-index-small {
+    display: none;
+  }
+}
+@media (max-width: 1023px) {
+  body.guide header#page_header nav#feature_nav ul.nav li.guides-index-small {
+    display: block;
+  }
 }
 body.guide footer#page_footer {
   background-color: #343434;
