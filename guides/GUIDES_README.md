@@ -12,6 +12,8 @@ The editing files for the Guides rebuild reside in `stylesrc` and use SCSS to im
 
 Currently, this `style.scss` is being compiled to `style.css` using CodeKit locally. As this goes towards final, we should add this processing into the build rake task.
 
+To generate new guides into static files, type `rake guides:generate` from inside the `guides` folder. 
+
 ## FAQ
 
 ### Why are you not using CSS variables?

@@ -134,6 +134,10 @@
 
 @media (prefers-color-scheme: light) {
   .highlight {
+    color: #fff;
+    &.plaintext,
+    &.console,
+    &.erb { color: #fff; }
     .hll { background-color: #272822; }
     .c   { color: #A9A9A8; } /* Comment */
     .err { color: #960050; background-color: #1e0010 } /* Error */

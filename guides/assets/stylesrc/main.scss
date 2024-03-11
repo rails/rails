@@ -235,6 +235,10 @@ body.guide {
     border-radius: calc($base-border-radius / 2);
     padding: 1px 3px;
   }
+
+  p img {
+    max-width: 100%;
+  }
   
   pre, tt, code {
     // https://caniuse.com/mdn-css_properties_white-space_pre-wrap
