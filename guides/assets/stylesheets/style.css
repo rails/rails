@@ -797,8 +797,9 @@ body.guide table td {
 }
 body.guide h1 {
   color: #C81418;
+  font-family: "Calibre", sans-serif;
   font-size: 3rem; /* 48px */
-  font-weight: 200; /* Light */
+  font-weight: 700; /* Light */
   line-height: 1em;
   margin-top: 0;
 }
@@ -809,7 +810,7 @@ body.guide h1 {
 }
 body.guide h2 {
   font-family: "Calibre", sans-serif;
-  font-size: 1.875rem; /* 30px */
+  font-size: 2.25rem;
   font-weight: 700; /* Bold */
 }
 body.guide h2 a,
