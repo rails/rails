@@ -136,9 +136,32 @@ body.guide {
     a:visited {
       color: $gray-900;
     } // a, a:link, a:visited
+
+    code {
+      font-size: 1.5rem;
+      font-weight: 400;
+    }
   } // h3
 
-  h1, h2, h3, h4 {
+  h4 {
+    font-size: 1.125rem;
+
+    code {
+      font-size: 1.125rem;
+      font-weight: 400;
+    }
+  }
+
+  h5 {
+    font-size: 0.9375rem;
+
+    code {
+      font-size: 0.9375rem;
+      font-weight: 400;
+    }
+  }
+
+  h1, h2, h3, h4, h5 {
     a,
     a:link {
       text-decoration: none;

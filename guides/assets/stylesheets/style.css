@@ -795,21 +795,41 @@ body.guide h3 a:link,
 body.guide h3 a:visited {
   color: #2E2E2E;
 }
+body.guide h3 code {
+  font-size: 1.5rem;
+  font-weight: 400;
+}
+body.guide h4 {
+  font-size: 1.125rem;
+}
+body.guide h4 code {
+  font-size: 1.125rem;
+  font-weight: 400;
+}
+body.guide h5 {
+  font-size: 0.9375rem;
+}
+body.guide h5 code {
+  font-size: 0.9375rem;
+  font-weight: 400;
+}
 body.guide h1 a,
 body.guide h1 a:link, body.guide h2 a,
 body.guide h2 a:link, body.guide h3 a,
 body.guide h3 a:link, body.guide h4 a,
-body.guide h4 a:link {
+body.guide h4 a:link, body.guide h5 a,
+body.guide h5 a:link {
   text-decoration: none;
 }
 body.guide h1 a:hover,
 body.guide h1 a:active, body.guide h2 a:hover,
 body.guide h2 a:active, body.guide h3 a:hover,
 body.guide h3 a:active, body.guide h4 a:hover,
-body.guide h4 a:active {
+body.guide h4 a:active, body.guide h5 a:hover,
+body.guide h5 a:active {
   text-decoration: underline;
 }
-body.guide h1 span, body.guide h2 span, body.guide h3 span, body.guide h4 span {
+body.guide h1 span, body.guide h2 span, body.guide h3 span, body.guide h4 span, body.guide h5 span {
   font-weight: 400;
 }
 body.guide h1, body.guide h2, body.guide h3, body.guide h4, body.guide h5, body.guide h6, body.guide ol, body.guide ol > li {
