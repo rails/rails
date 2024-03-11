@@ -307,15 +307,45 @@ body.guide {
     #subCol {
       background-color: $gray-100;
       border-radius: $base-border-radius;
+      font-size: 1rem;
       padding: 0.5em 1em;
 
       @include media('>desktop') {
         display: block;
         position: fixed;
-        top: 100px;
-        right: 5vw;
+          top: 100px;
+          right: 5vw;
+        max-height: calc(100vh - 100px);
+        overflow-y: auto;
         width: 30vw;
       }
+
+      ol {
+        li {
+          font-weight: bold;
+
+          a,
+          a:link,
+          a:visited {
+            color: $gray-900;
+            text-decoration: none;
+          }
+          
+          a:hover,
+          a:active {
+            color: $rf-brand;
+            text-decoration: underline;
+          } // a
+
+          ul {
+            padding-inline-start: 1em;
+            
+            li {
+              font-weight: 400;
+            } // li
+          } // ul
+        } // li
+      } // ol
 
     //   dl {
     //     margin-bottom: 0;

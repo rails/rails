@@ -940,6 +940,7 @@ body.guide #feature {
 body.guide #feature #subCol {
   background-color: #FAF9F8;
   border-radius: 8px;
+  font-size: 1rem;
   padding: 0.5em 1em;
 }
 @media (min-width: 1025px) {
@@ -948,8 +949,30 @@ body.guide #feature #subCol {
     position: fixed;
     top: 100px;
     right: 5vw;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
     width: 30vw;
   }
+}
+body.guide #feature #subCol ol li {
+  font-weight: bold;
+}
+body.guide #feature #subCol ol li a,
+body.guide #feature #subCol ol li a:link,
+body.guide #feature #subCol ol li a:visited {
+  color: #2E2E2E;
+  text-decoration: none;
+}
+body.guide #feature #subCol ol li a:hover,
+body.guide #feature #subCol ol li a:active {
+  color: #C81418;
+  text-decoration: underline;
+}
+body.guide #feature #subCol ol li ul {
+  padding-inline-start: 1em;
+}
+body.guide #feature #subCol ol li ul li {
+  font-weight: 400;
 }
 @media (min-width: 1025px) {
   body.guide {
