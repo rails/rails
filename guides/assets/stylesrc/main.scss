@@ -380,22 +380,40 @@ body.guide {
 
   header#page_header {
 
+
     nav#feature_nav {
+      @include media('>desktop'){
+        align-items: top;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        width: 90vw;
+      }
       
       // Image augmented
       .header-logo {
-        background-image: url("../images/logo_rails-circle.svg");
-        background-repeat: no-repeat;
-        background-position: top center;
-        padding-top: 75px;
-        font-family: 'Calibre', sans-serif;
-        font-size: 2.25rem;
-        font-weight: 700;
         text-align: center;
-
+        
         a {
+          background-image: url("../images/logo_rails-circle.svg");
+          background-repeat: no-repeat;
+          background-position: top center;
+          display: inline-block;
+          font-family: 'Calibre', sans-serif;
+          font-size: 2.25rem;
+          font-weight: 700;
+          margin: 0 auto;
+          padding-top: 75px;
+          text-align: center;
           text-decoration: none;
           font-weight: 700;
+
+          @include media('>desktop'){
+            padding: 10px 0 0 85px;
+            background-position: top left;     
+            height: 85px;
+            vertical-align: middle;
+          }
         }
       } // .header-logo
 
@@ -403,12 +421,34 @@ body.guide {
         @extend %list-in-disguise;
         margin: 1em 1em 0 1em;
 
+        @include media('>desktop'){
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          margin: 0;
+          padding: 1em 0 0 0;
+        }
+
         li {
           background: $gray-200;
           border-bottom: 1px solid $gray-300;
           font-size: 1.25em;
           text-align: center;
           padding: 1em;
+
+          @include media('>desktop'){
+            background: none;
+            border: none;
+            font-size: 0.75rem;
+
+            a,
+            a:link,
+            a:visited {
+              color: $gray-900;
+              font-weight: bold;
+              text-decoration: none;
+            }
+          }
 
           &:first-child {
             border-top-left-radius: $base-border-radius;
