@@ -430,10 +430,6 @@ content stored in the `content_for` block. If a `content_for` block is set on
 the page, such as in the case of the special page, it will display the greeting
 alert. Otherwise, it will display the default text "Bye!"
 
-`content_for` concatenates the blocks it receives for a specific identifier in
-the order they are provided, unless the flush parameter is set to true. If flush
-is set to true, it replaces the existing blocks for that identifier with the new
-block."
 
 WARNING: `content_for` is ignored in caches. So you shouldn’t use it for
 elements that will be fragment cached.
@@ -444,9 +440,10 @@ NOTE: You may be thinking what's the difference between `capture` and
 `content_for` is used to store a block of markup in an identifier for later use.
 Internally `content_for` actually calls `capture`. However the key difference
 lies in their behavior when invoked multiple times.<br><br>
-`content_for` can be called repeatedly, adding more markup each time. Each
-subsequent call simply adds onto what's already stored. In contrast, `capture`
-only remembers the latest invocation; previous calls get overwritten.
+`content_for` can be called repeatedly, concatenating the blocks it receives for
+a specific identifier in the order they are provided. Each subsequent call
+simply adds onto what's already stored. In contrast, `capture` only remembers
+the latest invocation; previous calls get overwritten.
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/CaptureHelper.html#method-i-content_for)
