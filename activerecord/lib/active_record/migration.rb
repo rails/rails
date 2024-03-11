@@ -794,22 +794,9 @@ module ActiveRecord
     ##
     # :singleton-method: verbose
     #
-    # By default, migrations will describe the actions they are taking, writing
-    # them to the console as they happen, along with benchmarks describing how
-    # long each step took.
-    #
-    # You read that setting through <tt>ActiveRecord::Migration.verbose</tt>.
-
-    ##
-    # :singleton-method: verbose=
-    #
-    # :call-seq: verbose=(value)
-    #
-    # By default, migrations will describe the actions they are taking, writing
-    # them to the console as they happen, along with benchmarks describing how
-    # long each step took.
-    #
-    # You can quiet them down by setting <tt>ActiveRecord::Migration.verbose = false</tt>.
+    # Specifies if migrations will write the actions they are taking to the console as they
+    # happen, along with benchmarks describing how long each step took. Defaults to
+    # true.
     cattr_accessor :verbose
     attr_accessor :name, :version
 
