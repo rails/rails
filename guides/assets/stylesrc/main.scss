@@ -6,7 +6,15 @@ body.guide {
   // Typographic Baseline
   // ----------------------------------------------------------------------------
   
-  font-family: 'Calibre', Montserrat, sans-serif;
+  :root {
+    font-family: Inter, sans-serif;
+    font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
+  }
+  @supports (font-variation-settings: normal) {
+    :root { font-family: InterVariable, sans-serif; }
+  }
+
+  font-family: Inter, sans-serif;
   font-size: 1.125rem; /* 18px */
   font-style: normal;
   font-weight: 400;
@@ -14,7 +22,6 @@ body.guide {
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
   line-height: 1.4;
-
 
   font-feature-settings: "liga" 1;
   @supports (font-variant-ligatures: common-ligatures) {
@@ -46,9 +53,6 @@ body.guide {
     margin: 0 0 0.75em 0; // Space after paragraph
     text-align: left;
 
-    // &::first-line {
-    //   font-weight: bold; // do we want to do this? Gives a very specific style that may only make sense on the first line of a larger section
-    // }
   } // p
 
   // Links
@@ -118,11 +122,12 @@ body.guide {
   h1 {
     color: $rf-brand;
     font-size: 3rem; /* 48px */
-    font-weight: 300; /* Light */
+    font-weight: 200; /* Light */
     line-height: 1em;
   } // h1
 
   h2 {
+    font-family: 'Calibre', sans-serif;
     font-size: 1.875rem; /* 30px */
     font-weight: 700; /* Bold */
   } // h2
@@ -278,12 +283,98 @@ body.guide {
   .wrapper {
     padding: 1em;
 
+    :where(body[dir="ltr"]) & { text-align: left; }
+    :where(body[dir="rtl"]) & { text-align: right; }
+
     @include media('>desktop') {
       padding-left: 5vw;
       width: 60vw;
 
     }
   } // .wrapper
+
+  // topNav is a hidden area for mobile only
+  nav#topNav {
+    background-color: $gray-800;
+    color: $gray-400;
+    padding: 0.5em 0;
+    font-size: 0.875rem;
+
+    .wrapper {
+      text-align: center;
+    }
+
+    .s-hidden {
+      display: none;
+    }
+
+    .red-button {
+      background: $rf-brand;
+      border-bottom: 2px solid $rf-brand-dark;
+      border-radius: $base-border-radius;
+      color: white;
+      padding: 0.5em 1em;
+    }
+
+    .more-info-label {
+      @include media('<desktop') {
+        display: none;
+      }
+    }
+
+    .more-info-links {
+      @extend %list-in-disguise;
+      background: $gray-200;
+      border-radius: $base-border-radius;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.25);
+      font-size: 1.25em;
+      position: absolute;
+        left: 10vw;
+      width: 80vw;
+
+      li {
+        border-bottom: 1px solid $gray-300;
+        padding: 0.5em;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        a,
+        a:link,
+        a:visited {
+          font-weight: bold;
+          text-decoration: none;
+        }
+      }
+    }
+
+  } // nav#topNav
+
+  header#page_header {
+
+    nav#feature_nav {
+      
+      // Image augmented
+      .header-logo {
+        background-image: url("../images/logo_rails-circle.svg");
+        background-repeat: no-repeat;
+        background-position: top center;
+        padding-top: 75px;
+        font-family: 'Calibre', sans-serif;
+        font-size: 2.25rem;
+        font-weight: 700;
+        text-align: center;
+
+        a {
+          text-decoration: none;
+          font-weight: 700;
+        }
+      } // .header-logo
+    } // nav#feature_nav
+
+  } // header#page_header
+
 
   footer#page_footer {
     background-color: $gray-800;

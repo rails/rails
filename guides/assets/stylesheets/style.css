@@ -532,71 +532,81 @@ textarea {
   font-family: "IBM Plex Mono";
   font-style: normal;
   font-weight: 400;
-  src: url("https://rubyonrails.org/fonts/IBMPlexMono-Text.eot");
-  src: url("https://rubyonrails.org/fonts/IBMPlexMono-Text.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/fonts/IBMPlexMono-Text.woff2") format("woff2"), url("https://rubyonrails.org/fonts/IBMPlexMono-Text.woff") format("woff");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Text.eot");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Text.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Text.woff2") format("woff2"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Text.woff") format("woff");
   font-display: swap;
 }
 @font-face {
   font-family: "IBM Plex Mono";
   font-style: italic;
   font-weight: 400;
-  src: url("https://rubyonrails.org/fonts/IBMPlexMono-TextItalic.eot");
-  src: url("https://rubyonrails.org/fonts/IBMPlexMono-TextItalic.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/fonts/IBMPlexMono-TextItalic.woff2") format("woff2"), url("https://rubyonrails.org/fonts/IBMPlexMono-TextItalic.woff") format("woff");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-TextItalic.eot");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-TextItalic.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-TextItalic.woff2") format("woff2"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-TextItalic.woff") format("woff");
   font-display: swap;
 }
 @font-face {
   font-family: "IBM Plex Mono";
   font-style: normal;
   font-weight: 500;
-  src: url("https://rubyonrails.org/fonts/IBMPlexMono-Medium.eot");
-  src: url("https://rubyonrails.org/fonts/IBMPlexMono-Medium.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/fonts/IBMPlexMono-Medium.woff2") format("woff2"), url("https://rubyonrails.org/fonts/IBMPlexMono-Medium.woff") format("woff");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Medium.eot");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Medium.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Medium.woff2") format("woff2"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Medium.woff") format("woff");
   font-display: swap;
 }
 @font-face {
   font-family: "IBM Plex Mono";
   font-style: italic;
   font-weight: 500;
-  src: url("https://rubyonrails.org/fonts/IBMPlexMono-MediumItalic.eot");
-  src: url("https://rubyonrails.org/fonts/IBMPlexMono-MediumItalic.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/fonts/IBMPlexMono-MediumItalic.woff2") format("woff2"), url("https://rubyonrails.org/fonts/IBMPlexMono-MediumItalic.woff") format("woff");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-MediumItalic.eot");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-MediumItalic.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-MediumItalic.woff2") format("woff2"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-MediumItalic.woff") format("woff");
   font-display: swap;
 }
 @font-face {
   font-family: "Calibre";
   font-style: normal;
   font-weight: 400;
-  src: url("https://rubyonrails.org/fonts/calibre-regular.woff2") format("woff2");
+  src: url("https://rubyonrails.org/assets/fonts/calibre-regular.woff2") format("woff2");
   font-display: swap;
 }
 @font-face {
   font-family: "Calibre";
   font-style: italic;
   font-weight: 400;
-  src: url("https://rubyonrails.org/fonts/calibre-regular-italic.woff2") format("woff2");
+  src: url("https://rubyonrails.org/assets/fonts/calibre-regular-italic.woff2") format("woff2");
   font-display: swap;
 }
 @font-face {
   font-family: "Calibre";
   font-style: normal;
   font-weight: 600;
-  src: url("https://rubyonrails.org/fonts/calibre-semibold.woff2") format("woff2");
+  src: url("https://rubyonrails.org/assets/fonts/calibre-semibold.woff2") format("woff2");
   font-display: swap;
 }
 @font-face {
   font-family: "Calibre";
   font-style: italic;
   font-weight: 600;
-  src: url("https://rubyonrails.org/fonts/calibre-semibold-italic.woff2") format("woff2");
+  src: url("https://rubyonrails.org/assets/fonts/calibre-semibold-italic.woff2") format("woff2");
   font-display: swap;
 }
 @font-face {
   font-family: "Calibre";
   font-style: normal;
   font-weight: 700;
-  src: url("https://rubyonrails.org/fonts/calibre-bold.woff2") format("woff2");
+  src: url("https://rubyonrails.org/assets/fonts/calibre-bold.woff2") format("woff2");
   font-display: swap;
 }
 * {
   box-sizing: border-box;
+}
+
+body.guide nav#topNav .more-info-links {
+  margin: 0;
+  padding: 0;
+}
+body.guide nav#topNav .more-info-links li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .clearfix:after, .clearfix:before {
@@ -694,7 +704,7 @@ intermediate whitespace looks uniform. */
 
 body.guide {
   -webkit-tap-highlight-color: rgba(38, 27, 35, 0);
-  font-family: "Calibre", Montserrat, sans-serif;
+  font-family: Inter, sans-serif;
   font-size: 1.125rem; /* 18px */
   font-style: normal;
   font-weight: 400;
@@ -704,6 +714,15 @@ body.guide {
   line-height: 1.4;
   font-feature-settings: "liga" 1;
   font-feature-settings: "onum" 1;
+}
+body.guide :root {
+  font-family: Inter, sans-serif;
+  font-feature-settings: "liga" 1, "calt" 1; /* fix for Chrome */
+}
+@supports (font-variation-settings: normal) {
+  body.guide :root {
+    font-family: InterVariable, sans-serif;
+  }
 }
 @supports (font-variant-ligatures: common-ligatures) {
   body.guide {
@@ -779,10 +798,11 @@ body.guide table td {
 body.guide h1 {
   color: #C81418;
   font-size: 3rem; /* 48px */
-  font-weight: 300; /* Light */
+  font-weight: 200; /* Light */
   line-height: 1em;
 }
 body.guide h2 {
+  font-family: "Calibre", sans-serif;
   font-size: 1.875rem; /* 30px */
   font-weight: 700; /* Bold */
 }
@@ -913,11 +933,77 @@ body.guide pre, body.guide tt, body.guide code {
 body.guide .wrapper {
   padding: 1em;
 }
+:where(body[dir=ltr]) body.guide .wrapper {
+  text-align: left;
+}
+:where(body[dir=rtl]) body.guide .wrapper {
+  text-align: right;
+}
 @media (min-width: 1025px) {
   body.guide .wrapper {
     padding-left: 5vw;
     width: 60vw;
   }
+}
+body.guide nav#topNav {
+  background-color: #343434;
+  color: #DCDCD8;
+  padding: 0.5em 0;
+  font-size: 0.875rem;
+}
+body.guide nav#topNav .wrapper {
+  text-align: center;
+}
+body.guide nav#topNav .s-hidden {
+  display: none;
+}
+body.guide nav#topNav .red-button {
+  background: #C81418;
+  border-bottom: 2px solid #9a0f12;
+  border-radius: 8px;
+  color: white;
+  padding: 0.5em 1em;
+}
+@media (max-width: 1023px) {
+  body.guide nav#topNav .more-info-label {
+    display: none;
+  }
+}
+body.guide nav#topNav .more-info-links {
+  background: #F5F3F1;
+  border-radius: 8px;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.25);
+  font-size: 1.25em;
+  position: absolute;
+  left: 10vw;
+  width: 80vw;
+}
+body.guide nav#topNav .more-info-links li {
+  border-bottom: 1px solid #EBEBEA;
+  padding: 0.5em;
+}
+body.guide nav#topNav .more-info-links li:last-child {
+  border-bottom: none;
+}
+body.guide nav#topNav .more-info-links li a,
+body.guide nav#topNav .more-info-links li a:link,
+body.guide nav#topNav .more-info-links li a:visited {
+  font-weight: bold;
+  text-decoration: none;
+}
+body.guide header#page_header nav#feature_nav .header-logo {
+  background-image: url("../images/logo_rails-circle.svg");
+  background-repeat: no-repeat;
+  background-position: top center;
+  padding-top: 75px;
+  font-family: "Calibre", sans-serif;
+  font-size: 2.25rem;
+  font-weight: 700;
+  text-align: center;
+}
+body.guide header#page_header nav#feature_nav .header-logo a {
+  text-decoration: none;
+  font-weight: 700;
 }
 body.guide footer#page_footer {
   background-color: #343434;

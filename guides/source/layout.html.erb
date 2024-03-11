@@ -5,6 +5,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><%= yield(:page_title) %></title>
+  <link rel="preconnect" href="https://rsms.me/">
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
   <link rel="stylesheet" type="text/css" href="stylesheets/style.css" data-turbo-track="reload">
   <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
   <link rel="stylesheet" type="text/css" href="stylesheets/highlight.css" data-turbo-track="reload">
@@ -29,12 +31,13 @@
 </head>
 
 <body dir="<%= @direction %>" class="guide">
-  <% if badge_version = @edge ? "edge" : @version %>
+  <%# Needs to be refactored into the dropdown concept - see mocks %>
+  <!--<% if badge_version = @edge ? "edge" : @version %>
   <div>
     <div id="version-badge"><%= badge_version %></div>
   </div>
-  <% end %>
-  <div id="topNav">
+  <% end %>-->
+  <nav id="topNav" aria-label="Secondary">
     <div class="wrapper">
       <strong class="more-info-label">More at <a href="https://rubyonrails.org/">rubyonrails.org:</a> </strong>
       <span class="red-button more-info-button">
@@ -48,55 +51,57 @@
         <li class="more-info"><a href="https://github.com/rails/rails">Contribute on GitHub</a></li>
       </ul>
     </div>
-  </div>
-  <div id="header">
+  </nav>
+  <header id="page_header">
     <div class="wrapper clearfix">
-      <div class="header-logo"><a href="index.html" title="Return to home page">Guides.rubyonrails.org</a></div>
-      <ul class="nav">
-        <li><a class="nav-item" href="index.html">Home</a></li>
-        <li class="guides-index guides-index-large">
-          <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
-          <div id="guides" class="clearfix" style="display: none;">
-            <hr />
-            <dl class="guides-section-container">
-              <% documents_by_section.each do |section| %>
-                <div class="guides-section">
-                  <dt><%= section['name'] %></dt>
-                  <% finished_documents(section['documents']).each do |document| %>
-                  <dd><a href="<%= document['url'] %>"><%= document['name'] %></a></dd>
-                  <% end %>
-                </div>
-              <% end %>
-            </dl>
-          </div>
-        </li>
-        <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
-        <li class="guides-index guides-index-small">
-          <select class="guides-index-item nav-item">
-            <option value="index.html">Guides Index</option>
-            <% docs_for_menu.each do |section| %>
-              <optgroup label="<%= section['name'] %>">
-                <% finished_documents(section['documents']).each do |document| %>
-                  <option value="<%= document['url'] %>"><%= document['name'] %></option>
+      <nav id="feature_nav"> <%# we use nav as an element to also provide the aria role and improve semantic meaning. %>
+        <div class="header-logo"><a href="index.html" title="Return to home page">Guides</a></div>
+        <ul class="nav">
+          <li><a class="nav-item" href="index.html">Home</a></li>
+          <li class="guides-index guides-index-large">
+            <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
+            <div id="guides" class="clearfix" style="display: none;">
+              <hr />
+              <dl class="guides-section-container">
+                <% documents_by_section.each do |section| %>
+                  <div class="guides-section">
+                    <dt><%= section['name'] %></dt>
+                    <% finished_documents(section['documents']).each do |document| %>
+                    <dd><a href="<%= document['url'] %>"><%= document['name'] %></a></dd>
+                    <% end %>
+                  </div>
                 <% end %>
-              </optgroup>
-            <% end %>
-          </select>
-        </li>
+              </dl>
+            </div>
+          </li>
+          <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
+          <li class="guides-index guides-index-small">
+            <select class="guides-index-item nav-item">
+              <option value="index.html">Guides Index</option>
+              <% docs_for_menu.each do |section| %>
+                <optgroup label="<%= section['name'] %>">
+                  <% finished_documents(section['documents']).each do |document| %>
+                    <option value="<%= document['url'] %>"><%= document['name'] %></option>
+                  <% end %>
+                </optgroup>
+              <% end %>
+            </select>
+          </li>
       </ul>
+      </nav>
     </div>
-  </div>
+  </header>
   <hr class="hide" />
 
-  <div id="feature">
+  <main id="feature">
     <div class="wrapper">
       <%= yield :header_section %>
 
       <%= yield :index_section %>
     </div>
-  </div>
+  </main>
 
-  <div id="container">
+  <section id="feedback">
     <div class="wrapper">
       <div id="mainCol">
         <%= yield %>
@@ -126,7 +131,7 @@
         </p>
       </div>
     </div>
-  </div>
+  </section>
 
   <hr class="hide" />
   <footer id="page_footer">

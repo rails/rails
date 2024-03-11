@@ -63,12 +63,14 @@ $stop-bkgnd: rgba($stop, 15%); // Works for light and dark mode
 // These are the same fonts that are used on the marcom site, and they are 
 // included from those links/embeds. 
 
+// Inter is included in the layout.html.erb from the CDN
+
 @font-face {
   font-family: 'IBM Plex Mono';
   font-style: normal;
   font-weight: 400;
-  src: url("https://rubyonrails.org/fonts/IBMPlexMono-Text.eot");
-  src: url("https://rubyonrails.org/fonts/IBMPlexMono-Text.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/fonts/IBMPlexMono-Text.woff2") format("woff2"), url("https://rubyonrails.org/fonts/IBMPlexMono-Text.woff") format("woff");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Text.eot");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Text.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Text.woff2") format("woff2"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Text.woff") format("woff");
   font-display:swap
 }
 
@@ -76,8 +78,8 @@ $stop-bkgnd: rgba($stop, 15%); // Works for light and dark mode
   font-family: 'IBM Plex Mono';
   font-style: italic;
   font-weight: 400;
-  src: url("https://rubyonrails.org/fonts/IBMPlexMono-TextItalic.eot");
-  src: url("https://rubyonrails.org/fonts/IBMPlexMono-TextItalic.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/fonts/IBMPlexMono-TextItalic.woff2") format("woff2"), url("https://rubyonrails.org/fonts/IBMPlexMono-TextItalic.woff") format("woff");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-TextItalic.eot");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-TextItalic.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-TextItalic.woff2") format("woff2"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-TextItalic.woff") format("woff");
   font-display:swap
 }
 
@@ -85,8 +87,8 @@ $stop-bkgnd: rgba($stop, 15%); // Works for light and dark mode
   font-family: 'IBM Plex Mono';
   font-style: normal;
   font-weight: 500;
-  src: url("https://rubyonrails.org/fonts/IBMPlexMono-Medium.eot");
-  src: url("https://rubyonrails.org/fonts/IBMPlexMono-Medium.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/fonts/IBMPlexMono-Medium.woff2") format("woff2"), url("https://rubyonrails.org/fonts/IBMPlexMono-Medium.woff") format("woff");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Medium.eot");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Medium.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Medium.woff2") format("woff2"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Medium.woff") format("woff");
   font-display:swap
 }
 
@@ -94,8 +96,8 @@ $stop-bkgnd: rgba($stop, 15%); // Works for light and dark mode
   font-family: 'IBM Plex Mono';
   font-style: italic;
   font-weight: 500;
-  src: url("https://rubyonrails.org/fonts/IBMPlexMono-MediumItalic.eot");
-  src: url("https://rubyonrails.org/fonts/IBMPlexMono-MediumItalic.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/fonts/IBMPlexMono-MediumItalic.woff2") format("woff2"), url("https://rubyonrails.org/fonts/IBMPlexMono-MediumItalic.woff") format("woff");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-MediumItalic.eot");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-MediumItalic.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-MediumItalic.woff2") format("woff2"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-MediumItalic.woff") format("woff");
   font-display:swap
 }
 
@@ -103,7 +105,7 @@ $stop-bkgnd: rgba($stop, 15%); // Works for light and dark mode
   font-family: 'Calibre';
   font-style: normal;
   font-weight: 400;
-  src: url("https://rubyonrails.org/fonts/calibre-regular.woff2") format("woff2");
+  src: url("https://rubyonrails.org/assets/fonts/calibre-regular.woff2") format("woff2");
   font-display:swap
 }
 
@@ -111,7 +113,7 @@ $stop-bkgnd: rgba($stop, 15%); // Works for light and dark mode
   font-family: 'Calibre';
   font-style: italic;
   font-weight: 400;
-  src: url("https://rubyonrails.org/fonts/calibre-regular-italic.woff2") format("woff2");
+  src: url("https://rubyonrails.org/assets/fonts/calibre-regular-italic.woff2") format("woff2");
   font-display:swap
 }
 
@@ -119,7 +121,7 @@ $stop-bkgnd: rgba($stop, 15%); // Works for light and dark mode
   font-family: 'Calibre';
   font-style: normal;
   font-weight: 600;
-  src: url("https://rubyonrails.org/fonts/calibre-semibold.woff2") format("woff2");
+  src: url("https://rubyonrails.org/assets/fonts/calibre-semibold.woff2") format("woff2");
   font-display:swap
 }
 
@@ -127,7 +129,7 @@ $stop-bkgnd: rgba($stop, 15%); // Works for light and dark mode
   font-family: 'Calibre';
   font-style: italic;
   font-weight: 600;
-  src: url("https://rubyonrails.org/fonts/calibre-semibold-italic.woff2") format("woff2");
+  src: url("https://rubyonrails.org/assets/fonts/calibre-semibold-italic.woff2") format("woff2");
   font-display:swap
 }
 
@@ -135,7 +137,7 @@ $stop-bkgnd: rgba($stop, 15%); // Works for light and dark mode
   font-family: 'Calibre';
   font-style: normal;
   font-weight: 700;
-  src: url("https://rubyonrails.org/fonts/calibre-bold.woff2") format("woff2");
+  src: url("https://rubyonrails.org/assets/fonts/calibre-bold.woff2") format("woff2");
   font-display:swap
 }
 
