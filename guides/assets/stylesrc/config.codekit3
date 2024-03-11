@@ -24,6 +24,21 @@
       "pg" : 0,
       "sct" : 0
     },
+    "\/highlight.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/Users\/jathayde\/Development\/rails\/guides\/assets\/stylesheets\/highlight.css",
+      "oF" : 6,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
     "\/main.scss" : {
       "aP" : 0,
       "bl" : 0,

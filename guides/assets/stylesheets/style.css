@@ -618,7 +618,7 @@ intermediate whitespace looks uniform. */
   background-size: 36px 36px;
   border-radius: 8px;
   border-width: 2px;
-  margin-bottom: 1em;
+  margin: 2em auto;
   padding: 0.25em 0.5em !important;
   position: relative;
   /* Remove bottom margin of paragraphs in special boxes, otherwise they get a
@@ -866,6 +866,36 @@ body.guide pre, body.guide tt, body.guide code {
 body.guide .wrapper {
   padding: 1em;
 }
+@media (min-width: 1025px) {
+  body.guide .wrapper {
+    padding-left: 5vw;
+    width: 60vw;
+  }
+}
 body.guide #feature {
   background-color: #FAF9F8;
+}
+@media (min-width: 1025px) {
+  body.guide #feature {
+    background-color: #fff;
+  }
+}
+body.guide #feature #subCol {
+  background-color: #FAF9F8;
+  border-radius: 8px;
+  padding: 0.5em 1em;
+}
+@media (min-width: 1025px) {
+  body.guide #feature #subCol {
+    display: block;
+    position: fixed;
+    top: 100px;
+    right: 5vw;
+    width: 30vw;
+  }
+}
+@media (min-width: 1025px) {
+  body.guide {
+    padding-right: 400px;
+  }
 }

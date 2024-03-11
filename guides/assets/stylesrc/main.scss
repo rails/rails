@@ -226,15 +226,33 @@ body.guide {
 
   .wrapper {
     padding: 1em;
+
+    @include media('>desktop') {
+      padding-left: 5vw;
+      width: 60vw;
+
+    }
   } // .wrapper
   
   #feature {
     background-color: $gray-100;
 
-    // #subCol {
-    //   background-color: $gray-100;
-    //   border-radius: $base-border-radius;
-    //   padding: 0.5em 1em;
+    @include media('>desktop') {
+      background-color: #fff;
+    }
+
+    #subCol {
+      background-color: $gray-100;
+      border-radius: $base-border-radius;
+      padding: 0.5em 1em;
+
+      @include media('>desktop') {
+        display: block;
+        position: fixed;
+        top: 100px;
+        right: 5vw;
+        width: 30vw;
+      }
 
     //   dl {
     //     margin-bottom: 0;
@@ -244,7 +262,11 @@ body.guide {
     //     border-bottom: none;
     //     margin-bottom: 0;
     //   }
-    // }
+    }
+  }
+
+  @include media('>desktop') {
+    padding-right: 400px;
   }
   
 } // body.guide
