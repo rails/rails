@@ -5,7 +5,7 @@
 // John Athayde (https://www.johnathayde.com) for Meticulous
 // ---------------------------------------------------------------------------- */
 .highlight {
-  background-color: transparent;
+  background-color: transparent !important;
 }
 .highlight table td {
   padding: 5px;
@@ -145,19 +145,19 @@
     color: #990000;
   }
   .highlight .kc {
-    color: #66d9ef;
+    color: #8AECFF;
   }
   .highlight .kd {
-    color: #66d9ef;
+    color: #8AECFF;
   }
   .highlight .kn {
-    color: #f92672;
+    color: #FF538C;
   }
   .highlight .kp {
-    color: #66d9ef;
+    color: #8AECFF;
   }
   .highlight .kr {
-    color: #66d9ef;
+    color: #8AECFF;
   }
   .highlight .kt {
     color: #445588;
@@ -205,7 +205,7 @@
     color: #555555;
   }
   .highlight .nx {
-    color: #a6e22e;
+    color: #BDFB42;
   }
   .highlight .py {
     color: #f8f8f2;
@@ -390,16 +390,16 @@
     background-color: #1e0010;
   }
   .highlight .k {
-    color: #66d9ef;
+    color: #8AECFF;
   }
   .highlight .l {
-    color: #ae81ff;
+    color: #C3A2FF;
   }
   .highlight .n {
     color: #f8f8f2;
   }
   .highlight .o {
-    color: #f92672;
+    color: #FF538C;
   }
   .highlight .p {
     color: #f8f8f2;
@@ -417,55 +417,55 @@
     color: #A9A9A8;
   }
   .highlight .kc {
-    color: #66d9ef;
+    color: #8AECFF;
   }
   .highlight .kd {
-    color: #66d9ef;
+    color: #8AECFF;
   }
   .highlight .kn {
-    color: #f92672;
+    color: #FF538C;
   }
   .highlight .kp {
-    color: #66d9ef;
+    color: #8AECFF;
   }
   .highlight .kr {
-    color: #66d9ef;
+    color: #8AECFF;
   }
   .highlight .kt {
-    color: #66d9ef;
+    color: #8AECFF;
   }
   .highlight .ld {
-    color: #e6db74;
+    color: #FCEF8D;
   }
   .highlight .m {
-    color: #ae81ff;
+    color: #C3A2FF;
   }
   .highlight .s {
-    color: #e6db74;
+    color: #FCEF8D;
   }
   .highlight .na {
-    color: #a6e22e;
+    color: #BDFB42;
   }
   .highlight .nb {
     color: #f8f8f2;
   }
   .highlight .nc {
-    color: #a6e22e;
+    color: #BDFB42;
   }
   .highlight .no {
-    color: #66d9ef;
+    color: #8AECFF;
   }
   .highlight .nd {
-    color: #a6e22e;
+    color: #BDFB42;
   }
   .highlight .ni {
     color: #f8f8f2;
   }
   .highlight .ne {
-    color: #a6e22e;
+    color: #BDFB42;
   }
   .highlight .nf {
-    color: #a6e22e;
+    color: #BDFB42;
   }
   .highlight .nl {
     color: #f8f8f2;
@@ -474,67 +474,67 @@
     color: #f8f8f2;
   }
   .highlight .nx {
-    color: #a6e22e;
+    color: #BDFB42;
   }
   .highlight .py {
     color: #f8f8f2;
   }
   .highlight .nt {
-    color: #f92672;
+    color: #FF538C;
   }
   .highlight .nv {
     color: #f8f8f2;
   }
   .highlight .ow {
-    color: #f92672;
+    color: #FF538C;
   }
   .highlight .w {
     color: #f8f8f2;
   }
   .highlight .mf {
-    color: #ae81ff;
+    color: #C3A2FF;
   }
   .highlight .mh {
-    color: #ae81ff;
+    color: #C3A2FF;
   }
   .highlight .mi {
-    color: #ae81ff;
+    color: #C3A2FF;
   }
   .highlight .mo {
-    color: #ae81ff;
+    color: #C3A2FF;
   }
   .highlight .sb {
-    color: #e6db74;
+    color: #FCEF8D;
   }
   .highlight .sc {
-    color: #e6db74;
+    color: #FCEF8D;
   }
   .highlight .sd {
-    color: #e6db74;
+    color: #FCEF8D;
   }
   .highlight .s2 {
-    color: #e6db74;
+    color: #FCEF8D;
   }
   .highlight .se {
-    color: #ae81ff;
+    color: #C3A2FF;
   }
   .highlight .sh {
-    color: #e6db74;
+    color: #FCEF8D;
   }
   .highlight .si {
-    color: #e6db74;
+    color: #FCEF8D;
   }
   .highlight .sx {
-    color: #e6db74;
+    color: #FCEF8D;
   }
   .highlight .sr {
-    color: #e6db74;
+    color: #FCEF8D;
   }
   .highlight .s1 {
-    color: #e6db74;
+    color: #FCEF8D;
   }
   .highlight .ss {
-    color: #e6db74;
+    color: #FCEF8D;
   }
   .highlight .bp {
     color: #f8f8f2;
@@ -549,7 +549,7 @@
     color: #f8f8f2;
   }
   .highlight .il {
-    color: #ae81ff;
+    color: #C3A2FF;
   }
   .highlight .gh {
     color: #6c6c6c;
@@ -558,11 +558,11 @@
     color: #75715e;
   }
   .highlight .gd {
-    color: #f92672;
+    color: #FF538C;
     background-color: unset;
   }
   .highlight .gi {
-    color: #a6e22e;
+    color: #BDFB42;
     background-color: unset;
   }
   .highlight .gr {
@@ -572,6 +572,6 @@
     color: #6c6c6c;
   }
   .highlight .gp {
-    color: #555555;
+    color: #fff;
   }
 }
