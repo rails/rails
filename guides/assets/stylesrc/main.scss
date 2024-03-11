@@ -118,7 +118,7 @@ body.guide {
   h1 {
     color: $rf-brand;
     font-size: 3rem; /* 48px */
-    font-weight: 200; /* Light */
+    font-weight: 300; /* Light */
     line-height: 1em;
   } // h1
 
@@ -257,7 +257,19 @@ body.guide {
 
     }
   } // .wrapper
-  
+
+  footer#page_footer {
+    background-color: $gray-800;
+    color: #fff;
+    font-size: 0.75em;
+    padding: 1em 0 .5em 0;
+    width: 100vw;
+
+    p {
+      max-width: 100vw;
+    }
+  }
+
   #feature {
     background-color: $gray-100;
 
