@@ -751,9 +751,24 @@ body.guide abbr.smallcaps {
 body.guide table {
   border-collapse: collapse;
   font-variant-numeric: lining-nums tabular-nums;
+  margin: 2em auto;
+  width: 100%;
 }
 body.guide table caption {
   caption-side: bottom;
+}
+body.guide table th {
+  background-color: #3A3939;
+  color: #fff;
+  font-size: 0.875em;
+  padding: 0.5em;
+  text-align: left;
+}
+body.guide table tr:nth-child(even) {
+  background-color: #FAF9F8;
+}
+body.guide table td {
+  padding: 0.5em;
 }
 body.guide h1 {
   color: #C81418;
@@ -843,6 +858,9 @@ body.guide dl dd {
   padding: 0.25em 0 1em;
   border-bottom: 1px solid #A9A9A8;
   margin: 0 0 1em 0;
+}
+body.guide li {
+  margin-bottom: 0.5em;
 }
 body.guide pre, body.guide code {
   font-size: 1rem;

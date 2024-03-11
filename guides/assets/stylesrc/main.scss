@@ -86,9 +86,29 @@ body.guide {
   table {
     border-collapse: collapse;
     font-variant-numeric: lining-nums tabular-nums;
+    margin: 2em auto;
+    width: 100%;
 
     caption {
       caption-side: bottom;
+    }
+
+    th {
+      background-color: $gray-700;
+      color: #fff;
+      font-size: 0.875em;
+      padding: 0.5em;
+      text-align: left;
+    }
+
+    tr {
+      &:nth-child(even) {
+        background-color: $gray-100;
+      }
+    }
+
+    td {
+      padding: 0.5em;
     }
   }
 
@@ -194,6 +214,10 @@ body.guide {
 
   // :where(&[dir="ltr"]) :is(dd) { margin-left: 0; padding-left: 0; }
   // :where(&[dir="rtl"]) :is(dd) { margin-right: 0; padding-right: 0; }
+
+  li {
+    margin-bottom: 0.5em;
+  }
 
   // Code
 
