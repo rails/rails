@@ -106,7 +106,7 @@ module ActionController
             set_header k, "application/x-www-form-urlencoded"
           end
 
-          case content_mime_type.to_sym
+          case content_mime_type&.to_sym
           when nil
             raise "Unknown Content-Type: #{content_type}"
           when :json
