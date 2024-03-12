@@ -195,11 +195,14 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal true, Topic.exists?(author_name: "Mary", approved: true)
     assert_equal true, Topic.exists?(["parent_id = ?", 1])
     assert_equal true, Topic.exists?(id: [1, 9999])
+    assert_equal true, Cpk::Book.exists?([cpk_books(:cpk_great_author_first_book).id])
 
     assert_equal false, Topic.exists?(45)
     assert_equal false, Topic.exists?(9999999999999999999999999999999)
     assert_equal false, Topic.exists?(Topic.new.id)
+    assert_equal false, Cpk::Book.exists?([Cpk::Book.new.id])
 
+    assert_raises(ArgumentError) { Cpk::Book.exists?(cpk_books(:cpk_great_author_first_book).id) }
     assert_raise(ArgumentError) { Topic.exists?([1, 2]) }
   end
 
