@@ -17,8 +17,12 @@ module ActionText
       #
       #     message = Message.create!(content: "<h1>Funny times!</h1>")
       #     message.content? #=> true
-      #     message.content.to_s # => "<h1>Funny times!</h1>"
+      #     message.content.to_s # => "<div class=\"trix-content\">\n  <h1>Funny times!</h1>\n</div>\n"
+      #     message.content_without_layout # => "<h1>Funny times!</h1>"
       #     message.content.to_plain_text # => "Funny times!"
+      #
+      # The attribute with the without_layout suffix is useful to feed back to attribute assignment,
+      # while the attribute without a suffix is useful for both display and to access the associated RichText model.
       #
       # The dependent RichText model will also automatically process attachments links
       # as sent via the Trix-powered editor. These attachments are associated with the
@@ -53,6 +57,10 @@ module ActionText
             rich_text_#{name} || build_rich_text_#{name}
           end
 
+          def #{name}_without_layout
+            #{name}.to_trix_html
+          end
+
           def #{name}?
             rich_text_#{name}.present?
           end
@@ -60,6 +68,8 @@ module ActionText
           def #{name}=(body)
             self.#{name}.body = body
           end
+
+          alias_method :#{name}_without_layout=, :#{name}=
         CODE
 
         rich_text_class_name = encrypted ? "ActionText::EncryptedRichText" : "ActionText::RichText"
