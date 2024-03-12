@@ -237,6 +237,13 @@ class NumericalityValidationTest < ActiveModel::TestCase
     assert_valid_values([1, 2, 3])
   end
 
+  def test_validates_numericality_with_in_array
+    Topic.validates_numericality_of :approved, in: [1, 3]
+
+    assert_invalid_values([0, 2, 4])
+    assert_valid_values([1, 3])
+  end
+
   def test_validates_numericality_with_other_than_using_string_value
     Topic.validates_numericality_of :approved, other_than: 0
 
@@ -338,7 +345,6 @@ class NumericalityValidationTest < ActiveModel::TestCase
     assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, greater_than: "foo" }
     assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, less_than: "foo" }
     assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, equal_to: "foo" }
-    assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, in: "foo" }
   end
 
   def test_validates_numericality_equality_for_float_and_big_decimal
