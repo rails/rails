@@ -224,6 +224,7 @@ class LargeClient < Client
 end
 
 class SpecialClient < Client
+  attribute :firm_name, :string, default: "Special"
 end
 
 class VerySpecialClient < SpecialClient
