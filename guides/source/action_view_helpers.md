@@ -740,7 +740,8 @@ for more information.
 #### strip_tags(html)
 
 Strips all HTML tags from the html, including comments. This functionality is
-powered by the [rails-html-sanitizer](https://github.com/rails/rails-html-sanitizer) gem.
+powered by the
+[rails-html-sanitizer](https://github.com/rails/rails-html-sanitizer) gem.
 
 ```ruby
 strip_tags("Strip <i>these</i> tags!")
@@ -752,8 +753,8 @@ strip_tags("<b>Bold</b> no more!  <a href='more.html'>See more</a>")
 # => Bold no more!  See more
 ```
 
-Note: The output may still contain unescaped '<', '>', '&' characters and confuse
-browsers.
+Note: The output may still contain unescaped '<', '>', '&' characters and
+confuse browsers.
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-strip_tags)
@@ -862,3 +863,138 @@ Returns true if the current request URI matches the given `options`.
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-current_page-3F)
 for more information.
+
+### Text Helper
+
+Provides a set of methods for filtering, formatting and transforming strings.
+
+#### excerpt
+
+Extracts the first occurrence of phrase plus surrounding text from `text`. An
+omission marker is prepended / appended if the start / end of the result does
+not coincide with the start / end of `text`.
+
+```html+erb
+<%= excerpt('This is a very beautiful morning', 'very', separator: ' ', radius: 1) %>
+# => ...a very beautiful...
+
+<%= excerpt('This is also an example', 'an', radius: 8, omission: '<chop> ') %>
+#=> <chop> is also an example
+```
+
+whereby: `radius` is the number of characters to include on each side of the
+`phrase`. If the `phrase` isn't found, `nil` is returned. `ommision` is the
+string to be used to indicate omitted content. `separator` is the string to use
+to separate the `phrase` from the omitted content. Defaults to "", which treats
+each character as a token.
+
+See the [API
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-excerpt)
+for more information.
+
+### pluralize
+
+Returns the singular or plural form of a word based on the value of a number.
+
+```html+erb
+<%= pluralize(1, 'person') %>
+# => 1 person
+
+<%= pluralize(2, 'person') %>
+# => 2 people
+
+<%= pluralize(3, 'person', plural: 'users') %>
+# => 3 users
+```
+
+See the [API
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-pluralize)
+for more information.
+
+### truncate
+
+Truncates a given `text` after a given `length` if `text` is longer than
+`length`. If text is truncated, an omission marker will be appended to the
+result for a total length not exceeding :length.
+
+```html+erb
+truncate("Once upon a time in a world far far away")
+# => "Once upon a time in a world..."
+
+truncate("Once upon a time in a world far far away", length: 17)
+# => "Once upon a ti..."
+
+truncate("Once upon a time in a world far far away", length: 17, separator: ' ')
+# => "Once upon a..."
+
+truncate("And they found that many people were sleeping better.", length: 25, omission: '... (continued)')
+# => "And they f... (continued)"
+
+truncate("<p>Once upon a time in a world far far away</p>", escape: false)
+# => "<p>Once upon a time in a wo..."
+```
+
+length: The maximum number of characters to return. seperator: A string or
+regexp used to find a breaking point at which to truncate. By default,
+truncation can occur at any character in text. omission: The string to append
+after truncating. Defaults to "...". escape: Whether to escape the result.
+Defaults to true.
+
+See the [API
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-truncate)
+for more information.
+
+### word_wrap
+
+Wraps the text into lines no longer than `line_width` width.
+
+```html+erb
+word_wrap('Once upon a time', line_width: 8)
+# => "Once\nupon a\ntime"
+```
+
+See the [API
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-word_wrap)
+for more information.
+
+
+### Tag Helper
+
+Provides methods to generate HTML tags programmatically both as a modern HTML5
+compliant builder style and legacy XHTML compliant tags.
+
+#### content_tag
+
+Generates an HTML block tag of type `name` surrounding the content. Add HTML
+attributes by passing an `attributes` hash to options.
+
+```html+erb
+content_tag(:div, "Hello world!", class: ["strong", { highlight: current_user.admin? }])
+ # => <div class="strong highlight">Hello world!</div>
+ ```
+
+See the [API
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TagHelper.html#method-i-content_tag)
+for more information.
+
+#### tag
+
+Generates a standalone HTML tag with the given `name` and `options`.
+
+```html+erb
+tag.h1 'All titles fit to print'
+# => <h1>All titles fit to print</h1>
+
+<%= tag.p do %>
+  The next great American novel starts here.
+<% end %>
+# => <p>The next great American novel starts here.</p>
+
+tag.section class: %w( kitties puppies )
+# => <section class="kitties puppies"></section>
+```
+
+See the [API
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TagHelper.html#method-i-tag)
+for more information.
+
