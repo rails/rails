@@ -135,6 +135,14 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal "All blobs must be persisted.", error.message
   end
 
+  test "compose with custom key" do
+    blobs = 3.times.map { create_blob(data: "123", filename: "numbers.txt", content_type: "text/plain", identify: false) }
+    blob = ActiveStorage::Blob.compose(blobs, key: "custom_key", filename: "all_numbers.txt")
+
+    assert_equal "custom_key", blob.key
+    assert_equal "123123123", blob.download
+  end
+
   test "image?" do
     blob = create_file_blob filename: "racecar.jpg"
     assert_predicate blob, :image?
