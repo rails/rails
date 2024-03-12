@@ -768,8 +768,6 @@ subsystem.
 
 Returns the URL for the set of `options` provided.
 
-##### Examples
-
 ```ruby
 url_for @profile
 # => /profiles/1
@@ -783,11 +781,9 @@ url_for @post # given a composite primary key [:blog_id, :id]
 
 #### link_to
 
-Links to a URL derived from `url_for` under the hood. Primarily used to create
-RESTful resource links, which for this example, boils down to when passing
-models to `link_to`.
-
-**Examples**
+Links to a URL derived from `url_for` under the hood. It's commonly used to
+create links for RESTful resources, especially when passing models as arguments
+to link_to.
 
 ```ruby
 link_to "Profile", @profile
@@ -797,8 +793,8 @@ link_to "Book", @book # given a composite primary key [:author_id, :id]
 # => <a href="/books/2_1">Book</a>
 ```
 
-You can use a block as well if your link target can't fit in the name parameter.
-ERB example:
+You can use a block if your link target can't fit in the name parameter.
+
 
 ```html+erb
 <%= link_to @profile do %>
@@ -806,7 +802,7 @@ ERB example:
 <% end %>
 ```
 
-would output:
+would roughly output something like:
 
 ```html
 <a href="/profiles/1">
@@ -822,8 +818,6 @@ for more information.
 
 Generates a form that submits to the passed URL. The form has a submit button
 with the value of the `name`.
-
-##### Examples
 
 ```html+erb
 <%= button_to "Sign in", sign_in_path %>
@@ -841,15 +835,30 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-button_to)
 for more information.
 
-### CsrfHelper
+#### mail_to
 
-Returns meta tags "csrf-param" and "csrf-token" with the name of the cross-site
-request forgery protection parameter and token, respectively.
+Generates a mailto link tag to the specified email address. You can also specify
+the link text, additional HTML options, and whether to encode the email address.
 
-```erb
-<%= csrf_meta_tags %>
+```html+erb
+<%= mail_to "john_doe@gmail.com" %>
+# => <a href="mailto:john_doe@gmail.com">john_doe@gmail.com</a>
 ```
 
-NOTE: Regular forms generate hidden fields so they do not use these tags. More
-details can be found in the [Rails Security
-Guide](security.html#cross-site-request-forgery-csrf).
+See the [API
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-mail_to)
+for more information.
+
+#### current_page?
+
+Returns true if the current request URI matches the given `options`.
+
+```html+erb
+<% if current_page?(controller: 'profiles', action: 'show') %>
+  <strong>Currently on the profile page</strong>
+<% end %>
+```
+
+See the [API
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-current_page-3F)
+for more information.
