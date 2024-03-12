@@ -381,10 +381,11 @@ like `connected_to(role: :nonexistent)` you will get an error that says
 
 If you want Rails to ensure any queries performed are read only, pass `prevent_writes: true`.
 This just prevents queries that look like writes from being sent to the database.
+This is always enabled for `role: :reading`, but can be set to prevent write queries against any role.
 You should also configure your replica database to run in readonly mode.
 
 ```ruby
-ActiveRecord::Base.connected_to(role: :reading, prevent_writes: true) do
+ActiveRecord::Base.connected_to(role: :primary, prevent_writes: true) do
   # Rails will check each query to ensure it's a read query
 end
 ```
