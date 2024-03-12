@@ -547,14 +547,15 @@ my name is <%= current_user.name %>, and I'm here to say "Welcome to our website
 
 #### javascript_tag
 
-Returns a JavaScript tag wrapping the provided code.
+Returns a JavaScript tag wrapping the provided code. You can pass a hash of
+options to control the behavior of the `<script>` tag.
 
 ```ruby
-javascript_tag "alert('All is good')"
+javascript_tag "alert('All is good')", type: 'application/javascript'
 ```
 
 ```html
-<script>
+<script type="application/javascript">
 //<![CDATA[
 alert('All is good')
 //]]>
@@ -663,7 +664,10 @@ for more information.
 ### SanitizeHelper
 
 The SanitizeHelper module provides a set of methods for scrubbing text of
-undesired HTML elements.
+undesired HTML elements. The helpers are particularly useful for helping to
+ensure that allow only safe and valid  HTML/CSS is rendered. It also can be
+useful to prevent XSS attacks by escaping or removing potentially malicious
+content from user input before rendering it in your views.
 
 #### sanitize
 
@@ -696,7 +700,15 @@ for more information.
 
 #### sanitize_css(style)
 
-Sanitizes a block of CSS code.
+Sanitizes a block of CSS code, particularly when it comes across a style attribute in HTML content.
+
+```ruby
+<%= sanitize_css("background-color: red; color: white; font-size: 16px;") %>
+```
+
+In this case, the `sanitize_css` method will remove any CSS that is not allowed.
+
+You can use sanitize_css within your views, especially when dealing with user-generated content or dynamic content that includes style attributes.
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-sanitize_css)
@@ -728,7 +740,7 @@ for more information.
 #### strip_tags(html)
 
 Strips all HTML tags from the html, including comments. This functionality is
-powered by the rails-html-sanitizer gem.
+powered by the [rails-html-sanitizer](https://github.com/rails/rails-html-sanitizer) gem.
 
 ```ruby
 strip_tags("Strip <i>these</i> tags!")
@@ -740,7 +752,7 @@ strip_tags("<b>Bold</b> no more!  <a href='more.html'>See more</a>")
 # => Bold no more!  See more
 ```
 
-NB: The output may still contain unescaped '<', '>', '&' characters and confuse
+Note: The output may still contain unescaped '<', '>', '&' characters and confuse
 browsers.
 
 See the [API
