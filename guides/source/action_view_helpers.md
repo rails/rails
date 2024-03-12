@@ -384,7 +384,7 @@ You define a `content_for` block in the special page's view, and then you
 `yield` it within the layout. For other pages, where the `content_for` block
 isn't utilized, it remains empty, resulting in nothing being yielded.
 
-**app/views/articles/special_page.html.erb**
+**app/views/users/special_page.html.erb**
 
 ```html+erb
 <p>This is a special page.</p>
@@ -484,7 +484,7 @@ for more information.
 
 #### debug
 
-Returns a `pre` tag that has object dumped by YAML. This creates a very readable
+Returns a YAML representation of object wrapped with the `pre` tag. This creates a very readable
 way to inspect an object.
 
 ```ruby
@@ -509,13 +509,12 @@ for more information.
 
 ### FormHelper
 
-Form helpers are designed to make working with models much easier compared to
-using just standard HTML elements by providing a set of methods for creating
-forms based on your models. This helper generates the HTML for forms, providing
-a method for each sort of input (e.g., text, password, select, and so on). When
-the form is submitted (i.e., when the user hits the submit button or form.submit
-is called via JavaScript), the form inputs will be bundled into the params
-object and passed back to the controller.
+Form helpers simplify working with models compared to using standard HTML
+elements alone. They offer a range of methods tailored to generating forms based
+on your models. Each method corresponds to a specific type of input, such as
+text fields, password fields, select dropdowns, and more. When a form is
+submitted the inputs within the form are grouped into the params
+object and sent back to the controller.
 
 You can learn more about form helpers in the [Action View Form Helpers
 Guide](form_helpers.html).
@@ -526,7 +525,25 @@ Provides functionality for working with JavaScript in your views.
 
 #### escape_javascript
 
-Escape carrier returns and single and double quotes for JavaScript segments.
+Escapes carriage returns and single and double quotes for JavaScript segments.
+You would use this method to take a string of text and making sure that it
+doesn’t contain any invalid characters when the browser tries to parse it.
+
+For example, if you have a partial with a greeting that contains double quotes,
+you can escape the greeting to use in a JavaScript alert.
+
+**app/views/users/greeting.html.rb**
+
+```html+erb
+my name is <%= current_user.name %>, and I'm here to say "Welcome to our website!"
+```
+
+```ruby
+<script>
+  var greeting = '<%= escape_javascript(render 'captured_pokemons/greeting') %>';
+  alert(`Hello, ${greeting}`);
+</script>
+```
 
 #### javascript_tag
 
