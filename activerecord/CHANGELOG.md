@@ -1,3 +1,46 @@
+*   Add dirties option to uncached
+
+    This adds a `dirties` option to `ActiveRecord::Base.uncached` and
+    `ActiveRecord::ConnectionAdapters::ConnectionPool#uncached`.
+
+    When set to `true` (the default), writes will clear all query caches belonging to the current thread.
+    When set to `false`, writes to the affected connection pool will not clear any query cache.
+
+    This is needed by Solid Cache so that cache writes do not clear query caches.
+
+    *Donal McBreen*
+
+*   Deprecate `ActiveRecord::Base.connection` in favor of `.lease_connection`
+
+    The method has been renamed as `lease_connection` to better reflect that the returned
+    connection will be held for the duration of the request or job.
+
+    This deprecation is a soft deprecation, no warnings will be issued and there is no
+    current plan to remove the method.
+
+    *Jean Boussier*
+
+*   Deprecate `ActiveRecord::ConnectionAdapters::ConnectionPool#connection`
+
+    The method has been renamed as `lease_connection` to better reflect that the returned
+    connection will be held for the duration of the request or job.
+
+    *Jean Boussier*
+
+*   Expose a generic fixture accessor for fixture names that may conflict with Minitest
+
+    ```ruby
+    assert_equal "Ruby on Rails", web_sites(:rubyonrails).name
+    assert_equal "Ruby on Rails", fixture(:web_sites, :rubyonrails).name
+    ```
+
+    *Jean Boussier*
+
+*   Using `Model.query_constraints` with a single non-primary-key column used to raise as expected, but with an
+    incorrect error message. This has been fixed to raise with a more appropriate error message.
+
+    *Joshua Young*
+
 *   Fix `has_one` association autosave setting the foreign key attribute when it is unchanged.
 
     This behaviour is also inconsistent with autosaving `belongs_to` and can have unintended side effects like raising

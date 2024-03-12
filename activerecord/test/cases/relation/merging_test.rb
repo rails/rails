@@ -139,14 +139,14 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     non_mary_and_bob = Author.where.not(id: [mary, bob])
 
-    author_id = Author.connection.quote_table_name("authors.id")
+    author_id = Author.lease_connection.quote_table_name("authors.id")
     assert_queries_match(/WHERE #{Regexp.escape(author_id)} NOT IN \((\?|\W?\w?\d), \g<1>\)\z/) do
       assert_equal [david], non_mary_and_bob.merge(non_mary_and_bob)
     end
 
     only_david = Author.where("#{author_id} IN (?)", david)
 
-    matcher = if Author.connection.prepared_statements
+    matcher = if Author.lease_connection.prepared_statements
       if current_adapter?(:PostgreSQLAdapter)
         /WHERE \(#{Regexp.escape(author_id)} IN \(\$1\)\)\z/
       else
@@ -364,7 +364,7 @@ class MergingDifferentRelationsTest < ActiveRecord::TestCase
     assert_equal dev.ratings, [rating_1]
   end
 
-  if ActiveRecord::Base.connection.supports_common_table_expressions?
+  if ActiveRecord::Base.lease_connection.supports_common_table_expressions?
     test "merging relation with common table expression" do
       posts_with_tags = Post.with(posts_with_tags: Post.where("tags_count > 0")).from("posts_with_tags AS posts")
       posts_with_comments = Post.where("legacy_comments_count > 0")

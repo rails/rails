@@ -166,8 +166,8 @@ class AssociationsTest < ActiveRecord::TestCase
       comment.blog_post
     end.first
 
-    assert_match(/#{Regexp.escape(Sharded::BlogPost.connection.quote_table_name("sharded_blog_posts.blog_id"))} =/, sql)
-    assert_match(/#{Regexp.escape(Sharded::BlogPost.connection.quote_table_name("sharded_blog_posts.id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::BlogPost.lease_connection.quote_table_name("sharded_blog_posts.blog_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::BlogPost.lease_connection.quote_table_name("sharded_blog_posts.id"))} =/, sql)
   end
 
   def test_querying_by_whole_associated_records_using_query_constraints
@@ -246,7 +246,7 @@ class AssociationsTest < ActiveRecord::TestCase
       comments = blog_post.comments.to_a
     end.first
 
-    assert_match(/WHERE .*#{Regexp.escape(Sharded::Comment.connection.quote_table_name("sharded_comments.blog_id"))} =/, sql)
+    assert_match(/WHERE .*#{Regexp.escape(Sharded::Comment.lease_connection.quote_table_name("sharded_comments.blog_id"))} =/, sql)
     assert_not_empty(comments)
     assert_equal(expected_comments.sort, comments.sort)
   end
@@ -270,8 +270,8 @@ class AssociationsTest < ActiveRecord::TestCase
       blog_post.comments.to_a
     end.first
 
-    assert_match(/#{Regexp.escape(Sharded::Comment.connection.quote_table_name("sharded_comments.blog_post_id"))} =/, sql)
-    assert_match(/#{Regexp.escape(Sharded::Comment.connection.quote_table_name("sharded_comments.blog_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::Comment.lease_connection.quote_table_name("sharded_comments.blog_post_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::Comment.lease_connection.quote_table_name("sharded_comments.blog_id"))} =/, sql)
   end
 
   def test_belongs_to_association_does_not_use_parent_query_constraints_if_not_configured_to
@@ -368,14 +368,29 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal(another_blog.id, comment.blog_id)
   end
 
-  def test_query_constraints_that_dont_include_the_primary_key_raise
+  def test_query_constraints_that_dont_include_the_primary_key_raise_with_a_single_column
     original = Sharded::BlogPost.instance_variable_get(:@query_constraints_list)
-    Sharded::BlogPost.query_constraints :title, :revision
-    Sharded::BlogPost.has_many :comments_without_query_constraints, primary_key: [:blog_id, :id], class_name: "Comment"
+    Sharded::BlogPost.query_constraints :title
+    Sharded::BlogPost.has_many :comments_without_single_column_query_constraints, primary_key: [:blog_id, :id], class_name: "Comment"
     blog_post = sharded_blog_posts(:great_post_blog_one)
 
     error = assert_raises ArgumentError do
-      blog_post.comments_without_query_constraints.to_a
+      blog_post.comments_without_single_column_query_constraints.to_a
+    end
+
+    assert_equal "The query constraints on the `Sharded::BlogPost` model does not include the primary key so Active Record is unable to derive the foreign key constraints for the association. You need to explicitly define the query constraints for this association.", error.message
+  ensure
+    Sharded::BlogPost.instance_variable_set(:@query_constraints_list, original)
+  end
+
+  def test_query_constraints_that_dont_include_the_primary_key_raise_with_multiple_columns
+    original = Sharded::BlogPost.instance_variable_get(:@query_constraints_list)
+    Sharded::BlogPost.query_constraints :title, :revision
+    Sharded::BlogPost.has_many :comments_without_multiple_column_query_constraints, primary_key: [:blog_id, :id], class_name: "Comment"
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+
+    error = assert_raises ArgumentError do
+      blog_post.comments_without_multiple_column_query_constraints.to_a
     end
 
     assert_equal "The query constraints on the `Sharded::BlogPost` model does not include the primary key so Active Record is unable to derive the foreign key constraints for the association. You need to explicitly define the query constraints for this association.", error.message
@@ -1478,7 +1493,7 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_equal 2, sql.size
     preload_sql = sql.last
 
-    c = Cpk::OrderAgreement.connection
+    c = Cpk::OrderAgreement.lease_connection
     order_id_column = Regexp.escape(c.quote_table_name("cpk_order_agreements.order_id"))
     order_id_constraint = /#{order_id_column} = (\?|(\d+)|\$\d)$/
     expectation = /SELECT.*WHERE.* #{order_id_constraint}/
@@ -1500,7 +1515,7 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_equal 2, sql.size
     preload_sql = sql.last
 
-    c = Cpk::Order.connection
+    c = Cpk::Order.lease_connection
     order_id = Regexp.escape(c.quote_table_name("cpk_orders.id"))
     order_constraint = /#{order_id} = (\?|(\d+)|\$\d)$/
     expectation = /SELECT.*WHERE.* #{order_constraint}/

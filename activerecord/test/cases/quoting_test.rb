@@ -24,15 +24,19 @@ module ActiveRecord
       end
 
       def test_quote_column_name
-        assert_equal "foo", @quoter.quote_column_name("foo")
+        assert_raises NotImplementedError do
+          @quoter.quote_column_name("foo")
+        end
       end
 
       def test_quote_table_name
-        assert_equal "foo", @quoter.quote_table_name("foo")
+        assert_raises NotImplementedError do
+          @quoter.quote_table_name("foo")
+        end
       end
 
       def test_quote_table_name_calls_quote_column_name
-        @quoter.extend(Module.new {
+        @quoter.class.extend(Module.new {
           def quote_column_name(string)
             "lol"
           end
@@ -198,7 +202,7 @@ module ActiveRecord
 
     class TypeCastingTest < ActiveRecord::TestCase
       def setup
-        @conn = ActiveRecord::Base.connection
+        @conn = ActiveRecord::Base.lease_connection
       end
 
       def test_type_cast_symbol
@@ -246,7 +250,7 @@ module ActiveRecord
 
     class QuoteBooleanTest < ActiveRecord::TestCase
       def setup
-        @connection = ActiveRecord::Base.connection
+        @connection = ActiveRecord::Base.lease_connection
       end
 
       def test_quote_returns_frozen_string

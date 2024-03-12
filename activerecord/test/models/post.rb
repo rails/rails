@@ -337,8 +337,12 @@ class FakeKlass
       ActiveRecord::Scoping::ScopeRegistry.instance
     end
 
-    def connection
-      Post.connection
+    def adapter_class
+      Post.adapter_class
+    end
+
+    def lease_connection
+      Post.lease_connection
     end
 
     def table_name

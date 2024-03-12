@@ -16,7 +16,7 @@ module ActiveRecord
       #   assert_queries_count(1, include_schema: true) { Post.columns }
       #
       def assert_queries_count(count = nil, include_schema: false, &block)
-        ActiveRecord::Base.connection.materialize_transactions
+        ActiveRecord::Base.lease_connection.materialize_transactions
 
         counter = SQLCounter.new
         ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
@@ -57,7 +57,7 @@ module ActiveRecord
       #   assert_queries_match(/FROM pg_attribute/i, include_schema: true) { Post.columns }
       #
       def assert_queries_match(match, count: nil, include_schema: false, &block)
-        ActiveRecord::Base.connection.materialize_transactions
+        ActiveRecord::Base.lease_connection.materialize_transactions
 
         counter = SQLCounter.new
         ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do

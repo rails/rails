@@ -43,9 +43,9 @@ class TransactionTest < ActiveRecord::TestCase
     def test_rollback_dirty_changes_even_with_raise_during_rollback_removes_from_pool
       topic = topics(:fifth)
 
-      connection = Topic.connection
+      connection = Topic.lease_connection
 
-      Topic.connection.class_eval do
+      Topic.lease_connection.class_eval do
         alias :real_exec_rollback_db_transaction :exec_rollback_db_transaction
         define_method(:exec_rollback_db_transaction) do
           raise
@@ -66,7 +66,7 @@ class TransactionTest < ActiveRecord::TestCase
     def test_rollback_dirty_changes_even_with_raise_during_rollback_doesnt_commit_transaction
       topic = topics(:fifth)
 
-      Topic.connection.class_eval do
+      Topic.lease_connection.class_eval do
         alias :real_exec_rollback_db_transaction :exec_rollback_db_transaction
         define_method(:exec_rollback_db_transaction) do
           raise
@@ -90,10 +90,10 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     def test_connection_removed_from_pool_when_commit_raises_and_rollback_raises
-      connection = Topic.connection
+      connection = Topic.lease_connection
 
       # Update commit_transaction to raise the first time it is called.
-      Topic.connection.transaction_manager.class_eval do
+      Topic.lease_connection.transaction_manager.class_eval do
         alias :real_commit_transaction :commit_transaction
         define_method(:commit_transaction) do
           raise "commit failed"
@@ -101,7 +101,7 @@ class TransactionTest < ActiveRecord::TestCase
       end
 
       # Update rollback_transaction to raise.
-      Topic.connection.transaction_manager.class_eval do
+      Topic.lease_connection.transaction_manager.class_eval do
         alias :real_rollback_transaction :rollback_transaction
         define_method(:rollback_transaction) do |*_args|
           raise "rollback failed"
@@ -124,12 +124,12 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     def test_connection_removed_from_pool_when_begin_raises_after_successfully_beginning_a_transaction
-      connection = Topic.connection
+      connection = Topic.lease_connection
       # Disable lazy transactions so that we will begin a transaction before attempting to write.
       connection.disable_lazy_transactions!
 
       # Update begin_db_transaction to successfully begin a transaction, then raise.
-      Topic.connection.class_eval do
+      Topic.lease_connection.class_eval do
         alias :real_begin_db_transaction :begin_db_transaction
         define_method(:begin_db_transaction) do |*_args|
           raise "begin failed"
@@ -151,7 +151,7 @@ class TransactionTest < ActiveRecord::TestCase
       queue = Queue.new
       connection = nil
       thread = Thread.new do
-        connection = Topic.connection
+        connection = Topic.lease_connection
 
         # Disable lazy transactions so that we will begin a transaction before attempting to write.
         connection.disable_lazy_transactions!
@@ -299,7 +299,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_successful_with_return_outside_inner_transaction
     committed = false
 
-    Topic.connection.class_eval do
+    Topic.lease_connection.class_eval do
       alias :real_commit_db_transaction :commit_db_transaction
       define_method(:commit_db_transaction) do
         committed = true
@@ -315,7 +315,7 @@ class TransactionTest < ActiveRecord::TestCase
     assert_predicate Topic.find(1), :approved?, "First should have been approved"
     assert_not_predicate Topic.find(2), :approved?, "Second should have been unapproved"
   ensure
-    Topic.connection.class_eval do
+    Topic.lease_connection.class_eval do
       remove_method :commit_db_transaction
       alias :commit_db_transaction :real_commit_db_transaction rescue nil
     end
@@ -393,7 +393,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_number_of_transactions_in_commit
     num = nil
 
-    Topic.connection.class_eval do
+    Topic.lease_connection.class_eval do
       alias :real_commit_db_transaction :commit_db_transaction
       define_method(:commit_db_transaction) do
         num = transaction_manager.open_transactions
@@ -408,7 +408,7 @@ class TransactionTest < ActiveRecord::TestCase
 
     assert_equal 0, num
   ensure
-    Topic.connection.class_eval do
+    Topic.lease_connection.class_eval do
       remove_method :commit_db_transaction
       alias :commit_db_transaction :real_commit_db_transaction rescue nil
     end
@@ -735,7 +735,7 @@ class TransactionTest < ActiveRecord::TestCase
 
     assert_predicate @first.reload, :approved?
     assert_not_predicate @second.reload, :approved?
-  end if Topic.connection.supports_savepoints?
+  end if Topic.lease_connection.supports_savepoints?
 
   def test_force_savepoint_on_instance
     @first.transaction do
@@ -756,7 +756,7 @@ class TransactionTest < ActiveRecord::TestCase
 
     assert_predicate @first.reload, :approved?
     assert_not_predicate @second.reload, :approved?
-  end if Topic.connection.supports_savepoints?
+  end if Topic.lease_connection.supports_savepoints?
 
   def test_no_savepoint_in_nested_transaction_without_force
     Topic.transaction do
@@ -777,7 +777,7 @@ class TransactionTest < ActiveRecord::TestCase
 
     assert_not_predicate @first.reload, :approved?
     assert_not_predicate @second.reload, :approved?
-  end if Topic.connection.supports_savepoints?
+  end if Topic.lease_connection.supports_savepoints?
 
   def test_many_savepoints
     Topic.transaction do
@@ -821,36 +821,36 @@ class TransactionTest < ActiveRecord::TestCase
     assert_equal "One", @one
     assert_equal "Two", @two
     assert_equal "Three", @three
-  end if Topic.connection.supports_savepoints?
+  end if Topic.lease_connection.supports_savepoints?
 
   def test_using_named_savepoints
     Topic.transaction do
       @first.approved = true
       @first.save!
-      Topic.connection.create_savepoint("first")
+      Topic.lease_connection.create_savepoint("first")
 
       @first.approved = false
       @first.save!
-      Topic.connection.rollback_to_savepoint("first")
+      Topic.lease_connection.rollback_to_savepoint("first")
       assert_predicate @first.reload, :approved?
 
       @first.approved = false
       @first.save!
-      Topic.connection.release_savepoint("first")
+      Topic.lease_connection.release_savepoint("first")
       assert_not_predicate @first.reload, :approved?
     end
-  end if Topic.connection.supports_savepoints?
+  end if Topic.lease_connection.supports_savepoints?
 
   def test_releasing_named_savepoints
     Topic.transaction do
-      Topic.connection.materialize_transactions
+      Topic.lease_connection.materialize_transactions
 
-      Topic.connection.create_savepoint("another")
-      Topic.connection.release_savepoint("another")
+      Topic.lease_connection.create_savepoint("another")
+      Topic.lease_connection.release_savepoint("another")
 
       # The savepoint is now gone and we can't remove it again.
       assert_raises(ActiveRecord::StatementInvalid) do
-        Topic.connection.release_savepoint("another")
+        Topic.lease_connection.release_savepoint("another")
       end
     end
   end
@@ -859,33 +859,33 @@ class TransactionTest < ActiveRecord::TestCase
     Topic.transaction do
       Topic.delete_all # Dirty the transaction to force a savepoint below
 
-      assert_nil Topic.connection.current_savepoint_name
-      assert_nil Topic.connection.current_transaction.savepoint_name
+      assert_nil Topic.lease_connection.current_savepoint_name
+      assert_nil Topic.lease_connection.current_transaction.savepoint_name
 
       Topic.transaction(requires_new: true) do
         Topic.delete_all # Dirty the transaction to force a savepoint below
 
-        assert_equal "active_record_1", Topic.connection.current_savepoint_name
-        assert_equal "active_record_1", Topic.connection.current_transaction.savepoint_name
+        assert_equal "active_record_1", Topic.lease_connection.current_savepoint_name
+        assert_equal "active_record_1", Topic.lease_connection.current_transaction.savepoint_name
 
         Topic.transaction(requires_new: true) do
-          assert_equal "active_record_2", Topic.connection.current_savepoint_name
-          assert_equal "active_record_2", Topic.connection.current_transaction.savepoint_name
+          assert_equal "active_record_2", Topic.lease_connection.current_savepoint_name
+          assert_equal "active_record_2", Topic.lease_connection.current_transaction.savepoint_name
         end
 
-        assert_equal "active_record_1", Topic.connection.current_savepoint_name
-        assert_equal "active_record_1", Topic.connection.current_transaction.savepoint_name
+        assert_equal "active_record_1", Topic.lease_connection.current_savepoint_name
+        assert_equal "active_record_1", Topic.lease_connection.current_transaction.savepoint_name
       end
     end
   end
 
   def test_rollback_when_commit_raises
-    assert_called(Topic.connection, :begin_db_transaction) do
-      Topic.connection.stub(:commit_db_transaction, -> { raise("OH NOES") }) do
-        assert_called(Topic.connection, :rollback_db_transaction) do
+    assert_called(Topic.lease_connection, :begin_db_transaction) do
+      Topic.lease_connection.stub(:commit_db_transaction, -> { raise("OH NOES") }) do
+        assert_called(Topic.lease_connection, :rollback_db_transaction) do
           e = assert_raise RuntimeError do
             Topic.transaction do
-              Topic.connection.materialize_transactions
+              Topic.lease_connection.materialize_transactions
             end
           end
           assert_equal "OH NOES", e.message
@@ -1177,27 +1177,27 @@ class TransactionTest < ActiveRecord::TestCase
 
     assert_nothing_raised do
       Topic.reset_column_information
-      Topic.connection.add_column("topics", "stuff", :string)
+      Topic.lease_connection.add_column("topics", "stuff", :string)
       assert_includes Topic.column_names, "stuff"
 
       Topic.reset_column_information
-      Topic.connection.remove_column("topics", "stuff")
+      Topic.lease_connection.remove_column("topics", "stuff")
       assert_not_includes Topic.column_names, "stuff"
     end
 
-    if Topic.connection.supports_ddl_transactions?
+    if Topic.lease_connection.supports_ddl_transactions?
       assert_nothing_raised do
-        Topic.transaction { Topic.connection.add_column("topics", "stuff", :string) }
+        Topic.transaction { Topic.lease_connection.add_column("topics", "stuff", :string) }
       end
     else
       Topic.transaction do
-        assert_raise(ActiveRecord::StatementInvalid) { Topic.connection.add_column("topics", "stuff", :string) }
+        assert_raise(ActiveRecord::StatementInvalid) { Topic.lease_connection.add_column("topics", "stuff", :string) }
         raise ActiveRecord::Rollback
       end
     end
   ensure
     begin
-      Topic.connection.remove_column("topics", "stuff")
+      Topic.lease_connection.remove_column("topics", "stuff")
     rescue
     ensure
       Topic.reset_column_information
@@ -1205,7 +1205,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_transactions_state_from_rollback
-    connection = Topic.connection
+    connection = Topic.lease_connection
     transaction = ActiveRecord::ConnectionAdapters::TransactionManager.new(connection).begin_transaction
 
     assert_predicate transaction, :open?
@@ -1219,7 +1219,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_transactions_state_from_commit
-    connection = Topic.connection
+    connection = Topic.lease_connection
     transaction = ActiveRecord::ConnectionAdapters::TransactionManager.new(connection).begin_transaction
 
     assert_predicate transaction, :open?
@@ -1233,7 +1233,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_mark_transaction_state_as_committed
-    connection = Topic.connection
+    connection = Topic.lease_connection
     transaction = ActiveRecord::ConnectionAdapters::TransactionManager.new(connection).begin_transaction
 
     transaction.rollback
@@ -1242,7 +1242,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_mark_transaction_state_as_rolledback
-    connection = Topic.connection
+    connection = Topic.lease_connection
     transaction = ActiveRecord::ConnectionAdapters::TransactionManager.new(connection).begin_transaction
 
     transaction.commit
@@ -1251,7 +1251,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_mark_transaction_state_as_nil
-    connection = Topic.connection
+    connection = Topic.lease_connection
     transaction = ActiveRecord::ConnectionAdapters::TransactionManager.new(connection).begin_transaction
 
     transaction.commit
@@ -1260,7 +1260,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_transaction_rollback_with_primarykeyless_tables
-    connection = ActiveRecord::Base.connection
+    connection = ActiveRecord::Base.lease_connection
     connection.create_table(:transaction_without_primary_keys, force: true, id: false) do |t|
       t.integer :thing_id
     end
@@ -1328,7 +1328,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_nested_transactions_after_disable_lazy_transactions
-    Topic.connection.disable_lazy_transactions!
+    Topic.lease_connection.disable_lazy_transactions!
 
     actual_queries = capture_sql(include_schema: true) do
       # RealTransaction (begin..commit)
@@ -1363,7 +1363,7 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
-  if ActiveRecord::Base.connection.prepared_statements
+  if ActiveRecord::Base.lease_connection.prepared_statements
     def test_prepared_statement_materializes_transaction
       Topic.first
 
@@ -1391,12 +1391,12 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_accessing_raw_connection_materializes_transaction
     assert_queries_match(/BEGIN|COMMIT/i, include_schema: true) do
-      Topic.transaction { Topic.connection.raw_connection }
+      Topic.transaction { Topic.lease_connection.raw_connection }
     end
   end
 
   def test_accessing_raw_connection_disables_lazy_transactions
-    Topic.connection.raw_connection
+    Topic.lease_connection.raw_connection
 
     assert_queries_match(/BEGIN|COMMIT/i, include_schema: true) do
       Topic.transaction { }
@@ -1416,7 +1416,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_transactions_can_be_manually_materialized
     assert_queries_match(/BEGIN|COMMIT/i, include_schema: true) do
       Topic.transaction do
-        Topic.connection.materialize_transactions
+        Topic.lease_connection.materialize_transactions
       end
     end
   end
@@ -1470,10 +1470,10 @@ class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
 
     assert_not_predicate @first.reload, :approved?
   end
-end if Topic.connection.supports_savepoints?
+end if Topic.lease_connection.supports_savepoints?
 
 class ConcurrentTransactionTest < ActiveRecord::TestCase
-  if ActiveRecord::Base.connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)
+  if ActiveRecord::Base.lease_connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)
     self.use_transactional_tests = false
     fixtures :topics, :developers
 
@@ -1489,7 +1489,7 @@ class ConcurrentTransactionTest < ActiveRecord::TestCase
             topic.approved = !topic.approved?
             assert topic.save!
           end
-          Topic.connection.close
+          Topic.lease_connection.close
         end
       end
 
@@ -1524,7 +1524,7 @@ class ConcurrentTransactionTest < ActiveRecord::TestCase
               dev = Developer.find(1)
               assert_equal original_salary, dev.salary
             end
-            Developer.connection.close
+            Developer.lease_connection.close
           end
         end
 
@@ -1537,7 +1537,7 @@ class ConcurrentTransactionTest < ActiveRecord::TestCase
               assert_equal original_salary, Developer.find(1).salary
             end
           end
-          Developer.connection.close
+          Developer.lease_connection.close
         end
 
         threads.each(&:join)

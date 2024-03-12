@@ -69,9 +69,9 @@ class UpdateAllTest < ActiveRecord::TestCase
     end
 
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-      assert_no_match %r/SELECT DISTINCT #{Regexp.escape(Pet.connection.quote_table_name("pets.pet_id"))}/, sqls.last
+      assert_no_match %r/SELECT DISTINCT #{Regexp.escape(Pet.lease_connection.quote_table_name("pets.pet_id"))}/, sqls.last
     else
-      assert_match %r/SELECT #{Regexp.escape(Pet.connection.quote_table_name("pets.pet_id"))}/, sqls.last
+      assert_match %r/SELECT #{Regexp.escape(Pet.lease_connection.quote_table_name("pets.pet_id"))}/, sqls.last
     end
   end
 

@@ -485,7 +485,7 @@ module ActiveRecord
   # them to the console as they happen, along with benchmarks describing how
   # long each step took.
   #
-  # You can quiet them down by setting ActiveRecord::Migration.verbose = false.
+  # You can quiet them down by setting <tt>ActiveRecord::Migration.verbose = false</tt>.
   #
   # You can also insert your own messages and benchmarks by using the +say_with_time+
   # method:
@@ -791,6 +791,12 @@ module ActiveRecord
       self.class.disable_ddl_transaction
     end
 
+    ##
+    # :singleton-method: verbose
+    #
+    # Specifies if migrations will write the actions they are taking to the console as they
+    # happen, along with benchmarks describing how long each step took. Defaults to
+    # true.
     cattr_accessor :verbose
     attr_accessor :name, :version
 
@@ -1405,9 +1411,8 @@ module ActiveRecord
 
       # For cases where a table doesn't exist like loading from schema cache
       def current_version
-        connection = ActiveRecord::Tasks::DatabaseTasks.migration_connection
         connection_pool = ActiveRecord::Tasks::DatabaseTasks.migration_connection_pool
-        schema_migration = SchemaMigration.new(connection)
+        schema_migration = SchemaMigration.new(connection_pool)
         internal_metadata = InternalMetadata.new(connection_pool)
 
         MigrationContext.new(migrations_paths, schema_migration, internal_metadata).current_version

@@ -473,7 +473,7 @@ module ActiveRecord
         unless self.class.attribute_methods_generated?
           if self.class.method_defined?(name)
             # The method is explicitly defined in the model, but calls a generated
-            # method with super. So we must resume the call chain at the right setp.
+            # method with super. So we must resume the call chain at the right step.
             last_method = method(name)
             last_method = last_method.super_method while last_method.super_method
             self.class.define_attribute_methods

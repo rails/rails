@@ -17,7 +17,7 @@ class PreparedStatementsDisabledTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_select_query_works_even_when_prepared_statements_are_disabled
-    assert_not Developer.connection.prepared_statements
+    assert_not Developer.lease_connection.prepared_statements
 
     david = developers(:david)
 
