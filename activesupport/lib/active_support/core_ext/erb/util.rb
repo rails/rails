@@ -188,6 +188,11 @@ class ERB
         else
           raise NotImplementedError, source.matched
         end
+
+        unless source.eos? || source.exist?(/#{start_re}|#{finish_re}/m)
+          tokens << [:TEXT, source.rest]
+          source.terminate
+        end
       end
 
       tokens
