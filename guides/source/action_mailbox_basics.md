@@ -319,20 +319,19 @@ MIME message to work.
 
 ### Amazon SES
 
-  [Configure SES](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/receiving-email-notifications.html) to (save emails to S3)(https://docs.aws.amazon.com/ses/latest/dg/receiving-email-action-s3.html).
+[Configure SES](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/receiving-email-notifications.html) to (save emails to S3)(https://docs.aws.amazon.com/ses/latest/dg/receiving-email-action-s3.html).
 
-  Select the option to also trigger notification in SNS.
+Select the option to also trigger notification in SNS.
 
-  Take note of the topic unique reference (+TopicArn+) when using/creating the SNS topic.
+Take note of the topic unique reference (+TopicArn+) when using/creating the SNS topic.
 
-  [Configure the SNS topic](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/receiving-email-action-sns.html) to send notifications to +/rails/action_mailbox/amazon_ses/inbound_emails+.
-  The option "Enable raw message delivery" must not be selected. See [documentation](https://docs.aws.amazon.com/sns/latest/dg/sns-large-payload-raw-message-delivery.html) for more details.
+[Configure the SNS topic](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/receiving-email-action-sns.html) to send notifications to +/rails/action_mailbox/amazon_ses/inbound_emails+.
 
-  If your application is found at https://example.com you would specify the fully-qualified URL https://example.com/rails/action_mailbox/amazon_ses/inbound_emails.
+The option "Enable raw message delivery" must not be selected. See [documentation](https://docs.aws.amazon.com/sns/latest/dg/sns-large-payload-raw-message-delivery.html) for more details.
 
-  Add the `aws-sdk-sns` and `aws-sdk-s3` gems to your Gemfile.
+If your application is found at https://example.com you would specify the fully-qualified URL https://example.com/rails/action_mailbox/amazon_ses/inbound_emails.
 
-  Configure Action Mailbox to accept notifications from Amazon:
+Add the `aws-sdk-sns` and `aws-sdk-s3` gems to your Gemfile.
 
 Configure Action Mailbox to accept notifications from _Amazon SES_:
 
