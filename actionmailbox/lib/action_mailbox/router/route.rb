@@ -21,7 +21,7 @@ module ActionMailbox
         inbound_email.mail.recipients.any? { |recipient| address.casecmp?(recipient) }
       when Regexp
         inbound_email.mail.recipients.any? { |recipient| address.match?(recipient) }
-      when Proc
+      when ActiveSupport::Callable
         address.call(inbound_email)
       else
         address.match?(inbound_email)

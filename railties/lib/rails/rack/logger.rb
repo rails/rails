@@ -64,7 +64,7 @@ module Rails
         def compute_tags(request) # :doc:
           @taggers.collect do |tag|
             case tag
-            when Proc
+            when ActiveSupport::Callable
               tag.call(request)
             when Symbol
               request.send(tag)
