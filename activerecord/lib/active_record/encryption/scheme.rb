@@ -50,7 +50,7 @@ module ActiveRecord
       end
 
       def key_provider
-        @key_provider_param || build_key_provider || default_key_provider
+        @key_provider_param || key_provider_from_key || deterministic_key_provider || default_key_provider
       end
 
       def merge(other_scheme)
@@ -80,10 +80,14 @@ module ActiveRecord
           raise Errors::Configuration, "key_provider: and key: can't be used simultaneously" if @key_provider_param && @key
         end
 
-        def build_key_provider
-          return DerivedSecretKeyProvider.new(@key) if @key.present?
+        def key_provider_from_key
+          @key_provider_from_key ||= if @key.present?
+            DerivedSecretKeyProvider.new(@key)
+          end
+        end
 
-          if @deterministic
+        def deterministic_key_provider
+          @deterministic_key_provider ||= if @deterministic
             DeterministicKeyProvider.new(ActiveRecord::Encryption.config.deterministic_key)
           end
         end
