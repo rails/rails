@@ -630,7 +630,7 @@ intermediate whitespace looks uniform. */
   border-width: 2px;
   min-height: calc(36px + 1.2em);
   margin: 2em auto;
-  padding: 0.75em;
+  padding: 0.75em !important;
   position: relative;
   /* Remove bottom margin of paragraphs in special boxes, otherwise they get a
   spurious blank area below with the box background. */

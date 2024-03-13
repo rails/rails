@@ -15,7 +15,7 @@ intermediate whitespace looks uniform. */
   border-width: 2px;
   min-height: calc(36px + 1.2em);
   margin: 2em auto;
-  padding: 0.75em;
+  padding: 0.75em !important;
   position: relative;
 
   // Padding and spacing for LTR vs RTL langauge defaults
