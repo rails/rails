@@ -2,12 +2,7 @@
 
 gem "aws-sdk-sns"
 
-begin
-  require "aws-sdk-sns"
-rescue LoadError => e
-  raise LoadError,
-        "Could not load the 'aws-sdk-sns' gem. Ensure that you've added the gem to your Gemfile.", e.backtrace
-end
+require "aws-sdk-sns"
 
 module ActionMailbox
   module Ingresses
