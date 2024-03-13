@@ -1249,6 +1249,9 @@ body.guide #feature #subCol {
     width: 30vw;
   }
 }
+body.guide #feature #subCol h3.chapter img {
+  margin-right: 0.25em;
+}
 @media (min-width: 1025px) {
   body.guide #feature #subCol ol {
     overflow-y: auto;

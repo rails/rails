@@ -642,6 +642,10 @@ body.guide {
         width: 30vw;
       }
 
+      h3.chapter img {
+        margin-right: 0.25em;
+      }
+
       ol {
         @include media('>desktop') {
           overflow-y: auto;
