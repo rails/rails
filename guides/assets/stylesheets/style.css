@@ -635,6 +635,16 @@ intermediate whitespace looks uniform. */
   /* Remove bottom margin of paragraphs in special boxes, otherwise they get a
   spurious blank area below with the box background. */
 }
+:where(body[dir=ltr]) .interstitial {
+  background-position: 10px 10px;
+  padding-right: 1em !important;
+  padding-left: 56px !important;
+}
+:where(body[dir=rtl]) .interstitial {
+  background-position: calc(100% - 10px) 10px;
+  padding-right: 56px !important;
+  padding-left: 1em !important;
+}
 .interstitial p {
   margin-bottom: 0.75em;
 }
@@ -644,7 +654,8 @@ intermediate whitespace looks uniform. */
 .interstitial.code {
   border: none;
   background-color: #2E2E2E;
-  background-image: url("../images/icon_file-code.svg");
+  min-height: auto;
+  padding-left: 1em !important;
 }
 .interstitial.code pre {
   margin: 0;
@@ -691,17 +702,6 @@ intermediate whitespace looks uniform. */
   background-color: #F5F3F1;
   background-image: url("../images/icon_question-bubble.svg");
 }
-:where(body[dir=ltr]) .interstitial {
-  background-position: 10px 10px;
-  padding-right: 1em !important;
-  padding-left: 56px !important;
-}
-:where(body[dir=rtl]) .interstitial {
-  background-position: calc(100% - 10px) 10px;
-  padding-right: 56px !important;
-  padding-left: 1em !important;
-}
-
 body.guide {
   -webkit-tap-highlight-color: rgba(38, 27, 35, 0);
   font-family: Inter, sans-serif;
