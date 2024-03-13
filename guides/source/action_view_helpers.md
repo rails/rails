@@ -7,15 +7,17 @@ After reading this guide, you will know:
 
 * How to format dates, strings, and numbers.
 * How to link to images, videos, stylesheets, etc.
-* How to sanitize content.
-* How to localize content.
+* How to work with Atom feeds and JavaScript in the views.
+* How to benchmark, cache and capture content.
+* How to sanitize and debug content.
+* How to work with text and tags.
 
 --------------------------------------------------------------------------------
 
 Overview of Helpers Provided by Action View
 -------------------------------------------
 
-The following outlines some of the most commonly used helpers available in
+The following outlines **some of the most commonly used helpers** available in
 Action View. It's recommended that you review the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html),
 which covers all of the helpers in more detail, but this should serve as a good
@@ -55,15 +57,22 @@ audio_tag("sound.wav", "sound.mid")
 # => <audio><source src="/audios/sound.wav" /><source src="/audios/sound.mid" /></audio>
 ```
 
-When the last parameter is a hash you can add HTML attributes using that parameter.
+When the last parameter is a hash you can add HTML attributes using that
+parameter.
 
 ```ruby
 audio_tag("sound", controls: true)
 ```
-`controls` is a boolean attribute that indicates whether the audio should have controls.
+`controls` is a boolean attribute that indicates whether the audio should have
+controls.
 
-INFO: Internally, `audio_tag` uses [`audio_path` from the AssetUrlHelpers](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-audio_path) to build the audio path. <br><br>
-If you want to include an audio file from a different directory, you can use the `audio_path` helper to get the path to the audio file and then use the `audio_tag` helper to generate the HTML `audio_tag(audio_path("sounds/sound.wav"))`
+INFO: Internally, `audio_tag` uses [`audio_path` from the
+AssetUrlHelpers](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-audio_path)
+to build the audio path. <br><br>
+If you want to include an audio file from a different directory, you can use the
+`audio_path` helper to get the path to the audio file and then use the
+`audio_tag` helper to generate the HTML
+`audio_tag(audio_path("sounds/sound.wav"))`
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-audio_tag)
@@ -110,7 +119,12 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-image_tag)
 for more information.
 
-INFO: Internally, `image_tag` uses [`image_path` from the AssetUrlHelpers](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-image_path) to build the image path. <br><br> If you want to use an image from a different directory, you can use the `image_path` helper to get the path to the image and then use the `image_tag` helper to generate the HTML `image_tag(image_path("icons/icon.png"))`
+INFO: Internally, `image_tag` uses [`image_path` from the
+AssetUrlHelpers](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-image_path)
+to build the image path. <br><br> If you want to use an image from a different
+directory, you can use the `image_path` helper to get the path to the image and
+then use the `image_tag` helper to generate the HTML
+`image_tag(image_path("icons/icon.png"))`
 
 #### javascript_include_tag
 
@@ -124,21 +138,30 @@ javascript_include_tag "common"
 # => <script src="/assets/common.js"></script>
 ```
 
-You can modify the HTML attributes of the script tag by passing a hash as the last argument.
+You can modify the HTML attributes of the script tag by passing a hash as the
+last argument.
 
 ```ruby
 javascript_include_tag "common", async: true
 # => <script src="/assets/common.js" async="async"></script>
 ```
 
-Some of the most common attributes are `async` and `defer`, where `async` will allow the script to be loaded in parallel to be parsed and evaluated as soon as possible and `defer` will indicate that the script is meant to be executed after the document has been parsed.
+Some of the most common attributes are `async` and `defer`, where `async` will
+allow the script to be loaded in parallel to be parsed and evaluated as soon as
+possible and `defer` will indicate that the script is meant to be executed after
+the document has been parsed.
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-javascript_include_tag)
 for more information.
 
-INFO: Internally, `javascript_include_tag` uses [`javascript_path` from the AssetUrlHelpers](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-javascript_path) to build the script path. <br><br>
-If you want to include a JavaScript file from a different directory, you can use the `javascript_path` helper to get the path to the JavaScript file and then use the `javascript_include_tag` helper to generate the HTML `javascript_include_tag(javascript_path("common.js"))`
+INFO: Internally, `javascript_include_tag` uses [`javascript_path` from the
+AssetUrlHelpers](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-javascript_path)
+to build the script path. <br><br>
+If you want to include a JavaScript file from a different directory, you can use
+the `javascript_path` helper to get the path to the JavaScript file and then use
+the `javascript_include_tag` helper to generate the HTML
+`javascript_include_tag(javascript_path("common.js"))`
 
 #### picture_tag
 
@@ -194,10 +217,16 @@ stylesheet_link_tag "application", media: "all"
 # => <link href="/assets/application.css" media="all" rel="stylesheet" />
 ```
 
-`media` is used to specify the media type for the link. The most common media types are `all`, `screen`, `print`, and `speech`.
+`media` is used to specify the media type for the link. The most common media
+types are `all`, `screen`, `print`, and `speech`.
 
-INFO: Internally, `stylesheet_link_tag` uses [`stylesheet_path` from the AssetUrlHelpers](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-stylesheet_path) to build the stylesheet path. <br><br>
-If you want to include a stylesheet file from a different directory, you can use the `stylesheet_path` helper to get the path to the stylesheet file and then use the `stylesheet_link_tag` helper to generate the HTML `stylesheet_link_tag(stylesheet_path("common.js"))`
+INFO: Internally, `stylesheet_link_tag` uses [`stylesheet_path` from the
+AssetUrlHelpers](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-stylesheet_path)
+to build the stylesheet path. <br><br>
+If you want to include a stylesheet file from a different directory, you can use
+the `stylesheet_path` helper to get the path to the stylesheet file and then use
+the `stylesheet_link_tag` helper to generate the HTML
+`stylesheet_link_tag(stylesheet_path("common.js"))`
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-stylesheet_link_tag)
@@ -218,25 +247,32 @@ video_tag(["trailer.ogg", "trailer.flv"])
 # => <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
 ```
 
-When the last parameter is a hash you can add HTML attributes using that parameter.
+When the last parameter is a hash you can add HTML attributes using that
+parameter.
 
 ```ruby
 video_tag("trailer", controls: true)
 ```
-`controls` is a boolean attribute that indicates whether the video should have controls.
+`controls` is a boolean attribute that indicates whether the video should have
+controls.
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-video_tag)
 for more information.
 
-INFO: Internally, `video_tag` uses [`video_path` from the AssetUrlHelpers](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-video_path) to build the video path. <br><br>
-If you want to include a video file from a different directory, you can use the `video_path` helper to get the path to the video file and then use the `video_tag` helper to generate the HTML `video_tag(video_path("trailers/trailer.mp4"))`
+INFO: Internally, `video_tag` uses [`video_path` from the
+AssetUrlHelpers](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-video_path)
+to build the video path. <br><br>
+If you want to include a video file from a different directory, you can use the
+`video_path` helper to get the path to the video file and then use the
+`video_tag` helper to generate the HTML
+`video_tag(video_path("trailers/trailer.mp4"))`
 
 ### AtomFeedHelper
 
-Atom Feeds are XML -based file format used to syndicate content, and can be used
-by users in feed readers to browse content or by search engines to help discover
-additional information about your site.
+Atom Feeds are XML - based file format used to syndicate content, and can be
+used by users in feed readers to browse content or by search engines to help
+discover additional information about your site.
 
 AtomHelper is mostly used in Builder templates for creating XML.
 
@@ -375,10 +411,10 @@ Calling `content_for` stores a block of markup in an identifier for later use.
 You can make subsequent calls to the stored content in other templates, helper
 modules or the layout by passing the identifier as an argument to `yield`.
 
-For example, let's say you have a standard application layout, but also a special
-page that requires certain JavaScript that the rest of the site doesn't need. You
-can use `content_for` to include this JavaScript on our special page without
-fattening up or affecting the rest of the sites performance.
+For example, let's say you have a standard application layout, but also a
+special page that requires certain JavaScript that the rest of the site doesn't
+need. You can use `content_for` to include this JavaScript on our special page
+without fattening up or affecting the rest of the sites performance.
 
 You define a `content_for` block in the special page's view, and then you
 `yield` it within the layout. For other pages, where the `content_for` block
@@ -484,8 +520,8 @@ for more information.
 
 #### debug
 
-Returns a YAML representation of object wrapped with the `pre` tag. This creates a very readable
-way to inspect an object.
+Returns a YAML representation of object wrapped with the `pre` tag. This creates
+a very readable way to inspect an object.
 
 ```ruby
 my_hash = { 'first' => 1, 'second' => 'two', 'third' => [1, 2, 3] }
@@ -513,8 +549,8 @@ Form helpers simplify working with models compared to using standard HTML
 elements alone. They offer a range of methods tailored to generating forms based
 on your models. Each method corresponds to a specific type of input, such as
 text fields, password fields, select dropdowns, and more. When a form is
-submitted the inputs within the form are grouped into the params
-object and sent back to the controller.
+submitted the inputs within the form are grouped into the params object and sent
+back to the controller.
 
 You can learn more about form helpers in the [Action View Form Helpers
 Guide](form_helpers.html).
@@ -700,7 +736,8 @@ for more information.
 
 #### sanitize_css(style)
 
-Sanitizes a block of CSS code, particularly when it comes across a style attribute in HTML content.
+Sanitizes a block of CSS code, particularly when it comes across a style
+attribute in HTML content.
 
 ```ruby
 <%= sanitize_css("background-color: red; color: white; font-size: 16px;") %>
@@ -708,7 +745,8 @@ Sanitizes a block of CSS code, particularly when it comes across a style attribu
 
 In this case, the `sanitize_css` method will remove any CSS that is not allowed.
 
-You can use sanitize_css within your views, especially when dealing with user-generated content or dynamic content that includes style attributes.
+You can use sanitize_css within your views, especially when dealing with
+user-generated content or dynamic content that includes style attributes.
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-sanitize_css)
@@ -765,20 +803,40 @@ for more information.
 Provides methods to make links and get URLs that depend on the routing
 subsystem.
 
-#### url_for
+#### button_to
 
-Returns the URL for the set of `options` provided.
+Generates a form that submits to the passed URL. The form has a submit button
+with the value of the `name`.
 
-```ruby
-url_for @profile
-# => /profiles/1
-
-url_for [ @hotel, @booking, page: 2, line: 3 ]
-# => /hotels/1/bookings/1?line=3&page=2
-
-url_for @post # given a composite primary key [:blog_id, :id]
-# => /posts/1_2
+```html+erb
+<%= button_to "Sign in", sign_in_path %>
 ```
+
+would roughly output something like:
+
+```html
+<form method="post" action="/sessions" class="button_to">
+  <input type="submit" value="Sign in" />
+</form>
+```
+
+See the [API
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-button_to)
+for more information.
+
+#### current_page?
+
+Returns true if the current request URI matches the given `options`.
+
+```html+erb
+<% if current_page?(controller: 'profiles', action: 'show') %>
+  <strong>Currently on the profile page</strong>
+<% end %>
+```
+
+See the [API
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-current_page-3F)
+for more information.
 
 #### link_to
 
@@ -815,26 +873,6 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to)
 for more information.
 
-#### button_to
-
-Generates a form that submits to the passed URL. The form has a submit button
-with the value of the `name`.
-
-```html+erb
-<%= button_to "Sign in", sign_in_path %>
-```
-
-would roughly output something like:
-
-```html
-<form method="post" action="/sessions" class="button_to">
-  <input type="submit" value="Sign in" />
-</form>
-```
-
-See the [API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-button_to)
-for more information.
 
 #### mail_to
 
@@ -850,19 +888,20 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-mail_to)
 for more information.
 
-#### current_page?
+#### url_for
 
-Returns true if the current request URI matches the given `options`.
+Returns the URL for the set of `options` provided.
 
-```html+erb
-<% if current_page?(controller: 'profiles', action: 'show') %>
-  <strong>Currently on the profile page</strong>
-<% end %>
+```ruby
+url_for @profile
+# => /profiles/1
+
+url_for [ @hotel, @booking, page: 2, line: 3 ]
+# => /hotels/1/bookings/1?line=3&page=2
+
+url_for @post # given a composite primary key [:blog_id, :id]
+# => /posts/1_2
 ```
-
-See the [API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-current_page-3F)
-for more information.
 
 ### Text Helper
 
@@ -892,7 +931,7 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-excerpt)
 for more information.
 
-### pluralize
+#### pluralize
 
 Returns the singular or plural form of a word based on the value of a number.
 
@@ -911,7 +950,7 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-pluralize)
 for more information.
 
-### truncate
+#### truncate
 
 Truncates a given `text` after a given `length` if `text` is longer than
 `length`. If text is truncated, an omission marker will be appended to the
@@ -944,7 +983,7 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-truncate)
 for more information.
 
-### word_wrap
+#### word_wrap
 
 Wraps the text into lines no longer than `line_width` width.
 
@@ -956,7 +995,6 @@ word_wrap('Once upon a time', line_width: 8)
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-word_wrap)
 for more information.
-
 
 ### Tag Helper
 
