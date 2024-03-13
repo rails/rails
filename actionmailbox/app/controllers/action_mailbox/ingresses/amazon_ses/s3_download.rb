@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+gem "aws-sdk-s3"
+
+require "aws-sdk-s3"
 require "tempfile"
 
 module ActionMailbox

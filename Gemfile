@@ -123,7 +123,7 @@ group :storage do
   gem "image_processing", "~> 1.2"
 end
 
-# Storage & Mailbox
+# Active Storage & Action Mailbox
 
 gem "aws-sdk-s3", require: false
 
