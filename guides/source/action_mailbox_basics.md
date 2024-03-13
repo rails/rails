@@ -343,7 +343,7 @@ config.action_mailbox.ingress = :amazon_ses
 
 Configure which _SNS_ topics will be accepted:
 
-```ruby
+```yaml
 # config/mailbox.yml
 
 development:
