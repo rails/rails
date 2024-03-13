@@ -546,7 +546,7 @@ Provides functionality for working with JavaScript in your views.
 #### escape_javascript
 
 Escapes carriage returns and single and double quotes for JavaScript segments.
-You would use this method to take a string of text and making sure that it
+You would use this method to take a string of text and make sure that it
 doesn’t contain any invalid characters when the browser tries to parse it.
 
 For example, if you have a partial with a greeting that contains double quotes,
@@ -564,6 +564,9 @@ my name is <%= current_user.name %>, and I'm here to say "Welcome to our website
   alert(`Hello, ${greeting}`);
 </script>
 ```
+
+This will escape the double quotes correctly and display the greeting as in an
+alert box.
 
 #### javascript_tag
 
@@ -685,13 +688,13 @@ for more information.
 
 The SanitizeHelper module provides a set of methods for scrubbing text of
 undesired HTML elements. The helpers are particularly useful for helping to
-ensure that allow only safe and valid  HTML/CSS is rendered. It also can be
+ensure that only safe and valid HTML/CSS is rendered. It can also be
 useful to prevent XSS attacks by escaping or removing potentially malicious
 content from user input before rendering it in your views.
 
 #### sanitize
 
-This sanitize helper will HTML encode all tags and strip all attributes that
+The `sanitize` method will HTML encode all tags and strip all attributes that
 aren't specifically allowed.
 
 ```ruby
@@ -705,7 +708,7 @@ attributes and tags are allowed and nothing else.
 sanitize @article.body, tags: %w(table tr td), attributes: %w(id class style)
 ```
 
-To change defaults for multiple uses, for example adding table tags to the
+To change defaults for multiple uses, for example, adding table tags to the
 default:
 
 ```ruby
@@ -718,61 +721,45 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-sanitize)
 for more information.
 
-#### sanitize_css(style)
+#### sanitize_css
 
 Sanitizes a block of CSS code, particularly when it comes across a style
-attribute in HTML content.
+attribute in HTML content. `sanitize_css` is particularly useful when dealing
+with user-generated content or dynamic content that includes style attributes.
+
+The `sanitize_css` method below will remove the styles that are not allowed.
 
 ```ruby
 <%= sanitize_css("background-color: red; color: white; font-size: 16px;") %>
 ```
 
-In this case, the `sanitize_css` method will remove any CSS that is not allowed.
-
-You can use sanitize_css within your views, especially when dealing with
-user-generated content or dynamic content that includes style attributes.
-
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-sanitize_css)
 for more information.
 
-#### strip_links(html)
+#### strip_links
 
 Strips all link tags from text leaving just the link text.
 
 ```ruby
-strip_links('<a href="https://rubyonrails.org">Ruby on Rails</a>')
-# => Ruby on Rails
-```
-
-```ruby
-strip_links('emails to <a href="mailto:me@email.com">me@email.com</a>.')
-# => emails to me@email.com.
-```
-
-```ruby
-strip_links('Blog: <a href="http://myblog.com/">Visit</a>.')
-# => Blog: Visit.
+strip_links('<a href="https://rubyonrails.org">Ruby on Rails</a>') # => Ruby on Rails
+strip_links('emails to <a href="mailto:me@email.com">me@email.com</a>.') # => emails to me@email.com.
+strip_links('Blog: <a href="http://myblog.com/">Visit</a>.') # => Blog: Visit.
 ```
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-strip_links)
 for more information.
 
-#### strip_tags(html)
+#### strip_tags
 
 Strips all HTML tags from the html, including comments. This functionality is
 powered by the
 [rails-html-sanitizer](https://github.com/rails/rails-html-sanitizer) gem.
 
 ```ruby
-strip_tags("Strip <i>these</i> tags!")
-# => Strip these tags!
-```
-
-```ruby
-strip_tags("<b>Bold</b> no more!  <a href='more.html'>See more</a>")
-# => Bold no more!  See more
+strip_tags("Strip <i>these</i> tags!") # => Strip these tags!
+strip_tags("<b>Bold</b> no more!  <a href='more.html'>See more</a>") # => Bold no more!  See more
 ```
 
 Note: The output may still contain unescaped '<', '>', '&' characters and
@@ -789,22 +776,23 @@ Provides a set of methods for filtering, formatting and transforming strings.
 #### excerpt
 
 Extracts the first occurrence of phrase plus surrounding text from `text`. An
-omission marker is prepended / appended if the start / end of the result does
-not coincide with the start / end of `text`.
+omission marker is prepended/appended if the start/end of the result does
+not coincide with the start/end of the text.
 
-```html+erb
-<%= excerpt('This is a very beautiful morning', 'very', separator: ' ', radius: 1) %>
+```ruby
+excerpt('This is a very beautiful morning', 'very', separator: ' ', radius: 1)
 # => ...a very beautiful...
 
-<%= excerpt('This is also an example', 'an', radius: 8, omission: '<chop> ') %>
+excerpt('This is also an example', 'an', radius: 8, omission: '<chop> ')
 #=> <chop> is also an example
 ```
 
-whereby: `radius` is the number of characters to include on each side of the
-`phrase`. If the `phrase` isn't found, `nil` is returned. `ommision` is the
-string to be used to indicate omitted content. `separator` is the string to use
-to separate the `phrase` from the omitted content. Defaults to "", which treats
-each character as a token.
+whereby:
+- `radius` is the number of characters to include on each side of the `phrase`.
+  If the `phrase` isn't found, `nil` is returned.
+- `ommision` is the string to be used to indicate omitted content.
+- `separator` is the string to use to separate the `phrase` from the omitted
+  content. Defaults to "", which treats each character as a token.
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-excerpt)
@@ -814,15 +802,10 @@ for more information.
 
 Returns the singular or plural form of a word based on the value of a number.
 
-```html+erb
-<%= pluralize(1, 'person') %>
-# => 1 person
-
-<%= pluralize(2, 'person') %>
-# => 2 people
-
-<%= pluralize(3, 'person', plural: 'users') %>
-# => 3 users
+```ruby
+pluralize(1, 'person') # => 1 person
+pluralize(2, 'person') # => 2 people
+pluralize(3, 'person', plural: 'users') # => 3 users
 ```
 
 See the [API
@@ -831,11 +814,10 @@ for more information.
 
 #### truncate
 
-Truncates a given `text` after a given `length` if `text` is longer than
-`length`. If text is truncated, an omission marker will be appended to the
-result for a total length not exceeding :length.
+Truncates a given text after a given `length`. If text is truncated, an omission
+marker will be appended to the result for a total length not exceeding `length`.
 
-```html+erb
+```ruby
 truncate("Once upon a time in a world far far away")
 # => "Once upon a time in a world..."
 
@@ -852,11 +834,12 @@ truncate("<p>Once upon a time in a world far far away</p>", escape: false)
 # => "<p>Once upon a time in a wo..."
 ```
 
-length: The maximum number of characters to return. seperator: A string or
-regexp used to find a breaking point at which to truncate. By default,
-truncation can occur at any character in text. omission: The string to append
-after truncating. Defaults to "...". escape: Whether to escape the result.
-Defaults to true.
+whereby:
+- `length`: The maximum number of characters to return.
+- `separator`: A string or regexp used to find a breaking point at which to
+  truncate. By default, truncation can occur at any character in text.
+- `omission`: The string to append after truncating. Defaults to "...".
+- `escape`: Whether to escape the result. Defaults to true.
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-truncate)
@@ -866,7 +849,7 @@ for more information.
 
 Wraps the text into lines no longer than `line_width` width.
 
-```html+erb
+```ruby
 word_wrap('Once upon a time', line_width: 8)
 # => "Once\nupon a\ntime"
 ```
@@ -877,15 +860,14 @@ for more information.
 
 ### Tag Helper
 
-Provides methods to generate HTML tags programmatically both as a modern HTML5
-compliant builder style and legacy XHTML compliant tags.
+Provides methods to generate HTML tags programmatically.
 
 #### content_tag
 
-Generates an HTML block tag of type `name` surrounding the content. Add HTML
+Generates an HTML block tag of the specified type to surround the content. You can add HTML
 attributes by passing an `attributes` hash to options.
 
-```html+erb
+```ruby
 content_tag(:div, "Hello world!", class: ["strong", { highlight: current_user.admin? }])
  # => <div class="strong highlight">Hello world!</div>
  ```
@@ -915,7 +897,6 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TagHelper.html#method-i-tag)
 for more information.
 
-
 ### UrlHelper
 
 Provides methods to make links and get URLs that depend on the routing
@@ -930,7 +911,7 @@ with the value of the `name`.
 <%= button_to "Sign in", sign_in_path %>
 ```
 
-would roughly output something like:
+would output something like:
 
 ```html
 <form method="post" action="/sessions" class="button_to">
@@ -972,14 +953,13 @@ link_to "Book", @book # given a composite primary key [:author_id, :id]
 
 You can use a block if your link target can't fit in the name parameter.
 
-
 ```html+erb
 <%= link_to @profile do %>
   <strong><%= @profile.name %></strong> -- <span>Check it out!</span>
 <% end %>
 ```
 
-would roughly output something like:
+would output something like:
 
 ```html
 <a href="/profiles/1">
@@ -990,7 +970,6 @@ would roughly output something like:
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to)
 for more information.
-
 
 #### mail_to
 
