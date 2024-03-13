@@ -423,7 +423,22 @@ body.guide {
             height: 85px;
             vertical-align: middle;
           }
-        }
+        } // a
+        
+        span#version_switcher {
+          color: $gray-600;
+          display: block;
+          font-size: 0.75em;
+
+          @include media('>desktop') {
+            display: inline-block;
+            margin-left: 0.5em;
+          }
+
+          select {
+            color: $gray-600;
+          }
+        } // span#version_switcher
       } // .header-logo
 
       ul.nav {

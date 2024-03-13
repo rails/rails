@@ -1059,6 +1059,20 @@ body.guide header#page_header nav#feature_nav .header-logo a {
     vertical-align: middle;
   }
 }
+body.guide header#page_header nav#feature_nav .header-logo span#version_switcher {
+  color: #666666;
+  display: block;
+  font-size: 0.75em;
+}
+@media (min-width: 1025px) {
+  body.guide header#page_header nav#feature_nav .header-logo span#version_switcher {
+    display: inline-block;
+    margin-left: 0.5em;
+  }
+}
+body.guide header#page_header nav#feature_nav .header-logo span#version_switcher select {
+  color: #666666;
+}
 body.guide header#page_header nav#feature_nav ul.nav {
   margin: 1em 1em 0 1em;
 }
