@@ -83,7 +83,6 @@
         Action View has helpers for handling everything from formatting dates
         and linking to images, to sanitizing and localizing content. This guide
         introduces a few of the more common Action View helpers.
-      work_in_progress: true
     -
       name: Action View Form Helpers
       url: form_helpers.html
