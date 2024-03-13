@@ -359,8 +359,8 @@ module ActiveRecord
       #   ], unique_by: :isbn)
       #
       #   Book.find_by(isbn: "1").title # => "Eloquent Ruby"
-      def upsert_all(attributes, on_duplicate: :update, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil)
-        InsertAll.execute(self, attributes, on_duplicate: on_duplicate, update_only: update_only, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps)
+      def upsert_all(attributes, on_duplicate: :update, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil, on_duplicate_raw_sql_aliased: false)
+        InsertAll.execute(self, attributes, on_duplicate: on_duplicate, update_only: update_only, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps, on_duplicate_raw_sql_aliased: on_duplicate_raw_sql_aliased)
       end
 
       # Given an attributes hash, +instantiate+ returns a new instance of

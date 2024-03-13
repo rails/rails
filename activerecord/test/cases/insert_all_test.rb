@@ -794,7 +794,8 @@ class InsertAllTest < ActiveRecord::TestCase
 
     Book.upsert_all(
       [{ id: b1.id, name: "No Name" }, { id: b2.id, name: "No Name" }],
-      on_duplicate: Arel.sql("name = IFNULL(books.name, books_values.name)")
+      on_duplicate: Arel.sql("name = IFNULL(books.name, books_values.name)"),
+      on_duplicate_raw_sql_aliased: true
     )
 
     b1.reload

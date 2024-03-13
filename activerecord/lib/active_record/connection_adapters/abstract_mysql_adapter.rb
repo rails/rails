@@ -652,7 +652,11 @@ module ActiveRecord
           elsif insert.update_duplicates?
             sql << " ON DUPLICATE KEY UPDATE "
             if insert.raw_update_sql?
-              sql = +"INSERT #{insert.into} #{insert.values_list} ON DUPLICATE KEY UPDATE #{insert.raw_update_sql}"
+              if insert.raw_update_sql_aliased?
+                sql << insert.raw_update_sql
+              else
+                sql = +"INSERT #{insert.into} #{insert.values_list} ON DUPLICATE KEY UPDATE #{insert.raw_update_sql}"
+              end
             else
               sql << insert.touch_model_timestamps_unless { |column| "#{insert.model.quoted_table_name}.#{column}<=>#{values_alias}.#{column}" }
               sql << insert.updatable_columns.map { |column| "#{column}=#{values_alias}.#{column}" }.join(",")

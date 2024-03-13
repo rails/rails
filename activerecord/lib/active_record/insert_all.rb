@@ -15,10 +15,11 @@ module ActiveRecord
       end
     end
 
-    def initialize(model, connection, inserts, on_duplicate:, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil)
+    def initialize(model, connection, inserts, on_duplicate:, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil, on_duplicate_raw_sql_aliased: false)
       @model, @connection, @inserts = model, connection, inserts.map(&:stringify_keys)
       @on_duplicate, @update_only, @returning, @unique_by = on_duplicate, update_only, returning, unique_by
       @record_timestamps = record_timestamps.nil? ? model.record_timestamps : record_timestamps
+      @update_raw_sql_aliased = on_duplicate_raw_sql_aliased
 
       disallow_raw_sql!(on_duplicate)
       disallow_raw_sql!(returning)
@@ -98,7 +99,12 @@ module ActiveRecord
       end
     end
 
+    def update_raw_sql_aliased?
+      @update_raw_sql_aliased
+    end
+
     private
+      attr_reader :update_raw_sql_aliased
       attr_reader :scope_attributes
 
       def has_attribute_aliases?(attributes)
@@ -294,6 +300,10 @@ module ActiveRecord
         end
 
         alias raw_update_sql? raw_update_sql
+
+        def raw_update_sql_aliased?
+          insert_all.update_raw_sql_aliased?
+        end
 
         private
           attr_reader :connection, :insert_all
