@@ -143,8 +143,8 @@ javascript_include_tag "common", async: true
 
 Some of the most common attributes are `async` and `defer`, where `async` will
 allow the script to be loaded in parallel to be parsed and evaluated as soon as
-possible, and `defer` will indicate that the script is meant to be executed after
-the document has been parsed.
+possible, and `defer` will indicate that the script is meant to be executed
+after the document has been parsed.
 
 INFO: Internally, `javascript_include_tag` uses [`javascript_path` from the
 AssetUrlHelpers](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-javascript_path)
@@ -201,8 +201,8 @@ stylesheet_link_tag "application"
 # => <link href="/assets/application.css" rel="stylesheet" />
 ```
 
-You can modify the HTML attributes of the stylesheet tag by passing a hash as the
-last argument.
+You can modify the HTML attributes of the stylesheet tag by passing a hash as
+the last argument.
 
 ```ruby
 stylesheet_link_tag "application", media: "all"
@@ -317,8 +317,7 @@ the next request comes in.
 
 #### cache
 
-The `cache` method takes a block that contains the content you wish to
-cache.
+The `cache` method takes a block that contains the content you wish to cache.
 
 For example, if you wanted to cache each article on a page, you could do so by
 passing the `article` object to the `cache` method. This would cache each
@@ -340,7 +339,8 @@ views/articles/index:bea67108094918eeba32cd4a6f786301/articles/1
 ```
 
 See [`Fragment Caching`][caching_with_rails.html#fragment-caching] and the [API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/CacheHelper.html#method-i-cache) for more information.
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/CacheHelper.html#method-i-cache)
+for more information.
 
 
 ### Capture Helper
@@ -425,10 +425,10 @@ isn't utilized, it remains empty, resulting in nothing being yielded.
 </html>
 ```
 
-You'll notice that in the above example, we use the `content_for?` predicate method to
-conditionally render a relevant class. This method checks whether any content
-has been captured yet, enabling you to adjust parts of your layout based on the
-content within your views.
+You'll notice that in the above example, we use the `content_for?` predicate
+method to conditionally render a relevant class. This method checks whether any
+content has been captured yet, enabling you to adjust parts of your layout based
+on the content within your views.
 
 Additionally, you can employ `content_for` within a helper module.
 
@@ -444,8 +444,8 @@ end
 
 Now, you can call `special_greeting_alert` in your layout to retrieve the
 content stored in the `content_for` block. If a `content_for` block is set on
-the page being rendered, such as in the case of the special page, it will display the greeting
-alert. Otherwise, it will display the default text "Bye!"
+the page being rendered, such as in the case of the special page, it will
+display the greeting alert. Otherwise, it will display the default text "Bye!"
 
 WARNING: `content_for` is ignored in caches. So you shouldn’t use it for
 elements that will be fragment cached.
@@ -458,8 +458,8 @@ Internally `content_for` actually calls `capture`. However, the key difference
 lies in their behavior when invoked multiple times.<br><br>
 `content_for` can be called repeatedly, concatenating the blocks it receives for
 a specific identifier in the order they are provided. Each subsequent call
-simply adds to what's already stored. In contrast, `capture` only remembers
-the latest invocation; previous calls get overwritten.
+simply adds to what's already stored. In contrast, `capture` only remembers the
+latest invocation; previous calls get overwritten.
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/CaptureHelper.html#method-i-content_for)
@@ -467,7 +467,8 @@ for more information.
 
 ### DateHelper
 
-The Date Helper primarily creates select/option tags for different kinds of dates and times or date and time elements.
+The Date Helper primarily creates select/option tags for different kinds of
+dates and times or date and time elements.
 
 #### distance_of_time_in_words
 
@@ -488,7 +489,8 @@ for more information.
 
 #### time_ago_in_words
 
-It's similar to `distance_of_time_in_words`, but where `to_time` is fixed to `Time.now`.
+It's similar to `distance_of_time_in_words`, but where `to_time` is fixed to
+`Time.now`.
 
 ```ruby
 time_ago_in_words(3.minutes.from_now) # => 3 minutes
@@ -504,8 +506,8 @@ Provides a set of methods for making it easier to debug Rails objects.
 
 #### debug
 
-Returns a YAML representation of an object wrapped with a `pre` tag. This creates
-a very readable way to inspect an object.
+Returns a YAML representation of an object wrapped with a `pre` tag. This
+creates a very readable way to inspect an object.
 
 ```ruby
 my_hash = { 'first' => 1, 'second' => 'two', 'third' => [1, 2, 3] }
@@ -546,8 +548,8 @@ Provides functionality for working with JavaScript in your views.
 #### escape_javascript
 
 Escapes carriage returns and single and double quotes for JavaScript segments.
-You would use this method to take a string of text and make sure that it
-doesn’t contain any invalid characters when the browser tries to parse it.
+You would use this method to take a string of text and make sure that it doesn’t
+contain any invalid characters when the browser tries to parse it.
 
 For example, if you have a partial with a greeting that contains double quotes,
 you can escape the greeting to use in a JavaScript alert.
@@ -688,9 +690,9 @@ for more information.
 
 The SanitizeHelper module provides a set of methods for scrubbing text of
 undesired HTML elements. The helpers are particularly useful for helping to
-ensure that only safe and valid HTML/CSS is rendered. It can also be
-useful to prevent XSS attacks by escaping or removing potentially malicious
-content from user input before rendering it in your views.
+ensure that only safe and valid HTML/CSS is rendered. It can also be useful to
+prevent XSS attacks by escaping or removing potentially malicious content from
+user input before rendering it in your views.
 
 #### sanitize
 
@@ -730,7 +732,7 @@ with user-generated content or dynamic content that includes style attributes.
 The `sanitize_css` method below will remove the styles that are not allowed.
 
 ```ruby
-<%= sanitize_css("background-color: red; color: white; font-size: 16px;") %>
+sanitize_css("background-color: red; color: white; font-size: 16px;")
 ```
 
 See the [API
@@ -742,9 +744,14 @@ for more information.
 Strips all link tags from text leaving just the link text.
 
 ```ruby
-strip_links('<a href="https://rubyonrails.org">Ruby on Rails</a>') # => Ruby on Rails
-strip_links('emails to <a href="mailto:me@email.com">me@email.com</a>.') # => emails to me@email.com.
-strip_links('Blog: <a href="http://myblog.com/">Visit</a>.') # => Blog: Visit.
+strip_links('<a href="https://rubyonrails.org">Ruby on Rails</a>')
+# => Ruby on Rails
+
+strip_links('emails to <a href="mailto:me@email.com">me@email.com</a>.')
+# => emails to me@email.com.
+
+strip_links('Blog: <a href="http://myblog.com/">Visit</a>.')
+# => Blog: Visit.
 ```
 
 See the [API
@@ -758,11 +765,14 @@ powered by the
 [rails-html-sanitizer](https://github.com/rails/rails-html-sanitizer) gem.
 
 ```ruby
-strip_tags("Strip <i>these</i> tags!") # => Strip these tags!
-strip_tags("<b>Bold</b> no more!  <a href='more.html'>See more</a>") # => Bold no more!  See more
+strip_tags("Strip <i>these</i> tags!")
+# => Strip these tags!
+
+strip_tags("<b>Bold</b> no more! <a href='more.html'>See more</a>")
+# => Bold no more! See more
 ```
 
-Note: The output may still contain unescaped '<', '>', '&' characters and
+NOTE: The output may still contain unescaped `<`, `>`, `&` characters and
 confuse browsers.
 
 See the [API
@@ -776,8 +786,8 @@ Provides a set of methods for filtering, formatting and transforming strings.
 #### excerpt
 
 Extracts the first occurrence of phrase plus surrounding text from `text`. An
-omission marker is prepended/appended if the start/end of the result does
-not coincide with the start/end of the text.
+omission marker is prepended/appended if the start/end of the result does not
+coincide with the start/end of the text.
 
 ```ruby
 excerpt('This is a very beautiful morning', 'very', separator: ' ', radius: 1)
@@ -787,7 +797,8 @@ excerpt('This is also an example', 'an', radius: 8, omission: '<chop> ')
 #=> <chop> is also an example
 ```
 
-whereby:
+where:
+
 - `radius` is the number of characters to include on each side of the `phrase`.
   If the `phrase` isn't found, `nil` is returned.
 - `ommision` is the string to be used to indicate omitted content.
@@ -834,7 +845,8 @@ truncate("<p>Once upon a time in a world far far away</p>", escape: false)
 # => "<p>Once upon a time in a wo..."
 ```
 
-whereby:
+where:
+
 - `length`: The maximum number of characters to return.
 - `separator`: A string or regexp used to find a breaking point at which to
   truncate. By default, truncation can occur at any character in text.
@@ -864,12 +876,12 @@ Provides methods to generate HTML tags programmatically.
 
 #### content_tag
 
-Generates an HTML block tag of the specified type to surround the content. You can add HTML
-attributes by passing an `attributes` hash to options.
+Generates an HTML block tag of the specified type to surround the content. You
+can add HTML attributes by passing an `attributes` hash to options.
 
 ```ruby
 content_tag(:div, "Hello world!", class: ["strong", { highlight: current_user.admin? }])
- # => <div class="strong highlight">Hello world!</div>
+# => <div class="strong highlight">Hello world!</div>
  ```
 
 See the [API
@@ -880,14 +892,9 @@ for more information.
 
 Generates a standalone HTML tag with the given `name` and `options`.
 
-```html+erb
+```ruby
 tag.h1 'All titles fit to print'
 # => <h1>All titles fit to print</h1>
-
-<%= tag.p do %>
-  The next great American novel starts here.
-<% end %>
-# => <p>The next great American novel starts here.</p>
 
 tag.section class: %w( kitties puppies )
 # => <section class="kitties puppies"></section>
@@ -911,7 +918,7 @@ with the value of the `name`.
 <%= button_to "Sign in", sign_in_path %>
 ```
 
-would output something like:
+would output the following HTML:
 
 ```html
 <form method="post" action="/sessions" class="button_to">
@@ -959,7 +966,7 @@ You can use a block if your link target can't fit in the name parameter.
 <% end %>
 ```
 
-would output something like:
+would output the following HTML:
 
 ```html
 <a href="/profiles/1">
@@ -973,12 +980,18 @@ for more information.
 
 #### mail_to
 
-Generates a mailto link tag to the specified email address. You can also specify
-the link text, additional HTML options, and whether to encode the email address.
+Generates a `mailto` link tag to the specified email address. You can also
+specify the link text, additional HTML options, and whether to encode the email
+address.
 
 ```html+erb
 <%= mail_to "john_doe@gmail.com" %>
-# => <a href="mailto:john_doe@gmail.com">john_doe@gmail.com</a>
+```
+
+would output the following HTML:
+
+```html
+<a href="mailto:john_doe@gmail.com">john_doe@gmail.com</a>
 ```
 
 See the [API
