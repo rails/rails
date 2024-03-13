@@ -57,22 +57,20 @@ audio_tag("sound.wav", "sound.mid")
 # => <audio><source src="/audios/sound.wav" /><source src="/audios/sound.mid" /></audio>
 ```
 
-When the last parameter is a hash you can add HTML attributes using that
-parameter.
+You can modify the HTML attributes of the audio tag by passing a hash as the
+last argument.
 
 ```ruby
 audio_tag("sound", controls: true)
+# => <audio controls="controls" src="/audios/sound"></audio>
 ```
+
 `controls` is a boolean attribute that indicates whether the audio should have
 controls.
 
 INFO: Internally, `audio_tag` uses [`audio_path` from the
-AssetUrlHelpers](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-audio_path)
-to build the audio path. <br><br>
-If you want to include an audio file from a different directory, you can use the
-`audio_path` helper to get the path to the audio file and then use the
-`audio_tag` helper to generate the HTML
-`audio_tag(audio_path("sounds/sound.wav"))`
+AssetUrlHelpers](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-audio_path)
+to build the audio path.
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-audio_tag)
@@ -108,23 +106,21 @@ for more information.
 
 #### image_tag
 
-Returns an HTML image tag for the source. The source can be a full path or a
+Returns an HTML image tag for the source. The `source` can be a full path or a
 file that exists in your `app/assets/images` directory.
 
 ```ruby
-image_tag("icon.png") # => <img src="/assets/icon.png" />
+image_tag("icon.png")
+# => <img src="/assets/icon.png" />
 ```
+
+INFO: Internally, `image_tag` uses [`image_path` from the
+AssetUrlHelpers](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-image_path)
+to build the image path.
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-image_tag)
 for more information.
-
-INFO: Internally, `image_tag` uses [`image_path` from the
-AssetUrlHelpers](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-image_path)
-to build the image path. <br><br> If you want to use an image from a different
-directory, you can use the `image_path` helper to get the path to the image and
-then use the `image_tag` helper to generate the HTML
-`image_tag(image_path("icons/icon.png"))`
 
 #### javascript_include_tag
 
@@ -148,20 +144,16 @@ javascript_include_tag "common", async: true
 
 Some of the most common attributes are `async` and `defer`, where `async` will
 allow the script to be loaded in parallel to be parsed and evaluated as soon as
-possible and `defer` will indicate that the script is meant to be executed after
+possible, and `defer` will indicate that the script is meant to be executed after
 the document has been parsed.
+
+INFO: Internally, `javascript_include_tag` uses [`javascript_path` from the
+AssetUrlHelpers](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-javascript_path)
+to build the script path.
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-javascript_include_tag)
 for more information.
-
-INFO: Internally, `javascript_include_tag` uses [`javascript_path` from the
-AssetUrlHelpers](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-javascript_path)
-to build the script path. <br><br>
-If you want to include a JavaScript file from a different directory, you can use
-the `javascript_path` helper to get the path to the JavaScript file and then use
-the `javascript_include_tag` helper to generate the HTML
-`javascript_include_tag(javascript_path("common.js"))`
 
 #### picture_tag
 
@@ -210,7 +202,8 @@ stylesheet_link_tag "application"
 # => <link href="/assets/application.css" rel="stylesheet" />
 ```
 
-You can modify the link attributes by passing a hash as the last argument.
+You can modify the HTML attributes of the stylesheet tag by passing a hash as the
+last argument.
 
 ```ruby
 stylesheet_link_tag "application", media: "all"
@@ -221,12 +214,8 @@ stylesheet_link_tag "application", media: "all"
 types are `all`, `screen`, `print`, and `speech`.
 
 INFO: Internally, `stylesheet_link_tag` uses [`stylesheet_path` from the
-AssetUrlHelpers](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-stylesheet_path)
-to build the stylesheet path. <br><br>
-If you want to include a stylesheet file from a different directory, you can use
-the `stylesheet_path` helper to get the path to the stylesheet file and then use
-the `stylesheet_link_tag` helper to generate the HTML
-`stylesheet_link_tag(stylesheet_path("common.js"))`
+AssetUrlHelpers](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-stylesheet_path)
+to build the stylesheet path.
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-stylesheet_link_tag)
@@ -247,8 +236,8 @@ video_tag(["trailer.ogg", "trailer.flv"])
 # => <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
 ```
 
-When the last parameter is a hash you can add HTML attributes using that
-parameter.
+You can modify the HTML attributes of the video tag by passing a hash as the
+last argument.
 
 ```ruby
 video_tag("trailer", controls: true)
@@ -256,25 +245,21 @@ video_tag("trailer", controls: true)
 `controls` is a boolean attribute that indicates whether the video should have
 controls.
 
+INFO: Internally, `video_tag` uses [`video_path` from the
+AssetUrlHelpers](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-video_path)
+to build the video path.
+
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-video_tag)
 for more information.
 
-INFO: Internally, `video_tag` uses [`video_path` from the
-AssetUrlHelpers](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-video_path)
-to build the video path. <br><br>
-If you want to include a video file from a different directory, you can use the
-`video_path` helper to get the path to the video file and then use the
-`video_tag` helper to generate the HTML
-`video_tag(video_path("trailers/trailer.mp4"))`
-
 ### AtomFeedHelper
 
-Atom Feeds are XML - based file format used to syndicate content, and can be
+Atom Feeds are XML - based file formats used to syndicate content and can be
 used by users in feed readers to browse content or by search engines to help
 discover additional information about your site.
 
-AtomHelper is mostly used in Builder templates for creating XML.
+AtomFeedHelper is mostly used in Builder templates for creating XML.
 
 #### atom_feed
 
