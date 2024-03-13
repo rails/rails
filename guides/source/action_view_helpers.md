@@ -8,8 +8,7 @@ After reading this guide, you will know:
 * How to format dates, strings, and numbers.
 * How to link to images, videos, stylesheets, etc.
 * How to work with Atom feeds and JavaScript in the views.
-* How to benchmark, cache and capture content.
-* How to sanitize and debug content.
+* How to cache, capture, debug and sanitize content.
 * How to work with text and tags.
 
 --------------------------------------------------------------------------------
@@ -306,27 +305,6 @@ end
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AtomFeedHelper.html#method-i-atom_feed)
-for more information.
-
-### BenchmarkHelper
-
-#### benchmark
-
-Allows you to measure the execution time of a block in a template and records
-the result in the log. Wrap this block around expensive operations or possible
-bottlenecks to get a time reading for the operation.
-
-```html+erb
-<% benchmark "Process data files" do %>
-  <%= expensive_files_operation %>
-<% end %>
-```
-
-This would add something like "Process data files (0.34523)" to the log, which
-you can then use to compare timings when optimizing your code.
-
-See the [API
-Documentation](https://api.rubyonrails.org/classes/ActiveSupport/Benchmarkable.html#method-i-benchmark)
 for more information.
 
 ### CacheHelper
