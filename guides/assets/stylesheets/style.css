@@ -1192,6 +1192,7 @@ body.guide #guides .guides-section-container .guides-section dt, body.guide #gui
   font-size: 0.825rem;
   margin: 0;
   padding: 0;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 body.guide #guides .guides-section-container .guides-section dt {
   margin: 0.5em 0;
