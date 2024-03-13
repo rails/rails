@@ -1,3 +1,13 @@
+*   Scan application for unused routes in `cy.yml`
+
+    Adds job to scan application for unused routes in `ci.yml` by running:
+
+    ```
+    bin/rails routes --unused
+    ```
+
+    *Steve Polito*
+
 *   Fix sanitizer vendor configuration in 7.1 defaults.
 
     In apps where rails-html-sanitizer was not eagerly loaded, the sanitizer default could end up
