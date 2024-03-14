@@ -650,10 +650,10 @@ module ActiveRecord
           if insert.skip_duplicates?
             sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{values_alias}.#{no_op_column}"
           elsif insert.update_duplicates?
-            sql << " ON DUPLICATE KEY UPDATE "
             if insert.raw_update_sql?
-              sql << insert.raw_update_sql
+              sql = +"INSERT #{insert.into} #{insert.values_list} ON DUPLICATE KEY UPDATE #{insert.raw_update_sql}"
             else
+              sql << " ON DUPLICATE KEY UPDATE "
               sql << insert.touch_model_timestamps_unless { |column| "#{insert.model.quoted_table_name}.#{column}<=>#{values_alias}.#{column}" }
               sql << insert.updatable_columns.map { |column| "#{column}=#{values_alias}.#{column}" }.join(",")
             end

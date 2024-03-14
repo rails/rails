@@ -768,6 +768,26 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal "written", Book.find(2).status
   end
 
+  if current_adapter?(:Mysql2Adapter) || current_adapter?(:TrilogyAdapter)
+    def test_upsert_all_updates_using_values_function_on_duplicate_raw_sql
+      skip unless supports_insert_on_duplicate_update?
+
+      b1 = Book.create!(name: "Name")
+      b2 = Book.create!(name: nil)
+
+      Book.upsert_all(
+        [{ id: b1.id, name: "No Name" }, { id: b2.id, name: "No Name" }],
+        on_duplicate: Arel.sql("name = IFNULL(name, values(name))")
+      )
+
+      b1.reload
+      b2.reload
+
+      assert_equal "Name", b1.name
+      assert_equal "No Name", b2.name
+    end
+  end
+
   def test_upsert_all_updates_using_provided_sql_and_unique_by
     skip unless supports_insert_on_duplicate_update? && supports_insert_conflict_target?
 
