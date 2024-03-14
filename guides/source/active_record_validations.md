@@ -762,9 +762,9 @@ In order to add a uniqueness database constraint on your database, use the
 
 Should you wish to create a database constraint to prevent possible violations
 of a uniqueness validation using the `:scope` option, you must create a unique
-index on both columns in your database. See [the MySQL manual][] for more
-details about multiple column indexes or [the PostgreSQL manual][] for examples
-of unique constraints that refer to a group of columns.
+index on both columns in your database. See [the MySQL manual][] and [the MariaDB
+manual][] for more details about multiple column indexes, or [the PostgreSQL
+manual][] for examples of unique constraints that refer to a group of columns.
 
 There is also a `:case_sensitive` option that you can use to define whether the
 uniqueness constraint will be case sensitive, case insensitive, or if it should
@@ -791,6 +791,7 @@ See [`validates_uniqueness_of`][] for more information.
 [`validates_uniqueness_of`]: https://api.rubyonrails.org/classes/ActiveRecord/Validations/ClassMethods.html#method-i-validates_uniqueness_of
 [`add_index`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_index
 [the MySQL manual]: https://dev.mysql.com/doc/refman/en/multiple-column-indexes.html
+[the MariaDB manual]: https://mariadb.com/kb/en/compound-composite-indexes/
 [the PostgreSQL manual]: https://www.postgresql.org/docs/current/static/ddl-constraints.html
 
 ### `validates_associated`

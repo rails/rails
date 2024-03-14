@@ -130,9 +130,9 @@ Active Record uses conventions for column names in the database tables as well,
 depending on the purpose of these columns.
 
 * **Primary keys** - By default, Active Record will use an integer column named
-  `id` as the table's primary key (`bigint` for PostgreSQL and MySQL, `integer`
-  for SQLite). When using [Active Record Migrations](#migrations) to create your
-  tables, this column will be automatically created.
+  `id` as the table's primary key (`bigint` for PostgreSQL, MySQL, and MariaDB,
+  `integer` for SQLite). When using [Active Record Migrations](#migrations) to
+  create your tables, this column will be automatically created.
 * **Foreign keys** - These fields should be named following the pattern
   `singularized_table_name_id` (e.g., `order_id`, `line_item_id`). These are the
   fields that Active Record will look for when you create associations between
@@ -657,8 +657,8 @@ class CreatePublications < ActiveRecord::Migration[7.2]
 end
 ```
 
-Note that the above code is database-agnostic: it will run in MySQL, PostgreSQL,
-SQLite, and others.
+Note that the above code is database-agnostic: it will run in MySQL, MariaDB,
+PostgreSQL, SQLite, and others.
 
 Rails keeps track of which migrations have been committed to the database and
 stores them in a neighboring table in that same database called
