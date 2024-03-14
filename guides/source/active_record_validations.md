@@ -656,7 +656,7 @@ class Order < ApplicationRecord
 end
 ```
 
-NOTE: If you want to ensure that the association it is both present and valid,
+NOTE: If you want to ensure that the association is both present and valid,
 you also need to use `validates_associated`. More on that
 [below](#validates-associated)
 
@@ -713,7 +713,7 @@ class Order < ApplicationRecord
 end
 ```
 
-NOTE: If you want to ensure that the association it is both present and valid,
+NOTE: If you want to ensure that the association is both present and valid,
 you also need to use `validates_associated`. More on that
 [below](#validates-associated)
 
