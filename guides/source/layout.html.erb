@@ -10,11 +10,11 @@
   <link rel="stylesheet" type="text/css" href="stylesheets/style.css" data-turbo-track="reload">
   <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
   <link rel="stylesheet" type="text/css" href="stylesheets/highlight.css" data-turbo-track="reload">
-  
+
   <link rel="icon" href="images/favicon.ico" sizes="any">
   <link rel="icon" href="images/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="images/icon.png">
-  
+
   <script src="javascripts/@hotwired--turbo.js" data-turbo-track="reload"></script>
   <script src="javascripts/clipboard.js" data-turbo-track="reload"></script>
   <script src="javascripts/guides.js" data-turbo-track="reload"></script>
@@ -57,19 +57,9 @@
       <nav id="feature_nav"> <%# we use nav as an element to also provide the aria role and improve semantic meaning. %>
         <div class="header-logo">
           <a href="index.html" title="Return to home page">Guides</a>
-          <!-- TODO: Refactor this into guides.js -->
-          <script>
-            function changeVersion() {
-              // var urlString = "http://guides.rubyonrails.org/";
-              var versions = document.getElementById('railsVersion');
-              var selectedVersion = versions.options[versions.selectedIndex];
-              // Turbo.visit = urlString + selectedVersion.value;
-              Turbo.visit = selectedVersion.value;
-            }
-          </script>
-          <span id="version_switcher" onchange="changeVersion()">
-            Version: 
-            <select id="railsVersion">
+          <span id="version_switcher">
+            Version:
+            <select class="guides-version">
               <option value="https://edgeguides.rubyonrails.org/" selected>Edge</option>
               <option value="https://guides.rubyonrails.org/v7.1">7.1</option>
               <option value="https://guides.rubyonrails.org/v7.0">7.0</option>
