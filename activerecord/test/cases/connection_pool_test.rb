@@ -280,7 +280,7 @@ module ActiveRecord
 
         idle_conn.instance_variable_set(
           :@idle_since,
-          Process.clock_gettime(Process::CLOCK_MONOTONIC) - 0.02
+          Process.clock_gettime(Process::CLOCK_MONOTONIC) - 0.03
         )
 
         @pool.flush
