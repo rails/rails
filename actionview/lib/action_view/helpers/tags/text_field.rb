@@ -14,7 +14,7 @@ module ActionView
           options["type"] ||= field_type
           options["value"] = options.fetch("value") { value_before_type_cast } unless field_type == "file"
           add_default_name_and_id(options)
-          tag("input", options)
+          tag.input(**options)
         end
 
         class << self
