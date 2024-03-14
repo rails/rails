@@ -262,6 +262,7 @@ module ActionDispatch
 
           def call(t, method_name, args, inner_options, url_strategy)
             controller_options = t.url_options
+            controller_options[:_recall]&.delete(:id)
             options = controller_options.merge @options
             hash = handle_positional_args(controller_options,
                                           inner_options || {},

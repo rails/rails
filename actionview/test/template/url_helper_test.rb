@@ -1358,3 +1358,28 @@ class PolymorphicSessionsControllerTest < ActionController::TestCase
     assert_equal %{/workshops/1/sessions/1.json\n<a href="/workshops/1/sessions/1.json">Session</a>}, @response.body
   end
 end
+
+class MissingUrlKeyController < ActionController::Base
+  ROUTES = test_routes do
+    resources :tasks, controller: "missing_url_key"
+  end
+
+  def show
+    render plain: "#{task_url}"
+  end
+end
+
+class MissingUrlKeyTest < ActionController::TestCase
+  def setup
+    super
+    @routes = MissingUrlKeyController::ROUTES
+  end
+
+  def test_url_without_key
+    @controller = MissingUrlKeyController.new
+
+    assert_raises ActionController::UrlGenerationError do
+      get :show, params: { id: 1 }
+    end
+  end
+end
