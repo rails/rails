@@ -164,7 +164,7 @@ module ActiveRecord
       assert_match %r{#{quoted_posts} /\* foo \*/ /\* bar \*/\z}, Post.annotate("foo", "bar").or(Post.annotate("foo")).to_sql
     end
 
-    def test_structurally_incompatible_values
+    def test_structurally_compatible_values
       assert_nothing_raised do
         Post.includes(:author).includes(:author).or(Post.includes(:author))
         Post.eager_load(:author).eager_load(:author).or(Post.eager_load(:author))

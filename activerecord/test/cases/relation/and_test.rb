@@ -2,10 +2,12 @@
 
 require "cases/helper"
 require "models/author"
+require "models/post"
+require "models/categorization"
 
 module ActiveRecord
   class AndTest < ActiveRecord::TestCase
-    fixtures :authors, :author_addresses
+    fixtures :posts, :authors, :author_addresses
 
     def test_and
       david, mary, bob = authors(:david, :mary, :bob)
@@ -38,6 +40,26 @@ module ActiveRecord
         "Relation passed to #and must be structurally compatible. Incompatible values: [:order, :offset]",
         error.message
       )
+    end
+
+    def test_and_with_references_inequality
+      joined = Post.includes(:author)
+      actual = joined.where(authors: { id: 1 })
+        .and(Post.where(title: "Welcome to the weblog"))
+      expected = Post.where(title: "Welcome to the weblog")
+      assert_equal(expected.sort_by(&:id), actual.sort_by(&:id))
+    end
+
+    def test_structurally_compatible_values
+      assert_nothing_raised do
+        Post.includes(:author).includes(:author).and(Post.includes(:author))
+        Post.eager_load(:author).eager_load(:author).and(Post.eager_load(:author))
+        Post.preload(:author).preload(:author).and(Post.preload(:author))
+        Post.group(:author_id).group(:author_id).and(Post.group(:author_id))
+        Post.joins(:author).joins(:author).and(Post.joins(:author))
+        Post.left_outer_joins(:author).left_outer_joins(:author).and(Post.left_outer_joins(:author))
+        Post.from("posts").and(Post.from("posts"))
+      end
     end
   end
 end
