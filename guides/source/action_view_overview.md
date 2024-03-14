@@ -540,13 +540,13 @@ CAUTION: Only keyword arguments are supported. Defining positional or block argu
 Layouts
 -------
 
-Layouts can be used to render a common view template around the results of Rails controller actions. Typically, a Rails application will have a couple of layouts that pages will be rendered within. For example, a site might have one layout for a logged in user and another for the marketing or sales side of the site. The logged in user layout might include top-level navigation that should be present across many controller actions. The sales layout for a SaaS app might include top-level navigation for things like "Pricing" and "Contact Us" pages. Different layouts typically have a different header and footer content. You can read about layouts in more detail in the [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
+Layouts can be used to render a common view template around the results of Rails controller actions. Typically, a Rails application has a few layouts that pages can be rendered within. For example, an application might have one layout for a logged in user and another for the marketing part of the site. The logged in user layout might include top-level navigation that should be present across many controller actions. The sales layout for a SaaS app might include top-level navigation for things like "Pricing" and "Contact Us" pages. Different layouts typically have a different header and footer content. You can learn more about layouts in the [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
 
 ### Partial Layouts
 
 Partials can have their own layouts applied to them. These layouts are different from those applied to a controller action, but they work in a similar fashion.
 
-Let's say we're displaying an article on a page which should be wrapped in a `div` for display purposes. Firstly, we'll create a new `Article`:
+Let's say we're displaying an article on a page which should be wrapped in a `div` for display purposes. First, we'll create a new `Article`:
 
 ```ruby
 Article.create(body: 'Partial Layouts are cool!')
@@ -554,29 +554,28 @@ Article.create(body: 'Partial Layouts are cool!')
 
 In the `show` template, we'll render the `_article` partial wrapped in the `box` layout:
 
-**articles/show.html.erb**
-
-```erb
+```html+erb
+<%# articles/show.html.erb %>
 <%= render partial: 'article', layout: 'box', locals: { article: @article } %>
 ```
 
 The `box` layout simply wraps the `_article` partial in a `div`:
 
-**articles/_box.html.erb**
-
 ```html+erb
+<%# articles/_box.html.erb %>
 <div class='box'>
   <%= yield %>
 </div>
 ```
 
-Note that the partial layout has access to the local `article` variable that was passed into the `render` call. However, unlike application-wide layouts, partial layouts still have the underscore prefix.
+Note that the partial layout has access to the local `article` variable that was passed into the `render` call. Though it is not being used within `_box.html.erb` in this case.
+
+Unlike application-wide layouts, partial layouts still have the underscore prefix in their name.
 
 You can also render a block of code within a partial layout instead of calling `yield`. For example, if we didn't have the `_article` partial, we could do this instead:
 
-**articles/show.html.erb**
-
 ```html+erb
+<%# articles/show.html.erb %>
 <% render(layout: 'box', locals: { article: @article }) do %>
   <div>
     <p><%= article.body %></p>
