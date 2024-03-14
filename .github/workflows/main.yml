@@ -1,0 +1,18 @@
+name: Meterian Scanner workflow
+
+on: push
+
+jobs:
+    meterian_scan:
+        name: Meterian client scan
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v3
+          - name: Scan project with the Meterian client
+            uses: MeterianHQ/meterian-github-action@v1.0.17
+            env:
+                METERIAN_API_TOKEN: ${{ secrets.METERIAN_API_TOKEN_QA }}
+                METERIAN_ENV: qa
+            with:
+                cli_args: "--scan-nodejs=false --flags:env=qa"
