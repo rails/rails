@@ -137,7 +137,8 @@
     color: #fff;
     &.plaintext,
     &.console,
-    &.erb { color: #fff; }
+    &.erb,
+    &.html { color: #fff; }
     .hll { background-color: #272822; }
     .c   { color: #A9A9A8; } /* Comment */
     .err { color: #960050; background-color: #1e0010 } /* Error */
@@ -195,12 +196,12 @@
     .vg  { color: #f8f8f2; } /* Name.Variable.Global */
     .vi  { color: #f8f8f2; } /* Name.Variable.Instance */
     .il  { color: #C3A2FF; } /* Literal.Number.Integer.Long */
-    .gh  { color: #6c6c6c; } /* Generic Heading & Diff Header */
+    .gh  { color: #A9A9A8; } /* Generic Heading & Diff Header */
     .gu  { color: #75715e; } /* Generic.Subheading & Diff Unified/Comment? */
     .gd  { color: #FF538C; background-color: unset; } /* Generic.Deleted & Diff Deleted */
     .gi  { color: #BDFB42; background-color: unset; } /* Generic.Inserted & Diff Inserted */
     .gr  { color: #aa0000; }
-    .go  { color: #6c6c6c; }
+    .go  { color: #A9A9A8; }
     .gp  { color: #fff; }
   }
 }

@@ -376,7 +376,7 @@
     /* Generic.Deleted & Diff Deleted */
     /* Generic.Inserted & Diff Inserted */
   }
-  .highlight.plaintext, .highlight.console, .highlight.erb {
+  .highlight.plaintext, .highlight.console, .highlight.erb, .highlight.html {
     color: #fff;
   }
   .highlight .hll {
@@ -552,7 +552,7 @@
     color: #C3A2FF;
   }
   .highlight .gh {
-    color: #6c6c6c;
+    color: #A9A9A8;
   }
   .highlight .gu {
     color: #75715e;
@@ -569,7 +569,7 @@
     color: #aa0000;
   }
   .highlight .go {
-    color: #6c6c6c;
+    color: #A9A9A8;
   }
   .highlight .gp {
     color: #fff;
