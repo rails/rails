@@ -702,6 +702,9 @@ intermediate whitespace looks uniform. */
   background-color: #F5F3F1;
   background-image: url("../images/icon_question-bubble.svg");
 }
+.interstitial.kindle {
+  padding-top: 1em !important;
+}
 body.guide {
   -webkit-tap-highlight-color: rgba(38, 27, 35, 0);
   font-family: Inter, sans-serif;
