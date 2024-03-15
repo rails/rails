@@ -1169,6 +1169,19 @@ body.guide header#page_header nav#feature_nav ul.nav li:last-child select {
     display: block;
   }
 }
+body.guide .guides-index .guides-index-item {
+  position: relative;
+  z-index: 15;
+  padding-bottom: 0.125em;
+}
+:where(body[dir=ltr]) body.guide .guides-index .guides-index-item {
+  background-position: right top;
+  padding-right: 1em;
+}
+:where(body[dir=rtl]) body.guide .guides-index .guides-index-item {
+  background-position: left top;
+  padding-left: 1em;
+}
 body.guide #guides {
   background: #F5F3F1;
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.25);

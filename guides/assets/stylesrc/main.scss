@@ -550,6 +550,18 @@ body.guide {
   } // header#page_header
 
   // Desktop guides flyout
+
+  .guides-index .guides-index-item {
+    // background: #980905 url(../images/nav_arrow.gif) no-repeat;
+    position: relative;
+    z-index: 15;
+    padding-bottom: 0.125em;
+
+    :where(body[dir="ltr"]) & { background-position: right top; padding-right: 1em; }
+    :where(body[dir="rtl"]) & { background-position: left top; padding-left: 1em; }
+  }
+
+  
   #guides {
     background: $gray-200;
     box-shadow: 0 2px 20px rgba(0,0,0,0.25);
