@@ -34,7 +34,7 @@ as your own plain Ruby objects.
 The term "Active Record" also refers to a software architecture pattern. Active
 Record in Rails is an implementation of that pattern. It's also a description of
 something called an [Object Relational Mapping][ORM] system. The below sections
-explain these terms:
+explain these terms.
 
 ### The Active Record Pattern
 
@@ -107,12 +107,12 @@ This uses the [Active Support](active_support_core_extensions.html#pluralize)
 [pluralize](https://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-pluralize) method.
 
 For class names composed of two or more words, the model class name will follow
-the Ruby conventions of using a UpperCamelCase name. The database table name, in
+the Ruby conventions of using an UpperCamelCase name. The database table name, in
 that case, will be a snake_case name. For example:
 
-* `BookClub` - is the model class, singular with the first letter of each word
+* `BookClub` is the model class, singular with the first letter of each word
   capitalized.
-* `book_clubs` - is the matching database table, plural with underscores
+* `book_clubs` is the matching database table, plural with underscores
   separating words.
 
 Here are some more examples of model class names and corresponding table names:
@@ -153,9 +153,9 @@ Active Record instances:
 * `(association_name)_type` - Stores the type for [polymorphic
   associations](association_basics.html#polymorphic-associations).
 * `(table_name)_count` - Used to cache the number of belonging objects on
-  associations. For example, a `comments_count` column in an `Article` class
-  that has many instances of `Comment` will cache the number of existing
-  comments for each article.
+  associations. For example, if `Article`s have many `Comment`s, a
+  `comments_count` column in the `articles` table will cache the number of
+  existing comments for each article.
 
 NOTE: While these column names are optional, they are reserved by Active Record.
 Steer clear of reserved keywords when naming your table's columns. For example,
@@ -184,7 +184,8 @@ end
 This will create a `Book` model, mapped to a `books` table in the database,
 where each column in the table is mapped to attributes of the `Book` class. An
 instance of `Book` can represent a row in the `books` table. The `books` table
-can be created using an SQL statement like this:
+with columns `id`, `title`, and `author`, can be created using an SQL statement
+like this:
 
 ```sql
 CREATE TABLE books (
@@ -195,9 +196,9 @@ CREATE TABLE books (
 );
 ```
 
-Database tables in Rails are typically created using [Active Record
-Migrations](#migrations) and not raw SQL. A migration for the `books` table
-above can be generated like this:
+However, that is not how you do it normally in Rails. Database tables in Rails
+are typically created using [Active Record Migrations](#migrations) and not raw
+SQL. A migration for the `books` table above can be generated like this:
 
 ```bash
 $ bin/rails generate migration CreateBooks title:string author:string
@@ -208,7 +209,7 @@ and results in this:
 ```ruby
 # Note:
 # The `id` column, as the primary key, is automatically created by convention.
-# Columns `created_at` and `updated_at` are added by `t.timestamps` line.
+# Columns `created_at` and `updated_at` are added by `t.timestamps`.
 
 # /db/migrate/20240220143807_create_books.rb
 class CreateBooks < ActiveRecord::Migration
@@ -223,10 +224,10 @@ class CreateBooks < ActiveRecord::Migration
 end
 ```
 
-The SQL as well as the migration above declare a table with three columns: `id`,
-`title`, and `author`. Each row of this table can be represented by an instance
-of the `Book` class with the same three attributes: `id`, `title`, and `author`.
-You can access a book's attributes like this:
+That migration creates columns `id`, `title`, `author`, `created_at` and
+`updated_at`. Each row of this table can be represented by an instance of the
+`Book` class with the same attributes: `id`, `title`, `author`, `created_at`,
+and `updated_at`. You can access a book's attributes like this:
 
 ```irb
 irb> book = Book.new
@@ -239,9 +240,10 @@ irb> book.title
 ```
 
 NOTE: You can generate the Active Record model class as well as a matching
-migration with this command `bin/rails generate model Book title:string
-author:string`. This creates both `/app/models/book.rb` and
-`/db/migrate/20240220143807_create_books.rb` files.
+migration with the command `bin/rails generate model Book title:string
+author:string`. This creates the files `/app/models/book.rb`,
+`/db/migrate/20240220143807_create_books.rb`, and a couple others for testing
+purposes.
 
 ### Creating Namespaced Models
 
@@ -251,7 +253,7 @@ folder and namespace. For example, `order.rb` and `review.rb` under
 `app/models/product` with `Product::Order` and `Product::Review` class names,
 respectively. You can create namespaced models with Active Record.
 
-In the case where `Product` module does not already exist, the `generate`
+In the case where the `Product` module does not already exist, the `generate`
 command will create everything like this:
 
 ```bash
@@ -265,7 +267,7 @@ $ bin/rails generate model Product::Order
       create      test/fixtures/product/orders.yml
 ```
 
-In the case where `Product` module already exists, you will be asked to resolve
+If the `Product` module already exists, you will be asked to resolve
 the conflict:
 
 ```bash
@@ -371,7 +373,7 @@ CRUD: Reading and Writing Data
 ------------------------------
 
 CRUD is an acronym for the four verbs we use to operate on data: **C**reate,
-**R**ead, **U**pdate and **D**elete. Active Record automatically creates methods
+**R**ead, **U**pdate, and **D**elete. Active Record automatically creates methods
 to allow you to read and manipulate data stored in your application's database
 tables.
 
@@ -386,8 +388,9 @@ statements.
 ### Create
 
 Active Record objects can be created from a hash, a block, or have their
-attributes manually set after creation. The `new` method will return a new
-object while `create` will return the object and save it to the database.
+attributes manually set after creation. The `new` method will return a new,
+non-persisted object, while `create` will save the object to the database and
+return it.
 
 For example, given a `Book` model with attributes of `title` and `author`, the
 `create` method call will create an object and save a new record to the
@@ -438,7 +441,7 @@ The resulting SQL statement from both `book.save` and `Book.create` look
 something like this:
 
 ```sql
-/* Note that `created_at` and `updated_at` are automatically set */
+/* Note that `created_at` and `updated_at` are automatically set. */
 
 INSERT INTO "books" ("title", "author", "created_at", "updated_at") VALUES (?, ?, ?, ?) RETURNING "id"  [["title", "Metaprogramming Ruby 2"], ["author", "Paolo Perrotta"], ["created_at", "2024-02-22 20:01:18.469952"], ["updated_at", "2024-02-22 20:01:18.469952"]]
 ```
@@ -450,10 +453,10 @@ query a single record or multiple records, filter them by any attribute, order
 them, group them, select specific fields, and do anything you can do with SQL.
 
 ```ruby
-# Return a collection with all books
+# Return a collection with all books.
 books = Book.all
 
-# Return a single book
+# Return a single book.
 first_book = Book.first
 last_book = Book.last
 book = Book.take
@@ -495,7 +498,7 @@ SELECT "books".* FROM "books" WHERE "books"."id" = ? LIMIT ?  [["id", 42], ["LIM
 ```
 
 ```ruby
-# Find all books with a given an author, sort by created_at in reverse chronological order
+# Find all books with a given an author, sort by created_at in reverse chronological order.
 Book.where(author: "Douglas Adams").order(created_at: :desc)
 ```
 
@@ -530,7 +533,7 @@ book.update(title: "The Lord of the Rings: The Fellowship of the Ring")
 the `update` results in the following SQL:
 
 ```sql
-/* Note that `updated_at` is automatically set */
+/* Note that `updated_at` is automatically set. */
 
  UPDATE "books" SET "title" = ?, "updated_at" = ? WHERE "books"."id" = ?  [["title", "The Lord of the Rings: The Fellowship of the Ring"], ["updated_at", "2024-02-22 20:51:13.487064"], ["id", 104]]
 ```
@@ -565,10 +568,10 @@ If you'd like to delete several records in bulk, you may use `destroy_by`
 or `destroy_all` method:
 
 ```ruby
-# Find and delete all books by Douglas Adams
+# Find and delete all books by Douglas Adams.
 Book.destroy_by(author: "Douglas Adams")
 
-# Delete all books
+# Delete all books.
 Book.destroy_all
 ```
 
@@ -684,8 +687,8 @@ class Author < ApplicationRecord
 end
 ```
 
-The Author class now has methods to add and remove books to an author, and much
-more.
+The `Author` class now has methods to add and remove books to an author, and
+much more.
 
 You can learn more about associations in the [Active Record Associations
 guide](association_basics.html).
