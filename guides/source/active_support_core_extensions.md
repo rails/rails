@@ -3399,18 +3399,19 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 [DateAndTime::Calculations#months_ago]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-months_ago
 [DateAndTime::Calculations#months_since]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-months_since
 
-##### `weeks_ago`
+##### `weeks_ago`, `weeks_since`
 
-The method [`weeks_ago`][DateAndTime::Calculations#weeks_ago] works analogously for weeks:
+The method [`weeks_ago`][DateAndTime::Calculations#weeks_ago] and [`weeks_since`][DateAndTime::Calculations#week_since] work analogously for weeks:
 
 ```ruby
-Date.new(2010, 5, 24).weeks_ago(1)    # => Mon, 17 May 2010
-Date.new(2010, 5, 24).weeks_ago(2)    # => Mon, 10 May 2010
+Date.new(2010, 5, 24).weeks_ago(1)   # => Mon, 17 May 2010
+Date.new(2010, 5, 24).weeks_since(2) # => Mon, 07 Jun 2010
 ```
 
 NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 [DateAndTime::Calculations#weeks_ago]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-weeks_ago
+[DateAndTime::Calculations#weeks_since]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-weeks_since
 
 ##### `advance`
 
