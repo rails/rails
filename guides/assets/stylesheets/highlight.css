@@ -386,7 +386,7 @@
     color: #A9A9A8;
   }
   .highlight .err {
-    color: #960050;
+    color: #e7007b;
     background-color: #1e0010;
   }
   .highlight .k {
@@ -566,7 +566,7 @@
     background-color: unset;
   }
   .highlight .gr {
-    color: #aa0000;
+    color: #FF538C;
   }
   .highlight .go {
     color: #A9A9A8;

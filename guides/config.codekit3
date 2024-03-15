@@ -1,0 +1,7425 @@
+{
+  "AAInfo" : "This is a CodeKit 3 project config file. EDITING THIS FILE IS A POOR LIFE DECISION. Doing so may cause CodeKit to crash and\/or corrupt your project. Several critical values in this file are 64-bit integers, which JavaScript JSON parsers do not support because JavaScript cannot handle 64-bit integers. These values will be corrupted if the file is parsed with JavaScript. This file is not backwards-compatible with CodeKit 1 or 2. For details, see https:\/\/codekitapp.com\/",
+  "buildSteps" : [
+    {
+      "name" : "Process All Remaining Files and Folders",
+      "stepType" : 1,
+      "uuidString" : "EAA63474-1DB6-48DB-83DC-61E02FE5FCB7"
+    }
+  ],
+  "creatorBuild" : "34564",
+  "files" : {
+    "\/.document" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/.document",
+      "oF" : 0
+    },
+    "\/.rubocop.yml" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/.rubocop.yml",
+      "oF" : 0
+    },
+    "\/assets\/images\/4_0_release_notes\/rails4_features.png" : {
+      "ft" : 32768,
+      "iS" : 65840,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/4_0_release_notes\/rails4_features.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/active_record_querying\/bookstore_models.png" : {
+      "ft" : 32768,
+      "iS" : 29828,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/active_record_querying\/bookstore_models.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/association_basics\/belongs_to.png" : {
+      "ft" : 32768,
+      "iS" : 21961,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/association_basics\/belongs_to.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/association_basics\/habtm.png" : {
+      "ft" : 32768,
+      "iS" : 46140,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/association_basics\/habtm.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/association_basics\/has_many_through.png" : {
+      "ft" : 32768,
+      "iS" : 75349,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/association_basics\/has_many_through.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/association_basics\/has_many.png" : {
+      "ft" : 32768,
+      "iS" : 24053,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/association_basics\/has_many.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/association_basics\/has_one_through.png" : {
+      "ft" : 32768,
+      "iS" : 68831,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/association_basics\/has_one_through.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/association_basics\/has_one.png" : {
+      "ft" : 32768,
+      "iS" : 27834,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/association_basics\/has_one.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/association_basics\/polymorphic.png" : {
+      "ft" : 32768,
+      "iS" : 62751,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/association_basics\/polymorphic.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/book_icon.gif" : {
+      "ft" : 4194304,
+      "iS" : 329,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/book_icon.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/assets\/images\/book_icon.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/assets\/images\/book_icon.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/assets\/images\/bullet_dark.gif" : {
+      "ft" : 4194304,
+      "iS" : 60,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/bullet_dark.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/assets\/images\/bullet.gif" : {
+      "ft" : 4194304,
+      "iS" : 60,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/bullet.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/assets\/images\/chapters_icon.gif" : {
+      "ft" : 4194304,
+      "iS" : 620,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/chapters_icon.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/assets\/images\/check_bullet.gif" : {
+      "ft" : 4194304,
+      "iS" : 376,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/check_bullet.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/assets\/images\/check_icon.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/assets\/images\/check_icon.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/assets\/images\/cog_icon.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/assets\/images\/cog_icon.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/assets\/images\/dynamic_method_class_eval.png" : {
+      "ft" : 32768,
+      "iS" : 30728,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/dynamic_method_class_eval.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/favicon.ico" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/favicon.ico",
+      "oF" : 0
+    },
+    "\/assets\/images\/feature_tile.gif" : {
+      "ft" : 4194304,
+      "iS" : 35,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/feature_tile.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/assets\/images\/footer_tile.gif" : {
+      "ft" : 4194304,
+      "iS" : 36,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/footer_tile.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/assets\/images\/getting_started\/article_with_comments.png" : {
+      "ft" : 32768,
+      "iS" : 51168,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/getting_started\/article_with_comments.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/getting_started\/challenge.png" : {
+      "ft" : 32768,
+      "iS" : 20347,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/getting_started\/challenge.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/getting_started\/rails_welcome.png" : {
+      "ft" : 32768,
+      "iS" : 54866,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/getting_started\/rails_welcome.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/grey_bullet.gif" : {
+      "ft" : 4194304,
+      "iS" : 37,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/grey_bullet.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/assets\/images\/hand_icon.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/assets\/images\/hand_icon.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/assets\/images\/header_tile.gif" : {
+      "ft" : 4194304,
+      "iS" : 36,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/header_tile.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/assets\/images\/hr_rails.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/assets\/images\/hr_rails.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/assets\/images\/i18n\/demo_html_safe.png" : {
+      "ft" : 32768,
+      "iS" : 9860,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/i18n\/demo_html_safe.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/i18n\/demo_localized_pirate.png" : {
+      "ft" : 32768,
+      "iS" : 11214,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/i18n\/demo_localized_pirate.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/i18n\/demo_translated_en.png" : {
+      "ft" : 32768,
+      "iS" : 9069,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/i18n\/demo_translated_en.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/i18n\/demo_translated_pirate.png" : {
+      "ft" : 32768,
+      "iS" : 9974,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/i18n\/demo_translated_pirate.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/i18n\/demo_translation_missing.png" : {
+      "ft" : 32768,
+      "iS" : 9984,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/i18n\/demo_translation_missing.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/i18n\/demo_untranslated.png" : {
+      "ft" : 32768,
+      "iS" : 8985,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/i18n\/demo_untranslated.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/icon_book-close-bookmark-1.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/assets\/images\/icon_book-close-bookmark-1.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/assets\/images\/icon_bulb-1.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/assets\/images\/icon_bulb-1.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/assets\/images\/icon_construction-sign.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/assets\/images\/icon_construction-sign.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/assets\/images\/icon_file-code.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/assets\/images\/icon_file-code.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/assets\/images\/icon_hand-stop.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/assets\/images\/icon_hand-stop.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/assets\/images\/icon_house-chimney.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/assets\/images\/icon_house-chimney.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/assets\/images\/icon_question-bubble.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/assets\/images\/icon_question-bubble.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/assets\/images\/icon_task-list-pin.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/assets\/images\/icon_task-list-pin.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/assets\/images\/icon.png" : {
+      "ft" : 32768,
+      "iS" : 1811,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/icon.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/icon.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/assets\/images\/icon.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/assets\/images\/info_icon.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/assets\/images\/info_icon.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/assets\/images\/logo_rails-circle.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/assets\/images\/logo_rails-circle.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/assets\/images\/nav_arrow.gif" : {
+      "ft" : 4194304,
+      "iS" : 419,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/nav_arrow.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/assets\/images\/note_icon.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/assets\/images\/note_icon.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/assets\/images\/rails_guides_kindle_cover.jpg" : {
+      "ft" : 16384,
+      "iS" : 25068,
+      "jF" : 0,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/rails_guides_kindle_cover.jpg",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "q" : 100,
+      "rq" : 75
+    },
+    "\/assets\/images\/rails_guides_logo_1x.png" : {
+      "ft" : 32768,
+      "iS" : 2340,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/rails_guides_logo_1x.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/rails_guides_logo_2x.png" : {
+      "ft" : 32768,
+      "iS" : 3107,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/rails_guides_logo_2x.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/rails_guides_logo.gif" : {
+      "ft" : 4194304,
+      "iS" : 2699,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/rails_guides_logo.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/assets\/images\/rubyline.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/assets\/images\/rubyline.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/assets\/images\/security\/csrf.png" : {
+      "ft" : 32768,
+      "iS" : 32179,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/security\/csrf.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/security\/session_fixation.png" : {
+      "ft" : 32768,
+      "iS" : 38296,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/security\/session_fixation.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/images\/tab_grey.gif" : {
+      "ft" : 4194304,
+      "iS" : 4684,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/tab_grey.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/assets\/images\/tab_info.gif" : {
+      "ft" : 4194304,
+      "iS" : 4522,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/tab_info.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/assets\/images\/tab_note.gif" : {
+      "ft" : 4194304,
+      "iS" : 4566,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/tab_note.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/assets\/images\/tab_red.gif" : {
+      "ft" : 4194304,
+      "iS" : 4507,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/tab_red.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/assets\/images\/tab_yellow.gif" : {
+      "ft" : 4194304,
+      "iS" : 4519,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/tab_yellow.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/assets\/images\/up_white_arrow.png" : {
+      "ft" : 32768,
+      "iS" : 358,
+      "oA" : 0,
+      "oAP" : "\/assets\/images\/up_white_arrow.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/assets\/javascripts\/.gitattributes" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/assets\/javascripts\/.gitattributes",
+      "oF" : 0
+    },
+    "\/assets\/javascripts\/@hotwired--turbo.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 0,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/assets\/javascripts\/@hotwired--turbo-min.js",
+      "oF" : 0,
+      "sC" : 3,
+      "tS" : 0
+    },
+    "\/assets\/javascripts\/clipboard.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 0,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/assets\/javascripts\/clipboard-min.js",
+      "oF" : 0,
+      "sC" : 3,
+      "tS" : 0
+    },
+    "\/assets\/javascripts\/guides.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 0,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/assets\/javascripts\/guides-min.js",
+      "oF" : 0,
+      "sC" : 3,
+      "tS" : 0
+    },
+    "\/assets\/robots.txt" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/assets\/robots.txt",
+      "oF" : 0
+    },
+    "\/assets\/stylesheets\/dark.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/assets\/stylesheets\/dark-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/assets\/stylesheets\/epub.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/assets\/stylesheets\/epub-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/assets\/stylesheets\/highlight.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/assets\/stylesheets\/highlight-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/assets\/stylesheets\/highlight.css.old" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/assets\/stylesheets\/highlight.css.old",
+      "oF" : 0
+    },
+    "\/assets\/stylesheets\/main.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/assets\/stylesheets\/main-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/assets\/stylesheets\/print.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/assets\/stylesheets\/print-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/assets\/stylesheets\/reset.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/assets\/stylesheets\/reset-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/assets\/stylesheets\/style.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/assets\/stylesheets\/style-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/assets\/stylesrc\/components\/_code-container.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 1,
+      "oAP" : "\/assets\/stylesrc\/components\/_code-container.css",
+      "oF" : 0,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
+    "\/assets\/stylesrc\/highlight.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/assets\/stylesrc\/highlight.css",
+      "oF" : 0,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
+    "\/assets\/stylesrc\/main.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 1,
+      "oAP" : "\/assets\/stylesrc\/main.css",
+      "oF" : 0,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
+    "\/assets\/stylesrc\/style.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/assets\/stylesrc\/style.css",
+      "oF" : 0,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
+    "\/assets\/stylesrc\/vendor\/_boilerplate.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 1,
+      "oAP" : "\/assets\/stylesrc\/vendor\/_boilerplate.css",
+      "oF" : 0,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
+    "\/assets\/stylesrc\/vendor\/_include-media.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 1,
+      "oAP" : "\/assets\/stylesrc\/vendor\/_include-media.css",
+      "oF" : 0,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
+    "\/assets\/stylesrc\/vendor\/_normalize.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 1,
+      "oAP" : "\/assets\/stylesrc\/vendor\/_normalize.css",
+      "oF" : 0,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
+    "\/bug_report_templates\/action_controller.rb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/bug_report_templates\/action_controller.rb",
+      "oF" : 0
+    },
+    "\/bug_report_templates\/action_mailbox.rb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/bug_report_templates\/action_mailbox.rb",
+      "oF" : 0
+    },
+    "\/bug_report_templates\/action_mailer.rb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/bug_report_templates\/action_mailer.rb",
+      "oF" : 0
+    },
+    "\/bug_report_templates\/action_view.rb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/bug_report_templates\/action_view.rb",
+      "oF" : 0
+    },
+    "\/bug_report_templates\/active_job.rb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/bug_report_templates\/active_job.rb",
+      "oF" : 0
+    },
+    "\/bug_report_templates\/active_record_migrations.rb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/bug_report_templates\/active_record_migrations.rb",
+      "oF" : 0
+    },
+    "\/bug_report_templates\/active_record.rb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/bug_report_templates\/active_record.rb",
+      "oF" : 0
+    },
+    "\/bug_report_templates\/active_storage.rb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/bug_report_templates\/active_storage.rb",
+      "oF" : 0
+    },
+    "\/bug_report_templates\/benchmark.rb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/bug_report_templates\/benchmark.rb",
+      "oF" : 0
+    },
+    "\/bug_report_templates\/generic.rb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/bug_report_templates\/generic.rb",
+      "oF" : 0
+    },
+    "\/CHANGELOG.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/CHANGELOG.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/GUIDES_README.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/GUIDES_README.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/output_og\/2_2_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/2_2_release_notes.html",
+      "oF" : 0
+    },
+    "\/output_og\/2_3_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/2_3_release_notes.html",
+      "oF" : 0
+    },
+    "\/output_og\/3_0_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/3_0_release_notes.html",
+      "oF" : 0
+    },
+    "\/output_og\/3_1_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/3_1_release_notes.html",
+      "oF" : 0
+    },
+    "\/output_og\/3_2_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/3_2_release_notes.html",
+      "oF" : 0
+    },
+    "\/output_og\/4_0_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/4_0_release_notes.html",
+      "oF" : 0
+    },
+    "\/output_og\/4_1_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/4_1_release_notes.html",
+      "oF" : 0
+    },
+    "\/output_og\/4_2_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/4_2_release_notes.html",
+      "oF" : 0
+    },
+    "\/output_og\/5_0_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/5_0_release_notes.html",
+      "oF" : 0
+    },
+    "\/output_og\/5_1_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/5_1_release_notes.html",
+      "oF" : 0
+    },
+    "\/output_og\/5_2_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/5_2_release_notes.html",
+      "oF" : 0
+    },
+    "\/output_og\/6_0_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/6_0_release_notes.html",
+      "oF" : 0
+    },
+    "\/output_og\/6_1_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/6_1_release_notes.html",
+      "oF" : 0
+    },
+    "\/output_og\/7_0_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/7_0_release_notes.html",
+      "oF" : 0
+    },
+    "\/output_og\/7_1_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/7_1_release_notes.html",
+      "oF" : 0
+    },
+    "\/output_og\/7_2_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/7_2_release_notes.html",
+      "oF" : 0
+    },
+    "\/output_og\/action_cable_overview.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/action_cable_overview.html",
+      "oF" : 0
+    },
+    "\/output_og\/action_controller_overview.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/action_controller_overview.html",
+      "oF" : 0
+    },
+    "\/output_og\/action_mailbox_basics.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/action_mailbox_basics.html",
+      "oF" : 0
+    },
+    "\/output_og\/action_mailer_basics.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/action_mailer_basics.html",
+      "oF" : 0
+    },
+    "\/output_og\/action_text_overview.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/action_text_overview.html",
+      "oF" : 0
+    },
+    "\/output_og\/action_view_helpers.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/action_view_helpers.html",
+      "oF" : 0
+    },
+    "\/output_og\/action_view_overview.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/action_view_overview.html",
+      "oF" : 0
+    },
+    "\/output_og\/active_job_basics.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/active_job_basics.html",
+      "oF" : 0
+    },
+    "\/output_og\/active_model_basics.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/active_model_basics.html",
+      "oF" : 0
+    },
+    "\/output_og\/active_record_basics.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/active_record_basics.html",
+      "oF" : 0
+    },
+    "\/output_og\/active_record_callbacks.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/active_record_callbacks.html",
+      "oF" : 0
+    },
+    "\/output_og\/active_record_composite_primary_keys.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/active_record_composite_primary_keys.html",
+      "oF" : 0
+    },
+    "\/output_og\/active_record_encryption.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/active_record_encryption.html",
+      "oF" : 0
+    },
+    "\/output_og\/active_record_migrations.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/active_record_migrations.html",
+      "oF" : 0
+    },
+    "\/output_og\/active_record_multiple_databases.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/active_record_multiple_databases.html",
+      "oF" : 0
+    },
+    "\/output_og\/active_record_postgresql.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/active_record_postgresql.html",
+      "oF" : 0
+    },
+    "\/output_og\/active_record_querying.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/active_record_querying.html",
+      "oF" : 0
+    },
+    "\/output_og\/active_record_validations.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/active_record_validations.html",
+      "oF" : 0
+    },
+    "\/output_og\/active_storage_overview.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/active_storage_overview.html",
+      "oF" : 0
+    },
+    "\/output_og\/active_support_core_extensions.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/active_support_core_extensions.html",
+      "oF" : 0
+    },
+    "\/output_og\/active_support_instrumentation.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/active_support_instrumentation.html",
+      "oF" : 0
+    },
+    "\/output_og\/api_app.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/api_app.html",
+      "oF" : 0
+    },
+    "\/output_og\/api_documentation_guidelines.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/api_documentation_guidelines.html",
+      "oF" : 0
+    },
+    "\/output_og\/asset_pipeline.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/asset_pipeline.html",
+      "oF" : 0
+    },
+    "\/output_og\/association_basics.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/association_basics.html",
+      "oF" : 0
+    },
+    "\/output_og\/autoloading_and_reloading_constants.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/autoloading_and_reloading_constants.html",
+      "oF" : 0
+    },
+    "\/output_og\/caching_with_rails.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/caching_with_rails.html",
+      "oF" : 0
+    },
+    "\/output_og\/classic_to_zeitwerk_howto.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/classic_to_zeitwerk_howto.html",
+      "oF" : 0
+    },
+    "\/output_og\/command_line.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/command_line.html",
+      "oF" : 0
+    },
+    "\/output_og\/configuring.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/configuring.html",
+      "oF" : 0
+    },
+    "\/output_og\/contributing_to_ruby_on_rails.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/contributing_to_ruby_on_rails.html",
+      "oF" : 0
+    },
+    "\/output_og\/debugging_rails_applications.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/debugging_rails_applications.html",
+      "oF" : 0
+    },
+    "\/output_og\/development_dependencies_install.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/development_dependencies_install.html",
+      "oF" : 0
+    },
+    "\/output_og\/engines.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/engines.html",
+      "oF" : 0
+    },
+    "\/output_og\/error_reporting.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/error_reporting.html",
+      "oF" : 0
+    },
+    "\/output_og\/form_helpers.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/form_helpers.html",
+      "oF" : 0
+    },
+    "\/output_og\/generators.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/generators.html",
+      "oF" : 0
+    },
+    "\/output_og\/getting_started.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/getting_started.html",
+      "oF" : 0
+    },
+    "\/output_og\/i18n.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/i18n.html",
+      "oF" : 0
+    },
+    "\/output_og\/images\/4_0_release_notes\/rails4_features.png" : {
+      "ft" : 32768,
+      "iS" : 65840,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/4_0_release_notes\/rails4_features.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/active_record_querying\/bookstore_models.png" : {
+      "ft" : 32768,
+      "iS" : 29828,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/active_record_querying\/bookstore_models.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/association_basics\/belongs_to.png" : {
+      "ft" : 32768,
+      "iS" : 21961,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/association_basics\/belongs_to.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/association_basics\/habtm.png" : {
+      "ft" : 32768,
+      "iS" : 46140,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/association_basics\/habtm.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/association_basics\/has_many_through.png" : {
+      "ft" : 32768,
+      "iS" : 75349,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/association_basics\/has_many_through.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/association_basics\/has_many.png" : {
+      "ft" : 32768,
+      "iS" : 24053,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/association_basics\/has_many.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/association_basics\/has_one_through.png" : {
+      "ft" : 32768,
+      "iS" : 68831,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/association_basics\/has_one_through.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/association_basics\/has_one.png" : {
+      "ft" : 32768,
+      "iS" : 27834,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/association_basics\/has_one.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/association_basics\/polymorphic.png" : {
+      "ft" : 32768,
+      "iS" : 62751,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/association_basics\/polymorphic.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/book_icon.gif" : {
+      "ft" : 4194304,
+      "iS" : 329,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/book_icon.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output_og\/images\/book_icon.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output_og\/images\/book_icon.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output_og\/images\/bullet_dark.gif" : {
+      "ft" : 4194304,
+      "iS" : 60,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/bullet_dark.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output_og\/images\/bullet.gif" : {
+      "ft" : 4194304,
+      "iS" : 60,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/bullet.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output_og\/images\/chapters_icon.gif" : {
+      "ft" : 4194304,
+      "iS" : 620,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/chapters_icon.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output_og\/images\/check_bullet.gif" : {
+      "ft" : 4194304,
+      "iS" : 376,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/check_bullet.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output_og\/images\/check_icon.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output_og\/images\/check_icon.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output_og\/images\/cog_icon.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output_og\/images\/cog_icon.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output_og\/images\/dynamic_method_class_eval.png" : {
+      "ft" : 32768,
+      "iS" : 30728,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/dynamic_method_class_eval.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/favicon.ico" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/favicon.ico",
+      "oF" : 0
+    },
+    "\/output_og\/images\/feature_tile.gif" : {
+      "ft" : 4194304,
+      "iS" : 35,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/feature_tile.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output_og\/images\/footer_tile.gif" : {
+      "ft" : 4194304,
+      "iS" : 36,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/footer_tile.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output_og\/images\/getting_started\/article_with_comments.png" : {
+      "ft" : 32768,
+      "iS" : 51168,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/getting_started\/article_with_comments.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/getting_started\/challenge.png" : {
+      "ft" : 32768,
+      "iS" : 20347,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/getting_started\/challenge.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/getting_started\/rails_welcome.png" : {
+      "ft" : 32768,
+      "iS" : 54866,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/getting_started\/rails_welcome.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/grey_bullet.gif" : {
+      "ft" : 4194304,
+      "iS" : 37,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/grey_bullet.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output_og\/images\/hand_icon.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output_og\/images\/hand_icon.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output_og\/images\/header_tile.gif" : {
+      "ft" : 4194304,
+      "iS" : 36,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/header_tile.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output_og\/images\/i18n\/demo_html_safe.png" : {
+      "ft" : 32768,
+      "iS" : 9860,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/i18n\/demo_html_safe.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/i18n\/demo_localized_pirate.png" : {
+      "ft" : 32768,
+      "iS" : 11214,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/i18n\/demo_localized_pirate.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/i18n\/demo_translated_en.png" : {
+      "ft" : 32768,
+      "iS" : 9069,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/i18n\/demo_translated_en.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/i18n\/demo_translated_pirate.png" : {
+      "ft" : 32768,
+      "iS" : 9974,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/i18n\/demo_translated_pirate.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/i18n\/demo_translation_missing.png" : {
+      "ft" : 32768,
+      "iS" : 9984,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/i18n\/demo_translation_missing.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/i18n\/demo_untranslated.png" : {
+      "ft" : 32768,
+      "iS" : 8985,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/i18n\/demo_untranslated.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/icon_book-close-bookmark-1.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output_og\/images\/icon_book-close-bookmark-1.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output_og\/images\/icon_bulb-1.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output_og\/images\/icon_bulb-1.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output_og\/images\/icon_file-code.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output_og\/images\/icon_file-code.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output_og\/images\/icon_hand-stop.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output_og\/images\/icon_hand-stop.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output_og\/images\/icon_task-list-pin.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output_og\/images\/icon_task-list-pin.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output_og\/images\/icon.png" : {
+      "ft" : 32768,
+      "iS" : 1811,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/icon.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/icon.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output_og\/images\/icon.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output_og\/images\/info_icon.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output_og\/images\/info_icon.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output_og\/images\/nav_arrow.gif" : {
+      "ft" : 4194304,
+      "iS" : 419,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/nav_arrow.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output_og\/images\/note_icon.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output_og\/images\/note_icon.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output_og\/images\/rails_guides_kindle_cover.jpg" : {
+      "ft" : 16384,
+      "iS" : 25068,
+      "jF" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/rails_guides_kindle_cover.jpg",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "q" : 100,
+      "rq" : 75
+    },
+    "\/output_og\/images\/rails_guides_logo_1x.png" : {
+      "ft" : 32768,
+      "iS" : 2340,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/rails_guides_logo_1x.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/rails_guides_logo_2x.png" : {
+      "ft" : 32768,
+      "iS" : 3107,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/rails_guides_logo_2x.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/rails_guides_logo.gif" : {
+      "ft" : 4194304,
+      "iS" : 2699,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/rails_guides_logo.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output_og\/images\/rubyline.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output_og\/images\/rubyline.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output_og\/images\/security\/csrf.png" : {
+      "ft" : 32768,
+      "iS" : 32179,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/security\/csrf.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/security\/session_fixation.png" : {
+      "ft" : 32768,
+      "iS" : 38296,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/security\/session_fixation.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/images\/tab_grey.gif" : {
+      "ft" : 4194304,
+      "iS" : 4684,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/tab_grey.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output_og\/images\/tab_info.gif" : {
+      "ft" : 4194304,
+      "iS" : 4522,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/tab_info.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output_og\/images\/tab_note.gif" : {
+      "ft" : 4194304,
+      "iS" : 4566,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/tab_note.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output_og\/images\/tab_red.gif" : {
+      "ft" : 4194304,
+      "iS" : 4507,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/tab_red.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output_og\/images\/tab_yellow.gif" : {
+      "ft" : 4194304,
+      "iS" : 4519,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/tab_yellow.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output_og\/images\/up_white_arrow.png" : {
+      "ft" : 32768,
+      "iS" : 358,
+      "oA" : 0,
+      "oAP" : "\/output_og\/images\/up_white_arrow.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output_og\/index.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/index.html",
+      "oF" : 0
+    },
+    "\/output_og\/initialization.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/initialization.html",
+      "oF" : 0
+    },
+    "\/output_og\/javascripts\/.gitattributes" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/javascripts\/.gitattributes",
+      "oF" : 0
+    },
+    "\/output_og\/javascripts\/@hotwired--turbo.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 0,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/output_og\/javascripts\/@hotwired--turbo-min.js",
+      "oF" : 0,
+      "sC" : 3,
+      "tS" : 0
+    },
+    "\/output_og\/javascripts\/clipboard.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 0,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/output_og\/javascripts\/clipboard-min.js",
+      "oF" : 0,
+      "sC" : 3,
+      "tS" : 0
+    },
+    "\/output_og\/javascripts\/guides.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 0,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/output_og\/javascripts\/guides-min.js",
+      "oF" : 0,
+      "sC" : 3,
+      "tS" : 0
+    },
+    "\/output_og\/layouts_and_rendering.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/layouts_and_rendering.html",
+      "oF" : 0
+    },
+    "\/output_og\/maintenance_policy.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/maintenance_policy.html",
+      "oF" : 0
+    },
+    "\/output_og\/plugins.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/plugins.html",
+      "oF" : 0
+    },
+    "\/output_og\/rails_application_templates.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/rails_application_templates.html",
+      "oF" : 0
+    },
+    "\/output_og\/rails_on_rack.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/rails_on_rack.html",
+      "oF" : 0
+    },
+    "\/output_og\/robots.txt" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/robots.txt",
+      "oF" : 0
+    },
+    "\/output_og\/routing.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/routing.html",
+      "oF" : 0
+    },
+    "\/output_og\/ruby_on_rails_guides_guidelines.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/ruby_on_rails_guides_guidelines.html",
+      "oF" : 0
+    },
+    "\/output_og\/security.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/security.html",
+      "oF" : 0
+    },
+    "\/output_og\/stylesheets_old\/dark.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/stylesheets_old\/dark-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/output_og\/stylesheets_old\/epub.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/stylesheets_old\/epub-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/output_og\/stylesheets_old\/highlight.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/stylesheets_old\/highlight-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/output_og\/stylesheets_old\/main.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/stylesheets_old\/main-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/output_og\/stylesheets_old\/print.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/stylesheets_old\/print-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/output_og\/stylesheets_old\/reset.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/stylesheets_old\/reset-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/output_og\/stylesheets_old\/style.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/stylesheets_old\/style-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/output_og\/stylesheets\/dark.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/stylesheets\/dark-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/output_og\/stylesheets\/epub.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/stylesheets\/epub-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/output_og\/stylesheets\/highlight.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/stylesheets\/highlight-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/output_og\/stylesheets\/main.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/stylesheets\/main-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/output_og\/stylesheets\/print.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/stylesheets\/print-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/output_og\/stylesheets\/reset.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/stylesheets\/reset-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/output_og\/stylesheets\/style.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/stylesheets\/style-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/output_og\/stylesrc\/components\/_code-container.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 1,
+      "oAP" : "\/output_og\/stylesrc\/components\/_code-container.css",
+      "oF" : 0,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
+    "\/output_og\/stylesrc\/main.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 1,
+      "oAP" : "\/output_og\/stylesrc\/main.css",
+      "oF" : 0,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
+    "\/output_og\/stylesrc\/style.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/stylesrc\/style.css",
+      "oF" : 0,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
+    "\/output_og\/stylesrc\/vendor\/_boilerplate.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 1,
+      "oAP" : "\/output_og\/stylesrc\/vendor\/_boilerplate.css",
+      "oF" : 0,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
+    "\/output_og\/stylesrc\/vendor\/_include-media.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 1,
+      "oAP" : "\/output_og\/stylesrc\/vendor\/_include-media.css",
+      "oF" : 0,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
+    "\/output_og\/stylesrc\/vendor\/_normalize.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 1,
+      "oAP" : "\/output_og\/stylesrc\/vendor\/_normalize.css",
+      "oF" : 0,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
+    "\/output_og\/testing.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/testing.html",
+      "oF" : 0
+    },
+    "\/output_og\/threading_and_code_execution.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/threading_and_code_execution.html",
+      "oF" : 0
+    },
+    "\/output_og\/upgrading_ruby_on_rails.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/upgrading_ruby_on_rails.html",
+      "oF" : 0
+    },
+    "\/output_og\/working_with_javascript_in_rails.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output_og\/working_with_javascript_in_rails.html",
+      "oF" : 0
+    },
+    "\/output\/2_2_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/2_2_release_notes.html",
+      "oF" : 0
+    },
+    "\/output\/2_3_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/2_3_release_notes.html",
+      "oF" : 0
+    },
+    "\/output\/3_0_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/3_0_release_notes.html",
+      "oF" : 0
+    },
+    "\/output\/3_1_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/3_1_release_notes.html",
+      "oF" : 0
+    },
+    "\/output\/3_2_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/3_2_release_notes.html",
+      "oF" : 0
+    },
+    "\/output\/4_0_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/4_0_release_notes.html",
+      "oF" : 0
+    },
+    "\/output\/4_1_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/4_1_release_notes.html",
+      "oF" : 0
+    },
+    "\/output\/4_2_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/4_2_release_notes.html",
+      "oF" : 0
+    },
+    "\/output\/5_0_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/5_0_release_notes.html",
+      "oF" : 0
+    },
+    "\/output\/5_1_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/5_1_release_notes.html",
+      "oF" : 0
+    },
+    "\/output\/5_2_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/5_2_release_notes.html",
+      "oF" : 0
+    },
+    "\/output\/6_0_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/6_0_release_notes.html",
+      "oF" : 0
+    },
+    "\/output\/6_1_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/6_1_release_notes.html",
+      "oF" : 0
+    },
+    "\/output\/7_0_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/7_0_release_notes.html",
+      "oF" : 0
+    },
+    "\/output\/7_1_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/7_1_release_notes.html",
+      "oF" : 0
+    },
+    "\/output\/7_2_release_notes.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/7_2_release_notes.html",
+      "oF" : 0
+    },
+    "\/output\/action_cable_overview.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/action_cable_overview.html",
+      "oF" : 0
+    },
+    "\/output\/action_controller_overview.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/action_controller_overview.html",
+      "oF" : 0
+    },
+    "\/output\/action_mailbox_basics.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/action_mailbox_basics.html",
+      "oF" : 0
+    },
+    "\/output\/action_mailer_basics.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/action_mailer_basics.html",
+      "oF" : 0
+    },
+    "\/output\/action_text_overview.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/action_text_overview.html",
+      "oF" : 0
+    },
+    "\/output\/action_view_helpers.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/action_view_helpers.html",
+      "oF" : 0
+    },
+    "\/output\/action_view_overview.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/action_view_overview.html",
+      "oF" : 0
+    },
+    "\/output\/active_job_basics.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/active_job_basics.html",
+      "oF" : 0
+    },
+    "\/output\/active_model_basics.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/active_model_basics.html",
+      "oF" : 0
+    },
+    "\/output\/active_record_basics.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/active_record_basics.html",
+      "oF" : 0
+    },
+    "\/output\/active_record_callbacks.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/active_record_callbacks.html",
+      "oF" : 0
+    },
+    "\/output\/active_record_composite_primary_keys.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/active_record_composite_primary_keys.html",
+      "oF" : 0
+    },
+    "\/output\/active_record_encryption.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/active_record_encryption.html",
+      "oF" : 0
+    },
+    "\/output\/active_record_migrations.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/active_record_migrations.html",
+      "oF" : 0
+    },
+    "\/output\/active_record_multiple_databases.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/active_record_multiple_databases.html",
+      "oF" : 0
+    },
+    "\/output\/active_record_postgresql.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/active_record_postgresql.html",
+      "oF" : 0
+    },
+    "\/output\/active_record_querying.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/active_record_querying.html",
+      "oF" : 0
+    },
+    "\/output\/active_record_validations.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/active_record_validations.html",
+      "oF" : 0
+    },
+    "\/output\/active_storage_overview.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/active_storage_overview.html",
+      "oF" : 0
+    },
+    "\/output\/active_support_core_extensions.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/active_support_core_extensions.html",
+      "oF" : 0
+    },
+    "\/output\/active_support_instrumentation.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/active_support_instrumentation.html",
+      "oF" : 0
+    },
+    "\/output\/api_app.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/api_app.html",
+      "oF" : 0
+    },
+    "\/output\/api_documentation_guidelines.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/api_documentation_guidelines.html",
+      "oF" : 0
+    },
+    "\/output\/asset_pipeline.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/asset_pipeline.html",
+      "oF" : 0
+    },
+    "\/output\/association_basics.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/association_basics.html",
+      "oF" : 0
+    },
+    "\/output\/autoloading_and_reloading_constants.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/autoloading_and_reloading_constants.html",
+      "oF" : 0
+    },
+    "\/output\/caching_with_rails.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/caching_with_rails.html",
+      "oF" : 0
+    },
+    "\/output\/classic_to_zeitwerk_howto.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/classic_to_zeitwerk_howto.html",
+      "oF" : 0
+    },
+    "\/output\/command_line.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/command_line.html",
+      "oF" : 0
+    },
+    "\/output\/configuring.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/configuring.html",
+      "oF" : 0
+    },
+    "\/output\/contributing_to_ruby_on_rails.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/contributing_to_ruby_on_rails.html",
+      "oF" : 0
+    },
+    "\/output\/debugging_rails_applications.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/debugging_rails_applications.html",
+      "oF" : 0
+    },
+    "\/output\/development_dependencies_install.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/development_dependencies_install.html",
+      "oF" : 0
+    },
+    "\/output\/engines.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/engines.html",
+      "oF" : 0
+    },
+    "\/output\/error_reporting.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/error_reporting.html",
+      "oF" : 0
+    },
+    "\/output\/form_helpers.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/form_helpers.html",
+      "oF" : 0
+    },
+    "\/output\/generators.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/generators.html",
+      "oF" : 0
+    },
+    "\/output\/getting_started.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/getting_started.html",
+      "oF" : 0
+    },
+    "\/output\/i18n.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/i18n.html",
+      "oF" : 0
+    },
+    "\/output\/images\/4_0_release_notes\/rails4_features.png" : {
+      "ft" : 32768,
+      "iS" : 65840,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/4_0_release_notes\/rails4_features.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/active_record_querying\/bookstore_models.png" : {
+      "ft" : 32768,
+      "iS" : 29828,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/active_record_querying\/bookstore_models.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/association_basics\/belongs_to.png" : {
+      "ft" : 32768,
+      "iS" : 21961,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/association_basics\/belongs_to.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/association_basics\/habtm.png" : {
+      "ft" : 32768,
+      "iS" : 46140,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/association_basics\/habtm.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/association_basics\/has_many_through.png" : {
+      "ft" : 32768,
+      "iS" : 75349,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/association_basics\/has_many_through.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/association_basics\/has_many.png" : {
+      "ft" : 32768,
+      "iS" : 24053,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/association_basics\/has_many.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/association_basics\/has_one_through.png" : {
+      "ft" : 32768,
+      "iS" : 68831,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/association_basics\/has_one_through.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/association_basics\/has_one.png" : {
+      "ft" : 32768,
+      "iS" : 27834,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/association_basics\/has_one.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/association_basics\/polymorphic.png" : {
+      "ft" : 32768,
+      "iS" : 62751,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/association_basics\/polymorphic.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/book_icon.gif" : {
+      "ft" : 4194304,
+      "iS" : 329,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/book_icon.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output\/images\/book_icon.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output\/images\/book_icon.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output\/images\/bullet_dark.gif" : {
+      "ft" : 4194304,
+      "iS" : 60,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/bullet_dark.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output\/images\/bullet.gif" : {
+      "ft" : 4194304,
+      "iS" : 60,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/bullet.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output\/images\/chapters_icon.gif" : {
+      "ft" : 4194304,
+      "iS" : 620,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/chapters_icon.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output\/images\/check_bullet.gif" : {
+      "ft" : 4194304,
+      "iS" : 376,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/check_bullet.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output\/images\/check_icon.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output\/images\/check_icon.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output\/images\/cog_icon.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output\/images\/cog_icon.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output\/images\/dynamic_method_class_eval.png" : {
+      "ft" : 32768,
+      "iS" : 30728,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/dynamic_method_class_eval.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/favicon.ico" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/favicon.ico",
+      "oF" : 0
+    },
+    "\/output\/images\/feature_tile.gif" : {
+      "ft" : 4194304,
+      "iS" : 35,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/feature_tile.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output\/images\/footer_tile.gif" : {
+      "ft" : 4194304,
+      "iS" : 36,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/footer_tile.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output\/images\/getting_started\/article_with_comments.png" : {
+      "ft" : 32768,
+      "iS" : 51168,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/getting_started\/article_with_comments.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/getting_started\/challenge.png" : {
+      "ft" : 32768,
+      "iS" : 20347,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/getting_started\/challenge.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/getting_started\/rails_welcome.png" : {
+      "ft" : 32768,
+      "iS" : 54866,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/getting_started\/rails_welcome.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/grey_bullet.gif" : {
+      "ft" : 4194304,
+      "iS" : 37,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/grey_bullet.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output\/images\/hand_icon.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output\/images\/hand_icon.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output\/images\/header_tile.gif" : {
+      "ft" : 4194304,
+      "iS" : 36,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/header_tile.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output\/images\/hr_rails.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output\/images\/hr_rails.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output\/images\/i18n\/demo_html_safe.png" : {
+      "ft" : 32768,
+      "iS" : 9860,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/i18n\/demo_html_safe.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/i18n\/demo_localized_pirate.png" : {
+      "ft" : 32768,
+      "iS" : 11214,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/i18n\/demo_localized_pirate.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/i18n\/demo_translated_en.png" : {
+      "ft" : 32768,
+      "iS" : 9069,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/i18n\/demo_translated_en.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/i18n\/demo_translated_pirate.png" : {
+      "ft" : 32768,
+      "iS" : 9974,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/i18n\/demo_translated_pirate.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/i18n\/demo_translation_missing.png" : {
+      "ft" : 32768,
+      "iS" : 9984,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/i18n\/demo_translation_missing.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/i18n\/demo_untranslated.png" : {
+      "ft" : 32768,
+      "iS" : 8985,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/i18n\/demo_untranslated.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/icon_book-close-bookmark-1.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output\/images\/icon_book-close-bookmark-1.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output\/images\/icon_bulb-1.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output\/images\/icon_bulb-1.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output\/images\/icon_construction-sign.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output\/images\/icon_construction-sign.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output\/images\/icon_file-code.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output\/images\/icon_file-code.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output\/images\/icon_hand-stop.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output\/images\/icon_hand-stop.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output\/images\/icon_house-chimney.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output\/images\/icon_house-chimney.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output\/images\/icon_question-bubble.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output\/images\/icon_question-bubble.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output\/images\/icon_task-list-pin.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output\/images\/icon_task-list-pin.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output\/images\/icon.png" : {
+      "ft" : 32768,
+      "iS" : 1811,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/icon.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/icon.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output\/images\/icon.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output\/images\/info_icon.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output\/images\/info_icon.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output\/images\/logo_rails-circle.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output\/images\/logo_rails-circle.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output\/images\/nav_arrow.gif" : {
+      "ft" : 4194304,
+      "iS" : 419,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/nav_arrow.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output\/images\/note_icon.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output\/images\/note_icon.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output\/images\/rails_guides_kindle_cover.jpg" : {
+      "ft" : 16384,
+      "iS" : 25068,
+      "jF" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/rails_guides_kindle_cover.jpg",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "q" : 100,
+      "rq" : 75
+    },
+    "\/output\/images\/rails_guides_logo_1x.png" : {
+      "ft" : 32768,
+      "iS" : 2340,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/rails_guides_logo_1x.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/rails_guides_logo_2x.png" : {
+      "ft" : 32768,
+      "iS" : 3107,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/rails_guides_logo_2x.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/rails_guides_logo.gif" : {
+      "ft" : 4194304,
+      "iS" : 2699,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/rails_guides_logo.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output\/images\/rubyline.svg" : {
+      "ft" : 2097152,
+      "miP" : 0,
+      "oA" : 2,
+      "oAP" : "\/output\/images\/rubyline.svg",
+      "oF" : 0,
+      "opt" : 0,
+      "plM" : 52780316221407,
+      "prP" : 0
+    },
+    "\/output\/images\/security\/csrf.png" : {
+      "ft" : 32768,
+      "iS" : 32179,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/security\/csrf.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/security\/session_fixation.png" : {
+      "ft" : 32768,
+      "iS" : 38296,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/security\/session_fixation.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/images\/tab_grey.gif" : {
+      "ft" : 4194304,
+      "iS" : 4684,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/tab_grey.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output\/images\/tab_info.gif" : {
+      "ft" : 4194304,
+      "iS" : 4522,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/tab_info.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output\/images\/tab_note.gif" : {
+      "ft" : 4194304,
+      "iS" : 4566,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/tab_note.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output\/images\/tab_red.gif" : {
+      "ft" : 4194304,
+      "iS" : 4507,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/tab_red.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output\/images\/tab_yellow.gif" : {
+      "ft" : 4194304,
+      "iS" : 4519,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/tab_yellow.gif",
+      "oF" : 0,
+      "opt" : 0,
+      "ou" : "lpckwebp-none",
+      "rq" : 75
+    },
+    "\/output\/images\/up_white_arrow.png" : {
+      "ft" : 32768,
+      "iS" : 358,
+      "oA" : 0,
+      "oAP" : "\/output\/images\/up_white_arrow.png",
+      "oF" : 0,
+      "oIPL" : 0,
+      "opt" : 0,
+      "oT" : 1,
+      "ou" : "lpckwebp-none",
+      "q" : 90,
+      "rq" : 75
+    },
+    "\/output\/index.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/index.html",
+      "oF" : 0
+    },
+    "\/output\/initialization.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/initialization.html",
+      "oF" : 0
+    },
+    "\/output\/javascripts\/.gitattributes" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/javascripts\/.gitattributes",
+      "oF" : 0
+    },
+    "\/output\/javascripts\/@hotwired--turbo.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 0,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/output\/javascripts\/@hotwired--turbo-min.js",
+      "oF" : 0,
+      "sC" : 3,
+      "tS" : 0
+    },
+    "\/output\/javascripts\/clipboard.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 0,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/output\/javascripts\/clipboard-min.js",
+      "oF" : 0,
+      "sC" : 3,
+      "tS" : 0
+    },
+    "\/output\/javascripts\/guides.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 0,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/output\/javascripts\/guides-min.js",
+      "oF" : 0,
+      "sC" : 3,
+      "tS" : 0
+    },
+    "\/output\/layouts_and_rendering.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/layouts_and_rendering.html",
+      "oF" : 0
+    },
+    "\/output\/maintenance_policy.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/maintenance_policy.html",
+      "oF" : 0
+    },
+    "\/output\/plugins.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/plugins.html",
+      "oF" : 0
+    },
+    "\/output\/rails_application_templates.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/rails_application_templates.html",
+      "oF" : 0
+    },
+    "\/output\/rails_on_rack.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/rails_on_rack.html",
+      "oF" : 0
+    },
+    "\/output\/robots.txt" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/robots.txt",
+      "oF" : 0
+    },
+    "\/output\/routing.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/routing.html",
+      "oF" : 0
+    },
+    "\/output\/ruby_on_rails_guides_guidelines.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/ruby_on_rails_guides_guidelines.html",
+      "oF" : 0
+    },
+    "\/output\/security.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/security.html",
+      "oF" : 0
+    },
+    "\/output\/stylesheets\/dark.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/stylesheets\/dark-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/output\/stylesheets\/epub.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/stylesheets\/epub-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/output\/stylesheets\/highlight.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/stylesheets\/highlight-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/output\/stylesheets\/highlight.css.old" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/stylesheets\/highlight.css.old",
+      "oF" : 0
+    },
+    "\/output\/stylesheets\/main.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/stylesheets\/main-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/output\/stylesheets\/print.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/stylesheets\/print-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/output\/stylesheets\/reset.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/stylesheets\/reset-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/output\/stylesheets\/style.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/stylesheets\/style-min.css",
+      "oF" : 0,
+      "pg" : 0
+    },
+    "\/output\/stylesrc\/components\/_code-container.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 1,
+      "oAP" : "\/output\/stylesrc\/components\/_code-container.css",
+      "oF" : 0,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
+    "\/output\/stylesrc\/highlight.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/stylesrc\/highlight.css",
+      "oF" : 0,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
+    "\/output\/stylesrc\/main.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 1,
+      "oAP" : "\/output\/stylesrc\/main.css",
+      "oF" : 0,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
+    "\/output\/stylesrc\/style.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/stylesrc\/style.css",
+      "oF" : 0,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
+    "\/output\/stylesrc\/vendor\/_boilerplate.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 1,
+      "oAP" : "\/output\/stylesrc\/vendor\/_boilerplate.css",
+      "oF" : 0,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
+    "\/output\/stylesrc\/vendor\/_include-media.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 1,
+      "oAP" : "\/output\/stylesrc\/vendor\/_include-media.css",
+      "oF" : 0,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
+    "\/output\/stylesrc\/vendor\/_normalize.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 1,
+      "oAP" : "\/output\/stylesrc\/vendor\/_normalize.css",
+      "oF" : 0,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
+    "\/output\/testing.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/testing.html",
+      "oF" : 0
+    },
+    "\/output\/threading_and_code_execution.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/threading_and_code_execution.html",
+      "oF" : 0
+    },
+    "\/output\/upgrading_ruby_on_rails.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/upgrading_ruby_on_rails.html",
+      "oF" : 0
+    },
+    "\/output\/working_with_javascript_in_rails.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/output\/working_with_javascript_in_rails.html",
+      "oF" : 0
+    },
+    "\/rails_guides.rb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/rails_guides.rb",
+      "oF" : 0
+    },
+    "\/rails_guides\/epub_packer.rb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/rails_guides\/epub_packer.rb",
+      "oF" : 0
+    },
+    "\/rails_guides\/epub.rb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/rails_guides\/epub.rb",
+      "oF" : 0
+    },
+    "\/rails_guides\/generator.rb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/rails_guides\/generator.rb",
+      "oF" : 0
+    },
+    "\/rails_guides\/helpers.rb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/rails_guides\/helpers.rb",
+      "oF" : 0
+    },
+    "\/rails_guides\/markdown.rb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/rails_guides\/markdown.rb",
+      "oF" : 0
+    },
+    "\/rails_guides\/markdown\/epub_renderer.rb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/rails_guides\/markdown\/epub_renderer.rb",
+      "oF" : 0
+    },
+    "\/rails_guides\/markdown\/renderer.rb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/rails_guides\/markdown\/renderer.rb",
+      "oF" : 0
+    },
+    "\/Rakefile" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/Rakefile",
+      "oF" : 0
+    },
+    "\/source\/_license.html.erb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 1,
+      "oAP" : "\/source\/_license.html.erb",
+      "oF" : 0
+    },
+    "\/source\/_welcome.html.erb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 1,
+      "oAP" : "\/source\/_welcome.html.erb",
+      "oF" : 0
+    },
+    "\/source\/2_2_release_notes.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/2_2_release_notes.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/2_3_release_notes.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/2_3_release_notes.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/3_0_release_notes.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/3_0_release_notes.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/3_1_release_notes.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/3_1_release_notes.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/3_2_release_notes.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/3_2_release_notes.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/4_0_release_notes.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/4_0_release_notes.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/4_1_release_notes.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/4_1_release_notes.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/4_2_release_notes.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/4_2_release_notes.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/5_0_release_notes.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/5_0_release_notes.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/5_1_release_notes.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/5_1_release_notes.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/5_2_release_notes.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/5_2_release_notes.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/6_0_release_notes.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/6_0_release_notes.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/6_1_release_notes.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/6_1_release_notes.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/7_0_release_notes.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/7_0_release_notes.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/7_1_release_notes.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/7_1_release_notes.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/7_2_release_notes.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/7_2_release_notes.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/action_cable_overview.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/action_cable_overview.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/action_controller_overview.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/action_controller_overview.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/action_mailbox_basics.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/action_mailbox_basics.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/action_mailer_basics.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/action_mailer_basics.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/action_text_overview.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/action_text_overview.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/action_view_helpers.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/action_view_helpers.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/action_view_overview.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/action_view_overview.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/active_job_basics.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/active_job_basics.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/active_model_basics.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/active_model_basics.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/active_record_basics.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/active_record_basics.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/active_record_callbacks.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/active_record_callbacks.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/active_record_composite_primary_keys.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/active_record_composite_primary_keys.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/active_record_encryption.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/active_record_encryption.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/active_record_migrations.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/active_record_migrations.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/active_record_multiple_databases.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/active_record_multiple_databases.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/active_record_postgresql.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/active_record_postgresql.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/active_record_querying.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/active_record_querying.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/active_record_validations.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/active_record_validations.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/active_storage_overview.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/active_storage_overview.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/active_support_core_extensions.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/active_support_core_extensions.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/active_support_instrumentation.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/active_support_instrumentation.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/api_app.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/api_app.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/api_documentation_guidelines.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/api_documentation_guidelines.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/asset_pipeline.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/asset_pipeline.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/association_basics.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/association_basics.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/autoloading_and_reloading_constants.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/autoloading_and_reloading_constants.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/caching_with_rails.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/caching_with_rails.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/classic_to_zeitwerk_howto.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/classic_to_zeitwerk_howto.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/command_line.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/command_line.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/configuring.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/configuring.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/contributing_to_ruby_on_rails.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/contributing_to_ruby_on_rails.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/debugging_rails_applications.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/debugging_rails_applications.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/development_dependencies_install.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/development_dependencies_install.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/documents.yaml" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/documents.yaml",
+      "oF" : 0
+    },
+    "\/source\/engines.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/engines.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/epub\/copyright.html.erb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/epub\/copyright.html.erb",
+      "oF" : 0
+    },
+    "\/source\/epub\/layout.html.erb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/epub\/layout.html.erb",
+      "oF" : 0
+    },
+    "\/source\/epub\/rails_guides.opf.erb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/epub\/rails_guides.opf.erb",
+      "oF" : 0
+    },
+    "\/source\/epub\/toc.html.erb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/epub\/toc.html.erb",
+      "oF" : 0
+    },
+    "\/source\/epub\/toc.ncx.erb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/epub\/toc.ncx.erb",
+      "oF" : 0
+    },
+    "\/source\/epub\/welcome.html.erb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/epub\/welcome.html.erb",
+      "oF" : 0
+    },
+    "\/source\/error_reporting.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/error_reporting.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/form_helpers.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/form_helpers.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/generators.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/generators.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/getting_started.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/getting_started.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/i18n.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/i18n.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/index.html.erb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/index.html.erb",
+      "oF" : 0
+    },
+    "\/source\/initialization.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/initialization.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/layout.html.erb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/layout.html.erb",
+      "oF" : 0
+    },
+    "\/source\/layouts_and_rendering.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/layouts_and_rendering.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/maintenance_policy.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/maintenance_policy.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/plugins.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/plugins.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/rails_application_templates.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/rails_application_templates.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/rails_on_rack.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/rails_on_rack.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/routing.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/routing.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/ruby_on_rails_guides_guidelines.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/ruby_on_rails_guides_guidelines.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/security.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/security.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/testing.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/testing.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/threading_and_code_execution.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/threading_and_code_execution.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/upgrading_ruby_on_rails.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/upgrading_ruby_on_rails.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/source\/working_with_javascript_in_rails.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/source\/working_with_javascript_in_rails.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
+    "\/w3c_validator.rb" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/w3c_validator.rb",
+      "oF" : 0
+    }
+  },
+  "hooks" : [
+
+  ],
+  "manualImportLinks" : {
+
+  },
+  "projectAttributes" : {
+    "creationDate" : 732238956.82986498,
+    "displayValue" : "guides",
+    "displayValueWasSetByUser" : 0,
+    "iconImageName" : "brackets-koamaru",
+    "iconImageWasSetByUser" : 0
+  },
+  "projectSettings" : {
+    "abortBuildOnError" : 1,
+    "allowInjectionReloads" : 1,
+    "alwaysUseExternalServer" : 0,
+    "animateCSSInjections" : 1,
+    "autoBuildNewItems" : 1,
+    "autoprefixerEnableIEGrid" : 0,
+    "babel7PresetType" : 1,
+    "babelAllowRCFiles" : 0,
+    "babelAuxiliaryCommentAfter" : "",
+    "babelAuxiliaryCommentBefore" : "",
+    "babelConfigType" : 0,
+    "babelCustomPluginsList" : "",
+    "babelCustomPresetsList" : "",
+    "babelExcludeString" : "\/\\\/node_modules\\\/\/, \/\\\/core-js\\\/\/, \/\\\/bower_components\\\/\/",
+    "babelInsertModuleIDs" : 0,
+    "babelModuleID" : "",
+    "babelNoComments" : 0,
+    "babelPlugins" : {
+      "arrow-functions" : {
+        "active" : 0
+      },
+      "async-generator-functions" : {
+        "active" : 0
+      },
+      "async-to-generator" : {
+        "active" : 0
+      },
+      "block-scoped-functions" : {
+        "active" : 0
+      },
+      "block-scoping" : {
+        "active" : 0
+      },
+      "class-properties" : {
+        "active" : 0
+      },
+      "classes" : {
+        "active" : 0
+      },
+      "computed-properties" : {
+        "active" : 0
+      },
+      "decorators" : {
+        "active" : 0
+      },
+      "destructuring" : {
+        "active" : 0
+      },
+      "do-expressions" : {
+        "active" : 0
+      },
+      "dotall-regex" : {
+        "active" : 0
+      },
+      "duplicate-keys" : {
+        "active" : 0
+      },
+      "exponentiation-operator" : {
+        "active" : 0
+      },
+      "export-default-from" : {
+        "active" : 0
+      },
+      "export-namespace-from" : {
+        "active" : 0
+      },
+      "external-helpers" : {
+        "active" : 0
+      },
+      "flow-strip-types" : {
+        "active" : 0
+      },
+      "for-of" : {
+        "active" : 0
+      },
+      "function-bind" : {
+        "active" : 0
+      },
+      "function-name" : {
+        "active" : 0
+      },
+      "function-sent" : {
+        "active" : 0
+      },
+      "inline-consecutive-adds" : {
+        "active" : 0
+      },
+      "inline-environment-variables" : {
+        "active" : 0
+      },
+      "instanceof" : {
+        "active" : 0
+      },
+      "jscript" : {
+        "active" : 0
+      },
+      "literals" : {
+        "active" : 0
+      },
+      "logical-assignment-operators" : {
+        "active" : 0
+      },
+      "member-expression-literals" : {
+        "active" : 0
+      },
+      "merge-sibling-variables" : {
+        "active" : 0
+      },
+      "minify-booleans" : {
+        "active" : 0
+      },
+      "minify-builtins" : {
+        "active" : 0
+      },
+      "minify-constant-folding" : {
+        "active" : 0
+      },
+      "minify-dead-code-elimination" : {
+        "active" : 0
+      },
+      "minify-flip-comparisons" : {
+        "active" : 0
+      },
+      "minify-guarded-expressions" : {
+        "active" : 0
+      },
+      "minify-infinity" : {
+        "active" : 0
+      },
+      "minify-mangle-names" : {
+        "active" : 0
+      },
+      "minify-numeric-literals" : {
+        "active" : 0
+      },
+      "minify-simplify" : {
+        "active" : 0
+      },
+      "minify-type-constructors" : {
+        "active" : 0
+      },
+      "modules-amd" : {
+        "active" : 0
+      },
+      "modules-commonjs" : {
+        "active" : 0
+      },
+      "modules-systemjs" : {
+        "active" : 0
+      },
+      "modules-umd" : {
+        "active" : 0
+      },
+      "named-capturing-groups-regex" : {
+        "active" : 0
+      },
+      "new-target" : {
+        "active" : 0
+      },
+      "node-env-inline" : {
+        "active" : 0
+      },
+      "nullish-coalescing-operator" : {
+        "active" : 0
+      },
+      "numeric-separator" : {
+        "active" : 0
+      },
+      "object-assign" : {
+        "active" : 0
+      },
+      "object-rest-spread" : {
+        "active" : 0
+      },
+      "object-set-prototype-of-to-assign" : {
+        "active" : 0
+      },
+      "object-super" : {
+        "active" : 0
+      },
+      "optional-catch-binding" : {
+        "active" : 0
+      },
+      "optional-chaining" : {
+        "active" : 0
+      },
+      "parameters" : {
+        "active" : 0
+      },
+      "partial-application" : {
+        "active" : 0
+      },
+      "pipeline-operator" : {
+        "active" : 0
+      },
+      "private-methods" : {
+        "active" : 0
+      },
+      "property-literals" : {
+        "active" : 0
+      },
+      "property-mutators" : {
+        "active" : 0
+      },
+      "proto-to-assign" : {
+        "active" : 0
+      },
+      "react-constant-elements" : {
+        "active" : 0
+      },
+      "react-display-name" : {
+        "active" : 0
+      },
+      "react-inline-elements" : {
+        "active" : 0
+      },
+      "react-jsx" : {
+        "active" : 0
+      },
+      "react-jsx-compat" : {
+        "active" : 0
+      },
+      "react-jsx-self" : {
+        "active" : 0
+      },
+      "react-jsx-source" : {
+        "active" : 0
+      },
+      "regenerator" : {
+        "active" : 0
+      },
+      "regexp-constructors" : {
+        "active" : 0
+      },
+      "remove-console" : {
+        "active" : 0
+      },
+      "remove-debugger" : {
+        "active" : 0
+      },
+      "remove-undefined" : {
+        "active" : 0
+      },
+      "reserved-words" : {
+        "active" : 0
+      },
+      "runtime" : {
+        "active" : 0
+      },
+      "shorthand-properties" : {
+        "active" : 0
+      },
+      "simplify-comparison-operators" : {
+        "active" : 0
+      },
+      "spread" : {
+        "active" : 0
+      },
+      "sticky-regex" : {
+        "active" : 0
+      },
+      "strict-mode" : {
+        "active" : 0
+      },
+      "template-literals" : {
+        "active" : 0
+      },
+      "throw-expressions" : {
+        "active" : 0
+      },
+      "typeof-symbol" : {
+        "active" : 0
+      },
+      "undefined-to-void" : {
+        "active" : 0
+      },
+      "unicode-property-regex" : {
+        "active" : 0
+      },
+      "unicode-regex" : {
+        "active" : 0
+      }
+    },
+    "babelRetainLines" : 0,
+    "babelUseBuiltInsType" : 0,
+    "bowerAbbreviatedPath" : "bower_components",
+    "bowerForceLatestOnConflict" : 1,
+    "bowerTargetDependencyListType" : 1,
+    "bowerUseExactVersion" : 0,
+    "browserRefreshDelay" : 0,
+    "browserslistString" : ">0.2%, last 2 versions, Firefox ESR, not dead",
+    "buildEnvironment" : 0,
+    "buildFolderActive" : 0,
+    "buildFolderName" : "build",
+    "cleanBuild" : 1,
+    "cssoForceMediaMerge" : 0,
+    "cssoRestructure" : 1,
+    "environmentVariableEntries" : [
+      "NODE_ENV:::production"
+    ],
+    "esLintConfigFileHandlingType" : 0,
+    "esLintECMAVersion" : 7,
+    "esLintEnvironmentsMask" : 1,
+    "esLintRules" : {
+      "accessor-pairs" : {
+        "active" : 0,
+        "optionString" : "{'setWithoutGet': true, 'getWithoutSet': false, 'enforceForClassMembers': true}"
+      },
+      "array-bracket-newline" : {
+        "active" : 0,
+        "optionString" : "{'multiline': true, 'minItems': null}"
+      },
+      "array-bracket-spacing" : {
+        "active" : 0,
+        "optionString" : "'never', {'singleValue': false, 'objectsInArrays': false, 'arraysInArrays': false}"
+      },
+      "array-callback-return" : {
+        "active" : 0,
+        "optionString" : "{'allowImplicit': false}"
+      },
+      "array-element-newline" : {
+        "active" : 0,
+        "optionString" : "'always'"
+      },
+      "arrow-body-style" : {
+        "active" : 0,
+        "optionString" : "'as-needed', {'requireReturnForObjectLiteral': false}"
+      },
+      "arrow-parens" : {
+        "active" : 0,
+        "optionString" : "'always'"
+      },
+      "arrow-spacing" : {
+        "active" : 0,
+        "optionString" : "{'before': true, 'after': true}"
+      },
+      "block-scoped-var" : {
+        "active" : 0
+      },
+      "block-spacing" : {
+        "active" : 0,
+        "optionString" : "'always'"
+      },
+      "brace-style" : {
+        "active" : 0,
+        "optionString" : "'1tbs', {'allowSingleLine': true}"
+      },
+      "camelcase" : {
+        "active" : 0,
+        "optionString" : "{'properties': 'always', 'ignoreDestructuring': false, 'ignoreImports': false}"
+      },
+      "capitalized-comments" : {
+        "active" : 0,
+        "optionString" : "'always', {'ignoreInlineComments': false, 'ignoreConsecutiveComments': false}"
+      },
+      "class-methods-use-this" : {
+        "active" : 0,
+        "optionString" : "{'exceptMethods': [], 'enforceForClassFields': true}"
+      },
+      "comma-dangle" : {
+        "active" : 1,
+        "optionString" : "'never'"
+      },
+      "comma-spacing" : {
+        "active" : 0,
+        "optionString" : "{'before': false, 'after': true}"
+      },
+      "comma-style" : {
+        "active" : 0,
+        "optionString" : "'last'"
+      },
+      "complexity" : {
+        "active" : 0,
+        "optionString" : "20"
+      },
+      "computed-property-spacing" : {
+        "active" : 0,
+        "optionString" : "'never', {'enforceForClassMembers': true}"
+      },
+      "consistent-return" : {
+        "active" : 0,
+        "optionString" : "{'treatUndefinedAsUnspecified': false}"
+      },
+      "consistent-this" : {
+        "active" : 0,
+        "optionString" : "'that'"
+      },
+      "constructor-super" : {
+        "active" : 1
+      },
+      "curly" : {
+        "active" : 0,
+        "optionString" : "'all'"
+      },
+      "default-case" : {
+        "active" : 0
+      },
+      "default-case-last" : {
+        "active" : 0
+      },
+      "default-param-last" : {
+        "active" : 0
+      },
+      "dot-location" : {
+        "active" : 0,
+        "optionString" : "'object'"
+      },
+      "dot-notation" : {
+        "active" : 0,
+        "optionString" : "{'allowKeywords': false}"
+      },
+      "eol-last" : {
+        "active" : 0,
+        "optionString" : "'always'"
+      },
+      "eqeqeq" : {
+        "active" : 0,
+        "optionString" : "'always', {'null': 'always'}"
+      },
+      "for-direction" : {
+        "active" : 1
+      },
+      "func-call-spacing" : {
+        "active" : 0,
+        "optionString" : "'never'"
+      },
+      "func-name-matching" : {
+        "active" : 0,
+        "optionString" : "'always', {'considerPropertyDescriptor': false, 'includeCommonJSModuleExports': false}"
+      },
+      "func-names" : {
+        "active" : 0,
+        "optionString" : "'always', {'generators': 'always'}"
+      },
+      "func-style" : {
+        "active" : 0,
+        "optionString" : "'expression'"
+      },
+      "function-call-argument-newline" : {
+        "active" : 0,
+        "optionString" : "'always'"
+      },
+      "function-paren-newline" : {
+        "active" : 0,
+        "optionString" : "'multiline'"
+      },
+      "generator-star-spacing" : {
+        "active" : 0,
+        "optionString" : "{'before': true, 'after': false}"
+      },
+      "getter-return" : {
+        "active" : 1,
+        "optionString" : "{'allowImplicit': false}"
+      },
+      "grouped-accessor-pairs" : {
+        "active" : 0,
+        "optionString" : "'anyOrder'"
+      },
+      "guard-for-in" : {
+        "active" : 0
+      },
+      "id-denylist" : {
+        "active" : 0,
+        "optionString" : "'data', 'err', 'e', 'cb', 'callback'"
+      },
+      "id-length" : {
+        "active" : 0,
+        "optionString" : "{'min': 2, 'max': 1000, 'properties': 'always', 'exceptions': ['x', 'i', 'y']}"
+      },
+      "id-match" : {
+        "active" : 0,
+        "optionString" : "'^[a-z]+([A-Z][a-z]+)*$', {'properties': false, 'onlyDeclarations': true, 'ignoreDestructuring': false}"
+      },
+      "implicit-arrow-linebreak" : {
+        "active" : 0,
+        "optionString" : "'beside'"
+      },
+      "indent" : {
+        "active" : 0,
+        "optionString" : "4, {'SwitchCase': 0, 'VariableDeclarator': 1, 'outerIIFEBody': 1 }"
+      },
+      "init-declarations" : {
+        "active" : 0,
+        "optionString" : "'always',  {'ignoreForLoopInit': true}"
+      },
+      "jsx-quotes" : {
+        "active" : 0,
+        "optionString" : "'prefer-double'"
+      },
+      "key-spacing" : {
+        "active" : 0,
+        "optionString" : "{'singleLine': {'beforeColon': false, 'afterColon': true, 'mode':'strict'}, 'multiLine': {'beforeColon': false, 'afterColon': true, 'align': 'value', 'mode':'minimum'}}"
+      },
+      "keyword-spacing" : {
+        "active" : 0,
+        "optionString" : "{'before': true, 'after': true, 'overrides': {}}"
+      },
+      "line-comment-position" : {
+        "active" : 0,
+        "optionString" : "{'position': 'above'}"
+      },
+      "linebreak-style" : {
+        "active" : 0,
+        "optionString" : "'unix'"
+      },
+      "lines-around-comment" : {
+        "active" : 0,
+        "optionString" : "{'beforeBlockComment': true}"
+      },
+      "lines-between-class-members" : {
+        "active" : 0,
+        "optionString" : "'always', {exceptAfterSingleLine: false}"
+      },
+      "logical-assignment-operators" : {
+        "active" : 0,
+        "optionString" : "'always',  {'enforceForIfStatements': false}"
+      },
+      "max-classes-per-file" : {
+        "active" : 0,
+        "optionString" : "{'ignoreExpressions': false, 'max': 1}"
+      },
+      "max-depth" : {
+        "active" : 0,
+        "optionString" : "{'max': 4}"
+      },
+      "max-len" : {
+        "active" : 0,
+        "optionString" : "{'code': 80, 'comments': 80, 'tabWidth': 4, 'ignoreUrls': true, 'ignoreStrings': true, 'ignoreTemplateLiterals': true, 'ignoreRegExpLiterals': true}"
+      },
+      "max-lines" : {
+        "active" : 0,
+        "optionString" : "{'max': 300, 'skipBlankLines': true, 'skipComments': true}"
+      },
+      "max-lines-per-function" : {
+        "active" : 0,
+        "optionString" : "{'max': 50, 'skipBlankLines': true, 'skipComments': true, 'IIFEs': false}"
+      },
+      "max-nested-callbacks" : {
+        "active" : 0,
+        "optionString" : "{'max': 10}"
+      },
+      "max-params" : {
+        "active" : 0,
+        "optionString" : "{'max': 4}"
+      },
+      "max-statements" : {
+        "active" : 0,
+        "optionString" : "{'max': 10}, {'ignoreTopLevelFunctions': true}"
+      },
+      "max-statements-per-line" : {
+        "active" : 0,
+        "optionString" : "{'max': 1}"
+      },
+      "multiline-comment-style" : {
+        "active" : 0,
+        "optionString" : "'starred-block'"
+      },
+      "multiline-ternary" : {
+        "active" : 0,
+        "optionString" : "'always'"
+      },
+      "new-cap" : {
+        "active" : 0,
+        "optionString" : "{'newIsCap': true, 'capIsNew': true, 'newIsCapExceptions': [], 'capIsNewExceptions': ['Array', 'Boolean', 'Date', 'Error', 'Function', 'Number', 'Object', 'RegExp', 'String', 'Symbol'], 'properties': true}"
+      },
+      "new-parens" : {
+        "active" : 0,
+        "optionString" : "'always'"
+      },
+      "newline-per-chained-call" : {
+        "active" : 0,
+        "optionString" : "{'ignoreChainWithDepth': 2}"
+      },
+      "no-alert" : {
+        "active" : 0
+      },
+      "no-array-constructor" : {
+        "active" : 0
+      },
+      "no-async-promise-executor" : {
+        "active" : 1
+      },
+      "no-await-in-loop" : {
+        "active" : 0
+      },
+      "no-bitwise" : {
+        "active" : 0,
+        "optionString" : "{'allow': ['~'], 'int32Hint': true}"
+      },
+      "no-caller" : {
+        "active" : 0
+      },
+      "no-case-declarations" : {
+        "active" : 1
+      },
+      "no-class-assign" : {
+        "active" : 1
+      },
+      "no-compare-neg-zero" : {
+        "active" : 1
+      },
+      "no-cond-assign" : {
+        "active" : 1,
+        "optionString" : "'except-parens'"
+      },
+      "no-confusing-arrow" : {
+        "active" : 0,
+        "optionString" : "{'allowParens': true, 'onlyOneSimpleParam': false}"
+      },
+      "no-console" : {
+        "active" : 0,
+        "optionString" : "{'allow': ['warn', 'error']}"
+      },
+      "no-const-assign" : {
+        "active" : 1
+      },
+      "no-constant-binary-expression" : {
+        "active" : 0
+      },
+      "no-constant-condition" : {
+        "active" : 1,
+        "optionString" : "{'checkLoops': true}"
+      },
+      "no-constructor-return" : {
+        "active" : 0
+      },
+      "no-continue" : {
+        "active" : 0
+      },
+      "no-control-regex" : {
+        "active" : 1
+      },
+      "no-debugger" : {
+        "active" : 1
+      },
+      "no-delete-var" : {
+        "active" : 1
+      },
+      "no-div-regex" : {
+        "active" : 0
+      },
+      "no-dupe-args" : {
+        "active" : 1
+      },
+      "no-dupe-class-members" : {
+        "active" : 1
+      },
+      "no-dupe-else-if" : {
+        "active" : 1
+      },
+      "no-dupe-keys" : {
+        "active" : 1
+      },
+      "no-duplicate-case" : {
+        "active" : 1
+      },
+      "no-duplicate-imports" : {
+        "active" : 0,
+        "optionString" : "{'includeExports': false}"
+      },
+      "no-else-return" : {
+        "active" : 0
+      },
+      "no-empty" : {
+        "active" : 1,
+        "optionString" : "{'allowEmptyCatch': false}"
+      },
+      "no-empty-character-class" : {
+        "active" : 1
+      },
+      "no-empty-function" : {
+        "active" : 0,
+        "optionString" : "{'allow': []}"
+      },
+      "no-empty-pattern" : {
+        "active" : 1
+      },
+      "no-empty-static-block" : {
+        "active" : 0
+      },
+      "no-eq-null" : {
+        "active" : 0
+      },
+      "no-eval" : {
+        "active" : 0,
+        "optionString" : "{'allowIndirect': false}"
+      },
+      "no-ex-assign" : {
+        "active" : 1
+      },
+      "no-extend-native" : {
+        "active" : 0,
+        "optionString" : "{'exceptions': []}"
+      },
+      "no-extra-bind" : {
+        "active" : 0
+      },
+      "no-extra-boolean-cast" : {
+        "active" : 1
+      },
+      "no-extra-label" : {
+        "active" : 0
+      },
+      "no-extra-parens" : {
+        "active" : 0,
+        "optionString" : "'all'"
+      },
+      "no-extra-semi" : {
+        "active" : 1
+      },
+      "no-fallthrough" : {
+        "active" : 1,
+        "optionString" : "{'allowEmptyCase': false}"
+      },
+      "no-floating-decimal" : {
+        "active" : 0
+      },
+      "no-func-assign" : {
+        "active" : 1
+      },
+      "no-global-assign" : {
+        "active" : 1,
+        "optionString" : "{'exceptions': []}"
+      },
+      "no-implicit-coercion" : {
+        "active" : 0,
+        "optionString" : "{'boolean': true, 'number': true, 'string': true, 'disallowTemplateShorthand': false, 'allow': []}"
+      },
+      "no-implicit-globals" : {
+        "active" : 0
+      },
+      "no-implied-eval" : {
+        "active" : 0
+      },
+      "no-import-assign" : {
+        "active" : 1
+      },
+      "no-inline-comments" : {
+        "active" : 0
+      },
+      "no-inner-declarations" : {
+        "active" : 1,
+        "optionString" : "'functions'"
+      },
+      "no-invalid-regexp" : {
+        "active" : 1,
+        "optionString" : "{'allowConstructorFlags': ['u', 'y']}"
+      },
+      "no-invalid-this" : {
+        "active" : 0,
+        "optionString" : "{'capIsConstructor': true}"
+      },
+      "no-irregular-whitespace" : {
+        "active" : 1,
+        "optionString" : "{'skipStrings': true, 'skipComments': false, 'skipRegExps': true, 'skipTemplates': true, 'skipJSXText': true}"
+      },
+      "no-iterator" : {
+        "active" : 0
+      },
+      "no-label-var" : {
+        "active" : 0
+      },
+      "no-labels" : {
+        "active" : 0,
+        "optionString" : "{'allowLoop': false, 'allowSwitch': false}"
+      },
+      "no-lone-blocks" : {
+        "active" : 0
+      },
+      "no-lonely-if" : {
+        "active" : 0
+      },
+      "no-loop-func" : {
+        "active" : 0
+      },
+      "no-loss-of-precision" : {
+        "active" : 1
+      },
+      "no-magic-numbers" : {
+        "active" : 0,
+        "optionString" : "{'ignore': [], 'ignoreArrayIndexes': true, 'ignoreDefaultValues': false, 'ignoreClassFieldInitialValues': false, 'enforceConst': false, 'detectObjects': false}"
+      },
+      "no-misleading-character-class" : {
+        "active" : 1
+      },
+      "no-mixed-operators" : {
+        "active" : 0,
+        "optionString" : "{'groups': [['+', '-', '*', '\/', '%', '**'], ['&', '|', '^', '~', '<<', '>>', '>>>'], ['==', '!=', '===', '!==', '>', '>=', '<', '<='], ['&&', '||'], ['in', 'instanceof']], 'allowSamePrecedence': true}"
+      },
+      "no-mixed-spaces-and-tabs" : {
+        "active" : 1,
+        "optionString" : ""
+      },
+      "no-multi-assign" : {
+        "active" : 0,
+        "optionString" : "{'ignoreNonDeclaration': false}"
+      },
+      "no-multi-spaces" : {
+        "active" : 0,
+        "optionString" : "{'exceptions': {'Property': true, 'BinaryExpression': false, 'VariableDeclarator': false, 'ImportDeclaration': false}}"
+      },
+      "no-multi-str" : {
+        "active" : 0
+      },
+      "no-multiple-empty-lines" : {
+        "active" : 0,
+        "optionString" : "{'max': 2, 'maxBOF': 2, 'maxEOF': 2}"
+      },
+      "no-negated-condition" : {
+        "active" : 0
+      },
+      "no-nested-ternary" : {
+        "active" : 0
+      },
+      "no-new" : {
+        "active" : 0
+      },
+      "no-new-func" : {
+        "active" : 0
+      },
+      "no-new-native-nonconstructor" : {
+        "active" : 0
+      },
+      "no-new-symbol" : {
+        "active" : 1
+      },
+      "no-new-wrappers" : {
+        "active" : 0
+      },
+      "no-nonoctal-decimal-escape" : {
+        "active" : 1
+      },
+      "no-obj-calls" : {
+        "active" : 1
+      },
+      "no-object-constructor" : {
+        "active" : 0
+      },
+      "no-octal" : {
+        "active" : 1
+      },
+      "no-octal-escape" : {
+        "active" : 0
+      },
+      "no-param-reassign" : {
+        "active" : 0,
+        "optionString" : "{'props': false}"
+      },
+      "no-plusplus" : {
+        "active" : 0,
+        "optionString" : "{'allowForLoopAfterthoughts': false}"
+      },
+      "no-promise-executor-return" : {
+        "active" : 0
+      },
+      "no-proto" : {
+        "active" : 0
+      },
+      "no-prototype-builtins" : {
+        "active" : 1
+      },
+      "no-redeclare" : {
+        "active" : 1,
+        "optionString" : "{'builtinGlobals': false}"
+      },
+      "no-regex-spaces" : {
+        "active" : 1
+      },
+      "no-restricted-exports" : {
+        "active" : 0,
+        "optionString" : "{'restrictedNamedExports': []}"
+      },
+      "no-restricted-globals" : {
+        "active" : 0,
+        "optionString" : "'event', 'fdescribe'"
+      },
+      "no-restricted-imports" : {
+        "active" : 0,
+        "optionString" : ""
+      },
+      "no-restricted-properties" : {
+        "active" : 0,
+        "optionString" : "[{'object': 'disallowedObjectName', 'property': 'disallowedPropertyName'}, {'object': 'disallowedObjectName', 'property': 'anotherDisallowedPropertyName', 'message': 'Please use allowedObjectName.allowedPropertyName.'}]"
+      },
+      "no-restricted-syntax" : {
+        "active" : 0,
+        "optionString" : "'FunctionExpression', 'WithStatement'"
+      },
+      "no-return-assign" : {
+        "active" : 0,
+        "optionString" : "'except-parens'"
+      },
+      "no-script-url" : {
+        "active" : 0
+      },
+      "no-self-assign" : {
+        "active" : 1,
+        "optionString" : "{'props': true}"
+      },
+      "no-self-compare" : {
+        "active" : 0
+      },
+      "no-sequences" : {
+        "active" : 0,
+        "optionString" : "{'allowInParentheses': true}"
+      },
+      "no-setter-return" : {
+        "active" : 1
+      },
+      "no-shadow" : {
+        "active" : 0,
+        "optionString" : "{'builtinGlobals': false, 'hoist': 'functions', 'allow': [], 'ignoreOnInitialization': false}"
+      },
+      "no-shadow-restricted-names" : {
+        "active" : 1
+      },
+      "no-sparse-arrays" : {
+        "active" : 1
+      },
+      "no-tabs" : {
+        "active" : 0,
+        "optionString" : "{allowIndentationTabs: false}"
+      },
+      "no-template-curly-in-string" : {
+        "active" : 0
+      },
+      "no-ternary" : {
+        "active" : 0
+      },
+      "no-this-before-super" : {
+        "active" : 1
+      },
+      "no-throw-literal" : {
+        "active" : 0
+      },
+      "no-trailing-spaces" : {
+        "active" : 0,
+        "optionString" : "{'skipBlankLines': false, 'ignoreComments': false}"
+      },
+      "no-undef" : {
+        "active" : 1,
+        "optionString" : "{'typeof': false}"
+      },
+      "no-undef-init" : {
+        "active" : 0
+      },
+      "no-undefined" : {
+        "active" : 0
+      },
+      "no-underscore-dangle" : {
+        "active" : 0,
+        "optionString" : "{'allow': [], 'allowAfterThis': false, 'allowAfterSuper': false, 'allowAfterThisConstructor': false, 'enforceInMethodNames': false, 'enforceInClassFields': false, 'allowFunctionParams': true}"
+      },
+      "no-unexpected-multiline" : {
+        "active" : 1
+      },
+      "no-unmodified-loop-condition" : {
+        "active" : 0
+      },
+      "no-unneeded-ternary" : {
+        "active" : 0,
+        "optionString" : "{'defaultAssignment': true}"
+      },
+      "no-unreachable" : {
+        "active" : 1
+      },
+      "no-unreachable-loop" : {
+        "active" : 0,
+        "optionString" : "{'ignore': []}"
+      },
+      "no-unsafe-finally" : {
+        "active" : 1
+      },
+      "no-unsafe-negation" : {
+        "active" : 1,
+        "optionString" : "{'enforceForOrderingRelations': false}"
+      },
+      "no-unsafe-optional-chaining" : {
+        "active" : 1,
+        "optionString" : "{'disallowArithmeticOperators': false}"
+      },
+      "no-unused-expressions" : {
+        "active" : 0,
+        "optionString" : "{'allowShortCircuit': false, 'allowTernary': false, 'allowTaggedTemplates': false, 'enforceForJSX': false}"
+      },
+      "no-unused-labels" : {
+        "active" : 1
+      },
+      "no-unused-private-class-members" : {
+        "active" : 0
+      },
+      "no-unused-vars" : {
+        "active" : 1,
+        "optionString" : "{'vars': 'all', 'args': 'after-used', 'caughtErrors': 'none', 'ignoreRestSiblings': false}"
+      },
+      "no-use-before-define" : {
+        "active" : 0,
+        "optionString" : "{'functions': true, 'classes': true, 'variables': true, 'allowNamedExports': false}"
+      },
+      "no-useless-backreference" : {
+        "active" : 1
+      },
+      "no-useless-call" : {
+        "active" : 0
+      },
+      "no-useless-catch" : {
+        "active" : 1
+      },
+      "no-useless-computed-key" : {
+        "active" : 0,
+        "optionString" : "{'enforceForClassMembers': false}"
+      },
+      "no-useless-concat" : {
+        "active" : 0
+      },
+      "no-useless-constructor" : {
+        "active" : 0
+      },
+      "no-useless-escape" : {
+        "active" : 1
+      },
+      "no-useless-rename" : {
+        "active" : 0,
+        "optionString" : "{'ignoreDestructuring': false, 'ignoreImport': false, 'ignoreExport': false}"
+      },
+      "no-useless-return" : {
+        "active" : 0
+      },
+      "no-var" : {
+        "active" : 0
+      },
+      "no-void" : {
+        "active" : 0,
+        "optionString" : "{'allowAsStatement': false}"
+      },
+      "no-warning-comments" : {
+        "active" : 0,
+        "optionString" : "{'terms': ['todo', 'fixme', 'xxx'], 'location': 'start'}"
+      },
+      "no-whitespace-before-property" : {
+        "active" : 0
+      },
+      "no-with" : {
+        "active" : 1
+      },
+      "nonblock-statement-body-position" : {
+        "active" : 0,
+        "optionString" : "'beside'"
+      },
+      "object-curly-newline" : {
+        "active" : 0,
+        "optionString" : "{'ObjectExpression': {'multiline': true, 'consistent': true}, 'ObjectPattern': {'multiline': true, 'consistent': true}}"
+      },
+      "object-curly-spacing" : {
+        "active" : 0,
+        "optionString" : "'never'"
+      },
+      "object-property-newline" : {
+        "active" : 0,
+        "optionString" : "{'allowAllPropertiesOnSameLine': true}"
+      },
+      "object-shorthand" : {
+        "active" : 0,
+        "optionString" : "'always', {'avoidQuotes': false, 'ignoreConstructors': false}"
+      },
+      "one-var" : {
+        "active" : 0,
+        "optionString" : "'always'"
+      },
+      "one-var-declaration-per-line" : {
+        "active" : 0,
+        "optionString" : "'always'"
+      },
+      "operator-assignment" : {
+        "active" : 0,
+        "optionString" : "'always'"
+      },
+      "operator-linebreak" : {
+        "active" : 0,
+        "optionString" : "'after', {'overrides': {'?': 'after', '+=': 'none'}}"
+      },
+      "padded-blocks" : {
+        "active" : 0,
+        "optionString" : "{'blocks': 'always', 'switches': 'always', 'classes': 'always'}"
+      },
+      "padding-line-between-statements" : {
+        "active" : 0,
+        "optionString" : "{blankLine: 'always', prev:'*', next:'return'}"
+      },
+      "prefer-arrow-callback" : {
+        "active" : 0
+      },
+      "prefer-const" : {
+        "active" : 0,
+        "optionString" : "{'destructuring': 'any', 'ignoreReadBeforeAssign': false}"
+      },
+      "prefer-destructuring" : {
+        "active" : 0,
+        "optionString" : "{'array': true, 'object': true}, {'enforceForRenamedProperties': false}"
+      },
+      "prefer-exponentiation-operator" : {
+        "active" : 0
+      },
+      "prefer-named-capture-group" : {
+        "active" : 0
+      },
+      "prefer-numeric-literals" : {
+        "active" : 0
+      },
+      "prefer-object-has-own" : {
+        "active" : 0
+      },
+      "prefer-object-spread" : {
+        "active" : 0
+      },
+      "prefer-promise-reject-errors" : {
+        "active" : 0,
+        "optionString" : "{'allowEmptyReject': false}"
+      },
+      "prefer-regex-literals" : {
+        "active" : 0
+      },
+      "prefer-rest-params" : {
+        "active" : 0
+      },
+      "prefer-spread" : {
+        "active" : 0
+      },
+      "prefer-template" : {
+        "active" : 0
+      },
+      "quote-props" : {
+        "active" : 0,
+        "optionString" : "'always'"
+      },
+      "quotes" : {
+        "active" : 0,
+        "optionString" : "'double', {'avoidEscape': true, 'allowTemplateLiterals': true}"
+      },
+      "radix" : {
+        "active" : 0,
+        "optionString" : "'always'"
+      },
+      "require-atomic-updates" : {
+        "active" : 0,
+        "optionString" : "{'allowProperties': false}"
+      },
+      "require-await" : {
+        "active" : 0
+      },
+      "require-unicode-regexp" : {
+        "active" : 0
+      },
+      "require-yield" : {
+        "active" : 1
+      },
+      "rest-spread-spacing" : {
+        "active" : 0,
+        "optionString" : "'never'"
+      },
+      "semi" : {
+        "active" : 0,
+        "optionString" : "'always', {'omitLastInOneLineBlock': false}"
+      },
+      "semi-spacing" : {
+        "active" : 0,
+        "optionString" : "{'before': false, 'after': true}"
+      },
+      "semi-style" : {
+        "active" : 0,
+        "optionString" : "'last'"
+      },
+      "sort-imports" : {
+        "active" : 0,
+        "optionString" : "{'ignoreCase': false, 'ignoreMemberSort': true, 'memberSyntaxSortOrder': ['none', 'all', 'multiple', 'single'], 'allowSeparatedGroups': false}"
+      },
+      "sort-keys" : {
+        "active" : 0,
+        "optionString" : "'asc', {'caseSensitive': true, 'natural': false, 'minKeys': 2, 'allowLineSeparatedGroups': false}"
+      },
+      "sort-vars" : {
+        "active" : 0,
+        "optionString" : "{'ignoreCase': false}"
+      },
+      "space-before-blocks" : {
+        "active" : 0,
+        "optionString" : "{'functions': 'always', 'keywords': 'always', 'classes': 'always'}"
+      },
+      "space-before-function-paren" : {
+        "active" : 0,
+        "optionString" : "{'anonymous': 'always', 'named': 'never'}"
+      },
+      "space-in-parens" : {
+        "active" : 0,
+        "optionString" : "'never', {'exceptions': []}"
+      },
+      "space-infix-ops" : {
+        "active" : 0,
+        "optionString" : "{'int32Hint': false}"
+      },
+      "space-unary-ops" : {
+        "active" : 0,
+        "optionString" : "{'words': true, 'nonwords': false, 'overrides': {}}"
+      },
+      "spaced-comment" : {
+        "active" : 0,
+        "optionString" : "'always', {'line': {'markers': ['\/'], 'exceptions': ['-', '+']}, 'block': {'markers': ['!'], 'exceptions': ['*'], 'balanced': false}}"
+      },
+      "strict" : {
+        "active" : 0,
+        "optionString" : "'safe'"
+      },
+      "switch-colon-spacing" : {
+        "active" : 0,
+        "optionString" : "{'after': true, 'before': false}"
+      },
+      "symbol-description" : {
+        "active" : 0
+      },
+      "template-curly-spacing" : {
+        "active" : 0,
+        "optionString" : "'never'"
+      },
+      "template-tag-spacing" : {
+        "active" : 0,
+        "optionString" : "'never'"
+      },
+      "unicode-bom" : {
+        "active" : 0,
+        "optionString" : "'never'"
+      },
+      "use-isnan" : {
+        "active" : 1,
+        "optionString" : "{'enforceForSwitchCase': true, 'enforceForIndexOf': false}"
+      },
+      "valid-typeof" : {
+        "active" : 1,
+        "optionString" : "{'requireStringLiterals': true}"
+      },
+      "vars-on-top" : {
+        "active" : 0
+      },
+      "wrap-iife" : {
+        "active" : 0,
+        "optionString" : "'outside'"
+      },
+      "wrap-regex" : {
+        "active" : 0
+      },
+      "yield-star-spacing" : {
+        "active" : 0,
+        "optionString" : "{'before': false, 'after': true}"
+      },
+      "yoda" : {
+        "active" : 0,
+        "optionString" : "'never', {'exceptRange': false, 'onlyEquality': false}"
+      }
+    },
+    "esLintSourceType" : 0,
+    "externalServerAddress" : "http:\/\/localhost:8888",
+    "gitIgnoreBuildFolder" : 1,
+    "hideConfigFile" : 0,
+    "jsCheckerReservedNamesString" : "",
+    "languageDefaultsCOFFEE" : {
+      "autoOutputAction" : 0,
+      "autoOutputPathFilenamePattern" : "*.js",
+      "autoOutputPathRelativePath" : "",
+      "autoOutputPathReplace1" : "",
+      "autoOutputPathReplace2" : "",
+      "autoOutputPathStyle" : 0,
+      "minifierStyle" : 0,
+      "outputStyle" : 0,
+      "sourceMapStyle" : 0,
+      "transpilerStyle" : 1
+    },
+    "languageDefaultsCSS" : {
+      "autoOutputAction" : 0,
+      "autoOutputPathFilenamePattern" : "*-min.css",
+      "autoOutputPathRelativePath" : "",
+      "autoOutputPathReplace1" : "",
+      "autoOutputPathReplace2" : "",
+      "autoOutputPathStyle" : 0,
+      "combineImports" : 0,
+      "cssoStyle" : 0,
+      "purgeCSSStyle" : 0,
+      "shouldRunAutoprefixer" : 1,
+      "shouldRunBless" : 0,
+      "sourceMapStyle" : 0
+    },
+    "languageDefaultsGIF" : {
+      "autoOutputAction" : 0,
+      "autoOutputPathFilenamePattern" : "*.gif",
+      "autoOutputPathRelativePath" : "",
+      "autoOutputPathReplace1" : "",
+      "autoOutputPathReplace2" : "",
+      "autoOutputPathStyle" : 0,
+      "webpOptimizationPresetUUID" : "lpckwebp-none",
+      "webpRGBQuality" : 75
+    },
+    "languageDefaultsHAML" : {
+      "autoOutputAction" : 0,
+      "autoOutputPathFilenamePattern" : "*.html",
+      "autoOutputPathRelativePath" : "",
+      "autoOutputPathReplace1" : "",
+      "autoOutputPathReplace2" : "",
+      "autoOutputPathStyle" : 0,
+      "escapeHTMLCharacters" : 0,
+      "htmlMinifierStyle" : 0,
+      "noEscapeInAttributes" : 0,
+      "outputFormat" : 2,
+      "shouldRunCacheBuster" : 0,
+      "useCDATA" : 0,
+      "useDoubleQuotes" : 0,
+      "useUnixNewlines" : 0
+    },
+    "languageDefaultsJPG" : {
+      "autoOutputAction" : 0,
+      "autoOutputPathFilenamePattern" : "*.jpg",
+      "autoOutputPathRelativePath" : "",
+      "autoOutputPathReplace1" : "",
+      "autoOutputPathReplace2" : "",
+      "autoOutputPathStyle" : 0,
+      "outputFormat" : 0,
+      "quality" : 100,
+      "webpOptimizationPresetUUID" : "lpckwebp-none",
+      "webpRGBQuality" : 75
+    },
+    "languageDefaultsJS" : {
+      "autoOutputAction" : 0,
+      "autoOutputPathFilenamePattern" : "*-min.js",
+      "autoOutputPathRelativePath" : "\/min",
+      "autoOutputPathReplace1" : "",
+      "autoOutputPathReplace2" : "",
+      "autoOutputPathStyle" : 0,
+      "bundleFormat" : 0,
+      "minifierStyle" : 1,
+      "sourceMapStyle" : 0,
+      "syntaxCheckerStyle" : 3,
+      "transpilerStyle" : 0
+    },
+    "languageDefaultsJSON" : {
+      "autoOutputAction" : 1,
+      "autoOutputPathFilenamePattern" : "*-min.json",
+      "autoOutputPathRelativePath" : "",
+      "autoOutputPathReplace1" : "",
+      "autoOutputPathReplace2" : "",
+      "autoOutputPathStyle" : 0,
+      "orderOutput" : 1,
+      "outputStyle" : 1
+    },
+    "languageDefaultsKIT" : {
+      "autoOutputAction" : 0,
+      "autoOutputPathFilenamePattern" : "*.html",
+      "autoOutputPathRelativePath" : "",
+      "autoOutputPathReplace1" : "kit",
+      "autoOutputPathReplace2" : "html",
+      "autoOutputPathStyle" : 0,
+      "htmlMinifierStyle" : 0,
+      "shouldRunCacheBuster" : 0
+    },
+    "languageDefaultsLESS" : {
+      "allowInsecureImports" : 0,
+      "autoOutputAction" : 0,
+      "autoOutputPathFilenamePattern" : "*.css",
+      "autoOutputPathRelativePath" : "..\/css",
+      "autoOutputPathReplace1" : "less",
+      "autoOutputPathReplace2" : "css",
+      "autoOutputPathStyle" : 0,
+      "cssoStyle" : 0,
+      "enableJavascript" : 0,
+      "mathStyle" : 0,
+      "outputStyle" : 0,
+      "purgeCSSStyle" : 0,
+      "rewriteURLStyle" : 0,
+      "shouldRunAutoprefixer" : 0,
+      "shouldRunBless" : 0,
+      "sourceMapStyle" : 0,
+      "strictImports" : 0,
+      "strictUnits" : 0
+    },
+    "languageDefaultsMARKDOWN" : {
+      "autoOutputAction" : 0,
+      "autoOutputPathFilenamePattern" : "*.html",
+      "autoOutputPathRelativePath" : "",
+      "autoOutputPathReplace1" : "",
+      "autoOutputPathReplace2" : "",
+      "autoOutputPathStyle" : 0,
+      "criticStyle" : 0,
+      "enableFootnotes" : 1,
+      "enableLabels" : 1,
+      "enableSmartQuotes" : 1,
+      "htmlMinifierStyle" : 0,
+      "maskEmailAddresses" : 1,
+      "outputFormat" : 0,
+      "outputStyle" : 0,
+      "parseMetadata" : 1,
+      "processHTML" : 0,
+      "randomFootnoteNumbers" : 0,
+      "shouldRunCacheBuster" : 0,
+      "useCompatibilityMode" : 0
+    },
+    "languageDefaultsOTHER" : {
+      "autoOutputAction" : 0,
+      "autoOutputPathFilenamePattern" : "*.*",
+      "autoOutputPathRelativePath" : "",
+      "autoOutputPathReplace1" : "",
+      "autoOutputPathReplace2" : "",
+      "autoOutputPathStyle" : 0,
+      "htmlMinifierStyle" : 0,
+      "shouldRunCacheBuster" : 0
+    },
+    "languageDefaultsPNG" : {
+      "autoOutputAction" : 0,
+      "autoOutputPathFilenamePattern" : "*.png",
+      "autoOutputPathRelativePath" : "",
+      "autoOutputPathReplace1" : "",
+      "autoOutputPathReplace2" : "",
+      "autoOutputPathStyle" : 0,
+      "optimizerType" : 1,
+      "quality" : 90,
+      "webpOptimizationPresetUUID" : "lpckwebp-none",
+      "webpRGBQuality" : 75
+    },
+    "languageDefaultsPUG" : {
+      "autoOutputAction" : 0,
+      "autoOutputPathFilenamePattern" : "*.html",
+      "autoOutputPathRelativePath" : "",
+      "autoOutputPathReplace1" : "",
+      "autoOutputPathReplace2" : "",
+      "autoOutputPathStyle" : 0,
+      "compileDebug" : 1,
+      "htmlMinifierStyle" : 0,
+      "outputStyle" : 1,
+      "shouldRunCacheBuster" : 0
+    },
+    "languageDefaultsSASS" : {
+      "autoOutputAction" : 0,
+      "autoOutputPathFilenamePattern" : "*.css",
+      "autoOutputPathRelativePath" : "..\/css",
+      "autoOutputPathReplace1" : "sass",
+      "autoOutputPathReplace2" : "css",
+      "autoOutputPathStyle" : 0,
+      "compilerType" : 0,
+      "cssoStyle" : 0,
+      "decimalPrecision" : 10,
+      "emitCharset" : 1,
+      "outputStyle" : 0,
+      "purgeCSSStyle" : 0,
+      "shouldRunAutoprefixer" : 0,
+      "shouldRunBless" : 0,
+      "sourceMapStyle" : 0
+    },
+    "languageDefaultsSLIM" : {
+      "autoOutputAction" : 0,
+      "autoOutputPathFilenamePattern" : "*.html",
+      "autoOutputPathRelativePath" : "",
+      "autoOutputPathReplace1" : "",
+      "autoOutputPathReplace2" : "",
+      "autoOutputPathStyle" : 0,
+      "compileOnly" : 0,
+      "htmlMinifierStyle" : 0,
+      "logicless" : 0,
+      "outputFormat" : 0,
+      "outputStyle" : 1,
+      "railsCompatible" : 0,
+      "shouldRunCacheBuster" : 0
+    },
+    "languageDefaultsSTYLUS" : {
+      "autoOutputAction" : 0,
+      "autoOutputPathFilenamePattern" : "*.css",
+      "autoOutputPathRelativePath" : "..\/css",
+      "autoOutputPathReplace1" : "stylus",
+      "autoOutputPathReplace2" : "css",
+      "autoOutputPathStyle" : 0,
+      "cssoStyle" : 0,
+      "debugStyle" : 0,
+      "importCSS" : 0,
+      "outputStyle" : 0,
+      "purgeCSSStyle" : 0,
+      "resolveRelativeURLS" : 0,
+      "shouldRunAutoprefixer" : 0,
+      "shouldRunBless" : 0,
+      "sourceMapStyle" : 0
+    },
+    "languageDefaultsSVG" : {
+      "autoOutputAction" : 2,
+      "autoOutputPathFilenamePattern" : "*.svg",
+      "autoOutputPathRelativePath" : "",
+      "autoOutputPathReplace1" : "",
+      "autoOutputPathReplace2" : "",
+      "autoOutputPathStyle" : 0,
+      "pluginMask" : 52780316221407
+    },
+    "languageDefaultsTS" : {
+      "autoOutputAction" : 0,
+      "autoOutputPathFilenamePattern" : "*.js",
+      "autoOutputPathRelativePath" : "\/js",
+      "autoOutputPathReplace1" : "",
+      "autoOutputPathReplace2" : "",
+      "autoOutputPathStyle" : 0,
+      "createDeclarationFile" : 0,
+      "jsxMode" : 0,
+      "minifierStyle" : 0,
+      "moduleDetectionType" : 0,
+      "moduleResolutionType" : 0,
+      "moduleType" : 2,
+      "removeComments" : 0,
+      "sourceMapStyle" : 0,
+      "targetECMAVersion" : 2018
+    },
+    "languageDefaultsUserDefined" : [
+
+    ],
+    "npmAbbreviatedPath" : "",
+    "npmCreatePackageLock" : 1,
+    "npmInstallOptionalDependencies" : 0,
+    "npmSaveExactVersion" : 0,
+    "npmTargetDependencyListType" : 1,
+    "overrideExternalServerCSS" : 0,
+    "previewPathAddition" : "",
+    "purgeCSS" : {
+      "blocklistEntries" : [
+
+      ],
+      "contentEntries" : [
+        "**\/*.html",
+        "**\/*.htm",
+        "**\/*.shtml",
+        "**\/*.xhtml",
+        "**\/*.php",
+        "**\/*.js",
+        "**\/*.ts",
+        "**\/*.coffee",
+        "**\/*.erb",
+        "**\/*.pug",
+        "**\/*.jade",
+        "**\/*.slim",
+        "**\/*.haml",
+        "**\/*.md",
+        "**\/*.kit"
+      ],
+      "removeFontFace" : 0,
+      "removeKeyframes" : 0,
+      "removeVariables" : 0,
+      "safelistEntries" : [
+
+      ],
+      "skippedEntries" : [
+        "node_modules\/**"
+      ]
+    },
+    "rollupContext" : "",
+    "rollupExternalEntries" : [
+
+    ],
+    "rollupReplacementEntries" : [
+      "process.env.NODE_ENV:::$NODE_ENV",
+      "ENVIRONMENT:::$NODE_ENV"
+    ],
+    "rollupTreeshakingEnabled" : 1,
+    "rollupTreeshakingModuleSideEffects" : 1,
+    "skippedFoldersString" : "log, _logs, logs, _cache, cache, .idea, \/storage\/framework\/sessions, node_modules",
+    "sourceFolderName" : "source",
+    "susyVersion" : 3,
+    "tsAllowArbitraryExtensions" : 0,
+    "tsAllowImportingTSExtensions" : 0,
+    "tsAllowSyntheticDefaultImports" : 0,
+    "tsAllowUMDGlobalAccess" : 0,
+    "tsAllowUnreachableCode" : 0,
+    "tsAllowUnusedLabels" : 0,
+    "tsAlwaysStrict" : 0,
+    "tsDownlevelIteration" : 0,
+    "tsEmitBOM" : 0,
+    "tsEmitDecoratorMetadata" : 0,
+    "tsESModuleInterop" : 0,
+    "tsExactOptionalPropertyTypes" : 0,
+    "tsExperimentalDecorators" : 0,
+    "tsForceConsistentCasingInFileNames" : 1,
+    "tsImportHelpers" : 0,
+    "tsIsolatedModules" : 0,
+    "tsJSXFactory" : "React.createElement",
+    "tsNoEmitHelpers" : 0,
+    "tsNoFallthroughCasesInSwitch" : 0,
+    "tsNoImplicitAny" : 0,
+    "tsNoImplicitOverride" : 0,
+    "tsNoImplicitReturns" : 0,
+    "tsNoImplicitThis" : 0,
+    "tsNoLib" : 0,
+    "tsNoPropertyAccessFromIndexSignature" : 0,
+    "tsNoResolve" : 0,
+    "tsNoUncheckedIndexAccess" : 0,
+    "tsNoUnusedLocals" : 0,
+    "tsNoUnusedParameters" : 0,
+    "tsPreserveConstEnums" : 0,
+    "tsPreserveSymlinks" : 0,
+    "tsResolveJsonModule" : 0,
+    "tsSkipDefaultLibCheck" : 0,
+    "tsSkipLibCheck" : 0,
+    "tsStrictBindCallApply" : 0,
+    "tsStrictFunctionTypes" : 0,
+    "tsStrictNullChecks" : 0,
+    "tsStrictPropertyInitialization" : 0,
+    "tsStripInternal" : 0,
+    "tsUseDefineForClassFields" : 0,
+    "tsUseUnknownInCatchVariables" : 0,
+    "tsVerbatimModuleSyntax" : 0,
+    "uglifyDefinesString" : "",
+    "uglifyFlags2" : {
+      "arguments" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "arrows" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "ascii_only" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "booleans" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "booleans_as_integers" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "braces" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "collapse_vars" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "comments" : {
+        "active" : 0,
+        "flagValue" : 1
+      },
+      "comparisons" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "computed_props" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "conditionals" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "dead_code" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "directives" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "drop_console" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "drop_debugger" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "ecma" : {
+        "active" : 1,
+        "flagValue" : 5
+      },
+      "eval" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "evaluate" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "expression" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "hoist_funs" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "hoist_props" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "hoist_vars" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "ie8" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "if_return" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "indent_level" : {
+        "active" : 0,
+        "flagValue" : 4
+      },
+      "indent_start" : {
+        "active" : 0,
+        "flagValue" : 0
+      },
+      "inline" : {
+        "active" : 1,
+        "flagValue" : 3
+      },
+      "inline_script" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "join_vars" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "keep_classnames" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "keep_fargs" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "keep_fnames" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "keep_infinity" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "keep_numbers" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "keep_quoted_props" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "loops" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "max_line_len" : {
+        "active" : 1,
+        "flagValue" : 32000
+      },
+      "module" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "negate_iife" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "passes" : {
+        "active" : 1,
+        "flagValue" : 1
+      },
+      "preserve_annotations" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "properties" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "pure_getters" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "quote_keys" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "quote_style" : {
+        "active" : 1,
+        "flagValue" : 0
+      },
+      "reduce_funcs" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "reduce_vars" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "safari10" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "semicolons" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "sequences" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "shebang" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "side_effects" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "switches" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "toplevel" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "typeofs" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "unsafe" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "unsafe_arrows" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "unsafe_comps" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "unsafe_Function" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "unsafe_math" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "unsafe_methods" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "unsafe_proto" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "unsafe_regexp" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "unsafe_undefined" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "unused" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "warnings" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "webkit" : {
+        "active" : 0,
+        "flagValue" : -1
+      },
+      "wrap_func_args" : {
+        "active" : 1,
+        "flagValue" : -1
+      },
+      "wrap_iife" : {
+        "active" : 0,
+        "flagValue" : -1
+      }
+    },
+    "uglifyMangleNames" : 1,
+    "uglifyReservedNamesString" : "$,exports,require",
+    "webpPresets" : {
+
+    },
+    "websiteRelativeRoot" : ""
+  },
+  "settingsFileVersion" : "3"
+}
