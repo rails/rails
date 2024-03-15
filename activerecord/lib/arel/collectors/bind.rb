@@ -3,6 +3,8 @@
 module Arel # :nodoc: all
   module Collectors
     class Bind
+      attr_accessor :retryable
+
       def initialize
         @binds = []
       end

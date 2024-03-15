@@ -62,7 +62,7 @@ module ActiveRecord
     end
 
     class PartialQueryCollector
-      attr_accessor :preparable
+      attr_accessor :preparable, :retryable
 
       def initialize
         @parts = []
@@ -142,12 +142,12 @@ module ActiveRecord
       @klass = klass
     end
 
-    def execute(params, connection, &block)
+    def execute(params, connection, allow_retry: false, &block)
       bind_values = bind_map.bind params
 
       sql = query_builder.sql_for bind_values, connection
 
-      klass.find_by_sql(sql, bind_values, preparable: true, &block)
+      klass.find_by_sql(sql, bind_values, preparable: true, allow_retry: allow_retry, &block)
     rescue ::RangeError
       []
     end

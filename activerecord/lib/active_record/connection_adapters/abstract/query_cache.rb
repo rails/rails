@@ -204,19 +204,19 @@ module ActiveRecord
         pool.clear_query_cache
       end
 
-      def select_all(arel, name = nil, binds = [], preparable: nil, async: false) # :nodoc:
+      def select_all(arel, name = nil, binds = [], preparable: nil, async: false, allow_retry: false) # :nodoc:
         arel = arel_from_relation(arel)
 
         # If arel is locked this is a SELECT ... FOR UPDATE or somesuch.
         # Such queries should not be cached.
         if @query_cache&.enabled? && !(arel.respond_to?(:locked) && arel.locked)
-          sql, binds, preparable = to_sql_and_binds(arel, binds, preparable)
+          sql, binds, preparable, allow_retry = to_sql_and_binds(arel, binds, preparable)
 
           if async
-            result = lookup_sql_cache(sql, name, binds) || super(sql, name, binds, preparable: preparable, async: async)
+            result = lookup_sql_cache(sql, name, binds) || super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry)
             FutureResult.wrap(result)
           else
-            cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable, async: async) }
+            cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry) }
           end
         else
           super

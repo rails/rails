@@ -446,7 +446,7 @@ module ActiveRecord
         return column_name if Arel::Expressions === column_name
 
         arel_column(column_name.to_s) do |name|
-          Arel.sql(column_name == :all ? "*" : name)
+          column_name == :all ? Arel.sql("*", retryable: true) : Arel.sql(name)
         end
       end
 
@@ -643,7 +643,7 @@ module ActiveRecord
           relation.select_values = [ aggregate_column(column_name).as(column_alias) ]
         end
 
-        subquery_alias = Arel.sql("subquery_for_count")
+        subquery_alias = Arel.sql("subquery_for_count", retryable: true)
         select_value = operation_over_aggregate_column(column_alias, "count", false)
 
         relation.build_subquery(subquery_alias, select_value)

@@ -46,7 +46,7 @@ module Arel # :nodoc: all
     end
 
     def as(other)
-      create_table_alias grouping(@ast), Nodes::SqlLiteral.new(other)
+      create_table_alias grouping(@ast), Nodes::SqlLiteral.new(other, retryable: true)
     end
 
     def lock(locking = Arel.sql("FOR UPDATE"))
