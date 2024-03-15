@@ -218,7 +218,7 @@ module ActiveRecord
           update("SET FOREIGN_KEY_CHECKS = 0")
           yield
         ensure
-          update("SET FOREIGN_KEY_CHECKS = #{old}")
+          update("SET FOREIGN_KEY_CHECKS = #{old}") if active?
         end
       end
 

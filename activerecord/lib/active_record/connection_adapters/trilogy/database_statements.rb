@@ -96,7 +96,7 @@ module ActiveRecord
 
               yield
             ensure
-              conn.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_OFF)
+              conn.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_OFF) if active?
             end
           end
       end
