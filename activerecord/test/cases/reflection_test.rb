@@ -226,34 +226,12 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "companies", Firm.reflect_on_association(:clients_of_firm).table_name
   end
 
-  def test_has_many_reflection_with_array_fk_raises
-    expected_message = <<~MSG.squish
-      Passing [:firm_id, :firm_name] array to :foreign_key option
-      on the Firm#clients association is not supported.
-      Use the query_constraints: [:firm_id, :firm_name] option instead to represent a composite foreign key.
-    MSG
-    assert_raises ArgumentError, match: expected_message do
-      ActiveRecord::Reflection.create(:has_many, :clients, nil, { foreign_key: [:firm_id, :firm_name] }, Firm)
-    end
-  end
-
   def test_has_one_reflection
     reflection_for_account = ActiveRecord::Reflection.create(:has_one, :account, nil, { foreign_key: "firm_id", dependent: :destroy }, Firm)
     assert_equal reflection_for_account, Firm.reflect_on_association(:account)
 
     assert_equal Account, Firm.reflect_on_association(:account).klass
     assert_equal "accounts", Firm.reflect_on_association(:account).table_name
-  end
-
-  def has_one_reflection_with_array_fk_raises
-    expected_message = <<~MSG.squish
-      Passing [:firm_id, :firm_name] array to :foreign_key option
-      on the Firm#account association is not supported.
-      Use the query_constraints: [:firm_id, :firm_name] option instead to represent a composite foreign key.
-    MSG
-    assert_raises ArgumentError, match: expected_message do
-      ActiveRecord::Reflection.create(:has_one, :account, nil, { foreign_key: [:firm_id, :firm_name] }, Firm)
-    end
   end
 
   def test_belongs_to_inferred_foreign_key_from_assoc_name
@@ -263,17 +241,6 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "bar_id", Company.reflect_on_association(:bar).foreign_key
     Company.belongs_to :baz, class_name: "Xyzzy", foreign_key: "xyzzy_id"
     assert_equal "xyzzy_id", Company.reflect_on_association(:baz).foreign_key
-  end
-
-  def test_belongs_to_reflection_with_array_fk_raises
-    expected_message = <<~MSG.squish
-      Passing [:firm_id, :firm_name] array to :foreign_key option
-      on the Firm#client association is not supported.
-      Use the query_constraints: [:firm_id, :firm_name] option instead to represent a composite foreign key.
-    MSG
-    assert_raises ArgumentError, match: expected_message do
-      ActiveRecord::Reflection.create(:belongs_to, :client, nil, { foreign_key: [:firm_id, :firm_name] }, Firm)
-    end
   end
 
   def test_association_reflection_in_modules
