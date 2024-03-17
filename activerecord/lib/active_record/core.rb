@@ -89,6 +89,7 @@ module ActiveRecord
       class_attribute :belongs_to_required_by_default, instance_accessor: false
 
       class_attribute :strict_loading_by_default, instance_accessor: false, default: false
+      class_attribute :strict_loading_mode, instance_accessor: false, default: :all
 
       class_attribute :has_many_inversing, instance_accessor: false, default: false
 
@@ -784,7 +785,7 @@ module ActiveRecord
 
         @primary_key         = klass.primary_key
         @strict_loading      = klass.strict_loading_by_default
-        @strict_loading_mode = :all
+        @strict_loading_mode = klass.strict_loading_mode
 
         klass.define_attribute_methods
       end

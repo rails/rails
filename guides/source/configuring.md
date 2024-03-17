@@ -1284,6 +1284,12 @@ changed to `:log` to send violations to the logger instead of raising.
 Is a boolean value that either enables or disables strict_loading mode by
 default. Defaults to `false`.
 
+#### `config.active_record.strict_loading_mode`
+
+Sets the mode in which strict loading is reported. Defaults to `:all`. It can be
+changed to `:n_plus_one_only` to only report when loading associations that will
+lead to an N + 1 query.
+
 #### `config.active_record.warn_on_records_fetched_greater_than`
 
 Allows setting a warning threshold for query result size. If the number of
