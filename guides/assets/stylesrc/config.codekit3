@@ -9,6 +9,36 @@
   ],
   "creatorBuild" : "34564",
   "files" : {
+    "\/_dark.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 1,
+      "oAP" : "\/_dark.css",
+      "oF" : 0,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
+    "\/_main.scss" : {
+      "aP" : 0,
+      "bl" : 0,
+      "co" : 0,
+      "dP" : 10,
+      "ec" : 1,
+      "ft" : 4,
+      "ma" : 0,
+      "oA" : 1,
+      "oAP" : "\/_main.css",
+      "oF" : 0,
+      "oS" : 0,
+      "pg" : 0,
+      "sct" : 0
+    },
     "\/components\/_code-container.scss" : {
       "aP" : 0,
       "bl" : 0,
@@ -35,21 +65,6 @@
       "oA" : 0,
       "oAP" : "\/Users\/jathayde\/Development\/rails\/guides\/assets\/stylesheets\/highlight.css",
       "oF" : 6,
-      "oS" : 0,
-      "pg" : 0,
-      "sct" : 0
-    },
-    "\/main.scss" : {
-      "aP" : 0,
-      "bl" : 0,
-      "co" : 0,
-      "dP" : 10,
-      "ec" : 1,
-      "ft" : 4,
-      "ma" : 0,
-      "oA" : 1,
-      "oAP" : "\/main.css",
-      "oF" : 0,
       "oS" : 0,
       "pg" : 0,
       "sct" : 0

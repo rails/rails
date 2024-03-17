@@ -389,7 +389,6 @@ body.guide {
 
   header#page_header {
 
-
     nav#feature_nav {
       @include media('>desktop'){
         align-items: top;
@@ -543,10 +542,7 @@ body.guide {
           }
         }
       }
-
-
     } // nav#feature_nav
-
   } // header#page_header
 
   // Desktop guides flyout
