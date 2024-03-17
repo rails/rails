@@ -59,7 +59,7 @@ class SchemaMigrationsTest < ActiveRecord::AbstractMysqlTestCase
     end
 
     def connection
-      @connection ||= ActiveRecord::Base.connection
+      @connection ||= ActiveRecord::Base.lease_connection
     end
 
     def execute(sql)

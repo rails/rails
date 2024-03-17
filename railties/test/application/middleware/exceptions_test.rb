@@ -82,6 +82,7 @@ module ApplicationTests
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get "/foo", to: "foo#index"
+          post "/foo", to: "foo#index"
           match "/406", to: "foo#not_acceptable", via: :all
         end
       RUBY
@@ -91,6 +92,18 @@ module ApplicationTests
       add_to_config "config.consider_all_requests_local = false"
 
       get "/foo", {}, { "HTTP_ACCEPT" => "invalid", "HTTPS" => "on" }
+      assert_equal 406, last_response.status
+      assert_not_equal "rendering index!", last_response.body
+
+      get "/foo", {}, { "CONTENT_TYPE" => "invalid", "HTTPS" => "on" }
+      assert_equal 406, last_response.status
+      assert_not_equal "rendering index!", last_response.body
+
+      get "/foo", {}, { "HTTP_ACCEPT" => "invalid", "CONTENT_TYPE" => "invalid", "HTTPS" => "on" }
+      assert_equal 406, last_response.status
+      assert_not_equal "rendering index!", last_response.body
+
+      post "/foo", {}, { "HTTP_ACCEPT" => "invalid", "CONTENT_TYPE" => "invalid", "HTTPS" => "on" }
       assert_equal 406, last_response.status
       assert_not_equal "rendering index!", last_response.body
     end

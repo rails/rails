@@ -7,7 +7,7 @@ class AutoIncrementTest < ActiveRecord::AbstractMysqlTestCase
   include SchemaDumpingHelper
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   def teardown

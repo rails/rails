@@ -10,7 +10,7 @@ module Arel
     class TestComposite < Arel::Test
       def setup
         @conn = FakeRecord::Base.new
-        @visitor = Visitors::ToSql.new @conn.connection
+        @visitor = Visitors::ToSql.new @conn.lease_connection
         super
       end
 

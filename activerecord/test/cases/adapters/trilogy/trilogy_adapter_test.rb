@@ -7,7 +7,7 @@ require "models/post"
 
 class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   setup do
-    @conn = ActiveRecord::Base.connection
+    @conn = ActiveRecord::Base.lease_connection
   end
 
   test "connection_error" do
@@ -343,7 +343,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     ActiveRecord::Base.establish_connection(
       db_config.configuration_hash.merge("read_timeout" => 1)
     )
-    connection = ActiveRecord::Base.connection
+    connection = ActiveRecord::Base.lease_connection
 
     error = assert_raises(ActiveRecord::AdapterTimeout) do
       connection.execute("SELECT SLEEP(2)")

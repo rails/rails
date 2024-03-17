@@ -133,7 +133,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
     # Force a row to have a JSON "null" instead of a database NULL (this is how
     # null values are saved on 4.1 and before)
-    id = Topic.connection.insert "INSERT INTO topics (content) VALUES('null')"
+    id = Topic.lease_connection.insert "INSERT INTO topics (content) VALUES('null')"
     t = Topic.find(id)
 
     assert_nil t.content
@@ -143,7 +143,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     Topic.serialize :content, coder: JSON
 
     # Force a row to have a database NULL instead of a JSON "null"
-    id = Topic.connection.insert "INSERT INTO topics (content) VALUES(NULL)"
+    id = Topic.lease_connection.insert "INSERT INTO topics (content) VALUES(NULL)"
     t = Topic.find(id)
 
     assert_nil t.content

@@ -1,7 +1,12 @@
-*   Add filename support for `Logger.logger_outputs_to?`
+*   Updating Astana with Western Kazakhstan TZInfo identifier
+
+    *Damian Nelson*
+
+*   Add filename support for `ActiveSupport::Logger.logger_outputs_to?`
 
     ```ruby
-    Logger.logger_outputs_to?('/var/log/rails.log')
+    logger = Logger.new('/var/log/rails.log')
+    ActiveSupport::Logger.logger_outputs_to?(logger, '/var/log/rails.log')
     ```
 
     *Christian Schmidt*

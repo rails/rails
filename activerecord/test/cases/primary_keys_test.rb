@@ -221,9 +221,9 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   def test_quoted_primary_key_after_set_primary_key
     k = Class.new(ActiveRecord::Base)
     k.table_name = "bar"
-    assert_equal k.connection.quote_column_name("id"), k.quoted_primary_key
+    assert_equal k.lease_connection.quote_column_name("id"), k.quoted_primary_key
     k.primary_key = "foo"
-    assert_equal k.connection.quote_column_name("foo"), k.quoted_primary_key
+    assert_equal k.lease_connection.quote_column_name("foo"), k.quoted_primary_key
   end
 
   def test_auto_detect_primary_key_from_schema
@@ -291,7 +291,7 @@ class PrimaryKeyWithAutoIncrementTest < ActiveRecord::TestCase
   end
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   def teardown
@@ -328,7 +328,7 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
   end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table(:barcodes, primary_key: "code", id: :string, limit: 42, force: true)
   end
 
@@ -371,7 +371,7 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
 
   def setup
     ActiveRecord::Base.schema_cache.clear!
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table(:uber_barcodes, primary_key: ["region", "code"], force: true) do |t|
       t.string :region
       t.integer :code
@@ -502,7 +502,7 @@ class PrimaryKeyIntegerNilDefaultTest < ActiveRecord::TestCase
   include SchemaDumpingHelper
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   def teardown
@@ -533,7 +533,7 @@ class PrimaryKeyIntegerTest < ActiveRecord::TestCase
     end
 
     setup do
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       @pk_type = current_adapter?(:PostgreSQLAdapter) ? :serial : :integer
     end
 

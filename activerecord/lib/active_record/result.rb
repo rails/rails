@@ -8,7 +8,7 @@ module ActiveRecord
   # {#exec_query}[rdoc-ref:ConnectionAdapters::DatabaseStatements#exec_query]
   # on any database connection adapter. For example:
   #
-  #   result = ActiveRecord::Base.connection.exec_query('SELECT id, title, body FROM posts')
+  #   result = ActiveRecord::Base.lease_connection.exec_query('SELECT id, title, body FROM posts')
   #   result # => #<ActiveRecord::Result:0xdeadbeef>
   #
   #   # Get the column names of the result:

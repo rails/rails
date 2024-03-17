@@ -31,7 +31,7 @@ module ApplicationTests
       app_file "app/controllers/name_spaced/users_controller.rb", <<-RUBY
         class NameSpaced::UsersController < ApplicationController
           def index
-            render inline: ActiveRecord::QueryLogs.call("", ActiveRecord::Base.connection)
+            render inline: ActiveRecord::QueryLogs.call("", ActiveRecord::Base.lease_connection)
           end
         end
       RUBY
@@ -39,7 +39,7 @@ module ApplicationTests
       app_file "app/jobs/user_job.rb", <<-RUBY
         class UserJob < ActiveJob::Base
           def perform
-            ActiveRecord::QueryLogs.call("", ActiveRecord::Base.connection)
+            ActiveRecord::QueryLogs.call("", ActiveRecord::Base.lease_connection)
           end
 
           def dynamic_content
@@ -89,8 +89,8 @@ module ApplicationTests
     test "controller and job tags are defined by default" do
       add_to_config "config.active_record.query_log_tags_enabled = true"
       app_file "config/initializers/active_record.rb", <<-RUBY
-        raise "Expected prepared_statements to be enabled" unless ActiveRecord::Base.connection.prepared_statements
-        ActiveRecord::Base.connection.execute("SELECT 1")
+        raise "Expected prepared_statements to be enabled" unless ActiveRecord::Base.lease_connection.prepared_statements
+        ActiveRecord::Base.lease_connection.execute("SELECT 1")
       RUBY
 
       boot_app

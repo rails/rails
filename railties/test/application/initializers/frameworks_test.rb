@@ -238,7 +238,7 @@ module ApplicationTests
         assert ActiveRecord::Base.schema_cache.data_sources("posts")
       end
     ensure
-      ActiveRecord::Base.connection.drop_table("posts", if_exists: true) # force drop posts table for test.
+      ActiveRecord::Base.lease_connection.drop_table("posts", if_exists: true) # force drop posts table for test.
     end
 
     test "expire schema cache dump" do
@@ -273,7 +273,7 @@ module ApplicationTests
           app("development")
 
           assert_raises ActiveRecord::ConnectionNotEstablished do
-            ActiveRecord::Base.connection.execute("SELECT 1")
+            ActiveRecord::Base.lease_connection.execute("SELECT 1")
           end
 
           _, error = capture_io do
@@ -318,7 +318,7 @@ module ApplicationTests
 
           assert ActiveRecord::Base.connection_pool.schema_reflection.data_sources(:__unused__, "posts")
           assert_raises ActiveRecord::ConnectionNotEstablished do
-            ActiveRecord::Base.connection.execute("SELECT 1")
+            ActiveRecord::Base.lease_connection.execute("SELECT 1")
           end
         end
       end
@@ -345,7 +345,7 @@ module ApplicationTests
       orig_database_url = ENV.delete("DATABASE_URL")
       orig_rails_env, Rails.env = Rails.env, "development"
       ActiveRecord::Base.establish_connection
-      assert ActiveRecord::Base.connection
+      assert ActiveRecord::Base.lease_connection
       assert_match(/#{ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary").database}/, ActiveRecord::Base.connection_db_config.database)
       db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary")
       assert_match(/#{db_config.database}/, ActiveRecord::Base.connection_db_config.database)
@@ -362,7 +362,7 @@ module ApplicationTests
       database_url_db_name = "db/database_url_db.sqlite3"
       ENV["DATABASE_URL"] = "sqlite3:#{database_url_db_name}"
       ActiveRecord::Base.establish_connection
-      assert ActiveRecord::Base.connection
+      assert ActiveRecord::Base.lease_connection
       assert_match(/#{database_url_db_name}/, ActiveRecord::Base.connection_db_config.database)
     ensure
       ActiveRecord::Base.remove_connection
@@ -372,7 +372,7 @@ module ApplicationTests
 
     test "connections checked out during initialization are returned to the pool" do
       app_file "config/initializers/active_record.rb", <<-RUBY
-        ActiveRecord::Base.connection
+        ActiveRecord::Base.lease_connection
       RUBY
       app("development")
       assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?

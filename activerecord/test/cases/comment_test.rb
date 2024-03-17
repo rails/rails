@@ -3,7 +3,7 @@
 require "cases/helper"
 require "support/schema_dumping_helper"
 
-if ActiveRecord::Base.connection.supports_comments?
+if ActiveRecord::Base.lease_connection.supports_comments?
   class CommentTest < ActiveRecord::TestCase
     include SchemaDumpingHelper
 
@@ -18,7 +18,7 @@ if ActiveRecord::Base.connection.supports_comments?
     end
 
     setup do
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
 
       @connection.create_table("commenteds", comment: "A table with comment", force: true) do |t|
         t.string  "name",    comment: "Comment should help clarify the column purpose"

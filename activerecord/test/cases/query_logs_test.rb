@@ -59,7 +59,7 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord::QueryLogs.tags = [ :application ]
 
     assert_queries_match(%r{select id from posts /\*application:active_record\*/$}) do
-      ActiveRecord::Base.connection.execute "select id from posts"
+      ActiveRecord::Base.lease_connection.execute "select id from posts"
     end
   end
 
@@ -68,7 +68,7 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord::QueryLogs.prepend_comment = true
 
     assert_queries_match(%r{/\*application:active_record\*/ select id from posts$}) do
-      ActiveRecord::Base.connection.execute "select id from posts"
+      ActiveRecord::Base.lease_connection.execute "select id from posts"
     end
   end
 
@@ -120,11 +120,11 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord::QueryLogs.tags = [ { query_counter: -> { i += 1 } } ]
 
     assert_queries_match("SELECT 1 /*query_counter:1*/") do
-      ActiveRecord::Base.connection.execute "SELECT 1"
+      ActiveRecord::Base.lease_connection.execute "SELECT 1"
     end
 
     assert_queries_match("SELECT 1 /*query_counter:1*/") do
-      ActiveRecord::Base.connection.execute "SELECT 1"
+      ActiveRecord::Base.lease_connection.execute "SELECT 1"
     end
   end
 
@@ -134,13 +134,13 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord::QueryLogs.tags = [ temporary_tag: ->(context) { context[:temporary] } ]
 
     assert_queries_match("SELECT 1 /*temporary_tag:value*/") do
-      ActiveRecord::Base.connection.execute "SELECT 1"
+      ActiveRecord::Base.lease_connection.execute "SELECT 1"
     end
 
     ActiveSupport::ExecutionContext[:temporary] = "new_value"
 
     assert_queries_match("SELECT 1 /*temporary_tag:new_value*/") do
-      ActiveRecord::Base.connection.execute "SELECT 1"
+      ActiveRecord::Base.lease_connection.execute "SELECT 1"
     end
   end
 
@@ -157,7 +157,7 @@ class QueryLogsTest < ActiveRecord::TestCase
   end
 
   def test_connection_is_passed_to_tagging_proc
-    connection = ActiveRecord::Base.connection
+    connection = ActiveRecord::Base.lease_connection
     ActiveRecord::QueryLogs.tags = [ same_connection: ->(context) { context[:connection] == connection } ]
 
     assert_queries_match("SELECT 1 /*same_connection:true*/") do
@@ -171,14 +171,14 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord::QueryLogs.tags = [ fake_connection: ->(context) { context[:connection] == fake_connection } ]
 
     assert_queries_match("SELECT 1 /*fake_connection:true*/") do
-      ActiveRecord::Base.connection.execute "SELECT 1"
+      ActiveRecord::Base.lease_connection.execute "SELECT 1"
     end
   end
 
   def test_empty_comments_are_not_added
     ActiveRecord::QueryLogs.tags = [ empty: -> { nil } ]
     assert_queries_match(%r{select id from posts$}) do
-      ActiveRecord::Base.connection.execute "select id from posts"
+      ActiveRecord::Base.lease_connection.execute "select id from posts"
     end
   end
 
@@ -247,7 +247,7 @@ class QueryLogsTest < ActiveRecord::TestCase
     def test_invalid_encoding_query
       ActiveRecord::QueryLogs.tags = [ :application ]
       assert_nothing_raised do
-        ActiveRecord::Base.connection.execute "select 1 as '\xFF'"
+        ActiveRecord::Base.lease_connection.execute "select 1 as '\xFF'"
       end
     end
   end

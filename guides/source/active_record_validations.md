@@ -119,45 +119,74 @@ careful.
 The following methods trigger validations, and will save the object to the
 database only if the object is valid:
 
-* `create`
-* `create!`
-* `save`
-* `save!`
-* `update`
-* `update!`
+* [`create`][]
+* [`create!`][]
+* [`save`][]
+* [`save!`][]
+* [`update`][]
+* [`update!`][]
 
 The bang versions (e.g. `save!`) raise an exception if the record is invalid.
 The non-bang versions don't: `save` and `update` return `false`, and
 `create` returns the object.
 
+[`create`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-create
+[`create!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-create-21
+[`save`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-save
+[`save!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-save-21
+[`update`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update
+[`update!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update-21
+
 ### Skipping Validations
 
 The following methods skip validations, and will save the object to the
 database regardless of its validity. They should be used with caution.
+Refer to the method documentation to learn more.
 
-* `decrement!`
-* `decrement_counter`
-* `increment!`
-* `increment_counter`
-* `insert`
-* `insert!`
-* `insert_all`
-* `insert_all!`
-* `toggle!`
-* `touch`
-* `touch_all`
-* `update_all`
-* `update_attribute`
-* `update_column`
-* `update_columns`
-* `update_counters`
-* `upsert`
-* `upsert_all`
+* [`decrement!`][]
+* [`decrement_counter`][]
+* [`increment!`][]
+* [`increment_counter`][]
+* [`insert`][]
+* [`insert!`][]
+* [`insert_all`][]
+* [`insert_all!`][]
+* [`toggle!`][]
+* [`touch`][]
+* [`touch_all`][]
+* [`update_all`][]
+* [`update_attribute`][]
+* [`update_attribute!`][]
+* [`update_column`][]
+* [`update_columns`][]
+* [`update_counters`][]
+* [`upsert`][]
+* [`upsert_all`][]
 
 Note that `save` also has the ability to skip validations if passed `validate:
 false` as an argument. This technique should be used with caution.
 
 * `save(validate: false)`
+
+[`decrement!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-decrement-21
+[`decrement_counter`]: https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-decrement_counter
+[`increment!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-increment-21
+[`increment_counter`]: https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-increment_counter
+[`insert`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert
+[`insert!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert-21
+[`insert_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert_all
+[`insert_all!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert_all-21
+[`toggle!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-toggle-21
+[`touch`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-touch
+[`touch_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-touch_all
+[`update_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-update_all
+[`update_attribute`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_attribute
+[`update_attribute!`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_attribute-21
+[`update_column`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_column
+[`update_columns`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_columns
+[`update_counters`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-update_counters
+[`upsert`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert
+[`upsert_all`]: https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert_all
 
 ### `valid?` and `invalid?`
 
@@ -627,7 +656,7 @@ class Order < ApplicationRecord
 end
 ```
 
-NOTE: If you want to ensure that the association it is both present and valid,
+NOTE: If you want to ensure that the association is both present and valid,
 you also need to use `validates_associated`. More on that
 [below](#validates-associated)
 
@@ -684,7 +713,7 @@ class Order < ApplicationRecord
 end
 ```
 
-NOTE: If you want to ensure that the association it is both present and valid,
+NOTE: If you want to ensure that the association is both present and valid,
 you also need to use `validates_associated`. More on that
 [below](#validates-associated)
 
@@ -733,9 +762,9 @@ In order to add a uniqueness database constraint on your database, use the
 
 Should you wish to create a database constraint to prevent possible violations
 of a uniqueness validation using the `:scope` option, you must create a unique
-index on both columns in your database. See [the MySQL manual][] for more
-details about multiple column indexes or [the PostgreSQL manual][] for examples
-of unique constraints that refer to a group of columns.
+index on both columns in your database. See [the MySQL manual][] and [the MariaDB
+manual][] for more details about multiple column indexes, or [the PostgreSQL
+manual][] for examples of unique constraints that refer to a group of columns.
 
 There is also a `:case_sensitive` option that you can use to define whether the
 uniqueness constraint will be case sensitive, case insensitive, or if it should
@@ -762,6 +791,7 @@ See [`validates_uniqueness_of`][] for more information.
 [`validates_uniqueness_of`]: https://api.rubyonrails.org/classes/ActiveRecord/Validations/ClassMethods.html#method-i-validates_uniqueness_of
 [`add_index`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_index
 [the MySQL manual]: https://dev.mysql.com/doc/refman/en/multiple-column-indexes.html
+[the MariaDB manual]: https://mariadb.com/kb/en/compound-composite-indexes/
 [the PostgreSQL manual]: https://www.postgresql.org/docs/current/static/ddl-constraints.html
 
 ### `validates_associated`

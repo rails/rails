@@ -85,7 +85,7 @@ module ActiveRecord
         if condition.is_a?(Array) && condition.first.to_s.include?("?")
           disallow_raw_sql!(
             [condition.first],
-            permit: connection.column_name_with_order_matcher
+            permit: adapter_class.column_name_with_order_matcher
           )
 
           # Ensure we aren't dealing with a subclass of String that might
@@ -169,11 +169,11 @@ module ActiveRecord
         elsif statement.blank?
           statement
         else
-          statement % values.collect { |value| connection.quote_string(value.to_s) }
+          statement % values.collect { |value| lease_connection.quote_string(value.to_s) }
         end
       end
 
-      def disallow_raw_sql!(args, permit: connection.column_name_matcher) # :nodoc:
+      def disallow_raw_sql!(args, permit: adapter_class.column_name_matcher) # :nodoc:
         unexpected = nil
         args.each do |arg|
           next if arg.is_a?(Symbol) || Arel.arel_node?(arg) || permit.match?(arg.to_s.strip)
@@ -196,13 +196,13 @@ module ActiveRecord
         def replace_bind_variables(statement, values)
           raise_if_bind_arity_mismatch(statement, statement.count("?"), values.size)
           bound = values.dup
-          c = connection
+          c = lease_connection
           statement.gsub(/\?/) do
             replace_bind_variable(bound.shift, c)
           end
         end
 
-        def replace_bind_variable(value, c = connection)
+        def replace_bind_variable(value, c = lease_connection)
           if ActiveRecord::Relation === value
             value.to_sql
           else
@@ -224,7 +224,7 @@ module ActiveRecord
           end
         end
 
-        def quote_bound_value(value, c = connection)
+        def quote_bound_value(value, c = lease_connection)
           if value.respond_to?(:map) && !value.acts_like?(:string)
             values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
             if values.empty?

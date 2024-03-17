@@ -83,17 +83,33 @@ module AbstractController
         end
       end
 
-      def test_default_translation_as_safe_html
+      def test_default_translation_as_unsafe_html
         @controller.stub :action_name, :index do
           translation = @controller.t(".twoz", default: ["<tag>"])
+          assert_equal "<tag>", translation
+          assert_equal false, translation.html_safe?
+        end
+      end
+
+      def test_default_translation_as_safe_html
+        @controller.stub :action_name, :index do
+          translation = @controller.t(".twoz_html", default: ["<tag>"])
           assert_equal "&lt;tag&gt;", translation
           assert_equal true, translation.html_safe?
         end
       end
 
-      def test_default_translation_with_raise_as_safe_html
+      def test_default_translation_with_raise_as_unsafe_html
         @controller.stub :action_name, :index do
           translation = @controller.t(".twoz", raise: true, default: ["<tag>"])
+          assert_equal "<tag>", translation
+          assert_equal false, translation.html_safe?
+        end
+      end
+
+      def test_default_translation_with_raise_as_safe_html
+        @controller.stub :action_name, :index do
+          translation = @controller.t(".twoz_html", raise: true, default: ["<tag>"])
           assert_equal "&lt;tag&gt;", translation
           assert_equal true, translation.html_safe?
         end

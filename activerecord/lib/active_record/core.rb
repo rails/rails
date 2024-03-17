@@ -377,8 +377,8 @@ module ActiveRecord
       end
 
       def cached_find_by_statement(key, &block) # :nodoc:
-        cache = @find_by_statement_cache[connection.prepared_statements]
-        cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
+        cache = @find_by_statement_cache[lease_connection.prepared_statements]
+        cache.compute_if_absent(key) { StatementCache.create(lease_connection, &block) }
       end
 
       private
@@ -431,7 +431,7 @@ module ActiveRecord
           }
 
           begin
-            statement.execute(values.flatten, connection).first
+            statement.execute(values.flatten, lease_connection).first
           rescue TypeError
             raise ActiveRecord::StatementInvalid
           end

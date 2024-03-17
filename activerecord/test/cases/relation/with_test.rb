@@ -15,7 +15,7 @@ module ActiveRecord
     POSTS_WITH_TAGS_AND_COMMENTS = (POSTS_WITH_COMMENTS & POSTS_WITH_TAGS).sort.freeze
     POSTS_WITH_TAGS_AND_MULTIPLE_COMMENTS = (POSTS_WITH_MULTIPLE_COMMENTS & POSTS_WITH_TAGS).sort.freeze
 
-    if ActiveRecord::Base.connection.supports_common_table_expressions?
+    if ActiveRecord::Base.lease_connection.supports_common_table_expressions?
       def test_with_when_hash_is_passed_as_an_argument
         relation = Post
           .with(posts_with_comments: Post.where("legacy_comments_count > 0"))

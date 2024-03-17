@@ -93,30 +93,32 @@ module FakeRecord
   end
 
   class ConnectionPool
-    attr_reader :connection
-
     def initialize
       @connection = Connection.new
     end
 
+    def lease_connection
+      @connection
+    end
+
     def with_connection
-      yield connection
+      yield @connection
     end
 
     def table_exists?(name)
-      connection.tables.include? name.to_s
+      @connection.tables.include? name.to_s
     end
 
     def columns_hash
-      connection.columns_hash
+      @connection.columns_hash
     end
 
     def schema_cache
-      connection
+      @connection
     end
 
     def quote(thing)
-      connection.quote thing
+      @connection.quote thing
     end
   end
 
@@ -127,8 +129,8 @@ module FakeRecord
       @connection_pool = ConnectionPool.new
     end
 
-    def connection
-      connection_pool.connection
+    def lease_connection
+      connection_pool.lease_connection
     end
   end
 end

@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "models/book"
+require "models/clothing_item"
 
 module ActiveRecord
   class InstrumentationTest < ActiveRecord::TestCase
@@ -142,13 +143,13 @@ module ActiveRecord
           assert_equal 10, payload[:row_count]
         end
       end
-      ActiveRecord::Base.connection.execute("SELECT * FROM books WHERE name='row count book 3';")
+      ActiveRecord::Base.lease_connection.execute("SELECT * FROM books WHERE name='row count book 3';")
     ensure
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
 
     def test_payload_connection_with_query_cache_disabled
-      connection = Book.connection
+      connection = ClothingItem.lease_connection
       subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
         assert_equal connection, payload[:connection]
       end
@@ -158,7 +159,7 @@ module ActiveRecord
     end
 
     def test_payload_connection_with_query_cache_enabled
-      connection = Book.connection
+      connection = ClothingItem.lease_connection
       subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
         assert_equal connection, payload[:connection]
       end

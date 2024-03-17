@@ -50,7 +50,7 @@ class PostgresqlInvertibleMigrationTest < ActiveRecord::PostgreSQLTestCase
   end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   teardown do

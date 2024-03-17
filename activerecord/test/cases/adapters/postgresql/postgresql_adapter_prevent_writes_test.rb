@@ -11,7 +11,7 @@ module ActiveRecord
       include ConnectionHelper
 
       def setup
-        @connection = ActiveRecord::Base.connection
+        @connection = ActiveRecord::Base.lease_connection
       end
 
       def test_errors_when_an_insert_query_is_called_while_preventing_writes

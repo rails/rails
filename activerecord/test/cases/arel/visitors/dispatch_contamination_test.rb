@@ -40,7 +40,7 @@ module Arel
 
     class DispatchContaminationTest < Arel::Spec
       before do
-        @connection = Table.engine.connection
+        @connection = Table.engine.lease_connection
         @table = Table.new(:users)
       end
 

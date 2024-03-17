@@ -4,7 +4,9 @@ module SchemaDumpingHelper
   def dump_table_schema(*tables)
     pool = ActiveRecord::Base.connection_pool
     old_ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
-    ActiveRecord::SchemaDumper.ignore_tables = pool.connection.data_sources - tables
+    pool.with_connection do |connection|
+      ActiveRecord::SchemaDumper.ignore_tables = connection.data_sources - tables
+    end
 
     output, = capture_io do
       ActiveRecord::SchemaDumper.dump(pool)

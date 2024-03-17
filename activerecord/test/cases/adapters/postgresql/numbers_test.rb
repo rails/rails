@@ -6,7 +6,7 @@ class PostgresqlNumberTest < ActiveRecord::PostgreSQLTestCase
   class PostgresqlNumber < ActiveRecord::Base; end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table("postgresql_numbers", force: true) do |t|
       t.column "single", "REAL"
       t.column "double", "DOUBLE PRECISION"

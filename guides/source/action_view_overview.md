@@ -483,7 +483,7 @@ Rendering the partial with additional local variable arguments will raise an exc
 
 ```ruby
 render "messages/message", unknown_local: "will raise"
-# => ActionView::Template::Error: missing local: :unknown_local for app/views/messages/_message.html.erb
+# => ActionView::Template::Error: unknown local: :unknown_local for app/views/messages/_message.html.erb
 ```
 
 Optional local variable arguments can be splatted:

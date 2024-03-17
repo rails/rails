@@ -5,7 +5,7 @@ require "support/schema_dumping_helper"
 
 module PostgresqlUUIDHelper
   def connection
-    @connection ||= ActiveRecord::Base.connection
+    @connection ||= ActiveRecord::Base.lease_connection
   end
 
   def drop_table(name)
@@ -43,8 +43,8 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
     drop_table "uuid_data_type"
   end
 
-  if ActiveRecord::Base.connection.respond_to?(:supports_pgcrypto_uuid?) &&
-      ActiveRecord::Base.connection.supports_pgcrypto_uuid?
+  if ActiveRecord::Base.lease_connection.respond_to?(:supports_pgcrypto_uuid?) &&
+      ActiveRecord::Base.lease_connection.supports_pgcrypto_uuid?
     def test_uuid_column_default
       connection.add_column :uuid_data_type, :thingy, :uuid, null: false, default: "gen_random_uuid()"
       UUIDType.reset_column_information

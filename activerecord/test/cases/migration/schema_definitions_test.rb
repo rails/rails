@@ -8,7 +8,7 @@ module ActiveRecord
       attr_reader :connection
 
       def setup
-        @connection = ActiveRecord::Base.connection
+        @connection = ActiveRecord::Base.lease_connection
       end
 
       def test_build_create_table_definition_with_block

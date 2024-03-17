@@ -705,8 +705,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_with_abstract_class_scope_should_be_executed_in_correct_context
-    vegetarian_pattern = /#{Regexp.escape(Lion.connection.quote_table_name("lions.is_vegetarian"))}/i
-    gender_pattern     = /#{Regexp.escape(Lion.connection.quote_table_name("lions.gender"))}/i
+    vegetarian_pattern = /#{Regexp.escape(Lion.lease_connection.quote_table_name("lions.is_vegetarian"))}/i
+    gender_pattern     = /#{Regexp.escape(Lion.lease_connection.quote_table_name("lions.gender"))}/i
 
     assert_match vegetarian_pattern, Lion.all.to_sql
     assert_match gender_pattern, Lion.female.to_sql
@@ -721,7 +721,7 @@ class DefaultScopingWithThreadTest < ActiveRecord::TestCase
       2.times do
         Thread.new {
           assert_includes DeveloperOrderedBySalary.all.to_sql, "salary DESC"
-          DeveloperOrderedBySalary.connection.close
+          DeveloperOrderedBySalary.lease_connection.close
         }.join
       end
     end
@@ -738,13 +738,13 @@ class DefaultScopingWithThreadTest < ActiveRecord::TestCase
       threads << Thread.new do
         Thread.current[:default_scope_delay] = -> { barrier_1.wait; barrier_2.wait }
         assert_equal 1, ThreadsafeDeveloper.all.to_a.count
-        ThreadsafeDeveloper.connection.close
+        ThreadsafeDeveloper.lease_connection.close
       end
       threads << Thread.new do
         Thread.current[:default_scope_delay] = -> { barrier_2.wait }
         barrier_1.wait
         assert_equal 1, ThreadsafeDeveloper.all.to_a.count
-        ThreadsafeDeveloper.connection.close
+        ThreadsafeDeveloper.lease_connection.close
       end
       threads.each(&:join)
     ensure

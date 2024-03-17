@@ -23,7 +23,7 @@ module ActiveRecord
     # and +:limit+ options, etc.
     #
     # All the concrete database adapters follow the interface laid down in this class.
-    # {ActiveRecord::Base.connection}[rdoc-ref:ConnectionHandling#connection] returns an AbstractAdapter object, which
+    # {ActiveRecord::Base.lease_connection}[rdoc-ref:ConnectionHandling#lease_connection] returns an AbstractAdapter object, which
     # you can use.
     #
     # Most of the methods in the adapter are useful during migrations. Most
@@ -49,10 +49,6 @@ module ActiveRecord
         return if value.eql?(@pool)
         @schema_cache = nil
         @pool = value
-
-        if @pool && ActiveRecord.lazily_load_schema_cache
-          @pool.schema_reflection.load!(@pool)
-        end
       end
 
       set_callback :checkin, :after, :enable_lazy_transactions!

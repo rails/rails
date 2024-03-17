@@ -9,7 +9,7 @@ class TestUnconnectedAdapter < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
   def setup
-    @underlying = ActiveRecord::Base.connection
+    @underlying = ActiveRecord::Base.lease_connection
     @connection_name = ActiveRecord::Base.remove_connection
 
     # Clear out connection info from other pids (like a fork parent) too

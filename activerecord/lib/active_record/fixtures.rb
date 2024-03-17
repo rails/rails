@@ -110,6 +110,12 @@ module ActiveRecord
   #     assert_raise(StandardError) { web_sites(:reddit) }
   #   end
   #
+  # If the model names conflicts with a +TestCase+ methods, you can use the generic +fixture+ accessor
+  #
+  #   test "generic find" do
+  #     assert_equal "Ruby on Rails", fixture(:web_sites, :rubyonrails).name
+  #   end
+  #
   # Alternatively, you may enable auto-instantiation of the fixture data. For instance, take the
   # following tests:
   #

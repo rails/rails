@@ -3,7 +3,7 @@
 require "cases/helper"
 require "support/schema_dumping_helper"
 
-if ActiveRecord::Base.connection.supports_unique_constraints?
+if ActiveRecord::Base.lease_connection.supports_unique_constraints?
   module ActiveRecord
     class Migration
       class UniqueConstraintTest < ActiveRecord::TestCase
@@ -13,7 +13,7 @@ if ActiveRecord::Base.connection.supports_unique_constraints?
         end
 
         setup do
-          @connection = ActiveRecord::Base.connection
+          @connection = ActiveRecord::Base.lease_connection
           @connection.create_table "sections", force: true do |t|
             t.integer "position", null: false
           end
@@ -137,7 +137,7 @@ if ActiveRecord::Base.connection.supports_unique_constraints?
 
           assert_nothing_raised do
             Section.transaction(requires_new: true) do
-              Section.connection.exec_query("SET CONSTRAINTS unique_section_position DEFERRED")
+              Section.lease_connection.exec_query("SET CONSTRAINTS unique_section_position DEFERRED")
               Section.create!(position: 1)
               section.update!(position: 2)
 

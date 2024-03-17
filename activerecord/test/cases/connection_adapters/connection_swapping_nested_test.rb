@@ -385,44 +385,44 @@ module ActiveRecord
 
           # Switch everything to writing
           ActiveRecord::Base.connected_to(role: :writing) do
-            assert_not_predicate ActiveRecord::Base.connection, :preventing_writes?
-            assert_not_predicate PrimaryBase.connection, :preventing_writes?
-            assert_not_predicate SecondaryBase.connection, :preventing_writes?
+            assert_not_predicate ActiveRecord::Base.lease_connection, :preventing_writes?
+            assert_not_predicate PrimaryBase.lease_connection, :preventing_writes?
+            assert_not_predicate SecondaryBase.lease_connection, :preventing_writes?
 
             # Switch only primary to reading
             PrimaryBase.connected_to(role: :reading) do
-              assert_predicate PrimaryBase.connection, :preventing_writes?
-              assert_not_predicate SecondaryBase.connection, :preventing_writes?
+              assert_predicate PrimaryBase.lease_connection, :preventing_writes?
+              assert_not_predicate SecondaryBase.lease_connection, :preventing_writes?
 
               # Switch global to reading
               ActiveRecord::Base.connected_to(role: :reading) do
-                assert_predicate PrimaryBase.connection, :preventing_writes?
-                assert_predicate SecondaryBase.connection, :preventing_writes?
+                assert_predicate PrimaryBase.lease_connection, :preventing_writes?
+                assert_predicate SecondaryBase.lease_connection, :preventing_writes?
 
                 # Switch only secondary to writing
                 SecondaryBase.connected_to(role: :writing) do
-                  assert_predicate PrimaryBase.connection, :preventing_writes?
-                  assert_not_predicate SecondaryBase.connection, :preventing_writes?
+                  assert_predicate PrimaryBase.lease_connection, :preventing_writes?
+                  assert_not_predicate SecondaryBase.lease_connection, :preventing_writes?
                 end
 
                 # Ensure restored to global reading
-                assert_predicate PrimaryBase.connection, :preventing_writes?
-                assert_predicate SecondaryBase.connection, :preventing_writes?
+                assert_predicate PrimaryBase.lease_connection, :preventing_writes?
+                assert_predicate SecondaryBase.lease_connection, :preventing_writes?
               end
 
               # Switch everything to writing
               ActiveRecord::Base.connected_to(role: :writing) do
-                assert_not_predicate PrimaryBase.connection, :preventing_writes?
-                assert_not_predicate SecondaryBase.connection, :preventing_writes?
+                assert_not_predicate PrimaryBase.lease_connection, :preventing_writes?
+                assert_not_predicate SecondaryBase.lease_connection, :preventing_writes?
               end
 
-              assert_predicate PrimaryBase.connection, :preventing_writes?
-              assert_not_predicate SecondaryBase.connection, :preventing_writes?
+              assert_predicate PrimaryBase.lease_connection, :preventing_writes?
+              assert_not_predicate SecondaryBase.lease_connection, :preventing_writes?
             end
 
             # Ensure restored to global writing
-            assert_not_predicate PrimaryBase.connection, :preventing_writes?
-            assert_not_predicate SecondaryBase.connection, :preventing_writes?
+            assert_not_predicate PrimaryBase.lease_connection, :preventing_writes?
+            assert_not_predicate SecondaryBase.lease_connection, :preventing_writes?
           end
         ensure
           ActiveRecord::Base.configurations = @prev_configs
@@ -441,17 +441,17 @@ module ActiveRecord
 
           # Switch everything to writing
           ActiveRecord::Base.connected_to(role: :writing) do
-            assert_not_predicate ActiveRecord::Base.connection, :preventing_writes?
-            assert_not_predicate ApplicationRecord.connection, :preventing_writes?
+            assert_not_predicate ActiveRecord::Base.lease_connection, :preventing_writes?
+            assert_not_predicate ApplicationRecord.lease_connection, :preventing_writes?
 
             ApplicationRecord.connected_to(role: :reading) do
-              assert_predicate ApplicationRecord.connection, :preventing_writes?
+              assert_predicate ApplicationRecord.lease_connection, :preventing_writes?
             end
 
             # reading is fine bc it's looking up by AppRec but writing is not fine
             # bc its looking up by ARB in the stack
             ApplicationRecord.connected_to(role: :writing, prevent_writes: true) do
-              assert_predicate ApplicationRecord.connection, :preventing_writes?
+              assert_predicate ApplicationRecord.lease_connection, :preventing_writes?
             end
           end
         ensure

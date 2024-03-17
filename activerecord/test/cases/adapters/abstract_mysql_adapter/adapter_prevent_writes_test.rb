@@ -7,7 +7,7 @@ class AdapterPreventWritesTest < ActiveRecord::AbstractMysqlTestCase
   include DdlHelper
 
   def setup
-    @conn = ActiveRecord::Base.connection
+    @conn = ActiveRecord::Base.lease_connection
   end
 
   def test_errors_when_an_insert_query_is_called_while_preventing_writes

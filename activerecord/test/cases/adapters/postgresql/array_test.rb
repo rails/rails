@@ -12,7 +12,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
 
     enable_extension!("hstore", @connection)
 
@@ -269,7 +269,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     oid = ActiveRecord::ConnectionAdapters::PostgreSQL::OID
     comma_delim = oid::Array.new(ActiveRecord::Type::String.new, ",")
     semicolon_delim = oid::Array.new(ActiveRecord::Type::String.new, ";")
-    conn = PgArray.connection
+    conn = PgArray.lease_connection
 
     assert_equal %({"hello,",world;}), conn.type_cast(comma_delim.serialize(strings))
     assert_equal %({hello,;"world;"}), conn.type_cast(semicolon_delim.serialize(strings))

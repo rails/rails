@@ -44,7 +44,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
   def setup
     @old_logger = ActiveRecord::Base.logger
     Developer.primary_key
-    ActiveRecord::Base.connection.materialize_transactions
+    ActiveRecord::Base.lease_connection.materialize_transactions
     super
     ActiveRecord::LogSubscriber.attach_to(:active_record)
   end
@@ -247,7 +247,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
     assert_equal 0, @logger.logged(:debug).size
   end
 
-  if ActiveRecord::Base.connection.prepared_statements
+  if ActiveRecord::Base.lease_connection.prepared_statements
     def test_where_in_binds_logging_include_attribute_names
       Developer.where(id: [1, 2, 3, 4, 5]).load
       wait

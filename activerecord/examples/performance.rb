@@ -176,10 +176,10 @@ Benchmark.ips(TIME) do |x|
   end
 
   x.report "Model.log" do
-    Exhibit.connection.send(:log, "hello", "world") { }
+    Exhibit.lease_connection.send(:log, "hello", "world") { }
   end
 
   x.report "AR.execute(query)" do
-    ActiveRecord::Base.connection.execute("SELECT * FROM exhibits WHERE id = #{(rand * 1000 + 1).to_i}")
+    ActiveRecord::Base.lease_connection.execute("SELECT * FROM exhibits WHERE id = #{(rand * 1000 + 1).to_i}")
   end
 end

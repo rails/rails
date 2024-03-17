@@ -10,18 +10,18 @@ module Arel
         describe "to_sql" do
           it "takes an engine" do
             engine = FakeRecord::Base.new
-            engine.connection.extend Module.new {
+            engine.lease_connection.extend Module.new {
               attr_accessor :quote_count
               def quote(*args) @quote_count += 1; super; end
               def quote_column_name(*args) @quote_count += 1; super; end
               def quote_table_name(*args) @quote_count += 1; super; end
             }
-            engine.connection.quote_count = 0
+            engine.lease_connection.quote_count = 0
 
             attr = Table.new(:users)[:id]
             test = attr.eq(10)
             test.to_sql engine
-            _(engine.connection.quote_count).must_equal 3
+            _(engine.lease_connection.quote_count).must_equal 3
           end
         end
       end

@@ -9,6 +9,15 @@ require "rails/test_unit/test_parser"
 
 module Rails
   module TestUnit
+    class InvalidTestError < StandardError
+      def initialize(path, suggestion)
+        super(<<~MESSAGE.squish)
+          Could not load test file: #{path}.
+          #{suggestion}
+        MESSAGE
+      end
+    end
+
     class Runner
       TEST_FOLDERS = [:models, :helpers, :channels, :controllers, :mailers, :integration, :jobs, :mailboxes]
       PATH_ARGUMENT_PATTERN = %r"^(?!/.+/$)[.\w]*[/\\]"
@@ -48,7 +57,17 @@ module Rails
         def load_tests(argv)
           patterns = extract_filters(argv)
           tests = list_tests(patterns)
-          tests.to_a.each { |path| require File.expand_path(path) }
+          tests.to_a.each do |path|
+            require File.expand_path(path)
+          rescue LoadError => exception
+            all_tests = list_tests([default_test_glob])
+            corrections = DidYouMean::SpellChecker.new(dictionary: all_tests).correct(path)
+
+            if corrections.empty?
+              raise exception
+            end
+            raise InvalidTestError.new(path, DidYouMean::Formatter.message_for(corrections))
+          end
         end
 
         def compose_filter(runnable, filter)

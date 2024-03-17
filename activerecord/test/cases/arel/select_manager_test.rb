@@ -964,15 +964,15 @@ module Arel
       end
 
       it "handles database-specific statements" do
-        old_visitor = Table.engine.connection.visitor
-        Table.engine.connection.visitor = Visitors::PostgreSQL.new Table.engine.connection
+        old_visitor = Table.engine.lease_connection.visitor
+        Table.engine.lease_connection.visitor = Visitors::PostgreSQL.new Table.engine.lease_connection
         table   = Table.new :users
         manager = Arel::SelectManager.new
         manager.from table
         manager.where table[:id].eq 10
         manager.where table[:name].matches "foo%"
         _(manager.where_sql).must_be_like %{ WHERE "users"."id" = 10 AND "users"."name" ILIKE 'foo%' }
-        Table.engine.connection.visitor = old_visitor
+        Table.engine.lease_connection.visitor = old_visitor
       end
 
       it "returns nil when there are no wheres" do

@@ -4,7 +4,7 @@ require "cases/helper"
 
 class DatetimePrecisionQuotingTest < ActiveRecord::AbstractMysqlTestCase
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   test "microsecond precision for MySQL gte 5.6.4" do

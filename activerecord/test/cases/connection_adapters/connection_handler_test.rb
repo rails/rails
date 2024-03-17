@@ -150,7 +150,7 @@ module ActiveRecord
 
           ActiveRecord::Base.establish_connection
 
-          assert_match "test/db/primary.sqlite3", ActiveRecord::Base.connection.pool.db_config.database
+          assert_match "test/db/primary.sqlite3", ActiveRecord::Base.lease_connection.pool.db_config.database
         ensure
           ActiveRecord::Base.configurations = @prev_configs
           ENV["RAILS_ENV"] = previous_env
@@ -172,7 +172,7 @@ module ActiveRecord
 
           ActiveRecord::Base.establish_connection
 
-          assert_match "test/db/primary.sqlite3", ActiveRecord::Base.connection.pool.db_config.database
+          assert_match "test/db/primary.sqlite3", ActiveRecord::Base.lease_connection.pool.db_config.database
         ensure
           ActiveRecord::Base.configurations = @prev_configs
           ENV["RAILS_ENV"] = previous_env
@@ -187,7 +187,7 @@ module ActiveRecord
         @handler.establish_connection(:development)
 
         assert_not_nil pool = @handler.retrieve_connection_pool("development")
-        assert_not_predicate pool.connection, :preventing_writes?
+        assert_not_predicate pool.lease_connection, :preventing_writes?
         assert_equal "test/db/primary.sqlite3", pool.db_config.database
       ensure
         ActiveRecord::Base.configurations = @prev_configs
@@ -203,7 +203,7 @@ module ActiveRecord
         @handler.establish_connection(:development_readonly)
 
         assert_not_nil pool = @handler.retrieve_connection_pool("development_readonly")
-        assert_not_predicate pool.connection, :preventing_writes?
+        assert_not_predicate pool.lease_connection, :preventing_writes?
         assert_equal "test/db/readonly.sqlite3", pool.db_config.database
       ensure
         ActiveRecord::Base.configurations = @prev_configs
@@ -219,7 +219,7 @@ module ActiveRecord
         @handler.establish_connection(:development_readonly, owner_name: "custom_connection")
 
         assert_not_nil pool = @handler.retrieve_connection_pool("custom_connection")
-        assert_not_predicate pool.connection, :preventing_writes?
+        assert_not_predicate pool.lease_connection, :preventing_writes?
         assert_equal "test/db/readonly.sqlite3", pool.db_config.database
       ensure
         ActiveRecord::Base.configurations = @prev_configs
@@ -282,15 +282,15 @@ module ActiveRecord
       def test_a_class_using_custom_pool_and_switching_back_to_primary
         klass2 = Class.new(Base) { def self.name; "klass2"; end }
 
-        assert_same klass2.connection, ActiveRecord::Base.connection
+        assert_same klass2.lease_connection, ActiveRecord::Base.lease_connection
 
         pool = klass2.establish_connection(ActiveRecord::Base.connection_pool.db_config.configuration_hash)
-        assert_same klass2.connection, pool.connection
-        assert_not_same klass2.connection, ActiveRecord::Base.connection
+        assert_same klass2.lease_connection, pool.lease_connection
+        assert_not_same klass2.lease_connection, ActiveRecord::Base.lease_connection
 
         klass2.remove_connection
 
-        assert_same klass2.connection, ActiveRecord::Base.connection
+        assert_same klass2.lease_connection, ActiveRecord::Base.lease_connection
       end
 
       class ApplicationRecord < ActiveRecord::Base
@@ -327,8 +327,8 @@ module ActiveRecord
       def test_remove_connection_should_not_remove_parent
         klass2 = Class.new(Base) { def self.name; "klass2"; end }
         klass2.remove_connection
-        assert_not_nil ActiveRecord::Base.connection
-        assert_same klass2.connection, ActiveRecord::Base.connection
+        assert_not_nil ActiveRecord::Base.lease_connection
+        assert_same klass2.lease_connection, ActiveRecord::Base.lease_connection
       end
 
       def test_default_handlers_are_writing_and_reading
@@ -338,7 +338,7 @@ module ActiveRecord
 
       if Process.respond_to?(:fork)
         def test_connection_pool_per_pid
-          object_id = ActiveRecord::Base.connection.object_id
+          object_id = ActiveRecord::Base.lease_connection.object_id
 
           rd, wr = IO.pipe
           rd.binmode
@@ -346,7 +346,7 @@ module ActiveRecord
 
           pid = fork {
             rd.close
-            wr.write Marshal.dump ActiveRecord::Base.connection.object_id
+            wr.write Marshal.dump ActiveRecord::Base.lease_connection.object_id
             wr.close
             exit!
           }
@@ -359,8 +359,8 @@ module ActiveRecord
         end
 
         def test_forked_child_doesnt_mangle_parent_connection
-          object_id = ActiveRecord::Base.connection.object_id
-          assert_predicate ActiveRecord::Base.connection, :active?
+          object_id = ActiveRecord::Base.lease_connection.object_id
+          assert_predicate ActiveRecord::Base.lease_connection, :active?
 
           rd, wr = IO.pipe
           rd.binmode
@@ -369,7 +369,7 @@ module ActiveRecord
           pid = fork {
             rd.close
             wr.write Marshal.dump [
-              ActiveRecord::Base.connection.object_id,
+              ActiveRecord::Base.lease_connection.object_id,
             ]
             wr.close
 
@@ -383,27 +383,27 @@ module ActiveRecord
           assert_not_equal object_id, child_id
           rd.close
 
-          assert_equal 3, ActiveRecord::Base.connection.select_value("SELECT COUNT(*) FROM people")
+          assert_equal 3, ActiveRecord::Base.lease_connection.select_value("SELECT COUNT(*) FROM people")
         end
 
         unless in_memory_db?
           def test_forked_child_recovers_from_disconnected_parent
-            object_id = ActiveRecord::Base.connection.object_id
-            assert_predicate ActiveRecord::Base.connection, :active?
+            object_id = ActiveRecord::Base.lease_connection.object_id
+            assert_predicate ActiveRecord::Base.lease_connection, :active?
 
             rd, wr = IO.pipe
             rd.binmode
             wr.binmode
 
             outer_pid = fork {
-              ActiveRecord::Base.connection.disconnect!
+              ActiveRecord::Base.lease_connection.disconnect!
 
               pid = fork {
                 rd.close
                 wr.write Marshal.dump [
-                  !!ActiveRecord::Base.connection.active?,
-                  ActiveRecord::Base.connection.object_id,
-                  ActiveRecord::Base.connection.select_value("SELECT COUNT(*) FROM people"),
+                  !!ActiveRecord::Base.lease_connection.active?,
+                  ActiveRecord::Base.lease_connection.object_id,
+                  ActiveRecord::Base.lease_connection.select_value("SELECT COUNT(*) FROM people"),
                 ]
                 wr.close
 
@@ -425,7 +425,7 @@ module ActiveRecord
             assert_equal 3, child_count
 
             # Outer connection is unaffected
-            assert_equal 6, ActiveRecord::Base.connection.select_value("SELECT 2 * COUNT(*) FROM people")
+            assert_equal 6, ActiveRecord::Base.lease_connection.select_value("SELECT 2 * COUNT(*) FROM people")
           end
         end
 

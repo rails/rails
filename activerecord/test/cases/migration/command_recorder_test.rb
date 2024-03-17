@@ -6,7 +6,7 @@ module ActiveRecord
   class Migration
     class CommandRecorderTest < ActiveRecord::TestCase
       def setup
-        connection = ActiveRecord::Base.connection
+        connection = ActiveRecord::Base.lease_connection
         @recorder  = CommandRecorder.new(connection)
       end
 
@@ -113,7 +113,7 @@ module ActiveRecord
         end
       end
 
-      if ActiveRecord::Base.connection.supports_bulk_alter?
+      if ActiveRecord::Base.lease_connection.supports_bulk_alter?
         def test_bulk_invert_change_table
           block = Proc.new do |t|
             t.string :name
@@ -225,7 +225,7 @@ module ActiveRecord
         assert_equal [:change_column_default, [:table, :column, from: false, to: true]], change
       end
 
-      if ActiveRecord::Base.connection.supports_comments?
+      if ActiveRecord::Base.lease_connection.supports_comments?
         def test_invert_change_column_comment
           assert_raises(ActiveRecord::IrreversibleMigration) do
             @recorder.inverse_of :change_column_comment, [:table, :column, "comment"]

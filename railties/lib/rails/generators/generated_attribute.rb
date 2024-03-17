@@ -72,7 +72,7 @@ module Rails
         def valid_type?(type)
           DEFAULT_TYPES.include?(type.to_s) ||
             !defined?(ActiveRecord::Base) ||
-            ActiveRecord::Base.connection.valid_type?(type)
+            ActiveRecord::Base.lease_connection.valid_type?(type)
         end
 
         def valid_index_type?(index_type)

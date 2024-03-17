@@ -139,7 +139,7 @@ module ActiveRecord
     end
 
     def test_db_retrieves_charset
-      ActiveRecord::Base.stub(:connection, @connection) do
+      ActiveRecord::Base.stub(:lease_connection, @connection) do
         assert_called(@connection, :encoding) do
           ActiveRecord::Tasks::DatabaseTasks.charset @configuration, "/rails/root"
         end
@@ -192,7 +192,7 @@ module ActiveRecord
     def test_structure_dump_with_ignore_tables
       dbfile   = @database
       filename = "awesome-file.sql"
-      ActiveRecord::Base.connection.stub(:data_sources, ["foo", "bar", "prefix_foo", "ignored_foo"]) do
+      ActiveRecord::Base.lease_connection.stub(:data_sources, ["foo", "bar", "prefix_foo", "ignored_foo"]) do
         ActiveRecord::SchemaDumper.stub(:ignore_tables, [/^prefix_/, "ignored_foo"]) do
           ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root")
         end

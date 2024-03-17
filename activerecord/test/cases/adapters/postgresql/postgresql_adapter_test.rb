@@ -14,7 +14,7 @@ module ActiveRecord
       include ConnectionHelper
 
       def setup
-        @connection = ActiveRecord::Base.connection
+        @connection = ActiveRecord::Base.lease_connection
         @original_db_warnings_action = :ignore
       end
 
@@ -477,7 +477,7 @@ module ActiveRecord
 
       def test_only_reload_type_map_once_for_every_unrecognized_type
         reset_connection
-        connection = ActiveRecord::Base.connection
+        connection = ActiveRecord::Base.lease_connection
         connection.select_all "SELECT 1" # eagerly initialize the connection
 
         silence_warnings do
@@ -497,7 +497,7 @@ module ActiveRecord
 
       def test_only_warn_on_first_encounter_of_unrecognized_oid
         reset_connection
-        connection = ActiveRecord::Base.connection
+        connection = ActiveRecord::Base.lease_connection
 
         warning = capture(:stderr) {
           connection.select_all "select 'pg_catalog.pg_class'::regclass"

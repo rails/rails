@@ -20,6 +20,7 @@ class InsertAllTest < ActiveRecord::TestCase
 
   def setup
     Arel::Table.engine = nil # should not rely on the global Arel::Table.engine
+    @original_db_warnings_action = :ignore
   end
 
   def teardown
@@ -235,7 +236,7 @@ class InsertAllTest < ActiveRecord::TestCase
     skip unless supports_insert_conflict_target?
 
     columns = [:author_id, :name]
-    assert ActiveRecord::Base.connection.index_exists?(:books, columns)
+    assert ActiveRecord::Base.lease_connection.index_exists?(:books, columns)
 
     assert_difference "Book.count", +2 do
       Book.insert_all [{ name: "Remote", author_id: 1 }], unique_by: columns.reverse
@@ -333,6 +334,24 @@ class InsertAllTest < ActiveRecord::TestCase
     capture_log_output do |output|
       Book.upsert({ name: "Remote", author_id: 1 })
       assert_match "Book Upsert", output.string
+    end
+  end
+
+  unless in_memory_db?
+    def test_upsert_and_db_warnings
+      skip unless supports_insert_on_duplicate_update?
+
+      begin
+        with_db_warnings_action(:raise) do
+          assert_nothing_raised do
+            Book.upsert({ id: 1001, name: "Remote", author_id: 1 })
+          end
+        end
+      ensure
+        # We need to explicitly remove the record, because `with_db_warnings_action`
+        # prevents the wrapping transaction to be rolled back.
+        Book.delete(1001)
+      end
     end
   end
 
@@ -749,6 +768,26 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal "written", Book.find(2).status
   end
 
+  if current_adapter?(:Mysql2Adapter) || current_adapter?(:TrilogyAdapter)
+    def test_upsert_all_updates_using_values_function_on_duplicate_raw_sql
+      skip unless supports_insert_on_duplicate_update?
+
+      b1 = Book.create!(name: "Name")
+      b2 = Book.create!(name: nil)
+
+      Book.upsert_all(
+        [{ id: b1.id, name: "No Name" }, { id: b2.id, name: "No Name" }],
+        on_duplicate: Arel.sql("name = IFNULL(name, values(name))")
+      )
+
+      b1.reload
+      b2.reload
+
+      assert_equal "Name", b1.name
+      assert_equal "No Name", b2.name
+    end
+  end
+
   def test_upsert_all_updates_using_provided_sql_and_unique_by
     skip unless supports_insert_on_duplicate_update? && supports_insert_conflict_target?
 
@@ -769,7 +808,7 @@ class InsertAllTest < ActiveRecord::TestCase
     error = assert_raises ArgumentError do
       Book.upsert_all [{ name: "Rework", author_id: 1 }], unique_by: :isbn
     end
-    assert_match "#{ActiveRecord::Base.connection.class} does not support :unique_by", error.message
+    assert_match "#{ActiveRecord::Base.lease_connection.class} does not support :unique_by", error.message
   end
 
   private

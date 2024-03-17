@@ -10,7 +10,7 @@ class PostgresqlTimestampTest < ActiveRecord::PostgreSQLTestCase
   self.use_transactional_tests = false
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.execute("INSERT INTO postgresql_timestamp_with_zones (id, time) VALUES (1, '2010-01-01 10:00:00-1')")
   end
 
@@ -51,7 +51,7 @@ class PostgresqlTimestampWithAwareTypesTest < ActiveRecord::PostgreSQLTestCase
   self.use_transactional_tests = false
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.execute("INSERT INTO postgresql_timestamp_with_zones (id, time) VALUES (1, '2010-01-01 10:00:00-1')")
   end
 
@@ -79,7 +79,7 @@ class PostgresqlTimestampWithTimeZoneTest < ActiveRecord::PostgreSQLTestCase
 
   setup do
     with_postgresql_datetime_type(:timestamptz) do
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       @connection.execute("INSERT INTO postgresql_timestamp_with_zones (id, time) VALUES (1, '2010-01-01 10:00:00-1')")
     end
   end
@@ -172,7 +172,7 @@ class PostgresqlTimestampMigrationTest < ActiveRecord::PostgreSQLTestCase
     ActiveRecord::Migration.new.add_column :postgresql_timestamp_with_zones, :times, :datetime
 
     assert_equal({ "data_type" => "timestamp without time zone" },
-                 PostgresqlTimestampWithZone.connection.execute("select data_type from information_schema.columns where column_name = 'times'").to_a.first)
+                 PostgresqlTimestampWithZone.lease_connection.execute("select data_type from information_schema.columns where column_name = 'times'").to_a.first)
   ensure
     $stdout = original
   end
@@ -184,7 +184,7 @@ class PostgresqlTimestampMigrationTest < ActiveRecord::PostgreSQLTestCase
       ActiveRecord::Migration.new.add_column :postgresql_timestamp_with_zones, :times, :datetime
 
       assert_equal({ "data_type" => "timestamp with time zone" },
-                   PostgresqlTimestampWithZone.connection.execute("select data_type from information_schema.columns where column_name = 'times'").to_a.first)
+                   PostgresqlTimestampWithZone.lease_connection.execute("select data_type from information_schema.columns where column_name = 'times'").to_a.first)
     end
   ensure
     $stdout = original
@@ -193,14 +193,14 @@ class PostgresqlTimestampMigrationTest < ActiveRecord::PostgreSQLTestCase
   def test_adds_column_as_custom_type
     original, $stdout = $stdout, StringIO.new
 
-    PostgresqlTimestampWithZone.connection.execute("CREATE TYPE custom_time_format AS ENUM ('past', 'present', 'future');")
+    PostgresqlTimestampWithZone.lease_connection.execute("CREATE TYPE custom_time_format AS ENUM ('past', 'present', 'future');")
 
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::NATIVE_DATABASE_TYPES[:datetimes_as_enum] = { name: "custom_time_format" }
     with_postgresql_datetime_type(:datetimes_as_enum) do
       ActiveRecord::Migration.new.add_column :postgresql_timestamp_with_zones, :times, :datetime, precision: nil
 
       assert_equal({ "data_type" => "USER-DEFINED", "udt_name" => "custom_time_format" },
-                   PostgresqlTimestampWithZone.connection.execute("select data_type, udt_name from information_schema.columns where column_name = 'times'").to_a.first)
+                   PostgresqlTimestampWithZone.lease_connection.execute("select data_type, udt_name from information_schema.columns where column_name = 'times'").to_a.first)
     end
   ensure
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::NATIVE_DATABASE_TYPES.delete(:datetimes_as_enum)

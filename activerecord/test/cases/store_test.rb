@@ -164,7 +164,7 @@ class StoreTest < ActiveRecord::TestCase
   end
 
   test "saved changes tracking for accessors with json column" do
-    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && ActiveRecord::Base.connection.mariadb?
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && ActiveRecord::Base.lease_connection.mariadb?
       skip "MariaDB doesn't support JSON store_accessor"
     end
     @john.enable_friend_requests = true

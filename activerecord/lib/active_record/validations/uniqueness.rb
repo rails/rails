@@ -114,12 +114,12 @@ module ActiveRecord
           return relation.none! if bind.unboundable?
 
           if !options.key?(:case_sensitive) || bind.nil?
-            klass.connection.default_uniqueness_comparison(attr, bind)
+            klass.lease_connection.default_uniqueness_comparison(attr, bind)
           elsif options[:case_sensitive]
-            klass.connection.case_sensitive_comparison(attr, bind)
+            klass.lease_connection.case_sensitive_comparison(attr, bind)
           else
             # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
-            klass.connection.case_insensitive_comparison(attr, bind)
+            klass.lease_connection.case_insensitive_comparison(attr, bind)
           end
         end
 

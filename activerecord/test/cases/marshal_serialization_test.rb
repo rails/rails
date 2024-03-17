@@ -100,7 +100,7 @@ class MarshalSerializationTest < ActiveRecord::TestCase
 
     def marshal_fixture_path(file_name)
       File.expand_path(
-        "support/marshal_compatibility_fixtures/#{ActiveRecord::Base.connection.adapter_name}/#{file_name}.dump",
+        "support/marshal_compatibility_fixtures/#{ActiveRecord::Base.lease_connection.adapter_name}/#{file_name}.dump",
         TEST_ROOT
       )
     end

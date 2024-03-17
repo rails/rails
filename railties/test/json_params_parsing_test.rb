@@ -35,7 +35,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
       assert_nil app.call(make_env("t" => data))
     end
   ensure
-    klass.connection.drop_table("foos")
+    klass.lease_connection.drop_table("foos")
   end
 
   private

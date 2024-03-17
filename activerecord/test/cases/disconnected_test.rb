@@ -7,7 +7,7 @@ end
 
 class TestDisconnectedAdapter < ActiveRecord::TestCase
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   teardown do

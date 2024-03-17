@@ -3,12 +3,12 @@
 require "cases/helper"
 require "support/schema_dumping_helper"
 
-if ActiveRecord::Base.connection.supports_check_constraints?
+if ActiveRecord::Base.lease_connection.supports_check_constraints?
   class Mysql2CheckConstraintQuotingTest < ActiveRecord::Mysql2TestCase
     include SchemaDumpingHelper
 
     setup do
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       @connection.create_table "trades", force: true do |t|
         t.string :name
       end
@@ -25,7 +25,7 @@ if ActiveRecord::Base.connection.supports_check_constraints?
       assert_equal 1, check_constraints.size
 
       expression = check_constraints.first.expression
-      if ActiveRecord::Base.connection.mariadb?
+      if ActiveRecord::Base.lease_connection.mariadb?
         assert_equal "`name` <> 'forbidden_string'", expression
       else
         assert_equal "`name` <> _utf8mb4'forbidden_string'", expression

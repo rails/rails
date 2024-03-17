@@ -4,7 +4,11 @@ module ActiveStorage
   class Previewer::PopplerPDFPreviewer < Previewer
     class << self
       def accept?(blob)
-        blob.content_type == "application/pdf" && pdftoppm_exists?
+        pdf?(blob.content_type) && pdftoppm_exists?
+      end
+
+      def pdf?(content_type)
+        Marcel::Magic.child? content_type, "application/pdf"
       end
 
       def pdftoppm_path

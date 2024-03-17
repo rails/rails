@@ -190,7 +190,7 @@ module ActiveRecord
       # for (not necessarily the current class).
       def retrieve_connection(connection_name, role: ActiveRecord::Base.current_role, shard: ActiveRecord::Base.current_shard) # :nodoc:
         pool = retrieve_connection_pool(connection_name, role: role, shard: shard, strict: true)
-        pool.connection
+        pool.lease_connection
       end
 
       # Returns true if a connection that's accessible to this class has

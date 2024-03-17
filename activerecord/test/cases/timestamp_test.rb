@@ -588,7 +588,7 @@ class TimestampsWithoutTransactionTest < ActiveRecord::TestCase
   end
 
   def test_do_not_write_timestamps_on_save_if_they_are_not_attributes
-    with_example_table ActiveRecord::Base.connection, "timestamp_attribute_posts", "id integer primary key" do
+    with_example_table ActiveRecord::Base.lease_connection, "timestamp_attribute_posts", "id integer primary key" do
       post = TimestampAttributePost.new(id: 1)
       post.save! # should not try to assign and persist created_at, updated_at
       assert_nil post.created_at
@@ -597,13 +597,13 @@ class TimestampsWithoutTransactionTest < ActiveRecord::TestCase
   end
 
   def test_index_is_created_for_both_timestamps
-    ActiveRecord::Base.connection.create_table(:foos, force: true) do |t|
+    ActiveRecord::Base.lease_connection.create_table(:foos, force: true) do |t|
       t.timestamps null: true, index: true
     end
 
-    indexes = ActiveRecord::Base.connection.indexes("foos")
+    indexes = ActiveRecord::Base.lease_connection.indexes("foos")
     assert_equal ["created_at", "updated_at"], indexes.flat_map(&:columns).sort
   ensure
-    ActiveRecord::Base.connection.drop_table(:foos)
+    ActiveRecord::Base.lease_connection.drop_table(:foos)
   end
 end

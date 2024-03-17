@@ -9,7 +9,7 @@ module ActiveRecord
 
       def setup
         @pool = ARUnit2Model.connection_pool
-        @connection = ARUnit2Model.connection
+        @connection = ARUnit2Model.lease_connection
         @cache = new_bound_reflection
         @check_schema_cache_dump_version_was = SchemaReflection.check_schema_cache_dump_version
       end
@@ -372,7 +372,7 @@ module ActiveRecord
           old_config = ActiveRecord.lazily_load_schema_cache
           ActiveRecord.lazily_load_schema_cache = true
           ActiveRecord::Base.establish_connection(new_config)
-          ActiveRecord::Base.connection_pool.connection.verify!
+          ActiveRecord::Base.connection_pool.lease_connection.verify!
 
           assert File.exist?(tempfile)
           assert_not_nil ActiveRecord::Base.connection_pool.schema_reflection.instance_variable_get(:@cache)

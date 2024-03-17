@@ -374,7 +374,11 @@ module ActiveRecord
       relation = construct_relation_for_exists(conditions)
       return false if relation.where_clause.contradiction?
 
-      skip_query_cache_if_necessary { connection.select_rows(relation.arel, "#{name} Exists?").size == 1 }
+      skip_query_cache_if_necessary do
+        with_connection do |c|
+          c.select_rows(relation.arel, "#{name} Exists?").size == 1
+        end
+      end
     end
 
     # Returns true if the relation contains the given record or false otherwise.
@@ -467,7 +471,9 @@ module ActiveRecord
             )
           )
           relation = skip_query_cache_if_necessary do
-            klass.connection.distinct_relation_for_primary_key(relation)
+            klass.with_connection do |c|
+              c.distinct_relation_for_primary_key(relation)
+            end
           end
         end
 

@@ -9,7 +9,7 @@ module ActiveRecord
 
       def setup
         super
-        @connection = ActiveRecord::Base.connection
+        @connection = ActiveRecord::Base.lease_connection
         @table_name = :testings
       end
 
@@ -368,45 +368,45 @@ module ActiveRecord
         person_klass = Class.new(ActiveRecord::Base)
         person_klass.table_name = "testings"
 
-        person_klass.connection.add_column "testings", "wealth", :integer, null: false, default: 99
+        person_klass.lease_connection.add_column "testings", "wealth", :integer, null: false, default: 99
         person_klass.reset_column_information
         assert_equal 99, person_klass.column_defaults["wealth"]
         assert_equal false, person_klass.columns_hash["wealth"].null
         # Oracle needs primary key value from sequence
         if current_adapter?(:OracleAdapter)
-          assert_nothing_raised { person_klass.connection.execute("insert into testings (id, title) values (testings_seq.nextval, 'tester')") }
+          assert_nothing_raised { person_klass.lease_connection.execute("insert into testings (id, title) values (testings_seq.nextval, 'tester')") }
         else
-          assert_nothing_raised { person_klass.connection.execute("insert into testings (title) values ('tester')") }
+          assert_nothing_raised { person_klass.lease_connection.execute("insert into testings (title) values ('tester')") }
         end
 
         # change column default to see that column doesn't lose its not null definition
-        person_klass.connection.change_column_default "testings", "wealth", 100
+        person_klass.lease_connection.change_column_default "testings", "wealth", 100
         person_klass.reset_column_information
         assert_equal 100, person_klass.column_defaults["wealth"]
         assert_equal false, person_klass.columns_hash["wealth"].null
 
         # rename column to see that column doesn't lose its not null and/or default definition
-        person_klass.connection.rename_column "testings", "wealth", "money"
+        person_klass.lease_connection.rename_column "testings", "wealth", "money"
         person_klass.reset_column_information
         assert_nil person_klass.columns_hash["wealth"]
         assert_equal 100, person_klass.column_defaults["money"]
         assert_equal false, person_klass.columns_hash["money"].null
 
         # change column
-        person_klass.connection.change_column "testings", "money", :integer, null: false, default: 1000
+        person_klass.lease_connection.change_column "testings", "money", :integer, null: false, default: 1000
         person_klass.reset_column_information
         assert_equal 1000, person_klass.column_defaults["money"]
         assert_equal false, person_klass.columns_hash["money"].null
 
         # change column, make it nullable and clear default
-        person_klass.connection.change_column "testings", "money", :integer, null: true, default: nil
+        person_klass.lease_connection.change_column "testings", "money", :integer, null: true, default: nil
         person_klass.reset_column_information
         assert_nil person_klass.columns_hash["money"].default
         assert_equal true, person_klass.columns_hash["money"].null
 
         # change_column_null, make it not nullable and set null values to a default value
-        person_klass.connection.execute("UPDATE testings SET money = NULL")
-        person_klass.connection.change_column_null "testings", "money", false, 2000
+        person_klass.lease_connection.execute("UPDATE testings SET money = NULL")
+        person_klass.lease_connection.change_column_null "testings", "money", false, 2000
         person_klass.reset_column_information
         assert_nil person_klass.columns_hash["money"].default
         assert_equal false, person_klass.columns_hash["money"].null
@@ -500,12 +500,12 @@ module ActiveRecord
         end
     end
 
-    if ActiveRecord::Base.connection.supports_foreign_keys?
+    if ActiveRecord::Base.lease_connection.supports_foreign_keys?
       class ChangeSchemaWithDependentObjectsTest < ActiveRecord::TestCase
         self.use_transactional_tests = false
 
         setup do
-          @connection = ActiveRecord::Base.connection
+          @connection = ActiveRecord::Base.lease_connection
           @connection.create_table :trains
           @connection.create_table(:wagons) { |t| t.references :train }
           @connection.add_foreign_key :wagons, :trains

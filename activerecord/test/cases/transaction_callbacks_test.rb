@@ -100,13 +100,13 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   def test_before_commit_exception_should_pop_transaction_stack
     @first.before_commit_block { raise "better pop this txn from the stack!" }
 
-    original_txn = @first.class.connection.current_transaction
+    original_txn = @first.class.lease_connection.current_transaction
 
     begin
       @first.save!
       fail
     rescue
-      assert_equal original_txn, @first.class.connection.current_transaction
+      assert_equal original_txn, @first.class.lease_connection.current_transaction
     end
   end
 
@@ -314,7 +314,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     assert_raises RuntimeError do
       @first.transaction do
-        tx = @first.class.connection.transaction_manager.current_transaction
+        tx = @first.class.lease_connection.transaction_manager.current_transaction
         def tx.commit
           raise
         end

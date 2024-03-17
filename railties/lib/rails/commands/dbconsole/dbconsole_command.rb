@@ -67,7 +67,7 @@ module Rails
           Rails::DBConsole#find_cmd_and_exec is deprecated and will be removed in Rails 7.2.
           Please use find_cmd_and_exec on the connection adapter class instead.
         MSG
-        ActiveRecord::Base.connection.find_cmd_and_exec(commands, *args)
+        ActiveRecord::Base.lease_connection.find_cmd_and_exec(commands, *args)
       end
   end
 

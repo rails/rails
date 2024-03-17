@@ -275,7 +275,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_does_not_select_columns_without_alias
-    c = Topic.connection
+    c = Topic.lease_connection
     assert_queries_match(/SELECT 1 AS one FROM #{Regexp.escape(c.quote_table_name("topics"))}/i) do
       Topic.exists?
     end
@@ -948,7 +948,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_nth_to_last_with_order_uses_limit
-    c = Topic.connection
+    c = Topic.lease_connection
     assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC LIMIT/i) do
       Topic.second_to_last
     end
@@ -1066,7 +1066,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal topics(:fifth), Topic.first
     assert_equal topics(:third), Topic.last
 
-    c = Topic.connection
+    c = Topic.lease_connection
     assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.title"))} DESC, #{Regexp.escape(c.quote_table_name("topics.id"))} DESC LIMIT/i) {
       Topic.last
     }
@@ -1078,7 +1078,7 @@ class FinderTest < ActiveRecord::TestCase
     old_implicit_order_column = Topic.implicit_order_column
     Topic.implicit_order_column = "id"
 
-    c = Topic.connection
+    c = Topic.lease_connection
     assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC LIMIT/i) {
       Topic.last
     }
@@ -1090,7 +1090,7 @@ class FinderTest < ActiveRecord::TestCase
     old_implicit_order_column = NonPrimaryKey.implicit_order_column
     NonPrimaryKey.implicit_order_column = "created_at"
 
-    c = NonPrimaryKey.connection
+    c = NonPrimaryKey.lease_connection
     assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("non_primary_keys.created_at"))} DESC LIMIT/i) {
       NonPrimaryKey.last
     }
@@ -1099,7 +1099,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_implicit_order_column_reorders_query_constraints
-    c = ClothingItem.connection
+    c = ClothingItem.lease_connection
     ClothingItem.implicit_order_column = "color"
     quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
@@ -1112,7 +1112,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_implicit_order_column_prepends_query_constraints
-    c = ClothingItem.connection
+    c = ClothingItem.lease_connection
     ClothingItem.implicit_order_column = "description"
     quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
@@ -1597,16 +1597,16 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_select_value
-    assert_equal "37signals", Company.connection.select_value("SELECT name FROM companies WHERE id = 1")
-    assert_nil Company.connection.select_value("SELECT name FROM companies WHERE id = -1")
+    assert_equal "37signals", Company.lease_connection.select_value("SELECT name FROM companies WHERE id = 1")
+    assert_nil Company.lease_connection.select_value("SELECT name FROM companies WHERE id = -1")
     # make sure we didn't break count...
     assert_equal 0, Company.count_by_sql("SELECT COUNT(*) FROM companies WHERE name = 'Halliburton'")
     assert_equal 1, Company.count_by_sql("SELECT COUNT(*) FROM companies WHERE name = '37signals'")
   end
 
   def test_select_values
-    assert_equal ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "15"], Company.connection.select_values("SELECT id FROM companies ORDER BY id").map!(&:to_s)
-    assert_equal ["37signals", "Summit", "Microsoft", "Flamboyant Software", "Ex Nihilo", "RailsCore", "Leetsoft", "Jadedpixel", "Odegy", "Ex Nihilo Part Deux", "Apex", "RVshare"], Company.connection.select_values("SELECT name FROM companies ORDER BY id")
+    assert_equal ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "15"], Company.lease_connection.select_values("SELECT id FROM companies ORDER BY id").map!(&:to_s)
+    assert_equal ["37signals", "Summit", "Microsoft", "Flamboyant Software", "Ex Nihilo", "RailsCore", "Leetsoft", "Jadedpixel", "Odegy", "Ex Nihilo Part Deux", "Apex", "RVshare"], Company.lease_connection.select_values("SELECT name FROM companies ORDER BY id")
   end
 
   def test_select_rows
@@ -1614,9 +1614,9 @@ class FinderTest < ActiveRecord::TestCase
       [["1", "1", nil, "37signals"],
        ["2", "1", "2", "Summit"],
        ["3", "1", "1", "Microsoft"]],
-      Company.connection.select_rows("SELECT id, firm_id, client_of, name FROM companies WHERE id IN (1,2,3) ORDER BY id").map { |i| i.map { |j| j.to_s unless j.nil? } })
+      Company.lease_connection.select_rows("SELECT id, firm_id, client_of, name FROM companies WHERE id IN (1,2,3) ORDER BY id").map { |i| i.map { |j| j.to_s unless j.nil? } })
     assert_equal [["1", "37signals"], ["2", "Summit"], ["3", "Microsoft"]],
-      Company.connection.select_rows("SELECT id, name FROM companies WHERE id IN (1,2,3) ORDER BY id").map { |i| i.map { |j| j.to_s unless j.nil? } }
+      Company.lease_connection.select_rows("SELECT id, name FROM companies WHERE id IN (1,2,3) ORDER BY id").map { |i| i.map { |j| j.to_s unless j.nil? } }
   end
 
   def test_find_with_order_on_included_associations_with_construct_finder_sql_for_association_limiting_and_is_distinct
@@ -1824,7 +1824,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   test "#last for a model with composite query constraints" do
-    c = ClothingItem.connection
+    c = ClothingItem.lease_connection
     quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
 
@@ -1834,7 +1834,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   test "#first for a model with composite query constraints" do
-    c = ClothingItem.connection
+    c = ClothingItem.lease_connection
     quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
     quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
 

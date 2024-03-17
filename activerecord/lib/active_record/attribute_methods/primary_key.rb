@@ -92,7 +92,7 @@ module ActiveRecord
           # Returns a quoted version of the primary key name, used to construct
           # SQL statements.
           def quoted_primary_key
-            @quoted_primary_key ||= connection.quote_column_name(primary_key)
+            @quoted_primary_key ||= adapter_class.quote_column_name(primary_key)
           end
 
           def reset_primary_key # :nodoc:

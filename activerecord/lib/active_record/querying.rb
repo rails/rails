@@ -59,7 +59,7 @@ module ActiveRecord
     end
 
     def _query_by_sql(sql, binds = [], preparable: nil, async: false) # :nodoc:
-      connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable, async: async)
+      lease_connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable, async: async)
     end
 
     def _load_from_sql(result_set, &block) # :nodoc:
@@ -99,12 +99,12 @@ module ActiveRecord
     #
     # * +sql+ - An SQL statement which should return a count query from the database, see the example above.
     def count_by_sql(sql)
-      connection.select_value(sanitize_sql(sql), "#{name} Count").to_i
+      lease_connection.select_value(sanitize_sql(sql), "#{name} Count").to_i
     end
 
     # Same as <tt>#count_by_sql</tt> but perform the query asynchronously and returns an ActiveRecord::Promise.
     def async_count_by_sql(sql)
-      connection.select_value(sanitize_sql(sql), "#{name} Count", async: true).then(&:to_i)
+      lease_connection.select_value(sanitize_sql(sql), "#{name} Count", async: true).then(&:to_i)
     end
   end
 end

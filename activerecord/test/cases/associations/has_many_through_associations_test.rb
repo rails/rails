@@ -1618,7 +1618,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       tag_ids = blog_post.tags.to_a.map(&:id)
     end.first
 
-    c = Sharded::Blog.connection
+    c = Sharded::Blog.lease_connection
     quoted_tags_blog_id = Regexp.escape(c.quote_table_name("sharded_tags.blog_id"))
     quoted_posts_tags_blog_id = Regexp.escape(c.quote_table_name("sharded_blog_posts_tags.blog_id"))
     assert_match(/.* ON.* #{quoted_tags_blog_id} = #{quoted_posts_tags_blog_id} .* WHERE/, sql)
@@ -1636,7 +1636,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       blog_post_ids = tag.blog_posts.to_a.map(&:id)
     end.first
 
-    c = Sharded::Blog.connection
+    c = Sharded::Blog.lease_connection
     quoted_blog_posts_blog_id = Regexp.escape(c.quote_table_name("sharded_blog_posts.blog_id"))
     quoted_posts_tags_blog_id = Regexp.escape(c.quote_table_name("sharded_blog_posts_tags.blog_id"))
     assert_match(/.* ON.* #{quoted_blog_posts_blog_id} = #{quoted_posts_tags_blog_id} .* WHERE/, sql)

@@ -638,7 +638,7 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
   def setup
-    @connection = Topic.connection
+    @connection = Topic.lease_connection
     @connection.schema_cache.clear!
     Topic.delete_all
     Event.delete_all

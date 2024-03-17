@@ -13,7 +13,7 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
   include InTimeZone
 
   def setup
-    @connection = PostgresqlRange.connection
+    @connection = PostgresqlRange.lease_connection
     @connection.transaction do
       @connection.execute <<~SQL
         CREATE TYPE floatrange AS RANGE (

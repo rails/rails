@@ -78,7 +78,7 @@ module ActiveRecord::Encryption
         end
 
         # Skip type casting to simulate an upcase value. Not supported in AR without using private apis
-        EncryptedBookThatIgnoresCase.connection.execute <<~SQL
+        EncryptedBookThatIgnoresCase.lease_connection.execute <<~SQL
           UPDATE encrypted_books SET name = '#{name}' WHERE id = #{book.id};
         SQL
 

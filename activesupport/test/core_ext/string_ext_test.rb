@@ -376,6 +376,15 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "", "👩‍❤️‍👩".truncate_bytes(13, omission: nil)
   end
 
+  def test_truncates_bytes_preserves_encoding
+    original = String.new("a" * 30, encoding: Encoding::UTF_8)
+
+    assert_equal Encoding::UTF_8, original.truncate_bytes(15).encoding
+    assert_equal Encoding::UTF_8, original.truncate_bytes(15, omission: nil).encoding
+    assert_equal Encoding::UTF_8, original.truncate_bytes(15, omission: " ").encoding
+    assert_equal Encoding::UTF_8, original.truncate_bytes(15, omission: "🖖").encoding
+  end
+
   def test_truncate_words
     assert_equal "Hello Big World!", "Hello Big World!".truncate_words(3)
     assert_equal "Hello Big...", "Hello Big World!".truncate_words(2)

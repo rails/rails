@@ -19,7 +19,7 @@ class PostgresqlPointTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table("postgresql_points") do |t|
       t.point :x
       t.point :y, default: [12.2, 13.3]
@@ -167,7 +167,7 @@ class PostgresqlGeometricTest < ActiveRecord::PostgreSQLTestCase
   class PostgresqlGeometric < ActiveRecord::Base; end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table("postgresql_geometrics") do |t|
       t.lseg    :a_line_segment
       t.box     :a_box
@@ -247,10 +247,10 @@ class PostgreSQLGeometricLineTest < ActiveRecord::PostgreSQLTestCase
   class PostgresqlLine < ActiveRecord::Base; end
 
   setup do
-    unless ActiveRecord::Base.connection.database_version >= 90400
+    unless ActiveRecord::Base.lease_connection.database_version >= 90400
       skip("line type is not fully implemented")
     end
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table("postgresql_lines") do |t|
       t.line :a_line
     end
@@ -293,7 +293,7 @@ class PostgreSQLGeometricTypesTest < ActiveRecord::PostgreSQLTestCase
 
   def setup
     super
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @table_name = :testings
   end
 

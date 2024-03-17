@@ -108,8 +108,8 @@ module ApplicationTests
 
           rails "db:schema:load"
 
-          ar_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.tables").strip }
-          animals_tables = lambda { rails("runner", "p AnimalsBase.connection.tables").strip }
+          ar_tables = lambda { rails("runner", "p ActiveRecord::Base.lease_connection.tables").strip }
+          animals_tables = lambda { rails("runner", "p AnimalsBase.lease_connection.tables").strip }
 
           assert_equal '["schema_migrations", "ar_internal_metadata", "books"]', ar_tables[]
           assert_equal '["schema_migrations", "ar_internal_metadata", "dogs"]', animals_tables[]
@@ -148,8 +148,8 @@ module ApplicationTests
 
           rails "db:schema:load:#{database}"
 
-          ar_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.tables").strip }
-          animals_tables = lambda { rails("runner", "p AnimalsBase.connection.tables").strip }
+          ar_tables = lambda { rails("runner", "p ActiveRecord::Base.lease_connection.tables").strip }
+          animals_tables = lambda { rails("runner", "p AnimalsBase.lease_connection.tables").strip }
 
           if database == "primary"
             assert_equal '["schema_migrations", "ar_internal_metadata", "books"]', ar_tables[]
@@ -211,8 +211,8 @@ module ApplicationTests
           output = rails("db:test:prepare:#{name}", "--trace")
           assert_match(/Execute db:test:load_schema:#{name}/, output)
 
-          ar_tables = lambda { rails("runner", "-e", "test", "p ActiveRecord::Base.connection.tables").strip }
-          animals_tables = lambda { rails("runner",  "-e", "test", "p AnimalsBase.connection.tables").strip }
+          ar_tables = lambda { rails("runner", "-e", "test", "p ActiveRecord::Base.lease_connection.tables").strip }
+          animals_tables = lambda { rails("runner",  "-e", "test", "p AnimalsBase.lease_connection.tables").strip }
 
           if name == "primary"
             assert_equal ["schema_migrations", "ar_internal_metadata", "books"].sort, JSON.parse(ar_tables[]).sort
@@ -937,7 +937,7 @@ module ApplicationTests
           assert_match(/Created database/, output)
           assert_equal 1, Dog.count
         ensure
-          Dog.connection.disconnect!
+          Dog.lease_connection.disconnect!
           rails "db:drop" rescue nil
         end
       end
@@ -959,7 +959,7 @@ module ApplicationTests
 
           assert_equal 1, Dog.count
         ensure
-          Dog.connection.disconnect!
+          Dog.lease_connection.disconnect!
           rails "db:drop" rescue nil
         end
       end
@@ -973,7 +973,7 @@ module ApplicationTests
         db_migrate_and_schema_dump_and_load
 
         app_file "db/seeds.rb", <<-RUBY
-          print Book.connection.pool.db_config.database
+          print Book.lease_connection.pool.db_config.database
         RUBY
 
         output = rails("db:seed")
@@ -1261,7 +1261,7 @@ module ApplicationTests
         YAML
 
         Dir.chdir(app_path) do
-          animals_db_exists = lambda { rails("runner", "puts !!(AnimalsBase.connection rescue false)").strip }
+          animals_db_exists = lambda { rails("runner", "puts !!(AnimalsBase.lease_connection rescue false)").strip }
 
           generate_models_for_animals
 

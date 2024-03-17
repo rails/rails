@@ -68,6 +68,12 @@ module ActiveRecord
 
             IndexDefinition.new(*index, **options)
           end
+        rescue StatementInvalid => e
+          if e.message.match?(/Table '.+' doesn't exist/)
+            []
+          else
+            raise
+          end
         end
 
         def remove_column(table_name, column_name, type = nil, **options)

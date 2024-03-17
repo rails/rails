@@ -5,7 +5,7 @@ require "models/author"
 require "models/book"
 
 class OrderTest < ActiveRecord::TestCase
-  fixtures :authors
+  fixtures :authors, :author_addresses
 
   def test_order_asc
     Book.destroy_all

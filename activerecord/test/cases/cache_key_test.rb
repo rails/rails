@@ -15,7 +15,7 @@ module ActiveRecord
     end
 
     setup do
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       @connection.create_table(:cache_mes, force: true) { |t| t.timestamps }
       @connection.create_table(:cache_me_with_versions, force: true) { |t| t.timestamps }
     end

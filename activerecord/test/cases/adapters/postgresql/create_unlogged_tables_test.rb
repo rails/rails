@@ -19,7 +19,7 @@ class UnloggedTablesTest < ActiveRecord::PostgreSQLTestCase
 
   def setup
     @previous_unlogged_tables = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables = false
   end
 

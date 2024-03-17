@@ -4,7 +4,7 @@ require "cases/helper"
 
 class DatabaseStatementsTest < ActiveRecord::TestCase
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   unless current_adapter?(:OracleAdapter)

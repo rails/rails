@@ -3,7 +3,7 @@
 require "cases/helper"
 require "support/schema_dumping_helper"
 
-if ActiveRecord::Base.connection.supports_check_constraints?
+if ActiveRecord::Base.lease_connection.supports_check_constraints?
   module ActiveRecord
     class Migration
       class CheckConstraintTest < ActiveRecord::TestCase
@@ -13,7 +13,7 @@ if ActiveRecord::Base.connection.supports_check_constraints?
         end
 
         setup do
-          @connection = ActiveRecord::Base.connection
+          @connection = ActiveRecord::Base.lease_connection
           @connection.create_table "trades", force: true do |t|
             t.integer :price
             t.integer :quantity
@@ -165,7 +165,7 @@ if ActiveRecord::Base.connection.supports_check_constraints?
           end
         end
 
-        if ActiveRecord::Base.connection.supports_validate_constraints?
+        if ActiveRecord::Base.lease_connection.supports_validate_constraints?
           def test_not_valid_check_constraint
             Trade.create(quantity: -1)
 
@@ -315,7 +315,7 @@ else
     class Migration
       class NoForeignKeySupportTest < ActiveRecord::TestCase
         setup do
-          @connection = ActiveRecord::Base.connection
+          @connection = ActiveRecord::Base.lease_connection
         end
 
         def test_add_check_constraint_should_be_noop

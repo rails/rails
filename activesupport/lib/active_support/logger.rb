@@ -15,7 +15,7 @@ module ActiveSupport
     #   # => true
     #
     #   logger = Logger.new('/var/log/rails.log')
-    #   ActiveSupport::Logger.logger_outputs_to?('var/log/rails.log', STDOUT)
+    #   ActiveSupport::Logger.logger_outputs_to?(logger, '/var/log/rails.log')
     #   # => true
     def self.logger_outputs_to?(logger, *sources)
       loggers = if logger.is_a?(BroadcastLogger)

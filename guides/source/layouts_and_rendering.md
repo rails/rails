@@ -873,7 +873,7 @@ If you are using Rails with the [Asset Pipeline](asset_pipeline.html) enabled, t
 
 A JavaScript file within a Rails application or Rails engine goes in one of three locations: `app/assets`, `lib/assets` or `vendor/assets`. These locations are explained in detail in the [Asset Organization section in the Asset Pipeline Guide](asset_pipeline.html#asset-organization).
 
-You can specify a full path relative to the document root, or a URL, if you prefer. For example, to link to a JavaScript file that is inside a directory called `javascripts` inside of one of `app/assets`, `lib/assets` or `vendor/assets`, you would do this:
+You can specify a full path relative to the document root, or a URL, if you prefer. For example, to link to a JavaScript file `main.js` that is inside one of `app/assets/javascripts`, `lib/assets/javascripts` or `vendor/assets/javascripts`, you would do this:
 
 ```erb
 <%= javascript_include_tag "main" %>

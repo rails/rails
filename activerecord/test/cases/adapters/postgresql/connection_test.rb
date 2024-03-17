@@ -13,7 +13,7 @@ module ActiveRecord
     def setup
       super
       @subscriber = SQLSubscriber.new
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       @connection.materialize_transactions
       @subscription = ActiveSupport::Notifications.subscribe("sql.active_record", @subscriber)
     end
@@ -53,7 +53,7 @@ module ActiveRecord
       NonExistentTable.establish_connection(params)
 
       # Verify the connection param has been applied.
-      expect = NonExistentTable.connection.query("show geqo").first.first
+      expect = NonExistentTable.lease_connection.query("show geqo").first.first
       assert_equal "off", expect
     ensure
       NonExistentTable.remove_connection
@@ -126,7 +126,7 @@ module ActiveRecord
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
-    if ActiveRecord::Base.connection.prepared_statements
+    if ActiveRecord::Base.lease_connection.prepared_statements
       def test_statement_key_is_logged
         bind = Relation::QueryAttribute.new(nil, 1, Type::Value.new)
         @connection.exec_query("SELECT $1::integer", "SQL", [bind], prepare: true)
@@ -145,13 +145,13 @@ module ActiveRecord
       assert_predicate @connection, :active?
     ensure
       # Repair all fixture connections so other tests won't break.
-      @fixture_connection_pools.each { |p| p.connection.verify! }
+      @fixture_connection_pools.each { |p| p.lease_connection.verify! }
     end
 
     def test_set_session_variable_true
       run_without_connection do |orig_connection|
         ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: true }))
-        set_true = ActiveRecord::Base.connection.exec_query "SHOW DEBUG_PRINT_PLAN"
+        set_true = ActiveRecord::Base.lease_connection.exec_query "SHOW DEBUG_PRINT_PLAN"
         assert_equal [["on"]], set_true.rows
       end
     end
@@ -159,7 +159,7 @@ module ActiveRecord
     def test_set_session_variable_false
       run_without_connection do |orig_connection|
         ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: false }))
-        set_false = ActiveRecord::Base.connection.exec_query "SHOW DEBUG_PRINT_PLAN"
+        set_false = ActiveRecord::Base.lease_connection.exec_query "SHOW DEBUG_PRINT_PLAN"
         assert_equal [["off"]], set_false.rows
       end
     end
@@ -181,7 +181,7 @@ module ActiveRecord
     def test_set_session_timezone
       run_without_connection do |orig_connection|
         ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { timezone: "America/New_York" }))
-        assert_equal "America/New_York", ActiveRecord::Base.connection.query_value("SHOW TIME ZONE")
+        assert_equal "America/New_York", ActiveRecord::Base.lease_connection.query_value("SHOW TIME ZONE")
       end
     end
 

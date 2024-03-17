@@ -20,7 +20,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_dump_schema_information_with_empty_versions
     @schema_migration.delete_all_versions
-    schema_info = ActiveRecord::Base.connection.dump_schema_information
+    schema_info = ActiveRecord::Base.lease_connection.dump_schema_information
     assert_no_match(/INSERT INTO/, schema_info)
   end
 
@@ -30,9 +30,9 @@ class SchemaDumperTest < ActiveRecord::TestCase
       @schema_migration.create_version(v)
     end
 
-    schema_info = ActiveRecord::Base.connection.dump_schema_information
+    schema_info = ActiveRecord::Base.lease_connection.dump_schema_information
     expected = <<~STR
-    INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("schema_migrations")} (version) VALUES
+    INSERT INTO #{ActiveRecord::Base.lease_connection.quote_table_name("schema_migrations")} (version) VALUES
     ('20100301010101'),
     ('20100201010101'),
     ('20100101010101');
@@ -170,12 +170,12 @@ class SchemaDumperTest < ActiveRecord::TestCase
   def test_schema_dumps_index_columns_in_right_order
     index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_index/).first.strip
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-      if ActiveRecord::Base.connection.supports_index_sort_order?
+      if ActiveRecord::Base.lease_connection.supports_index_sort_order?
         assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }, order: { rating: :desc }', index_definition
       else
         assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }', index_definition
       end
-    elsif ActiveRecord::Base.connection.supports_index_sort_order?
+    elsif ActiveRecord::Base.lease_connection.supports_index_sort_order?
       assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", order: { rating: :desc }', index_definition
     else
       assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index"', index_definition
@@ -184,7 +184,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dumps_partial_indices
     index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_partial_index/).first.strip
-    if ActiveRecord::Base.connection.supports_partial_index?
+    if ActiveRecord::Base.lease_connection.supports_partial_index?
       assert_equal 't.index ["firm_id", "type"], name: "company_partial_index", where: "(rating > 10)"', index_definition
     else
       assert_equal 't.index ["firm_id", "type"], name: "company_partial_index"', index_definition
@@ -202,7 +202,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dumps_index_sort_order
     index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*_name_and_rating/).first.strip
-    if ActiveRecord::Base.connection.supports_index_sort_order?
+    if ActiveRecord::Base.lease_connection.supports_index_sort_order?
       assert_equal 't.index ["name", "rating"], name: "index_companies_on_name_and_rating", order: :desc', index_definition
     else
       assert_equal 't.index ["name", "rating"], name: "index_companies_on_name_and_rating"', index_definition
@@ -218,7 +218,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
   end
 
-  if ActiveRecord::Base.connection.supports_check_constraints?
+  if ActiveRecord::Base.lease_connection.supports_check_constraints?
     def test_schema_dumps_check_constraints
       constraint_definition = dump_table_schema("products").split(/\n/).grep(/t.check_constraint.*products_price_check/).first.strip
       if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
@@ -229,7 +229,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
   end
 
-  if ActiveRecord::Base.connection.supports_exclusion_constraints?
+  if ActiveRecord::Base.lease_connection.supports_exclusion_constraints?
     def test_schema_dumps_exclusion_constraints
       output = dump_table_schema("test_exclusion_constraints")
       constraint_definitions = output.split(/\n/).grep(/test_exclusion_constraints_.*_overlap/)
@@ -241,7 +241,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
   end
 
-  if ActiveRecord::Base.connection.supports_unique_constraints?
+  if ActiveRecord::Base.lease_connection.supports_unique_constraints?
     def test_schema_dumps_unique_constraints
       output = dump_table_schema("test_unique_constraints")
       constraint_definitions = output.split(/\n/).grep(/t\.unique_constraint/)
@@ -293,7 +293,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{t\.decimal\s+"numeric_number"}, output
   end
 
-  if ActiveRecord::Base.connection.supports_expression_index?
+  if ActiveRecord::Base.lease_connection.supports_expression_index?
     def test_schema_dump_expression_indices
       index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_expression_index/).first.strip
       index_definition.sub!(/, name: "company_expression_index"\z/, "")
@@ -389,7 +389,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
 
     def test_schema_dump_includes_extensions
-      connection = ActiveRecord::Base.connection
+      connection = ActiveRecord::Base.lease_connection
 
       connection.stub(:extensions, ["hstore"]) do
         output = dump_all_table_schema(/./)
@@ -405,7 +405,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
 
     def test_schema_dump_includes_extensions_in_alphabetic_order
-      connection = ActiveRecord::Base.connection
+      connection = ActiveRecord::Base.lease_connection
 
       connection.stub(:extensions, ["hstore", "uuid-ossp", "xml2"]) do
         output = dump_all_table_schema(/./)
@@ -444,7 +444,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{create_table "string_key_objects", id: false}, output
   end
 
-  if ActiveRecord::Base.connection.supports_foreign_keys?
+  if ActiveRecord::Base.lease_connection.supports_foreign_keys?
     def test_foreign_keys_are_dumped_at_the_bottom_to_circumvent_dependency_issues
       output = standard_dump
       assert_match(/^\s+add_foreign_key "fk_test_has_fk"[^\n]+\n\s+add_foreign_key "lessons_students"/, output)
@@ -506,7 +506,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match %r{create_table "schema_migrations"}, output
     assert_no_match %r{create_table "ar_internal_metadata"}, output
 
-    if ActiveRecord::Base.connection.supports_foreign_keys?
+    if ActiveRecord::Base.lease_connection.supports_foreign_keys?
       assert_no_match %r{add_foreign_key "foo_.+_bar"}, output
       assert_no_match %r{add_foreign_key "[^"]+", "foo_.+_bar"}, output
     end
@@ -533,7 +533,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match %r{create_table "schema_migrations"}, output
     assert_no_match %r{create_table "ar_internal_metadata"}, output
 
-    if ActiveRecord::Base.connection.supports_foreign_keys?
+    if ActiveRecord::Base.lease_connection.supports_foreign_keys?
       assert_no_match %r{add_foreign_key "foo\$.+\$bar"}, output
       assert_no_match %r{add_foreign_key "[^"]+", "foo\$.+\$bar"}, output
     end
@@ -888,7 +888,7 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
   include SchemaDumpingHelper
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table :dump_defaults, force: true do |t|
       t.string   :string_with_default,   default: "Hello!"
       t.date     :date_with_default,     default: "2014-06-05"

@@ -8,7 +8,7 @@ class Bird < ActiveRecord::Base
 
   before_save do
     # force materialize_transactions
-    self.class.connection.materialize_transactions
+    self.class.lease_connection.materialize_transactions
   end
 
   attr_accessor :cancel_save_from_callback

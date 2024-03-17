@@ -9,11 +9,14 @@ module ActiveSupport
         html_safe_options = html_escape_translation_options(options)
 
         exception = false
+
         exception_handler = ->(*args) do
           exception = true
           I18n.exception_handler.call(*args)
         end
+
         translation = I18n.translate(key, **html_safe_options, exception_handler: exception_handler)
+
         if exception
           translation
         else
@@ -24,11 +27,11 @@ module ActiveSupport
       end
     end
 
-    private
-      def html_safe_translation_key?(key)
-        /(?:_|\b)html\z/.match?(key)
-      end
+    def html_safe_translation_key?(key)
+      /(?:_|\b)html\z/.match?(key)
+    end
 
+    private
       def html_escape_translation_options(options)
         options.each do |name, value|
           unless i18n_option?(name) || (name == :count && value.is_a?(Numeric))

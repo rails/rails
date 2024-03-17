@@ -10,7 +10,7 @@ module ActiveRecord
       fixtures :posts
 
       def setup
-        @connection = ActiveRecord::Base.connection
+        @connection = ActiveRecord::Base.lease_connection
         db          = Post.connection_pool.db_config.database
         table       = Post.table_name
         @db_name    = db
@@ -108,7 +108,7 @@ end
 
 class MysqlAnsiQuotesTest < ActiveRecord::AbstractMysqlTestCase
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.execute("SET SESSION sql_mode='ANSI_QUOTES'")
   end
 

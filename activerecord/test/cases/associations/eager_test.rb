@@ -497,7 +497,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_belongs_to_and_conditions_string_with_quoted_table_name
-    quoted_posts_id = Comment.connection.quote_table_name("posts") + "." + Comment.connection.quote_column_name("id")
+    quoted_posts_id = Comment.lease_connection.quote_table_name("posts") + "." + Comment.lease_connection.quote_column_name("id")
     assert_nothing_raised do
       Comment.includes(:post).references(:posts).where("#{quoted_posts_id} = ?", 4)
     end
@@ -510,7 +510,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_belongs_to_and_order_string_with_quoted_table_name
-    quoted_posts_id = Comment.connection.quote_table_name("posts") + "." + Comment.connection.quote_column_name("id")
+    quoted_posts_id = Comment.lease_connection.quote_table_name("posts") + "." + Comment.lease_connection.quote_column_name("id")
     assert_nothing_raised do
       Comment.includes(:post).references(:posts).order(quoted_posts_id)
     end
@@ -1697,7 +1697,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
       assert_equal 3, comments_collection.size
     end.last
 
-    c = Sharded::BlogPost.connection
+    c = Sharded::BlogPost.lease_connection
     quoted_blog_id = Regexp.escape(c.quote_table_name("sharded_comments.blog_id"))
     quoted_blog_post_id = Regexp.escape(c.quote_table_name("sharded_comments.blog_post_id"))
     assert_match(/WHERE #{quoted_blog_id} IN \(.+\) AND #{quoted_blog_post_id} IN \(.+\)/, sql)

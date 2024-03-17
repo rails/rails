@@ -489,7 +489,7 @@ module ActiveRecord
       # Dumps the schema cache in YAML format for the connection into the file
       #
       # ==== Examples
-      #   ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.connection, "tmp/schema_dump.yaml")
+      #   ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.lease_connection, "tmp/schema_dump.yaml")
       def dump_schema_cache(conn_or_pool, filename)
         conn_or_pool.schema_cache.dump_to(filename)
       end
@@ -509,9 +509,9 @@ module ActiveRecord
         end
       end
 
-      def with_temporary_connection(db_config, clobber: false) # :nodoc:
+      def with_temporary_connection(db_config, clobber: false, &block) # :nodoc:
         with_temporary_pool(db_config, clobber: clobber) do |pool|
-          yield pool.connection
+          pool.with_connection(&block)
         end
       end
 
@@ -520,7 +520,7 @@ module ActiveRecord
       end
 
       def migration_connection # :nodoc:
-        migration_class.connection
+        migration_class.lease_connection
       end
 
       def migration_connection_pool # :nodoc:
