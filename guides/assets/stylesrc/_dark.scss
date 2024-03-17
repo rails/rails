@@ -90,6 +90,10 @@
               a:visited {
                 color: $gray-100;
               } // a
+
+              a#home_nav {
+                background-image: url("../images/icon_house-chimney-wht.svg");
+              }
             } // @include media('>desktop')
           } // li
         } // ul.nav

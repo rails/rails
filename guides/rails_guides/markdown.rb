@@ -149,7 +149,17 @@ module RailsGuides
 
           @index = <<-INDEX.html_safe
           <div id="subCol">
-            <h3 class="chapter"><img src="images/icon_book-close-bookmark-1.svg" alt="Chapter Icon" />Chapters</h3>
+            <h3 class="chapter">
+            <picture>
+            <!-- Using the `source`  HTML tag to set the dark theme image -->
+            <source
+              srcset="images/icon_book-close-bookmark-1-wht.svg"
+              media="(prefers-color-scheme: dark)"
+            />
+            <img src="images/icon_book-close-bookmark-1.svg" alt="Chapter Icon" />
+          </picture>
+              Chapters
+            </h3>
             #{@index}
           </div>
           INDEX

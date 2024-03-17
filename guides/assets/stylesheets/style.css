@@ -1375,6 +1375,9 @@ body.guide #feature #subCol ol li ul li {
   body.guide header#page_header nav#feature_nav ul.nav li a:visited {
     color: #FAF9F8;
   }
+  body.guide header#page_header nav#feature_nav ul.nav li a#home_nav {
+    background-image: url("../images/icon_house-chimney-wht.svg");
+  }
 }
 @media (prefers-color-scheme: dark) {
   body.guide #guides {
