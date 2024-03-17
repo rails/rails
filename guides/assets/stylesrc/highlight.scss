@@ -60,14 +60,18 @@
 // Include media does not support prefers-color-scheme yet
 @media (prefers-color-scheme: dark) {
   .highlight {
+    &.plaintext,
+    &.console,
+    &.erb,
+    &.html { color: #000; }
     // .hll { background-color: #272822; }
     .c   { color: #6c6c65; } /* Comment */
     .err { color: #a61717; background-color: #e3d2d2 } /* Error */
     .k   { color: #0073a6; } /* Keyword */
     .l   { color: #007979; } /* Literal */
-    .n   { color: #f8f8f2; } /* Name */
+    .n   { color: #007979; } /* Name */
     .o   { color: #f92672; } /* Operator */
-    .p   { color: #f8f8f2; } /* Punctuation */
+    .p   { color: #007979; } /* Punctuation */
     .bp  { color: #6c6c6c; }
     .cm  { color: #6c6c65; } /* Comment.Multiline */
     .cp  { color: #6c6c6c; } /* Comment.Preproc */
@@ -95,7 +99,7 @@
     .nl  { color: #990000; } /* Name.Label */
     .nn  { color: #555555; } /* Name.Namespace */
     .nx  { color: #BDFB42; } /* Name.Other */
-    .py  { color: #f8f8f2; } /* Name.Property */
+    .py  { color: #007979; } /* Name.Property */
     .nt  { color: #000080; } /* Name.Tag */
     .nv  { color: #007979; } /* Name.Variable */
     .ow  { color: #000000; } /* Operator.Word */
@@ -115,7 +119,7 @@
     .sr  { color: #d51144; } /* Literal.String.Regex */
     .s1  { color: #d51144; } /* Literal.String.Single */
     .ss  { color: #d51144; } /* Literal.String.Symbol */
-    .bp  { color: #f8f8f2; } /* Name.Builtin.Pseudo */
+    .bp  { color: #007979; } /* Name.Builtin.Pseudo */
     .vc  { color: #007979; } /* Name.Variable.Class */
     .vg  { color: #007979; } /* Name.Variable.Global */
     .vi  { color: #005cc5; } /* Name.Variable.Instance */

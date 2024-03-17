@@ -1319,8 +1319,11 @@ body.guide #feature #subCol ol li ul li {
     background-color: #2E2E2E;
     color: #fff;
   }
-  body.guide a:hover, body.guide a:active {
+  body.guide a:link {
     color: #df161b;
+  }
+  body.guide a:hover, body.guide a:active {
+    color: #C81418;
   }
   body.guide a:visited {
     color: #DCDCD8;
@@ -1338,7 +1341,11 @@ body.guide #feature #subCol ol li ul li {
     color: #FAF9F8;
   }
   body.guide pre, body.guide code {
+    background-color: #F5F3F1;
     color: #F5F3F1;
+  }
+  body.guide p code, body.guide ul code, body.guide li code, body.guide h2 code, body.guide h3 code, body.guide h4 code, body.guide h5 code, body.guide td code {
+    background-color: #666666;
   }
   body.guide nav#topNav {
     background-color: #F5F3F1;
@@ -1398,7 +1405,7 @@ body.guide #feature #subCol ol li ul li {
 }
 @media (prefers-color-scheme: dark) {
   body.guide #feature #subCol {
-    background-color: #343434;
+    background-color: #3A3939;
   }
   body.guide #feature #subCol ol li a,
   body.guide #feature #subCol ol li a:link,
@@ -1408,5 +1415,8 @@ body.guide #feature #subCol ol li ul li {
   body.guide #feature #subCol ol li a:hover,
   body.guide #feature #subCol ol li a:active {
     color: #df161b;
+  }
+  body.guide .interstitial.code {
+    background-color: #F5F3F1;
   }
 }

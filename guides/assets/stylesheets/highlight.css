@@ -104,6 +104,9 @@
     /* Generic.Deleted & Diff Deleted */
     /* Generic.Inserted & Diff Inserted */
   }
+  .highlight.plaintext, .highlight.console, .highlight.erb, .highlight.html {
+    color: #000;
+  }
   .highlight .c {
     color: #6c6c65;
   }
@@ -118,13 +121,13 @@
     color: #007979;
   }
   .highlight .n {
-    color: #f8f8f2;
+    color: #007979;
   }
   .highlight .o {
     color: #f92672;
   }
   .highlight .p {
-    color: #f8f8f2;
+    color: #007979;
   }
   .highlight .bp {
     color: #6c6c6c;
@@ -208,7 +211,7 @@
     color: #BDFB42;
   }
   .highlight .py {
-    color: #f8f8f2;
+    color: #007979;
   }
   .highlight .nt {
     color: #000080;
@@ -268,7 +271,7 @@
     color: #d51144;
   }
   .highlight .bp {
-    color: #f8f8f2;
+    color: #007979;
   }
   .highlight .vc {
     color: #007979;
