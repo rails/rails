@@ -9,9 +9,14 @@ module ActiveSupport
     undef_method :==
     undef_method :equal?
 
-    # Let ActiveSupport::ProxyObject at least raise exceptions.
+    # Let ActiveSupport::ProxyObject raise exceptions.
     def raise(*args)
       ::Object.send(:raise, *args)
+    end
+
+    # Let ActiveSupport::ProxyObject use "block_given?"".
+    def block_given?
+      ::Object.send(:block_given?)
     end
   end
 end
