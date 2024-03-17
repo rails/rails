@@ -627,7 +627,7 @@ intermediate whitespace looks uniform. */
   background-repeat: no-repeat;
   background-size: 36px 36px;
   border-radius: 8px;
-  border-width: 2px;
+  border: 2px solid #A9A9A8;
   min-height: calc(36px + 1.2em);
   margin: 2em auto;
   padding: 0.75em !important;
