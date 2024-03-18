@@ -1,0 +1,933 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Action View Overview — Ruby on Rails Guides</title>
+  <link rel="stylesheet" type="text/css" href="stylesheets/style.css" data-turbo-track="reload">
+  <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+  <link rel="stylesheet" type="text/css" href="stylesheets/highlight.css" data-turbo-track="reload">
+  
+  <link rel="icon" href="images/favicon.ico" sizes="any">
+  <link rel="icon" href="images/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="images/icon.png">
+  
+  <script src="javascripts/@hotwired--turbo.js" data-turbo-track="reload"></script>
+  <script src="javascripts/clipboard.js" data-turbo-track="reload"></script>
+  <script src="javascripts/guides.js" data-turbo-track="reload"></script>
+
+  <meta property="og:title" content="Action View Overview — Ruby on Rails Guides" />
+  <meta name="description" content="Action View OverviewAfter reading this guide, you will know: What Action View is and how to use it with Rails. How best to use templates, partials, and layouts. How to use localized views." />
+  <meta property="og:description" content="Action View OverviewAfter reading this guide, you will know: What Action View is and how to use it with Rails. How best to use templates, partials, and layouts. How to use localized views." />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:site_name" content="Ruby on Rails Guides" />
+  <meta property="og:image" content="https://avatars.githubusercontent.com/u/4223" />
+  <meta property="og:type" content="website" />
+
+  <meta name="theme-color" content="#C81418">
+</head>
+
+<body dir="ltr" class="guide">
+  <div>
+    <div id="version-badge">edge</div>
+  </div>
+  <div id="topNav">
+    <div class="wrapper">
+      <strong class="more-info-label">More at <a href="https://rubyonrails.org/">rubyonrails.org:</a> </strong>
+      <span class="red-button more-info-button">
+        More Ruby on Rails
+      </span>
+      <ul class="more-info-links s-hidden">
+        <li class="more-info"><a href="https://rubyonrails.org/blog">Blog</a></li>
+        <li class="more-info"><a href="https://guides.rubyonrails.org/">Guides</a></li>
+        <li class="more-info"><a href="https://api.rubyonrails.org/">API</a></li>
+        <li class="more-info"><a href="https://discuss.rubyonrails.org/">Forum</a></li>
+        <li class="more-info"><a href="https://github.com/rails/rails">Contribute on GitHub</a></li>
+      </ul>
+    </div>
+  </div>
+  <div id="header">
+    <div class="wrapper clearfix">
+      <div class="header-logo"><a href="index.html" title="Return to home page">Guides.rubyonrails.org</a></div>
+      <ul class="nav">
+        <li><a class="nav-item" href="index.html">Home</a></li>
+        <li class="guides-index guides-index-large">
+          <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
+          <div id="guides" class="clearfix" style="display: none;">
+            <hr />
+            <dl class="guides-section-container">
+                <div class="guides-section">
+                  <dt>Start Here</dt>
+                  <dd><a href="getting_started.html">Getting Started with Rails</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Models</dt>
+                  <dd><a href="active_record_basics.html">Active Record Basics</a></dd>
+                  <dd><a href="active_record_migrations.html">Active Record Migrations</a></dd>
+                  <dd><a href="active_record_validations.html">Active Record Validations</a></dd>
+                  <dd><a href="active_record_callbacks.html">Active Record Callbacks</a></dd>
+                  <dd><a href="association_basics.html">Active Record Associations</a></dd>
+                  <dd><a href="active_record_querying.html">Active Record Query Interface</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Views</dt>
+                  <dd><a href="layouts_and_rendering.html">Layouts and Rendering in Rails</a></dd>
+                  <dd><a href="form_helpers.html">Action View Form Helpers</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Controllers</dt>
+                  <dd><a href="action_controller_overview.html">Action Controller Overview</a></dd>
+                  <dd><a href="routing.html">Rails Routing from the Outside In</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Other Components</dt>
+                  <dd><a href="active_support_core_extensions.html">Active Support Core Extensions</a></dd>
+                  <dd><a href="action_mailer_basics.html">Action Mailer Basics</a></dd>
+                  <dd><a href="active_job_basics.html">Active Job Basics</a></dd>
+                  <dd><a href="active_storage_overview.html">Active Storage Overview</a></dd>
+                  <dd><a href="action_cable_overview.html">Action Cable Overview</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Digging Deeper</dt>
+                  <dd><a href="i18n.html">Rails Internationalization (I18n) API</a></dd>
+                  <dd><a href="testing.html">Testing Rails Applications</a></dd>
+                  <dd><a href="security.html">Securing Rails Applications</a></dd>
+                  <dd><a href="error_reporting.html">Error Reporting in Rails Applications</a></dd>
+                  <dd><a href="debugging_rails_applications.html">Debugging Rails Applications</a></dd>
+                  <dd><a href="configuring.html">Configuring Rails Applications</a></dd>
+                  <dd><a href="command_line.html">The Rails Command Line</a></dd>
+                  <dd><a href="asset_pipeline.html">The Asset Pipeline</a></dd>
+                  <dd><a href="working_with_javascript_in_rails.html">Working with JavaScript in Rails</a></dd>
+                  <dd><a href="autoloading_and_reloading_constants.html">Autoloading and Reloading</a></dd>
+                  <dd><a href="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</a></dd>
+                  <dd><a href="caching_with_rails.html">Caching with Rails: An Overview</a></dd>
+                  <dd><a href="api_app.html">Using Rails for API-only Applications</a></dd>
+                  <dd><a href="active_record_multiple_databases.html">Multiple Databases</a></dd>
+                  <dd><a href="active_record_composite_primary_keys.html">Composite Primary Keys</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Extending Rails</dt>
+                  <dd><a href="rails_on_rack.html">Rails on Rack</a></dd>
+                  <dd><a href="generators.html">Creating and Customizing Rails Generators &amp; Templates</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Contributing</dt>
+                  <dd><a href="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</a></dd>
+                  <dd><a href="api_documentation_guidelines.html">API Documentation Guidelines</a></dd>
+                  <dd><a href="ruby_on_rails_guides_guidelines.html">Guides Guidelines</a></dd>
+                  <dd><a href="development_dependencies_install.html">Installing Rails Core Development Dependencies</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Policies</dt>
+                  <dd><a href="maintenance_policy.html">Maintenance Policy</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Release Notes</dt>
+                  <dd><a href="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</a></dd>
+                  <dd><a href="7_1_release_notes.html">Version 7.1 - October 2023</a></dd>
+                  <dd><a href="7_0_release_notes.html">Version 7.0 - December 2021</a></dd>
+                  <dd><a href="6_1_release_notes.html">Version 6.1 - December 2020</a></dd>
+                  <dd><a href="6_0_release_notes.html">Version 6.0 - August 2019</a></dd>
+                  <dd><a href="5_2_release_notes.html">Version 5.2 - April 2018</a></dd>
+                  <dd><a href="5_1_release_notes.html">Version 5.1 - April 2017</a></dd>
+                  <dd><a href="5_0_release_notes.html">Version 5.0 - June 2016</a></dd>
+                  <dd><a href="4_2_release_notes.html">Version 4.2 - December 2014</a></dd>
+                  <dd><a href="4_1_release_notes.html">Version 4.1 - April 2014</a></dd>
+                  <dd><a href="4_0_release_notes.html">Version 4.0 - June 2013</a></dd>
+                  <dd><a href="3_2_release_notes.html">Version 3.2 - January 2012</a></dd>
+                  <dd><a href="3_1_release_notes.html">Version 3.1 - August 2011</a></dd>
+                  <dd><a href="3_0_release_notes.html">Version 3.0 - August 2010</a></dd>
+                  <dd><a href="2_3_release_notes.html">Version 2.3 - March 2009</a></dd>
+                  <dd><a href="2_2_release_notes.html">Version 2.2 - November 2008</a></dd>
+                </div>
+            </dl>
+          </div>
+        </li>
+        <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
+        <li class="guides-index guides-index-small">
+          <select class="guides-index-item nav-item">
+            <option value="index.html">Guides Index</option>
+              <optgroup label="Start Here">
+                  <option value="getting_started.html">Getting Started with Rails</option>
+              </optgroup>
+              <optgroup label="Models">
+                  <option value="active_record_basics.html">Active Record Basics</option>
+                  <option value="active_record_migrations.html">Active Record Migrations</option>
+                  <option value="active_record_validations.html">Active Record Validations</option>
+                  <option value="active_record_callbacks.html">Active Record Callbacks</option>
+                  <option value="association_basics.html">Active Record Associations</option>
+                  <option value="active_record_querying.html">Active Record Query Interface</option>
+              </optgroup>
+              <optgroup label="Views">
+                  <option value="layouts_and_rendering.html">Layouts and Rendering in Rails</option>
+                  <option value="form_helpers.html">Action View Form Helpers</option>
+              </optgroup>
+              <optgroup label="Controllers">
+                  <option value="action_controller_overview.html">Action Controller Overview</option>
+                  <option value="routing.html">Rails Routing from the Outside In</option>
+              </optgroup>
+              <optgroup label="Other Components">
+                  <option value="active_support_core_extensions.html">Active Support Core Extensions</option>
+                  <option value="action_mailer_basics.html">Action Mailer Basics</option>
+                  <option value="active_job_basics.html">Active Job Basics</option>
+                  <option value="active_storage_overview.html">Active Storage Overview</option>
+                  <option value="action_cable_overview.html">Action Cable Overview</option>
+              </optgroup>
+              <optgroup label="Digging Deeper">
+                  <option value="i18n.html">Rails Internationalization (I18n) API</option>
+                  <option value="testing.html">Testing Rails Applications</option>
+                  <option value="security.html">Securing Rails Applications</option>
+                  <option value="error_reporting.html">Error Reporting in Rails Applications</option>
+                  <option value="debugging_rails_applications.html">Debugging Rails Applications</option>
+                  <option value="configuring.html">Configuring Rails Applications</option>
+                  <option value="command_line.html">The Rails Command Line</option>
+                  <option value="asset_pipeline.html">The Asset Pipeline</option>
+                  <option value="working_with_javascript_in_rails.html">Working with JavaScript in Rails</option>
+                  <option value="autoloading_and_reloading_constants.html">Autoloading and Reloading</option>
+                  <option value="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</option>
+                  <option value="caching_with_rails.html">Caching with Rails: An Overview</option>
+                  <option value="api_app.html">Using Rails for API-only Applications</option>
+                  <option value="active_record_multiple_databases.html">Multiple Databases</option>
+                  <option value="active_record_composite_primary_keys.html">Composite Primary Keys</option>
+              </optgroup>
+              <optgroup label="Extending Rails">
+                  <option value="rails_on_rack.html">Rails on Rack</option>
+                  <option value="generators.html">Creating and Customizing Rails Generators &amp; Templates</option>
+              </optgroup>
+              <optgroup label="Contributing">
+                  <option value="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</option>
+                  <option value="api_documentation_guidelines.html">API Documentation Guidelines</option>
+                  <option value="ruby_on_rails_guides_guidelines.html">Guides Guidelines</option>
+                  <option value="development_dependencies_install.html">Installing Rails Core Development Dependencies</option>
+              </optgroup>
+              <optgroup label="Policies">
+                  <option value="maintenance_policy.html">Maintenance Policy</option>
+              </optgroup>
+              <optgroup label="Release Notes">
+                  <option value="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</option>
+                  <option value="7_1_release_notes.html">Version 7.1 - October 2023</option>
+                  <option value="7_0_release_notes.html">Version 7.0 - December 2021</option>
+                  <option value="6_1_release_notes.html">Version 6.1 - December 2020</option>
+                  <option value="6_0_release_notes.html">Version 6.0 - August 2019</option>
+                  <option value="5_2_release_notes.html">Version 5.2 - April 2018</option>
+                  <option value="5_1_release_notes.html">Version 5.1 - April 2017</option>
+                  <option value="5_0_release_notes.html">Version 5.0 - June 2016</option>
+                  <option value="4_2_release_notes.html">Version 4.2 - December 2014</option>
+                  <option value="4_1_release_notes.html">Version 4.1 - April 2014</option>
+                  <option value="4_0_release_notes.html">Version 4.0 - June 2013</option>
+                  <option value="3_2_release_notes.html">Version 3.2 - January 2012</option>
+                  <option value="3_1_release_notes.html">Version 3.1 - August 2011</option>
+                  <option value="3_0_release_notes.html">Version 3.0 - August 2010</option>
+                  <option value="2_3_release_notes.html">Version 2.3 - March 2009</option>
+                  <option value="2_2_release_notes.html">Version 2.2 - November 2008</option>
+              </optgroup>
+          </select>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <hr class="hide" />
+
+  <div id="feature">
+    <div class="wrapper">
+      <h1>Action View Overview</h1><p>After reading this guide, you will know:</p>
+<ul>
+<li>What Action View is and how to use it with Rails.</li>
+<li>How best to use templates, partials, and layouts.</li>
+<li>How to use localized views.</li>
+</ul>
+
+
+                <div id="subCol">
+            <h3 class="chapter"><img src="images/icon_book-close-bookmark-1.svg" alt="" />Chapters</h3>
+            <ol class="chapters">
+<li><a href="#what-is-action-view-questionmark">What is Action View?</a></li>
+<li><a href="#using-action-view-with-rails">Using Action View with Rails</a></li>
+<li><a href="#templates">Templates</a>
+
+<ul>
+<li><a href="#erb">ERB</a></li>
+<li><a href="#builder">Builder</a></li>
+<li><a href="#jbuilder">Jbuilder</a></li>
+<li><a href="#template-caching">Template Caching</a></li>
+</ul></li>
+<li><a href="#partials">Partials</a>
+
+<ul>
+<li><a href="#rendering-partials">Rendering Partials</a></li>
+<li><a href="#using-partials-to-simplify-views">Using Partials to Simplify Views</a></li>
+<li><a href="#render-with-locals-option"><code>render</code> with <code>locals</code> Option</a></li>
+<li><a href="#using-local-assigns">Using <code>local_assigns</code></a></li>
+<li><a href="#render-without-partial-and-locals-options"><code>render</code> without <code>partial</code> and <code>locals</code> Options</a></li>
+<li><a href="#the-as-and-object-options">The <code>as</code> and <code>object</code> Options</a></li>
+<li><a href="#rendering-collections">Rendering Collections</a></li>
+<li><a href="#spacer-templates">Spacer Templates</a></li>
+<li><a href="#strict-locals">Strict Locals</a></li>
+</ul></li>
+<li><a href="#layouts">Layouts</a>
+
+<ul>
+<li><a href="#partial-layouts">Partial Layouts</a></li>
+</ul></li>
+<li><a href="#view-paths">View Paths</a>
+
+<ul>
+<li><a href="#prepend-view-path">Prepend View Path</a></li>
+<li><a href="#append-view-path">Append View Path</a></li>
+</ul></li>
+<li><a href="#helpers">Helpers</a></li>
+<li><a href="#localized-views">Localized Views</a></li>
+</ol>
+
+          </div>
+
+    </div>
+  </div>
+
+  <div id="container">
+    <div class="wrapper">
+      <div id="mainCol">
+        <h2 id="what-is-action-view-questionmark"><a class="anchorlink" href="#what-is-action-view-questionmark">1 What is Action View?</a></h2><p>In Rails, web requests are handled by <a href="action_controller_overview.html">Action Controller</a> and Action View. Typically, Action Controller is concerned with communicating with the database and performing CRUD actions where necessary. Action View is then responsible for compiling the response.</p><p>Action View templates are written using embedded Ruby in tags mingled with HTML. To avoid cluttering the templates with boilerplate code, several helper classes provide common behavior for forms, dates, and strings. It's also easy to add new helpers to your application as it evolves.</p><div class="note"><p>Some features of Action View are tied to Active Record, but that doesn't mean Action View depends on Active Record. Action View is an independent package that can be used with any sort of Ruby libraries.</p></div><h2 id="using-action-view-with-rails"><a class="anchorlink" href="#using-action-view-with-rails">2 Using Action View with Rails</a></h2><p>For each controller, there is an associated directory in the <code>app/views</code> directory which holds the template files that make up the views associated with that controller. These files are used to display the view that results from each controller action.</p><p>Let's take a look at what Rails does by default when creating a new resource using the scaffold generator:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>generate scaffold article
+<span class="go">      [...]
+      invoke  scaffold_controller
+      create    app/controllers/articles_controller.rb
+      invoke    erb
+      create      app/views/articles
+      create      app/views/articles/index.html.erb
+      create      app/views/articles/edit.html.erb
+      create      app/views/articles/show.html.erb
+      create      app/views/articles/new.html.erb
+      create      app/views/articles/_form.html.erb
+      [...]
+</span></code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails generate scaffold article
+">Copy</button>
+</div>
+<p>There is a naming convention for views in Rails. Typically, the views share their name with the associated controller action, as you can see above.
+For example, the index controller action of the <code>articles_controller.rb</code> will use the <code>index.html.erb</code> view file in the <code>app/views/articles</code> directory.
+The complete HTML returned to the client is composed of a combination of this ERB file, a layout template that wraps it, and all the partials that the view may reference. Within this guide, you will find more detailed documentation about each of these three components.</p><p>As mentioned, the final HTML output is a composition of three Rails elements: <code>Templates</code>, <code>Partials</code> and <code>Layouts</code>.
+Below is a brief overview of each of them.</p><h2 id="templates"><a class="anchorlink" href="#templates">3 Templates</a></h2><p>Action View templates can be written in several ways. If the template file has a <code>.erb</code> extension then it uses a mixture of ERB (Embedded Ruby) and HTML. If the template file has a <code>.builder</code> extension then the <code>Builder::XmlMarkup</code> library is used.</p><p>Rails supports multiple template systems and uses a file extension to distinguish amongst them. For example, an HTML file using the ERB template system will have <code>.html.erb</code> as a file extension.</p><h3 id="erb"><a class="anchorlink" href="#erb">3.1 ERB</a></h3><p>Within an ERB template, Ruby code can be included using both <code>&lt;% %&gt;</code> and <code>&lt;%= %&gt;</code> tags. The <code>&lt;% %&gt;</code> tags are used to execute Ruby code that does not return anything, such as conditions, loops, or blocks, and the <code>&lt;%= %&gt;</code> tags are used when you want output.</p><p>Consider the following loop for names:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="nt">&lt;h1&gt;</span>Names of all the people<span class="nt">&lt;/h1&gt;</span>
+<span class="cp">&lt;%</span> <span class="vi">@people</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">person</span><span class="o">|</span> <span class="cp">%&gt;</span>
+  Name: <span class="cp">&lt;%=</span> <span class="n">person</span><span class="p">.</span><span class="nf">name</span> <span class="cp">%&gt;</span><span class="nt">&lt;br&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<h1>Names of all the people</h1>
+<% @people.each do |person| %>
+  Name: <%= person.name %><br>
+<% end %>
+">Copy</button>
+</div>
+<p>The loop is set up using regular embedding tags (<code>&lt;% %&gt;</code>) and the name is inserted using the output embedding tags (<code>&lt;%= %&gt;</code>). Note that this is not just a usage suggestion: regular output functions such as <code>print</code> and <code>puts</code> won't be rendered to the view with ERB templates. So this would be wrong:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="c">&lt;%# WRONG %&gt;</span>
+Hi, Mr. <span class="cp">&lt;%</span> <span class="nb">puts</span> <span class="s2">"Frodo"</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%# WRONG %>
+Hi, Mr. <% puts &quot;Frodo&quot; %>
+">Copy</button>
+</div>
+<p>To suppress leading and trailing whitespaces, you can use <code>&lt;%-</code> <code>-%&gt;</code> interchangeably with <code>&lt;%</code> and <code>%&gt;</code>.</p><h3 id="builder"><a class="anchorlink" href="#builder">3.2 Builder</a></h3><p>Builder templates are a more programmatic alternative to ERB. They are especially useful for generating XML content. An XmlMarkup object named <code>xml</code> is automatically made available to templates with a <code>.builder</code> extension.</p><p>Here are some basic examples:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">xml</span><span class="p">.</span><span class="nf">em</span><span class="p">(</span><span class="s2">"emphasized"</span><span class="p">)</span>
+<span class="n">xml</span><span class="p">.</span><span class="nf">em</span> <span class="p">{</span> <span class="n">xml</span><span class="p">.</span><span class="nf">b</span><span class="p">(</span><span class="s2">"emph &amp; bold"</span><span class="p">)</span> <span class="p">}</span>
+<span class="n">xml</span><span class="p">.</span><span class="nf">a</span><span class="p">(</span><span class="s2">"A Link"</span><span class="p">,</span> <span class="s2">"href"</span> <span class="o">=&gt;</span> <span class="s2">"https://rubyonrails.org"</span><span class="p">)</span>
+<span class="n">xml</span><span class="p">.</span><span class="nf">target</span><span class="p">(</span><span class="s2">"name"</span> <span class="o">=&gt;</span> <span class="s2">"compile"</span><span class="p">,</span> <span class="s2">"option"</span> <span class="o">=&gt;</span> <span class="s2">"fast"</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="xml.em(&quot;emphasized&quot;)
+xml.em { xml.b(&quot;emph &amp; bold&quot;) }
+xml.a(&quot;A Link&quot;, &quot;href&quot; => &quot;https://rubyonrails.org&quot;)
+xml.target(&quot;name&quot; => &quot;compile&quot;, &quot;option&quot; => &quot;fast&quot;)
+">Copy</button>
+</div>
+<p>which would produce:</p><div class="code_container">
+<pre><code class="highlight html"><span class="nt">&lt;em&gt;</span>emphasized<span class="nt">&lt;/em&gt;</span>
+<span class="nt">&lt;em&gt;&lt;b&gt;</span>emph <span class="ni">&amp;amp;</span> bold<span class="nt">&lt;/b&gt;&lt;/em&gt;</span>
+<span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"https://rubyonrails.org"</span><span class="nt">&gt;</span>A link<span class="nt">&lt;/a&gt;</span>
+<span class="nt">&lt;target</span> <span class="na">option=</span><span class="s">"fast"</span> <span class="na">name=</span><span class="s">"compile"</span> <span class="nt">/&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<em>emphasized</em>
+<em><b>emph &amp;amp; bold</b></em>
+<a href=&quot;https://rubyonrails.org&quot;>A link</a>
+<target option=&quot;fast&quot; name=&quot;compile&quot; />
+">Copy</button>
+</div>
+<p>Any method with a block will be treated as an XML markup tag with nested markup in the block. For example, the following:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">xml</span><span class="p">.</span><span class="nf">div</span> <span class="p">{</span>
+  <span class="n">xml</span><span class="p">.</span><span class="nf">h1</span><span class="p">(</span><span class="vi">@person</span><span class="p">.</span><span class="nf">name</span><span class="p">)</span>
+  <span class="n">xml</span><span class="p">.</span><span class="nf">p</span><span class="p">(</span><span class="vi">@person</span><span class="p">.</span><span class="nf">bio</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="xml.div {
+  xml.h1(@person.name)
+  xml.p(@person.bio)
+}
+">Copy</button>
+</div>
+<p>would produce something like:</p><div class="code_container">
+<pre><code class="highlight html"><span class="nt">&lt;div&gt;</span>
+  <span class="nt">&lt;h1&gt;</span>David Heinemeier Hansson<span class="nt">&lt;/h1&gt;</span>
+  <span class="nt">&lt;p&gt;</span>A product of Danish Design during the Winter of '79...<span class="nt">&lt;/p&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<div>
+  <h1>David Heinemeier Hansson</h1>
+  <p>A product of Danish Design during the Winter of '79...</p>
+</div>
+">Copy</button>
+</div>
+<p>Below is a full-length RSS example actually used on Basecamp:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">xml</span><span class="p">.</span><span class="nf">rss</span><span class="p">(</span><span class="s2">"version"</span> <span class="o">=&gt;</span> <span class="s2">"2.0"</span><span class="p">,</span> <span class="s2">"xmlns:dc"</span> <span class="o">=&gt;</span> <span class="s2">"http://purl.org/dc/elements/1.1/"</span><span class="p">)</span> <span class="k">do</span>
+  <span class="n">xml</span><span class="p">.</span><span class="nf">channel</span> <span class="k">do</span>
+    <span class="n">xml</span><span class="p">.</span><span class="nf">title</span><span class="p">(</span><span class="vi">@feed_title</span><span class="p">)</span>
+    <span class="n">xml</span><span class="p">.</span><span class="nf">link</span><span class="p">(</span><span class="vi">@url</span><span class="p">)</span>
+    <span class="n">xml</span><span class="p">.</span><span class="nf">description</span> <span class="s2">"Basecamp: Recent items"</span>
+    <span class="n">xml</span><span class="p">.</span><span class="nf">language</span> <span class="s2">"en-us"</span>
+    <span class="n">xml</span><span class="p">.</span><span class="nf">ttl</span> <span class="s2">"40"</span>
+
+    <span class="k">for</span> <span class="n">item</span> <span class="k">in</span> <span class="vi">@recent_items</span>
+      <span class="n">xml</span><span class="p">.</span><span class="nf">item</span> <span class="k">do</span>
+        <span class="n">xml</span><span class="p">.</span><span class="nf">title</span><span class="p">(</span><span class="n">item_title</span><span class="p">(</span><span class="n">item</span><span class="p">))</span>
+        <span class="n">xml</span><span class="p">.</span><span class="nf">description</span><span class="p">(</span><span class="n">item_description</span><span class="p">(</span><span class="n">item</span><span class="p">))</span> <span class="k">if</span> <span class="n">item_description</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="n">xml</span><span class="p">.</span><span class="nf">pubDate</span><span class="p">(</span><span class="n">item_pubDate</span><span class="p">(</span><span class="n">item</span><span class="p">))</span>
+        <span class="n">xml</span><span class="p">.</span><span class="nf">guid</span><span class="p">(</span><span class="vi">@person</span><span class="p">.</span><span class="nf">firm</span><span class="p">.</span><span class="nf">account</span><span class="p">.</span><span class="nf">url</span> <span class="o">+</span> <span class="vi">@recent_items</span><span class="p">.</span><span class="nf">url</span><span class="p">(</span><span class="n">item</span><span class="p">))</span>
+        <span class="n">xml</span><span class="p">.</span><span class="nf">link</span><span class="p">(</span><span class="vi">@person</span><span class="p">.</span><span class="nf">firm</span><span class="p">.</span><span class="nf">account</span><span class="p">.</span><span class="nf">url</span> <span class="o">+</span> <span class="vi">@recent_items</span><span class="p">.</span><span class="nf">url</span><span class="p">(</span><span class="n">item</span><span class="p">))</span>
+        <span class="n">xml</span><span class="p">.</span><span class="nf">tag!</span><span class="p">(</span><span class="s2">"dc:creator"</span><span class="p">,</span> <span class="n">item</span><span class="p">.</span><span class="nf">author_name</span><span class="p">)</span> <span class="k">if</span> <span class="n">item_has_creator?</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="xml.rss(&quot;version&quot; => &quot;2.0&quot;, &quot;xmlns:dc&quot; => &quot;http://purl.org/dc/elements/1.1/&quot;) do
+  xml.channel do
+    xml.title(@feed_title)
+    xml.link(@url)
+    xml.description &quot;Basecamp: Recent items&quot;
+    xml.language &quot;en-us&quot;
+    xml.ttl &quot;40&quot;
+
+    for item in @recent_items
+      xml.item do
+        xml.title(item_title(item))
+        xml.description(item_description(item)) if item_description(item)
+        xml.pubDate(item_pubDate(item))
+        xml.guid(@person.firm.account.url + @recent_items.url(item))
+        xml.link(@person.firm.account.url + @recent_items.url(item))
+        xml.tag!(&quot;dc:creator&quot;, item.author_name) if item_has_creator?(item)
+      end
+    end
+  end
+end
+">Copy</button>
+</div>
+<h3 id="jbuilder"><a class="anchorlink" href="#jbuilder">3.3 Jbuilder</a></h3><p><a href="https://github.com/rails/jbuilder">Jbuilder</a> is a gem that's
+maintained by the Rails team and included in the default Rails <code>Gemfile</code>.
+It's similar to Builder but is used to generate JSON, instead of XML.</p><p>If you don't have it, you can add the following to your <code>Gemfile</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">gem</span> <span class="s2">"jbuilder"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="gem &quot;jbuilder&quot;
+">Copy</button>
+</div>
+<p>A Jbuilder object named <code>json</code> is automatically made available to templates with
+a <code>.jbuilder</code> extension.</p><p>Here is a basic example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">json</span><span class="p">.</span><span class="nf">name</span><span class="p">(</span><span class="s2">"Alex"</span><span class="p">)</span>
+<span class="n">json</span><span class="p">.</span><span class="nf">email</span><span class="p">(</span><span class="s2">"alex@example.com"</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="json.name(&quot;Alex&quot;)
+json.email(&quot;alex@example.com&quot;)
+">Copy</button>
+</div>
+<p>would produce:</p><div class="code_container">
+<pre><code class="highlight json"><span class="p">{</span><span class="w">
+  </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Alex"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"alex@example.com"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+<button class="clipboard-button" data-clipboard-text="{
+  &quot;name&quot;: &quot;Alex&quot;,
+  &quot;email&quot;: &quot;alex@example.com&quot;
+}
+">Copy</button>
+</div>
+<p>See the <a href="https://github.com/rails/jbuilder#jbuilder">Jbuilder documentation</a> for
+more examples and information.</p><h3 id="template-caching"><a class="anchorlink" href="#template-caching">3.4 Template Caching</a></h3><p>By default, Rails will compile each template to a method to render it. In the development environment, when you alter a template, Rails will check the file's modification time and recompile it.</p><h2 id="partials"><a class="anchorlink" href="#partials">4 Partials</a></h2><p>Partial templates - usually just called "partials" - are another device for breaking the rendering process into more manageable chunks. With partials, you can extract pieces of code from your templates to separate files and also reuse them throughout your templates.</p><h3 id="rendering-partials"><a class="anchorlink" href="#rendering-partials">4.1 Rendering Partials</a></h3><p>To render a partial as part of a view, you use the <code>render</code> method within the view:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">render</span> <span class="s2">"menu"</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= render &quot;menu&quot; %>
+">Copy</button>
+</div>
+<p>This will render a file named <code>_menu.html.erb</code> at that point within the view that is being rendered. Note the leading underscore character: partials are named with a leading underscore to distinguish them from regular views, even though they are referred to without the underscore. This holds true even when you're pulling in a partial from another folder:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">render</span> <span class="s2">"application/menu"</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= render &quot;application/menu&quot; %>
+">Copy</button>
+</div>
+<p>That code will pull in the partial from <code>app/views/application/_menu.html.erb</code>.</p><h3 id="using-partials-to-simplify-views"><a class="anchorlink" href="#using-partials-to-simplify-views">4.2 Using Partials to Simplify Views</a></h3><p>One way to use partials is to treat them as the equivalent of subroutines; a way to move details out of a view so that you can grasp what's going on more easily. For example, you might have a view that looks like this:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">render</span> <span class="s2">"application/ad_banner"</span> <span class="cp">%&gt;</span>
+
+<span class="nt">&lt;h1&gt;</span>Products<span class="nt">&lt;/h1&gt;</span>
+
+<span class="nt">&lt;p&gt;</span>Here are a few of our fine products:<span class="nt">&lt;/p&gt;</span>
+<span class="cp">&lt;%</span> <span class="vi">@products</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">product</span><span class="o">|</span> <span class="cp">%&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="n">render</span> <span class="ss">partial: </span><span class="s2">"product"</span><span class="p">,</span> <span class="ss">locals: </span><span class="p">{</span> <span class="ss">product: </span><span class="n">product</span> <span class="p">}</span> <span class="cp">%&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+
+<span class="cp">&lt;%=</span> <span class="n">render</span> <span class="s2">"application/footer"</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= render &quot;application/ad_banner&quot; %>
+
+<h1>Products</h1>
+
+<p>Here are a few of our fine products:</p>
+<% @products.each do |product| %>
+  <%= render partial: &quot;product&quot;, locals: { product: product } %>
+<% end %>
+
+<%= render &quot;application/footer&quot; %>
+">Copy</button>
+</div>
+<p>Here, the <code>_ad_banner.html.erb</code> and <code>_footer.html.erb</code> partials could contain content that is shared among many pages in your application. You don't need to see the details of these sections when you're concentrating on a particular page.</p><div class="info"><p>View partials rely on the same <a href="/layouts_and_rendering.html#template-inheritance">Template
+Inheritance</a> as templates and
+layouts, so templates rendered by controllers that inherit from
+<code>ApplicationController</code> can render view partials declared in
+<code>app/views/application</code>.</p></div><p>In addition to resolving partials with the inheritance chain, controllers can
+also override default partials with the inheritance chain. For example, a
+<code>ProductsController</code> that inherits from <code>ApplicationController</code> will resolve a
+call to <code>&lt;%= render "ad_banner" %&gt;</code> by first searching for
+<code>app/views/products/_ad_banner.html.erb</code> before falling back to
+<code>app/views/application/_ad_banner.html.erb</code>.</p><h3 id="render-with-locals-option"><a class="anchorlink" href="#render-with-locals-option">4.3 <code>render</code> with <code>locals</code> Option</a></h3><p>When rendering a partial, each key in the <code>locals:</code> option is available as a
+partial-local variable:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="c">&lt;%# app/views/products/show.html.erb %&gt;</span>
+
+<span class="cp">&lt;%=</span> <span class="n">render</span> <span class="ss">partial: </span><span class="s2">"products/product"</span><span class="p">,</span> <span class="ss">locals: </span><span class="p">{</span> <span class="ss">product: </span><span class="vi">@product</span> <span class="p">}</span> <span class="cp">%&gt;</span>
+
+<span class="c">&lt;%# app/views/products/_product.html.erb %&gt;</span>
+
+<span class="cp">&lt;%=</span> <span class="n">tag</span><span class="p">.</span><span class="nf">div</span> <span class="ss">id: </span><span class="n">dom_id</span><span class="p">(</span><span class="n">product</span><span class="p">)</span> <span class="k">do</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;h1&gt;</span><span class="cp">&lt;%=</span> <span class="n">product</span><span class="p">.</span><span class="nf">name</span> <span class="cp">%&gt;</span><span class="nt">&lt;/h1&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%# app/views/products/show.html.erb %>
+
+<%= render partial: &quot;products/product&quot;, locals: { product: @product } %>
+
+<%# app/views/products/_product.html.erb %>
+
+<%= tag.div id: dom_id(product) do %>
+  <h1><%= product.name %></h1>
+<% end %>
+">Copy</button>
+</div>
+<p>If a template refers to a variable that isn't passed into the view as part of
+the <code>locals:</code> option, the template will raise an <code>ActionView::Template::Error</code>:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="c">&lt;%# app/views/products/_product.html.erb %&gt;</span>
+
+<span class="cp">&lt;%=</span> <span class="n">tag</span><span class="p">.</span><span class="nf">div</span> <span class="ss">id: </span><span class="n">dom_id</span><span class="p">(</span><span class="n">product</span><span class="p">)</span> <span class="k">do</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;h1&gt;</span><span class="cp">&lt;%=</span> <span class="n">product</span><span class="p">.</span><span class="nf">name</span> <span class="cp">%&gt;</span><span class="nt">&lt;/h1&gt;</span>
+
+  <span class="c">&lt;%# =&gt; raises ActionView::Template::Error %&gt;</span>
+  <span class="cp">&lt;%</span> <span class="n">related_products</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">related_product</span><span class="o">|</span> <span class="cp">%&gt;</span>
+    <span class="c">&lt;%# ... %&gt;</span>
+  <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%# app/views/products/_product.html.erb %>
+
+<%= tag.div id: dom_id(product) do %>
+  <h1><%= product.name %></h1>
+
+  <%# => raises ActionView::Template::Error %>
+  <% related_products.each do |related_product| %>
+    <%# ... %>
+  <% end %>
+<% end %>
+">Copy</button>
+</div>
+<h3 id="using-local-assigns"><a class="anchorlink" href="#using-local-assigns">4.4 Using <code>local_assigns</code></a></h3><p>Each key in the <code>locals:</code> option is available as a partial-local variable through the <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Template.html#method-i-local_assigns">local_assigns</a> helper method:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="c">&lt;%# app/views/products/show.html.erb %&gt;</span>
+
+<span class="cp">&lt;%=</span> <span class="n">render</span> <span class="ss">partial: </span><span class="s2">"products/product"</span><span class="p">,</span> <span class="ss">locals: </span><span class="p">{</span> <span class="ss">product: </span><span class="vi">@product</span> <span class="p">}</span> <span class="cp">%&gt;</span>
+
+<span class="c">&lt;%# app/views/products/_product.html.erb %&gt;</span>
+
+<span class="cp">&lt;%</span> <span class="n">local_assigns</span><span class="p">[</span><span class="ss">:product</span><span class="p">]</span>          <span class="c1"># =&gt; "#&lt;Product:0x0000000109ec5d10&gt;" </span><span class="cp">%&gt;</span>
+<span class="cp">&lt;%</span> <span class="n">local_assigns</span><span class="p">[</span><span class="ss">:options</span><span class="p">]</span>          <span class="c1"># =&gt; nil </span><span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%# app/views/products/show.html.erb %>
+
+<%= render partial: &quot;products/product&quot;, locals: { product: @product } %>
+
+<%# app/views/products/_product.html.erb %>
+
+<% local_assigns[:product]          # => &quot;#<Product:0x0000000109ec5d10>&quot; %>
+<% local_assigns[:options]          # => nil %>
+">Copy</button>
+</div>
+<p>Since <code>local_assigns</code> is a <code>Hash</code>, it's compatible with <a href="https://docs.ruby-lang.org/en/master/syntax/pattern_matching_rdoc.html">Ruby 3.1's pattern matching assignment operator</a>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">local_assigns</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="n">product</span><span class="p">:,</span> <span class="o">**</span><span class="n">options</span> <span class="p">}</span>
+<span class="n">product</span> <span class="c1"># =&gt; "#&lt;Product:0x0000000109ec5d10&gt;"</span>
+<span class="n">options</span> <span class="c1"># =&gt; {}</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="local_assigns => { product:, **options }
+product # => &quot;#<Product:0x0000000109ec5d10>&quot;
+options # => {}
+">Copy</button>
+</div>
+<p>When keys other than <code>:product</code> are assigned into a partial-local <code>Hash</code>
+variable, they can be splatted into helper method calls:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="c">&lt;%# app/views/products/_product.html.erb %&gt;</span>
+
+<span class="cp">&lt;%</span> <span class="n">local_assigns</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="n">product</span><span class="p">:,</span> <span class="o">**</span><span class="n">options</span> <span class="p">}</span> <span class="cp">%&gt;</span>
+
+<span class="cp">&lt;%=</span> <span class="n">tag</span><span class="p">.</span><span class="nf">div</span> <span class="ss">id: </span><span class="n">dom_id</span><span class="p">(</span><span class="n">product</span><span class="p">),</span> <span class="o">**</span><span class="n">options</span> <span class="k">do</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;h1&gt;</span><span class="cp">&lt;%=</span> <span class="n">product</span><span class="p">.</span><span class="nf">name</span> <span class="cp">%&gt;</span><span class="nt">&lt;/h1&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+
+<span class="c">&lt;%# app/views/products/show.html.erb %&gt;</span>
+
+<span class="cp">&lt;%=</span> <span class="n">render</span> <span class="s2">"products/product"</span><span class="p">,</span> <span class="ss">product: </span><span class="vi">@product</span><span class="p">,</span> <span class="ss">class: </span><span class="s2">"card"</span> <span class="cp">%&gt;</span>
+<span class="c">&lt;%# =&gt; &lt;div id="product_1" class="card"&gt;
+  #      &lt;h1&gt;A widget&lt;/h1&gt;
+  #    &lt;/div&gt;
+%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%# app/views/products/_product.html.erb %>
+
+<% local_assigns => { product:, **options } %>
+
+<%= tag.div id: dom_id(product), **options do %>
+  <h1><%= product.name %></h1>
+<% end %>
+
+<%# app/views/products/show.html.erb %>
+
+<%= render &quot;products/product&quot;, product: @product, class: &quot;card&quot; %>
+<%# => <div id=&quot;product_1&quot; class=&quot;card&quot;>
+  #      <h1>A widget</h1>
+  #    </div>
+%>
+">Copy</button>
+</div>
+<p>Pattern matching assignment also supports variable renaming:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">local_assigns</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="ss">product: </span><span class="n">record</span> <span class="p">}</span>
+<span class="n">product</span>             <span class="c1"># =&gt; "#&lt;Product:0x0000000109ec5d10&gt;"</span>
+<span class="n">record</span>              <span class="c1"># =&gt; "#&lt;Product:0x0000000109ec5d10&gt;"</span>
+<span class="n">product</span> <span class="o">==</span> <span class="n">record</span>   <span class="c1"># =&gt; true</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="local_assigns => { product: record }
+product             # => &quot;#<Product:0x0000000109ec5d10>&quot;
+record              # => &quot;#<Product:0x0000000109ec5d10>&quot;
+product == record   # => true
+">Copy</button>
+</div>
+<p>Since <code>local_assigns</code> returns a <code>Hash</code> instance, you can conditionally read a variable, then fall back to a default value when the key isn't part of the <code>locals:</code> options:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="c">&lt;%# app/views/products/_product.html.erb %&gt;</span>
+
+<span class="cp">&lt;%</span> <span class="n">local_assigns</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="ss">:related_products</span><span class="p">,</span> <span class="p">[]).</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">related_product</span><span class="o">|</span> <span class="cp">%&gt;</span>
+  <span class="c">&lt;%# ... %&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%# app/views/products/_product.html.erb %>
+
+<% local_assigns.fetch(:related_products, []).each do |related_product| %>
+  <%# ... %>
+<% end %>
+">Copy</button>
+</div>
+<p>Combining Ruby 3.1's pattern matching assignment with calls to <a href="https://edgeapi.rubyonrails.org/classes/Hash.html#method-i-with_defaults">Hash#with_defaults</a> enables compact partial-local default variable assignments:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="c">&lt;%# app/views/products/_product.html.erb %&gt;</span>
+
+<span class="cp">&lt;%</span> <span class="n">local_assigns</span><span class="p">.</span><span class="nf">with_defaults</span><span class="p">(</span><span class="ss">related_products: </span><span class="p">[])</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="n">product</span><span class="p">:,</span> <span class="ss">related_products: </span><span class="p">}</span> <span class="cp">%&gt;</span>
+
+<span class="cp">&lt;%=</span> <span class="n">tag</span><span class="p">.</span><span class="nf">div</span> <span class="ss">id: </span><span class="n">dom_id</span><span class="p">(</span><span class="n">product</span><span class="p">)</span> <span class="k">do</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;h1&gt;</span><span class="cp">&lt;%=</span> <span class="n">product</span><span class="p">.</span><span class="nf">name</span> <span class="cp">%&gt;</span><span class="nt">&lt;/h1&gt;</span>
+
+  <span class="cp">&lt;%</span> <span class="n">related_products</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">related_product</span><span class="o">|</span> <span class="cp">%&gt;</span>
+    <span class="c">&lt;%# ... %&gt;</span>
+  <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%# app/views/products/_product.html.erb %>
+
+<% local_assigns.with_defaults(related_products: []) => { product:, related_products: } %>
+
+<%= tag.div id: dom_id(product) do %>
+  <h1><%= product.name %></h1>
+
+  <% related_products.each do |related_product| %>
+    <%# ... %>
+  <% end %>
+<% end %>
+">Copy</button>
+</div>
+<div class="info"><p>By default, partials will accept any <code>locals</code> as keyword arguments. To define what <code>locals</code> a partial accepts, use a <code>locals:</code> magic comment. To learn more, read about <a href="#strict-locals">Strict Locals</a>.</p></div><h3 id="render-without-partial-and-locals-options"><a class="anchorlink" href="#render-without-partial-and-locals-options">4.5 <code>render</code> without <code>partial</code> and <code>locals</code> Options</a></h3><p>In the above example, <code>render</code> takes 2 options: <code>partial</code> and <code>locals</code>. But if
+these are the only options you want to pass, you can skip using these options.
+For example, instead of:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">render</span> <span class="ss">partial: </span><span class="s2">"product"</span><span class="p">,</span> <span class="ss">locals: </span><span class="p">{</span> <span class="ss">product: </span><span class="vi">@product</span> <span class="p">}</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= render partial: &quot;product&quot;, locals: { product: @product } %>
+">Copy</button>
+</div>
+<p>You can also do:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">render</span> <span class="s2">"product"</span><span class="p">,</span> <span class="ss">product: </span><span class="vi">@product</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= render &quot;product&quot;, product: @product %>
+">Copy</button>
+</div>
+<h3 id="the-as-and-object-options"><a class="anchorlink" href="#the-as-and-object-options">4.6 The <code>as</code> and <code>object</code> Options</a></h3><p>By default <code>ActionView::Partials::PartialRenderer</code> has its object in a local variable with the same name as the template. So, given:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">render</span> <span class="ss">partial: </span><span class="s2">"product"</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= render partial: &quot;product&quot; %>
+">Copy</button>
+</div>
+<p>within <code>_product</code> partial we'll get <code>@product</code> in the local variable <code>product</code>,
+as if we had written:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">render</span> <span class="ss">partial: </span><span class="s2">"product"</span><span class="p">,</span> <span class="ss">locals: </span><span class="p">{</span> <span class="ss">product: </span><span class="vi">@product</span> <span class="p">}</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= render partial: &quot;product&quot;, locals: { product: @product } %>
+">Copy</button>
+</div>
+<p>The <code>object</code> option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere (e.g. in a different instance variable or in a local variable).</p><p>For example, instead of:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">render</span> <span class="ss">partial: </span><span class="s2">"product"</span><span class="p">,</span> <span class="ss">locals: </span><span class="p">{</span> <span class="ss">product: </span><span class="vi">@item</span> <span class="p">}</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= render partial: &quot;product&quot;, locals: { product: @item } %>
+">Copy</button>
+</div>
+<p>we would do:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">render</span> <span class="ss">partial: </span><span class="s2">"product"</span><span class="p">,</span> <span class="ss">object: </span><span class="vi">@item</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= render partial: &quot;product&quot;, object: @item %>
+">Copy</button>
+</div>
+<p>With the <code>as</code> option, we can specify a different name for the said local variable. For example, if we wanted it to be <code>item</code> instead of <code>product</code> we would do:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">render</span> <span class="ss">partial: </span><span class="s2">"product"</span><span class="p">,</span> <span class="ss">object: </span><span class="vi">@item</span><span class="p">,</span> <span class="ss">as: </span><span class="s2">"item"</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= render partial: &quot;product&quot;, object: @item, as: &quot;item&quot; %>
+">Copy</button>
+</div>
+<p>This is equivalent to</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">render</span> <span class="ss">partial: </span><span class="s2">"product"</span><span class="p">,</span> <span class="ss">locals: </span><span class="p">{</span> <span class="ss">item: </span><span class="vi">@item</span> <span class="p">}</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= render partial: &quot;product&quot;, locals: { item: @item } %>
+">Copy</button>
+</div>
+<h3 id="rendering-collections"><a class="anchorlink" href="#rendering-collections">4.7 Rendering Collections</a></h3><p>Commonly, a template will need to iterate over a collection and render a sub-template for each of the elements. This pattern has been implemented as a single method that accepts an array and renders a partial for each one of the elements in the array.</p><p>So this example for rendering all the products:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%</span> <span class="vi">@products</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">product</span><span class="o">|</span> <span class="cp">%&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="n">render</span> <span class="ss">partial: </span><span class="s2">"product"</span><span class="p">,</span> <span class="ss">locals: </span><span class="p">{</span> <span class="ss">product: </span><span class="n">product</span> <span class="p">}</span> <span class="cp">%&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<% @products.each do |product| %>
+  <%= render partial: &quot;product&quot;, locals: { product: product } %>
+<% end %>
+">Copy</button>
+</div>
+<p>can be rewritten in a single line:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">render</span> <span class="ss">partial: </span><span class="s2">"product"</span><span class="p">,</span> <span class="ss">collection: </span><span class="vi">@products</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= render partial: &quot;product&quot;, collection: @products %>
+">Copy</button>
+</div>
+<p>When a partial is called with a collection, the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is <code>_product</code>, and within it, you can refer to <code>product</code> to get the collection member that is being rendered.</p><p>You can use a shorthand syntax for rendering collections. Assuming <code>@products</code> is a collection of <code>Product</code> instances, you can simply write the following to produce the same result:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">render</span> <span class="vi">@products</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= render @products %>
+">Copy</button>
+</div>
+<p>Rails determines the name of the partial to use by looking at the model name in the collection, <code>Product</code> in this case. In fact, you can even render a collection made up of instances of different models using this shorthand, and Rails will choose the proper partial for each member of the collection.</p><h3 id="spacer-templates"><a class="anchorlink" href="#spacer-templates">4.8 Spacer Templates</a></h3><p>You can also specify a second partial to be rendered between instances of the main partial by using the <code>:spacer_template</code> option:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">render</span> <span class="ss">partial: </span><span class="vi">@products</span><span class="p">,</span> <span class="ss">spacer_template: </span><span class="s2">"product_ruler"</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= render partial: @products, spacer_template: &quot;product_ruler&quot; %>
+">Copy</button>
+</div>
+<p>Rails will render the <code>_product_ruler</code> partial (with no data passed to it) between each pair of <code>_product</code> partials.</p><h3 id="strict-locals"><a class="anchorlink" href="#strict-locals">4.9 Strict Locals</a></h3><p>By default, templates will accept any <code>locals</code> as keyword arguments. To define what <code>locals</code> a template accepts, add a <code>locals:</code> magic comment:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="c">&lt;%# app/views/messages/_message.html.erb %&gt;</span>
+
+<span class="c">&lt;%# locals: (message:) -%&gt;</span>
+<span class="cp">&lt;%=</span> <span class="n">message</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%# app/views/messages/_message.html.erb %>
+
+<%# locals: (message:) -%>
+<%= message %>
+">Copy</button>
+</div>
+<p>Rendering the partial without a <code>:message</code> local variable argument will raise an exception:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">render</span> <span class="s2">"messages/message"</span>
+<span class="c1"># =&gt; ActionView::Template::Error: missing local: :message for app/views/messages/_message.html.erb</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="render &quot;messages/message&quot;
+# => ActionView::Template::Error: missing local: :message for app/views/messages/_message.html.erb
+">Copy</button>
+</div>
+<p>Default values can also be provided:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="c">&lt;%# app/views/messages/_message.html.erb %&gt;</span>
+
+<span class="c">&lt;%# locals: (message: "Hello, world!") -%&gt;</span>
+<span class="cp">&lt;%=</span> <span class="n">message</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%# app/views/messages/_message.html.erb %>
+
+<%# locals: (message: &quot;Hello, world!&quot;) -%>
+<%= message %>
+">Copy</button>
+</div>
+<p>Rendering the partial without a <code>:message</code> local variable uses the provided default value:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">render</span> <span class="s2">"messages/message"</span>
+<span class="c1"># =&gt; "Hello, world!"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="render &quot;messages/message&quot;
+# => &quot;Hello, world!&quot;
+">Copy</button>
+</div>
+<p>Rendering the partial with additional local variable arguments will raise an exception:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">render</span> <span class="s2">"messages/message"</span><span class="p">,</span> <span class="ss">unknown_local: </span><span class="s2">"will raise"</span>
+<span class="c1"># =&gt; ActionView::Template::Error: missing local: :unknown_local for app/views/messages/_message.html.erb</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="render &quot;messages/message&quot;, unknown_local: &quot;will raise&quot;
+# => ActionView::Template::Error: missing local: :unknown_local for app/views/messages/_message.html.erb
+">Copy</button>
+</div>
+<p>Optional local variable arguments can be splatted:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="c">&lt;%# app/views/messages/_message.html.erb %&gt;</span>
+
+<span class="c">&lt;%# locals: (message: "Hello, world!", **attributes) -%&gt;</span>
+<span class="cp">&lt;%=</span> <span class="n">tag</span><span class="p">.</span><span class="nf">p</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="o">**</span><span class="n">attributes</span><span class="p">)</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%# app/views/messages/_message.html.erb %>
+
+<%# locals: (message: &quot;Hello, world!&quot;, **attributes) -%>
+<%= tag.p(message, **attributes) %>
+">Copy</button>
+</div>
+<p>Or <code>locals</code> can be disabled entirely:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="c">&lt;%# app/views/messages/_message.html.erb %&gt;</span>
+
+<span class="c">&lt;%# locals: () %&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%# app/views/messages/_message.html.erb %>
+
+<%# locals: () %>
+">Copy</button>
+</div>
+<p>Rendering the partial with any local variable arguments will raise an exception:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">render</span> <span class="s2">"messages/message"</span><span class="p">,</span> <span class="ss">unknown_local: </span><span class="s2">"will raise"</span>
+<span class="c1"># =&gt; ActionView::Template::Error: no locals accepted for app/views/messages/_message.html.erb</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="render &quot;messages/message&quot;, unknown_local: &quot;will raise&quot;
+# => ActionView::Template::Error: no locals accepted for app/views/messages/_message.html.erb
+">Copy</button>
+</div>
+<p>Action View will process the <code>locals:</code> magic comment in any templating engine that supports <code>#</code>-prefixed comments, and will read the magic comment from any line in the partial.</p><div class="warning"><p>Only keyword arguments are supported. Defining positional or block arguments will raise an Action View Error at render-time.</p></div><h2 id="layouts"><a class="anchorlink" href="#layouts">5 Layouts</a></h2><p>Layouts can be used to render a common view template around the results of Rails controller actions. Typically, a Rails application will have a couple of layouts that pages will be rendered within. For example, a site might have one layout for a logged in user and another for the marketing or sales side of the site. The logged in user layout might include top-level navigation that should be present across many controller actions. The sales layout for a SaaS app might include top-level navigation for things like "Pricing" and "Contact Us" pages. You would expect each layout to have a different look and feel. You can read about layouts in more detail in the <a href="layouts_and_rendering.html">Layouts and Rendering in Rails</a> guide.</p><h3 id="partial-layouts"><a class="anchorlink" href="#partial-layouts">5.1 Partial Layouts</a></h3><p>Partials can have their own layouts applied to them. These layouts are different from those applied to a controller action, but they work in a similar fashion.</p><p>Let's say we're displaying an article on a page which should be wrapped in a <code>div</code> for display purposes. Firstly, we'll create a new <code>Article</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">Article</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">body: </span><span class="s1">'Partial Layouts are cool!'</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Article.create(body: 'Partial Layouts are cool!')
+">Copy</button>
+</div>
+<p>In the <code>show</code> template, we'll render the <code>_article</code> partial wrapped in the <code>box</code> layout:</p><p><strong>articles/show.html.erb</strong></p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">render</span> <span class="ss">partial: </span><span class="s1">'article'</span><span class="p">,</span> <span class="ss">layout: </span><span class="s1">'box'</span><span class="p">,</span> <span class="ss">locals: </span><span class="p">{</span> <span class="ss">article: </span><span class="vi">@article</span> <span class="p">}</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= render partial: 'article', layout: 'box', locals: { article: @article } %>
+">Copy</button>
+</div>
+<p>The <code>box</code> layout simply wraps the <code>_article</code> partial in a <code>div</code>:</p><p><strong>articles/_box.html.erb</strong></p><div class="code_container">
+<pre><code class="highlight erb"><span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">'box'</span><span class="nt">&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="k">yield</span> <span class="cp">%&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<div class='box'>
+  <%= yield %>
+</div>
+">Copy</button>
+</div>
+<p>Note that the partial layout has access to the local <code>article</code> variable that was passed into the <code>render</code> call. However, unlike application-wide layouts, partial layouts still have the underscore prefix.</p><p>You can also render a block of code within a partial layout instead of calling <code>yield</code>. For example, if we didn't have the <code>_article</code> partial, we could do this instead:</p><p><strong>articles/show.html.erb</strong></p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%</span> <span class="n">render</span><span class="p">(</span><span class="ss">layout: </span><span class="s1">'box'</span><span class="p">,</span> <span class="ss">locals: </span><span class="p">{</span> <span class="ss">article: </span><span class="vi">@article</span> <span class="p">})</span> <span class="k">do</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;div&gt;</span>
+    <span class="nt">&lt;p&gt;</span><span class="cp">&lt;%=</span> <span class="n">article</span><span class="p">.</span><span class="nf">body</span> <span class="cp">%&gt;</span><span class="nt">&lt;/p&gt;</span>
+  <span class="nt">&lt;/div&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<% render(layout: 'box', locals: { article: @article }) do %>
+  <div>
+    <p><%= article.body %></p>
+  </div>
+<% end %>
+">Copy</button>
+</div>
+<p>Supposing we use the same <code>_box</code> partial from above, this would produce the same output as the previous example.</p><h2 id="view-paths"><a class="anchorlink" href="#view-paths">6 View Paths</a></h2><p>When rendering a response, the controller needs to resolve where the different
+views are located. By default, it only looks inside the <code>app/views</code> directory.</p><p>We can add other locations and give them certain precedence when resolving
+paths using the <code>prepend_view_path</code> and <code>append_view_path</code> methods.</p><h3 id="prepend-view-path"><a class="anchorlink" href="#prepend-view-path">6.1 Prepend View Path</a></h3><p>This can be helpful for example when we want to put views inside a different
+directory for subdomains.</p><p>We can do this by using:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">prepend_view_path</span> <span class="s2">"app/views/</span><span class="si">#{</span><span class="n">request</span><span class="p">.</span><span class="nf">subdomain</span><span class="si">}</span><span class="s2">"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="prepend_view_path &quot;app/views/#{request.subdomain}&quot;
+">Copy</button>
+</div>
+<p>Then Action View will look first in this directory when resolving views.</p><h3 id="append-view-path"><a class="anchorlink" href="#append-view-path">6.2 Append View Path</a></h3><p>Similarly, we can append paths:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">append_view_path</span> <span class="s2">"app/views/direct"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="append_view_path &quot;app/views/direct&quot;
+">Copy</button>
+</div>
+<p>This will add <code>app/views/direct</code> to the end of the lookup paths.</p><h2 id="helpers"><a class="anchorlink" href="#helpers">7 Helpers</a></h2><p>Rails provides many helper methods to use with Action View. These include methods for:</p>
+<ul>
+<li>Formatting dates, strings and numbers</li>
+<li>Creating HTML links to images, videos, stylesheets, etc...</li>
+<li>Sanitizing content</li>
+<li>Creating forms</li>
+<li>Localizing content</li>
+</ul>
+<p>You can learn more about helpers in the <a href="action_view_helpers.html">Action View Helpers
+Guide</a> and the <a href="form_helpers.html">Action View Form Helpers
+Guide</a>.</p><h2 id="localized-views"><a class="anchorlink" href="#localized-views">8 Localized Views</a></h2><p>Action View has the ability to render different templates depending on the current locale.</p><p>For example, suppose you have an <code>ArticlesController</code> with a show action. By default, calling this action will render <code>app/views/articles/show.html.erb</code>. But if you set <code>I18n.locale = :de</code>, then <code>app/views/articles/show.de.html.erb</code> will be rendered instead. If the localized template isn't present, the undecorated version will be used. This means you're not required to provide localized views for all cases, but they will be preferred and used if available.</p><p>You can use the same technique to localize the rescue files in your public directory. For example, setting <code>I18n.locale = :de</code> and creating <code>public/500.de.html</code> and <code>public/404.de.html</code> would allow you to have localized rescue pages.</p><p>Since Rails doesn't restrict the symbols that you use to set I18n.locale, you can leverage this system to display different content depending on anything you like. For example, suppose you have some "expert" users that should see different pages from "normal" users. You could add the following to <code>app/controllers/application_controller.rb</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">before_action</span> <span class="ss">:set_expert_locale</span>
+
+<span class="k">def</span> <span class="nf">set_expert_locale</span>
+  <span class="no">I18n</span><span class="p">.</span><span class="nf">locale</span> <span class="o">=</span> <span class="ss">:expert</span> <span class="k">if</span> <span class="n">current_user</span><span class="p">.</span><span class="nf">expert?</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="before_action :set_expert_locale
+
+def set_expert_locale
+  I18n.locale = :expert if current_user.expert?
+end
+">Copy</button>
+</div>
+<p>Then you could create special views like <code>app/views/articles/show.expert.html.erb</code> that would only be displayed to expert users.</p><p>You can read more about the Rails Internationalization (I18n) API <a href="i18n.html">here</a>.</p>
+
+        <h3>Feedback</h3>
+        <p>
+          You're encouraged to help improve the quality of this guide.
+        </p>
+        <p>
+          Please contribute if you see any typos or factual errors.
+          To get started, you can read our <a href="https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation">documentation contributions</a> section.
+        </p>
+        <p>
+          You may also find incomplete content or stuff that is not up to date.
+          Please do add any missing documentation for main. Make sure to check
+          <a href="https://edgeguides.rubyonrails.org">Edge Guides</a> first to verify
+          if the issues are already fixed or not on the main branch.
+          Check the <a href="ruby_on_rails_guides_guidelines.html">Ruby on Rails Guides Guidelines</a>
+          for style and conventions.
+        </p>
+        <p>
+          If for whatever reason you spot something to fix but cannot patch it yourself, please
+          <a href="https://github.com/rails/rails/issues">open an issue</a>.
+        </p>
+        <p>And last but not least, any kind of discussion regarding Ruby on Rails
+          documentation is very welcome on the <a href="https://discuss.rubyonrails.org/c/rubyonrails-docs">official Ruby on Rails Forum</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="hide" />
+  <div id="footer">
+    <div class="wrapper">
+      <p>This work is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International</a> License</p>
+<p>"Rails", "Ruby on Rails", and the Rails logo are trademarks of David Heinemeier Hansson. All rights reserved.</p>
+
+    </div>
+  </div>
+</body>
+</html>

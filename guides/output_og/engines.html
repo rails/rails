@@ -1,0 +1,1957 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Getting Started with Engines — Ruby on Rails Guides</title>
+  <link rel="stylesheet" type="text/css" href="stylesheets/style.css" data-turbo-track="reload">
+  <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+  <link rel="stylesheet" type="text/css" href="stylesheets/highlight.css" data-turbo-track="reload">
+  
+  <link rel="icon" href="images/favicon.ico" sizes="any">
+  <link rel="icon" href="images/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="images/icon.png">
+  
+  <script src="javascripts/@hotwired--turbo.js" data-turbo-track="reload"></script>
+  <script src="javascripts/clipboard.js" data-turbo-track="reload"></script>
+  <script src="javascripts/guides.js" data-turbo-track="reload"></script>
+
+  <meta property="og:title" content="Getting Started with Engines — Ruby on Rails Guides" />
+  <meta name="description" content="Getting Started with EnginesIn this guide you will learn about engines and how they can be used to provide additional functionality to their host applications through a clean and very easy-to-use interface.After reading this guide, you will know: What makes an engine. How to generate an engine. How to build features for the engine. How to hook the engine into an application. How to override engine functionality in the application. How to avoid loading Rails frameworks with Load and Configuration Hooks." />
+  <meta property="og:description" content="Getting Started with EnginesIn this guide you will learn about engines and how they can be used to provide additional functionality to their host applications through a clean and very easy-to-use interface.After reading this guide, you will know: What makes an engine. How to generate an engine. How to build features for the engine. How to hook the engine into an application. How to override engine functionality in the application. How to avoid loading Rails frameworks with Load and Configuration Hooks." />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:site_name" content="Ruby on Rails Guides" />
+  <meta property="og:image" content="https://avatars.githubusercontent.com/u/4223" />
+  <meta property="og:type" content="website" />
+
+  <meta name="theme-color" content="#C81418">
+</head>
+
+<body dir="ltr" class="guide">
+  <div>
+    <div id="version-badge">edge</div>
+  </div>
+  <div id="topNav">
+    <div class="wrapper">
+      <strong class="more-info-label">More at <a href="https://rubyonrails.org/">rubyonrails.org:</a> </strong>
+      <span class="red-button more-info-button">
+        More Ruby on Rails
+      </span>
+      <ul class="more-info-links s-hidden">
+        <li class="more-info"><a href="https://rubyonrails.org/blog">Blog</a></li>
+        <li class="more-info"><a href="https://guides.rubyonrails.org/">Guides</a></li>
+        <li class="more-info"><a href="https://api.rubyonrails.org/">API</a></li>
+        <li class="more-info"><a href="https://discuss.rubyonrails.org/">Forum</a></li>
+        <li class="more-info"><a href="https://github.com/rails/rails">Contribute on GitHub</a></li>
+      </ul>
+    </div>
+  </div>
+  <div id="header">
+    <div class="wrapper clearfix">
+      <div class="header-logo"><a href="index.html" title="Return to home page">Guides.rubyonrails.org</a></div>
+      <ul class="nav">
+        <li><a class="nav-item" href="index.html">Home</a></li>
+        <li class="guides-index guides-index-large">
+          <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
+          <div id="guides" class="clearfix" style="display: none;">
+            <hr />
+            <dl class="guides-section-container">
+                <div class="guides-section">
+                  <dt>Start Here</dt>
+                  <dd><a href="getting_started.html">Getting Started with Rails</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Models</dt>
+                  <dd><a href="active_record_basics.html">Active Record Basics</a></dd>
+                  <dd><a href="active_record_migrations.html">Active Record Migrations</a></dd>
+                  <dd><a href="active_record_validations.html">Active Record Validations</a></dd>
+                  <dd><a href="active_record_callbacks.html">Active Record Callbacks</a></dd>
+                  <dd><a href="association_basics.html">Active Record Associations</a></dd>
+                  <dd><a href="active_record_querying.html">Active Record Query Interface</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Views</dt>
+                  <dd><a href="layouts_and_rendering.html">Layouts and Rendering in Rails</a></dd>
+                  <dd><a href="form_helpers.html">Action View Form Helpers</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Controllers</dt>
+                  <dd><a href="action_controller_overview.html">Action Controller Overview</a></dd>
+                  <dd><a href="routing.html">Rails Routing from the Outside In</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Other Components</dt>
+                  <dd><a href="active_support_core_extensions.html">Active Support Core Extensions</a></dd>
+                  <dd><a href="action_mailer_basics.html">Action Mailer Basics</a></dd>
+                  <dd><a href="active_job_basics.html">Active Job Basics</a></dd>
+                  <dd><a href="active_storage_overview.html">Active Storage Overview</a></dd>
+                  <dd><a href="action_cable_overview.html">Action Cable Overview</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Digging Deeper</dt>
+                  <dd><a href="i18n.html">Rails Internationalization (I18n) API</a></dd>
+                  <dd><a href="testing.html">Testing Rails Applications</a></dd>
+                  <dd><a href="security.html">Securing Rails Applications</a></dd>
+                  <dd><a href="error_reporting.html">Error Reporting in Rails Applications</a></dd>
+                  <dd><a href="debugging_rails_applications.html">Debugging Rails Applications</a></dd>
+                  <dd><a href="configuring.html">Configuring Rails Applications</a></dd>
+                  <dd><a href="command_line.html">The Rails Command Line</a></dd>
+                  <dd><a href="asset_pipeline.html">The Asset Pipeline</a></dd>
+                  <dd><a href="working_with_javascript_in_rails.html">Working with JavaScript in Rails</a></dd>
+                  <dd><a href="autoloading_and_reloading_constants.html">Autoloading and Reloading</a></dd>
+                  <dd><a href="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</a></dd>
+                  <dd><a href="caching_with_rails.html">Caching with Rails: An Overview</a></dd>
+                  <dd><a href="api_app.html">Using Rails for API-only Applications</a></dd>
+                  <dd><a href="active_record_multiple_databases.html">Multiple Databases</a></dd>
+                  <dd><a href="active_record_composite_primary_keys.html">Composite Primary Keys</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Extending Rails</dt>
+                  <dd><a href="rails_on_rack.html">Rails on Rack</a></dd>
+                  <dd><a href="generators.html">Creating and Customizing Rails Generators &amp; Templates</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Contributing</dt>
+                  <dd><a href="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</a></dd>
+                  <dd><a href="api_documentation_guidelines.html">API Documentation Guidelines</a></dd>
+                  <dd><a href="ruby_on_rails_guides_guidelines.html">Guides Guidelines</a></dd>
+                  <dd><a href="development_dependencies_install.html">Installing Rails Core Development Dependencies</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Policies</dt>
+                  <dd><a href="maintenance_policy.html">Maintenance Policy</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Release Notes</dt>
+                  <dd><a href="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</a></dd>
+                  <dd><a href="7_1_release_notes.html">Version 7.1 - October 2023</a></dd>
+                  <dd><a href="7_0_release_notes.html">Version 7.0 - December 2021</a></dd>
+                  <dd><a href="6_1_release_notes.html">Version 6.1 - December 2020</a></dd>
+                  <dd><a href="6_0_release_notes.html">Version 6.0 - August 2019</a></dd>
+                  <dd><a href="5_2_release_notes.html">Version 5.2 - April 2018</a></dd>
+                  <dd><a href="5_1_release_notes.html">Version 5.1 - April 2017</a></dd>
+                  <dd><a href="5_0_release_notes.html">Version 5.0 - June 2016</a></dd>
+                  <dd><a href="4_2_release_notes.html">Version 4.2 - December 2014</a></dd>
+                  <dd><a href="4_1_release_notes.html">Version 4.1 - April 2014</a></dd>
+                  <dd><a href="4_0_release_notes.html">Version 4.0 - June 2013</a></dd>
+                  <dd><a href="3_2_release_notes.html">Version 3.2 - January 2012</a></dd>
+                  <dd><a href="3_1_release_notes.html">Version 3.1 - August 2011</a></dd>
+                  <dd><a href="3_0_release_notes.html">Version 3.0 - August 2010</a></dd>
+                  <dd><a href="2_3_release_notes.html">Version 2.3 - March 2009</a></dd>
+                  <dd><a href="2_2_release_notes.html">Version 2.2 - November 2008</a></dd>
+                </div>
+            </dl>
+          </div>
+        </li>
+        <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
+        <li class="guides-index guides-index-small">
+          <select class="guides-index-item nav-item">
+            <option value="index.html">Guides Index</option>
+              <optgroup label="Start Here">
+                  <option value="getting_started.html">Getting Started with Rails</option>
+              </optgroup>
+              <optgroup label="Models">
+                  <option value="active_record_basics.html">Active Record Basics</option>
+                  <option value="active_record_migrations.html">Active Record Migrations</option>
+                  <option value="active_record_validations.html">Active Record Validations</option>
+                  <option value="active_record_callbacks.html">Active Record Callbacks</option>
+                  <option value="association_basics.html">Active Record Associations</option>
+                  <option value="active_record_querying.html">Active Record Query Interface</option>
+              </optgroup>
+              <optgroup label="Views">
+                  <option value="layouts_and_rendering.html">Layouts and Rendering in Rails</option>
+                  <option value="form_helpers.html">Action View Form Helpers</option>
+              </optgroup>
+              <optgroup label="Controllers">
+                  <option value="action_controller_overview.html">Action Controller Overview</option>
+                  <option value="routing.html">Rails Routing from the Outside In</option>
+              </optgroup>
+              <optgroup label="Other Components">
+                  <option value="active_support_core_extensions.html">Active Support Core Extensions</option>
+                  <option value="action_mailer_basics.html">Action Mailer Basics</option>
+                  <option value="active_job_basics.html">Active Job Basics</option>
+                  <option value="active_storage_overview.html">Active Storage Overview</option>
+                  <option value="action_cable_overview.html">Action Cable Overview</option>
+              </optgroup>
+              <optgroup label="Digging Deeper">
+                  <option value="i18n.html">Rails Internationalization (I18n) API</option>
+                  <option value="testing.html">Testing Rails Applications</option>
+                  <option value="security.html">Securing Rails Applications</option>
+                  <option value="error_reporting.html">Error Reporting in Rails Applications</option>
+                  <option value="debugging_rails_applications.html">Debugging Rails Applications</option>
+                  <option value="configuring.html">Configuring Rails Applications</option>
+                  <option value="command_line.html">The Rails Command Line</option>
+                  <option value="asset_pipeline.html">The Asset Pipeline</option>
+                  <option value="working_with_javascript_in_rails.html">Working with JavaScript in Rails</option>
+                  <option value="autoloading_and_reloading_constants.html">Autoloading and Reloading</option>
+                  <option value="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</option>
+                  <option value="caching_with_rails.html">Caching with Rails: An Overview</option>
+                  <option value="api_app.html">Using Rails for API-only Applications</option>
+                  <option value="active_record_multiple_databases.html">Multiple Databases</option>
+                  <option value="active_record_composite_primary_keys.html">Composite Primary Keys</option>
+              </optgroup>
+              <optgroup label="Extending Rails">
+                  <option value="rails_on_rack.html">Rails on Rack</option>
+                  <option value="generators.html">Creating and Customizing Rails Generators &amp; Templates</option>
+              </optgroup>
+              <optgroup label="Contributing">
+                  <option value="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</option>
+                  <option value="api_documentation_guidelines.html">API Documentation Guidelines</option>
+                  <option value="ruby_on_rails_guides_guidelines.html">Guides Guidelines</option>
+                  <option value="development_dependencies_install.html">Installing Rails Core Development Dependencies</option>
+              </optgroup>
+              <optgroup label="Policies">
+                  <option value="maintenance_policy.html">Maintenance Policy</option>
+              </optgroup>
+              <optgroup label="Release Notes">
+                  <option value="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</option>
+                  <option value="7_1_release_notes.html">Version 7.1 - October 2023</option>
+                  <option value="7_0_release_notes.html">Version 7.0 - December 2021</option>
+                  <option value="6_1_release_notes.html">Version 6.1 - December 2020</option>
+                  <option value="6_0_release_notes.html">Version 6.0 - August 2019</option>
+                  <option value="5_2_release_notes.html">Version 5.2 - April 2018</option>
+                  <option value="5_1_release_notes.html">Version 5.1 - April 2017</option>
+                  <option value="5_0_release_notes.html">Version 5.0 - June 2016</option>
+                  <option value="4_2_release_notes.html">Version 4.2 - December 2014</option>
+                  <option value="4_1_release_notes.html">Version 4.1 - April 2014</option>
+                  <option value="4_0_release_notes.html">Version 4.0 - June 2013</option>
+                  <option value="3_2_release_notes.html">Version 3.2 - January 2012</option>
+                  <option value="3_1_release_notes.html">Version 3.1 - August 2011</option>
+                  <option value="3_0_release_notes.html">Version 3.0 - August 2010</option>
+                  <option value="2_3_release_notes.html">Version 2.3 - March 2009</option>
+                  <option value="2_2_release_notes.html">Version 2.2 - November 2008</option>
+              </optgroup>
+          </select>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <hr class="hide" />
+
+  <div id="feature">
+    <div class="wrapper">
+      <h1>Getting Started with Engines</h1><p>In this guide you will learn about engines and how they can be used to provide
+additional functionality to their host applications through a clean and very
+easy-to-use interface.</p><p>After reading this guide, you will know:</p>
+<ul>
+<li>What makes an engine.</li>
+<li>How to generate an engine.</li>
+<li>How to build features for the engine.</li>
+<li>How to hook the engine into an application.</li>
+<li>How to override engine functionality in the application.</li>
+<li>How to avoid loading Rails frameworks with Load and Configuration Hooks.</li>
+</ul>
+
+
+                <div id="subCol">
+            <h3 class="chapter"><img src="images/icon_book-close-bookmark-1.svg" alt="" />Chapters</h3>
+            <ol class="chapters">
+<li><a href="#what-are-engines-questionmark">What are Engines?</a></li>
+<li><a href="#generating-an-engine">Generating an Engine</a>
+
+<ul>
+<li><a href="#inside-an-engine">Inside an Engine</a></li>
+</ul></li>
+<li><a href="#providing-engine-functionality">Providing Engine Functionality</a>
+
+<ul>
+<li><a href="#generating-an-article-resource">Generating an Article Resource</a></li>
+<li><a href="#generating-a-comments-resource">Generating a Comments Resource</a></li>
+</ul></li>
+<li><a href="#hooking-into-an-application">Hooking Into an Application</a>
+
+<ul>
+<li><a href="#mounting-the-engine">Mounting the Engine</a></li>
+<li><a href="#engine-setup">Engine Setup</a></li>
+<li><a href="#using-a-class-provided-by-the-application">Using a Class Provided by the Application</a></li>
+<li><a href="#configuring-an-engine">Configuring an Engine</a></li>
+</ul></li>
+<li><a href="#testing-an-engine">Testing an Engine</a>
+
+<ul>
+<li><a href="#functional-tests">Functional Tests</a></li>
+</ul></li>
+<li><a href="#improving-engine-functionality">Improving Engine Functionality</a>
+
+<ul>
+<li><a href="#overriding-models-and-controllers">Overriding Models and Controllers</a></li>
+<li><a href="#autoloading-and-engines">Autoloading and Engines</a></li>
+<li><a href="#overriding-views">Overriding Views</a></li>
+<li><a href="#routes">Routes</a></li>
+<li><a href="#assets">Assets</a></li>
+<li><a href="#separate-assets-and-precompiling">Separate Assets and Precompiling</a></li>
+<li><a href="#other-gem-dependencies">Other Gem Dependencies</a></li>
+</ul></li>
+<li><a href="#load-and-configuration-hooks">Load and Configuration Hooks</a>
+
+<ul>
+<li><a href="#avoid-loading-rails-frameworks">Avoid Loading Rails Frameworks</a></li>
+<li><a href="#when-are-hooks-called-questionmark">When are Hooks called?</a></li>
+<li><a href="#modifying-code-to-use-load-hooks">Modifying Code to Use Load Hooks</a></li>
+<li><a href="#available-load-hooks">Available Load Hooks</a></li>
+<li><a href="#available-configuration-hooks">Available Configuration Hooks</a></li>
+</ul></li>
+</ol>
+
+          </div>
+
+    </div>
+  </div>
+
+  <div id="container">
+    <div class="wrapper">
+      <div id="mainCol">
+        <h2 id="what-are-engines-questionmark"><a class="anchorlink" href="#what-are-engines-questionmark">1 What are Engines?</a></h2><p>Engines can be considered miniature applications that provide functionality to
+their host applications. A Rails application is actually just a "supercharged"
+engine, with the <code>Rails::Application</code> class inheriting a lot of its behavior
+from <code>Rails::Engine</code>.</p><p>Therefore, engines and applications can be thought of as almost the same thing,
+just with subtle differences, as you'll see throughout this guide. Engines and
+applications also share a common structure.</p><p>Engines are also closely related to plugins. The two share a common <code>lib</code>
+directory structure, and are both generated using the <code>rails plugin new</code>
+generator. The difference is that an engine is considered a "full plugin" by
+Rails (as indicated by the <code>--full</code> option that's passed to the generator
+command). We'll actually be using the <code>--mountable</code> option here, which includes
+all the features of <code>--full</code>, and then some. This guide will refer to these
+"full plugins" simply as "engines" throughout. An engine <strong>can</strong> be a plugin,
+and a plugin <strong>can</strong> be an engine.</p><p>The engine that will be created in this guide will be called "blorgh". This
+engine will provide blogging functionality to its host applications, allowing
+for new articles and comments to be created. At the beginning of this guide, you
+will be working solely within the engine itself, but in later sections you'll
+see how to hook it into an application.</p><p>Engines can also be isolated from their host applications. This means that an
+application is able to have a path provided by a routing helper such as
+<code>articles_path</code> and use an engine that also provides a path also called
+<code>articles_path</code>, and the two would not clash. Along with this, controllers, models
+and table names are also namespaced. You'll see how to do this later in this
+guide.</p><p>It's important to keep in mind at all times that the application should
+<strong>always</strong> take precedence over its engines. An application is the object that
+has final say in what goes on in its environment. The engine should
+only be enhancing it, rather than changing it drastically.</p><p>To see demonstrations of other engines, check out
+<a href="https://github.com/plataformatec/devise">Devise</a>, an engine that provides
+authentication for its parent applications, or
+<a href="https://github.com/thredded/thredded">Thredded</a>, an engine that provides forum
+functionality. There's also <a href="https://github.com/spree/spree">Spree</a> which
+provides an e-commerce platform, and
+<a href="https://github.com/refinery/refinerycms">Refinery CMS</a>, a CMS engine.</p><p>Finally, engines would not have been possible without the work of James Adam,
+Piotr Sarnacki, the Rails Core Team, and a number of other people. If you ever
+meet them, don't forget to say thanks!</p><h2 id="generating-an-engine"><a class="anchorlink" href="#generating-an-engine">2 Generating an Engine</a></h2><p>To generate an engine, you will need to run the plugin generator and pass it
+options as appropriate to the need. For the "blorgh" example, you will need to
+create a "mountable" engine, running this command in a terminal:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">rails </span>plugin new blorgh <span class="nt">--mountable</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="rails plugin new blorgh --mountable
+">Copy</button>
+</div>
+<p>The full list of options for the plugin generator may be seen by typing:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">rails </span>plugin <span class="nt">--help</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="rails plugin --help
+">Copy</button>
+</div>
+<p>The <code>--mountable</code> option tells the generator that you want to create a
+"mountable" and namespace-isolated engine. This generator will provide the same
+skeleton structure as would the <code>--full</code> option. The <code>--full</code> option tells the
+generator that you want to create an engine, including a skeleton structure
+that provides the following:</p>
+<ul>
+<li>An <code>app</code> directory tree</li>
+<li><p>A <code>config/routes.rb</code> file:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Rails.application.routes.draw do
+end
+">Copy</button>
+</div></li>
+<li><p>A file at <code>lib/blorgh/engine.rb</code>, which is identical in function to a
+standard Rails application's <code>config/application.rb</code> file:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">module</span> <span class="nn">Blorgh</span>
+  <span class="k">class</span> <span class="nc">Engine</span> <span class="o">&lt;</span> <span class="o">::</span><span class="no">Rails</span><span class="o">::</span><span class="no">Engine</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="module Blorgh
+  class Engine < ::Rails::Engine
+  end
+end
+">Copy</button>
+</div></li>
+</ul>
+<p>The <code>--mountable</code> option will add to the <code>--full</code> option:</p>
+<ul>
+<li>Asset manifest files (<code>blorgh_manifest.js</code> and <code>application.css</code>)</li>
+<li>A namespaced <code>ApplicationController</code> stub</li>
+<li>A namespaced <code>ApplicationHelper</code> stub</li>
+<li>A layout view template for the engine</li>
+<li><p>Namespace isolation to <code>config/routes.rb</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">Blorgh</span><span class="o">::</span><span class="no">Engine</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Blorgh::Engine.routes.draw do
+end
+">Copy</button>
+</div></li>
+<li><p>Namespace isolation to <code>lib/blorgh/engine.rb</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">module</span> <span class="nn">Blorgh</span>
+  <span class="k">class</span> <span class="nc">Engine</span> <span class="o">&lt;</span> <span class="o">::</span><span class="no">Rails</span><span class="o">::</span><span class="no">Engine</span>
+    <span class="n">isolate_namespace</span> <span class="no">Blorgh</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="module Blorgh
+  class Engine < ::Rails::Engine
+    isolate_namespace Blorgh
+  end
+end
+">Copy</button>
+</div></li>
+</ul>
+<p>Additionally, the <code>--mountable</code> option tells the generator to mount the engine
+inside the dummy testing application located at <code>test/dummy</code> by adding the
+following to the dummy application's routes file at
+<code>test/dummy/config/routes.rb</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">mount</span> <span class="no">Blorgh</span><span class="o">::</span><span class="no">Engine</span> <span class="o">=&gt;</span> <span class="s2">"/blorgh"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="mount Blorgh::Engine => &quot;/blorgh&quot;
+">Copy</button>
+</div>
+<h3 id="inside-an-engine"><a class="anchorlink" href="#inside-an-engine">2.1 Inside an Engine</a></h3><h4 id="critical-files"><a class="anchorlink" href="#critical-files">2.1.1 Critical Files</a></h4><p>At the root of this brand new engine's directory lives a <code>blorgh.gemspec</code> file.
+When you include the engine into an application later on, you will do so with
+this line in the Rails application's <code>Gemfile</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">gem</span> <span class="s2">"blorgh"</span><span class="p">,</span> <span class="ss">path: </span><span class="s2">"engines/blorgh"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="gem &quot;blorgh&quot;, path: &quot;engines/blorgh&quot;
+">Copy</button>
+</div>
+<p>Don't forget to run <code>bundle install</code> as usual. By specifying it as a gem within
+the <code>Gemfile</code>, Bundler will load it as such, parsing this <code>blorgh.gemspec</code> file
+and requiring a file within the <code>lib</code> directory called <code>lib/blorgh.rb</code>. This
+file requires the <code>blorgh/engine.rb</code> file (located at <code>lib/blorgh/engine.rb</code>)
+and defines a base module called <code>Blorgh</code>.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="nb">require</span> <span class="s2">"blorgh/engine"</span>
+
+<span class="k">module</span> <span class="nn">Blorgh</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="require &quot;blorgh/engine&quot;
+
+module Blorgh
+end
+">Copy</button>
+</div>
+<div class="info"><p>Some engines choose to use this file to put global configuration options
+for their engine. It's a relatively good idea, so if you want to offer
+configuration options, the file where your engine's <code>module</code> is defined is
+perfect for that. Place the methods inside the module and you'll be good to go.</p></div><p>Within <code>lib/blorgh/engine.rb</code> is the base class for the engine:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">module</span> <span class="nn">Blorgh</span>
+  <span class="k">class</span> <span class="nc">Engine</span> <span class="o">&lt;</span> <span class="o">::</span><span class="no">Rails</span><span class="o">::</span><span class="no">Engine</span>
+    <span class="n">isolate_namespace</span> <span class="no">Blorgh</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="module Blorgh
+  class Engine < ::Rails::Engine
+    isolate_namespace Blorgh
+  end
+end
+">Copy</button>
+</div>
+<p>By inheriting from the <code>Rails::Engine</code> class, this gem notifies Rails that
+there's an engine at the specified path, and will correctly mount the engine
+inside the application, performing tasks such as adding the <code>app</code> directory of
+the engine to the load path for models, mailers, controllers, and views.</p><p>The <code>isolate_namespace</code> method here deserves special notice. This call is
+responsible for isolating the controllers, models, routes, and other things into
+their own namespace, away from similar components inside the application.
+Without this, there is a possibility that the engine's components could "leak"
+into the application, causing unwanted disruption, or that important engine
+components could be overridden by similarly named things within the application.
+One of the examples of such conflicts is helpers. Without calling
+<code>isolate_namespace</code>, the engine's helpers would be included in an application's
+controllers.</p><div class="note"><p>It is <strong>highly</strong> recommended that the <code>isolate_namespace</code> line be left
+within the <code>Engine</code> class definition. Without it, classes generated in an engine
+<strong>may</strong> conflict with an application.</p></div><p>What this isolation of the namespace means is that a model generated by a call
+to <code>bin/rails generate model</code>, such as <code>bin/rails generate model article</code>, won't be called <code>Article</code>, but
+instead be namespaced and called <code>Blorgh::Article</code>. In addition, the table for the
+model is namespaced, becoming <code>blorgh_articles</code>, rather than simply <code>articles</code>.
+Similar to the model namespacing, a controller called <code>ArticlesController</code> becomes
+<code>Blorgh::ArticlesController</code> and the views for that controller will not be at
+<code>app/views/articles</code>, but <code>app/views/blorgh/articles</code> instead. Mailers, jobs
+and helpers are namespaced as well.</p><p>Finally, routes will also be isolated within the engine. This is one of the most
+important parts about namespacing, and is discussed later in the
+<a href="#routes">Routes</a> section of this guide.</p><h4 id="app-directory"><a class="anchorlink" href="#app-directory">2.1.2 <code>app</code> Directory</a></h4><p>Inside the <code>app</code> directory are the standard <code>assets</code>, <code>controllers</code>, <code>helpers</code>,
+<code>jobs</code>, <code>mailers</code>, <code>models</code>, and <code>views</code> directories that you should be familiar with
+from an application. We'll look more into models in a future section, when we're writing the engine.</p><p>Within the <code>app/assets</code> directory, there are the <code>images</code> and
+<code>stylesheets</code> directories which, again, you should be familiar with due to their
+similarity to an application. One difference here, however, is that each
+directory contains a sub-directory with the engine name. Because this engine is
+going to be namespaced, its assets should be too.</p><p>Within the <code>app/controllers</code> directory there is a <code>blorgh</code> directory that
+contains a file called <code>application_controller.rb</code>. This file will provide any
+common functionality for the controllers of the engine. The <code>blorgh</code> directory
+is where the other controllers for the engine will go. By placing them within
+this namespaced directory, you prevent them from possibly clashing with
+identically-named controllers within other engines or even within the
+application.</p><div class="note"><p>The <code>ApplicationController</code> class inside an engine is named just like a
+Rails application in order to make it easier for you to convert your
+applications into engines.</p></div><p>Just like for <code>app/controllers</code>, you will find a <code>blorgh</code> subdirectory under
+the <code>app/helpers</code>, <code>app/jobs</code>, <code>app/mailers</code> and <code>app/models</code> directories
+containing the associated <code>application_*.rb</code> file for gathering common
+functionalities. By placing your files under this subdirectory and namespacing
+your objects, you prevent them from possibly clashing with identically-named
+elements within other engines or even within the application.</p><p>Lastly, the <code>app/views</code> directory contains a <code>layouts</code> folder, which contains a
+file at <code>blorgh/application.html.erb</code>. This file allows you to specify a layout
+for the engine. If this engine is to be used as a stand-alone engine, then you
+would add any customization to its layout in this file, rather than the
+application's <code>app/views/layouts/application.html.erb</code> file.</p><p>If you don't want to force a layout on to users of the engine, then you can
+delete this file and reference a different layout in the controllers of your
+engine.</p><h4 id="bin-directory"><a class="anchorlink" href="#bin-directory">2.1.3 <code>bin</code> Directory</a></h4><p>This directory contains one file, <code>bin/rails</code>, which enables you to use the
+<code>rails</code> sub-commands and generators just like you would within an application.
+This means that you will be able to generate new controllers and models for this
+engine very easily by running commands like this:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>generate model
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails generate model
+">Copy</button>
+</div>
+<p>Keep in mind, of course, that anything generated with these commands inside of
+an engine that has <code>isolate_namespace</code> in the <code>Engine</code> class will be namespaced.</p><h4 id="test-directory"><a class="anchorlink" href="#test-directory">2.1.4 <code>test</code> Directory</a></h4><p>The <code>test</code> directory is where tests for the engine will go. To test the engine,
+there is a cut-down version of a Rails application embedded within it at
+<code>test/dummy</code>. This application will mount the engine in the
+<code>test/dummy/config/routes.rb</code> file:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">mount</span> <span class="no">Blorgh</span><span class="o">::</span><span class="no">Engine</span> <span class="o">=&gt;</span> <span class="s2">"/blorgh"</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Rails.application.routes.draw do
+  mount Blorgh::Engine => &quot;/blorgh&quot;
+end
+">Copy</button>
+</div>
+<p>This line mounts the engine at the path <code>/blorgh</code>, which will make it accessible
+through the application only at that path.</p><p>Inside the test directory there is the <code>test/integration</code> directory, where
+integration tests for the engine should be placed. Other directories can be
+created in the <code>test</code> directory as well. For example, you may wish to create a
+<code>test/models</code> directory for your model tests.</p><h2 id="providing-engine-functionality"><a class="anchorlink" href="#providing-engine-functionality">3 Providing Engine Functionality</a></h2><p>The engine that this guide covers provides submitting articles and commenting
+functionality and follows a similar thread to the <a href="getting_started.html">Getting Started
+Guide</a>, with some new twists.</p><div class="note"><p>For this section, make sure to run the commands in the root of the
+<code>blorgh</code> engine's directory.</p></div><h3 id="generating-an-article-resource"><a class="anchorlink" href="#generating-an-article-resource">3.1 Generating an Article Resource</a></h3><p>The first thing to generate for a blog engine is the <code>Article</code> model and related
+controller. To quickly generate this, you can use the Rails scaffold generator.</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>generate scaffold article title:string text:text
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails generate scaffold article title:string text:text
+">Copy</button>
+</div>
+<p>This command will output this information:</p><div class="code_container">
+<pre><code class="highlight plaintext">invoke  active_record
+create    db/migrate/[timestamp]_create_blorgh_articles.rb
+create    app/models/blorgh/article.rb
+invoke    test_unit
+create      test/models/blorgh/article_test.rb
+create      test/fixtures/blorgh/articles.yml
+invoke  resource_route
+ route    resources :articles
+invoke  scaffold_controller
+create    app/controllers/blorgh/articles_controller.rb
+invoke    erb
+create      app/views/blorgh/articles
+create      app/views/blorgh/articles/index.html.erb
+create      app/views/blorgh/articles/edit.html.erb
+create      app/views/blorgh/articles/show.html.erb
+create      app/views/blorgh/articles/new.html.erb
+create      app/views/blorgh/articles/_form.html.erb
+create      app/views/blorgh/articles/_article.html.erb
+invoke    resource_route
+invoke    test_unit
+create      test/controllers/blorgh/articles_controller_test.rb
+create      test/system/blorgh/articles_test.rb
+invoke    helper
+create      app/helpers/blorgh/articles_helper.rb
+invoke      test_unit
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="invoke  active_record
+create    db/migrate/[timestamp]_create_blorgh_articles.rb
+create    app/models/blorgh/article.rb
+invoke    test_unit
+create      test/models/blorgh/article_test.rb
+create      test/fixtures/blorgh/articles.yml
+invoke  resource_route
+ route    resources :articles
+invoke  scaffold_controller
+create    app/controllers/blorgh/articles_controller.rb
+invoke    erb
+create      app/views/blorgh/articles
+create      app/views/blorgh/articles/index.html.erb
+create      app/views/blorgh/articles/edit.html.erb
+create      app/views/blorgh/articles/show.html.erb
+create      app/views/blorgh/articles/new.html.erb
+create      app/views/blorgh/articles/_form.html.erb
+create      app/views/blorgh/articles/_article.html.erb
+invoke    resource_route
+invoke    test_unit
+create      test/controllers/blorgh/articles_controller_test.rb
+create      test/system/blorgh/articles_test.rb
+invoke    helper
+create      app/helpers/blorgh/articles_helper.rb
+invoke      test_unit
+">Copy</button>
+</div>
+<p>The first thing that the scaffold generator does is invoke the <code>active_record</code>
+generator, which generates a migration and a model for the resource. Note here,
+however, that the migration is called <code>create_blorgh_articles</code> rather than the
+usual <code>create_articles</code>. This is due to the <code>isolate_namespace</code> method called in
+the <code>Blorgh::Engine</code> class's definition. The model here is also namespaced,
+being placed at <code>app/models/blorgh/article.rb</code> rather than <code>app/models/article.rb</code> due
+to the <code>isolate_namespace</code> call within the <code>Engine</code> class.</p><p>Next, the <code>test_unit</code> generator is invoked for this model, generating a model
+test at <code>test/models/blorgh/article_test.rb</code> (rather than
+<code>test/models/article_test.rb</code>) and a fixture at <code>test/fixtures/blorgh/articles.yml</code>
+(rather than <code>test/fixtures/articles.yml</code>).</p><p>After that, a line for the resource is inserted into the <code>config/routes.rb</code> file
+for the engine. This line is simply <code>resources :articles</code>, turning the
+<code>config/routes.rb</code> file for the engine into this:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">Blorgh</span><span class="o">::</span><span class="no">Engine</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:articles</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Blorgh::Engine.routes.draw do
+  resources :articles
+end
+">Copy</button>
+</div>
+<p>Note here that the routes are drawn upon the <code>Blorgh::Engine</code> object rather than
+the <code>YourApp::Application</code> class. This is so that the engine routes are confined
+to the engine itself and can be mounted at a specific point as shown in the
+<a href="#test-directory">test directory</a> section. It also causes the engine's routes to
+be isolated from those routes that are within the application. The
+<a href="#routes">Routes</a> section of this guide describes it in detail.</p><p>Next, the <code>scaffold_controller</code> generator is invoked, generating a controller
+called <code>Blorgh::ArticlesController</code> (at
+<code>app/controllers/blorgh/articles_controller.rb</code>) and its related views at
+<code>app/views/blorgh/articles</code>. This generator also generates tests for the
+controller (<code>test/controllers/blorgh/articles_controller_test.rb</code> and <code>test/system/blorgh/articles_test.rb</code>) and a helper (<code>app/helpers/blorgh/articles_helper.rb</code>).</p><p>Everything this generator has created is neatly namespaced. The controller's
+class is defined within the <code>Blorgh</code> module:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">module</span> <span class="nn">Blorgh</span>
+  <span class="k">class</span> <span class="nc">ArticlesController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+    <span class="c1"># ...</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="module Blorgh
+  class ArticlesController < ApplicationController
+    # ...
+  end
+end
+">Copy</button>
+</div>
+<div class="note"><p>The <code>ArticlesController</code> class inherits from
+<code>Blorgh::ApplicationController</code>, not the application's <code>ApplicationController</code>.</p></div><p>The helper inside <code>app/helpers/blorgh/articles_helper.rb</code> is also namespaced:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">module</span> <span class="nn">Blorgh</span>
+  <span class="k">module</span> <span class="nn">ArticlesHelper</span>
+    <span class="c1"># ...</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="module Blorgh
+  module ArticlesHelper
+    # ...
+  end
+end
+">Copy</button>
+</div>
+<p>This helps prevent conflicts with any other engine or application that may have
+an article resource as well.</p><p>You can see what the engine has so far by running <code>bin/rails db:migrate</code> at the root
+of our engine to run the migration generated by the scaffold generator, and then
+running <code>bin/rails server</code> in <code>test/dummy</code>. When you open
+<code>http://localhost:3000/blorgh/articles</code> you will see the default scaffold that has
+been generated. Click around! You've just generated your first engine's first
+functions.</p><p>If you'd rather play around in the console, <code>bin/rails console</code> will also work just
+like a Rails application. Remember: the <code>Article</code> model is namespaced, so to
+reference it you must call it as <code>Blorgh::Article</code>.</p><div class="code_container">
+<pre><code class="highlight irb"><span class="gp">irb&gt;</span><span class="w"> </span><span class="no">Blorgh</span><span class="o">::</span><span class="no">Article</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="p">=&gt;</span> <span class="kt">#&lt;</span><span class="no">Blorgh</span><span class="o">::</span><span class="no">Article</span> <span class="ss">id: </span><span class="mi">1</span> <span class="o">...</span><span class="kt">&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Blorgh::Article.find(1)
+">Copy</button>
+</div>
+<p>One final thing is that the <code>articles</code> resource for this engine should be the root
+of the engine. Whenever someone goes to the root path where the engine is
+mounted, they should be shown a list of articles. This can be made to happen if
+this line is inserted into the <code>config/routes.rb</code> file inside the engine:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">root</span> <span class="ss">to: </span><span class="s2">"articles#index"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="root to: &quot;articles#index&quot;
+">Copy</button>
+</div>
+<p>Now people will only need to go to the root of the engine to see all the articles,
+rather than visiting <code>/articles</code>. This means that instead of
+<code>http://localhost:3000/blorgh/articles</code>, you only need to go to
+<code>http://localhost:3000/blorgh</code> now.</p><h3 id="generating-a-comments-resource"><a class="anchorlink" href="#generating-a-comments-resource">3.2 Generating a Comments Resource</a></h3><p>Now that the engine can create new articles, it only makes sense to add
+commenting functionality as well. To do this, you'll need to generate a comment
+model, a comment controller, and then modify the articles scaffold to display
+comments and allow people to create new ones.</p><p>From the engine root, run the model generator. Tell it to generate a
+<code>Comment</code> model, with the related table having two columns: an <code>article_id</code> integer
+and <code>text</code> text column.</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>generate model Comment article_id:integer text:text
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails generate model Comment article_id:integer text:text
+">Copy</button>
+</div>
+<p>This will output the following:</p><div class="code_container">
+<pre><code class="highlight plaintext">invoke  active_record
+create    db/migrate/[timestamp]_create_blorgh_comments.rb
+create    app/models/blorgh/comment.rb
+invoke    test_unit
+create      test/models/blorgh/comment_test.rb
+create      test/fixtures/blorgh/comments.yml
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="invoke  active_record
+create    db/migrate/[timestamp]_create_blorgh_comments.rb
+create    app/models/blorgh/comment.rb
+invoke    test_unit
+create      test/models/blorgh/comment_test.rb
+create      test/fixtures/blorgh/comments.yml
+">Copy</button>
+</div>
+<p>This generator call will generate just the necessary model files it needs,
+namespacing the files under a <code>blorgh</code> directory and creating a model class
+called <code>Blorgh::Comment</code>. Now run the migration to create our blorgh_comments
+table:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>db:migrate
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails db:migrate
+">Copy</button>
+</div>
+<p>To show the comments on an article, edit <code>app/views/blorgh/articles/show.html.erb</code> and
+add this line before the "Edit" link:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="nt">&lt;h3&gt;</span>Comments<span class="nt">&lt;/h3&gt;</span>
+<span class="cp">&lt;%=</span> <span class="n">render</span> <span class="vi">@article</span><span class="p">.</span><span class="nf">comments</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<h3>Comments</h3>
+<%= render @article.comments %>
+">Copy</button>
+</div>
+<p>This line will require there to be a <code>has_many</code> association for comments defined
+on the <code>Blorgh::Article</code> model, which there isn't right now. To define one, open
+<code>app/models/blorgh/article.rb</code> and add this line into the model:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">has_many</span> <span class="ss">:comments</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="has_many :comments
+">Copy</button>
+</div>
+<p>Turning the model into this:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">module</span> <span class="nn">Blorgh</span>
+  <span class="k">class</span> <span class="nc">Article</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+    <span class="n">has_many</span> <span class="ss">:comments</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="module Blorgh
+  class Article < ApplicationRecord
+    has_many :comments
+  end
+end
+">Copy</button>
+</div>
+<div class="note"><p>Because the <code>has_many</code> is defined inside a class that is inside the
+<code>Blorgh</code> module, Rails will know that you want to use the <code>Blorgh::Comment</code>
+model for these objects, so there's no need to specify that using the
+<code>:class_name</code> option here.</p></div><p>Next, there needs to be a form so that comments can be created on an article. To
+add this, put this line underneath the call to <code>render @article.comments</code> in
+<code>app/views/blorgh/articles/show.html.erb</code>:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">render</span> <span class="s2">"blorgh/comments/form"</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= render &quot;blorgh/comments/form&quot; %>
+">Copy</button>
+</div>
+<p>Next, the partial that this line will render needs to exist. Create a new
+directory at <code>app/views/blorgh/comments</code> and in it a new file called
+<code>_form.html.erb</code> which has this content to create the required partial:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="nt">&lt;h3&gt;</span>New comment<span class="nt">&lt;/h3&gt;</span>
+<span class="cp">&lt;%=</span> <span class="n">form_with</span> <span class="ss">model: </span><span class="p">[</span><span class="vi">@article</span><span class="p">,</span> <span class="vi">@article</span><span class="p">.</span><span class="nf">comments</span><span class="p">.</span><span class="nf">build</span><span class="p">]</span> <span class="k">do</span> <span class="o">|</span><span class="n">form</span><span class="o">|</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;p&gt;</span>
+    <span class="cp">&lt;%=</span> <span class="n">form</span><span class="p">.</span><span class="nf">label</span> <span class="ss">:text</span> <span class="cp">%&gt;</span><span class="nt">&lt;br&gt;</span>
+    <span class="cp">&lt;%=</span> <span class="n">form</span><span class="p">.</span><span class="nf">text_area</span> <span class="ss">:text</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;/p&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="n">form</span><span class="p">.</span><span class="nf">submit</span> <span class="cp">%&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<h3>New comment</h3>
+<%= form_with model: [@article, @article.comments.build] do |form| %>
+  <p>
+    <%= form.label :text %><br>
+    <%= form.text_area :text %>
+  </p>
+  <%= form.submit %>
+<% end %>
+">Copy</button>
+</div>
+<p>When this form is submitted, it is going to attempt to perform a <code>POST</code> request
+to a route of <code>/articles/:article_id/comments</code> within the engine. This route doesn't
+exist at the moment, but can be created by changing the <code>resources :articles</code> line
+inside <code>config/routes.rb</code> into these lines:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:articles</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:comments</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :articles do
+  resources :comments
+end
+">Copy</button>
+</div>
+<p>This creates a nested route for the comments, which is what the form requires.</p><p>The route now exists, but the controller that this route goes to does not. To
+create it, run this command from the engine root:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>generate controller comments
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails generate controller comments
+">Copy</button>
+</div>
+<p>This will generate the following things:</p><div class="code_container">
+<pre><code class="highlight plaintext">create  app/controllers/blorgh/comments_controller.rb
+invoke  erb
+ exist    app/views/blorgh/comments
+invoke  test_unit
+create    test/controllers/blorgh/comments_controller_test.rb
+invoke  helper
+create    app/helpers/blorgh/comments_helper.rb
+invoke    test_unit
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="create  app/controllers/blorgh/comments_controller.rb
+invoke  erb
+ exist    app/views/blorgh/comments
+invoke  test_unit
+create    test/controllers/blorgh/comments_controller_test.rb
+invoke  helper
+create    app/helpers/blorgh/comments_helper.rb
+invoke    test_unit
+">Copy</button>
+</div>
+<p>The form will be making a <code>POST</code> request to <code>/articles/:article_id/comments</code>, which
+will correspond with the <code>create</code> action in <code>Blorgh::CommentsController</code>. This
+action needs to be created, which can be done by putting the following lines
+inside the class definition in <code>app/controllers/blorgh/comments_controller.rb</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">def</span> <span class="nf">create</span>
+  <span class="vi">@article</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:article_id</span><span class="p">])</span>
+  <span class="vi">@comment</span> <span class="o">=</span> <span class="vi">@article</span><span class="p">.</span><span class="nf">comments</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="n">comment_params</span><span class="p">)</span>
+  <span class="n">flash</span><span class="p">[</span><span class="ss">:notice</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"Comment has been created!"</span>
+  <span class="n">redirect_to</span> <span class="n">articles_path</span>
+<span class="k">end</span>
+
+<span class="kp">private</span>
+  <span class="k">def</span> <span class="nf">comment_params</span>
+    <span class="n">params</span><span class="p">.</span><span class="nf">require</span><span class="p">(</span><span class="ss">:comment</span><span class="p">).</span><span class="nf">permit</span><span class="p">(</span><span class="ss">:text</span><span class="p">)</span>
+  <span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="def create
+  @article = Article.find(params[:article_id])
+  @comment = @article.comments.create(comment_params)
+  flash[:notice] = &quot;Comment has been created!&quot;
+  redirect_to articles_path
+end
+
+private
+  def comment_params
+    params.require(:comment).permit(:text)
+  end
+">Copy</button>
+</div>
+<p>This is the final step required to get the new comment form working. Displaying
+the comments, however, is not quite right yet. If you were to create a comment
+right now, you would see this error:</p><div class="code_container">
+<pre><code class="highlight plaintext">Missing partial blorgh/comments/_comment with {:handlers=&gt;[:erb, :builder],
+:formats=&gt;[:html], :locale=&gt;[:en, :en]}. Searched in:   *
+"/Users/ryan/Sites/side_projects/blorgh/test/dummy/app/views"   *
+"/Users/ryan/Sites/side_projects/blorgh/app/views"
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Missing partial blorgh/comments/_comment with {:handlers=>[:erb, :builder],
+:formats=>[:html], :locale=>[:en, :en]}. Searched in:   *
+&quot;/Users/ryan/Sites/side_projects/blorgh/test/dummy/app/views&quot;   *
+&quot;/Users/ryan/Sites/side_projects/blorgh/app/views&quot;
+">Copy</button>
+</div>
+<p>The engine is unable to find the partial required for rendering the comments.
+Rails looks first in the application's (<code>test/dummy</code>) <code>app/views</code> directory and
+then in the engine's <code>app/views</code> directory. When it can't find it, it will throw
+this error. The engine knows to look for <code>blorgh/comments/_comment</code> because the
+model object it is receiving is from the <code>Blorgh::Comment</code> class.</p><p>This partial will be responsible for rendering just the comment text, for now.
+Create a new file at <code>app/views/blorgh/comments/_comment.html.erb</code> and put this
+line inside it:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">comment_counter</span> <span class="o">+</span> <span class="mi">1</span> <span class="cp">%&gt;</span>. <span class="cp">&lt;%=</span> <span class="n">comment</span><span class="p">.</span><span class="nf">text</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= comment_counter + 1 %>. <%= comment.text %>
+">Copy</button>
+</div>
+<p>The <code>comment_counter</code> local variable is given to us by the <code>&lt;%= render
+@article.comments %&gt;</code> call, which will define it automatically and increment the
+counter as it iterates through each comment. It's used in this example to
+display a small number next to each comment when it's created.</p><p>That completes the comment function of the blogging engine. Now it's time to use
+it within an application.</p><h2 id="hooking-into-an-application"><a class="anchorlink" href="#hooking-into-an-application">4 Hooking Into an Application</a></h2><p>Using an engine within an application is very easy. This section covers how to
+mount the engine into an application and the initial setup required, as well as
+linking the engine to a <code>User</code> class provided by the application to provide
+ownership for articles and comments within the engine.</p><h3 id="mounting-the-engine"><a class="anchorlink" href="#mounting-the-engine">4.1 Mounting the Engine</a></h3><p>First, the engine needs to be specified inside the application's <code>Gemfile</code>. If
+there isn't an application handy to test this out in, generate one using the
+<code>rails new</code> command outside of the engine directory like this:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">rails </span>new unicorn
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="rails new unicorn
+">Copy</button>
+</div>
+<p>Usually, specifying the engine inside the <code>Gemfile</code> would be done by specifying it
+as a normal, everyday gem.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">gem</span> <span class="s2">"devise"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="gem &quot;devise&quot;
+">Copy</button>
+</div>
+<p>However, because you are developing the <code>blorgh</code> engine on your local machine,
+you will need to specify the <code>:path</code> option in your <code>Gemfile</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">gem</span> <span class="s2">"blorgh"</span><span class="p">,</span> <span class="ss">path: </span><span class="s2">"engines/blorgh"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="gem &quot;blorgh&quot;, path: &quot;engines/blorgh&quot;
+">Copy</button>
+</div>
+<p>Then run <code>bundle</code> to install the gem.</p><p>As described earlier, by placing the gem in the <code>Gemfile</code> it will be loaded when
+Rails is loaded. It will first require <code>lib/blorgh.rb</code> from the engine, then
+<code>lib/blorgh/engine.rb</code>, which is the file that defines the major pieces of
+functionality for the engine.</p><p>To make the engine's functionality accessible from within an application, it
+needs to be mounted in that application's <code>config/routes.rb</code> file:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">mount</span> <span class="no">Blorgh</span><span class="o">::</span><span class="no">Engine</span><span class="p">,</span> <span class="ss">at: </span><span class="s2">"/blog"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="mount Blorgh::Engine, at: &quot;/blog&quot;
+">Copy</button>
+</div>
+<p>This line will mount the engine at <code>/blog</code> in the application. Making it
+accessible at <code>http://localhost:3000/blog</code> when the application runs with <code>bin/rails
+server</code>.</p><div class="note"><p>Other engines, such as Devise, handle this a little differently by making
+you specify custom helpers (such as <code>devise_for</code>) in the routes. These helpers
+do exactly the same thing, mounting pieces of the engines's functionality at a
+pre-defined path which may be customizable.</p></div><h3 id="engine-setup"><a class="anchorlink" href="#engine-setup">4.2 Engine Setup</a></h3><p>The engine contains migrations for the <code>blorgh_articles</code> and <code>blorgh_comments</code>
+table which need to be created in the application's database so that the
+engine's models can query them correctly. To copy these migrations into the
+application run the following command from the application's root:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>blorgh:install:migrations
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails blorgh:install:migrations
+">Copy</button>
+</div>
+<p>If you have multiple engines that need migrations copied over, use
+<code>railties:install:migrations</code> instead:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>railties:install:migrations
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails railties:install:migrations
+">Copy</button>
+</div>
+<p>You can specify a custom path in the source engine for the migrations by specifying MIGRATIONS_PATH.</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>railties:install:migrations <span class="nv">MIGRATIONS_PATH</span><span class="o">=</span>db_blourgh
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails railties:install:migrations MIGRATIONS_PATH=db_blourgh
+">Copy</button>
+</div>
+<p>If you have multiple databases you can also specify the target database by specifying DATABASE.</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>railties:install:migrations <span class="nv">DATABASE</span><span class="o">=</span>animals
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails railties:install:migrations DATABASE=animals
+">Copy</button>
+</div>
+<p>This command, when run for the first time, will copy over all the migrations
+from the engine. When run the next time, it will only copy over migrations that
+haven't been copied over already. The first run for this command will output
+something such as this:</p><div class="code_container">
+<pre><code class="highlight plaintext">Copied migration [timestamp_1]_create_blorgh_articles.blorgh.rb from blorgh
+Copied migration [timestamp_2]_create_blorgh_comments.blorgh.rb from blorgh
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Copied migration [timestamp_1]_create_blorgh_articles.blorgh.rb from blorgh
+Copied migration [timestamp_2]_create_blorgh_comments.blorgh.rb from blorgh
+">Copy</button>
+</div>
+<p>The first timestamp (<code>[timestamp_1]</code>) will be the current time, and the second
+timestamp (<code>[timestamp_2]</code>) will be the current time plus a second. The reason
+for this is so that the migrations for the engine are run after any existing
+migrations in the application.</p><p>To run these migrations within the context of the application, simply run <code>bin/rails
+db:migrate</code>. When accessing the engine through <code>http://localhost:3000/blog</code>, the
+articles will be empty. This is because the table created inside the application is
+different from the one created within the engine. Go ahead, play around with the
+newly mounted engine. You'll find that it's the same as when it was only an
+engine.</p><p>If you would like to run migrations only from one engine, you can do it by
+specifying <code>SCOPE</code>:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>db:migrate <span class="nv">SCOPE</span><span class="o">=</span>blorgh
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails db:migrate SCOPE=blorgh
+">Copy</button>
+</div>
+<p>This may be useful if you want to revert engine's migrations before removing it.
+To revert all migrations from blorgh engine you can run code such as:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>db:migrate <span class="nv">SCOPE</span><span class="o">=</span>blorgh <span class="nv">VERSION</span><span class="o">=</span>0
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails db:migrate SCOPE=blorgh VERSION=0
+">Copy</button>
+</div>
+<h3 id="using-a-class-provided-by-the-application"><a class="anchorlink" href="#using-a-class-provided-by-the-application">4.3 Using a Class Provided by the Application</a></h3><h4 id="using-a-model-provided-by-the-application"><a class="anchorlink" href="#using-a-model-provided-by-the-application">4.3.1 Using a Model Provided by the Application</a></h4><p>When an engine is created, it may want to use specific classes from an
+application to provide links between the pieces of the engine and the pieces of
+the application. In the case of the <code>blorgh</code> engine, making articles and comments
+have authors would make a lot of sense.</p><p>A typical application might have a <code>User</code> class that would be used to represent
+authors for an article or a comment. But there could be a case where the
+application calls this class something different, such as <code>Person</code>. For this
+reason, the engine should not hardcode associations specifically for a <code>User</code>
+class.</p><p>To keep it simple in this case, the application will have a class called <code>User</code>
+that represents the users of the application (we'll get into making this
+configurable further on). It can be generated using this command inside the
+application:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>generate model user name:string
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails generate model user name:string
+">Copy</button>
+</div>
+<p>The <code>bin/rails db:migrate</code> command needs to be run here to ensure that our
+application has the <code>users</code> table for future use.</p><p>Also, to keep it simple, the articles form will have a new text field called
+<code>author_name</code>, where users can elect to put their name. The engine will then
+take this name and either create a new <code>User</code> object from it, or find one that
+already has that name. The engine will then associate the article with the found or
+created <code>User</code> object.</p><p>First, the <code>author_name</code> text field needs to be added to the
+<code>app/views/blorgh/articles/_form.html.erb</code> partial inside the engine. This can be
+added above the <code>title</code> field with this code:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"field"</span><span class="nt">&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="n">form</span><span class="p">.</span><span class="nf">label</span> <span class="ss">:author_name</span> <span class="cp">%&gt;</span><span class="nt">&lt;br&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="n">form</span><span class="p">.</span><span class="nf">text_field</span> <span class="ss">:author_name</span> <span class="cp">%&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<div class=&quot;field&quot;>
+  <%= form.label :author_name %><br>
+  <%= form.text_field :author_name %>
+</div>
+">Copy</button>
+</div>
+<p>Next, we need to update our <code>Blorgh::ArticlesController#article_params</code> method to
+permit the new form parameter:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">def</span> <span class="nf">article_params</span>
+  <span class="n">params</span><span class="p">.</span><span class="nf">require</span><span class="p">(</span><span class="ss">:article</span><span class="p">).</span><span class="nf">permit</span><span class="p">(</span><span class="ss">:title</span><span class="p">,</span> <span class="ss">:text</span><span class="p">,</span> <span class="ss">:author_name</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="def article_params
+  params.require(:article).permit(:title, :text, :author_name)
+end
+">Copy</button>
+</div>
+<p>The <code>Blorgh::Article</code> model should then have some code to convert the <code>author_name</code>
+field into an actual <code>User</code> object and associate it as that article's <code>author</code>
+before the article is saved. It will also need to have an <code>attr_accessor</code> set up
+for this field, so that the setter and getter methods are defined for it.</p><p>To do all this, you'll need to add the <code>attr_accessor</code> for <code>author_name</code>, the
+association for the author and the <code>before_validation</code> call into
+<code>app/models/blorgh/article.rb</code>. The <code>author</code> association will be hard-coded to the
+<code>User</code> class for the time being.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="nb">attr_accessor</span> <span class="ss">:author_name</span>
+<span class="n">belongs_to</span> <span class="ss">:author</span><span class="p">,</span> <span class="ss">class_name: </span><span class="s2">"User"</span>
+
+<span class="n">before_validation</span> <span class="ss">:set_author</span>
+
+<span class="kp">private</span>
+  <span class="k">def</span> <span class="nf">set_author</span>
+    <span class="nb">self</span><span class="p">.</span><span class="nf">author</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">find_or_create_by</span><span class="p">(</span><span class="ss">name: </span><span class="n">author_name</span><span class="p">)</span>
+  <span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="attr_accessor :author_name
+belongs_to :author, class_name: &quot;User&quot;
+
+before_validation :set_author
+
+private
+  def set_author
+    self.author = User.find_or_create_by(name: author_name)
+  end
+">Copy</button>
+</div>
+<p>By representing the <code>author</code> association's object with the <code>User</code> class, a link
+is established between the engine and the application. There needs to be a way
+of associating the records in the <code>blorgh_articles</code> table with the records in the
+<code>users</code> table. Because the association is called <code>author</code>, there should be an
+<code>author_id</code> column added to the <code>blorgh_articles</code> table.</p><p>To generate this new column, run this command within the engine:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>generate migration add_author_id_to_blorgh_articles author_id:integer
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails generate migration add_author_id_to_blorgh_articles author_id:integer
+">Copy</button>
+</div>
+<div class="note"><p>Due to the migration's name and the column specification after it, Rails
+will automatically know that you want to add a column to a specific table and
+write that into the migration for you. You don't need to tell it any more than
+this.</p></div><p>This migration will need to be run on the application. To do that, it must first
+be copied using this command:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>blorgh:install:migrations
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails blorgh:install:migrations
+">Copy</button>
+</div>
+<p>Notice that only <em>one</em> migration was copied over here. This is because the first
+two migrations were copied over the first time this command was run.</p><div class="code_container">
+<pre><code class="highlight plaintext">NOTE Migration [timestamp]_create_blorgh_articles.blorgh.rb from blorgh has been skipped. Migration with the same name already exists.
+NOTE Migration [timestamp]_create_blorgh_comments.blorgh.rb from blorgh has been skipped. Migration with the same name already exists.
+Copied migration [timestamp]_add_author_id_to_blorgh_articles.blorgh.rb from blorgh
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="NOTE Migration [timestamp]_create_blorgh_articles.blorgh.rb from blorgh has been skipped. Migration with the same name already exists.
+NOTE Migration [timestamp]_create_blorgh_comments.blorgh.rb from blorgh has been skipped. Migration with the same name already exists.
+Copied migration [timestamp]_add_author_id_to_blorgh_articles.blorgh.rb from blorgh
+">Copy</button>
+</div>
+<p>Run the migration using:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>db:migrate
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails db:migrate
+">Copy</button>
+</div>
+<p>Now with all the pieces in place, an action will take place that will associate
+an author - represented by a record in the <code>users</code> table - with an article,
+represented by the <code>blorgh_articles</code> table from the engine.</p><p>Finally, the author's name should be displayed on the article's page. Add this code
+above the "Title" output inside <code>app/views/blorgh/articles/_article.html.erb</code>:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="nt">&lt;p&gt;</span>
+  <span class="nt">&lt;strong&gt;</span>Author:<span class="nt">&lt;/strong&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="n">article</span><span class="p">.</span><span class="nf">author</span><span class="p">.</span><span class="nf">name</span> <span class="cp">%&gt;</span>
+<span class="nt">&lt;/p&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<p>
+  <strong>Author:</strong>
+  <%= article.author.name %>
+</p>
+">Copy</button>
+</div>
+<h4 id="using-a-controller-provided-by-the-application"><a class="anchorlink" href="#using-a-controller-provided-by-the-application">4.3.2 Using a Controller Provided by the Application</a></h4><p>Because Rails controllers generally share code for things like authentication
+and accessing session variables, they inherit from <code>ApplicationController</code> by
+default. Rails engines, however are scoped to run independently from the main
+application, so each engine gets a scoped <code>ApplicationController</code>. This
+namespace prevents code collisions, but often engine controllers need to access
+methods in the main application's <code>ApplicationController</code>. An easy way to
+provide this access is to change the engine's scoped <code>ApplicationController</code> to
+inherit from the main application's <code>ApplicationController</code>. For our Blorgh
+engine this would be done by changing
+<code>app/controllers/blorgh/application_controller.rb</code> to look like:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">module</span> <span class="nn">Blorgh</span>
+  <span class="k">class</span> <span class="nc">ApplicationController</span> <span class="o">&lt;</span> <span class="o">::</span><span class="no">ApplicationController</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="module Blorgh
+  class ApplicationController < ::ApplicationController
+  end
+end
+">Copy</button>
+</div>
+<p>By default, the engine's controllers inherit from
+<code>Blorgh::ApplicationController</code>. So, after making this change they will have
+access to the main application's <code>ApplicationController</code>, as though they were
+part of the main application.</p><p>This change does require that the engine is run from a Rails application that
+has an <code>ApplicationController</code>.</p><h3 id="configuring-an-engine"><a class="anchorlink" href="#configuring-an-engine">4.4 Configuring an Engine</a></h3><p>This section covers how to make the <code>User</code> class configurable, followed by
+general configuration tips for the engine.</p><h4 id="setting-configuration-settings-in-the-application"><a class="anchorlink" href="#setting-configuration-settings-in-the-application">4.4.1 Setting Configuration Settings in the Application</a></h4><p>The next step is to make the class that represents a <code>User</code> in the application
+customizable for the engine. This is because that class may not always be
+<code>User</code>, as previously explained. To make this setting customizable, the engine
+will have a configuration setting called <code>author_class</code> that will be used to
+specify which class represents users inside the application.</p><p>To define this configuration setting, you should use a <code>mattr_accessor</code> inside
+the <code>Blorgh</code> module for the engine. Add this line to <code>lib/blorgh.rb</code> inside the
+engine:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">mattr_accessor</span> <span class="ss">:author_class</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="mattr_accessor :author_class
+">Copy</button>
+</div>
+<p>This method works like its siblings, <code>attr_accessor</code> and <code>cattr_accessor</code>, but
+provides a setter and getter method on the module with the specified name. To
+use it, it must be referenced using <code>Blorgh.author_class</code>.</p><p>The next step is to switch the <code>Blorgh::Article</code> model over to this new setting.
+Change the <code>belongs_to</code> association inside this model
+(<code>app/models/blorgh/article.rb</code>) to this:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">belongs_to</span> <span class="ss">:author</span><span class="p">,</span> <span class="ss">class_name: </span><span class="no">Blorgh</span><span class="p">.</span><span class="nf">author_class</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="belongs_to :author, class_name: Blorgh.author_class
+">Copy</button>
+</div>
+<p>The <code>set_author</code> method in the <code>Blorgh::Article</code> model should also use this class:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="nb">self</span><span class="p">.</span><span class="nf">author</span> <span class="o">=</span> <span class="no">Blorgh</span><span class="p">.</span><span class="nf">author_class</span><span class="p">.</span><span class="nf">constantize</span><span class="p">.</span><span class="nf">find_or_create_by</span><span class="p">(</span><span class="ss">name: </span><span class="n">author_name</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="self.author = Blorgh.author_class.constantize.find_or_create_by(name: author_name)
+">Copy</button>
+</div>
+<p>To save having to call <code>constantize</code> on the <code>author_class</code> result all the time,
+you could instead just override the <code>author_class</code> getter method inside the
+<code>Blorgh</code> module in the <code>lib/blorgh.rb</code> file to always call <code>constantize</code> on the
+saved value before returning the result:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">author_class</span>
+  <span class="vc">@@author_class</span><span class="p">.</span><span class="nf">constantize</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="def self.author_class
+  @@author_class.constantize
+end
+">Copy</button>
+</div>
+<p>This would then turn the above code for <code>set_author</code> into this:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="nb">self</span><span class="p">.</span><span class="nf">author</span> <span class="o">=</span> <span class="no">Blorgh</span><span class="p">.</span><span class="nf">author_class</span><span class="p">.</span><span class="nf">find_or_create_by</span><span class="p">(</span><span class="ss">name: </span><span class="n">author_name</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="self.author = Blorgh.author_class.find_or_create_by(name: author_name)
+">Copy</button>
+</div>
+<p>Resulting in something a little shorter, and more implicit in its behavior. The
+<code>author_class</code> method should always return a <code>Class</code> object.</p><p>Since we changed the <code>author_class</code> method to return a <code>Class</code> instead of a
+<code>String</code>, we must also modify our <code>belongs_to</code> definition in the <code>Blorgh::Article</code>
+model:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">belongs_to</span> <span class="ss">:author</span><span class="p">,</span> <span class="ss">class_name: </span><span class="no">Blorgh</span><span class="p">.</span><span class="nf">author_class</span><span class="p">.</span><span class="nf">to_s</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="belongs_to :author, class_name: Blorgh.author_class.to_s
+">Copy</button>
+</div>
+<p>To set this configuration setting within the application, an initializer should
+be used. By using an initializer, the configuration will be set up before the
+application starts and calls the engine's models, which may depend on this
+configuration setting existing.</p><p>Create a new initializer at <code>config/initializers/blorgh.rb</code> inside the
+application where the <code>blorgh</code> engine is installed and put this content in it:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">Blorgh</span><span class="p">.</span><span class="nf">author_class</span> <span class="o">=</span> <span class="s2">"User"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Blorgh.author_class = &quot;User&quot;
+">Copy</button>
+</div>
+<div class="warning"><p>It's very important here to use the <code>String</code> version of the class,
+rather than the class itself. If you were to use the class, Rails would attempt
+to load that class and then reference the related table. This could lead to
+problems if the table didn't already exist. Therefore, a <code>String</code> should be
+used and then converted to a class using <code>constantize</code> in the engine later on.</p></div><p>Go ahead and try to create a new article. You will see that it works exactly in the
+same way as before, except this time the engine is using the configuration
+setting in <code>config/initializers/blorgh.rb</code> to learn what the class is.</p><p>There are now no strict dependencies on what the class is, only what the API for
+the class must be. The engine simply requires this class to define a
+<code>find_or_create_by</code> method which returns an object of that class, to be
+associated with an article when it's created. This object, of course, should have
+some sort of identifier by which it can be referenced.</p><h4 id="general-engine-configuration"><a class="anchorlink" href="#general-engine-configuration">4.4.2 General Engine Configuration</a></h4><p>Within an engine, there may come a time where you wish to use things such as
+initializers, internationalization, or other configuration options. The great
+news is that these things are entirely possible, because a Rails engine shares
+much the same functionality as a Rails application. In fact, a Rails
+application's functionality is actually a superset of what is provided by
+engines!</p><p>If you wish to use an initializer - code that should run before the engine is
+loaded - the place for it is the <code>config/initializers</code> folder. This directory's
+functionality is explained in the <a href="configuring.html#initializers">Initializers
+section</a> of the Configuring guide, and works
+precisely the same way as the <code>config/initializers</code> directory inside an
+application. The same thing goes if you want to use a standard initializer.</p><p>For locales, simply place the locale files in the <code>config/locales</code> directory,
+just like you would in an application.</p><h2 id="testing-an-engine"><a class="anchorlink" href="#testing-an-engine">5 Testing an Engine</a></h2><p>When an engine is generated, there is a smaller dummy application created inside
+it at <code>test/dummy</code>. This application is used as a mounting point for the engine,
+to make testing the engine extremely simple. You may extend this application by
+generating controllers, models, or views from within the directory, and then use
+those to test your engine.</p><p>The <code>test</code> directory should be treated like a typical Rails testing environment,
+allowing for unit, functional, and integration tests.</p><h3 id="functional-tests"><a class="anchorlink" href="#functional-tests">5.1 Functional Tests</a></h3><p>A matter worth taking into consideration when writing functional tests is that
+the tests are going to be running on an application - the <code>test/dummy</code>
+application - rather than your engine. This is due to the setup of the testing
+environment; an engine needs an application as a host for testing its main
+functionality, especially controllers. This means that if you were to make a
+typical <code>GET</code> to a controller in a controller's functional test like this:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">module</span> <span class="nn">Blorgh</span>
+  <span class="k">class</span> <span class="nc">FooControllerTest</span> <span class="o">&lt;</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">IntegrationTest</span>
+    <span class="kp">include</span> <span class="no">Engine</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">url_helpers</span>
+
+    <span class="k">def</span> <span class="nf">test_index</span>
+      <span class="n">get</span> <span class="n">foos_url</span>
+      <span class="c1"># ...</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="module Blorgh
+  class FooControllerTest < ActionDispatch::IntegrationTest
+    include Engine.routes.url_helpers
+
+    def test_index
+      get foos_url
+      # ...
+    end
+  end
+end
+">Copy</button>
+</div>
+<p>It may not function correctly. This is because the application doesn't know how
+to route these requests to the engine unless you explicitly tell it <strong>how</strong>. To
+do this, you must set the <code>@routes</code> instance variable to the engine's route set
+in your setup code:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">module</span> <span class="nn">Blorgh</span>
+  <span class="k">class</span> <span class="nc">FooControllerTest</span> <span class="o">&lt;</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">IntegrationTest</span>
+    <span class="kp">include</span> <span class="no">Engine</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">url_helpers</span>
+
+    <span class="n">setup</span> <span class="k">do</span>
+      <span class="vi">@routes</span> <span class="o">=</span> <span class="no">Engine</span><span class="p">.</span><span class="nf">routes</span>
+    <span class="k">end</span>
+
+    <span class="k">def</span> <span class="nf">test_index</span>
+      <span class="n">get</span> <span class="n">foos_url</span>
+      <span class="c1"># ...</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="module Blorgh
+  class FooControllerTest < ActionDispatch::IntegrationTest
+    include Engine.routes.url_helpers
+
+    setup do
+      @routes = Engine.routes
+    end
+
+    def test_index
+      get foos_url
+      # ...
+    end
+  end
+end
+">Copy</button>
+</div>
+<p>This tells the application that you still want to perform a <code>GET</code> request to the
+<code>index</code> action of this controller, but you want to use the engine's route to get
+there, rather than the application's one.</p><p>This also ensures that the engine's URL helpers will work as expected in your
+tests.</p><h2 id="improving-engine-functionality"><a class="anchorlink" href="#improving-engine-functionality">6 Improving Engine Functionality</a></h2><p>This section explains how to add and/or override engine MVC functionality in the
+main Rails application.</p><h3 id="overriding-models-and-controllers"><a class="anchorlink" href="#overriding-models-and-controllers">6.1 Overriding Models and Controllers</a></h3><p>Engine models and controllers can be reopened by the parent application to extend or decorate them.</p><p>Overrides may be organized in a dedicated directory <code>app/overrides</code>, ignored by the autoloader, and preloaded in a <code>to_prepare</code> callback:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># config/application.rb</span>
+<span class="k">module</span> <span class="nn">MyApp</span>
+  <span class="k">class</span> <span class="nc">Application</span> <span class="o">&lt;</span> <span class="no">Rails</span><span class="o">::</span><span class="no">Application</span>
+    <span class="c1"># ...</span>
+
+    <span class="n">overrides</span> <span class="o">=</span> <span class="s2">"</span><span class="si">#{</span><span class="no">Rails</span><span class="p">.</span><span class="nf">root</span><span class="si">}</span><span class="s2">/app/overrides"</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">autoloaders</span><span class="p">.</span><span class="nf">main</span><span class="p">.</span><span class="nf">ignore</span><span class="p">(</span><span class="n">overrides</span><span class="p">)</span>
+
+    <span class="n">config</span><span class="p">.</span><span class="nf">to_prepare</span> <span class="k">do</span>
+      <span class="no">Dir</span><span class="p">.</span><span class="nf">glob</span><span class="p">(</span><span class="s2">"</span><span class="si">#{</span><span class="n">overrides</span><span class="si">}</span><span class="s2">/**/*_override.rb"</span><span class="p">).</span><span class="nf">sort</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">override</span><span class="o">|</span>
+        <span class="nb">load</span> <span class="n">override</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# config/application.rb
+module MyApp
+  class Application < Rails::Application
+    # ...
+
+    overrides = &quot;#{Rails.root}/app/overrides&quot;
+    Rails.autoloaders.main.ignore(overrides)
+
+    config.to_prepare do
+      Dir.glob(&quot;#{overrides}/**/*_override.rb&quot;).sort.each do |override|
+        load override
+      end
+    end
+  end
+end
+">Copy</button>
+</div>
+<h4 id="reopening-existing-classes-using-class-eval"><a class="anchorlink" href="#reopening-existing-classes-using-class-eval">6.1.1 Reopening Existing Classes Using <code>class_eval</code></a></h4><p>For example, in order to override the engine model</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># Blorgh/app/models/blorgh/article.rb</span>
+<span class="k">module</span> <span class="nn">Blorgh</span>
+  <span class="k">class</span> <span class="nc">Article</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+    <span class="c1"># ...</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# Blorgh/app/models/blorgh/article.rb
+module Blorgh
+  class Article < ApplicationRecord
+    # ...
+  end
+end
+">Copy</button>
+</div>
+<p>you just create a file that <em>reopens</em> that class:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># MyApp/app/overrides/models/blorgh/article_override.rb</span>
+<span class="no">Blorgh</span><span class="o">::</span><span class="no">Article</span><span class="p">.</span><span class="nf">class_eval</span> <span class="k">do</span>
+  <span class="c1"># ...</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# MyApp/app/overrides/models/blorgh/article_override.rb
+Blorgh::Article.class_eval do
+  # ...
+end
+">Copy</button>
+</div>
+<p>It is very important that the override <em>reopens</em> the class or module. Using the <code>class</code> or <code>module</code> keywords would define them if they were not already in memory, which would be incorrect because the definition lives in the engine. Using <code>class_eval</code> as shown above ensures you are reopening.</p><h4 id="reopening-existing-classes-using-activesupport-concern"><a class="anchorlink" href="#reopening-existing-classes-using-activesupport-concern">6.1.2 Reopening Existing Classes Using ActiveSupport::Concern</a></h4><p>Using <code>Class#class_eval</code> is great for simple adjustments, but for more complex
+class modifications, you might want to consider using <a href="https://edgeapi.rubyonrails.org/classes/ActiveSupport/Concern.html"><code>ActiveSupport::Concern</code></a>.
+ActiveSupport::Concern manages load order of interlinked dependent modules and
+classes at run time allowing you to significantly modularize your code.</p><p><strong>Adding</strong> <code>Article#time_since_created</code> and <strong>Overriding</strong> <code>Article#summary</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># MyApp/app/models/blorgh/article.rb</span>
+
+<span class="k">class</span> <span class="nc">Blorgh::Article</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="kp">include</span> <span class="no">Blorgh</span><span class="o">::</span><span class="no">Concerns</span><span class="o">::</span><span class="no">Models</span><span class="o">::</span><span class="no">Article</span>
+
+  <span class="k">def</span> <span class="nf">time_since_created</span>
+    <span class="no">Time</span><span class="p">.</span><span class="nf">current</span> <span class="o">-</span> <span class="n">created_at</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">summary</span>
+    <span class="s2">"</span><span class="si">#{</span><span class="n">title</span><span class="si">}</span><span class="s2"> - </span><span class="si">#{</span><span class="n">truncate</span><span class="p">(</span><span class="n">text</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# MyApp/app/models/blorgh/article.rb
+
+class Blorgh::Article < ApplicationRecord
+  include Blorgh::Concerns::Models::Article
+
+  def time_since_created
+    Time.current - created_at
+  end
+
+  def summary
+    &quot;#{title} - #{truncate(text)}&quot;
+  end
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># Blorgh/app/models/blorgh/article.rb</span>
+<span class="k">module</span> <span class="nn">Blorgh</span>
+  <span class="k">class</span> <span class="nc">Article</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+    <span class="kp">include</span> <span class="no">Blorgh</span><span class="o">::</span><span class="no">Concerns</span><span class="o">::</span><span class="no">Models</span><span class="o">::</span><span class="no">Article</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# Blorgh/app/models/blorgh/article.rb
+module Blorgh
+  class Article < ApplicationRecord
+    include Blorgh::Concerns::Models::Article
+  end
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># Blorgh/lib/concerns/models/article.rb</span>
+
+<span class="k">module</span> <span class="nn">Blorgh::Concerns::Models::Article</span>
+  <span class="kp">extend</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Concern</span>
+
+  <span class="c1"># `included do` causes the block to be evaluated in the context</span>
+  <span class="c1"># in which the module is included (i.e. Blorgh::Article),</span>
+  <span class="c1"># rather than in the module itself.</span>
+  <span class="n">included</span> <span class="k">do</span>
+    <span class="nb">attr_accessor</span> <span class="ss">:author_name</span>
+    <span class="n">belongs_to</span> <span class="ss">:author</span><span class="p">,</span> <span class="ss">class_name: </span><span class="s2">"User"</span>
+
+    <span class="n">before_validation</span> <span class="ss">:set_author</span>
+
+    <span class="kp">private</span>
+      <span class="k">def</span> <span class="nf">set_author</span>
+        <span class="nb">self</span><span class="p">.</span><span class="nf">author</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">find_or_create_by</span><span class="p">(</span><span class="ss">name: </span><span class="n">author_name</span><span class="p">)</span>
+      <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">summary</span>
+    <span class="s2">"</span><span class="si">#{</span><span class="n">title</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+
+  <span class="k">module</span> <span class="nn">ClassMethods</span>
+    <span class="k">def</span> <span class="nf">some_class_method</span>
+      <span class="s1">'some class method string'</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# Blorgh/lib/concerns/models/article.rb
+
+module Blorgh::Concerns::Models::Article
+  extend ActiveSupport::Concern
+
+  # `included do` causes the block to be evaluated in the context
+  # in which the module is included (i.e. Blorgh::Article),
+  # rather than in the module itself.
+  included do
+    attr_accessor :author_name
+    belongs_to :author, class_name: &quot;User&quot;
+
+    before_validation :set_author
+
+    private
+      def set_author
+        self.author = User.find_or_create_by(name: author_name)
+      end
+  end
+
+  def summary
+    &quot;#{title}&quot;
+  end
+
+  module ClassMethods
+    def some_class_method
+      'some class method string'
+    end
+  end
+end
+">Copy</button>
+</div>
+<h3 id="autoloading-and-engines"><a class="anchorlink" href="#autoloading-and-engines">6.2 Autoloading and Engines</a></h3><p>Please check the <a href="autoloading_and_reloading_constants.html#autoloading-and-engines">Autoloading and Reloading Constants</a>
+guide for more information about autoloading and engines.</p><h3 id="overriding-views"><a class="anchorlink" href="#overriding-views">6.3 Overriding Views</a></h3><p>When Rails looks for a view to render, it will first look in the <code>app/views</code>
+directory of the application. If it cannot find the view there, it will check in
+the <code>app/views</code> directories of all engines that have this directory.</p><p>When the application is asked to render the view for <code>Blorgh::ArticlesController</code>'s
+index action, it will first look for the path
+<code>app/views/blorgh/articles/index.html.erb</code> within the application. If it cannot
+find it, it will look inside the engine.</p><p>You can override this view in the application by simply creating a new file at
+<code>app/views/blorgh/articles/index.html.erb</code>. Then you can completely change what
+this view would normally output.</p><p>Try this now by creating a new file at <code>app/views/blorgh/articles/index.html.erb</code>
+and put this content in it:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="nt">&lt;h1&gt;</span>Articles<span class="nt">&lt;/h1&gt;</span>
+<span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s2">"New Article"</span><span class="p">,</span> <span class="n">new_article_path</span> <span class="cp">%&gt;</span>
+<span class="cp">&lt;%</span> <span class="vi">@articles</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">article</span><span class="o">|</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;h2&gt;</span><span class="cp">&lt;%=</span> <span class="n">article</span><span class="p">.</span><span class="nf">title</span> <span class="cp">%&gt;</span><span class="nt">&lt;/h2&gt;</span>
+  <span class="nt">&lt;small&gt;</span>By <span class="cp">&lt;%=</span> <span class="n">article</span><span class="p">.</span><span class="nf">author</span> <span class="cp">%&gt;</span><span class="nt">&lt;/small&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="n">simple_format</span><span class="p">(</span><span class="n">article</span><span class="p">.</span><span class="nf">text</span><span class="p">)</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;hr&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<h1>Articles</h1>
+<%= link_to &quot;New Article&quot;, new_article_path %>
+<% @articles.each do |article| %>
+  <h2><%= article.title %></h2>
+  <small>By <%= article.author %></small>
+  <%= simple_format(article.text) %>
+  <hr>
+<% end %>
+">Copy</button>
+</div>
+<h3 id="routes"><a class="anchorlink" href="#routes">6.4 Routes</a></h3><p>Routes inside an engine are isolated from the application by default. This is
+done by the <code>isolate_namespace</code> call inside the <code>Engine</code> class. This essentially
+means that the application and its engines can have identically named routes and
+they will not clash.</p><p>Routes inside an engine are drawn on the <code>Engine</code> class within
+<code>config/routes.rb</code>, like this:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">Blorgh</span><span class="o">::</span><span class="no">Engine</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:articles</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Blorgh::Engine.routes.draw do
+  resources :articles
+end
+">Copy</button>
+</div>
+<p>By having isolated routes such as this, if you wish to link to an area of an
+engine from within an application, you will need to use the engine's routing
+proxy method. Calls to normal routing methods such as <code>articles_path</code> may end up
+going to undesired locations if both the application and the engine have such a
+helper defined.</p><p>For instance, the following example would go to the application's <code>articles_path</code>
+if that template was rendered from the application, or the engine's <code>articles_path</code>
+if it was rendered from the engine:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s2">"Blog articles"</span><span class="p">,</span> <span class="n">articles_path</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= link_to &quot;Blog articles&quot;, articles_path %>
+">Copy</button>
+</div>
+<p>To make this route always use the engine's <code>articles_path</code> routing helper method,
+we must call the method on the routing proxy method that shares the same name as
+the engine.</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s2">"Blog articles"</span><span class="p">,</span> <span class="n">blorgh</span><span class="p">.</span><span class="nf">articles_path</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= link_to &quot;Blog articles&quot;, blorgh.articles_path %>
+">Copy</button>
+</div>
+<p>If you wish to reference the application inside the engine in a similar way, use
+the <code>main_app</code> helper:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s2">"Home"</span><span class="p">,</span> <span class="n">main_app</span><span class="p">.</span><span class="nf">root_path</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= link_to &quot;Home&quot;, main_app.root_path %>
+">Copy</button>
+</div>
+<p>If you were to use this inside an engine, it would <strong>always</strong> go to the
+application's root. If you were to leave off the <code>main_app</code> "routing proxy"
+method call, it could potentially go to the engine's or application's root,
+depending on where it was called from.</p><p>If a template rendered from within an engine attempts to use one of the
+application's routing helper methods, it may result in an undefined method call.
+If you encounter such an issue, ensure that you're not attempting to call the
+application's routing methods without the <code>main_app</code> prefix from within the
+engine.</p><h3 id="assets"><a class="anchorlink" href="#assets">6.5 Assets</a></h3><p>Assets within an engine work in an identical way to a full application. Because
+the engine class inherits from <code>Rails::Engine</code>, the application will know to
+look up assets in the engine's <code>app/assets</code> and <code>lib/assets</code> directories.</p><p>Like all of the other components of an engine, the assets should be namespaced.
+This means that if you have an asset called <code>style.css</code>, it should be placed at
+<code>app/assets/stylesheets/[engine name]/style.css</code>, rather than
+<code>app/assets/stylesheets/style.css</code>. If this asset isn't namespaced, there is a
+possibility that the host application could have an asset named identically, in
+which case the application's asset would take precedence and the engine's one
+would be ignored.</p><p>Imagine that you did have an asset located at
+<code>app/assets/stylesheets/blorgh/style.css</code>. To include this asset inside an
+application, just use <code>stylesheet_link_tag</code> and reference the asset as if it
+were inside the engine:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">stylesheet_link_tag</span> <span class="s2">"blorgh/style.css"</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= stylesheet_link_tag &quot;blorgh/style.css&quot; %>
+">Copy</button>
+</div>
+<p>You can also specify these assets as dependencies of other assets using Asset
+Pipeline require statements in processed files:</p><div class="code_container">
+<pre><code class="highlight css"><span class="c">/*
+ *= require blorgh/style
+ */</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="/*
+ *= require blorgh/style
+ */
+">Copy</button>
+</div>
+<div class="info"><p>Remember that in order to use languages like Sass or CoffeeScript, you
+should add the relevant library to your engine's <code>.gemspec</code>.</p></div><h3 id="separate-assets-and-precompiling"><a class="anchorlink" href="#separate-assets-and-precompiling">6.6 Separate Assets and Precompiling</a></h3><p>There are some situations where your engine's assets are not required by the
+host application. For example, say that you've created an admin functionality
+that only exists for your engine. In this case, the host application doesn't
+need to require <code>admin.css</code> or <code>admin.js</code>. Only the gem's admin layout needs
+these assets. It doesn't make sense for the host app to include
+<code>"blorgh/admin.css"</code> in its stylesheets. In this situation, you should
+explicitly define these assets for precompilation.  This tells Sprockets to add
+your engine assets when <code>bin/rails assets:precompile</code> is triggered.</p><p>You can define assets for precompilation in <code>engine.rb</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">initializer</span> <span class="s2">"blorgh.assets.precompile"</span> <span class="k">do</span> <span class="o">|</span><span class="n">app</span><span class="o">|</span>
+  <span class="n">app</span><span class="p">.</span><span class="nf">config</span><span class="p">.</span><span class="nf">assets</span><span class="p">.</span><span class="nf">precompile</span> <span class="o">+=</span> <span class="sx">%w( admin.js admin.css )</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="initializer &quot;blorgh.assets.precompile&quot; do |app|
+  app.config.assets.precompile += %w( admin.js admin.css )
+end
+">Copy</button>
+</div>
+<p>For more information, read the <a href="asset_pipeline.html">Asset Pipeline guide</a>.</p><h3 id="other-gem-dependencies"><a class="anchorlink" href="#other-gem-dependencies">6.7 Other Gem Dependencies</a></h3><p>Gem dependencies inside an engine should be specified inside the <code>.gemspec</code> file
+at the root of the engine. The reason is that the engine may be installed as a
+gem. If dependencies were to be specified inside the <code>Gemfile</code>, these would not
+be recognized by a traditional gem install and so they would not be installed,
+causing the engine to malfunction.</p><p>To specify a dependency that should be installed with the engine during a
+traditional <code>gem install</code>, specify it inside the <code>Gem::Specification</code> block
+inside the <code>.gemspec</code> file in the engine:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">s</span><span class="p">.</span><span class="nf">add_dependency</span> <span class="s2">"moo"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="s.add_dependency &quot;moo&quot;
+">Copy</button>
+</div>
+<p>To specify a dependency that should only be installed as a development
+dependency of the application, specify it like this:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">s</span><span class="p">.</span><span class="nf">add_development_dependency</span> <span class="s2">"moo"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="s.add_development_dependency &quot;moo&quot;
+">Copy</button>
+</div>
+<p>Both kinds of dependencies will be installed when <code>bundle install</code> is run inside
+of the application. The development dependencies for the gem will only be used
+when the development and tests for the engine are running.</p><p>Note that if you want to immediately require dependencies when the engine is
+required, you should require them before the engine's initialization. For
+example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="nb">require</span> <span class="s2">"other_engine/engine"</span>
+<span class="nb">require</span> <span class="s2">"yet_another_engine/engine"</span>
+
+<span class="k">module</span> <span class="nn">MyEngine</span>
+  <span class="k">class</span> <span class="nc">Engine</span> <span class="o">&lt;</span> <span class="o">::</span><span class="no">Rails</span><span class="o">::</span><span class="no">Engine</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="require &quot;other_engine/engine&quot;
+require &quot;yet_another_engine/engine&quot;
+
+module MyEngine
+  class Engine < ::Rails::Engine
+  end
+end
+">Copy</button>
+</div>
+<h2 id="load-and-configuration-hooks"><a class="anchorlink" href="#load-and-configuration-hooks">7 Load and Configuration Hooks</a></h2><p>Rails code can often be referenced on load of an application. Rails is responsible for the load order of these frameworks, so when you load frameworks, such as <code>ActiveRecord::Base</code>, prematurely you are violating an implicit contract your application has with Rails. Moreover, by loading code such as <code>ActiveRecord::Base</code> on boot of your application you are loading entire frameworks which may slow down your boot time and could cause conflicts with load order and boot of your application.</p><p>Load and configuration hooks are the API that allow you to hook into this initialization process without violating the load contract with Rails. This will also mitigate boot performance degradation and avoid conflicts.</p><h3 id="avoid-loading-rails-frameworks"><a class="anchorlink" href="#avoid-loading-rails-frameworks">7.1 Avoid Loading Rails Frameworks</a></h3><p>Since Ruby is a dynamic language, some code will cause different Rails frameworks to load. Take this snippet for instance:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">include</span><span class="p">(</span><span class="no">MyActiveRecordHelper</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="ActiveRecord::Base.include(MyActiveRecordHelper)
+">Copy</button>
+</div>
+<p>This snippet means that when this file is loaded, it will encounter <code>ActiveRecord::Base</code>. This encounter causes Ruby to look for the definition of that constant and will require it. This causes the entire Active Record framework to be loaded on boot.</p><p><code>ActiveSupport.on_load</code> is a mechanism that can be used to defer the loading of code until it is actually needed. The snippet above can be changed to:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">ActiveSupport</span><span class="p">.</span><span class="nf">on_load</span><span class="p">(</span><span class="ss">:active_record</span><span class="p">)</span> <span class="k">do</span>
+  <span class="kp">include</span> <span class="no">MyActiveRecordHelper</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="ActiveSupport.on_load(:active_record) do
+  include MyActiveRecordHelper
+end
+">Copy</button>
+</div>
+<p>This new snippet will only include <code>MyActiveRecordHelper</code> when <code>ActiveRecord::Base</code> is loaded.</p><h3 id="when-are-hooks-called-questionmark"><a class="anchorlink" href="#when-are-hooks-called-questionmark">7.2 When are Hooks called?</a></h3><p>In the Rails framework these hooks are called when a specific library is loaded. For example, when <code>ActionController::Base</code> is loaded, the <code>:action_controller_base</code> hook is called. This means that all <code>ActiveSupport.on_load</code> calls with <code>:action_controller_base</code> hooks will be called in the context of <code>ActionController::Base</code> (that means <code>self</code> will be an <code>ActionController::Base</code>).</p><h3 id="modifying-code-to-use-load-hooks"><a class="anchorlink" href="#modifying-code-to-use-load-hooks">7.3 Modifying Code to Use Load Hooks</a></h3><p>Modifying code is generally straightforward. If you have a line of code that refers to a Rails framework such as <code>ActiveRecord::Base</code> you can wrap that code in a load hook.</p><p><strong>Modifying calls to <code>include</code></strong></p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">include</span><span class="p">(</span><span class="no">MyActiveRecordHelper</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="ActiveRecord::Base.include(MyActiveRecordHelper)
+">Copy</button>
+</div>
+<p>becomes</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">ActiveSupport</span><span class="p">.</span><span class="nf">on_load</span><span class="p">(</span><span class="ss">:active_record</span><span class="p">)</span> <span class="k">do</span>
+  <span class="c1"># self refers to ActiveRecord::Base here,</span>
+  <span class="c1"># so we can call .include</span>
+  <span class="kp">include</span> <span class="no">MyActiveRecordHelper</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="ActiveSupport.on_load(:active_record) do
+  # self refers to ActiveRecord::Base here,
+  # so we can call .include
+  include MyActiveRecordHelper
+end
+">Copy</button>
+</div>
+<p><strong>Modifying calls to <code>prepend</code></strong></p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">ActionController</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">prepend</span><span class="p">(</span><span class="no">MyActionControllerHelper</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="ActionController::Base.prepend(MyActionControllerHelper)
+">Copy</button>
+</div>
+<p>becomes</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">ActiveSupport</span><span class="p">.</span><span class="nf">on_load</span><span class="p">(</span><span class="ss">:action_controller_base</span><span class="p">)</span> <span class="k">do</span>
+  <span class="c1"># self refers to ActionController::Base here,</span>
+  <span class="c1"># so we can call .prepend</span>
+  <span class="n">prepend</span> <span class="no">MyActionControllerHelper</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="ActiveSupport.on_load(:action_controller_base) do
+  # self refers to ActionController::Base here,
+  # so we can call .prepend
+  prepend MyActionControllerHelper
+end
+">Copy</button>
+</div>
+<p><strong>Modifying calls to class methods</strong></p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">include_root_in_json</span> <span class="o">=</span> <span class="kp">true</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="ActiveRecord::Base.include_root_in_json = true
+">Copy</button>
+</div>
+<p>becomes</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">ActiveSupport</span><span class="p">.</span><span class="nf">on_load</span><span class="p">(</span><span class="ss">:active_record</span><span class="p">)</span> <span class="k">do</span>
+  <span class="c1"># self refers to ActiveRecord::Base here</span>
+  <span class="nb">self</span><span class="p">.</span><span class="nf">include_root_in_json</span> <span class="o">=</span> <span class="kp">true</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="ActiveSupport.on_load(:active_record) do
+  # self refers to ActiveRecord::Base here
+  self.include_root_in_json = true
+end
+">Copy</button>
+</div>
+<h3 id="available-load-hooks"><a class="anchorlink" href="#available-load-hooks">7.4 Available Load Hooks</a></h3><p>These are the load hooks you can use in your own code. To hook into the initialization process of one of the following classes use the available hook.</p>
+<table><thead>
+<tr>
+<th>Class</th>
+<th>Hook</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code>ActionCable</code></td>
+<td><code>action_cable</code></td>
+</tr>
+<tr>
+<td><code>ActionCable::Channel::Base</code></td>
+<td><code>action_cable_channel</code></td>
+</tr>
+<tr>
+<td><code>ActionCable::Connection::Base</code></td>
+<td><code>action_cable_connection</code></td>
+</tr>
+<tr>
+<td><code>ActionCable::Connection::TestCase</code></td>
+<td><code>action_cable_connection_test_case</code></td>
+</tr>
+<tr>
+<td><code>ActionController::API</code></td>
+<td><code>action_controller_api</code></td>
+</tr>
+<tr>
+<td><code>ActionController::API</code></td>
+<td><code>action_controller</code></td>
+</tr>
+<tr>
+<td><code>ActionController::Base</code></td>
+<td><code>action_controller_base</code></td>
+</tr>
+<tr>
+<td><code>ActionController::Base</code></td>
+<td><code>action_controller</code></td>
+</tr>
+<tr>
+<td><code>ActionController::TestCase</code></td>
+<td><code>action_controller_test_case</code></td>
+</tr>
+<tr>
+<td><code>ActionDispatch::IntegrationTest</code></td>
+<td><code>action_dispatch_integration_test</code></td>
+</tr>
+<tr>
+<td><code>ActionDispatch::Response</code></td>
+<td><code>action_dispatch_response</code></td>
+</tr>
+<tr>
+<td><code>ActionDispatch::Request</code></td>
+<td><code>action_dispatch_request</code></td>
+</tr>
+<tr>
+<td><code>ActionDispatch::SystemTestCase</code></td>
+<td><code>action_dispatch_system_test_case</code></td>
+</tr>
+<tr>
+<td><code>ActionMailbox::Base</code></td>
+<td><code>action_mailbox</code></td>
+</tr>
+<tr>
+<td><code>ActionMailbox::InboundEmail</code></td>
+<td><code>action_mailbox_inbound_email</code></td>
+</tr>
+<tr>
+<td><code>ActionMailbox::Record</code></td>
+<td><code>action_mailbox_record</code></td>
+</tr>
+<tr>
+<td><code>ActionMailbox::TestCase</code></td>
+<td><code>action_mailbox_test_case</code></td>
+</tr>
+<tr>
+<td><code>ActionMailer::Base</code></td>
+<td><code>action_mailer</code></td>
+</tr>
+<tr>
+<td><code>ActionMailer::TestCase</code></td>
+<td><code>action_mailer_test_case</code></td>
+</tr>
+<tr>
+<td><code>ActionText::Content</code></td>
+<td><code>action_text_content</code></td>
+</tr>
+<tr>
+<td><code>ActionText::Record</code></td>
+<td><code>action_text_record</code></td>
+</tr>
+<tr>
+<td><code>ActionText::RichText</code></td>
+<td><code>action_text_rich_text</code></td>
+</tr>
+<tr>
+<td><code>ActionText::EncryptedRichText</code></td>
+<td><code>action_text_encrypted_rich_text</code></td>
+</tr>
+<tr>
+<td><code>ActionView::Base</code></td>
+<td><code>action_view</code></td>
+</tr>
+<tr>
+<td><code>ActionView::TestCase</code></td>
+<td><code>action_view_test_case</code></td>
+</tr>
+<tr>
+<td><code>ActiveJob::Base</code></td>
+<td><code>active_job</code></td>
+</tr>
+<tr>
+<td><code>ActiveJob::TestCase</code></td>
+<td><code>active_job_test_case</code></td>
+</tr>
+<tr>
+<td><code>ActiveModel::Model</code></td>
+<td><code>active_model</code></td>
+</tr>
+<tr>
+<td><code>ActiveRecord::Base</code></td>
+<td><code>active_record</code></td>
+</tr>
+<tr>
+<td><code>ActiveRecord::TestFixtures</code></td>
+<td><code>active_record_fixtures</code></td>
+</tr>
+<tr>
+<td><code>ActiveRecord::ConnectionAdapters::PostgreSQLAdapter</code></td>
+<td><code>active_record_postgresqladapter</code></td>
+</tr>
+<tr>
+<td><code>ActiveRecord::ConnectionAdapters::Mysql2Adapter</code></td>
+<td><code>active_record_mysql2adapter</code></td>
+</tr>
+<tr>
+<td><code>ActiveRecord::ConnectionAdapters::TrilogyAdapter</code></td>
+<td><code>active_record_trilogyadapter</code></td>
+</tr>
+<tr>
+<td><code>ActiveRecord::ConnectionAdapters::SQLite3Adapter</code></td>
+<td><code>active_record_sqlite3adapter</code></td>
+</tr>
+<tr>
+<td><code>ActiveStorage::Attachment</code></td>
+<td><code>active_storage_attachment</code></td>
+</tr>
+<tr>
+<td><code>ActiveStorage::VariantRecord</code></td>
+<td><code>active_storage_variant_record</code></td>
+</tr>
+<tr>
+<td><code>ActiveStorage::Blob</code></td>
+<td><code>active_storage_blob</code></td>
+</tr>
+<tr>
+<td><code>ActiveStorage::Record</code></td>
+<td><code>active_storage_record</code></td>
+</tr>
+<tr>
+<td><code>ActiveSupport::TestCase</code></td>
+<td><code>active_support_test_case</code></td>
+</tr>
+<tr>
+<td><code>i18n</code></td>
+<td><code>i18n</code></td>
+</tr>
+</tbody></table>
+<h3 id="available-configuration-hooks"><a class="anchorlink" href="#available-configuration-hooks">7.5 Available Configuration Hooks</a></h3><p>Configuration hooks do not hook into any particular framework, but instead they run in context of the entire application.</p>
+<table><thead>
+<tr>
+<th>Hook</th>
+<th>Use Case</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code>before_configuration</code></td>
+<td>First configurable block to run. Called before any initializers are run.</td>
+</tr>
+<tr>
+<td><code>before_initialize</code></td>
+<td>Second configurable block to run. Called before frameworks initialize.</td>
+</tr>
+<tr>
+<td><code>before_eager_load</code></td>
+<td>Third configurable block to run. Does not run if <a href="configuring.html#config-eager-load"><code>config.eager_load</code></a> set to false.</td>
+</tr>
+<tr>
+<td><code>after_initialize</code></td>
+<td>Last configurable block to run. Called after frameworks initialize.</td>
+</tr>
+</tbody></table>
+<p>Configuration hooks can be called in the Engine class.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">module</span> <span class="nn">Blorgh</span>
+  <span class="k">class</span> <span class="nc">Engine</span> <span class="o">&lt;</span> <span class="o">::</span><span class="no">Rails</span><span class="o">::</span><span class="no">Engine</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">before_configuration</span> <span class="k">do</span>
+      <span class="nb">puts</span> <span class="s1">'I am called before any initializers'</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="module Blorgh
+  class Engine < ::Rails::Engine
+    config.before_configuration do
+      puts 'I am called before any initializers'
+    end
+  end
+end
+">Copy</button>
+</div>
+
+
+        <h3>Feedback</h3>
+        <p>
+          You're encouraged to help improve the quality of this guide.
+        </p>
+        <p>
+          Please contribute if you see any typos or factual errors.
+          To get started, you can read our <a href="https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation">documentation contributions</a> section.
+        </p>
+        <p>
+          You may also find incomplete content or stuff that is not up to date.
+          Please do add any missing documentation for main. Make sure to check
+          <a href="https://edgeguides.rubyonrails.org">Edge Guides</a> first to verify
+          if the issues are already fixed or not on the main branch.
+          Check the <a href="ruby_on_rails_guides_guidelines.html">Ruby on Rails Guides Guidelines</a>
+          for style and conventions.
+        </p>
+        <p>
+          If for whatever reason you spot something to fix but cannot patch it yourself, please
+          <a href="https://github.com/rails/rails/issues">open an issue</a>.
+        </p>
+        <p>And last but not least, any kind of discussion regarding Ruby on Rails
+          documentation is very welcome on the <a href="https://discuss.rubyonrails.org/c/rubyonrails-docs">official Ruby on Rails Forum</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="hide" />
+  <div id="footer">
+    <div class="wrapper">
+      <p>This work is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International</a> License</p>
+<p>"Rails", "Ruby on Rails", and the Rails logo are trademarks of David Heinemeier Hansson. All rights reserved.</p>
+
+    </div>
+  </div>
+</body>
+</html>

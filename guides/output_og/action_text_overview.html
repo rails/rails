@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Action Text Overview — Ruby on Rails Guides</title>
+  <link rel="stylesheet" type="text/css" href="stylesheets/style.css" data-turbo-track="reload">
+  <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+  <link rel="stylesheet" type="text/css" href="stylesheets/highlight.css" data-turbo-track="reload">
+  
+  <link rel="icon" href="images/favicon.ico" sizes="any">
+  <link rel="icon" href="images/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="images/icon.png">
+  
+  <script src="javascripts/@hotwired--turbo.js" data-turbo-track="reload"></script>
+  <script src="javascripts/clipboard.js" data-turbo-track="reload"></script>
+  <script src="javascripts/guides.js" data-turbo-track="reload"></script>
+
+  <meta property="og:title" content="Action Text Overview — Ruby on Rails Guides" />
+  <meta name="description" content="Action Text OverviewThis guide provides you with all you need to get started in handling rich text content.After reading this guide, you will know: What Action Text is, and how to install and configure it. How to create, render, style, and customize rich text content. How to handle attachments." />
+  <meta property="og:description" content="Action Text OverviewThis guide provides you with all you need to get started in handling rich text content.After reading this guide, you will know: What Action Text is, and how to install and configure it. How to create, render, style, and customize rich text content. How to handle attachments." />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:site_name" content="Ruby on Rails Guides" />
+  <meta property="og:image" content="https://avatars.githubusercontent.com/u/4223" />
+  <meta property="og:type" content="website" />
+
+  <meta name="theme-color" content="#C81418">
+</head>
+
+<body dir="ltr" class="guide">
+  <div>
+    <div id="version-badge">edge</div>
+  </div>
+  <div id="topNav">
+    <div class="wrapper">
+      <strong class="more-info-label">More at <a href="https://rubyonrails.org/">rubyonrails.org:</a> </strong>
+      <span class="red-button more-info-button">
+        More Ruby on Rails
+      </span>
+      <ul class="more-info-links s-hidden">
+        <li class="more-info"><a href="https://rubyonrails.org/blog">Blog</a></li>
+        <li class="more-info"><a href="https://guides.rubyonrails.org/">Guides</a></li>
+        <li class="more-info"><a href="https://api.rubyonrails.org/">API</a></li>
+        <li class="more-info"><a href="https://discuss.rubyonrails.org/">Forum</a></li>
+        <li class="more-info"><a href="https://github.com/rails/rails">Contribute on GitHub</a></li>
+      </ul>
+    </div>
+  </div>
+  <div id="header">
+    <div class="wrapper clearfix">
+      <div class="header-logo"><a href="index.html" title="Return to home page">Guides.rubyonrails.org</a></div>
+      <ul class="nav">
+        <li><a class="nav-item" href="index.html">Home</a></li>
+        <li class="guides-index guides-index-large">
+          <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
+          <div id="guides" class="clearfix" style="display: none;">
+            <hr />
+            <dl class="guides-section-container">
+                <div class="guides-section">
+                  <dt>Start Here</dt>
+                  <dd><a href="getting_started.html">Getting Started with Rails</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Models</dt>
+                  <dd><a href="active_record_basics.html">Active Record Basics</a></dd>
+                  <dd><a href="active_record_migrations.html">Active Record Migrations</a></dd>
+                  <dd><a href="active_record_validations.html">Active Record Validations</a></dd>
+                  <dd><a href="active_record_callbacks.html">Active Record Callbacks</a></dd>
+                  <dd><a href="association_basics.html">Active Record Associations</a></dd>
+                  <dd><a href="active_record_querying.html">Active Record Query Interface</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Views</dt>
+                  <dd><a href="layouts_and_rendering.html">Layouts and Rendering in Rails</a></dd>
+                  <dd><a href="form_helpers.html">Action View Form Helpers</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Controllers</dt>
+                  <dd><a href="action_controller_overview.html">Action Controller Overview</a></dd>
+                  <dd><a href="routing.html">Rails Routing from the Outside In</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Other Components</dt>
+                  <dd><a href="active_support_core_extensions.html">Active Support Core Extensions</a></dd>
+                  <dd><a href="action_mailer_basics.html">Action Mailer Basics</a></dd>
+                  <dd><a href="active_job_basics.html">Active Job Basics</a></dd>
+                  <dd><a href="active_storage_overview.html">Active Storage Overview</a></dd>
+                  <dd><a href="action_cable_overview.html">Action Cable Overview</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Digging Deeper</dt>
+                  <dd><a href="i18n.html">Rails Internationalization (I18n) API</a></dd>
+                  <dd><a href="testing.html">Testing Rails Applications</a></dd>
+                  <dd><a href="security.html">Securing Rails Applications</a></dd>
+                  <dd><a href="error_reporting.html">Error Reporting in Rails Applications</a></dd>
+                  <dd><a href="debugging_rails_applications.html">Debugging Rails Applications</a></dd>
+                  <dd><a href="configuring.html">Configuring Rails Applications</a></dd>
+                  <dd><a href="command_line.html">The Rails Command Line</a></dd>
+                  <dd><a href="asset_pipeline.html">The Asset Pipeline</a></dd>
+                  <dd><a href="working_with_javascript_in_rails.html">Working with JavaScript in Rails</a></dd>
+                  <dd><a href="autoloading_and_reloading_constants.html">Autoloading and Reloading</a></dd>
+                  <dd><a href="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</a></dd>
+                  <dd><a href="caching_with_rails.html">Caching with Rails: An Overview</a></dd>
+                  <dd><a href="api_app.html">Using Rails for API-only Applications</a></dd>
+                  <dd><a href="active_record_multiple_databases.html">Multiple Databases</a></dd>
+                  <dd><a href="active_record_composite_primary_keys.html">Composite Primary Keys</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Extending Rails</dt>
+                  <dd><a href="rails_on_rack.html">Rails on Rack</a></dd>
+                  <dd><a href="generators.html">Creating and Customizing Rails Generators &amp; Templates</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Contributing</dt>
+                  <dd><a href="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</a></dd>
+                  <dd><a href="api_documentation_guidelines.html">API Documentation Guidelines</a></dd>
+                  <dd><a href="ruby_on_rails_guides_guidelines.html">Guides Guidelines</a></dd>
+                  <dd><a href="development_dependencies_install.html">Installing Rails Core Development Dependencies</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Policies</dt>
+                  <dd><a href="maintenance_policy.html">Maintenance Policy</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Release Notes</dt>
+                  <dd><a href="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</a></dd>
+                  <dd><a href="7_1_release_notes.html">Version 7.1 - October 2023</a></dd>
+                  <dd><a href="7_0_release_notes.html">Version 7.0 - December 2021</a></dd>
+                  <dd><a href="6_1_release_notes.html">Version 6.1 - December 2020</a></dd>
+                  <dd><a href="6_0_release_notes.html">Version 6.0 - August 2019</a></dd>
+                  <dd><a href="5_2_release_notes.html">Version 5.2 - April 2018</a></dd>
+                  <dd><a href="5_1_release_notes.html">Version 5.1 - April 2017</a></dd>
+                  <dd><a href="5_0_release_notes.html">Version 5.0 - June 2016</a></dd>
+                  <dd><a href="4_2_release_notes.html">Version 4.2 - December 2014</a></dd>
+                  <dd><a href="4_1_release_notes.html">Version 4.1 - April 2014</a></dd>
+                  <dd><a href="4_0_release_notes.html">Version 4.0 - June 2013</a></dd>
+                  <dd><a href="3_2_release_notes.html">Version 3.2 - January 2012</a></dd>
+                  <dd><a href="3_1_release_notes.html">Version 3.1 - August 2011</a></dd>
+                  <dd><a href="3_0_release_notes.html">Version 3.0 - August 2010</a></dd>
+                  <dd><a href="2_3_release_notes.html">Version 2.3 - March 2009</a></dd>
+                  <dd><a href="2_2_release_notes.html">Version 2.2 - November 2008</a></dd>
+                </div>
+            </dl>
+          </div>
+        </li>
+        <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
+        <li class="guides-index guides-index-small">
+          <select class="guides-index-item nav-item">
+            <option value="index.html">Guides Index</option>
+              <optgroup label="Start Here">
+                  <option value="getting_started.html">Getting Started with Rails</option>
+              </optgroup>
+              <optgroup label="Models">
+                  <option value="active_record_basics.html">Active Record Basics</option>
+                  <option value="active_record_migrations.html">Active Record Migrations</option>
+                  <option value="active_record_validations.html">Active Record Validations</option>
+                  <option value="active_record_callbacks.html">Active Record Callbacks</option>
+                  <option value="association_basics.html">Active Record Associations</option>
+                  <option value="active_record_querying.html">Active Record Query Interface</option>
+              </optgroup>
+              <optgroup label="Views">
+                  <option value="layouts_and_rendering.html">Layouts and Rendering in Rails</option>
+                  <option value="form_helpers.html">Action View Form Helpers</option>
+              </optgroup>
+              <optgroup label="Controllers">
+                  <option value="action_controller_overview.html">Action Controller Overview</option>
+                  <option value="routing.html">Rails Routing from the Outside In</option>
+              </optgroup>
+              <optgroup label="Other Components">
+                  <option value="active_support_core_extensions.html">Active Support Core Extensions</option>
+                  <option value="action_mailer_basics.html">Action Mailer Basics</option>
+                  <option value="active_job_basics.html">Active Job Basics</option>
+                  <option value="active_storage_overview.html">Active Storage Overview</option>
+                  <option value="action_cable_overview.html">Action Cable Overview</option>
+              </optgroup>
+              <optgroup label="Digging Deeper">
+                  <option value="i18n.html">Rails Internationalization (I18n) API</option>
+                  <option value="testing.html">Testing Rails Applications</option>
+                  <option value="security.html">Securing Rails Applications</option>
+                  <option value="error_reporting.html">Error Reporting in Rails Applications</option>
+                  <option value="debugging_rails_applications.html">Debugging Rails Applications</option>
+                  <option value="configuring.html">Configuring Rails Applications</option>
+                  <option value="command_line.html">The Rails Command Line</option>
+                  <option value="asset_pipeline.html">The Asset Pipeline</option>
+                  <option value="working_with_javascript_in_rails.html">Working with JavaScript in Rails</option>
+                  <option value="autoloading_and_reloading_constants.html">Autoloading and Reloading</option>
+                  <option value="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</option>
+                  <option value="caching_with_rails.html">Caching with Rails: An Overview</option>
+                  <option value="api_app.html">Using Rails for API-only Applications</option>
+                  <option value="active_record_multiple_databases.html">Multiple Databases</option>
+                  <option value="active_record_composite_primary_keys.html">Composite Primary Keys</option>
+              </optgroup>
+              <optgroup label="Extending Rails">
+                  <option value="rails_on_rack.html">Rails on Rack</option>
+                  <option value="generators.html">Creating and Customizing Rails Generators &amp; Templates</option>
+              </optgroup>
+              <optgroup label="Contributing">
+                  <option value="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</option>
+                  <option value="api_documentation_guidelines.html">API Documentation Guidelines</option>
+                  <option value="ruby_on_rails_guides_guidelines.html">Guides Guidelines</option>
+                  <option value="development_dependencies_install.html">Installing Rails Core Development Dependencies</option>
+              </optgroup>
+              <optgroup label="Policies">
+                  <option value="maintenance_policy.html">Maintenance Policy</option>
+              </optgroup>
+              <optgroup label="Release Notes">
+                  <option value="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</option>
+                  <option value="7_1_release_notes.html">Version 7.1 - October 2023</option>
+                  <option value="7_0_release_notes.html">Version 7.0 - December 2021</option>
+                  <option value="6_1_release_notes.html">Version 6.1 - December 2020</option>
+                  <option value="6_0_release_notes.html">Version 6.0 - August 2019</option>
+                  <option value="5_2_release_notes.html">Version 5.2 - April 2018</option>
+                  <option value="5_1_release_notes.html">Version 5.1 - April 2017</option>
+                  <option value="5_0_release_notes.html">Version 5.0 - June 2016</option>
+                  <option value="4_2_release_notes.html">Version 4.2 - December 2014</option>
+                  <option value="4_1_release_notes.html">Version 4.1 - April 2014</option>
+                  <option value="4_0_release_notes.html">Version 4.0 - June 2013</option>
+                  <option value="3_2_release_notes.html">Version 3.2 - January 2012</option>
+                  <option value="3_1_release_notes.html">Version 3.1 - August 2011</option>
+                  <option value="3_0_release_notes.html">Version 3.0 - August 2010</option>
+                  <option value="2_3_release_notes.html">Version 2.3 - March 2009</option>
+                  <option value="2_2_release_notes.html">Version 2.2 - November 2008</option>
+              </optgroup>
+          </select>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <hr class="hide" />
+
+  <div id="feature">
+    <div class="wrapper">
+      <h1>Action Text Overview</h1><p>This guide provides you with all you need to get started in handling rich text
+content.</p><p>After reading this guide, you will know:</p>
+<ul>
+<li>What Action Text is, and how to install and configure it.</li>
+<li>How to create, render, style, and customize rich text content.</li>
+<li>How to handle attachments.</li>
+</ul>
+
+
+                <div id="subCol">
+            <h3 class="chapter"><img src="images/icon_book-close-bookmark-1.svg" alt="" />Chapters</h3>
+            <ol class="chapters">
+<li><a href="#what-is-action-text-questionmark">What is Action Text?</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#creating-rich-text-content">Creating Rich Text Content</a></li>
+<li><a href="#rendering-rich-text-content">Rendering Rich Text Content</a></li>
+<li><a href="#customizing-the-rich-text-content-editor-trix">Customizing the Rich Text Content Editor (Trix)</a>
+
+<ul>
+<li><a href="#removing-or-adding-trix-styles">Removing or Adding Trix Styles</a></li>
+<li><a href="#customizing-the-editor-container">Customizing the Editor Container</a></li>
+<li><a href="#customizing-html-for-embedded-images-and-attachments">Customizing HTML for Embedded Images and Attachments</a></li>
+</ul></li>
+<li><a href="#attachments">Attachments</a>
+
+<ul>
+<li><a href="#active-storage">Active Storage</a></li>
+<li><a href="#signed-globalid">Signed GlobalID</a></li>
+<li><a href="#rendering-an-action-text-attachment">Rendering an Action Text Attachment</a></li>
+<li><a href="#rendering-a-different-partial-for-the-action-text-attachment">Rendering a Different Partial for the action-text-attachment</a></li>
+<li><a href="#rendering-a-partial-for-an-unresolved-instance-or-missing-action-text-attachment">Rendering a Partial for an Unresolved Instance or Missing action-text-attachment</a></li>
+<li><a href="#attachable-via-api">Attachable via API</a></li>
+</ul></li>
+<li><a href="#miscellaneous">Miscellaneous</a>
+
+<ul>
+<li><a href="#avoiding-n-1-queries">Avoiding N+1 Queries</a></li>
+</ul></li>
+</ol>
+
+          </div>
+
+    </div>
+  </div>
+
+  <div id="container">
+    <div class="wrapper">
+      <div id="mainCol">
+        <h2 id="what-is-action-text-questionmark"><a class="anchorlink" href="#what-is-action-text-questionmark">1 What is Action Text?</a></h2><p>Action Text facilitates the handling and display of rich text content. Rich text
+content is text that includes formatting elements such as bold, italics, colors,
+and hyperlinks, providing a visually enhanced and structured presentation beyond
+plain text. It allows us to create rich text content, store it in a table, then
+attach it to any of our models.</p><p>Action Text includes a <a href="https://en.wikipedia.org/wiki/WYSIWYG">WYSIWYG</a> editor
+called Trix, which is used in web applications to provide users with a
+user-friendly interface for creating and editing rich text content. It handles
+everything from providing enriching capabilities like the formatting of text,
+adding links or quotes, embedding images, and much much more. You can view an
+example of the Trix editor <a href="https://trix-editor.org/">here</a>.</p><p>The rich text content generated by the Trix editor is saved in its own RichText
+model that can be associated with any existing Active Record model in the
+application. In addition, any embedded images (or other attachments) can be
+automatically stored using Active Storage (which is added as a dependency) and
+associated with that RichText model. When it's time to render content, Action
+Text processes the content by sanitizing it first so that it's safe to embed
+directly into the page's HTML.</p><div class="info"><p>Most WYSIWYG editors are wrappers around HTML’s <code>contenteditable</code> and
+<code>execCommand</code> APIs. These APIs were designed by Microsoft to support live
+editing of web pages in Internet Explorer 5.5. They were eventually
+reverse-engineered and copied by other browsers. Consequently, these APIs were
+never fully specified or documented, and because WYSIWYG HTML editors are
+enormous in scope, each browser's implementation has its own set of bugs and
+quirks. Hence, JavaScript developers are often left to resolve the
+inconsistencies.<br><br> Trix sidesteps these inconsistencies by treating
+<code>contenteditable</code> as an I/O device: when input makes its way to the editor, Trix
+converts that input into an editing operation on its internal document model,
+then re-renders that document back into the editor. This gives Trix complete
+control over what happens after every keystroke and avoids the need to use
+<code>execCommand</code> and the inconsistencies that come along with it.</p></div><h2 id="installation"><a class="anchorlink" href="#installation">2 Installation</a></h2><p>To install Action Text and start working with rich text content, run:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>action_text:install
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails action_text:install
+">Copy</button>
+</div>
+<p>It will do the following:</p>
+<ul>
+<li>Installs the JavaScript packages for <code>trix</code> and <code>@rails/actiontext</code> and adds
+them to the <code>application.js</code>.</li>
+<li>Adds the <code>image_processing</code> gem for analysis and transformations of the
+embedded images and other attachments with Active Storage. Please refer to the
+<a href="active_storage_overview.html">Active Storage Overview</a> guide for more
+information about it.</li>
+<li>Adds migrations to create the following tables that store rich text content
+and attachments: <code>action_text_rich_texts</code>, <code>active_storage_blobs</code>,
+<code>active_storage_attachments</code>, <code>active_storage_variant_records</code>.</li>
+<li>Creates <code>actiontext.css</code> and imports it into <code>application.css</code>. The Trix
+stylesheet is also included in the <code>application.css</code> file.</li>
+<li>Adds the default view partials <code>_content.html</code> and <code>_blob.html</code> to render
+Action Text content and Active Storage attachment (aka blob) respectively.</li>
+</ul>
+<p>Thereafter, executing the migrations will add the new <code>action_text_*</code> and
+<code>active_storage_*</code> tables to your app:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>db:migrate
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails db:migrate
+">Copy</button>
+</div>
+<p>When the Action Text installation creates the <code>action_text_rich_texts</code> table, it
+uses a polymorphic relationship so that multiple models can add rich text
+attributes. This is done through the <code>record_type</code> and <code>record_id</code> columns,
+which store the ClassName of the model, and ID of the record, respectively.</p><div class="info"><p>With polymorphic associations, a model can belong to more than one other
+model, on a single association. Read more about it in the <a href="https://guides.rubyonrails.org/association_basics.html#polymorphic-associations">Active Record
+Associations
+guide</a>.</p></div><p>Hence, if your models containing Action Text content use UUID values as
+identifiers, then all models that use Action Text attributes will need to use
+UUID values for their unique identifiers. The generated migration for Action
+Text will also need to be updated to specify <code>type: :uuid</code> for the record
+references line.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">t</span><span class="p">.</span><span class="nf">references</span> <span class="ss">:record</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span><span class="p">,</span> <span class="ss">polymorphic: </span><span class="kp">true</span><span class="p">,</span> <span class="ss">index: </span><span class="kp">false</span><span class="p">,</span> <span class="ss">type: :uuid</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="t.references :record, null: false, polymorphic: true, index: false, type: :uuid
+">Copy</button>
+</div>
+<h2 id="creating-rich-text-content"><a class="anchorlink" href="#creating-rich-text-content">3 Creating Rich Text Content</a></h2><p>This section explores some of the configurations you'll need to follow to create
+rich text.</p><p>The RichText record holds the content produced by the Trix editor in a
+serialized <code>body</code> attribute. It also holds all the references to the embedded
+files, which are stored using Active Storage. This record is then associated
+with the Active Record model which desires to have rich text content. The
+association is made by placing the <code>has_rich_text</code> class method in the model
+that you’d like to add rich text to.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># app/models/article.rb</span>
+<span class="k">class</span> <span class="nc">Article</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">has_rich_text</span> <span class="ss">:content</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# app/models/article.rb
+class Article < ApplicationRecord
+  has_rich_text :content
+end
+">Copy</button>
+</div>
+<div class="note"><p>There's no need to add the <code>content</code> column to your Article table.
+<code>has_rich_text</code> associates the content with the <code>action_text_rich_texts</code> table
+that has been created, and links it back to your model. You also may choose to
+name the attribute to be something different from <code>content</code>.</p></div><p>Once you have added the <code>has_rich_text</code> class method to the model, you can then
+update your views to make use of the rich text editor (Trix) for that field. To
+do so, use a
+<a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-rich_text_area"><code>rich_text_area</code></a>
+for the form field.</p><div class="code_container">
+<pre><code class="highlight erb"><span class="c">&lt;%# app/views/articles/_form.html.erb %&gt;</span>
+<span class="cp">&lt;%=</span> <span class="n">form_with</span> <span class="ss">model: </span><span class="n">article</span> <span class="k">do</span> <span class="o">|</span><span class="n">form</span><span class="o">|</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"field"</span><span class="nt">&gt;</span>
+    <span class="cp">&lt;%=</span> <span class="n">form</span><span class="p">.</span><span class="nf">label</span> <span class="ss">:content</span> <span class="cp">%&gt;</span>
+    <span class="cp">&lt;%=</span> <span class="n">form</span><span class="p">.</span><span class="nf">rich_text_area</span> <span class="ss">:content</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;/div&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%# app/views/articles/_form.html.erb %>
+<%= form_with model: article do |form| %>
+  <div class=&quot;field&quot;>
+    <%= form.label :content %>
+    <%= form.rich_text_area :content %>
+  </div>
+<% end %>
+">Copy</button>
+</div>
+<p>This will display a Trix editor that provides the functionality to create and
+update your rich text accordingly. Later we'll go into details about <a href="action_text_overview.html#removing-or-adding-trix-styles">how to
+update the styles for the
+editor</a>.</p><p>Finally, to ensure that you can accept updates from the editor, you will need to
+permit the referenced attribute as a parameter in the relevant controller:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">class</span> <span class="nc">ArticlesController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">create</span>
+    <span class="n">article</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">create!</span> <span class="n">params</span><span class="p">.</span><span class="nf">require</span><span class="p">(</span><span class="ss">:article</span><span class="p">).</span><span class="nf">permit</span><span class="p">(</span><span class="ss">:title</span><span class="p">,</span> <span class="ss">:content</span><span class="p">)</span>
+    <span class="n">redirect_to</span> <span class="n">article</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="class ArticlesController < ApplicationController
+  def create
+    article = Article.create! params.require(:article).permit(:title, :content)
+    redirect_to article
+  end
+end
+">Copy</button>
+</div>
+<p>If the need arises to rename classes that utilize <code>has_rich_text</code>, you will also
+need to update the polymorphic type column <code>record_type</code> in the
+<code>action_text_rich_texts</code> table for the respective rows.</p><p>Since Action Text depends on polymorphic associations, which, in turn, involve
+storing class names in the database, it's crucial to keep the data in sync with
+the class names used in your Ruby code. This synchronization is essential to
+maintain consistency between the stored data and the class references in your
+codebase.</p><h2 id="rendering-rich-text-content"><a class="anchorlink" href="#rendering-rich-text-content">4 Rendering Rich Text Content</a></h2><p>Instances of <code>ActionText::RichText</code> can be directly embedded into a page because
+they have already sanitized their content for a safe render. You can display the
+content as follows:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="vi">@article</span><span class="p">.</span><span class="nf">content</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= @article.content %>
+">Copy</button>
+</div>
+<p><code>ActionText::RichText#to_s</code> safely transforms RichText into an HTML String. On
+the other hand <code>ActionText::RichText#to_plain_text</code> returns a string that is not
+HTML safe and should not be rendered in browsers. You can learn more about
+Action Text's sanitization process in the
+<a href="https://edgeapi.rubyonrails.org/classes/ActionText/RichText.html">documentation</a>
+for the <code>ActionText::RichText</code> class.</p><div class="note"><p>If there's an attached resource within <code>content</code> field, it might not show
+properly unless you have the necessary <a href="active_storage_overview.html#requirements">dependencies for Active
+Storage</a> installed.</p></div><h2 id="customizing-the-rich-text-content-editor-trix"><a class="anchorlink" href="#customizing-the-rich-text-content-editor-trix">5 Customizing the Rich Text Content Editor (Trix)</a></h2><p>There may be times when you want to update the presentation of the editor to
+meet your stylistic requirements, this section guides on how to do that.</p><h3 id="removing-or-adding-trix-styles"><a class="anchorlink" href="#removing-or-adding-trix-styles">5.1 Removing or Adding Trix Styles</a></h3><p>By default, Action Text will render rich text content inside an element with the
+<code>.trix-content</code> class. This is set in
+<code>app/views/layouts/action_text/contents/_content.html.erb</code>.  Elements with this
+class are then styled by the trix stylesheet.</p><p>If you’d like to update any of the trix styles, you can add your custom styles
+in <code>app/assets/stylesheets/actiontext.css</code>.</p><p>However, if you’d prefer to provide your own styles or utilize a third-party
+library instead of the default trix stylesheet, you can remove trix from the
+pre-processor directives in the <code>app/assets/stylesheets/actiontext.css</code> file by
+deleting the following:</p><div class="code_container">
+<pre><code class="highlight css"><span class="o">=</span> <span class="nt">require</span> <span class="nt">trix</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="= require trix
+">Copy</button>
+</div>
+<h3 id="customizing-the-editor-container"><a class="anchorlink" href="#customizing-the-editor-container">5.2 Customizing the Editor Container</a></h3><p>To customize the HTML container element that's rendered around rich text
+content, edit the <code>app/views/layouts/action_text/contents/_content.html.erb</code>
+layout file created by the installer:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="c">&lt;%# app/views/layouts/action_text/contents/_content.html.erb %&gt;</span>
+<span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"trix-content"</span><span class="nt">&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="k">yield</span> <span class="cp">%&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%# app/views/layouts/action_text/contents/_content.html.erb %>
+<div class=&quot;trix-content&quot;>
+  <%= yield %>
+</div>
+">Copy</button>
+</div>
+<h3 id="customizing-html-for-embedded-images-and-attachments"><a class="anchorlink" href="#customizing-html-for-embedded-images-and-attachments">5.3 Customizing HTML for Embedded Images and Attachments</a></h3><p>To customize the HTML rendered for embedded images and other attachments (known
+as blobs), edit the <code>app/views/active_storage/blobs/_blob.html.erb</code> template
+created by the installer:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="c">&lt;%# app/views/active_storage/blobs/_blob.html.erb %&gt;</span>
+<span class="nt">&lt;figure</span> <span class="na">class=</span><span class="s">"attachment attachment--</span><span class="cp">&lt;%=</span> <span class="n">blob</span><span class="p">.</span><span class="nf">representable?</span> <span class="p">?</span> <span class="s2">"preview"</span> <span class="p">:</span> <span class="s2">"file"</span> <span class="cp">%&gt;</span><span class="s"> attachment--</span><span class="cp">&lt;%=</span> <span class="n">blob</span><span class="p">.</span><span class="nf">filename</span><span class="p">.</span><span class="nf">extension</span> <span class="cp">%&gt;</span><span class="s">"</span><span class="nt">&gt;</span>
+  <span class="cp">&lt;%</span> <span class="k">if</span> <span class="n">blob</span><span class="p">.</span><span class="nf">representable?</span> <span class="cp">%&gt;</span>
+    <span class="cp">&lt;%=</span> <span class="n">image_tag</span> <span class="n">blob</span><span class="p">.</span><span class="nf">representation</span><span class="p">(</span><span class="ss">resize_to_limit: </span><span class="n">local_assigns</span><span class="p">[</span><span class="ss">:in_gallery</span><span class="p">]</span> <span class="p">?</span> <span class="p">[</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">600</span> <span class="p">]</span> <span class="p">:</span> <span class="p">[</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">768</span> <span class="p">])</span> <span class="cp">%&gt;</span>
+  <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+
+  <span class="nt">&lt;figcaption</span> <span class="na">class=</span><span class="s">"attachment__caption"</span><span class="nt">&gt;</span>
+    <span class="cp">&lt;%</span> <span class="k">if</span> <span class="n">caption</span> <span class="o">=</span> <span class="n">blob</span><span class="p">.</span><span class="nf">try</span><span class="p">(</span><span class="ss">:caption</span><span class="p">)</span> <span class="cp">%&gt;</span>
+      <span class="cp">&lt;%=</span> <span class="n">caption</span> <span class="cp">%&gt;</span>
+    <span class="cp">&lt;%</span> <span class="k">else</span> <span class="cp">%&gt;</span>
+      <span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">"attachment__name"</span><span class="nt">&gt;</span><span class="cp">&lt;%=</span> <span class="n">blob</span><span class="p">.</span><span class="nf">filename</span> <span class="cp">%&gt;</span><span class="nt">&lt;/span&gt;</span>
+      <span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">"attachment__size"</span><span class="nt">&gt;</span><span class="cp">&lt;%=</span> <span class="n">number_to_human_size</span> <span class="n">blob</span><span class="p">.</span><span class="nf">byte_size</span> <span class="cp">%&gt;</span><span class="nt">&lt;/span&gt;</span>
+    <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;/figcaption&gt;</span>
+<span class="nt">&lt;/figure&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%# app/views/active_storage/blobs/_blob.html.erb %>
+<figure class=&quot;attachment attachment--<%= blob.representable? ? &quot;preview&quot; : &quot;file&quot; %> attachment--<%= blob.filename.extension %>&quot;>
+  <% if blob.representable? %>
+    <%= image_tag blob.representation(resize_to_limit: local_assigns[:in_gallery] ? [ 800, 600 ] : [ 1024, 768 ]) %>
+  <% end %>
+
+  <figcaption class=&quot;attachment__caption&quot;>
+    <% if caption = blob.try(:caption) %>
+      <%= caption %>
+    <% else %>
+      <span class=&quot;attachment__name&quot;><%= blob.filename %></span>
+      <span class=&quot;attachment__size&quot;><%= number_to_human_size blob.byte_size %></span>
+    <% end %>
+  </figcaption>
+</figure>
+">Copy</button>
+</div>
+<h2 id="attachments"><a class="anchorlink" href="#attachments">6 Attachments</a></h2><p>Currently, Action Text supports attachments that are uploaded through Active
+Storage as well as attachments that are linked to a Signed GlobalID.</p><h3 id="active-storage"><a class="anchorlink" href="#active-storage">6.1 Active Storage</a></h3><p>When uploading an image within your rich text editor, it uses Action Text which
+in turn uses Active Storage. However, Active Storage has <a href="active_storage_overview.html#requirements">some
+dependencies</a> which are not provided
+by Rails. To use the built-in previewers, you must install these libraries.</p><p>Some, but not all of these libraries are required and they are dependent on the
+kind of uploads you are expecting within the editor. A common error that users
+encounter when working with Action Text and Active Storage is that images do not
+render correctly in the editor. This is usually due to the <code>libvips</code> dependency
+not being installed.</p><h3 id="signed-globalid"><a class="anchorlink" href="#signed-globalid">6.2 Signed GlobalID</a></h3><p>In addition to attachments uploaded through Active Storage, Action Text can also
+embed anything that can be resolved by a <a href="https://github.com/rails/globalid#signed-global-ids">Signed
+GlobalID</a>.</p><p>A Global ID is an app-wide URI that uniquely identifies a model instance:
+<code>gid://YourApp/Some::Model/id</code>. This is helpful when you need a single
+identifier to reference different classes of objects.</p><p>When using this method, Action Text requires attachments to have a signed global
+ID (sgid). By default, all Active Record models in a Rails app mix in the
+<code>GlobalID::Identification</code> concern, so they can be resolved by a signed global
+ID and are therefore <code>ActionText::Attachable</code> compatible.</p><p>Action Text references the HTML you insert on save so that it can re-render with
+up-to-date content later on. This makes it so that you can reference models and
+always display the current content when those records change.</p><p>Action Text will load up the model from the global ID and then render it with
+the default partial path when you render the content.</p><p>An Action Text Attachment can look like this:</p><div class="code_container">
+<pre><code class="highlight html"><span class="nt">&lt;action-text-attachment</span> <span class="na">sgid=</span><span class="s">"BAh7CEkiCG…"</span><span class="nt">&gt;&lt;/action-text-attachment&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<action-text-attachment sgid=&quot;BAh7CEkiCG…&quot;></action-text-attachment>
+">Copy</button>
+</div>
+<p>Action Text renders embedded <code>&lt;action-text-attachment&gt;</code> elements by resolving
+their sgid attribute of the element into an instance. Once resolved, that
+instance is passed along to a render helper. As a result, the HTML is embedded
+as a descendant of the <code>&lt;action-text-attachment&gt;</code> element.</p><p>To be rendered within Action Text <code>&lt;action-text-attachment&gt;</code> element as an
+attachment, we must include the <code>ActionText::Attachable</code> module, which
+implements <code>#to_sgid(**options)</code> (made available through the
+<code>GlobalID::Identification</code> concern).</p><p>You can also optionally declare <code>#to_attachable_partial_path</code> to render a custom
+partial path and <code>#to_missing_attachable_partial_path</code> for handling missing
+records.</p><p>An example can be found here:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">class</span> <span class="nc">Person</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="kp">include</span> <span class="no">ActionText</span><span class="o">::</span><span class="no">Attachable</span>
+<span class="k">end</span>
+
+<span class="n">person</span> <span class="o">=</span> <span class="no">Person</span><span class="p">.</span><span class="nf">create!</span> <span class="ss">name: </span><span class="s2">"Javan"</span>
+<span class="n">html</span> <span class="o">=</span> <span class="sx">%Q(&lt;action-text-attachment sgid="</span><span class="si">#{</span><span class="n">person</span><span class="p">.</span><span class="nf">attachable_sgid</span><span class="si">}</span><span class="sx">"&gt;&lt;/action-text-attachment&gt;)</span>
+<span class="n">content</span> <span class="o">=</span> <span class="no">ActionText</span><span class="o">::</span><span class="no">Content</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
+<span class="n">content</span><span class="p">.</span><span class="nf">attachables</span> <span class="c1"># =&gt; [person]</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="class Person < ApplicationRecord
+  include ActionText::Attachable
+end
+
+person = Person.create! name: &quot;Javan&quot;
+html = %Q(<action-text-attachment sgid=&quot;#{person.attachable_sgid}&quot;></action-text-attachment>)
+content = ActionText::Content.new(html)
+content.attachables # => [person]
+">Copy</button>
+</div>
+<h3 id="rendering-an-action-text-attachment"><a class="anchorlink" href="#rendering-an-action-text-attachment">6.3 Rendering an Action Text Attachment</a></h3><p>The default way that an <code>&lt;action-text-attachment&gt;</code> is rendered is through the
+default path partial.</p><p>To illustrate this further, let’s consider a User model:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># app/models/user.rb</span>
+<span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">has_one_attached</span> <span class="ss">:avatar</span>
+<span class="k">end</span>
+
+<span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">user</span><span class="p">.</span><span class="nf">to_global_id</span><span class="p">.</span><span class="nf">to_s</span> <span class="c1">#=&gt; gid://MyRailsApp/User/1</span>
+<span class="n">user</span><span class="p">.</span><span class="nf">to_signed_global_id</span><span class="p">.</span><span class="nf">to_s</span> <span class="c1">#=&gt; BAh7CEkiCG…</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# app/models/user.rb
+class User < ApplicationRecord
+  has_one_attached :avatar
+end
+
+user = User.find(1)
+user.to_global_id.to_s #=> gid://MyRailsApp/User/1
+user.to_signed_global_id.to_s #=> BAh7CEkiCG…
+">Copy</button>
+</div>
+<div class="note"><p>We can mix <code>GlobalID::Identification</code> into any model with a <code>.find(id)</code>
+class method. Support is automatically included in Active Record.</p></div><p>The above code will return our identifier to uniquely identify a model instance.</p><p>Next, consider some rich text content that embeds an <code>&lt;action-text-attachment&gt;</code>
+element that references the User instance's signed GlobalID:</p><div class="code_container">
+<pre><code class="highlight html"><span class="nt">&lt;p&gt;</span>Hello, <span class="nt">&lt;action-text-attachment</span> <span class="na">sgid=</span><span class="s">"BAh7CEkiCG…"</span><span class="nt">&gt;&lt;/action-text-attachment&gt;</span>.<span class="nt">&lt;/p&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<p>Hello, <action-text-attachment sgid=&quot;BAh7CEkiCG…&quot;></action-text-attachment>.</p>
+">Copy</button>
+</div>
+<p>Action Text uses the "BAh7CEkiCG…" String to resolve the User instance. It then
+renders it with the default partial path when you render the content.</p><p>In this case, the default partial path is the <code>users/user</code> partial:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="c">&lt;%# app/views/users/_user.html.erb %&gt;</span>
+<span class="nt">&lt;span&gt;</span><span class="cp">&lt;%=</span> <span class="n">image_tag</span> <span class="n">user</span><span class="p">.</span><span class="nf">avatar</span> <span class="cp">%&gt;</span> <span class="cp">&lt;%=</span> <span class="n">user</span><span class="p">.</span><span class="nf">name</span> <span class="cp">%&gt;</span><span class="nt">&lt;/span&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%# app/views/users/_user.html.erb %>
+<span><%= image_tag user.avatar %> <%= user.name %></span>
+">Copy</button>
+</div>
+<p>Hence, the resulting HTML rendered by Action Text would look something like:</p><div class="code_container">
+<pre><code class="highlight html"><span class="nt">&lt;p&gt;</span>Hello, <span class="nt">&lt;action-text-attachment</span> <span class="na">sgid=</span><span class="s">"BAh7CEkiCG…"</span><span class="nt">&gt;&lt;span&gt;&lt;img</span> <span class="na">src=</span><span class="s">"..."</span><span class="nt">&gt;</span> Jane Doe<span class="nt">&lt;/span&gt;&lt;/action-text-attachment&gt;</span>.<span class="nt">&lt;/p&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<p>Hello, <action-text-attachment sgid=&quot;BAh7CEkiCG…&quot;><span><img src=&quot;...&quot;> Jane Doe</span></action-text-attachment>.</p>
+">Copy</button>
+</div>
+<h3 id="rendering-a-different-partial-for-the-action-text-attachment"><a class="anchorlink" href="#rendering-a-different-partial-for-the-action-text-attachment">6.4 Rendering a Different Partial for the action-text-attachment</a></h3><p>To render a different partial for the attachable, define
+<code>User#to_attachable_partial_path</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="k">def</span> <span class="nf">to_attachable_partial_path</span>
+    <span class="s2">"users/attachable"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="class User < ApplicationRecord
+  def to_attachable_partial_path
+    &quot;users/attachable&quot;
+  end
+end
+">Copy</button>
+</div>
+<p>Then declare that partial. The User instance will be available as the user
+partial-local variable:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="c">&lt;%# app/views/users/_attachable.html.erb %&gt;</span>
+<span class="nt">&lt;span&gt;</span><span class="cp">&lt;%=</span> <span class="n">image_tag</span> <span class="n">user</span><span class="p">.</span><span class="nf">avatar</span> <span class="cp">%&gt;</span> <span class="cp">&lt;%=</span> <span class="n">user</span><span class="p">.</span><span class="nf">name</span> <span class="cp">%&gt;</span><span class="nt">&lt;/span&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%# app/views/users/_attachable.html.erb %>
+<span><%= image_tag user.avatar %> <%= user.name %></span>
+">Copy</button>
+</div>
+<h3 id="rendering-a-partial-for-an-unresolved-instance-or-missing-action-text-attachment"><a class="anchorlink" href="#rendering-a-partial-for-an-unresolved-instance-or-missing-action-text-attachment">6.5 Rendering a Partial for an Unresolved Instance or Missing action-text-attachment</a></h3><p>If Action Text is unable to resolve the User instance (for example, if the
+record has been deleted), then a default fallback partial will be rendered.</p><p>To render a different missing attachment partial, define a class-level
+<code>to_missing_attachable_partial_path</code> method:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">to_missing_attachable_partial_path</span>
+    <span class="s2">"users/missing_attachable"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="class User < ApplicationRecord
+  def self.to_missing_attachable_partial_path
+    &quot;users/missing_attachable&quot;
+  end
+end
+">Copy</button>
+</div>
+<p>Then declare that partial.</p><div class="code_container">
+<pre><code class="highlight erb"><span class="c">&lt;%# app/views/users/missing_attachable.html.erb %&gt;</span>
+<span class="nt">&lt;span&gt;</span>Deleted user<span class="nt">&lt;/span&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%# app/views/users/missing_attachable.html.erb %>
+<span>Deleted user</span>
+">Copy</button>
+</div>
+<h3 id="attachable-via-api"><a class="anchorlink" href="#attachable-via-api">6.6 Attachable via API</a></h3><p>If your architecture does not follow the traditional Rails server-side rendered
+pattern, then you may perhaps find yourself with a backend API (for example,
+using JSON) that will need a separate endpoint for uploading files. The endpoint
+will be required to create an <code>ActiveStorage::Blob</code> and return its
+<code>attachable_sgid</code>:</p><div class="code_container">
+<pre><code class="highlight json"><span class="p">{</span><span class="w">
+  </span><span class="nl">"attachable_sgid"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BAh7CEkiCG…"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+<button class="clipboard-button" data-clipboard-text="{
+  &quot;attachable_sgid&quot;: &quot;BAh7CEkiCG…&quot;
+}
+">Copy</button>
+</div>
+<p>Thereafter, you can take the <code>attachable_sgid</code> and insert it in rich text
+content within your frontend code using the <code>&lt;action-text-attachment&gt;</code> tag:</p><div class="code_container">
+<pre><code class="highlight html"><span class="nt">&lt;action-text-attachment</span> <span class="na">sgid=</span><span class="s">"BAh7CEkiCG…"</span><span class="nt">&gt;&lt;/action-text-attachment&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<action-text-attachment sgid=&quot;BAh7CEkiCG…&quot;></action-text-attachment>
+">Copy</button>
+</div>
+<h2 id="miscellaneous"><a class="anchorlink" href="#miscellaneous">7 Miscellaneous</a></h2><h3 id="avoiding-n-1-queries"><a class="anchorlink" href="#avoiding-n-1-queries">7.1 Avoiding N+1 Queries</a></h3><p>If you wish to preload the dependent <code>ActionText::RichText</code> model, assuming your
+rich text field is named <code>content</code>, you can use the named scope:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">Article</span><span class="p">.</span><span class="nf">all</span><span class="p">.</span><span class="nf">with_rich_text_content</span> <span class="c1"># Preload the body without attachments.</span>
+<span class="no">Article</span><span class="p">.</span><span class="nf">all</span><span class="p">.</span><span class="nf">with_rich_text_content_and_embeds</span> <span class="c1"># Preload both body and attachments.</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Article.all.with_rich_text_content # Preload the body without attachments.
+Article.all.with_rich_text_content_and_embeds # Preload both body and attachments.
+">Copy</button>
+</div>
+
+
+        <h3>Feedback</h3>
+        <p>
+          You're encouraged to help improve the quality of this guide.
+        </p>
+        <p>
+          Please contribute if you see any typos or factual errors.
+          To get started, you can read our <a href="https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation">documentation contributions</a> section.
+        </p>
+        <p>
+          You may also find incomplete content or stuff that is not up to date.
+          Please do add any missing documentation for main. Make sure to check
+          <a href="https://edgeguides.rubyonrails.org">Edge Guides</a> first to verify
+          if the issues are already fixed or not on the main branch.
+          Check the <a href="ruby_on_rails_guides_guidelines.html">Ruby on Rails Guides Guidelines</a>
+          for style and conventions.
+        </p>
+        <p>
+          If for whatever reason you spot something to fix but cannot patch it yourself, please
+          <a href="https://github.com/rails/rails/issues">open an issue</a>.
+        </p>
+        <p>And last but not least, any kind of discussion regarding Ruby on Rails
+          documentation is very welcome on the <a href="https://discuss.rubyonrails.org/c/rubyonrails-docs">official Ruby on Rails Forum</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="hide" />
+  <div id="footer">
+    <div class="wrapper">
+      <p>This work is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International</a> License</p>
+<p>"Rails", "Ruby on Rails", and the Rails logo are trademarks of David Heinemeier Hansson. All rights reserved.</p>
+
+    </div>
+  </div>
+</body>
+</html>

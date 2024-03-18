@@ -1,0 +1,2203 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rails Routing from the Outside In — Ruby on Rails Guides</title>
+  <link rel="stylesheet" type="text/css" href="stylesheets/style.css" data-turbo-track="reload">
+  <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+  <link rel="stylesheet" type="text/css" href="stylesheets/highlight.css" data-turbo-track="reload">
+  
+  <link rel="icon" href="images/favicon.ico" sizes="any">
+  <link rel="icon" href="images/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="images/icon.png">
+  
+  <script src="javascripts/@hotwired--turbo.js" data-turbo-track="reload"></script>
+  <script src="javascripts/clipboard.js" data-turbo-track="reload"></script>
+  <script src="javascripts/guides.js" data-turbo-track="reload"></script>
+
+  <meta property="og:title" content="Rails Routing from the Outside In — Ruby on Rails Guides" />
+  <meta name="description" content="Rails Routing from the Outside InThis guide covers the user-facing features of Rails routing.After reading this guide, you will know: How to interpret the code in config/routes.rb. How to construct your own routes, using either the preferred resourceful style or the match method. How to declare route parameters, which are passed onto controller actions. How to automatically create paths and URLs using route helpers. Advanced techniques such as creating constraints and mounting Rack endpoints." />
+  <meta property="og:description" content="Rails Routing from the Outside InThis guide covers the user-facing features of Rails routing.After reading this guide, you will know: How to interpret the code in config/routes.rb. How to construct your own routes, using either the preferred resourceful style or the match method. How to declare route parameters, which are passed onto controller actions. How to automatically create paths and URLs using route helpers. Advanced techniques such as creating constraints and mounting Rack endpoints." />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:site_name" content="Ruby on Rails Guides" />
+  <meta property="og:image" content="https://avatars.githubusercontent.com/u/4223" />
+  <meta property="og:type" content="website" />
+
+  <meta name="theme-color" content="#C81418">
+</head>
+
+<body dir="ltr" class="guide">
+  <div>
+    <div id="version-badge">edge</div>
+  </div>
+  <div id="topNav">
+    <div class="wrapper">
+      <strong class="more-info-label">More at <a href="https://rubyonrails.org/">rubyonrails.org:</a> </strong>
+      <span class="red-button more-info-button">
+        More Ruby on Rails
+      </span>
+      <ul class="more-info-links s-hidden">
+        <li class="more-info"><a href="https://rubyonrails.org/blog">Blog</a></li>
+        <li class="more-info"><a href="https://guides.rubyonrails.org/">Guides</a></li>
+        <li class="more-info"><a href="https://api.rubyonrails.org/">API</a></li>
+        <li class="more-info"><a href="https://discuss.rubyonrails.org/">Forum</a></li>
+        <li class="more-info"><a href="https://github.com/rails/rails">Contribute on GitHub</a></li>
+      </ul>
+    </div>
+  </div>
+  <div id="header">
+    <div class="wrapper clearfix">
+      <div class="header-logo"><a href="index.html" title="Return to home page">Guides.rubyonrails.org</a></div>
+      <ul class="nav">
+        <li><a class="nav-item" href="index.html">Home</a></li>
+        <li class="guides-index guides-index-large">
+          <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
+          <div id="guides" class="clearfix" style="display: none;">
+            <hr />
+            <dl class="guides-section-container">
+                <div class="guides-section">
+                  <dt>Start Here</dt>
+                  <dd><a href="getting_started.html">Getting Started with Rails</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Models</dt>
+                  <dd><a href="active_record_basics.html">Active Record Basics</a></dd>
+                  <dd><a href="active_record_migrations.html">Active Record Migrations</a></dd>
+                  <dd><a href="active_record_validations.html">Active Record Validations</a></dd>
+                  <dd><a href="active_record_callbacks.html">Active Record Callbacks</a></dd>
+                  <dd><a href="association_basics.html">Active Record Associations</a></dd>
+                  <dd><a href="active_record_querying.html">Active Record Query Interface</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Views</dt>
+                  <dd><a href="layouts_and_rendering.html">Layouts and Rendering in Rails</a></dd>
+                  <dd><a href="form_helpers.html">Action View Form Helpers</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Controllers</dt>
+                  <dd><a href="action_controller_overview.html">Action Controller Overview</a></dd>
+                  <dd><a href="routing.html">Rails Routing from the Outside In</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Other Components</dt>
+                  <dd><a href="active_support_core_extensions.html">Active Support Core Extensions</a></dd>
+                  <dd><a href="action_mailer_basics.html">Action Mailer Basics</a></dd>
+                  <dd><a href="active_job_basics.html">Active Job Basics</a></dd>
+                  <dd><a href="active_storage_overview.html">Active Storage Overview</a></dd>
+                  <dd><a href="action_cable_overview.html">Action Cable Overview</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Digging Deeper</dt>
+                  <dd><a href="i18n.html">Rails Internationalization (I18n) API</a></dd>
+                  <dd><a href="testing.html">Testing Rails Applications</a></dd>
+                  <dd><a href="security.html">Securing Rails Applications</a></dd>
+                  <dd><a href="error_reporting.html">Error Reporting in Rails Applications</a></dd>
+                  <dd><a href="debugging_rails_applications.html">Debugging Rails Applications</a></dd>
+                  <dd><a href="configuring.html">Configuring Rails Applications</a></dd>
+                  <dd><a href="command_line.html">The Rails Command Line</a></dd>
+                  <dd><a href="asset_pipeline.html">The Asset Pipeline</a></dd>
+                  <dd><a href="working_with_javascript_in_rails.html">Working with JavaScript in Rails</a></dd>
+                  <dd><a href="autoloading_and_reloading_constants.html">Autoloading and Reloading</a></dd>
+                  <dd><a href="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</a></dd>
+                  <dd><a href="caching_with_rails.html">Caching with Rails: An Overview</a></dd>
+                  <dd><a href="api_app.html">Using Rails for API-only Applications</a></dd>
+                  <dd><a href="active_record_multiple_databases.html">Multiple Databases</a></dd>
+                  <dd><a href="active_record_composite_primary_keys.html">Composite Primary Keys</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Extending Rails</dt>
+                  <dd><a href="rails_on_rack.html">Rails on Rack</a></dd>
+                  <dd><a href="generators.html">Creating and Customizing Rails Generators &amp; Templates</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Contributing</dt>
+                  <dd><a href="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</a></dd>
+                  <dd><a href="api_documentation_guidelines.html">API Documentation Guidelines</a></dd>
+                  <dd><a href="ruby_on_rails_guides_guidelines.html">Guides Guidelines</a></dd>
+                  <dd><a href="development_dependencies_install.html">Installing Rails Core Development Dependencies</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Policies</dt>
+                  <dd><a href="maintenance_policy.html">Maintenance Policy</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Release Notes</dt>
+                  <dd><a href="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</a></dd>
+                  <dd><a href="7_1_release_notes.html">Version 7.1 - October 2023</a></dd>
+                  <dd><a href="7_0_release_notes.html">Version 7.0 - December 2021</a></dd>
+                  <dd><a href="6_1_release_notes.html">Version 6.1 - December 2020</a></dd>
+                  <dd><a href="6_0_release_notes.html">Version 6.0 - August 2019</a></dd>
+                  <dd><a href="5_2_release_notes.html">Version 5.2 - April 2018</a></dd>
+                  <dd><a href="5_1_release_notes.html">Version 5.1 - April 2017</a></dd>
+                  <dd><a href="5_0_release_notes.html">Version 5.0 - June 2016</a></dd>
+                  <dd><a href="4_2_release_notes.html">Version 4.2 - December 2014</a></dd>
+                  <dd><a href="4_1_release_notes.html">Version 4.1 - April 2014</a></dd>
+                  <dd><a href="4_0_release_notes.html">Version 4.0 - June 2013</a></dd>
+                  <dd><a href="3_2_release_notes.html">Version 3.2 - January 2012</a></dd>
+                  <dd><a href="3_1_release_notes.html">Version 3.1 - August 2011</a></dd>
+                  <dd><a href="3_0_release_notes.html">Version 3.0 - August 2010</a></dd>
+                  <dd><a href="2_3_release_notes.html">Version 2.3 - March 2009</a></dd>
+                  <dd><a href="2_2_release_notes.html">Version 2.2 - November 2008</a></dd>
+                </div>
+            </dl>
+          </div>
+        </li>
+        <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
+        <li class="guides-index guides-index-small">
+          <select class="guides-index-item nav-item">
+            <option value="index.html">Guides Index</option>
+              <optgroup label="Start Here">
+                  <option value="getting_started.html">Getting Started with Rails</option>
+              </optgroup>
+              <optgroup label="Models">
+                  <option value="active_record_basics.html">Active Record Basics</option>
+                  <option value="active_record_migrations.html">Active Record Migrations</option>
+                  <option value="active_record_validations.html">Active Record Validations</option>
+                  <option value="active_record_callbacks.html">Active Record Callbacks</option>
+                  <option value="association_basics.html">Active Record Associations</option>
+                  <option value="active_record_querying.html">Active Record Query Interface</option>
+              </optgroup>
+              <optgroup label="Views">
+                  <option value="layouts_and_rendering.html">Layouts and Rendering in Rails</option>
+                  <option value="form_helpers.html">Action View Form Helpers</option>
+              </optgroup>
+              <optgroup label="Controllers">
+                  <option value="action_controller_overview.html">Action Controller Overview</option>
+                  <option value="routing.html">Rails Routing from the Outside In</option>
+              </optgroup>
+              <optgroup label="Other Components">
+                  <option value="active_support_core_extensions.html">Active Support Core Extensions</option>
+                  <option value="action_mailer_basics.html">Action Mailer Basics</option>
+                  <option value="active_job_basics.html">Active Job Basics</option>
+                  <option value="active_storage_overview.html">Active Storage Overview</option>
+                  <option value="action_cable_overview.html">Action Cable Overview</option>
+              </optgroup>
+              <optgroup label="Digging Deeper">
+                  <option value="i18n.html">Rails Internationalization (I18n) API</option>
+                  <option value="testing.html">Testing Rails Applications</option>
+                  <option value="security.html">Securing Rails Applications</option>
+                  <option value="error_reporting.html">Error Reporting in Rails Applications</option>
+                  <option value="debugging_rails_applications.html">Debugging Rails Applications</option>
+                  <option value="configuring.html">Configuring Rails Applications</option>
+                  <option value="command_line.html">The Rails Command Line</option>
+                  <option value="asset_pipeline.html">The Asset Pipeline</option>
+                  <option value="working_with_javascript_in_rails.html">Working with JavaScript in Rails</option>
+                  <option value="autoloading_and_reloading_constants.html">Autoloading and Reloading</option>
+                  <option value="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</option>
+                  <option value="caching_with_rails.html">Caching with Rails: An Overview</option>
+                  <option value="api_app.html">Using Rails for API-only Applications</option>
+                  <option value="active_record_multiple_databases.html">Multiple Databases</option>
+                  <option value="active_record_composite_primary_keys.html">Composite Primary Keys</option>
+              </optgroup>
+              <optgroup label="Extending Rails">
+                  <option value="rails_on_rack.html">Rails on Rack</option>
+                  <option value="generators.html">Creating and Customizing Rails Generators &amp; Templates</option>
+              </optgroup>
+              <optgroup label="Contributing">
+                  <option value="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</option>
+                  <option value="api_documentation_guidelines.html">API Documentation Guidelines</option>
+                  <option value="ruby_on_rails_guides_guidelines.html">Guides Guidelines</option>
+                  <option value="development_dependencies_install.html">Installing Rails Core Development Dependencies</option>
+              </optgroup>
+              <optgroup label="Policies">
+                  <option value="maintenance_policy.html">Maintenance Policy</option>
+              </optgroup>
+              <optgroup label="Release Notes">
+                  <option value="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</option>
+                  <option value="7_1_release_notes.html">Version 7.1 - October 2023</option>
+                  <option value="7_0_release_notes.html">Version 7.0 - December 2021</option>
+                  <option value="6_1_release_notes.html">Version 6.1 - December 2020</option>
+                  <option value="6_0_release_notes.html">Version 6.0 - August 2019</option>
+                  <option value="5_2_release_notes.html">Version 5.2 - April 2018</option>
+                  <option value="5_1_release_notes.html">Version 5.1 - April 2017</option>
+                  <option value="5_0_release_notes.html">Version 5.0 - June 2016</option>
+                  <option value="4_2_release_notes.html">Version 4.2 - December 2014</option>
+                  <option value="4_1_release_notes.html">Version 4.1 - April 2014</option>
+                  <option value="4_0_release_notes.html">Version 4.0 - June 2013</option>
+                  <option value="3_2_release_notes.html">Version 3.2 - January 2012</option>
+                  <option value="3_1_release_notes.html">Version 3.1 - August 2011</option>
+                  <option value="3_0_release_notes.html">Version 3.0 - August 2010</option>
+                  <option value="2_3_release_notes.html">Version 2.3 - March 2009</option>
+                  <option value="2_2_release_notes.html">Version 2.2 - November 2008</option>
+              </optgroup>
+          </select>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <hr class="hide" />
+
+  <div id="feature">
+    <div class="wrapper">
+      <h1>Rails Routing from the Outside In</h1><p>This guide covers the user-facing features of Rails routing.</p><p>After reading this guide, you will know:</p>
+<ul>
+<li>How to interpret the code in <code>config/routes.rb</code>.</li>
+<li>How to construct your own routes, using either the preferred resourceful style or the <code>match</code> method.</li>
+<li>How to declare route parameters, which are passed onto controller actions.</li>
+<li>How to automatically create paths and URLs using route helpers.</li>
+<li>Advanced techniques such as creating constraints and mounting Rack endpoints.</li>
+</ul>
+
+
+                <div id="subCol">
+            <h3 class="chapter"><img src="images/icon_book-close-bookmark-1.svg" alt="" />Chapters</h3>
+            <ol class="chapters">
+<li><a href="#the-purpose-of-the-rails-router">The Purpose of the Rails Router</a>
+
+<ul>
+<li><a href="#connecting-urls-to-code">Connecting URLs to Code</a></li>
+<li><a href="#generating-paths-and-urls-from-code">Generating Paths and URLs from Code</a></li>
+<li><a href="#configuring-the-rails-router">Configuring the Rails Router</a></li>
+</ul></li>
+<li><a href="#resource-routing-the-rails-default">Resource Routing: the Rails Default</a>
+
+<ul>
+<li><a href="#resources-on-the-web">Resources on the Web</a></li>
+<li><a href="#crud-verbs-and-actions">CRUD, Verbs, and Actions</a></li>
+<li><a href="#path-and-url-helpers">Path and URL Helpers</a></li>
+<li><a href="#defining-multiple-resources-at-the-same-time">Defining Multiple Resources at the Same Time</a></li>
+<li><a href="#singular-resources">Singular Resources</a></li>
+<li><a href="#controller-namespaces-and-routing">Controller Namespaces and Routing</a></li>
+<li><a href="#nested-resources">Nested Resources</a></li>
+<li><a href="#routing-concerns">Routing Concerns</a></li>
+<li><a href="#creating-paths-and-urls-from-objects">Creating Paths and URLs from Objects</a></li>
+<li><a href="#adding-more-restful-actions">Adding More RESTful Actions</a></li>
+</ul></li>
+<li><a href="#non-resourceful-routes">Non-Resourceful Routes</a>
+
+<ul>
+<li><a href="#bound-parameters">Bound Parameters</a></li>
+<li><a href="#dynamic-segments">Dynamic Segments</a></li>
+<li><a href="#static-segments">Static Segments</a></li>
+<li><a href="#the-query-string">The Query String</a></li>
+<li><a href="#defining-defaults">Defining Defaults</a></li>
+<li><a href="#naming-routes">Naming Routes</a></li>
+<li><a href="#http-verb-constraints">HTTP Verb Constraints</a></li>
+<li><a href="#segment-constraints">Segment Constraints</a></li>
+<li><a href="#request-based-constraints">Request-Based Constraints</a></li>
+<li><a href="#advanced-constraints">Advanced Constraints</a></li>
+<li><a href="#route-globbing-and-wildcard-segments">Route Globbing and Wildcard Segments</a></li>
+<li><a href="#redirection">Redirection</a></li>
+<li><a href="#routing-to-rack-applications">Routing to Rack Applications</a></li>
+<li><a href="#using-root">Using <code>root</code></a></li>
+<li><a href="#unicode-character-routes">Unicode Character Routes</a></li>
+<li><a href="#direct-routes">Direct Routes</a></li>
+<li><a href="#using-resolve">Using <code>resolve</code></a></li>
+</ul></li>
+<li><a href="#customizing-resourceful-routes">Customizing Resourceful Routes</a>
+
+<ul>
+<li><a href="#specifying-a-controller-to-use">Specifying a Controller to Use</a></li>
+<li><a href="#specifying-constraints">Specifying Constraints</a></li>
+<li><a href="#overriding-the-named-route-helpers">Overriding the Named Route Helpers</a></li>
+<li><a href="#overriding-the-new-and-edit-segments">Overriding the <code>new</code> and <code>edit</code> Segments</a></li>
+<li><a href="#prefixing-the-named-route-helpers">Prefixing the Named Route Helpers</a></li>
+<li><a href="#restricting-the-routes-created">Restricting the Routes Created</a></li>
+<li><a href="#translated-paths">Translated Paths</a></li>
+<li><a href="#overriding-the-singular-form">Overriding the Singular Form</a></li>
+<li><a href="#using-as-in-nested-resources">Using <code>:as</code> in Nested Resources</a></li>
+<li><a href="#overriding-named-route-parameters">Overriding Named Route Parameters</a></li>
+</ul></li>
+<li><a href="#breaking-up-very-large-route-file-into-multiple-small-ones">Breaking Up <em>Very</em> Large Route File into Multiple Small Ones</a>
+
+<ul>
+<li><a href="#don-t-use-this-feature-unless-you-really-need-it">Don't Use This Feature Unless You Really Need It</a></li>
+</ul></li>
+<li><a href="#inspecting-and-testing-routes">Inspecting and Testing Routes</a>
+
+<ul>
+<li><a href="#listing-existing-routes">Listing Existing Routes</a></li>
+<li><a href="#testing-routes">Testing Routes</a></li>
+</ul></li>
+</ol>
+
+          </div>
+
+    </div>
+  </div>
+
+  <div id="container">
+    <div class="wrapper">
+      <div id="mainCol">
+        <h2 id="the-purpose-of-the-rails-router"><a class="anchorlink" href="#the-purpose-of-the-rails-router">1 The Purpose of the Rails Router</a></h2><p>The Rails router recognizes URLs and dispatches them to a controller's action, or to a Rack application. It can also generate paths and URLs, avoiding the need to hardcode strings in your views.</p><h3 id="connecting-urls-to-code"><a class="anchorlink" href="#connecting-urls-to-code">1.1 Connecting URLs to Code</a></h3><p>When your Rails application receives an incoming request for:</p><div class="code_container">
+<pre><code class="highlight plaintext">GET /patients/17
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="GET /patients/17
+">Copy</button>
+</div>
+<p>it asks the router to match it to a controller action. If the first matching route is:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'/patients/:id'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'patients#show'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get '/patients/:id', to: 'patients#show'
+">Copy</button>
+</div>
+<p>the request is dispatched to the <code>patients</code> controller's <code>show</code> action with <code>{ id: '17' }</code> in <code>params</code>.</p><div class="note"><p>Rails uses snake_case for controller names here, if you have a multiple word controller like <code>MonsterTrucksController</code>, you want to use <code>monster_trucks#show</code> for example.</p></div><h3 id="generating-paths-and-urls-from-code"><a class="anchorlink" href="#generating-paths-and-urls-from-code">1.2 Generating Paths and URLs from Code</a></h3><p>You can also generate paths and URLs. If the route above is modified to be:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'/patients/:id'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'patients#show'</span><span class="p">,</span> <span class="ss">as: </span><span class="s1">'patient'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get '/patients/:id', to: 'patients#show', as: 'patient'
+">Copy</button>
+</div>
+<p>and your application contains this code in the controller:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="vi">@patient</span> <span class="o">=</span> <span class="no">Patient</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">])</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="@patient = Patient.find(params[:id])
+">Copy</button>
+</div>
+<p>and this in the corresponding view:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s1">'Patient Record'</span><span class="p">,</span> <span class="n">patient_path</span><span class="p">(</span><span class="vi">@patient</span><span class="p">)</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= link_to 'Patient Record', patient_path(@patient) %>
+">Copy</button>
+</div>
+<p>then the router will generate the path <code>/patients/17</code>. This reduces the brittleness of your view and makes your code easier to understand. Note that the id does not need to be specified in the route helper.</p><h3 id="configuring-the-rails-router"><a class="anchorlink" href="#configuring-the-rails-router">1.3 Configuring the Rails Router</a></h3><p>The routes for your application or engine live in the file <code>config/routes.rb</code> and typically looks like this:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:brands</span><span class="p">,</span> <span class="ss">only: </span><span class="p">[</span><span class="ss">:index</span><span class="p">,</span> <span class="ss">:show</span><span class="p">]</span> <span class="k">do</span>
+    <span class="n">resources</span> <span class="ss">:products</span><span class="p">,</span> <span class="ss">only: </span><span class="p">[</span><span class="ss">:index</span><span class="p">,</span> <span class="ss">:show</span><span class="p">]</span>
+  <span class="k">end</span>
+
+  <span class="n">resource</span> <span class="ss">:basket</span><span class="p">,</span> <span class="ss">only: </span><span class="p">[</span><span class="ss">:show</span><span class="p">,</span> <span class="ss">:update</span><span class="p">,</span> <span class="ss">:destroy</span><span class="p">]</span>
+
+  <span class="n">resolve</span><span class="p">(</span><span class="s2">"Basket"</span><span class="p">)</span> <span class="p">{</span> <span class="n">route_for</span><span class="p">(</span><span class="ss">:basket</span><span class="p">)</span> <span class="p">}</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Rails.application.routes.draw do
+  resources :brands, only: [:index, :show] do
+    resources :products, only: [:index, :show]
+  end
+
+  resource :basket, only: [:show, :update, :destroy]
+
+  resolve(&quot;Basket&quot;) { route_for(:basket) }
+end
+">Copy</button>
+</div>
+<p>Since this is a regular Ruby source file you can use all of its features to help you define your routes but be careful with variable names as they can clash with the DSL methods of the router.</p><div class="note"><p>The <code>Rails.application.routes.draw do ... end</code> block that wraps your route definitions is required to establish the scope for the router DSL and must not be deleted.</p></div><h2 id="resource-routing-the-rails-default"><a class="anchorlink" href="#resource-routing-the-rails-default">2 Resource Routing: the Rails Default</a></h2><p>Resource routing allows you to quickly declare all of the common routes for a given resource controller. A single call to <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-resources"><code>resources</code></a> can declare all of the necessary routes for your <code>index</code>, <code>show</code>, <code>new</code>, <code>edit</code>, <code>create</code>, <code>update</code>, and <code>destroy</code> actions.</p><h3 id="resources-on-the-web"><a class="anchorlink" href="#resources-on-the-web">2.1 Resources on the Web</a></h3><p>Browsers request pages from Rails by making a request for a URL using a specific HTTP method, such as <code>GET</code>, <code>POST</code>, <code>PATCH</code>, <code>PUT</code>, and <code>DELETE</code>. Each method is a request to perform an operation on the resource. A resource route maps a number of related requests to actions in a single controller.</p><p>When your Rails application receives an incoming request for:</p><div class="code_container">
+<pre><code class="highlight plaintext">DELETE /photos/17
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="DELETE /photos/17
+">Copy</button>
+</div>
+<p>it asks the router to map it to a controller action. If the first matching route is:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:photos</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :photos
+">Copy</button>
+</div>
+<p>Rails would dispatch that request to the <code>destroy</code> action on the <code>photos</code> controller with <code>{ id: '17' }</code> in <code>params</code>.</p><h3 id="crud-verbs-and-actions"><a class="anchorlink" href="#crud-verbs-and-actions">2.2 CRUD, Verbs, and Actions</a></h3><p>In Rails, a resourceful route provides a mapping between HTTP verbs and URLs to
+controller actions. By convention, each action also maps to a specific CRUD
+operation in a database. A single entry in the routing file, such as:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:photos</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :photos
+">Copy</button>
+</div>
+<p>creates seven different routes in your application, all mapping to the <code>Photos</code> controller:</p>
+<table><thead>
+<tr>
+<th>HTTP Verb</th>
+<th>Path</th>
+<th>Controller#Action</th>
+<th>Used for</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>GET</td>
+<td>/photos</td>
+<td>photos#index</td>
+<td>display a list of all photos</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/photos/new</td>
+<td>photos#new</td>
+<td>return an HTML form for creating a new photo</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>/photos</td>
+<td>photos#create</td>
+<td>create a new photo</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/photos/:id</td>
+<td>photos#show</td>
+<td>display a specific photo</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/photos/:id/edit</td>
+<td>photos#edit</td>
+<td>return an HTML form for editing a photo</td>
+</tr>
+<tr>
+<td>PATCH/PUT</td>
+<td>/photos/:id</td>
+<td>photos#update</td>
+<td>update a specific photo</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>/photos/:id</td>
+<td>photos#destroy</td>
+<td>delete a specific photo</td>
+</tr>
+</tbody></table>
+<div class="note"><p>Because the router uses the HTTP verb and URL to match inbound requests, four URLs map to seven different actions.</p></div><div class="note"><p>Rails routes are matched in the order they are specified, so if you have a <code>resources :photos</code> above a <code>get 'photos/poll'</code> the <code>show</code> action's route for the <code>resources</code> line will be matched before the <code>get</code> line. To fix this, move the <code>get</code> line <strong>above</strong> the <code>resources</code> line so that it is matched first.</p></div><h3 id="path-and-url-helpers"><a class="anchorlink" href="#path-and-url-helpers">2.3 Path and URL Helpers</a></h3><p>Creating a resourceful route will also expose a number of helpers to the controllers in your application. In the case of <code>resources :photos</code>:</p>
+<ul>
+<li><code>photos_path</code> returns <code>/photos</code></li>
+<li><code>new_photo_path</code> returns <code>/photos/new</code></li>
+<li><code>edit_photo_path(:id)</code> returns <code>/photos/:id/edit</code> (for instance, <code>edit_photo_path(10)</code> returns <code>/photos/10/edit</code>)</li>
+<li><code>photo_path(:id)</code> returns <code>/photos/:id</code> (for instance, <code>photo_path(10)</code> returns <code>/photos/10</code>)</li>
+</ul>
+<p>Each of these helpers has a corresponding <code>_url</code> helper (such as <code>photos_url</code>) which returns the same path prefixed with the current host, port, and path prefix.</p><div class="info"><p>To find the route helper names for your routes, see <a href="#listing-existing-routes">Listing existing routes</a> below.</p></div><h3 id="defining-multiple-resources-at-the-same-time"><a class="anchorlink" href="#defining-multiple-resources-at-the-same-time">2.4 Defining Multiple Resources at the Same Time</a></h3><p>If you need to create routes for more than one resource, you can save a bit of typing by defining them all with a single call to <code>resources</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:photos</span><span class="p">,</span> <span class="ss">:books</span><span class="p">,</span> <span class="ss">:videos</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :photos, :books, :videos
+">Copy</button>
+</div>
+<p>This works exactly the same as:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:photos</span>
+<span class="n">resources</span> <span class="ss">:books</span>
+<span class="n">resources</span> <span class="ss">:videos</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :photos
+resources :books
+resources :videos
+">Copy</button>
+</div>
+<h3 id="singular-resources"><a class="anchorlink" href="#singular-resources">2.5 Singular Resources</a></h3><p>Sometimes, you have a resource that clients always look up without referencing an ID. For example, you would like <code>/profile</code> to always show the profile of the currently logged in user. In this case, you can use a singular resource to map <code>/profile</code> (rather than <code>/profile/:id</code>) to the <code>show</code> action:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'profile'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'users#show'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get 'profile', to: 'users#show'
+">Copy</button>
+</div>
+<p>Passing a <code>String</code> to <code>to:</code> will expect a <code>controller#action</code> format. When using a <code>Symbol</code>, the <code>to:</code> option should be replaced with <code>action:</code>. When using a <code>String</code> without a <code>#</code>, the <code>to:</code> option should be replaced with <code>controller:</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'profile'</span><span class="p">,</span> <span class="ss">action: :show</span><span class="p">,</span> <span class="ss">controller: </span><span class="s1">'users'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get 'profile', action: :show, controller: 'users'
+">Copy</button>
+</div>
+<p>This resourceful route:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resource</span> <span class="ss">:geocoder</span>
+<span class="n">resolve</span><span class="p">(</span><span class="s1">'Geocoder'</span><span class="p">)</span> <span class="p">{</span> <span class="p">[</span><span class="ss">:geocoder</span><span class="p">]</span> <span class="p">}</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resource :geocoder
+resolve('Geocoder') { [:geocoder] }
+">Copy</button>
+</div>
+<p>creates six different routes in your application, all mapping to the <code>Geocoders</code> controller:</p>
+<table><thead>
+<tr>
+<th>HTTP Verb</th>
+<th>Path</th>
+<th>Controller#Action</th>
+<th>Used for</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>GET</td>
+<td>/geocoder/new</td>
+<td>geocoders#new</td>
+<td>return an HTML form for creating the geocoder</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>/geocoder</td>
+<td>geocoders#create</td>
+<td>create the new geocoder</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/geocoder</td>
+<td>geocoders#show</td>
+<td>display the one and only geocoder resource</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/geocoder/edit</td>
+<td>geocoders#edit</td>
+<td>return an HTML form for editing the geocoder</td>
+</tr>
+<tr>
+<td>PATCH/PUT</td>
+<td>/geocoder</td>
+<td>geocoders#update</td>
+<td>update the one and only geocoder resource</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>/geocoder</td>
+<td>geocoders#destroy</td>
+<td>delete the geocoder resource</td>
+</tr>
+</tbody></table>
+<div class="note"><p>Because you might want to use the same controller for a singular route (<code>/account</code>) and a plural route (<code>/accounts/45</code>), singular resources map to plural controllers. So that, for example, <code>resource :photo</code> and <code>resources :photos</code> creates both singular and plural routes that map to the same controller (<code>PhotosController</code>).</p></div><p>A singular resourceful route generates these helpers:</p>
+<ul>
+<li><code>new_geocoder_path</code> returns <code>/geocoder/new</code></li>
+<li><code>edit_geocoder_path</code> returns <code>/geocoder/edit</code></li>
+<li><code>geocoder_path</code> returns <code>/geocoder</code></li>
+</ul>
+<div class="note"><p>The call to <code>resolve</code> is necessary for converting instances of the <code>Geocoder</code> to routes through <a href="form_helpers.html#relying-on-record-identification">record identification</a>.</p></div><p>As with plural resources, the same helpers ending in <code>_url</code> will also include the host, port, and path prefix.</p><h3 id="controller-namespaces-and-routing"><a class="anchorlink" href="#controller-namespaces-and-routing">2.6 Controller Namespaces and Routing</a></h3><p>You may wish to organize groups of controllers under a namespace. Most commonly, you might group a number of administrative controllers under an <code>Admin::</code> namespace, and place these controllers under the <code>app/controllers/admin</code> directory. You can route to such a group by using a <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Scoping.html#method-i-namespace"><code>namespace</code></a> block:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">namespace</span> <span class="ss">:admin</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:articles</span><span class="p">,</span> <span class="ss">:comments</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="namespace :admin do
+  resources :articles, :comments
+end
+">Copy</button>
+</div>
+<p>This will create a number of routes for each of the <code>articles</code> and <code>comments</code> controller. For <code>Admin::ArticlesController</code>, Rails will create:</p>
+<table><thead>
+<tr>
+<th>HTTP Verb</th>
+<th>Path</th>
+<th>Controller#Action</th>
+<th>Named Route Helper</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>GET</td>
+<td>/admin/articles</td>
+<td>admin/articles#index</td>
+<td>admin_articles_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/admin/articles/new</td>
+<td>admin/articles#new</td>
+<td>new_admin_article_path</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>/admin/articles</td>
+<td>admin/articles#create</td>
+<td>admin_articles_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/admin/articles/:id</td>
+<td>admin/articles#show</td>
+<td>admin_article_path(:id)</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/admin/articles/:id/edit</td>
+<td>admin/articles#edit</td>
+<td>edit_admin_article_path(:id)</td>
+</tr>
+<tr>
+<td>PATCH/PUT</td>
+<td>/admin/articles/:id</td>
+<td>admin/articles#update</td>
+<td>admin_article_path(:id)</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>/admin/articles/:id</td>
+<td>admin/articles#destroy</td>
+<td>admin_article_path(:id)</td>
+</tr>
+</tbody></table>
+<p>If instead you want to route <code>/articles</code> (without the prefix <code>/admin</code>) to <code>Admin::ArticlesController</code>, you can specify the module with a <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Scoping.html#method-i-scope"><code>scope</code></a> block:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">scope</span> <span class="ss">module: </span><span class="s1">'admin'</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:articles</span><span class="p">,</span> <span class="ss">:comments</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="scope module: 'admin' do
+  resources :articles, :comments
+end
+">Copy</button>
+</div>
+<p>This can also be done for a single route:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:articles</span><span class="p">,</span> <span class="ss">module: </span><span class="s1">'admin'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :articles, module: 'admin'
+">Copy</button>
+</div>
+<p>If instead you want to route <code>/admin/articles</code> to <code>ArticlesController</code> (without the <code>Admin::</code> module prefix), you can specify the path with a <code>scope</code> block:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">scope</span> <span class="s1">'/admin'</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:articles</span><span class="p">,</span> <span class="ss">:comments</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="scope '/admin' do
+  resources :articles, :comments
+end
+">Copy</button>
+</div>
+<p>This can also be done for a single route:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:articles</span><span class="p">,</span> <span class="ss">path: </span><span class="s1">'/admin/articles'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :articles, path: '/admin/articles'
+">Copy</button>
+</div>
+<p>In both of these cases, the named route helpers remain the same as if you did not use <code>scope</code>. In the last case, the following paths map to <code>ArticlesController</code>:</p>
+<table><thead>
+<tr>
+<th>HTTP Verb</th>
+<th>Path</th>
+<th>Controller#Action</th>
+<th>Named Route Helper</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>GET</td>
+<td>/admin/articles</td>
+<td>articles#index</td>
+<td>articles_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/admin/articles/new</td>
+<td>articles#new</td>
+<td>new_article_path</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>/admin/articles</td>
+<td>articles#create</td>
+<td>articles_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/admin/articles/:id</td>
+<td>articles#show</td>
+<td>article_path(:id)</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/admin/articles/:id/edit</td>
+<td>articles#edit</td>
+<td>edit_article_path(:id)</td>
+</tr>
+<tr>
+<td>PATCH/PUT</td>
+<td>/admin/articles/:id</td>
+<td>articles#update</td>
+<td>article_path(:id)</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>/admin/articles/:id</td>
+<td>articles#destroy</td>
+<td>article_path(:id)</td>
+</tr>
+</tbody></table>
+<div class="info"><p>If you need to use a different controller namespace inside a <code>namespace</code> block you can specify an absolute controller path, e.g: <code>get '/foo', to: '/foo#index'</code>.</p></div><h3 id="nested-resources"><a class="anchorlink" href="#nested-resources">2.7 Nested Resources</a></h3><p>It's common to have resources that are logically children of other resources. For example, suppose your application includes these models:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">class</span> <span class="nc">Magazine</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">has_many</span> <span class="ss">:ads</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">Ad</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">belongs_to</span> <span class="ss">:magazine</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="class Magazine < ApplicationRecord
+  has_many :ads
+end
+
+class Ad < ApplicationRecord
+  belongs_to :magazine
+end
+">Copy</button>
+</div>
+<p>Nested routes allow you to capture this relationship in your routing. In this case, you could include this route declaration:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:magazines</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:ads</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :magazines do
+  resources :ads
+end
+">Copy</button>
+</div>
+<p>In addition to the routes for magazines, this declaration will also route ads to an <code>AdsController</code>. The ad URLs require a magazine:</p>
+<table><thead>
+<tr>
+<th>HTTP Verb</th>
+<th>Path</th>
+<th>Controller#Action</th>
+<th>Used for</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>GET</td>
+<td>/magazines/:magazine_id/ads</td>
+<td>ads#index</td>
+<td>display a list of all ads for a specific magazine</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/magazines/:magazine_id/ads/new</td>
+<td>ads#new</td>
+<td>return an HTML form for creating a new ad belonging to a specific magazine</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>/magazines/:magazine_id/ads</td>
+<td>ads#create</td>
+<td>create a new ad belonging to a specific magazine</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/magazines/:magazine_id/ads/:id</td>
+<td>ads#show</td>
+<td>display a specific ad belonging to a specific magazine</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/magazines/:magazine_id/ads/:id/edit</td>
+<td>ads#edit</td>
+<td>return an HTML form for editing an ad belonging to a specific magazine</td>
+</tr>
+<tr>
+<td>PATCH/PUT</td>
+<td>/magazines/:magazine_id/ads/:id</td>
+<td>ads#update</td>
+<td>update a specific ad belonging to a specific magazine</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>/magazines/:magazine_id/ads/:id</td>
+<td>ads#destroy</td>
+<td>delete a specific ad belonging to a specific magazine</td>
+</tr>
+</tbody></table>
+<p>This will also create routing helpers such as <code>magazine_ads_url</code> and <code>edit_magazine_ad_path</code>. These helpers take an instance of Magazine as the first parameter (<code>magazine_ads_url(@magazine)</code>).</p><h4 id="limits-to-nesting"><a class="anchorlink" href="#limits-to-nesting">2.7.1 Limits to Nesting</a></h4><p>You can nest resources within other nested resources if you like. For example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:publishers</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:magazines</span> <span class="k">do</span>
+    <span class="n">resources</span> <span class="ss">:photos</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :publishers do
+  resources :magazines do
+    resources :photos
+  end
+end
+">Copy</button>
+</div>
+<p>Deeply-nested resources quickly become cumbersome. In this case, for example, the application would recognize paths such as:</p><div class="code_container">
+<pre><code class="highlight plaintext">/publishers/1/magazines/2/photos/3
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="/publishers/1/magazines/2/photos/3
+">Copy</button>
+</div>
+<p>The corresponding route helper would be <code>publisher_magazine_photo_url</code>, requiring you to specify objects at all three levels. Indeed, this situation is confusing enough that a <a href="http://weblog.jamisbuck.org/2007/2/5/nesting-resources">popular article by Jamis Buck</a> proposes a rule of thumb for good Rails design:</p><div class="info"><p>Resources should never be nested more than 1 level deep.</p></div><h4 id="shallow-nesting"><a class="anchorlink" href="#shallow-nesting">2.7.2 Shallow Nesting</a></h4><p>One way to avoid deep nesting (as recommended above) is to generate the collection actions scoped under the parent, so as to get a sense of the hierarchy, but to not nest the member actions. In other words, to only build routes with the minimal amount of information to uniquely identify the resource, like this:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:articles</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:comments</span><span class="p">,</span> <span class="ss">only: </span><span class="p">[</span><span class="ss">:index</span><span class="p">,</span> <span class="ss">:new</span><span class="p">,</span> <span class="ss">:create</span><span class="p">]</span>
+<span class="k">end</span>
+<span class="n">resources</span> <span class="ss">:comments</span><span class="p">,</span> <span class="ss">only: </span><span class="p">[</span><span class="ss">:show</span><span class="p">,</span> <span class="ss">:edit</span><span class="p">,</span> <span class="ss">:update</span><span class="p">,</span> <span class="ss">:destroy</span><span class="p">]</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :articles do
+  resources :comments, only: [:index, :new, :create]
+end
+resources :comments, only: [:show, :edit, :update, :destroy]
+">Copy</button>
+</div>
+<p>This idea strikes a balance between descriptive routes and deep nesting. There exists shorthand syntax to achieve just that, via the <code>:shallow</code> option:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:articles</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:comments</span><span class="p">,</span> <span class="ss">shallow: </span><span class="kp">true</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :articles do
+  resources :comments, shallow: true
+end
+">Copy</button>
+</div>
+<p>This will generate the exact same routes as the first example. You can also specify the <code>:shallow</code> option in the parent resource, in which case all of the nested resources will be shallow:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:articles</span><span class="p">,</span> <span class="ss">shallow: </span><span class="kp">true</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:comments</span>
+  <span class="n">resources</span> <span class="ss">:quotes</span>
+  <span class="n">resources</span> <span class="ss">:drafts</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :articles, shallow: true do
+  resources :comments
+  resources :quotes
+  resources :drafts
+end
+">Copy</button>
+</div>
+<p>The articles resource here will have the following routes generated for it:</p>
+<table><thead>
+<tr>
+<th>HTTP Verb</th>
+<th>Path</th>
+<th>Controller#Action</th>
+<th>Named Route Helper</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>GET</td>
+<td>/articles/:article_id/comments(.:format)</td>
+<td>comments#index</td>
+<td>article_comments_path</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>/articles/:article_id/comments(.:format)</td>
+<td>comments#create</td>
+<td>article_comments_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/articles/:article_id/comments/new(.:format)</td>
+<td>comments#new</td>
+<td>new_article_comment_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/comments/:id/edit(.:format)</td>
+<td>comments#edit</td>
+<td>edit_comment_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/comments/:id(.:format)</td>
+<td>comments#show</td>
+<td>comment_path</td>
+</tr>
+<tr>
+<td>PATCH/PUT</td>
+<td>/comments/:id(.:format)</td>
+<td>comments#update</td>
+<td>comment_path</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>/comments/:id(.:format)</td>
+<td>comments#destroy</td>
+<td>comment_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/articles/:article_id/quotes(.:format)</td>
+<td>quotes#index</td>
+<td>article_quotes_path</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>/articles/:article_id/quotes(.:format)</td>
+<td>quotes#create</td>
+<td>article_quotes_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/articles/:article_id/quotes/new(.:format)</td>
+<td>quotes#new</td>
+<td>new_article_quote_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/quotes/:id/edit(.:format)</td>
+<td>quotes#edit</td>
+<td>edit_quote_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/quotes/:id(.:format)</td>
+<td>quotes#show</td>
+<td>quote_path</td>
+</tr>
+<tr>
+<td>PATCH/PUT</td>
+<td>/quotes/:id(.:format)</td>
+<td>quotes#update</td>
+<td>quote_path</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>/quotes/:id(.:format)</td>
+<td>quotes#destroy</td>
+<td>quote_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/articles/:article_id/drafts(.:format)</td>
+<td>drafts#index</td>
+<td>article_drafts_path</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>/articles/:article_id/drafts(.:format)</td>
+<td>drafts#create</td>
+<td>article_drafts_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/articles/:article_id/drafts/new(.:format)</td>
+<td>drafts#new</td>
+<td>new_article_draft_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/drafts/:id/edit(.:format)</td>
+<td>drafts#edit</td>
+<td>edit_draft_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/drafts/:id(.:format)</td>
+<td>drafts#show</td>
+<td>draft_path</td>
+</tr>
+<tr>
+<td>PATCH/PUT</td>
+<td>/drafts/:id(.:format)</td>
+<td>drafts#update</td>
+<td>draft_path</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>/drafts/:id(.:format)</td>
+<td>drafts#destroy</td>
+<td>draft_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/articles(.:format)</td>
+<td>articles#index</td>
+<td>articles_path</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>/articles(.:format)</td>
+<td>articles#create</td>
+<td>articles_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/articles/new(.:format)</td>
+<td>articles#new</td>
+<td>new_article_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/articles/:id/edit(.:format)</td>
+<td>articles#edit</td>
+<td>edit_article_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/articles/:id(.:format)</td>
+<td>articles#show</td>
+<td>article_path</td>
+</tr>
+<tr>
+<td>PATCH/PUT</td>
+<td>/articles/:id(.:format)</td>
+<td>articles#update</td>
+<td>article_path</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>/articles/:id(.:format)</td>
+<td>articles#destroy</td>
+<td>article_path</td>
+</tr>
+</tbody></table>
+<p>The <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-shallow"><code>shallow</code></a> method of the DSL creates a scope inside of which every nesting is shallow. This generates the same routes as the previous example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">shallow</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:articles</span> <span class="k">do</span>
+    <span class="n">resources</span> <span class="ss">:comments</span>
+    <span class="n">resources</span> <span class="ss">:quotes</span>
+    <span class="n">resources</span> <span class="ss">:drafts</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="shallow do
+  resources :articles do
+    resources :comments
+    resources :quotes
+    resources :drafts
+  end
+end
+">Copy</button>
+</div>
+<p>There exist two options for <code>scope</code> to customize shallow routes. <code>:shallow_path</code> prefixes member paths with the specified parameter:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">scope</span> <span class="ss">shallow_path: </span><span class="s2">"sekret"</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:articles</span> <span class="k">do</span>
+    <span class="n">resources</span> <span class="ss">:comments</span><span class="p">,</span> <span class="ss">shallow: </span><span class="kp">true</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="scope shallow_path: &quot;sekret&quot; do
+  resources :articles do
+    resources :comments, shallow: true
+  end
+end
+">Copy</button>
+</div>
+<p>The comments resource here will have the following routes generated for it:</p>
+<table><thead>
+<tr>
+<th>HTTP Verb</th>
+<th>Path</th>
+<th>Controller#Action</th>
+<th>Named Route Helper</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>GET</td>
+<td>/articles/:article_id/comments(.:format)</td>
+<td>comments#index</td>
+<td>article_comments_path</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>/articles/:article_id/comments(.:format)</td>
+<td>comments#create</td>
+<td>article_comments_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/articles/:article_id/comments/new(.:format)</td>
+<td>comments#new</td>
+<td>new_article_comment_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/sekret/comments/:id/edit(.:format)</td>
+<td>comments#edit</td>
+<td>edit_comment_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/sekret/comments/:id(.:format)</td>
+<td>comments#show</td>
+<td>comment_path</td>
+</tr>
+<tr>
+<td>PATCH/PUT</td>
+<td>/sekret/comments/:id(.:format)</td>
+<td>comments#update</td>
+<td>comment_path</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>/sekret/comments/:id(.:format)</td>
+<td>comments#destroy</td>
+<td>comment_path</td>
+</tr>
+</tbody></table>
+<p>The <code>:shallow_prefix</code> option adds the specified parameter to the named route helpers:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">scope</span> <span class="ss">shallow_prefix: </span><span class="s2">"sekret"</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:articles</span> <span class="k">do</span>
+    <span class="n">resources</span> <span class="ss">:comments</span><span class="p">,</span> <span class="ss">shallow: </span><span class="kp">true</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="scope shallow_prefix: &quot;sekret&quot; do
+  resources :articles do
+    resources :comments, shallow: true
+  end
+end
+">Copy</button>
+</div>
+<p>The comments resource here will have the following routes generated for it:</p>
+<table><thead>
+<tr>
+<th>HTTP Verb</th>
+<th>Path</th>
+<th>Controller#Action</th>
+<th>Named Route Helper</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>GET</td>
+<td>/articles/:article_id/comments(.:format)</td>
+<td>comments#index</td>
+<td>article_comments_path</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>/articles/:article_id/comments(.:format)</td>
+<td>comments#create</td>
+<td>article_comments_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/articles/:article_id/comments/new(.:format)</td>
+<td>comments#new</td>
+<td>new_article_comment_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/comments/:id/edit(.:format)</td>
+<td>comments#edit</td>
+<td>edit_sekret_comment_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/comments/:id(.:format)</td>
+<td>comments#show</td>
+<td>sekret_comment_path</td>
+</tr>
+<tr>
+<td>PATCH/PUT</td>
+<td>/comments/:id(.:format)</td>
+<td>comments#update</td>
+<td>sekret_comment_path</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>/comments/:id(.:format)</td>
+<td>comments#destroy</td>
+<td>sekret_comment_path</td>
+</tr>
+</tbody></table>
+<h3 id="routing-concerns"><a class="anchorlink" href="#routing-concerns">2.8 Routing Concerns</a></h3><p>Routing concerns allow you to declare common routes that can be reused inside other resources and routes. To define a concern, use a <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Concerns.html#method-i-concern"><code>concern</code></a> block:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">concern</span> <span class="ss">:commentable</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:comments</span>
+<span class="k">end</span>
+
+<span class="n">concern</span> <span class="ss">:image_attachable</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:images</span><span class="p">,</span> <span class="ss">only: :index</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="concern :commentable do
+  resources :comments
+end
+
+concern :image_attachable do
+  resources :images, only: :index
+end
+">Copy</button>
+</div>
+<p>These concerns can be used in resources to avoid code duplication and share behavior across routes:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:messages</span><span class="p">,</span> <span class="ss">concerns: :commentable</span>
+
+<span class="n">resources</span> <span class="ss">:articles</span><span class="p">,</span> <span class="ss">concerns: </span><span class="p">[</span><span class="ss">:commentable</span><span class="p">,</span> <span class="ss">:image_attachable</span><span class="p">]</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :messages, concerns: :commentable
+
+resources :articles, concerns: [:commentable, :image_attachable]
+">Copy</button>
+</div>
+<p>The above is equivalent to:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:messages</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:comments</span>
+<span class="k">end</span>
+
+<span class="n">resources</span> <span class="ss">:articles</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:comments</span>
+  <span class="n">resources</span> <span class="ss">:images</span><span class="p">,</span> <span class="ss">only: :index</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :messages do
+  resources :comments
+end
+
+resources :articles do
+  resources :comments
+  resources :images, only: :index
+end
+">Copy</button>
+</div>
+<p>You can also use them anywhere by calling <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Concerns.html#method-i-concerns"><code>concerns</code></a>. For example, in a <code>scope</code> or <code>namespace</code> block:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">namespace</span> <span class="ss">:articles</span> <span class="k">do</span>
+  <span class="n">concerns</span> <span class="ss">:commentable</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="namespace :articles do
+  concerns :commentable
+end
+">Copy</button>
+</div>
+<h3 id="creating-paths-and-urls-from-objects"><a class="anchorlink" href="#creating-paths-and-urls-from-objects">2.9 Creating Paths and URLs from Objects</a></h3><p>In addition to using the routing helpers, Rails can also create paths and URLs from an array of parameters. For example, suppose you have this set of routes:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:magazines</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:ads</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :magazines do
+  resources :ads
+end
+">Copy</button>
+</div>
+<p>When using <code>magazine_ad_path</code>, you can pass in instances of <code>Magazine</code> and <code>Ad</code> instead of the numeric IDs:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s1">'Ad details'</span><span class="p">,</span> <span class="n">magazine_ad_path</span><span class="p">(</span><span class="vi">@magazine</span><span class="p">,</span> <span class="vi">@ad</span><span class="p">)</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= link_to 'Ad details', magazine_ad_path(@magazine, @ad) %>
+">Copy</button>
+</div>
+<p>You can also use <a href="https://edgeapi.rubyonrails.org/classes/ActionView/RoutingUrlFor.html#method-i-url_for"><code>url_for</code></a> with a set of objects, and Rails will automatically determine which route you want:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s1">'Ad details'</span><span class="p">,</span> <span class="n">url_for</span><span class="p">([</span><span class="vi">@magazine</span><span class="p">,</span> <span class="vi">@ad</span><span class="p">])</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= link_to 'Ad details', url_for([@magazine, @ad]) %>
+">Copy</button>
+</div>
+<p>In this case, Rails will see that <code>@magazine</code> is a <code>Magazine</code> and <code>@ad</code> is an <code>Ad</code> and will therefore use the <code>magazine_ad_path</code> helper. In helpers like <code>link_to</code>, you can specify just the object in place of the full <code>url_for</code> call:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s1">'Ad details'</span><span class="p">,</span> <span class="p">[</span><span class="vi">@magazine</span><span class="p">,</span> <span class="vi">@ad</span><span class="p">]</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= link_to 'Ad details', [@magazine, @ad] %>
+">Copy</button>
+</div>
+<p>If you wanted to link to just a magazine:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s1">'Magazine details'</span><span class="p">,</span> <span class="vi">@magazine</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= link_to 'Magazine details', @magazine %>
+">Copy</button>
+</div>
+<p>For other actions, you just need to insert the action name as the first element of the array:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s1">'Edit Ad'</span><span class="p">,</span> <span class="p">[</span><span class="ss">:edit</span><span class="p">,</span> <span class="vi">@magazine</span><span class="p">,</span> <span class="vi">@ad</span><span class="p">]</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= link_to 'Edit Ad', [:edit, @magazine, @ad] %>
+">Copy</button>
+</div>
+<p>This allows you to treat instances of your models as URLs, and is a key advantage to using the resourceful style.</p><h3 id="adding-more-restful-actions"><a class="anchorlink" href="#adding-more-restful-actions">2.10 Adding More RESTful Actions</a></h3><p>You are not limited to the seven routes that RESTful routing creates by default. If you like, you may add additional routes that apply to the collection or individual members of the collection.</p><h4 id="adding-member-routes"><a class="anchorlink" href="#adding-member-routes">2.10.1 Adding Member Routes</a></h4><p>To add a member route, just add a <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-member"><code>member</code></a> block into the resource block:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:photos</span> <span class="k">do</span>
+  <span class="n">member</span> <span class="k">do</span>
+    <span class="n">get</span> <span class="s1">'preview'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :photos do
+  member do
+    get 'preview'
+  end
+end
+">Copy</button>
+</div>
+<p>This will recognize <code>/photos/1/preview</code> with GET, and route to the <code>preview</code> action of <code>PhotosController</code>, with the resource id value passed in <code>params[:id]</code>. It will also create the <code>preview_photo_url</code> and <code>preview_photo_path</code> helpers.</p><p>Within the block of member routes, each route name specifies the HTTP verb that
+will be recognized. You can use <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/HttpHelpers.html#method-i-get"><code>get</code></a>, <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/HttpHelpers.html#method-i-patch"><code>patch</code></a>, <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/HttpHelpers.html#method-i-put"><code>put</code></a>, <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/HttpHelpers.html#method-i-post"><code>post</code></a>, or <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/HttpHelpers.html#method-i-delete"><code>delete</code></a> here
+. If you don't have multiple <code>member</code> routes, you can also pass <code>:on</code> to a
+route, eliminating the block:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:photos</span> <span class="k">do</span>
+  <span class="n">get</span> <span class="s1">'preview'</span><span class="p">,</span> <span class="ss">on: :member</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :photos do
+  get 'preview', on: :member
+end
+">Copy</button>
+</div>
+<p>You can leave out the <code>:on</code> option, this will create the same member route except that the resource id value will be available in <code>params[:photo_id]</code> instead of <code>params[:id]</code>. Route helpers will also be renamed from <code>preview_photo_url</code> and <code>preview_photo_path</code> to <code>photo_preview_url</code> and <code>photo_preview_path</code>.</p><h4 id="adding-collection-routes"><a class="anchorlink" href="#adding-collection-routes">2.10.2 Adding Collection Routes</a></h4><p>To add a route to the collection, use a <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-collection"><code>collection</code></a> block:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:photos</span> <span class="k">do</span>
+  <span class="n">collection</span> <span class="k">do</span>
+    <span class="n">get</span> <span class="s1">'search'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :photos do
+  collection do
+    get 'search'
+  end
+end
+">Copy</button>
+</div>
+<p>This will enable Rails to recognize paths such as <code>/photos/search</code> with GET, and route to the <code>search</code> action of <code>PhotosController</code>. It will also create the <code>search_photos_url</code> and <code>search_photos_path</code> route helpers.</p><p>Just as with member routes, you can pass <code>:on</code> to a route:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:photos</span> <span class="k">do</span>
+  <span class="n">get</span> <span class="s1">'search'</span><span class="p">,</span> <span class="ss">on: :collection</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :photos do
+  get 'search', on: :collection
+end
+">Copy</button>
+</div>
+<div class="note"><p>If you're defining additional resource routes with a symbol as the first positional argument, be mindful that it is not equivalent to using a string. Symbols infer controller actions while strings infer paths.</p></div><h4 id="adding-routes-for-additional-new-actions"><a class="anchorlink" href="#adding-routes-for-additional-new-actions">2.10.3 Adding Routes for Additional New Actions</a></h4><p>To add an alternate new action using the <code>:on</code> shortcut:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:comments</span> <span class="k">do</span>
+  <span class="n">get</span> <span class="s1">'preview'</span><span class="p">,</span> <span class="ss">on: :new</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :comments do
+  get 'preview', on: :new
+end
+">Copy</button>
+</div>
+<p>This will enable Rails to recognize paths such as <code>/comments/new/preview</code> with GET, and route to the <code>preview</code> action of <code>CommentsController</code>. It will also create the <code>preview_new_comment_url</code> and <code>preview_new_comment_path</code> route helpers.</p><div class="info"><p>If you find yourself adding many extra actions to a resourceful route, it's time to stop and ask yourself whether you're disguising the presence of another resource.</p></div><h2 id="non-resourceful-routes"><a class="anchorlink" href="#non-resourceful-routes">3 Non-Resourceful Routes</a></h2><p>In addition to resource routing, Rails has powerful support for routing arbitrary URLs to actions. Here, you don't get groups of routes automatically generated by resourceful routing. Instead, you set up each route separately within your application.</p><p>While you should usually use resourceful routing, there are still many places where the simpler routing is more appropriate. There's no need to try to shoehorn every last piece of your application into a resourceful framework if that's not a good fit.</p><p>In particular, simple routing makes it very easy to map legacy URLs to new Rails actions.</p><h3 id="bound-parameters"><a class="anchorlink" href="#bound-parameters">3.1 Bound Parameters</a></h3><p>When you set up a regular route, you supply a series of symbols that Rails maps to parts of an incoming HTTP request. For example, consider this route:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'photos(/:id)'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'photos#display'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get 'photos(/:id)', to: 'photos#display'
+">Copy</button>
+</div>
+<p>If an incoming request of <code>/photos/1</code> is processed by this route (because it hasn't matched any previous route in the file), then the result will be to invoke the <code>display</code> action of the <code>PhotosController</code>, and to make the final parameter <code>"1"</code> available as <code>params[:id]</code>. This route will also route the incoming request of <code>/photos</code> to <code>PhotosController#display</code>, since <code>:id</code> is an optional parameter, denoted by parentheses.</p><h3 id="dynamic-segments"><a class="anchorlink" href="#dynamic-segments">3.2 Dynamic Segments</a></h3><p>You can set up as many dynamic segments within a regular route as you like. Any segment will be available to the action as part of <code>params</code>. If you set up this route:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'photos/:id/:user_id'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'photos#show'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get 'photos/:id/:user_id', to: 'photos#show'
+">Copy</button>
+</div>
+<p>An incoming path of <code>/photos/1/2</code> will be dispatched to the <code>show</code> action of the <code>PhotosController</code>. <code>params[:id]</code> will be <code>"1"</code>, and <code>params[:user_id]</code> will be <code>"2"</code>.</p><div class="info"><p>By default, dynamic segments don't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within a dynamic segment, add a constraint that overrides this – for example, <code>id: /[^\/]+/</code> allows anything except a slash.</p></div><h3 id="static-segments"><a class="anchorlink" href="#static-segments">3.3 Static Segments</a></h3><p>You can specify static segments when creating a route by not prepending a colon to a segment:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'photos/:id/with_user/:user_id'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'photos#show'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get 'photos/:id/with_user/:user_id', to: 'photos#show'
+">Copy</button>
+</div>
+<p>This route would respond to paths such as <code>/photos/1/with_user/2</code>. In this case, <code>params</code> would be <code>{ controller: 'photos', action: 'show', id: '1', user_id: '2' }</code>.</p><h3 id="the-query-string"><a class="anchorlink" href="#the-query-string">3.4 The Query String</a></h3><p>The <code>params</code> will also include any parameters from the query string. For example, with this route:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'photos/:id'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'photos#show'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get 'photos/:id', to: 'photos#show'
+">Copy</button>
+</div>
+<p>An incoming path of <code>/photos/1?user_id=2</code> will be dispatched to the <code>show</code> action of the <code>Photos</code> controller. <code>params</code> will be <code>{ controller: 'photos', action: 'show', id: '1', user_id: '2' }</code>.</p><h3 id="defining-defaults"><a class="anchorlink" href="#defining-defaults">3.5 Defining Defaults</a></h3><p>You can define defaults in a route by supplying a hash for the <code>:defaults</code> option. This even applies to parameters that you do not specify as dynamic segments. For example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'photos/:id'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'photos#show'</span><span class="p">,</span> <span class="ss">defaults: </span><span class="p">{</span> <span class="ss">format: </span><span class="s1">'jpg'</span> <span class="p">}</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get 'photos/:id', to: 'photos#show', defaults: { format: 'jpg' }
+">Copy</button>
+</div>
+<p>Rails would match <code>photos/12</code> to the <code>show</code> action of <code>PhotosController</code>, and set <code>params[:format]</code> to <code>"jpg"</code>.</p><p>You can also use a <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Scoping.html#method-i-defaults"><code>defaults</code></a> block to define the defaults for multiple items:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">defaults</span> <span class="ss">format: :json</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:photos</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="defaults format: :json do
+  resources :photos
+end
+">Copy</button>
+</div>
+<div class="note"><p>You cannot override defaults via query parameters - this is for security reasons. The only defaults that can be overridden are dynamic segments via substitution in the URL path.</p></div><h3 id="naming-routes"><a class="anchorlink" href="#naming-routes">3.6 Naming Routes</a></h3><p>You can specify a name for any route using the <code>:as</code> option:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'exit'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'sessions#destroy'</span><span class="p">,</span> <span class="ss">as: :logout</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get 'exit', to: 'sessions#destroy', as: :logout
+">Copy</button>
+</div>
+<p>This will create <code>logout_path</code> and <code>logout_url</code> as named route helpers in your application. Calling <code>logout_path</code> will return <code>/exit</code></p><p>You can also use this to override routing methods defined by resources by placing custom routes before the resource is defined, like this:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">':username'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'users#show'</span><span class="p">,</span> <span class="ss">as: :user</span>
+<span class="n">resources</span> <span class="ss">:users</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get ':username', to: 'users#show', as: :user
+resources :users
+">Copy</button>
+</div>
+<p>This will define a <code>user_path</code> method that will be available in controllers, helpers, and views that will go to a route such as <code>/bob</code>. Inside the <code>show</code> action of <code>UsersController</code>, <code>params[:username]</code> will contain the username for the user. Change <code>:username</code> in the route definition if you do not want your parameter name to be <code>:username</code>.</p><h3 id="http-verb-constraints"><a class="anchorlink" href="#http-verb-constraints">3.7 HTTP Verb Constraints</a></h3><p>In general, you should use the <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/HttpHelpers.html#method-i-get"><code>get</code></a>, <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/HttpHelpers.html#method-i-post"><code>post</code></a>, <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/HttpHelpers.html#method-i-put"><code>put</code></a>, <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/HttpHelpers.html#method-i-patch"><code>patch</code></a>, and <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/HttpHelpers.html#method-i-delete"><code>delete</code></a> methods to constrain a route to a particular verb. You can use the <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Base.html#method-i-match"><code>match</code></a> method with the <code>:via</code> option to match multiple verbs at once:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">match</span> <span class="s1">'photos'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'photos#show'</span><span class="p">,</span> <span class="ss">via: </span><span class="p">[</span><span class="ss">:get</span><span class="p">,</span> <span class="ss">:post</span><span class="p">]</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="match 'photos', to: 'photos#show', via: [:get, :post]
+">Copy</button>
+</div>
+<p>You can match all verbs to a particular route using <code>via: :all</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">match</span> <span class="s1">'photos'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'photos#show'</span><span class="p">,</span> <span class="ss">via: :all</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="match 'photos', to: 'photos#show', via: :all
+">Copy</button>
+</div>
+<div class="note"><p>Routing both <code>GET</code> and <code>POST</code> requests to a single action has security implications. In general, you should avoid routing all verbs to an action unless you have a good reason to.</p></div><div class="note"><p><code>GET</code> in Rails won't check for CSRF token. You should never write to the database from <code>GET</code> requests, for more information see the <a href="security.html#csrf-countermeasures">security guide</a> on CSRF countermeasures.</p></div><h3 id="segment-constraints"><a class="anchorlink" href="#segment-constraints">3.8 Segment Constraints</a></h3><p>You can use the <code>:constraints</code> option to enforce a format for a dynamic segment:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'photos/:id'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'photos#show'</span><span class="p">,</span> <span class="ss">constraints: </span><span class="p">{</span> <span class="ss">id: </span><span class="sr">/[A-Z]\d{5}/</span> <span class="p">}</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get 'photos/:id', to: 'photos#show', constraints: { id: /[A-Z]\d{5}/ }
+">Copy</button>
+</div>
+<p>This route would match paths such as <code>/photos/A12345</code>, but not <code>/photos/893</code>. You can more succinctly express the same route this way:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'photos/:id'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'photos#show'</span><span class="p">,</span> <span class="ss">id: </span><span class="sr">/[A-Z]\d{5}/</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get 'photos/:id', to: 'photos#show', id: /[A-Z]\d{5}/
+">Copy</button>
+</div>
+<p><code>:constraints</code> takes regular expressions with the restriction that regexp anchors can't be used. For example, the following route will not work:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'/:id'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'articles#show'</span><span class="p">,</span> <span class="ss">constraints: </span><span class="p">{</span> <span class="ss">id: </span><span class="sr">/^\d/</span> <span class="p">}</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get '/:id', to: 'articles#show', constraints: { id: /^\d/ }
+">Copy</button>
+</div>
+<p>However, note that you don't need to use anchors because all routes are anchored at the start and the end.</p><p>For example, the following routes would allow for <code>articles</code> with <code>to_param</code> values like <code>1-hello-world</code> that always begin with a number and <code>users</code> with <code>to_param</code> values like <code>david</code> that never begin with a number to share the root namespace:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'/:id'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'articles#show'</span><span class="p">,</span> <span class="ss">constraints: </span><span class="p">{</span> <span class="ss">id: </span><span class="sr">/\d.+/</span> <span class="p">}</span>
+<span class="n">get</span> <span class="s1">'/:username'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'users#show'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get '/:id', to: 'articles#show', constraints: { id: /\d.+/ }
+get '/:username', to: 'users#show'
+">Copy</button>
+</div>
+<h3 id="request-based-constraints"><a class="anchorlink" href="#request-based-constraints">3.9 Request-Based Constraints</a></h3><p>You can also constrain a route based on any method on the <a href="action_controller_overview.html#the-request-object">Request object</a> that returns a <code>String</code>.</p><p>You specify a request-based constraint the same way that you specify a segment constraint:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'photos'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'photos#index'</span><span class="p">,</span> <span class="ss">constraints: </span><span class="p">{</span> <span class="ss">subdomain: </span><span class="s1">'admin'</span> <span class="p">}</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get 'photos', to: 'photos#index', constraints: { subdomain: 'admin' }
+">Copy</button>
+</div>
+<p>You can also specify constraints by using a <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Scoping.html#method-i-constraints"><code>constraints</code></a> block:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">namespace</span> <span class="ss">:admin</span> <span class="k">do</span>
+  <span class="n">constraints</span> <span class="ss">subdomain: </span><span class="s1">'admin'</span> <span class="k">do</span>
+    <span class="n">resources</span> <span class="ss">:photos</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="namespace :admin do
+  constraints subdomain: 'admin' do
+    resources :photos
+  end
+end
+">Copy</button>
+</div>
+<div class="note"><p>Request constraints work by calling a method on the <a href="action_controller_overview.html#the-request-object">Request object</a> with the same name as the hash key and then comparing the return value with the hash value. Therefore, constraint values should match the corresponding Request object method return type. For example: <code>constraints: { subdomain: 'api' }</code> will match an <code>api</code> subdomain as expected. However, using a symbol <code>constraints: { subdomain: :api }</code> will not, because <code>request.subdomain</code> returns <code>'api'</code> as a String.</p></div><div class="note"><p>There is an exception for the <code>format</code> constraint: while it's a method on the Request object, it's also an implicit optional parameter on every path. Segment constraints take precedence and the <code>format</code> constraint is only applied as such when enforced through a hash. For example, <code>get 'foo', constraints: { format: 'json' }</code> will match <code>GET  /foo</code> because the format is optional by default. However, you can <a href="#advanced-constraints">use a lambda</a> like in <code>get 'foo', constraints: lambda { |req| req.format == :json }</code> and the route will only match explicit JSON requests.</p></div><h3 id="advanced-constraints"><a class="anchorlink" href="#advanced-constraints">3.10 Advanced Constraints</a></h3><p>If you have a more advanced constraint, you can provide an object that responds to <code>matches?</code> that Rails should use. Let's say you wanted to route all users on a restricted list to the <code>RestrictedListController</code>. You could do:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">class</span> <span class="nc">RestrictedListConstraint</span>
+  <span class="k">def</span> <span class="nf">initialize</span>
+    <span class="vi">@ips</span> <span class="o">=</span> <span class="no">RestrictedList</span><span class="p">.</span><span class="nf">retrieve_ips</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">matches?</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+    <span class="vi">@ips</span><span class="p">.</span><span class="nf">include?</span><span class="p">(</span><span class="n">request</span><span class="p">.</span><span class="nf">remote_ip</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">get</span> <span class="s1">'*path'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'restricted_list#index'</span><span class="p">,</span>
+    <span class="ss">constraints: </span><span class="no">RestrictedListConstraint</span><span class="p">.</span><span class="nf">new</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="class RestrictedListConstraint
+  def initialize
+    @ips = RestrictedList.retrieve_ips
+  end
+
+  def matches?(request)
+    @ips.include?(request.remote_ip)
+  end
+end
+
+Rails.application.routes.draw do
+  get '*path', to: 'restricted_list#index',
+    constraints: RestrictedListConstraint.new
+end
+">Copy</button>
+</div>
+<p>You can also specify constraints as a lambda:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">get</span> <span class="s1">'*path'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'restricted_list#index'</span><span class="p">,</span>
+    <span class="ss">constraints: </span><span class="nb">lambda</span> <span class="p">{</span> <span class="o">|</span><span class="n">request</span><span class="o">|</span> <span class="no">RestrictedList</span><span class="p">.</span><span class="nf">retrieve_ips</span><span class="p">.</span><span class="nf">include?</span><span class="p">(</span><span class="n">request</span><span class="p">.</span><span class="nf">remote_ip</span><span class="p">)</span> <span class="p">}</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Rails.application.routes.draw do
+  get '*path', to: 'restricted_list#index',
+    constraints: lambda { |request| RestrictedList.retrieve_ips.include?(request.remote_ip) }
+end
+">Copy</button>
+</div>
+<p>Both the <code>matches?</code> method and the lambda gets the <code>request</code> object as an argument.</p><h4 id="constraints-in-a-block-form"><a class="anchorlink" href="#constraints-in-a-block-form">3.10.1 Constraints in a Block Form</a></h4><p>You can specify constraints in a block form. This is useful for when you need to apply the same rule to several routes. For example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">class</span> <span class="nc">RestrictedListConstraint</span>
+  <span class="c1"># ...Same as the example above</span>
+<span class="k">end</span>
+
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">constraints</span><span class="p">(</span><span class="no">RestrictedListConstraint</span><span class="p">.</span><span class="nf">new</span><span class="p">)</span> <span class="k">do</span>
+    <span class="n">get</span> <span class="s1">'*path'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'restricted_list#index'</span>
+    <span class="n">get</span> <span class="s1">'*other-path'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'other_restricted_list#index'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="class RestrictedListConstraint
+  # ...Same as the example above
+end
+
+Rails.application.routes.draw do
+  constraints(RestrictedListConstraint.new) do
+    get '*path', to: 'restricted_list#index'
+    get '*other-path', to: 'other_restricted_list#index'
+  end
+end
+">Copy</button>
+</div>
+<p>You can also use a <code>lambda</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">constraints</span><span class="p">(</span><span class="nb">lambda</span> <span class="p">{</span> <span class="o">|</span><span class="n">request</span><span class="o">|</span> <span class="no">RestrictedList</span><span class="p">.</span><span class="nf">retrieve_ips</span><span class="p">.</span><span class="nf">include?</span><span class="p">(</span><span class="n">request</span><span class="p">.</span><span class="nf">remote_ip</span><span class="p">)</span> <span class="p">})</span> <span class="k">do</span>
+    <span class="n">get</span> <span class="s1">'*path'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'restricted_list#index'</span>
+    <span class="n">get</span> <span class="s1">'*other-path'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'other_restricted_list#index'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Rails.application.routes.draw do
+  constraints(lambda { |request| RestrictedList.retrieve_ips.include?(request.remote_ip) }) do
+    get '*path', to: 'restricted_list#index'
+    get '*other-path', to: 'other_restricted_list#index'
+  end
+end
+">Copy</button>
+</div>
+<h3 id="route-globbing-and-wildcard-segments"><a class="anchorlink" href="#route-globbing-and-wildcard-segments">3.11 Route Globbing and Wildcard Segments</a></h3><p>Route globbing is a way to specify that a particular parameter should be matched to all the remaining parts of a route. For example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'photos/*other'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'photos#unknown'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get 'photos/*other', to: 'photos#unknown'
+">Copy</button>
+</div>
+<p>This route would match <code>photos/12</code> or <code>/photos/long/path/to/12</code>, setting <code>params[:other]</code> to <code>"12"</code> or <code>"long/path/to/12"</code>. The segments prefixed with a star are called "wildcard segments".</p><p>Wildcard segments can occur anywhere in a route. For example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'books/*section/:title'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'books#show'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get 'books/*section/:title', to: 'books#show'
+">Copy</button>
+</div>
+<p>would match <code>books/some/section/last-words-a-memoir</code> with <code>params[:section]</code> equals <code>'some/section'</code>, and <code>params[:title]</code> equals <code>'last-words-a-memoir'</code>.</p><p>Technically, a route can have even more than one wildcard segment. The matcher assigns segments to parameters in an intuitive way. For example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'*a/foo/*b'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'test#index'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get '*a/foo/*b', to: 'test#index'
+">Copy</button>
+</div>
+<p>would match <code>zoo/woo/foo/bar/baz</code> with <code>params[:a]</code> equals <code>'zoo/woo'</code>, and <code>params[:b]</code> equals <code>'bar/baz'</code>.</p><div class="note"><p>By requesting <code>'/foo/bar.json'</code>, your <code>params[:pages]</code> will be equal to <code>'foo/bar'</code> with the request format of JSON. If you want the old 3.0.x behavior back, you could supply <code>format: false</code> like this:</p></div><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'*pages'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'pages#show'</span><span class="p">,</span> <span class="ss">format: </span><span class="kp">false</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get '*pages', to: 'pages#show', format: false
+">Copy</button>
+</div>
+<div class="note"><p>If you want to make the format segment mandatory, so it cannot be omitted, you can supply <code>format: true</code> like this:</p></div><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'*pages'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'pages#show'</span><span class="p">,</span> <span class="ss">format: </span><span class="kp">true</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get '*pages', to: 'pages#show', format: true
+">Copy</button>
+</div>
+<h3 id="redirection"><a class="anchorlink" href="#redirection">3.12 Redirection</a></h3><p>You can redirect any path to another path by using the <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Redirection.html#method-i-redirect"><code>redirect</code></a> helper in your router:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'/stories'</span><span class="p">,</span> <span class="ss">to: </span><span class="n">redirect</span><span class="p">(</span><span class="s1">'/articles'</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get '/stories', to: redirect('/articles')
+">Copy</button>
+</div>
+<p>You can also reuse dynamic segments from the match in the path to redirect to:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'/stories/:name'</span><span class="p">,</span> <span class="ss">to: </span><span class="n">redirect</span><span class="p">(</span><span class="s1">'/articles/%{name}'</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get '/stories/:name', to: redirect('/articles/%{name}')
+">Copy</button>
+</div>
+<p>You can also provide a block to <code>redirect</code>, which receives the symbolized path parameters and the request object:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'/stories/:name'</span><span class="p">,</span> <span class="ss">to: </span><span class="n">redirect</span> <span class="p">{</span> <span class="o">|</span><span class="n">path_params</span><span class="p">,</span> <span class="n">req</span><span class="o">|</span> <span class="s2">"/articles/</span><span class="si">#{</span><span class="n">path_params</span><span class="p">[</span><span class="ss">:name</span><span class="p">].</span><span class="nf">pluralize</span><span class="si">}</span><span class="s2">"</span> <span class="p">}</span>
+<span class="n">get</span> <span class="s1">'/stories'</span><span class="p">,</span> <span class="ss">to: </span><span class="n">redirect</span> <span class="p">{</span> <span class="o">|</span><span class="n">path_params</span><span class="p">,</span> <span class="n">req</span><span class="o">|</span> <span class="s2">"/articles/</span><span class="si">#{</span><span class="n">req</span><span class="p">.</span><span class="nf">subdomain</span><span class="si">}</span><span class="s2">"</span> <span class="p">}</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get '/stories/:name', to: redirect { |path_params, req| &quot;/articles/#{path_params[:name].pluralize}&quot; }
+get '/stories', to: redirect { |path_params, req| &quot;/articles/#{req.subdomain}&quot; }
+">Copy</button>
+</div>
+<p>Please note that default redirection is a 301 "Moved Permanently" redirect. Keep in mind that some web browsers or proxy servers will cache this type of redirect, making the old page inaccessible. You can use the <code>:status</code> option to change the response status:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'/stories/:name'</span><span class="p">,</span> <span class="ss">to: </span><span class="n">redirect</span><span class="p">(</span><span class="s1">'/articles/%{name}'</span><span class="p">,</span> <span class="ss">status: </span><span class="mi">302</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get '/stories/:name', to: redirect('/articles/%{name}', status: 302)
+">Copy</button>
+</div>
+<p>In all of these cases, if you don't provide the leading host (<code>http://www.example.com</code>), Rails will take those details from the current request.</p><h3 id="routing-to-rack-applications"><a class="anchorlink" href="#routing-to-rack-applications">3.13 Routing to Rack Applications</a></h3><p>Instead of a String like <code>'articles#index'</code>, which corresponds to the <code>index</code> action in the <code>ArticlesController</code>, you can specify any <a href="rails_on_rack.html">Rack application</a> as the endpoint for a matcher:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">match</span> <span class="s1">'/application.js'</span><span class="p">,</span> <span class="ss">to: </span><span class="no">MyRackApp</span><span class="p">,</span> <span class="ss">via: :all</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="match '/application.js', to: MyRackApp, via: :all
+">Copy</button>
+</div>
+<p>As long as <code>MyRackApp</code> responds to <code>call</code> and returns a <code>[status, headers, body]</code>, the router won't know the difference between the Rack application and an action. This is an appropriate use of <code>via: :all</code>, as you will want to allow your Rack application to handle all verbs as it considers appropriate.</p><div class="note"><p>For the curious, <code>'articles#index'</code> actually expands out to <code>ArticlesController.action(:index)</code>, which returns a valid Rack application.</p></div><div class="note"><p>Since procs/lambdas are objects that respond to <code>call</code>, you can implement very simple routes (e.g. for health checks) inline:<br><code>get '/health', to: -&gt;(env) { [204, {}, ['']] }</code></p></div><p>If you specify a Rack application as the endpoint for a matcher, remember that
+the route will be unchanged in the receiving application. With the following
+route your Rack application should expect the route to be <code>/admin</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">match</span> <span class="s1">'/admin'</span><span class="p">,</span> <span class="ss">to: </span><span class="no">AdminApp</span><span class="p">,</span> <span class="ss">via: :all</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="match '/admin', to: AdminApp, via: :all
+">Copy</button>
+</div>
+<p>If you would prefer to have your Rack application receive requests at the root
+path instead, use <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Base.html#method-i-mount"><code>mount</code></a>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">mount</span> <span class="no">AdminApp</span><span class="p">,</span> <span class="ss">at: </span><span class="s1">'/admin'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="mount AdminApp, at: '/admin'
+">Copy</button>
+</div>
+<h3 id="using-root"><a class="anchorlink" href="#using-root">3.14 Using <code>root</code></a></h3><p>You can specify what Rails should route <code>'/'</code> to with the <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-root"><code>root</code></a> method:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">root</span> <span class="ss">to: </span><span class="s1">'pages#main'</span>
+<span class="n">root</span> <span class="s1">'pages#main'</span> <span class="c1"># shortcut for the above</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="root to: 'pages#main'
+root 'pages#main' # shortcut for the above
+">Copy</button>
+</div>
+<p>You should put the <code>root</code> route at the top of the file, because it is the most popular route and should be matched first.</p><div class="note"><p>The <code>root</code> route only routes <code>GET</code> requests to the action.</p></div><p>You can also use root inside namespaces and scopes as well. For example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">namespace</span> <span class="ss">:admin</span> <span class="k">do</span>
+  <span class="n">root</span> <span class="ss">to: </span><span class="s2">"admin#index"</span>
+<span class="k">end</span>
+
+<span class="n">root</span> <span class="ss">to: </span><span class="s2">"home#index"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="namespace :admin do
+  root to: &quot;admin#index&quot;
+end
+
+root to: &quot;home#index&quot;
+">Copy</button>
+</div>
+<h3 id="unicode-character-routes"><a class="anchorlink" href="#unicode-character-routes">3.15 Unicode Character Routes</a></h3><p>You can specify unicode character routes directly. For example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'こんにちは'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'welcome#index'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get 'こんにちは', to: 'welcome#index'
+">Copy</button>
+</div>
+<h3 id="direct-routes"><a class="anchorlink" href="#direct-routes">3.16 Direct Routes</a></h3><p>You can create custom URL helpers directly by calling <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/CustomUrls.html#method-i-direct"><code>direct</code></a>. For example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">direct</span> <span class="ss">:homepage</span> <span class="k">do</span>
+  <span class="s2">"https://rubyonrails.org"</span>
+<span class="k">end</span>
+
+<span class="c1"># &gt;&gt; homepage_url</span>
+<span class="c1"># =&gt; "https://rubyonrails.org"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="direct :homepage do
+  &quot;https://rubyonrails.org&quot;
+end
+
+# >> homepage_url
+# => &quot;https://rubyonrails.org&quot;
+">Copy</button>
+</div>
+<p>The return value of the block must be a valid argument for the <code>url_for</code> method. So, you can pass a valid string URL, Hash, Array, an Active Model instance, or an Active Model class.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">direct</span> <span class="ss">:commentable</span> <span class="k">do</span> <span class="o">|</span><span class="n">model</span><span class="o">|</span>
+  <span class="p">[</span> <span class="n">model</span><span class="p">,</span> <span class="ss">anchor: </span><span class="n">model</span><span class="p">.</span><span class="nf">dom_id</span> <span class="p">]</span>
+<span class="k">end</span>
+
+<span class="n">direct</span> <span class="ss">:main</span> <span class="k">do</span>
+  <span class="p">{</span> <span class="ss">controller: </span><span class="s1">'pages'</span><span class="p">,</span> <span class="ss">action: </span><span class="s1">'index'</span><span class="p">,</span> <span class="ss">subdomain: </span><span class="s1">'www'</span> <span class="p">}</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="direct :commentable do |model|
+  [ model, anchor: model.dom_id ]
+end
+
+direct :main do
+  { controller: 'pages', action: 'index', subdomain: 'www' }
+end
+">Copy</button>
+</div>
+<h3 id="using-resolve"><a class="anchorlink" href="#using-resolve">3.17 Using <code>resolve</code></a></h3><p>The <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/CustomUrls.html#method-i-resolve"><code>resolve</code></a> method allows customizing polymorphic mapping of models. For example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resource</span> <span class="ss">:basket</span>
+
+<span class="n">resolve</span><span class="p">(</span><span class="s2">"Basket"</span><span class="p">)</span> <span class="p">{</span> <span class="p">[</span><span class="ss">:basket</span><span class="p">]</span> <span class="p">}</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resource :basket
+
+resolve(&quot;Basket&quot;) { [:basket] }
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">form_with</span> <span class="ss">model: </span><span class="vi">@basket</span> <span class="k">do</span> <span class="o">|</span><span class="n">form</span><span class="o">|</span> <span class="cp">%&gt;</span>
+  <span class="c">&lt;!-- basket form --&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= form_with model: @basket do |form| %>
+  <!-- basket form -->
+<% end %>
+">Copy</button>
+</div>
+<p>This will generate the singular URL <code>/basket</code> instead of the usual <code>/baskets/:id</code>.</p><h2 id="customizing-resourceful-routes"><a class="anchorlink" href="#customizing-resourceful-routes">4 Customizing Resourceful Routes</a></h2><p>While the default routes and helpers generated by <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-resources"><code>resources</code></a> will usually serve you well, you may want to customize them in some way. Rails allows you to customize virtually any generic part of the resourceful helpers.</p><h3 id="specifying-a-controller-to-use"><a class="anchorlink" href="#specifying-a-controller-to-use">4.1 Specifying a Controller to Use</a></h3><p>The <code>:controller</code> option lets you explicitly specify a controller to use for the resource. For example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:photos</span><span class="p">,</span> <span class="ss">controller: </span><span class="s1">'images'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :photos, controller: 'images'
+">Copy</button>
+</div>
+<p>will recognize incoming paths beginning with <code>/photos</code> but route to the <code>Images</code> controller:</p>
+<table><thead>
+<tr>
+<th>HTTP Verb</th>
+<th>Path</th>
+<th>Controller#Action</th>
+<th>Named Route Helper</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>GET</td>
+<td>/photos</td>
+<td>images#index</td>
+<td>photos_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/photos/new</td>
+<td>images#new</td>
+<td>new_photo_path</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>/photos</td>
+<td>images#create</td>
+<td>photos_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/photos/:id</td>
+<td>images#show</td>
+<td>photo_path(:id)</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/photos/:id/edit</td>
+<td>images#edit</td>
+<td>edit_photo_path(:id)</td>
+</tr>
+<tr>
+<td>PATCH/PUT</td>
+<td>/photos/:id</td>
+<td>images#update</td>
+<td>photo_path(:id)</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>/photos/:id</td>
+<td>images#destroy</td>
+<td>photo_path(:id)</td>
+</tr>
+</tbody></table>
+<div class="note"><p>Use <code>photos_path</code>, <code>new_photo_path</code>, etc. to generate paths for this resource.</p></div><p>For namespaced controllers you can use the directory notation. For example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:user_permissions</span><span class="p">,</span> <span class="ss">controller: </span><span class="s1">'admin/user_permissions'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :user_permissions, controller: 'admin/user_permissions'
+">Copy</button>
+</div>
+<p>This will route to the <code>Admin::UserPermissions</code> controller.</p><div class="note"><p>Only the directory notation is supported. Specifying the
+controller with Ruby constant notation (e.g. <code>controller: 'Admin::UserPermissions'</code>)
+can lead to routing problems and results in
+a warning.</p></div><h3 id="specifying-constraints"><a class="anchorlink" href="#specifying-constraints">4.2 Specifying Constraints</a></h3><p>You can use the <code>:constraints</code> option to specify a required format on the implicit <code>id</code>. For example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:photos</span><span class="p">,</span> <span class="ss">constraints: </span><span class="p">{</span> <span class="ss">id: </span><span class="sr">/[A-Z][A-Z][0-9]+/</span> <span class="p">}</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :photos, constraints: { id: /[A-Z][A-Z][0-9]+/ }
+">Copy</button>
+</div>
+<p>This declaration constrains the <code>:id</code> parameter to match the supplied regular expression. So, in this case, the router would no longer match <code>/photos/1</code> to this route. Instead, <code>/photos/RR27</code> would match.</p><p>You can specify a single constraint to apply to a number of routes by using the block form:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">constraints</span><span class="p">(</span><span class="ss">id: </span><span class="sr">/[A-Z][A-Z][0-9]+/</span><span class="p">)</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:photos</span>
+  <span class="n">resources</span> <span class="ss">:accounts</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="constraints(id: /[A-Z][A-Z][0-9]+/) do
+  resources :photos
+  resources :accounts
+end
+">Copy</button>
+</div>
+<div class="note"><p>Of course, you can use the more advanced constraints available in non-resourceful routes in this context.</p></div><div class="info"><p>By default the <code>:id</code> parameter doesn't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within an <code>:id</code> add a constraint which overrides this - for example <code>id: /[^\/]+/</code> allows anything except a slash.</p></div><h3 id="overriding-the-named-route-helpers"><a class="anchorlink" href="#overriding-the-named-route-helpers">4.3 Overriding the Named Route Helpers</a></h3><p>The <code>:as</code> option lets you override the normal naming for the named route helpers. For example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:photos</span><span class="p">,</span> <span class="ss">as: </span><span class="s1">'images'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :photos, as: 'images'
+">Copy</button>
+</div>
+<p>will recognize incoming paths beginning with <code>/photos</code> and route the requests to <code>PhotosController</code>, but use the value of the <code>:as</code> option to name the helpers.</p>
+<table><thead>
+<tr>
+<th>HTTP Verb</th>
+<th>Path</th>
+<th>Controller#Action</th>
+<th>Named Route Helper</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>GET</td>
+<td>/photos</td>
+<td>photos#index</td>
+<td>images_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/photos/new</td>
+<td>photos#new</td>
+<td>new_image_path</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>/photos</td>
+<td>photos#create</td>
+<td>images_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/photos/:id</td>
+<td>photos#show</td>
+<td>image_path(:id)</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/photos/:id/edit</td>
+<td>photos#edit</td>
+<td>edit_image_path(:id)</td>
+</tr>
+<tr>
+<td>PATCH/PUT</td>
+<td>/photos/:id</td>
+<td>photos#update</td>
+<td>image_path(:id)</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>/photos/:id</td>
+<td>photos#destroy</td>
+<td>image_path(:id)</td>
+</tr>
+</tbody></table>
+<h3 id="overriding-the-new-and-edit-segments"><a class="anchorlink" href="#overriding-the-new-and-edit-segments">4.4 Overriding the <code>new</code> and <code>edit</code> Segments</a></h3><p>The <code>:path_names</code> option lets you override the automatically-generated <code>new</code> and <code>edit</code> segments in paths:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:photos</span><span class="p">,</span> <span class="ss">path_names: </span><span class="p">{</span> <span class="ss">new: </span><span class="s1">'make'</span><span class="p">,</span> <span class="ss">edit: </span><span class="s1">'change'</span> <span class="p">}</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :photos, path_names: { new: 'make', edit: 'change' }
+">Copy</button>
+</div>
+<p>This would cause the routing to recognize paths such as:</p><div class="code_container">
+<pre><code class="highlight plaintext">/photos/make
+/photos/1/change
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="/photos/make
+/photos/1/change
+">Copy</button>
+</div>
+<div class="note"><p>The actual action names aren't changed by this option. The two paths shown would still route to the <code>new</code> and <code>edit</code> actions.</p></div><div class="info"><p>If you find yourself wanting to change this option uniformly for all of your routes, you can use a scope, like below:</p></div><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">scope</span> <span class="ss">path_names: </span><span class="p">{</span> <span class="ss">new: </span><span class="s1">'make'</span> <span class="p">}</span> <span class="k">do</span>
+  <span class="c1"># rest of your routes</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="scope path_names: { new: 'make' } do
+  # rest of your routes
+end
+">Copy</button>
+</div>
+<h3 id="prefixing-the-named-route-helpers"><a class="anchorlink" href="#prefixing-the-named-route-helpers">4.5 Prefixing the Named Route Helpers</a></h3><p>You can use the <code>:as</code> option to prefix the named route helpers that Rails generates for a route. Use this option to prevent name collisions between routes using a path scope. For example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">scope</span> <span class="s1">'admin'</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:photos</span><span class="p">,</span> <span class="ss">as: </span><span class="s1">'admin_photos'</span>
+<span class="k">end</span>
+
+<span class="n">resources</span> <span class="ss">:photos</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="scope 'admin' do
+  resources :photos, as: 'admin_photos'
+end
+
+resources :photos
+">Copy</button>
+</div>
+<p>This changes the route helpers for <code>/admin/photos</code> from <code>photos_path</code>,
+<code>new_photos_path</code>, etc. to <code>admin_photos_path</code>, <code>new_admin_photo_path</code>,
+etc. Without the addition of <code>as: 'admin_photos</code> on the scoped <code>resources
+:photos</code>, the non-scoped <code>resources :photos</code> will not have any route helpers.</p><p>To prefix a group of route helpers, use <code>:as</code> with <code>scope</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">scope</span> <span class="s1">'admin'</span><span class="p">,</span> <span class="ss">as: </span><span class="s1">'admin'</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:photos</span><span class="p">,</span> <span class="ss">:accounts</span>
+<span class="k">end</span>
+
+<span class="n">resources</span> <span class="ss">:photos</span><span class="p">,</span> <span class="ss">:accounts</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="scope 'admin', as: 'admin' do
+  resources :photos, :accounts
+end
+
+resources :photos, :accounts
+">Copy</button>
+</div>
+<p>Just as before, this changes the <code>/admin</code> scoped resource helpers to
+<code>admin_photos_path</code> and <code>admin_accounts_path</code>, and allows the non-scoped
+resources to use <code>photos_path</code> and <code>accounts_path</code>.</p><div class="note"><p>The <code>namespace</code> scope will automatically add <code>:as</code> as well as <code>:module</code> and <code>:path</code> prefixes.</p></div><h4 id="parametric-scopes"><a class="anchorlink" href="#parametric-scopes">4.5.1 Parametric Scopes</a></h4><p>You can prefix routes with a named parameter:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">scope</span> <span class="s1">':account_id'</span><span class="p">,</span> <span class="ss">as: </span><span class="s1">'account'</span><span class="p">,</span> <span class="ss">constraints: </span><span class="p">{</span> <span class="ss">account_id: </span><span class="sr">/\d+/</span> <span class="p">}</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:articles</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="scope ':account_id', as: 'account', constraints: { account_id: /\d+/ } do
+  resources :articles
+end
+">Copy</button>
+</div>
+<p>This will provide you with paths such as <code>/1/articles/9</code> and will allow you to reference the <code>account_id</code> part of the path as <code>params[:account_id]</code> in controllers, helpers, and views.</p><p>It will also generate path and URL helpers prefixed with <code>account_</code>, into which you can pass your objects as expected:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">account_article_path</span><span class="p">(</span><span class="vi">@account</span><span class="p">,</span> <span class="vi">@article</span><span class="p">)</span> <span class="c1"># =&gt; /1/article/9</span>
+<span class="n">url_for</span><span class="p">([</span><span class="vi">@account</span><span class="p">,</span> <span class="vi">@article</span><span class="p">])</span>            <span class="c1"># =&gt; /1/article/9</span>
+<span class="n">form_with</span><span class="p">(</span><span class="ss">model: </span><span class="p">[</span><span class="vi">@account</span><span class="p">,</span> <span class="vi">@article</span><span class="p">])</span>   <span class="c1"># =&gt; &lt;form action="/1/article/9" ...&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="account_article_path(@account, @article) # => /1/article/9
+url_for([@account, @article])            # => /1/article/9
+form_with(model: [@account, @article])   # => <form action=&quot;/1/article/9&quot; ...>
+">Copy</button>
+</div>
+<p>We are <a href="#segment-constraints">using a constraint</a> to limit the scope to only match ID-like strings. You can change the constraint to suit your needs, or omit it entirely. The <code>:as</code> option is also not strictly required, but without it, Rails will raise an error when evaluating <code>url_for([@account, @article])</code> or other helpers that rely on <code>url_for</code>, such as <a href="https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with"><code>form_with</code></a>.</p><h3 id="restricting-the-routes-created"><a class="anchorlink" href="#restricting-the-routes-created">4.6 Restricting the Routes Created</a></h3><p>By default, Rails creates routes for the seven default actions (<code>index</code>, <code>show</code>, <code>new</code>, <code>create</code>, <code>edit</code>, <code>update</code>, and <code>destroy</code>) for every RESTful route in your application. You can use the <code>:only</code> and <code>:except</code> options to fine-tune this behavior. The <code>:only</code> option tells Rails to create only the specified routes:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:photos</span><span class="p">,</span> <span class="ss">only: </span><span class="p">[</span><span class="ss">:index</span><span class="p">,</span> <span class="ss">:show</span><span class="p">]</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :photos, only: [:index, :show]
+">Copy</button>
+</div>
+<p>Now, a <code>GET</code> request to <code>/photos</code> would succeed, but a <code>POST</code> request to <code>/photos</code> (which would ordinarily be routed to the <code>create</code> action) will fail.</p><p>The <code>:except</code> option specifies a route or list of routes that Rails should <em>not</em> create:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:photos</span><span class="p">,</span> <span class="ss">except: :destroy</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :photos, except: :destroy
+">Copy</button>
+</div>
+<p>In this case, Rails will create all of the normal routes except the route for <code>destroy</code> (a <code>DELETE</code> request to <code>/photos/:id</code>).</p><div class="info"><p>If your application has many RESTful routes, using <code>:only</code> and <code>:except</code> to generate only the routes that you actually need can cut down on memory use and speed up the routing process.</p></div><h3 id="translated-paths"><a class="anchorlink" href="#translated-paths">4.7 Translated Paths</a></h3><p>Using <code>scope</code>, we can alter path names generated by <code>resources</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">scope</span><span class="p">(</span><span class="ss">path_names: </span><span class="p">{</span> <span class="ss">new: </span><span class="s1">'neu'</span><span class="p">,</span> <span class="ss">edit: </span><span class="s1">'bearbeiten'</span> <span class="p">})</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:categories</span><span class="p">,</span> <span class="ss">path: </span><span class="s1">'kategorien'</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="scope(path_names: { new: 'neu', edit: 'bearbeiten' }) do
+  resources :categories, path: 'kategorien'
+end
+">Copy</button>
+</div>
+<p>Rails now creates routes to the <code>CategoriesController</code>.</p>
+<table><thead>
+<tr>
+<th>HTTP Verb</th>
+<th>Path</th>
+<th>Controller#Action</th>
+<th>Named Route Helper</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>GET</td>
+<td>/kategorien</td>
+<td>categories#index</td>
+<td>categories_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/kategorien/neu</td>
+<td>categories#new</td>
+<td>new_category_path</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>/kategorien</td>
+<td>categories#create</td>
+<td>categories_path</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/kategorien/:id</td>
+<td>categories#show</td>
+<td>category_path(:id)</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/kategorien/:id/bearbeiten</td>
+<td>categories#edit</td>
+<td>edit_category_path(:id)</td>
+</tr>
+<tr>
+<td>PATCH/PUT</td>
+<td>/kategorien/:id</td>
+<td>categories#update</td>
+<td>category_path(:id)</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>/kategorien/:id</td>
+<td>categories#destroy</td>
+<td>category_path(:id)</td>
+</tr>
+</tbody></table>
+<h3 id="overriding-the-singular-form"><a class="anchorlink" href="#overriding-the-singular-form">4.8 Overriding the Singular Form</a></h3><p>If you want to override the singular form of a resource, you should add additional rules to the inflector via <a href="https://edgeapi.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-inflections"><code>inflections</code></a>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Inflector</span><span class="p">.</span><span class="nf">inflections</span> <span class="k">do</span> <span class="o">|</span><span class="n">inflect</span><span class="o">|</span>
+  <span class="n">inflect</span><span class="p">.</span><span class="nf">irregular</span> <span class="s1">'tooth'</span><span class="p">,</span> <span class="s1">'teeth'</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="ActiveSupport::Inflector.inflections do |inflect|
+  inflect.irregular 'tooth', 'teeth'
+end
+">Copy</button>
+</div>
+<h3 id="using-as-in-nested-resources"><a class="anchorlink" href="#using-as-in-nested-resources">4.9 Using <code>:as</code> in Nested Resources</a></h3><p>The <code>:as</code> option overrides the automatically-generated name for the resource in nested route helpers. For example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:magazines</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:ads</span><span class="p">,</span> <span class="ss">as: </span><span class="s1">'periodical_ads'</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :magazines do
+  resources :ads, as: 'periodical_ads'
+end
+">Copy</button>
+</div>
+<p>This will create routing helpers such as <code>magazine_periodical_ads_url</code> and <code>edit_magazine_periodical_ad_path</code>.</p><h3 id="overriding-named-route-parameters"><a class="anchorlink" href="#overriding-named-route-parameters">4.10 Overriding Named Route Parameters</a></h3><p>The <code>:param</code> option overrides the default resource identifier <code>:id</code> (name of
+the <a href="routing.html#dynamic-segments">dynamic segment</a> used to generate the
+routes). You can access that segment from your controller using
+<code>params[&lt;:param&gt;]</code>.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">resources</span> <span class="ss">:videos</span><span class="p">,</span> <span class="ss">param: :identifier</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="resources :videos, param: :identifier
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight plaintext">    videos GET  /videos(.:format)                  videos#index
+           POST /videos(.:format)                  videos#create
+ new_video GET  /videos/new(.:format)              videos#new
+edit_video GET  /videos/:identifier/edit(.:format) videos#edit
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="    videos GET  /videos(.:format)                  videos#index
+           POST /videos(.:format)                  videos#create
+ new_video GET  /videos/new(.:format)              videos#new
+edit_video GET  /videos/:identifier/edit(.:format) videos#edit
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="no">Video</span><span class="p">.</span><span class="nf">find_by</span><span class="p">(</span><span class="ss">identifier: </span><span class="n">params</span><span class="p">[</span><span class="ss">:identifier</span><span class="p">])</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Video.find_by(identifier: params[:identifier])
+">Copy</button>
+</div>
+<p>You can override <code>ActiveRecord::Base#to_param</code> of the associated model to construct
+a URL:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">class</span> <span class="nc">Video</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="k">def</span> <span class="nf">to_param</span>
+    <span class="n">identifier</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="class Video < ApplicationRecord
+  def to_param
+    identifier
+  end
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="n">video</span> <span class="o">=</span> <span class="no">Video</span><span class="p">.</span><span class="nf">find_by</span><span class="p">(</span><span class="ss">identifier: </span><span class="s2">"Roman-Holiday"</span><span class="p">)</span>
+<span class="n">edit_video_path</span><span class="p">(</span><span class="n">video</span><span class="p">)</span> <span class="c1"># =&gt; "/videos/Roman-Holiday/edit"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="video = Video.find_by(identifier: &quot;Roman-Holiday&quot;)
+edit_video_path(video) # => &quot;/videos/Roman-Holiday/edit&quot;
+">Copy</button>
+</div>
+<h2 id="breaking-up-very-large-route-file-into-multiple-small-ones"><a class="anchorlink" href="#breaking-up-very-large-route-file-into-multiple-small-ones">5 Breaking Up <em>Very</em> Large Route File into Multiple Small Ones</a></h2><p>If you work in a large application with thousands of routes, a single <code>config/routes.rb</code> file can become cumbersome and hard to read.</p><p>Rails offers a way to break a gigantic single <code>routes.rb</code> file into multiple small ones using the <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-draw"><code>draw</code></a> macro.</p><p>You could have an <code>admin.rb</code> route that contains all the routes for the admin area, another <code>api.rb</code> file for API related resources, etc.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># config/routes.rb</span>
+
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">get</span> <span class="s1">'foo'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'foo#bar'</span>
+
+  <span class="n">draw</span><span class="p">(</span><span class="ss">:admin</span><span class="p">)</span> <span class="c1"># Will load another route file located in `config/routes/admin.rb`</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# config/routes.rb
+
+Rails.application.routes.draw do
+  get 'foo', to: 'foo#bar'
+
+  draw(:admin) # Will load another route file located in `config/routes/admin.rb`
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># config/routes/admin.rb</span>
+
+<span class="n">namespace</span> <span class="ss">:admin</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:comments</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# config/routes/admin.rb
+
+namespace :admin do
+  resources :comments
+end
+">Copy</button>
+</div>
+<p>Calling <code>draw(:admin)</code> inside the <code>Rails.application.routes.draw</code> block itself will try to load a route
+file that has the same name as the argument given (<code>admin.rb</code> in this example).
+The file needs to be located inside the <code>config/routes</code> directory or any sub-directory (i.e. <code>config/routes/admin.rb</code> or <code>config/routes/external/admin.rb</code>).</p><p>You can use the normal routing DSL inside the <code>admin.rb</code> routing file, but you <strong>shouldn't</strong> surround it with the <code>Rails.application.routes.draw</code> block like you did in the main <code>config/routes.rb</code> file.</p><h3 id="don-t-use-this-feature-unless-you-really-need-it"><a class="anchorlink" href="#don-t-use-this-feature-unless-you-really-need-it">5.1 Don't Use This Feature Unless You Really Need It</a></h3><p>Having multiple routing files makes discoverability and understandability harder. For most applications - even those with a few hundred routes - it's easier for developers to have a single routing file. The Rails routing DSL already offers a way to break routes in an organized manner with <code>namespace</code> and <code>scope</code>.</p><h2 id="inspecting-and-testing-routes"><a class="anchorlink" href="#inspecting-and-testing-routes">6 Inspecting and Testing Routes</a></h2><p>Rails offers facilities for inspecting and testing your routes.</p><h3 id="listing-existing-routes"><a class="anchorlink" href="#listing-existing-routes">6.1 Listing Existing Routes</a></h3><p>To get a complete list of the available routes in your application, visit <a href="http://localhost:3000/rails/info/routes">http://localhost:3000/rails/info/routes</a> in your browser while your server is running in the <strong>development</strong> environment. You can also execute the <code>bin/rails routes</code> command in your terminal to produce the same output.</p><p>Both methods will list all of your routes, in the same order that they appear in <code>config/routes.rb</code>. For each route, you'll see:</p>
+<ul>
+<li>The route name (if any)</li>
+<li>The HTTP verb used (if the route doesn't respond to all verbs)</li>
+<li>The URL pattern to match</li>
+<li>The routing parameters for the route</li>
+</ul>
+<p>For example, here's a small section of the <code>bin/rails routes</code> output for a RESTful route:</p><div class="code_container">
+<pre><code class="highlight plaintext">    users GET    /users(.:format)          users#index
+          POST   /users(.:format)          users#create
+ new_user GET    /users/new(.:format)      users#new
+edit_user GET    /users/:id/edit(.:format) users#edit
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="    users GET    /users(.:format)          users#index
+          POST   /users(.:format)          users#create
+ new_user GET    /users/new(.:format)      users#new
+edit_user GET    /users/:id/edit(.:format) users#edit
+">Copy</button>
+</div>
+<p>You can also use the <code>--expanded</code> option to turn on the expanded table formatting mode.</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>routes <span class="nt">--expanded</span>
+<span class="go">
+--[ Route 1 ]----------------------------------------------------
+Prefix            | users
+Verb              | GET
+URI               | /users(.:format)
+</span><span class="gp">Controller#</span>Action | <span class="nb">users</span><span class="c">#index</span>
+<span class="go">--[ Route 2 ]----------------------------------------------------
+Prefix            |
+Verb              | POST
+URI               | /users(.:format)
+</span><span class="gp">Controller#</span>Action | <span class="nb">users</span><span class="c">#create</span>
+<span class="go">--[ Route 3 ]----------------------------------------------------
+Prefix            | new_user
+Verb              | GET
+URI               | /users/new(.:format)
+</span><span class="gp">Controller#</span>Action | <span class="nb">users</span><span class="c">#new</span>
+<span class="go">--[ Route 4 ]----------------------------------------------------
+Prefix            | edit_user
+Verb              | GET
+URI               | /users/:id/edit(.:format)
+</span><span class="gp">Controller#</span>Action | <span class="nb">users</span><span class="c">#edit</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails routes --expanded
+">Copy</button>
+</div>
+<p>You can search through your routes with the grep option: -g. This outputs any routes that partially match the URL helper method name, the HTTP verb, or the URL path.</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>routes <span class="nt">-g</span> new_comment
+<span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>routes <span class="nt">-g</span> POST
+<span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>routes <span class="nt">-g</span> admin
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails routes -g new_comment
+bin/rails routes -g POST
+bin/rails routes -g admin
+">Copy</button>
+</div>
+<p>If you only want to see the routes that map to a specific controller, there's the -c option.</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>routes <span class="nt">-c</span> <span class="nb">users</span>
+<span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>routes <span class="nt">-c</span> admin/users
+<span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>routes <span class="nt">-c</span> Comments
+<span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>routes <span class="nt">-c</span> Articles::CommentsController
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails routes -c users
+bin/rails routes -c admin/users
+bin/rails routes -c Comments
+bin/rails routes -c Articles::CommentsController
+">Copy</button>
+</div>
+<div class="info"><p>You'll find that the output from <code>bin/rails routes</code> is much more readable if you widen your terminal window until the output lines don't wrap.</p></div><h3 id="testing-routes"><a class="anchorlink" href="#testing-routes">6.2 Testing Routes</a></h3><p>Routes should be included in your testing strategy (just like the rest of your application). Rails offers three built-in assertions designed to make testing routes simpler:</p>
+<ul>
+<li><a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_generates"><code>assert_generates</code></a></li>
+<li><a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_recognizes"><code>assert_recognizes</code></a></li>
+<li><a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_routing"><code>assert_routing</code></a></li>
+</ul>
+<h4 id="the-assert-generates-assertion"><a class="anchorlink" href="#the-assert-generates-assertion">6.2.1 The <code>assert_generates</code> Assertion</a></h4><p><a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_generates"><code>assert_generates</code></a> asserts that a particular set of options generate a particular path and can be used with default routes or custom routes. For example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">assert_generates</span> <span class="s1">'/photos/1'</span><span class="p">,</span> <span class="p">{</span> <span class="ss">controller: </span><span class="s1">'photos'</span><span class="p">,</span> <span class="ss">action: </span><span class="s1">'show'</span><span class="p">,</span> <span class="ss">id: </span><span class="s1">'1'</span> <span class="p">}</span>
+<span class="n">assert_generates</span> <span class="s1">'/about'</span><span class="p">,</span> <span class="ss">controller: </span><span class="s1">'pages'</span><span class="p">,</span> <span class="ss">action: </span><span class="s1">'about'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="assert_generates '/photos/1', { controller: 'photos', action: 'show', id: '1' }
+assert_generates '/about', controller: 'pages', action: 'about'
+">Copy</button>
+</div>
+<h4 id="the-assert-recognizes-assertion"><a class="anchorlink" href="#the-assert-recognizes-assertion">6.2.2 The <code>assert_recognizes</code> Assertion</a></h4><p><a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_recognizes"><code>assert_recognizes</code></a> is the inverse of <code>assert_generates</code>. It asserts that a given path is recognized and routes it to a particular spot in your application. For example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">assert_recognizes</span><span class="p">({</span> <span class="ss">controller: </span><span class="s1">'photos'</span><span class="p">,</span> <span class="ss">action: </span><span class="s1">'show'</span><span class="p">,</span> <span class="ss">id: </span><span class="s1">'1'</span> <span class="p">},</span> <span class="s1">'/photos/1'</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="assert_recognizes({ controller: 'photos', action: 'show', id: '1' }, '/photos/1')
+">Copy</button>
+</div>
+<p>You can supply a <code>:method</code> argument to specify the HTTP verb:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">assert_recognizes</span><span class="p">({</span> <span class="ss">controller: </span><span class="s1">'photos'</span><span class="p">,</span> <span class="ss">action: </span><span class="s1">'create'</span> <span class="p">},</span> <span class="p">{</span> <span class="ss">path: </span><span class="s1">'photos'</span><span class="p">,</span> <span class="ss">method: :post</span> <span class="p">})</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="assert_recognizes({ controller: 'photos', action: 'create' }, { path: 'photos', method: :post })
+">Copy</button>
+</div>
+<h4 id="the-assert-routing-assertion"><a class="anchorlink" href="#the-assert-routing-assertion">6.2.3 The <code>assert_routing</code> Assertion</a></h4><p>The <a href="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_routing"><code>assert_routing</code></a> assertion checks the route both ways: it tests that the path generates the options, and that the options generate the path. Thus, it combines the functions of <code>assert_generates</code> and <code>assert_recognizes</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">assert_routing</span><span class="p">({</span> <span class="ss">path: </span><span class="s1">'photos'</span><span class="p">,</span> <span class="ss">method: :post</span> <span class="p">},</span> <span class="p">{</span> <span class="ss">controller: </span><span class="s1">'photos'</span><span class="p">,</span> <span class="ss">action: </span><span class="s1">'create'</span> <span class="p">})</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="assert_routing({ path: 'photos', method: :post }, { controller: 'photos', action: 'create' })
+">Copy</button>
+</div>
+
+
+        <h3>Feedback</h3>
+        <p>
+          You're encouraged to help improve the quality of this guide.
+        </p>
+        <p>
+          Please contribute if you see any typos or factual errors.
+          To get started, you can read our <a href="https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation">documentation contributions</a> section.
+        </p>
+        <p>
+          You may also find incomplete content or stuff that is not up to date.
+          Please do add any missing documentation for main. Make sure to check
+          <a href="https://edgeguides.rubyonrails.org">Edge Guides</a> first to verify
+          if the issues are already fixed or not on the main branch.
+          Check the <a href="ruby_on_rails_guides_guidelines.html">Ruby on Rails Guides Guidelines</a>
+          for style and conventions.
+        </p>
+        <p>
+          If for whatever reason you spot something to fix but cannot patch it yourself, please
+          <a href="https://github.com/rails/rails/issues">open an issue</a>.
+        </p>
+        <p>And last but not least, any kind of discussion regarding Ruby on Rails
+          documentation is very welcome on the <a href="https://discuss.rubyonrails.org/c/rubyonrails-docs">official Ruby on Rails Forum</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="hide" />
+  <div id="footer">
+    <div class="wrapper">
+      <p>This work is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International</a> License</p>
+<p>"Rails", "Ruby on Rails", and the Rails logo are trademarks of David Heinemeier Hansson. All rights reserved.</p>
+
+    </div>
+  </div>
+</body>
+</html>

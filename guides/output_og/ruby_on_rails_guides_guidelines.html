@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ruby on Rails Guides Guidelines — Ruby on Rails Guides</title>
+  <link rel="stylesheet" type="text/css" href="stylesheets/style.css" data-turbo-track="reload">
+  <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+  <link rel="stylesheet" type="text/css" href="stylesheets/highlight.css" data-turbo-track="reload">
+  
+  <link rel="icon" href="images/favicon.ico" sizes="any">
+  <link rel="icon" href="images/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="images/icon.png">
+  
+  <script src="javascripts/@hotwired--turbo.js" data-turbo-track="reload"></script>
+  <script src="javascripts/clipboard.js" data-turbo-track="reload"></script>
+  <script src="javascripts/guides.js" data-turbo-track="reload"></script>
+
+  <meta property="og:title" content="Ruby on Rails Guides Guidelines — Ruby on Rails Guides" />
+  <meta name="description" content="Ruby on Rails Guides GuidelinesThis guide documents guidelines for writing Ruby on Rails Guides. This guide follows itself in a graceful loop, serving itself as an example.After reading this guide, you will know: About the conventions to be used in Rails documentation. How to generate guides locally." />
+  <meta property="og:description" content="Ruby on Rails Guides GuidelinesThis guide documents guidelines for writing Ruby on Rails Guides. This guide follows itself in a graceful loop, serving itself as an example.After reading this guide, you will know: About the conventions to be used in Rails documentation. How to generate guides locally." />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:site_name" content="Ruby on Rails Guides" />
+  <meta property="og:image" content="https://avatars.githubusercontent.com/u/4223" />
+  <meta property="og:type" content="website" />
+
+  <meta name="theme-color" content="#C81418">
+</head>
+
+<body dir="ltr" class="guide">
+  <div>
+    <div id="version-badge">edge</div>
+  </div>
+  <div id="topNav">
+    <div class="wrapper">
+      <strong class="more-info-label">More at <a href="https://rubyonrails.org/">rubyonrails.org:</a> </strong>
+      <span class="red-button more-info-button">
+        More Ruby on Rails
+      </span>
+      <ul class="more-info-links s-hidden">
+        <li class="more-info"><a href="https://rubyonrails.org/blog">Blog</a></li>
+        <li class="more-info"><a href="https://guides.rubyonrails.org/">Guides</a></li>
+        <li class="more-info"><a href="https://api.rubyonrails.org/">API</a></li>
+        <li class="more-info"><a href="https://discuss.rubyonrails.org/">Forum</a></li>
+        <li class="more-info"><a href="https://github.com/rails/rails">Contribute on GitHub</a></li>
+      </ul>
+    </div>
+  </div>
+  <div id="header">
+    <div class="wrapper clearfix">
+      <div class="header-logo"><a href="index.html" title="Return to home page">Guides.rubyonrails.org</a></div>
+      <ul class="nav">
+        <li><a class="nav-item" href="index.html">Home</a></li>
+        <li class="guides-index guides-index-large">
+          <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
+          <div id="guides" class="clearfix" style="display: none;">
+            <hr />
+            <dl class="guides-section-container">
+                <div class="guides-section">
+                  <dt>Start Here</dt>
+                  <dd><a href="getting_started.html">Getting Started with Rails</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Models</dt>
+                  <dd><a href="active_record_basics.html">Active Record Basics</a></dd>
+                  <dd><a href="active_record_migrations.html">Active Record Migrations</a></dd>
+                  <dd><a href="active_record_validations.html">Active Record Validations</a></dd>
+                  <dd><a href="active_record_callbacks.html">Active Record Callbacks</a></dd>
+                  <dd><a href="association_basics.html">Active Record Associations</a></dd>
+                  <dd><a href="active_record_querying.html">Active Record Query Interface</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Views</dt>
+                  <dd><a href="layouts_and_rendering.html">Layouts and Rendering in Rails</a></dd>
+                  <dd><a href="form_helpers.html">Action View Form Helpers</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Controllers</dt>
+                  <dd><a href="action_controller_overview.html">Action Controller Overview</a></dd>
+                  <dd><a href="routing.html">Rails Routing from the Outside In</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Other Components</dt>
+                  <dd><a href="active_support_core_extensions.html">Active Support Core Extensions</a></dd>
+                  <dd><a href="action_mailer_basics.html">Action Mailer Basics</a></dd>
+                  <dd><a href="active_job_basics.html">Active Job Basics</a></dd>
+                  <dd><a href="active_storage_overview.html">Active Storage Overview</a></dd>
+                  <dd><a href="action_cable_overview.html">Action Cable Overview</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Digging Deeper</dt>
+                  <dd><a href="i18n.html">Rails Internationalization (I18n) API</a></dd>
+                  <dd><a href="testing.html">Testing Rails Applications</a></dd>
+                  <dd><a href="security.html">Securing Rails Applications</a></dd>
+                  <dd><a href="error_reporting.html">Error Reporting in Rails Applications</a></dd>
+                  <dd><a href="debugging_rails_applications.html">Debugging Rails Applications</a></dd>
+                  <dd><a href="configuring.html">Configuring Rails Applications</a></dd>
+                  <dd><a href="command_line.html">The Rails Command Line</a></dd>
+                  <dd><a href="asset_pipeline.html">The Asset Pipeline</a></dd>
+                  <dd><a href="working_with_javascript_in_rails.html">Working with JavaScript in Rails</a></dd>
+                  <dd><a href="autoloading_and_reloading_constants.html">Autoloading and Reloading</a></dd>
+                  <dd><a href="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</a></dd>
+                  <dd><a href="caching_with_rails.html">Caching with Rails: An Overview</a></dd>
+                  <dd><a href="api_app.html">Using Rails for API-only Applications</a></dd>
+                  <dd><a href="active_record_multiple_databases.html">Multiple Databases</a></dd>
+                  <dd><a href="active_record_composite_primary_keys.html">Composite Primary Keys</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Extending Rails</dt>
+                  <dd><a href="rails_on_rack.html">Rails on Rack</a></dd>
+                  <dd><a href="generators.html">Creating and Customizing Rails Generators &amp; Templates</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Contributing</dt>
+                  <dd><a href="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</a></dd>
+                  <dd><a href="api_documentation_guidelines.html">API Documentation Guidelines</a></dd>
+                  <dd><a href="ruby_on_rails_guides_guidelines.html">Guides Guidelines</a></dd>
+                  <dd><a href="development_dependencies_install.html">Installing Rails Core Development Dependencies</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Policies</dt>
+                  <dd><a href="maintenance_policy.html">Maintenance Policy</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Release Notes</dt>
+                  <dd><a href="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</a></dd>
+                  <dd><a href="7_1_release_notes.html">Version 7.1 - October 2023</a></dd>
+                  <dd><a href="7_0_release_notes.html">Version 7.0 - December 2021</a></dd>
+                  <dd><a href="6_1_release_notes.html">Version 6.1 - December 2020</a></dd>
+                  <dd><a href="6_0_release_notes.html">Version 6.0 - August 2019</a></dd>
+                  <dd><a href="5_2_release_notes.html">Version 5.2 - April 2018</a></dd>
+                  <dd><a href="5_1_release_notes.html">Version 5.1 - April 2017</a></dd>
+                  <dd><a href="5_0_release_notes.html">Version 5.0 - June 2016</a></dd>
+                  <dd><a href="4_2_release_notes.html">Version 4.2 - December 2014</a></dd>
+                  <dd><a href="4_1_release_notes.html">Version 4.1 - April 2014</a></dd>
+                  <dd><a href="4_0_release_notes.html">Version 4.0 - June 2013</a></dd>
+                  <dd><a href="3_2_release_notes.html">Version 3.2 - January 2012</a></dd>
+                  <dd><a href="3_1_release_notes.html">Version 3.1 - August 2011</a></dd>
+                  <dd><a href="3_0_release_notes.html">Version 3.0 - August 2010</a></dd>
+                  <dd><a href="2_3_release_notes.html">Version 2.3 - March 2009</a></dd>
+                  <dd><a href="2_2_release_notes.html">Version 2.2 - November 2008</a></dd>
+                </div>
+            </dl>
+          </div>
+        </li>
+        <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
+        <li class="guides-index guides-index-small">
+          <select class="guides-index-item nav-item">
+            <option value="index.html">Guides Index</option>
+              <optgroup label="Start Here">
+                  <option value="getting_started.html">Getting Started with Rails</option>
+              </optgroup>
+              <optgroup label="Models">
+                  <option value="active_record_basics.html">Active Record Basics</option>
+                  <option value="active_record_migrations.html">Active Record Migrations</option>
+                  <option value="active_record_validations.html">Active Record Validations</option>
+                  <option value="active_record_callbacks.html">Active Record Callbacks</option>
+                  <option value="association_basics.html">Active Record Associations</option>
+                  <option value="active_record_querying.html">Active Record Query Interface</option>
+              </optgroup>
+              <optgroup label="Views">
+                  <option value="layouts_and_rendering.html">Layouts and Rendering in Rails</option>
+                  <option value="form_helpers.html">Action View Form Helpers</option>
+              </optgroup>
+              <optgroup label="Controllers">
+                  <option value="action_controller_overview.html">Action Controller Overview</option>
+                  <option value="routing.html">Rails Routing from the Outside In</option>
+              </optgroup>
+              <optgroup label="Other Components">
+                  <option value="active_support_core_extensions.html">Active Support Core Extensions</option>
+                  <option value="action_mailer_basics.html">Action Mailer Basics</option>
+                  <option value="active_job_basics.html">Active Job Basics</option>
+                  <option value="active_storage_overview.html">Active Storage Overview</option>
+                  <option value="action_cable_overview.html">Action Cable Overview</option>
+              </optgroup>
+              <optgroup label="Digging Deeper">
+                  <option value="i18n.html">Rails Internationalization (I18n) API</option>
+                  <option value="testing.html">Testing Rails Applications</option>
+                  <option value="security.html">Securing Rails Applications</option>
+                  <option value="error_reporting.html">Error Reporting in Rails Applications</option>
+                  <option value="debugging_rails_applications.html">Debugging Rails Applications</option>
+                  <option value="configuring.html">Configuring Rails Applications</option>
+                  <option value="command_line.html">The Rails Command Line</option>
+                  <option value="asset_pipeline.html">The Asset Pipeline</option>
+                  <option value="working_with_javascript_in_rails.html">Working with JavaScript in Rails</option>
+                  <option value="autoloading_and_reloading_constants.html">Autoloading and Reloading</option>
+                  <option value="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</option>
+                  <option value="caching_with_rails.html">Caching with Rails: An Overview</option>
+                  <option value="api_app.html">Using Rails for API-only Applications</option>
+                  <option value="active_record_multiple_databases.html">Multiple Databases</option>
+                  <option value="active_record_composite_primary_keys.html">Composite Primary Keys</option>
+              </optgroup>
+              <optgroup label="Extending Rails">
+                  <option value="rails_on_rack.html">Rails on Rack</option>
+                  <option value="generators.html">Creating and Customizing Rails Generators &amp; Templates</option>
+              </optgroup>
+              <optgroup label="Contributing">
+                  <option value="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</option>
+                  <option value="api_documentation_guidelines.html">API Documentation Guidelines</option>
+                  <option value="ruby_on_rails_guides_guidelines.html">Guides Guidelines</option>
+                  <option value="development_dependencies_install.html">Installing Rails Core Development Dependencies</option>
+              </optgroup>
+              <optgroup label="Policies">
+                  <option value="maintenance_policy.html">Maintenance Policy</option>
+              </optgroup>
+              <optgroup label="Release Notes">
+                  <option value="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</option>
+                  <option value="7_1_release_notes.html">Version 7.1 - October 2023</option>
+                  <option value="7_0_release_notes.html">Version 7.0 - December 2021</option>
+                  <option value="6_1_release_notes.html">Version 6.1 - December 2020</option>
+                  <option value="6_0_release_notes.html">Version 6.0 - August 2019</option>
+                  <option value="5_2_release_notes.html">Version 5.2 - April 2018</option>
+                  <option value="5_1_release_notes.html">Version 5.1 - April 2017</option>
+                  <option value="5_0_release_notes.html">Version 5.0 - June 2016</option>
+                  <option value="4_2_release_notes.html">Version 4.2 - December 2014</option>
+                  <option value="4_1_release_notes.html">Version 4.1 - April 2014</option>
+                  <option value="4_0_release_notes.html">Version 4.0 - June 2013</option>
+                  <option value="3_2_release_notes.html">Version 3.2 - January 2012</option>
+                  <option value="3_1_release_notes.html">Version 3.1 - August 2011</option>
+                  <option value="3_0_release_notes.html">Version 3.0 - August 2010</option>
+                  <option value="2_3_release_notes.html">Version 2.3 - March 2009</option>
+                  <option value="2_2_release_notes.html">Version 2.2 - November 2008</option>
+              </optgroup>
+          </select>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <hr class="hide" />
+
+  <div id="feature">
+    <div class="wrapper">
+      <h1>Ruby on Rails Guides Guidelines</h1><p>This guide documents guidelines for writing Ruby on Rails Guides. This guide follows itself in a graceful loop, serving itself as an example.</p><p>After reading this guide, you will know:</p>
+<ul>
+<li>About the conventions to be used in Rails documentation.</li>
+<li>How to generate guides locally.</li>
+</ul>
+
+
+                <div id="subCol">
+            <h3 class="chapter"><img src="images/icon_book-close-bookmark-1.svg" alt="" />Chapters</h3>
+            <ol class="chapters">
+<li><a href="#markdown">Markdown</a></li>
+<li><a href="#prologue">Prologue</a></li>
+<li><a href="#headings">Headings</a></li>
+<li><a href="#linking-to-the-api">Linking to the API</a></li>
+<li><a href="#column-wrapping">Column Wrapping</a></li>
+<li><a href="#api-documentation-guidelines">API Documentation Guidelines</a></li>
+<li><a href="#html-guides">HTML Guides</a>
+
+<ul>
+<li><a href="#html-guides-generation">Generation</a></li>
+<li><a href="#validation">Validation</a></li>
+</ul></li>
+<li><a href="#kindle-guides">Kindle Guides</a>
+
+<ul>
+<li><a href="#kindle-guides-generation">Generation</a></li>
+</ul></li>
+</ol>
+
+          </div>
+
+    </div>
+  </div>
+
+  <div id="container">
+    <div class="wrapper">
+      <div id="mainCol">
+        <h2 id="markdown"><a class="anchorlink" href="#markdown">1 Markdown</a></h2><p>Guides are written in <a href="https://help.github.com/articles/github-flavored-markdown">GitHub Flavored Markdown</a>. There is comprehensive <a href="https://daringfireball.net/projects/markdown/syntax">documentation for Markdown</a>, as well as a <a href="https://daringfireball.net/projects/markdown/basics">cheatsheet</a>.</p><h2 id="prologue"><a class="anchorlink" href="#prologue">2 Prologue</a></h2><p>Each guide should start with motivational text at the top (that's the little introduction in the blue area). The prologue should tell the reader what the guide is about, and what they will learn. As an example, see the <a href="routing.html">Routing Guide</a>.</p><h2 id="headings"><a class="anchorlink" href="#headings">3 Headings</a></h2><p>The title of every guide uses an <code>h1</code> heading; guide sections use <code>h2</code> headings; subsections use <code>h3</code> headings; etc. Note that the generated HTML output will use heading tags starting with <code>&lt;h2&gt;</code>.</p><div class="code_container">
+<pre><code class="highlight markdown"><span class="gu">Guide Title
+===========
+</span>
+<span class="gh">Section
+-------
+</span>
+<span class="gu">### Sub Section</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Guide Title
+===========
+
+Section
+-------
+
+### Sub Section
+">Copy</button>
+</div>
+<p>When writing headings, capitalize all words except for prepositions, conjunctions, internal articles, and forms of the verb "to be":</p><div class="code_container">
+<pre><code class="highlight markdown"><span class="gu">#### Assertions and Testing Jobs inside Components</span>
+<span class="gu">#### Middleware Stack is an Array</span>
+<span class="gu">#### When are Objects Saved?</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="#### Assertions and Testing Jobs inside Components
+#### Middleware Stack is an Array
+#### When are Objects Saved?
+">Copy</button>
+</div>
+<p>Use the same inline formatting as regular text:</p><div class="code_container">
+<pre><code class="highlight markdown"><span class="gu">##### The `:content_type` Option</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="##### The `:content_type` Option
+">Copy</button>
+</div>
+<h2 id="linking-to-the-api"><a class="anchorlink" href="#linking-to-the-api">4 Linking to the API</a></h2><p>Links to the API (<code>api.rubyonrails.org</code>) are processed by the guides generator in the following manner:</p><p>Links that include a release tag are left untouched. For example</p><div class="code_container">
+<pre><code class="highlight plaintext">https://api.rubyonrails.org/v5.0.1/classes/ActiveRecord/Attributes/ClassMethods.html
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="https://api.rubyonrails.org/v5.0.1/classes/ActiveRecord/Attributes/ClassMethods.html
+">Copy</button>
+</div>
+<p>is not modified.</p><p>Please use these in release notes, since they should point to the corresponding version no matter the target being generated.</p><p>If the link does not include a release tag and edge guides are being generated, the domain is replaced by <code>edgeapi.rubyonrails.org</code>. For example,</p><div class="code_container">
+<pre><code class="highlight plaintext">https://api.rubyonrails.org/classes/ActionDispatch/Response.html
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="https://api.rubyonrails.org/classes/ActionDispatch/Response.html
+">Copy</button>
+</div>
+<p>becomes</p><div class="code_container">
+<pre><code class="highlight plaintext">https://edgeapi.rubyonrails.org/classes/ActionDispatch/Response.html
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="https://edgeapi.rubyonrails.org/classes/ActionDispatch/Response.html
+">Copy</button>
+</div>
+<p>If the link does not include a release tag and release guides are being generated, the Rails version is injected. For example, if we are generating the guides for v5.1.0 the link</p><div class="code_container">
+<pre><code class="highlight plaintext">https://api.rubyonrails.org/classes/ActionDispatch/Response.html
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="https://api.rubyonrails.org/classes/ActionDispatch/Response.html
+">Copy</button>
+</div>
+<p>becomes</p><div class="code_container">
+<pre><code class="highlight plaintext">https://api.rubyonrails.org/v5.1.0/classes/ActionDispatch/Response.html
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="https://api.rubyonrails.org/v5.1.0/classes/ActionDispatch/Response.html
+">Copy</button>
+</div>
+<p>Please don't link to <code>edgeapi.rubyonrails.org</code> manually.</p><h2 id="column-wrapping"><a class="anchorlink" href="#column-wrapping">5 Column Wrapping</a></h2><p>Do not reformat old guides just to wrap columns. But new sections and guides should wrap at 80 columns.</p><h2 id="api-documentation-guidelines"><a class="anchorlink" href="#api-documentation-guidelines">6 API Documentation Guidelines</a></h2><p>The guides and the API should be coherent and consistent where appropriate. In particular, these sections of the <a href="api_documentation_guidelines.html">API Documentation Guidelines</a> also apply to the guides:</p>
+<ul>
+<li><a href="api_documentation_guidelines.html#wording">Wording</a></li>
+<li><a href="api_documentation_guidelines.html#american-english">English</a></li>
+<li><a href="api_documentation_guidelines.html#example-code">Example Code</a></li>
+<li><a href="api_documentation_guidelines.html#file-names">Filenames</a></li>
+<li><a href="api_documentation_guidelines.html#fonts">Fonts</a></li>
+</ul>
+<h2 id="html-guides"><a class="anchorlink" href="#html-guides">7 HTML Guides</a></h2><p>Before generating the guides, make sure that you have the latest version of
+Bundler installed on your system. To install the latest version of Bundler, run <code>gem install bundler</code>.</p><p>If you already have Bundler installed, you can update with <code>gem update bundler</code>.</p><h3 id="html-guides-generation"><a class="anchorlink" href="#html-guides-generation">7.1 Generation</a></h3><p>To generate all the guides, just <code>cd</code> into the <code>guides</code> directory, run <code>bundle install</code>, and execute:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bundle exec rake </span>guides:generate
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bundle exec rake guides:generate
+">Copy</button>
+</div>
+<p>or</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bundle exec rake </span>guides:generate:html
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bundle exec rake guides:generate:html
+">Copy</button>
+</div>
+<p>Resulting HTML files can be found in the <code>./output</code> directory.</p><p>To process <code>my_guide.md</code> and nothing else use the <code>ONLY</code> environment variable:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">touch </span>my_guide.md
+<span class="gp">$</span><span class="w"> </span><span class="nb">bundle exec rake </span>guides:generate <span class="nv">ONLY</span><span class="o">=</span>my_guide
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="touch my_guide.md
+bundle exec rake guides:generate ONLY=my_guide
+">Copy</button>
+</div>
+<p>By default, guides that have not been modified are not processed, so <code>ONLY</code> is rarely needed in practice.</p><p>To force processing all the guides, pass <code>ALL=1</code>.</p><p>If you want to generate guides in a language other than English, you can keep them in a separate directory under <code>source</code> (e.g. <code>source/es</code>) and use the <code>GUIDES_LANGUAGE</code> environment variable:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bundle exec rake </span>guides:generate <span class="nv">GUIDES_LANGUAGE</span><span class="o">=</span>es
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bundle exec rake guides:generate GUIDES_LANGUAGE=es
+">Copy</button>
+</div>
+<p>If you want to see all the environment variables you can use to configure the generation script just run:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">rake</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="rake
+">Copy</button>
+</div>
+<h3 id="validation"><a class="anchorlink" href="#validation">7.2 Validation</a></h3><p>Please validate the generated HTML with:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bundle exec rake </span>guides:validate
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bundle exec rake guides:validate
+">Copy</button>
+</div>
+<p>Particularly, titles get an ID generated from their content and this often leads to duplicates.</p><h2 id="kindle-guides"><a class="anchorlink" href="#kindle-guides">8 Kindle Guides</a></h2><h3 id="kindle-guides-generation"><a class="anchorlink" href="#kindle-guides-generation">8.1 Generation</a></h3><p>To generate guides for the Kindle, use the following rake task:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bundle exec rake </span>guides:generate:kindle
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bundle exec rake guides:generate:kindle
+">Copy</button>
+</div>
+
+
+        <h3>Feedback</h3>
+        <p>
+          You're encouraged to help improve the quality of this guide.
+        </p>
+        <p>
+          Please contribute if you see any typos or factual errors.
+          To get started, you can read our <a href="https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation">documentation contributions</a> section.
+        </p>
+        <p>
+          You may also find incomplete content or stuff that is not up to date.
+          Please do add any missing documentation for main. Make sure to check
+          <a href="https://edgeguides.rubyonrails.org">Edge Guides</a> first to verify
+          if the issues are already fixed or not on the main branch.
+          Check the <a href="ruby_on_rails_guides_guidelines.html">Ruby on Rails Guides Guidelines</a>
+          for style and conventions.
+        </p>
+        <p>
+          If for whatever reason you spot something to fix but cannot patch it yourself, please
+          <a href="https://github.com/rails/rails/issues">open an issue</a>.
+        </p>
+        <p>And last but not least, any kind of discussion regarding Ruby on Rails
+          documentation is very welcome on the <a href="https://discuss.rubyonrails.org/c/rubyonrails-docs">official Ruby on Rails Forum</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="hide" />
+  <div id="footer">
+    <div class="wrapper">
+      <p>This work is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International</a> License</p>
+<p>"Rails", "Ruby on Rails", and the Rails logo are trademarks of David Heinemeier Hansson. All rights reserved.</p>
+
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,1126 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ruby on Rails 4.2 Release Notes — Ruby on Rails Guides</title>
+  <link rel="stylesheet" type="text/css" href="stylesheets/style.css" data-turbo-track="reload">
+  <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+  <link rel="stylesheet" type="text/css" href="stylesheets/highlight.css" data-turbo-track="reload">
+  
+  <link rel="icon" href="images/favicon.ico" sizes="any">
+  <link rel="icon" href="images/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="images/icon.png">
+  
+  <script src="javascripts/@hotwired--turbo.js" data-turbo-track="reload"></script>
+  <script src="javascripts/clipboard.js" data-turbo-track="reload"></script>
+  <script src="javascripts/guides.js" data-turbo-track="reload"></script>
+
+  <meta property="og:title" content="Ruby on Rails 4.2 Release Notes — Ruby on Rails Guides" />
+  <meta name="description" content="Ruby on Rails 4.2 Release NotesHighlights in Rails 4.2: Active Job Asynchronous mails Adequate Record Web Console Foreign key support These release notes cover only the major changes. To learn about other features, bug fixes, and changes, please refer to the changelogs or check out the list of commits in the main Rails repository on GitHub." />
+  <meta property="og:description" content="Ruby on Rails 4.2 Release NotesHighlights in Rails 4.2: Active Job Asynchronous mails Adequate Record Web Console Foreign key support These release notes cover only the major changes. To learn about other features, bug fixes, and changes, please refer to the changelogs or check out the list of commits in the main Rails repository on GitHub." />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:site_name" content="Ruby on Rails Guides" />
+  <meta property="og:image" content="https://avatars.githubusercontent.com/u/4223" />
+  <meta property="og:type" content="website" />
+
+  <meta name="theme-color" content="#C81418">
+</head>
+
+<body dir="ltr" class="guide">
+  <div>
+    <div id="version-badge">edge</div>
+  </div>
+  <div id="topNav">
+    <div class="wrapper">
+      <strong class="more-info-label">More at <a href="https://rubyonrails.org/">rubyonrails.org:</a> </strong>
+      <span class="red-button more-info-button">
+        More Ruby on Rails
+      </span>
+      <ul class="more-info-links s-hidden">
+        <li class="more-info"><a href="https://rubyonrails.org/blog">Blog</a></li>
+        <li class="more-info"><a href="https://guides.rubyonrails.org/">Guides</a></li>
+        <li class="more-info"><a href="https://api.rubyonrails.org/">API</a></li>
+        <li class="more-info"><a href="https://discuss.rubyonrails.org/">Forum</a></li>
+        <li class="more-info"><a href="https://github.com/rails/rails">Contribute on GitHub</a></li>
+      </ul>
+    </div>
+  </div>
+  <div id="header">
+    <div class="wrapper clearfix">
+      <div class="header-logo"><a href="index.html" title="Return to home page">Guides.rubyonrails.org</a></div>
+      <ul class="nav">
+        <li><a class="nav-item" href="index.html">Home</a></li>
+        <li class="guides-index guides-index-large">
+          <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
+          <div id="guides" class="clearfix" style="display: none;">
+            <hr />
+            <dl class="guides-section-container">
+                <div class="guides-section">
+                  <dt>Start Here</dt>
+                  <dd><a href="getting_started.html">Getting Started with Rails</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Models</dt>
+                  <dd><a href="active_record_basics.html">Active Record Basics</a></dd>
+                  <dd><a href="active_record_migrations.html">Active Record Migrations</a></dd>
+                  <dd><a href="active_record_validations.html">Active Record Validations</a></dd>
+                  <dd><a href="active_record_callbacks.html">Active Record Callbacks</a></dd>
+                  <dd><a href="association_basics.html">Active Record Associations</a></dd>
+                  <dd><a href="active_record_querying.html">Active Record Query Interface</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Views</dt>
+                  <dd><a href="layouts_and_rendering.html">Layouts and Rendering in Rails</a></dd>
+                  <dd><a href="form_helpers.html">Action View Form Helpers</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Controllers</dt>
+                  <dd><a href="action_controller_overview.html">Action Controller Overview</a></dd>
+                  <dd><a href="routing.html">Rails Routing from the Outside In</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Other Components</dt>
+                  <dd><a href="active_support_core_extensions.html">Active Support Core Extensions</a></dd>
+                  <dd><a href="action_mailer_basics.html">Action Mailer Basics</a></dd>
+                  <dd><a href="active_job_basics.html">Active Job Basics</a></dd>
+                  <dd><a href="active_storage_overview.html">Active Storage Overview</a></dd>
+                  <dd><a href="action_cable_overview.html">Action Cable Overview</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Digging Deeper</dt>
+                  <dd><a href="i18n.html">Rails Internationalization (I18n) API</a></dd>
+                  <dd><a href="testing.html">Testing Rails Applications</a></dd>
+                  <dd><a href="security.html">Securing Rails Applications</a></dd>
+                  <dd><a href="error_reporting.html">Error Reporting in Rails Applications</a></dd>
+                  <dd><a href="debugging_rails_applications.html">Debugging Rails Applications</a></dd>
+                  <dd><a href="configuring.html">Configuring Rails Applications</a></dd>
+                  <dd><a href="command_line.html">The Rails Command Line</a></dd>
+                  <dd><a href="asset_pipeline.html">The Asset Pipeline</a></dd>
+                  <dd><a href="working_with_javascript_in_rails.html">Working with JavaScript in Rails</a></dd>
+                  <dd><a href="autoloading_and_reloading_constants.html">Autoloading and Reloading</a></dd>
+                  <dd><a href="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</a></dd>
+                  <dd><a href="caching_with_rails.html">Caching with Rails: An Overview</a></dd>
+                  <dd><a href="api_app.html">Using Rails for API-only Applications</a></dd>
+                  <dd><a href="active_record_multiple_databases.html">Multiple Databases</a></dd>
+                  <dd><a href="active_record_composite_primary_keys.html">Composite Primary Keys</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Extending Rails</dt>
+                  <dd><a href="rails_on_rack.html">Rails on Rack</a></dd>
+                  <dd><a href="generators.html">Creating and Customizing Rails Generators &amp; Templates</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Contributing</dt>
+                  <dd><a href="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</a></dd>
+                  <dd><a href="api_documentation_guidelines.html">API Documentation Guidelines</a></dd>
+                  <dd><a href="ruby_on_rails_guides_guidelines.html">Guides Guidelines</a></dd>
+                  <dd><a href="development_dependencies_install.html">Installing Rails Core Development Dependencies</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Policies</dt>
+                  <dd><a href="maintenance_policy.html">Maintenance Policy</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Release Notes</dt>
+                  <dd><a href="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</a></dd>
+                  <dd><a href="7_1_release_notes.html">Version 7.1 - October 2023</a></dd>
+                  <dd><a href="7_0_release_notes.html">Version 7.0 - December 2021</a></dd>
+                  <dd><a href="6_1_release_notes.html">Version 6.1 - December 2020</a></dd>
+                  <dd><a href="6_0_release_notes.html">Version 6.0 - August 2019</a></dd>
+                  <dd><a href="5_2_release_notes.html">Version 5.2 - April 2018</a></dd>
+                  <dd><a href="5_1_release_notes.html">Version 5.1 - April 2017</a></dd>
+                  <dd><a href="5_0_release_notes.html">Version 5.0 - June 2016</a></dd>
+                  <dd><a href="4_2_release_notes.html">Version 4.2 - December 2014</a></dd>
+                  <dd><a href="4_1_release_notes.html">Version 4.1 - April 2014</a></dd>
+                  <dd><a href="4_0_release_notes.html">Version 4.0 - June 2013</a></dd>
+                  <dd><a href="3_2_release_notes.html">Version 3.2 - January 2012</a></dd>
+                  <dd><a href="3_1_release_notes.html">Version 3.1 - August 2011</a></dd>
+                  <dd><a href="3_0_release_notes.html">Version 3.0 - August 2010</a></dd>
+                  <dd><a href="2_3_release_notes.html">Version 2.3 - March 2009</a></dd>
+                  <dd><a href="2_2_release_notes.html">Version 2.2 - November 2008</a></dd>
+                </div>
+            </dl>
+          </div>
+        </li>
+        <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
+        <li class="guides-index guides-index-small">
+          <select class="guides-index-item nav-item">
+            <option value="index.html">Guides Index</option>
+              <optgroup label="Start Here">
+                  <option value="getting_started.html">Getting Started with Rails</option>
+              </optgroup>
+              <optgroup label="Models">
+                  <option value="active_record_basics.html">Active Record Basics</option>
+                  <option value="active_record_migrations.html">Active Record Migrations</option>
+                  <option value="active_record_validations.html">Active Record Validations</option>
+                  <option value="active_record_callbacks.html">Active Record Callbacks</option>
+                  <option value="association_basics.html">Active Record Associations</option>
+                  <option value="active_record_querying.html">Active Record Query Interface</option>
+              </optgroup>
+              <optgroup label="Views">
+                  <option value="layouts_and_rendering.html">Layouts and Rendering in Rails</option>
+                  <option value="form_helpers.html">Action View Form Helpers</option>
+              </optgroup>
+              <optgroup label="Controllers">
+                  <option value="action_controller_overview.html">Action Controller Overview</option>
+                  <option value="routing.html">Rails Routing from the Outside In</option>
+              </optgroup>
+              <optgroup label="Other Components">
+                  <option value="active_support_core_extensions.html">Active Support Core Extensions</option>
+                  <option value="action_mailer_basics.html">Action Mailer Basics</option>
+                  <option value="active_job_basics.html">Active Job Basics</option>
+                  <option value="active_storage_overview.html">Active Storage Overview</option>
+                  <option value="action_cable_overview.html">Action Cable Overview</option>
+              </optgroup>
+              <optgroup label="Digging Deeper">
+                  <option value="i18n.html">Rails Internationalization (I18n) API</option>
+                  <option value="testing.html">Testing Rails Applications</option>
+                  <option value="security.html">Securing Rails Applications</option>
+                  <option value="error_reporting.html">Error Reporting in Rails Applications</option>
+                  <option value="debugging_rails_applications.html">Debugging Rails Applications</option>
+                  <option value="configuring.html">Configuring Rails Applications</option>
+                  <option value="command_line.html">The Rails Command Line</option>
+                  <option value="asset_pipeline.html">The Asset Pipeline</option>
+                  <option value="working_with_javascript_in_rails.html">Working with JavaScript in Rails</option>
+                  <option value="autoloading_and_reloading_constants.html">Autoloading and Reloading</option>
+                  <option value="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</option>
+                  <option value="caching_with_rails.html">Caching with Rails: An Overview</option>
+                  <option value="api_app.html">Using Rails for API-only Applications</option>
+                  <option value="active_record_multiple_databases.html">Multiple Databases</option>
+                  <option value="active_record_composite_primary_keys.html">Composite Primary Keys</option>
+              </optgroup>
+              <optgroup label="Extending Rails">
+                  <option value="rails_on_rack.html">Rails on Rack</option>
+                  <option value="generators.html">Creating and Customizing Rails Generators &amp; Templates</option>
+              </optgroup>
+              <optgroup label="Contributing">
+                  <option value="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</option>
+                  <option value="api_documentation_guidelines.html">API Documentation Guidelines</option>
+                  <option value="ruby_on_rails_guides_guidelines.html">Guides Guidelines</option>
+                  <option value="development_dependencies_install.html">Installing Rails Core Development Dependencies</option>
+              </optgroup>
+              <optgroup label="Policies">
+                  <option value="maintenance_policy.html">Maintenance Policy</option>
+              </optgroup>
+              <optgroup label="Release Notes">
+                  <option value="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</option>
+                  <option value="7_1_release_notes.html">Version 7.1 - October 2023</option>
+                  <option value="7_0_release_notes.html">Version 7.0 - December 2021</option>
+                  <option value="6_1_release_notes.html">Version 6.1 - December 2020</option>
+                  <option value="6_0_release_notes.html">Version 6.0 - August 2019</option>
+                  <option value="5_2_release_notes.html">Version 5.2 - April 2018</option>
+                  <option value="5_1_release_notes.html">Version 5.1 - April 2017</option>
+                  <option value="5_0_release_notes.html">Version 5.0 - June 2016</option>
+                  <option value="4_2_release_notes.html">Version 4.2 - December 2014</option>
+                  <option value="4_1_release_notes.html">Version 4.1 - April 2014</option>
+                  <option value="4_0_release_notes.html">Version 4.0 - June 2013</option>
+                  <option value="3_2_release_notes.html">Version 3.2 - January 2012</option>
+                  <option value="3_1_release_notes.html">Version 3.1 - August 2011</option>
+                  <option value="3_0_release_notes.html">Version 3.0 - August 2010</option>
+                  <option value="2_3_release_notes.html">Version 2.3 - March 2009</option>
+                  <option value="2_2_release_notes.html">Version 2.2 - November 2008</option>
+              </optgroup>
+          </select>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <hr class="hide" />
+
+  <div id="feature">
+    <div class="wrapper">
+      <h1>Ruby on Rails 4.2 Release Notes</h1><p>Highlights in Rails 4.2:</p>
+<ul>
+<li>Active Job</li>
+<li>Asynchronous mails</li>
+<li>Adequate Record</li>
+<li>Web Console</li>
+<li>Foreign key support</li>
+</ul>
+<p>These release notes cover only the major changes. To learn about other
+features, bug fixes, and changes, please refer to the changelogs or check out
+the <a href="https://github.com/rails/rails/commits/4-2-stable">list of commits</a> in
+the main Rails repository on GitHub.</p>
+
+                <div id="subCol">
+            <h3 class="chapter"><img src="images/icon_book-close-bookmark-1.svg" alt="" />Chapters</h3>
+            <ol class="chapters">
+<li><a href="#upgrading-to-rails-4-2">Upgrading to Rails 4.2</a></li>
+<li><a href="#major-features">Major Features</a>
+
+<ul>
+<li><a href="#active-job">Active Job</a></li>
+<li><a href="#asynchronous-mails">Asynchronous Mails</a></li>
+<li><a href="#adequate-record">Adequate Record</a></li>
+<li><a href="#web-console">Web Console</a></li>
+<li><a href="#foreign-key-support">Foreign Key Support</a></li>
+</ul></li>
+<li><a href="#incompatibilities">Incompatibilities</a>
+
+<ul>
+<li><a href="#render-with-a-string-argument"><code>render</code> with a String Argument</a></li>
+<li><a href="#respond-with-class-level-respond-to"><code>respond_with</code> / Class-Level <code>respond_to</code></a></li>
+<li><a href="#default-host-for-rails-server">Default Host for <code>rails server</code></a></li>
+<li><a href="#changed-status-option-symbols-for-render">Changed status option symbols for <code>render</code></a></li>
+<li><a href="#html-sanitizer">HTML Sanitizer</a></li>
+<li><a href="#assert-select"><code>assert_select</code></a></li>
+</ul></li>
+<li><a href="#railties">Railties</a>
+
+<ul>
+<li><a href="#railties-removals">Removals</a></li>
+<li><a href="#railties-deprecations">Deprecations</a></li>
+<li><a href="#railties-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#action-pack">Action Pack</a>
+
+<ul>
+<li><a href="#action-pack-removals">Removals</a></li>
+<li><a href="#action-pack-deprecations">Deprecations</a></li>
+<li><a href="#action-pack-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#action-view">Action View</a>
+
+<ul>
+<li><a href="#action-view-deprecations">Deprecations</a></li>
+<li><a href="#action-view-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#action-mailer">Action Mailer</a>
+
+<ul>
+<li><a href="#action-mailer-deprecations">Deprecations</a></li>
+<li><a href="#action-mailer-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#active-record">Active Record</a>
+
+<ul>
+<li><a href="#active-record-removals">Removals</a></li>
+<li><a href="#active-record-deprecations">Deprecations</a></li>
+<li><a href="#active-record-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#active-model">Active Model</a>
+
+<ul>
+<li><a href="#active-model-removals">Removals</a></li>
+<li><a href="#active-model-deprecations">Deprecations</a></li>
+<li><a href="#active-model-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#active-support">Active Support</a>
+
+<ul>
+<li><a href="#removals">Removals</a></li>
+<li><a href="#deprecations">Deprecations</a></li>
+<li><a href="#notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#credits">Credits</a></li>
+</ol>
+
+          </div>
+
+    </div>
+  </div>
+
+  <div id="container">
+    <div class="wrapper">
+      <div id="mainCol">
+        <h2 id="upgrading-to-rails-4-2"><a class="anchorlink" href="#upgrading-to-rails-4-2">1 Upgrading to Rails 4.2</a></h2><p>If you're upgrading an existing application, it's a great idea to have good test
+coverage before going in. You should also first upgrade to Rails 4.1 in case you
+haven't and make sure your application still runs as expected before attempting
+to upgrade to Rails 4.2. A list of things to watch out for when upgrading is
+available in the guide <a href="upgrading_ruby_on_rails.html#upgrading-from-rails-4-1-to-rails-4-2">Upgrading Ruby on
+Rails</a>.</p><h2 id="major-features"><a class="anchorlink" href="#major-features">2 Major Features</a></h2><h3 id="active-job"><a class="anchorlink" href="#active-job">2.1 Active Job</a></h3><p>Active Job is a new framework in Rails 4.2. It is a common interface on top of
+queuing systems like <a href="https://github.com/resque/resque">Resque</a>, <a href="https://github.com/collectiveidea/delayed_job">Delayed
+Job</a>,
+<a href="https://github.com/mperham/sidekiq">Sidekiq</a>, and more.</p><p>Jobs written with the Active Job API run on any of the supported queues thanks
+to their respective adapters. Active Job comes pre-configured with an inline
+runner that executes jobs right away.</p><p>Jobs often need to take Active Record objects as arguments. Active Job passes
+object references as URIs (uniform resource identifiers) instead of marshalling
+the object itself. The new <a href="https://github.com/rails/globalid">Global ID</a>
+library builds URIs and looks up the objects they reference. Passing Active
+Record objects as job arguments just works by using Global ID internally.</p><p>For example, if <code>trashable</code> is an Active Record object, then this job runs
+just fine with no serialization involved:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">class</span> <span class="nc">TrashableCleanupJob</span> <span class="o">&lt;</span> <span class="no">ActiveJob</span><span class="o">::</span><span class="no">Base</span>
+  <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="n">trashable</span><span class="p">,</span> <span class="n">depth</span><span class="p">)</span>
+    <span class="n">trashable</span><span class="p">.</span><span class="nf">cleanup</span><span class="p">(</span><span class="n">depth</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="class TrashableCleanupJob < ActiveJob::Base
+  def perform(trashable, depth)
+    trashable.cleanup(depth)
+  end
+end
+">Copy</button>
+</div>
+<p>See the <a href="active_job_basics.html">Active Job Basics</a> guide for more
+information.</p><h3 id="asynchronous-mails"><a class="anchorlink" href="#asynchronous-mails">2.2 Asynchronous Mails</a></h3><p>Building on top of Active Job, Action Mailer now comes with a <code>deliver_later</code>
+method that sends emails via the queue, so it doesn't block the controller or
+model if the queue is asynchronous (the default inline queue blocks).</p><p>Sending emails right away is still possible with <code>deliver_now</code>.</p><h3 id="adequate-record"><a class="anchorlink" href="#adequate-record">2.3 Adequate Record</a></h3><p>Adequate Record is a set of performance improvements in Active Record that makes
+common <code>find</code> and <code>find_by</code> calls and some association queries up to 2x faster.</p><p>It works by caching common SQL queries as prepared statements and reusing them
+on similar calls, skipping most of the query-generation work on subsequent
+calls. For more details, please refer to <a href="http://tenderlovemaking.com/2014/02/19/adequaterecord-pro-like-activerecord.html">Aaron Patterson's blog
+post</a>.</p><p>Active Record will automatically take advantage of this feature on
+supported operations without any user involvement or code changes. Here are
+some examples of supported operations:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">Post</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># First call generates and cache the prepared statement</span>
+<span class="no">Post</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># Subsequent calls reuse the cached prepared statement</span>
+
+<span class="no">Post</span><span class="p">.</span><span class="nf">find_by_title</span><span class="p">(</span><span class="s1">'first post'</span><span class="p">)</span>
+<span class="no">Post</span><span class="p">.</span><span class="nf">find_by_title</span><span class="p">(</span><span class="s1">'second post'</span><span class="p">)</span>
+
+<span class="no">Post</span><span class="p">.</span><span class="nf">find_by</span><span class="p">(</span><span class="ss">title: </span><span class="s1">'first post'</span><span class="p">)</span>
+<span class="no">Post</span><span class="p">.</span><span class="nf">find_by</span><span class="p">(</span><span class="ss">title: </span><span class="s1">'second post'</span><span class="p">)</span>
+
+<span class="n">post</span><span class="p">.</span><span class="nf">comments</span>
+<span class="n">post</span><span class="p">.</span><span class="nf">comments</span><span class="p">(</span><span class="kp">true</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Post.find(1)  # First call generates and cache the prepared statement
+Post.find(2)  # Subsequent calls reuse the cached prepared statement
+
+Post.find_by_title('first post')
+Post.find_by_title('second post')
+
+Post.find_by(title: 'first post')
+Post.find_by(title: 'second post')
+
+post.comments
+post.comments(true)
+">Copy</button>
+</div>
+<p>It's important to highlight that, as the examples above suggest, the prepared
+statements do not cache the values passed in the method calls; rather, they
+have placeholders for them.</p><p>Caching is not used in the following scenarios:</p>
+<ul>
+<li>The model has a default scope</li>
+<li>The model uses single table inheritance</li>
+<li><p><code>find</code> with a list of ids, e.g.:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># not cached</span>
+<span class="no">Post</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="no">Post</span><span class="p">.</span><span class="nf">find</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# not cached
+Post.find(1, 2, 3)
+Post.find([1,2])
+">Copy</button>
+</div></li>
+<li><p><code>find_by</code> with SQL fragments:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">Post</span><span class="p">.</span><span class="nf">find_by</span><span class="p">(</span><span class="s1">'published_at &lt; ?'</span><span class="p">,</span> <span class="mi">2</span><span class="p">.</span><span class="nf">weeks</span><span class="p">.</span><span class="nf">ago</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Post.find_by('published_at < ?', 2.weeks.ago)
+">Copy</button>
+</div></li>
+</ul>
+<h3 id="web-console"><a class="anchorlink" href="#web-console">2.4 Web Console</a></h3><p>New applications generated with Rails 4.2 now come with the <a href="https://github.com/rails/web-console">Web
+Console</a> gem by default. Web Console adds
+an interactive Ruby console on every error page and provides a <code>console</code> view
+and controller helpers.</p><p>The interactive console on error pages lets you execute code in the context of
+the place where the exception originated. The <code>console</code> helper, if called
+anywhere in a view or controller, launches an interactive console with the final
+context, once rendering has completed.</p><h3 id="foreign-key-support"><a class="anchorlink" href="#foreign-key-support">2.5 Foreign Key Support</a></h3><p>The migration DSL now supports adding and removing foreign keys. They are dumped
+to <code>schema.rb</code> as well. At this time, only the <code>mysql</code>, <code>mysql2</code> and <code>postgresql</code>
+adapters support foreign keys.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># add a foreign key to `articles.author_id` referencing `authors.id`</span>
+<span class="n">add_foreign_key</span> <span class="ss">:articles</span><span class="p">,</span> <span class="ss">:authors</span>
+
+<span class="c1"># add a foreign key to `articles.author_id` referencing `users.lng_id`</span>
+<span class="n">add_foreign_key</span> <span class="ss">:articles</span><span class="p">,</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">column: :author_id</span><span class="p">,</span> <span class="ss">primary_key: </span><span class="s2">"lng_id"</span>
+
+<span class="c1"># remove the foreign key on `accounts.branch_id`</span>
+<span class="n">remove_foreign_key</span> <span class="ss">:accounts</span><span class="p">,</span> <span class="ss">:branches</span>
+
+<span class="c1"># remove the foreign key on `accounts.owner_id`</span>
+<span class="n">remove_foreign_key</span> <span class="ss">:accounts</span><span class="p">,</span> <span class="ss">column: :owner_id</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# add a foreign key to `articles.author_id` referencing `authors.id`
+add_foreign_key :articles, :authors
+
+# add a foreign key to `articles.author_id` referencing `users.lng_id`
+add_foreign_key :articles, :users, column: :author_id, primary_key: &quot;lng_id&quot;
+
+# remove the foreign key on `accounts.branch_id`
+remove_foreign_key :accounts, :branches
+
+# remove the foreign key on `accounts.owner_id`
+remove_foreign_key :accounts, column: :owner_id
+">Copy</button>
+</div>
+<p>See the API documentation on
+<a href="https://api.rubyonrails.org/v4.2.0/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_foreign_key">add_foreign_key</a>
+and
+<a href="https://api.rubyonrails.org/v4.2.0/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_foreign_key">remove_foreign_key</a>
+for a full description.</p><h2 id="incompatibilities"><a class="anchorlink" href="#incompatibilities">3 Incompatibilities</a></h2><p>Previously deprecated functionality has been removed. Please refer to the
+individual components for new deprecations in this release.</p><p>The following changes may require immediate action upon upgrade.</p><h3 id="render-with-a-string-argument"><a class="anchorlink" href="#render-with-a-string-argument">3.1 <code>render</code> with a String Argument</a></h3><p>Previously, calling <code>render "foo/bar"</code> in a controller action was equivalent to
+<code>render file: "foo/bar"</code>. In Rails 4.2, this has been changed to mean
+<code>render template: "foo/bar"</code> instead. If you need to render a file, please
+change your code to use the explicit form (<code>render file: "foo/bar"</code>) instead.</p><h3 id="respond-with-class-level-respond-to"><a class="anchorlink" href="#respond-with-class-level-respond-to">3.2 <code>respond_with</code> / Class-Level <code>respond_to</code></a></h3><p><code>respond_with</code> and the corresponding class-level <code>respond_to</code> have been moved
+to the <a href="https://github.com/plataformatec/responders">responders</a> gem. Add
+<code>gem "responders", "~&gt; 2.0"</code> to your <code>Gemfile</code> to use it:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># app/controllers/users_controller.rb</span>
+
+<span class="k">class</span> <span class="nc">UsersController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="n">respond_to</span> <span class="ss">:html</span><span class="p">,</span> <span class="ss">:json</span>
+
+  <span class="k">def</span> <span class="nf">show</span>
+    <span class="vi">@user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">])</span>
+    <span class="n">respond_with</span> <span class="vi">@user</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# app/controllers/users_controller.rb
+
+class UsersController < ApplicationController
+  respond_to :html, :json
+
+  def show
+    @user = User.find(params[:id])
+    respond_with @user
+  end
+end
+">Copy</button>
+</div>
+<p>Instance-level <code>respond_to</code> is unaffected:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># app/controllers/users_controller.rb</span>
+
+<span class="k">class</span> <span class="nc">UsersController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">show</span>
+    <span class="vi">@user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">])</span>
+    <span class="n">respond_to</span> <span class="k">do</span> <span class="o">|</span><span class="nb">format</span><span class="o">|</span>
+      <span class="nb">format</span><span class="p">.</span><span class="nf">html</span>
+      <span class="nb">format</span><span class="p">.</span><span class="nf">json</span> <span class="p">{</span> <span class="n">render</span> <span class="ss">json: </span><span class="vi">@user</span> <span class="p">}</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# app/controllers/users_controller.rb
+
+class UsersController < ApplicationController
+  def show
+    @user = User.find(params[:id])
+    respond_to do |format|
+      format.html
+      format.json { render json: @user }
+    end
+  end
+end
+">Copy</button>
+</div>
+<h3 id="default-host-for-rails-server"><a class="anchorlink" href="#default-host-for-rails-server">3.3 Default Host for <code>rails server</code></a></h3><p>Due to a <a href="https://github.com/rack/rack/commit/28b014484a8ac0bbb388e7eaeeef159598ec64fc">change in Rack</a>,
+<code>rails server</code> now listens on <code>localhost</code> instead of <code>0.0.0.0</code> by default. This
+should have minimal impact on the standard development workflow as both
+<a href="http://127.0.0.1:3000">http://127.0.0.1:3000</a> and <a href="http://localhost:3000">http://localhost:3000</a> will continue to work as before
+on your own machine.</p><p>However, with this change you will no longer be able to access the Rails
+server from a different machine, for example if your development environment
+is in a virtual machine and you would like to access it from the host machine.
+In such cases, please start the server with <code>rails server -b 0.0.0.0</code> to
+restore the old behavior.</p><p>If you do this, be sure to configure your firewall properly such that only
+trusted machines on your network can access your development server.</p><h3 id="changed-status-option-symbols-for-render"><a class="anchorlink" href="#changed-status-option-symbols-for-render">3.4 Changed status option symbols for <code>render</code></a></h3><p>Due to a <a href="https://github.com/rack/rack/commit/be28c6a2ac152fe4adfbef71f3db9f4200df89e8">change in Rack</a>, the symbols that the <code>render</code> method accepts for the <code>:status</code> option have changed:</p>
+<ul>
+<li>306: <code>:reserved</code> has been removed.</li>
+<li>413: <code>:request_entity_too_large</code> has been renamed to <code>:payload_too_large</code>.</li>
+<li>414: <code>:request_uri_too_long</code> has been renamed to <code>:uri_too_long</code>.</li>
+<li>416: <code>:requested_range_not_satisfiable</code> has been renamed to <code>:range_not_satisfiable</code>.</li>
+</ul>
+<p>Keep in mind that if calling <code>render</code> with an unknown symbol, the response status will default to 500.</p><h3 id="html-sanitizer"><a class="anchorlink" href="#html-sanitizer">3.5 HTML Sanitizer</a></h3><p>The HTML sanitizer has been replaced with a new, more robust, implementation
+built upon <a href="https://github.com/flavorjones/loofah">Loofah</a> and
+<a href="https://github.com/sparklemotion/nokogiri">Nokogiri</a>. The new sanitizer is
+more secure and its sanitization is more powerful and flexible.</p><p>Due to the new algorithm, the sanitized output may be different for certain
+pathological inputs.</p><p>If you have a particular need for the exact output of the old sanitizer, you
+can add the <a href="https://github.com/kaspth/rails-deprecated_sanitizer">rails-deprecated_sanitizer</a>
+gem to the <code>Gemfile</code>, to have the old behavior. The gem does not issue
+deprecation warnings because it is opt-in.</p><p><code>rails-deprecated_sanitizer</code> will be supported for Rails 4.2 only; it will not
+be maintained for Rails 5.0.</p><p>See <a href="https://blog.plataformatec.com.br/2014/07/the-new-html-sanitizer-in-rails-4-2/">this blog post</a>
+for more details on the changes in the new sanitizer.</p><h3 id="assert-select"><a class="anchorlink" href="#assert-select">3.6 <code>assert_select</code></a></h3><p><code>assert_select</code> is now based on <a href="https://github.com/sparklemotion/nokogiri">Nokogiri</a>.
+As a result, some previously-valid selectors are now unsupported. If your
+application is using any of these spellings, you will need to update them:</p>
+<ul>
+<li><p>  Values in attribute selectors may need to be quoted if they contain
+non-alphanumeric characters.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># before</span>
+<span class="n">a</span><span class="p">[</span><span class="n">href</span><span class="o">=</span><span class="sr">/]
+a[href$=/</span><span class="p">]</span>
+
+<span class="c1"># now</span>
+<span class="n">a</span><span class="p">[</span><span class="n">href</span><span class="o">=</span><span class="s2">"/"</span><span class="p">]</span>
+<span class="n">a</span><span class="p">[</span><span class="n">href</span><span class="vg">$=</span><span class="s2">"/"</span><span class="p">]</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# before
+a[href=/]
+a[href$=/]
+
+# now
+a[href=&quot;/&quot;]
+a[href$=&quot;/&quot;]
+">Copy</button>
+</div></li>
+<li><p>  DOMs built from HTML source containing invalid HTML with improperly
+nested elements may differ.</p><p>For example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># content: &lt;div&gt;&lt;i&gt;&lt;p&gt;&lt;/i&gt;&lt;/div&gt;</span>
+
+<span class="c1"># before:</span>
+<span class="n">assert_select</span><span class="p">(</span><span class="s1">'div &gt; i'</span><span class="p">)</span>  <span class="c1"># =&gt; true</span>
+<span class="n">assert_select</span><span class="p">(</span><span class="s1">'div &gt; p'</span><span class="p">)</span>  <span class="c1"># =&gt; false</span>
+<span class="n">assert_select</span><span class="p">(</span><span class="s1">'i &gt; p'</span><span class="p">)</span>    <span class="c1"># =&gt; true</span>
+
+<span class="c1"># now:</span>
+<span class="n">assert_select</span><span class="p">(</span><span class="s1">'div &gt; i'</span><span class="p">)</span>  <span class="c1"># =&gt; true</span>
+<span class="n">assert_select</span><span class="p">(</span><span class="s1">'div &gt; p'</span><span class="p">)</span>  <span class="c1"># =&gt; true</span>
+<span class="n">assert_select</span><span class="p">(</span><span class="s1">'i &gt; p'</span><span class="p">)</span>    <span class="c1"># =&gt; false</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# content: <div><i><p></i></div>
+
+# before:
+assert_select('div > i')  # => true
+assert_select('div > p')  # => false
+assert_select('i > p')    # => true
+
+# now:
+assert_select('div > i')  # => true
+assert_select('div > p')  # => true
+assert_select('i > p')    # => false
+">Copy</button>
+</div></li>
+<li><p>  If the data selected contains entities, the value selected for comparison
+used to be raw (e.g. <code>AT&amp;amp;T</code>), and now is evaluated
+(e.g. <code>AT&amp;T</code>).</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># content: &lt;p&gt;AT&amp;amp;T&lt;/p&gt;</span>
+
+<span class="c1"># before:</span>
+<span class="n">assert_select</span><span class="p">(</span><span class="s1">'p'</span><span class="p">,</span> <span class="s1">'AT&amp;amp;T'</span><span class="p">)</span>  <span class="c1"># =&gt; true</span>
+<span class="n">assert_select</span><span class="p">(</span><span class="s1">'p'</span><span class="p">,</span> <span class="s1">'AT&amp;T'</span><span class="p">)</span>      <span class="c1"># =&gt; false</span>
+
+<span class="c1"># now:</span>
+<span class="n">assert_select</span><span class="p">(</span><span class="s1">'p'</span><span class="p">,</span> <span class="s1">'AT&amp;T'</span><span class="p">)</span>      <span class="c1"># =&gt; true</span>
+<span class="n">assert_select</span><span class="p">(</span><span class="s1">'p'</span><span class="p">,</span> <span class="s1">'AT&amp;amp;T'</span><span class="p">)</span>  <span class="c1"># =&gt; false</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# content: <p>AT&amp;amp;T</p>
+
+# before:
+assert_select('p', 'AT&amp;amp;T')  # => true
+assert_select('p', 'AT&amp;T')      # => false
+
+# now:
+assert_select('p', 'AT&amp;T')      # => true
+assert_select('p', 'AT&amp;amp;T')  # => false
+">Copy</button>
+</div></li>
+</ul>
+<p>Furthermore substitutions have changed syntax.</p><p>Now you have to use a <code>:match</code> CSS-like selector:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">assert_select</span> <span class="s2">":match('id', ?)"</span><span class="p">,</span> <span class="s1">'comment_1'</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="assert_select &quot;:match('id', ?)&quot;, 'comment_1'
+">Copy</button>
+</div>
+<p>Additionally Regexp substitutions look different when the assertion fails.
+Notice how <code>/hello/</code> here:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">assert_select</span><span class="p">(</span><span class="s2">":match('id', ?)"</span><span class="p">,</span> <span class="sr">/hello/</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="assert_select(&quot;:match('id', ?)&quot;, /hello/)
+">Copy</button>
+</div>
+<p>becomes <code>"(?-mix:hello)"</code>:</p><div class="code_container">
+<pre><code class="highlight plaintext">Expected at least 1 element matching "div:match('id', "(?-mix:hello)")", found 0..
+Expected 0 to be &gt;= 1.
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Expected at least 1 element matching &quot;div:match('id', &quot;(?-mix:hello)&quot;)&quot;, found 0..
+Expected 0 to be >= 1.
+">Copy</button>
+</div>
+<p>See the <a href="https://github.com/rails/rails-dom-testing/tree/8798b9349fb9540ad8cb9a0ce6cb88d1384a210b">Rails Dom Testing</a> documentation for more on <code>assert_select</code>.</p><h2 id="railties"><a class="anchorlink" href="#railties">4 Railties</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/4-2-stable/railties/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="railties-removals"><a class="anchorlink" href="#railties-removals">4.1 Removals</a></h3>
+<ul>
+<li><p>  The <code>--skip-action-view</code> option has been removed from the
+app generator. (<a href="https://github.com/rails/rails/pull/17042">Pull Request</a>)</p></li>
+<li><p>  The <code>rails application</code> command has been removed without replacement.
+(<a href="https://github.com/rails/rails/pull/11616">Pull Request</a>)</p></li>
+</ul>
+<h3 id="railties-deprecations"><a class="anchorlink" href="#railties-deprecations">4.2 Deprecations</a></h3>
+<ul>
+<li><p>  Deprecated missing <code>config.log_level</code> for production environments.
+(<a href="https://github.com/rails/rails/pull/16622">Pull Request</a>)</p></li>
+<li><p>  Deprecated <code>rake test:all</code> in favor of <code>rake test</code> as it now run all tests
+in the <code>test</code> folder.
+(<a href="https://github.com/rails/rails/pull/17348">Pull Request</a>)</p></li>
+<li><p>  Deprecated <code>rake test:all:db</code> in favor of <code>rake test:db</code>.
+(<a href="https://github.com/rails/rails/pull/17348">Pull Request</a>)</p></li>
+<li><p>  Deprecated <code>Rails::Rack::LogTailer</code> without replacement.
+(<a href="https://github.com/rails/rails/commit/84a13e019e93efaa8994b3f8303d635a7702dbce">Commit</a>)</p></li>
+</ul>
+<h3 id="railties-notable-changes"><a class="anchorlink" href="#railties-notable-changes">4.3 Notable changes</a></h3>
+<ul>
+<li><p>  Introduced <code>web-console</code> in the default application <code>Gemfile</code>.
+(<a href="https://github.com/rails/rails/pull/11667">Pull Request</a>)</p></li>
+<li><p>  Added a <code>required</code> option to the model generator for associations.
+(<a href="https://github.com/rails/rails/pull/16062">Pull Request</a>)</p></li>
+<li><p>  Introduced the <code>x</code> namespace for defining custom configuration options:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># config/environments/production.rb</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">x</span><span class="p">.</span><span class="nf">payment_processing</span><span class="p">.</span><span class="nf">schedule</span> <span class="o">=</span> <span class="ss">:daily</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">x</span><span class="p">.</span><span class="nf">payment_processing</span><span class="p">.</span><span class="nf">retries</span>  <span class="o">=</span> <span class="mi">3</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">x</span><span class="p">.</span><span class="nf">super_debugger</span>              <span class="o">=</span> <span class="kp">true</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# config/environments/production.rb
+config.x.payment_processing.schedule = :daily
+config.x.payment_processing.retries  = 3
+config.x.super_debugger              = true
+">Copy</button>
+</div>
+<p>These options are then available through the configuration object:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">Rails</span><span class="p">.</span><span class="nf">configuration</span><span class="p">.</span><span class="nf">x</span><span class="p">.</span><span class="nf">payment_processing</span><span class="p">.</span><span class="nf">schedule</span> <span class="c1"># =&gt; :daily</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">configuration</span><span class="p">.</span><span class="nf">x</span><span class="p">.</span><span class="nf">payment_processing</span><span class="p">.</span><span class="nf">retries</span>  <span class="c1"># =&gt; 3</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">configuration</span><span class="p">.</span><span class="nf">x</span><span class="p">.</span><span class="nf">super_debugger</span>              <span class="c1"># =&gt; true</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Rails.configuration.x.payment_processing.schedule # => :daily
+Rails.configuration.x.payment_processing.retries  # => 3
+Rails.configuration.x.super_debugger              # => true
+">Copy</button>
+</div>
+<p>(<a href="https://github.com/rails/rails/commit/611849772dd66c2e4d005dcfe153f7ce79a8a7db">Commit</a>)</p></li>
+<li><p>  Introduced <code>Rails::Application.config_for</code> to load a configuration for the
+current environment.</p><div class="code_container">
+<pre><code class="highlight yaml"><span class="c1"># config/exception_notification.yml</span>
+<span class="na">production</span><span class="pi">:</span>
+  <span class="na">url</span><span class="pi">:</span> <span class="s">http://127.0.0.1:8080</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">my_app_production</span>
+<span class="na">development</span><span class="pi">:</span>
+  <span class="na">url</span><span class="pi">:</span> <span class="s">http://localhost:3001</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">my_app_development</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# config/exception_notification.yml
+production:
+  url: http://127.0.0.1:8080
+  namespace: my_app_production
+development:
+  url: http://localhost:3001
+  namespace: my_app_development
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># config/environments/production.rb</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">configure</span> <span class="k">do</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">use</span> <span class="no">ExceptionNotifier</span><span class="p">,</span> <span class="n">config_for</span><span class="p">(</span><span class="ss">:exception_notification</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# config/environments/production.rb
+Rails.application.configure do
+  config.middleware.use ExceptionNotifier, config_for(:exception_notification)
+end
+">Copy</button>
+</div>
+<p>(<a href="https://github.com/rails/rails/pull/16129">Pull Request</a>)</p></li>
+<li><p>  Introduced a <code>--skip-turbolinks</code> option in the app generator to not generate
+turbolinks integration.
+(<a href="https://github.com/rails/rails/commit/bf17c8a531bc8059d50ad731398002a3e7162a7d">Commit</a>)</p></li>
+<li><p>  Introduced a <code>bin/setup</code> script as a convention for automated setup code when
+bootstrapping an application.
+(<a href="https://github.com/rails/rails/pull/15189">Pull Request</a>)</p></li>
+<li><p>  Changed the default value for <code>config.assets.digest</code> to <code>true</code> in development.
+(<a href="https://github.com/rails/rails/pull/15155">Pull Request</a>)</p></li>
+<li><p>  Introduced an API to register new extensions for <code>rake notes</code>.
+(<a href="https://github.com/rails/rails/pull/14379">Pull Request</a>)</p></li>
+<li><p>  Introduced an <code>after_bundle</code> callback for use in Rails templates.
+(<a href="https://github.com/rails/rails/pull/16359">Pull Request</a>)</p></li>
+<li><p>  Introduced <code>Rails.gem_version</code> as a convenience method to return
+<code>Gem::Version.new(Rails.version)</code>.
+(<a href="https://github.com/rails/rails/pull/14101">Pull Request</a>)</p></li>
+</ul>
+<h2 id="action-pack"><a class="anchorlink" href="#action-pack">5 Action Pack</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/4-2-stable/actionpack/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="action-pack-removals"><a class="anchorlink" href="#action-pack-removals">5.1 Removals</a></h3>
+<ul>
+<li><p>  <code>respond_with</code> and the class-level <code>respond_to</code> have been removed from Rails and
+moved to the <code>responders</code> gem (version 2.0). Add <code>gem "responders", "~&gt; 2.0"</code>
+to your <code>Gemfile</code> to continue using these features.
+(<a href="https://github.com/rails/rails/pull/16526">Pull Request</a>,
+ <a href="https://guides.rubyonrails.org/v4.2/upgrading_ruby_on_rails.html#responders">More Details</a>)</p></li>
+<li><p>  Removed deprecated <code>AbstractController::Helpers::ClassMethods::MissingHelperError</code>
+in favor of <code>AbstractController::Helpers::MissingHelperError</code>.
+(<a href="https://github.com/rails/rails/commit/a1ddde15ae0d612ff2973de9cf768ed701b594e8">Commit</a>)</p></li>
+</ul>
+<h3 id="action-pack-deprecations"><a class="anchorlink" href="#action-pack-deprecations">5.2 Deprecations</a></h3>
+<ul>
+<li><p>  Deprecated the <code>only_path</code> option on <code>*_path</code> helpers.
+(<a href="https://github.com/rails/rails/commit/aa1fadd48fb40dd9396a383696134a259aa59db9">Commit</a>)</p></li>
+<li><p>  Deprecated <code>assert_tag</code>, <code>assert_no_tag</code>, <code>find_tag</code> and <code>find_all_tag</code> in
+favor of <code>assert_select</code>.
+(<a href="https://github.com/rails/rails-dom-testing/commit/b12850bc5ff23ba4b599bf2770874dd4f11bf750">Commit</a>)</p></li>
+<li><p>  Deprecated support for setting the <code>:to</code> option of a router to a symbol or a
+string that does not contain a "#" character:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s1">'/posts'</span><span class="p">,</span> <span class="ss">to: </span><span class="no">MyRackApp</span>    <span class="o">=&gt;</span> <span class="p">(</span><span class="no">No</span> <span class="n">change</span> <span class="n">necessary</span><span class="p">)</span>
+<span class="n">get</span> <span class="s1">'/posts'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'post#index'</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="no">No</span> <span class="n">change</span> <span class="n">necessary</span><span class="p">)</span>
+<span class="n">get</span> <span class="s1">'/posts'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'posts'</span>      <span class="o">=&gt;</span> <span class="n">get</span> <span class="s1">'/posts'</span><span class="p">,</span> <span class="ss">controller: :posts</span>
+<span class="n">get</span> <span class="s1">'/posts'</span><span class="p">,</span> <span class="ss">to: :index</span>       <span class="o">=&gt;</span> <span class="n">get</span> <span class="s1">'/posts'</span><span class="p">,</span> <span class="ss">action: :index</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get '/posts', to: MyRackApp    => (No change necessary)
+get '/posts', to: 'post#index' => (No change necessary)
+get '/posts', to: 'posts'      => get '/posts', controller: :posts
+get '/posts', to: :index       => get '/posts', action: :index
+">Copy</button>
+</div>
+<p>(<a href="https://github.com/rails/rails/commit/cc26b6b7bccf0eea2e2c1a9ebdcc9d30ca7390d9">Commit</a>)</p></li>
+<li><p>  Deprecated support for string keys in URL helpers:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># bad</span>
+<span class="n">root_path</span><span class="p">(</span><span class="s1">'controller'</span> <span class="o">=&gt;</span> <span class="s1">'posts'</span><span class="p">,</span> <span class="s1">'action'</span> <span class="o">=&gt;</span> <span class="s1">'index'</span><span class="p">)</span>
+
+<span class="c1"># good</span>
+<span class="n">root_path</span><span class="p">(</span><span class="ss">controller: </span><span class="s1">'posts'</span><span class="p">,</span> <span class="ss">action: </span><span class="s1">'index'</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# bad
+root_path('controller' => 'posts', 'action' => 'index')
+
+# good
+root_path(controller: 'posts', action: 'index')
+">Copy</button>
+</div>
+<p>(<a href="https://github.com/rails/rails/pull/17743">Pull Request</a>)</p></li>
+</ul>
+<h3 id="action-pack-notable-changes"><a class="anchorlink" href="#action-pack-notable-changes">5.3 Notable changes</a></h3>
+<ul>
+<li><p>  The <code>*_filter</code> family of methods have been removed from the documentation. Their
+usage is discouraged in favor of the <code>*_action</code> family of methods:</p><div class="code_container">
+<pre><code class="highlight plaintext">after_filter          =&gt; after_action
+append_after_filter   =&gt; append_after_action
+append_around_filter  =&gt; append_around_action
+append_before_filter  =&gt; append_before_action
+around_filter         =&gt; around_action
+before_filter         =&gt; before_action
+prepend_after_filter  =&gt; prepend_after_action
+prepend_around_filter =&gt; prepend_around_action
+prepend_before_filter =&gt; prepend_before_action
+skip_after_filter     =&gt; skip_after_action
+skip_around_filter    =&gt; skip_around_action
+skip_before_filter    =&gt; skip_before_action
+skip_filter           =&gt; skip_action_callback
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="after_filter          => after_action
+append_after_filter   => append_after_action
+append_around_filter  => append_around_action
+append_before_filter  => append_before_action
+around_filter         => around_action
+before_filter         => before_action
+prepend_after_filter  => prepend_after_action
+prepend_around_filter => prepend_around_action
+prepend_before_filter => prepend_before_action
+skip_after_filter     => skip_after_action
+skip_around_filter    => skip_around_action
+skip_before_filter    => skip_before_action
+skip_filter           => skip_action_callback
+">Copy</button>
+</div>
+<p>If your application currently depends on these methods, you should use the
+replacement <code>*_action</code> methods instead. These methods will be deprecated in
+the future and will eventually be removed from Rails.</p><p>(Commit <a href="https://github.com/rails/rails/commit/6c5f43bab8206747a8591435b2aa0ff7051ad3de">1</a>,
+<a href="https://github.com/rails/rails/commit/489a8f2a44dc9cea09154ee1ee2557d1f037c7d4">2</a>)</p></li>
+<li><p>  <code>render nothing: true</code> or rendering a <code>nil</code> body no longer add a single
+space padding to the response body.
+(<a href="https://github.com/rails/rails/pull/14883">Pull Request</a>)</p></li>
+<li><p>  Rails now automatically includes the template's digest in ETags.
+(<a href="https://github.com/rails/rails/pull/16527">Pull Request</a>)</p></li>
+<li><p>  Segments that are passed into URL helpers are now automatically escaped.
+(<a href="https://github.com/rails/rails/commit/5460591f0226a9d248b7b4f89186bd5553e7768f">Commit</a>)</p></li>
+<li><p>  Introduced the <code>always_permitted_parameters</code> option to configure which
+parameters are permitted globally. The default value of this configuration
+is <code>['controller', 'action']</code>.
+(<a href="https://github.com/rails/rails/pull/15933">Pull Request</a>)</p></li>
+<li><p>  Added the HTTP method <code>MKCALENDAR</code> from <a href="https://tools.ietf.org/html/rfc4791">RFC 4791</a>.
+(<a href="https://github.com/rails/rails/pull/15121">Pull Request</a>)</p></li>
+<li><p>  <code>*_fragment.action_controller</code> notifications now include the controller
+and action name in the payload.
+(<a href="https://github.com/rails/rails/pull/14137">Pull Request</a>)</p></li>
+<li><p>  Improved the Routing Error page with fuzzy matching for route search.
+(<a href="https://github.com/rails/rails/pull/14619">Pull Request</a>)</p></li>
+<li><p>  Added an option to disable logging of CSRF failures.
+(<a href="https://github.com/rails/rails/pull/14280">Pull Request</a>)</p></li>
+<li><p>  When the Rails server is set to serve static assets, gzip assets will now be
+served if the client supports it and a pre-generated gzip file (<code>.gz</code>) is on disk.
+By default the asset pipeline generates <code>.gz</code> files for all compressible assets.
+Serving gzip files minimizes data transfer and speeds up asset requests. Always
+<a href="https://guides.rubyonrails.org/v4.2/asset_pipeline.html#cdns">use a CDN</a> if you are
+serving assets from your Rails server in production.
+(<a href="https://github.com/rails/rails/pull/16466">Pull Request</a>)</p></li>
+<li><p>  When calling the <code>process</code> helpers in an integration test the path needs to have
+a leading slash. Previously you could omit it but that was a byproduct of the
+implementation and not an intentional feature, e.g.:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="nb">test</span> <span class="s2">"list all posts"</span> <span class="k">do</span>
+  <span class="n">get</span> <span class="s2">"/posts"</span>
+  <span class="n">assert_response</span> <span class="ss">:success</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="test &quot;list all posts&quot; do
+  get &quot;/posts&quot;
+  assert_response :success
+end
+">Copy</button>
+</div></li>
+</ul>
+<h2 id="action-view"><a class="anchorlink" href="#action-view">6 Action View</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/4-2-stable/actionview/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="action-view-deprecations"><a class="anchorlink" href="#action-view-deprecations">6.1 Deprecations</a></h3>
+<ul>
+<li><p>  Deprecated <code>AbstractController::Base.parent_prefixes</code>.
+Override <code>AbstractController::Base.local_prefixes</code> when you want to change
+where to find views.
+(<a href="https://github.com/rails/rails/pull/15026">Pull Request</a>)</p></li>
+<li><p>  Deprecated <code>ActionView::Digestor#digest(name, format, finder, options = {})</code>.
+Arguments should be passed as a hash instead.
+(<a href="https://github.com/rails/rails/pull/14243">Pull Request</a>)</p></li>
+</ul>
+<h3 id="action-view-notable-changes"><a class="anchorlink" href="#action-view-notable-changes">6.2 Notable changes</a></h3>
+<ul>
+<li><p>  <code>render "foo/bar"</code> now expands to <code>render template: "foo/bar"</code> instead of
+<code>render file: "foo/bar"</code>.
+(<a href="https://github.com/rails/rails/pull/16888">Pull Request</a>)</p></li>
+<li><p>  The form helpers no longer generate a <code>&lt;div&gt;</code> element with inline CSS around
+the hidden fields.
+(<a href="https://github.com/rails/rails/pull/14738">Pull Request</a>)</p></li>
+<li><p>  Introduced a <code>#{partial_name}_iteration</code> special local variable for use with
+partials that are rendered with a collection. It provides access to the
+current state of the iteration via the <code>index</code>, <code>size</code>, <code>first?</code> and
+<code>last?</code> methods.
+(<a href="https://github.com/rails/rails/pull/7698">Pull Request</a>)</p></li>
+<li><p>  Placeholder I18n follows the same convention as <code>label</code> I18n.
+(<a href="https://github.com/rails/rails/pull/16438">Pull Request</a>)</p></li>
+</ul>
+<h2 id="action-mailer"><a class="anchorlink" href="#action-mailer">7 Action Mailer</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/4-2-stable/actionmailer/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="action-mailer-deprecations"><a class="anchorlink" href="#action-mailer-deprecations">7.1 Deprecations</a></h3>
+<ul>
+<li><p>  Deprecated <code>*_path</code> helpers in mailers. Always use <code>*_url</code> helpers instead.
+(<a href="https://github.com/rails/rails/pull/15840">Pull Request</a>)</p></li>
+<li><p>  Deprecated <code>deliver</code> / <code>deliver!</code> in favor of <code>deliver_now</code> / <code>deliver_now!</code>.
+(<a href="https://github.com/rails/rails/pull/16582">Pull Request</a>)</p></li>
+</ul>
+<h3 id="action-mailer-notable-changes"><a class="anchorlink" href="#action-mailer-notable-changes">7.2 Notable changes</a></h3>
+<ul>
+<li><p>  <code>link_to</code> and <code>url_for</code> generate absolute URLs by default in templates,
+it is no longer needed to pass <code>only_path: false</code>.
+(<a href="https://github.com/rails/rails/commit/9685080a7677abfa5d288a81c3e078368c6bb67c">Commit</a>)</p></li>
+<li><p>  Introduced <code>deliver_later</code> which enqueues a job on the application's queue
+to deliver emails asynchronously.
+(<a href="https://github.com/rails/rails/pull/16485">Pull Request</a>)</p></li>
+<li><p>  Added the <code>show_previews</code> configuration option for enabling mailer previews
+outside of the development environment.
+(<a href="https://github.com/rails/rails/pull/15970">Pull Request</a>)</p></li>
+</ul>
+<h2 id="active-record"><a class="anchorlink" href="#active-record">8 Active Record</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/4-2-stable/activerecord/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="active-record-removals"><a class="anchorlink" href="#active-record-removals">8.1 Removals</a></h3>
+<ul>
+<li><p>  Removed <code>cache_attributes</code> and friends. All attributes are cached.
+(<a href="https://github.com/rails/rails/pull/15429">Pull Request</a>)</p></li>
+<li><p>  Removed deprecated method <code>ActiveRecord::Base.quoted_locking_column</code>.
+(<a href="https://github.com/rails/rails/pull/15612">Pull Request</a>)</p></li>
+<li><p>  Removed deprecated <code>ActiveRecord::Migrator.proper_table_name</code>. Use the
+<code>proper_table_name</code> instance method on <code>ActiveRecord::Migration</code> instead.
+(<a href="https://github.com/rails/rails/pull/15512">Pull Request</a>)</p></li>
+<li><p>  Removed unused <code>:timestamp</code> type. Transparently alias it to <code>:datetime</code>
+in all cases. Fixes inconsistencies when column types are sent outside of
+Active Record, such as for XML serialization.
+(<a href="https://github.com/rails/rails/pull/15184">Pull Request</a>)</p></li>
+</ul>
+<h3 id="active-record-deprecations"><a class="anchorlink" href="#active-record-deprecations">8.2 Deprecations</a></h3>
+<ul>
+<li><p>  Deprecated swallowing of errors inside <code>after_commit</code> and <code>after_rollback</code>.
+(<a href="https://github.com/rails/rails/pull/16537">Pull Request</a>)</p></li>
+<li><p>  Deprecated broken support for automatic detection of counter caches on
+<code>has_many :through</code> associations. You should instead manually specify the
+counter cache on the <code>has_many</code> and <code>belongs_to</code> associations for the
+through records.
+(<a href="https://github.com/rails/rails/pull/15754">Pull Request</a>)</p></li>
+<li><p>  Deprecated passing Active Record objects to <code>.find</code> or <code>.exists?</code>. Call
+<code>id</code> on the objects first.
+(Commit <a href="https://github.com/rails/rails/commit/d92ae6ccca3bcfd73546d612efaea011270bd270">1</a>,
+<a href="https://github.com/rails/rails/commit/d35f0033c7dec2b8d8b52058fb8db495d49596f7">2</a>)</p></li>
+<li><p>  Deprecated half-baked support for PostgreSQL range values with excluding
+beginnings. We currently map PostgreSQL ranges to Ruby ranges. This conversion
+is not fully possible because Ruby ranges do not support excluded beginnings.</p><p>The current solution of incrementing the beginning is not correct
+and is now deprecated. For subtypes where we don't know how to increment
+(e.g. <code>succ</code> is not defined) it will raise an <code>ArgumentError</code> for ranges
+with excluding beginnings.
+(<a href="https://github.com/rails/rails/commit/91949e48cf41af9f3e4ffba3e5eecf9b0a08bfc3">Commit</a>)</p></li>
+<li><p>  Deprecated calling <code>DatabaseTasks.load_schema</code> without a connection. Use
+<code>DatabaseTasks.load_schema_current</code> instead.
+(<a href="https://github.com/rails/rails/commit/f15cef67f75e4b52fd45655d7c6ab6b35623c608">Commit</a>)</p></li>
+<li><p>  Deprecated <code>sanitize_sql_hash_for_conditions</code> without replacement. Using a
+<code>Relation</code> for performing queries and updates is the preferred API.
+(<a href="https://github.com/rails/rails/commit/d5902c9e">Commit</a>)</p></li>
+<li><p>  Deprecated <code>add_timestamps</code> and <code>t.timestamps</code> without passing the <code>:null</code>
+option. The default of <code>null: true</code> will change in Rails 5 to <code>null: false</code>.
+(<a href="https://github.com/rails/rails/pull/16481">Pull Request</a>)</p></li>
+<li><p>  Deprecated <code>Reflection#source_macro</code> without replacement as it is no longer
+needed in Active Record.
+(<a href="https://github.com/rails/rails/pull/16373">Pull Request</a>)</p></li>
+<li><p>  Deprecated <code>serialized_attributes</code> without replacement.
+(<a href="https://github.com/rails/rails/pull/15704">Pull Request</a>)</p></li>
+<li><p>  Deprecated returning <code>nil</code> from <code>column_for_attribute</code> when no column
+exists. It will return a null object in Rails 5.0.
+(<a href="https://github.com/rails/rails/pull/15878">Pull Request</a>)</p></li>
+<li><p>  Deprecated using <code>.joins</code>, <code>.preload</code> and <code>.eager_load</code> with associations
+that depend on the instance state (i.e. those defined with a scope that
+takes an argument) without replacement.
+(<a href="https://github.com/rails/rails/commit/ed56e596a0467390011bc9d56d462539776adac1">Commit</a>)</p></li>
+</ul>
+<h3 id="active-record-notable-changes"><a class="anchorlink" href="#active-record-notable-changes">8.3 Notable changes</a></h3>
+<ul>
+<li><p>  <code>SchemaDumper</code> uses <code>force: :cascade</code> on <code>create_table</code>. This makes it
+possible to reload a schema when foreign keys are in place.</p></li>
+<li><p>  Added a <code>:required</code> option to singular associations, which defines a
+presence validation on the association.
+(<a href="https://github.com/rails/rails/pull/16056">Pull Request</a>)</p></li>
+<li><p>  <code>ActiveRecord::Dirty</code> now detects in-place changes to mutable values.
+Serialized attributes on Active Record models are no longer saved when
+unchanged. This also works with other types such as string columns and json
+columns on PostgreSQL.
+(Pull Requests <a href="https://github.com/rails/rails/pull/15674">1</a>,
+<a href="https://github.com/rails/rails/pull/15786">2</a>,
+<a href="https://github.com/rails/rails/pull/15788">3</a>)</p></li>
+<li><p>  Introduced the <code>db:purge</code> Rake task to empty the database for the
+current environment.
+(<a href="https://github.com/rails/rails/commit/e2f232aba15937a4b9d14bd91e0392c6d55be58d">Commit</a>)</p></li>
+<li><p>  Introduced <code>ActiveRecord::Base#validate!</code> that raises
+<code>ActiveRecord::RecordInvalid</code> if the record is invalid.
+(<a href="https://github.com/rails/rails/pull/8639">Pull Request</a>)</p></li>
+<li><p>  Introduced <code>validate</code> as an alias for <code>valid?</code>.
+(<a href="https://github.com/rails/rails/pull/14456">Pull Request</a>)</p></li>
+<li><p>  <code>touch</code> now accepts multiple attributes to be touched at once.
+(<a href="https://github.com/rails/rails/pull/14423">Pull Request</a>)</p></li>
+<li><p>  The PostgreSQL adapter now supports the <code>jsonb</code> datatype in PostgreSQL 9.4+.
+(<a href="https://github.com/rails/rails/pull/16220">Pull Request</a>)</p></li>
+<li><p>  The PostgreSQL and SQLite adapters no longer add a default limit of 255
+characters on string columns.
+(<a href="https://github.com/rails/rails/pull/14579">Pull Request</a>)</p></li>
+<li><p>  Added support for the <code>citext</code> column type in the PostgreSQL adapter.
+(<a href="https://github.com/rails/rails/pull/12523">Pull Request</a>)</p></li>
+<li><p>  Added support for user-created range types in the PostgreSQL adapter.
+(<a href="https://github.com/rails/rails/commit/4cb47167e747e8f9dc12b0ddaf82bdb68c03e032">Commit</a>)</p></li>
+<li><p>  <code>sqlite3:///some/path</code> now resolves to the absolute system path
+<code>/some/path</code>. For relative paths, use <code>sqlite3:some/path</code> instead.
+(Previously, <code>sqlite3:///some/path</code> resolved to the relative path
+<code>some/path</code>. This behavior was deprecated on Rails 4.1).
+(<a href="https://github.com/rails/rails/pull/14569">Pull Request</a>)</p></li>
+<li><p>  Added support for fractional seconds for MySQL 5.6 and above.
+(Pull Request <a href="https://github.com/rails/rails/pull/8240">1</a>,
+<a href="https://github.com/rails/rails/pull/14359">2</a>)</p></li>
+<li><p>  Added <code>ActiveRecord::Base#pretty_print</code> to pretty print models.
+(<a href="https://github.com/rails/rails/pull/15172">Pull Request</a>)</p></li>
+<li><p>  <code>ActiveRecord::Base#reload</code> now behaves the same as <code>m = Model.find(m.id)</code>,
+meaning that it no longer retains the extra attributes from custom
+<code>SELECT</code>s.
+(<a href="https://github.com/rails/rails/pull/15866">Pull Request</a>)</p></li>
+<li><p>  <code>ActiveRecord::Base#reflections</code> now returns a hash with string keys instead
+of symbol keys. (<a href="https://github.com/rails/rails/pull/17718">Pull Request</a>)</p></li>
+<li><p>  The <code>references</code> method in migrations now supports a <code>type</code> option for
+specifying the type of the foreign key (e.g. <code>:uuid</code>).
+(<a href="https://github.com/rails/rails/pull/16231">Pull Request</a>)</p></li>
+</ul>
+<h2 id="active-model"><a class="anchorlink" href="#active-model">9 Active Model</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/4-2-stable/activemodel/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="active-model-removals"><a class="anchorlink" href="#active-model-removals">9.1 Removals</a></h3>
+<ul>
+<li>  Removed deprecated <code>Validator#setup</code> without replacement.
+(<a href="https://github.com/rails/rails/pull/10716">Pull Request</a>)</li>
+</ul>
+<h3 id="active-model-deprecations"><a class="anchorlink" href="#active-model-deprecations">9.2 Deprecations</a></h3>
+<ul>
+<li><p>  Deprecated <code>reset_#{attribute}</code> in favor of <code>restore_#{attribute}</code>.
+(<a href="https://github.com/rails/rails/pull/16180">Pull Request</a>)</p></li>
+<li><p>  Deprecated <code>ActiveModel::Dirty#reset_changes</code> in favor of
+<code>clear_changes_information</code>.
+(<a href="https://github.com/rails/rails/pull/16180">Pull Request</a>)</p></li>
+</ul>
+<h3 id="active-model-notable-changes"><a class="anchorlink" href="#active-model-notable-changes">9.3 Notable changes</a></h3>
+<ul>
+<li><p>  Introduced <code>validate</code> as an alias for <code>valid?</code>.
+(<a href="https://github.com/rails/rails/pull/14456">Pull Request</a>)</p></li>
+<li><p>  Introduced the <code>restore_attributes</code> method in <code>ActiveModel::Dirty</code> to restore
+the changed (dirty) attributes to their previous values.
+(Pull Request <a href="https://github.com/rails/rails/pull/14861">1</a>,
+<a href="https://github.com/rails/rails/pull/16180">2</a>)</p></li>
+<li><p>  <code>has_secure_password</code> no longer disallows blank passwords (i.e. passwords
+that contains only spaces) by default.
+(<a href="https://github.com/rails/rails/pull/16412">Pull Request</a>)</p></li>
+<li><p>  <code>has_secure_password</code> now verifies that the given password is less than 72
+characters if validations are enabled.
+(<a href="https://github.com/rails/rails/pull/15708">Pull Request</a>)</p></li>
+</ul>
+<h2 id="active-support"><a class="anchorlink" href="#active-support">10 Active Support</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/4-2-stable/activesupport/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="removals"><a class="anchorlink" href="#removals">10.1 Removals</a></h3>
+<ul>
+<li><p>  Removed deprecated <code>Numeric#ago</code>, <code>Numeric#until</code>, <code>Numeric#since</code>,
+<code>Numeric#from_now</code>.
+(<a href="https://github.com/rails/rails/commit/f1eddea1e3f6faf93581c43651348f48b2b7d8bb">Commit</a>)</p></li>
+<li><p>  Removed deprecated string based terminators for <code>ActiveSupport::Callbacks</code>.
+(<a href="https://github.com/rails/rails/pull/15100">Pull Request</a>)</p></li>
+</ul>
+<h3 id="deprecations"><a class="anchorlink" href="#deprecations">10.2 Deprecations</a></h3>
+<ul>
+<li><p>  Deprecated <code>Kernel#silence_stderr</code>, <code>Kernel#capture</code> and <code>Kernel#quietly</code>
+without replacement.
+(<a href="https://github.com/rails/rails/pull/13392">Pull Request</a>)</p></li>
+<li><p>  Deprecated <code>Class#superclass_delegating_accessor</code>, use
+<code>Class#class_attribute</code> instead.
+(<a href="https://github.com/rails/rails/pull/14271">Pull Request</a>)</p></li>
+<li><p>  Deprecated <code>ActiveSupport::SafeBuffer#prepend!</code> as
+<code>ActiveSupport::SafeBuffer#prepend</code> now performs the same function.
+(<a href="https://github.com/rails/rails/pull/14529">Pull Request</a>)</p></li>
+</ul>
+<h3 id="notable-changes"><a class="anchorlink" href="#notable-changes">10.3 Notable changes</a></h3>
+<ul>
+<li><p>  Introduced a new configuration option <code>active_support.test_order</code> for
+specifying the order test cases are executed. This option currently defaults
+to <code>:sorted</code> but will be changed to <code>:random</code> in Rails 5.0.
+(<a href="https://github.com/rails/rails/commit/53e877f7d9291b2bf0b8c425f9e32ef35829f35b">Commit</a>)</p></li>
+<li><p>  <code>Object#try</code> and <code>Object#try!</code> can now be used without an explicit receiver in the block.
+(<a href="https://github.com/rails/rails/commit/5e51bdda59c9ba8e5faf86294e3e431bd45f1830">Commit</a>,
+<a href="https://github.com/rails/rails/pull/17361">Pull Request</a>)</p></li>
+<li><p>  The <code>travel_to</code> test helper now truncates the <code>usec</code> component to 0.
+(<a href="https://github.com/rails/rails/commit/9f6e82ee4783e491c20f5244a613fdeb4024beb5">Commit</a>)</p></li>
+<li><p>  Introduced <code>Object#itself</code> as an identity function.
+(Commit <a href="https://github.com/rails/rails/commit/702ad710b57bef45b081ebf42e6fa70820fdd810">1</a>,
+<a href="https://github.com/rails/rails/commit/64d91122222c11ad3918cc8e2e3ebc4b0a03448a">2</a>)</p></li>
+<li><p>  <code>Object#with_options</code> can now be used without an explicit receiver in the block.
+(<a href="https://github.com/rails/rails/pull/16339">Pull Request</a>)</p></li>
+<li><p>  Introduced <code>String#truncate_words</code> to truncate a string by a number of words.
+(<a href="https://github.com/rails/rails/pull/16190">Pull Request</a>)</p></li>
+<li><p>  Added <code>Hash#transform_values</code> and <code>Hash#transform_values!</code> to simplify a
+common pattern where the values of a hash must change, but the keys are left
+the same.
+(<a href="https://github.com/rails/rails/pull/15819">Pull Request</a>)</p></li>
+<li><p>  The <code>humanize</code> inflector helper now strips any leading underscores.
+(<a href="https://github.com/rails/rails/commit/daaa21bc7d20f2e4ff451637423a25ff2d5e75c7">Commit</a>)</p></li>
+<li><p>  Introduced <code>Concern#class_methods</code> as an alternative to
+<code>module ClassMethods</code>, as well as <code>Kernel#concern</code> to avoid the
+<code>module Foo; extend ActiveSupport::Concern; end</code> boilerplate.
+(<a href="https://github.com/rails/rails/commit/b16c36e688970df2f96f793a759365b248b582ad">Commit</a>)</p></li>
+<li><p>  New <a href="autoloading_and_reloading_constants_classic_mode.html">guide</a> about constant autoloading and reloading.</p></li>
+</ul>
+<h2 id="credits"><a class="anchorlink" href="#credits">11 Credits</a></h2><p>See the
+<a href="https://contributors.rubyonrails.org/">full list of contributors to Rails</a> for
+the many people who spent many hours making Rails the stable and robust
+framework it is today. Kudos to all of them.</p>
+
+        <h3>Feedback</h3>
+        <p>
+          You're encouraged to help improve the quality of this guide.
+        </p>
+        <p>
+          Please contribute if you see any typos or factual errors.
+          To get started, you can read our <a href="https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation">documentation contributions</a> section.
+        </p>
+        <p>
+          You may also find incomplete content or stuff that is not up to date.
+          Please do add any missing documentation for main. Make sure to check
+          <a href="https://edgeguides.rubyonrails.org">Edge Guides</a> first to verify
+          if the issues are already fixed or not on the main branch.
+          Check the <a href="ruby_on_rails_guides_guidelines.html">Ruby on Rails Guides Guidelines</a>
+          for style and conventions.
+        </p>
+        <p>
+          If for whatever reason you spot something to fix but cannot patch it yourself, please
+          <a href="https://github.com/rails/rails/issues">open an issue</a>.
+        </p>
+        <p>And last but not least, any kind of discussion regarding Ruby on Rails
+          documentation is very welcome on the <a href="https://discuss.rubyonrails.org/c/rubyonrails-docs">official Ruby on Rails Forum</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="hide" />
+  <div id="footer">
+    <div class="wrapper">
+      <p>This work is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International</a> License</p>
+<p>"Rails", "Ruby on Rails", and the Rails logo are trademarks of David Heinemeier Hansson. All rights reserved.</p>
+
+    </div>
+  </div>
+</body>
+</html>

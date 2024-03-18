@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rails on Rack — Ruby on Rails Guides</title>
+  <link rel="stylesheet" type="text/css" href="stylesheets/style.css" data-turbo-track="reload">
+  <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+  <link rel="stylesheet" type="text/css" href="stylesheets/highlight.css" data-turbo-track="reload">
+  
+  <link rel="icon" href="images/favicon.ico" sizes="any">
+  <link rel="icon" href="images/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="images/icon.png">
+  
+  <script src="javascripts/@hotwired--turbo.js" data-turbo-track="reload"></script>
+  <script src="javascripts/clipboard.js" data-turbo-track="reload"></script>
+  <script src="javascripts/guides.js" data-turbo-track="reload"></script>
+
+  <meta property="og:title" content="Rails on Rack — Ruby on Rails Guides" />
+  <meta name="description" content="Rails on RackThis guide covers Rails integration with Rack and interfacing with other Rack components.After reading this guide, you will know: How to use Rack Middlewares in your Rails applications. Action Pack&#39;s internal Middleware stack. How to define a custom Middleware stack." />
+  <meta property="og:description" content="Rails on RackThis guide covers Rails integration with Rack and interfacing with other Rack components.After reading this guide, you will know: How to use Rack Middlewares in your Rails applications. Action Pack&#39;s internal Middleware stack. How to define a custom Middleware stack." />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:site_name" content="Ruby on Rails Guides" />
+  <meta property="og:image" content="https://avatars.githubusercontent.com/u/4223" />
+  <meta property="og:type" content="website" />
+
+  <meta name="theme-color" content="#C81418">
+</head>
+
+<body dir="ltr" class="guide">
+  <div>
+    <div id="version-badge">edge</div>
+  </div>
+  <div id="topNav">
+    <div class="wrapper">
+      <strong class="more-info-label">More at <a href="https://rubyonrails.org/">rubyonrails.org:</a> </strong>
+      <span class="red-button more-info-button">
+        More Ruby on Rails
+      </span>
+      <ul class="more-info-links s-hidden">
+        <li class="more-info"><a href="https://rubyonrails.org/blog">Blog</a></li>
+        <li class="more-info"><a href="https://guides.rubyonrails.org/">Guides</a></li>
+        <li class="more-info"><a href="https://api.rubyonrails.org/">API</a></li>
+        <li class="more-info"><a href="https://discuss.rubyonrails.org/">Forum</a></li>
+        <li class="more-info"><a href="https://github.com/rails/rails">Contribute on GitHub</a></li>
+      </ul>
+    </div>
+  </div>
+  <div id="header">
+    <div class="wrapper clearfix">
+      <div class="header-logo"><a href="index.html" title="Return to home page">Guides.rubyonrails.org</a></div>
+      <ul class="nav">
+        <li><a class="nav-item" href="index.html">Home</a></li>
+        <li class="guides-index guides-index-large">
+          <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
+          <div id="guides" class="clearfix" style="display: none;">
+            <hr />
+            <dl class="guides-section-container">
+                <div class="guides-section">
+                  <dt>Start Here</dt>
+                  <dd><a href="getting_started.html">Getting Started with Rails</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Models</dt>
+                  <dd><a href="active_record_basics.html">Active Record Basics</a></dd>
+                  <dd><a href="active_record_migrations.html">Active Record Migrations</a></dd>
+                  <dd><a href="active_record_validations.html">Active Record Validations</a></dd>
+                  <dd><a href="active_record_callbacks.html">Active Record Callbacks</a></dd>
+                  <dd><a href="association_basics.html">Active Record Associations</a></dd>
+                  <dd><a href="active_record_querying.html">Active Record Query Interface</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Views</dt>
+                  <dd><a href="layouts_and_rendering.html">Layouts and Rendering in Rails</a></dd>
+                  <dd><a href="form_helpers.html">Action View Form Helpers</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Controllers</dt>
+                  <dd><a href="action_controller_overview.html">Action Controller Overview</a></dd>
+                  <dd><a href="routing.html">Rails Routing from the Outside In</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Other Components</dt>
+                  <dd><a href="active_support_core_extensions.html">Active Support Core Extensions</a></dd>
+                  <dd><a href="action_mailer_basics.html">Action Mailer Basics</a></dd>
+                  <dd><a href="active_job_basics.html">Active Job Basics</a></dd>
+                  <dd><a href="active_storage_overview.html">Active Storage Overview</a></dd>
+                  <dd><a href="action_cable_overview.html">Action Cable Overview</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Digging Deeper</dt>
+                  <dd><a href="i18n.html">Rails Internationalization (I18n) API</a></dd>
+                  <dd><a href="testing.html">Testing Rails Applications</a></dd>
+                  <dd><a href="security.html">Securing Rails Applications</a></dd>
+                  <dd><a href="error_reporting.html">Error Reporting in Rails Applications</a></dd>
+                  <dd><a href="debugging_rails_applications.html">Debugging Rails Applications</a></dd>
+                  <dd><a href="configuring.html">Configuring Rails Applications</a></dd>
+                  <dd><a href="command_line.html">The Rails Command Line</a></dd>
+                  <dd><a href="asset_pipeline.html">The Asset Pipeline</a></dd>
+                  <dd><a href="working_with_javascript_in_rails.html">Working with JavaScript in Rails</a></dd>
+                  <dd><a href="autoloading_and_reloading_constants.html">Autoloading and Reloading</a></dd>
+                  <dd><a href="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</a></dd>
+                  <dd><a href="caching_with_rails.html">Caching with Rails: An Overview</a></dd>
+                  <dd><a href="api_app.html">Using Rails for API-only Applications</a></dd>
+                  <dd><a href="active_record_multiple_databases.html">Multiple Databases</a></dd>
+                  <dd><a href="active_record_composite_primary_keys.html">Composite Primary Keys</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Extending Rails</dt>
+                  <dd><a href="rails_on_rack.html">Rails on Rack</a></dd>
+                  <dd><a href="generators.html">Creating and Customizing Rails Generators &amp; Templates</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Contributing</dt>
+                  <dd><a href="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</a></dd>
+                  <dd><a href="api_documentation_guidelines.html">API Documentation Guidelines</a></dd>
+                  <dd><a href="ruby_on_rails_guides_guidelines.html">Guides Guidelines</a></dd>
+                  <dd><a href="development_dependencies_install.html">Installing Rails Core Development Dependencies</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Policies</dt>
+                  <dd><a href="maintenance_policy.html">Maintenance Policy</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Release Notes</dt>
+                  <dd><a href="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</a></dd>
+                  <dd><a href="7_1_release_notes.html">Version 7.1 - October 2023</a></dd>
+                  <dd><a href="7_0_release_notes.html">Version 7.0 - December 2021</a></dd>
+                  <dd><a href="6_1_release_notes.html">Version 6.1 - December 2020</a></dd>
+                  <dd><a href="6_0_release_notes.html">Version 6.0 - August 2019</a></dd>
+                  <dd><a href="5_2_release_notes.html">Version 5.2 - April 2018</a></dd>
+                  <dd><a href="5_1_release_notes.html">Version 5.1 - April 2017</a></dd>
+                  <dd><a href="5_0_release_notes.html">Version 5.0 - June 2016</a></dd>
+                  <dd><a href="4_2_release_notes.html">Version 4.2 - December 2014</a></dd>
+                  <dd><a href="4_1_release_notes.html">Version 4.1 - April 2014</a></dd>
+                  <dd><a href="4_0_release_notes.html">Version 4.0 - June 2013</a></dd>
+                  <dd><a href="3_2_release_notes.html">Version 3.2 - January 2012</a></dd>
+                  <dd><a href="3_1_release_notes.html">Version 3.1 - August 2011</a></dd>
+                  <dd><a href="3_0_release_notes.html">Version 3.0 - August 2010</a></dd>
+                  <dd><a href="2_3_release_notes.html">Version 2.3 - March 2009</a></dd>
+                  <dd><a href="2_2_release_notes.html">Version 2.2 - November 2008</a></dd>
+                </div>
+            </dl>
+          </div>
+        </li>
+        <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
+        <li class="guides-index guides-index-small">
+          <select class="guides-index-item nav-item">
+            <option value="index.html">Guides Index</option>
+              <optgroup label="Start Here">
+                  <option value="getting_started.html">Getting Started with Rails</option>
+              </optgroup>
+              <optgroup label="Models">
+                  <option value="active_record_basics.html">Active Record Basics</option>
+                  <option value="active_record_migrations.html">Active Record Migrations</option>
+                  <option value="active_record_validations.html">Active Record Validations</option>
+                  <option value="active_record_callbacks.html">Active Record Callbacks</option>
+                  <option value="association_basics.html">Active Record Associations</option>
+                  <option value="active_record_querying.html">Active Record Query Interface</option>
+              </optgroup>
+              <optgroup label="Views">
+                  <option value="layouts_and_rendering.html">Layouts and Rendering in Rails</option>
+                  <option value="form_helpers.html">Action View Form Helpers</option>
+              </optgroup>
+              <optgroup label="Controllers">
+                  <option value="action_controller_overview.html">Action Controller Overview</option>
+                  <option value="routing.html">Rails Routing from the Outside In</option>
+              </optgroup>
+              <optgroup label="Other Components">
+                  <option value="active_support_core_extensions.html">Active Support Core Extensions</option>
+                  <option value="action_mailer_basics.html">Action Mailer Basics</option>
+                  <option value="active_job_basics.html">Active Job Basics</option>
+                  <option value="active_storage_overview.html">Active Storage Overview</option>
+                  <option value="action_cable_overview.html">Action Cable Overview</option>
+              </optgroup>
+              <optgroup label="Digging Deeper">
+                  <option value="i18n.html">Rails Internationalization (I18n) API</option>
+                  <option value="testing.html">Testing Rails Applications</option>
+                  <option value="security.html">Securing Rails Applications</option>
+                  <option value="error_reporting.html">Error Reporting in Rails Applications</option>
+                  <option value="debugging_rails_applications.html">Debugging Rails Applications</option>
+                  <option value="configuring.html">Configuring Rails Applications</option>
+                  <option value="command_line.html">The Rails Command Line</option>
+                  <option value="asset_pipeline.html">The Asset Pipeline</option>
+                  <option value="working_with_javascript_in_rails.html">Working with JavaScript in Rails</option>
+                  <option value="autoloading_and_reloading_constants.html">Autoloading and Reloading</option>
+                  <option value="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</option>
+                  <option value="caching_with_rails.html">Caching with Rails: An Overview</option>
+                  <option value="api_app.html">Using Rails for API-only Applications</option>
+                  <option value="active_record_multiple_databases.html">Multiple Databases</option>
+                  <option value="active_record_composite_primary_keys.html">Composite Primary Keys</option>
+              </optgroup>
+              <optgroup label="Extending Rails">
+                  <option value="rails_on_rack.html">Rails on Rack</option>
+                  <option value="generators.html">Creating and Customizing Rails Generators &amp; Templates</option>
+              </optgroup>
+              <optgroup label="Contributing">
+                  <option value="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</option>
+                  <option value="api_documentation_guidelines.html">API Documentation Guidelines</option>
+                  <option value="ruby_on_rails_guides_guidelines.html">Guides Guidelines</option>
+                  <option value="development_dependencies_install.html">Installing Rails Core Development Dependencies</option>
+              </optgroup>
+              <optgroup label="Policies">
+                  <option value="maintenance_policy.html">Maintenance Policy</option>
+              </optgroup>
+              <optgroup label="Release Notes">
+                  <option value="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</option>
+                  <option value="7_1_release_notes.html">Version 7.1 - October 2023</option>
+                  <option value="7_0_release_notes.html">Version 7.0 - December 2021</option>
+                  <option value="6_1_release_notes.html">Version 6.1 - December 2020</option>
+                  <option value="6_0_release_notes.html">Version 6.0 - August 2019</option>
+                  <option value="5_2_release_notes.html">Version 5.2 - April 2018</option>
+                  <option value="5_1_release_notes.html">Version 5.1 - April 2017</option>
+                  <option value="5_0_release_notes.html">Version 5.0 - June 2016</option>
+                  <option value="4_2_release_notes.html">Version 4.2 - December 2014</option>
+                  <option value="4_1_release_notes.html">Version 4.1 - April 2014</option>
+                  <option value="4_0_release_notes.html">Version 4.0 - June 2013</option>
+                  <option value="3_2_release_notes.html">Version 3.2 - January 2012</option>
+                  <option value="3_1_release_notes.html">Version 3.1 - August 2011</option>
+                  <option value="3_0_release_notes.html">Version 3.0 - August 2010</option>
+                  <option value="2_3_release_notes.html">Version 2.3 - March 2009</option>
+                  <option value="2_2_release_notes.html">Version 2.2 - November 2008</option>
+              </optgroup>
+          </select>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <hr class="hide" />
+
+  <div id="feature">
+    <div class="wrapper">
+      <h1>Rails on Rack</h1><p>This guide covers Rails integration with Rack and interfacing with other Rack components.</p><p>After reading this guide, you will know:</p>
+<ul>
+<li>How to use Rack Middlewares in your Rails applications.</li>
+<li>Action Pack&#39;s internal Middleware stack.</li>
+<li>How to define a custom Middleware stack.</li>
+</ul>
+
+
+                <div id="subCol">
+            <h3 class="chapter"><img src="images/icon_book-close-bookmark-1.svg" alt="" />Chapters</h3>
+            <ol class="chapters">
+<li><a href="#introduction-to-rack">Introduction to Rack</a></li>
+<li><a href="#rails-on-rack">Rails on Rack</a>
+
+<ul>
+<li><a href="#rails-application-s-rack-object">Rails Application's Rack Object</a></li>
+<li><a href="#bin-rails-server"><code>bin/rails server</code></a></li>
+<li><a href="#rackup"><code>rackup</code></a></li>
+<li><a href="#development-and-auto-reloading">Development and Auto-reloading</a></li>
+</ul></li>
+<li><a href="#action-dispatcher-middleware-stack">Action Dispatcher Middleware Stack</a>
+
+<ul>
+<li><a href="#inspecting-middleware-stack">Inspecting Middleware Stack</a></li>
+<li><a href="#configuring-middleware-stack">Configuring Middleware Stack</a></li>
+<li><a href="#internal-middleware-stack">Internal Middleware Stack</a></li>
+</ul></li>
+<li><a href="#resources">Resources</a>
+
+<ul>
+<li><a href="#learning-rack">Learning Rack</a></li>
+<li><a href="#understanding-middlewares">Understanding Middlewares</a></li>
+</ul></li>
+</ol>
+
+          </div>
+
+    </div>
+  </div>
+
+  <div id="container">
+    <div class="wrapper">
+      <div id="mainCol">
+        <div class="warning"><p>This guide assumes a working knowledge of Rack protocol and Rack concepts such as middlewares, URL maps, and <code>Rack::Builder</code>.</p></div><h2 id="introduction-to-rack"><a class="anchorlink" href="#introduction-to-rack">1 Introduction to Rack</a></h2><p>Rack provides a minimal, modular, and adaptable interface for developing web applications in Ruby. By wrapping HTTP requests and responses in the simplest way possible, it unifies and distills the API for web servers, web frameworks, and software in between (the so-called middleware) into a single method call.</p><p>Explaining how Rack works is not really in the scope of this guide. In case you
+are not familiar with Rack's basics, you should check out the <a href="#resources">Resources</a>
+section below.</p><h2 id="rails-on-rack"><a class="anchorlink" href="#rails-on-rack">2 Rails on Rack</a></h2><h3 id="rails-application-s-rack-object"><a class="anchorlink" href="#rails-application-s-rack-object">2.1 Rails Application's Rack Object</a></h3><p><code>Rails.application</code> is the primary Rack application object of a Rails
+application. Any Rack compliant web server should be using
+<code>Rails.application</code> object to serve a Rails application.</p><h3 id="bin-rails-server"><a class="anchorlink" href="#bin-rails-server">2.2 <code>bin/rails server</code></a></h3><p><code>bin/rails server</code> does the basic job of creating a <code>Rack::Server</code> object and starting the web server.</p><p>Here's how <code>bin/rails server</code> creates an instance of <code>Rack::Server</code></p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">Rails</span><span class="o">::</span><span class="no">Server</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">tap</span> <span class="k">do</span> <span class="o">|</span><span class="n">server</span><span class="o">|</span>
+  <span class="nb">require</span> <span class="no">APP_PATH</span>
+  <span class="no">Dir</span><span class="p">.</span><span class="nf">chdir</span><span class="p">(</span><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">root</span><span class="p">)</span>
+  <span class="n">server</span><span class="p">.</span><span class="nf">start</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Rails::Server.new.tap do |server|
+  require APP_PATH
+  Dir.chdir(Rails.application.root)
+  server.start
+end
+">Copy</button>
+</div>
+<p>The <code>Rails::Server</code> inherits from <code>Rack::Server</code> and calls the <code>Rack::Server#start</code> method this way:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">class</span> <span class="nc">Server</span> <span class="o">&lt;</span> <span class="o">::</span><span class="no">Rack</span><span class="o">::</span><span class="no">Server</span>
+  <span class="k">def</span> <span class="nf">start</span>
+    <span class="c1"># ...</span>
+    <span class="k">super</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="class Server < ::Rack::Server
+  def start
+    # ...
+    super
+  end
+end
+">Copy</button>
+</div>
+<h3 id="rackup"><a class="anchorlink" href="#rackup">2.3 <code>rackup</code></a></h3><p>To use <code>rackup</code> instead of Rails' <code>bin/rails server</code>, you can put the following inside <code>config.ru</code> of your Rails application's root directory:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># Rails.root/config.ru</span>
+<span class="nb">require_relative</span> <span class="s2">"config/environment"</span>
+<span class="n">run</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">application</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# Rails.root/config.ru
+require_relative &quot;config/environment&quot;
+run Rails.application
+">Copy</button>
+</div>
+<p>And start the server:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span>rackup config.ru
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="rackup config.ru
+">Copy</button>
+</div>
+<p>To find out more about different <code>rackup</code> options, you can run:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span>rackup <span class="nt">--help</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="rackup --help
+">Copy</button>
+</div>
+<h3 id="development-and-auto-reloading"><a class="anchorlink" href="#development-and-auto-reloading">2.4 Development and Auto-reloading</a></h3><p>Middlewares are loaded once and are not monitored for changes. You will have to restart the server for changes to be reflected in the running application.</p><h2 id="action-dispatcher-middleware-stack"><a class="anchorlink" href="#action-dispatcher-middleware-stack">3 Action Dispatcher Middleware Stack</a></h2><p>Many of Action Dispatcher's internal components are implemented as Rack middlewares. <code>Rails::Application</code> uses <code>ActionDispatch::MiddlewareStack</code> to combine various internal and external middlewares to form a complete Rails Rack application.</p><div class="note"><p><code>ActionDispatch::MiddlewareStack</code> is Rails' equivalent of <code>Rack::Builder</code>,
+but is built for better flexibility and more features to meet Rails' requirements.</p></div><h3 id="inspecting-middleware-stack"><a class="anchorlink" href="#inspecting-middleware-stack">3.1 Inspecting Middleware Stack</a></h3><p>Rails has a handy command for inspecting the middleware stack in use:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>middleware
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails middleware
+">Copy</button>
+</div>
+<p>For a freshly generated Rails application, this might produce something like:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">use</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">HostAuthorization</span>
+<span class="n">use</span> <span class="no">Rack</span><span class="o">::</span><span class="no">Sendfile</span>
+<span class="n">use</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Static</span>
+<span class="n">use</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Executor</span>
+<span class="n">use</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">ServerTiming</span>
+<span class="n">use</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Cache</span><span class="o">::</span><span class="no">Strategy</span><span class="o">::</span><span class="no">LocalCache</span><span class="o">::</span><span class="no">Middleware</span>
+<span class="n">use</span> <span class="no">Rack</span><span class="o">::</span><span class="no">Runtime</span>
+<span class="n">use</span> <span class="no">Rack</span><span class="o">::</span><span class="no">MethodOverride</span>
+<span class="n">use</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">RequestId</span>
+<span class="n">use</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">RemoteIp</span>
+<span class="n">use</span> <span class="no">Sprockets</span><span class="o">::</span><span class="no">Rails</span><span class="o">::</span><span class="no">QuietAssets</span>
+<span class="n">use</span> <span class="no">Rails</span><span class="o">::</span><span class="no">Rack</span><span class="o">::</span><span class="no">Logger</span>
+<span class="n">use</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">ShowExceptions</span>
+<span class="n">use</span> <span class="no">WebConsole</span><span class="o">::</span><span class="no">Middleware</span>
+<span class="n">use</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">DebugExceptions</span>
+<span class="n">use</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">ActionableExceptions</span>
+<span class="n">use</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Reloader</span>
+<span class="n">use</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Callbacks</span>
+<span class="n">use</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="o">::</span><span class="no">CheckPending</span>
+<span class="n">use</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Cookies</span>
+<span class="n">use</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Session</span><span class="o">::</span><span class="no">CookieStore</span>
+<span class="n">use</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Flash</span>
+<span class="n">use</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">ContentSecurityPolicy</span><span class="o">::</span><span class="no">Middleware</span>
+<span class="n">use</span> <span class="no">Rack</span><span class="o">::</span><span class="no">Head</span>
+<span class="n">use</span> <span class="no">Rack</span><span class="o">::</span><span class="no">ConditionalGet</span>
+<span class="n">use</span> <span class="no">Rack</span><span class="o">::</span><span class="no">ETag</span>
+<span class="n">use</span> <span class="no">Rack</span><span class="o">::</span><span class="no">TempfileReaper</span>
+<span class="n">run</span> <span class="no">MyApp</span><span class="o">::</span><span class="no">Application</span><span class="p">.</span><span class="nf">routes</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="use ActionDispatch::HostAuthorization
+use Rack::Sendfile
+use ActionDispatch::Static
+use ActionDispatch::Executor
+use ActionDispatch::ServerTiming
+use ActiveSupport::Cache::Strategy::LocalCache::Middleware
+use Rack::Runtime
+use Rack::MethodOverride
+use ActionDispatch::RequestId
+use ActionDispatch::RemoteIp
+use Sprockets::Rails::QuietAssets
+use Rails::Rack::Logger
+use ActionDispatch::ShowExceptions
+use WebConsole::Middleware
+use ActionDispatch::DebugExceptions
+use ActionDispatch::ActionableExceptions
+use ActionDispatch::Reloader
+use ActionDispatch::Callbacks
+use ActiveRecord::Migration::CheckPending
+use ActionDispatch::Cookies
+use ActionDispatch::Session::CookieStore
+use ActionDispatch::Flash
+use ActionDispatch::ContentSecurityPolicy::Middleware
+use Rack::Head
+use Rack::ConditionalGet
+use Rack::ETag
+use Rack::TempfileReaper
+run MyApp::Application.routes
+">Copy</button>
+</div>
+<p>The default middlewares shown here (and some others) are each summarized in the <a href="#internal-middleware-stack">Internal Middlewares</a> section, below.</p><h3 id="configuring-middleware-stack"><a class="anchorlink" href="#configuring-middleware-stack">3.2 Configuring Middleware Stack</a></h3><p>Rails provides a simple configuration interface <a href="configuring.html#config-middleware"><code>config.middleware</code></a> for adding, removing, and modifying the middlewares in the middleware stack via <code>application.rb</code> or the environment specific configuration file <code>environments/&lt;environment&gt;.rb</code>.</p><h4 id="adding-a-middleware"><a class="anchorlink" href="#adding-a-middleware">3.2.1 Adding a Middleware</a></h4><p>You can add a new middleware to the middleware stack using any of the following methods:</p>
+<ul>
+<li><p><code>config.middleware.use(new_middleware, args)</code> - Adds the new middleware at the bottom of the middleware stack.</p></li>
+<li><p><code>config.middleware.insert_before(existing_middleware, new_middleware, args)</code> - Adds the new middleware before the specified existing middleware in the middleware stack.</p></li>
+<li><p><code>config.middleware.insert_after(existing_middleware, new_middleware, args)</code> - Adds the new middleware after the specified existing middleware in the middleware stack.</p></li>
+</ul>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># config/application.rb</span>
+
+<span class="c1"># Push Rack::BounceFavicon at the bottom</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">use</span> <span class="no">Rack</span><span class="o">::</span><span class="no">BounceFavicon</span>
+
+<span class="c1"># Add Lifo::Cache after ActionDispatch::Executor.</span>
+<span class="c1"># Pass { page_cache: false } argument to Lifo::Cache.</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">insert_after</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Executor</span><span class="p">,</span> <span class="no">Lifo</span><span class="o">::</span><span class="no">Cache</span><span class="p">,</span> <span class="ss">page_cache: </span><span class="kp">false</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# config/application.rb
+
+# Push Rack::BounceFavicon at the bottom
+config.middleware.use Rack::BounceFavicon
+
+# Add Lifo::Cache after ActionDispatch::Executor.
+# Pass { page_cache: false } argument to Lifo::Cache.
+config.middleware.insert_after ActionDispatch::Executor, Lifo::Cache, page_cache: false
+">Copy</button>
+</div>
+<h4 id="swapping-a-middleware"><a class="anchorlink" href="#swapping-a-middleware">3.2.2 Swapping a Middleware</a></h4><p>You can swap an existing middleware in the middleware stack using <code>config.middleware.swap</code>.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># config/application.rb</span>
+
+<span class="c1"># Replace ActionDispatch::ShowExceptions with Lifo::ShowExceptions</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">swap</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">ShowExceptions</span><span class="p">,</span> <span class="no">Lifo</span><span class="o">::</span><span class="no">ShowExceptions</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# config/application.rb
+
+# Replace ActionDispatch::ShowExceptions with Lifo::ShowExceptions
+config.middleware.swap ActionDispatch::ShowExceptions, Lifo::ShowExceptions
+">Copy</button>
+</div>
+<h4 id="moving-a-middleware"><a class="anchorlink" href="#moving-a-middleware">3.2.3 Moving a Middleware</a></h4><p>You can move an existing middleware in the middleware stack using <code>config.middleware.move_before</code> and <code>config.middleware.move_after</code>.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># config/application.rb</span>
+
+<span class="c1"># Move ActionDispatch::ShowExceptions to before Lifo::ShowExceptions</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">move_before</span> <span class="no">Lifo</span><span class="o">::</span><span class="no">ShowExceptions</span><span class="p">,</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">ShowExceptions</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# config/application.rb
+
+# Move ActionDispatch::ShowExceptions to before Lifo::ShowExceptions
+config.middleware.move_before Lifo::ShowExceptions, ActionDispatch::ShowExceptions
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># config/application.rb</span>
+
+<span class="c1"># Move ActionDispatch::ShowExceptions to after Lifo::ShowExceptions</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">move_after</span> <span class="no">Lifo</span><span class="o">::</span><span class="no">ShowExceptions</span><span class="p">,</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">ShowExceptions</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# config/application.rb
+
+# Move ActionDispatch::ShowExceptions to after Lifo::ShowExceptions
+config.middleware.move_after Lifo::ShowExceptions, ActionDispatch::ShowExceptions
+">Copy</button>
+</div>
+<h4 id="deleting-a-middleware"><a class="anchorlink" href="#deleting-a-middleware">3.2.4 Deleting a Middleware</a></h4><p>Add the following lines to your application configuration:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># config/application.rb</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">delete</span> <span class="no">Rack</span><span class="o">::</span><span class="no">Runtime</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# config/application.rb
+config.middleware.delete Rack::Runtime
+">Copy</button>
+</div>
+<p>And now if you inspect the middleware stack, you'll find that <code>Rack::Runtime</code> is
+not a part of it.</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">bin/rails </span>middleware
+<span class="go">(in /Users/lifo/Rails/blog)
+use ActionDispatch::Static
+</span><span class="gp">use #</span>&lt;ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x00000001c304c8&gt;
+<span class="c">...
+</span><span class="go">run Rails.application.routes
+</span></code></pre>
+<button class="clipboard-button" data-clipboard-text="bin/rails middleware
+">Copy</button>
+</div>
+<p>If you want to remove session related middleware, do the following:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># config/application.rb</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">delete</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Cookies</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">delete</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Session</span><span class="o">::</span><span class="no">CookieStore</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">delete</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Flash</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# config/application.rb
+config.middleware.delete ActionDispatch::Cookies
+config.middleware.delete ActionDispatch::Session::CookieStore
+config.middleware.delete ActionDispatch::Flash
+">Copy</button>
+</div>
+<p>And to remove browser related middleware,</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># config/application.rb</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">delete</span> <span class="no">Rack</span><span class="o">::</span><span class="no">MethodOverride</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# config/application.rb
+config.middleware.delete Rack::MethodOverride
+">Copy</button>
+</div>
+<p>If you want an error to be raised when you try to delete a non-existent item, use <code>delete!</code> instead.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># config/application.rb</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">delete!</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Executor</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# config/application.rb
+config.middleware.delete! ActionDispatch::Executor
+">Copy</button>
+</div>
+<h3 id="internal-middleware-stack"><a class="anchorlink" href="#internal-middleware-stack">3.3 Internal Middleware Stack</a></h3><p>Much of Action Controller's functionality is implemented as Middlewares. The following list explains the purpose of each of them:</p><p><strong><code>ActionDispatch::HostAuthorization</code></strong></p>
+<ul>
+<li>Guards from DNS rebinding attacks by explicitly permitting the hosts a request can be sent to. See the <a href="configuring.html#actiondispatch-hostauthorization">configuration guide</a> for configuration instructions.</li>
+</ul>
+<p><strong><code>Rack::Sendfile</code></strong></p>
+<ul>
+<li>Sets server specific X-Sendfile header. Configure this via <a href="configuring.html#config-action-dispatch-x-sendfile-header"><code>config.action_dispatch.x_sendfile_header</code></a> option.</li>
+</ul>
+<p><strong><code>ActionDispatch::Static</code></strong></p>
+<ul>
+<li>Used to serve static files from the public directory. Disabled if <a href="configuring.html#config-public-file-server-enabled"><code>config.public_file_server.enabled</code></a> is <code>false</code>.</li>
+</ul>
+<p><strong><code>Rack::Lock</code></strong></p>
+<ul>
+<li>Sets <code>env["rack.multithread"]</code> flag to <code>false</code> and wraps the application within a Mutex.</li>
+</ul>
+<p><strong><code>ActionDispatch::Executor</code></strong></p>
+<ul>
+<li>Used for thread safe code reloading during development.</li>
+</ul>
+<p><strong><code>ActionDispatch::ServerTiming</code></strong></p>
+<ul>
+<li>Sets a <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server-Timing"><code>Server-Timing</code></a> header containing performance metrics for the request.</li>
+</ul>
+<p><strong><code>ActiveSupport::Cache::Strategy::LocalCache::Middleware</code></strong></p>
+<ul>
+<li>Used for memory caching. This cache is not thread safe.</li>
+</ul>
+<p><strong><code>Rack::Runtime</code></strong></p>
+<ul>
+<li>Sets an X-Runtime header, containing the time (in seconds) taken to execute the request.</li>
+</ul>
+<p><strong><code>Rack::MethodOverride</code></strong></p>
+<ul>
+<li>Allows the method to be overridden if <code>params[:_method]</code> is set. This is the middleware which supports the PUT and DELETE HTTP method types.</li>
+</ul>
+<p><strong><code>ActionDispatch::RequestId</code></strong></p>
+<ul>
+<li>Makes a unique <code>X-Request-Id</code> header available to the response and enables the <code>ActionDispatch::Request#request_id</code> method.</li>
+</ul>
+<p><strong><code>ActionDispatch::RemoteIp</code></strong></p>
+<ul>
+<li>Checks for IP spoofing attacks.</li>
+</ul>
+<p><strong><code>Sprockets::Rails::QuietAssets</code></strong></p>
+<ul>
+<li>Suppresses logger output for asset requests.</li>
+</ul>
+<p><strong><code>Rails::Rack::Logger</code></strong></p>
+<ul>
+<li>Notifies the logs that the request has begun. After the request is complete, flushes all the logs.</li>
+</ul>
+<p><strong><code>ActionDispatch::ShowExceptions</code></strong></p>
+<ul>
+<li>Rescues any exception returned by the application and calls an exceptions app that will wrap it in a format for the end user.</li>
+</ul>
+<p><strong><code>ActionDispatch::DebugExceptions</code></strong></p>
+<ul>
+<li>Responsible for logging exceptions and showing a debugging page in case the request is local.</li>
+</ul>
+<p><strong><code>ActionDispatch::ActionableExceptions</code></strong></p>
+<ul>
+<li>Provides a way to dispatch actions from Rails' error pages.</li>
+</ul>
+<p><strong><code>ActionDispatch::Reloader</code></strong></p>
+<ul>
+<li>Provides prepare and cleanup callbacks, intended to assist with code reloading during development.</li>
+</ul>
+<p><strong><code>ActionDispatch::Callbacks</code></strong></p>
+<ul>
+<li>Provides callbacks to be executed before and after dispatching the request.</li>
+</ul>
+<p><strong><code>ActiveRecord::Migration::CheckPending</code></strong></p>
+<ul>
+<li>Checks pending migrations and raises <code>ActiveRecord::PendingMigrationError</code> if any migrations are pending.</li>
+</ul>
+<p><strong><code>ActionDispatch::Cookies</code></strong></p>
+<ul>
+<li>Sets cookies for the request.</li>
+</ul>
+<p><strong><code>ActionDispatch::Session::CookieStore</code></strong></p>
+<ul>
+<li>Responsible for storing the session in cookies.</li>
+</ul>
+<p><strong><code>ActionDispatch::Flash</code></strong></p>
+<ul>
+<li>Sets up the flash keys. Only available if <a href="configuring.html#config-session-store"><code>config.session_store</code></a> is set to a value.</li>
+</ul>
+<p><strong><code>ActionDispatch::ContentSecurityPolicy::Middleware</code></strong></p>
+<ul>
+<li>Provides a DSL to configure a Content-Security-Policy header.</li>
+</ul>
+<p><strong><code>Rack::Head</code></strong></p>
+<ul>
+<li>Returns an empty body for all HEAD requests. It leaves all other requests unchanged.</li>
+</ul>
+<p><strong><code>Rack::ConditionalGet</code></strong></p>
+<ul>
+<li>Adds support for "Conditional <code>GET</code>" so that server responds with nothing if the page wasn't changed.</li>
+</ul>
+<p><strong><code>Rack::ETag</code></strong></p>
+<ul>
+<li>Adds ETag header on all String bodies. ETags are used to validate cache.</li>
+</ul>
+<p><strong><code>Rack::TempfileReaper</code></strong></p>
+<ul>
+<li>Cleans up tempfiles used to buffer multipart requests.</li>
+</ul>
+<div class="info"><p>It's possible to use any of the above middlewares in your custom Rack stack.</p></div><h2 id="resources"><a class="anchorlink" href="#resources">4 Resources</a></h2><h3 id="learning-rack"><a class="anchorlink" href="#learning-rack">4.1 Learning Rack</a></h3>
+<ul>
+<li><a href="https://rack.github.io">Official Rack Website</a></li>
+<li><a href="http://chneukirchen.org/blog/archive/2007/02/introducing-rack.html">Introducing Rack</a></li>
+</ul>
+<h3 id="understanding-middlewares"><a class="anchorlink" href="#understanding-middlewares">4.2 Understanding Middlewares</a></h3>
+<ul>
+<li><a href="http://railscasts.com/episodes/151-rack-middleware">Railscast on Rack Middlewares</a></li>
+</ul>
+
+
+        <h3>Feedback</h3>
+        <p>
+          You're encouraged to help improve the quality of this guide.
+        </p>
+        <p>
+          Please contribute if you see any typos or factual errors.
+          To get started, you can read our <a href="https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation">documentation contributions</a> section.
+        </p>
+        <p>
+          You may also find incomplete content or stuff that is not up to date.
+          Please do add any missing documentation for main. Make sure to check
+          <a href="https://edgeguides.rubyonrails.org">Edge Guides</a> first to verify
+          if the issues are already fixed or not on the main branch.
+          Check the <a href="ruby_on_rails_guides_guidelines.html">Ruby on Rails Guides Guidelines</a>
+          for style and conventions.
+        </p>
+        <p>
+          If for whatever reason you spot something to fix but cannot patch it yourself, please
+          <a href="https://github.com/rails/rails/issues">open an issue</a>.
+        </p>
+        <p>And last but not least, any kind of discussion regarding Ruby on Rails
+          documentation is very welcome on the <a href="https://discuss.rubyonrails.org/c/rubyonrails-docs">official Ruby on Rails Forum</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="hide" />
+  <div id="footer">
+    <div class="wrapper">
+      <p>This work is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International</a> License</p>
+<p>"Rails", "Ruby on Rails", and the Rails logo are trademarks of David Heinemeier Hansson. All rights reserved.</p>
+
+    </div>
+  </div>
+</body>
+</html>

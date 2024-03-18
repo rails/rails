@@ -1,0 +1,1442 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Debugging Rails Applications — Ruby on Rails Guides</title>
+  <link rel="stylesheet" type="text/css" href="stylesheets/style.css" data-turbo-track="reload">
+  <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+  <link rel="stylesheet" type="text/css" href="stylesheets/highlight.css" data-turbo-track="reload">
+  
+  <link rel="icon" href="images/favicon.ico" sizes="any">
+  <link rel="icon" href="images/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="images/icon.png">
+  
+  <script src="javascripts/@hotwired--turbo.js" data-turbo-track="reload"></script>
+  <script src="javascripts/clipboard.js" data-turbo-track="reload"></script>
+  <script src="javascripts/guides.js" data-turbo-track="reload"></script>
+
+  <meta property="og:title" content="Debugging Rails Applications — Ruby on Rails Guides" />
+  <meta name="description" content="Debugging Rails ApplicationsThis guide introduces techniques for debugging Ruby on Rails applications.After reading this guide, you will know: The purpose of debugging. How to track down problems and issues in your application that your tests aren&#39;t identifying. The different ways of debugging. How to analyze the stack trace." />
+  <meta property="og:description" content="Debugging Rails ApplicationsThis guide introduces techniques for debugging Ruby on Rails applications.After reading this guide, you will know: The purpose of debugging. How to track down problems and issues in your application that your tests aren&#39;t identifying. The different ways of debugging. How to analyze the stack trace." />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:site_name" content="Ruby on Rails Guides" />
+  <meta property="og:image" content="https://avatars.githubusercontent.com/u/4223" />
+  <meta property="og:type" content="website" />
+
+  <meta name="theme-color" content="#C81418">
+</head>
+
+<body dir="ltr" class="guide">
+  <div>
+    <div id="version-badge">edge</div>
+  </div>
+  <div id="topNav">
+    <div class="wrapper">
+      <strong class="more-info-label">More at <a href="https://rubyonrails.org/">rubyonrails.org:</a> </strong>
+      <span class="red-button more-info-button">
+        More Ruby on Rails
+      </span>
+      <ul class="more-info-links s-hidden">
+        <li class="more-info"><a href="https://rubyonrails.org/blog">Blog</a></li>
+        <li class="more-info"><a href="https://guides.rubyonrails.org/">Guides</a></li>
+        <li class="more-info"><a href="https://api.rubyonrails.org/">API</a></li>
+        <li class="more-info"><a href="https://discuss.rubyonrails.org/">Forum</a></li>
+        <li class="more-info"><a href="https://github.com/rails/rails">Contribute on GitHub</a></li>
+      </ul>
+    </div>
+  </div>
+  <div id="header">
+    <div class="wrapper clearfix">
+      <div class="header-logo"><a href="index.html" title="Return to home page">Guides.rubyonrails.org</a></div>
+      <ul class="nav">
+        <li><a class="nav-item" href="index.html">Home</a></li>
+        <li class="guides-index guides-index-large">
+          <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
+          <div id="guides" class="clearfix" style="display: none;">
+            <hr />
+            <dl class="guides-section-container">
+                <div class="guides-section">
+                  <dt>Start Here</dt>
+                  <dd><a href="getting_started.html">Getting Started with Rails</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Models</dt>
+                  <dd><a href="active_record_basics.html">Active Record Basics</a></dd>
+                  <dd><a href="active_record_migrations.html">Active Record Migrations</a></dd>
+                  <dd><a href="active_record_validations.html">Active Record Validations</a></dd>
+                  <dd><a href="active_record_callbacks.html">Active Record Callbacks</a></dd>
+                  <dd><a href="association_basics.html">Active Record Associations</a></dd>
+                  <dd><a href="active_record_querying.html">Active Record Query Interface</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Views</dt>
+                  <dd><a href="layouts_and_rendering.html">Layouts and Rendering in Rails</a></dd>
+                  <dd><a href="form_helpers.html">Action View Form Helpers</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Controllers</dt>
+                  <dd><a href="action_controller_overview.html">Action Controller Overview</a></dd>
+                  <dd><a href="routing.html">Rails Routing from the Outside In</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Other Components</dt>
+                  <dd><a href="active_support_core_extensions.html">Active Support Core Extensions</a></dd>
+                  <dd><a href="action_mailer_basics.html">Action Mailer Basics</a></dd>
+                  <dd><a href="active_job_basics.html">Active Job Basics</a></dd>
+                  <dd><a href="active_storage_overview.html">Active Storage Overview</a></dd>
+                  <dd><a href="action_cable_overview.html">Action Cable Overview</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Digging Deeper</dt>
+                  <dd><a href="i18n.html">Rails Internationalization (I18n) API</a></dd>
+                  <dd><a href="testing.html">Testing Rails Applications</a></dd>
+                  <dd><a href="security.html">Securing Rails Applications</a></dd>
+                  <dd><a href="error_reporting.html">Error Reporting in Rails Applications</a></dd>
+                  <dd><a href="debugging_rails_applications.html">Debugging Rails Applications</a></dd>
+                  <dd><a href="configuring.html">Configuring Rails Applications</a></dd>
+                  <dd><a href="command_line.html">The Rails Command Line</a></dd>
+                  <dd><a href="asset_pipeline.html">The Asset Pipeline</a></dd>
+                  <dd><a href="working_with_javascript_in_rails.html">Working with JavaScript in Rails</a></dd>
+                  <dd><a href="autoloading_and_reloading_constants.html">Autoloading and Reloading</a></dd>
+                  <dd><a href="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</a></dd>
+                  <dd><a href="caching_with_rails.html">Caching with Rails: An Overview</a></dd>
+                  <dd><a href="api_app.html">Using Rails for API-only Applications</a></dd>
+                  <dd><a href="active_record_multiple_databases.html">Multiple Databases</a></dd>
+                  <dd><a href="active_record_composite_primary_keys.html">Composite Primary Keys</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Extending Rails</dt>
+                  <dd><a href="rails_on_rack.html">Rails on Rack</a></dd>
+                  <dd><a href="generators.html">Creating and Customizing Rails Generators &amp; Templates</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Contributing</dt>
+                  <dd><a href="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</a></dd>
+                  <dd><a href="api_documentation_guidelines.html">API Documentation Guidelines</a></dd>
+                  <dd><a href="ruby_on_rails_guides_guidelines.html">Guides Guidelines</a></dd>
+                  <dd><a href="development_dependencies_install.html">Installing Rails Core Development Dependencies</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Policies</dt>
+                  <dd><a href="maintenance_policy.html">Maintenance Policy</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Release Notes</dt>
+                  <dd><a href="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</a></dd>
+                  <dd><a href="7_1_release_notes.html">Version 7.1 - October 2023</a></dd>
+                  <dd><a href="7_0_release_notes.html">Version 7.0 - December 2021</a></dd>
+                  <dd><a href="6_1_release_notes.html">Version 6.1 - December 2020</a></dd>
+                  <dd><a href="6_0_release_notes.html">Version 6.0 - August 2019</a></dd>
+                  <dd><a href="5_2_release_notes.html">Version 5.2 - April 2018</a></dd>
+                  <dd><a href="5_1_release_notes.html">Version 5.1 - April 2017</a></dd>
+                  <dd><a href="5_0_release_notes.html">Version 5.0 - June 2016</a></dd>
+                  <dd><a href="4_2_release_notes.html">Version 4.2 - December 2014</a></dd>
+                  <dd><a href="4_1_release_notes.html">Version 4.1 - April 2014</a></dd>
+                  <dd><a href="4_0_release_notes.html">Version 4.0 - June 2013</a></dd>
+                  <dd><a href="3_2_release_notes.html">Version 3.2 - January 2012</a></dd>
+                  <dd><a href="3_1_release_notes.html">Version 3.1 - August 2011</a></dd>
+                  <dd><a href="3_0_release_notes.html">Version 3.0 - August 2010</a></dd>
+                  <dd><a href="2_3_release_notes.html">Version 2.3 - March 2009</a></dd>
+                  <dd><a href="2_2_release_notes.html">Version 2.2 - November 2008</a></dd>
+                </div>
+            </dl>
+          </div>
+        </li>
+        <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
+        <li class="guides-index guides-index-small">
+          <select class="guides-index-item nav-item">
+            <option value="index.html">Guides Index</option>
+              <optgroup label="Start Here">
+                  <option value="getting_started.html">Getting Started with Rails</option>
+              </optgroup>
+              <optgroup label="Models">
+                  <option value="active_record_basics.html">Active Record Basics</option>
+                  <option value="active_record_migrations.html">Active Record Migrations</option>
+                  <option value="active_record_validations.html">Active Record Validations</option>
+                  <option value="active_record_callbacks.html">Active Record Callbacks</option>
+                  <option value="association_basics.html">Active Record Associations</option>
+                  <option value="active_record_querying.html">Active Record Query Interface</option>
+              </optgroup>
+              <optgroup label="Views">
+                  <option value="layouts_and_rendering.html">Layouts and Rendering in Rails</option>
+                  <option value="form_helpers.html">Action View Form Helpers</option>
+              </optgroup>
+              <optgroup label="Controllers">
+                  <option value="action_controller_overview.html">Action Controller Overview</option>
+                  <option value="routing.html">Rails Routing from the Outside In</option>
+              </optgroup>
+              <optgroup label="Other Components">
+                  <option value="active_support_core_extensions.html">Active Support Core Extensions</option>
+                  <option value="action_mailer_basics.html">Action Mailer Basics</option>
+                  <option value="active_job_basics.html">Active Job Basics</option>
+                  <option value="active_storage_overview.html">Active Storage Overview</option>
+                  <option value="action_cable_overview.html">Action Cable Overview</option>
+              </optgroup>
+              <optgroup label="Digging Deeper">
+                  <option value="i18n.html">Rails Internationalization (I18n) API</option>
+                  <option value="testing.html">Testing Rails Applications</option>
+                  <option value="security.html">Securing Rails Applications</option>
+                  <option value="error_reporting.html">Error Reporting in Rails Applications</option>
+                  <option value="debugging_rails_applications.html">Debugging Rails Applications</option>
+                  <option value="configuring.html">Configuring Rails Applications</option>
+                  <option value="command_line.html">The Rails Command Line</option>
+                  <option value="asset_pipeline.html">The Asset Pipeline</option>
+                  <option value="working_with_javascript_in_rails.html">Working with JavaScript in Rails</option>
+                  <option value="autoloading_and_reloading_constants.html">Autoloading and Reloading</option>
+                  <option value="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</option>
+                  <option value="caching_with_rails.html">Caching with Rails: An Overview</option>
+                  <option value="api_app.html">Using Rails for API-only Applications</option>
+                  <option value="active_record_multiple_databases.html">Multiple Databases</option>
+                  <option value="active_record_composite_primary_keys.html">Composite Primary Keys</option>
+              </optgroup>
+              <optgroup label="Extending Rails">
+                  <option value="rails_on_rack.html">Rails on Rack</option>
+                  <option value="generators.html">Creating and Customizing Rails Generators &amp; Templates</option>
+              </optgroup>
+              <optgroup label="Contributing">
+                  <option value="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</option>
+                  <option value="api_documentation_guidelines.html">API Documentation Guidelines</option>
+                  <option value="ruby_on_rails_guides_guidelines.html">Guides Guidelines</option>
+                  <option value="development_dependencies_install.html">Installing Rails Core Development Dependencies</option>
+              </optgroup>
+              <optgroup label="Policies">
+                  <option value="maintenance_policy.html">Maintenance Policy</option>
+              </optgroup>
+              <optgroup label="Release Notes">
+                  <option value="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</option>
+                  <option value="7_1_release_notes.html">Version 7.1 - October 2023</option>
+                  <option value="7_0_release_notes.html">Version 7.0 - December 2021</option>
+                  <option value="6_1_release_notes.html">Version 6.1 - December 2020</option>
+                  <option value="6_0_release_notes.html">Version 6.0 - August 2019</option>
+                  <option value="5_2_release_notes.html">Version 5.2 - April 2018</option>
+                  <option value="5_1_release_notes.html">Version 5.1 - April 2017</option>
+                  <option value="5_0_release_notes.html">Version 5.0 - June 2016</option>
+                  <option value="4_2_release_notes.html">Version 4.2 - December 2014</option>
+                  <option value="4_1_release_notes.html">Version 4.1 - April 2014</option>
+                  <option value="4_0_release_notes.html">Version 4.0 - June 2013</option>
+                  <option value="3_2_release_notes.html">Version 3.2 - January 2012</option>
+                  <option value="3_1_release_notes.html">Version 3.1 - August 2011</option>
+                  <option value="3_0_release_notes.html">Version 3.0 - August 2010</option>
+                  <option value="2_3_release_notes.html">Version 2.3 - March 2009</option>
+                  <option value="2_2_release_notes.html">Version 2.2 - November 2008</option>
+              </optgroup>
+          </select>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <hr class="hide" />
+
+  <div id="feature">
+    <div class="wrapper">
+      <h1>Debugging Rails Applications</h1><p>This guide introduces techniques for debugging Ruby on Rails applications.</p><p>After reading this guide, you will know:</p>
+<ul>
+<li>The purpose of debugging.</li>
+<li>How to track down problems and issues in your application that your tests aren&#39;t identifying.</li>
+<li>The different ways of debugging.</li>
+<li>How to analyze the stack trace.</li>
+</ul>
+
+
+                <div id="subCol">
+            <h3 class="chapter"><img src="images/icon_book-close-bookmark-1.svg" alt="" />Chapters</h3>
+            <ol class="chapters">
+<li><a href="#view-helpers-for-debugging">View Helpers for Debugging</a>
+
+<ul>
+<li><a href="#debug"><code>debug</code></a></li>
+<li><a href="#to-yaml"><code>to_yaml</code></a></li>
+<li><a href="#inspect"><code>inspect</code></a></li>
+</ul></li>
+<li><a href="#the-logger">The Logger</a>
+
+<ul>
+<li><a href="#what-is-the-logger-questionmark">What is the Logger?</a></li>
+<li><a href="#log-levels">Log Levels</a></li>
+<li><a href="#sending-messages">Sending Messages</a></li>
+<li><a href="#verbose-query-logs">Verbose Query Logs</a></li>
+<li><a href="#verbose-enqueue-logs">Verbose Enqueue Logs</a></li>
+</ul></li>
+<li><a href="#sql-query-comments">SQL Query Comments</a>
+
+<ul>
+<li><a href="#tagged-logging">Tagged Logging</a></li>
+<li><a href="#impact-of-logs-on-performance">Impact of Logs on Performance</a></li>
+</ul></li>
+<li><a href="#debugging-with-the-debug-gem">Debugging with the <code>debug</code> Gem</a>
+
+<ul>
+<li><a href="#entering-a-debugging-session">Entering a Debugging Session</a></li>
+<li><a href="#the-context">The Context</a></li>
+<li><a href="#breakpoints">Breakpoints</a></li>
+</ul></li>
+<li><a href="#debugging-with-the-web-console-gem">Debugging with the <code>web-console</code> Gem</a>
+
+<ul>
+<li><a href="#console">Console</a></li>
+<li><a href="#inspecting-variables">Inspecting Variables</a></li>
+<li><a href="#settings">Settings</a></li>
+</ul></li>
+<li><a href="#debugging-memory-leaks">Debugging Memory Leaks</a>
+
+<ul>
+<li><a href="#valgrind">Valgrind</a></li>
+<li><a href="#find-a-memory-leak">Find a Memory Leak</a></li>
+</ul></li>
+<li><a href="#plugins-for-debugging">Plugins for Debugging</a></li>
+<li><a href="#references">References</a></li>
+</ol>
+
+          </div>
+
+    </div>
+  </div>
+
+  <div id="container">
+    <div class="wrapper">
+      <div id="mainCol">
+        <h2 id="view-helpers-for-debugging"><a class="anchorlink" href="#view-helpers-for-debugging">1 View Helpers for Debugging</a></h2><p>One common task is to inspect the contents of a variable. Rails provides three different ways to do this:</p>
+<ul>
+<li><code>debug</code></li>
+<li><code>to_yaml</code></li>
+<li><code>inspect</code></li>
+</ul>
+<h3 id="debug"><a class="anchorlink" href="#debug">1.1 <code>debug</code></a></h3><p>The <code>debug</code> helper will return a &lt;pre&gt; tag that renders the object using the YAML format. This will generate human-readable data from any object. For example, if you have this code in a view:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">debug</span> <span class="vi">@article</span> <span class="cp">%&gt;</span>
+<span class="nt">&lt;p&gt;</span>
+  <span class="nt">&lt;b&gt;</span>Title:<span class="nt">&lt;/b&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="vi">@article</span><span class="p">.</span><span class="nf">title</span> <span class="cp">%&gt;</span>
+<span class="nt">&lt;/p&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= debug @article %>
+<p>
+  <b>Title:</b>
+  <%= @article.title %>
+</p>
+">Copy</button>
+</div>
+<p>You'll see something like this:</p><div class="code_container">
+<pre><code class="highlight yaml"><span class="nn">---</span> <span class="kt">!ruby/object</span> <span class="s">Article</span>
+<span class="na">attributes</span><span class="pi">:</span>
+  <span class="na">updated_at</span><span class="pi">:</span> <span class="s">2008-09-05 22:55:47</span>
+  <span class="na">body</span><span class="pi">:</span> <span class="s">It's a very helpful guide for debugging your Rails app.</span>
+  <span class="na">title</span><span class="pi">:</span> <span class="s">Rails debugging guide</span>
+  <span class="na">published</span><span class="pi">:</span> <span class="s">t</span>
+  <span class="na">id</span><span class="pi">:</span> <span class="s2">"</span><span class="s">1"</span>
+  <span class="na">created_at</span><span class="pi">:</span> <span class="s">2008-09-05 22:55:47</span>
+<span class="na">attributes_cache</span><span class="pi">:</span> <span class="pi">{}</span>
+
+
+<span class="na">Title</span><span class="pi">:</span> <span class="s">Rails debugging guide</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="--- !ruby/object Article
+attributes:
+  updated_at: 2008-09-05 22:55:47
+  body: It's a very helpful guide for debugging your Rails app.
+  title: Rails debugging guide
+  published: t
+  id: &quot;1&quot;
+  created_at: 2008-09-05 22:55:47
+attributes_cache: {}
+
+
+Title: Rails debugging guide
+">Copy</button>
+</div>
+<h3 id="to-yaml"><a class="anchorlink" href="#to-yaml">1.2 <code>to_yaml</code></a></h3><p>Alternatively, calling <code>to_yaml</code> on any object converts it to YAML. You can pass this converted object into the <code>simple_format</code> helper method to format the output. This is how <code>debug</code> does its magic.</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">simple_format</span> <span class="vi">@article</span><span class="p">.</span><span class="nf">to_yaml</span> <span class="cp">%&gt;</span>
+<span class="nt">&lt;p&gt;</span>
+  <span class="nt">&lt;b&gt;</span>Title:<span class="nt">&lt;/b&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="vi">@article</span><span class="p">.</span><span class="nf">title</span> <span class="cp">%&gt;</span>
+<span class="nt">&lt;/p&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= simple_format @article.to_yaml %>
+<p>
+  <b>Title:</b>
+  <%= @article.title %>
+</p>
+">Copy</button>
+</div>
+<p>The above code will render something like this:</p><div class="code_container">
+<pre><code class="highlight yaml"><span class="nn">---</span> <span class="kt">!ruby/object</span> <span class="s">Article</span>
+<span class="na">attributes</span><span class="pi">:</span>
+<span class="na">updated_at</span><span class="pi">:</span> <span class="s">2008-09-05 22:55:47</span>
+<span class="na">body</span><span class="pi">:</span> <span class="s">It's a very helpful guide for debugging your Rails app.</span>
+<span class="na">title</span><span class="pi">:</span> <span class="s">Rails debugging guide</span>
+<span class="na">published</span><span class="pi">:</span> <span class="s">t</span>
+<span class="na">id</span><span class="pi">:</span> <span class="s2">"</span><span class="s">1"</span>
+<span class="na">created_at</span><span class="pi">:</span> <span class="s">2008-09-05 22:55:47</span>
+<span class="na">attributes_cache</span><span class="pi">:</span> <span class="pi">{}</span>
+
+<span class="na">Title</span><span class="pi">:</span> <span class="s">Rails debugging guide</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="--- !ruby/object Article
+attributes:
+updated_at: 2008-09-05 22:55:47
+body: It's a very helpful guide for debugging your Rails app.
+title: Rails debugging guide
+published: t
+id: &quot;1&quot;
+created_at: 2008-09-05 22:55:47
+attributes_cache: {}
+
+Title: Rails debugging guide
+">Copy</button>
+</div>
+<h3 id="inspect"><a class="anchorlink" href="#inspect">1.3 <code>inspect</code></a></h3><p>Another useful method for displaying object values is <code>inspect</code>, especially when working with arrays or hashes. This will print the object value as a string. For example:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">].</span><span class="nf">inspect</span> <span class="cp">%&gt;</span>
+<span class="nt">&lt;p&gt;</span>
+  <span class="nt">&lt;b&gt;</span>Title:<span class="nt">&lt;/b&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="vi">@article</span><span class="p">.</span><span class="nf">title</span> <span class="cp">%&gt;</span>
+<span class="nt">&lt;/p&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= [1, 2, 3, 4, 5].inspect %>
+<p>
+  <b>Title:</b>
+  <%= @article.title %>
+</p>
+">Copy</button>
+</div>
+<p>Will render:</p><div class="code_container">
+<pre><code class="highlight plaintext">[1, 2, 3, 4, 5]
+
+Title: Rails debugging guide
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="[1, 2, 3, 4, 5]
+
+Title: Rails debugging guide
+">Copy</button>
+</div>
+<h2 id="the-logger"><a class="anchorlink" href="#the-logger">2 The Logger</a></h2><p>It can also be useful to save information to log files at runtime. Rails maintains a separate log file for each runtime environment.</p><h3 id="what-is-the-logger-questionmark"><a class="anchorlink" href="#what-is-the-logger-questionmark">2.1 What is the Logger?</a></h3><p>Rails makes use of the <code>ActiveSupport::Logger</code> class to write log information. Other loggers, such as <code>Log4r</code>, may also be substituted.</p><p>You can specify an alternative logger in <code>config/application.rb</code> or any other environment file, for example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">config</span><span class="p">.</span><span class="nf">logger</span> <span class="o">=</span> <span class="no">Logger</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="no">STDOUT</span><span class="p">)</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">logger</span> <span class="o">=</span> <span class="no">Log4r</span><span class="o">::</span><span class="no">Logger</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="s2">"Application Log"</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="config.logger = Logger.new(STDOUT)
+config.logger = Log4r::Logger.new(&quot;Application Log&quot;)
+">Copy</button>
+</div>
+<p>Or in the <code>Initializer</code> section, add <em>any</em> of the following</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span> <span class="o">=</span> <span class="no">Logger</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="no">STDOUT</span><span class="p">)</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span> <span class="o">=</span> <span class="no">Log4r</span><span class="o">::</span><span class="no">Logger</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="s2">"Application Log"</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Rails.logger = Logger.new(STDOUT)
+Rails.logger = Log4r::Logger.new(&quot;Application Log&quot;)
+">Copy</button>
+</div>
+<div class="info"><p>By default, each log is created under <code>Rails.root/log/</code> and the log file is named after the environment in which the application is running.</p></div><h3 id="log-levels"><a class="anchorlink" href="#log-levels">2.2 Log Levels</a></h3><p>When something is logged, it's printed into the corresponding log if the log
+level of the message is equal to or higher than the configured log level. If you
+want to know the current log level, you can call the <code>Rails.logger.level</code>
+method.</p><p>The available log levels are: <code>:debug</code>, <code>:info</code>, <code>:warn</code>, <code>:error</code>, <code>:fatal</code>,
+and <code>:unknown</code>, corresponding to the log level numbers from 0 up to 5,
+respectively. To change the default log level, use</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">config</span><span class="p">.</span><span class="nf">log_level</span> <span class="o">=</span> <span class="ss">:warn</span> <span class="c1"># In any environment initializer, or</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">level</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># at any time</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="config.log_level = :warn # In any environment initializer, or
+Rails.logger.level = 0 # at any time
+">Copy</button>
+</div>
+<p>This is useful when you want to log under development or staging without flooding your production log with unnecessary information.</p><div class="info"><p>The default Rails log level is <code>:debug</code>. However, it is set to <code>:info</code> for the <code>production</code> environment in the default generated <code>config/environments/production.rb</code>.</p></div><h3 id="sending-messages"><a class="anchorlink" href="#sending-messages">2.3 Sending Messages</a></h3><p>To write in the current log use the <code>logger.(debug|info|warn|error|fatal|unknown)</code> method from within a controller, model, or mailer:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">logger</span><span class="p">.</span><span class="nf">debug</span> <span class="s2">"Person attributes hash: </span><span class="si">#{</span><span class="vi">@person</span><span class="p">.</span><span class="nf">attributes</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2">"</span>
+<span class="n">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Processing the request..."</span>
+<span class="n">logger</span><span class="p">.</span><span class="nf">fatal</span> <span class="s2">"Terminating application, raised unrecoverable error!!!"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="logger.debug &quot;Person attributes hash: #{@person.attributes.inspect}&quot;
+logger.info &quot;Processing the request...&quot;
+logger.fatal &quot;Terminating application, raised unrecoverable error!!!&quot;
+">Copy</button>
+</div>
+<p>Here's an example of a method instrumented with extra logging:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">class</span> <span class="nc">ArticlesController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="c1"># ...</span>
+
+  <span class="k">def</span> <span class="nf">create</span>
+    <span class="vi">@article</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">article_params</span><span class="p">)</span>
+    <span class="n">logger</span><span class="p">.</span><span class="nf">debug</span> <span class="s2">"New article: </span><span class="si">#{</span><span class="vi">@article</span><span class="p">.</span><span class="nf">attributes</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2">"</span>
+    <span class="n">logger</span><span class="p">.</span><span class="nf">debug</span> <span class="s2">"Article should be valid: </span><span class="si">#{</span><span class="vi">@article</span><span class="p">.</span><span class="nf">valid?</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="k">if</span> <span class="vi">@article</span><span class="p">.</span><span class="nf">save</span>
+      <span class="n">logger</span><span class="p">.</span><span class="nf">debug</span> <span class="s2">"The article was saved and now the user is going to be redirected..."</span>
+      <span class="n">redirect_to</span> <span class="vi">@article</span><span class="p">,</span> <span class="ss">notice: </span><span class="s1">'Article was successfully created.'</span>
+    <span class="k">else</span>
+      <span class="n">render</span> <span class="ss">:new</span><span class="p">,</span> <span class="ss">status: :unprocessable_entity</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="c1"># ...</span>
+
+  <span class="kp">private</span>
+    <span class="k">def</span> <span class="nf">article_params</span>
+      <span class="n">params</span><span class="p">.</span><span class="nf">require</span><span class="p">(</span><span class="ss">:article</span><span class="p">).</span><span class="nf">permit</span><span class="p">(</span><span class="ss">:title</span><span class="p">,</span> <span class="ss">:body</span><span class="p">,</span> <span class="ss">:published</span><span class="p">)</span>
+    <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="class ArticlesController < ApplicationController
+  # ...
+
+  def create
+    @article = Article.new(article_params)
+    logger.debug &quot;New article: #{@article.attributes.inspect}&quot;
+    logger.debug &quot;Article should be valid: #{@article.valid?}&quot;
+
+    if @article.save
+      logger.debug &quot;The article was saved and now the user is going to be redirected...&quot;
+      redirect_to @article, notice: 'Article was successfully created.'
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  # ...
+
+  private
+    def article_params
+      params.require(:article).permit(:title, :body, :published)
+    end
+end
+">Copy</button>
+</div>
+<p>Here's an example of the log generated when this controller action is executed:</p><div class="code_container">
+<pre><code class="highlight plaintext">Started POST "/articles" for 127.0.0.1 at 2018-10-18 20:09:23 -0400
+Processing by ArticlesController#create as HTML
+  Parameters: {"utf8"=&gt;"✓", "authenticity_token"=&gt;"XLveDrKzF1SwaiNRPTaMtkrsTzedtebPPkmxEFIU0ordLjICSnXsSNfrdMa4ccyBjuGwnnEiQhEoMN6H1Gtz3A==", "article"=&gt;{"title"=&gt;"Debugging Rails", "body"=&gt;"I'm learning how to print in logs.", "published"=&gt;"0"}, "commit"=&gt;"Create Article"}
+New article: {"id"=&gt;nil, "title"=&gt;"Debugging Rails", "body"=&gt;"I'm learning how to print in logs.", "published"=&gt;false, "created_at"=&gt;nil, "updated_at"=&gt;nil}
+Article should be valid: true
+   (0.0ms)  begin transaction
+  ↳ app/controllers/articles_controller.rb:31
+  Article Create (0.5ms)  INSERT INTO "articles" ("title", "body", "published", "created_at", "updated_at") VALUES (?, ?, ?, ?, ?)  [["title", "Debugging Rails"], ["body", "I'm learning how to print in logs."], ["published", 0], ["created_at", "2018-10-19 00:09:23.216549"], ["updated_at", "2018-10-19 00:09:23.216549"]]
+  ↳ app/controllers/articles_controller.rb:31
+   (2.3ms)  commit transaction
+  ↳ app/controllers/articles_controller.rb:31
+The article was saved and now the user is going to be redirected...
+Redirected to http://localhost:3000/articles/1
+Completed 302 Found in 4ms (ActiveRecord: 0.8ms)
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Started POST &quot;/articles&quot; for 127.0.0.1 at 2018-10-18 20:09:23 -0400
+Processing by ArticlesController#create as HTML
+  Parameters: {&quot;utf8&quot;=>&quot;✓&quot;, &quot;authenticity_token&quot;=>&quot;XLveDrKzF1SwaiNRPTaMtkrsTzedtebPPkmxEFIU0ordLjICSnXsSNfrdMa4ccyBjuGwnnEiQhEoMN6H1Gtz3A==&quot;, &quot;article&quot;=>{&quot;title&quot;=>&quot;Debugging Rails&quot;, &quot;body&quot;=>&quot;I'm learning how to print in logs.&quot;, &quot;published&quot;=>&quot;0&quot;}, &quot;commit&quot;=>&quot;Create Article&quot;}
+New article: {&quot;id&quot;=>nil, &quot;title&quot;=>&quot;Debugging Rails&quot;, &quot;body&quot;=>&quot;I'm learning how to print in logs.&quot;, &quot;published&quot;=>false, &quot;created_at&quot;=>nil, &quot;updated_at&quot;=>nil}
+Article should be valid: true
+   (0.0ms)  begin transaction
+  ↳ app/controllers/articles_controller.rb:31
+  Article Create (0.5ms)  INSERT INTO &quot;articles&quot; (&quot;title&quot;, &quot;body&quot;, &quot;published&quot;, &quot;created_at&quot;, &quot;updated_at&quot;) VALUES (?, ?, ?, ?, ?)  [[&quot;title&quot;, &quot;Debugging Rails&quot;], [&quot;body&quot;, &quot;I'm learning how to print in logs.&quot;], [&quot;published&quot;, 0], [&quot;created_at&quot;, &quot;2018-10-19 00:09:23.216549&quot;], [&quot;updated_at&quot;, &quot;2018-10-19 00:09:23.216549&quot;]]
+  ↳ app/controllers/articles_controller.rb:31
+   (2.3ms)  commit transaction
+  ↳ app/controllers/articles_controller.rb:31
+The article was saved and now the user is going to be redirected...
+Redirected to http://localhost:3000/articles/1
+Completed 302 Found in 4ms (ActiveRecord: 0.8ms)
+">Copy</button>
+</div>
+<p>Adding extra logging like this makes it easy to search for unexpected or unusual behavior in your logs. If you add extra logging, be sure to make sensible use of log levels to avoid filling your production logs with useless trivia.</p><h3 id="verbose-query-logs"><a class="anchorlink" href="#verbose-query-logs">2.4 Verbose Query Logs</a></h3><p>When looking at database query output in logs, it may not be immediately clear why multiple database queries are triggered when a single method is called:</p><div class="code_container">
+<pre><code class="highlight irb"><span class="gp">irb(main):001:0&gt;</span><span class="w"> </span><span class="no">Article</span><span class="p">.</span><span class="nf">pamplemousse</span>
+<span class="go">  Article Load (0.4ms)  SELECT "articles".* FROM "articles"
+  Comment Load (0.2ms)  SELECT "comments".* FROM "comments" WHERE "comments"."article_id" = ?  [["article_id", 1]]
+  Comment Load (0.1ms)  SELECT "comments".* FROM "comments" WHERE "comments"."article_id" = ?  [["article_id", 2]]
+  Comment Load (0.1ms)  SELECT "comments".* FROM "comments" WHERE "comments"."article_id" = ?  [["article_id", 3]]
+</span><span class="gp">=&gt; #&lt;Comment id: 2, author: "1", body: "Well, actually...", article_id: 1, created_at: "2018-10-19 00:56:10", updated_at: "2018-10-19 00:56:10"&gt;</span><span class="w">
+</span></code></pre>
+<button class="clipboard-button" data-clipboard-text="Article.pamplemousse
+">Copy</button>
+</div>
+<p>After running <code>ActiveRecord.verbose_query_logs = true</code> in the <code>bin/rails console</code> session to enable verbose query logs and running the method again, it becomes obvious what single line of code is generating all these discrete database calls:</p><div class="code_container">
+<pre><code class="highlight irb"><span class="gp">irb(main):003:0&gt;</span><span class="w"> </span><span class="no">Article</span><span class="p">.</span><span class="nf">pamplemousse</span>
+<span class="go">  Article Load (0.2ms)  SELECT "articles".* FROM "articles"
+  ↳ app/models/article.rb:5
+  Comment Load (0.1ms)  SELECT "comments".* FROM "comments" WHERE "comments"."article_id" = ?  [["article_id", 1]]
+  ↳ app/models/article.rb:6
+  Comment Load (0.1ms)  SELECT "comments".* FROM "comments" WHERE "comments"."article_id" = ?  [["article_id", 2]]
+  ↳ app/models/article.rb:6
+  Comment Load (0.1ms)  SELECT "comments".* FROM "comments" WHERE "comments"."article_id" = ?  [["article_id", 3]]
+  ↳ app/models/article.rb:6
+</span><span class="gp">=&gt; #&lt;Comment id: 2, author: "1", body: "Well, actually...", article_id: 1, created_at: "2018-10-19 00:56:10", updated_at: "2018-10-19 00:56:10"&gt;</span><span class="w">
+</span></code></pre>
+<button class="clipboard-button" data-clipboard-text="Article.pamplemousse
+">Copy</button>
+</div>
+<p>Below each database statement you can see arrows pointing to the specific source filename (and line number) of the method that resulted in a database call. This can help you identify and address performance problems caused by N+1 queries: single database queries that generates multiple additional queries.</p><p>Verbose query logs are enabled by default in the development environment logs after Rails 5.2.</p><div class="warning"><p>We recommend against using this setting in production environments. It relies on Ruby's <code>Kernel#caller</code> method which tends to allocate a lot of memory in order to generate stacktraces of method calls. Use query log tags (see below) instead.</p></div><h3 id="verbose-enqueue-logs"><a class="anchorlink" href="#verbose-enqueue-logs">2.5 Verbose Enqueue Logs</a></h3><p>Similar to the "Verbose Query Logs" above, allows to print source locations of methods that enqueue background jobs.</p><p>It is enabled by default in development. To enable in other environments, add in <code>application.rb</code> or any environment initializer:</p><div class="code_container">
+<pre><code class="highlight rb"><span class="n">config</span><span class="p">.</span><span class="nf">active_job</span><span class="p">.</span><span class="nf">verbose_enqueue_logs</span> <span class="o">=</span> <span class="kp">true</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="config.active_job.verbose_enqueue_logs = true
+">Copy</button>
+</div>
+<p>As verbose query logs, it is not recommended for use in production environments.</p><h2 id="sql-query-comments"><a class="anchorlink" href="#sql-query-comments">3 SQL Query Comments</a></h2><p>SQL statements can be commented with tags containing runtime information, such as the name of the controller or job, to
+trace troublesome queries back to the area of the application that generated these statements. This is useful when you are
+logging slow queries (e.g. <a href="https://dev.mysql.com/doc/refman/en/slow-query-log.html">MySQL</a>, <a href="https://www.postgresql.org/docs/current/runtime-config-logging.html#GUC-LOG-MIN-DURATION-STATEMENT">PostgreSQL</a>),
+viewing currently running queries, or for end-to-end tracing tools.</p><p>To enable, add in <code>application.rb</code> or any environment initializer:</p><div class="code_container">
+<pre><code class="highlight rb"><span class="n">config</span><span class="p">.</span><span class="nf">active_record</span><span class="p">.</span><span class="nf">query_log_tags_enabled</span> <span class="o">=</span> <span class="kp">true</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="config.active_record.query_log_tags_enabled = true
+">Copy</button>
+</div>
+<p>By default the name of the application, the name and action of the controller, or the name of the job are logged. The
+default format is <a href="https://open-telemetry.github.io/opentelemetry-sqlcommenter/">SQLCommenter</a>. For example:</p><div class="code_container">
+<pre><code class="highlight plaintext">Article Load (0.2ms)  SELECT "articles".* FROM "articles" /*application='Blog',controller='articles',action='index'*/
+
+Article Update (0.3ms)  UPDATE "articles" SET "title" = ?, "updated_at" = ? WHERE "posts"."id" = ? /*application='Blog',job='ImproveTitleJob'*/  [["title", "Improved Rails debugging guide"], ["updated_at", "2022-10-16 20:25:40.091371"], ["id", 1]]
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Article Load (0.2ms)  SELECT &quot;articles&quot;.* FROM &quot;articles&quot; /*application='Blog',controller='articles',action='index'*/
+
+Article Update (0.3ms)  UPDATE &quot;articles&quot; SET &quot;title&quot; = ?, &quot;updated_at&quot; = ? WHERE &quot;posts&quot;.&quot;id&quot; = ? /*application='Blog',job='ImproveTitleJob'*/  [[&quot;title&quot;, &quot;Improved Rails debugging guide&quot;], [&quot;updated_at&quot;, &quot;2022-10-16 20:25:40.091371&quot;], [&quot;id&quot;, 1]]
+">Copy</button>
+</div>
+<p>The behaviour of <a href="https://edgeapi.rubyonrails.org/classes/ActiveRecord/QueryLogs.html"><code>ActiveRecord::QueryLogs</code></a> can be
+modified to include anything that helps connect the dots from the SQL query, such as request and job ids for
+application logs, account and tenant identifiers, etc.</p><h3 id="tagged-logging"><a class="anchorlink" href="#tagged-logging">3.1 Tagged Logging</a></h3><p>When running multi-user, multi-account applications, it's often useful
+to be able to filter the logs using some custom rules. <code>TaggedLogging</code>
+in Active Support helps you do exactly that by stamping log lines with subdomains, request ids, and anything else to aid debugging such applications.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">logger</span> <span class="o">=</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">TaggedLogging</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="no">Logger</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="no">STDOUT</span><span class="p">))</span>
+<span class="n">logger</span><span class="p">.</span><span class="nf">tagged</span><span class="p">(</span><span class="s2">"BCX"</span><span class="p">)</span> <span class="p">{</span> <span class="n">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Stuff"</span> <span class="p">}</span>                            <span class="c1"># Logs "[BCX] Stuff"</span>
+<span class="n">logger</span><span class="p">.</span><span class="nf">tagged</span><span class="p">(</span><span class="s2">"BCX"</span><span class="p">,</span> <span class="s2">"Jason"</span><span class="p">)</span> <span class="p">{</span> <span class="n">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Stuff"</span> <span class="p">}</span>                   <span class="c1"># Logs "[BCX] [Jason] Stuff"</span>
+<span class="n">logger</span><span class="p">.</span><span class="nf">tagged</span><span class="p">(</span><span class="s2">"BCX"</span><span class="p">)</span> <span class="p">{</span> <span class="n">logger</span><span class="p">.</span><span class="nf">tagged</span><span class="p">(</span><span class="s2">"Jason"</span><span class="p">)</span> <span class="p">{</span> <span class="n">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Stuff"</span> <span class="p">}</span> <span class="p">}</span> <span class="c1"># Logs "[BCX] [Jason] Stuff"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
+logger.tagged(&quot;BCX&quot;) { logger.info &quot;Stuff&quot; }                            # Logs &quot;[BCX] Stuff&quot;
+logger.tagged(&quot;BCX&quot;, &quot;Jason&quot;) { logger.info &quot;Stuff&quot; }                   # Logs &quot;[BCX] [Jason] Stuff&quot;
+logger.tagged(&quot;BCX&quot;) { logger.tagged(&quot;Jason&quot;) { logger.info &quot;Stuff&quot; } } # Logs &quot;[BCX] [Jason] Stuff&quot;
+">Copy</button>
+</div>
+<h3 id="impact-of-logs-on-performance"><a class="anchorlink" href="#impact-of-logs-on-performance">3.2 Impact of Logs on Performance</a></h3><p>Logging will always have a small impact on the performance of your Rails app,
+particularly when logging to disk. Additionally, there are a few subtleties:</p><p>Using the <code>:debug</code> level will have a greater performance penalty than <code>:fatal</code>,
+as a far greater number of strings are being evaluated and written to the
+log output (e.g. disk).</p><p>Another potential pitfall is too many calls to <code>Logger</code> in your code:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">logger</span><span class="p">.</span><span class="nf">debug</span> <span class="s2">"Person attributes hash: </span><span class="si">#{</span><span class="vi">@person</span><span class="p">.</span><span class="nf">attributes</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2">"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="logger.debug &quot;Person attributes hash: #{@person.attributes.inspect}&quot;
+">Copy</button>
+</div>
+<p>In the above example, there will be a performance impact even if the allowed
+output level doesn't include debug. The reason is that Ruby has to evaluate
+these strings, which includes instantiating the somewhat heavy <code>String</code> object
+and interpolating the variables.</p><p>Therefore, it's recommended to pass blocks to the logger methods, as these are
+only evaluated if the output level is the same as — or included in — the allowed level
+(i.e. lazy loading). The same code rewritten would be:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">logger</span><span class="p">.</span><span class="nf">debug</span> <span class="p">{</span> <span class="s2">"Person attributes hash: </span><span class="si">#{</span><span class="vi">@person</span><span class="p">.</span><span class="nf">attributes</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2">"</span> <span class="p">}</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="logger.debug { &quot;Person attributes hash: #{@person.attributes.inspect}&quot; }
+">Copy</button>
+</div>
+<p>The contents of the block, and therefore the string interpolation, are only
+evaluated if debug is enabled. This performance savings are only really
+noticeable with large amounts of logging, but it's a good practice to employ.</p><div class="info"><p>This section was written by <a href="https://stackoverflow.com/questions/16546730/logging-in-rails-is-there-any-performance-hit/16546935#16546935">Jon Cairns at a Stack Overflow answer</a>
+and it is licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/">cc by-sa 4.0</a>.</p></div><h2 id="debugging-with-the-debug-gem"><a class="anchorlink" href="#debugging-with-the-debug-gem">4 Debugging with the <code>debug</code> Gem</a></h2><p>When your code is behaving in unexpected ways, you can try printing to logs or
+the console to diagnose the problem. Unfortunately, there are times when this
+sort of error tracking is not effective in finding the root cause of a problem.
+When you actually need to journey into your running source code, the debugger
+is your best companion.</p><p>The debugger can also help you if you want to learn about the Rails source code
+but don't know where to start. Just debug any request to your application and
+use this guide to learn how to move from the code you have written into the
+underlying Rails code.</p><p>Rails 7 includes the <code>debug</code> gem in the <code>Gemfile</code> of new applications generated
+by CRuby. By default, it is ready in the <code>development</code> and <code>test</code> environments.
+Please check its <a href="https://github.com/ruby/debug">documentation</a> for usage.</p><h3 id="entering-a-debugging-session"><a class="anchorlink" href="#entering-a-debugging-session">4.1 Entering a Debugging Session</a></h3><p>By default, a debugging session will start after the <code>debug</code> library is required, which happens when your app boots. But don't worry, the session won't interfere with your application.</p><p>To enter the debugging session, you can use <code>binding.break</code> and its aliases: <code>binding.b</code> and <code>debugger</code>. The following examples will use <code>debugger</code>:</p><div class="code_container">
+<pre><code class="highlight rb"><span class="k">class</span> <span class="nc">PostsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="n">before_action</span> <span class="ss">:set_post</span><span class="p">,</span> <span class="ss">only: </span><span class="sx">%i[ show edit update destroy ]</span>
+
+  <span class="c1"># GET /posts or /posts.json</span>
+  <span class="k">def</span> <span class="nf">index</span>
+    <span class="vi">@posts</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">all</span>
+    <span class="n">debugger</span>
+  <span class="k">end</span>
+  <span class="c1"># ...</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="class PostsController < ApplicationController
+  before_action :set_post, only: %i[ show edit update destroy ]
+
+  # GET /posts or /posts.json
+  def index
+    @posts = Post.all
+    debugger
+  end
+  # ...
+end
+">Copy</button>
+</div>
+<p>Once your app evaluates the debugging statement, it'll enter the debugging session:</p><div class="code_container">
+<pre><code class="highlight rb"><span class="no">Processing</span> <span class="n">by</span> <span class="no">PostsController</span><span class="c1">#index as HTML</span>
+<span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">11</span><span class="p">]</span> <span class="k">in</span> <span class="o">~</span><span class="sr">/projects/</span><span class="n">rails</span><span class="o">-</span><span class="n">guide</span><span class="o">-</span><span class="n">example</span><span class="o">/</span><span class="n">app</span><span class="o">/</span><span class="n">controllers</span><span class="o">/</span><span class="n">posts_controller</span><span class="p">.</span><span class="nf">rb</span>
+     <span class="mi">2</span><span class="o">|</span>   <span class="n">before_action</span> <span class="ss">:set_post</span><span class="p">,</span> <span class="ss">only: </span><span class="sx">%i[ show edit update destroy ]</span>
+     <span class="mi">3</span><span class="o">|</span>
+     <span class="mi">4</span><span class="o">|</span>   <span class="c1"># GET /posts or /posts.json</span>
+     <span class="mi">5</span><span class="o">|</span>   <span class="k">def</span> <span class="nf">index</span>
+     <span class="mi">6</span><span class="o">|</span>     <span class="vi">@posts</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">all</span>
+<span class="o">=&gt;</span>   <span class="mi">7</span><span class="o">|</span>     <span class="n">debugger</span>
+     <span class="mi">8</span><span class="o">|</span>   <span class="k">end</span>
+     <span class="mi">9</span><span class="o">|</span>
+    <span class="mi">10</span><span class="o">|</span>   <span class="c1"># GET /posts/1 or /posts/1.json</span>
+    <span class="mi">11</span><span class="o">|</span>   <span class="k">def</span> <span class="nf">show</span>
+<span class="o">=&gt;</span><span class="c1">#0    PostsController#index at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:7</span>
+  <span class="c1">#1    ActionController::BasicImplicitRender#send_action(method="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.2.0.alpha/lib/action_controller/metal/basic_implicit_render.rb:6</span>
+  <span class="c1"># and 72 frames (use `bt' command for all frames)</span>
+<span class="p">(</span><span class="n">rdbg</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Processing by PostsController#index as HTML
+[2, 11] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
+     2|   before_action :set_post, only: %i[ show edit update destroy ]
+     3|
+     4|   # GET /posts or /posts.json
+     5|   def index
+     6|     @posts = Post.all
+=>   7|     debugger
+     8|   end
+     9|
+    10|   # GET /posts/1 or /posts/1.json
+    11|   def show
+=>#0    PostsController#index at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:7
+  #1    ActionController::BasicImplicitRender#send_action(method=&quot;index&quot;, args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.2.0.alpha/lib/action_controller/metal/basic_implicit_render.rb:6
+  # and 72 frames (use `bt' command for all frames)
+(rdbg)
+">Copy</button>
+</div>
+<p>You can exit the debugging session at any time and continue your application execution with the <code>continue</code> (or <code>c</code>) command. Or, to exit both the debugging session and your application, use the <code>quit</code> (or <code>q</code>) command.</p><h3 id="the-context"><a class="anchorlink" href="#the-context">4.2 The Context</a></h3><p>After entering the debugging session, you can type in Ruby code as if you are in a Rails console or IRB.</p><div class="code_container">
+<pre><code class="highlight rb"><span class="p">(</span><span class="n">rdbg</span><span class="p">)</span> <span class="vi">@posts</span>    <span class="c1"># ruby</span>
+<span class="p">[]</span>
+<span class="p">(</span><span class="n">rdbg</span><span class="p">)</span> <span class="nb">self</span>
+<span class="c1">#&lt;PostsController:0x0000000000aeb0&gt;</span>
+<span class="p">(</span><span class="n">rdbg</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="(rdbg) @posts    # ruby
+[]
+(rdbg) self
+#<PostsController:0x0000000000aeb0>
+(rdbg)
+">Copy</button>
+</div>
+<p>You can also use the <code>p</code> or <code>pp</code> command to evaluate Ruby expressions, which is useful when a variable name conflicts with a debugger command.</p><div class="code_container">
+<pre><code class="highlight rb"><span class="p">(</span><span class="n">rdbg</span><span class="p">)</span> <span class="nb">p</span> <span class="n">headers</span>    <span class="c1"># command</span>
+<span class="o">=&gt;</span> <span class="p">{</span><span class="s2">"X-Frame-Options"</span><span class="o">=&gt;</span><span class="s2">"SAMEORIGIN"</span><span class="p">,</span> <span class="s2">"X-XSS-Protection"</span><span class="o">=&gt;</span><span class="s2">"1; mode=block"</span><span class="p">,</span> <span class="s2">"X-Content-Type-Options"</span><span class="o">=&gt;</span><span class="s2">"nosniff"</span><span class="p">,</span> <span class="s2">"X-Download-Options"</span><span class="o">=&gt;</span><span class="s2">"noopen"</span><span class="p">,</span> <span class="s2">"X-Permitted-Cross-Domain-Policies"</span><span class="o">=&gt;</span><span class="s2">"none"</span><span class="p">,</span> <span class="s2">"Referrer-Policy"</span><span class="o">=&gt;</span><span class="s2">"strict-origin-when-cross-origin"</span><span class="p">}</span>
+<span class="p">(</span><span class="n">rdbg</span><span class="p">)</span> <span class="n">pp</span> <span class="n">headers</span>    <span class="c1"># command</span>
+<span class="p">{</span><span class="s2">"X-Frame-Options"</span><span class="o">=&gt;</span><span class="s2">"SAMEORIGIN"</span><span class="p">,</span>
+ <span class="s2">"X-XSS-Protection"</span><span class="o">=&gt;</span><span class="s2">"1; mode=block"</span><span class="p">,</span>
+ <span class="s2">"X-Content-Type-Options"</span><span class="o">=&gt;</span><span class="s2">"nosniff"</span><span class="p">,</span>
+ <span class="s2">"X-Download-Options"</span><span class="o">=&gt;</span><span class="s2">"noopen"</span><span class="p">,</span>
+ <span class="s2">"X-Permitted-Cross-Domain-Policies"</span><span class="o">=&gt;</span><span class="s2">"none"</span><span class="p">,</span>
+ <span class="s2">"Referrer-Policy"</span><span class="o">=&gt;</span><span class="s2">"strict-origin-when-cross-origin"</span><span class="p">}</span>
+<span class="p">(</span><span class="n">rdbg</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="(rdbg) p headers    # command
+=> {&quot;X-Frame-Options&quot;=>&quot;SAMEORIGIN&quot;, &quot;X-XSS-Protection&quot;=>&quot;1; mode=block&quot;, &quot;X-Content-Type-Options&quot;=>&quot;nosniff&quot;, &quot;X-Download-Options&quot;=>&quot;noopen&quot;, &quot;X-Permitted-Cross-Domain-Policies&quot;=>&quot;none&quot;, &quot;Referrer-Policy&quot;=>&quot;strict-origin-when-cross-origin&quot;}
+(rdbg) pp headers    # command
+{&quot;X-Frame-Options&quot;=>&quot;SAMEORIGIN&quot;,
+ &quot;X-XSS-Protection&quot;=>&quot;1; mode=block&quot;,
+ &quot;X-Content-Type-Options&quot;=>&quot;nosniff&quot;,
+ &quot;X-Download-Options&quot;=>&quot;noopen&quot;,
+ &quot;X-Permitted-Cross-Domain-Policies&quot;=>&quot;none&quot;,
+ &quot;Referrer-Policy&quot;=>&quot;strict-origin-when-cross-origin&quot;}
+(rdbg)
+">Copy</button>
+</div>
+<p>Besides direct evaluation, the debugger also helps you collect a rich amount of information through different commands, such as:</p>
+<ul>
+<li><code>info</code> (or <code>i</code>) - Information about current frame.</li>
+<li><code>backtrace</code> (or <code>bt</code>) - Backtrace (with additional information).</li>
+<li><code>outline</code> (or <code>o</code>, <code>ls</code>) - Available methods, constants, local variables, and instance variables in the current scope.</li>
+</ul>
+<h4 id="the-info-command"><a class="anchorlink" href="#the-info-command">4.2.1 The <code>info</code> Command</a></h4><p><code>info</code> provides an overview of the values of local and instance variables that are visible from the current frame.</p><div class="code_container">
+<pre><code class="highlight rb"><span class="p">(</span><span class="n">rdbg</span><span class="p">)</span> <span class="n">info</span>    <span class="c1"># command</span>
+<span class="o">%</span><span class="nb">self</span> <span class="o">=</span> <span class="c1">#&lt;PostsController:0x0000000000af78&gt;</span>
+<span class="vi">@_action_has_layout</span> <span class="o">=</span> <span class="kp">true</span>
+<span class="vi">@_action_name</span> <span class="o">=</span> <span class="s2">"index"</span>
+<span class="vi">@_config</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="vi">@_lookup_context</span> <span class="o">=</span> <span class="c1">#&lt;ActionView::LookupContext:0x00007fd91a037e38 @details_key=nil, @digest_cache=...</span>
+<span class="vi">@_request</span> <span class="o">=</span> <span class="c1">#&lt;ActionDispatch::Request GET "http://localhost:3000/posts" for 127.0.0.1&gt;</span>
+<span class="vi">@_response</span> <span class="o">=</span> <span class="c1">#&lt;ActionDispatch::Response:0x00007fd91a03ea08 @mon_data=#&lt;Monitor:0x00007fd91a03e8c8&gt;...</span>
+<span class="vi">@_response_body</span> <span class="o">=</span> <span class="kp">nil</span>
+<span class="vi">@_routes</span> <span class="o">=</span> <span class="kp">nil</span>
+<span class="vi">@marked_for_same_origin_verification</span> <span class="o">=</span> <span class="kp">true</span>
+<span class="vi">@posts</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="vi">@rendered_format</span> <span class="o">=</span> <span class="kp">nil</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="(rdbg) info    # command
+%self = #<PostsController:0x0000000000af78>
+@_action_has_layout = true
+@_action_name = &quot;index&quot;
+@_config = {}
+@_lookup_context = #<ActionView::LookupContext:0x00007fd91a037e38 @details_key=nil, @digest_cache=...
+@_request = #<ActionDispatch::Request GET &quot;http://localhost:3000/posts&quot; for 127.0.0.1>
+@_response = #<ActionDispatch::Response:0x00007fd91a03ea08 @mon_data=#<Monitor:0x00007fd91a03e8c8>...
+@_response_body = nil
+@_routes = nil
+@marked_for_same_origin_verification = true
+@posts = []
+@rendered_format = nil
+">Copy</button>
+</div>
+<h4 id="the-backtrace-command"><a class="anchorlink" href="#the-backtrace-command">4.2.2 The <code>backtrace</code> Command</a></h4><p>When used without any options, <code>backtrace</code> lists all the frames on the stack:</p><div class="code_container">
+<pre><code class="highlight rb"><span class="o">=&gt;</span><span class="c1">#0    PostsController#index at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:7</span>
+  <span class="c1">#1    ActionController::BasicImplicitRender#send_action(method="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-2.0.alpha/lib/action_controller/metal/basic_implicit_render.rb:6</span>
+  <span class="c1">#2    AbstractController::Base#process_action(method_name="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.2.0.alpha/lib/abstract_controller/base.rb:214</span>
+  <span class="c1">#3    ActionController::Rendering#process_action(#arg_rest=nil) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.2.0.alpha/lib/action_controller/metal/rendering.rb:53</span>
+  <span class="c1">#4    block in process_action at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.2.0.alpha/lib/abstract_controller/callbacks.rb:221</span>
+  <span class="c1">#5    block in run_callbacks at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activesupport-7.2.0.alpha/lib/active_support/callbacks.rb:118</span>
+  <span class="c1">#6    ActionText::Rendering::ClassMethods#with_renderer(renderer=#&lt;PostsController:0x0000000000af78&gt;) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actiontext-7.2.0.alpha/lib/action_text/rendering.rb:20</span>
+  <span class="c1">#7    block {|controller=#&lt;PostsController:0x0000000000af78&gt;, action=#&lt;Proc:0x00007fd91985f1c0 /Users/st0012/...|} in &lt;class:Engine&gt; (4 levels) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actiontext-7.2.0.alpha/lib/action_text/engine.rb:69</span>
+  <span class="c1">#8    [C] BasicObject#instance_exec at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activesupport-7.2.0.alpha/lib/active_support/callbacks.rb:127</span>
+  <span class="o">.....</span> <span class="ow">and</span> <span class="n">more</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="=>#0    PostsController#index at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:7
+  #1    ActionController::BasicImplicitRender#send_action(method=&quot;index&quot;, args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-2.0.alpha/lib/action_controller/metal/basic_implicit_render.rb:6
+  #2    AbstractController::Base#process_action(method_name=&quot;index&quot;, args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.2.0.alpha/lib/abstract_controller/base.rb:214
+  #3    ActionController::Rendering#process_action(#arg_rest=nil) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.2.0.alpha/lib/action_controller/metal/rendering.rb:53
+  #4    block in process_action at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.2.0.alpha/lib/abstract_controller/callbacks.rb:221
+  #5    block in run_callbacks at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activesupport-7.2.0.alpha/lib/active_support/callbacks.rb:118
+  #6    ActionText::Rendering::ClassMethods#with_renderer(renderer=#<PostsController:0x0000000000af78>) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actiontext-7.2.0.alpha/lib/action_text/rendering.rb:20
+  #7    block {|controller=#<PostsController:0x0000000000af78>, action=#<Proc:0x00007fd91985f1c0 /Users/st0012/...|} in <class:Engine> (4 levels) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actiontext-7.2.0.alpha/lib/action_text/engine.rb:69
+  #8    [C] BasicObject#instance_exec at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activesupport-7.2.0.alpha/lib/active_support/callbacks.rb:127
+  ..... and more
+">Copy</button>
+</div>
+<p>Every frame comes with:</p>
+<ul>
+<li>Frame identifier</li>
+<li>Call location</li>
+<li>Additional information (e.g. block or method arguments)</li>
+</ul>
+<p>This will give you a great sense about what is happening in your app. However, you probably will notice that:</p>
+<ul>
+<li>There are too many frames (usually 50+ in a Rails app).</li>
+<li>Most of the frames are from Rails or other libraries you use.</li>
+</ul>
+<p>The <code>backtrace</code> command provides 2 options to help you filter frames:</p>
+<ul>
+<li><code>backtrace [num]</code> - only show <code>num</code> numbers of frames, e.g. <code>backtrace 10</code> .</li>
+<li><code>backtrace /pattern/</code> - only show frames with identifier or location that matches the pattern, e.g. <code>backtrace /MyModel/</code>.</li>
+</ul>
+<p>It is also possible to use these options together: <code>backtrace [num] /pattern/</code>.</p><h4 id="the-outline-command"><a class="anchorlink" href="#the-outline-command">4.2.3 The <code>outline</code> Command</a></h4><p><code>outline</code> is similar to <code>pry</code> and <code>irb</code>'s <code>ls</code> command. It will show you what is accessible from the current scope, including:</p>
+<ul>
+<li>Local variables</li>
+<li>Instance variables</li>
+<li>Class variables</li>
+<li>Methods &amp; their sources</li>
+</ul>
+<div class="code_container">
+<pre><code class="highlight rb"><span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Configurable</span><span class="c1">#methods: config</span>
+<span class="no">AbstractController</span><span class="o">::</span><span class="no">Base</span><span class="c1">#methods:</span>
+  <span class="n">action_methods</span>  <span class="n">action_name</span>  <span class="n">action_name</span><span class="o">=</span>  <span class="n">available_action?</span>  <span class="n">controller_path</span>  <span class="nb">inspect</span>
+  <span class="n">response_body</span>
+<span class="no">ActionController</span><span class="o">::</span><span class="no">Metal</span><span class="c1">#methods:</span>
+  <span class="n">content_type</span>       <span class="n">content_type</span><span class="o">=</span>  <span class="n">controller_name</span>  <span class="n">dispatch</span>          <span class="n">headers</span>
+  <span class="n">location</span>           <span class="n">location</span><span class="o">=</span>      <span class="n">media_type</span>       <span class="n">middleware_stack</span>  <span class="n">middleware_stack</span><span class="o">=</span>
+  <span class="n">middleware_stack?</span>  <span class="n">performed?</span>     <span class="n">request</span>          <span class="n">request</span><span class="o">=</span>          <span class="n">reset_session</span>
+  <span class="n">response</span>           <span class="n">response</span><span class="o">=</span>      <span class="n">response_body</span><span class="o">=</span>   <span class="n">response_code</span>     <span class="n">session</span>
+  <span class="n">set_request!</span>       <span class="n">set_response!</span>  <span class="n">status</span>           <span class="n">status</span><span class="o">=</span>           <span class="nb">to_a</span>
+<span class="no">ActionView</span><span class="o">::</span><span class="no">ViewPaths</span><span class="c1">#methods:</span>
+  <span class="n">_prefixes</span>  <span class="n">any_templates?</span>  <span class="n">append_view_path</span>   <span class="n">details_for_lookup</span>  <span class="n">formats</span>     <span class="n">formats</span><span class="o">=</span>  <span class="n">locale</span>
+  <span class="n">locale</span><span class="o">=</span>    <span class="n">lookup_context</span>  <span class="n">prepend_view_path</span>  <span class="n">template_exists?</span>    <span class="n">view_paths</span>
+<span class="no">AbstractController</span><span class="o">::</span><span class="no">Rendering</span><span class="c1">#methods: view_assigns</span>
+
+<span class="c1"># .....</span>
+
+<span class="no">PostsController</span><span class="c1">#methods: create  destroy  edit  index  new  show  update</span>
+<span class="n">instance</span> <span class="ss">variables:
+  </span><span class="vi">@_action_has_layout</span>  <span class="vi">@_action_name</span>    <span class="vi">@_config</span>  <span class="vi">@_lookup_context</span>                      <span class="vi">@_request</span>
+  <span class="vi">@_response</span>           <span class="vi">@_response_body</span>  <span class="vi">@_routes</span>  <span class="vi">@marked_for_same_origin_verification</span>  <span class="vi">@posts</span>
+  <span class="vi">@rendered_format</span>
+<span class="k">class</span> <span class="ss">variables: </span><span class="vc">@@raise_on_open_redirects</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="ActiveSupport::Configurable#methods: config
+AbstractController::Base#methods:
+  action_methods  action_name  action_name=  available_action?  controller_path  inspect
+  response_body
+ActionController::Metal#methods:
+  content_type       content_type=  controller_name  dispatch          headers
+  location           location=      media_type       middleware_stack  middleware_stack=
+  middleware_stack?  performed?     request          request=          reset_session
+  response           response=      response_body=   response_code     session
+  set_request!       set_response!  status           status=           to_a
+ActionView::ViewPaths#methods:
+  _prefixes  any_templates?  append_view_path   details_for_lookup  formats     formats=  locale
+  locale=    lookup_context  prepend_view_path  template_exists?    view_paths
+AbstractController::Rendering#methods: view_assigns
+
+# .....
+
+PostsController#methods: create  destroy  edit  index  new  show  update
+instance variables:
+  @_action_has_layout  @_action_name    @_config  @_lookup_context                      @_request
+  @_response           @_response_body  @_routes  @marked_for_same_origin_verification  @posts
+  @rendered_format
+class variables: @@raise_on_open_redirects
+">Copy</button>
+</div>
+<h3 id="breakpoints"><a class="anchorlink" href="#breakpoints">4.3 Breakpoints</a></h3><p>There are many ways to insert and trigger a breakpoint in the debugger. In addition to adding debugging statements (e.g. <code>debugger</code>) directly in your code, you can also insert breakpoints with commands:</p>
+<ul>
+<li><code>break</code> (or <code>b</code>)
+
+<ul>
+<li><code>break</code> - list all breakpoints</li>
+<li><code>break &lt;num&gt;</code> - set a breakpoint on the <code>num</code> line of the current file</li>
+<li><code>break &lt;file:num&gt;</code> - set a breakpoint on the <code>num</code> line of <code>file</code></li>
+<li><code>break &lt;Class#method&gt;</code> or <code>break &lt;Class.method&gt;</code> - set a breakpoint on <code>Class#method</code> or <code>Class.method</code></li>
+<li><code>break &lt;expr&gt;.&lt;method&gt;</code> - sets a breakpoint on <code>&lt;expr&gt;</code> result's <code>&lt;method&gt;</code> method.</li>
+</ul></li>
+<li><code>catch &lt;Exception&gt;</code> - set a breakpoint that'll stop when <code>Exception</code> is raised</li>
+<li><code>watch &lt;@ivar&gt;</code> - set a breakpoint that'll stop when the result of current object's <code>@ivar</code> is changed (this is slow)</li>
+</ul>
+<p>And to remove them, you can use:</p>
+<ul>
+<li><code>delete</code> (or <code>del</code>)
+
+<ul>
+<li><code>delete</code> - delete all breakpoints</li>
+<li><code>delete &lt;num&gt;</code> - delete the breakpoint with id <code>num</code></li>
+</ul></li>
+</ul>
+<h4 id="the-break-command"><a class="anchorlink" href="#the-break-command">4.3.1 The <code>break</code> Command</a></h4><p><strong>Set a breakpoint on a specified line number - e.g. <code>b 28</code></strong></p><div class="code_container">
+<pre><code class="highlight rb"><span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">29</span><span class="p">]</span> <span class="k">in</span> <span class="o">~</span><span class="sr">/projects/</span><span class="n">rails</span><span class="o">-</span><span class="n">guide</span><span class="o">-</span><span class="n">example</span><span class="o">/</span><span class="n">app</span><span class="o">/</span><span class="n">controllers</span><span class="o">/</span><span class="n">posts_controller</span><span class="p">.</span><span class="nf">rb</span>
+    <span class="mi">20</span><span class="o">|</span>   <span class="k">end</span>
+    <span class="mi">21</span><span class="o">|</span>
+    <span class="mi">22</span><span class="o">|</span>   <span class="c1"># POST /posts or /posts.json</span>
+    <span class="mi">23</span><span class="o">|</span>   <span class="k">def</span> <span class="nf">create</span>
+    <span class="mi">24</span><span class="o">|</span>     <span class="vi">@post</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">post_params</span><span class="p">)</span>
+<span class="o">=&gt;</span>  <span class="mi">25</span><span class="o">|</span>     <span class="n">debugger</span>
+    <span class="mi">26</span><span class="o">|</span>
+    <span class="mi">27</span><span class="o">|</span>     <span class="n">respond_to</span> <span class="k">do</span> <span class="o">|</span><span class="nb">format</span><span class="o">|</span>
+    <span class="mi">28</span><span class="o">|</span>       <span class="k">if</span> <span class="vi">@post</span><span class="p">.</span><span class="nf">save</span>
+    <span class="mi">29</span><span class="o">|</span>         <span class="nb">format</span><span class="p">.</span><span class="nf">html</span> <span class="p">{</span> <span class="n">redirect_to</span> <span class="vi">@post</span><span class="p">,</span> <span class="ss">notice: </span><span class="s2">"Post was successfully created."</span> <span class="p">}</span>
+<span class="o">=&gt;</span><span class="c1">#0    PostsController#create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:25</span>
+  <span class="c1">#1    ActionController::BasicImplicitRender#send_action(method="create", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/basic_implicit_render.rb:6</span>
+  <span class="c1"># and 72 frames (use `bt' command for all frames)</span>
+<span class="p">(</span><span class="n">rdbg</span><span class="p">)</span> <span class="n">b</span> <span class="mi">28</span>    <span class="c1"># break command</span>
+<span class="c1">#0  BP - Line  /Users/st0012/projects/rails-guide-example/app/controllers/posts_controller.rb:28 (line)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="[20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
+    20|   end
+    21|
+    22|   # POST /posts or /posts.json
+    23|   def create
+    24|     @post = Post.new(post_params)
+=>  25|     debugger
+    26|
+    27|     respond_to do |format|
+    28|       if @post.save
+    29|         format.html { redirect_to @post, notice: &quot;Post was successfully created.&quot; }
+=>#0    PostsController#create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:25
+  #1    ActionController::BasicImplicitRender#send_action(method=&quot;create&quot;, args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/basic_implicit_render.rb:6
+  # and 72 frames (use `bt' command for all frames)
+(rdbg) b 28    # break command
+#0  BP - Line  /Users/st0012/projects/rails-guide-example/app/controllers/posts_controller.rb:28 (line)
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight rb"><span class="p">(</span><span class="n">rdbg</span><span class="p">)</span> <span class="n">c</span>    <span class="c1"># continue command</span>
+<span class="p">[</span><span class="mi">23</span><span class="p">,</span> <span class="mi">32</span><span class="p">]</span> <span class="k">in</span> <span class="o">~</span><span class="sr">/projects/</span><span class="n">rails</span><span class="o">-</span><span class="n">guide</span><span class="o">-</span><span class="n">example</span><span class="o">/</span><span class="n">app</span><span class="o">/</span><span class="n">controllers</span><span class="o">/</span><span class="n">posts_controller</span><span class="p">.</span><span class="nf">rb</span>
+    <span class="mi">23</span><span class="o">|</span>   <span class="k">def</span> <span class="nf">create</span>
+    <span class="mi">24</span><span class="o">|</span>     <span class="vi">@post</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">post_params</span><span class="p">)</span>
+    <span class="mi">25</span><span class="o">|</span>     <span class="n">debugger</span>
+    <span class="mi">26</span><span class="o">|</span>
+    <span class="mi">27</span><span class="o">|</span>     <span class="n">respond_to</span> <span class="k">do</span> <span class="o">|</span><span class="nb">format</span><span class="o">|</span>
+<span class="o">=&gt;</span>  <span class="mi">28</span><span class="o">|</span>       <span class="k">if</span> <span class="vi">@post</span><span class="p">.</span><span class="nf">save</span>
+    <span class="mi">29</span><span class="o">|</span>         <span class="nb">format</span><span class="p">.</span><span class="nf">html</span> <span class="p">{</span> <span class="n">redirect_to</span> <span class="vi">@post</span><span class="p">,</span> <span class="ss">notice: </span><span class="s2">"Post was successfully created."</span> <span class="p">}</span>
+    <span class="mi">30</span><span class="o">|</span>         <span class="nb">format</span><span class="p">.</span><span class="nf">json</span> <span class="p">{</span> <span class="n">render</span> <span class="ss">:show</span><span class="p">,</span> <span class="ss">status: :created</span><span class="p">,</span> <span class="ss">location: </span><span class="vi">@post</span> <span class="p">}</span>
+    <span class="mi">31</span><span class="o">|</span>       <span class="k">else</span>
+    <span class="mi">32</span><span class="o">|</span>         <span class="nb">format</span><span class="p">.</span><span class="nf">html</span> <span class="p">{</span> <span class="n">render</span> <span class="ss">:new</span><span class="p">,</span> <span class="ss">status: :unprocessable_entity</span> <span class="p">}</span>
+<span class="o">=&gt;</span><span class="c1">#0    block {|format=#&lt;ActionController::MimeResponds::Collec...|} in create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:28</span>
+  <span class="c1">#1    ActionController::MimeResponds#respond_to(mimes=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/mime_responds.rb:205</span>
+  <span class="c1"># and 74 frames (use `bt' command for all frames)</span>
+
+<span class="no">Stop</span> <span class="n">by</span> <span class="c1">#0  BP - Line  /Users/st0012/projects/rails-guide-example/app/controllers/posts_controller.rb:28 (line)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="(rdbg) c    # continue command
+[23, 32] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
+    23|   def create
+    24|     @post = Post.new(post_params)
+    25|     debugger
+    26|
+    27|     respond_to do |format|
+=>  28|       if @post.save
+    29|         format.html { redirect_to @post, notice: &quot;Post was successfully created.&quot; }
+    30|         format.json { render :show, status: :created, location: @post }
+    31|       else
+    32|         format.html { render :new, status: :unprocessable_entity }
+=>#0    block {|format=#<ActionController::MimeResponds::Collec...|} in create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:28
+  #1    ActionController::MimeResponds#respond_to(mimes=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/mime_responds.rb:205
+  # and 74 frames (use `bt' command for all frames)
+
+Stop by #0  BP - Line  /Users/st0012/projects/rails-guide-example/app/controllers/posts_controller.rb:28 (line)
+">Copy</button>
+</div>
+<p>Set a breakpoint on a given method call - e.g. <code>b @post.save</code>.</p><div class="code_container">
+<pre><code class="highlight rb"><span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">29</span><span class="p">]</span> <span class="k">in</span> <span class="o">~</span><span class="sr">/projects/</span><span class="n">rails</span><span class="o">-</span><span class="n">guide</span><span class="o">-</span><span class="n">example</span><span class="o">/</span><span class="n">app</span><span class="o">/</span><span class="n">controllers</span><span class="o">/</span><span class="n">posts_controller</span><span class="p">.</span><span class="nf">rb</span>
+    <span class="mi">20</span><span class="o">|</span>   <span class="k">end</span>
+    <span class="mi">21</span><span class="o">|</span>
+    <span class="mi">22</span><span class="o">|</span>   <span class="c1"># POST /posts or /posts.json</span>
+    <span class="mi">23</span><span class="o">|</span>   <span class="k">def</span> <span class="nf">create</span>
+    <span class="mi">24</span><span class="o">|</span>     <span class="vi">@post</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">post_params</span><span class="p">)</span>
+<span class="o">=&gt;</span>  <span class="mi">25</span><span class="o">|</span>     <span class="n">debugger</span>
+    <span class="mi">26</span><span class="o">|</span>
+    <span class="mi">27</span><span class="o">|</span>     <span class="n">respond_to</span> <span class="k">do</span> <span class="o">|</span><span class="nb">format</span><span class="o">|</span>
+    <span class="mi">28</span><span class="o">|</span>       <span class="k">if</span> <span class="vi">@post</span><span class="p">.</span><span class="nf">save</span>
+    <span class="mi">29</span><span class="o">|</span>         <span class="nb">format</span><span class="p">.</span><span class="nf">html</span> <span class="p">{</span> <span class="n">redirect_to</span> <span class="vi">@post</span><span class="p">,</span> <span class="ss">notice: </span><span class="s2">"Post was successfully created."</span> <span class="p">}</span>
+<span class="o">=&gt;</span><span class="c1">#0    PostsController#create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:25</span>
+  <span class="c1">#1    ActionController::BasicImplicitRender#send_action(method="create", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/basic_implicit_render.rb:6</span>
+  <span class="c1"># and 72 frames (use `bt' command for all frames)</span>
+<span class="p">(</span><span class="n">rdbg</span><span class="p">)</span> <span class="n">b</span> <span class="vi">@post</span><span class="p">.</span><span class="nf">save</span>    <span class="c1"># break command</span>
+<span class="c1">#0  BP - Method  @post.save at /Users/st0012/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/suppressor.rb:43</span>
+
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="[20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
+    20|   end
+    21|
+    22|   # POST /posts or /posts.json
+    23|   def create
+    24|     @post = Post.new(post_params)
+=>  25|     debugger
+    26|
+    27|     respond_to do |format|
+    28|       if @post.save
+    29|         format.html { redirect_to @post, notice: &quot;Post was successfully created.&quot; }
+=>#0    PostsController#create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:25
+  #1    ActionController::BasicImplicitRender#send_action(method=&quot;create&quot;, args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/basic_implicit_render.rb:6
+  # and 72 frames (use `bt' command for all frames)
+(rdbg) b @post.save    # break command
+#0  BP - Method  @post.save at /Users/st0012/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/suppressor.rb:43
+
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight rb"><span class="p">(</span><span class="n">rdbg</span><span class="p">)</span> <span class="n">c</span>    <span class="c1"># continue command</span>
+<span class="p">[</span><span class="mi">39</span><span class="p">,</span> <span class="mi">48</span><span class="p">]</span> <span class="k">in</span> <span class="o">~</span><span class="sr">/.rbenv/</span><span class="n">versions</span><span class="o">/</span><span class="mf">3.0</span><span class="o">.</span><span class="mi">1</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">ruby</span><span class="o">/</span><span class="n">gems</span><span class="o">/</span><span class="mf">3.0</span><span class="o">.</span><span class="mi">0</span><span class="o">/</span><span class="n">gems</span><span class="o">/</span><span class="n">activerecord</span><span class="o">-</span><span class="mf">7.0</span><span class="o">.</span><span class="mi">0</span><span class="p">.</span><span class="nf">alpha2</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">active_record</span><span class="o">/</span><span class="n">suppressor</span><span class="p">.</span><span class="nf">rb</span>
+    <span class="mi">39</span><span class="o">|</span>         <span class="no">SuppressorRegistry</span><span class="p">.</span><span class="nf">suppressed</span><span class="p">[</span><span class="nb">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">previous_state</span>
+    <span class="mi">40</span><span class="o">|</span>       <span class="k">end</span>
+    <span class="mi">41</span><span class="o">|</span>     <span class="k">end</span>
+    <span class="mi">42</span><span class="o">|</span>
+    <span class="mi">43</span><span class="o">|</span>     <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="o">**</span><span class="p">)</span> <span class="c1"># :nodoc:</span>
+<span class="o">=&gt;</span>  <span class="mi">44</span><span class="o">|</span>       <span class="no">SuppressorRegistry</span><span class="p">.</span><span class="nf">suppressed</span><span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="nf">class</span><span class="p">.</span><span class="nf">name</span><span class="p">]</span> <span class="p">?</span> <span class="kp">true</span> <span class="p">:</span> <span class="k">super</span>
+    <span class="mi">45</span><span class="o">|</span>     <span class="k">end</span>
+    <span class="mi">46</span><span class="o">|</span>
+    <span class="mi">47</span><span class="o">|</span>     <span class="k">def</span> <span class="nf">save!</span><span class="p">(</span><span class="o">**</span><span class="p">)</span> <span class="c1"># :nodoc:</span>
+    <span class="mi">48</span><span class="o">|</span>       <span class="no">SuppressorRegistry</span><span class="p">.</span><span class="nf">suppressed</span><span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="nf">class</span><span class="p">.</span><span class="nf">name</span><span class="p">]</span> <span class="p">?</span> <span class="kp">true</span> <span class="p">:</span> <span class="k">super</span>
+<span class="o">=&gt;</span><span class="c1">#0    ActiveRecord::Suppressor#save(#arg_rest=nil) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/suppressor.rb:44</span>
+  <span class="c1">#1    block {|format=#&lt;ActionController::MimeResponds::Collec...|} in create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:28</span>
+  <span class="c1"># and 75 frames (use `bt' command for all frames)</span>
+
+<span class="no">Stop</span> <span class="n">by</span> <span class="c1">#0  BP - Method  @post.save at /Users/st0012/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/suppressor.rb:43</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="(rdbg) c    # continue command
+[39, 48] in ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/suppressor.rb
+    39|         SuppressorRegistry.suppressed[name] = previous_state
+    40|       end
+    41|     end
+    42|
+    43|     def save(**) # :nodoc:
+=>  44|       SuppressorRegistry.suppressed[self.class.name] ? true : super
+    45|     end
+    46|
+    47|     def save!(**) # :nodoc:
+    48|       SuppressorRegistry.suppressed[self.class.name] ? true : super
+=>#0    ActiveRecord::Suppressor#save(#arg_rest=nil) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/suppressor.rb:44
+  #1    block {|format=#<ActionController::MimeResponds::Collec...|} in create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:28
+  # and 75 frames (use `bt' command for all frames)
+
+Stop by #0  BP - Method  @post.save at /Users/st0012/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/suppressor.rb:43
+">Copy</button>
+</div>
+<h4 id="the-catch-command"><a class="anchorlink" href="#the-catch-command">4.3.2 The <code>catch</code> Command</a></h4><p>Stop when an exception is raised - e.g. <code>catch ActiveRecord::RecordInvalid</code>.</p><div class="code_container">
+<pre><code class="highlight rb"><span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">29</span><span class="p">]</span> <span class="k">in</span> <span class="o">~</span><span class="sr">/projects/</span><span class="n">rails</span><span class="o">-</span><span class="n">guide</span><span class="o">-</span><span class="n">example</span><span class="o">/</span><span class="n">app</span><span class="o">/</span><span class="n">controllers</span><span class="o">/</span><span class="n">posts_controller</span><span class="p">.</span><span class="nf">rb</span>
+    <span class="mi">20</span><span class="o">|</span>   <span class="k">end</span>
+    <span class="mi">21</span><span class="o">|</span>
+    <span class="mi">22</span><span class="o">|</span>   <span class="c1"># POST /posts or /posts.json</span>
+    <span class="mi">23</span><span class="o">|</span>   <span class="k">def</span> <span class="nf">create</span>
+    <span class="mi">24</span><span class="o">|</span>     <span class="vi">@post</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">post_params</span><span class="p">)</span>
+<span class="o">=&gt;</span>  <span class="mi">25</span><span class="o">|</span>     <span class="n">debugger</span>
+    <span class="mi">26</span><span class="o">|</span>
+    <span class="mi">27</span><span class="o">|</span>     <span class="n">respond_to</span> <span class="k">do</span> <span class="o">|</span><span class="nb">format</span><span class="o">|</span>
+    <span class="mi">28</span><span class="o">|</span>       <span class="k">if</span> <span class="vi">@post</span><span class="p">.</span><span class="nf">save!</span>
+    <span class="mi">29</span><span class="o">|</span>         <span class="nb">format</span><span class="p">.</span><span class="nf">html</span> <span class="p">{</span> <span class="n">redirect_to</span> <span class="vi">@post</span><span class="p">,</span> <span class="ss">notice: </span><span class="s2">"Post was successfully created."</span> <span class="p">}</span>
+<span class="o">=&gt;</span><span class="c1">#0    PostsController#create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:25</span>
+  <span class="c1">#1    ActionController::BasicImplicitRender#send_action(method="create", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/basic_implicit_render.rb:6</span>
+  <span class="c1"># and 72 frames (use `bt' command for all frames)</span>
+<span class="p">(</span><span class="n">rdbg</span><span class="p">)</span> <span class="kp">catch</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">RecordInvalid</span>    <span class="c1"># command</span>
+<span class="c1">#1  BP - Catch  "ActiveRecord::RecordInvalid"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="[20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
+    20|   end
+    21|
+    22|   # POST /posts or /posts.json
+    23|   def create
+    24|     @post = Post.new(post_params)
+=>  25|     debugger
+    26|
+    27|     respond_to do |format|
+    28|       if @post.save!
+    29|         format.html { redirect_to @post, notice: &quot;Post was successfully created.&quot; }
+=>#0    PostsController#create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:25
+  #1    ActionController::BasicImplicitRender#send_action(method=&quot;create&quot;, args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/basic_implicit_render.rb:6
+  # and 72 frames (use `bt' command for all frames)
+(rdbg) catch ActiveRecord::RecordInvalid    # command
+#1  BP - Catch  &quot;ActiveRecord::RecordInvalid&quot;
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight rb"><span class="p">(</span><span class="n">rdbg</span><span class="p">)</span> <span class="n">c</span>    <span class="c1"># continue command</span>
+<span class="p">[</span><span class="mi">75</span><span class="p">,</span> <span class="mi">84</span><span class="p">]</span> <span class="k">in</span> <span class="o">~</span><span class="sr">/.rbenv/</span><span class="n">versions</span><span class="o">/</span><span class="mf">3.0</span><span class="o">.</span><span class="mi">1</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">ruby</span><span class="o">/</span><span class="n">gems</span><span class="o">/</span><span class="mf">3.0</span><span class="o">.</span><span class="mi">0</span><span class="o">/</span><span class="n">gems</span><span class="o">/</span><span class="n">activerecord</span><span class="o">-</span><span class="mf">7.0</span><span class="o">.</span><span class="mi">0</span><span class="p">.</span><span class="nf">alpha2</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">active_record</span><span class="o">/</span><span class="n">validations</span><span class="p">.</span><span class="nf">rb</span>
+    <span class="mi">75</span><span class="o">|</span>     <span class="k">def</span> <span class="nf">default_validation_context</span>
+    <span class="mi">76</span><span class="o">|</span>       <span class="n">new_record?</span> <span class="p">?</span> <span class="ss">:create</span> <span class="p">:</span> <span class="ss">:update</span>
+    <span class="mi">77</span><span class="o">|</span>     <span class="k">end</span>
+    <span class="mi">78</span><span class="o">|</span>
+    <span class="mi">79</span><span class="o">|</span>     <span class="k">def</span> <span class="nf">raise_validation_error</span>
+<span class="o">=&gt;</span>  <span class="mi">80</span><span class="o">|</span>       <span class="k">raise</span><span class="p">(</span><span class="no">RecordInvalid</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="nb">self</span><span class="p">))</span>
+    <span class="mi">81</span><span class="o">|</span>     <span class="k">end</span>
+    <span class="mi">82</span><span class="o">|</span>
+    <span class="mi">83</span><span class="o">|</span>     <span class="k">def</span> <span class="nf">perform_validations</span><span class="p">(</span><span class="n">options</span> <span class="o">=</span> <span class="p">{})</span>
+    <span class="mi">84</span><span class="o">|</span>       <span class="n">options</span><span class="p">[</span><span class="ss">:validate</span><span class="p">]</span> <span class="o">==</span> <span class="kp">false</span> <span class="o">||</span> <span class="n">valid?</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="ss">:context</span><span class="p">])</span>
+<span class="o">=&gt;</span><span class="c1">#0    ActiveRecord::Validations#raise_validation_error at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:80</span>
+  <span class="c1">#1    ActiveRecord::Validations#save!(options={}) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:53</span>
+  <span class="c1"># and 88 frames (use `bt' command for all frames)</span>
+
+<span class="no">Stop</span> <span class="n">by</span> <span class="c1">#1  BP - Catch  "ActiveRecord::RecordInvalid"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="(rdbg) c    # continue command
+[75, 84] in ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb
+    75|     def default_validation_context
+    76|       new_record? ? :create : :update
+    77|     end
+    78|
+    79|     def raise_validation_error
+=>  80|       raise(RecordInvalid.new(self))
+    81|     end
+    82|
+    83|     def perform_validations(options = {})
+    84|       options[:validate] == false || valid?(options[:context])
+=>#0    ActiveRecord::Validations#raise_validation_error at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:80
+  #1    ActiveRecord::Validations#save!(options={}) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:53
+  # and 88 frames (use `bt' command for all frames)
+
+Stop by #1  BP - Catch  &quot;ActiveRecord::RecordInvalid&quot;
+">Copy</button>
+</div>
+<h4 id="the-watch-command"><a class="anchorlink" href="#the-watch-command">4.3.3 The <code>watch</code> Command</a></h4><p>Stop when the instance variable is changed - e.g. <code>watch @_response_body</code>.</p><div class="code_container">
+<pre><code class="highlight rb"><span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">29</span><span class="p">]</span> <span class="k">in</span> <span class="o">~</span><span class="sr">/projects/</span><span class="n">rails</span><span class="o">-</span><span class="n">guide</span><span class="o">-</span><span class="n">example</span><span class="o">/</span><span class="n">app</span><span class="o">/</span><span class="n">controllers</span><span class="o">/</span><span class="n">posts_controller</span><span class="p">.</span><span class="nf">rb</span>
+    <span class="mi">20</span><span class="o">|</span>   <span class="k">end</span>
+    <span class="mi">21</span><span class="o">|</span>
+    <span class="mi">22</span><span class="o">|</span>   <span class="c1"># POST /posts or /posts.json</span>
+    <span class="mi">23</span><span class="o">|</span>   <span class="k">def</span> <span class="nf">create</span>
+    <span class="mi">24</span><span class="o">|</span>     <span class="vi">@post</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">post_params</span><span class="p">)</span>
+<span class="o">=&gt;</span>  <span class="mi">25</span><span class="o">|</span>     <span class="n">debugger</span>
+    <span class="mi">26</span><span class="o">|</span>
+    <span class="mi">27</span><span class="o">|</span>     <span class="n">respond_to</span> <span class="k">do</span> <span class="o">|</span><span class="nb">format</span><span class="o">|</span>
+    <span class="mi">28</span><span class="o">|</span>       <span class="k">if</span> <span class="vi">@post</span><span class="p">.</span><span class="nf">save!</span>
+    <span class="mi">29</span><span class="o">|</span>         <span class="nb">format</span><span class="p">.</span><span class="nf">html</span> <span class="p">{</span> <span class="n">redirect_to</span> <span class="vi">@post</span><span class="p">,</span> <span class="ss">notice: </span><span class="s2">"Post was successfully created."</span> <span class="p">}</span>
+<span class="o">=&gt;</span><span class="c1">#0    PostsController#create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:25</span>
+  <span class="c1">#1    ActionController::BasicImplicitRender#send_action(method="create", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/basic_implicit_render.rb:6</span>
+  <span class="c1"># and 72 frames (use `bt' command for all frames)</span>
+<span class="p">(</span><span class="n">rdbg</span><span class="p">)</span> <span class="n">watch</span> <span class="vi">@_response_body</span>    <span class="c1"># command</span>
+<span class="c1">#0  BP - Watch  #&lt;PostsController:0x00007fce69ca5320&gt; @_response_body =</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="[20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
+    20|   end
+    21|
+    22|   # POST /posts or /posts.json
+    23|   def create
+    24|     @post = Post.new(post_params)
+=>  25|     debugger
+    26|
+    27|     respond_to do |format|
+    28|       if @post.save!
+    29|         format.html { redirect_to @post, notice: &quot;Post was successfully created.&quot; }
+=>#0    PostsController#create at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:25
+  #1    ActionController::BasicImplicitRender#send_action(method=&quot;create&quot;, args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/basic_implicit_render.rb:6
+  # and 72 frames (use `bt' command for all frames)
+(rdbg) watch @_response_body    # command
+#0  BP - Watch  #<PostsController:0x00007fce69ca5320> @_response_body =
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight rb"><span class="p">(</span><span class="n">rdbg</span><span class="p">)</span> <span class="n">c</span>    <span class="c1"># continue command</span>
+<span class="p">[</span><span class="mi">173</span><span class="p">,</span> <span class="mi">182</span><span class="p">]</span> <span class="k">in</span> <span class="o">~</span><span class="sr">/.rbenv/</span><span class="n">versions</span><span class="o">/</span><span class="mf">3.0</span><span class="o">.</span><span class="mi">1</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">ruby</span><span class="o">/</span><span class="n">gems</span><span class="o">/</span><span class="mf">3.0</span><span class="o">.</span><span class="mi">0</span><span class="o">/</span><span class="n">gems</span><span class="o">/</span><span class="n">actionpack</span><span class="o">-</span><span class="mf">7.0</span><span class="o">.</span><span class="mi">0</span><span class="p">.</span><span class="nf">alpha2</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">action_controller</span><span class="o">/</span><span class="n">metal</span><span class="p">.</span><span class="nf">rb</span>
+   <span class="mi">173</span><span class="o">|</span>       <span class="n">body</span> <span class="o">=</span> <span class="p">[</span><span class="n">body</span><span class="p">]</span> <span class="k">unless</span> <span class="n">body</span><span class="p">.</span><span class="nf">nil?</span> <span class="o">||</span> <span class="n">body</span><span class="p">.</span><span class="nf">respond_to?</span><span class="p">(</span><span class="ss">:each</span><span class="p">)</span>
+   <span class="mi">174</span><span class="o">|</span>       <span class="n">response</span><span class="p">.</span><span class="nf">reset_body!</span>
+   <span class="mi">175</span><span class="o">|</span>       <span class="k">return</span> <span class="k">unless</span> <span class="n">body</span>
+   <span class="mi">176</span><span class="o">|</span>       <span class="n">response</span><span class="p">.</span><span class="nf">body</span> <span class="o">=</span> <span class="n">body</span>
+   <span class="mi">177</span><span class="o">|</span>       <span class="k">super</span>
+<span class="o">=&gt;</span> <span class="mi">178</span><span class="o">|</span>     <span class="k">end</span>
+   <span class="mi">179</span><span class="o">|</span>
+   <span class="mi">180</span><span class="o">|</span>     <span class="c1"># Tests if render or redirect has already happened.</span>
+   <span class="mi">181</span><span class="o">|</span>     <span class="k">def</span> <span class="nf">performed?</span>
+   <span class="mi">182</span><span class="o">|</span>       <span class="n">response_body</span> <span class="o">||</span> <span class="n">response</span><span class="p">.</span><span class="nf">committed?</span>
+<span class="o">=&gt;</span><span class="c1">#0    ActionController::Metal#response_body=(body=["&lt;html&gt;&lt;body&gt;You are being &lt;a href=\"ht...) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal.rb:178 #=&gt; ["&lt;html&gt;&lt;body&gt;You are being &lt;a href=\"ht...</span>
+  <span class="c1">#1    ActionController::Redirecting#redirect_to(options=#&lt;Post id: 13, title: "qweqwe", content:..., response_options={:allow_other_host=&gt;false}) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/redirecting.rb:74</span>
+  <span class="c1"># and 82 frames (use `bt' command for all frames)</span>
+
+<span class="no">Stop</span> <span class="n">by</span> <span class="c1">#0  BP - Watch  #&lt;PostsController:0x00007fce69ca5320&gt; @_response_body =  -&gt; ["&lt;html&gt;&lt;body&gt;You are being &lt;a href=\"http://localhost:3000/posts/13\"&gt;redirected&lt;/a&gt;.&lt;/body&gt;&lt;/html&gt;"]</span>
+<span class="p">(</span><span class="n">rdbg</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="(rdbg) c    # continue command
+[173, 182] in ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal.rb
+   173|       body = [body] unless body.nil? || body.respond_to?(:each)
+   174|       response.reset_body!
+   175|       return unless body
+   176|       response.body = body
+   177|       super
+=> 178|     end
+   179|
+   180|     # Tests if render or redirect has already happened.
+   181|     def performed?
+   182|       response_body || response.committed?
+=>#0    ActionController::Metal#response_body=(body=[&quot;<html><body>You are being <a href=\&quot;ht...) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal.rb:178 #=> [&quot;<html><body>You are being <a href=\&quot;ht...
+  #1    ActionController::Redirecting#redirect_to(options=#<Post id: 13, title: &quot;qweqwe&quot;, content:..., response_options={:allow_other_host=>false}) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/redirecting.rb:74
+  # and 82 frames (use `bt' command for all frames)
+
+Stop by #0  BP - Watch  #<PostsController:0x00007fce69ca5320> @_response_body =  -> [&quot;<html><body>You are being <a href=\&quot;http://localhost:3000/posts/13\&quot;>redirected</a>.</body></html>&quot;]
+(rdbg)
+">Copy</button>
+</div>
+<h4 id="breakpoint-options"><a class="anchorlink" href="#breakpoint-options">4.3.4 Breakpoint Options</a></h4><p>In addition to different types of breakpoints, you can also specify options to achieve more advanced debugging workflows. Currently, the debugger supports 4 options:</p>
+<ul>
+<li><code>do: &lt;cmd or expr&gt;</code> - when the breakpoint is triggered, execute the given command/expression and continue the program:
+
+<ul>
+<li><code>break Foo#bar do: bt</code> - when <code>Foo#bar</code> is called, print the stack frames.</li>
+</ul></li>
+<li><code>pre: &lt;cmd or expr&gt;</code> - when the breakpoint is triggered, execute the given command/expression before stopping:
+
+<ul>
+<li><code>break Foo#bar pre: info</code> - when <code>Foo#bar</code> is called, print its surrounding variables before stopping.</li>
+</ul></li>
+<li><code>if: &lt;expr&gt;</code> - the breakpoint only stops if the result of <code>&lt;expr</code>&gt; is true:
+
+<ul>
+<li><code>break Post#save if: params[:debug]</code> - stops at <code>Post#save</code> if <code>params[:debug]</code> is also true.</li>
+</ul></li>
+<li><code>path: &lt;path_regexp&gt;</code> - the breakpoint only stops if the event that triggers it (e.g. a method call) happens from the given path:
+
+<ul>
+<li><code>break Post#save path: app/services/a_service</code> - stops at <code>Post#save</code> if the method call happens at a path that includes <code>app/services/a_service</code>.</li>
+</ul></li>
+</ul>
+<p>Please also note that the first 3 options: <code>do:</code>, <code>pre:</code> and <code>if:</code> are also available for the debug statements we mentioned earlier. For example:</p><div class="code_container">
+<pre><code class="highlight rb"><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">11</span><span class="p">]</span> <span class="k">in</span> <span class="o">~</span><span class="sr">/projects/</span><span class="n">rails</span><span class="o">-</span><span class="n">guide</span><span class="o">-</span><span class="n">example</span><span class="o">/</span><span class="n">app</span><span class="o">/</span><span class="n">controllers</span><span class="o">/</span><span class="n">posts_controller</span><span class="p">.</span><span class="nf">rb</span>
+     <span class="mi">2</span><span class="o">|</span>   <span class="n">before_action</span> <span class="ss">:set_post</span><span class="p">,</span> <span class="ss">only: </span><span class="sx">%i[ show edit update destroy ]</span>
+     <span class="mi">3</span><span class="o">|</span>
+     <span class="mi">4</span><span class="o">|</span>   <span class="c1"># GET /posts or /posts.json</span>
+     <span class="mi">5</span><span class="o">|</span>   <span class="k">def</span> <span class="nf">index</span>
+     <span class="mi">6</span><span class="o">|</span>     <span class="vi">@posts</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">all</span>
+<span class="o">=&gt;</span>   <span class="mi">7</span><span class="o">|</span>     <span class="n">debugger</span><span class="p">(</span><span class="ss">do: </span><span class="s2">"info"</span><span class="p">)</span>
+     <span class="mi">8</span><span class="o">|</span>   <span class="k">end</span>
+     <span class="mi">9</span><span class="o">|</span>
+    <span class="mi">10</span><span class="o">|</span>   <span class="c1"># GET /posts/1 or /posts/1.json</span>
+    <span class="mi">11</span><span class="o">|</span>   <span class="k">def</span> <span class="nf">show</span>
+<span class="o">=&gt;</span><span class="c1">#0    PostsController#index at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:7</span>
+  <span class="c1">#1    ActionController::BasicImplicitRender#send_action(method="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/basic_implicit_render.rb:6</span>
+  <span class="c1"># and 72 frames (use `bt' command for all frames)</span>
+<span class="p">(</span><span class="n">rdbg</span><span class="ss">:binding</span><span class="p">.</span><span class="nf">break</span><span class="p">)</span> <span class="n">info</span>
+<span class="o">%</span><span class="nb">self</span> <span class="o">=</span> <span class="c1">#&lt;PostsController:0x00000000017480&gt;</span>
+<span class="vi">@_action_has_layout</span> <span class="o">=</span> <span class="kp">true</span>
+<span class="vi">@_action_name</span> <span class="o">=</span> <span class="s2">"index"</span>
+<span class="vi">@_config</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="vi">@_lookup_context</span> <span class="o">=</span> <span class="c1">#&lt;ActionView::LookupContext:0x00007fce3ad336b8 @details_key=nil, @digest_cache=...</span>
+<span class="vi">@_request</span> <span class="o">=</span> <span class="c1">#&lt;ActionDispatch::Request GET "http://localhost:3000/posts" for 127.0.0.1&gt;</span>
+<span class="vi">@_response</span> <span class="o">=</span> <span class="c1">#&lt;ActionDispatch::Response:0x00007fce3ad397e8 @mon_data=#&lt;Monitor:0x00007fce3ad396a8&gt;...</span>
+<span class="vi">@_response_body</span> <span class="o">=</span> <span class="kp">nil</span>
+<span class="vi">@_routes</span> <span class="o">=</span> <span class="kp">nil</span>
+<span class="vi">@marked_for_same_origin_verification</span> <span class="o">=</span> <span class="kp">true</span>
+<span class="vi">@posts</span> <span class="o">=</span> <span class="c1">#&lt;ActiveRecord::Relation [#&lt;Post id: 2, title: "qweqwe", content: "qweqwe", created_at: "...</span>
+<span class="vi">@rendered_format</span> <span class="o">=</span> <span class="kp">nil</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="[2, 11] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
+     2|   before_action :set_post, only: %i[ show edit update destroy ]
+     3|
+     4|   # GET /posts or /posts.json
+     5|   def index
+     6|     @posts = Post.all
+=>   7|     debugger(do: &quot;info&quot;)
+     8|   end
+     9|
+    10|   # GET /posts/1 or /posts/1.json
+    11|   def show
+=>#0    PostsController#index at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:7
+  #1    ActionController::BasicImplicitRender#send_action(method=&quot;index&quot;, args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal/basic_implicit_render.rb:6
+  # and 72 frames (use `bt' command for all frames)
+(rdbg:binding.break) info
+%self = #<PostsController:0x00000000017480>
+@_action_has_layout = true
+@_action_name = &quot;index&quot;
+@_config = {}
+@_lookup_context = #<ActionView::LookupContext:0x00007fce3ad336b8 @details_key=nil, @digest_cache=...
+@_request = #<ActionDispatch::Request GET &quot;http://localhost:3000/posts&quot; for 127.0.0.1>
+@_response = #<ActionDispatch::Response:0x00007fce3ad397e8 @mon_data=#<Monitor:0x00007fce3ad396a8>...
+@_response_body = nil
+@_routes = nil
+@marked_for_same_origin_verification = true
+@posts = #<ActiveRecord::Relation [#<Post id: 2, title: &quot;qweqwe&quot;, content: &quot;qweqwe&quot;, created_at: &quot;...
+@rendered_format = nil
+">Copy</button>
+</div>
+<h4 id="program-your-debugging-workflow"><a class="anchorlink" href="#program-your-debugging-workflow">4.3.5 Program Your Debugging Workflow</a></h4><p>With those options, you can script your debugging workflow in one line like:</p><div class="code_container">
+<pre><code class="highlight rb"><span class="k">def</span> <span class="nf">create</span>
+  <span class="n">debugger</span><span class="p">(</span><span class="ss">do: </span><span class="s2">"catch ActiveRecord::RecordInvalid do: bt 10"</span><span class="p">)</span>
+  <span class="c1"># ...</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="def create
+  debugger(do: &quot;catch ActiveRecord::RecordInvalid do: bt 10&quot;)
+  # ...
+end
+">Copy</button>
+</div>
+<p>And then the debugger will run the scripted command and insert the catch breakpoint</p><div class="code_container">
+<pre><code class="highlight rb"><span class="p">(</span><span class="n">rdbg</span><span class="ss">:binding</span><span class="p">.</span><span class="nf">break</span><span class="p">)</span> <span class="kp">catch</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">RecordInvalid</span> <span class="ss">do: </span><span class="n">bt</span> <span class="mi">10</span>
+<span class="c1">#0  BP - Catch  "ActiveRecord::RecordInvalid"</span>
+<span class="p">[</span><span class="mi">75</span><span class="p">,</span> <span class="mi">84</span><span class="p">]</span> <span class="k">in</span> <span class="o">~</span><span class="sr">/.rbenv/</span><span class="n">versions</span><span class="o">/</span><span class="mf">3.0</span><span class="o">.</span><span class="mi">1</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">ruby</span><span class="o">/</span><span class="n">gems</span><span class="o">/</span><span class="mf">3.0</span><span class="o">.</span><span class="mi">0</span><span class="o">/</span><span class="n">gems</span><span class="o">/</span><span class="n">activerecord</span><span class="o">-</span><span class="mf">7.0</span><span class="o">.</span><span class="mi">0</span><span class="p">.</span><span class="nf">alpha2</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">active_record</span><span class="o">/</span><span class="n">validations</span><span class="p">.</span><span class="nf">rb</span>
+    <span class="mi">75</span><span class="o">|</span>     <span class="k">def</span> <span class="nf">default_validation_context</span>
+    <span class="mi">76</span><span class="o">|</span>       <span class="n">new_record?</span> <span class="p">?</span> <span class="ss">:create</span> <span class="p">:</span> <span class="ss">:update</span>
+    <span class="mi">77</span><span class="o">|</span>     <span class="k">end</span>
+    <span class="mi">78</span><span class="o">|</span>
+    <span class="mi">79</span><span class="o">|</span>     <span class="k">def</span> <span class="nf">raise_validation_error</span>
+<span class="o">=&gt;</span>  <span class="mi">80</span><span class="o">|</span>       <span class="k">raise</span><span class="p">(</span><span class="no">RecordInvalid</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="nb">self</span><span class="p">))</span>
+    <span class="mi">81</span><span class="o">|</span>     <span class="k">end</span>
+    <span class="mi">82</span><span class="o">|</span>
+    <span class="mi">83</span><span class="o">|</span>     <span class="k">def</span> <span class="nf">perform_validations</span><span class="p">(</span><span class="n">options</span> <span class="o">=</span> <span class="p">{})</span>
+    <span class="mi">84</span><span class="o">|</span>       <span class="n">options</span><span class="p">[</span><span class="ss">:validate</span><span class="p">]</span> <span class="o">==</span> <span class="kp">false</span> <span class="o">||</span> <span class="n">valid?</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="ss">:context</span><span class="p">])</span>
+<span class="o">=&gt;</span><span class="c1">#0    ActiveRecord::Validations#raise_validation_error at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:80</span>
+  <span class="c1">#1    ActiveRecord::Validations#save!(options={}) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:53</span>
+  <span class="c1"># and 88 frames (use `bt' command for all frames)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="(rdbg:binding.break) catch ActiveRecord::RecordInvalid do: bt 10
+#0  BP - Catch  &quot;ActiveRecord::RecordInvalid&quot;
+[75, 84] in ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb
+    75|     def default_validation_context
+    76|       new_record? ? :create : :update
+    77|     end
+    78|
+    79|     def raise_validation_error
+=>  80|       raise(RecordInvalid.new(self))
+    81|     end
+    82|
+    83|     def perform_validations(options = {})
+    84|       options[:validate] == false || valid?(options[:context])
+=>#0    ActiveRecord::Validations#raise_validation_error at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:80
+  #1    ActiveRecord::Validations#save!(options={}) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:53
+  # and 88 frames (use `bt' command for all frames)
+">Copy</button>
+</div>
+<p>Once the catch breakpoint is triggered, it'll print the stack frames</p><div class="code_container">
+<pre><code class="highlight rb"><span class="no">Stop</span> <span class="n">by</span> <span class="c1">#0  BP - Catch  "ActiveRecord::RecordInvalid"</span>
+
+<span class="p">(</span><span class="n">rdbg</span><span class="ss">:catch</span><span class="p">)</span> <span class="n">bt</span> <span class="mi">10</span>
+<span class="o">=&gt;</span><span class="c1">#0    ActiveRecord::Validations#raise_validation_error at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:80</span>
+  <span class="c1">#1    ActiveRecord::Validations#save!(options={}) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:53</span>
+  <span class="c1">#2    block in save! at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/transactions.rb:302</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Stop by #0  BP - Catch  &quot;ActiveRecord::RecordInvalid&quot;
+
+(rdbg:catch) bt 10
+=>#0    ActiveRecord::Validations#raise_validation_error at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:80
+  #1    ActiveRecord::Validations#save!(options={}) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb:53
+  #2    block in save! at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/transactions.rb:302
+">Copy</button>
+</div>
+<p>This technique can save you from repeated manual input and make the debugging experience smoother.</p><p>You can find more commands and configuration options from its <a href="https://github.com/ruby/debug">documentation</a>.</p><h2 id="debugging-with-the-web-console-gem"><a class="anchorlink" href="#debugging-with-the-web-console-gem">5 Debugging with the <code>web-console</code> Gem</a></h2><p>Web Console is a bit like <code>debug</code>, but it runs in the browser. You can request a console in the context of a view or a controller on any page. The console would be rendered next to your HTML content.</p><h3 id="console"><a class="anchorlink" href="#console">5.1 Console</a></h3><p>Inside any controller action or view, you can invoke the console by
+calling the <code>console</code> method.</p><p>For example, in a controller:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">class</span> <span class="nc">PostsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">new</span>
+    <span class="n">console</span>
+    <span class="vi">@post</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">new</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="class PostsController < ApplicationController
+  def new
+    console
+    @post = Post.new
+  end
+end
+">Copy</button>
+</div>
+<p>Or in a view:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%</span> <span class="n">console</span> <span class="cp">%&gt;</span>
+
+<span class="nt">&lt;h2&gt;</span>New Post<span class="nt">&lt;/h2&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<% console %>
+
+<h2>New Post</h2>
+">Copy</button>
+</div>
+<p>This will render a console inside your view. You don't need to care about the
+location of the <code>console</code> call; it won't be rendered on the spot of its
+invocation but next to your HTML content.</p><p>The console executes pure Ruby code: You can define and instantiate
+custom classes, create new models, and inspect variables.</p><div class="note"><p>Only one console can be rendered per request. Otherwise <code>web-console</code>
+will raise an error on the second <code>console</code> invocation.</p></div><h3 id="inspecting-variables"><a class="anchorlink" href="#inspecting-variables">5.2 Inspecting Variables</a></h3><p>You can invoke <code>instance_variables</code> to list all the instance variables
+available in your context. If you want to list all the local variables, you can
+do that with <code>local_variables</code>.</p><h3 id="settings"><a class="anchorlink" href="#settings">5.3 Settings</a></h3>
+<ul>
+<li><code>config.web_console.allowed_ips</code>: Authorized list of IPv4 or IPv6
+addresses and networks (defaults: <code>127.0.0.1/8, ::1</code>).</li>
+<li><code>config.web_console.whiny_requests</code>: Log a message when a console rendering
+is prevented (defaults: <code>true</code>).</li>
+</ul>
+<p>Since <code>web-console</code> evaluates plain Ruby code remotely on the server, don't try
+to use it in production.</p><h2 id="debugging-memory-leaks"><a class="anchorlink" href="#debugging-memory-leaks">6 Debugging Memory Leaks</a></h2><p>A Ruby application (on Rails or not), can leak memory — either in the Ruby code
+or at the C code level.</p><p>In this section, you will learn how to find and fix such leaks by using tools
+such as Valgrind.</p><h3 id="valgrind"><a class="anchorlink" href="#valgrind">6.1 Valgrind</a></h3><p><a href="http://valgrind.org/">Valgrind</a> is an application for detecting C-based memory
+leaks and race conditions.</p><p>There are Valgrind tools that can automatically detect many memory management
+and threading bugs, and profile your programs in detail. For example, if a C
+extension in the interpreter calls <code>malloc()</code> but doesn't properly call
+<code>free()</code>, this memory won't be available until the app terminates.</p><p>For further information on how to install Valgrind and use with Ruby, refer to
+<a href="https://web.archive.org/web/20230518081626/https://blog.evanweaver.com/2008/02/05/valgrind-and-ruby/">Valgrind and Ruby</a>
+by Evan Weaver.</p><h3 id="find-a-memory-leak"><a class="anchorlink" href="#find-a-memory-leak">6.2 Find a Memory Leak</a></h3><p>There is an excellent article about detecting and fixing memory leaks at Derailed, <a href="https://github.com/schneems/derailed_benchmarks#is-my-app-leaking-memory">which you can read here</a>.</p><h2 id="plugins-for-debugging"><a class="anchorlink" href="#plugins-for-debugging">7 Plugins for Debugging</a></h2><p>There are some Rails plugins to help you to find errors and debug your
+application. Here is a list of useful plugins for debugging:</p>
+<ul>
+<li><a href="https://github.com/ruckus/active-record-query-trace/tree/master">Query Trace</a> Adds query
+origin tracing to your logs.</li>
+<li><a href="https://github.com/smartinez87/exception_notification/tree/master">Exception Notifier</a>
+Provides a mailer object and a default set of templates for sending email
+notifications when errors occur in a Rails application.</li>
+<li><a href="https://github.com/charliesome/better_errors">Better Errors</a> Replaces the
+standard Rails error page with a new one containing more contextual information,
+like source code and variable inspection.</li>
+<li><a href="https://github.com/dejan/rails_panel">RailsPanel</a> Chrome extension for Rails
+development that will end your tailing of development.log. Have all information
+about your Rails app requests in the browser — in the Developer Tools panel.
+Provides insight to db/rendering/total times, parameter list, rendered views and
+more.</li>
+<li><a href="https://github.com/pry/pry">Pry</a> An IRB alternative and runtime developer console.</li>
+</ul>
+<h2 id="references"><a class="anchorlink" href="#references">8 References</a></h2>
+<ul>
+<li><a href="https://github.com/rails/web-console">web-console Homepage</a></li>
+<li><a href="https://github.com/ruby/debug">debug homepage</a></li>
+</ul>
+
+
+        <h3>Feedback</h3>
+        <p>
+          You're encouraged to help improve the quality of this guide.
+        </p>
+        <p>
+          Please contribute if you see any typos or factual errors.
+          To get started, you can read our <a href="https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation">documentation contributions</a> section.
+        </p>
+        <p>
+          You may also find incomplete content or stuff that is not up to date.
+          Please do add any missing documentation for main. Make sure to check
+          <a href="https://edgeguides.rubyonrails.org">Edge Guides</a> first to verify
+          if the issues are already fixed or not on the main branch.
+          Check the <a href="ruby_on_rails_guides_guidelines.html">Ruby on Rails Guides Guidelines</a>
+          for style and conventions.
+        </p>
+        <p>
+          If for whatever reason you spot something to fix but cannot patch it yourself, please
+          <a href="https://github.com/rails/rails/issues">open an issue</a>.
+        </p>
+        <p>And last but not least, any kind of discussion regarding Ruby on Rails
+          documentation is very welcome on the <a href="https://discuss.rubyonrails.org/c/rubyonrails-docs">official Ruby on Rails Forum</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="hide" />
+  <div id="footer">
+    <div class="wrapper">
+      <p>This work is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International</a> License</p>
+<p>"Rails", "Ruby on Rails", and the Rails logo are trademarks of David Heinemeier Hansson. All rights reserved.</p>
+
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ruby on Rails 3.0 Release Notes — Ruby on Rails Guides</title>
+  <link rel="stylesheet" type="text/css" href="stylesheets/style.css" data-turbo-track="reload">
+  <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+  <link rel="stylesheet" type="text/css" href="stylesheets/highlight.css" data-turbo-track="reload">
+  
+  <link rel="icon" href="images/favicon.ico" sizes="any">
+  <link rel="icon" href="images/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="images/icon.png">
+  
+  <script src="javascripts/@hotwired--turbo.js" data-turbo-track="reload"></script>
+  <script src="javascripts/clipboard.js" data-turbo-track="reload"></script>
+  <script src="javascripts/guides.js" data-turbo-track="reload"></script>
+
+  <meta property="og:title" content="Ruby on Rails 3.0 Release Notes — Ruby on Rails Guides" />
+  <meta name="description" content="Ruby on Rails 3.0 Release NotesRails 3.0 is ponies and rainbows! It&#39;s going to cook you dinner and fold your laundry. You&#39;re going to wonder how life was ever possible before it arrived. It&#39;s the Best Version of Rails We&#39;ve Ever Done!But seriously now, it&#39;s really good stuff. There are all the good ideas brought over from when the Merb team joined the party and brought a focus on framework agnosticism, slimmer and faster internals, and a handful of tasty APIs. If you&#39;re coming to Rails 3.0 from Merb 1.x, you should recognize lots. If you&#39;re coming from Rails 2.x, you&#39;re going to love it too.Even if you don&#39;t give a hoot about any of our internal cleanups, Rails 3.0 is going to delight. We have a bunch of new features and improved APIs. It&#39;s never been a better time to be a Rails developer. Some of the highlights are: Brand new router with an emphasis on RESTful declarations New Action Mailer API modeled after Action Controller (now without the agonizing pain of sending multipart messages!) New Active Record chainable query language built on top of relational algebra Unobtrusive JavaScript helpers with drivers for Prototype, jQuery, and more coming (end of inline JS) Explicit dependency management with Bundler On top of all that, we&#39;ve tried our best to deprecate the old APIs with nice warnings. That means that you can move your existing application to Rails 3 without immediately rewriting all your old code to the latest best practices.These release notes cover the major upgrades, but don&#39;t include every little bug fix and change. Rails 3.0 consists of almost 4,000 commits by more than 250 authors! If you want to see everything, check out the list of commits in the main Rails repository on GitHub." />
+  <meta property="og:description" content="Ruby on Rails 3.0 Release NotesRails 3.0 is ponies and rainbows! It&#39;s going to cook you dinner and fold your laundry. You&#39;re going to wonder how life was ever possible before it arrived. It&#39;s the Best Version of Rails We&#39;ve Ever Done!But seriously now, it&#39;s really good stuff. There are all the good ideas brought over from when the Merb team joined the party and brought a focus on framework agnosticism, slimmer and faster internals, and a handful of tasty APIs. If you&#39;re coming to Rails 3.0 from Merb 1.x, you should recognize lots. If you&#39;re coming from Rails 2.x, you&#39;re going to love it too.Even if you don&#39;t give a hoot about any of our internal cleanups, Rails 3.0 is going to delight. We have a bunch of new features and improved APIs. It&#39;s never been a better time to be a Rails developer. Some of the highlights are: Brand new router with an emphasis on RESTful declarations New Action Mailer API modeled after Action Controller (now without the agonizing pain of sending multipart messages!) New Active Record chainable query language built on top of relational algebra Unobtrusive JavaScript helpers with drivers for Prototype, jQuery, and more coming (end of inline JS) Explicit dependency management with Bundler On top of all that, we&#39;ve tried our best to deprecate the old APIs with nice warnings. That means that you can move your existing application to Rails 3 without immediately rewriting all your old code to the latest best practices.These release notes cover the major upgrades, but don&#39;t include every little bug fix and change. Rails 3.0 consists of almost 4,000 commits by more than 250 authors! If you want to see everything, check out the list of commits in the main Rails repository on GitHub." />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:site_name" content="Ruby on Rails Guides" />
+  <meta property="og:image" content="https://avatars.githubusercontent.com/u/4223" />
+  <meta property="og:type" content="website" />
+
+  <meta name="theme-color" content="#C81418">
+</head>
+
+<body dir="ltr" class="guide">
+  <div>
+    <div id="version-badge">edge</div>
+  </div>
+  <div id="topNav">
+    <div class="wrapper">
+      <strong class="more-info-label">More at <a href="https://rubyonrails.org/">rubyonrails.org:</a> </strong>
+      <span class="red-button more-info-button">
+        More Ruby on Rails
+      </span>
+      <ul class="more-info-links s-hidden">
+        <li class="more-info"><a href="https://rubyonrails.org/blog">Blog</a></li>
+        <li class="more-info"><a href="https://guides.rubyonrails.org/">Guides</a></li>
+        <li class="more-info"><a href="https://api.rubyonrails.org/">API</a></li>
+        <li class="more-info"><a href="https://discuss.rubyonrails.org/">Forum</a></li>
+        <li class="more-info"><a href="https://github.com/rails/rails">Contribute on GitHub</a></li>
+      </ul>
+    </div>
+  </div>
+  <div id="header">
+    <div class="wrapper clearfix">
+      <div class="header-logo"><a href="index.html" title="Return to home page">Guides.rubyonrails.org</a></div>
+      <ul class="nav">
+        <li><a class="nav-item" href="index.html">Home</a></li>
+        <li class="guides-index guides-index-large">
+          <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
+          <div id="guides" class="clearfix" style="display: none;">
+            <hr />
+            <dl class="guides-section-container">
+                <div class="guides-section">
+                  <dt>Start Here</dt>
+                  <dd><a href="getting_started.html">Getting Started with Rails</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Models</dt>
+                  <dd><a href="active_record_basics.html">Active Record Basics</a></dd>
+                  <dd><a href="active_record_migrations.html">Active Record Migrations</a></dd>
+                  <dd><a href="active_record_validations.html">Active Record Validations</a></dd>
+                  <dd><a href="active_record_callbacks.html">Active Record Callbacks</a></dd>
+                  <dd><a href="association_basics.html">Active Record Associations</a></dd>
+                  <dd><a href="active_record_querying.html">Active Record Query Interface</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Views</dt>
+                  <dd><a href="layouts_and_rendering.html">Layouts and Rendering in Rails</a></dd>
+                  <dd><a href="form_helpers.html">Action View Form Helpers</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Controllers</dt>
+                  <dd><a href="action_controller_overview.html">Action Controller Overview</a></dd>
+                  <dd><a href="routing.html">Rails Routing from the Outside In</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Other Components</dt>
+                  <dd><a href="active_support_core_extensions.html">Active Support Core Extensions</a></dd>
+                  <dd><a href="action_mailer_basics.html">Action Mailer Basics</a></dd>
+                  <dd><a href="active_job_basics.html">Active Job Basics</a></dd>
+                  <dd><a href="active_storage_overview.html">Active Storage Overview</a></dd>
+                  <dd><a href="action_cable_overview.html">Action Cable Overview</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Digging Deeper</dt>
+                  <dd><a href="i18n.html">Rails Internationalization (I18n) API</a></dd>
+                  <dd><a href="testing.html">Testing Rails Applications</a></dd>
+                  <dd><a href="security.html">Securing Rails Applications</a></dd>
+                  <dd><a href="error_reporting.html">Error Reporting in Rails Applications</a></dd>
+                  <dd><a href="debugging_rails_applications.html">Debugging Rails Applications</a></dd>
+                  <dd><a href="configuring.html">Configuring Rails Applications</a></dd>
+                  <dd><a href="command_line.html">The Rails Command Line</a></dd>
+                  <dd><a href="asset_pipeline.html">The Asset Pipeline</a></dd>
+                  <dd><a href="working_with_javascript_in_rails.html">Working with JavaScript in Rails</a></dd>
+                  <dd><a href="autoloading_and_reloading_constants.html">Autoloading and Reloading</a></dd>
+                  <dd><a href="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</a></dd>
+                  <dd><a href="caching_with_rails.html">Caching with Rails: An Overview</a></dd>
+                  <dd><a href="api_app.html">Using Rails for API-only Applications</a></dd>
+                  <dd><a href="active_record_multiple_databases.html">Multiple Databases</a></dd>
+                  <dd><a href="active_record_composite_primary_keys.html">Composite Primary Keys</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Extending Rails</dt>
+                  <dd><a href="rails_on_rack.html">Rails on Rack</a></dd>
+                  <dd><a href="generators.html">Creating and Customizing Rails Generators &amp; Templates</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Contributing</dt>
+                  <dd><a href="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</a></dd>
+                  <dd><a href="api_documentation_guidelines.html">API Documentation Guidelines</a></dd>
+                  <dd><a href="ruby_on_rails_guides_guidelines.html">Guides Guidelines</a></dd>
+                  <dd><a href="development_dependencies_install.html">Installing Rails Core Development Dependencies</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Policies</dt>
+                  <dd><a href="maintenance_policy.html">Maintenance Policy</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Release Notes</dt>
+                  <dd><a href="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</a></dd>
+                  <dd><a href="7_1_release_notes.html">Version 7.1 - October 2023</a></dd>
+                  <dd><a href="7_0_release_notes.html">Version 7.0 - December 2021</a></dd>
+                  <dd><a href="6_1_release_notes.html">Version 6.1 - December 2020</a></dd>
+                  <dd><a href="6_0_release_notes.html">Version 6.0 - August 2019</a></dd>
+                  <dd><a href="5_2_release_notes.html">Version 5.2 - April 2018</a></dd>
+                  <dd><a href="5_1_release_notes.html">Version 5.1 - April 2017</a></dd>
+                  <dd><a href="5_0_release_notes.html">Version 5.0 - June 2016</a></dd>
+                  <dd><a href="4_2_release_notes.html">Version 4.2 - December 2014</a></dd>
+                  <dd><a href="4_1_release_notes.html">Version 4.1 - April 2014</a></dd>
+                  <dd><a href="4_0_release_notes.html">Version 4.0 - June 2013</a></dd>
+                  <dd><a href="3_2_release_notes.html">Version 3.2 - January 2012</a></dd>
+                  <dd><a href="3_1_release_notes.html">Version 3.1 - August 2011</a></dd>
+                  <dd><a href="3_0_release_notes.html">Version 3.0 - August 2010</a></dd>
+                  <dd><a href="2_3_release_notes.html">Version 2.3 - March 2009</a></dd>
+                  <dd><a href="2_2_release_notes.html">Version 2.2 - November 2008</a></dd>
+                </div>
+            </dl>
+          </div>
+        </li>
+        <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
+        <li class="guides-index guides-index-small">
+          <select class="guides-index-item nav-item">
+            <option value="index.html">Guides Index</option>
+              <optgroup label="Start Here">
+                  <option value="getting_started.html">Getting Started with Rails</option>
+              </optgroup>
+              <optgroup label="Models">
+                  <option value="active_record_basics.html">Active Record Basics</option>
+                  <option value="active_record_migrations.html">Active Record Migrations</option>
+                  <option value="active_record_validations.html">Active Record Validations</option>
+                  <option value="active_record_callbacks.html">Active Record Callbacks</option>
+                  <option value="association_basics.html">Active Record Associations</option>
+                  <option value="active_record_querying.html">Active Record Query Interface</option>
+              </optgroup>
+              <optgroup label="Views">
+                  <option value="layouts_and_rendering.html">Layouts and Rendering in Rails</option>
+                  <option value="form_helpers.html">Action View Form Helpers</option>
+              </optgroup>
+              <optgroup label="Controllers">
+                  <option value="action_controller_overview.html">Action Controller Overview</option>
+                  <option value="routing.html">Rails Routing from the Outside In</option>
+              </optgroup>
+              <optgroup label="Other Components">
+                  <option value="active_support_core_extensions.html">Active Support Core Extensions</option>
+                  <option value="action_mailer_basics.html">Action Mailer Basics</option>
+                  <option value="active_job_basics.html">Active Job Basics</option>
+                  <option value="active_storage_overview.html">Active Storage Overview</option>
+                  <option value="action_cable_overview.html">Action Cable Overview</option>
+              </optgroup>
+              <optgroup label="Digging Deeper">
+                  <option value="i18n.html">Rails Internationalization (I18n) API</option>
+                  <option value="testing.html">Testing Rails Applications</option>
+                  <option value="security.html">Securing Rails Applications</option>
+                  <option value="error_reporting.html">Error Reporting in Rails Applications</option>
+                  <option value="debugging_rails_applications.html">Debugging Rails Applications</option>
+                  <option value="configuring.html">Configuring Rails Applications</option>
+                  <option value="command_line.html">The Rails Command Line</option>
+                  <option value="asset_pipeline.html">The Asset Pipeline</option>
+                  <option value="working_with_javascript_in_rails.html">Working with JavaScript in Rails</option>
+                  <option value="autoloading_and_reloading_constants.html">Autoloading and Reloading</option>
+                  <option value="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</option>
+                  <option value="caching_with_rails.html">Caching with Rails: An Overview</option>
+                  <option value="api_app.html">Using Rails for API-only Applications</option>
+                  <option value="active_record_multiple_databases.html">Multiple Databases</option>
+                  <option value="active_record_composite_primary_keys.html">Composite Primary Keys</option>
+              </optgroup>
+              <optgroup label="Extending Rails">
+                  <option value="rails_on_rack.html">Rails on Rack</option>
+                  <option value="generators.html">Creating and Customizing Rails Generators &amp; Templates</option>
+              </optgroup>
+              <optgroup label="Contributing">
+                  <option value="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</option>
+                  <option value="api_documentation_guidelines.html">API Documentation Guidelines</option>
+                  <option value="ruby_on_rails_guides_guidelines.html">Guides Guidelines</option>
+                  <option value="development_dependencies_install.html">Installing Rails Core Development Dependencies</option>
+              </optgroup>
+              <optgroup label="Policies">
+                  <option value="maintenance_policy.html">Maintenance Policy</option>
+              </optgroup>
+              <optgroup label="Release Notes">
+                  <option value="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</option>
+                  <option value="7_1_release_notes.html">Version 7.1 - October 2023</option>
+                  <option value="7_0_release_notes.html">Version 7.0 - December 2021</option>
+                  <option value="6_1_release_notes.html">Version 6.1 - December 2020</option>
+                  <option value="6_0_release_notes.html">Version 6.0 - August 2019</option>
+                  <option value="5_2_release_notes.html">Version 5.2 - April 2018</option>
+                  <option value="5_1_release_notes.html">Version 5.1 - April 2017</option>
+                  <option value="5_0_release_notes.html">Version 5.0 - June 2016</option>
+                  <option value="4_2_release_notes.html">Version 4.2 - December 2014</option>
+                  <option value="4_1_release_notes.html">Version 4.1 - April 2014</option>
+                  <option value="4_0_release_notes.html">Version 4.0 - June 2013</option>
+                  <option value="3_2_release_notes.html">Version 3.2 - January 2012</option>
+                  <option value="3_1_release_notes.html">Version 3.1 - August 2011</option>
+                  <option value="3_0_release_notes.html">Version 3.0 - August 2010</option>
+                  <option value="2_3_release_notes.html">Version 2.3 - March 2009</option>
+                  <option value="2_2_release_notes.html">Version 2.2 - November 2008</option>
+              </optgroup>
+          </select>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <hr class="hide" />
+
+  <div id="feature">
+    <div class="wrapper">
+      <h1>Ruby on Rails 3.0 Release Notes</h1><p>Rails 3.0 is ponies and rainbows! It&#39;s going to cook you dinner and fold your laundry. You&#39;re going to wonder how life was ever possible before it arrived. It&#39;s the Best Version of Rails We&#39;ve Ever Done!</p><p>But seriously now, it&#39;s really good stuff. There are all the good ideas brought over from when the Merb team joined the party and brought a focus on framework agnosticism, slimmer and faster internals, and a handful of tasty APIs. If you&#39;re coming to Rails 3.0 from Merb 1.x, you should recognize lots. If you&#39;re coming from Rails 2.x, you&#39;re going to love it too.</p><p>Even if you don&#39;t give a hoot about any of our internal cleanups, Rails 3.0 is going to delight. We have a bunch of new features and improved APIs. It&#39;s never been a better time to be a Rails developer. Some of the highlights are:</p>
+<ul>
+<li>Brand new router with an emphasis on RESTful declarations</li>
+<li>New Action Mailer API modeled after Action Controller (now without the agonizing pain of sending multipart messages!)</li>
+<li>New Active Record chainable query language built on top of relational algebra</li>
+<li>Unobtrusive JavaScript helpers with drivers for Prototype, jQuery, and more coming (end of inline JS)</li>
+<li>Explicit dependency management with Bundler</li>
+</ul>
+<p>On top of all that, we&#39;ve tried our best to deprecate the old APIs with nice warnings. That means that you can move your existing application to Rails 3 without immediately rewriting all your old code to the latest best practices.</p><p>These release notes cover the major upgrades, but don&#39;t include every little bug fix and change. Rails 3.0 consists of almost 4,000 commits by more than 250 authors! If you want to see everything, check out the <a href="https://github.com/rails/rails/commits/3-0-stable">list of commits</a> in the main Rails repository on GitHub.</p>
+
+                <div id="subCol">
+            <h3 class="chapter"><img src="images/icon_book-close-bookmark-1.svg" alt="" />Chapters</h3>
+            <ol class="chapters">
+<li><a href="#upgrading-to-rails-3">Upgrading to Rails 3</a>
+
+<ul>
+<li><a href="#rails-3-requires-at-least-ruby-1-8-7">Rails 3 requires at least Ruby 1.8.7</a></li>
+<li><a href="#rails-application-object">Rails Application object</a></li>
+<li><a href="#script-replaced-by-script-rails">script/* replaced by script/rails</a></li>
+<li><a href="#dependencies-and-config-gem">Dependencies and config.gem</a></li>
+<li><a href="#upgrade-process">Upgrade Process</a></li>
+</ul></li>
+<li><a href="#creating-a-rails-3-0-application">Creating a Rails 3.0 application</a>
+
+<ul>
+<li><a href="#vendoring-gems">Vendoring Gems</a></li>
+<li><a href="#living-on-the-edge">Living on the Edge</a></li>
+</ul></li>
+<li><a href="#rails-architectural-changes">Rails Architectural Changes</a>
+
+<ul>
+<li><a href="#railties-restrung">Railties Restrung</a></li>
+<li><a href="#all-rails-core-components-are-decoupled">All Rails core components are decoupled</a></li>
+<li><a href="#active-model-abstraction">Active Model Abstraction</a></li>
+<li><a href="#controller-abstraction">Controller Abstraction</a></li>
+<li><a href="#arel-integration">Arel Integration</a></li>
+<li><a href="#mail-extraction">Mail Extraction</a></li>
+</ul></li>
+<li><a href="#documentation">Documentation</a></li>
+<li><a href="#internationalization">Internationalization</a></li>
+<li><a href="#railties">Railties</a></li>
+<li><a href="#action-pack">Action Pack</a>
+
+<ul>
+<li><a href="#abstract-controller">Abstract Controller</a></li>
+<li><a href="#action-controller">Action Controller</a></li>
+<li><a href="#action-dispatch">Action Dispatch</a></li>
+<li><a href="#action-view">Action View</a></li>
+</ul></li>
+<li><a href="#active-model">Active Model</a>
+
+<ul>
+<li><a href="#orm-abstraction-and-action-pack-interface">ORM Abstraction and Action Pack Interface</a></li>
+<li><a href="#validations">Validations</a></li>
+</ul></li>
+<li><a href="#active-record">Active Record</a>
+
+<ul>
+<li><a href="#query-interface">Query Interface</a></li>
+<li><a href="#enhancements">Enhancements</a></li>
+<li><a href="#patches-and-deprecations">Patches and Deprecations</a></li>
+</ul></li>
+<li><a href="#active-resource">Active Resource</a></li>
+<li><a href="#active-support">Active Support</a></li>
+<li><a href="#action-mailer">Action Mailer</a></li>
+<li><a href="#credits">Credits</a></li>
+</ol>
+
+          </div>
+
+    </div>
+  </div>
+
+  <div id="container">
+    <div class="wrapper">
+      <div id="mainCol">
+        <p>To install Rails 3:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">#</span><span class="w"> </span>Use <span class="nb">sudo </span><span class="k">if </span>your setup requires it
+<span class="gp">$</span><span class="w"> </span><span class="nb">gem install rails</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="gem install rails
+">Copy</button>
+</div>
+<h2 id="upgrading-to-rails-3"><a class="anchorlink" href="#upgrading-to-rails-3">1 Upgrading to Rails 3</a></h2><p>If you're upgrading an existing application, it's a great idea to have good test coverage before going in. You should also first upgrade to Rails 2.3.5 and make sure your application still runs as expected before attempting to update to Rails 3. Then take heed of the following changes:</p><h3 id="rails-3-requires-at-least-ruby-1-8-7"><a class="anchorlink" href="#rails-3-requires-at-least-ruby-1-8-7">1.1 Rails 3 requires at least Ruby 1.8.7</a></h3><p>Rails 3.0 requires Ruby 1.8.7 or higher. Support for all of the previous Ruby versions has been dropped officially and you should upgrade as early as possible. Rails 3.0 is also compatible with Ruby 1.9.2.</p><div class="info"><p>Note that Ruby 1.8.7 p248 and p249 have marshalling bugs that crash Rails 3.0. Ruby Enterprise Edition have these fixed since release 1.8.7-2010.02 though. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults on Rails 3.0, so if you want to use Rails 3 with 1.9.x jump on 1.9.2 for smooth sailing.</p></div><h3 id="rails-application-object"><a class="anchorlink" href="#rails-application-object">1.2 Rails Application object</a></h3><p>As part of the groundwork for supporting running multiple Rails applications in the same process, Rails 3 introduces the concept of an Application object. An application object holds all the application specific configurations and is very similar in nature to <code>config/environment.rb</code> from the previous versions of Rails.</p><p>Each Rails application now must have a corresponding application object. The application object is defined in <code>config/application.rb</code>. If you're upgrading an existing application to Rails 3, you must add this file and move the appropriate configurations from <code>config/environment.rb</code> to <code>config/application.rb</code>.</p><h3 id="script-replaced-by-script-rails"><a class="anchorlink" href="#script-replaced-by-script-rails">1.3 script/* replaced by script/rails</a></h3><p>The new <code>script/rails</code> replaces all the scripts that used to be in the <code>script</code> directory. You do not run <code>script/rails</code> directly though, the <code>rails</code> command detects it is being invoked in the root of a Rails application and runs the script for you. Intended usage is:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">rails </span>console                      <span class="c"># instead of script/console</span>
+<span class="gp">$</span><span class="w"> </span><span class="nb">rails </span>g scaffold post title:string <span class="c"># instead of script/generate scaffold post title:string</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="rails console                      # instead of script/console
+rails g scaffold post title:string # instead of script/generate scaffold post title:string
+">Copy</button>
+</div>
+<p>Run <code>rails --help</code> for a list of all the options.</p><h3 id="dependencies-and-config-gem"><a class="anchorlink" href="#dependencies-and-config-gem">1.4 Dependencies and config.gem</a></h3><p>The <code>config.gem</code> method is gone and has been replaced by using <code>bundler</code> and a <code>Gemfile</code>, see <a href="#vendoring-gems">Vendoring Gems</a> below.</p><h3 id="upgrade-process"><a class="anchorlink" href="#upgrade-process">1.5 Upgrade Process</a></h3><p>To help with the upgrade process, a plugin named <a href="https://github.com/rails/rails_upgrade">Rails Upgrade</a> has been created to automate part of it.</p><p>Simply install the plugin, then run <code>rake rails:upgrade:check</code> to check your app for pieces that need to be updated (with links to information on how to update them). It also offers a task to generate a <code>Gemfile</code> based on your current <code>config.gem</code> calls and a task to generate a new routes file from your current one. To get the plugin, simply run the following:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">ruby </span>script/plugin <span class="nb">install git</span>://github.com/rails/rails_upgrade.git
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="ruby script/plugin install git://github.com/rails/rails_upgrade.git
+">Copy</button>
+</div>
+<p>You can see an example of how that works at <a href="http://omgbloglol.com/post/364624593/rails-upgrade-is-now-an-official-plugin">Rails Upgrade is now an Official Plugin</a></p><p>Aside from Rails Upgrade tool, if you need more help, there are people on IRC and <a href="https://discuss.rubyonrails.org/c/rubyonrails-talk">rubyonrails-talk</a> that are probably doing the same thing, possibly hitting the same issues. Be sure to blog your own experiences when upgrading so others can benefit from your knowledge!</p><h2 id="creating-a-rails-3-0-application"><a class="anchorlink" href="#creating-a-rails-3-0-application">2 Creating a Rails 3.0 application</a></h2><div class="code_container">
+<pre><code class="highlight console"><span class="gp">#</span><span class="w"> </span>You should have the <span class="s1">'rails'</span> RubyGem installed
+<span class="gp">$</span><span class="w"> </span><span class="nb">rails </span>new myapp
+<span class="gp">$</span><span class="w"> </span><span class="nb">cd </span>myapp
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="rails new myapp
+cd myapp
+">Copy</button>
+</div>
+<h3 id="vendoring-gems"><a class="anchorlink" href="#vendoring-gems">2.1 Vendoring Gems</a></h3><p>Rails now uses a <code>Gemfile</code> in the application root to determine the gems you require for your application to start. This <code>Gemfile</code> is processed by the <a href="https://github.com/bundler/bundler">Bundler</a> which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.</p><p>More information: - <a href="https://bundler.io/">bundler homepage</a></p><h3 id="living-on-the-edge"><a class="anchorlink" href="#living-on-the-edge">2.2 Living on the Edge</a></h3><p><code>Bundler</code> and <code>Gemfile</code> makes freezing your Rails application easy as pie with the new dedicated <code>bundle</code> command, so <code>rake freeze</code> is no longer relevant and has been dropped.</p><p>If you want to bundle straight from the Git repository, you can pass the <code>--edge</code> flag:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">rails </span>new myapp <span class="nt">--edge</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="rails new myapp --edge
+">Copy</button>
+</div>
+<p>If you have a local checkout of the Rails repository and want to generate an application using that, you can pass the <code>--dev</code> flag:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">ruby</span> /path/to/rails/bin/rails new myapp <span class="nt">--dev</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="ruby /path/to/rails/bin/rails new myapp --dev
+">Copy</button>
+</div>
+<h2 id="rails-architectural-changes"><a class="anchorlink" href="#rails-architectural-changes">3 Rails Architectural Changes</a></h2><p>There are six major changes in the architecture of Rails.</p><h3 id="railties-restrung"><a class="anchorlink" href="#railties-restrung">3.1 Railties Restrung</a></h3><p>Railties was updated to provide a consistent plugin API for the entire Rails framework as well as a total rewrite of generators and the Rails bindings, the result is that developers can now hook into any significant stage of the generators and application framework in a consistent, defined manner.</p><h3 id="all-rails-core-components-are-decoupled"><a class="anchorlink" href="#all-rails-core-components-are-decoupled">3.2 All Rails core components are decoupled</a></h3><p>With the merge of Merb and Rails, one of the big jobs was to remove the tight coupling between Rails core components. This has now been achieved, and all Rails core components are now using the same API that you can use for developing plugins. This means any plugin you make, or any core component replacement (like DataMapper or Sequel) can access all the functionality that the Rails core components have access to and extend and enhance at will.</p><p>More information: - <a href="http://yehudakatz.com/2009/07/19/rails-3-the-great-decoupling/">The Great Decoupling</a></p><h3 id="active-model-abstraction"><a class="anchorlink" href="#active-model-abstraction">3.3 Active Model Abstraction</a></h3><p>Part of decoupling the core components was extracting all ties to Active Record from Action Pack. This has now been completed. All new ORM plugins now just need to implement Active Model interfaces to work seamlessly with Action Pack.</p><p>More information: - <a href="http://yehudakatz.com/2010/01/10/activemodel-make-any-ruby-object-feel-like-activerecord/">Make Any Ruby Object Feel Like ActiveRecord</a></p><h3 id="controller-abstraction"><a class="anchorlink" href="#controller-abstraction">3.4 Controller Abstraction</a></h3><p>Another big part of decoupling the core components was creating a base superclass that is separated from the notions of HTTP in order to handle rendering of views, etc. This creation of <code>AbstractController</code> allowed <code>ActionController</code> and <code>ActionMailer</code> to be greatly simplified with common code removed from all these libraries and put into Abstract Controller.</p><p>More Information: - <a href="http://yehudakatz.com/2009/06/11/rails-edge-architecture/">Rails Edge Architecture</a></p><h3 id="arel-integration"><a class="anchorlink" href="#arel-integration">3.5 Arel Integration</a></h3><p><a href="https://github.com/brynary/arel">Arel</a> (or Active Relation) has been taken on as the underpinnings of Active Record and is now required for Rails. Arel provides an SQL abstraction that simplifies out Active Record and provides the underpinnings for the relation functionality in Active Record.</p><p>More information: - <a href="https://web.archive.org/web/20120718093140/http://magicscalingsprinkles.wordpress.com/2010/01/28/why-i-wrote-arel/">Why I wrote Arel</a></p><h3 id="mail-extraction"><a class="anchorlink" href="#mail-extraction">3.6 Mail Extraction</a></h3><p>Action Mailer ever since its beginnings has had monkey patches, pre parsers and even delivery and receiver agents, all in addition to having TMail vendored in the source tree. Version 3 changes that with all email message related functionality abstracted out to the <a href="https://github.com/mikel/mail">Mail</a> gem. This again reduces code duplication and helps create definable boundaries between Action Mailer and the email parser.</p><p>More information: - <a href="http://lindsaar.net/2010/1/26/new-actionmailer-api-in-rails-3">New Action Mailer API in Rails 3</a></p><h2 id="documentation"><a class="anchorlink" href="#documentation">4 Documentation</a></h2><p>The documentation in the Rails tree is being updated with all the API changes, additionally, the <a href="https://edgeguides.rubyonrails.org/">Rails Edge Guides</a> are being updated one by one to reflect the changes in Rails 3.0. The guides at <a href="https://guides.rubyonrails.org/">guides.rubyonrails.org</a> however will continue to contain only the stable version of Rails (at this point, version 2.3.5, until 3.0 is released).</p><p>More Information: - <a href="https://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects">Rails Documentation Projects</a></p><h2 id="internationalization"><a class="anchorlink" href="#internationalization">5 Internationalization</a></h2><p>A large amount of work has been done with I18n support in Rails 3, including the latest <a href="https://github.com/svenfuchs/i18n">I18n</a> gem supplying many speed improvements.</p>
+<ul>
+<li>I18n for any object - I18n behavior can be added to any object by including <code>ActiveModel::Translation</code> and <code>ActiveModel::Validations</code>. There is also an <code>errors.messages</code> fallback for translations.</li>
+<li>Attributes can have default translations.</li>
+<li>Form Submit Tags automatically pull the correct status (Create or Update) depending on the object status, and so pull the correct translation.</li>
+<li>Labels with I18n also now work by just passing the attribute name.</li>
+</ul>
+<p>More Information: - <a href="http://blog.plataformatec.com.br/2010/02/rails-3-i18n-changes/">Rails 3 I18n changes</a></p><h2 id="railties"><a class="anchorlink" href="#railties">6 Railties</a></h2><p>With the decoupling of the main Rails frameworks, Railties got a huge overhaul so as to make linking up frameworks, engines, or plugins as painless and extensible as possible:</p>
+<ul>
+<li>Each application now has its own name space, application is started with <code>YourAppName.boot</code> for example, makes interacting with other applications a lot easier.</li>
+<li>Anything under <code>Rails.root/app</code> is now added to the load path, so you can make <code>app/observers/user_observer.rb</code> and Rails will load it without any modifications.</li>
+<li><p>Rails 3.0 now provides a <code>Rails.config</code> object, which provides a central repository of all sorts of Rails wide configuration options.</p><p>Application generation has received extra flags allowing you to skip the installation of test-unit, Active Record, Prototype and Git. Also a new <code>--dev</code> flag has been added which sets the application up with the <code>Gemfile</code> pointing to your Rails checkout (which is determined by the path to the <code>rails</code> binary). See <code>rails --help</code> for more info.</p></li>
+</ul>
+<p>Railties generators got a huge amount of attention in Rails 3.0, basically:</p>
+<ul>
+<li>Generators were completely rewritten and are backwards incompatible.</li>
+<li>Rails templates API and generators API were merged (they are the same as the former).</li>
+<li>Generators are no longer loaded from special paths anymore, they are just found in the Ruby load path, so calling <code>rails generate foo</code> will look for <code>generators/foo_generator</code>.</li>
+<li>New generators provide hooks, so any template engine, ORM, test framework can easily hook in.</li>
+<li>New generators allow you to override the templates by placing a copy at <code>Rails.root/lib/templates</code>.</li>
+<li><code>Rails::Generators::TestCase</code> is also supplied so you can create your own generators and test them.</li>
+</ul>
+<p>Also, the views generated by Railties generators had some overhaul:</p>
+<ul>
+<li>Views now use <code>div</code> tags instead of <code>p</code> tags.</li>
+<li>Scaffolds generated now make use of <code>_form</code> partials, instead of duplicated code in the edit and new views.</li>
+<li>Scaffold forms now use <code>f.submit</code> which returns "Create ModelName" or "Update ModelName" depending on the state of the object passed in.</li>
+</ul>
+<p>Finally a couple of enhancements were added to the rake tasks:</p>
+<ul>
+<li><code>rake db:forward</code> was added, allowing you to roll forward your migrations individually or in groups.</li>
+<li><code>rake routes CONTROLLER=x</code> was added allowing you to just view the routes for one controller.</li>
+</ul>
+<p>Railties now deprecates:</p>
+<ul>
+<li><code>RAILS_ROOT</code> in favor of <code>Rails.root</code>,</li>
+<li><code>RAILS_ENV</code> in favor of <code>Rails.env</code>, and</li>
+<li><code>RAILS_DEFAULT_LOGGER</code> in favor of <code>Rails.logger</code>.</li>
+</ul>
+<p><code>PLUGIN/rails/tasks</code>, and <code>PLUGIN/tasks</code> are no longer loaded all tasks now must be in <code>PLUGIN/lib/tasks</code>.</p><p>More information:</p>
+<ul>
+<li><a href="http://blog.plataformatec.com.br/2010/01/discovering-rails-3-generators">Discovering Rails 3 generators</a></li>
+<li><a href="http://quaran.to/blog/2010/02/03/the-rails-module/">The Rails Module (in Rails 3)</a></li>
+</ul>
+<h2 id="action-pack"><a class="anchorlink" href="#action-pack">7 Action Pack</a></h2><p>There have been significant internal and external changes in Action Pack.</p><h3 id="abstract-controller"><a class="anchorlink" href="#abstract-controller">7.1 Abstract Controller</a></h3><p>Abstract Controller pulls out the generic parts of Action Controller into a reusable module that any library can use to render templates, render partials, helpers, translations, logging, any part of the request response cycle. This abstraction allowed <code>ActionMailer::Base</code> to now just inherit from <code>AbstractController</code> and just wrap the Rails DSL onto the Mail gem.</p><p>It also provided an opportunity to clean up Action Controller, abstracting out what could to simplify the code.</p><p>Note however that Abstract Controller is not a user facing API, you will not run into it in your day to day use of Rails.</p><p>More Information: - <a href="http://yehudakatz.com/2009/06/11/rails-edge-architecture/">Rails Edge Architecture</a></p><h3 id="action-controller"><a class="anchorlink" href="#action-controller">7.2 Action Controller</a></h3>
+<ul>
+<li><code>application_controller.rb</code> now has <code>protect_from_forgery</code> on by default.</li>
+<li>The <code>cookie_verifier_secret</code> has been deprecated and now instead it is assigned through <code>Rails.application.config.cookie_secret</code> and moved into its own file: <code>config/initializers/cookie_verification_secret.rb</code>.</li>
+<li>The <code>session_store</code> was configured in <code>ActionController::Base.session</code>, and that is now moved to <code>Rails.application.config.session_store</code>. Defaults are set up in <code>config/initializers/session_store.rb</code>.</li>
+<li><code>cookies.secure</code> allowing you to set encrypted values in cookies with <code>cookie.secure[:key] =&gt; value</code>.</li>
+<li><code>cookies.permanent</code> allowing you to set permanent values in the cookie hash <code>cookie.permanent[:key] =&gt; value</code> that raise exceptions on signed values if verification failures.</li>
+<li>You can now pass <code>:notice =&gt; 'This is a flash message'</code> or <code>:alert =&gt; 'Something went wrong'</code> to the <code>format</code> call inside a <code>respond_to</code> block. The <code>flash[]</code> hash still works as previously.</li>
+<li><code>respond_with</code> method has now been added to your controllers simplifying the venerable <code>format</code> blocks.</li>
+<li><code>ActionController::Responder</code> added allowing you flexibility in how your responses get generated.</li>
+</ul>
+<p>Deprecations:</p>
+<ul>
+<li><code>filter_parameter_logging</code> is deprecated in favor of <code>config.filter_parameters &lt;&lt; :password</code>.</li>
+</ul>
+<p>More Information:</p>
+<ul>
+<li><a href="https://blog.engineyard.com/2010/render-options-in-rails-3">Render Options in Rails 3</a></li>
+<li><a href="https://weblog.rubyonrails.org/2009/8/31/three-reasons-love-responder">Three reasons to love ActionController::Responder</a></li>
+</ul>
+<h3 id="action-dispatch"><a class="anchorlink" href="#action-dispatch">7.3 Action Dispatch</a></h3><p>Action Dispatch is new in Rails 3.0 and provides a new, cleaner implementation for routing.</p>
+<ul>
+<li>Big clean up and re-write of the router, the Rails router is now <code>rack_mount</code> with a Rails DSL on top, it is a stand alone piece of software.</li>
+<li><p>Routes defined by each application are now name spaced within your Application module, that is:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># Instead of:</span>
+
+<span class="no">ActionController</span><span class="o">::</span><span class="no">Routing</span><span class="o">::</span><span class="no">Routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span> <span class="o">|</span><span class="n">map</span><span class="o">|</span>
+  <span class="n">map</span><span class="p">.</span><span class="nf">resources</span> <span class="ss">:posts</span>
+<span class="k">end</span>
+
+<span class="c1"># You do:</span>
+
+<span class="no">AppName</span><span class="o">::</span><span class="no">Application</span><span class="p">.</span><span class="nf">routes</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:posts</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# Instead of:
+
+ActionController::Routing::Routes.draw do |map|
+  map.resources :posts
+end
+
+# You do:
+
+AppName::Application.routes do
+  resources :posts
+end
+">Copy</button>
+</div></li>
+<li><p>Added <code>match</code> method to the router, you can also pass any Rack application to the matched route.</p></li>
+<li><p>Added <code>constraints</code> method to the router, allowing you to guard routers with defined constraints.</p></li>
+<li><p>Added <code>scope</code> method to the router, allowing you to namespace routes for different languages or different actions, for example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">scope</span> <span class="s1">'es'</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:projects</span><span class="p">,</span> <span class="ss">:path_names</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="ss">:edit</span> <span class="o">=&gt;</span> <span class="s1">'cambiar'</span> <span class="p">},</span> <span class="ss">:path</span> <span class="o">=&gt;</span> <span class="s1">'proyecto'</span>
+<span class="k">end</span>
+
+<span class="c1"># Gives you the edit action with /es/proyecto/1/cambiar</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="scope 'es' do
+  resources :projects, :path_names => { :edit => 'cambiar' }, :path => 'proyecto'
+end
+
+# Gives you the edit action with /es/proyecto/1/cambiar
+">Copy</button>
+</div></li>
+<li><p>Added <code>root</code> method to the router as a short cut for <code>match '/', :to =&gt; path</code>.</p></li>
+<li><p>You can pass optional segments into the match, for example <code>match "/:controller(/:action(/:id))(.:format)"</code>, each parenthesized segment is optional.</p></li>
+<li><p>Routes can be expressed via blocks, for example you can call <code>controller :home { match '/:action' }</code>.</p></li>
+</ul>
+<div class="note"><p>The old style <code>map</code> commands still work as before with a backwards compatibility layer, however this will be removed in the 3.1 release.</p></div><p>Deprecations</p>
+<ul>
+<li>The catch all route for non-REST applications (<code>/:controller/:action/:id</code>) is now commented out.</li>
+<li>Routes <code>:path_prefix</code> no longer exists and <code>:name_prefix</code> now automatically adds "_" at the end of the given value.</li>
+</ul>
+<p>More Information:
+* <a href="http://yehudakatz.com/2009/12/26/the-rails-3-router-rack-it-up/">The Rails 3 Router: Rack it Up</a>
+* <a href="https://medium.com/fusion-of-thoughts/revamped-routes-in-rails-3-b6d00654e5b0">Revamped Routes in Rails 3</a>
+* <a href="http://yehudakatz.com/2009/12/20/generic-actions-in-rails-3/">Generic Actions in Rails 3</a></p><h3 id="action-view"><a class="anchorlink" href="#action-view">7.4 Action View</a></h3><h4 id="unobtrusive-javascript"><a class="anchorlink" href="#unobtrusive-javascript">7.4.1 Unobtrusive JavaScript</a></h4><p>Major re-write was done in the Action View helpers, implementing Unobtrusive JavaScript (UJS) hooks and removing the old inline AJAX commands. This enables Rails to use any compliant UJS driver to implement the UJS hooks in the helpers.</p><p>What this means is that all previous <code>remote_&lt;method&gt;</code> helpers have been removed from Rails core and put into the <a href="https://github.com/rails/prototype_legacy_helper">Prototype Legacy Helper</a>. To get UJS hooks into your HTML, you now pass <code>:remote =&gt; true</code> instead. For example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">form_for</span> <span class="vi">@post</span><span class="p">,</span> <span class="ss">:remote</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="form_for @post, :remote => true
+">Copy</button>
+</div>
+<p>Produces:</p><div class="code_container">
+<pre><code class="highlight html"><span class="nt">&lt;form</span> <span class="na">action=</span><span class="s">"http://host.com"</span> <span class="na">id=</span><span class="s">"create-post"</span> <span class="na">method=</span><span class="s">"post"</span> <span class="na">data-remote=</span><span class="s">"true"</span><span class="nt">&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<form action=&quot;http://host.com&quot; id=&quot;create-post&quot; method=&quot;post&quot; data-remote=&quot;true&quot;>
+">Copy</button>
+</div>
+<h4 id="helpers-with-blocks"><a class="anchorlink" href="#helpers-with-blocks">7.4.2 Helpers with Blocks</a></h4><p>Helpers like <code>form_for</code> or <code>div_for</code> that insert content from a block use <code>&lt;%=</code> now:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="cp">&lt;%=</span> <span class="n">form_for</span> <span class="vi">@post</span> <span class="k">do</span> <span class="o">|</span><span class="n">f</span><span class="o">|</span> <span class="cp">%&gt;</span>
+  ...
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%= form_for @post do |f| %>
+  ...
+<% end %>
+">Copy</button>
+</div>
+<p>Your own helpers of that kind are expected to return a string, rather than appending to the output buffer by hand.</p><p>Helpers that do something else, like <code>cache</code> or <code>content_for</code>, are not affected by this change, they need <code>&amp;lt;%</code> as before.</p><h4 id="other-changes"><a class="anchorlink" href="#other-changes">7.4.3 Other Changes</a></h4>
+<ul>
+<li>You no longer need to call <code>h(string)</code> to escape HTML output, it is on by default in all view templates. If you want the unescaped string, call <code>raw(string)</code>.</li>
+<li>Helpers now output HTML5 by default.</li>
+<li>Form label helper now pulls values from I18n with a single value, so <code>f.label :name</code> will pull the <code>:name</code> translation.</li>
+<li>I18n select label on should now be :en.helpers.select instead of :en.support.select.</li>
+<li>You no longer need to place a minus sign at the end of a Ruby interpolation inside an ERB template to remove the trailing carriage return in the HTML output.</li>
+<li>Added <code>grouped_collection_select</code> helper to Action View.</li>
+<li><code>content_for?</code> has been added allowing you to check for the existence of content in a view before rendering.</li>
+<li>passing <code>:value =&gt; nil</code> to form helpers will set the field's <code>value</code> attribute to nil as opposed to using the default value</li>
+<li>passing <code>:id =&gt; nil</code> to form helpers will cause those fields to be rendered with no <code>id</code> attribute</li>
+<li>passing <code>:alt =&gt; nil</code> to <code>image_tag</code> will cause the <code>img</code> tag to render with no <code>alt</code> attribute</li>
+</ul>
+<h2 id="active-model"><a class="anchorlink" href="#active-model">8 Active Model</a></h2><p>Active Model is new in Rails 3.0. It provides an abstraction layer for any ORM libraries to use to interact with Rails by implementing an Active Model interface.</p><h3 id="orm-abstraction-and-action-pack-interface"><a class="anchorlink" href="#orm-abstraction-and-action-pack-interface">8.1 ORM Abstraction and Action Pack Interface</a></h3><p>Part of decoupling the core components was extracting all ties to Active Record from Action Pack. This has now been completed. All new ORM plugins now just need to implement Active Model interfaces to work seamlessly with Action Pack.</p><p>More Information: - <a href="http://yehudakatz.com/2010/01/10/activemodel-make-any-ruby-object-feel-like-activerecord/">Make Any Ruby Object Feel Like ActiveRecord</a></p><h3 id="validations"><a class="anchorlink" href="#validations">8.2 Validations</a></h3><p>Validations have been moved from Active Record into Active Model, providing an interface to validations that works across ORM libraries in Rails 3.</p>
+<ul>
+<li>There is now a <code>validates :attribute, options_hash</code> shortcut method that allows you to pass options for all the validates class methods, you can pass more than one option to a validate method.</li>
+<li>The <code>validates</code> method has the following options:
+
+<ul>
+<li><code>:acceptance =&gt; Boolean</code>.</li>
+<li><code>:confirmation =&gt; Boolean</code>.</li>
+<li><code>:exclusion =&gt; { :in =&gt; Enumerable }</code>.</li>
+<li><code>:inclusion =&gt; { :in =&gt; Enumerable }</code>.</li>
+<li><code>:format =&gt; { :with =&gt; Regexp, :on =&gt; :create }</code>.</li>
+<li><code>:length =&gt; { :maximum =&gt; Fixnum }</code>.</li>
+<li><code>:numericality =&gt; Boolean</code>.</li>
+<li><code>:presence =&gt; Boolean</code>.</li>
+<li><code>:uniqueness =&gt; Boolean</code>.</li>
+</ul></li>
+</ul>
+<div class="note"><p>All the Rails version 2.3 style validation methods are still supported in Rails 3.0, the new validates method is designed as an additional aid in your model validations, not a replacement for the existing API.</p></div><p>You can also pass in a validator object, which you can then reuse between objects that use Active Model:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">class</span> <span class="nc">TitleValidator</span> <span class="o">&lt;</span> <span class="no">ActiveModel</span><span class="o">::</span><span class="no">EachValidator</span>
+  <span class="no">Titles</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'Mr.'</span><span class="p">,</span> <span class="s1">'Mrs.'</span><span class="p">,</span> <span class="s1">'Dr.'</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">validate_each</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+    <span class="k">unless</span> <span class="no">Titles</span><span class="p">.</span><span class="nf">include?</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+      <span class="n">record</span><span class="p">.</span><span class="nf">errors</span><span class="p">[</span><span class="n">attribute</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="s1">'must be a valid title'</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="class TitleValidator < ActiveModel::EachValidator
+  Titles = ['Mr.', 'Mrs.', 'Dr.']
+  def validate_each(record, attribute, value)
+    unless Titles.include?(value)
+      record.errors[attribute] << 'must be a valid title'
+    end
+  end
+end
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="k">class</span> <span class="nc">Person</span>
+  <span class="kp">include</span> <span class="no">ActiveModel</span><span class="o">::</span><span class="no">Validations</span>
+  <span class="nb">attr_accessor</span> <span class="ss">:title</span>
+  <span class="n">validates</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:title</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+<span class="k">end</span>
+
+<span class="c1"># Or for Active Record</span>
+
+<span class="k">class</span> <span class="nc">Person</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">validates</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:title</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="class Person
+  include ActiveModel::Validations
+  attr_accessor :title
+  validates :title, :presence => true, :title => true
+end
+
+# Or for Active Record
+
+class Person < ActiveRecord::Base
+  validates :title, :presence => true, :title => true
+end
+">Copy</button>
+</div>
+<p>There's also support for introspection:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">User</span><span class="p">.</span><span class="nf">validators</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">validators_on</span><span class="p">(</span><span class="ss">:login</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="User.validators
+User.validators_on(:login)
+">Copy</button>
+</div>
+<p>More Information:</p>
+<ul>
+<li><a href="http://thelucid.com/2010/01/08/sexy-validation-in-edge-rails-rails-3/">Sexy Validation in Rails 3</a></li>
+<li><a href="http://lindsaar.net/2010/1/31/validates_rails_3_awesome_is_true">Rails 3 Validations Explained</a></li>
+</ul>
+<h2 id="active-record"><a class="anchorlink" href="#active-record">9 Active Record</a></h2><p>Active Record received a lot of attention in Rails 3.0, including abstraction into Active Model, a full update to the Query interface using Arel, validation updates, and many enhancements and fixes. All of the Rails 2.x API will be usable through a compatibility layer that will be supported until version 3.1.</p><h3 id="query-interface"><a class="anchorlink" href="#query-interface">9.1 Query Interface</a></h3><p>Active Record, through the use of Arel, now returns relations on its core methods. The existing API in Rails 2.3.x is still supported and will not be deprecated until Rails 3.1 and not removed until Rails 3.2, however, the new API provides the following new methods that all return relations allowing them to be chained together:</p>
+<ul>
+<li><code>where</code> - provides conditions on the relation, what gets returned.</li>
+<li><code>select</code> - choose what attributes of the models you wish to have returned from the database.</li>
+<li><code>group</code> - groups the relation on the attribute supplied.</li>
+<li><code>having</code> - provides an expression limiting group relations (GROUP BY constraint).</li>
+<li><code>joins</code> - joins the relation to another table.</li>
+<li><code>clause</code> - provides an expression limiting join relations (JOIN constraint).</li>
+<li><code>includes</code> - includes other relations pre-loaded.</li>
+<li><code>order</code> - orders the relation based on the expression supplied.</li>
+<li><code>limit</code> - limits the relation to the number of records specified.</li>
+<li><code>lock</code> - locks the records returned from the table.</li>
+<li><code>readonly</code> - returns an read only copy of the data.</li>
+<li><code>from</code> - provides a way to select relationships from more than one table.</li>
+<li><code>scope</code> - (previously <code>named_scope</code>) return relations and can be chained together with the other relation methods.</li>
+<li><code>with_scope</code> - and <code>with_exclusive_scope</code> now also return relations and so can be chained.</li>
+<li><code>default_scope</code> - also works with relations.</li>
+</ul>
+<p>More Information:</p>
+<ul>
+<li><a href="http://m.onkey.org/2010/1/22/active-record-query-interface">Active Record Query Interface</a></li>
+<li><a href="http://hasmanyquestions.wordpress.com/2010/01/17/let-your-sql-growl-in-rails-3/">Let your SQL Growl in Rails 3</a></li>
+</ul>
+<h3 id="enhancements"><a class="anchorlink" href="#enhancements">9.2 Enhancements</a></h3>
+<ul>
+<li>Added <code>:destroyed?</code> to Active Record objects.</li>
+<li>Added <code>:inverse_of</code> to Active Record associations allowing you to pull the instance of an already loaded association without hitting the database.</li>
+</ul>
+<h3 id="patches-and-deprecations"><a class="anchorlink" href="#patches-and-deprecations">9.3 Patches and Deprecations</a></h3><p>Additionally, many fixes in the Active Record branch:</p>
+<ul>
+<li>SQLite 2 support has been dropped in favor of SQLite 3.</li>
+<li>MySQL support for column order.</li>
+<li>PostgreSQL adapter has had its <code>TIME ZONE</code> support fixed so it no longer inserts incorrect values.</li>
+<li>Support multiple schemas in table names for PostgreSQL.</li>
+<li>PostgreSQL support for the XML data type column.</li>
+<li><code>table_name</code> is now cached.</li>
+<li>A large amount of work done on the Oracle adapter as well with many bug fixes.</li>
+</ul>
+<p>As well as the following deprecations:</p>
+<ul>
+<li><code>named_scope</code> in an Active Record class is deprecated and has been renamed to just <code>scope</code>.</li>
+<li>In <code>scope</code> methods, you should move to using the relation methods, instead of a <code>:conditions =&gt; {}</code> finder method, for example <code>scope :since, lambda {|time| where("created_at &gt; ?", time) }</code>.</li>
+<li><code>save(false)</code> is deprecated, in favor of <code>save(:validate =&gt; false)</code>.</li>
+<li>I18n error messages for Active Record should be changed from :en.activerecord.errors.template to <code>:en.errors.template</code>.</li>
+<li><code>model.errors.on</code> is deprecated in favor of <code>model.errors[]</code></li>
+<li>validates_presence_of =&gt; validates... :presence =&gt; true</li>
+<li><code>ActiveRecord::Base.colorize_logging</code> and <code>config.active_record.colorize_logging</code> are deprecated in favor of <code>Rails::LogSubscriber.colorize_logging</code> or <code>config.colorize_logging</code></li>
+</ul>
+<div class="note"><p>While an implementation of State Machine has been in Active Record edge for some months now, it has been removed from the Rails 3.0 release.</p></div><h2 id="active-resource"><a class="anchorlink" href="#active-resource">10 Active Resource</a></h2><p>Active Resource was also extracted out to Active Model allowing you to use Active Resource objects with Action Pack seamlessly.</p>
+<ul>
+<li>Added validations through Active Model.</li>
+<li>Added observing hooks.</li>
+<li>HTTP proxy support.</li>
+<li>Added support for digest authentication.</li>
+<li>Moved model naming into Active Model.</li>
+<li>Changed Active Resource attributes to a Hash with indifferent access.</li>
+<li>Added <code>first</code>, <code>last</code> and <code>all</code> aliases for equivalent find scopes.</li>
+<li><code>find_every</code> now does not return a <code>ResourceNotFound</code> error if nothing returned.</li>
+<li>Added <code>save!</code> which raises <code>ResourceInvalid</code> unless the object is <code>valid?</code>.</li>
+<li><code>update_attribute</code> and <code>update_attributes</code> added to Active Resource models.</li>
+<li>Added <code>exists?</code>.</li>
+<li>Renamed <code>SchemaDefinition</code> to <code>Schema</code> and <code>define_schema</code> to <code>schema</code>.</li>
+<li>Use the <code>format</code> of Active Resources rather than the <code>content-type</code> of remote errors to load errors.</li>
+<li>Use <code>instance_eval</code> for schema block.</li>
+<li>Fix <code>ActiveResource::ConnectionError#to_s</code> when <code>@response</code> does not respond to #code or #message, handles Ruby 1.9 compatibility.</li>
+<li>Add support for errors in JSON format.</li>
+<li>Ensure <code>load</code> works with numeric arrays.</li>
+<li>Recognizes a 410 response from remote resource as the resource has been deleted.</li>
+<li>Add ability to set SSL options on Active Resource connections.</li>
+<li>Setting connection timeout also affects <code>Net::HTTP</code> <code>open_timeout</code>.</li>
+</ul>
+<p>Deprecations:</p>
+<ul>
+<li><code>save(false)</code> is deprecated, in favor of <code>save(:validate =&gt; false)</code>.</li>
+<li>Ruby 1.9.2: <code>URI.parse</code> and <code>.decode</code> are deprecated and are no longer used in the library.</li>
+</ul>
+<h2 id="active-support"><a class="anchorlink" href="#active-support">11 Active Support</a></h2><p>A large effort was made in Active Support to make it cherry pickable, that is, you no longer have to require the entire Active Support library to get pieces of it. This allows the various core components of Rails to run slimmer.</p><p>These are the main changes in Active Support:</p>
+<ul>
+<li>Large clean up of the library removing unused methods throughout.</li>
+<li>Active Support no longer provides vendored versions of TZInfo, Memcache Client and Builder. These are all included as dependencies and installed via the <code>bundle install</code> command.</li>
+<li>Safe buffers are implemented in <code>ActiveSupport::SafeBuffer</code>.</li>
+<li>Added <code>Array.uniq_by</code> and <code>Array.uniq_by!</code>.</li>
+<li>Removed <code>Array#rand</code> and backported <code>Array#sample</code> from Ruby 1.9.</li>
+<li>Fixed bug on <code>TimeZone.seconds_to_utc_offset</code> returning wrong value.</li>
+<li>Added <code>ActiveSupport::Notifications</code> middleware.</li>
+<li><code>ActiveSupport.use_standard_json_time_format</code> now defaults to true.</li>
+<li><code>ActiveSupport.escape_html_entities_in_json</code> now defaults to false.</li>
+<li><code>Integer#multiple_of?</code> accepts zero as an argument, returns false unless the receiver is zero.</li>
+<li><code>string.chars</code> has been renamed to <code>string.mb_chars</code>.</li>
+<li><code>ActiveSupport::OrderedHash</code> now can de-serialize through YAML.</li>
+<li>Added SAX-based parser for XmlMini, using LibXML and Nokogiri.</li>
+<li>Added <code>Object#presence</code> that returns the object if it's <code>#present?</code> otherwise returns <code>nil</code>.</li>
+<li>Added <code>String#exclude?</code> core extension that returns the inverse of <code>#include?</code>.</li>
+<li>Added <code>to_i</code> to <code>DateTime</code> in <code>ActiveSupport</code> so <code>to_yaml</code> works correctly on models with <code>DateTime</code> attributes.</li>
+<li>Added <code>Enumerable#exclude?</code> to bring parity to <code>Enumerable#include?</code> and avoid if <code>!x.include?</code>.</li>
+<li>Switch to on-by-default XSS escaping for rails.</li>
+<li>Support deep-merging in <code>ActiveSupport::HashWithIndifferentAccess</code>.</li>
+<li><code>Enumerable#sum</code> now works will all enumerables, even if they don't respond to <code>:size</code>.</li>
+<li><code>inspect</code> on a zero length duration returns '0 seconds' instead of empty string.</li>
+<li>Add <code>element</code> and <code>collection</code> to <code>ModelName</code>.</li>
+<li><code>String#to_time</code> and <code>String#to_datetime</code> handle fractional seconds.</li>
+<li>Added support to new callbacks for around filter object that respond to <code>:before</code> and <code>:after</code> used in before and after callbacks.</li>
+<li>The <code>ActiveSupport::OrderedHash#to_a</code> method returns an ordered set of arrays. Matches Ruby 1.9's <code>Hash#to_a</code>.</li>
+<li><code>MissingSourceFile</code> exists as a constant but it is now just equal to <code>LoadError</code>.</li>
+<li>Added <code>Class#class_attribute</code>, to be able to declare a class-level attribute whose value is inheritable and overwritable by subclasses.</li>
+<li>Finally removed <code>DeprecatedCallbacks</code> in <code>ActiveRecord::Associations</code>.</li>
+<li><code>Object#metaclass</code> is now <code>Kernel#singleton_class</code> to match Ruby.</li>
+</ul>
+<p>The following methods have been removed because they are now available in Ruby 1.8.7 and 1.9.</p>
+<ul>
+<li><code>Integer#even?</code> and <code>Integer#odd?</code></li>
+<li><code>String#each_char</code></li>
+<li><code>String#start_with?</code> and <code>String#end_with?</code> (3rd person aliases still kept)</li>
+<li><code>String#bytesize</code></li>
+<li><code>Object#tap</code></li>
+<li><code>Symbol#to_proc</code></li>
+<li><code>Object#instance_variable_defined?</code></li>
+<li><code>Enumerable#none?</code></li>
+</ul>
+<p>The security patch for REXML remains in Active Support because early patch-levels of Ruby 1.8.7 still need it. Active Support knows whether it has to apply it or not.</p><p>The following methods have been removed because they are no longer used in the framework:</p>
+<ul>
+<li><code>Kernel#daemonize</code></li>
+<li><code>Object#remove_subclasses_of</code> <code>Object#extend_with_included_modules_from</code>, <code>Object#extended_by</code></li>
+<li><code>Class#remove_class</code></li>
+<li><code>Regexp#number_of_captures</code>, <code>Regexp.unoptionalize</code>, <code>Regexp.optionalize</code>, <code>Regexp#number_of_captures</code></li>
+</ul>
+<h2 id="action-mailer"><a class="anchorlink" href="#action-mailer">12 Action Mailer</a></h2><p>Action Mailer has been given a new API with TMail being replaced out with the new <a href="https://github.com/mikel/mail">Mail</a> as the email library. Action Mailer itself has been given an almost complete re-write with pretty much every line of code touched. The result is that Action Mailer now simply inherits from Abstract Controller and wraps the Mail gem in a Rails DSL. This reduces the amount of code and duplication of other libraries in Action Mailer considerably.</p>
+<ul>
+<li>All mailers are now in <code>app/mailers</code> by default.</li>
+<li>Can now send email using new API with three methods: <code>attachments</code>, <code>headers</code> and <code>mail</code>.</li>
+<li>Action Mailer now has native support for inline attachments using the <code>attachments.inline</code> method.</li>
+<li>Action Mailer emailing methods now return <code>Mail::Message</code> objects, which can then be sent the <code>deliver</code> message to send itself.</li>
+<li>All delivery methods are now abstracted out to the Mail gem.</li>
+<li>The mail delivery method can accept a hash of all valid mail header fields with their value pair.</li>
+<li>The <code>mail</code> delivery method acts in a similar way to Action Controller's <code>respond_to</code>, and you can explicitly or implicitly render templates. Action Mailer will turn the email into a multipart email as needed.</li>
+<li>You can pass a proc to the <code>format.mime_type</code> calls within the mail block and explicitly render specific types of text, or add layouts or different templates. The <code>render</code> call inside the proc is from Abstract Controller and supports the same options.</li>
+<li>What were mailer unit tests have been moved to functional tests.</li>
+<li>Action Mailer now delegates all auto encoding of header fields and bodies to Mail Gem</li>
+<li>Action Mailer will auto encode email bodies and headers for you</li>
+</ul>
+<p>Deprecations:</p>
+<ul>
+<li><code>:charset</code>, <code>:content_type</code>, <code>:mime_version</code>, <code>:implicit_parts_order</code> are all deprecated in favor of <code>ActionMailer.default :key =&gt; value</code> style declarations.</li>
+<li>Mailer dynamic <code>create_method_name</code> and <code>deliver_method_name</code> are deprecated, just call <code>method_name</code> which now returns a <code>Mail::Message</code> object.</li>
+<li><code>ActionMailer.deliver(message)</code> is deprecated, just call <code>message.deliver</code>.</li>
+<li><code>template_root</code> is deprecated, pass options to a render call inside a proc from the <code>format.mime_type</code> method inside the <code>mail</code> generation block</li>
+<li>The <code>body</code> method to define instance variables is deprecated (<code>body {:ivar =&gt; value}</code>), just declare instance variables in the method directly and they will be available in the view.</li>
+<li>Mailers being in <code>app/models</code> is deprecated, use <code>app/mailers</code> instead.</li>
+</ul>
+<p>More Information:</p>
+<ul>
+<li><a href="http://lindsaar.net/2010/1/26/new-actionmailer-api-in-rails-3">New Action Mailer API in Rails 3</a></li>
+<li><a href="http://lindsaar.net/2010/1/23/mail-gem-version-2-released">New Mail Gem for Ruby</a></li>
+</ul>
+<h2 id="credits"><a class="anchorlink" href="#credits">13 Credits</a></h2><p>See the <a href="https://contributors.rubyonrails.org/">full list of contributors to Rails</a> for the many people who spent many hours making Rails 3. Kudos to all of them.</p><p>Rails 3.0 Release Notes were compiled by <a href="http://lindsaar.net">Mikel Lindsaar</a>.</p>
+
+        <h3>Feedback</h3>
+        <p>
+          You're encouraged to help improve the quality of this guide.
+        </p>
+        <p>
+          Please contribute if you see any typos or factual errors.
+          To get started, you can read our <a href="https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation">documentation contributions</a> section.
+        </p>
+        <p>
+          You may also find incomplete content or stuff that is not up to date.
+          Please do add any missing documentation for main. Make sure to check
+          <a href="https://edgeguides.rubyonrails.org">Edge Guides</a> first to verify
+          if the issues are already fixed or not on the main branch.
+          Check the <a href="ruby_on_rails_guides_guidelines.html">Ruby on Rails Guides Guidelines</a>
+          for style and conventions.
+        </p>
+        <p>
+          If for whatever reason you spot something to fix but cannot patch it yourself, please
+          <a href="https://github.com/rails/rails/issues">open an issue</a>.
+        </p>
+        <p>And last but not least, any kind of discussion regarding Ruby on Rails
+          documentation is very welcome on the <a href="https://discuss.rubyonrails.org/c/rubyonrails-docs">official Ruby on Rails Forum</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="hide" />
+  <div id="footer">
+    <div class="wrapper">
+      <p>This work is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International</a> License</p>
+<p>"Rails", "Ruby on Rails", and the Rails logo are trademarks of David Heinemeier Hansson. All rights reserved.</p>
+
+    </div>
+  </div>
+</body>
+</html>

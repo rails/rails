@@ -1,0 +1,1148 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ruby on Rails 7.1 Release Notes — Ruby on Rails Guides</title>
+  <link rel="stylesheet" type="text/css" href="stylesheets/style.css" data-turbo-track="reload">
+  <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+  <link rel="stylesheet" type="text/css" href="stylesheets/highlight.css" data-turbo-track="reload">
+  
+  <link rel="icon" href="images/favicon.ico" sizes="any">
+  <link rel="icon" href="images/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="images/icon.png">
+  
+  <script src="javascripts/@hotwired--turbo.js" data-turbo-track="reload"></script>
+  <script src="javascripts/clipboard.js" data-turbo-track="reload"></script>
+  <script src="javascripts/guides.js" data-turbo-track="reload"></script>
+
+  <meta property="og:title" content="Ruby on Rails 7.1 Release Notes — Ruby on Rails Guides" />
+  <meta name="description" content="Ruby on Rails 7.1 Release NotesHighlights in Rails 7.1:" />
+  <meta property="og:description" content="Ruby on Rails 7.1 Release NotesHighlights in Rails 7.1:" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:site_name" content="Ruby on Rails Guides" />
+  <meta property="og:image" content="https://avatars.githubusercontent.com/u/4223" />
+  <meta property="og:type" content="website" />
+
+  <meta name="theme-color" content="#C81418">
+</head>
+
+<body dir="ltr" class="guide">
+  <div>
+    <div id="version-badge">edge</div>
+  </div>
+  <div id="topNav">
+    <div class="wrapper">
+      <strong class="more-info-label">More at <a href="https://rubyonrails.org/">rubyonrails.org:</a> </strong>
+      <span class="red-button more-info-button">
+        More Ruby on Rails
+      </span>
+      <ul class="more-info-links s-hidden">
+        <li class="more-info"><a href="https://rubyonrails.org/blog">Blog</a></li>
+        <li class="more-info"><a href="https://guides.rubyonrails.org/">Guides</a></li>
+        <li class="more-info"><a href="https://api.rubyonrails.org/">API</a></li>
+        <li class="more-info"><a href="https://discuss.rubyonrails.org/">Forum</a></li>
+        <li class="more-info"><a href="https://github.com/rails/rails">Contribute on GitHub</a></li>
+      </ul>
+    </div>
+  </div>
+  <div id="header">
+    <div class="wrapper clearfix">
+      <div class="header-logo"><a href="index.html" title="Return to home page">Guides.rubyonrails.org</a></div>
+      <ul class="nav">
+        <li><a class="nav-item" href="index.html">Home</a></li>
+        <li class="guides-index guides-index-large">
+          <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
+          <div id="guides" class="clearfix" style="display: none;">
+            <hr />
+            <dl class="guides-section-container">
+                <div class="guides-section">
+                  <dt>Start Here</dt>
+                  <dd><a href="getting_started.html">Getting Started with Rails</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Models</dt>
+                  <dd><a href="active_record_basics.html">Active Record Basics</a></dd>
+                  <dd><a href="active_record_migrations.html">Active Record Migrations</a></dd>
+                  <dd><a href="active_record_validations.html">Active Record Validations</a></dd>
+                  <dd><a href="active_record_callbacks.html">Active Record Callbacks</a></dd>
+                  <dd><a href="association_basics.html">Active Record Associations</a></dd>
+                  <dd><a href="active_record_querying.html">Active Record Query Interface</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Views</dt>
+                  <dd><a href="layouts_and_rendering.html">Layouts and Rendering in Rails</a></dd>
+                  <dd><a href="form_helpers.html">Action View Form Helpers</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Controllers</dt>
+                  <dd><a href="action_controller_overview.html">Action Controller Overview</a></dd>
+                  <dd><a href="routing.html">Rails Routing from the Outside In</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Other Components</dt>
+                  <dd><a href="active_support_core_extensions.html">Active Support Core Extensions</a></dd>
+                  <dd><a href="action_mailer_basics.html">Action Mailer Basics</a></dd>
+                  <dd><a href="active_job_basics.html">Active Job Basics</a></dd>
+                  <dd><a href="active_storage_overview.html">Active Storage Overview</a></dd>
+                  <dd><a href="action_cable_overview.html">Action Cable Overview</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Digging Deeper</dt>
+                  <dd><a href="i18n.html">Rails Internationalization (I18n) API</a></dd>
+                  <dd><a href="testing.html">Testing Rails Applications</a></dd>
+                  <dd><a href="security.html">Securing Rails Applications</a></dd>
+                  <dd><a href="error_reporting.html">Error Reporting in Rails Applications</a></dd>
+                  <dd><a href="debugging_rails_applications.html">Debugging Rails Applications</a></dd>
+                  <dd><a href="configuring.html">Configuring Rails Applications</a></dd>
+                  <dd><a href="command_line.html">The Rails Command Line</a></dd>
+                  <dd><a href="asset_pipeline.html">The Asset Pipeline</a></dd>
+                  <dd><a href="working_with_javascript_in_rails.html">Working with JavaScript in Rails</a></dd>
+                  <dd><a href="autoloading_and_reloading_constants.html">Autoloading and Reloading</a></dd>
+                  <dd><a href="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</a></dd>
+                  <dd><a href="caching_with_rails.html">Caching with Rails: An Overview</a></dd>
+                  <dd><a href="api_app.html">Using Rails for API-only Applications</a></dd>
+                  <dd><a href="active_record_multiple_databases.html">Multiple Databases</a></dd>
+                  <dd><a href="active_record_composite_primary_keys.html">Composite Primary Keys</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Extending Rails</dt>
+                  <dd><a href="rails_on_rack.html">Rails on Rack</a></dd>
+                  <dd><a href="generators.html">Creating and Customizing Rails Generators &amp; Templates</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Contributing</dt>
+                  <dd><a href="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</a></dd>
+                  <dd><a href="api_documentation_guidelines.html">API Documentation Guidelines</a></dd>
+                  <dd><a href="ruby_on_rails_guides_guidelines.html">Guides Guidelines</a></dd>
+                  <dd><a href="development_dependencies_install.html">Installing Rails Core Development Dependencies</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Policies</dt>
+                  <dd><a href="maintenance_policy.html">Maintenance Policy</a></dd>
+                </div>
+                <div class="guides-section">
+                  <dt>Release Notes</dt>
+                  <dd><a href="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</a></dd>
+                  <dd><a href="7_1_release_notes.html">Version 7.1 - October 2023</a></dd>
+                  <dd><a href="7_0_release_notes.html">Version 7.0 - December 2021</a></dd>
+                  <dd><a href="6_1_release_notes.html">Version 6.1 - December 2020</a></dd>
+                  <dd><a href="6_0_release_notes.html">Version 6.0 - August 2019</a></dd>
+                  <dd><a href="5_2_release_notes.html">Version 5.2 - April 2018</a></dd>
+                  <dd><a href="5_1_release_notes.html">Version 5.1 - April 2017</a></dd>
+                  <dd><a href="5_0_release_notes.html">Version 5.0 - June 2016</a></dd>
+                  <dd><a href="4_2_release_notes.html">Version 4.2 - December 2014</a></dd>
+                  <dd><a href="4_1_release_notes.html">Version 4.1 - April 2014</a></dd>
+                  <dd><a href="4_0_release_notes.html">Version 4.0 - June 2013</a></dd>
+                  <dd><a href="3_2_release_notes.html">Version 3.2 - January 2012</a></dd>
+                  <dd><a href="3_1_release_notes.html">Version 3.1 - August 2011</a></dd>
+                  <dd><a href="3_0_release_notes.html">Version 3.0 - August 2010</a></dd>
+                  <dd><a href="2_3_release_notes.html">Version 2.3 - March 2009</a></dd>
+                  <dd><a href="2_2_release_notes.html">Version 2.2 - November 2008</a></dd>
+                </div>
+            </dl>
+          </div>
+        </li>
+        <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
+        <li class="guides-index guides-index-small">
+          <select class="guides-index-item nav-item">
+            <option value="index.html">Guides Index</option>
+              <optgroup label="Start Here">
+                  <option value="getting_started.html">Getting Started with Rails</option>
+              </optgroup>
+              <optgroup label="Models">
+                  <option value="active_record_basics.html">Active Record Basics</option>
+                  <option value="active_record_migrations.html">Active Record Migrations</option>
+                  <option value="active_record_validations.html">Active Record Validations</option>
+                  <option value="active_record_callbacks.html">Active Record Callbacks</option>
+                  <option value="association_basics.html">Active Record Associations</option>
+                  <option value="active_record_querying.html">Active Record Query Interface</option>
+              </optgroup>
+              <optgroup label="Views">
+                  <option value="layouts_and_rendering.html">Layouts and Rendering in Rails</option>
+                  <option value="form_helpers.html">Action View Form Helpers</option>
+              </optgroup>
+              <optgroup label="Controllers">
+                  <option value="action_controller_overview.html">Action Controller Overview</option>
+                  <option value="routing.html">Rails Routing from the Outside In</option>
+              </optgroup>
+              <optgroup label="Other Components">
+                  <option value="active_support_core_extensions.html">Active Support Core Extensions</option>
+                  <option value="action_mailer_basics.html">Action Mailer Basics</option>
+                  <option value="active_job_basics.html">Active Job Basics</option>
+                  <option value="active_storage_overview.html">Active Storage Overview</option>
+                  <option value="action_cable_overview.html">Action Cable Overview</option>
+              </optgroup>
+              <optgroup label="Digging Deeper">
+                  <option value="i18n.html">Rails Internationalization (I18n) API</option>
+                  <option value="testing.html">Testing Rails Applications</option>
+                  <option value="security.html">Securing Rails Applications</option>
+                  <option value="error_reporting.html">Error Reporting in Rails Applications</option>
+                  <option value="debugging_rails_applications.html">Debugging Rails Applications</option>
+                  <option value="configuring.html">Configuring Rails Applications</option>
+                  <option value="command_line.html">The Rails Command Line</option>
+                  <option value="asset_pipeline.html">The Asset Pipeline</option>
+                  <option value="working_with_javascript_in_rails.html">Working with JavaScript in Rails</option>
+                  <option value="autoloading_and_reloading_constants.html">Autoloading and Reloading</option>
+                  <option value="classic_to_zeitwerk_howto.html">Migrating from Classic to Zeitwerk</option>
+                  <option value="caching_with_rails.html">Caching with Rails: An Overview</option>
+                  <option value="api_app.html">Using Rails for API-only Applications</option>
+                  <option value="active_record_multiple_databases.html">Multiple Databases</option>
+                  <option value="active_record_composite_primary_keys.html">Composite Primary Keys</option>
+              </optgroup>
+              <optgroup label="Extending Rails">
+                  <option value="rails_on_rack.html">Rails on Rack</option>
+                  <option value="generators.html">Creating and Customizing Rails Generators &amp; Templates</option>
+              </optgroup>
+              <optgroup label="Contributing">
+                  <option value="contributing_to_ruby_on_rails.html">Contributing to Ruby on Rails</option>
+                  <option value="api_documentation_guidelines.html">API Documentation Guidelines</option>
+                  <option value="ruby_on_rails_guides_guidelines.html">Guides Guidelines</option>
+                  <option value="development_dependencies_install.html">Installing Rails Core Development Dependencies</option>
+              </optgroup>
+              <optgroup label="Policies">
+                  <option value="maintenance_policy.html">Maintenance Policy</option>
+              </optgroup>
+              <optgroup label="Release Notes">
+                  <option value="upgrading_ruby_on_rails.html">Upgrading Ruby on Rails</option>
+                  <option value="7_1_release_notes.html">Version 7.1 - October 2023</option>
+                  <option value="7_0_release_notes.html">Version 7.0 - December 2021</option>
+                  <option value="6_1_release_notes.html">Version 6.1 - December 2020</option>
+                  <option value="6_0_release_notes.html">Version 6.0 - August 2019</option>
+                  <option value="5_2_release_notes.html">Version 5.2 - April 2018</option>
+                  <option value="5_1_release_notes.html">Version 5.1 - April 2017</option>
+                  <option value="5_0_release_notes.html">Version 5.0 - June 2016</option>
+                  <option value="4_2_release_notes.html">Version 4.2 - December 2014</option>
+                  <option value="4_1_release_notes.html">Version 4.1 - April 2014</option>
+                  <option value="4_0_release_notes.html">Version 4.0 - June 2013</option>
+                  <option value="3_2_release_notes.html">Version 3.2 - January 2012</option>
+                  <option value="3_1_release_notes.html">Version 3.1 - August 2011</option>
+                  <option value="3_0_release_notes.html">Version 3.0 - August 2010</option>
+                  <option value="2_3_release_notes.html">Version 2.3 - March 2009</option>
+                  <option value="2_2_release_notes.html">Version 2.2 - November 2008</option>
+              </optgroup>
+          </select>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <hr class="hide" />
+
+  <div id="feature">
+    <div class="wrapper">
+      <h1>Ruby on Rails 7.1 Release Notes</h1><p>Highlights in Rails 7.1:</p>
+
+                <div id="subCol">
+            <h3 class="chapter"><img src="images/icon_book-close-bookmark-1.svg" alt="" />Chapters</h3>
+            <ol class="chapters">
+<li><a href="#upgrading-to-rails-7-1">Upgrading to Rails 7.1</a></li>
+<li><a href="#major-features">Major Features</a>
+
+<ul>
+<li><a href="#generate-dockerfiles-for-new-rails-applications">Generate Dockerfiles for new Rails applications</a></li>
+<li><a href="#add-activerecord-base-normalizes">Add <code>ActiveRecord::Base.normalizes</code></a></li>
+<li><a href="#add-activerecord-base-generates-token-for">Add <code>ActiveRecord::Base.generates_token_for</code></a></li>
+<li><a href="#add-perform-all-later-to-enqueue-multiple-jobs-at-once">Add <code>perform_all_later</code> to enqueue multiple jobs at once</a></li>
+<li><a href="#composite-primary-keys">Composite primary keys</a></li>
+<li><a href="#introduce-adapter-for-trilogy">Introduce adapter for <code>Trilogy</code></a></li>
+<li><a href="#add-activesupport-messagepack">Add <code>ActiveSupport::MessagePack</code></a></li>
+<li><a href="#introducing-config-autoload-lib-and-config-autoload-lib-once-for-enhanced-autoloading">Introducing <code>config.autoload_lib</code> and <code>config.autoload_lib_once</code> for Enhanced Autoloading</a></li>
+<li><a href="#active-record-api-for-general-async-queries">Active Record API for general async queries</a></li>
+<li><a href="#allow-templates-to-set-strict-locals">Allow templates to set strict <code>locals</code></a></li>
+<li><a href="#add-rails-application-deprecators">Add <code>Rails.application.deprecators</code></a></li>
+<li><a href="#support-pattern-matching-for-json-response-parsed-body">Support pattern matching for JSON <code>response.parsed_body</code></a></li>
+<li><a href="#extend-response-parsed-body-to-parse-html-with-nokogiri">Extend <code>response.parsed_body</code> to parse HTML with Nokogiri</a></li>
+<li><a href="#introduce-actionview-testcase-register-parser">Introduce <code>ActionView::TestCase.register_parser</code></a></li>
+</ul></li>
+<li><a href="#railties">Railties</a>
+
+<ul>
+<li><a href="#railties-removals">Removals</a></li>
+<li><a href="#railties-deprecations">Deprecations</a></li>
+<li><a href="#railties-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#action-cable">Action Cable</a>
+
+<ul>
+<li><a href="#action-cable-removals">Removals</a></li>
+<li><a href="#action-cable-deprecations">Deprecations</a></li>
+<li><a href="#action-cable-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#action-pack">Action Pack</a>
+
+<ul>
+<li><a href="#action-pack-removals">Removals</a></li>
+<li><a href="#action-pack-deprecations">Deprecations</a></li>
+<li><a href="#action-pack-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#action-view">Action View</a>
+
+<ul>
+<li><a href="#action-view-removals">Removals</a></li>
+<li><a href="#action-view-deprecations">Deprecations</a></li>
+<li><a href="#action-view-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#action-mailer">Action Mailer</a>
+
+<ul>
+<li><a href="#action-mailer-removals">Removals</a></li>
+<li><a href="#action-mailer-deprecations">Deprecations</a></li>
+<li><a href="#action-mailer-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#active-record">Active Record</a>
+
+<ul>
+<li><a href="#active-record-removals">Removals</a></li>
+<li><a href="#active-record-deprecations">Deprecations</a></li>
+<li><a href="#active-record-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#active-storage">Active Storage</a>
+
+<ul>
+<li><a href="#active-storage-removals">Removals</a></li>
+<li><a href="#active-storage-deprecations">Deprecations</a></li>
+<li><a href="#active-storage-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#active-model">Active Model</a>
+
+<ul>
+<li><a href="#active-model-removals">Removals</a></li>
+<li><a href="#active-model-deprecations">Deprecations</a></li>
+<li><a href="#active-model-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#active-support">Active Support</a>
+
+<ul>
+<li><a href="#active-support-removals">Removals</a></li>
+<li><a href="#active-support-deprecations">Deprecations</a></li>
+<li><a href="#active-support-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#active-job">Active Job</a>
+
+<ul>
+<li><a href="#active-job-removals">Removals</a></li>
+<li><a href="#active-job-deprecations">Deprecations</a></li>
+<li><a href="#active-job-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#action-text">Action Text</a>
+
+<ul>
+<li><a href="#action-text-removals">Removals</a></li>
+<li><a href="#action-text-deprecations">Deprecations</a></li>
+<li><a href="#action-text-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#action-mailbox">Action Mailbox</a>
+
+<ul>
+<li><a href="#action-mailbox-removals">Removals</a></li>
+<li><a href="#action-mailbox-deprecations">Deprecations</a></li>
+<li><a href="#action-mailbox-notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#ruby-on-rails-guides">Ruby on Rails Guides</a>
+
+<ul>
+<li><a href="#notable-changes">Notable changes</a></li>
+</ul></li>
+<li><a href="#credits">Credits</a></li>
+</ol>
+
+          </div>
+
+    </div>
+  </div>
+
+  <div id="container">
+    <div class="wrapper">
+      <div id="mainCol">
+        <h2 id="upgrading-to-rails-7-1"><a class="anchorlink" href="#upgrading-to-rails-7-1">1 Upgrading to Rails 7.1</a></h2><p>If you're upgrading an existing application, it's a great idea to have good test
+coverage before going in. You should also first upgrade to Rails 7.0 in case you
+haven't and make sure your application still runs as expected before attempting
+an update to Rails 7.1. A list of things to watch out for when upgrading is
+available in the
+<a href="upgrading_ruby_on_rails.html#upgrading-from-rails-7-0-to-rails-7-1">Upgrading Ruby on Rails</a>
+guide.</p><h2 id="major-features"><a class="anchorlink" href="#major-features">2 Major Features</a></h2><h3 id="generate-dockerfiles-for-new-rails-applications"><a class="anchorlink" href="#generate-dockerfiles-for-new-rails-applications">2.1 Generate Dockerfiles for new Rails applications</a></h3><p><a href="https://github.com/rails/rails/pull/46762">Default Docker support</a> to new Rails applications.
+When generating a new application, Rails will now include Docker-related files in the application.</p><p>These files serve as a foundational setup for deploying your Rails application in a
+production environment using Docker. It's important to note that these files are not
+meant for development purposes.</p><p>Here's a quick example of how to build and run your Rails app using these Docker files:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span>docker build <span class="nt">-t</span> app <span class="nb">.</span>
+<span class="gp">$</span><span class="w"> </span>docker volume create app-storage
+<span class="gp">$</span><span class="w"> </span>docker run <span class="nt">--rm</span> <span class="nt">-it</span> <span class="nt">-v</span> app-storage:/rails/storage <span class="nt">-p</span> 3000:3000 <span class="nt">--env</span> <span class="nv">RAILS_MASTER_KEY</span><span class="o">=</span>&lt;your-config-master-key&gt; app
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="docker build -t app .
+docker volume create app-storage
+docker run --rm -it -v app-storage:/rails/storage -p 3000:3000 --env RAILS_MASTER_KEY=<your-config-master-key> app
+">Copy</button>
+</div>
+<p>You can also start a console or runner from this Docker image:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span>docker run <span class="nt">--rm</span> <span class="nt">-it</span> <span class="nt">-v</span> app-storage:/rails/storage <span class="nt">--env</span> <span class="nv">RAILS_MASTER_KEY</span><span class="o">=</span>&lt;your-config-master-key&gt; app console
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="docker run --rm -it -v app-storage:/rails/storage --env RAILS_MASTER_KEY=<your-config-master-key> app console
+">Copy</button>
+</div>
+<p>For those looking to create a multi-platform image (e.g., Apple Silicon for AMD or Intel deployment),
+and push it to Docker Hub, follow these steps:</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span>docker login <span class="nt">-u</span> &lt;your-user&gt;
+<span class="gp">$</span><span class="w"> </span>docker buildx create <span class="nt">--use</span>
+<span class="gp">$</span><span class="w"> </span>docker buildx build <span class="nt">--push</span> <span class="nt">--platform</span><span class="o">=</span>linux/amd64,linux/arm64 <span class="nt">-t</span> &lt;your-user/image-name&gt; <span class="nb">.</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="docker login -u <your-user>
+docker buildx create --use
+docker buildx build --push --platform=linux/amd64,linux/arm64 -t <your-user/image-name> .
+">Copy</button>
+</div>
+<p>This enhancement simplifies the deployment process, providing a convenient starting point for
+getting your Rails application up and running in a production environment.</p><h3 id="add-activerecord-base-normalizes"><a class="anchorlink" href="#add-activerecord-base-normalizes">2.2 Add <code>ActiveRecord::Base.normalizes</code></a></h3><p><a href="https://api.rubyonrails.org/v7.1/classes/ActiveRecord/Normalization/ClassMethods.html#method-i-normalizes"><code>ActiveRecord::Base.normalizes</code></a> declares an attribute normalization. The
+normalization is applied when the attribute is assigned or updated, and the
+normalized value will be persisted to the database. The normalization is also
+applied to the corresponding keyword argument of query methods, allowing records
+to be queried using unnormalized values.</p><p>For example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">normalizes</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">with: </span><span class="o">-&gt;</span> <span class="n">email</span> <span class="p">{</span> <span class="n">email</span><span class="p">.</span><span class="nf">strip</span><span class="p">.</span><span class="nf">downcase</span> <span class="p">}</span>
+  <span class="n">normalizes</span> <span class="ss">:phone</span><span class="p">,</span> <span class="ss">with: </span><span class="o">-&gt;</span> <span class="n">phone</span> <span class="p">{</span> <span class="n">phone</span><span class="p">.</span><span class="nf">delete</span><span class="p">(</span><span class="s2">"^0-9"</span><span class="p">).</span><span class="nf">delete_prefix</span><span class="p">(</span><span class="s2">"1"</span><span class="p">)</span> <span class="p">}</span>
+<span class="k">end</span>
+
+<span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">email: </span><span class="s2">" CRUISE-CONTROL@EXAMPLE.COM</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+<span class="n">user</span><span class="p">.</span><span class="nf">email</span>                  <span class="c1"># =&gt; "cruise-control@example.com"</span>
+
+<span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">find_by</span><span class="p">(</span><span class="ss">email: </span><span class="s2">"</span><span class="se">\t</span><span class="s2">CRUISE-CONTROL@EXAMPLE.COM "</span><span class="p">)</span>
+<span class="n">user</span><span class="p">.</span><span class="nf">email</span>                  <span class="c1"># =&gt; "cruise-control@example.com"</span>
+<span class="n">user</span><span class="p">.</span><span class="nf">email_before_type_cast</span> <span class="c1"># =&gt; "cruise-control@example.com"</span>
+
+<span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">email: </span><span class="s2">"</span><span class="se">\t</span><span class="s2">CRUISE-CONTROL@EXAMPLE.COM "</span><span class="p">).</span><span class="nf">count</span>         <span class="c1"># =&gt; 1</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">([</span><span class="s2">"email = ?"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\t</span><span class="s2">CRUISE-CONTROL@EXAMPLE.COM "</span><span class="p">]).</span><span class="nf">count</span> <span class="c1"># =&gt; 0</span>
+
+<span class="no">User</span><span class="p">.</span><span class="nf">exists?</span><span class="p">(</span><span class="ss">email: </span><span class="s2">"</span><span class="se">\t</span><span class="s2">CRUISE-CONTROL@EXAMPLE.COM "</span><span class="p">)</span>         <span class="c1"># =&gt; true</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">exists?</span><span class="p">([</span><span class="s2">"email = ?"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\t</span><span class="s2">CRUISE-CONTROL@EXAMPLE.COM "</span><span class="p">])</span> <span class="c1"># =&gt; false</span>
+
+<span class="no">User</span><span class="p">.</span><span class="nf">normalize_value_for</span><span class="p">(</span><span class="ss">:phone</span><span class="p">,</span> <span class="s2">"+1 (555) 867-5309"</span><span class="p">)</span> <span class="c1"># =&gt; "5558675309"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="class User < ActiveRecord::Base
+  normalizes :email, with: -> email { email.strip.downcase }
+  normalizes :phone, with: -> phone { phone.delete(&quot;^0-9&quot;).delete_prefix(&quot;1&quot;) }
+end
+
+user = User.create(email: &quot; CRUISE-CONTROL@EXAMPLE.COM\n&quot;)
+user.email                  # => &quot;cruise-control@example.com&quot;
+
+user = User.find_by(email: &quot;\tCRUISE-CONTROL@EXAMPLE.COM &quot;)
+user.email                  # => &quot;cruise-control@example.com&quot;
+user.email_before_type_cast # => &quot;cruise-control@example.com&quot;
+
+User.where(email: &quot;\tCRUISE-CONTROL@EXAMPLE.COM &quot;).count         # => 1
+User.where([&quot;email = ?&quot;, &quot;\tCRUISE-CONTROL@EXAMPLE.COM &quot;]).count # => 0
+
+User.exists?(email: &quot;\tCRUISE-CONTROL@EXAMPLE.COM &quot;)         # => true
+User.exists?([&quot;email = ?&quot;, &quot;\tCRUISE-CONTROL@EXAMPLE.COM &quot;]) # => false
+
+User.normalize_value_for(:phone, &quot;+1 (555) 867-5309&quot;) # => &quot;5558675309&quot;
+">Copy</button>
+</div>
+<h3 id="add-activerecord-base-generates-token-for"><a class="anchorlink" href="#add-activerecord-base-generates-token-for">2.3 Add <code>ActiveRecord::Base.generates_token_for</code></a></h3><p><a href="https://api.rubyonrails.org/v7.1/classes/ActiveRecord/TokenFor/ClassMethods.html#method-i-generates_token_for"><code>ActiveRecord::Base.generates_token_for</code></a> defines the generation of tokens
+for a specific purpose. Generated tokens can expire and can also embed record
+data. When using a token to fetch a record, the data from the token and the
+current data from the record will be compared. If the two do not match, the
+token will be treated as invalid, the same as if it had expired.</p><p>Here is an example implementing a single-use password reset token:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">has_secure_password</span>
+
+  <span class="n">generates_token_for</span> <span class="ss">:password_reset</span><span class="p">,</span> <span class="ss">expires_in: </span><span class="mi">15</span><span class="p">.</span><span class="nf">minutes</span> <span class="k">do</span>
+    <span class="c1"># `password_salt` (defined by `has_secure_password`) returns the salt for</span>
+    <span class="c1"># the password. The salt changes when the password is changed, so the token</span>
+    <span class="c1"># will expire when the password is changed.</span>
+    <span class="n">password_salt</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">last</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">first</span>
+<span class="n">token</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="nf">generate_token_for</span><span class="p">(</span><span class="ss">:password_reset</span><span class="p">)</span>
+
+<span class="no">User</span><span class="p">.</span><span class="nf">find_by_token_for</span><span class="p">(</span><span class="ss">:password_reset</span><span class="p">,</span> <span class="n">token</span><span class="p">)</span> <span class="c1"># =&gt; user</span>
+
+<span class="n">user</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="ss">password: </span><span class="s2">"new password"</span><span class="p">)</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">find_by_token_for</span><span class="p">(</span><span class="ss">:password_reset</span><span class="p">,</span> <span class="n">token</span><span class="p">)</span> <span class="c1"># =&gt; nil</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="class User < ActiveRecord::Base
+  has_secure_password
+
+  generates_token_for :password_reset, expires_in: 15.minutes do
+    # `password_salt` (defined by `has_secure_password`) returns the salt for
+    # the password. The salt changes when the password is changed, so the token
+    # will expire when the password is changed.
+    password_salt&amp;.last(10)
+  end
+end
+
+user = User.first
+token = user.generate_token_for(:password_reset)
+
+User.find_by_token_for(:password_reset, token) # => user
+
+user.update!(password: &quot;new password&quot;)
+User.find_by_token_for(:password_reset, token) # => nil
+">Copy</button>
+</div>
+<h3 id="add-perform-all-later-to-enqueue-multiple-jobs-at-once"><a class="anchorlink" href="#add-perform-all-later-to-enqueue-multiple-jobs-at-once">2.4 Add <code>perform_all_later</code> to enqueue multiple jobs at once</a></h3><p>The <a href="https://github.com/rails/rails/pull/46603"><code>perform_all_later</code> method in Active Job</a>,
+designed to streamline the process of enqueuing multiple jobs simultaneously. This powerful
+addition allows you to efficiently enqueue jobs without triggering callbacks. This is
+particularly useful when you need to enqueue a batch of jobs at once, reducing the overhead
+of multiple round-trips to the queue datastore.</p><p>Here's how you can take advantage of <code>perform_all_later</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># Enqueueing individual jobs</span>
+<span class="no">ActiveJob</span><span class="p">.</span><span class="nf">perform_all_later</span><span class="p">(</span><span class="no">MyJob</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="s2">"hello"</span><span class="p">,</span> <span class="mi">42</span><span class="p">),</span> <span class="no">MyJob</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="s2">"world"</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+
+<span class="c1"># Enqueueing an array of jobs</span>
+<span class="n">user_jobs</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">pluck</span><span class="p">(</span><span class="ss">:id</span><span class="p">).</span><span class="nf">map</span> <span class="p">{</span> <span class="o">|</span><span class="nb">id</span><span class="o">|</span> <span class="no">UserJob</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">user_id: </span><span class="nb">id</span><span class="p">)</span> <span class="p">}</span>
+<span class="no">ActiveJob</span><span class="p">.</span><span class="nf">perform_all_later</span><span class="p">(</span><span class="n">user_jobs</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# Enqueueing individual jobs
+ActiveJob.perform_all_later(MyJob.new(&quot;hello&quot;, 42), MyJob.new(&quot;world&quot;, 0))
+
+# Enqueueing an array of jobs
+user_jobs = User.pluck(:id).map { |id| UserJob.new(user_id: id) }
+ActiveJob.perform_all_later(user_jobs)
+">Copy</button>
+</div>
+<p>By utilizing <code>perform_all_later</code>, you can optimize your job enqueuing process and take advantage
+of improved efficiency, especially when working with large sets of jobs. It's worth noting that
+for queue adapters that support the new <code>enqueue_all</code> method, such as the Sidekiq adapter, the
+enqueuing process is further optimized using <code>push_bulk</code>.</p><p>Please be aware that this new method introduces a separate event, <code>enqueue_all.active_job</code>,
+and does not utilize the existing <code>enqueue.active_job</code> event. This ensures accurate tracking
+and reporting of the bulk enqueuing process.</p><h3 id="composite-primary-keys"><a class="anchorlink" href="#composite-primary-keys">2.5 Composite primary keys</a></h3><p>Composite primary keys are now supported at both the database and application level. Rails is able to derive these keys directly from the schema. This feature is particularly beneficial for many-to-many relationships and other complex data models where a single column is insufficient to uniquely identify a record.</p><p>The SQL generated by query methods in Active Record (e.g. <code>#reload</code>, <code>#update</code>, <code>#delete</code>) will contain all parts of the composite primary key. Methods like <code>#first</code> and <code>#last</code> will use the full composite primary key in the <code>ORDER BY</code> statements.</p><p>The <code>query_constraints</code> macro can be used as a "virtual primary key" to achieve the same behavior without modifying the database schema.
+Example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">class</span> <span class="nc">TravelRoute</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">query_constraints</span> <span class="ss">:origin</span><span class="p">,</span> <span class="ss">:destination</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="class TravelRoute < ActiveRecord::Base
+  query_constraints :origin, :destination
+end
+">Copy</button>
+</div>
+<p>Similarly, associations accept a  <code>query_constraints:</code> option. This option serves as a composite foreign key, configuring the list of columns used for accessing the associated record.</p><p>Example:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="k">class</span> <span class="nc">TravelRouteReview</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">belongs_to</span> <span class="ss">:travel_route</span><span class="p">,</span> <span class="ss">query_constraints: </span><span class="p">[</span><span class="ss">:travel_route_origin</span><span class="p">,</span> <span class="ss">:travel_route_destination</span><span class="p">]</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="class TravelRouteReview < ActiveRecord::Base
+  belongs_to :travel_route, query_constraints: [:travel_route_origin, :travel_route_destination]
+end
+">Copy</button>
+</div>
+<h3 id="introduce-adapter-for-trilogy"><a class="anchorlink" href="#introduce-adapter-for-trilogy">2.6 Introduce adapter for <code>Trilogy</code></a></h3><p>A <a href="https://github.com/rails/rails/pull/47880">new adapter has been introduced</a> to facilitate the
+seamless integration of <code>Trilogy</code>, a MySQL-compatible database client, with Rails applications.
+Now, Rails applications have the option to incorporate <code>Trilogy</code> functionality by configuring their
+<code>config/database.yml</code> file. For instance:</p><div class="code_container">
+<pre><code class="highlight yaml"><span class="na">development</span><span class="pi">:</span>
+  <span class="na">adapter</span><span class="pi">:</span> <span class="s">trilogy</span>
+  <span class="na">database</span><span class="pi">:</span> <span class="s">blog_development</span>
+  <span class="na">pool</span><span class="pi">:</span> <span class="m">5</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="development:
+  adapter: trilogy
+  database: blog_development
+  pool: 5
+">Copy</button>
+</div>
+<p>Alternatively, integration can be achieved using the <code>DATABASE_URL</code> environment variable:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">ENV</span><span class="p">[</span><span class="s1">'DATABASE_URL'</span><span class="p">]</span> <span class="c1"># =&gt; "trilogy://localhost/blog_development?pool=5"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="ENV['DATABASE_URL'] # => &quot;trilogy://localhost/blog_development?pool=5&quot;
+">Copy</button>
+</div>
+<h3 id="add-activesupport-messagepack"><a class="anchorlink" href="#add-activesupport-messagepack">2.7 Add <code>ActiveSupport::MessagePack</code></a></h3><p><a href="https://api.rubyonrails.org/v7.1/classes/ActiveSupport/MessagePack.html"><code>ActiveSupport::MessagePack</code></a> is a serializer that integrates with the
+<a href="https://github.com/msgpack/msgpack-ruby"><code>msgpack</code> gem</a>. <code>ActiveSupport::MessagePack</code> can serialize the basic Ruby
+types supported by <code>msgpack</code>, as well as several additional types such as <code>Time</code>,
+<code>ActiveSupport::TimeWithZone</code>, and <code>ActiveSupport::HashWithIndifferentAccess</code>.
+Compared to <code>JSON</code> and <code>Marshal</code>, <code>ActiveSupport::MessagePack</code> can reduce
+payload size and improve performance.</p><p><code>ActiveSupport::MessagePack</code> can be used as a <a href="https://guides.rubyonrails.org/v7.1/configuring.html#config-active-support-message-serializer">message serializer</a>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">config</span><span class="p">.</span><span class="nf">active_support</span><span class="p">.</span><span class="nf">message_serializer</span> <span class="o">=</span> <span class="ss">:message_pack</span>
+
+<span class="c1"># Or individually:</span>
+<span class="no">ActiveSupport</span><span class="o">::</span><span class="no">MessageEncryptor</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">secret</span><span class="p">,</span> <span class="ss">serializer: :message_pack</span><span class="p">)</span>
+<span class="no">ActiveSupport</span><span class="o">::</span><span class="no">MessageVerifier</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">secret</span><span class="p">,</span> <span class="ss">serializer: :message_pack</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="config.active_support.message_serializer = :message_pack
+
+# Or individually:
+ActiveSupport::MessageEncryptor.new(secret, serializer: :message_pack)
+ActiveSupport::MessageVerifier.new(secret, serializer: :message_pack)
+">Copy</button>
+</div>
+<p>As the <a href="https://guides.rubyonrails.org/v7.1/configuring.html#config-action-dispatch-cookies-serializer">cookies serializer</a>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">config</span><span class="p">.</span><span class="nf">action_dispatch</span><span class="p">.</span><span class="nf">cookies_serializer</span> <span class="o">=</span> <span class="ss">:message_pack</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="config.action_dispatch.cookies_serializer = :message_pack
+">Copy</button>
+</div>
+<p>And as a <a href="https://guides.rubyonrails.org/v7.1/caching_with_rails.html#configuration">cache serializer</a>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">config</span><span class="p">.</span><span class="nf">cache_store</span> <span class="o">=</span> <span class="ss">:file_store</span><span class="p">,</span> <span class="s2">"tmp/cache"</span><span class="p">,</span> <span class="p">{</span> <span class="ss">serializer: :message_pack</span> <span class="p">}</span>
+
+<span class="c1"># Or individually:</span>
+<span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Cache</span><span class="p">.</span><span class="nf">lookup_store</span><span class="p">(</span><span class="ss">:file_store</span><span class="p">,</span> <span class="s2">"tmp/cache"</span><span class="p">,</span> <span class="ss">serializer: :message_pack</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="config.cache_store = :file_store, &quot;tmp/cache&quot;, { serializer: :message_pack }
+
+# Or individually:
+ActiveSupport::Cache.lookup_store(:file_store, &quot;tmp/cache&quot;, serializer: :message_pack)
+">Copy</button>
+</div>
+<h3 id="introducing-config-autoload-lib-and-config-autoload-lib-once-for-enhanced-autoloading"><a class="anchorlink" href="#introducing-config-autoload-lib-and-config-autoload-lib-once-for-enhanced-autoloading">2.8 Introducing <code>config.autoload_lib</code> and <code>config.autoload_lib_once</code> for Enhanced Autoloading</a></h3><p>A <a href="https://github.com/rails/rails/pull/48572">new configuration method, <code>config.autoload_lib(ignore:)</code></a>,
+has been introduced. This method is used to enhance the autoload paths of applications by including the
+<code>lib</code> directory, which is not included by default. Also, <code>config.autoload_lib(ignore: %w(assets tasks))</code>
+is generated for new applications.</p><p>When invoked from either <code>config/application.rb</code> or <code>config/environments/*.rb</code>, this method adds the
+<code>lib</code> directory to both <code>config.autoload_paths</code> and <code>config.eager_load_paths</code>. It's important to note
+that this feature is not available for engines.</p><p>To ensure flexibility, the <code>ignore</code> keyword argument can be used to specify subdirectories within the
+<code>lib</code> directory that should not be managed by the autoloaders. For instance, you can exclude directories
+like <code>assets</code>, <code>tasks</code>, and <code>generators</code> by passing them to the <code>ignore</code> argument:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">config</span><span class="p">.</span><span class="nf">autoload_lib</span><span class="p">(</span><span class="ss">ignore: </span><span class="sx">%w(assets tasks generators)</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="config.autoload_lib(ignore: %w(assets tasks generators))
+">Copy</button>
+</div>
+<p>The <a href="https://github.com/rails/rails/pull/48610"><code>config.autoload_lib_once</code> method</a> is similar to
+<code>config.autoload_lib</code>, except that it adds <code>lib</code> to <code>config.autoload_once_paths</code> instead.</p><p>Please, see more details in the <a href="autoloading_and_reloading_constants.html#config-autoload-lib-ignore">autoloading guide</a></p><h3 id="active-record-api-for-general-async-queries"><a class="anchorlink" href="#active-record-api-for-general-async-queries">2.9 Active Record API for general async queries</a></h3><p>A significant enhancement has been introduced to the Active Record API, expanding its
+<a href="https://github.com/rails/rails/pull/44446">support for asynchronous queries</a>. This enhancement
+addresses the need for more efficient handling of not-so-fast queries, particularly focusing on
+aggregates (such as <code>count</code>, <code>sum</code>, etc.) and all methods returning a single record or anything
+other than a <code>Relation</code>.</p><p>The new API includes the following asynchronous methods:</p>
+<ul>
+<li><code>async_count</code></li>
+<li><code>async_sum</code></li>
+<li><code>async_minimum</code></li>
+<li><code>async_maximum</code></li>
+<li><code>async_average</code></li>
+<li><code>async_pluck</code></li>
+<li><code>async_pick</code></li>
+<li><code>async_ids</code></li>
+<li><code>async_find_by_sql</code></li>
+<li><code>async_count_by_sql</code></li>
+</ul>
+<p>Here's a brief example of how to use one of these methods, <code>async_count</code>, to count the number of published
+posts in an asynchronous manner:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># Synchronous count</span>
+<span class="n">published_count</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">published: </span><span class="kp">true</span><span class="p">).</span><span class="nf">count</span> <span class="c1"># =&gt; 10</span>
+
+<span class="c1"># Asynchronous count</span>
+<span class="n">promise</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">published: </span><span class="kp">true</span><span class="p">).</span><span class="nf">async_count</span> <span class="c1"># =&gt; #&lt;ActiveRecord::Promise status=pending&gt;</span>
+<span class="n">promise</span><span class="p">.</span><span class="nf">value</span> <span class="c1"># =&gt; 10</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# Synchronous count
+published_count = Post.where(published: true).count # => 10
+
+# Asynchronous count
+promise = Post.where(published: true).async_count # => #<ActiveRecord::Promise status=pending>
+promise.value # => 10
+">Copy</button>
+</div>
+<p>These methods allow for the execution of these operations in an asynchronous manner, which can significantly
+improve performance for certain types of database queries.</p><h3 id="allow-templates-to-set-strict-locals"><a class="anchorlink" href="#allow-templates-to-set-strict-locals">2.10 Allow templates to set strict <code>locals</code></a></h3><p>Introduce a new feature that <a href="https://github.com/rails/rails/pull/45602">allows templates to set explicit <code>locals</code></a>.
+This enhancement provides greater control and clarity when passing variables to your templates.</p><p>By default, templates will accept any <code>locals</code> as keyword arguments. However, now you can define what <code>locals</code> a
+template should accept by adding a <code>locals</code> magic comment at the beginning of your template file.</p><p>Here's how it works:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="c">&lt;%# locals: (message:) -%&gt;</span>
+<span class="cp">&lt;%=</span> <span class="n">message</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%# locals: (message:) -%>
+<%= message %>
+">Copy</button>
+</div>
+<p>You can also set default values for these locals:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="c">&lt;%# locals: (message: "Hello, world!") -%&gt;</span>
+<span class="cp">&lt;%=</span> <span class="n">message</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%# locals: (message: &quot;Hello, world!&quot;) -%>
+<%= message %>
+">Copy</button>
+</div>
+<p>Optional keyword arguments can be splatted:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="c">&lt;%# locals: (message: "Hello, world!", **attributes) -%&gt;</span>
+<span class="cp">&lt;%=</span> <span class="n">tag</span><span class="p">.</span><span class="nf">p</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="o">**</span><span class="n">attributes</span><span class="p">)</span> <span class="cp">%&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%# locals: (message: &quot;Hello, world!&quot;, **attributes) -%>
+<%= tag.p(message, **attributes) %>
+">Copy</button>
+</div>
+<p>If you want to disable the use of locals entirely, you can do so like this:</p><div class="code_container">
+<pre><code class="highlight erb"><span class="c">&lt;%# locals: () %&gt;</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="<%# locals: () %>
+">Copy</button>
+</div>
+<p>Action View will process the <code>locals:</code> magic comment in any templating engine that supports <code>#</code>-prefixed comments, and will read the magic comment from any line in the partial.</p><div class="warning"><p>Only keyword arguments are supported. Defining positional or block arguments will raise an Action View Error at render-time.</p></div><h3 id="add-rails-application-deprecators"><a class="anchorlink" href="#add-rails-application-deprecators">2.11 Add <code>Rails.application.deprecators</code></a></h3><p>The new <a href="https://github.com/rails/rails/pull/46049"><code>Rails.application.deprecators</code> method</a> returns a
+collection of managed deprecators within your application, and allows you to add and retrieve individual
+deprecators with ease:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">deprecators</span><span class="p">[</span><span class="ss">:my_gem</span><span class="p">]</span> <span class="o">=</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Deprecation</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="s2">"2.0"</span><span class="p">,</span> <span class="s2">"MyGem"</span><span class="p">)</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">deprecators</span><span class="p">[</span><span class="ss">:other_gem</span><span class="p">]</span> <span class="o">=</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Deprecation</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="s2">"3.0"</span><span class="p">,</span> <span class="s2">"OtherGem"</span><span class="p">)</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Rails.application.deprecators[:my_gem] = ActiveSupport::Deprecation.new(&quot;2.0&quot;, &quot;MyGem&quot;)
+Rails.application.deprecators[:other_gem] = ActiveSupport::Deprecation.new(&quot;3.0&quot;, &quot;OtherGem&quot;)
+">Copy</button>
+</div>
+<p>The collection's configuration settings affect all deprecators in the collection.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">deprecators</span><span class="p">.</span><span class="nf">debug</span> <span class="o">=</span> <span class="kp">true</span>
+
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">deprecators</span><span class="p">[</span><span class="ss">:my_gem</span><span class="p">].</span><span class="nf">debug</span>
+<span class="c1"># =&gt; true</span>
+
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">deprecators</span><span class="p">[</span><span class="ss">:other_gem</span><span class="p">].</span><span class="nf">debug</span>
+<span class="c1"># =&gt; true</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Rails.application.deprecators.debug = true
+
+Rails.application.deprecators[:my_gem].debug
+# => true
+
+Rails.application.deprecators[:other_gem].debug
+# => true
+">Copy</button>
+</div>
+<p>There are scenarios where you might want to mute all deprecator warnings for a specific block of code.
+With the deprecators collection, you can easily silence all deprecator warnings within a block:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">deprecators</span><span class="p">.</span><span class="nf">silence</span> <span class="k">do</span>
+  <span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">deprecators</span><span class="p">[</span><span class="ss">:my_gem</span><span class="p">].</span><span class="nf">warn</span>    <span class="c1"># No warning (silenced)</span>
+  <span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">deprecators</span><span class="p">[</span><span class="ss">:other_gem</span><span class="p">].</span><span class="nf">warn</span> <span class="c1"># No warning (silenced)</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Rails.application.deprecators.silence do
+  Rails.application.deprecators[:my_gem].warn    # No warning (silenced)
+  Rails.application.deprecators[:other_gem].warn # No warning (silenced)
+end
+">Copy</button>
+</div>
+<h3 id="support-pattern-matching-for-json-response-parsed-body"><a class="anchorlink" href="#support-pattern-matching-for-json-response-parsed-body">2.12 Support pattern matching for JSON <code>response.parsed_body</code></a></h3><p>When <code>ActionDispatch::IntegrationTest</code> tests blocks invoke
+<code>response.parsed_body</code> for JSON responses, their payloads will be available with
+indifferent access. This enables integration with <a href="https://docs.ruby-lang.org/en/master/syntax/pattern_matching_rdoc.html">Ruby's Pattern
+Matching</a>, and built-in <a href="https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-assert_pattern">Minitest support for pattern
+matching</a>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s2">"/posts.json"</span>
+
+<span class="n">response</span><span class="p">.</span><span class="nf">content_type</span>         <span class="c1"># =&gt; "application/json; charset=utf-8"</span>
+<span class="n">response</span><span class="p">.</span><span class="nf">parsed_body</span><span class="p">.</span><span class="nf">class</span>    <span class="c1"># =&gt; Array</span>
+<span class="n">response</span><span class="p">.</span><span class="nf">parsed_body</span>          <span class="c1"># =&gt; [{"id"=&gt;42, "title"=&gt;"Title"},...</span>
+
+<span class="n">assert_pattern</span> <span class="p">{</span> <span class="n">response</span><span class="p">.</span><span class="nf">parsed_body</span> <span class="o">=&gt;</span> <span class="p">[{</span> <span class="ss">id: </span><span class="mi">42</span> <span class="p">}]</span> <span class="p">}</span>
+
+<span class="n">get</span> <span class="s2">"/posts/42.json"</span>
+
+<span class="n">response</span><span class="p">.</span><span class="nf">content_type</span>         <span class="c1"># =&gt; "application/json; charset=utf-8"</span>
+<span class="n">response</span><span class="p">.</span><span class="nf">parsed_body</span><span class="p">.</span><span class="nf">class</span>    <span class="c1"># =&gt; ActiveSupport::HashWithIndifferentAccess</span>
+<span class="n">response</span><span class="p">.</span><span class="nf">parsed_body</span>          <span class="c1"># =&gt; {"id"=&gt;42, "title"=&gt;"Title"}</span>
+
+<span class="n">assert_pattern</span> <span class="p">{</span> <span class="n">response</span><span class="p">.</span><span class="nf">parsed_body</span> <span class="o">=&gt;</span> <span class="p">[{</span> <span class="ss">title: </span><span class="sr">/title/i</span> <span class="p">}]</span> <span class="p">}</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get &quot;/posts.json&quot;
+
+response.content_type         # => &quot;application/json; charset=utf-8&quot;
+response.parsed_body.class    # => Array
+response.parsed_body          # => [{&quot;id&quot;=>42, &quot;title&quot;=>&quot;Title&quot;},...
+
+assert_pattern { response.parsed_body => [{ id: 42 }] }
+
+get &quot;/posts/42.json&quot;
+
+response.content_type         # => &quot;application/json; charset=utf-8&quot;
+response.parsed_body.class    # => ActiveSupport::HashWithIndifferentAccess
+response.parsed_body          # => {&quot;id&quot;=>42, &quot;title&quot;=>&quot;Title&quot;}
+
+assert_pattern { response.parsed_body => [{ title: /title/i }] }
+">Copy</button>
+</div>
+<h3 id="extend-response-parsed-body-to-parse-html-with-nokogiri"><a class="anchorlink" href="#extend-response-parsed-body-to-parse-html-with-nokogiri">2.13 Extend <code>response.parsed_body</code> to parse HTML with Nokogiri</a></h3><p><a href="https://github.com/rails/rails/pull/47144">Extend the <code>ActionDispatch::Testing</code> module</a> to support parsing the
+value of an HTML <code>response.body</code> into a <code>Nokogiri::HTML5::Document</code> instance:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s2">"/posts"</span>
+
+<span class="n">response</span><span class="p">.</span><span class="nf">content_type</span>         <span class="c1"># =&gt; "text/html; charset=utf-8"</span>
+<span class="n">response</span><span class="p">.</span><span class="nf">parsed_body</span><span class="p">.</span><span class="nf">class</span>    <span class="c1"># =&gt; Nokogiri::HTML5::Document</span>
+<span class="n">response</span><span class="p">.</span><span class="nf">parsed_body</span><span class="p">.</span><span class="nf">to_html</span>  <span class="c1"># =&gt; "&lt;!DOCTYPE html&gt;\n&lt;html&gt;\n..."</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get &quot;/posts&quot;
+
+response.content_type         # => &quot;text/html; charset=utf-8&quot;
+response.parsed_body.class    # => Nokogiri::HTML5::Document
+response.parsed_body.to_html  # => &quot;<!DOCTYPE html>\n<html>\n...&quot;
+">Copy</button>
+</div>
+<p>Newly added <a href="https://nokogiri.org/rdoc/Nokogiri/XML/Attr.html#method-i-deconstruct_keys">Nokogiri support for pattern matching</a>,
+along with built-in <a href="https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-assert_pattern">Minitest support for pattern
+matching</a> presents opportunities to make test
+assertions about the structure and content of the HTML response:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">get</span> <span class="s2">"/posts"</span>
+
+<span class="n">html</span> <span class="o">=</span> <span class="n">response</span><span class="p">.</span><span class="nf">parsed_body</span> <span class="c1"># =&gt; &lt;html&gt;</span>
+                            <span class="c1">#      &lt;head&gt;&lt;/head&gt;</span>
+                            <span class="c1">#        &lt;body&gt;</span>
+                            <span class="c1">#          &lt;main&gt;&lt;h1&gt;Some main content&lt;/h1&gt;&lt;/main&gt;</span>
+                            <span class="c1">#        &lt;/body&gt;</span>
+                            <span class="c1">#     &lt;/html&gt;</span>
+
+<span class="n">assert_pattern</span> <span class="p">{</span> <span class="n">html</span><span class="p">.</span><span class="nf">at</span><span class="p">(</span><span class="s2">"main"</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="ss">content: </span><span class="s2">"Some main content"</span> <span class="p">}</span> <span class="p">}</span>
+<span class="n">assert_pattern</span> <span class="p">{</span> <span class="n">html</span><span class="p">.</span><span class="nf">at</span><span class="p">(</span><span class="s2">"main"</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="ss">content: </span><span class="sr">/content/</span> <span class="p">}</span> <span class="p">}</span>
+<span class="n">assert_pattern</span> <span class="p">{</span> <span class="n">html</span><span class="p">.</span><span class="nf">at</span><span class="p">(</span><span class="s2">"main"</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="ss">children: </span><span class="p">[{</span> <span class="ss">name: </span><span class="s2">"h1"</span><span class="p">,</span> <span class="ss">content: </span><span class="sr">/content/</span> <span class="p">}]</span> <span class="p">}</span> <span class="p">}</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="get &quot;/posts&quot;
+
+html = response.parsed_body # => <html>
+                            #      <head></head>
+                            #        <body>
+                            #          <main><h1>Some main content</h1></main>
+                            #        </body>
+                            #     </html>
+
+assert_pattern { html.at(&quot;main&quot;) => { content: &quot;Some main content&quot; } }
+assert_pattern { html.at(&quot;main&quot;) => { content: /content/ } }
+assert_pattern { html.at(&quot;main&quot;) => { children: [{ name: &quot;h1&quot;, content: /content/ }] } }
+">Copy</button>
+</div>
+<h3 id="introduce-actionview-testcase-register-parser"><a class="anchorlink" href="#introduce-actionview-testcase-register-parser">2.14 Introduce <code>ActionView::TestCase.register_parser</code></a></h3><p><a href="https://github.com/rails/rails/pull/49194">Extend <code>ActionView::TestCase</code></a> to support parsing content rendered by
+view partials into known structures. By default, define <code>rendered_html</code> to parse
+HTML into a <code>Nokogiri::XML::Node</code> and <code>rendered_json</code> to parse JSON into an
+<code>ActiveSupport::HashWithIndifferentAccess</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="nb">test</span> <span class="s2">"renders HTML"</span> <span class="k">do</span>
+  <span class="n">article</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="ss">title: </span><span class="s2">"Hello, world"</span><span class="p">)</span>
+
+  <span class="n">render</span> <span class="ss">partial: </span><span class="s2">"articles/article"</span><span class="p">,</span> <span class="ss">locals: </span><span class="p">{</span> <span class="ss">article: </span><span class="n">article</span> <span class="p">}</span>
+
+  <span class="n">assert_pattern</span> <span class="p">{</span> <span class="n">rendered_html</span><span class="p">.</span><span class="nf">at</span><span class="p">(</span><span class="s2">"main h1"</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="ss">content: </span><span class="s2">"Hello, world"</span> <span class="p">}</span> <span class="p">}</span>
+<span class="k">end</span>
+
+<span class="nb">test</span> <span class="s2">"renders JSON"</span> <span class="k">do</span>
+  <span class="n">article</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="ss">title: </span><span class="s2">"Hello, world"</span><span class="p">)</span>
+
+  <span class="n">render</span> <span class="ss">formats: :json</span><span class="p">,</span> <span class="ss">partial: </span><span class="s2">"articles/article"</span><span class="p">,</span> <span class="ss">locals: </span><span class="p">{</span> <span class="ss">article: </span><span class="n">article</span> <span class="p">}</span>
+
+  <span class="n">assert_pattern</span> <span class="p">{</span> <span class="n">rendered_json</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="ss">title: </span><span class="s2">"Hello, world"</span> <span class="p">}</span> <span class="p">}</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="test &quot;renders HTML&quot; do
+  article = Article.create!(title: &quot;Hello, world&quot;)
+
+  render partial: &quot;articles/article&quot;, locals: { article: article }
+
+  assert_pattern { rendered_html.at(&quot;main h1&quot;) => { content: &quot;Hello, world&quot; } }
+end
+
+test &quot;renders JSON&quot; do
+  article = Article.create!(title: &quot;Hello, world&quot;)
+
+  render formats: :json, partial: &quot;articles/article&quot;, locals: { article: article }
+
+  assert_pattern { rendered_json => { title: &quot;Hello, world&quot; } }
+end
+">Copy</button>
+</div>
+<p>To parse the rendered content into RSS, register a call to <code>RSS::Parser.parse</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">register_parser</span> <span class="ss">:rss</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="n">rendered</span> <span class="p">{</span> <span class="no">RSS</span><span class="o">::</span><span class="no">Parser</span><span class="p">.</span><span class="nf">parse</span><span class="p">(</span><span class="n">rendered</span><span class="p">)</span> <span class="p">}</span>
+
+<span class="nb">test</span> <span class="s2">"renders RSS"</span> <span class="k">do</span>
+  <span class="n">article</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="ss">title: </span><span class="s2">"Hello, world"</span><span class="p">)</span>
+
+  <span class="n">render</span> <span class="ss">formats: :rss</span><span class="p">,</span> <span class="ss">partial: </span><span class="n">article</span><span class="p">,</span> <span class="ss">locals: </span><span class="p">{</span> <span class="ss">article: </span><span class="n">article</span> <span class="p">}</span>
+
+  <span class="n">assert_equal</span> <span class="s2">"Hello, world"</span><span class="p">,</span> <span class="n">rendered_rss</span><span class="p">.</span><span class="nf">items</span><span class="p">.</span><span class="nf">last</span><span class="p">.</span><span class="nf">title</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="register_parser :rss, -> rendered { RSS::Parser.parse(rendered) }
+
+test &quot;renders RSS&quot; do
+  article = Article.create!(title: &quot;Hello, world&quot;)
+
+  render formats: :rss, partial: article, locals: { article: article }
+
+  assert_equal &quot;Hello, world&quot;, rendered_rss.items.last.title
+end
+">Copy</button>
+</div>
+<p>To parse the rendered content into a Capybara::Simple::Node, re-register an
+<code>:html</code> parser with a call to <code>Capybara.string</code>:</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">register_parser</span> <span class="ss">:html</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="n">rendered</span> <span class="p">{</span> <span class="no">Capybara</span><span class="p">.</span><span class="nf">string</span><span class="p">(</span><span class="n">rendered</span><span class="p">)</span> <span class="p">}</span>
+
+<span class="nb">test</span> <span class="s2">"renders HTML"</span> <span class="k">do</span>
+  <span class="n">article</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="ss">title: </span><span class="s2">"Hello, world"</span><span class="p">)</span>
+
+  <span class="n">render</span> <span class="ss">partial: </span><span class="n">article</span>
+
+  <span class="n">rendered_html</span><span class="p">.</span><span class="nf">assert_css</span> <span class="s2">"main h1"</span><span class="p">,</span> <span class="ss">text: </span><span class="s2">"Hello, world"</span>
+<span class="k">end</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="register_parser :html, -> rendered { Capybara.string(rendered) }
+
+test &quot;renders HTML&quot; do
+  article = Article.create!(title: &quot;Hello, world&quot;)
+
+  render partial: article
+
+  rendered_html.assert_css &quot;main h1&quot;, text: &quot;Hello, world&quot;
+end
+">Copy</button>
+</div>
+<h2 id="railties"><a class="anchorlink" href="#railties">3 Railties</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/7-1-stable/railties/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="railties-removals"><a class="anchorlink" href="#railties-removals">3.1 Removals</a></h3>
+<ul>
+<li><p>  Remove deprecated <code>bin/rails secrets:setup</code> command.</p></li>
+<li><p>  Remove default <code>X-Download-Options</code> header since it is used only by Internet Explorer.</p></li>
+</ul>
+<h3 id="railties-deprecations"><a class="anchorlink" href="#railties-deprecations">3.2 Deprecations</a></h3>
+<ul>
+<li><p>  Deprecate usage of <code>Rails.application.secrets</code>.</p></li>
+<li><p>  Deprecate <code>secrets:show</code> and <code>secrets:edit</code> commands in favor of <code>credentials</code>.</p></li>
+<li><p>  Deprecate <code>Rails::Generators::Testing::Behaviour</code> in favor of <code>Rails::Generators::Testing::Behavior</code>.</p></li>
+</ul>
+<h3 id="railties-notable-changes"><a class="anchorlink" href="#railties-notable-changes">3.3 Notable changes</a></h3>
+<ul>
+<li><p>  Add <code>sandbox_by_default</code> option to start rails console in sandbox mode by default.</p></li>
+<li><p>  Add new syntax for support filtering tests by line ranges.</p></li>
+<li><p>  Add <code>DATABASE</code> option that enables the specification of the target database when executing the
+<code>rails railties:install:migrations</code> command to copy migrations.</p></li>
+<li><p>  Add support for Bun in <code>rails new --javascript</code> generator.</p><div class="code_container">
+<pre><code class="highlight console"><span class="gp">$</span><span class="w"> </span><span class="nb">rails </span>new my_new_app <span class="nt">--javascript</span><span class="o">=</span>bun
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="rails new my_new_app --javascript=bun
+">Copy</button>
+</div></li>
+<li><p>  Add ability to show slow tests to the test runner.</p></li>
+</ul>
+<h2 id="action-cable"><a class="anchorlink" href="#action-cable">4 Action Cable</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/7-1-stable/actioncable/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="action-cable-removals"><a class="anchorlink" href="#action-cable-removals">4.1 Removals</a></h3><h3 id="action-cable-deprecations"><a class="anchorlink" href="#action-cable-deprecations">4.2 Deprecations</a></h3><h3 id="action-cable-notable-changes"><a class="anchorlink" href="#action-cable-notable-changes">4.3 Notable changes</a></h3>
+<ul>
+<li><p>  Add <code>capture_broadcasts</code> test helper to capture all messages broadcasted in a block.</p></li>
+<li><p>  Add the ability to Redis pub/sub adapter to automatically reconnect when Redis connection is lost.</p></li>
+<li><p>  Add command callbacks <code>before_command</code>, <code>after_command</code>, and <code>around_command</code> to <code>ActionCable::Connection::Base</code>.</p></li>
+</ul>
+<h2 id="action-pack"><a class="anchorlink" href="#action-pack">5 Action Pack</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/7-1-stable/actionpack/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="action-pack-removals"><a class="anchorlink" href="#action-pack-removals">5.1 Removals</a></h3>
+<ul>
+<li><p>  Remove deprecated behavior on <code>Request#content_type</code></p></li>
+<li><p>  Remove deprecated ability to assign a single value to <code>config.action_dispatch.trusted_proxies</code>.</p></li>
+<li><p>  Remove deprecated <code>poltergeist</code> and <code>webkit</code> (capybara-webkit) driver registration for system testing.</p></li>
+</ul>
+<h3 id="action-pack-deprecations"><a class="anchorlink" href="#action-pack-deprecations">5.2 Deprecations</a></h3>
+<ul>
+<li><p>  Deprecate <code>config.action_dispatch.return_only_request_media_type_on_content_type</code>.</p></li>
+<li><p>  Deprecate <code>AbstractController::Helpers::MissingHelperError</code>.</p></li>
+<li><p>  Deprecate <code>ActionDispatch::IllegalStateError</code>.</p></li>
+<li><p>  Deprecate <code>speaker</code>, <code>vibrate</code>, and <code>vr</code> permissions policy directives.</p></li>
+<li><p>  Deprecate <code>true</code> and <code>false</code> values for <code>config.action_dispatch.show_exceptions</code> in favor of <code>:all</code>, <code>:rescuable</code>, or <code>:none</code>.</p></li>
+</ul>
+<h3 id="action-pack-notable-changes"><a class="anchorlink" href="#action-pack-notable-changes">5.3 Notable changes</a></h3>
+<ul>
+<li><p>  Add <code>exclude?</code> method to <code>ActionController::Parameters</code>. It is the inverse of <code>include?</code> method.</p></li>
+<li><p>  Add <code>ActionController::Parameters#extract_value</code> method to allow extracting serialized values from params.</p></li>
+<li><p>  Add the ability to use custom logic for storing and retrieving CSRF tokens.</p></li>
+<li><p>  Add <code>html</code> and <code>screenshot</code> kwargs for system test screenshot helper.</p></li>
+</ul>
+<h2 id="action-view"><a class="anchorlink" href="#action-view">6 Action View</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/7-1-stable/actionview/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="action-view-removals"><a class="anchorlink" href="#action-view-removals">6.1 Removals</a></h3>
+<ul>
+<li><p>  Remove deprecated constant <code>ActionView::Path</code>.</p></li>
+<li><p>  Remove deprecated support to passing instance variables as locals to partials.</p></li>
+</ul>
+<h3 id="action-view-deprecations"><a class="anchorlink" href="#action-view-deprecations">6.2 Deprecations</a></h3><h3 id="action-view-notable-changes"><a class="anchorlink" href="#action-view-notable-changes">6.3 Notable changes</a></h3>
+<ul>
+<li><p>  <code>check_box_tag</code> and <code>radio_button_tag</code> now accept <code>checked</code> as a keyword argument.</p></li>
+<li><p>  Add <code>picture_tag</code> helper to generate HTML <code>&lt;picture&gt;</code> tags.</p></li>
+<li><p>  The <code>simple_format</code> helper now handles a <code>:sanitize_options</code> feature, allowing the addition of extra
+options for the sanitize process.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">simple_format</span><span class="p">(</span><span class="s2">"&lt;a target=</span><span class="se">\"</span><span class="s2">_blank</span><span class="se">\"</span><span class="s2"> href=</span><span class="se">\"</span><span class="s2">http://example.com</span><span class="se">\"</span><span class="s2">&gt;Continue&lt;/a&gt;"</span><span class="p">,</span> <span class="p">{},</span> <span class="p">{</span> <span class="ss">sanitize_options: </span><span class="p">{</span> <span class="ss">attributes: </span><span class="sx">%w[target href]</span> <span class="p">}</span> <span class="p">})</span>
+<span class="c1"># =&gt; "&lt;p&gt;&lt;a target=\"_blank\" href=\"http://example.com\"&gt;Continue&lt;/a&gt;&lt;/p&gt;"</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="simple_format(&quot;<a target=\&quot;_blank\&quot; href=\&quot;http://example.com\&quot;>Continue</a>&quot;, {}, { sanitize_options: { attributes: %w[target href] } })
+# => &quot;<p><a target=\&quot;_blank\&quot; href=\&quot;http://example.com\&quot;>Continue</a></p>&quot;
+">Copy</button>
+</div></li>
+</ul>
+<h2 id="action-mailer"><a class="anchorlink" href="#action-mailer">7 Action Mailer</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/7-1-stable/actionmailer/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="action-mailer-removals"><a class="anchorlink" href="#action-mailer-removals">7.1 Removals</a></h3><h3 id="action-mailer-deprecations"><a class="anchorlink" href="#action-mailer-deprecations">7.2 Deprecations</a></h3>
+<ul>
+<li><p>  Deprecate <code>config.action_mailer.preview_path</code>.</p></li>
+<li><p>  Deprecate passing params to <code>assert_enqueued_email_with</code> via the <code>:args</code> kwarg.
+Now supports a <code>:params</code> kwarg, so use that to pass params.</p></li>
+</ul>
+<h3 id="action-mailer-notable-changes"><a class="anchorlink" href="#action-mailer-notable-changes">7.3 Notable changes</a></h3>
+<ul>
+<li><p>  Add <code>config.action_mailer.preview_paths</code> to support multiple preview paths.</p></li>
+<li><p>  Add <code>capture_emails</code> in the test helper to capture all emails sent in a block.</p></li>
+<li><p>  Add <code>deliver_enqueued_emails</code> to <code>ActionMailer::TestHelper</code> to deliver all enqueued email jobs.</p></li>
+</ul>
+<h2 id="active-record"><a class="anchorlink" href="#active-record">8 Active Record</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/7-1-stable/activerecord/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="active-record-removals"><a class="anchorlink" href="#active-record-removals">8.1 Removals</a></h3>
+<ul>
+<li><p>  Remove support for <code>ActiveRecord.legacy_connection_handling</code>.</p></li>
+<li><p>  Remove deprecated <code>ActiveRecord::Base</code> config accessors</p></li>
+<li><p>  Remove support for <code>:include_replicas</code> on <code>configs_for</code>. Use <code>:include_hidden</code> instead.</p></li>
+<li><p>  Remove deprecated <code>config.active_record.partial_writes</code>.</p></li>
+<li><p>  Remove deprecated <code>Tasks::DatabaseTasks.schema_file_type</code>.</p></li>
+<li><p>  Remove <code>--no-comments</code> flag in structure dumps for PostgreSQL.</p></li>
+</ul>
+<h3 id="active-record-deprecations"><a class="anchorlink" href="#active-record-deprecations">8.2 Deprecations</a></h3>
+<ul>
+<li><p>  Deprecate <code>name</code> argument on <code>#remove_connection</code>.</p></li>
+<li><p>  Deprecate <code>check_pending!</code> in favor of <code>check_all_pending!</code>.</p></li>
+<li><p>  Deprecate <code>deferrable: true</code> option of <code>add_foreign_key</code> in favor of <code>deferrable: :immediate</code>.</p></li>
+<li><p>  Deprecate <code>TestFixtures#fixture_path</code> in favor of <code>TestFixtures#fixture_paths</code>.</p></li>
+<li><p>  Deprecate delegation from <code>Base</code> to <code>connection_handler</code>.</p></li>
+<li><p>  Deprecate <code>config.active_record.suppress_multiple_database_warning</code>.</p></li>
+<li><p>  Deprecate using <code>ActiveSupport::Duration</code> as an interpolated bind parameter in an SQL
+string template.</p></li>
+<li><p>  Deprecate <code>all_connection_pools</code> and make <code>connection_pool_list</code> more explicit.</p></li>
+<li><p>  Deprecate <code>read_attribute(:id)</code> returning the primary key if the primary key is not <code>:id</code>.</p></li>
+<li><p>  Deprecate <code>rewhere</code> argument on <code>#merge</code>.</p></li>
+<li><p>  Deprecate aliasing non-attributes with <code>alias_attribute</code>.</p></li>
+</ul>
+<h3 id="active-record-notable-changes"><a class="anchorlink" href="#active-record-notable-changes">8.3 Notable changes</a></h3>
+<ul>
+<li><p>  Add <code>TestFixtures#fixture_paths</code> to support multiple fixture paths.</p></li>
+<li><p>  Add <code>authenticate_by</code> when using <code>has_secure_password</code>.</p></li>
+<li><p>  Add <code>update_attribute!</code> to <code>ActiveRecord::Persistence</code>, which is similar to <code>update_attribute</code>
+but raises <code>ActiveRecord::RecordNotSaved</code> when a <code>before_*</code> callback throws <code>:abort</code>.</p></li>
+<li><p>  Allow using aliased attributes with <code>insert_all</code>/<code>upsert_all</code>.</p></li>
+<li><p>  Add <code>:include</code> option to <code>add_index</code>.</p></li>
+<li><p>  Add <code>#regroup</code> query method as a short-hand for <code>.unscope(:group).group(fields)</code>.</p></li>
+<li><p>  Add support for auto-populated columns, and custom primary keys to the <code>SQLite3</code> adapter.</p></li>
+<li><p>  Add modern, performant defaults for <code>SQLite3</code> database connections.</p></li>
+<li><p>  Allow specifying where clauses with column-tuple syntax.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">Topic</span><span class="p">.</span><span class="nf">where</span><span class="p">([</span><span class="ss">:title</span><span class="p">,</span> <span class="ss">:author_name</span><span class="p">]</span> <span class="o">=&gt;</span> <span class="p">[[</span><span class="s2">"The Alchemist"</span><span class="p">,</span> <span class="s2">"Paulo Coelho"</span><span class="p">],</span> <span class="p">[</span><span class="s2">"Harry Potter"</span><span class="p">,</span> <span class="s2">"J.K Rowling"</span><span class="p">]])</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="Topic.where([:title, :author_name] => [[&quot;The Alchemist&quot;, &quot;Paulo Coelho&quot;], [&quot;Harry Potter&quot;, &quot;J.K Rowling&quot;]])
+">Copy</button>
+</div></li>
+<li><p>  Auto generated index names are now limited to 62 bytes, which fits within the default
+index name length limits for MySQL, PostgreSQL and SQLite.</p></li>
+<li><p>  Introduce adapter for Trilogy database client.</p></li>
+<li><p>  Add <code>ActiveRecord.disconnect_all!</code> method to immediately close all connections from all pools.</p></li>
+<li><p>  Add PostgreSQL migration commands for enum rename, add value, and rename value.</p></li>
+<li><p>  Add <code>ActiveRecord::Base#id_value</code> alias to access the raw value of a record's id column.</p></li>
+<li><p>  Add validation option for <code>enum</code>.</p></li>
+</ul>
+<h2 id="active-storage"><a class="anchorlink" href="#active-storage">9 Active Storage</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/7-1-stable/activestorage/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="active-storage-removals"><a class="anchorlink" href="#active-storage-removals">9.1 Removals</a></h3>
+<ul>
+<li><p>  Remove deprecated invalid default content types in Active Storage configurations.</p></li>
+<li><p>  Remove deprecated <code>ActiveStorage::Current#host</code> and <code>ActiveStorage::Current#host=</code> methods.</p></li>
+<li><p>  Remove deprecated behavior when assigning to a collection of attachments. Instead of appending to the collection,
+the collection is now replaced.</p></li>
+<li><p>  Remove deprecated <code>purge</code> and <code>purge_later</code> methods from the attachments association.</p></li>
+</ul>
+<h3 id="active-storage-deprecations"><a class="anchorlink" href="#active-storage-deprecations">9.2 Deprecations</a></h3><h3 id="active-storage-notable-changes"><a class="anchorlink" href="#active-storage-notable-changes">9.3 Notable changes</a></h3>
+<ul>
+<li><p>  <code>ActiveStorage::Analyzer::AudioAnalyzer</code> now outputs <code>sample_rate</code> and <code>tags</code> in the output <code>metadata</code> hash.</p></li>
+<li><p>  Add the option to utilize predefined variants when invoking the <code>preview</code> or <code>representation</code> methods on an
+attachment.</p></li>
+<li><p>  <code>preprocessed</code> option is added when declaring variants to preprocess variants.</p></li>
+<li><p>  Add the ability to destroy Active Storage variants.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="no">User</span><span class="p">.</span><span class="nf">first</span><span class="p">.</span><span class="nf">avatar</span><span class="p">.</span><span class="nf">variant</span><span class="p">(</span><span class="ss">resize_to_limit: </span><span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">]).</span><span class="nf">destroy</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="User.first.avatar.variant(resize_to_limit: [100, 100]).destroy
+">Copy</button>
+</div></li>
+</ul>
+<h2 id="active-model"><a class="anchorlink" href="#active-model">10 Active Model</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/7-1-stable/activemodel/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="active-model-removals"><a class="anchorlink" href="#active-model-removals">10.1 Removals</a></h3><h3 id="active-model-deprecations"><a class="anchorlink" href="#active-model-deprecations">10.2 Deprecations</a></h3><h3 id="active-model-notable-changes"><a class="anchorlink" href="#active-model-notable-changes">10.3 Notable changes</a></h3>
+<ul>
+<li><p>  Add support for infinite ranges to <code>LengthValidator</code>s <code>:in</code>/<code>:within</code> options.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">validates_length_of</span> <span class="ss">:first_name</span><span class="p">,</span> <span class="ss">in: </span><span class="o">..</span><span class="mi">30</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="validates_length_of :first_name, in: ..30
+">Copy</button>
+</div></li>
+<li><p>  Add support for beginless ranges to <code>inclusivity/exclusivity</code> validators.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="n">validates_inclusion_of</span> <span class="ss">:birth_date</span><span class="p">,</span> <span class="ss">in: </span><span class="o">-&gt;</span> <span class="p">{</span> <span class="p">(</span><span class="o">..</span><span class="no">Date</span><span class="p">.</span><span class="nf">today</span><span class="p">)</span> <span class="p">}</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="validates_inclusion_of :birth_date, in: -> { (..Date.today) }
+">Copy</button>
+</div>
+<div class="code_container">
+<pre><code class="highlight ruby"><span class="n">validates_exclusion_of</span> <span class="ss">:birth_date</span><span class="p">,</span> <span class="ss">in: </span><span class="o">-&gt;</span> <span class="p">{</span> <span class="p">(</span><span class="o">..</span><span class="no">Date</span><span class="p">.</span><span class="nf">today</span><span class="p">)</span> <span class="p">}</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="validates_exclusion_of :birth_date, in: -> { (..Date.today) }
+">Copy</button>
+</div></li>
+<li><p>  Add support for password challenges to <code>has_secure_password</code>. When set, validate that the password
+challenge matches the persisted <code>password_digest</code>.</p></li>
+<li><p>  Allow validators to accept lambdas without record argument.</p><div class="code_container">
+<pre><code class="highlight ruby"><span class="c1"># Before</span>
+<span class="n">validates_comparison_of</span> <span class="ss">:birth_date</span><span class="p">,</span> <span class="ss">less_than_or_equal_to: </span><span class="o">-&gt;</span><span class="p">(</span><span class="n">_record</span><span class="p">)</span> <span class="p">{</span> <span class="no">Date</span><span class="p">.</span><span class="nf">today</span> <span class="p">}</span>
+
+<span class="c1"># After</span>
+<span class="n">validates_comparison_of</span> <span class="ss">:birth_date</span><span class="p">,</span> <span class="ss">less_than_or_equal_to: </span><span class="o">-&gt;</span> <span class="p">{</span> <span class="no">Date</span><span class="p">.</span><span class="nf">today</span> <span class="p">}</span>
+</code></pre>
+<button class="clipboard-button" data-clipboard-text="# Before
+validates_comparison_of :birth_date, less_than_or_equal_to: ->(_record) { Date.today }
+
+# After
+validates_comparison_of :birth_date, less_than_or_equal_to: -> { Date.today }
+">Copy</button>
+</div></li>
+</ul>
+<h2 id="active-support"><a class="anchorlink" href="#active-support">11 Active Support</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/7-1-stable/activesupport/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="active-support-removals"><a class="anchorlink" href="#active-support-removals">11.1 Removals</a></h3>
+<ul>
+<li><p>  Remove deprecated override of <code>Enumerable#sum</code>.</p></li>
+<li><p>  Remove deprecated <code>ActiveSupport::PerThreadRegistry</code>.</p></li>
+<li><p>  Remove deprecated option to passing a format to <code>#to_s</code> in <code>Array</code>, <code>Range</code>, <code>Date</code>, <code>DateTime</code>, <code>Time</code>,
+<code>BigDecimal</code>, <code>Float</code> and, <code>Integer</code>.</p></li>
+<li><p>  Remove deprecated override of <code>ActiveSupport::TimeWithZone.name</code>.</p></li>
+<li><p>  Remove deprecated <code>active_support/core_ext/uri</code> file.</p></li>
+<li><p>  Remove deprecated <code>active_support/core_ext/range/include_time_with_zone</code> file.</p></li>
+<li><p>  Remove implicit conversion of objects into <code>String</code> by <code>ActiveSupport::SafeBuffer</code>.</p></li>
+<li><p>  Remove deprecated support to generate incorrect RFC 4122 UUIDs when providing a namespace ID that is not one of the
+constants defined on <code>Digest::UUID</code>.</p></li>
+</ul>
+<h3 id="active-support-deprecations"><a class="anchorlink" href="#active-support-deprecations">11.2 Deprecations</a></h3>
+<ul>
+<li><p>  Deprecate <code>config.active_support.disable_to_s_conversion</code>.</p></li>
+<li><p>  Deprecate <code>config.active_support.remove_deprecated_time_with_zone_name</code>.</p></li>
+<li><p>  Deprecate <code>config.active_support.use_rfc4122_namespaced_uuids</code>.</p></li>
+<li><p>  Deprecate <code>SafeBuffer#clone_empty</code>.</p></li>
+<li><p>  Deprecate usage of the singleton <code>ActiveSupport::Deprecation</code>.</p></li>
+<li><p>  Deprecate initializing a <code>ActiveSupport::Cache::MemCacheStore</code> with an instance of <code>Dalli::Client</code>.</p></li>
+<li><p>  Deprecate <code>Notification::Event</code>'s <code>#children</code> and <code>#parent_of?</code> methods.</p></li>
+</ul>
+<h3 id="active-support-notable-changes"><a class="anchorlink" href="#active-support-notable-changes">11.3 Notable changes</a></h3><h2 id="active-job"><a class="anchorlink" href="#active-job">12 Active Job</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/7-1-stable/activejob/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="active-job-removals"><a class="anchorlink" href="#active-job-removals">12.1 Removals</a></h3>
+<ul>
+<li>  Remove <code>QueAdapter</code>.</li>
+</ul>
+<h3 id="active-job-deprecations"><a class="anchorlink" href="#active-job-deprecations">12.2 Deprecations</a></h3><h3 id="active-job-notable-changes"><a class="anchorlink" href="#active-job-notable-changes">12.3 Notable changes</a></h3>
+<ul>
+<li><p>  Add <code>perform_all_later</code> to enqueue multiple jobs at once.</p></li>
+<li><p>  Add <code>--parent</code> option to job generator to specify parent class of job.</p></li>
+<li><p>  Add <code>after_discard</code> method to <code>ActiveJob::Base</code> to run a callback when a job is about to be discarded.</p></li>
+<li><p>  Add support for logging background job enqueue callers.</p></li>
+</ul>
+<h2 id="action-text"><a class="anchorlink" href="#action-text">13 Action Text</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/7-1-stable/actiontext/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="action-text-removals"><a class="anchorlink" href="#action-text-removals">13.1 Removals</a></h3><h3 id="action-text-deprecations"><a class="anchorlink" href="#action-text-deprecations">13.2 Deprecations</a></h3><h3 id="action-text-notable-changes"><a class="anchorlink" href="#action-text-notable-changes">13.3 Notable changes</a></h3><h2 id="action-mailbox"><a class="anchorlink" href="#action-mailbox">14 Action Mailbox</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/7-1-stable/actionmailbox/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="action-mailbox-removals"><a class="anchorlink" href="#action-mailbox-removals">14.1 Removals</a></h3><h3 id="action-mailbox-deprecations"><a class="anchorlink" href="#action-mailbox-deprecations">14.2 Deprecations</a></h3><h3 id="action-mailbox-notable-changes"><a class="anchorlink" href="#action-mailbox-notable-changes">14.3 Notable changes</a></h3>
+<ul>
+<li><p>  Add <code>X-Forwarded-To</code> addresses to recipients.</p></li>
+<li><p>  Add <code>bounce_now_with</code> method to <code>ActionMailbox::Base</code> to send the bounce email without going through a
+mailer queue.</p></li>
+</ul>
+<h2 id="ruby-on-rails-guides"><a class="anchorlink" href="#ruby-on-rails-guides">15 Ruby on Rails Guides</a></h2><p>Please refer to the <a href="https://github.com/rails/rails/blob/7-1-stable/guides/CHANGELOG.md">Changelog</a> for detailed changes.</p><h3 id="notable-changes"><a class="anchorlink" href="#notable-changes">15.1 Notable changes</a></h3><h2 id="credits"><a class="anchorlink" href="#credits">16 Credits</a></h2><p>See the
+<a href="https://contributors.rubyonrails.org/">full list of contributors to Rails</a>
+for the many people who spent many hours making Rails, the stable and robust
+framework it is. Kudos to all of them.</p>
+
+        <h3>Feedback</h3>
+        <p>
+          You're encouraged to help improve the quality of this guide.
+        </p>
+        <p>
+          Please contribute if you see any typos or factual errors.
+          To get started, you can read our <a href="https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation">documentation contributions</a> section.
+        </p>
+        <p>
+          You may also find incomplete content or stuff that is not up to date.
+          Please do add any missing documentation for main. Make sure to check
+          <a href="https://edgeguides.rubyonrails.org">Edge Guides</a> first to verify
+          if the issues are already fixed or not on the main branch.
+          Check the <a href="ruby_on_rails_guides_guidelines.html">Ruby on Rails Guides Guidelines</a>
+          for style and conventions.
+        </p>
+        <p>
+          If for whatever reason you spot something to fix but cannot patch it yourself, please
+          <a href="https://github.com/rails/rails/issues">open an issue</a>.
+        </p>
+        <p>And last but not least, any kind of discussion regarding Ruby on Rails
+          documentation is very welcome on the <a href="https://discuss.rubyonrails.org/c/rubyonrails-docs">official Ruby on Rails Forum</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="hide" />
+  <div id="footer">
+    <div class="wrapper">
+      <p>This work is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International</a> License</p>
+<p>"Rails", "Ruby on Rails", and the Rails logo are trademarks of David Heinemeier Hansson. All rights reserved.</p>
+
+    </div>
+  </div>
+</body>
+</html>
