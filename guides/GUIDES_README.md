@@ -6,7 +6,7 @@ The Rails Guides Visual Refresh occured in Q1 2024, and was intended to bring th
 
 ## Editing Depedencies
 
-The editing files for the Guides rebuild reside in `stylesrc` and use SCSS to improve developer experience. The code base relies on `include_media` (https://eduardoboucas.github.io/include-media/) to enable inline media-queries adjustments. We've also relied on the standard `noramlize.css` (https://necolas.github.io/normalize.css/) to help bring all browsers together.
+The editing files for the Guides rebuild reside in `stylesrc` and use SCSS to improve developer experience. The code base relies on `include_media` (https://eduardoboucas.github.io/include-media/) to enable inline media-queries adjustments. We've also relied on the standard `normalize.css` (https://necolas.github.io/normalize.css/) to help bring all browsers together.
 
 ## Building the Guides in Development
 
