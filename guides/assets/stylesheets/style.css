@@ -1210,13 +1210,14 @@ body.guide #guides .guides-section-container {
   display: flex;
   flex-direction: column;
   flex-wrap: wrap;
-  max-height: 95vh;
+  max-height: 100vh;
   width: 100%;
 }
 body.guide #guides .guides-section-container .guides-section {
   flex: auto;
   margin: 0 2em 0.5em 0;
   text-align: left;
+  width: 33%;
 }
 body.guide #guides .guides-section-container .guides-section dt, body.guide #guides .guides-section-container .guides-section dd {
   font-weight: 400 !important;
@@ -1230,7 +1231,7 @@ body.guide #guides .guides-section-container .guides-section dt {
   font-weight: bold !important;
 }
 body.guide #guides .guides-section-container .guides-section dd {
-  line-height: 1.3;
+  line-height: 1.2;
   margin-bottom: 0.5em;
   border-bottom: none;
 }

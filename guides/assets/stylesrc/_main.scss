@@ -584,15 +584,16 @@ body.guide {
       display: flex;
       flex-direction: column;
       flex-wrap: wrap;
-      max-height: 95vh;
+      max-height: 100vh;
       width: 100%;
 
       .guides-section {
         flex: auto;
         margin: 0 2em 0.5em 0;
+        text-align: left;
+        width: 33%;
         // min-width: 5em;
         // max-width: 12em;
-        text-align: left;
 
         dt, dd {
           font-weight: 400 !important;
@@ -609,7 +610,7 @@ body.guide {
         }
 
         dd {
-          line-height: 1.3;
+          line-height: 1.2;
           margin-bottom: 0.5em;
           border-bottom: none;
 
