@@ -1,3 +1,11 @@
+*   Enable query log tags by default on development env
+
+    This can be used to trace troublesome SQL statements back to the application
+    code that generated these statements. It is also useful when using multiple
+    databases because the query logs can identify which database is being used.
+
+    *Matheus Richard*
+
 *   Defer route drawing to the first request, or when url_helpers are called
 
     Executes the first routes reload in middleware, or when a route set's

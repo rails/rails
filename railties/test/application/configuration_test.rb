@@ -4737,6 +4737,14 @@ module ApplicationTests
       assert_equal "SQLite", ActiveRecord::Base.lease_connection.adapter_name
     end
 
+    test "In development mode, config.active_record.query_log_tags_enabled is true by default" do
+      restore_default_config
+
+      app "development"
+
+      assert Rails.application.config.active_record.query_log_tags_enabled
+    end
+
     ["development", "production"].each do |env|
       test "active job adapter is async in #{env}" do
         app(env)
