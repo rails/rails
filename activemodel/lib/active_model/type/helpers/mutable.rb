@@ -12,7 +12,7 @@ module ActiveModel
         # value (likely a string). +new_value+ will be the current, type
         # cast value.
         def changed_in_place?(raw_old_value, new_value)
-          raw_old_value != serialize(new_value)
+          deserialize(raw_old_value) != new_value
         end
 
         def mutable? # :nodoc:
