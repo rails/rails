@@ -362,7 +362,6 @@ module ActionController
       extend ActiveSupport::Concern
       include ActionDispatch::TestProcess
       include ActiveSupport::Testing::ConstantLookup
-      include Rails::Dom::Testing::Assertions
 
       attr_reader :response, :request
 
@@ -667,10 +666,6 @@ module ActionController
           env.delete "CONTENT_LENGTH"
           env.delete "RAW_POST_DATA"
           env
-        end
-
-        def document_root_element
-          html_document.root
         end
 
         def check_required_ivars

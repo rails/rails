@@ -29,6 +29,7 @@ module ActionDispatch
     config.action_dispatch.request_id_header = ActionDispatch::Constants::X_REQUEST_ID
     config.action_dispatch.log_rescued_responses = true
     config.action_dispatch.debug_exception_log_level = :fatal
+    config.action_dispatch.html_assertions = :rails_dom_testing
 
     config.action_dispatch.default_headers = {
       "X-Frame-Options" => "SAMEORIGIN",
@@ -70,6 +71,23 @@ module ActionDispatch
       ActionDispatch::Routing::Mapper.route_source_locations = Rails.env.development?
 
       ActionDispatch.test_app = app
+    end
+
+    initializer "action_dispatch.integration_test" do |app|
+      html_assertions = app.config.action_dispatch.delete(:html_assertions)
+
+      ActiveSupport.on_load(:action_dispatch_integration_test) do
+        case html_assertions
+        when :capybara
+          include ActionView::CapybaraAssertions
+        when :rails_dom_testing
+          include ActionView::RailsDomTestingAssertions
+        when :none
+          # do nothing
+        else
+          raise ArgumentError.new("unrecognized value #{assertions.inspect} for config.action_dispatch.html_assertions")
+        end
+      end
     end
   end
 end

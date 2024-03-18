@@ -111,7 +111,13 @@ class RoutedRackApp
   end
 end
 
+ActiveSupport.on_load :action_controller_test_case do
+  include ActionView::RailsDomTestingAssertions
+end
+
 class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
+  include ActionView::RailsDomTestingAssertions
+
   def self.build_app(routes = nil)
     RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|
       middleware.use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")

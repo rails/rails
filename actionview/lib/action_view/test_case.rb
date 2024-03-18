@@ -46,7 +46,6 @@ module ActionView
       extend ActiveSupport::Concern
 
       include ActionDispatch::Assertions, ActionDispatch::TestProcess
-      include Rails::Dom::Testing::Assertions
       include ActionController::TemplateAssertions
       include ActionView::Context
 
@@ -329,8 +328,8 @@ module ActionView
 
     private
       # Need to experiment if this priority is the best one: rendered => output_buffer
-      def document_root_element
-        Rails::Dom::Testing.html_document.parse(@rendered.blank? ? @output_buffer.to_str : @rendered).root
+      def html_document
+        Rails::Dom::Testing.html_document.parse(@rendered.blank? ? @output_buffer.to_str : @rendered)
       end
 
       module Locals

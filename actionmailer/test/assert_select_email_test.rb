@@ -46,4 +46,14 @@ class AssertSelectEmailTest < ActionMailer::TestCase
       end
     end
   end
+
+  def test_assert_select_within_html_part
+    mail = AssertMultipartSelectMailer.test(html: "<div><p>foo</p><p>bar</p></div>", text: "foo bar")
+    within_html_part mail do |root|
+      assert_select root, "div" do
+        assert_select "p:first-child", "foo"
+        assert_select "p:last-child", "bar"
+      end
+    end
+  end
 end
