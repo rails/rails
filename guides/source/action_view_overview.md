@@ -18,7 +18,7 @@ Action View is the V in [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E
 
 Action View templates (also referred to simply as "views") are written using Embedded Ruby (ERB), which allows using Ruby code within HTML documents.
 
-Action View provides many [helper](#helpers) classes for dynamically generating HTML tags for forms, dates, and strings. It's also easy to add new custom helpers to your application as needed.
+Action View provides many [helper](#helpers) classes for dynamically generating HTML tags for forms, dates, and strings. It's also possible to add custom helpers to your application as needed.
 
 NOTE: Some features of Action View are tied to Active Record, but that doesn't mean Action View depends on Active Record. Action View is an independent package that can be used with any sort of Ruby libraries.
 
@@ -556,7 +556,15 @@ CAUTION: Only keyword arguments are supported. Defining positional or block argu
 Layouts
 -------
 
-Layouts can be used to render a common view template around the results of Rails controller actions. Typically, a Rails application has a few layouts that pages can be rendered within. For example, an application might have one layout for a logged in user and another for the marketing part of the site. The logged in user layout might include top-level navigation that should be present across many controller actions. The sales layout for a SaaS app might include top-level navigation for things like "Pricing" and "Contact Us" pages. Different layouts typically have a different header and footer content. You can learn more about layouts in the [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
+Layouts can be used to render a common view template around the results of Rails controller actions. A Rails application can have multiple layouts that pages can be rendered within. 
+
+For example, an application might have one layout for a logged in user and another for the marketing part of the site. The logged in user layout might include top-level navigation that should be present across many controller actions. The sales layout for a SaaS app might include top-level navigation for things like "Pricing" and "Contact Us" pages. Different layouts typically have a different header and footer content. 
+
+To find the layout for the current controller action, Rails first looks for a file in `app/views/layouts` with the same base name as the controller. For example, rendering actions from the PhotosController class will `use app/views/layouts/photos.html.erb` (or `app/views/layouts/photos.builder`). 
+
+If such a controller-specific layout does not exist, Rails will use `app/views/layouts/application.html.erb` (or `app/views/layouts/application.builder`). Rails also provides more ways to assign specific layouts to individual controllers and actions. See [Layouts and Rendering guide](layouts_and_rendering.html#finding-layouts) for more.
+
+You can learn more about layouts in general in the [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
 
 ### Partial Layouts
 
@@ -638,7 +646,7 @@ You can use the same technique to localize the rescue files in your public direc
 Since Rails doesn't restrict the symbols that you use to set I18n.locale, you can leverage this system to display different content depending on anything you like. For example, suppose you have some "expert" users that should see different pages from "normal" users. You could add the following to `app/controllers/application_controller.rb`:
 
 ```ruby
-before_action :set_expert_locale
+around_action :set_expert_locale
 
 def set_expert_locale
   I18n.locale = :expert if current_user.expert?
