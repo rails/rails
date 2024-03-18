@@ -36,7 +36,7 @@ As you will see, there are many life cycle events and you can choose to hook int
 Callback Registration
 ------------------
 
-To use the available callbacks, you need to implement and register them. Implementation can be done in a multitude of ways like using ordinary methods, blocks, procs, or defining custom callback objects using callback classes. Let's go through each of these implementation techniques:
+To use the available callbacks, you need to implement and register them. Implementation can be done in a multitude of ways like using ordinary methods, blocks and procs, or defining custom callback objects using callback classes. Let's go through each of these implementation techniques.
 
 You can implement the callbacks as ordinary methods and use a macro-style class method to register them as callbacks.
 
