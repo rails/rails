@@ -466,7 +466,7 @@ It is possible to associate `:if` and `:unless` with a `Proc` object. This optio
 ```ruby
 class Order < ApplicationRecord
   before_save :normalize_card_number,
-    if: Proc.new { |order| order.paid_with_card? }
+    if: proc { |order| order.paid_with_card? }
 end
 ```
 
@@ -474,7 +474,7 @@ As the proc is evaluated in the context of the object, it is also possible to wr
 
 ```ruby
 class Order < ApplicationRecord
-  before_save :normalize_card_number, if: Proc.new { paid_with_card? }
+  before_save :normalize_card_number, if: proc { paid_with_card? }
 end
 ```
 
@@ -494,7 +494,7 @@ You can easily include a proc in the list of conditions:
 ```ruby
 class Comment < ApplicationRecord
   before_save :filter_content,
-    if: [:subject_to_parental_control?, Proc.new { untrusted_author? }]
+    if: [:subject_to_parental_control?, proc { untrusted_author? }]
 end
 ```
 
@@ -505,8 +505,8 @@ Callbacks can mix both `:if` and `:unless` in the same declaration:
 ```ruby
 class Comment < ApplicationRecord
   before_save :filter_content,
-    if: Proc.new { forum.parental_control? },
-    unless: Proc.new { author.trusted? }
+    if: proc { forum.parental_control? },
+    unless: proc { author.trusted? }
 end
 ```
 
