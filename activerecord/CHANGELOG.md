@@ -250,7 +250,7 @@
 
     *Hartley McGuire*
 
-*   Add `active_record.config.validate_migration_timestamps` option for validating migration timestamps.
+*   Add `config.active_record.validate_migration_timestamps` option for validating migration timestamps.
 
     When set, validates that the timestamp prefix for a migration is no more than a day ahead of
     the timestamp associated with the current time. This is designed to prevent migrations prefixes
