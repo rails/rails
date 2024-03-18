@@ -38,6 +38,7 @@ module RailsGuides
 
     def generate
       generate_guides
+      process_scss
       copy_assets
       generate_epub if @epub
     end
@@ -103,6 +104,10 @@ module RailsGuides
         guides.select do |guide|
           guide.start_with?("epub", *prefixes)
         end
+      end
+
+      def process_scss
+        system "sass ./assets/stylesrc/style.scss:./assets/stylesheets/style.css ./assets/stylesrc/highlight.scss:./assets/stylesheets/highlight.css"
       end
 
       def copy_assets
