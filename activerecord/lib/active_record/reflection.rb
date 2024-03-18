@@ -870,7 +870,11 @@ module ActiveRecord
       # klass option is necessary to support loading polymorphic associations
       def association_primary_key(klass = nil)
         if primary_key = options[:primary_key]
-          @association_primary_key ||= -primary_key.to_s
+          @association_primary_key ||= if primary_key.is_a?(Array)
+            primary_key.map { |pk| pk.to_s.freeze }.freeze
+          else
+            -primary_key.to_s
+          end
         elsif (klass || self.klass).has_query_constraints? || options[:query_constraints]
           (klass || self.klass).composite_query_constraints_list
         elsif (klass || self.klass).composite_primary_key?
