@@ -1,3 +1,12 @@
+*   Enable query log tags by default on development env
+
+    This can be used to trace troublesome SQL statements back to the application
+    code that generated these statements. It is also useful when using multiple
+    databases because the query logs can identify which database is being used.
+
+    *Matheus Richard*
+
+
 *   Generate form helpers to use `textarea*` methods instead of `text_area*` methods
 
     *Sean Doyle*
