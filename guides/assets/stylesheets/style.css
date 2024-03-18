@@ -1188,7 +1188,7 @@ body.guide #guides {
   display: block;
   border-radius: 8px;
   color: #2E2E2E;
-  height: 95vh;
+  height: 58em;
   padding: 2em 2em 1.5em 2em;
   position: absolute;
   top: 2vw;
@@ -1210,7 +1210,7 @@ body.guide #guides .guides-section-container {
   display: flex;
   flex-direction: column;
   flex-wrap: wrap;
-  max-height: 100vh;
+  max-height: 55em;
   width: 100%;
 }
 body.guide #guides .guides-section-container .guides-section {
@@ -1218,6 +1218,9 @@ body.guide #guides .guides-section-container .guides-section {
   margin: 0 2em 0.5em 0;
   text-align: left;
   width: 33%;
+}
+body.guide #guides .guides-section-container .guides-section:nth-child(6), body.guide #guides .guides-section-container .guides-section:nth-child(9) {
+  break-after: always;
 }
 body.guide #guides .guides-section-container .guides-section dt, body.guide #guides .guides-section-container .guides-section dd {
   font-weight: 400 !important;

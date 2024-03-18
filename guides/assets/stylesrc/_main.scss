@@ -563,7 +563,7 @@ body.guide {
     display: block;
     border-radius: $base-border-radius;
     color: $gray-900;
-    height: 95vh;
+    height: 58em;
     padding: 2em 2em 1.5em 2em;
     position: absolute;
       top: 2vw;
@@ -583,7 +583,7 @@ body.guide {
       display: flex;
       flex-direction: column;
       flex-wrap: wrap;
-      max-height: 100vh;
+      max-height: 55em;
       width: 100%;
 
       .guides-section {
@@ -593,6 +593,12 @@ body.guide {
         width: 33%;
         // min-width: 5em;
         // max-width: 12em;
+
+        // Force column breaks on desktop
+        &:nth-child(6),
+        &:nth-child(9) {
+          break-after: always;
+        }
 
         dt, dd {
           font-weight: 400 !important;
