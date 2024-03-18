@@ -476,27 +476,30 @@ module Rails
     # then +credentials.secret_key_base+, and finally +secrets.secret_key_base+. For most applications,
     # the correct place to store it is in the encrypted credentials file.
     def secret_key_base
-      if Rails.env.local? || ENV["SECRET_KEY_BASE_DUMMY"]
-        config.secret_key_base ||= generate_local_secret
-      else
-        validate_secret_key_base(
-          ENV["SECRET_KEY_BASE"] || credentials.secret_key_base || begin
-            secret_skb = secrets_secret_key_base
+      config.secret_key_base ||=
+        if ENV["SECRET_KEY_BASE_DUMMY"]
+          generate_local_secret
+        else
+          validate_secret_key_base(
+            ENV["SECRET_KEY_BASE"] || credentials.secret_key_base || begin
+              secret_skb = secrets_secret_key_base
 
-            if secret_skb.equal?(config.secret_key_base)
-              config.secret_key_base
-            else
-              Rails.deprecator.warn(<<~MSG.squish)
-                Your `secret_key_base` is configured in `Rails.application.secrets`,
-                which is deprecated in favor of `Rails.application.credentials` and
-                will be removed in Rails 7.2.
-              MSG
+              if secret_skb && secret_skb.equal?(config.secret_key_base)
+                config.secret_key_base
+              elsif secret_skb
+                Rails.deprecator.warn(<<~MSG.squish)
+                  Your `secret_key_base` is configured in `Rails.application.secrets`,
+                  which is deprecated in favor of `Rails.application.credentials` and
+                  will be removed in Rails 7.2.
+                MSG
 
-              secret_skb
+                secret_skb
+              elsif Rails.env.local?
+                generate_local_secret
+              end
             end
-          end
-        )
-      end
+          )
+        end
     end
 
     # Returns an ActiveSupport::EncryptedConfiguration instance for the
