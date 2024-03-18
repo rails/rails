@@ -172,7 +172,7 @@ Let's see this in action with some examples:
 
 ### Rendering Partials
 
-To render a partial as part of a view, you use the `render` method within the view:
+To render a partial as part of a view, you use the [`render`](https://api.rubyonrails.org/classes/ActionView/Helpers/RenderingHelper.html#method-i-render) method within the view:
 
 ```erb
 <%= render "product" %>
@@ -465,7 +465,7 @@ You can also specify a second partial to be rendered between instances of the ma
 
 Rails will render the `_product_ruler.html.erb` partial (with no data passed to it) between each pair of `_product.html.erb` partials.
 
-#### Counter Variables
+### Counter Variables
 
 Rails also makes a counter variable available within a partial called by the collection. The variable is named after the title of the partial followed by `_counter`. For example, when rendering a collection `@products` the partial `_product.html.erb` can access the variable `product_counter`. The variable indexes the number of times the partial has been rendered within the enclosing view, starting with a value of `0` on the first render.
 
@@ -600,6 +600,16 @@ You can also render a block of code within a partial layout instead of calling `
 ```
 
 Supposing we use the same `_box` partial from above, this would produce the same output as the previous example.
+
+### Collection with Partial Layouts
+
+When rendering collections it is also possible to use the `:layout` option:
+
+```erb
+<%= render partial: "article", collection: @articles, layout: "special_layout" %>
+```
+
+The layout will be rendered together with the partial for each item in the collection. The current object and object_counter variables, `article` and `article_count` in the above example, will be available in the layout as well, the same way they are within the partial.
 
 Helpers
 -------
