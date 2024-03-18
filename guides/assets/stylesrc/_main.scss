@@ -570,6 +570,7 @@ body.guide {
       top: 2vw;
       right: 2vw;
     width: 90vw;
+    max-width: 1000px;
     z-index: 10;
 
     :where(body[dir="ltr"]) & { right: 2vw; }
