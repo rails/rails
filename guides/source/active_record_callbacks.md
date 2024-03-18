@@ -18,7 +18,7 @@ The Object Life Cycle
 
 During the normal operation of a Rails application, objects may be created, updated, and destroyed. Active Record provides hooks into this *object life cycle* so that you can control your application and its data.
 
-Callbacks allow you to trigger logic before or after an alteration of an object's state.
+Callbacks allow you to trigger logic before or after an alteration of an object's state. They are methods that get called at certain moments of an object's life cycle. With callbacks it is possible to write code that will run whenever an Active Record object is created, saved, updated, deleted, validated, or loaded from the database.
 
 ```ruby
 class Baby < ApplicationRecord
@@ -33,14 +33,12 @@ Congratulations!
 
 As you will see, there are many life cycle events and you can choose to hook into any of these either before, after, or even around them.
 
-Callbacks Overview
+Callback Registration
 ------------------
 
-Callbacks are methods that get called at certain moments of an object's life cycle. With callbacks it is possible to write code that will run whenever an Active Record object is created, saved, updated, deleted, validated, or loaded from the database.
+To use the available callbacks, you need to implement and register them. Implementation can be done in a multitude of ways like using ordinary methods, blocks, procs, or defining custom callback objects using callback classes. Let's go through each of these implementation techniques:
 
-### Callback Registration
-
-In order to use the available callbacks, you need to register them. You can implement the callbacks as ordinary methods and use a macro-style class method to register them as callbacks:
+You can implement the callbacks as ordinary methods and use a macro-style class method to register them as callbacks.
 
 ```ruby
 class User < ApplicationRecord
@@ -69,7 +67,7 @@ class User < ApplicationRecord
 end
 ```
 
-Alternatively you can pass a proc to the callback to be triggered.
+Alternatively, you can pass a proc to the callback to be triggered.
 
 ```ruby
 class User < ApplicationRecord
@@ -77,7 +75,7 @@ class User < ApplicationRecord
 end
 ```
 
-Lastly, you can define your own custom callback object, which we will cover later in more detail [below](#callback-classes).
+Lastly, you can define a custom callback object, which we will cover later in more detail [below](#callback-classes).
 
 ```ruby
 class User < ApplicationRecord
@@ -115,7 +113,7 @@ end
 
 It is considered good practice to declare callback methods as private. If left public, they can be called from outside of the model and violate the principle of object encapsulation.
 
-WARNING. Avoid calls to `update`, `save` or other methods which create side-effects to the object inside your callback. For example, don't call `update(attribute: "value")` within a callback. This can alter the state of the model and may result in unexpected side effects during commit. Instead, you can safely assign values directly (for example, `self.attribute = "value"`) in `before_create` / `before_update` or earlier callbacks.
+WARNING. Avoid calls to `update`, `save` or other methods that create side-effects to the object inside your callback. For example, don't call `update(attribute: "value")` within a callback. This can alter the state of the model and may result in unexpected side effects during commit. Instead, you can safely assign values directly (for example, `self.attribute = "value"`) in `before_create` / `before_update` or earlier callbacks.
 
 Available Callbacks
 -------------------
