@@ -3089,9 +3089,6 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ bin/rails runner 'puts ActiveRecord::Base.configurations'
-#<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
-
 $ bin/rails runner 'puts ActiveRecord::Base.configurations.inspect'
 #<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
   #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
@@ -3114,9 +3111,6 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ bin/rails runner 'puts ActiveRecord::Base.configurations'
-#<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
-
 $ bin/rails runner 'puts ActiveRecord::Base.configurations.inspect'
 #<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
   #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
@@ -3137,9 +3131,6 @@ development:
 
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
-
-$ bin/rails runner 'puts ActiveRecord::Base.configurations'
-#<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
 
 $ bin/rails runner 'puts ActiveRecord::Base.configurations.inspect'
 #<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
