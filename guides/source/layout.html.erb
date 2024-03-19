@@ -96,15 +96,15 @@
   </header>
   <hr class="hide" />
 
-  <main id="feature">
+  <section id="feature">
     <div class="wrapper">
       <%= yield :header_section %>
 
       <%= yield :index_section %>
     </div>
-  </main>
+  </section>
 
-  <section id="container">
+  <main id="container">
     <div class="wrapper">
       <div id="mainCol">
         <%= yield %>
@@ -134,7 +134,7 @@
         </p>
       </div>
     </div>
-  </section>
+  </main>
 
   <hr class="hide" />
   <footer id="page_footer">

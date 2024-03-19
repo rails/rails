@@ -148,7 +148,7 @@ module RailsGuides
           end.to_html
 
           @index = <<-INDEX.html_safe
-          <div id="subCol">
+          <nav id="subCol">
             <h3 class="chapter">
             <picture>
             <!-- Using the `source`  HTML tag to set the dark theme image -->
@@ -161,7 +161,7 @@ module RailsGuides
               Chapters
             </h3>
             #{@index}
-          </div>
+          </nav>
           INDEX
         end
       end
