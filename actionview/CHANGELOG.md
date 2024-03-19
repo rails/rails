@@ -1,3 +1,8 @@
+*   Render `[accept-charset="UTF-8"]` on `<form>` elements rendered by
+    `button_to`
+
+    *Sean Doyle*
+
 *   Raise `ArgumentError` if `:renderable` object does not respond to `#render_in`
 
     *Sean Doyle*

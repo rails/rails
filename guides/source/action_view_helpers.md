@@ -652,7 +652,7 @@ with the value of the `name`.
 would roughly output something like:
 
 ```html
-<form method="post" action="/sessions" class="button_to">
+<form method="post" action="/sessions" class="button_to" accept-charset="UTF-8">
   <input type="submit" value="Sign in" />
 </form>
 ```

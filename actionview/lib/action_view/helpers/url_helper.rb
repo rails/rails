@@ -3,7 +3,6 @@
 require "active_support/core_ext/array/access"
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/string/output_safety"
-require "action_view/helpers/content_exfiltration_prevention_helper"
 require "action_view/helpers/tag_helper"
 
 module ActionView
@@ -20,11 +19,7 @@ module ActionView
       # provided here will only work in the context of a request
       # (link_to_unless_current, for instance), which must be provided
       # as a method called #request on the context.
-      BUTTON_TAG_METHOD_VERBS = %w{patch put delete}
       extend ActiveSupport::Concern
-
-      include TagHelper
-      include ContentExfiltrationPreventionHelper
 
       module ClassMethods
         def _url_for_modules
@@ -310,23 +305,14 @@ module ActionView
         authenticity_token = html_options.delete("authenticity_token")
 
         method     = (html_options.delete("method").presence || method_for_options(options)).to_s
-        method_tag = BUTTON_TAG_METHOD_VERBS.include?(method) ? method_tag(method) : "".html_safe
 
-        form_method  = method == "get" ? "get" : "post"
         form_options = html_options.delete("form") || {}
         form_options[:class] ||= html_options.delete("form_class") || "button_to"
-        form_options[:method] = form_method
-        form_options[:action] = url
+        form_options[:method] = method
         form_options[:'data-remote'] = true if remote
+        form_options[:enforce_utf8] = false
+        form_options[:authenticity_token] = authenticity_token
 
-        request_token_tag = if form_method == "post"
-          request_method = method.empty? ? "post" : method
-          token_tag(authenticity_token, form_options: { action: url, method: request_method })
-        else
-          ""
-        end
-
-        html_options = convert_options_to_data_attributes(options, html_options)
         html_options["type"] = "submit"
 
         button = if block_given?
@@ -338,15 +324,13 @@ module ActionView
           tag("input", html_options)
         end
 
-        inner_tags = method_tag.safe_concat(button).safe_concat(request_token_tag)
+        inner_tags = button
         if params
           to_form_params(params).each do |param|
-            inner_tags.safe_concat tag(:input, type: "hidden", name: param[:name], value: param[:value],
-                                       autocomplete: "off")
+            inner_tags.safe_concat hidden_field_tag(param[:name], param[:value], id: nil)
           end
         end
-        html = content_tag("form", inner_tags, form_options)
-        prevent_content_exfiltration(html)
+        form_tag(options, form_options) { inner_tags }
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of
@@ -741,24 +725,6 @@ module ActionView
         def method_not_get_method?(method)
           return false unless method
           (STRINGIFIED_COMMON_METHODS[method] || method.to_s.downcase) != "get"
-        end
-
-        def token_tag(token = nil, form_options: {})
-          if token != false && defined?(protect_against_forgery?) && protect_against_forgery?
-            token =
-              if token == true || token.nil?
-                form_authenticity_token(form_options: form_options.merge(authenticity_token: token))
-              else
-                token
-              end
-            tag(:input, type: "hidden", name: request_forgery_protection_token.to_s, value: token, autocomplete: "off")
-          else
-            ""
-          end
-        end
-
-        def method_tag(method)
-          tag("input", type: "hidden", name: "_method", value: method.to_s, autocomplete: "off")
         end
 
         # Returns an array of hashes each containing :name and :value keys
