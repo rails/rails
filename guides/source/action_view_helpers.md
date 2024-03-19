@@ -457,8 +457,8 @@ Internally `content_for` actually calls `capture`. However, the key difference
 lies in their behavior when invoked multiple times.<br><br>
 `content_for` can be called repeatedly, concatenating the blocks it receives for
 a specific identifier in the order they are provided. Each subsequent call
-simply adds to what's already stored. In contrast, `capture` only remembers the
-latest invocation; previous calls get overwritten.
+simply adds to what's already stored. In contrast, `capture` only returns the
+content of the block, without keeping track of any previous invocations.
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/CaptureHelper.html#method-i-content_for)
