@@ -559,7 +559,7 @@ you can escape the greeting to use in a JavaScript alert.
 my name is <%= current_user.name %>, and I'm here to say "Welcome to our website!"
 ```
 
-```ruby
+```html+erb
 <script>
   var greeting = '<%= escape_javascript(render 'captured_pokemons/greeting') %>';
   alert(`Hello, ${greeting}`);
