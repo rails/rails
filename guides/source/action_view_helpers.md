@@ -337,7 +337,7 @@ a new cache entry with a unique key. A key looks something like this:
 views/articles/index:bea67108094918eeba32cd4a6f786301/articles/1
 ```
 
-See [`Fragment Caching`][caching_with_rails.html#fragment-caching] and the [API
+See [`Fragment Caching`](caching_with_rails.html#fragment-caching) and the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/CacheHelper.html#method-i-cache)
 for more information.
 
