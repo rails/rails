@@ -134,7 +134,7 @@ module ActiveSupport
             def available?
               return @available if defined?(@available)
               silence_warnings { require "active_support/message_pack" }
-              @available = true
+              @available = defined?(ActiveSupport::MessagePack) # https://github.com/jruby/jruby/issues/8155
             rescue LoadError
               @available = false
             end
