@@ -59,18 +59,10 @@ audio_tag("sound")
 
 audio_tag("sound.wav", "sound.mid")
 # => <audio><source src="/audios/sound.wav" /><source src="/audios/sound.mid" /></audio>
-```
 
-You can modify the HTML attributes of the audio tag by passing a hash as the
-last argument.
-
-```ruby
 audio_tag("sound", controls: true)
 # => <audio controls="controls" src="/audios/sound"></audio>
 ```
-
-`controls` is a boolean attribute that indicates whether the audio should have
-controls.
 
 INFO: Internally, `audio_tag` uses [`audio_path` from the
 AssetUrlHelpers](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-audio_path)
@@ -116,6 +108,9 @@ file that exists in your `app/assets/images` directory.
 ```ruby
 image_tag("icon.png")
 # => <img src="/assets/icon.png" />
+
+image_tag("icon.png", size: "16x10", alt: "Edit Article")
+# => <img src="/assets/icon.png" width="16" height="10" alt="Edit Article" />
 ```
 
 INFO: Internally, `image_tag` uses [`image_path` from the
@@ -134,15 +129,10 @@ filename (`.js` extension is optional) of JavaScript files that exist in your
 can pass the full path relative to your document root.
 
 ```ruby
-javascript_include_tag "common"
+javascript_include_tag("common")
 # => <script src="/assets/common.js"></script>
-```
 
-You can modify the HTML attributes of the script tag by passing a hash as the
-last argument.
-
-```ruby
-javascript_include_tag "common", async: true
+javascript_include_tag("common", async: true)
 # => <script src="/assets/common.js" async="async"></script>
 ```
 
@@ -188,7 +178,7 @@ Returns a link tag that browsers can use to preload the source. The source can
 be the path of a resource managed by the asset pipeline, a full path, or a URI.
 
 ```ruby
-preload_link_tag "application.css"
+preload_link_tag("application.css")
 # => <link rel="preload" href="/assets/application.css" as="style" type="text/css" />
 ```
 
@@ -202,15 +192,10 @@ Returns a stylesheet link tag for the sources specified as arguments. If you
 don't specify an extension, `.css` will be appended automatically.
 
 ```ruby
-stylesheet_link_tag "application"
+stylesheet_link_tag("application")
 # => <link href="/assets/application.css" rel="stylesheet" />
-```
 
-You can modify the HTML attributes of the stylesheet tag by passing a hash as
-the last argument.
-
-```ruby
-stylesheet_link_tag "application", media: "all"
+stylesheet_link_tag("application", media: "all")
 # => <link href="/assets/application.css" media="all" rel="stylesheet" />
 ```
 
@@ -238,16 +223,10 @@ video_tag("trailer")
 
 video_tag(["trailer.ogg", "trailer.flv"])
 # => <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
-```
 
-You can modify the HTML attributes of the video tag by passing a hash as the
-last argument.
-
-```ruby
 video_tag("trailer", controls: true)
+# => <video controls="controls" src="/videos/trailer"></video>
 ```
-`controls` is a boolean attribute that indicates whether the video should have
-controls.
 
 INFO: Internally, `video_tag` uses [`video_path` from the
 AssetUrlHelpers](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetUrlHelper.html#method-i-video_path)
@@ -324,9 +303,18 @@ the next request comes in.
 
 The `cache` method takes a block that contains the content you wish to cache.
 
-For example, if you wanted to cache each article on a page, you could do so by
-passing the `article` object to the `cache` method. This would cache each
-article separately.
+For example, you could cache the footer of your application layout by wrapping
+it in a `cache` block.
+
+```
+<% cache do %>
+  <%= render "application/footer" %>
+<% end %>
+```
+
+You could also cache based on model instances, for example, you can cache each
+article on a page by passing the `article` object to the `cache` method. This
+would cache each article separately.
 
 ```erb
 <% @articles.each do |article| %>
@@ -588,7 +576,7 @@ Returns a JavaScript tag wrapping the provided code. You can pass a hash of
 options to control the behavior of the `<script>` tag.
 
 ```ruby
-javascript_tag "alert('All is good')", type: 'application/javascript'
+javascript_tag("alert('All is good')", type: 'application/javascript')
 ```
 
 ```html
@@ -955,6 +943,15 @@ link_to "Profile", @profile
 
 link_to "Book", @book # given a composite primary key [:author_id, :id]
 # => <a href="/books/2_1">Book</a>
+
+link_to "Profiles", profiles_path
+# => <a href="/profiles">Profiles</a>
+
+link_to nil, "https://example.com"
+# => <a href="https://www.example.com">https://www.example.com</a>
+
+link_to "Articles", articles_path, id: "articles", class: "article__container"
+# => <a href="/articles" class="article__container" id="articles">Articles</a>
 ```
 
 You can use a block if your link target can't fit in the name parameter.
@@ -965,7 +962,7 @@ You can use a block if your link target can't fit in the name parameter.
 <% end %>
 ```
 
-would output the following HTML:
+It would output the following HTML:
 
 ```html
 <a href="/profiles/1">
@@ -983,14 +980,13 @@ Generates a `mailto` link tag to the specified email address. You can also
 specify the link text, additional HTML options, and whether to encode the email
 address.
 
-```html+erb
-<%= mail_to "john_doe@gmail.com" %>
-```
+```ruby
+mail_to "john_doe@gmail.com"
+# => <a href="mailto:john_doe@gmail.com">john_doe@gmail.com</a>
 
-would output the following HTML:
-
-```html
-<a href="mailto:john_doe@gmail.com">john_doe@gmail.com</a>
+mail_to "me@john_doe.com", cc: "me@jane_doe.com",
+        subject: "This is an example email"
+# => <a href="mailto:"me@john_doe.com?cc=me@jane_doe.com&subject=This%20is%20an%20example%20email">"me@john_doe.com</a>
 ```
 
 See the [API
