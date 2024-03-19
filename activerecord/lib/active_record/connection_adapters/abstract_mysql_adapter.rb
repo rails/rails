@@ -643,7 +643,7 @@ module ActiveRecord
 
         # MySQL 8.0.19 replaces `VALUES(<expression>)` clauses with row and column alias names, see https://dev.mysql.com/worklog/task/?id=6312 .
         # then MySQL 8.0.20 deprecates the `VALUES(<expression>)` see https://dev.mysql.com/worklog/task/?id=13325 .
-        if !mariadb? && database_version >= "8.0.19"
+        if supports_insert_raw_alias_syntax?
           values_alias = quote_table_name("#{insert.model.table_name}_values")
           sql = +"INSERT #{insert.into} #{insert.values_list} AS #{values_alias}"
 
@@ -892,6 +892,10 @@ module ActiveRecord
         def remove_index_for_alter(table_name, column_name = nil, **options)
           index_name = index_name_for_remove(table_name, column_name, options)
           "DROP INDEX #{quote_column_name(index_name)}"
+        end
+
+        def supports_insert_raw_alias_syntax?
+          !mariadb? && database_version >= "8.0.19"
         end
 
         def supports_rename_index?
