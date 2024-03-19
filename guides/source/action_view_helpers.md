@@ -342,7 +342,7 @@ Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/CacheHelpe
 for more information.
 
 
-### Capture Helper
+### CaptureHelper
 
 The CaptureHelper exposes methods to let you extract generated markup which can
 be used in other parts of a template or layout file.
