@@ -460,6 +460,31 @@ module ActiveRecord
           Object.send(:remove_const, :ApplicationRecord)
           ActiveRecord::Base.establish_connection :arunit
         end
+
+        def test_application_record_prevent_access_can_be_changed
+          Object.const_set(:ApplicationRecord, ApplicationRecord)
+
+          ApplicationRecord.connects_to(database: { writing: :arunit, reading: :arunit })
+
+          # Switch everything to writing
+          ActiveRecord::Base.connected_to(role: :writing) do
+            assert_not_predicate ActiveRecord::Base.lease_connection, :preventing_access?
+            assert_not_predicate ApplicationRecord.lease_connection, :preventing_access?
+
+            ApplicationRecord.connected_to(role: :reading) do
+              assert_not_predicate ApplicationRecord.lease_connection, :preventing_access?
+            end
+
+            ApplicationRecord.connected_to(role: :writing, prevent_access: true) do
+              assert_predicate ApplicationRecord.lease_connection, :preventing_access?
+            end
+          end
+        ensure
+          ApplicationRecord.remove_connection
+          ActiveRecord.application_record_class = nil
+          Object.send(:remove_const, :ApplicationRecord)
+          ActiveRecord::Base.establish_connection :arunit
+        end
       end
     end
   end

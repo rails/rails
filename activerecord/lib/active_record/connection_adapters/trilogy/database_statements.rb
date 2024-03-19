@@ -14,7 +14,7 @@ module ActiveRecord
 
         def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false) # :nodoc:
           sql = transform_query(sql)
-          check_if_write_query(sql)
+          check_if_query_prevented(sql)
           mark_transaction_written_if_write(sql)
 
           result = raw_execute(sql, name, async: async)
@@ -23,7 +23,7 @@ module ActiveRecord
 
         def exec_insert(sql, name, binds, pk = nil, sequence_name = nil, returning: nil) # :nodoc:
           sql = transform_query(sql)
-          check_if_write_query(sql)
+          check_if_query_prevented(sql)
           mark_transaction_written_if_write(sql)
 
           sql, _binds = sql_for_insert(sql, pk, binds, returning)
@@ -32,7 +32,7 @@ module ActiveRecord
 
         def exec_delete(sql, name = nil, binds = []) # :nodoc:
           sql = transform_query(sql)
-          check_if_write_query(sql)
+          check_if_query_prevented(sql)
           mark_transaction_written_if_write(sql)
 
           result = raw_execute(to_sql(sql, binds), name)

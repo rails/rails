@@ -197,9 +197,13 @@ module ActiveRecord
         end
       end
 
-      def check_if_write_query(sql) # :nodoc:
+      def check_if_query_prevented(sql) # :nodoc:
         if preventing_writes? && write_query?(sql)
           raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
+        end
+
+        if preventing_access?
+          raise ActiveRecord::PreventedAccessError, "Query attempted while preventing access: #{sql}"
         end
       end
 
@@ -232,6 +236,15 @@ module ActiveRecord
         return false if connection_class.nil?
 
         connection_class.current_preventing_writes
+      end
+
+      # Determines whether access is currently being prevented.
+      #
+      # Returns the value of +current_preventing_access+.
+      def preventing_access?
+        return false if connection_class.nil?
+
+        connection_class.current_preventing_access
       end
 
       def prepared_statements?

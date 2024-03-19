@@ -1932,6 +1932,15 @@ class BasicsTest < ActiveRecord::TestCase
     ActiveRecord::Base.connected_to_stack.pop
   end
 
+  test "#connecting_to with prevent_access" do
+    SecondAbstractClass.connecting_to(role: :writing, prevent_access: true)
+
+    assert SecondAbstractClass.connected_to?(role: :writing)
+    assert SecondAbstractClass.current_preventing_access
+  ensure
+    ActiveRecord::Base.connected_to_stack.pop
+  end
+
   test "#connected_to_many cannot be called on anything but ActiveRecord::Base" do
     assert_raises NotImplementedError do
       SecondAbstractClass.connected_to_many([SecondAbstractClass], role: :writing)

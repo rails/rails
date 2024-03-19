@@ -69,6 +69,10 @@ module ActiveRecord
         def current_preventing_writes
           false
         end
+
+        def current_preventing_access
+          false
+        end
       end
 
       def initialize

@@ -17,5 +17,9 @@ module ActiveRecord
     def self.current_preventing_writes
       false
     end
+
+    def self.current_preventing_access
+      false
+    end
   end
 end

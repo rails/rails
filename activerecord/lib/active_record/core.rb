@@ -189,6 +189,25 @@ module ActiveRecord
         false
       end
 
+      # Returns the symbol representing the current setting for
+      # preventing access.
+      #
+      #   ActiveRecord::Base.connected_to(role: :reading, prevent_access: true) do
+      #     ActiveRecord::Base.current_preventing_access #=> true
+      #   end
+      #
+      #   ActiveRecord::Base.connected_to(role: :writing, prevent_access: false) do
+      #     ActiveRecord::Base.current_preventing_access #=> false
+      #   end
+      def self.current_preventing_access
+        connected_to_stack.reverse_each do |hash|
+          return hash[:prevent_access] if !hash[:prevent_access].nil? && hash[:klasses].include?(Base)
+          return hash[:prevent_access] if !hash[:prevent_access].nil? && hash[:klasses].include?(connection_class_for_self)
+        end
+
+        false
+      end
+
       def self.connected_to_stack # :nodoc:
         if connected_to_stack = ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack]
           connected_to_stack

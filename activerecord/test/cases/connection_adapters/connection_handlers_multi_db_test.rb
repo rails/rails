@@ -131,6 +131,7 @@ module ActiveRecord
             assert ActiveRecord::Base.connected_to?(role: :reading)
             assert_not ActiveRecord::Base.connected_to?(role: :writing)
             assert_predicate ActiveRecord::Base.lease_connection, :preventing_writes?
+            assert_not_predicate ActiveRecord::Base.lease_connection, :preventing_access?
           end
 
           ActiveRecord::Base.connected_to(role: :writing) do
@@ -138,6 +139,7 @@ module ActiveRecord
             assert ActiveRecord::Base.connected_to?(role: :writing)
             assert_not ActiveRecord::Base.connected_to?(role: :reading)
             assert_not_predicate ActiveRecord::Base.lease_connection, :preventing_writes?
+            assert_not_predicate ActiveRecord::Base.lease_connection, :preventing_access?
           end
         ensure
           ActiveRecord::Base.configurations = @prev_configs
