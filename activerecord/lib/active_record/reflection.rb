@@ -797,6 +797,8 @@ module ActiveRecord
             MSG
           end
 
+          return foreign_key if primary_query_constraints.include?(foreign_key)
+
           first_key, last_key = primary_query_constraints
 
           if first_key == owner_pk
