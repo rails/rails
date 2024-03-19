@@ -869,7 +869,7 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-word_wrap)
 for more information.
 
-### Tag Helper
+### TagHelper
 
 Provides methods to generate HTML tags programmatically.
 
