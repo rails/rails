@@ -253,7 +253,7 @@ for more information.
 
 ### AtomFeedHelper
 
-Atom Feeds are XML - based file formats used to syndicate content and can be
+Atom Feeds are XML-based file formats used to syndicate content and can be
 used by users in feed readers to browse content or by search engines to help
 discover additional information about your site.
 
