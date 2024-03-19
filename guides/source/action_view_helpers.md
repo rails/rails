@@ -947,7 +947,7 @@ for more information.
 
 Links to a URL derived from `url_for` under the hood. It's commonly used to
 create links for RESTful resources, especially when passing models as arguments
-to link_to.
+to `link_to`.
 
 ```ruby
 link_to "Profile", @profile
