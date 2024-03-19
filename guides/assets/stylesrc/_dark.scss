@@ -16,10 +16,10 @@
       }
       &:hover,
       &:active {
-        color: $rf-brand;
+        color: $rf-brand-darker;
       } // &:hover, &:active
       &:visited {
-        color: $gray-400;
+        color: $rf-brand;
       } // &:visited
     } // a
     

@@ -37,6 +37,7 @@ $breakpoints: (
 $rf-brand: #C81418;
 $rf-brand-light: lighten($rf-brand, 5%);
 $rf-brand-dark: darken($rf-brand, 10%);
+$rf-brand-darker: darken($rf-brand, 20%);
 $rf-highlight: rgba($rf-brand, 10%);
 
 $gray-100: #FAF9F8;
