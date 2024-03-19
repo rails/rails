@@ -471,7 +471,7 @@ dates and times or date and time elements.
 
 #### distance_of_time_in_words
 
-Reports the approximate distance in time between two Time or Date objects or
+Reports the approximate distance in time between two `Time` or `Date` objects or
 integers as seconds. Set `include_seconds` to true if you want more detailed
 approximations.
 
