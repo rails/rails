@@ -138,7 +138,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
         end
       }
 
-      if blob.preview_image_needed_before_processing_variants?
+      if blob.preview_image_needed_before_processing_variants? && preprocessed_variations.any?
         blob.create_preview_image_later(preprocessed_variations)
       else
         preprocessed_variations.each do |transformations|
