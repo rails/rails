@@ -714,7 +714,7 @@ default:
 
 ```ruby
 class Application < Rails::Application
-  config.action_view.sanitized_allowed_tags = 'table', 'tr', 'td'
+  config.action_view.sanitized_allowed_tags = %w(table tr td)
 end
 ```
 
