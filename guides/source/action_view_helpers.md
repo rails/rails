@@ -687,7 +687,7 @@ for more information.
 
 ### SanitizeHelper
 
-The SanitizeHelper module provides a set of methods for scrubbing text of
+The `SanitizeHelper` module provides a set of methods for scrubbing text of
 undesired HTML elements. The helpers are particularly useful for helping to
 ensure that only safe and valid HTML/CSS is rendered. It can also be useful to
 prevent XSS attacks by escaping or removing potentially malicious content from
