@@ -86,6 +86,25 @@ module ActiveRecord
         assert_equal "reading", relation.first.connection_role
       end
 
+      def test_load_async_relations_with_multi_db_connections
+        tf_writing = Tempfile.open "test_writing"
+        tf_reading = Tempfile.open "test_reading"
+
+        # We need to use a role for reading not named reading, otherwise we'll prevent writes
+        # and won't be able to write to the second connection.
+        SecondaryBase.connects_to database: { writing: { database: tf_writing.path, adapter: "sqlite3" }, secondary: { database: tf_reading.path, adapter: "sqlite3" } }
+
+        relation = ActiveRecord::Base.connected_to(role: :secondary) do
+          MultiConnectionTestModel.connection.execute("CREATE TABLE `multi_connection_test_models` (connection_role VARCHAR (255))")
+          MultiConnectionTestModel.create!(connection_role: "reading")
+          MultiConnectionTestModel.where(connection_role: "reading").load_async
+        end
+
+        assert_predicate relation, :scheduled?
+        assert_predicate relation, :loaded?
+        assert_equal "reading", relation.first.connection_role
+      end
+
       unless in_memory_db?
         def test_establish_connection_using_3_levels_config
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
