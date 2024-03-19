@@ -66,11 +66,11 @@ body.guide {
 
     &:hover,
     &:active {
-      color: $rf-brand-dark;
+      color: $rf-brand-light;
     }
 
     &:visited {
-      color: $gray-600;
+      color: $rf-brand-dark;
     }
   }
 
