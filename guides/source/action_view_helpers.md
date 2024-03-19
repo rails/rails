@@ -344,7 +344,7 @@ for more information.
 
 ### CaptureHelper
 
-The CaptureHelper exposes methods to let you extract generated markup which can
+The `CaptureHelper` exposes methods to let you extract generated markup which can
 be used in other parts of a template or layout file.
 
 It provides a method to capture blocks into variables through `capture` and a
