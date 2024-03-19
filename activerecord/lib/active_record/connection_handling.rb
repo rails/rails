@@ -256,15 +256,35 @@ module ActiveRecord
       connection_pool.lease_connection
     end
 
-    alias_method :connection, :lease_connection
+    # Soft deprecated. Use +#with_connection+ or +#lease_connection+ instead.
+    def connection
+      pool = connection_pool
+      unless pool.sticky_lease?
+        case ActiveRecord.permanent_connection_checkout
+        when :deprecated
+          ActiveRecord.deprecator.warn <<~MESSAGE
+            Called deprecated `ActionRecord::Base.connection`method.
+
+            Either use `with_connection` or `lease_connection`.
+          MESSAGE
+        when :disallowed
+          raise ActiveRecordError, <<~MESSAGE
+            Called deprecated `ActionRecord::Base.connection`method.
+
+            Either use `with_connection` or `lease_connection`.
+          MESSAGE
+        end
+      end
+      pool.lease_connection
+    end
 
     # Return the currently leased connection into the pool
     def release_connection
-      connection.release_connection
+      connection_pool.release_connection
     end
 
     # Checkouts a connection from the pool, yield it and then check it back in.
-    # If a connection was already leased via #connection or a parent call to
+    # If a connection was already leased via #lease_connection or a parent call to
     # #with_connection, that same connection is yieled.
     def with_connection(&block)
       connection_pool.with_connection(&block)

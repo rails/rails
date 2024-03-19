@@ -1,3 +1,18 @@
+*   Add `config.active_record.permanent_connection_checkout` setting.
+
+    Controls whether `ActiveRecord::Base.connection` raises an error, emits a deprecation warning, or neither.
+
+    `ActiveRecord::Base.connection` checkouts a database connection from the pool and keep it leased until the end of
+    the request or job. This behavior can be undesirable in environments that use many more threads or fibers than there
+    is available connections.
+
+    This configuration can be used to track down and eliminate code that calls `ActiveRecord::Base.connection` and
+    migrate it to use `ActiveRecord::Base.with_connection` instead.
+
+    The default behavior remains unchanged, and there is currently no plans to change the default.
+
+    *Jean Boussier*
+
 *   Add dirties option to uncached
 
     This adds a `dirties` option to `ActiveRecord::Base.uncached` and

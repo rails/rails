@@ -93,7 +93,7 @@ module ActiveRecord
             end
         end
 
-        def lease_connection
+        def lease_connection(**)
           connection = super
           connection.query_cache ||= query_cache
           connection

@@ -4,9 +4,17 @@ require "cases/helper"
 
 module ActiveRecord
   class ConnectionHandlingTest < ActiveRecord::TestCase
+    setup do
+      @_permanent_connection_checkout_was = ActiveRecord.permanent_connection_checkout
+    end
+
+    teardown do
+      ActiveRecord.permanent_connection_checkout = @_permanent_connection_checkout_was
+    end
+
     unless in_memory_db?
       test "#with_connection lease the connection for the duration of the block" do
-        ActiveRecord::Base.connection_pool.release_connection
+        ActiveRecord::Base.release_connection
         assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
 
         ActiveRecord::Base.with_connection do |connection|
@@ -16,8 +24,8 @@ module ActiveRecord
         assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
       end
 
-      test "#connection makes the lease permanent even inside #with_connection" do
-        ActiveRecord::Base.connection_pool.release_connection
+      test "#lease_connection makes the lease permanent even inside #with_connection" do
+        ActiveRecord::Base.release_connection
         assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
 
         conn = nil
@@ -62,6 +70,77 @@ module ActiveRecord
 
         assert_predicate ActiveRecord::Base.connection_pool, :active_connection?
         assert_same ActiveRecord::Base.lease_connection, leased_connection
+      end
+
+      test "#connection is a soft-deprecated alias to #lease_connection" do
+        ActiveRecord.permanent_connection_checkout = true
+
+        ActiveRecord::Base.release_connection
+        assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
+
+        conn = nil
+        ActiveRecord::Base.with_connection do |connection|
+          conn = connection
+          assert_predicate ActiveRecord::Base.connection_pool, :active_connection?
+          2.times do
+            assert_same connection, ActiveRecord::Base.connection
+          end
+        end
+
+        assert_predicate ActiveRecord::Base.connection_pool, :active_connection?
+        assert_same conn, ActiveRecord::Base.connection
+
+        ActiveRecord::Base.release_connection
+      end
+
+      test "#connection emits a deprecation warning if ActiveRecord.permanent_connection_checkout == :deprecated" do
+        ActiveRecord.permanent_connection_checkout = :deprecated
+
+        ActiveRecord::Base.release_connection
+
+        assert_deprecated(ActiveRecord.deprecator) do
+          ActiveRecord::Base.connection
+        end
+
+        assert_not_deprecated(ActiveRecord.deprecator) do
+          ActiveRecord::Base.connection
+        end
+
+        ActiveRecord::Base.release_connection
+
+        assert_deprecated(ActiveRecord.deprecator) do
+          ActiveRecord::Base.connection
+        end
+
+        ActiveRecord::Base.release_connection
+
+        ActiveRecord::Base.with_connection do
+          assert_deprecated(ActiveRecord.deprecator) do
+            ActiveRecord::Base.connection
+          end
+        end
+      end
+
+      test "#connection raises an error if ActiveRecord.permanent_connection_checkout == :disallowed" do
+        ActiveRecord.permanent_connection_checkout = :disallowed
+
+        ActiveRecord::Base.release_connection
+
+        assert_raises(ActiveRecordError) do
+          ActiveRecord::Base.connection
+        end
+
+        ActiveRecord::Base.with_connection do
+          assert_raises(ActiveRecordError) do
+            ActiveRecord::Base.connection
+          end
+        end
+
+        ActiveRecord::Base.lease_connection
+
+        assert_nothing_raised do
+          ActiveRecord::Base.connection
+        end
       end
     end
   end
