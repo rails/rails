@@ -553,7 +553,7 @@ you can escape the greeting to use in a JavaScript alert.
 **app/views/users/greeting.html.rb**
 
 ```html+erb
-my name is <%= current_user.name %>, and I'm here to say "Welcome to our website!"
+My name is <%= current_user.name %>, and I'm here to say "Welcome to our website!"
 ```
 
 ```html+erb
