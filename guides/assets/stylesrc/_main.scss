@@ -436,6 +436,7 @@ body.guide {
           @include media('>desktop') {
             display: inline-block;
             margin-left: 0.5em;
+            vertical-align: 1px;
           }
 
           select {
