@@ -52,21 +52,10 @@
           <span id="version_switcher">
             Version:
             <select class="guides-version">
-              <option value="https://edgeguides.rubyonrails.org/" selected>Edge</option>
-              <option value="https://guides.rubyonrails.org/v7.1">7.1</option>
-              <option value="https://guides.rubyonrails.org/v7.0">7.0</option>
-              <option value="https://guides.rubyonrails.org/v6.1">6.1</option>
-              <option value="https://guides.rubyonrails.org/v6.0">6.0</option>
-              <option value="https://guides.rubyonrails.org/v5.2">5.2</option>
-              <option value="https://guides.rubyonrails.org/v5.1">5.1</option>
-              <option value="https://guides.rubyonrails.org/v5.0">5.0</option>
-              <option value="https://guides.rubyonrails.org/v4.2">4.2</option>
-              <option value="https://guides.rubyonrails.org/v4.1">4.1</option>
-              <option value="https://guides.rubyonrails.org/v4.0">4.0</option>
-              <option value="https://guides.rubyonrails.org/v3.2">3.2</option>
-              <option value="https://guides.rubyonrails.org/v3.1">3.1</option>
-              <option value="https://guides.rubyonrails.org/v3.0">3.0</option>
-              <option value="https://guides.rubyonrails.org/v2.3">2.3</option>
+              <option value="https://edgeguides.rubyonrails.org/"<%= " selected" if @edge %>>Edge</option>
+              <% %w[7.1 7.0 6.1 6.0 5.2 5.1 5.0 4.2 4.1 4.0 3.2 3.1 3.0 2.3].each do |version| %>
+                <option value="https://guides.rubyonrails.org/v<%= version %>/"<%= " selected" if @version&.start_with?(version) %>><%= version %></option>
+              <% end %>
             </select>
           </span>
         </div>

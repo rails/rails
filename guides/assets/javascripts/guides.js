@@ -65,10 +65,6 @@
     document.addEventListener("scroll", toggleBackToTop);
 
     var guidesVersion = document.querySelector("select.guides-version");
-    each(guidesVersion.querySelectorAll("option"), function(element) {
-      element.selected = window.location.href.startsWith(element.value);
-    });
-
     guidesVersion.addEventListener("change", function(e) {
       Turbo.visit(e.target.value);
     });
