@@ -52,8 +52,9 @@ module Arel # :nodoc: all
 
     def to_sql(engine = Table.engine)
       collector = Arel::Collectors::SQLString.new
-      collector = engine.lease_connection.visitor.accept @ast, collector
-      collector.value
+      engine.with_connection do |connection|
+        engine.lease_connection.visitor.accept(@ast, collector).value
+      end
     end
 
     def initialize_copy(other)
