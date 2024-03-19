@@ -778,7 +778,7 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-strip_tags)
 for more information.
 
-### Text Helper
+### TextHelper
 
 Provides a set of methods for filtering, formatting and transforming strings.
 
