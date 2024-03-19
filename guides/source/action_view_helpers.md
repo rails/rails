@@ -257,7 +257,7 @@ Atom Feeds are XML-based file formats used to syndicate content and can be
 used by users in feed readers to browse content or by search engines to help
 discover additional information about your site.
 
-AtomFeedHelper is mostly used in Builder templates for creating XML.
+`AtomFeedHelper` is mostly used in Builder templates for creating XML.
 
 #### atom_feed
 
