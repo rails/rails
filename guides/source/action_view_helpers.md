@@ -17,10 +17,9 @@ Overview of Helpers Provided by Action View
 -------------------------------------------
 
 The following outlines **some of the most commonly used helpers** available in
-Action View. It's recommended that you review the [API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html),
-which covers all of the helpers in more detail, but this should serve as a good
-starting point.
+Action View. It serves as a good starting point, but reviewing the full [API
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html) is
+also recommented, as it covers all of the helpers in more detail.
 
 ### AssetTagHelper
 
