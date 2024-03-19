@@ -174,11 +174,11 @@ WARNING. `after_save` runs both on create and update, but always _after_ the mor
 
 NOTE: `before_destroy` callbacks should be placed before `dependent: :destroy` associations (or use the `prepend: true` option), to ensure they execute before the records are deleted by `dependent: :destroy`.
 
-WARNING. `after_commit` makes very different guarantees than `after_save`, `after_update`, and `after_destroy`. For example if an exception occurs in an `after_save` the transaction will be rolled back and the data will not be persisted. While anything that happens `after_commit` can guarantee the transaction has already completed and the data was persisted to the database. More on [transactional callbacks](#transaction-callbacks) below.
+WARNING. `after_commit` makes very different guarantees than `after_save`, `after_update`, and `after_destroy`. For example, if an exception occurs in an `after_save` the transaction will be rolled back and the data will not be persisted. However, anything that happens `after_commit` can guarantee the transaction has already been completed and the data was persisted to the database. More on [transactional callbacks](#transaction-callbacks) below.
 
 ### `after_initialize` and `after_find`
 
-Whenever an Active Record object is instantiated the [`after_initialize`][] callback will be called, either by directly using `new` or when a record is loaded from the database. It can be useful to avoid the need to directly override your Active Record `initialize` method.
+Whenever an Active Record object is instantiated, either by directly using `new` or when a record is loaded from the database, then the [`after_initialize`][] callback will be called. It can be useful to avoid the need to directly override your Active Record `initialize` method.
 
 When loading a record from the database the [`after_find`][] callback will be called. `after_find` is called before `after_initialize` if both are defined.
 
@@ -301,12 +301,12 @@ Additionally, the `after_find` callback is triggered by the following finder met
 
 The `after_initialize` callback is triggered every time a new object of the class is initialized.
 
-NOTE: The `find_by_*` and `find_by_*!` methods are dynamic finders generated automatically for every attribute. Learn more about them at the [Dynamic finders section](active_record_querying.html#dynamic-finders)
+NOTE: The `find_by_*` and `find_by_*!` methods are dynamic finders generated automatically for every attribute. Learn more about them in the [Dynamic finders section](active_record_querying.html#dynamic-finders)
 
 Skipping Callbacks
 ------------------
 
-Just as with validations, it is also possible to skip callbacks by using the following methods:
+Just as with [validations](active_record_validations.html), it is also possible to skip callbacks by using the following methods:
 
 * `decrement!`
 * `decrement_counter`
@@ -327,14 +327,14 @@ Just as with validations, it is also possible to skip callbacks by using the fol
 * `upsert`
 * `upsert_all`
 
-These methods should be used with caution, however, because important business rules and application logic may be kept in callbacks. Bypassing them without understanding the potential implications may lead to invalid data.
+WARNING. These methods should be used with caution because there may be important business rules and application logic in callbacks that you do not want to bypass. Bypassing them without understanding the potential implications may lead to invalid data.
 
 Halting Execution
 -----------------
 
-As you start registering new callbacks for your models, they will be queued for execution. This queue will include all your model's validations, the registered callbacks, and the database operation to be executed.
+As you start registering new callbacks for your models, they will be queued for execution. This queue will include all of your model's validations, the registered callbacks, and the database operation to be executed.
 
-The whole callback chain is wrapped in a transaction. If any callback raises an exception, the execution chain gets halted and a ROLLBACK is issued. To intentionally stop a chain use:
+The whole callback chain is wrapped in a transaction. If any callback raises an exception, the execution chain gets halted and a ROLLBACK is issued. To intentionally halt a chain use:
 
 ```ruby
 throw :abort
