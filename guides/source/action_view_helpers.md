@@ -19,7 +19,7 @@ Overview of Helpers Provided by Action View
 The following outlines **some of the most commonly used helpers** available in
 Action View. It serves as a good starting point, but reviewing the full [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html) is
-also recommented, as it covers all of the helpers in more detail.
+also recommended, as it covers all of the helpers in more detail.
 
 ### AssetTagHelper
 
@@ -29,13 +29,19 @@ as images, JavaScript files, stylesheets, and feeds.
 By default, Rails links to these assets on the current host in the public
 folder, but you can direct Rails to link to assets from a dedicated assets
 server by setting [`config.asset_host`][] in the application configuration,
-typically in `config/environments/production.rb`. For example, let's say your
-asset host is `assets.example.com`:
+typically in `config/environments/production.rb`.
+
+For example, let's say your asset host is `assets.example.com`:
 
 ```ruby
 config.asset_host = "assets.example.com"
+```
+
+then the corresponding URL for an `image_tag` would be:
+
+```ruby
 image_tag("rails.png")
-# => <img src="http://assets.example.com/images/rails.png" />
+# => <img src="//assets.example.com/images/rails.png" />
 ```
 
 [`config.asset_host`]: configuring.html#config-asset-host
@@ -44,8 +50,8 @@ image_tag("rails.png")
 
 Generate an HTML audio tag with source(s), either as a single tag for a string
 source or nested source tags within an array for multiple sources. The `sources`
-can be full paths, files in your public audios directory, or Active Storage
-attachments.
+can be full paths, files in your public audios directory, or [Active Storage
+attachments](active_storage_overview.html).
 
 ```ruby
 audio_tag("sound")
@@ -466,8 +472,11 @@ for more information.
 
 ### DateHelper
 
-The Date Helper primarily creates select/option tags for different kinds of
-dates and times or date and time elements.
+The Date Helper allows you to manipulate date and/or time elements into contextual
+human readable forms. It can also be used to create select/option tags for
+different kinds of dates and/or times elements as described in the
+[Action View Form Helpers
+Guide](form_helpers.html#using-date-and-time-form-helpers).
 
 #### distance_of_time_in_words
 
@@ -568,6 +577,10 @@ my name is <%= current_user.name %>, and I'm here to say "Welcome to our website
 
 This will escape the double quotes correctly and display the greeting as in an
 alert box.
+
+See the [API
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/JavaScriptHelper.html#method-i-escape_javascript)
+for more information.
 
 #### javascript_tag
 
@@ -693,6 +706,10 @@ ensure that only safe and valid HTML/CSS is rendered. It can also be useful to
 prevent XSS attacks by escaping or removing potentially malicious content from
 user input before rendering it in your views.
 
+This functionality is powered internally by the
+[rails-html-sanitizer](https://github.com/rails/rails-html-sanitizer) gem.
+
+
 #### sanitize
 
 The `sanitize` method will HTML encode all tags and strip all attributes that
@@ -759,9 +776,7 @@ for more information.
 
 #### strip_tags
 
-Strips all HTML tags from the html, including comments. This functionality is
-powered by the
-[rails-html-sanitizer](https://github.com/rails/rails-html-sanitizer) gem.
+Strips all HTML tags from the HTML, including comments.
 
 ```ruby
 strip_tags("Strip <i>these</i> tags!")
@@ -784,9 +799,10 @@ Provides a set of methods for filtering, formatting and transforming strings.
 
 #### excerpt
 
-Extracts the first occurrence of phrase plus surrounding text from `text`. An
-omission marker is prepended/appended if the start/end of the result does not
-coincide with the start/end of the text.
+Given a `text` and a `phrase`, `excerpt` searches for and extracts the first
+occurrence of the `phrase`, plus the requested surrounding text determined by
+a `radius`. An omission marker is prepended/appended if the start/end of the
+result does not coincide with the start/end of the text.
 
 ```ruby
 excerpt('This is a very beautiful morning', 'very', separator: ' ', radius: 1)
@@ -795,14 +811,6 @@ excerpt('This is a very beautiful morning', 'very', separator: ' ', radius: 1)
 excerpt('This is also an example', 'an', radius: 8, omission: '<chop> ')
 #=> <chop> is also an example
 ```
-
-where:
-
-- `radius` is the number of characters to include on each side of the `phrase`.
-  If the `phrase` isn't found, `nil` is returned.
-- `ommision` is the string to be used to indicate omitted content.
-- `separator` is the string to use to separate the `phrase` from the omitted
-  content. Defaults to "", which treats each character as a token.
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-excerpt)
@@ -824,7 +832,7 @@ for more information.
 
 #### truncate
 
-Truncates a given text after a given `length`. If text is truncated, an omission
+Truncates a given `text` to a given `length`. If the text is truncated, an omission
 marker will be appended to the result for a total length not exceeding `length`.
 
 ```ruby
@@ -843,14 +851,6 @@ truncate("And they found that many people were sleeping better.", length: 25, om
 truncate("<p>Once upon a time in a world far far away</p>", escape: false)
 # => "<p>Once upon a time in a wo..."
 ```
-
-where:
-
-- `length`: The maximum number of characters to return.
-- `separator`: A string or regexp used to find a breaking point at which to
-  truncate. By default, truncation can occur at any character in text.
-- `omission`: The string to append after truncating. Defaults to "...".
-- `escape`: Whether to escape the result. Defaults to true.
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-truncate)
