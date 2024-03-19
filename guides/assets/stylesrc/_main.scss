@@ -358,6 +358,10 @@ body.guide {
       }
     }
 
+    .more-info-button {
+      cursor: pointer;
+    }
+
     .more-info-links {
       @extend %list-in-disguise;
       background: $gray-200;
