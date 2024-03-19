@@ -124,7 +124,7 @@ for more information.
 
 Returns an HTML script tag for each of the sources provided. You can pass in the
 filename (`.js` extension is optional) of JavaScript files that exist in your
-`app/assets/javascripts` directory for inclusion into the current page or you
+`app/assets/javascripts` directory for inclusion into the current page, or you
 can pass the full path relative to your document root.
 
 ```ruby
