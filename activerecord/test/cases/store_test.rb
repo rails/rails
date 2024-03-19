@@ -359,4 +359,23 @@ class StoreTest < ActiveRecord::TestCase
   test "prefix/suffix do not affect stored attributes" do
     assert_equal [:secret_question, :two_factor_auth, :login_retry], Admin::User.stored_attributes[:configs]
   end
+
+  test "overrides .read_store_attribute and .write_store_attribute to transform keys" do
+    user_with_camelized_store_attributes = Class.new(Admin::User) do
+      def read_store_attribute(store_attribute, key)
+        super(store_attribute, key.to_s.camelize(:lower))
+      end
+
+      def write_store_attribute(store_attribute, key, value)
+        super(store_attribute, key.to_s.camelize(:lower), value)
+      end
+    end
+
+    user = user_with_camelized_store_attributes.new(parent_name: "Parent", favorite_food: "Pizza")
+
+    assert_equal "Pizza", user.favorite_food
+    assert_equal "Parent", user.parent_name
+    assert_equal({ "favoriteFood" => "Pizza" }, user.settings)
+    assert_equal({ "name" => "Parent" }, user.parent)
+  end
 end
