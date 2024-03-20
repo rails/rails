@@ -830,7 +830,220 @@ When Rails renders a view as a response, it does so by combining the view with t
 
 ### Asset Tag Helpers
 
-Asset tag helpers provide methods for generating HTML that link views to feeds, JavaScript, stylesheets, images, videos, and audios. You can learn more about the various tags in [Action View Helpers](action_view_helpers.html#assettaghelper) guide.
+Asset tag helpers provide methods for generating HTML that link views to feeds, JavaScript, stylesheets, images, videos, and audios. There are six asset tag helpers available in Rails:
+
+* [`auto_discovery_link_tag`][]
+* [`javascript_include_tag`][]
+* [`stylesheet_link_tag`][]
+* [`image_tag`][]
+* [`video_tag`][]
+* [`audio_tag`][]
+
+You can use these tags in layouts or other views, although the `auto_discovery_link_tag`, `javascript_include_tag`, and `stylesheet_link_tag`, are most commonly used in the `<head>` section of a layout.
+
+WARNING: The asset tag helpers do _not_ verify the existence of the assets at the specified locations; they simply assume that you know what you're doing and generate the link.
+
+[`auto_discovery_link_tag`]: https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-auto_discovery_link_tag
+[`javascript_include_tag`]: https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-javascript_include_tag
+[`stylesheet_link_tag`]: https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-stylesheet_link_tag
+[`image_tag`]: https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-image_tag
+[`video_tag`]: https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-video_tag
+[`audio_tag`]: https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-audio_tag
+
+#### Linking to Feeds with the `auto_discovery_link_tag`
+
+The [`auto_discovery_link_tag`][] helper builds HTML that most browsers and feed readers can use to detect the presence of RSS, Atom, or JSON feeds. It takes the type of the link (`:rss`, `:atom`, or `:json`), a hash of options that are passed through to url_for, and a hash of options for the tag:
+
+```erb
+<%= auto_discovery_link_tag(:rss, {action: "feed"},
+  {title: "RSS Feed"}) %>
+```
+
+There are three tag options available for the `auto_discovery_link_tag`:
+
+* `:rel` specifies the `rel` value in the link. The default value is "alternate".
+* `:type` specifies an explicit MIME type. Rails will generate an appropriate MIME type automatically.
+* `:title` specifies the title of the link. The default value is the uppercase `:type` value, for example, "ATOM" or "RSS".
+
+#### Linking to JavaScript Files with the `javascript_include_tag`
+
+The [`javascript_include_tag`][] helper returns an HTML `script` tag for each source provided.
+
+If you are using Rails with the [Asset Pipeline](asset_pipeline.html) enabled, this helper will generate a link to `/assets/javascripts/` rather than `public/javascripts` which was used in earlier versions of Rails. This link is then served by the asset pipeline.
+
+A JavaScript file within a Rails application or Rails engine goes in one of three locations: `app/assets`, `lib/assets` or `vendor/assets`. These locations are explained in detail in the [Asset Organization section in the Asset Pipeline Guide](asset_pipeline.html#asset-organization).
+
+You can specify a full path relative to the document root, or a URL, if you prefer. For example, to link to a JavaScript file that is inside a directory called `javascripts` inside of one of `app/assets`, `lib/assets` or `vendor/assets`, you would do this:
+
+```erb
+<%= javascript_include_tag "main" %>
+```
+
+Rails will then output a `script` tag such as this:
+
+```html
+<script src='/assets/main.js'></script>
+```
+
+The request to this asset is then served by the Sprockets gem.
+
+To include multiple files such as `app/assets/javascripts/main.js` and `app/assets/javascripts/columns.js` at the same time:
+
+```erb
+<%= javascript_include_tag "main", "columns" %>
+```
+
+To include `app/assets/javascripts/main.js` and `app/assets/javascripts/photos/columns.js`:
+
+```erb
+<%= javascript_include_tag "main", "/photos/columns" %>
+```
+
+To include `http://example.com/main.js`:
+
+```erb
+<%= javascript_include_tag "http://example.com/main.js" %>
+```
+
+#### Linking to CSS Files with the `stylesheet_link_tag`
+
+The [`stylesheet_link_tag`][] helper returns an HTML `<link>` tag for each source provided.
+
+If you are using Rails with the "Asset Pipeline" enabled, this helper will generate a link to `/assets/stylesheets/`. This link is then processed by the Sprockets gem. A stylesheet file can be stored in one of three locations: `app/assets`, `lib/assets`, or `vendor/assets`.
+
+You can specify a full path relative to the document root, or a URL. For example, to link to a stylesheet file that is inside a directory called `stylesheets` inside of one of `app/assets`, `lib/assets`, or `vendor/assets`, you would do this:
+
+```erb
+<%= stylesheet_link_tag "main" %>
+```
+
+To include `app/assets/stylesheets/main.css` and `app/assets/stylesheets/columns.css`:
+
+```erb
+<%= stylesheet_link_tag "main", "columns" %>
+```
+
+To include `app/assets/stylesheets/main.css` and `app/assets/stylesheets/photos/columns.css`:
+
+```erb
+<%= stylesheet_link_tag "main", "photos/columns" %>
+```
+
+To include `http://example.com/main.css`:
+
+```erb
+<%= stylesheet_link_tag "http://example.com/main.css" %>
+```
+
+By default, the `stylesheet_link_tag` creates links with `rel="stylesheet"`. You can override this default by specifying an appropriate option (`:rel`):
+
+```erb
+<%= stylesheet_link_tag "main_print", media: "print" %>
+```
+
+#### Linking to Images with the `image_tag`
+
+The [`image_tag`][] helper builds an HTML `<img />` tag to the specified file. By default, files are loaded from `public/images`.
+
+WARNING: Note that you must specify the extension of the image.
+
+```erb
+<%= image_tag "header.png" %>
+```
+
+You can supply a path to the image if you like:
+
+```erb
+<%= image_tag "icons/delete.gif" %>
+```
+
+You can supply a hash of additional HTML options:
+
+```erb
+<%= image_tag "icons/delete.gif", {height: 45} %>
+```
+
+You can supply alternate text for the image which will be used if the user has images turned off in their browser. If you do not specify an alt text explicitly, it defaults to the file name of the file, capitalized and with no extension. For example, these two image tags would return the same code:
+
+```erb
+<%= image_tag "home.gif" %>
+<%= image_tag "home.gif", alt: "Home" %>
+```
+
+You can also specify a special size tag, in the format "{width}x{height}":
+
+```erb
+<%= image_tag "home.gif", size: "50x20" %>
+```
+
+In addition to the above special tags, you can supply a final hash of standard HTML options, such as `:class`, `:id`, or `:name`:
+
+```erb
+<%= image_tag "home.gif", alt: "Go Home",
+                          id: "HomeImage",
+                          class: "nav_bar" %>
+```
+
+#### Linking to Videos with the `video_tag`
+
+The [`video_tag`][] helper builds an HTML5 `<video>` tag to the specified file. By default, files are loaded from `public/videos`.
+
+```erb
+<%= video_tag "movie.ogg" %>
+```
+
+Produces
+
+```erb
+<video src="/videos/movie.ogg" />
+```
+
+Like an `image_tag` you can supply a path, either absolute, or relative to the `public/videos` directory. Additionally you can specify the `size: "#{width}x#{height}"` option just like an `image_tag`. Video tags can also have any of the HTML options specified at the end (`id`, `class` et al).
+
+The video tag also supports all of the `<video>` HTML options through the HTML options hash, including:
+
+* `poster: "image_name.png"`, provides an image to put in place of the video before it starts playing.
+* `autoplay: true`, starts playing the video on page load.
+* `loop: true`, loops the video once it gets to the end.
+* `controls: true`, provides browser supplied controls for the user to interact with the video.
+* `autobuffer: true`, the video will pre load the file for the user on page load.
+
+You can also specify multiple videos to play by passing an array of videos to the `video_tag`:
+
+```erb
+<%= video_tag ["trailer.ogg", "movie.ogg"] %>
+```
+
+This will produce:
+
+```erb
+<video>
+  <source src="/videos/trailer.ogg">
+  <source src="/videos/movie.ogg">
+</video>
+```
+
+#### Linking to Audio Files with the `audio_tag`
+
+The [`audio_tag`][] helper builds an HTML5 `<audio>` tag to the specified file. By default, files are loaded from `public/audios`.
+
+```erb
+<%= audio_tag "music.mp3" %>
+```
+
+You can supply a path to the audio file if you like:
+
+```erb
+<%= audio_tag "music/first_song.mp3" %>
+```
+
+You can also supply a hash of additional options, such as `:id`, `:class`, etc.
+
+Like the `video_tag`, the `audio_tag` has special options:
+
+* `autoplay: true`, starts playing the audio on page load
+* `controls: true`, provides browser supplied controls for the user to interact with the audio.
+* `autobuffer: true`, the audio will pre load the file for the user on page load.
 
 ### Understanding `yield`
 
@@ -890,7 +1103,287 @@ The `content_for` method is very helpful when your layout contains distinct regi
 
 ### Using Partials
 
-Partial templates - usually just called "partials" - are another device for breaking the rendering process into more manageable chunks. With a partial, you can move the code for rendering a particular piece of a response to its own file. [todo: add a more here and then link to the Action View Overview partial section]
+Partial templates - usually just called "partials" - are another device for breaking the rendering process into more manageable chunks. With a partial, you can move the code for rendering a particular piece of a response to its own file.
+
+#### Naming Partials
+
+To render a partial as part of a view, you use the [`render`][view.render] method within the view:
+
+```html+erb
+<%= render "menu" %>
+```
+
+This will render a file named `_menu.html.erb` at that point within the view being rendered. Note the leading underscore character: partials are named with a leading underscore to distinguish them from regular views, even though they are referred to without the underscore. This holds true even when you're pulling in a partial from another folder:
+
+```html+erb
+<%= render "application/menu" %>
+```
+
+Since view partials rely on the same [Template Inheritance](#template-inheritance)
+as templates and layouts, that code will pull in the partial from `app/views/application/_menu.html.erb`.
+
+[view.render]: https://api.rubyonrails.org/classes/ActionView/Helpers/RenderingHelper.html#method-i-render
+
+#### Using Partials to Simplify Views
+
+One way to use partials is to treat them as the equivalent of subroutines: as a way to move details out of a view so that you can grasp what's going on more easily. For example, you might have a view that looked like this:
+
+```erb
+<%= render "application/ad_banner" %>
+
+<h1>Products</h1>
+
+<p>Here are a few of our fine products:</p>
+<%# ... %>
+
+<%= render "application/footer" %>
+```
+
+Here, the `_ad_banner.html.erb` and `_footer.html.erb` partials could contain
+content that is shared by many pages in your application. You don't need to see
+the details of these sections when you're concentrating on a particular page.
+
+As seen in the previous sections of this guide, `yield` is a very powerful tool
+for cleaning up your layouts. Keep in mind that it's pure Ruby, so you can use
+it almost everywhere. For example, we can use it to DRY up form layout
+definitions for several similar resources:
+
+* `users/index.html.erb`
+
+    ```html+erb
+    <%= render "application/search_filters", search: @q do |form| %>
+      <p>
+        Name contains: <%= form.text_field :name_contains %>
+      </p>
+    <% end %>
+    ```
+
+* `roles/index.html.erb`
+
+    ```html+erb
+    <%= render "application/search_filters", search: @q do |form| %>
+      <p>
+        Title contains: <%= form.text_field :title_contains %>
+      </p>
+    <% end %>
+    ```
+
+* `application/_search_filters.html.erb`
+
+    ```html+erb
+    <%= form_with model: search do |form| %>
+      <h1>Search form:</h1>
+      <fieldset>
+        <%= yield form %>
+      </fieldset>
+      <p>
+        <%= form.submit "Search" %>
+      </p>
+    <% end %>
+    ```
+
+TIP: For content that is shared among all pages in your application, you can use partials directly from layouts.
+
+#### Partial Layouts
+
+A partial can use its own layout file, just as a view can use a layout. For example, you might call a partial like this:
+
+```erb
+<%= render partial: "link_area", layout: "graybar" %>
+```
+
+This would look for a partial named `_link_area.html.erb` and render it using the layout `_graybar.html.erb`. Note that layouts for partials follow the same leading-underscore naming as regular partials, and are placed in the same folder with the partial that they belong to (not in the master `layouts` folder).
+
+Also note that explicitly specifying `:partial` is required when passing additional options such as `:layout`.
+
+#### Passing Local Variables
+
+You can also pass local variables into partials, making them even more powerful and flexible. For example, you can use this technique to reduce duplication between new and edit pages, while still keeping a bit of distinct content:
+
+* `new.html.erb`
+
+    ```html+erb
+    <h1>New zone</h1>
+    <%= render partial: "form", locals: {zone: @zone} %>
+    ```
+
+* `edit.html.erb`
+
+    ```html+erb
+    <h1>Editing zone</h1>
+    <%= render partial: "form", locals: {zone: @zone} %>
+    ```
+
+* `_form.html.erb`
+
+    ```html+erb
+    <%= form_with model: zone do |form| %>
+      <p>
+        <b>Zone name</b><br>
+        <%= form.text_field :name %>
+      </p>
+      <p>
+        <%= form.submit %>
+      </p>
+    <% end %>
+    ```
+
+Although the same partial will be rendered into both views, Action View's submit helper will return "Create Zone" for the new action and "Update Zone" for the edit action.
+
+To pass a local variable to a partial in only specific cases use the `local_assigns`.
+
+* `index.html.erb`
+
+    ```erb
+    <%= render user.articles %>
+    ```
+
+* `show.html.erb`
+
+    ```erb
+    <%= render article, full: true %>
+    ```
+
+* `_article.html.erb`
+
+    ```erb
+    <h2><%= article.title %></h2>
+
+    <% if local_assigns[:full] %>
+      <%= simple_format article.body %>
+    <% else %>
+      <%= truncate article.body %>
+    <% end %>
+    ```
+
+This way it is possible to use the partial without the need to declare all local variables.
+
+Every partial also has a local variable with the same name as the partial (minus the leading underscore). You can pass an object in to this local variable via the `:object` option:
+
+```erb
+<%= render partial: "customer", object: @new_customer %>
+```
+
+Within the `customer` partial, the `customer` variable will refer to `@new_customer` from the parent view.
+
+If you have an instance of a model to render into a partial, you can use a shorthand syntax:
+
+```erb
+<%= render @customer %>
+```
+
+Assuming that the `@customer` instance variable contains an instance of the `Customer` model, this will use `_customer.html.erb` to render it and will pass the local variable `customer` into the partial which will refer to the `@customer` instance variable in the parent view.
+
+#### Rendering Collections
+
+Partials are very useful in rendering collections. When you pass a collection to a partial via the `:collection` option, the partial will be inserted once for each member in the collection:
+
+* `index.html.erb`
+
+    ```html+erb
+    <h1>Products</h1>
+    <%= render partial: "product", collection: @products %>
+    ```
+
+* `_product.html.erb`
+
+    ```html+erb
+    <p>Product Name: <%= product.name %></p>
+    ```
+
+When a partial is called with a pluralized collection, then the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is `_product`, and within the `_product` partial, you can refer to `product` to get the instance that is being rendered.
+
+There is also a shorthand for this. Assuming `@products` is a collection of `Product` instances, you can simply write this in the `index.html.erb` to produce the same result:
+
+```html+erb
+<h1>Products</h1>
+<%= render @products %>
+```
+
+Rails determines the name of the partial to use by looking at the model name in the collection. In fact, you can even create a heterogeneous collection and render it this way, and Rails will choose the proper partial for each member of the collection:
+
+* `index.html.erb`
+
+    ```html+erb
+    <h1>Contacts</h1>
+    <%= render [customer1, employee1, customer2, employee2] %>
+    ```
+
+* `customers/_customer.html.erb`
+
+    ```html+erb
+    <p>Customer: <%= customer.name %></p>
+    ```
+
+* `employees/_employee.html.erb`
+
+    ```html+erb
+    <p>Employee: <%= employee.name %></p>
+    ```
+
+In this case, Rails will use the customer or employee partials as appropriate for each member of the collection.
+
+In the event that the collection is empty, `render` will return nil, so it should be fairly simple to provide alternative content.
+
+```html+erb
+<h1>Products</h1>
+<%= render(@products) || "There are no products available." %>
+```
+
+#### Local Variables
+
+To use a custom local variable name within the partial, specify the `:as` option in the call to the partial:
+
+```erb
+<%= render partial: "product", collection: @products, as: :item %>
+```
+
+With this change, you can access an instance of the `@products` collection as the `item` local variable within the partial.
+
+You can also pass in arbitrary local variables to any partial you are rendering with the `locals: {}` option:
+
+```erb
+<%= render partial: "product", collection: @products,
+           as: :item, locals: {title: "Products Page"} %>
+```
+
+In this case, the partial will have access to a local variable `title` with the value "Products Page".
+
+#### Counter Variables
+
+Rails also makes a counter variable available within a partial called by the collection. The variable is named after the title of the partial followed by `_counter`. For example, when rendering a collection `@products` the partial `_product.html.erb` can access the variable `product_counter`. The variable indexes the number of times the partial has been rendered within the enclosing view, starting with a value of `0` on the first render.
+
+```erb
+# index.html.erb
+<%= render partial: "product", collection: @products %>
+```
+
+```erb
+# _product.html.erb
+<%= product_counter %> # 0 for the first product, 1 for the second product...
+```
+
+This also works when the local variable name is changed using the `as:` option. So if you did `as: :item`, the counter variable would be `item_counter`.
+
+#### Spacer Templates
+
+You can also specify a second partial to be rendered between instances of the main partial by using the `:spacer_template` option:
+
+```erb
+<%= render partial: @products, spacer_template: "product_ruler" %>
+```
+
+Rails will render the `_product_ruler` partial (with no data passed in to it) between each pair of `_product` partials.
+
+#### Collection Partial Layouts
+
+When rendering collections it is also possible to use the `:layout` option:
+
+```erb
+<%= render partial: "product", collection: @products, layout: "special_layout" %>
+```
+
+The layout will be rendered together with the partial for each item in the collection. The current object and object_counter variables will be available in the layout as well, the same way they are within the partial.
 
 ### Using Nested Layouts
 
