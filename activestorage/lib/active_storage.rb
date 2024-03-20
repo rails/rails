@@ -62,6 +62,8 @@ module ActiveStorage
   mattr_accessor :content_types_to_serve_as_binary, default: []
   mattr_accessor :content_types_allowed_inline,     default: []
 
+  mattr_accessor :blob_prefix
+
   mattr_accessor :supported_image_processing_methods, default: [
     "adaptive_blur",
     "adaptive_resize",

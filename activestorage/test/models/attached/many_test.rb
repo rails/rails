@@ -23,6 +23,13 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal 2, @user.highlights_blobs.count
   end
 
+  test "attaching existing blobs to an existing record, with global prefix" do
+    Rails.configuration.active_storage.stub(:blob_prefix, "active_storage") do
+      @user.highlights.attach create_blob(filename: "funky.jpg")
+      assert_match(/active_storage\//, @user.highlights.first.key)
+    end
+  end
+
   test "attaching existing blobs from signed IDs to an existing record" do
     @user.highlights.attach create_blob(filename: "funky.jpg").signed_id, create_blob(filename: "town.jpg").signed_id
     assert_equal "funky.jpg", @user.highlights.first.filename.to_s
@@ -42,6 +49,18 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     @user.highlights.attach fixture_file_upload("racecar.jpg"), fixture_file_upload("video.mp4")
     assert_equal "racecar.jpg", @user.highlights.first.filename.to_s
     assert_equal "video.mp4", @user.highlights.second.filename.to_s
+  end
+
+  test "attaching new blobs from uploaded files to an existing record, with global prefix" do
+    Rails.configuration.active_storage.stub(:blob_prefix, "active_storage") do
+      @user.highlights.attach fixture_file_upload("racecar.jpg"), fixture_file_upload("video.mp4")
+      assert_match(/active_storage\//, @user.highlights.first.key)
+    end
+  end
+
+  test "attaching new blobs from uploaded files to an existing record, with custom relation prefix" do
+    @user.highlights_with_prefix.attach fixture_file_upload("racecar.jpg")
+    assert_match(/Josh\//, @user.highlights_with_prefix.first.key)
   end
 
   test "attaching existing blobs to an existing, changed record" do
