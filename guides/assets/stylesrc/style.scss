@@ -79,9 +79,7 @@ $stop-bkgnd: rgba($stop, 15%); // Works for light and dark mode
   font-display: swap;
   src: url('../fonts/InterVariable-Italic.woff2?v=4.0') format('woff2');
 }
-/* legacy name "Inter var" (Oct 2023) */
-@font-face { font-family:'Inter var'; font-style:normal; font-weight:100 900; font-display:swap; src: url('../fonts/InterVariable.woff2?v=4.0') format('woff2'); }
-@font-face { font-family:'Inter var'; font-style:italic; font-weight:100 900; font-display:swap; src: url('../fonts/InterVariable-Italic.woff2?v=4.0') format('woff2'); }
+
 /* static fonts */
 @font-face { font-family:Inter; font-style:normal; font-weight:100; font-display:swap; src:url("../fonts/Inter-Thin.woff2?v=4.0") format("woff2"); }
 @font-face { font-family:Inter; font-style:italic; font-weight:100; font-display:swap; src:url("../fonts/Inter-ThinItalic.woff2?v=4.0") format("woff2"); }
@@ -101,24 +99,6 @@ $stop-bkgnd: rgba($stop, 15%); // Works for light and dark mode
 @font-face { font-family:Inter; font-style:italic; font-weight:800; font-display:swap; src:url("../fonts/Inter-ExtraBoldItalic.woff2?v=4.0") format("woff2"); }
 @font-face { font-family:Inter; font-style:normal; font-weight:900; font-display:swap; src:url("../fonts/Inter-Black.woff2?v=4.0") format("woff2"); }
 @font-face { font-family:Inter; font-style:italic; font-weight:900; font-display:swap; src:url("../fonts/Inter-BlackItalic.woff2?v=4.0") format("woff2"); }
-@font-face { font-family:InterDisplay; font-style:normal; font-weight:100; font-display:swap; src:url("../fonts/InterDisplay-Thin.woff2?v=4.0") format("woff2"); }
-@font-face { font-family:InterDisplay; font-style:italic; font-weight:100; font-display:swap; src:url("../fonts/InterDisplay-ThinItalic.woff2?v=4.0") format("woff2"); }
-@font-face { font-family:InterDisplay; font-style:normal; font-weight:200; font-display:swap; src:url("../fonts/InterDisplay-ExtraLight.woff2?v=4.0") format("woff2"); }
-@font-face { font-family:InterDisplay; font-style:italic; font-weight:200; font-display:swap; src:url("../fonts/InterDisplay-ExtraLightItalic.woff2?v=4.0") format("woff2"); }
-@font-face { font-family:InterDisplay; font-style:normal; font-weight:300; font-display:swap; src:url("../fonts/InterDisplay-Light.woff2?v=4.0") format("woff2"); }
-@font-face { font-family:InterDisplay; font-style:italic; font-weight:300; font-display:swap; src:url("../fonts/InterDisplay-LightItalic.woff2?v=4.0") format("woff2"); }
-@font-face { font-family:InterDisplay; font-style:normal; font-weight:400; font-display:swap; src:url("../fonts/InterDisplay-Regular.woff2?v=4.0") format("woff2"); }
-@font-face { font-family:InterDisplay; font-style:italic; font-weight:400; font-display:swap; src:url("../fonts/InterDisplay-Italic.woff2?v=4.0") format("woff2"); }
-@font-face { font-family:InterDisplay; font-style:normal; font-weight:500; font-display:swap; src:url("../fonts/InterDisplay-Medium.woff2?v=4.0") format("woff2"); }
-@font-face { font-family:InterDisplay; font-style:italic; font-weight:500; font-display:swap; src:url("../fonts/InterDisplay-MediumItalic.woff2?v=4.0") format("woff2"); }
-@font-face { font-family:InterDisplay; font-style:normal; font-weight:600; font-display:swap; src:url("../fonts/InterDisplay-SemiBold.woff2?v=4.0") format("woff2"); }
-@font-face { font-family:InterDisplay; font-style:italic; font-weight:600; font-display:swap; src:url("../fonts/InterDisplay-SemiBoldItalic.woff2?v=4.0") format("woff2"); }
-@font-face { font-family:InterDisplay; font-style:normal; font-weight:700; font-display:swap; src:url("../fonts/InterDisplay-Bold.woff2?v=4.0") format("woff2"); }
-@font-face { font-family:InterDisplay; font-style:italic; font-weight:700; font-display:swap; src:url("../fonts/InterDisplay-BoldItalic.woff2?v=4.0") format("woff2"); }
-@font-face { font-family:InterDisplay; font-style:normal; font-weight:800; font-display:swap; src:url("../fonts/InterDisplay-ExtraBold.woff2?v=4.0") format("woff2"); }
-@font-face { font-family:InterDisplay; font-style:italic; font-weight:800; font-display:swap; src:url("../fonts/InterDisplay-ExtraBoldItalic.woff2?v=4.0") format("woff2"); }
-@font-face { font-family:InterDisplay; font-style:normal; font-weight:900; font-display:swap; src:url("../fonts/InterDisplay-Black.woff2?v=4.0") format("woff2"); }
-@font-face { font-family:InterDisplay; font-style:italic; font-weight:900; font-display:swap; src:url("../fonts/InterDisplay-BlackItalic.woff2?v=4.0") format("woff2"); }
 
 @font-face {
   font-family: 'IBM Plex Mono';
