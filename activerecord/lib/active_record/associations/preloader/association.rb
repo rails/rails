@@ -142,8 +142,12 @@ module ActiveRecord
             associate_records_to_owner(owner, records[owner] || [])
           end if @associate
 
+          Associations::AutomaticPreloader.attach(@preloaded_records) if mark_records_as_automatically_preloadable?
+
           self
         end
+
+
 
         def records_by_owner
           load_records unless defined?(@records_by_owner)
@@ -236,6 +240,13 @@ module ActiveRecord
 
         private
           attr_reader :owners, :reflection, :preload_scope, :model
+
+          def mark_records_as_automatically_preloadable?
+            return false unless defined?(@preloaded_records)
+            return false unless reflection.scope.nil? || reflection.scope.arity == 0
+
+            klass.automatic_preloading_by_default || owners.any?(&:automatic_preloading?)
+          end
 
           # The name of the key on the model which declares the association
           def owner_key_name
