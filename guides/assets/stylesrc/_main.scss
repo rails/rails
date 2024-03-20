@@ -577,8 +577,8 @@ body.guide {
     max-width: 1000px;
     z-index: 10;
 
-    :where(body[dir="ltr"]) & { right: 2vw; }
-    :where(body[dir="rtl"]) & { left: 2vw; }
+    :where(body[dir="ltr"]) & { left: auto; right: 50px; }
+    :where(body[dir="rtl"]) & { left: 50px; right: auto; }
 
     &.visible {
       display: block !important;
@@ -588,7 +588,7 @@ body.guide {
       display: flex;
       flex-direction: column;
       flex-wrap: wrap;
-      max-height: 55em;
+      max-height: 53em;
       width: 100%;
 
       .guides-section {
@@ -596,14 +596,6 @@ body.guide {
         margin: 0 2em 0.5em 0;
         text-align: left;
         width: 33%;
-        // min-width: 5em;
-        // max-width: 12em;
-
-        // Force column breaks on desktop
-        &:nth-child(6),
-        &:nth-child(9) {
-          break-after: always;
-        }
 
         dt, dd {
           font-weight: 400 !important;
