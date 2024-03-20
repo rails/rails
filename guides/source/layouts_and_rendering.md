@@ -3,7 +3,7 @@
 Layouts and Rendering in Rails
 ==============================
 
-This guide covers the basic layout features of Action Controller and Action View.
+This guide covers layout features of Action Controller and Action View.
 
 After reading this guide, you will know:
 
@@ -17,9 +17,9 @@ After reading this guide, you will know:
 Overview: How the Pieces Fit Together
 -------------------------------------
 
-This guide focuses on the interaction between Controller and View in the Model-View-Controller triangle. As you know, the Controller is responsible for orchestrating the whole process of handling a request in Rails, though it normally hands off any heavy code to the Model. But then, when it's time to send a response back to the user, the Controller hands things off to the View. It's that handoff that is the subject of this guide.
+This guide focuses on the interaction between Controllers and Views in the Model-View-Controller (MVC) pattern. A Rails Controller is responsible for orchestrating the process of handling an HTTP request and composing a response. The Controller first hands off data access logic to the Model. Then, when it's time to send a response back to the browser, the Controller hands things off to the View. This guide will focus on the handoff between the Controller and the View.
 
-In broad strokes, this involves deciding what should be sent as the response and calling an appropriate method to create that response. If the response is a full-blown view, Rails also does some extra work to wrap the view in a layout and possibly to pull in partial views. You'll see all of those paths later in this guide.
+In broad strokes, this involves deciding what should be sent as the response and calling an appropriate method to create that response. If the response is a full-blown view, Rails also does some extra work to wrap the view in a layout and possibly to pull in partial views.
 
 Creating Responses
 ------------------
@@ -34,9 +34,13 @@ From the controller's point of view, there are three ways to create an HTTP resp
 [`redirect_to`]: https://api.rubyonrails.org/classes/ActionController/Redirecting.html#method-i-redirect_to
 [`head`]: https://api.rubyonrails.org/classes/ActionController/Head.html#method-i-head
 
-### Rendering by Default: Convention Over Configuration in Action
+### Rendering Views by Default
 
-You've heard that Rails promotes "convention over configuration". Default rendering is an excellent example of this. By default, controllers in Rails automatically render views with names that correspond to valid routes. For example, if you have this code in your `BooksController` class:
+Controllers in Rails automatically render views with names that match controller action names that correspond to [CRUD verbs and routes](routing.html#crud-verbs-and-actions).
+
+NOTE: Default rendering of views that match controller action names is an excellent example of the ["convention over configuration"](https://rubyonrails.org/doctrine#convention-over-configuration) technique that Rails promotes.
+
+For example, if you have this code in your `BooksController` class:
 
 ```ruby
 class BooksController < ApplicationController
