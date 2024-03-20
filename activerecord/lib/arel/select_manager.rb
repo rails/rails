@@ -45,10 +45,6 @@ module Arel # :nodoc: all
       Arel::Nodes::Exists.new @ast
     end
 
-    def as(other)
-      create_table_alias grouping(@ast), Nodes::SqlLiteral.new(other)
-    end
-
     def lock(locking = Arel.sql("FOR UPDATE"))
       case locking
       when true

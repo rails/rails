@@ -57,6 +57,12 @@ module Arel # :nodoc: all
       end
     end
 
+    def as(other)
+      other = other.to_s if other.is_a?(Symbol)
+
+      create_table_alias grouping(@ast), Nodes::SqlLiteral.new(other)
+    end
+
     def initialize_copy(other)
       super
       @ast = @ast.clone

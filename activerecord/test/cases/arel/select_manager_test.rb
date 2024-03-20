@@ -59,6 +59,12 @@ module Arel
           assert_kind_of Arel::Nodes::SqlLiteral, as.right
         end
 
+        it "converts right to SqlLiteral if a symbol" do
+          manager = Arel::SelectManager.new
+          as = manager.as(:foo)
+          assert_kind_of Arel::Nodes::SqlLiteral, as.right
+        end
+
         it "can make a subselect" do
           manager = Arel::SelectManager.new
           manager.project Arel.star

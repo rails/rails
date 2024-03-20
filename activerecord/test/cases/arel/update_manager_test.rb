@@ -167,5 +167,38 @@ module Arel
         _(@um.key).must_equal @table[:foo]
       end
     end
+
+    describe "as" do
+      it "makes an AS node by grouping the AST" do
+        manager = Arel::UpdateManager.new
+        as = manager.as(Arel.sql("foo"))
+        assert_kind_of Arel::Nodes::Grouping, as.left
+        assert_equal manager.ast, as.left.expr
+        assert_equal "foo", as.right
+      end
+
+      it "converts right to SqlLiteral if a string" do
+        manager = Arel::UpdateManager.new
+        as = manager.as("foo")
+        assert_kind_of Arel::Nodes::SqlLiteral, as.right
+      end
+
+      it "converts right to SqlLiteral if a symbol" do
+        manager = Arel::UpdateManager.new
+        as = manager.as(:foo)
+        assert_kind_of Arel::Nodes::SqlLiteral, as.right
+      end
+
+      it "can make a subselect" do
+        manager = Arel::UpdateManager.new
+        manager.table Arel.sql("zomg")
+        as = manager.as(Arel.sql("foo"))
+
+        manager = Arel::SelectManager.new
+        manager.project Arel.sql("name")
+        manager.from as
+        _(manager.to_sql).must_be_like "SELECT name FROM (UPDATE zomg) foo"
+      end
+    end
   end
 end
