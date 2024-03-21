@@ -36,7 +36,9 @@ $breakpoints: (
 
 $rf-brand: #C81418;
 $rf-brand-light: lighten($rf-brand, 5%);
-$rf-brand-dark: darken($rf-brand, 10%);
+$rf-brand-lighter: lighten($rf-brand, 15%);
+$rf-brand-lightest: lighten($rf-brand, 25%);
+$rf-brand-dark: darken($rf-brand, 15%);
 $rf-brand-darker: darken($rf-brand, 20%);
 $rf-highlight: rgba($rf-brand, 10%);
 
@@ -46,18 +48,27 @@ $gray-300: #EBEBEA;
 $gray-400: #DCDCD8;
 $gray-500: #A9A9A8;
 $gray-600: #666666;
+$gray-650: #505050;
 $gray-700: #3A3939;
 $gray-800: #343434;
 $gray-900: #2E2E2E;
+$gray-1000: #181818;
 
 $note: #FFD600;
-$note-bkgnd: rgba($note, 15%); // Works for light and dark mode
+$note-dark: rgba($note, 0.5);
+$note-bkgnd: rgba($note, 15%);
+$note-bkgnd-dark: rgba($note, 5%);
+
 
 $tip: #00F0FF;
-$tip-bkgnd: rgba($tip, 15%); // Works for light and dark mode
+$tip-dark: rgba($tip, 0.5);
+$tip-bkgnd: rgba($tip, 15%);
+$tip-bkgnd-dark: rgba($tip, 5%);
 
 $stop: $rf-brand;
-$stop-bkgnd: rgba($stop, 15%); // Works for light and dark mode
+$stop-dark: rgba($stop, 0.5);
+$stop-bkgnd: rgba($stop, 15%);
+$stop-bkgnd-dark: rgba($stop, 5%);
 
 // ----------------------------------------------------------------------------
 // Fonts

@@ -1,4 +1,19 @@
 body.guide {
+  &::-webkit-scrollbar {
+    width: 12px;
+    background-color: transparent;
+  }
+  
+  &::-webkit-scrollbar-track {
+      -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+      border-radius: 10px;
+      background-color: transparent;
+    }
+  
+  &::-webkit-scrollbar-thumb {
+      border-radius: 10px;
+      -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
+  }
 
   -webkit-tap-highlight-color:rgba(38, 27, 35, 0);
 
@@ -115,7 +130,6 @@ body.guide {
 
   // Headlines
   // TODO: media queries to increase font size, current sizes are for desktop, so drop base to mobile appropriate and MQ up twice (min width 60/120 em, minheight 30/60em)
-  // Font family is Calibre, declared globally
   h1 {
     color: $rf-brand;
     font-family: 'Calibre', sans-serif;
@@ -670,7 +684,32 @@ body.guide {
         margin-right: 0.25em;
       }
 
-      ol {
+      ol.chapters {
+        &::-webkit-scrollbar-track
+        {
+          -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+          background-color: #F5F5F5;
+          border-radius: 6px;
+        }
+
+        &::-webkit-scrollbar
+        {
+          width: 5px;
+          background-color: #F5F5F5;
+        }
+
+        &::-webkit-scrollbar-thumb
+        {
+          border-radius: 5px;
+          background-image: -webkit-gradient(linear,
+                            left bottom,
+                            left top,
+                            color-stop(0.44, $rf-brand-light),
+                            color-stop(0.72, $rf-brand),
+                            color-stop(0.86, $rf-brand-dark));
+        }
+
+
         @include media('>desktop') {
           overflow-y: auto;
           max-height: 73vh;
