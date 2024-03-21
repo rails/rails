@@ -49,8 +49,12 @@
       color: $gray-200;
     } // pre, code
 
-    p code, ul code, li code, h2 code, h3 code, h4 code, h5 code, td code {
+    p code, ul code, li code, h2 code, h3 code, h4 code, h5 code {
       background-color: $gray-600;
+    }
+
+    td code {
+      background-color: transparent;
     }
 
     nav#topNav {
