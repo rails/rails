@@ -709,10 +709,14 @@ body.guide {
         display: block;
         position: fixed;
           top: 100px;
-          right: calc(40vw - 400px);
+          right: 50px;
         max-height: calc(100vh - 90px);
         width: 30vw;
         max-width: 380px;
+      }
+
+      @include media('>=desktop-ultra-wide') {
+        right: calc(40vw - 400px);
       }
 
       h3.chapter img {
