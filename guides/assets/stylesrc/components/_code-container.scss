@@ -13,6 +13,8 @@ intermediate whitespace looks uniform. */
   background-size: 36px 36px;
   border-radius: $base-border-radius;
   border: 2px solid $gray-500;
+  border-style: solid !important;
+  border-width: 2px !important;
   min-height: calc(36px + 1.2em);
   margin: 2em auto;
   padding: 0.75em !important;
