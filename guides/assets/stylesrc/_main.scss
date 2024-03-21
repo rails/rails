@@ -483,7 +483,7 @@ body.guide {
         @include media('>desktop'){
           display: flex;
           flex-direction: row;
-          justify-content: space-between;
+          justify-content: flex-end;
           margin: 0;
           padding: 1em 0 0 0;
         }
