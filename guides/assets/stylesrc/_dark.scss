@@ -31,19 +31,25 @@
       color: #fff;
     }
 
-    a,
-    h2 a {
+    a {
       &:link {
-        color: #fff;
+        color: $rf-brand-lightest;
       }
       &:hover,
       &:active {
         color: $rf-brand-lighter;
       } // &:hover, &:active
       &:visited {
-        color: #fff;
+        color: $rf-brand-lightest;
       } // &:visited
     } // a
+
+    h2 a {
+      &:link,
+      &:visited {
+        color: #fff;
+      } 
+    } // h2 a
     
     table {
       th {
