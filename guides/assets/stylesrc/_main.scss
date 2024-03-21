@@ -744,6 +744,7 @@ body.guide {
 
         @include media('>desktop') {
           overflow-y: auto;
+          overflow-x: hidden;
           max-height: 73vh;
         }
 
@@ -767,9 +768,13 @@ body.guide {
             margin-top: 0.5em;
             margin-bottom: 0.75em;
             padding-inline-start: 1em;
+            max-width: unset;
             
             li {
               font-weight: 400;
+              @include media('>desktop') {
+                width: 320px;
+              }
             } // li
           } // ul
         } // li
