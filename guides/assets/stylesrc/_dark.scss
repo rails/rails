@@ -73,11 +73,16 @@
 
     pre, code {
       background-color: $gray-1000;
+      color: #fff;
     } // pre, code
 
     p code, ul code, li code {
       background-color: $gray-650;
       color: #fff;
+    }
+
+    td code {
+      background-color: transparent;
     }
 
     h2 code, h3 code, h4 code, h5 code {
