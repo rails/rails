@@ -485,12 +485,12 @@ module ActionView
       # Creates a form tag based on mixing URLs, scopes, or models.
       #
       #   # Using just a URL:
-      #   <%= form_with url: posts_path do |form| %>
+      #   <%= form_with url: articles_path do |form| %>
       #     <%= form.text_field :title %>
       #   <% end %>
       #   # =>
-      #   <form action="/posts" method="post">
-      #     <input type="text" name="title">
+      #   <form action="/articles" method="post">
+      #     <input type="text" name="title" />
       #   </form>
       #
       #   # With an intentionally empty URL:
@@ -499,37 +499,35 @@ module ActionView
       #   <% end %>
       #   # =>
       #   <form method="post">
-      #     <input type="text" name="title">
+      #     <input type="text" name="title" />
       #   </form>
       #
       #   # Adding a scope prefixes the input field names:
-      #   <%= form_with scope: :post, url: posts_path do |form| %>
+      #   <%= form_with scope: :article, url: articles_path do |form| %>
       #     <%= form.text_field :title %>
       #   <% end %>
       #   # =>
-      #   <form action="/posts" method="post">
-      #     <input type="text" name="post[title]">
+      #   <form action="/articles" method="post">
+      #     <input type="text" name="article[title]" />
       #   </form>
       #
       #   # Using a model infers both the URL and scope:
-      #   <%= form_with model: Post.new do |form| %>
+      #   <%= form_with model: Article.new do |form| %>
       #     <%= form.text_field :title %>
       #   <% end %>
       #   # =>
-      #   <form action="/posts" method="post">
-      #     <input type="text" name="post[title]">
+      #   <form action="/articles" method="post">
+      #     <input type="text" name="article[title]" />
       #   </form>
-      #
       #   # An existing model makes an update form and fills out field values:
-      #   <%= form_with model: Post.first do |form| %>
+      #   <%= form_with model: Article.first do |form| %>
       #     <%= form.text_field :title %>
       #   <% end %>
       #   # =>
-      #   <form action="/posts/1" method="post">
-      #     <input type="hidden" name="_method" value="patch">
-      #     <input type="text" name="post[title]" value="<the title of the post>">
+      #   <form action="/articles/1" method="post">
+      #     <input type="hidden" name="_method" value="patch" />
+      #     <input type="text" value="<the title of the article>" name="article[title]" />
       #   </form>
-      #
       #   # Though the fields don't have to correspond to model attributes:
       #   <%= form_with model: Cat.new do |form| %>
       #     <%= form.text_field :cats_dont_have_gills %>
@@ -537,8 +535,8 @@ module ActionView
       #   <% end %>
       #   # =>
       #   <form action="/cats" method="post">
-      #     <input type="text" name="cat[cats_dont_have_gills]">
-      #     <input type="text" name="cat[but_in_forms_they_can]">
+      #     <input type="text" name="cat[cats_dont_have_gills]" />
+      #     <input type="text" name="cat[but_in_forms_they_can]" />
       #   </form>
       #
       # The parameters in the forms are accessible in controllers according to
@@ -559,25 +557,25 @@ module ActionView
       #
       # So when passing such a model record, \Rails infers the URL and method.
       #
-      #   <%= form_with model: @post do |form| %>
+      #   <%= form_with model: @article do |form| %>
       #     ...
       #   <% end %>
       #
-      # is then equivalent to something like:
+      # is then equivalent to:
       #
-      #   <%= form_with scope: :post, url: post_path(@post), method: :patch do |form| %>
+      #   <%= form_with scope: :article, url: article_path(@article), method: :patch do |form| %>
       #     ...
       #   <% end %>
       #
       # And for a new record
       #
-      #   <%= form_with model: Post.new do |form| %>
+      #   <%= form_with model: Article.new do |form| %>
       #     ...
       #   <% end %>
       #
-      # is equivalent to something like:
+      # is equivalent to:
       #
-      #   <%= form_with scope: :post, url: posts_path do |form| %>
+      #   <%= form_with scope: :article, url: articles_path do |form| %>
       #     ...
       #   <% end %>
       #
@@ -694,13 +692,13 @@ module ActionView
       # You can set data attributes directly in a data hash, but HTML options
       # besides id and class must be wrapped in an HTML key:
       #
-      #   <%= form_with(model: @post, data: { behavior: "autosave" }, html: { name: "go" }) do |form| %>
+      #   <%= form_with(model: @article, data: { behavior: "autosave" }, html: { name: "go" }) do |form| %>
       #     ...
       #   <% end %>
       #
       # generates
       #
-      #   <form action="/posts/123" method="post" data-behavior="autosave" name="go">
+      #   <form action="/articles/123" method="post" data-behavior="autosave" name="go">
       #     <input name="_method" type="hidden" value="patch" />
       #     ...
       #   </form>
