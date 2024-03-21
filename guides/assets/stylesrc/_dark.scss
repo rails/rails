@@ -63,11 +63,11 @@
       }
     } // table
 
-    h3 {
+    h3, h4, h5, h6 {
       a,
       a:link,
       a:visited {
-        color: $gray-100;
+        color: #fff;
       } // a, a:link, a:visited
     } // h3
 
@@ -110,6 +110,9 @@
     header#page_header {
       nav#feature_nav {
         .header-logo {
+          a, a:link, a:visited {
+            color: #fff;
+          }
           span#version_switcher {
             color: $gray-400;
 

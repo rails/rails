@@ -13,6 +13,8 @@ intermediate whitespace looks uniform. */
   background-size: 36px 36px;
   border-radius: $base-border-radius;
   border: 2px solid $gray-500;
+  border-style: solid !important;
+  border-width: 2px !important;
   min-height: calc(36px + 1.2em);
   margin: 2em auto;
   padding: 0.75em !important;
@@ -33,7 +35,7 @@ intermediate whitespace looks uniform. */
   }
 
   &.code {
-    border: none;
+    border: none !important;
     background-color: $gray-900;
     min-height: auto; // remove if icon is restored
     padding-left: 1em !important; // remove if icon is restored
@@ -42,6 +44,7 @@ intermediate whitespace looks uniform. */
 
     button.clipboard-button {
       color: $gray-100;
+      cursor: pointer;
       background-color: $gray-700;
       border: 1px solid $gray-500;
       border-radius: 4px;
