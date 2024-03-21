@@ -78,6 +78,10 @@ body.guide {
     }
   }
 
+  .interstitial {
+    min-width: unset;
+  }
+
   // Links
 
   a {
@@ -343,7 +347,6 @@ body.guide {
     :where(body[dir="rtl"]) & { text-align: right; }
 
     @include media('>desktop') {
-      width: 60vw;
       max-width: calc(55rem + 400px);
       margin: 0 auto;
       padding-right: 400px;
