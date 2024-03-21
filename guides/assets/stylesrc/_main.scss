@@ -67,6 +67,17 @@ body.guide {
 
   } // p
 
+  table,
+  ul,
+  .interstitial {
+    @include media('>tablet') {
+      min-width: 23em;
+      max-width: 38em;
+      text-align: left;
+      margin-left: 0 !important;
+    }
+  }
+
   // Links
 
   a {
