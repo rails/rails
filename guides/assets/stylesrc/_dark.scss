@@ -110,6 +110,9 @@
     header#page_header {
       nav#feature_nav {
         .header-logo {
+          a, a:link, a:visited {
+            color: #fff;
+          }
           span#version_switcher {
             color: $gray-400;
 
