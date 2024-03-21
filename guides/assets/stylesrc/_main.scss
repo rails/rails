@@ -55,32 +55,10 @@ body.guide {
     hyphenate-limit-chars: 6 3 2; /* Not Safari */
     hyphenate-limit-last: always;
 
-    @include media('>tablet') {
-      // On larger screens, set a width of 45-75 characters, using em as ch 
-      // has too much variation between various fonts
-      min-width: 23em;
-      max-width: 38em;
-    }
-
     margin: 0 0 0.75em 0; // Space after paragraph
     text-align: left;
 
   } // p
-
-  table,
-  ul,
-  .interstitial {
-    @include media('>tablet') {
-      min-width: 23em;
-      max-width: 38em;
-      text-align: left;
-      margin-left: 0 !important;
-    }
-  }
-
-  .interstitial {
-    min-width: unset;
-  }
 
   // Links
 
@@ -275,7 +253,9 @@ body.guide {
       border-bottom: 1px solid $gray-500;
       margin: 0 0 1em 0;
 
-      &:last-child {border-bottom: none;}
+      &:last-child {
+        border-bottom: none;
+      }
     } // dd
   } // dl
   
@@ -346,10 +326,10 @@ body.guide {
     :where(body[dir="ltr"]) & { text-align: left; }
     :where(body[dir="rtl"]) & { text-align: right; }
 
-    @include media('>desktop') {
-      max-width: calc(55rem + 400px);
+    @include media('>desktop') { // 1024
+      max-width: calc(55rem + 420px);
       margin: 0 auto;
-      padding-right: 400px;
+      padding-right: 470px;
     }
   } // .wrapper
 
@@ -685,18 +665,11 @@ body.guide {
     }
   }
 
-  main#container {
-    @include media('>desktop') {
-      // padding-right: 400px;
-    }
-  }
-
   #feature {
     background-color: $gray-100;
 
     @include media('>desktop') {
       background-color: #fff;
-      // padding-right: 400px;
     }
 
     #subCol {
@@ -711,11 +684,15 @@ body.guide {
           top: 100px;
           right: 50px;
         max-height: calc(100vh - 90px);
-        width: 30vw;
-        max-width: 380px;
+        width: 400px;
       }
 
-      @include media('>=desktop-ultra-wide') {
+      @include media('>desktop-ultra-wide') {
+        right: calc(30vw - 400px);
+      }
+
+      @include media('>desktop-hd') { // 1920
+      
         right: calc(40vw - 400px);
       }
 
@@ -775,12 +752,15 @@ body.guide {
             margin-top: 0.5em;
             margin-bottom: 0.75em;
             padding-inline-start: 1em;
-            max-width: unset;
+            @include media('>desktop') {
+              max-width: 310px;
+              width: 310px;
+            }
             
             li {
               font-weight: 400;
               @include media('>desktop') {
-                width: 320px;
+                width: 310px;
               }
             } // li
           } // ul
