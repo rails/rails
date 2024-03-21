@@ -123,20 +123,20 @@ module ActiveRecord
 
         def initialize
           @connection = nil
-          @sticky = false
+          @sticky = nil
         end
 
         def release
           conn = @connection
           @connection = nil
-          @sticky = false
+          @sticky = nil
           conn
         end
 
         def clear(connection)
           if @connection == connection
             @connection = nil
-            @sticky = false
+            @sticky = nil
             true
           else
             false
@@ -298,8 +298,8 @@ module ActiveRecord
         lease.connection ||= checkout
       end
 
-      def sticky_lease? # :nodoc:
-        connection_lease.sticky
+      def permanent_lease? # :nodoc:
+        connection_lease.sticky.nil?
       end
 
       def connection
@@ -357,6 +357,7 @@ module ActiveRecord
       def active_connection?
         connection_lease.connection
       end
+      alias_method :active_connection, :active_connection? # :nodoc:
 
       # Signal that the thread is finished with the current connection.
       # #release_connection releases the connection-thread association
@@ -382,14 +383,22 @@ module ActiveRecord
       # automatically at the end of the block; it is expected that such an existing
       # connection will be properly returned to the pool by the code that checked
       # it out.
-      def with_connection
+      def with_connection(prevent_permanent_checkout: false)
         lease = connection_lease
+        sticky_was = lease.sticky
+        lease.sticky = false if prevent_permanent_checkout
+
         if lease.connection
-          yield lease.connection
+          begin
+            yield lease.connection
+          ensure
+            lease.sticky = sticky_was if prevent_permanent_checkout && !sticky_was
+          end
         else
           begin
             yield lease.connection = checkout
           ensure
+            lease.sticky = sticky_was if prevent_permanent_checkout && !sticky_was
             release_connection(lease) unless lease.sticky
           end
         end

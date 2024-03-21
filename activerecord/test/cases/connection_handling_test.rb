@@ -41,6 +41,16 @@ module ActiveRecord
         assert_same conn, ActiveRecord::Base.lease_connection
       end
 
+      test "#lease_connection makes the lease permanent even inside #with_connection(prevent_permanent_checkout: true)" do
+        ActiveRecord::Base.release_connection
+
+        ActiveRecord::Base.with_connection(prevent_permanent_checkout: true) do |connection|
+          assert_same connection, ActiveRecord::Base.lease_connection
+        end
+
+        assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
+      end
+
       test "#with_connection use the already leased connection if available" do
         leased_connection = ActiveRecord::Base.lease_connection
         assert_predicate ActiveRecord::Base.connection_pool, :active_connection?
@@ -141,6 +151,18 @@ module ActiveRecord
         assert_nothing_raised do
           ActiveRecord::Base.connection
         end
+      end
+
+      test "#connection doesn't make the lease permanent if inside #with_connection(prevent_permanent_checkout: true)" do
+        ActiveRecord.permanent_connection_checkout = :disallowed
+
+        ActiveRecord::Base.release_connection
+
+        ActiveRecord::Base.with_connection(prevent_permanent_checkout: true) do |connection|
+          assert_same connection, ActiveRecord::Base.connection
+        end
+
+        assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
       end
     end
   end
