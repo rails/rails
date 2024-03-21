@@ -333,6 +333,13 @@ module ActiveRecord
       connection_pool.schema_cache.clear!
     end
 
+    def with_custom_conn_properties(read_timeout: nil, write_timeout: nil, query_flags: nil, &block)
+      ActiveSupport::IsolatedExecutionState[:active_record_custom_conn_properties] = [read_timeout, write_timeout, query_flags]
+      yield
+    ensure
+      ActiveSupport::IsolatedExecutionState[:active_record_custom_conn_properties] = nil
+    end
+
     private
       def resolve_config_for_connection(config_or_env)
         raise "Anonymous class is not allowed." unless name

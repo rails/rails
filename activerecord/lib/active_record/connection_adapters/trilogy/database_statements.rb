@@ -46,28 +46,65 @@ module ActiveRecord
             log(sql, name, async: async) do |notification_payload|
               with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
                 sync_timezone_changes(conn)
-                with_custom_read_timeout(conn) do
-                  result = conn.query(sql)
-                  verified!
-                  handle_warnings(sql)
-                  notification_payload[:row_count] = result.count
-                  result
+                result = with_transient_conn_properties(conn) do
+                  conn.query(sql)
                 end
+                verified!
+                handle_warnings(sql)
+                notification_payload[:row_count] = result.count
+                result
               end
             end
           end
 
-          def with_custom_read_timeout(conn)
-            temp_timeout = ActiveRecord::ConnectionAdapters::TrilogyAdapter.custom_read_timeout
-            temp_timeout = temp_timeout.call if temp_timeout.respond_to?(:call)
+          def with_transient_conn_properties(conn)
+            return yield(conn) unless custom_conn_properties?
 
-            return yield(conn) if temp_timeout.nil?
+            original_read_timeout = conn.read_timeout
+            original_write_timeout = conn.write_timeout
+            original_query_flags = conn.query_flags
 
-            original_timeout = conn.read_timeout
-            conn.read_timeout = temp_timeout
+            read_timeout, write_timeout, query_flags = custom_conn_properties
+
+            conn.read_timeout = read_timeout || original_read_timeout
+            conn.write_timeout = write_timeout || original_write_timeout
+            conn.query_flags = query_flags || original_query_flags
+
             result = yield(conn)
-            conn.read_timeout = original_timeout
+
+            conn.read_timeout = original_read_timeout
+            conn.write_timeout = original_write_timeout
+            conn.query_flags = original_query_flags
+
             result
+          end
+
+          def custom_conn_properties?
+            !!ActiveSupport::IsolatedExecutionState[:active_record_custom_conn_properties]
+          end
+
+          def custom_conn_properties
+            read_timeout, write_timeout, query_flags = ActiveSupport::IsolatedExecutionState[:active_record_custom_conn_properties]
+
+            read_timeout = if read_timeout.respond_to?(:call)
+              read_timeout.call
+            else
+              read_timeout
+            end
+
+            write_timeout = if write_timeout.respond_to?(:call)
+              write_timeout.call
+            else
+              write_timeout
+            end
+
+            query_flags = if query_flags.respond_to?(:call)
+              query_flags.call
+            else
+              query_flags
+            end
+
+            [read_timeout, write_timeout, query_flags]
           end
 
           def last_inserted_id(result)
