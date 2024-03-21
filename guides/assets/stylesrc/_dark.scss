@@ -28,20 +28,20 @@
         -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
     }
     h1 {
-      color: $rf-brand-lightest;
+      color: #fff;
     }
 
     a,
     h2 a {
       &:link {
-        color: $rf-brand-lightest;
+        color: #fff;
       }
       &:hover,
       &:active {
         color: $rf-brand-lighter;
       } // &:hover, &:active
       &:visited {
-        color: $rf-brand-lighter;
+        color: #fff;
       } // &:visited
     } // a
     
