@@ -71,6 +71,10 @@
       } // a, a:link, a:visited
     } // h3
 
+    hr {
+      background: url("../images/hr_rails_white.svg") center no-repeat;
+    }
+
     pre, code {
       background-color: $gray-1000;
       color: #fff;
