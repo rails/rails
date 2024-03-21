@@ -1261,6 +1261,10 @@ module ActiveRecord
       records.blank?
     end
 
+    def readonly?
+      readonly_value
+    end
+
     def values
       @values.dup
     end
