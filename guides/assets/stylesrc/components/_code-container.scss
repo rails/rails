@@ -44,6 +44,7 @@ intermediate whitespace looks uniform. */
 
     button.clipboard-button {
       color: $gray-100;
+      cursor: pointer;
       background-color: $gray-700;
       border: 1px solid $gray-500;
       border-radius: 4px;
