@@ -13,9 +13,11 @@ module ActiveRecord
             if ::String === value
               case value
               when /^0x/i
-                value[2..-1].hex.to_s(2) # Hexadecimal notation
+                # Hexadecimal notation (with possible leading zeroes)
+                format("%0*b", (value.rstrip.size - 2) * 4, value[2..].hex)
               else
-                value                    # Bit-string notation
+                # Bit-string notation
+                value
               end
             else
               value.to_s
