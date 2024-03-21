@@ -1,3 +1,9 @@
+*   Add `ActiveRecord::Relation.readonly?`
+
+    Reflects if the relation has been marked as readonly.
+
+    *Theodor Tonum*
+
 *   Add dirties option to uncached
 
     This adds a `dirties` option to `ActiveRecord::Base.uncached` and
