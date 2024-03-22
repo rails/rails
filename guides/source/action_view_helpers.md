@@ -306,7 +306,7 @@ The `cache` method takes a block that contains the content you wish to cache.
 For example, you could cache the footer of your application layout by wrapping
 it in a `cache` block.
 
-```
+```erb
 <% cache do %>
   <%= render "application/footer" %>
 <% end %>
