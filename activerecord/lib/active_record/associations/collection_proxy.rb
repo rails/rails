@@ -27,6 +27,8 @@ module ActiveRecord
     # is computed directly through SQL and does not trigger by itself the
     # instantiation of the actual post records.
     class CollectionProxy < Relation
+      attr_reader :association
+
       def initialize(klass, association, **) # :nodoc:
         @association = association
         super klass
