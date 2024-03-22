@@ -1,3 +1,7 @@
+*   Update the `.node-version` file conditionally generated for new applications to 20.11.1
+
+    *Steve Polito*
+
 *   Fix sanitizer vendor configuration in 7.1 defaults.
 
     In apps where rails-html-sanitizer was not eagerly loaded, the sanitizer default could end up
