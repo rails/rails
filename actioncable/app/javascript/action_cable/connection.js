@@ -128,6 +128,7 @@ Connection.prototype.events = {
   message(event) {
     if (!this.isProtocolSupported()) { return }
     const {identifier, message, reason, reconnect, type} = JSON.parse(event.data)
+    this.monitor.recordPing()
     switch (type) {
       case message_types.welcome:
         if (this.triedToReconnect()) {
