@@ -465,7 +465,7 @@ module ActiveRecord
               end
 
               saved = record.save(validate: !autosave)
-              raise ActiveRecord::Rollback if !saved && autosave
+              raise(RecordInvalid.new(record)) if !saved && autosave
               saved
             end
           end
