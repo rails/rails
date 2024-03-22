@@ -2188,6 +2188,57 @@ NOTE: Note that if a query matches multiple records, `find_by` will
 fetch only the first one and ignore the others (see the `LIMIT 1`
 statement above).
 
+### Using Common Table Expression (CTE)
+
+The [`with`][] method is a convenient way to access [Common Table Expressions (CTE)](https://en.wikipedia.org/wiki/Hierarchical_and_recursive_queries_in_SQL#Common_table_expression) `WITH` syntax, which can define named temporal query results that are referable within a single SQL query.
+
+NOTE: MySQL version 8.0+ is required to use CTEs
+
+The `with` method returns an instance of `ActiveRecord::Relation`, so you can chain other query methods and even refer to the CTE from them (e.g. `from`, `select`, `joins` or `left_outer_joins`):
+
+```ruby
+relation = Post
+  .with(commented_posts: Comment.select(:post_id).distinct)
+  .left_outer_joins(:commented_posts)
+  .select("posts.*, commented_posts.post_id AS has_comments")
+```
+
+The above should generate:
+
+```sql
+WITH "commented_posts" AS (
+  SELECT DISTINCT "comments"."post_id"
+  FROM "comments"
+)
+SELECT posts.*, commented_posts.post_id AS has_comments
+FROM "posts"
+LEFT OUTER JOIN "commented_posts"
+  ON "commented_posts"."post_id" = "posts"."id"
+```
+
+You can also define multiple CTEs by passing multiple key-value pairs:
+
+```ruby
+Post.with(
+  posts_with_comments: Post.where("comments_count > ?", 0),
+  posts_with_tags: Post.where("tags_count > ?", 0)
+)
+```
+
+Or chaining multiple `with` calls:
+
+```ruby
+Post
+  .with(posts_with_comments: Post.where("comments_count > ?", 0))
+  .with(posts_with_tags: Post.where("tags_count > ?", 0))
+```
+
+It is recommended to pass a query as `ActiveRecord::Relation`.
+
+WARNING: You should be very careful to avoid SQL injection vulnerabilities, especially when you pass non-relation values via Arel or other techniques to `with`. Never pass unsafe values such as unsanitized inputs.
+
+[`with`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-with
+
 Find or Build a New Object
 --------------------------
 
