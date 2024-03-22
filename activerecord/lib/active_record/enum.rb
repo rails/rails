@@ -353,6 +353,16 @@ module ActiveRecord
           if values.keys.any?(&:blank?)
             raise ArgumentError, "Enum values #{values} must not contain a blank name."
           end
+
+          unless values.values.map(&:class).difference([Integer, String, Symbol, TrueClass, FalseClass, NilClass]).blank?
+            raise ArgumentError, "Enum values #{values} must be only booleans, integers, symbols and strings."
+          end
+
+          if values.values.any?(Symbol)
+            values.transform_values! do |value|
+              value.is_a?(Symbol) ? value.to_s : value
+            end
+          end
         when Array
           if values.empty?
             raise ArgumentError, "Enum values #{values} must not be empty."
