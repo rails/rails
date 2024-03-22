@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "rails/generators/base"
+require "yaml"
+require "json"
 
 module Rails
   module Generators
