@@ -48,7 +48,7 @@ image_tag("rails.png")
 
 #### audio_tag
 
-Generate an HTML audio tag with source(s), either as a single tag for a string
+Generates an HTML audio tag with source(s), either as a single tag for a string
 source or nested source tags within an array for multiple sources. The `sources`
 can be full paths, files in your public audios directory, or [Active Storage
 attachments](active_storage_overview.html).
