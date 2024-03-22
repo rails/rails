@@ -3,6 +3,7 @@
 require "active_support/time_with_zone"
 require "active_support/core_ext/time/acts_like"
 require "active_support/core_ext/date_and_time/zones"
+require "active_support/core_ext/object/blank"
 
 class Time
   include DateAndTime::Zones
@@ -76,10 +77,11 @@ class Time
     #   Time.find_zone! "EST"              # => #<ActiveSupport::TimeZone @name="EST" ...>
     #   Time.find_zone! -5.hours           # => #<ActiveSupport::TimeZone @name="Bogota" ...>
     #   Time.find_zone! nil                # => nil
-    #   Time.find_zone! false              # => false
+    #   Time.find_zone! false              # => nil
+    #   Time.find_zone! ""                 # => nil
     #   Time.find_zone! "NOT-A-TIMEZONE"   # => ArgumentError: Invalid Timezone: NOT-A-TIMEZONE
     def find_zone!(time_zone)
-      return time_zone unless time_zone
+      return unless time_zone.present?
 
       ActiveSupport::TimeZone[time_zone] || raise(ArgumentError, "Invalid Timezone: #{time_zone}")
     end
