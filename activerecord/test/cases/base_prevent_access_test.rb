@@ -3,7 +3,7 @@
 require "cases/helper"
 require "models/bird"
 
-class BasePreventWritesTest < ActiveRecord::TestCase
+class BasePreventAccessTest < ActiveRecord::TestCase
   if !in_memory_db?
     test "selecting a record raises if preventing access" do
       bird = Bird.create! name: "Bluejay"
@@ -15,13 +15,11 @@ class BasePreventWritesTest < ActiveRecord::TestCase
       end
     end
 
-    test "preventing access applies to all connections in block" do
+    test "preventing access applies only within while_preventing_access blocks" do
       Bird.create! name: "Bluejay"
 
       ActiveRecord::Base.while_preventing_access do
         conn1_error = assert_raises ActiveRecord::PreventedAccessError do
-          assert_equal ActiveRecord::Base.lease_connection, Bird.lease_connection
-          assert_not_equal ARUnit2Model.lease_connection, Bird.lease_connection
           Bird.where(name: "Bluejay").last
         end
 
@@ -32,8 +30,6 @@ class BasePreventWritesTest < ActiveRecord::TestCase
 
       ActiveRecord::Base.while_preventing_access do
         conn2_error = assert_raises ActiveRecord::PreventedAccessError do
-          assert_not_equal ActiveRecord::Base.lease_connection, Professor.lease_connection
-          assert_equal ARUnit2Model.lease_connection, Professor.lease_connection
           Professor.create!(name: "Professor Magnificent Frigatebird")
         end
 
@@ -41,9 +37,9 @@ class BasePreventWritesTest < ActiveRecord::TestCase
       end
     end
 
-    test "current_preventing_access" do
+    test "preventing_access?" do
       ActiveRecord::Base.while_preventing_access do
-        assert ActiveRecord::Base.current_preventing_access, "expected connection current_preventing_access to return true"
+        assert_predicate ActiveRecord::Base, :preventing_access?, "expected preventing_access? to return true"
       end
     end
   end

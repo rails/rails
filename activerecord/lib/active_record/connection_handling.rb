@@ -131,7 +131,7 @@ module ActiveRecord
     #   ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one_replica) do
     #     Dog.first # finds first Dog record stored on the shard one replica
     #   end
-    def connected_to(role: nil, shard: nil, prevent_writes: false, prevent_access: false, &blk)
+    def connected_to(role: nil, shard: nil, prevent_writes: false, &blk)
       if self != Base && !abstract_class
         raise NotImplementedError, "calling `connected_to` is only allowed on ActiveRecord::Base or abstract classes."
       end
@@ -144,13 +144,12 @@ module ActiveRecord
         raise ArgumentError, "must provide a `shard` and/or `role`."
       end
 
-      with_role_and_shard(role, shard, prevent_writes: prevent_writes, prevent_access: prevent_access, &blk)
+      with_role_and_shard(role, shard, prevent_writes, &blk)
     end
 
     # Connects a role and/or shard to the provided connection names. Optionally +prevent_writes+
     # can be passed to block writes on a connection. +reading+ will automatically set
-    # +prevent_writes+ to true. Optionally +prevent_access+ can be passed to block all access on a
-    # connection.
+    # +prevent_writes+ to true.
     #
     # +connected_to_many+ is an alternative to deeply nested +connected_to+ blocks.
     #
@@ -161,7 +160,7 @@ module ActiveRecord
     #     Dinner.first # Read from meals replica
     #     Person.first # Read from primary writer
     #   end
-    def connected_to_many(*classes, role:, shard: nil, prevent_writes: false, prevent_access: false)
+    def connected_to_many(*classes, role:, shard: nil, prevent_writes: false)
       classes = classes.flatten
 
       if self != Base || classes.include?(Base)
@@ -170,7 +169,7 @@ module ActiveRecord
 
       prevent_writes = true if role == ActiveRecord.reading_role
 
-      append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, prevent_access: prevent_access, klasses: classes)
+      append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: classes)
       yield
     ensure
       connected_to_stack.pop
@@ -183,10 +182,10 @@ module ActiveRecord
     #
     # It is not recommended to use this method in a request since it
     # does not yield to a block like +connected_to+.
-    def connecting_to(role: default_role, shard: default_shard, prevent_writes: false, prevent_access: false)
+    def connecting_to(role: default_role, shard: default_shard, prevent_writes: false)
       prevent_writes = true if role == ActiveRecord.reading_role
 
-      append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, prevent_access: prevent_access, klasses: [self])
+      append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self])
     end
 
     # Prohibit swapping shards while inside of the passed block.
@@ -221,15 +220,6 @@ module ActiveRecord
     # method.
     def while_preventing_writes(enabled = true, &block)
       connected_to(role: current_role, prevent_writes: enabled, &block)
-    end
-
-    # Prevent all database access regardless of role.
-    #
-    # In some cases you may want to be sure that no database access occurs in a
-    # context. +while_preventing_access+ will prevent any database access for
-    # the duration of the block.
-    def while_preventing_access(enabled = true, &block)
-      connected_to(role: current_role, prevent_access: enabled, &block)
     end
 
     # Returns true if role is the current connected role and/or
@@ -353,10 +343,10 @@ module ActiveRecord
         Base.configurations.resolve(config_or_env)
       end
 
-      def with_role_and_shard(role, shard, prevent_writes:, prevent_access:)
+      def with_role_and_shard(role, shard, prevent_writes)
         prevent_writes = true if role == ActiveRecord.reading_role
 
-        append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, prevent_access: prevent_access, klasses: [self])
+        append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self])
         return_value = yield
         return_value.load if return_value.is_a? ActiveRecord::Relation
         return_value

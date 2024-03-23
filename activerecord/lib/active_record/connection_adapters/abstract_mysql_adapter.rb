@@ -231,7 +231,8 @@ module ActiveRecord
       # needs to be explicitly freed or not.
       def execute_and_free(sql, name = nil, async: false) # :nodoc:
         sql = transform_query(sql)
-        check_if_query_prevented(sql)
+        check_if_access_prevented(sql)
+        check_if_write_query(sql)
 
         mark_transaction_written_if_write(sql)
         yield raw_execute(sql, name, async: async)

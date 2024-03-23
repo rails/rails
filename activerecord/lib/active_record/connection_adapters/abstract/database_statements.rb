@@ -514,7 +514,8 @@ module ActiveRecord
       private
         def internal_execute(sql, name = "SCHEMA", allow_retry: false, materialize_transactions: true)
           sql = transform_query(sql)
-          check_if_query_prevented(sql)
+          check_if_access_prevented(sql)
+          check_if_write_query(sql)
 
           mark_transaction_written_if_write(sql)
 

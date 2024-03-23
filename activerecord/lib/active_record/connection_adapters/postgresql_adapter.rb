@@ -857,7 +857,8 @@ module ActiveRecord
 
         def execute_and_clear(sql, name, binds, prepare: false, async: false, allow_retry: false, materialize_transactions: true)
           sql = transform_query(sql)
-          check_if_query_prevented(sql)
+          check_if_access_prevented(sql)
+          check_if_write_query(sql)
 
           if !prepare || without_prepared_statement?(binds)
             result = exec_no_cache(sql, name, binds, async: async, allow_retry: allow_retry, materialize_transactions: materialize_transactions)

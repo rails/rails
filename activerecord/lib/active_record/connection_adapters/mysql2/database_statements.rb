@@ -112,7 +112,8 @@ module ActiveRecord
 
           def exec_stmt_and_free(sql, name, binds, cache_stmt: false, async: false)
             sql = transform_query(sql)
-            check_if_query_prevented(sql)
+            check_if_access_prevented(sql)
+            check_if_write_query(sql)
 
             mark_transaction_written_if_write(sql)
 

@@ -23,7 +23,8 @@ module ActiveRecord
 
         def internal_exec_query(sql, name = nil, binds = [], prepare: false, async: false) # :nodoc:
           sql = transform_query(sql)
-          check_if_query_prevented(sql)
+          check_if_access_prevented(sql)
+          check_if_write_query(sql)
 
           mark_transaction_written_if_write(sql)
 
@@ -136,7 +137,8 @@ module ActiveRecord
             statements = statements.map { |sql| transform_query(sql) }
             sql = combine_multi_statements(statements)
 
-            check_if_query_prevented(sql)
+            check_if_access_prevented(sql)
+            check_if_write_query(sql)
             mark_transaction_written_if_write(sql)
 
             log(sql, name) do |notification_payload|

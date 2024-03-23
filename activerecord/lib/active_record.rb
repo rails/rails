@@ -39,6 +39,7 @@ require "active_record/errors"
 module ActiveRecord
   extend ActiveSupport::Autoload
 
+  autoload :AccessPrevention
   autoload :Base
   autoload :Callbacks
   autoload :ConnectionHandling

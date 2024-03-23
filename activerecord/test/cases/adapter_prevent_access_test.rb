@@ -10,13 +10,13 @@ module ActiveRecord
     end
 
     def test_preventing_access_predicate
-      assert_not_predicate @connection, :preventing_access?
+      assert_not ActiveRecord::Base.preventing_access?
 
       ActiveRecord::Base.while_preventing_access do
-        assert_predicate @connection, :preventing_access?
+        assert_predicate ActiveRecord::Base, :preventing_access?
       end
 
-      assert_not_predicate @connection, :preventing_access?
+      assert_not ActiveRecord::Base.preventing_access?
     end
 
     def test_errors_when_query_is_called_while_preventing_access
