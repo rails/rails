@@ -156,7 +156,7 @@ module ActiveRecord
       posts = Post.select("posts.*").joins(:comments).includes(:comments)
       assert_equal %w(
         id author_id title body type legacy_comments_count taggings_with_delete_all_count taggings_with_destroy_count
-        tags_count indestructible_tags_count tags_with_destroy_count tags_with_nullify_count
+        tags_count indestructible_tags_count tags_with_destroy_count tags_with_nullify_count deleted_at
       ), posts.first.attributes.keys
     end
 
