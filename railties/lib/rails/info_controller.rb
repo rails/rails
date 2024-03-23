@@ -32,6 +32,14 @@ class Rails::InfoController < Rails::ApplicationController # :nodoc:
     end
   end
 
+  def notes
+    @annotations = Rails::SourceAnnotationExtractor.new(
+      Rails::SourceAnnotationExtractor::Annotation.tags.join("|")
+    ).find(
+      Rails::SourceAnnotationExtractor::Annotation.directories
+    )
+  end
+
   private
     def matching_routes(query:, exact_match:)
       return [] if query.blank?
