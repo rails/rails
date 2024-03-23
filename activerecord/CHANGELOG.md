@@ -1,3 +1,8 @@
+*   Fix an issue where the IDs reader method did not return expected results for preloaded associations
+    in models using composite primary keys.
+
+    *Jay Ang*
+
 *   Add dirties option to uncached
 
     This adds a `dirties` option to `ActiveRecord::Base.uncached` and
