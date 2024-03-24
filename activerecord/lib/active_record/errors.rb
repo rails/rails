@@ -115,6 +115,10 @@ module ActiveRecord
   class ReadOnlyError < ActiveRecordError
   end
 
+  # Raised when database access is attempted on a connection preventing access.
+  class PreventedAccessError < ActiveRecordError
+  end
+
   # Raised when Active Record cannot find a record by given id or set of ids.
   class RecordNotFound < ActiveRecordError
     attr_reader :model, :primary_key, :id

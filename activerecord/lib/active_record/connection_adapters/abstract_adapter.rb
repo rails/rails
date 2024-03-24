@@ -203,6 +203,12 @@ module ActiveRecord
         end
       end
 
+      def check_if_access_prevented(sql) # :nodoc:
+        if AccessPrevention.enabled
+          raise ActiveRecord::PreventedAccessError, "Query attempted while preventing access: #{sql}"
+        end
+      end
+
       def replica?
         @config[:replica] || false
       end

@@ -330,6 +330,7 @@ module ActiveRecord # :nodoc:
     include Suppressor
     include Normalization
     include Marshalling::Methods
+    include AccessPrevention
 
     self.param_delimiter = "_"
   end

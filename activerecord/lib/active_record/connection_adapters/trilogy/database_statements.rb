@@ -14,6 +14,7 @@ module ActiveRecord
 
         def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false) # :nodoc:
           sql = transform_query(sql)
+          check_if_access_prevented(sql)
           check_if_write_query(sql)
           mark_transaction_written_if_write(sql)
 
@@ -23,6 +24,7 @@ module ActiveRecord
 
         def exec_insert(sql, name, binds, pk = nil, sequence_name = nil, returning: nil) # :nodoc:
           sql = transform_query(sql)
+          check_if_access_prevented(sql)
           check_if_write_query(sql)
           mark_transaction_written_if_write(sql)
 
@@ -32,6 +34,7 @@ module ActiveRecord
 
         def exec_delete(sql, name = nil, binds = []) # :nodoc:
           sql = transform_query(sql)
+          check_if_access_prevented(sql)
           check_if_write_query(sql)
           mark_transaction_written_if_write(sql)
 

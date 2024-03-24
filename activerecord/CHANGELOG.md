@@ -1,3 +1,20 @@
+*   Add the ability to prevent access to a database for the duration of a block.
+
+    Allows the application to prevent database access. This can be useful to
+    ensure a routine does not depend on database access.
+
+    If `while_preventing_access` is called and there is a database query within
+    the block, the connection will raise an exception.
+
+    One purpose of this is to catch accidental reads.
+
+    For example, an application may have a method which is known to be called
+    in tight loops. If database access from within this method could lead to
+    unacceptable performance impacts, it may be desirable to prevent database
+    access within this method.
+
+    *Stephen Crosby*
+
 *   Add dirties option to uncached
 
     This adds a `dirties` option to `ActiveRecord::Base.uncached` and
