@@ -17,6 +17,7 @@ require "models/project"
 require "models/minimalistic"
 require "models/parrot"
 require "models/minivan"
+require "models/car"
 require "models/person"
 require "models/ship"
 require "models/admin"
@@ -29,7 +30,7 @@ require "models/pk_autopopulated_by_a_trigger_record"
 
 class PersistenceTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :accounts, :minimalistics, :authors, :author_addresses,
-    :posts, :minivans, :clothing_items, :cpk_books
+    :posts, :minivans, :clothing_items, :cpk_books, :people, :cars
 
   def test_populates_non_primary_key_autoincremented_column
     topic = TitlePrimaryKeyTopic.create!(title: "title pk topic")
@@ -906,6 +907,16 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal "bulk updated with hash!", Topic.find(2).content
     assert_nil Topic.find(1).last_read
     assert_nil Topic.find(2).last_read
+  end
+
+  def test_update_all_with_custom_sql_as_value
+    person = people(:michael)
+    person.update!(cars_count: 0)
+
+    Person.update_all(cars_count: Arel.sql(<<~SQL))
+      select count(*) from cars where cars.person_id = people.id
+    SQL
+    assert_equal 1, person.reload.cars_count
   end
 
   def test_delete_new_record
