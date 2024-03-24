@@ -3,7 +3,7 @@
 source "https://rubygems.org"
 gemspec
 
-gem "minitest", ">= 5.15.0"
+gem "minitest", ">= 5.15.0", "< 5.22.0"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 13"
@@ -35,6 +35,8 @@ gem "json", ">= 2.0.0", "!=2.7.0"
 
 # Workaround until Ruby ships with cgi version 0.3.6 or higher.
 gem "cgi", ">= 0.3.6", require: false
+
+gem "prism"
 
 group :lint do
   gem "syntax_tree", "6.1.1", require: false
@@ -87,7 +89,6 @@ else
   gem "rack", git: "https://github.com/rack/rack.git", branch: "main"
 end
 
-gem "kredis", ">= 1.7.0", require: false
 gem "useragent", require: false
 
 # Active Job
@@ -126,13 +127,14 @@ end
 # Action Mailbox
 gem "aws-sdk-sns", require: false
 gem "webmock"
+gem "httpclient", github: "nahi/httpclient", branch: "master", require: false
 
 # Add your own local bundler stuff.
 local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
-  gem "minitest-bisect"
+  gem "minitest-bisect", require: false
   gem "minitest-ci", require: false
   gem "minitest-retry"
 
@@ -140,8 +142,6 @@ group :test do
     gem "stackprof"
     gem "debug", ">= 1.1.0", require: false
   end
-
-  gem "benchmark-ips"
 
   # Needed for Railties tests because it is included in generated apps.
   gem "brakeman"
@@ -159,7 +159,7 @@ platforms :ruby, :windows do
   group :db do
     gem "pg", "~> 1.3"
     gem "mysql2", "~> 0.5"
-    gem "trilogy", ">= 2.5.0"
+    gem "trilogy", ">= 2.7.0"
   end
 end
 

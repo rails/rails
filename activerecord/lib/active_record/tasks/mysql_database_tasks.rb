@@ -71,7 +71,7 @@ module ActiveRecord
         attr_reader :db_config, :configuration_hash
 
         def connection
-          ActiveRecord::Base.connection
+          ActiveRecord::Base.lease_connection
         end
 
         def establish_connection(config = db_config)

@@ -214,7 +214,7 @@ module ActiveRecord
       end
 
       def truncate_tables(*table_names) # :nodoc:
-        table_names -= [schema_migration.table_name, internal_metadata.table_name]
+        table_names -= [pool.schema_migration.table_name, pool.internal_metadata.table_name]
 
         return if table_names.empty?
 
@@ -296,9 +296,9 @@ module ActiveRecord
       # #transaction will raise exceptions when it tries to release the
       # already-automatically-released savepoints:
       #
-      #   Model.connection.transaction do  # BEGIN
-      #     Model.connection.transaction(requires_new: true) do  # CREATE SAVEPOINT active_record_1
-      #       Model.connection.create_table(...)
+      #   Model.lease_connection.transaction do  # BEGIN
+      #     Model.lease_connection.transaction(requires_new: true) do  # CREATE SAVEPOINT active_record_1
+      #       Model.lease_connection.create_table(...)
       #       # active_record_1 now automatically released
       #     end  # RELEASE SAVEPOINT active_record_1  <--- BOOM! database error!
       #   end
@@ -629,7 +629,7 @@ module ActiveRecord
 
           result = internal_exec_query(sql, name, binds, prepare: prepare)
           if async
-            FutureResult::Complete.new(result)
+            FutureResult.wrap(result)
           else
             result
           end

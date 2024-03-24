@@ -15,8 +15,8 @@ module Rails
       %w(template copy_file directory empty_directory inside
          empty_directory_with_keep_file create_file chmod shebang).each do |method|
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{method}(*args, &block)
-            @generator.send(:#{method}, *args, &block)
+          def #{method}(...)
+            @generator.send(:#{method}, ...)
           end
         RUBY
       end
@@ -257,8 +257,6 @@ module Rails
     def tmp
       empty_directory_with_keep_file "tmp"
       empty_directory_with_keep_file "tmp/pids"
-      empty_directory "tmp/cache"
-      empty_directory "tmp/cache/assets"
     end
 
     def vendor
@@ -267,6 +265,14 @@ module Rails
 
     def config_target_version
       @config_target_version || Rails::VERSION::STRING.to_f
+    end
+
+    def devcontainer
+      empty_directory ".devcontainer"
+
+      template ".devcontainer/devcontainer.json"
+      template ".devcontainer/Dockerfile"
+      template ".devcontainer/compose.yaml"
     end
   end
 
@@ -457,11 +463,15 @@ module Rails
         build(:storage)
       end
 
+      def create_devcontainer_files
+        return if skip_devcontainer? || options[:dummy_app]
+        build(:devcontainer)
+      end
+
       def delete_app_assets_if_api_option
         if options[:api]
           remove_dir "app/assets"
           remove_dir "lib/assets"
-          remove_dir "tmp/cache/assets"
         end
       end
 
@@ -489,6 +499,7 @@ module Rails
           remove_file "public/426.html"
           remove_file "public/500.html"
           remove_file "public/icon.png"
+          remove_file "public/icon.svg"
         end
       end
 
@@ -660,7 +671,7 @@ module Rails
         end
 
         def read_rc_file(railsrc)
-          extra_args = File.readlines(railsrc).flat_map(&:split)
+          extra_args = File.readlines(railsrc).flat_map.each { |line| line.split("#", 2).first.split }
           puts "Using #{extra_args.join(" ")} from #{railsrc}"
           extra_args
         end

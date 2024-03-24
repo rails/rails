@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/module/anonymous"
 require "action_dispatch/http/mime_type"
 
 module ActionController
-  # = Action Controller Params Wrapper
+  # # Action Controller Params Wrapper
   #
   # Wraps the parameters hash into a nested hash. This will allow clients to
   # submit requests without having to specify any root elements.
@@ -24,8 +26,8 @@ module ActionController
   #       wrap_parameters format: [:json, :xml, :url_encoded_form, :multipart_form]
   #     end
   #
-  # If you enable +ParamsWrapper+ for +:json+ format, instead of having to
-  # send JSON parameters like this:
+  # If you enable `ParamsWrapper` for `:json` format, instead of having to send
+  # JSON parameters like this:
   #
   #     {"user": {"name": "Konata"}}
   #
@@ -34,45 +36,44 @@ module ActionController
   #     {"name": "Konata"}
   #
   # And it will be wrapped into a nested hash with the key name matching the
-  # controller's name. For example, if you're posting to +UsersController+,
-  # your new +params+ hash will look like this:
+  # controller's name. For example, if you're posting to `UsersController`, your
+  # new `params` hash will look like this:
   #
   #     {"name" => "Konata", "user" => {"name" => "Konata"}}
   #
-  # You can also specify the key in which the parameters should be wrapped to,
-  # and also the list of attributes it should wrap by using either +:include+ or
-  # +:exclude+ options like this:
+  # You can also specify the key in which the parameters should be wrapped to, and
+  # also the list of attributes it should wrap by using either `:include` or
+  # `:exclude` options like this:
   #
   #     class UsersController < ApplicationController
   #       wrap_parameters :person, include: [:username, :password]
   #     end
   #
-  # On Active Record models with no +:include+ or +:exclude+ option set,
-  # it will only wrap the parameters returned by the class method
-  # <tt>attribute_names</tt>.
+  # On Active Record models with no `:include` or `:exclude` option set, it will
+  # only wrap the parameters returned by the class method `attribute_names`.
   #
-  # If you're going to pass the parameters to an +ActiveModel+ object (such as
-  # <tt>User.new(params[:user])</tt>), you might consider passing the model class to
-  # the method instead. The +ParamsWrapper+ will actually try to determine the
-  # list of attribute names from the model and only wrap those attributes:
+  # If you're going to pass the parameters to an `ActiveModel` object (such as
+  # `User.new(params[:user])`), you might consider passing the model class to the
+  # method instead. The `ParamsWrapper` will actually try to determine the list of
+  # attribute names from the model and only wrap those attributes:
   #
   #     class UsersController < ApplicationController
   #       wrap_parameters Person
   #     end
   #
-  # You still could pass +:include+ and +:exclude+ to set the list of attributes
+  # You still could pass `:include` and `:exclude` to set the list of attributes
   # you want to wrap.
   #
   # By default, if you don't specify the key in which the parameters would be
-  # wrapped to, +ParamsWrapper+ will actually try to determine if there's
-  # a model related to it or not. This controller, for example:
+  # wrapped to, `ParamsWrapper` will actually try to determine if there's a model
+  # related to it or not. This controller, for example:
   #
   #     class Admin::UsersController < ApplicationController
   #     end
   #
-  # will try to check if +Admin::User+ or +User+ model exists, and use it to
-  # determine the wrapper key respectively. If both models don't exist,
-  # it will then fallback to use +user+ as the key.
+  # will try to check if `Admin::User` or `User` model exists, and use it to
+  # determine the wrapper key respectively. If both models don't exist, it will
+  # then fall back to use `user` as the key.
   #
   # To disable this functionality for a controller:
   #
@@ -154,13 +155,13 @@ module ActionController
       end
 
       private
-        # Determine the wrapper model from the controller's name. By convention,
-        # this could be done by trying to find the defined model that has the
-        # same singular name as the controller. For example, +UsersController+
-        # will try to find if the +User+ model exists.
+        # Determine the wrapper model from the controller's name. By convention, this
+        # could be done by trying to find the defined model that has the same singular
+        # name as the controller. For example, `UsersController` will try to find if the
+        # `User` model exists.
         #
-        # This method also does namespace lookup. Foo::Bar::UsersController will
-        # try to find Foo::Bar::User, Foo::User and finally User.
+        # This method also does namespace lookup. Foo::Bar::UsersController will try to
+        # find Foo::Bar::User, Foo::User and finally User.
         def _default_wrap_model
           return nil if klass.anonymous?
           model_name = klass.name.delete_suffix("Controller").classify
@@ -189,33 +190,34 @@ module ActionController
         self._wrapper_options = Options.from_hash(options)
       end
 
-      # Sets the name of the wrapper key, or the model which +ParamsWrapper+
-      # would use to determine the attribute names from.
+      # Sets the name of the wrapper key, or the model which `ParamsWrapper` would use
+      # to determine the attribute names from.
       #
-      # ==== Examples
-      #   wrap_parameters format: :xml
-      #     # enables the parameter wrapper for XML format
+      # #### Examples
+      #     wrap_parameters format: :xml
+      #       # enables the parameter wrapper for XML format
       #
-      #   wrap_parameters :person
-      #     # wraps parameters into +params[:person]+ hash
+      #     wrap_parameters :person
+      #       # wraps parameters into +params[:person]+ hash
       #
-      #   wrap_parameters Person
-      #     # wraps parameters by determining the wrapper key from Person class
-      #     # (+person+, in this case) and the list of attribute names
+      #     wrap_parameters Person
+      #       # wraps parameters by determining the wrapper key from Person class
+      #       # (+person+, in this case) and the list of attribute names
       #
-      #   wrap_parameters include: [:username, :title]
-      #     # wraps only +:username+ and +:title+ attributes from parameters.
+      #     wrap_parameters include: [:username, :title]
+      #       # wraps only +:username+ and +:title+ attributes from parameters.
       #
-      #   wrap_parameters false
-      #     # disables parameters wrapping for this controller altogether.
+      #     wrap_parameters false
+      #       # disables parameters wrapping for this controller altogether.
       #
-      # ==== Options
-      # * <tt>:format</tt> - The list of formats in which the parameters wrapper
-      #   will be enabled.
-      # * <tt>:include</tt> - The list of attribute names which parameters wrapper
-      #   will wrap into a nested hash.
-      # * <tt>:exclude</tt> - The list of attribute names which parameters wrapper
-      #   will exclude from a nested hash.
+      # #### Options
+      # *   `:format` - The list of formats in which the parameters wrapper will be
+      #     enabled.
+      # *   `:include` - The list of attribute names which parameters wrapper will
+      #     wrap into a nested hash.
+      # *   `:exclude` - The list of attribute names which parameters wrapper will
+      #     exclude from a nested hash.
+      #
       def wrap_parameters(name_or_model_or_options, options = {})
         model = nil
 
@@ -237,9 +239,8 @@ module ActionController
         self._wrapper_options = opts
       end
 
-      # Sets the default wrapper key or model which will be used to determine
-      # wrapper key and attribute names. Called automatically when the
-      # module is inherited.
+      # Sets the default wrapper key or model which will be used to determine wrapper
+      # key and attribute names. Called automatically when the module is inherited.
       def inherited(klass)
         if klass._wrapper_options.format.any?
           params = klass._wrapper_options.dup
@@ -251,8 +252,8 @@ module ActionController
     end
 
     private
-      # Performs parameters wrapping upon the request. Called automatically
-      # by the metal call stack.
+      # Performs parameters wrapping upon the request. Called automatically by the
+      # metal call stack.
       def process_action(*)
         _perform_parameter_wrapping if _wrapper_enabled?
         super

@@ -53,4 +53,10 @@ class ActiveStorage::FilenameTest < ActiveSupport::TestCase
   test "compare sanitized" do
     assert_operator ActiveStorage::Filename.new("foo-bar.pdf"), :==, ActiveStorage::Filename.new("foo\tbar.pdf")
   end
+
+  test "encoding to json" do
+    assert_equal '"foo.pdf"', ActiveStorage::Filename.new("foo.pdf").to_json
+    assert_equal '{"filename":"foo.pdf"}', { filename: ActiveStorage::Filename.new("foo.pdf") }.to_json
+    assert_equal '{"filename":"foo.pdf"}', JSON.generate(filename: ActiveStorage::Filename.new("foo.pdf"))
+  end
 end

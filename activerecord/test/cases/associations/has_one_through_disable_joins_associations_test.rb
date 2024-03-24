@@ -8,6 +8,7 @@ require "models/project"
 require "models/developer"
 require "models/company"
 require "models/computer"
+require "models/contract"
 require "models/club"
 require "models/membership"
 
@@ -76,6 +77,6 @@ class HasOneThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
       assert_no_match(/INNER JOIN/, nj)
     end
 
-    assert_match(/#{Regexp.escape(Member.connection.quote_table_name('memberships.type'))}/, no_joins.first)
+    assert_match(/#{Regexp.escape(Member.lease_connection.quote_table_name('memberships.type'))}/, no_joins.first)
   end
 end

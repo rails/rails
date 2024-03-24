@@ -96,6 +96,10 @@ module ActionView
 
       def finish(name, id, payload)
       end
+
+      def silenced?(_)
+        logger.nil? || !logger.debug?
+      end
     end
 
     def self.attach_to(*)

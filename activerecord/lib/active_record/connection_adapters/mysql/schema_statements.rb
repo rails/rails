@@ -68,6 +68,12 @@ module ActiveRecord
 
             IndexDefinition.new(*index, **options)
           end
+        rescue StatementInvalid => e
+          if e.message.match?(/Table '.+' doesn't exist/)
+            []
+          else
+            raise
+          end
         end
 
         def remove_column(table_name, column_name, type = nil, **options)
@@ -185,6 +191,7 @@ module ActiveRecord
               default, default_function = nil, default
             elsif type_metadata.extra == "DEFAULT_GENERATED"
               default = +"(#{default})" unless default.start_with?("(")
+              default = default.gsub("\\'", "'")
               default, default_function = nil, default
             elsif type_metadata.type == :text && default&.start_with?("'")
               # strip and unescape quotes

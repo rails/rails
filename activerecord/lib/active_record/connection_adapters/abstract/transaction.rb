@@ -350,7 +350,7 @@ module ActiveRecord
 
       def rollback
         unless @state.invalidated?
-          connection.rollback_to_savepoint(savepoint_name) if materialized?
+          connection.rollback_to_savepoint(savepoint_name) if materialized? && connection.active?
         end
         @state.rollback!
         @instrumenter.finish(:rollback) if materialized?
@@ -533,9 +533,7 @@ module ActiveRecord
         @connection.lock.synchronize do
           transaction = begin_transaction(isolation: isolation, joinable: joinable)
           begin
-            ret = yield
-            completed = true
-            ret
+            yield
           rescue Exception => error
             rollback_transaction
             after_failure_actions(transaction, error)
@@ -543,23 +541,7 @@ module ActiveRecord
             raise
           ensure
             unless error
-              # In 7.1 we enforce timeout >= 0.4.0 which no longer use throw, so we can
-              # go back to the original behavior of committing on non-local return.
-              # If users are using throw, we assume it's not an error case.
-              completed = true if ActiveRecord.commit_transaction_on_non_local_return
-
               if Thread.current.status == "aborting"
-                rollback_transaction
-              elsif !completed && transaction.written
-                ActiveRecord.deprecator.warn(<<~EOW)
-                  A transaction is being rolled back because the transaction block was
-                  exited using `return`, `break` or `throw`.
-                  In Rails 7.2 this transaction will be committed instead.
-                  To opt-in to the new behavior now and suppress this warning
-                  you can set:
-
-                    Rails.application.config.active_record.commit_transaction_on_non_local_return = true
-                EOW
                 rollback_transaction
               else
                 begin

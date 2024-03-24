@@ -11,16 +11,16 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   class PostgresqlEnum < ActiveRecord::Base
     self.table_name = "postgresql_enums"
 
-    enum current_mood: {
+    enum :current_mood, {
       sad: "sad",
       okay: "ok", # different spelling
       happy: "happy",
       aliased_field: "happy"
-    }, _prefix: true
+    }, prefix: true
   end
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.transaction do
       @connection.create_enum("mood", ["sad", "ok", "happy"])
       @connection.create_table("postgresql_enums") do |t|

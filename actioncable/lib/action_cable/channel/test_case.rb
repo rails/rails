@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support"
 require "active_support/test_case"
 require "active_support/core_ext/hash/indifferent_access"
@@ -15,11 +17,10 @@ module ActionCable
       end
     end
 
-    # = Action Cable \Channel Stub
+    # # Action Cable Channel Stub
     #
-    # Stub +stream_from+ to track streams for the channel.
-    # Add public aliases for +subscription_confirmation_sent?+ and
-    # +subscription_rejected?+.
+    # Stub `stream_from` to track streams for the channel. Add public aliases for
+    # `subscription_confirmation_sent?` and `subscription_rejected?`.
     module ChannelStub
       def confirmed?
         subscription_confirmation_sent?
@@ -86,103 +87,106 @@ module ActionCable
 
     # Superclass for Action Cable channel functional tests.
     #
-    # == Basic example
+    # ## Basic example
     #
     # Functional tests are written as follows:
-    # 1. First, one uses the +subscribe+ method to simulate subscription creation.
-    # 2. Then, one asserts whether the current state is as expected. "State" can be anything:
-    #    transmitted messages, subscribed streams, etc.
+    # 1.  First, one uses the `subscribe` method to simulate subscription creation.
+    # 2.  Then, one asserts whether the current state is as expected. "State" can be
+    #     anything: transmitted messages, subscribed streams, etc.
+    #
     #
     # For example:
     #
-    #   class ChatChannelTest < ActionCable::Channel::TestCase
-    #     def test_subscribed_with_room_number
-    #       # Simulate a subscription creation
-    #       subscribe room_number: 1
+    #     class ChatChannelTest < ActionCable::Channel::TestCase
+    #       def test_subscribed_with_room_number
+    #         # Simulate a subscription creation
+    #         subscribe room_number: 1
     #
-    #       # Asserts that the subscription was successfully created
-    #       assert subscription.confirmed?
+    #         # Asserts that the subscription was successfully created
+    #         assert subscription.confirmed?
     #
-    #       # Asserts that the channel subscribes connection to a stream
-    #       assert_has_stream "chat_1"
+    #         # Asserts that the channel subscribes connection to a stream
+    #         assert_has_stream "chat_1"
     #
-    #       # Asserts that the channel subscribes connection to a specific
-    #       # stream created for a model
-    #       assert_has_stream_for Room.find(1)
+    #         # Asserts that the channel subscribes connection to a specific
+    #         # stream created for a model
+    #         assert_has_stream_for Room.find(1)
+    #       end
+    #
+    #       def test_does_not_stream_with_incorrect_room_number
+    #         subscribe room_number: -1
+    #
+    #         # Asserts that not streams was started
+    #         assert_no_streams
+    #       end
+    #
+    #       def test_does_not_subscribe_without_room_number
+    #         subscribe
+    #
+    #         # Asserts that the subscription was rejected
+    #         assert subscription.rejected?
+    #       end
     #     end
-    #
-    #     def test_does_not_stream_with_incorrect_room_number
-    #       subscribe room_number: -1
-    #
-    #       # Asserts that not streams was started
-    #       assert_no_streams
-    #     end
-    #
-    #     def test_does_not_subscribe_without_room_number
-    #       subscribe
-    #
-    #       # Asserts that the subscription was rejected
-    #       assert subscription.rejected?
-    #     end
-    #   end
     #
     # You can also perform actions:
-    #   def test_perform_speak
-    #     subscribe room_number: 1
+    #     def test_perform_speak
+    #       subscribe room_number: 1
     #
-    #     perform :speak, message: "Hello, Rails!"
+    #       perform :speak, message: "Hello, Rails!"
     #
-    #     assert_equal "Hello, Rails!", transmissions.last["text"]
-    #   end
+    #       assert_equal "Hello, Rails!", transmissions.last["text"]
+    #     end
     #
-    # == Special methods
+    # ## Special methods
     #
-    # ActionCable::Channel::TestCase will also automatically provide the following instance
-    # methods for use in the tests:
+    # ActionCable::Channel::TestCase will also automatically provide the following
+    # instance methods for use in the tests:
     #
-    # <b>connection</b>::
-    #      An ActionCable::Channel::ConnectionStub, representing the current HTTP connection.
-    # <b>subscription</b>::
-    #      An instance of the current channel, created when you call +subscribe+.
-    # <b>transmissions</b>::
-    #      A list of all messages that have been transmitted into the channel.
+    # connection
+    # :   An ActionCable::Channel::ConnectionStub, representing the current HTTP
+    #     connection.
+    #
+    # subscription
+    # :   An instance of the current channel, created when you call `subscribe`.
+    #
+    # transmissions
+    # :   A list of all messages that have been transmitted into the channel.
     #
     #
-    # == Channel is automatically inferred
+    # ## Channel is automatically inferred
     #
     # ActionCable::Channel::TestCase will automatically infer the channel under test
     # from the test class name. If the channel cannot be inferred from the test
-    # class name, you can explicitly set it with +tests+.
+    # class name, you can explicitly set it with `tests`.
     #
-    #   class SpecialEdgeCaseChannelTest < ActionCable::Channel::TestCase
-    #     tests SpecialChannel
-    #   end
+    #     class SpecialEdgeCaseChannelTest < ActionCable::Channel::TestCase
+    #       tests SpecialChannel
+    #     end
     #
-    # == Specifying connection identifiers
+    # ## Specifying connection identifiers
     #
-    # You need to set up your connection manually to provide values for the identifiers.
-    # To do this just use:
+    # You need to set up your connection manually to provide values for the
+    # identifiers. To do this just use:
     #
-    #   stub_connection(user: users(:john))
+    #     stub_connection(user: users(:john))
     #
-    # == Testing broadcasting
+    # ## Testing broadcasting
     #
-    # ActionCable::Channel::TestCase enhances ActionCable::TestHelper assertions (e.g.
-    # +assert_broadcasts+) to handle broadcasting to models:
+    # ActionCable::Channel::TestCase enhances ActionCable::TestHelper assertions
+    # (e.g. `assert_broadcasts`) to handle broadcasting to models:
     #
+    #     # in your channel
+    #     def speak(data)
+    #       broadcast_to room, text: data["message"]
+    #     end
     #
-    #  # in your channel
-    #  def speak(data)
-    #    broadcast_to room, text: data["message"]
-    #  end
+    #     def test_speak
+    #       subscribe room_id: rooms(:chat).id
     #
-    #  def test_speak
-    #    subscribe room_id: rooms(:chat).id
-    #
-    #    assert_broadcast_on(rooms(:chat), text: "Hello, Rails!") do
-    #      perform :speak, message: "Hello, Rails!"
-    #    end
-    #  end
+    #       assert_broadcast_on(rooms(:chat), text: "Hello, Rails!") do
+    #         perform :speak, message: "Hello, Rails!"
+    #       end
+    #     end
     class TestCase < ActiveSupport::TestCase
       module Behavior
         extend ActiveSupport::Concern
@@ -231,16 +235,17 @@ module ActionCable
 
         # Set up test connection with the specified identifiers:
         #
-        #   class ApplicationCable < ActionCable::Connection::Base
-        #     identified_by :user, :token
-        #   end
+        #     class ApplicationCable < ActionCable::Connection::Base
+        #       identified_by :user, :token
+        #     end
         #
-        #   stub_connection(user: users[:john], token: 'my-secret-token')
+        #     stub_connection(user: users[:john], token: 'my-secret-token')
         def stub_connection(identifiers = {})
           @connection = ConnectionStub.new(identifiers)
         end
 
-        # Subscribe to the channel under test. Optionally pass subscription parameters as a Hash.
+        # Subscribe to the channel under test. Optionally pass subscription parameters
+        # as a Hash.
         def subscribe(params = {})
           @connection ||= stub_connection
           @subscription = self.class.channel_class.new(connection, CHANNEL_IDENTIFIER, params.with_indifferent_access)
@@ -269,8 +274,7 @@ module ActionCable
           connection.transmissions.filter_map { |data| data["message"] }
         end
 
-        # Enhance TestHelper assertions to handle non-String
-        # broadcastings
+        # Enhance TestHelper assertions to handle non-String broadcastings
         def assert_broadcasts(stream_or_object, *args)
           super(broadcasting_for(stream_or_object), *args)
         end
@@ -281,10 +285,10 @@ module ActionCable
 
         # Asserts that no streams have been started.
         #
-        #   def test_assert_no_started_stream
-        #     subscribe
-        #     assert_no_streams
-        #   end
+        #     def test_assert_no_started_stream
+        #       subscribe
+        #       assert_no_streams
+        #     end
         #
         def assert_no_streams
           assert subscription.streams.empty?, "No streams started was expected, but #{subscription.streams.count} found"
@@ -292,10 +296,10 @@ module ActionCable
 
         # Asserts that the specified stream has been started.
         #
-        #   def test_assert_started_stream
-        #     subscribe
-        #     assert_has_stream 'messages'
-        #   end
+        #     def test_assert_started_stream
+        #       subscribe
+        #       assert_has_stream 'messages'
+        #     end
         #
         def assert_has_stream(stream)
           assert subscription.streams.include?(stream), "Stream #{stream} has not been started"
@@ -303,10 +307,10 @@ module ActionCable
 
         # Asserts that the specified stream for a model has started.
         #
-        #   def test_assert_started_stream_for
-        #     subscribe id: 42
-        #     assert_has_stream_for User.find(42)
-        #   end
+        #     def test_assert_started_stream_for
+        #       subscribe id: 42
+        #       assert_has_stream_for User.find(42)
+        #     end
         #
         def assert_has_stream_for(object)
           assert_has_stream(broadcasting_for(object))
@@ -314,10 +318,10 @@ module ActionCable
 
         # Asserts that the specified stream has not been started.
         #
-        #   def test_assert_no_started_stream
-        #     subscribe
-        #     assert_has_no_stream 'messages'
-        #   end
+        #     def test_assert_no_started_stream
+        #       subscribe
+        #       assert_has_no_stream 'messages'
+        #     end
         #
         def assert_has_no_stream(stream)
           assert subscription.streams.exclude?(stream), "Stream #{stream} has been started"
@@ -325,10 +329,10 @@ module ActionCable
 
         # Asserts that the specified stream for a model has not started.
         #
-        #   def test_assert_no_started_stream_for
-        #     subscribe id: 41
-        #     assert_has_no_stream_for User.find(42)
-        #   end
+        #     def test_assert_no_started_stream_for
+        #       subscribe id: 41
+        #       assert_has_no_stream_for User.find(42)
+        #     end
         #
         def assert_has_no_stream_for(object)
           assert_has_no_stream(broadcasting_for(object))

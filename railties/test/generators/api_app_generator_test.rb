@@ -94,6 +94,18 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     assert_no_directory "app/views"
   end
 
+  def test_generator_skip_css
+    run_generator [destination_root, "--api", "--css=tailwind"]
+
+    assert_file "Gemfile" do |content|
+      assert_no_match(%r/gem "tailwindcss-rails"/, content)
+    end
+
+    assert_no_file "app/views/layouts/application.html.erb" do |content|
+      assert_no_match(/tailwind/, content)
+    end
+  end
+
   def test_app_update_does_not_generate_unnecessary_config_files
     run_generator
 
@@ -177,12 +189,12 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          config/initializers/permissions_policy.rb
          lib/assets
          test/helpers
-         tmp/cache/assets
          public/404.html
          public/422.html
          public/426.html
          public/500.html
          public/icon.png
+         public/icon.svg
       )
     end
 end

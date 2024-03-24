@@ -45,14 +45,11 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal 1, id
   end
 
-  def test_read_attribute_with_custom_primary_key
+  def test_read_attribute_with_custom_primary_key_does_not_return_it_when_reading_the_id_attribute
     keyboard = Keyboard.create!
-    msg = "Using read_attribute(:id) to read the primary key value is deprecated. Use #id instead."
-    id = assert_deprecated(msg, ActiveRecord.deprecator) do
-      keyboard.read_attribute(:id)
-    end
+    id = keyboard.read_attribute(:id)
 
-    assert_equal keyboard.key_number, id
+    assert_nil id
   end
 
   def test_read_attribute_with_composite_primary_key
@@ -224,9 +221,9 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   def test_quoted_primary_key_after_set_primary_key
     k = Class.new(ActiveRecord::Base)
     k.table_name = "bar"
-    assert_equal k.connection.quote_column_name("id"), k.quoted_primary_key
+    assert_equal k.lease_connection.quote_column_name("id"), k.quoted_primary_key
     k.primary_key = "foo"
-    assert_equal k.connection.quote_column_name("foo"), k.quoted_primary_key
+    assert_equal k.lease_connection.quote_column_name("foo"), k.quoted_primary_key
   end
 
   def test_auto_detect_primary_key_from_schema
@@ -294,7 +291,7 @@ class PrimaryKeyWithAutoIncrementTest < ActiveRecord::TestCase
   end
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   def teardown
@@ -331,7 +328,7 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
   end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table(:barcodes, primary_key: "code", id: :string, limit: 42, force: true)
   end
 
@@ -373,8 +370,8 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   fixtures :cpk_books, :cpk_orders
 
   def setup
-    @connection = ActiveRecord::Base.connection
-    @connection.schema_cache.clear!
+    ActiveRecord::Base.schema_cache.clear!
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table(:uber_barcodes, primary_key: ["region", "code"], force: true) do |t|
       t.string :region
       t.integer :code
@@ -505,7 +502,7 @@ class PrimaryKeyIntegerNilDefaultTest < ActiveRecord::TestCase
   include SchemaDumpingHelper
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   def teardown
@@ -536,7 +533,7 @@ class PrimaryKeyIntegerTest < ActiveRecord::TestCase
     end
 
     setup do
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       @pk_type = current_adapter?(:PostgreSQLAdapter) ? :serial : :integer
     end
 

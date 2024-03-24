@@ -346,6 +346,8 @@ Combining Ruby 3.1's pattern matching assignment with calls to [Hash#with_defaul
 <% end %>
 ```
 
+INFO: By default, partials will accept any `locals` as keyword arguments. To define what `locals` a partial accepts, use a `locals:` magic comment. To learn more, read about [Strict Locals](#strict-locals).
+
 [local_assigns]: https://api.rubyonrails.org/classes/ActionView/Template.html#method-i-local_assigns
 
 ### `render` without `partial` and `locals` Options
@@ -445,25 +447,72 @@ Rails will render the `_product_ruler` partial (with no data passed to it) betwe
 
 ### Strict Locals
 
-By default, templates will accept any `locals` as keyword arguments. To define what `locals` a template accepts, add a `locals` magic comment:
+By default, templates will accept any `locals` as keyword arguments. To define what `locals` a template accepts, add a `locals:` magic comment:
 
 ```erb
+<%# app/views/messages/_message.html.erb %>
+
 <%# locals: (message:) -%>
 <%= message %>
+```
+
+Rendering the partial without a `:message` local variable argument will raise an exception:
+
+```ruby
+render "messages/message"
+# => ActionView::Template::Error: missing local: :message for app/views/messages/_message.html.erb
 ```
 
 Default values can also be provided:
 
 ```erb
+<%# app/views/messages/_message.html.erb %>
+
 <%# locals: (message: "Hello, world!") -%>
 <%= message %>
+```
+
+Rendering the partial without a `:message` local variable uses the provided default value:
+
+```ruby
+render "messages/message"
+# => "Hello, world!"
+```
+
+Rendering the partial with additional local variable arguments will raise an exception:
+
+```ruby
+render "messages/message", unknown_local: "will raise"
+# => ActionView::Template::Error: unknown local: :unknown_local for app/views/messages/_message.html.erb
+```
+
+Optional local variable arguments can be splatted:
+
+```erb
+<%# app/views/messages/_message.html.erb %>
+
+<%# locals: (message: "Hello, world!", **attributes) -%>
+<%= tag.p(message, **attributes) %>
 ```
 
 Or `locals` can be disabled entirely:
 
 ```erb
+<%# app/views/messages/_message.html.erb %>
+
 <%# locals: () %>
 ```
+
+Rendering the partial with any local variable arguments will raise an exception:
+
+```ruby
+render "messages/message", unknown_local: "will raise"
+# => ActionView::Template::Error: no locals accepted for app/views/messages/_message.html.erb
+```
+
+Action View will process the `locals:` magic comment in any templating engine that supports `#`-prefixed comments, and will read the magic comment from any line in the partial.
+
+CAUTION: Only keyword arguments are supported. Defining positional or block arguments will raise an Action View Error at render-time.
 
 Layouts
 -------

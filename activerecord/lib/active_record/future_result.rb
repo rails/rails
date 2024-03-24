@@ -32,8 +32,11 @@ module ActiveRecord
 
       def instrument(name, payload = {}, &block)
         event = @instrumenter.new_event(name, payload)
-        @events << event
-        event.record(&block)
+        begin
+          event.record(&block)
+        ensure
+          @events << event
+        end
       end
 
       def flush
@@ -46,6 +49,15 @@ module ActiveRecord
     end
 
     Canceled = Class.new(ActiveRecordError)
+
+    def self.wrap(result)
+      case result
+      when self, Complete
+        result
+      else
+        Complete.new(result)
+      end
+    end
 
     delegate :empty?, :to_a, to: :result
     delegate_missing_to :result
@@ -131,7 +143,9 @@ module ActiveRecord
           start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_millisecond)
           @mutex.synchronize do
             if pending?
-              execute_query(@pool.connection)
+              @pool.with_connection do |connection|
+                execute_query(connection)
+              end
             else
               @lock_wait = (Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_millisecond) - start)
             end

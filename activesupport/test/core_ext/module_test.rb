@@ -76,7 +76,7 @@ Product = Struct.new(:name) do
 end
 
 module ExtraMissing
-  def method_missing(sym, *args)
+  def method_missing(sym, ...)
     if sym == :extra_missing
       42
     else
@@ -426,7 +426,7 @@ class ModuleTest < ActiveSupport::TestCase
       DecoratedReserved.new(@david).private_name
     end
 
-    assert_match(/undefined method `private_name' for/, e.message)
+    assert_match(/undefined method [`']private_name' for/, e.message)
   end
 
   def test_delegate_missing_to_does_not_delegate_to_fake_methods
@@ -434,7 +434,7 @@ class ModuleTest < ActiveSupport::TestCase
       DecoratedReserved.new(@david).my_fake_method
     end
 
-    assert_match(/undefined method `my_fake_method' for/, e.message)
+    assert_match(/undefined method [`']my_fake_method' for/, e.message)
   end
 
   def test_delegate_missing_to_raises_delegation_error_if_target_nil
@@ -584,6 +584,33 @@ class ModuleTest < ActiveSupport::TestCase
 
     assert_equal [:the_street, :the_city],
       location.delegate(:street, :city, to: :@place, prefix: :the, private: true)
+  end
+
+  def test_module_nesting_is_empty
+    # Ensure constant resolution is done from top level namespace and not ActiveSupport
+    require "json"
+    c = Class.new do
+      singleton_class.delegate :parse, to: ::JSON
+    end
+    assert_equal [1], c.parse("[1]")
+  end
+
+  def test_delegation_unreacheable_module
+    anonymous_class = Class.new
+    error = assert_raises ArgumentError do
+      Class.new do
+        delegate :something, to: anonymous_class
+      end
+    end
+    assert_includes error.message, "Can't delegate to anonymous class or module"
+
+    anonymous_class.singleton_class.define_method(:name) { "FakeName" }
+    error = assert_raises ArgumentError do
+      Class.new do
+        delegate :something, to: anonymous_class
+      end
+    end
+    assert_includes error.message, "Can't delegate to detached class or module: FakeName"
   end
 
   def test_delegation_arity_to_module

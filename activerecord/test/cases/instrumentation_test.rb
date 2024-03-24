@@ -2,11 +2,12 @@
 
 require "cases/helper"
 require "models/book"
+require "models/clothing_item"
 
 module ActiveRecord
   class InstrumentationTest < ActiveRecord::TestCase
     def setup
-      ActiveRecord::Base.connection.schema_cache.add(Book.table_name)
+      ActiveRecord::Base.schema_cache.add(Book.table_name)
     end
 
     def test_payload_name_on_load
@@ -111,8 +112,44 @@ module ActiveRecord
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
 
+    def test_payload_row_count_on_select_all
+      10.times { Book.create(name: "row count book 1") }
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
+        if payload[:sql].match?("SELECT")
+          assert_equal 10, payload[:row_count]
+        end
+      end
+      Book.where(name: "row count book 1").to_a
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    end
+
+    def test_payload_row_count_on_pluck
+      10.times { Book.create(name: "row count book 2") }
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
+        if payload[:sql].match?("SELECT")
+          assert_equal 10, payload[:row_count]
+        end
+      end
+      Book.where(name: "row count book 2").pluck(:name)
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    end
+
+    def test_payload_row_count_on_raw_sql
+      10.times { Book.create(name: "row count book 3") }
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
+        if payload[:sql].match?("SELECT")
+          assert_equal 10, payload[:row_count]
+        end
+      end
+      ActiveRecord::Base.lease_connection.execute("SELECT * FROM books WHERE name='row count book 3';")
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    end
+
     def test_payload_connection_with_query_cache_disabled
-      connection = Book.connection
+      connection = ClothingItem.lease_connection
       subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
         assert_equal connection, payload[:connection]
       end
@@ -122,7 +159,7 @@ module ActiveRecord
     end
 
     def test_payload_connection_with_query_cache_enabled
-      connection = Book.connection
+      connection = ClothingItem.lease_connection
       subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
         assert_equal connection, payload[:connection]
       end

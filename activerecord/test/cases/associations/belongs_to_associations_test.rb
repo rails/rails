@@ -252,9 +252,9 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, counter
     comment = comments.first
     assert_equal 0, counter
-    sql = capture_sql { comment.post }
+    queries = capture_sql_and_binds { comment.post }
     comment.reload
-    assert_not_equal sql, capture_sql { comment.post }
+    assert_not_equal queries, capture_sql_and_binds { comment.post }
   end
 
   def test_proxy_assignment
@@ -270,7 +270,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_raises_type_mismatch_with_namespaced_class
     assert_nil defined?(Region), "This test requires that there is no top-level Region class"
 
-    ActiveRecord::Base.connection.instance_eval do
+    ActiveRecord::Base.lease_connection.instance_eval do
       create_table(:admin_regions, force: true) { |t| t.string :name }
       add_column :admin_users, :region_id, :integer
     end
@@ -285,7 +285,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     Admin.send :remove_const, "Region" if Admin.const_defined?("Region")
     Admin.send :remove_const, "RegionalUser" if Admin.const_defined?("RegionalUser")
 
-    ActiveRecord::Base.connection.instance_eval do
+    ActiveRecord::Base.lease_connection.instance_eval do
       remove_column :admin_users, :region_id if column_exists?(:admin_users, :region_id)
       drop_table :admin_regions, if_exists: true
     end
@@ -369,6 +369,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     _shop_id, id = order.id
     assert_equal id, cpk_book.order_id
+  end
+
+  def test_belongs_to_with_explicit_composite_primary_key
+    cpk_book = cpk_books(:cpk_great_author_first_book)
+    order = cpk_book.build_order_explicit_fk_pk
+    order.shop_id = 123
+    cpk_book.save
+
+    shop_id, id = order.id
+    assert_equal id, cpk_book.order_id
+    assert_equal shop_id, cpk_book.shop_id
+    assert_equal order, cpk_book.reload.order_explicit_fk_pk
   end
 
   def test_belongs_to_with_inverse_association_for_composite_primary_key
@@ -460,7 +472,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_reload_the_belonging_object_with_query_cache
     odegy_account_id = accounts(:odegy_account).id
 
-    connection = ActiveRecord::Base.connection
+    connection = ActiveRecord::Base.lease_connection
     connection.enable_query_cache!
     connection.clear_query_cache
 
@@ -478,7 +490,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     # This query is not cached anymore, so it should make a real SQL query
     assert_queries_count(1) { Account.find(odegy_account_id) }
   ensure
-    ActiveRecord::Base.connection.disable_query_cache!
+    ActiveRecord::Base.lease_connection.disable_query_cache!
   end
 
   def test_resetting_the_association

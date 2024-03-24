@@ -3,12 +3,12 @@
 require "cases/helper"
 require "support/schema_dumping_helper"
 
-if ActiveRecord::Base.connection.supports_foreign_keys?
+if ActiveRecord::Base.lease_connection.supports_foreign_keys?
   module ActiveRecord
     class Migration
       class ForeignKeyInCreateTest < ActiveRecord::TestCase
         def test_foreign_keys
-          foreign_keys = ActiveRecord::Base.connection.foreign_keys("fk_test_has_fk")
+          foreign_keys = ActiveRecord::Base.lease_connection.foreign_keys("fk_test_has_fk")
           assert_equal 1, foreign_keys.size
 
           fk = foreign_keys.first
@@ -45,7 +45,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
 
         def setup
-          @connection = ActiveRecord::Base.connection
+          @connection = ActiveRecord::Base.lease_connection
           @migration = CreateRocketsMigration.new
           silence_stream($stdout) { @migration.migrate(:up) }
           Rocket.reset_table_name
@@ -177,7 +177,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
 
         setup do
-          @connection = ActiveRecord::Base.connection
+          @connection = ActiveRecord::Base.lease_connection
           @connection.create_table "rockets", force: true do |t|
             t.string :name
           end
@@ -433,7 +433,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             @connection.foreign_keys("astronauts").map { |fk| [fk.from_table, fk.to_table, fk.column] }
         end
 
-        if ActiveRecord::Base.connection.supports_validate_constraints?
+        if ActiveRecord::Base.lease_connection.supports_validate_constraints?
           def test_add_invalid_foreign_key
             @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", validate: false
 
@@ -517,7 +517,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           end
         end
 
-        if ActiveRecord::Base.connection.supports_deferrable_constraints?
+        if ActiveRecord::Base.lease_connection.supports_deferrable_constraints?
           def test_deferrable_foreign_key
             @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", deferrable: :immediate
 
@@ -588,18 +588,6 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             output = dump_table_schema "astronauts"
 
             assert_match %r{\s+add_foreign_key "astronauts", "rockets", deferrable: :immediate$}, output
-          end
-
-          def test_deferrable_true_foreign_key
-            assert_deprecated(ActiveRecord.deprecator) do
-              @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", deferrable: true
-            end
-
-            foreign_keys = @connection.foreign_keys("astronauts")
-            assert_equal 1, foreign_keys.size
-
-            fk = foreign_keys.first
-            assert_equal :immediate, fk.deferrable
           end
         end
 
@@ -674,20 +662,30 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
 
         def test_add_foreign_key_is_reversible
+          @connection.drop_table("cities", if_exists: true)
+          @connection.drop_table("houses", if_exists: true)
+
           migration = CreateCitiesAndHousesMigration.new
           silence_stream($stdout) { migration.migrate(:up) }
           assert_equal 1, @connection.foreign_keys("houses").size
-        ensure
           silence_stream($stdout) { migration.migrate(:down) }
+        ensure
+          @connection.drop_table("cities", if_exists: true)
+          @connection.drop_table("houses", if_exists: true)
         end
 
         def test_foreign_key_constraint_is_not_cached_incorrectly
+          @connection.drop_table("cities", if_exists: true)
+          @connection.drop_table("houses", if_exists: true)
+
           migration = CreateCitiesAndHousesMigration.new
           silence_stream($stdout) { migration.migrate(:up) }
           output = dump_table_schema "houses"
           assert_match %r{\s+add_foreign_key "houses",.+on_delete: :cascade$}, output
-        ensure
           silence_stream($stdout) { migration.migrate(:down) }
+        ensure
+          @connection.drop_table("cities", if_exists: true)
+          @connection.drop_table("houses", if_exists: true)
         end
 
         class CreateSchoolsAndClassesMigration < ActiveRecord::Migration::Current
@@ -761,11 +759,11 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             end
 
             if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-              if ActiveRecord::Base.connection.mariadb?
+              if ActiveRecord::Base.lease_connection.mariadb?
                 assert_match(/Duplicate key on write or update/, error.message)
-              elsif ActiveRecord::Base.connection.database_version < "5.6"
+              elsif ActiveRecord::Base.lease_connection.database_version < "5.6"
                 assert_match(/Can't create table/, error.message)
-              elsif ActiveRecord::Base.connection.database_version < "8.0"
+              elsif ActiveRecord::Base.lease_connection.database_version < "8.0"
                 assert_match(/Can't write; duplicate key in table/, error.message)
               else
                 assert_match(/Duplicate foreign key constraint name/, error.message)
@@ -802,7 +800,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         include SchemaDumpingHelper
 
         setup do
-          @connection = ActiveRecord::Base.connection
+          @connection = ActiveRecord::Base.lease_connection
           @connection.create_table :rockets, primary_key: [:tenant_id, :id], force: true do |t|
             t.integer :tenant_id
             t.integer :id

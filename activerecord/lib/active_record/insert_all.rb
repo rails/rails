@@ -7,8 +7,16 @@ module ActiveRecord
     attr_reader :model, :connection, :inserts, :keys
     attr_reader :on_duplicate, :update_only, :returning, :unique_by, :update_sql
 
-    def initialize(model, inserts, on_duplicate:, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil)
-      @model, @connection, @inserts = model, model.connection, inserts.map(&:stringify_keys)
+    class << self
+      def execute(model, ...)
+        model.with_connection do |c|
+          new(model, c, ...).execute
+        end
+      end
+    end
+
+    def initialize(model, connection, inserts, on_duplicate:, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil)
+      @model, @connection, @inserts = model, connection, inserts.map(&:stringify_keys)
       @on_duplicate, @update_only, @returning, @unique_by = on_duplicate, update_only, returning, unique_by
       @record_timestamps = record_timestamps.nil? ? model.record_timestamps : record_timestamps
 
@@ -52,9 +60,8 @@ module ActiveRecord
     end
 
     def primary_keys
-      Array(connection.schema_cache.primary_keys(model.table_name))
+      Array(@model.schema_cache.primary_keys(model.table_name))
     end
-
 
     def skip_duplicates?
       on_duplicate == :skip
@@ -163,9 +170,8 @@ module ActiveRecord
       end
 
       def unique_indexes
-        connection.schema_cache.indexes(model.table_name).select(&:unique)
+        @model.schema_cache.indexes(model.table_name).select(&:unique)
       end
-
 
       def ensure_valid_options_for_connection!
         if returning && !connection.supports_insert_returning?
@@ -301,7 +307,7 @@ module ActiveRecord
           end
 
           def extract_types_from_columns_on(table_name, keys:)
-            columns = connection.schema_cache.columns_hash(table_name)
+            columns = @model.schema_cache.columns_hash(table_name)
 
             unknown_column = (keys - columns.keys).first
             raise UnknownAttributeError.new(model.new, unknown_column) if unknown_column

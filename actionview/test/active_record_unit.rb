@@ -44,7 +44,7 @@ class ActiveRecordTestConnector
 
     def reconnect
       return unless able_to_connect
-      ActiveRecord::Base.connection.reconnect!
+      ActiveRecord::Base.lease_connection.reconnect!
       load_schema
     end
 
@@ -56,9 +56,9 @@ class ActiveRecordTestConnector
           options = defaults.merge adapter: adapter, timeout: 500
           ActiveRecord::Base.establish_connection(options)
           ActiveRecord::Base.configurations = { "sqlite3_ar_integration" => options }
-          ActiveRecord::Base.connection
+          ActiveRecord::Base.lease_connection
 
-          Object.const_set :QUOTED_TYPE, ActiveRecord::Base.connection.quote_column_name("type") unless Object.const_defined?(:QUOTED_TYPE)
+          Object.const_set :QUOTED_TYPE, ActiveRecord::Base.lease_connection.quote_column_name("type") unless Object.const_defined?(:QUOTED_TYPE)
         else
           raise "Can't setup connection since ActiveRecord isn't loaded."
         end
@@ -67,7 +67,7 @@ class ActiveRecordTestConnector
       # Load actionpack sqlite3 tables
       def load_schema
         File.read(File.expand_path("fixtures/db_definitions/sqlite.sql", __dir__)).split(";").each do |sql|
-          ActiveRecord::Base.connection.execute(sql) unless sql.blank?
+          ActiveRecord::Base.lease_connection.execute(sql) unless sql.blank?
         end
       end
 
@@ -107,7 +107,7 @@ class ActiveRecordTestCase < ActionController::TestCase
   end
 
   def capture_sql
-    ActiveRecord::Base.connection.materialize_transactions
+    ActiveRecord::Base.lease_connection.materialize_transactions
     SQLCounter.clear_log
     yield
     SQLCounter.log.dup

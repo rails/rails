@@ -73,7 +73,7 @@ module ActiveRecord
       end
       self.configurations = {}
 
-      # Returns fully resolved ActiveRecord::DatabaseConfigurations object
+      # Returns a fully resolved ActiveRecord::DatabaseConfigurations object.
       def self.configurations
         @@configurations
       end
@@ -377,8 +377,8 @@ module ActiveRecord
       end
 
       def cached_find_by_statement(key, &block) # :nodoc:
-        cache = @find_by_statement_cache[connection.prepared_statements]
-        cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
+        cache = @find_by_statement_cache[lease_connection.prepared_statements]
+        cache.compute_if_absent(key) { StatementCache.create(lease_connection, &block) }
       end
 
       private
@@ -431,7 +431,7 @@ module ActiveRecord
           }
 
           begin
-            statement.execute(values.flatten, connection).first
+            statement.execute(values.flatten, lease_connection).first
           rescue TypeError
             raise ActiveRecord::StatementInvalid
           end
@@ -569,6 +569,10 @@ module ActiveRecord
     # Returns a hash of the given methods with their names as keys and returned
     # values as values.
     #
+    #   topic = Topic.new(title: "Budget", author_name: "Jason")
+    #   topic.slice(:title, :author_name)
+    #   => { "title" => "Budget", "author_name" => "Jason" }
+    #
     #--
     # Implemented by ActiveModel::Access#slice.
 
@@ -578,6 +582,10 @@ module ActiveRecord
     # :call-seq: values_at(*methods)
     #
     # Returns an array of the values returned by the given methods.
+    #
+    #   topic = Topic.new(title: "Budget", author_name: "Jason")
+    #   topic.values_at(:title, :author_name)
+    #   => ["Budget", "Jason"]
     #
     #--
     # Implemented by ActiveModel::Access#values_at.
@@ -697,6 +705,10 @@ module ActiveRecord
     end
 
     # Marks this record as read only.
+    #
+    #   customer = Customer.first
+    #   customer.readonly!
+    #   customer.save # Raises an ActiveRecord::ReadOnlyRecord
     def readonly!
       @readonly = true
     end
@@ -769,7 +781,6 @@ module ActiveRecord
         @strict_loading_mode = :all
 
         klass.define_attribute_methods
-        klass.generate_alias_attributes
       end
 
       def initialize_internals_callback

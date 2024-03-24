@@ -880,10 +880,11 @@ module ActiveRecord
           update_typemap_for_default_timezone
 
           type_casted_binds = type_casted_binds(binds)
-          log(sql, name, binds, type_casted_binds, async: async) do
+          log(sql, name, binds, type_casted_binds, async: async) do |notification_payload|
             with_raw_connection(allow_retry: false, materialize_transactions: materialize_transactions) do |conn|
               result = conn.exec_params(sql, type_casted_binds)
               verified!
+              notification_payload[:row_count] = result.count
               result
             end
           end
@@ -898,9 +899,10 @@ module ActiveRecord
             stmt_key = prepare_statement(sql, binds, conn)
             type_casted_binds = type_casted_binds(binds)
 
-            log(sql, name, binds, type_casted_binds, stmt_key, async: async) do
+            log(sql, name, binds, type_casted_binds, stmt_key, async: async) do |notification_payload|
               result = conn.exec_prepared(stmt_key, type_casted_binds)
               verified!
+              notification_payload[:row_count] = result.count
               result
             end
           end
@@ -910,7 +912,7 @@ module ActiveRecord
           # Nothing we can do if we are in a transaction because all commands
           # will raise InFailedSQLTransaction
           if in_transaction?
-            raise ActiveRecord::PreparedStatementCacheExpired.new(e.cause.message)
+            raise ActiveRecord::PreparedStatementCacheExpired.new(e.cause.message, connection_pool: @pool)
           else
             @lock.synchronize do
               # outside of transactions we can simply flush this query and retry

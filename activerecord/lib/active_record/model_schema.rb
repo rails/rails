@@ -279,7 +279,7 @@ module ActiveRecord
 
       # Returns a quoted version of the table name, used to construct SQL statements.
       def quoted_table_name
-        @quoted_table_name ||= connection.quote_table_name(table_name)
+        @quoted_table_name ||= adapter_class.quote_table_name(table_name)
       end
 
       # Computes the table name, (re)sets it internally, and returns it.
@@ -374,7 +374,7 @@ module ActiveRecord
 
       def reset_sequence_name # :nodoc:
         @explicit_sequence_name = false
-        @sequence_name          = connection.default_sequence_name(table_name, primary_key)
+        @sequence_name          = lease_connection.default_sequence_name(table_name, primary_key)
       end
 
       # Sets the name of the sequence to use when generating ids to the given
@@ -399,18 +399,18 @@ module ActiveRecord
       # Determines if the primary key values should be selected from their
       # corresponding sequence before the insert statement.
       def prefetch_primary_key?
-        connection.prefetch_primary_key?(table_name)
+        lease_connection.prefetch_primary_key?(table_name)
       end
 
       # Returns the next value that will be used as the primary key on
       # an insert statement.
       def next_sequence_value
-        connection.next_sequence_value(sequence_name)
+        lease_connection.next_sequence_value(sequence_name)
       end
 
       # Indicates whether the table associated with this class exists
       def table_exists?
-        connection.schema_cache.data_source_exists?(table_name)
+        schema_cache.data_source_exists?(table_name)
       end
 
       def attributes_builder # :nodoc:
@@ -421,18 +421,22 @@ module ActiveRecord
       end
 
       def columns_hash # :nodoc:
-        load_schema
+        load_schema unless @columns_hash
         @columns_hash
       end
 
       def columns
-        load_schema
+        load_schema unless @columns
         @columns ||= columns_hash.values.freeze
       end
 
       def _returning_columns_for_insert # :nodoc:
-        @_returning_columns_for_insert ||= columns.filter_map do |c|
-          c.name if connection.return_value_after_insert?(c)
+        @_returning_columns_for_insert ||= begin
+          auto_populated_columns = columns.filter_map do |c|
+            c.name if lease_connection.return_value_after_insert?(c)
+          end
+
+          auto_populated_columns.empty? ? Array(primary_key) : auto_populated_columns
         end
       end
 
@@ -514,9 +518,9 @@ module ActiveRecord
       #    end
       #  end
       def reset_column_information
-        connection.clear_cache!
+        lease_connection.clear_cache!
         ([self] + descendants).each(&:undefine_attribute_methods)
-        connection.schema_cache.clear_data_source_cache!(table_name)
+        schema_cache.clear_data_source_cache!(table_name)
 
         reload_schema_from_cache
         initialize_find_by_cache
@@ -525,7 +529,7 @@ module ActiveRecord
       def load_schema # :nodoc:
         return if schema_loaded?
         @load_schema_monitor.synchronize do
-          return if @columns_hash
+          return if schema_loaded?
 
           load_schema!
 
@@ -580,7 +584,7 @@ module ActiveRecord
             raise ActiveRecord::TableNotSpecified, "#{self} has no table configured. Set one with #{self}.table_name="
           end
 
-          columns_hash = connection.schema_cache.columns_hash(table_name)
+          columns_hash = schema_cache.columns_hash(table_name)
           columns_hash = columns_hash.except(*ignored_columns) unless ignored_columns.empty?
           @columns_hash = columns_hash.freeze
         end
@@ -609,7 +613,7 @@ module ActiveRecord
         end
 
         def type_for_column(column)
-          type = connection.lookup_cast_type_from_column(column)
+          type = lease_connection.lookup_cast_type_from_column(column)
 
           if immutable_strings_by_default && type.respond_to?(:to_immutable_string)
             type = type.to_immutable_string

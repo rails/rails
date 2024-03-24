@@ -88,6 +88,10 @@ class WithTest < ActiveSupport::TestCase
     assert_equal :mixed, @object.mixed_attr
   end
 
+  test "yields the instance to the block" do
+    assert_equal "1", @object.with(public_attr: "1", &:public_attr)
+  end
+
   test "basic immediates don't respond to #with" do
     assert_not_respond_to nil, :with
     assert_not_respond_to true, :with

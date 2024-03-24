@@ -152,9 +152,7 @@ module ActiveRecord # :nodoc:
           [self.class, cast_type, normalizer, normalize_nil?].hash
         end
 
-        def inspect
-          Kernel.instance_method(:inspect).bind_call(self)
-        end
+        define_method(:inspect, Kernel.instance_method(:inspect))
 
         private
           def normalize(value)

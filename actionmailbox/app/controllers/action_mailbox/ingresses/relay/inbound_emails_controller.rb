@@ -41,13 +41,13 @@ module ActionMailbox
   #    If your application lives at <tt>https://example.com</tt>, you would configure the Postfix SMTP server to pipe
   #    inbound emails to the following command:
   #
-  #        bin/rails action_mailbox:ingress:postfix URL=https://example.com/rails/action_mailbox/postfix/inbound_emails INGRESS_PASSWORD=...
+  #        $ bin/rails action_mailbox:ingress:postfix URL=https://example.com/rails/action_mailbox/postfix/inbound_emails INGRESS_PASSWORD=...
   #
   #    Built-in ingress commands are available for these popular SMTP servers:
   #
-  #    - Exim (<tt>bin/rails action_mailbox:ingress:exim)
-  #    - Postfix (<tt>bin/rails action_mailbox:ingress:postfix)
-  #    - Qmail (<tt>bin/rails action_mailbox:ingress:qmail)
+  #    - Exim (<tt>bin/rails action_mailbox:ingress:exim</tt>)
+  #    - Postfix (<tt>bin/rails action_mailbox:ingress:postfix</tt>)
+  #    - Qmail (<tt>bin/rails action_mailbox:ingress:qmail</tt>)
   class Ingresses::Relay::InboundEmailsController < ActionMailbox::BaseController
     before_action :authenticate_by_password, :require_valid_rfc822_message
 

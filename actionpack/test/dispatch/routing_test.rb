@@ -3895,9 +3895,9 @@ private
     @app.routes.url_helpers.url_for(options)
   end
 
-  def method_missing(method, *args, &block)
-    if method.to_s.match?(/_(path|url)$/)
-      @app.routes.url_helpers.send(method, *args, &block)
+  def method_missing(method, ...)
+    if method.match?(/_(path|url)$/)
+      @app.routes.url_helpers.send(method, ...)
     else
       super
     end
@@ -4054,7 +4054,16 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
         get "/foo/bar", to: "foo"
       end
     }
-    assert_match(/Missing :controller/, ex.message)
+    assert_match(/:to must respond to/, ex.message)
+  end
+
+  def test_to_is_a_symbol
+    ex = assert_raises(ArgumentError) {
+      draw do
+        get "/foo/bar", to: :foo
+      end
+    }
+    assert_match(/:to must respond to/, ex.message)
   end
 
   def test_missing_action_on_hash

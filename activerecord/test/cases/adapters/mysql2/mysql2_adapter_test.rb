@@ -7,7 +7,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
   include DdlHelper
 
   def setup
-    @conn = ActiveRecord::Base.connection
+    @conn = ActiveRecord::Base.lease_connection
     @original_db_warnings_action = :ignore
   end
 
@@ -265,7 +265,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     ActiveRecord::Base.establish_connection(
       db_config.configuration_hash.merge("read_timeout" => 1)
     )
-    connection = ActiveRecord::Base.connection
+    connection = ActiveRecord::Base.lease_connection
 
     error = assert_raises(ActiveRecord::AdapterTimeout) do
       connection.execute("SELECT SLEEP(2)")

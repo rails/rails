@@ -38,6 +38,7 @@ module RailsGuides
 
     def generate
       generate_guides
+      process_scss
       copy_assets
       generate_epub if @epub
     end
@@ -105,8 +106,13 @@ module RailsGuides
         end
       end
 
+      def process_scss
+        system "bundle exec dartsass ./assets/stylesrc/style.scss:#{@output_dir}/stylesheets/style.css ./assets/stylesrc/highlight.scss:#{@output_dir}/stylesheets/highlight.css"
+      end
+
       def copy_assets
-        FileUtils.cp_r(Dir.glob("#{@guides_dir}/assets/*"), @output_dir)
+        source_files = Dir.glob("#{@guides_dir}/assets/*").reject { |name| name.include?("stylesrc") }
+        FileUtils.cp_r(source_files, @output_dir)
       end
 
       def output_file_for(guide)
@@ -177,7 +183,7 @@ module RailsGuides
         anchors = Set.new
         html.scan(/<h\d\s+id="([^"]+)/).flatten.each do |anchor|
           if anchors.member?(anchor)
-            puts "*** DUPLICATE ID: #{anchor}, please make sure that there are no headings with the same name at the same level."
+            puts "*** DUPLICATE ID: '#{anchor}', please make sure that there are no headings with the same name at the same level."
           else
             anchors << anchor
           end

@@ -112,7 +112,7 @@ When referencing a "Rails application", as opposed to an "engine" or "plugin", a
 
 # GOOD
 # Production applications can report their status upstream.
-# Devise is a Rails authentication enging.
+# Devise is a Rails authentication engine.
 ```
 
 Spell software names correctly. When in doubt, please have a look at some authoritative source like their official documentation.
@@ -167,13 +167,11 @@ used. Instead of:
 * his or hers... use theirs.
 * himself or herself... use themselves.
 
-English
--------
+### American English
 
 Please use American English (*color*, *center*, *modularize*, etc). See [a list of American and British English spelling differences here](https://en.wikipedia.org/wiki/American_and_British_English_spelling_differences).
 
-Oxford Comma
-------------
+### Oxford Comma
 
 Please use the [Oxford comma](https://en.wikipedia.org/wiki/Serial_comma)
 ("red, white, and blue", instead of "red, white and blue").

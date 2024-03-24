@@ -23,16 +23,7 @@ module ActiveRecord
     end
 
     def associated_with?(table_name)
-      if reflection = klass&._reflect_on_association(table_name)
-        reflection
-      elsif ActiveRecord.allow_deprecated_singular_associations_name && reflection = klass&._reflect_on_association(table_name.singularize)
-        ActiveRecord.deprecator.warn(<<~MSG)
-          Referring to a singular association (e.g. `#{reflection.name}`) by its plural name (e.g. `#{reflection.plural_name}`) is deprecated.
-
-          To convert this deprecation warning to an error and enable more performant behavior, set config.active_record.allow_deprecated_singular_associations_name = false.
-        MSG
-        reflection
-      end
+      klass&._reflect_on_association(table_name)
     end
 
     def associated_table(table_name)
@@ -53,7 +44,7 @@ module ActiveRecord
         arel_table = arel_table.alias(table_name) if arel_table.name != table_name
         TableMetadata.new(association_klass, arel_table, reflection)
       else
-        type_caster = TypeCaster::Connection.new(klass, table_name)
+        type_caster = TypeCaster::Connection.new(klass)
         arel_table = Arel::Table.new(table_name, type_caster: type_caster)
         TableMetadata.new(nil, arel_table, reflection)
       end

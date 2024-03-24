@@ -964,15 +964,15 @@ module Arel
       end
 
       it "handles database-specific statements" do
-        old_visitor = Table.engine.connection.visitor
-        Table.engine.connection.visitor = Visitors::PostgreSQL.new Table.engine.connection
+        old_visitor = Table.engine.lease_connection.visitor
+        Table.engine.lease_connection.visitor = Visitors::PostgreSQL.new Table.engine.lease_connection
         table   = Table.new :users
         manager = Arel::SelectManager.new
         manager.from table
         manager.where table[:id].eq 10
         manager.where table[:name].matches "foo%"
         _(manager.where_sql).must_be_like %{ WHERE "users"."id" = 10 AND "users"."name" ILIKE 'foo%' }
-        Table.engine.connection.visitor = old_visitor
+        Table.engine.lease_connection.visitor = old_visitor
       end
 
       it "returns nil when there are no wheres" do
@@ -1014,7 +1014,7 @@ module Arel
 
         _(stmt.to_sql).must_be_like %{
           UPDATE "users" SET foo = bar
-          WHERE "users"."id" IN (SELECT "users"."id" FROM "users" LIMIT 1)
+          WHERE ("users"."id") IN (SELECT "users"."id" FROM "users" LIMIT 1)
         }
       end
 
@@ -1028,7 +1028,7 @@ module Arel
 
         _(stmt.to_sql).must_be_like %{
           UPDATE "users" SET foo = bar
-          WHERE "users"."id" IN (SELECT "users"."id" FROM "users" ORDER BY foo)
+          WHERE ("users"."id") IN (SELECT "users"."id" FROM "users" ORDER BY foo)
         }
       end
 
@@ -1053,7 +1053,7 @@ module Arel
         stmt = manager.compile_update({ table[:id] => 1 }, Arel::Attributes::Attribute.new(table, "id"))
 
         _(stmt.to_sql).must_be_like %{
-          UPDATE "users" SET "id" = 1 WHERE "users"."id" IN (SELECT "users"."id" FROM "users" WHERE "users"."foo" = 10 LIMIT 42)
+          UPDATE "users" SET "id" = 1 WHERE ("users"."id") IN (SELECT "users"."id" FROM "users" WHERE "users"."foo" = 10 LIMIT 42)
         }
       end
     end

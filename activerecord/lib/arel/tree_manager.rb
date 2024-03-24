@@ -21,7 +21,11 @@ module Arel # :nodoc: all
       end
 
       def key=(key)
-        @ast.key = Nodes.build_quoted(key)
+        @ast.key = if key.is_a?(Array)
+          key.map { |k| Nodes.build_quoted(k) }
+        else
+          Nodes.build_quoted(key)
+        end
       end
 
       def key
@@ -48,8 +52,9 @@ module Arel # :nodoc: all
 
     def to_sql(engine = Table.engine)
       collector = Arel::Collectors::SQLString.new
-      collector = engine.connection.visitor.accept @ast, collector
-      collector.value
+      engine.with_connection do |connection|
+        connection.visitor.accept(@ast, collector).value
+      end
     end
 
     def initialize_copy(other)

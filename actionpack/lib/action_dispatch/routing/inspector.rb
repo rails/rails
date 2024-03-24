@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "delegate"
 require "io/console/size"
 
@@ -66,8 +68,8 @@ module ActionDispatch
 
     ##
     # This class is just used for displaying route information when someone
-    # executes `bin/rails routes` or looks at the RoutingError page.
-    # People should not use this class.
+    # executes `bin/rails routes` or looks at the RoutingError page. People should
+    # not use this class.
     class RoutesInspector # :nodoc:
       def initialize(routes)
         @engines = {}

@@ -178,7 +178,10 @@ module ActiveRecord
       def can_use_fast_cache_version?(timestamp)
         timestamp.is_a?(String) &&
           cache_timestamp_format == :usec &&
-          self.class.connection.default_timezone == :utc &&
+          # FIXME: checking out a connection for this is wasteful
+          # we should store/cache this information in the schema cache
+          # or similar.
+          self.class.with_connection(&:default_timezone) == :utc &&
           !updated_at_came_from_user?
       end
 

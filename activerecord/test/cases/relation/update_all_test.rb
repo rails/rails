@@ -14,9 +14,11 @@ require "models/topic"
 require "models/tag"
 require "models/tagging"
 require "models/warehouse_thing"
+require "models/cpk"
 
 class UpdateAllTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :comments, :developers, :posts, :people, :pets, :toys, :tags, :taggings, "warehouse-things"
+  fixtures :authors, :author_addresses, :comments, :developers, :posts, :people, :pets, :toys, :tags,
+    :taggings, "warehouse-things", :cpk_orders, :cpk_order_agreements
 
   class TopicWithCallbacks < ActiveRecord::Base
     self.table_name = :topics
@@ -67,9 +69,9 @@ class UpdateAllTest < ActiveRecord::TestCase
     end
 
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-      assert_no_match %r/SELECT DISTINCT #{Regexp.escape(Pet.connection.quote_table_name("pets.pet_id"))}/, sqls.last
+      assert_no_match %r/SELECT DISTINCT #{Regexp.escape(Pet.lease_connection.quote_table_name("pets.pet_id"))}/, sqls.last
     else
-      assert_match %r/SELECT #{Regexp.escape(Pet.connection.quote_table_name("pets.pet_id"))}/, sqls.last
+      assert_match %r/SELECT #{Regexp.escape(Pet.lease_connection.quote_table_name("pets.pet_id"))}/, sqls.last
     end
   end
 
@@ -298,6 +300,12 @@ class UpdateAllTest < ActiveRecord::TestCase
         assert_equal now, person.updated_at
       end
     end
+  end
+
+  def test_update_all_composite_model_with_join_subquery
+    agreement = cpk_order_agreements(:order_agreement_three)
+    join_scope = Cpk::Order.joins(:order_agreements).where(order_agreements: { signature: agreement.signature })
+    assert_equal 1, join_scope.update_all(status: "shipped")
   end
 
   # Oracle UPDATE does not support ORDER BY

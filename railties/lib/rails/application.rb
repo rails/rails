@@ -234,8 +234,7 @@ module Rails
     end
 
     # Convenience for loading config/foo.yml for the current \Rails env.
-    #
-    # Examples:
+    # Example:
     #
     #     # config/exception_notification.yml:
     #     production:
@@ -246,13 +245,15 @@ module Rails
     #       url: http://localhost:3001
     #       namespace: my_app_development
     #
+    # <code></code>
+    #
     #     # config/environments/production.rb
     #     Rails.application.configure do
     #       config.middleware.use ExceptionNotifier, config_for(:exception_notification)
     #     end
     #
-    #     # You can also store configurations in a shared section which will be
-    #     # merged with the environment configuration
+    # You can also store configurations in a shared section which will be merged
+    # with the environment configuration
     #
     #     # config/example.yml
     #     shared:
@@ -264,6 +265,8 @@ module Rails
     #       foo:
     #         bar:
     #           qux: 2
+    #
+    # <code></code>
     #
     #     # development environment
     #     Rails.application.config_for(:example)[:foo][:bar]
@@ -409,8 +412,8 @@ module Rails
     def watchable_args # :nodoc:
       files, dirs = config.watchable_files.dup, config.watchable_dirs.dup
 
-      ActiveSupport::Dependencies.autoload_paths.each do |path|
-        File.file?(path) ? files << path.to_s : dirs[path.to_s] = [:rb]
+      Rails.autoloaders.main.dirs.each do |path|
+        dirs[path] = [:rb]
       end
 
       [files, dirs]
@@ -473,27 +476,30 @@ module Rails
     # then +credentials.secret_key_base+, and finally +secrets.secret_key_base+. For most applications,
     # the correct place to store it is in the encrypted credentials file.
     def secret_key_base
-      if Rails.env.local? || ENV["SECRET_KEY_BASE_DUMMY"]
-        config.secret_key_base ||= generate_local_secret
-      else
-        validate_secret_key_base(
-          ENV["SECRET_KEY_BASE"] || credentials.secret_key_base || begin
-            secret_skb = secrets_secret_key_base
+      config.secret_key_base ||=
+        if ENV["SECRET_KEY_BASE_DUMMY"]
+          generate_local_secret
+        else
+          validate_secret_key_base(
+            ENV["SECRET_KEY_BASE"] || credentials.secret_key_base || begin
+              secret_skb = secrets_secret_key_base
 
-            if secret_skb.equal?(config.secret_key_base)
-              config.secret_key_base
-            else
-              Rails.deprecator.warn(<<~MSG.squish)
-                Your `secret_key_base` is configured in `Rails.application.secrets`,
-                which is deprecated in favor of `Rails.application.credentials` and
-                will be removed in Rails 7.2.
-              MSG
+              if secret_skb && secret_skb.equal?(config.secret_key_base)
+                config.secret_key_base
+              elsif secret_skb
+                Rails.deprecator.warn(<<~MSG.squish)
+                  Your `secret_key_base` is configured in `Rails.application.secrets`,
+                  which is deprecated in favor of `Rails.application.credentials` and
+                  will be removed in Rails 7.2.
+                MSG
 
-              secret_skb
+                secret_skb
+              elsif Rails.env.local?
+                generate_local_secret
+              end
             end
-          end
-        )
-      end
+          )
+        end
     end
 
     # Returns an ActiveSupport::EncryptedConfiguration instance for the

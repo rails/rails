@@ -5,7 +5,7 @@ require "active_support/error_reporter/test_helper"
 
 class WarningsTest < ActiveRecord::AbstractMysqlTestCase
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @original_db_warnings_action = :ignore
   end
 

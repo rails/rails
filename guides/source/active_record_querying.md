@@ -912,6 +912,14 @@ irb> Book.order("title ASC").order("created_at DESC")
 SELECT * FROM books ORDER BY title ASC, created_at DESC
 ```
 
+You can also order from a joined table
+
+```ruby
+Book.includes(:author).order(books: { print_year: :desc }, authors: { name: :asc })
+# OR
+Book.includes(:author).order('books.print_year desc', 'authors.name asc')
+```
+
 WARNING: In most database systems, on selecting fields with `distinct` from a result set using methods like `select`, `pluck` and `ids`; the `order` method will raise an `ActiveRecord::StatementInvalid` exception unless the field(s) used in `order` clause are included in the select list. See the next section for selecting fields from the result set.
 
 Selecting Specific Fields
@@ -1305,7 +1313,7 @@ Active Record provides the [`readonly`][] method on a relation to explicitly dis
 ```ruby
 customer = Customer.readonly.first
 customer.visits += 1
-customer.save
+customer.save # Raises an ActiveRecord::ReadOnlyRecord
 ```
 
 As `customer` is explicitly set to be a readonly object, the above code will raise an `ActiveRecord::ReadOnlyRecord` exception when calling `customer.save` with an updated value of _visits_.
@@ -1459,7 +1467,7 @@ SELECT books.* FROM books
   INNER JOIN reviews ON reviews.book_id = books.id
 ```
 
-Or, in English: "return all books with their author that have at least one review". Note again that books with multiple reviews will show up multiple times.
+Or, in English: "return all books that have an author and at least one review". Note again that books with multiple reviews will show up multiple times.
 
 ##### Joining Nested Associations (Single Level)
 
@@ -2706,7 +2714,7 @@ and may yield this for PostgreSQL:
 
 ### Explain Options
 
-For databases and adapters which support them (currently PostgreSQL and MySQL), options can be passed to provide deeper analysis.
+For databases and adapters which support them (currently PostgreSQL, MySQL, and MariaDB), options can be passed to provide deeper analysis.
 
 Using PostgreSQL, the following:
 

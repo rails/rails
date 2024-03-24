@@ -82,6 +82,25 @@ module GeneratorsTestHelper
     File.write File.join(destination, "Dockerfile"), dockerfile
   end
 
+  def copy_devcontainer_files
+    destination = File.join(destination_root, ".devcontainer")
+    mkdir_p(destination)
+
+    devcontainer_json = File.read(File.expand_path("../fixtures/.devcontainer/devcontainer.json", __dir__))
+    File.write File.join(destination, "devcontainer.json"), devcontainer_json
+
+    compose_yaml = File.read(File.expand_path("../fixtures/.devcontainer/compose.yaml", __dir__))
+    File.write File.join(destination, "compose.yaml"), compose_yaml
+  end
+
+  def copy_minimal_devcontainer_compose_file
+    destination = File.join(destination_root, ".devcontainer")
+    mkdir_p(destination)
+
+    compose_yaml = File.read(File.expand_path("../fixtures/.devcontainer/compose-minimal.yaml", __dir__))
+    File.write File.join(destination, "compose.yaml"), compose_yaml
+  end
+
   def evaluate_template(file, locals = {})
     erb = ERB.new(File.read(file), trim_mode: "-", eoutvar: "@output_buffer")
     context = Class.new do
@@ -95,6 +114,12 @@ module GeneratorsTestHelper
   def evaluate_template_docker(file)
     erb = ERB.new(File.read(file), trim_mode: "-", eoutvar: "@output_buffer")
     erb.result()
+  end
+
+  def assert_compose_file
+    assert_file ".devcontainer/compose.yaml" do |content|
+      yield YAML.load(content)
+    end
   end
 
   private

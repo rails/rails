@@ -128,7 +128,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     Topic.reset_column_information
 
-    Topic.connection.stub(:schema_cache, -> { raise "Some Error" }) do
+    Topic.connection_pool.stub(:schema_cache, -> { raise "Some Error" }) do
       assert_raises RuntimeError do
         Topic.columns_hash
       end
@@ -138,7 +138,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_column_names_are_escaped
-    conn      = ActiveRecord::Base.connection
+    conn      = ActiveRecord::Base.lease_connection
     classname = conn.class.name[/[^:]*$/]
     badchar   = {
       "SQLite3Adapter"    => '"',
@@ -691,7 +691,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_create_without_prepared_statement
-    topic = Topic.connection.unprepared_statement do
+    topic = Topic.lease_connection.unprepared_statement do
       Topic.create(title: "foo")
     end
 
@@ -700,7 +700,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_destroy_without_prepared_statement
     topic = Topic.create(title: "foo")
-    Topic.connection.unprepared_statement do
+    Topic.lease_connection.unprepared_statement do
       Topic.find(topic.id).destroy
     end
 
@@ -1346,11 +1346,11 @@ class BasicsTest < ActiveRecord::TestCase
 
     klass.table_name = "foo"
     assert_equal "foo", klass.table_name
-    assert_equal klass.connection.quote_table_name("foo"), klass.quoted_table_name
+    assert_equal klass.lease_connection.quote_table_name("foo"), klass.quoted_table_name
 
     klass.table_name = "bar"
     assert_equal "bar", klass.table_name
-    assert_equal klass.connection.quote_table_name("bar"), klass.quoted_table_name
+    assert_equal klass.lease_connection.quote_table_name("bar"), klass.quoted_table_name
   end
 
   def test_set_table_name_with_inheritance
@@ -1451,7 +1451,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_assert_queries_count
-    query = lambda { ActiveRecord::Base.connection.execute "select count(*) from developers" }
+    query = lambda { ActiveRecord::Base.lease_connection.execute "select count(*) from developers" }
     assert_queries_count(2) { 2.times { query.call } }
     assert_queries_count 1, &query
     assert_no_queries { assert true }
@@ -1485,14 +1485,14 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_clear_cache!
     # preheat cache
-    c1 = Post.connection.schema_cache.columns("posts")
-    assert_not_equal 0, Post.connection.schema_cache.size
+    c1 = Post.schema_cache.columns("posts")
+    assert_not_equal 0, Post.schema_cache.size
 
     ActiveRecord::Base.clear_cache!
-    assert_equal 0, Post.connection.schema_cache.size
+    assert_equal 0, Post.schema_cache.size
 
-    c2 = Post.connection.schema_cache.columns("posts")
-    assert_not_equal 0, Post.connection.schema_cache.size
+    c2 = Post.schema_cache.columns("posts")
+    assert_not_equal 0, Post.schema_cache.size
 
     assert_equal c1, c2
   end
@@ -1555,6 +1555,7 @@ class BasicsTest < ActiveRecord::TestCase
         post.comments.build
         wr.write Marshal.dump(post)
         wr.close
+        exit!(0)
       end
 
       wr.close
@@ -1661,7 +1662,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   if current_adapter?(:PostgreSQLAdapter)
     def test_column_types_on_queries_on_postgresql
-      result = ActiveRecord::Base.connection.exec_query("SELECT 1 AS test")
+      result = ActiveRecord::Base.lease_connection.exec_query("SELECT 1 AS test")
       assert_equal ActiveModel::Type::Integer, result.column_types["test"].class
     end
   end
@@ -1760,7 +1761,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "ignored columns are not present in columns_hash" do
-    cache_columns = Developer.connection.schema_cache.columns_hash(Developer.table_name)
+    cache_columns = Developer.schema_cache.columns_hash(Developer.table_name)
     assert_includes cache_columns.keys, "first_name"
     assert_not_includes Developer.columns_hash.keys, "first_name"
     assert_not_includes SubDeveloper.columns_hash.keys, "first_name"

@@ -52,7 +52,7 @@ module ActionView
           code_generator.define_cached_method(method_name, namespace: :tag_builder) do |batch|
             batch.push(<<~RUBY) unless instance_methods.include?(method_name.to_sym)
               def #{method_name}(content = nil, escape: true, **options, &block)
-                tag_string(#{name.inspect}, content, escape: escape, **options, &block)
+                tag_string("#{name}", content, options, escape: escape, &block)
               end
             RUBY
           end
@@ -70,7 +70,7 @@ module ActionView
                     positional argument will raise, and using a block will have
                     no effect.
                   TEXT
-                  tag_string("#{name}", content, escape: escape, **options, &block)
+                  tag_string("#{name}", content, options, escape: escape, &block)
                 else
                   self_closing_tag_string("#{name}", options, escape, ">")
                 end
@@ -84,7 +84,7 @@ module ActionView
             batch.push(<<~RUBY)
               def #{method_name}(content = nil, escape: true, **options, &block)
                 if content || block
-                  tag_string("#{name}", content, escape: escape, **options, &block)
+                  tag_string("#{name}", content, options, escape: escape, &block)
                 else
                   self_closing_tag_string("#{name}", options, escape)
                 end
@@ -239,7 +239,7 @@ module ActionView
           tag_options(attributes.to_h).to_s.strip.html_safe
         end
 
-        def tag_string(name, content = nil, escape: true, **options, &block)
+        def tag_string(name, content = nil, options, escape: true, &block)
           content = @view_context.capture(self, &block) if block
 
           content_tag_string(name, content, options, escape)
@@ -252,7 +252,7 @@ module ActionView
         def content_tag_string(name, content, options, escape = true)
           tag_options = tag_options(options, escape) if options
 
-          if escape
+          if escape && content.present?
             content = ERB::Util.unwrapped_html_escape(content)
           end
           "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name]}#{content}</#{name}>".html_safe
@@ -334,12 +334,12 @@ module ActionView
             true
           end
 
-          def method_missing(called, *args, **options, &block)
-            name = called.to_s.dasherize
+          def method_missing(called, *args, escape: true, **options, &block)
+            name = called.name.dasherize
 
             TagHelper.ensure_valid_html5_tag_name(name)
 
-            tag_string(name, *args, **options, &block)
+            tag_string(name, *args, options, escape: escape, &block)
           end
       end
 
@@ -419,6 +419,14 @@ module ActionView
       #
       #   # A void element:
       #   tag.br  # => <br>
+      #
+      # Note that when using the block form options should be wrapped in
+      # parenthesis.
+      #
+      #   <%= tag.a(href: "/about", class: "font-bold") do %>
+      #     About the author
+      #   <% end %>
+      #   # => <a href="/about" class="font-bold">About the author</a>
       #
       # === Building HTML attributes
       #

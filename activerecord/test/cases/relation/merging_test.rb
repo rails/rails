@@ -24,41 +24,23 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     assert_equal [mary], david_and_mary.merge(Author.where(id: mary))
     assert_equal [mary], david_and_mary.merge(Author.rewhere(id: mary))
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal [mary], david_and_mary.merge(Author.where(id: mary), rewhere: true)
-    end
 
     assert_equal [bob],  david_and_mary.merge(Author.where(id: bob))
     assert_equal [bob],  david_and_mary.merge(Author.rewhere(id: bob))
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal [bob],  david_and_mary.merge(Author.where(id: bob), rewhere: true)
-    end
 
     assert_equal [david, bob], mary_and_bob.merge(Author.where(id: [david, bob]))
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal [david, bob], mary_and_bob.merge(Author.where(id: [david, bob]), rewhere: true)
-    end
 
     assert_equal [mary, bob], david_and_mary.merge(mary_and_bob)
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal [mary, bob], david_and_mary.merge(mary_and_bob, rewhere: true)
-    end
     assert_equal [mary], david_and_mary.and(mary_and_bob)
     assert_equal authors, david_and_mary.or(mary_and_bob)
 
     assert_equal [david, mary], mary_and_bob.merge(david_and_mary)
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal [david, mary], mary_and_bob.merge(david_and_mary, rewhere: true)
-    end
     assert_equal [mary], david_and_mary.and(mary_and_bob)
     assert_equal authors, david_and_mary.or(mary_and_bob)
 
     david_and_bob = Author.where(id: david).or(Author.where(name: "Bob"))
 
     assert_equal [david], david_and_mary.merge(david_and_bob)
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal [david], david_and_mary.merge(david_and_bob, rewhere: true)
-    end
     assert_equal [david], david_and_mary.and(david_and_bob)
     assert_equal authors, david_and_mary.or(david_and_bob)
   end
@@ -74,41 +56,23 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     assert_equal [mary], david_and_mary.merge(Author.where(id: mary))
     assert_equal [mary], david_and_mary.merge(Author.rewhere(id: mary))
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal [mary], david_and_mary.merge(Author.where(id: mary), rewhere: true)
-    end
 
     assert_equal [bob], david_and_mary.merge(Author.where(id: bob))
     assert_equal [bob],  david_and_mary.merge(Author.rewhere(id: bob))
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal [bob],  david_and_mary.merge(Author.where(id: bob), rewhere: true)
-    end
 
     assert_equal [david, bob], mary_and_bob.merge(Author.where(id: [david, bob]))
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal [david, bob], mary_and_bob.merge(Author.where(id: [david, bob]), rewhere: true)
-    end
 
     assert_equal [mary, bob], david_and_mary.merge(mary_and_bob)
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal [mary, bob], david_and_mary.merge(mary_and_bob, rewhere: true)
-    end
     assert_equal [mary], david_and_mary.and(mary_and_bob)
     assert_equal authors, david_and_mary.or(mary_and_bob)
 
     assert_equal [david, mary], mary_and_bob.merge(david_and_mary)
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal [david, mary], mary_and_bob.merge(david_and_mary, rewhere: true)
-    end
     assert_equal [mary], david_and_mary.and(mary_and_bob)
     assert_equal authors, david_and_mary.or(mary_and_bob)
 
     david_and_bob = Author.where(id: david).or(Author.where(name: "Bob"))
 
     assert_equal [david], david_and_mary.merge(david_and_bob)
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal [david], david_and_mary.merge(david_and_bob, rewhere: true)
-    end
     assert_equal [david], david_and_mary.and(david_and_bob)
     assert_equal authors, david_and_mary.or(david_and_bob)
   end
@@ -124,42 +88,24 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     assert_equal [mary], david_and_mary.merge(Author.where(id: mary))
     assert_equal [mary], david_and_mary.merge(Author.rewhere(id: mary))
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal [mary], david_and_mary.merge(Author.where(id: mary), rewhere: true)
-    end
 
     assert_equal [bob], david_and_mary.merge(Author.where(id: bob))
     assert_equal [bob],  david_and_mary.merge(Author.rewhere(id: bob))
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal [bob],  david_and_mary.merge(Author.where(id: bob), rewhere: true)
-    end
 
     assert_equal [david, bob], mary_and_bob.merge(Author.where(id: [david, bob]))
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal [david, bob], mary_and_bob.merge(Author.where(id: [david, bob]), rewhere: true)
-    end
 
 
     assert_equal [mary, bob], david_and_mary.merge(mary_and_bob)
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal [mary, bob], david_and_mary.merge(mary_and_bob, rewhere: true)
-    end
     assert_equal [mary], david_and_mary.and(mary_and_bob)
     assert_equal authors, david_and_mary.or(mary_and_bob)
 
     assert_equal [david, mary], mary_and_bob.merge(david_and_mary)
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal [david, mary], mary_and_bob.merge(david_and_mary, rewhere: true)
-    end
     assert_equal [mary], david_and_mary.and(mary_and_bob)
     assert_equal authors, david_and_mary.or(mary_and_bob)
 
     david_and_bob = Author.where(id: david).or(Author.where(name: "Bob"))
 
     assert_equal [david], david_and_mary.merge(david_and_bob)
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal [david], david_and_mary.merge(david_and_bob, rewhere: true)
-    end
     assert_equal [david], david_and_mary.and(david_and_bob)
     assert_equal authors, david_and_mary.or(david_and_bob)
   end
@@ -172,14 +118,8 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal [david], non_mary_and_bob
 
     assert_equal [david], Author.where(id: david).merge(non_mary_and_bob)
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal [david], Author.where(id: david).merge(non_mary_and_bob, rewhere: true)
-    end
 
     assert_equal [david], Author.where(id: mary).merge(non_mary_and_bob)
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal [david], Author.where(id: mary).merge(non_mary_and_bob, rewhere: true)
-    end
   end
 
   def test_merge_not_range_clause
@@ -190,14 +130,8 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal [david, mary], less_than_bob
 
     assert_equal [david, mary], Author.where(id: david).merge(less_than_bob)
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal [david, mary], Author.where(id: david).merge(less_than_bob, rewhere: true)
-    end
 
     assert_equal [david, mary], Author.where(id: mary).merge(less_than_bob)
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal [david, mary], Author.where(id: mary).merge(less_than_bob, rewhere: true)
-    end
   end
 
   def test_merge_doesnt_duplicate_same_clauses
@@ -205,33 +139,27 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     non_mary_and_bob = Author.where.not(id: [mary, bob])
 
-    author_id = Author.connection.quote_table_name("authors.id")
+    author_id = Author.lease_connection.quote_table_name("authors.id")
     assert_queries_match(/WHERE #{Regexp.escape(author_id)} NOT IN \((\?|\W?\w?\d), \g<1>\)\z/) do
       assert_equal [david], non_mary_and_bob.merge(non_mary_and_bob)
     end
 
     only_david = Author.where("#{author_id} IN (?)", david)
 
-    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-      assert_queries_match(/WHERE \(#{Regexp.escape(author_id)} IN \('1'\)\)\z/) do
-        assert_equal [david], only_david.merge(only_david)
+    matcher = if Author.lease_connection.prepared_statements
+      if current_adapter?(:PostgreSQLAdapter)
+        /WHERE \(#{Regexp.escape(author_id)} IN \(\$1\)\)\z/
+      else
+        /WHERE \(#{Regexp.escape(author_id)} IN \(\?\)\)\z/
       end
-
-      assert_queries_match(/WHERE \(#{Regexp.escape(author_id)} IN \('1'\)\)\z/) do
-        assert_deprecated(ActiveRecord.deprecator) do
-          assert_equal [david], only_david.merge(only_david, rewhere: true)
-        end
-      end
+    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      /WHERE \(#{Regexp.escape(author_id)} IN \('1'\)\)\z/
     else
-      assert_queries_match(/WHERE \(#{Regexp.escape(author_id)} IN \(1\)\)\z/) do
-        assert_equal [david], only_david.merge(only_david)
-      end
+      /WHERE \(#{Regexp.escape(author_id)} IN \(1\)\)\z/
+    end
 
-      assert_queries_match(/WHERE \(#{Regexp.escape(author_id)} IN \(1\)\)\z/) do
-        assert_deprecated(ActiveRecord.deprecator) do
-          assert_equal [david], only_david.merge(only_david, rewhere: true)
-        end
-      end
+    assert_queries_match(matcher) do
+      assert_equal [david], only_david.merge(only_david)
     end
   end
 
@@ -255,11 +183,6 @@ class RelationMergingTest < ActiveRecord::TestCase
     devs = Developer.where(salary_attr.eq(80000)).merge(Developer.where(salary_attr.eq(9000)))
     assert_equal [developers(:poor_jamis)], devs.to_a
 
-    assert_deprecated(ActiveRecord.deprecator) do
-      devs = Developer.where(salary_attr.eq(80000)).merge(Developer.where(salary_attr.eq(9000)), rewhere: true)
-    end
-    assert_equal [developers(:poor_jamis)], devs.to_a
-
     devs = Developer.where(salary_attr.eq(80000)).rewhere(salary_attr.eq(9000))
     assert_equal [developers(:poor_jamis)], devs.to_a
   end
@@ -269,11 +192,6 @@ class RelationMergingTest < ActiveRecord::TestCase
     abs_salary = Arel::Nodes::NamedFunction.new("abs", [salary_attr])
 
     devs = Developer.where(abs_salary.eq(80000)).merge(Developer.where(abs_salary.eq(9000)))
-    assert_equal [developers(:poor_jamis)], devs.to_a
-
-    assert_deprecated(ActiveRecord.deprecator) do
-      devs = Developer.where(abs_salary.eq(80000)).merge(Developer.where(abs_salary.eq(9000)), rewhere: true)
-    end
     assert_equal [developers(:poor_jamis)], devs.to_a
 
     devs = Developer.where(abs_salary.eq(80000)).rewhere(abs_salary.eq(9000))
@@ -399,24 +317,6 @@ class RelationMergingTest < ActiveRecord::TestCase
       Post.annotate("bar").merge(Post.annotate("foo")).merge(posts).to_a
     end
   end
-
-  def test_rewhere_true_is_deprecated
-    message = <<-MSG.squish
-      Specifying `Relation#merge(rewhere: true)` is deprecated
-    MSG
-    assert_deprecated(message, ActiveRecord.deprecator) do
-      Author.where(id: 1).merge(Author.where(id: 2), rewhere: true)
-    end
-  end
-
-  def test_rewhere_false_is_deprecated
-    message = <<-MSG.squish
-      Relation#merge(rewhere: false)` is deprecated without replacement
-    MSG
-    assert_deprecated(message, ActiveRecord.deprecator) do
-      Author.where(id: 1).merge(Author.where(id: 2), rewhere: false)
-    end
-  end
 end
 
 class MergingDifferentRelationsTest < ActiveRecord::TestCase
@@ -464,7 +364,7 @@ class MergingDifferentRelationsTest < ActiveRecord::TestCase
     assert_equal dev.ratings, [rating_1]
   end
 
-  if ActiveRecord::Base.connection.supports_common_table_expressions?
+  if ActiveRecord::Base.lease_connection.supports_common_table_expressions?
     test "merging relation with common table expression" do
       posts_with_tags = Post.with(posts_with_tags: Post.where("tags_count > 0")).from("posts_with_tags AS posts")
       posts_with_comments = Post.where("legacy_comments_count > 0")

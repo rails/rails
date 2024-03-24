@@ -171,9 +171,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, counter
     post = posts.first
     assert_equal 0, counter
-    sql = capture_sql { post.comments.to_a }
+    queries = capture_sql_and_binds { post.comments.to_a }
     post.comments.reset
-    assert_not_equal sql, capture_sql { post.comments.to_a }
+    assert_not_equal queries, capture_sql_and_binds { post.comments.to_a }
   end
 
   def test_has_many_build_with_options
@@ -486,7 +486,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     self.table_name = "books"
 
     belongs_to :author
-    enum last_read: { unread: 0, reading: 2, read: 3, forgotten: nil }
+    enum :last_read, { unread: 0, reading: 2, read: 3, forgotten: nil }
   end
 
   def test_association_enum_works_properly
@@ -925,7 +925,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_reload_with_query_cache
-    connection = ActiveRecord::Base.connection
+    connection = ActiveRecord::Base.lease_connection
     connection.enable_query_cache!
     connection.clear_query_cache
 
@@ -943,11 +943,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal 1, connection.query_cache.size
   ensure
-    ActiveRecord::Base.connection.disable_query_cache!
+    ActiveRecord::Base.lease_connection.disable_query_cache!
   end
 
   def test_reloading_unloaded_associations_with_query_cache
-    connection = ActiveRecord::Base.connection
+    connection = ActiveRecord::Base.lease_connection
     connection.enable_query_cache!
     connection.clear_query_cache
 
@@ -963,7 +963,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal [client.name], firm.clients.reload.map(&:name)
   ensure
-    ActiveRecord::Base.connection.disable_query_cache!
+    ActiveRecord::Base.lease_connection.disable_query_cache!
   end
 
   def test_find_all_with_include_and_conditions
@@ -1315,7 +1315,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       blog_post.delete_comments.delete(comments_to_delete)
     end
 
-    c = Sharded::Comment.connection
+    c = Sharded::Comment.lease_connection
 
     blog_id = Regexp.escape(c.quote_table_name("sharded_comments.blog_id"))
     id = Regexp.escape(c.quote_table_name("sharded_comments.id"))

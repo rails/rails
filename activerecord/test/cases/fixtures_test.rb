@@ -100,9 +100,9 @@ class FixturesTest < ActiveRecord::TestCase
       create_fixtures("bulbs", "movies", "computers")
 
       expected_sql = <<~EOS.chop
-        INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("bulbs")} .*
-        INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("movies")} .*
-        INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("computers")} .*
+        INSERT INTO #{ActiveRecord::Base.lease_connection.quote_table_name("bulbs")} .*
+        INSERT INTO #{ActiveRecord::Base.lease_connection.quote_table_name("movies")} .*
+        INSERT INTO #{ActiveRecord::Base.lease_connection.quote_table_name("computers")} .*
       EOS
       assert_equal 1, subscriber.events.size
       assert_match(/#{expected_sql}/, subscriber.events.first)
@@ -123,7 +123,7 @@ class FixturesTest < ActiveRecord::TestCase
 
       assert_no_difference "Aircraft.count" do
         assert_raises(ActiveRecord::NotNullViolation) do
-          ActiveRecord::Base.connection.insert_fixtures_set(fixtures)
+          ActiveRecord::Base.lease_connection.insert_fixtures_set(fixtures)
         end
       end
     end
@@ -137,7 +137,7 @@ class FixturesTest < ActiveRecord::TestCase
 
       assert_difference "TrafficLight.count" do
         ActiveRecord::Base.transaction do
-          conn = ActiveRecord::Base.connection
+          conn = ActiveRecord::Base.lease_connection
           assert_equal 1, conn.open_transactions
           conn.insert_fixtures_set(fixtures)
           assert_equal 1, conn.open_transactions
@@ -148,9 +148,9 @@ class FixturesTest < ActiveRecord::TestCase
 
   if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     def test_bulk_insert_with_multi_statements_enabled
-      orig_connection_class = ActiveRecord::Base.connection.class
+      adapter_name = ActiveRecord::Base.lease_connection.adapter_name
       run_without_connection do |orig_connection|
-        case orig_connection_class::ADAPTER_NAME
+        case adapter_name
         when "Trilogy"
           ActiveRecord::Base.establish_connection(
             orig_connection.merge(multi_statement: true)
@@ -168,9 +168,9 @@ class FixturesTest < ActiveRecord::TestCase
         }
 
         assert_nothing_raised do
-          conn = ActiveRecord::Base.connection
+          conn = ActiveRecord::Base.lease_connection
           conn.execute("SELECT 1; SELECT 2;")
-          case orig_connection_class::ADAPTER_NAME
+          case adapter_name
           when "Trilogy"
             conn.raw_connection.next_result while conn.raw_connection.more_results_exist?
           else
@@ -180,7 +180,7 @@ class FixturesTest < ActiveRecord::TestCase
 
         assert_difference "TrafficLight.count" do
           ActiveRecord::Base.transaction do
-            conn = ActiveRecord::Base.connection
+            conn = ActiveRecord::Base.lease_connection
             assert_equal 1, conn.open_transactions
             conn.insert_fixtures_set(fixtures)
             assert_equal 1, conn.open_transactions
@@ -188,9 +188,9 @@ class FixturesTest < ActiveRecord::TestCase
         end
 
         assert_nothing_raised do
-          conn = ActiveRecord::Base.connection
+          conn = ActiveRecord::Base.lease_connection
           conn.execute("SELECT 1; SELECT 2;")
-          case orig_connection_class::ADAPTER_NAME
+          case adapter_name
           when "Trilogy"
             conn.raw_connection.next_result while conn.raw_connection.more_results_exist?
           else
@@ -201,9 +201,9 @@ class FixturesTest < ActiveRecord::TestCase
     end
 
     def test_bulk_insert_with_multi_statements_disabled
-      orig_connection_class = ActiveRecord::Base.connection.class
+      adapter_name = ActiveRecord::Base.lease_connection.adapter_name
       run_without_connection do |orig_connection|
-        case orig_connection_class::ADAPTER_NAME
+        case adapter_name
         when "Trilogy"
           ActiveRecord::Base.establish_connection(
             orig_connection.merge(multi_statement: false)
@@ -221,9 +221,9 @@ class FixturesTest < ActiveRecord::TestCase
         }
 
         assert_raises(ActiveRecord::StatementInvalid) do
-          conn = ActiveRecord::Base.connection
+          conn = ActiveRecord::Base.lease_connection
           conn.execute("SELECT 1; SELECT 2;")
-          case orig_connection_class::ADAPTER_NAME
+          case adapter_name
           when "Trilogy"
             conn.raw_connection.next_result while conn.raw_connection.more_results_exist?
           else
@@ -232,14 +232,14 @@ class FixturesTest < ActiveRecord::TestCase
         end
 
         assert_difference "TrafficLight.count" do
-          conn = ActiveRecord::Base.connection
+          conn = ActiveRecord::Base.lease_connection
           conn.insert_fixtures_set(fixtures)
         end
 
         assert_raises(ActiveRecord::StatementInvalid) do
-          conn = ActiveRecord::Base.connection
+          conn = ActiveRecord::Base.lease_connection
           conn.execute("SELECT 1; SELECT 2;")
-          case orig_connection_class::ADAPTER_NAME
+          case adapter_name
           when "Trilogy"
             conn.raw_connection.next_result while conn.raw_connection.more_results_exist?
           else
@@ -250,7 +250,7 @@ class FixturesTest < ActiveRecord::TestCase
     end
 
     def test_insert_fixtures_set_raises_an_error_when_max_allowed_packet_is_smaller_than_fixtures_set_size
-      conn = ActiveRecord::Base.connection
+      conn = ActiveRecord::Base.lease_connection
       mysql_margin = 2
       packet_size = 1024
       bytes_needed_to_have_a_1024_bytes_fixture = 906
@@ -267,7 +267,7 @@ class FixturesTest < ActiveRecord::TestCase
     end
 
     def test_insert_fixture_set_when_max_allowed_packet_is_bigger_than_fixtures_set_size
-      conn = ActiveRecord::Base.connection
+      conn = ActiveRecord::Base.lease_connection
       packet_size = 1024
       fixtures = {
         "traffic_lights" => [
@@ -285,7 +285,7 @@ class FixturesTest < ActiveRecord::TestCase
     def test_insert_fixtures_set_split_the_total_sql_into_two_chunks_smaller_than_max_allowed_packet
       subscriber = InsertQuerySubscriber.new
       subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
-      conn = ActiveRecord::Base.connection
+      conn = ActiveRecord::Base.lease_connection
       packet_size = 1024
       fixtures = {
         "traffic_lights" => [
@@ -310,7 +310,7 @@ class FixturesTest < ActiveRecord::TestCase
     def test_insert_fixtures_set_concat_total_sql_into_a_single_packet_smaller_than_max_allowed_packet
       subscriber = InsertQuerySubscriber.new
       subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
-      conn = ActiveRecord::Base.connection
+      conn = ActiveRecord::Base.lease_connection
       packet_size = 1024
       fixtures = {
         "traffic_lights" => [
@@ -337,7 +337,7 @@ class FixturesTest < ActiveRecord::TestCase
       { "name" => "first", "wheels_count" => 2 },
       { "name" => "second", "wheels_count" => 3 }
     ]
-    conn = ActiveRecord::Base.connection
+    conn = ActiveRecord::Base.lease_connection
     assert_nothing_raised do
       conn.insert_fixtures_set({ "aircraft" => fixtures }, ["aircraft"])
     end
@@ -406,10 +406,10 @@ class FixturesTest < ActiveRecord::TestCase
 
   def test_inserts
     create_fixtures("topics")
-    first_row = ActiveRecord::Base.connection.select_one("SELECT * FROM topics WHERE author_name = 'David'")
+    first_row = ActiveRecord::Base.lease_connection.select_one("SELECT * FROM topics WHERE author_name = 'David'")
     assert_equal("The First Topic", first_row["title"])
 
-    second_row = ActiveRecord::Base.connection.select_one("SELECT * FROM topics WHERE author_name = 'Mary'")
+    second_row = ActiveRecord::Base.lease_connection.select_one("SELECT * FROM topics WHERE author_name = 'Mary'")
     assert_nil(second_row["author_email_address"])
   end
 
@@ -417,7 +417,7 @@ class FixturesTest < ActiveRecord::TestCase
     # Reset cache to make finds on the new table work
     ActiveRecord::FixtureSet.reset_cache
 
-    ActiveRecord::Base.connection.create_table :prefix_other_topics_suffix do |t|
+    ActiveRecord::Base.lease_connection.create_table :prefix_other_topics_suffix do |t|
       t.column :title, :string
       t.column :author_name, :string
       t.column :author_email_address, :string
@@ -451,11 +451,11 @@ class FixturesTest < ActiveRecord::TestCase
     # class-level configuration helper.
     assert_not_nil topics, "Fixture data inserted, but fixture objects not returned from create"
 
-    first_row = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_other_topics_suffix WHERE author_name = 'David'")
+    first_row = ActiveRecord::Base.lease_connection.select_one("SELECT * FROM prefix_other_topics_suffix WHERE author_name = 'David'")
     assert_not_nil first_row, "The prefix_other_topics_suffix table appears to be empty despite create_fixtures: the row with author_name = 'David' was not found"
     assert_equal("The First Topic", first_row["title"])
 
-    second_row = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_other_topics_suffix WHERE author_name = 'Mary'")
+    second_row = ActiveRecord::Base.lease_connection.select_one("SELECT * FROM prefix_other_topics_suffix WHERE author_name = 'Mary'")
     assert_nil(second_row["author_email_address"])
 
     assert_equal :prefix_other_topics_suffix, topics.table_name.to_sym
@@ -468,7 +468,7 @@ class FixturesTest < ActiveRecord::TestCase
     ActiveRecord::Base.table_name_prefix = old_prefix
     ActiveRecord::Base.table_name_suffix = old_suffix
 
-    ActiveRecord::Base.connection.drop_table :prefix_other_topics_suffix rescue nil
+    ActiveRecord::Base.lease_connection.drop_table :prefix_other_topics_suffix rescue nil
   end
 
   def test_insert_with_datetime
@@ -604,6 +604,31 @@ class FixturesTest < ActiveRecord::TestCase
   ensure
     ENV["DATABASE_URL"] = db_url_tmp
   end
+
+  def test_fixture_method_and_private_alias
+    assert_equal "The First Topic", topics(:first).title
+    assert_equal "The First Topic", fixture(:topics, :first).title
+    assert_equal "The First Topic", _active_record_fixture(:topics, :first).title
+  end
+
+  def test_fixture_method_does_not_clash_with_a_test_case_method
+    test_case = Class.new(ActiveRecord::TestCase) do
+      fixtures :accounts
+
+      def test_fixtures
+        assert accounts(:signals37)
+      end
+
+      private
+        def fixture
+          Account.new
+        end
+    end
+
+    result = test_case.new(:test_fixtures).run
+
+    assert_predicate result, :passed?, "Expected #{result.name} to pass:\n#{result}"
+  end
 end
 
 class HasManyThroughFixture < ActiveRecord::TestCase
@@ -663,7 +688,7 @@ class HasManyThroughFixture < ActiveRecord::TestCase
   end
 end
 
-if Account.connection.respond_to?(:reset_pk_sequence!)
+if Account.lease_connection.respond_to?(:reset_pk_sequence!)
   class FixturesResetPkSequenceTest < ActiveRecord::TestCase
     fixtures :accounts
     fixtures :companies
@@ -678,7 +703,7 @@ if Account.connection.respond_to?(:reset_pk_sequence!)
       @instances.each do |instance|
         model = instance.class
         model.delete_all
-        model.connection.reset_pk_sequence!(model.table_name, model.primary_key, model.sequence_name)
+        model.lease_connection.reset_pk_sequence!(model.table_name, model.primary_key, model.sequence_name)
 
         instance.save!
         assert_equal 1, instance.id, "Sequence reset for #{model.table_name} failed."
@@ -689,7 +714,7 @@ if Account.connection.respond_to?(:reset_pk_sequence!)
       @instances.each do |instance|
         model = instance.class
         model.delete_all
-        model.connection.reset_pk_sequence!(model.table_name)
+        model.lease_connection.reset_pk_sequence!(model.table_name)
 
         instance.save!
         assert_equal 1, instance.id, "Sequence reset for #{model.table_name} failed."
@@ -783,7 +808,7 @@ class MultipleFixturesTest < ActiveRecord::TestCase
   fixtures :developers, :accounts
 
   def test_fixture_table_names
-    assert_equal %w(topics developers accounts), fixture_table_names
+    assert_equal %w(accounts developers topics), fixture_table_names
   end
 end
 
@@ -815,7 +840,7 @@ class OverlappingFixturesTest < ActiveRecord::TestCase
   fixtures :developers, :accounts
 
   def test_fixture_table_names
-    assert_equal %w(topics developers accounts), fixture_table_names
+    assert_equal %w(accounts developers topics), fixture_table_names
   end
 end
 
@@ -1050,12 +1075,16 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def connect!; end
     end.new
 
-    connection.pool = Class.new do
-      def lock_thread=(lock_thread); end
-    end.new
+    pool = connection.pool = Class.new do
+      def initialize(connection); @connection = connection; end
+      def lease_connection; @connection; end
+      def release_connection; end
+      def pin_connection!(_); end
+      def unpin_connection!; @connection.rollback_transaction; true; end
+    end.new(connection)
 
-    assert_called_with(connection, :begin_transaction, [], joinable: false, _lazy: false) do
-      fire_connection_notification(connection)
+    assert_called_with(pool, :pin_connection!, [true]) do
+      fire_connection_notification(connection.pool)
     end
   end
 
@@ -1069,14 +1098,19 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def rollback_transaction(*args)
         @rollback_transaction_called = true
       end
+      def lock_thread=(lock_thread); end
       def connect!; end
     end.new
 
     connection.pool = Class.new do
-      def lock_thread=(lock_thread); end
-    end.new
+      def initialize(connection); @connection = connection; end
+      def lease_connection; @connection; end
+      def release_connection; end
+      def pin_connection!(_); end
+      def unpin_connection!; @connection.rollback_transaction; true; end
+    end.new(connection)
 
-    fire_connection_notification(connection)
+    fire_connection_notification(connection.pool)
     teardown_fixtures
 
     assert(connection.rollback_transaction_called, "Expected <mock connection>#rollback_transaction to be called but was not")
@@ -1093,17 +1127,21 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     end.new
 
     connection.pool = Class.new do
-      def lock_thread=(lock_thread); end
-    end.new
+      def initialize(connection); @connection = connection; end
+      def lease_connection; @connection; end
+      def release_connection; end
+      def pin_connection!(_); end
+      def unpin_connection!; @connection.rollback_transaction; true; end
+    end.new(connection)
 
-    assert_called_with(connection, :begin_transaction, [], joinable: false, _lazy: false) do
-      fire_connection_notification(connection, shard: :shard_two)
+    assert_called_with(connection.pool, :pin_connection!, [true]) do
+      fire_connection_notification(connection.pool, shard: :shard_two)
     end
   end
 
   private
-    def fire_connection_notification(connection, shard: ActiveRecord::Base.default_shard)
-      assert_called_with(ActiveRecord::Base.connection_handler, :retrieve_connection, ["book"], returns: connection, shard: shard) do
+    def fire_connection_notification(pool, shard: ActiveRecord::Base.default_shard)
+      assert_called_with(ActiveRecord::Base.connection_handler, :retrieve_connection_pool, ["book"], returns: pool, shard: shard) do
         message_bus = ActiveSupport::Notifications.instrumenter
         payload = {
           connection_name: "book",
@@ -1152,7 +1190,7 @@ end
 
 class FixturesBrokenRollbackTest < ActiveRecord::TestCase
   def blank_setup
-    @fixture_connections = [ActiveRecord::Base.connection]
+    @fixture_connection_pools = [ActiveRecord::Base.connection_pool]
   end
   alias_method :ar_setup_fixtures, :setup_fixtures
   alias_method :setup_fixtures, :blank_setup
@@ -1163,12 +1201,14 @@ class FixturesBrokenRollbackTest < ActiveRecord::TestCase
   alias_method :teardown_fixtures, :blank_teardown
   alias_method :teardown, :blank_teardown
 
+  fixtures rand.to_s # bypass fixtures cache
+
   def test_no_rollback_in_teardown_unless_transaction_active
-    assert_equal 0, ActiveRecord::Base.connection.open_transactions
+    assert_equal 0, ActiveRecord::Base.lease_connection.open_transactions
     assert_raise(RuntimeError) { ar_setup_fixtures }
-    assert_equal 0, ActiveRecord::Base.connection.open_transactions
+    assert_equal 0, ActiveRecord::Base.lease_connection.open_transactions
     assert_nothing_raised { ar_teardown_fixtures }
-    assert_equal 0, ActiveRecord::Base.connection.open_transactions
+    assert_equal 0, ActiveRecord::Base.lease_connection.open_transactions
   end
 
   private
@@ -1227,8 +1267,8 @@ class FasterFixturesTest < ActiveRecord::TestCase
   end
 
   def test_cache
-    assert ActiveRecord::FixtureSet.fixture_is_cached?(ActiveRecord::Base.connection, "categories")
-    assert ActiveRecord::FixtureSet.fixture_is_cached?(ActiveRecord::Base.connection, "authors")
+    assert ActiveRecord::FixtureSet.fixture_is_cached?(ActiveRecord::Base.connection_pool, "categories")
+    assert ActiveRecord::FixtureSet.fixture_is_cached?(ActiveRecord::Base.connection_pool, "authors")
 
     assert_no_queries do
       create_fixtures("categories")
@@ -1236,7 +1276,7 @@ class FasterFixturesTest < ActiveRecord::TestCase
     end
 
     load_extra_fixture("posts")
-    assert ActiveRecord::FixtureSet.fixture_is_cached?(ActiveRecord::Base.connection, "posts")
+    assert ActiveRecord::FixtureSet.fixture_is_cached?(ActiveRecord::Base.connection_pool, "posts")
     self.class.setup_fixture_accessors :posts
     assert_equal "Welcome to the weblog", posts(:welcome).title
   end
@@ -1623,15 +1663,15 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
 
     def test_writing_and_reading_connections_are_the_same
       handler = ActiveRecord::Base.connection_handler
-      rw_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :writing).connection
-      ro_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :reading).connection
+      rw_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :writing).lease_connection
+      ro_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :reading).lease_connection
 
       assert_equal rw_conn, ro_conn
 
       teardown_shared_connection_pool
 
-      rw_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :writing).connection
-      ro_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :reading).connection
+      rw_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :writing).lease_connection
+      ro_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :reading).lease_connection
 
       assert_not_equal rw_conn, ro_conn
     end
@@ -1643,15 +1683,15 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
       }
 
       handler = ActiveRecord::Base.connection_handler
-      rw_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :writing, shard: :two).connection
-      ro_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :reading, shard: :two).connection
+      rw_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :writing, shard: :two).lease_connection
+      ro_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :reading, shard: :two).lease_connection
 
       assert_equal rw_conn, ro_conn
 
       teardown_shared_connection_pool
 
-      rw_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :writing, shard: :two).connection
-      ro_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :reading, shard: :two).connection
+      rw_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :writing, shard: :two).lease_connection
+      ro_conn = handler.retrieve_connection_pool("ActiveRecord::Base", role: :reading, shard: :two).lease_connection
 
       assert_not_equal rw_conn, ro_conn
     end

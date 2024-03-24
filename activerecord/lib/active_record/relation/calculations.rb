@@ -81,6 +81,16 @@ module ActiveRecord
     #
     # Note: not all valid {Relation#select}[rdoc-ref:QueryMethods#select] expressions are valid #count expressions. The specifics differ
     # between databases. In invalid cases, an error from the database is thrown.
+    #
+    # When given a block, loads all records in the relation, if the relation
+    # hasn't been loaded yet. Calls the block with each record in the relation.
+    # Returns the number of records for which the block returns a truthy value.
+    #
+    #   Person.count { |person| person.age > 21 }
+    #   # => counts the number of people older that 21
+    #
+    # Note: If there are a lot of records in the relation, loading all records
+    # could result in performance issues.
     def count(column_name = nil)
       if block_given?
         unless column_name.nil?
@@ -148,6 +158,17 @@ module ActiveRecord
     # #calculate for examples with options.
     #
     #   Person.sum(:age) # => 4562
+    #
+    # When given a block, loads all records in the relation, if the relation
+    # hasn't been loaded yet. Calls the block with each record in the relation.
+    # Returns the sum of +initial_value_or_column+ and the block return
+    # values:
+    #
+    #   Person.sum { |person| person.age } # => 4562
+    #   Person.sum(1000) { |person| person.age } # => 5562
+    #
+    # Note: If there are a lot of records in the relation, loading all records
+    # could result in performance issues.
     def sum(initial_value_or_column = 0, &block)
       if block_given?
         map(&block).sum(initial_value_or_column)
@@ -289,7 +310,9 @@ module ActiveRecord
           if where_clause.contradiction?
             ActiveRecord::Result.empty(async: @async)
           else
-            klass.connection.select_all(relation.arel, "#{klass.name} Pluck", async: @async)
+            klass.with_connection do |c|
+              c.select_all(relation.arel, "#{klass.name} Pluck", async: @async)
+            end
           end
         end
         result.then do |result|
@@ -364,7 +387,9 @@ module ActiveRecord
         ActiveRecord::Result.empty
       else
         skip_query_cache_if_necessary do
-          klass.connection.select_all(relation, "#{klass.name} Ids", async: @async)
+          klass.with_connection do |c|
+            c.select_all(relation, "#{klass.name} Ids", async: @async)
+          end
         end
       end
 
@@ -453,7 +478,9 @@ module ActiveRecord
           ActiveRecord::Result.empty
         else
           skip_query_cache_if_necessary do
-            @klass.connection.select_all(query_builder, "#{@klass.name} #{operation.capitalize}", async: @async)
+            @klass.with_connection do |c|
+              c.select_all(query_builder, "#{@klass.name} #{operation.capitalize}", async: @async)
+            end
           end
         end
 
@@ -479,10 +506,10 @@ module ActiveRecord
         end
         group_fields = arel_columns(group_fields)
 
-        column_alias_tracker = ColumnAliasTracker.new(connection)
+        column_alias_tracker = ColumnAliasTracker.new(lease_connection)
 
         group_aliases = group_fields.map { |field|
-          field = connection.visitor.compile(field) if Arel.arel_node?(field)
+          field = lease_connection.visitor.compile(field) if Arel.arel_node?(field)
           column_alias_tracker.alias_for(field.to_s.downcase)
         }
         group_columns = group_aliases.zip(group_fields)
@@ -490,13 +517,13 @@ module ActiveRecord
         column = aggregate_column(column_name)
         column_alias = column_alias_tracker.alias_for("#{operation} #{column_name.to_s.downcase}")
         select_value = operation_over_aggregate_column(column, operation, distinct)
-        select_value.as(connection.quote_column_name(column_alias))
+        select_value.as(adapter_class.quote_column_name(column_alias))
 
         select_values = [select_value]
         select_values += self.select_values unless having_clause.empty?
 
         select_values.concat group_columns.map { |aliaz, field|
-          aliaz = connection.quote_column_name(aliaz)
+          aliaz = adapter_class.quote_column_name(aliaz)
           if field.respond_to?(:as)
             field.as(aliaz)
           else
@@ -508,7 +535,12 @@ module ActiveRecord
         relation.group_values  = group_fields
         relation.select_values = select_values
 
-        result = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, "#{@klass.name} #{operation.capitalize}", async: @async) }
+        result = skip_query_cache_if_necessary do
+          @klass.with_connection do |c|
+            c.select_all(relation.arel, "#{@klass.name} #{operation.capitalize}", async: @async)
+          end
+        end
+
         result.then do |calculated_data|
           if association
             key_ids     = calculated_data.collect { |row| row[group_aliases.first] }

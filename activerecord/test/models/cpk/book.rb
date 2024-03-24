@@ -5,7 +5,8 @@ module Cpk
     attr_accessor :fail_destroy
 
     self.table_name = :cpk_books
-    belongs_to :order, autosave: true, query_constraints: [:shop_id, :order_id]
+    belongs_to :order, autosave: true, query_constraints: [:shop_id, :order_id], counter_cache: true
+    belongs_to :order_explicit_fk_pk, class_name: "Cpk::Order", query_constraints: [:shop_id, :order_id], primary_key: [:shop_id, :id]
     belongs_to :author, class_name: "Cpk::Author"
 
     has_many :chapters, query_constraints: [:author_id, :book_id]

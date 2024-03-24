@@ -6,10 +6,7 @@ class CopyTableTest < ActiveRecord::SQLite3TestCase
   fixtures :customers
 
   def setup
-    @connection = ActiveRecord::Base.connection
-    class << @connection
-      public :copy_table, :table_structure, :indexes
-    end
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   def test_copy_table(from = "customers", to = "customers2", options = {})
@@ -90,11 +87,11 @@ class CopyTableTest < ActiveRecord::SQLite3TestCase
 
 private
   def copy_table(from, to, options = {})
-    @connection.copy_table(from, to, { temporary: true }.merge(options))
+    @connection.send(:copy_table, from, to, { temporary: true }.merge(options))
   end
 
   def column_names(table)
-    @connection.table_structure(table).map { |column| column["name"] }
+    @connection.send(:table_structure, table).map { |column| column["name"] }
   end
 
   def column_values(table, column)

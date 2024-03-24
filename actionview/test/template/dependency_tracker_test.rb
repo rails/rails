@@ -3,6 +3,11 @@
 require "abstract_unit"
 require "action_view/dependency_tracker"
 
+require "action_view/render_parser/prism_render_parser"
+
+require "ripper"
+require "action_view/render_parser/ripper_render_parser"
+
 class NeckbeardTracker
   def self.call(name, template)
     ["foo/#{name}"]
@@ -220,7 +225,7 @@ module SharedTrackerTests
   end
 end
 
-class ERBTrackerTest < Minitest::Test
+class ERBTrackerTest < ActiveSupport::TestCase
   include SharedTrackerTests
 
   def make_tracker(name, template)
@@ -228,11 +233,9 @@ class ERBTrackerTest < Minitest::Test
   end
 end
 
-class RubyTrackerTest < Minitest::Test
-  include SharedTrackerTests
-
+module RubyTrackerTests
   def make_tracker(name, template)
-    ActionView::DependencyTracker::RubyTracker.new(name, template)
+    ActionView::DependencyTracker::RubyTracker.new(name, template, parser_class: parser_class)
   end
 
   def test_dependencies_skip_unknown_options
@@ -260,5 +263,23 @@ class RubyTrackerTest < Minitest::Test
     tracker = make_tracker("messages/show", template)
 
     assert_equal [], tracker.dependencies
+  end
+end
+
+class RipperRubyTrackerTest < ActiveSupport::TestCase
+  include SharedTrackerTests
+  include RubyTrackerTests
+
+  def parser_class
+    ActionView::RenderParser::RipperRenderParser
+  end
+end
+
+class PrismRubyTrackerTest < ActiveSupport::TestCase
+  include SharedTrackerTests
+  include RubyTrackerTests
+
+  def parser_class
+    ActionView::RenderParser::PrismRenderParser
   end
 end

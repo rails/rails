@@ -133,7 +133,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
     # Force a row to have a JSON "null" instead of a database NULL (this is how
     # null values are saved on 4.1 and before)
-    id = Topic.connection.insert "INSERT INTO topics (content) VALUES('null')"
+    id = Topic.lease_connection.insert "INSERT INTO topics (content) VALUES('null')"
     t = Topic.find(id)
 
     assert_nil t.content
@@ -143,7 +143,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     Topic.serialize :content, coder: JSON
 
     # Force a row to have a database NULL instead of a JSON "null"
-    id = Topic.connection.insert "INSERT INTO topics (content) VALUES(NULL)"
+    id = Topic.lease_connection.insert "INSERT INTO topics (content) VALUES(NULL)"
     t = Topic.find(id)
 
     assert_nil t.content
@@ -692,27 +692,5 @@ class SerializedAttributeTestWithYamlSafeLoad < SerializedAttributeTest
     Topic.serialize(:content, yaml: { permitted_classes: [Time] })
     topic = Topic.new(content: Time.now)
     assert topic.save
-  end
-
-  def test_recognizes_coder_as_deprecated_positional_argument
-    some_coder = Struct.new(:foo) do
-      def self.dump(value)
-        value.foo
-      end
-
-      def self.load(value)
-        new(value)
-      end
-    end
-
-    assert_deprecated(/Please pass the coder as a keyword argument/, ActiveRecord.deprecator) do
-      Topic.serialize(:content, some_coder)
-    end
-  end
-
-  def test_recognizes_type_as_deprecated_positional_argument
-    assert_deprecated(/Please pass the class as a keyword argument/, ActiveRecord.deprecator) do
-      Topic.serialize(:content, Hash)
-    end
   end
 end

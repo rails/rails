@@ -1,3 +1,20 @@
+*   Add support for custom `key` in `ActiveStorage::Blob#compose`.
+
+    *Elvin Efendiev*
+
+*   Add `image/webp` to `config.active_storage.web_image_content_types` when `load_defaults "7.2"`
+    is set.
+
+    *Lewis Buckley*
+
+*   Fix JSON-encoding of `ActiveStorage::Filename` instances.
+
+    *Jonathan del Strother*
+
+*   Fix N+1 query when fetching preview images for non-image assets
+
+    *Aaron Patterson & Justin Searls*
+
 *   Fix all Active Storage database related models to respect
     `ActiveRecord::Base.table_name_prefix` configuration.
 

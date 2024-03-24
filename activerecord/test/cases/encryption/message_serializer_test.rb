@@ -29,13 +29,13 @@ class ActiveRecord::Encryption::MessageSerializerTest < ActiveRecord::Encryption
     assert_nothing_raised { @serializer.load(class_loading_payload) }
   end
 
-  test "detects random JSON data and raises an invalid dencryption error" do
+  test "detects random JSON data and raises a decryption error" do
     assert_raises ActiveRecord::Encryption::Errors::Decryption do
       @serializer.load JSON.dump("hey there")
     end
   end
 
-  test "detects random JSON hashes and raises an invalid decryption error" do
+  test "detects random JSON hashes and raises a decryption error" do
     assert_raises ActiveRecord::Encryption::Errors::Decryption do
       @serializer.load JSON.dump({ some: "other data" })
     end
@@ -44,6 +44,12 @@ class ActiveRecord::Encryption::MessageSerializerTest < ActiveRecord::Encryption
   test "detects JSON hashes with a 'p' key that is not encoded in base64" do
     assert_raises ActiveRecord::Encryption::Errors::Encoding do
       @serializer.load JSON.dump({ p: "some data not encoded" })
+    end
+  end
+
+  test "raises a TypeError when trying to deserialize other data types" do
+    assert_raises TypeError do
+      @serializer.load(:it_can_only_deserialize_strings)
     end
   end
 

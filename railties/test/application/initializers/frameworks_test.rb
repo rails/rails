@@ -25,7 +25,7 @@ module ApplicationTests
         RUBY
 
         use_frameworks []
-        require "#{app_path}/config/environment"
+        app("development")
       end
     end
 
@@ -34,7 +34,7 @@ module ApplicationTests
         config.root = "#{app_path}"
       RUBY
 
-      require "#{app_path}/config/environment"
+      app("development")
 
       expanded_path = File.expand_path("app/views", app_path)
       assert_equal expanded_path, ActionController::Base.view_paths[0].to_s
@@ -48,7 +48,7 @@ module ApplicationTests
         end
       RUBY
 
-      require "#{app_path}/config/environment"
+      app("development")
       assert_equal "test.rails", ActionMailer::Base.default_url_options[:host]
     end
 
@@ -66,7 +66,7 @@ module ApplicationTests
         end
       RUBY
 
-      require "#{app_path}/config/environment"
+      app("development")
       assert Foo.method_defined?(:foo_url)
       assert Foo.method_defined?(:main_app)
     end
@@ -163,14 +163,14 @@ module ApplicationTests
     # AD
     test "action_dispatch extensions are applied to ActionDispatch" do
       add_to_config "config.action_dispatch.tld_length = 2"
-      require "#{app_path}/config/environment"
+      app("development")
       assert_equal 2, ActionDispatch::Http::URL.tld_length
     end
 
     test "assignment config.encoding to default_charset" do
       charset = "Shift_JIS"
       add_to_config "config.encoding = '#{charset}'"
-      require "#{app_path}/config/environment"
+      app("development")
       assert_equal charset, ActionDispatch::Response.default_charset
     end
 
@@ -181,14 +181,14 @@ module ApplicationTests
         end
       RUBY
 
-      require "#{app_path}/config/environment"
+      app("development")
       assert_equal true, ActionDispatch::Http::URL.secure_protocol
     end
 
     # AS
     test "if there's no config.active_support.bare, all of ActiveSupport is required" do
       use_frameworks []
-      require "#{app_path}/config/environment"
+      app("development")
       assert_nothing_raised { [1, 2, 3].sample }
     end
 
@@ -198,7 +198,7 @@ module ApplicationTests
       use_frameworks []
 
       Dir.chdir("#{app_path}/app") do
-        require "#{app_path}/config/environment"
+        app("development")
         assert_raises(NoMethodError) { "hello".exclude? "lo" }
       end
     end
@@ -206,13 +206,13 @@ module ApplicationTests
     # AR
     test "active_record extensions are applied to ActiveRecord" do
       add_to_config "config.active_record.table_name_prefix = 'tbl_'"
-      require "#{app_path}/config/environment"
+      app("development")
       assert_equal "tbl_", ActiveRecord::Base.table_name_prefix
     end
 
     test "database middleware doesn't initialize when activerecord is not in frameworks" do
       use_frameworks []
-      require "#{app_path}/config/environment"
+      app("development")
       assert !defined?(ActiveRecord::Base) || ActiveRecord.autoload?(:Base)
     end
 
@@ -220,7 +220,7 @@ module ApplicationTests
       rails %w(generate model post title:string)
 
       with_unhealthy_database do
-        require "#{app_path}/config/environment"
+        app("development")
       end
     end
 
@@ -232,11 +232,13 @@ module ApplicationTests
         config.eager_load = true
       RUBY
 
-      require "#{app_path}/config/environment"
+      Dir.chdir(app_path) do
+        app("development")
 
-      assert ActiveRecord::Base.connection.schema_cache.data_sources("posts")
+        assert ActiveRecord::Base.schema_cache.data_sources("posts")
+      end
     ensure
-      ActiveRecord::Base.connection.drop_table("posts", if_exists: true) # force drop posts table for test.
+      ActiveRecord::Base.lease_connection.drop_table("posts", if_exists: true) # force drop posts table for test.
     end
 
     test "expire schema cache dump" do
@@ -247,10 +249,15 @@ module ApplicationTests
         config.eager_load = true
       RUBY
 
-      silence_warnings do
-        require "#{app_path}/config/environment"
+      Dir.chdir(app_path) do
+        app("development")
+
+        _, error = capture_io do
+          assert_not ActiveRecord::Base.schema_cache.data_sources("posts")
+        end
+
+        assert_match(/Ignoring db\/schema_cache\.yml because it has expired/, error)
       end
-      assert_not ActiveRecord::Base.connection.schema_cache.data_sources("posts")
     end
 
     test "expire schema cache dump if the version can't be checked because the database is unhealthy" do
@@ -262,18 +269,20 @@ module ApplicationTests
       RUBY
 
       with_unhealthy_database do
-        silence_warnings do
-          require "#{app_path}/config/environment"
-        end
+        Dir.chdir(app_path) do
+          app("development")
 
-        assert_not_nil ActiveRecord::Base.connection_pool.schema_reflection.instance_variable_get(:@cache)
+          assert_raises ActiveRecord::ConnectionNotEstablished do
+            ActiveRecord::Base.lease_connection.execute("SELECT 1")
+          end
 
-        assert_raises ActiveRecord::ConnectionNotEstablished do
-          ActiveRecord::Base.connection.execute("SELECT 1")
-        end
+          _, error = capture_io do
+            assert_raises ActiveRecord::ConnectionNotEstablished do
+              ActiveRecord::Base.schema_cache.columns("posts")
+            end
+          end
 
-        assert_raises ActiveRecord::ConnectionNotEstablished do
-          ActiveRecord::Base.connection.schema_cache.columns("posts")
+          assert_match(/Failed to validate the schema cache because of ActiveRecord::(ConnectionNotEstablished|DatabaseConnectionError)/, error)
         end
       end
     end
@@ -287,8 +296,11 @@ module ApplicationTests
         config.active_record.check_schema_cache_dump_version = false
       RUBY
 
-      require "#{app_path}/config/environment"
-      assert ActiveRecord::Base.connection_pool.schema_reflection.data_sources(:__unused__, "posts")
+      Dir.chdir(app_path) do
+        app("development")
+
+        assert ActiveRecord::Base.connection_pool.schema_reflection.data_sources(:__unused__, "posts")
+      end
     end
 
     test "does not expire schema cache dump if check_schema_cache_dump_version is false and the database unhealthy" do
@@ -301,21 +313,39 @@ module ApplicationTests
       RUBY
 
       with_unhealthy_database do
-        require "#{app_path}/config/environment"
+        Dir.chdir(app_path) do
+          app("development")
 
-        assert ActiveRecord::Base.connection_pool.schema_reflection.data_sources(:__unused__, "posts")
-        assert_raises ActiveRecord::ConnectionNotEstablished do
-          ActiveRecord::Base.connection.execute("SELECT 1")
+          assert ActiveRecord::Base.connection_pool.schema_reflection.data_sources(:__unused__, "posts")
+          assert_raises ActiveRecord::ConnectionNotEstablished do
+            ActiveRecord::Base.lease_connection.execute("SELECT 1")
+          end
         end
       end
     end
 
+    test "define attribute methods when schema cache is present and check_schema_cache_dump_version is false" do
+      rails %w(generate model post title:string)
+      rails %w(db:migrate db:schema:cache:dump)
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.active_record.check_schema_cache_dump_version = false
+      RUBY
+
+      Dir.chdir(app_path) do
+        app
+
+        assert_predicate Post, :attribute_methods_generated?
+      end
+    end
+
     test "active record establish_connection uses Rails.env if DATABASE_URL is not set" do
-      require "#{app_path}/config/environment"
+      app("development")
       orig_database_url = ENV.delete("DATABASE_URL")
       orig_rails_env, Rails.env = Rails.env, "development"
       ActiveRecord::Base.establish_connection
-      assert ActiveRecord::Base.connection
+      assert ActiveRecord::Base.lease_connection
       assert_match(/#{ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary").database}/, ActiveRecord::Base.connection_db_config.database)
       db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary")
       assert_match(/#{db_config.database}/, ActiveRecord::Base.connection_db_config.database)
@@ -326,13 +356,13 @@ module ApplicationTests
     end
 
     test "active record establish_connection uses DATABASE_URL even if Rails.env is set" do
-      require "#{app_path}/config/environment"
+      app("development")
       orig_database_url = ENV.delete("DATABASE_URL")
       orig_rails_env, Rails.env = Rails.env, "development"
       database_url_db_name = "db/database_url_db.sqlite3"
       ENV["DATABASE_URL"] = "sqlite3:#{database_url_db_name}"
       ActiveRecord::Base.establish_connection
-      assert ActiveRecord::Base.connection
+      assert ActiveRecord::Base.lease_connection
       assert_match(/#{database_url_db_name}/, ActiveRecord::Base.connection_db_config.database)
     ensure
       ActiveRecord::Base.remove_connection
@@ -342,9 +372,9 @@ module ApplicationTests
 
     test "connections checked out during initialization are returned to the pool" do
       app_file "config/initializers/active_record.rb", <<-RUBY
-        ActiveRecord::Base.connection
+        ActiveRecord::Base.lease_connection
       RUBY
-      require "#{app_path}/config/environment"
+      app("development")
       assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
     end
 
@@ -366,7 +396,7 @@ module ApplicationTests
         end
       RUBY
 
-      require "#{app_path}/config/environment"
+      app("development")
 
       assert A
       assert M
@@ -388,7 +418,7 @@ module ApplicationTests
         end
       RUBY
 
-      require "#{app_path}/config/environment"
+      app("development")
 
       assert Post
       filter_parameters = Rails.application.config.filter_parameters.dup
@@ -407,7 +437,7 @@ module ApplicationTests
         config.cache_store = :file_store, #{app_path("tmp/cache").inspect}, { serializer: :message_pack }
       RUBY
 
-      require "#{app_path}/config/environment"
+      app("development")
 
       post = Post.create!(title: "Hello World")
       Rails.cache.write("hello", post)

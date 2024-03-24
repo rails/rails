@@ -173,7 +173,7 @@ module ActiveRecord
       #     { id: 2, title: "Eloquent Ruby" }
       #   ])
       def insert_all(attributes, returning: nil, unique_by: nil, record_timestamps: nil)
-        InsertAll.new(self, attributes, on_duplicate: :skip, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps).execute
+        InsertAll.execute(self, attributes, on_duplicate: :skip, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps)
       end
 
       # Inserts a single record into the database in a single SQL INSERT
@@ -240,7 +240,7 @@ module ActiveRecord
       #     { id: 1, title: "Eloquent Ruby", author: "Russ" }
       #   ])
       def insert_all!(attributes, returning: nil, record_timestamps: nil)
-        InsertAll.new(self, attributes, on_duplicate: :raise, returning: returning, record_timestamps: record_timestamps).execute
+        InsertAll.execute(self, attributes, on_duplicate: :raise, returning: returning, record_timestamps: record_timestamps)
       end
 
       # Updates or inserts (upserts) a single record into the database in a
@@ -360,7 +360,7 @@ module ActiveRecord
       #
       #   Book.find_by(isbn: "1").title # => "Eloquent Ruby"
       def upsert_all(attributes, on_duplicate: :update, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil)
-        InsertAll.new(self, attributes, on_duplicate: on_duplicate, update_only: update_only, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps).execute
+        InsertAll.execute(self, attributes, on_duplicate: on_duplicate, update_only: update_only, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps)
       end
 
       # Given an attributes hash, +instantiate+ returns a new instance of
@@ -456,7 +456,7 @@ module ActiveRecord
       end
 
       # Accepts a list of attribute names to be used in the WHERE clause
-      # of SELECT / UPDATE / DELETE queries and in the ORDER BY clause for `#first` and `#last` finder methods.
+      # of SELECT / UPDATE / DELETE queries and in the ORDER BY clause for +#first+ and +#last+ finder methods.
       #
       #   class Developer < ActiveRecord::Base
       #     query_constraints :company_id, :id
@@ -469,7 +469,7 @@ module ActiveRecord
       #   developer.update!(name: "Nikita")
       #   # UPDATE "developers" SET "name" = 'Nikita' WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
       #
-      #   It is possible to update attribute used in the query_by clause:
+      #   # It is possible to update an attribute used in the query_constraints clause:
       #   developer.update!(company_id: 2)
       #   # UPDATE "developers" SET "company_id" = 2 WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
       #
@@ -581,16 +581,18 @@ module ActiveRecord
 
         im = Arel::InsertManager.new(arel_table)
 
-        if values.empty?
-          im.insert(connection.empty_insert_statement_value(primary_key))
-        else
-          im.insert(values.transform_keys { |name| arel_table[name] })
-        end
+        with_connection do |c|
+          if values.empty?
+            im.insert(c.empty_insert_statement_value(primary_key))
+          else
+            im.insert(values.transform_keys { |name| arel_table[name] })
+          end
 
-        connection.insert(
-          im, "#{self} Create", primary_key || false, primary_key_value,
-          returning: returning
-        )
+          c.insert(
+            im, "#{self} Create", primary_key || false, primary_key_value,
+            returning: returning
+          )
+        end
       end
 
       def _update_record(values, constraints) # :nodoc:
@@ -607,7 +609,9 @@ module ActiveRecord
         um.set(values.transform_keys { |name| arel_table[name] })
         um.wheres = constraints
 
-        connection.update(um, "#{self} Update")
+        with_connection do |c|
+          c.update(um, "#{self} Update")
+        end
       end
 
       def _delete_record(constraints) # :nodoc:
@@ -623,7 +627,9 @@ module ActiveRecord
         dm = Arel::DeleteManager.new(arel_table)
         dm.wheres = constraints
 
-        connection.delete(dm, "#{self} Destroy")
+        with_connection do |c|
+          c.delete(dm, "#{self} Destroy")
+        end
       end
 
       private
@@ -1069,7 +1075,7 @@ module ActiveRecord
     #   end
     #
     def reload(options = nil)
-      self.class.connection.clear_query_cache
+      self.class.connection_pool.clear_query_cache
 
       fresh_object = if apply_scoping?(options)
         _find_record((options || {}).merge(all_queries: true))
@@ -1078,6 +1084,7 @@ module ActiveRecord
       end
 
       @association_cache = fresh_object.instance_variable_get(:@association_cache)
+      @association_cache.each_value { |association| association.owner = self }
       @attributes = fresh_object.instance_variable_get(:@attributes)
       @new_record = false
       @previously_new_record = false

@@ -6,7 +6,7 @@ module Arel
   module Visitors
     class SqliteTest < Arel::Spec
       before do
-        @visitor = SQLite.new Table.engine.connection
+        @visitor = SQLite.new Table.engine.lease_connection
       end
 
       def compile(node)

@@ -804,6 +804,9 @@ module MyApplication
     end
   end
 end
+```
+
+```ruby
 # app/models/my_application/business/account.rb
 module MyApplication
   module Business
@@ -816,7 +819,7 @@ end
 
 It is crucial to note that this does not affect the naming of your tables. For instance, if there is a `MyApplication::Business::Supplier` model, there must also be a `my_application_business_suppliers` table.
 
-Note that he following will _not_ work, because `Supplier` and `Account` are defined in different scopes (`MyApplication::Business` and `MyApplication::Billing`):
+Note that the following will _not_ work, because `Supplier` and `Account` are defined in different scopes (`MyApplication::Business` and `MyApplication::Billing`):
 
 ```ruby
 module MyApplication
@@ -3004,6 +3007,7 @@ With this definition complete, our `Entry` delegator now provides the following 
 
 | Method | Return |
 |---|---|
+| `Entry.entryable_types` | ["Message", "Comment"] |
 | `Entry#entryable_class` | Message or Comment |
 | `Entry#entryable_name` | "message" or "comment" |
 | `Entry.messages` | `Entry.where(entryable_type: "Message")` |

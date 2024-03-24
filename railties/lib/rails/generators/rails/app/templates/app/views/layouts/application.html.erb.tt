@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%%= content_for(:title) || "<%= camelized %>" %></title>
+    <title><%%= content_for(:title) || "<%= app_name.titleize %>" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <%%= csrf_meta_tags %>
@@ -11,7 +11,8 @@
 
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" href="/icon.png" type="image/png">
-    <link rel="apple-touch-icon" href="/icon.png" sizes="512x512">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
     <%- if options[:skip_hotwire] || options[:skip_javascript] -%>
     <%%= stylesheet_link_tag "application" %>
     <%- else -%>

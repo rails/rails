@@ -9,6 +9,7 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
 
     author = create_author_with_name_encrypted_with_previous_scheme
     assert_equal "dhh", author.reload.name
+    assert author.encrypted_attribute? :name
   end
 
   test "when defining previous encryption schemes, you still get Decryption errors when using invalid clear values" do
@@ -24,6 +25,7 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
   test "use a custom encryptor" do
     author = EncryptedAuthor1.create name: "1"
     assert_equal "1", author.name
+    assert author.encrypted_attribute? :name
   end
 
   test "support previous contexts" do
@@ -32,10 +34,12 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
     author = EncryptedAuthor2.create name: "2"
     assert_equal "2", author.name
     assert_equal author, EncryptedAuthor2.find_by_name("2")
+    assert author.encrypted_attribute? :name
 
     Author.find(author.id).update! name: "1"
     assert_equal "1", author.reload.name
     assert_equal author, EncryptedAuthor2.find_by_name("1")
+    assert_not author.encrypted_attribute? :name
   end
 
   test "use global previous schemes to decrypt data encrypted with previous schemes" do
@@ -191,7 +195,9 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
       end
 
       def encrypted?(text)
-        text == encrypted_text
+        decrypt(text)
+      rescue ActiveRecord::Encryption::Errors::Decryption
+        false
       end
     end
 

@@ -7,6 +7,67 @@ module ActiveRecord
   module ConnectionAdapters # :nodoc:
     # = Active Record Connection Adapters \Quoting
     module Quoting
+      extend ActiveSupport::Concern
+
+      module ClassMethods # :nodoc:
+        # Regexp for column names (with or without a table name prefix).
+        # Matches the following:
+        #
+        #   "#{table_name}.#{column_name}"
+        #   "#{column_name}"
+        def column_name_matcher
+          /
+            \A
+            (
+              (?:
+                # table_name.column_name | function(one or no argument)
+                ((?:\w+\.)?\w+ | \w+\((?:|\g<2>)\))
+              )
+              (?:(?:\s+AS)?\s+\w+)?
+            )
+            (?:\s*,\s*\g<1>)*
+            \z
+          /ix
+        end
+
+        # Regexp for column names with order (with or without a table name prefix,
+        # with or without various order modifiers). Matches the following:
+        #
+        #   "#{table_name}.#{column_name}"
+        #   "#{table_name}.#{column_name} #{direction}"
+        #   "#{table_name}.#{column_name} #{direction} NULLS FIRST"
+        #   "#{table_name}.#{column_name} NULLS LAST"
+        #   "#{column_name}"
+        #   "#{column_name} #{direction}"
+        #   "#{column_name} #{direction} NULLS FIRST"
+        #   "#{column_name} NULLS LAST"
+        def column_name_with_order_matcher
+          /
+            \A
+            (
+              (?:
+                # table_name.column_name | function(one or no argument)
+                ((?:\w+\.)?\w+ | \w+\((?:|\g<2>)\))
+              )
+              (?:\s+ASC|\s+DESC)?
+              (?:\s+NULLS\s+(?:FIRST|LAST))?
+            )
+            (?:\s*,\s*\g<1>)*
+            \z
+          /ix
+        end
+
+        # Quotes the column name. Must be implemented by subclasses
+        def quote_column_name(column_name)
+          raise NotImplementedError
+        end
+
+        # Quotes the table name. Defaults to column name quoting.
+        def quote_table_name(table_name)
+          quote_column_name(table_name)
+        end
+      end
+
       # Quotes the column value to help prevent
       # {SQL injection attacks}[https://en.wikipedia.org/wiki/SQL_injection].
       def quote(value)
@@ -23,9 +84,6 @@ module ActiveRecord
         when Type::Time::Value then "'#{quoted_time(value)}'"
         when Date, Time then "'#{quoted_date(value)}'"
         when Class      then "'#{value}'"
-        when ActiveSupport::Duration
-          warn_quote_duration_deprecated
-          value.to_s
         else raise TypeError, "can't quote #{value.class.name}"
         end
       end
@@ -46,21 +104,6 @@ module ActiveRecord
         when Date, Time then quoted_date(value)
         else raise TypeError, "can't cast #{value.class.name}"
         end
-      end
-
-      # Quote a value to be used as a bound parameter of unknown type. For example,
-      # MySQL might perform dangerous castings when comparing a string to a number,
-      # so this method will cast numbers to string.
-      #
-      # Deprecated: Consider `Arel.sql("... ? ...", value)` or
-      # +sanitize_sql+ instead.
-      def quote_bound_value(value)
-        ActiveRecord.deprecator.warn(<<~MSG.squish)
-          #quote_bound_value is deprecated and will be removed in Rails 7.2.
-          Consider Arel.sql(".. ? ..", value) or #sanitize_sql instead.
-        MSG
-
-        quote(cast_bound_value(value))
       end
 
       # Cast a value to be used as a bound parameter of unknown type. For example,
@@ -89,14 +132,14 @@ module ActiveRecord
         s.gsub("\\", '\&\&').gsub("'", "''") # ' (for ruby-mode)
       end
 
-      # Quotes the column name. Defaults to no quoting.
+      # Quotes the column name.
       def quote_column_name(column_name)
-        column_name.to_s
+        self.class.quote_column_name(column_name)
       end
 
-      # Quotes the table name. Defaults to column name quoting.
+      # Quotes the table name.
       def quote_table_name(table_name)
-        quote_column_name(table_name)
+        self.class.quote_table_name(table_name)
       end
 
       # Override to return the quoted table name for assignment. Defaults to
@@ -177,59 +220,6 @@ module ActiveRecord
         comment
       end
 
-      def column_name_matcher # :nodoc:
-        COLUMN_NAME
-      end
-
-      def column_name_with_order_matcher # :nodoc:
-        COLUMN_NAME_WITH_ORDER
-      end
-
-      # Regexp for column names (with or without a table name prefix).
-      # Matches the following:
-      #
-      #   "#{table_name}.#{column_name}"
-      #   "#{column_name}"
-      COLUMN_NAME = /
-        \A
-        (
-          (?:
-            # table_name.column_name | function(one or no argument)
-            ((?:\w+\.)?\w+ | \w+\((?:|\g<2>)\))
-          )
-          (?:(?:\s+AS)?\s+\w+)?
-        )
-        (?:\s*,\s*\g<1>)*
-        \z
-      /ix
-
-      # Regexp for column names with order (with or without a table name prefix,
-      # with or without various order modifiers). Matches the following:
-      #
-      #   "#{table_name}.#{column_name}"
-      #   "#{table_name}.#{column_name} #{direction}"
-      #   "#{table_name}.#{column_name} #{direction} NULLS FIRST"
-      #   "#{table_name}.#{column_name} NULLS LAST"
-      #   "#{column_name}"
-      #   "#{column_name} #{direction}"
-      #   "#{column_name} #{direction} NULLS FIRST"
-      #   "#{column_name} NULLS LAST"
-      COLUMN_NAME_WITH_ORDER = /
-        \A
-        (
-          (?:
-            # table_name.column_name | function(one or no argument)
-            ((?:\w+\.)?\w+ | \w+\((?:|\g<2>)\))
-          )
-          (?:\s+ASC|\s+DESC)?
-          (?:\s+NULLS\s+(?:FIRST|LAST))?
-        )
-        (?:\s*,\s*\g<1>)*
-        \z
-      /ix
-
-      private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER
-
       private
         def type_casted_binds(binds)
           binds.map do |value|
@@ -243,22 +233,6 @@ module ActiveRecord
 
         def lookup_cast_type(sql_type)
           type_map.lookup(sql_type)
-        end
-
-        def warn_quote_duration_deprecated
-          ActiveRecord.deprecator.warn(<<~MSG)
-            Using ActiveSupport::Duration as an interpolated bind parameter in a SQL
-            string template is deprecated. To avoid this warning, you should explicitly
-            convert the duration to a more specific database type. For example, if you
-            want to use a duration as an integer number of seconds:
-            ```
-            Record.where("duration = ?", 1.hour.to_i)
-            ```
-            If you want to use a duration as an ISO 8601 string:
-            ```
-            Record.where("duration = ?", 1.hour.iso8601)
-            ```
-          MSG
         end
     end
   end

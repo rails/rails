@@ -220,8 +220,9 @@ module ActionView
       # +:form_class+ option within +html_options+. It defaults to
       # <tt>"button_to"</tt> to allow styling of the form and its children.
       #
-      # The form submits a POST request by default. You can specify a different
-      # HTTP verb via the +:method+ option within +html_options+.
+      # The form submits a POST request by default if the object is not persisted;
+      # conversely, if the object is persisted, it will submit a PATCH request.
+      # To specify a different HTTP verb use the +:method+ option within +html_options+.
       #
       # If the HTML button generated from +button_to+ does not work with your layout, you can
       # consider using the +link_to+ method with the +data-turbo-method+

@@ -21,7 +21,7 @@ What is Active Job?
 Active Job is a framework for declaring jobs and making them run on a variety
 of queuing backends. These jobs can be everything from regularly scheduled
 clean-ups, to billing charges, to mailings. Anything that can be chopped up
-into small units of work and run in parallel, really.
+into small units of work and run in parallel.
 
 
 The Purpose of Active Job
@@ -39,8 +39,8 @@ runs jobs with an in-process thread pool. Jobs will run asynchronously, but any
 jobs in the queue will be dropped upon restart.
 
 
-Creating a Job
---------------
+Create and Enqueue Jobs
+-----------------------
 
 This section will provide a step-by-step guide to creating a job and enqueuing it.
 
@@ -127,6 +127,10 @@ That's it!
 [`perform_later`]: https://api.rubyonrails.org/classes/ActiveJob/Enqueuing/ClassMethods.html#method-i-perform_later
 [`set`]: https://api.rubyonrails.org/classes/ActiveJob/Core/ClassMethods.html#method-i-set
 
+### Enqueue Jobs in Bulk
+
+You can enqueue multiple jobs at once using [`perform_all_later`](https://api.rubyonrails.org/classes/ActiveJob.html#method-c-perform_all_later). For more details see [Bulk Enqueuing](#bulk-enqueuing).
+
 Job Execution
 -------------
 
@@ -192,11 +196,12 @@ Here is a noncomprehensive list of documentation:
 - [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
 - [Que](https://github.com/que-rb/que#additional-rails-specific-setup)
 - [Good Job](https://github.com/bensheldon/good_job#readme)
+- [Solid Queue](https://github.com/rails/solid_queue?tab=readme-ov-file#solid-queue)
 
 Queues
 ------
 
-Most of the adapters support multiple queues. With Active Job you can schedule
+Most adapters support multiple queues. With Active Job you can schedule
 the job to run on a specific queue using [`queue_as`][]:
 
 ```ruby
@@ -268,13 +273,6 @@ end
 # on your staging environment
 ```
 
-If you want more control on what queue a job will be run you can pass a `:queue`
-option to `set`:
-
-```ruby
-MyJob.set(queue: :another_queue).perform_later(record)
-```
-
 To control the queue from the job level you can pass a block to `queue_as`. The
 block will be executed in the job context (so it can access `self.arguments`),
 and it must return the queue name:
@@ -300,12 +298,66 @@ end
 ProcessVideoJob.perform_later(Video.last)
 ```
 
+If you want more control on what queue a job will be run you can pass a `:queue`
+option to `set`:
+
+```ruby
+MyJob.set(queue: :another_queue).perform_later(record)
+```
+
 NOTE: Make sure your queuing backend "listens" on your queue name. For some
 backends you need to specify the queues to listen to.
 
 [`config.active_job.queue_name_delimiter`]: configuring.html#config-active-job-queue-name-delimiter
 [`config.active_job.queue_name_prefix`]: configuring.html#config-active-job-queue-name-prefix
 [`queue_as`]: https://api.rubyonrails.org/classes/ActiveJob/QueueName/ClassMethods.html#method-i-queue_as
+
+Priority
+--------------
+
+Some adapters support priorities at the job level, where jobs can be prioritized relative to others in the queue or across all queues.
+
+You can schedule a job to run with a specific priority using [`queue_with_priority`][]:
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  queue_with_priority 10
+  # ...
+end
+```
+
+Note that this will not have any effect with adapters that do not support priorities.
+
+Similar to `queue_as`, you can also pass a block to `queue_with_priority` to be evaluated in the job context:
+
+```ruby
+class ProcessVideoJob < ApplicationJob
+  queue_with_priority do
+    video = self.arguments.first
+    if video.owner.premium?
+      0
+    else
+      10
+    end
+  end
+
+  def perform(video)
+    # Process video
+  end
+end
+```
+
+```ruby
+ProcessVideoJob.perform_later(Video.last)
+```
+
+You can also pass a `:priority` option to `set`:
+
+```ruby
+MyJob.set(priority: 50).perform_later(record)
+```
+
+[`queue_with_priority`]: https://api.rubyonrails.org/classes/ActiveJob/QueuePriority/ClassMethods.html#method-i-queue_with_priority
 
 Callbacks
 ---------
@@ -358,6 +410,103 @@ end
 [`before_perform`]: https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-before_perform
 [`around_perform`]: https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-around_perform
 [`after_perform`]: https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-after_perform
+
+Please note that when enqueuing jobs in bulk using `perform_all_later`,
+callbacks such as `around_enqueue` will not be triggered on the individual jobs.
+See [Bulk Enqueuing Callbacks](#bulk-enqueue-callbacks).
+
+Bulk Enqueuing
+--------------
+
+You can enqueue multiple jobs at once using
+[`perform_all_later`](https://api.rubyonrails.org/classes/ActiveJob.html#method-c-perform_all_later).
+Bulk enqueuing reduces the number of round trips to the queue data store (like
+Redis or a database), making it a more performant operation than enqueuing the
+same jobs individually.
+
+`perform_all_later` is a top-level API on Active Job. It accepts instantiated
+jobs as arguments (note that this is different from `perform_later`).
+`perform_all_later` does call `perform` under the hood. The arguments passed to
+`new` will be passed on to `perform` when it's eventually called.
+
+Here is an example calling `perform_all_later` with `GuestCleanupJob` instances:
+
+```ruby
+# Create jobs to pass to `perform_all_later`.
+# The arguments to `new` are passed on to `perform`
+guest_cleanup_jobs = Guest.all.map { |guest| GuestsCleanupJob.new(guest) }
+
+# Will enqueue a separate job for each instance of `GuestCleanupJob`
+ActiveJob.perform_all_later(guest_cleanup_jobs)
+
+# Can also use `set` method to configure options before bulk enqueuing jobs.
+guest_cleanup_jobs = Guest.all.map { |guest| GuestsCleanupJob.new(guest).set(wait: 1.day) }
+
+ActiveJob.perform_all_later(guest_cleanup_jobs)
+```
+
+`perform_all_later` logs the number of jobs successfully enqueued, for example
+if `Guest.all.map` above resulted in 3 `guest_cleanup_jobs`, it would log
+`Enqueued 3 jobs to Async (3 GuestsCleanupJob)` (assuming all were enqueued).
+
+The return value of `perform_all_later` is `nil`. Note that this is different
+from `perform_later`, which returns the instance of the queued job class.
+
+### Enqueue Multiple Active Job Classes
+
+With `perform_all_later`, it's also possible to enqueue different Active Job
+class instances in the same call. For example:
+
+```ruby
+class ExportDataJob < ApplicationJob
+  def perform(*args)
+    # Export data
+  end
+end
+
+class NotifyGuestsJob < ApplicationJob
+  def perform(*guests)
+    # Email guests
+  end
+end
+
+# Instantiate job instances
+cleanup_job = GuestsCleanupJob.new(guest)
+export_job = ExportDataJob.new(data)
+notify_job = NotifyGuestsJob.new(guest)
+
+# Enqueues job instances from multiple classes at once
+ActiveJob.perform_all_later(cleanup_job, export_job, notify_job)
+```
+
+### Bulk Enqueue Callbacks
+
+When enqueuing jobs in bulk using `perform_all_later`, callbacks such as
+`around_enqueue` will not be triggered on the individual jobs. This behavior is
+in line with other Active Record bulk methods. Since callbacks run on individual
+jobs, they can't take advantage of the bulk nature of this method.
+
+However, the `perform_all_later` method does fire an
+[`enqueue_all.active_job`](active_support_instrumentation.html#enqueue-all-active-job)
+event which you can subscribe to using `ActiveSupport::Notifications`.
+
+The method
+[`successfully_enqueued?`](https://api.rubyonrails.org/classes/ActiveJob/Core.html#method-i-successfully_enqueued-3F)
+can be used to find out if a given job was successfully enqueued.
+
+### Queue Backend Support
+
+For `perform_all_later`, bulk enqueuing needs to be backed by the [queue
+backend](#backends).
+
+For example, Sidekiq has a `push_bulk` method, which can push a large number of
+jobs to Redis and prevent the round trip network latency. GoodJob also supports
+bulk enqueuing with the `GoodJob::Bulk.enqueue` method. The new queue backend
+[`Solid Queue`](https://github.com/rails/solid_queue/pull/93) has added
+support for bulk enqueuing as well.
+
+If the queue backend does *not* support bulk enqueuing, `perform_all_later` will
+enqueue jobs one by one.
 
 Action Mailer
 ------------

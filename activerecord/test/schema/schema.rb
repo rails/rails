@@ -163,6 +163,7 @@ ActiveRecord::Schema.define do
     t.string :format
     t.column :name, :string, default: "<untitled>"
     t.column :original_name, :string
+    t.column :logo, :binary
 
     t.datetime :created_at
     t.datetime :updated_at
@@ -270,6 +271,7 @@ ActiveRecord::Schema.define do
     t.string :commentable_title
     t.string :commentable_author
     t.string :commentable_type
+    t.text :text
   end
 
   create_table :cpk_reviews, force: true do |t|
@@ -284,6 +286,7 @@ ActiveRecord::Schema.define do
   create_table :cpk_orders, force: true do |t|
     t.integer :shop_id
     t.string :status
+    t.integer :books_count, default: 0
   end
 
   create_table :cpk_order_tags, primary_key: [:order_id, :tag_id], force: true do |t|
@@ -302,6 +305,18 @@ ActiveRecord::Schema.define do
     t.string :signature
 
     t.index :order_id
+  end
+
+  create_table :cpk_cars, force: true, primary_key: [:make, :model] do |t|
+    t.string :make, null: false
+    t.string :model, null: false
+  end
+
+  create_table :cpk_car_reviews, force: true do |t|
+    t.string :car_make, null: false
+    t.string :car_model, null: false
+    t.text :comment
+    t.integer :rating
   end
 
   create_table :paragraphs, force: true do |t|
@@ -572,6 +587,15 @@ ActiveRecord::Schema.define do
     t.column :source_id, :integer, null: false
     t.column :sink_id,   :integer, null: false
     t.index [:source_id, :sink_id], unique: true, name: "unique_edge_index"
+  end
+
+  create_table :editorships, force: true do |t|
+    t.string :publication_id
+    t.string :editor_id
+  end
+
+  create_table :editors, force: true do |t|
+    t.string :name
   end
 
   create_table :engines, force: true do |t|
@@ -1050,6 +1074,11 @@ ActiveRecord::Schema.define do
     t.integer :mentor_id
   end
 
+  create_table :publications, force: true do |t|
+    t.column :name, :string
+    t.integer :editor_in_chief_id
+  end
+
   create_table :randomly_named_table1, force: true do |t|
     t.string  :some_attribute
     t.integer :another_attribute
@@ -1469,22 +1498,59 @@ ActiveRecord::Schema.define do
   end
 end
 
-Course.connection.create_table :courses, force: true do |t|
+if ActiveRecord::Base.lease_connection.supports_insert_returning? && !ActiveRecord::TestCase.current_adapter?(:SQLite3Adapter)
+  ActiveRecord::Base.lease_connection.create_table :pk_autopopulated_by_a_trigger_records, force: true, id: false do |t|
+    t.integer :id, null: false
+  end
+
+  if ActiveRecord::TestCase.current_adapter?(:PostgreSQLAdapter)
+    ActiveRecord::Base.lease_connection.execute(
+      <<-SQL
+        CREATE OR REPLACE FUNCTION populate_column()
+        RETURNS TRIGGER AS $$
+        DECLARE
+          max_value INTEGER;
+        BEGIN
+            SELECT MAX(id) INTO max_value FROM pk_autopopulated_by_a_trigger_records;
+            NEW.id = COALESCE(max_value, 0) + 1;
+            RETURN NEW;
+        END;
+        $$ LANGUAGE plpgsql;
+
+        CREATE TRIGGER before_insert_trigger
+        BEFORE INSERT ON pk_autopopulated_by_a_trigger_records
+        FOR EACH ROW
+        EXECUTE FUNCTION populate_column();
+      SQL
+    )
+  elsif ActiveRecord::TestCase.current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+    ActiveRecord::Base.lease_connection.execute(
+      <<-SQL
+        CREATE TRIGGER before_insert_trigger
+        BEFORE INSERT ON pk_autopopulated_by_a_trigger_records
+        FOR EACH ROW
+        SET NEW.id = (SELECT COALESCE(MAX(id), 0) + 1 FROM pk_autopopulated_by_a_trigger_records);
+      SQL
+    )
+  end
+end
+
+Course.lease_connection.create_table :courses, force: true do |t|
   t.column :name, :string, null: false
   t.column :college_id, :integer, index: true
 end
 
-College.connection.create_table :colleges, force: true do |t|
+College.lease_connection.create_table :colleges, force: true do |t|
   t.column :name, :string, null: false
 end
 
-Professor.connection.create_table :professors, force: true do |t|
+Professor.lease_connection.create_table :professors, force: true do |t|
   t.column :name, :string, null: false
 end
 
-Professor.connection.create_table :courses_professors, id: false, force: true do |t|
+Professor.lease_connection.create_table :courses_professors, id: false, force: true do |t|
   t.references :course
   t.references :professor
 end
 
-OtherDog.connection.create_table :dogs, force: true
+OtherDog.lease_connection.create_table :dogs, force: true

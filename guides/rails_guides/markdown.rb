@@ -35,16 +35,15 @@ module RailsGuides
       def dom_id(nodes)
         dom_id = dom_id_text(nodes.last.text)
 
-        # Fix duplicate node by prefix with its parent node
+        # Fix duplicate dom_ids by prefixing the parent node dom_id
         if @node_ids[dom_id]
           if @node_ids[dom_id].size > 1
             duplicate_nodes = @node_ids.delete(dom_id)
-            new_node_id = "#{duplicate_nodes[-2][:id]}-#{duplicate_nodes.last[:id]}"
+            new_node_id = dom_id_with_parent_node(dom_id, duplicate_nodes[-2])
             duplicate_nodes.last[:id] = new_node_id
             @node_ids[new_node_id] = duplicate_nodes
           end
-
-          dom_id = "#{nodes[-2][:id]}-#{dom_id}"
+          dom_id = dom_id_with_parent_node(dom_id, nodes[-2])
         end
 
         @node_ids[dom_id] = nodes
@@ -58,6 +57,14 @@ module RailsGuides
                      .gsub(/!/, "-bang")
                      .gsub(/[#{escaped_chars}]+/, " ").strip
                      .gsub(/\s+/, "-")
+      end
+
+      def dom_id_with_parent_node(dom_id, parent_node)
+        if parent_node
+          [parent_node[:id], dom_id].join("-")
+        else
+          dom_id
+        end
       end
 
       def engine
@@ -113,7 +120,7 @@ module RailsGuides
                 end
 
                 node[:id] = dom_id(hierarchy) unless node[:id]
-                node.inner_html = "#{node_index(hierarchy)} #{node.inner_html}"
+                node.inner_html = "<span>#{node_index(hierarchy)}</span> #{node.inner_html}"
               end
             end
 
@@ -141,10 +148,20 @@ module RailsGuides
           end.to_html
 
           @index = <<-INDEX.html_safe
-          <div id="subCol">
-            <h3 class="chapter"><img src="images/chapters_icon.gif" alt="" />Chapters</h3>
+          <nav id="subCol">
+            <h3 class="chapter">
+              <picture>
+                <!-- Using the `source`  HTML tag to set the dark theme image -->
+                <source
+                  srcset="images/icon_book-close-bookmark-1-wht.svg"
+                  media="(prefers-color-scheme: dark)"
+                />
+                <img src="images/icon_book-close-bookmark-1.svg" alt="Chapter Icon" />
+              </picture>
+              Chapters
+            </h3>
             #{@index}
-          </div>
+          </nav>
           INDEX
         end
       end

@@ -7,14 +7,6 @@ module ActiveRecord
   class ActiveRecordError < StandardError
   end
 
-  # DEPRECATED: Previously raised when trying to use a feature in Active Record which
-  # requires Active Job but the gem is not present. Now raises a NameError.
-  include ActiveSupport::Deprecation::DeprecatedConstantAccessor
-  DeprecatedActiveJobRequiredError = Class.new(ActiveRecordError) # :nodoc:
-  deprecate_constant "ActiveJobRequiredError", "ActiveRecord::DeprecatedActiveJobRequiredError",
-    message: "ActiveRecord::ActiveJobRequiredError has been deprecated. If Active Job is not present, a NameError will be raised instead.",
-    deprecator: ActiveRecord.deprecator
-
   # Raised when the single-table inheritance mechanism fails to locate the subclass
   # (for example due to improper usage of column that
   # {ActiveRecord::Base.inheritance_column}[rdoc-ref:ModelSchema::ClassMethods#inheritance_column]
@@ -66,7 +58,7 @@ module ActiveRecord
   end
 
   # Raised when connection to the database could not been established (for example when
-  # {ActiveRecord::Base.connection=}[rdoc-ref:ConnectionHandling#connection]
+  # {ActiveRecord::Base.lease_connection=}[rdoc-ref:ConnectionHandling#lease_connection]
   # is given a +nil+ object).
   class ConnectionNotEstablished < AdapterError
     def initialize(message = nil, connection_pool: nil)

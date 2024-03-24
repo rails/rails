@@ -72,7 +72,7 @@ module ActiveRecord
         MUTEX.synchronize do
           return if method_defined?(method)
 
-          if /\A[a-zA-Z_]\w*[!?]?\z/.match?(method) && !DELEGATION_RESERVED_METHOD_NAMES.include?(method.to_s)
+          if /\A[a-zA-Z_]\w*[!?]?\z/.match?(method) && !::ActiveSupport::Delegation::RESERVED_METHOD_NAMES.include?(method.to_s)
             module_eval <<-RUBY, __FILE__, __LINE__ + 1
               def #{method}(...)
                 scoping { klass.#{method}(...) }

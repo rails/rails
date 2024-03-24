@@ -188,6 +188,16 @@ module ActiveRecord
     # #after_commit is a good spot to put in a hook to clearing a cache since clearing it from
     # within a transaction could trigger the cache to be regenerated before the database is updated.
     #
+    # *Warning*: Callbacks are deduplicated according to the callback and method.
+    # This means you cannot have multiple <tt>after_xxx_commit</tt> shortcuts calling the same method.
+    #
+    #   after_create_commit :do_foo # This will NOT fire
+    #   after_save_commit :do_foo
+    #
+    # Instead, use after_commit directly
+    #
+    #   after_commit :do_foo, on: [:create, :save]
+    #
     # === Caveats
     #
     # If you're on MySQL, then do not use Data Definition Language (DDL) operations in nested
@@ -198,9 +208,9 @@ module ActiveRecord
     # database error will occur because the savepoint has already been
     # automatically released. The following example demonstrates the problem:
     #
-    #   Model.connection.transaction do                           # BEGIN
-    #     Model.connection.transaction(requires_new: true) do     # CREATE SAVEPOINT active_record_1
-    #       Model.connection.create_table(...)                    # active_record_1 now automatically released
+    #   Model.lease_connection.transaction do                           # BEGIN
+    #     Model.lease_connection.transaction(requires_new: true) do     # CREATE SAVEPOINT active_record_1
+    #       Model.lease_connection.create_table(...)                    # active_record_1 now automatically released
     #     end                                                     # RELEASE SAVEPOINT active_record_1
     #                                                             # ^^^^ BOOM! database error!
     #   end
@@ -209,7 +219,9 @@ module ActiveRecord
     module ClassMethods
       # See the ConnectionAdapters::DatabaseStatements#transaction API docs.
       def transaction(**options, &block)
-        connection.transaction(**options, &block)
+        with_connection do |connection|
+          connection.transaction(**options, &block)
+        end
       end
 
       def before_commit(*args, &block) # :nodoc:
@@ -235,24 +247,32 @@ module ActiveRecord
       end
 
       # Shortcut for <tt>after_commit :hook, on: [ :create, :update ]</tt>.
+      #
+      # *Warning*: only one <tt>after_xxx_commit</tt> shortcut can call any given method.
       def after_save_commit(*args, &block)
         set_options_for_callbacks!(args, on: [ :create, :update ], **prepend_option)
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: :create</tt>.
+      #
+      # *Warning*: only one <tt>after_xxx_commit</tt> shortcut can call any given method.
       def after_create_commit(*args, &block)
         set_options_for_callbacks!(args, on: :create, **prepend_option)
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: :update</tt>.
+      #
+      # *Warning*: only one <tt>after_xxx_commit</tt> shortcut can call any given method.
       def after_update_commit(*args, &block)
         set_options_for_callbacks!(args, on: :update, **prepend_option)
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: :destroy</tt>.
+      #
+      # *Warning*: only one <tt>after_xxx_commit</tt> shortcut can call any given method.
       def after_destroy_commit(*args, &block)
         set_options_for_callbacks!(args, on: :destroy, **prepend_option)
         set_callback(:commit, :after, *args, &block)
@@ -264,6 +284,25 @@ module ActiveRecord
       def after_rollback(*args, &block)
         set_options_for_callbacks!(args, prepend_option)
         set_callback(:rollback, :after, *args, &block)
+      end
+
+      # Similar to ActiveSupport::Callbacks::ClassMethods#set_callback, but with
+      # support for options available on #after_commit and #after_rollback callbacks.
+      def set_callback(name, *filter_list, &block)
+        options = filter_list.extract_options!
+        filter_list << options
+
+        if name.in?([:commit, :rollback]) && options[:on]
+          fire_on = Array(options[:on])
+          assert_valid_transaction_action(fire_on)
+          options[:if] = [
+            -> { transaction_include_any_action?(fire_on) },
+            *options[:if]
+          ]
+        end
+
+
+        super(name, *filter_list, &block)
       end
 
       private
@@ -354,18 +393,19 @@ module ActiveRecord
     # This method is available within the context of an ActiveRecord::Base
     # instance.
     def with_transaction_returning_status
-      status = nil
-      connection = self.class.connection
-      ensure_finalize = !connection.transaction_open?
+      self.class.with_connection do |connection|
+        status = nil
+        ensure_finalize = !connection.transaction_open?
 
-      connection.transaction do
-        add_to_transaction(ensure_finalize || has_transactional_callbacks?)
-        remember_transaction_record_state
+        connection.transaction do
+          add_to_transaction(ensure_finalize || has_transactional_callbacks?)
+          remember_transaction_record_state
 
-        status = yield
-        raise ActiveRecord::Rollback unless status
+          status = yield
+          raise ActiveRecord::Rollback unless status
+        end
+        status
       end
-      status
     end
 
     def trigger_transactional_callbacks? # :nodoc:
@@ -457,7 +497,9 @@ module ActiveRecord
       # Add the record to the current transaction so that the #after_rollback and #after_commit
       # callbacks can be called.
       def add_to_transaction(ensure_finalize = true)
-        self.class.connection.add_transaction_record(self, ensure_finalize)
+        self.class.with_connection do |connection|
+          connection.add_transaction_record(self, ensure_finalize)
+        end
       end
 
       def has_transactional_callbacks?

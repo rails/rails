@@ -2,7 +2,7 @@
 
 require "active_record/connection_adapters/abstract_mysql_adapter"
 
-gem "trilogy", "~> 2.4"
+gem "trilogy", "~> 2.7"
 require "trilogy"
 
 require "active_record/connection_adapters/trilogy/database_statements"
@@ -13,7 +13,6 @@ module ActiveRecord
       ER_BAD_DB_ERROR = 1049
       ER_DBACCESS_DENIED_ERROR = 1044
       ER_ACCESS_DENIED_ERROR = 1045
-      ER_SERVER_SHUTDOWN = 1053
 
       ADAPTER_NAME = "Trilogy"
 
@@ -84,6 +83,10 @@ module ActiveRecord
         # matched rather than number of rows updated.
         config[:found_rows] = true
 
+        if config[:prepared_statements]
+          raise ArgumentError, "Trilogy currently doesn't support prepared statements. Remove `prepared_statements: true` from your database configuration."
+        end
+
         super
       end
 
@@ -118,7 +121,7 @@ module ActiveRecord
       end
 
       def active?
-        connection&.ping || false
+        connected? && @lock.synchronize { @raw_connection&.ping } || false
       rescue ::Trilogy::Error
         false
       end
@@ -126,18 +129,18 @@ module ActiveRecord
       alias reset! reconnect!
 
       def disconnect!
-        super
-        unless connection.nil?
-          connection.close
-          self.connection = nil
+        @lock.synchronize do
+          super
+          @raw_connection&.close
+          @raw_connection = nil
         end
       end
 
       def discard!
-        super
-        unless connection.nil?
-          connection.discard!
-          self.connection = nil
+        @lock.synchronize do
+          super
+          @raw_connection&.discard!
+          @raw_connection = nil
         end
       end
 
@@ -167,23 +170,15 @@ module ActiveRecord
           exception.error_code if exception.respond_to?(:error_code)
         end
 
-        def connection
-          @raw_connection
-        end
-
-        def connection=(conn)
-          @raw_connection = conn
-        end
-
         def connect
-          self.connection = self.class.new_client(@config)
+          @raw_connection = self.class.new_client(@config)
         rescue ConnectionNotEstablished => ex
           raise ex.set_pool(@pool)
         end
 
         def reconnect
-          connection&.close
-          self.connection = nil
+          @raw_connection&.close
+          @raw_connection = nil
           connect
         end
 
@@ -201,18 +196,12 @@ module ActiveRecord
           if exception.is_a?(::Trilogy::TimeoutError) && !exception.error_code
             return ActiveRecord::AdapterTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
           end
-          error_code = exception.error_code if exception.respond_to?(:error_code)
-
-          case error_code
-          when ER_SERVER_SHUTDOWN
-            return ConnectionFailed.new(message, connection_pool: @pool)
-          end
 
           case exception
-          when Errno::EPIPE, SocketError, IOError
+          when ::Trilogy::ConnectionClosed, ::Trilogy::EOFError
             return ConnectionFailed.new(message, connection_pool: @pool)
           when ::Trilogy::Error
-            if /Connection reset by peer|TRILOGY_CLOSED_CONNECTION|TRILOGY_INVALID_SEQUENCE_ID|TRILOGY_UNEXPECTED_PACKET/.match?(exception.message)
+            if exception.is_a?(SystemCallError) || exception.message.include?("TRILOGY_INVALID_SEQUENCE_ID")
               return ConnectionFailed.new(message, connection_pool: @pool)
             end
           end

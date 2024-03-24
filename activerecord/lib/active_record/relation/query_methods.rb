@@ -72,10 +72,26 @@ module ActiveRecord
       #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
       #    # INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"
       #    # WHERE "authors"."id" IS NOT NULL AND "comments"."id" IS NOT NULL
+      #
+      # You can define join type in the scope and +associated+ will not use `JOIN` by default.
+      #
+      #    Post.left_joins(:author).where.associated(:author)
+      #    # SELECT "posts".* FROM "posts"
+      #    # LEFT OUTER JOIN "authors" "authors"."id" = "posts"."author_id"
+      #    # WHERE "authors"."id" IS NOT NULL
+      #
+      #    Post.left_joins(:comments).where.associated(:author)
+      #    # SELECT "posts".* FROM "posts"
+      #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+      #    # LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+      #   #  WHERE "author"."id" IS NOT NULL
       def associated(*associations)
         associations.each do |association|
           reflection = scope_association_reflection(association)
-          @scope.joins!(association)
+          unless @scope.joins_values.include?(reflection.name) || @scope.left_outer_joins_values.include?(reflection.name)
+            @scope.joins!(association)
+          end
+
           if reflection.options[:class_name]
             self.not(association => { reflection.association_primary_key => nil })
           else
@@ -618,7 +634,7 @@ module ActiveRecord
     #   #   END ASC
     #
     def in_order_of(column, values)
-      klass.disallow_raw_sql!([column], permit: connection.column_name_with_order_matcher)
+      klass.disallow_raw_sql!([column], permit: model.adapter_class.column_name_with_order_matcher)
       return spawn.none! if values.empty?
 
       references = column_references([column])
@@ -1512,9 +1528,21 @@ module ActiveRecord
       def build_where_clause(opts, rest = []) # :nodoc:
         opts = sanitize_forbidden_attributes(opts)
 
+        if opts.is_a?(Array)
+          opts, *rest = opts
+        end
+
         case opts
-        when String, Array
-          parts = [klass.sanitize_sql(rest.empty? ? opts : [opts, *rest])]
+        when String
+          if rest.empty?
+            parts = [Arel.sql(opts)]
+          elsif rest.first.is_a?(Hash) && /:\w+/.match?(opts)
+            parts = [build_named_bound_sql_literal(opts, rest.first)]
+          elsif opts.include?("?")
+            parts = [build_bound_sql_literal(opts, rest)]
+          else
+            parts = [klass.sanitize_sql(rest.empty? ? opts : [opts, *rest])]
+          end
         when Hash
           opts = opts.transform_keys do |key|
             if key.is_a?(Array)
@@ -1548,6 +1576,46 @@ module ActiveRecord
     private
       def async
         spawn.async!
+      end
+
+      def build_named_bound_sql_literal(statement, values)
+        bound_values = values.transform_values do |value|
+          if ActiveRecord::Relation === value
+            Arel.sql(value.to_sql)
+          elsif value.respond_to?(:map) && !value.acts_like?(:string)
+            values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
+            values.empty? ? nil : values
+          else
+            value = value.id_for_database if value.respond_to?(:id_for_database)
+            value
+          end
+        end
+
+        begin
+          Arel::Nodes::BoundSqlLiteral.new("(#{statement})", nil, bound_values)
+        rescue Arel::BindError => error
+          raise ActiveRecord::PreparedStatementInvalid, error.message
+        end
+      end
+
+      def build_bound_sql_literal(statement, values)
+        bound_values = values.map do |value|
+          if ActiveRecord::Relation === value
+            Arel.sql(value.to_sql)
+          elsif value.respond_to?(:map) && !value.acts_like?(:string)
+            values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
+            values.empty? ? nil : values
+          else
+            value = value.id_for_database if value.respond_to?(:id_for_database)
+            value
+          end
+        end
+
+        begin
+          Arel::Nodes::BoundSqlLiteral.new("(#{statement})", bound_values, nil)
+        rescue Arel::BindError => error
+          raise ActiveRecord::PreparedStatementInvalid, error.message
+        end
       end
 
       def lookup_table_klass_from_join_dependencies(table_name)
@@ -1585,7 +1653,7 @@ module ActiveRecord
 
         arel.where(where_clause.ast) unless where_clause.empty?
         arel.having(having_clause.ast) unless having_clause.empty?
-        arel.take(build_cast_value("LIMIT", connection.sanitize_limit(limit_value))) if limit_value
+        arel.take(build_cast_value("LIMIT", lease_connection.sanitize_limit(limit_value))) if limit_value
         arel.skip(build_cast_value("OFFSET", offset_value.to_i)) if offset_value
         arel.group(*arel_columns(group_values.uniq)) unless group_values.empty?
 
@@ -1780,7 +1848,7 @@ module ActiveRecord
           case field
           when Symbol
             arel_column(field.to_s) do |attr_name|
-              connection.quote_table_name(attr_name)
+              adapter_class.quote_table_name(attr_name)
             end
           when String
             arel_column(field, &:itself)
@@ -1810,7 +1878,7 @@ module ActiveRecord
 
       def table_name_matches?(from)
         table_name = Regexp.escape(table.name)
-        quoted_table_name = Regexp.escape(connection.quote_table_name(table.name))
+        quoted_table_name = Regexp.escape(adapter_class.quote_table_name(table.name))
         /(?:\A|(?<!FROM)\s)(?:\b#{table_name}\b|#{quoted_table_name})(?!\.)/i.match?(from.to_s)
       end
 
@@ -1866,7 +1934,9 @@ module ActiveRecord
         args.each do |arg|
           next unless arg.is_a?(Hash)
           arg.each do |_key, value|
-            unless VALID_DIRECTIONS.include?(value)
+            if value.is_a?(Hash)
+              validate_order_args([value])
+            elsif VALID_DIRECTIONS.exclude?(value)
               raise ArgumentError,
                 "Direction \"#{value}\" is invalid. Valid directions are: #{VALID_DIRECTIONS.to_a.inspect}"
             end
@@ -1874,10 +1944,14 @@ module ActiveRecord
         end
       end
 
+      def flattened_args(order_args)
+        order_args.flat_map { |e| (e.is_a?(Hash) || e.is_a?(Array)) ? flattened_args(e.to_a) : e }
+      end
+
       def preprocess_order_args(order_args)
         @klass.disallow_raw_sql!(
-          order_args.flat_map { |a| a.is_a?(Hash) ? a.keys : a },
-          permit: connection.column_name_with_order_matcher
+          flattened_args(order_args),
+          permit: model.adapter_class.column_name_with_order_matcher
         )
 
         validate_order_args(order_args)
@@ -1891,14 +1965,20 @@ module ActiveRecord
           when Symbol
             order_column(arg.to_s).asc
           when Hash
-            arg.map { |field, dir|
-              case field
-              when Arel::Nodes::SqlLiteral, Arel::Nodes::Node, Arel::Attribute
-                field.public_send(dir.downcase)
+            arg.map do |key, value|
+              if value.is_a?(Hash)
+                value.map do |field, dir|
+                  order_column([key.to_s, field.to_s].join(".")).public_send(dir.downcase)
+                end
               else
-                order_column(field.to_s).public_send(dir.downcase)
+                case key
+                when Arel::Nodes::SqlLiteral, Arel::Nodes::Node, Arel::Attribute
+                  key.public_send(value.downcase)
+                else
+                  order_column(key.to_s).public_send(value.downcase)
+                end
               end
-            }
+            end
           else
             arg
           end
@@ -1912,18 +1992,20 @@ module ActiveRecord
       end
 
       def column_references(order_args)
-        references = order_args.flat_map do |arg|
+        order_args.flat_map do |arg|
           case arg
           when String, Symbol
             arg
           when Hash
-            arg.keys.map do |key|
-              key if key.is_a?(String) || key.is_a?(Symbol)
-            end
+            arg.keys.select { |e| e.is_a?(String) || e.is_a?(Symbol) }
           end
-        end
-        references.map! { |arg| arg =~ /^\W?(\w+)\W?\./ && $1 }.compact!
-        references
+        end.filter_map do |arg|
+          arg =~ /^\W?(\w+)\W?\./ && $1
+        end +
+        order_args
+          .select { |e| e.is_a?(Hash) }
+          .flat_map { |e| e.map { |k, v| k if v.is_a?(Hash) } }
+          .compact
       end
 
       def order_column(field)
@@ -1931,7 +2013,7 @@ module ActiveRecord
           if attr_name == "count" && !group_values.empty?
             table[attr_name]
           else
-            Arel.sql(connection.quote_table_name(attr_name))
+            Arel.sql(adapter_class.quote_table_name(attr_name))
           end
         end
       end

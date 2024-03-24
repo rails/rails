@@ -134,10 +134,10 @@ module ActiveSupport
       "Mumbai"                       => "Asia/Kolkata",
       "New Delhi"                    => "Asia/Kolkata",
       "Kathmandu"                    => "Asia/Kathmandu",
-      "Astana"                       => "Asia/Dhaka",
       "Dhaka"                        => "Asia/Dhaka",
       "Sri Jayawardenepura"          => "Asia/Colombo",
       "Almaty"                       => "Asia/Almaty",
+      "Astana"                       => "Asia/Almaty",
       "Novosibirsk"                  => "Asia/Novosibirsk",
       "Rangoon"                      => "Asia/Rangoon",
       "Bangkok"                      => "Asia/Bangkok",
@@ -208,7 +208,9 @@ module ActiveSupport
         TZInfo::Timezone.get(MAPPING[name] || name)
       end
 
+      # :stopdoc:
       alias_method :create, :new
+      # :startdoc:
 
       # Returns a TimeZone instance with the given name, or +nil+ if no
       # such TimeZone instance exists. (This exists to support the use of
@@ -296,15 +298,22 @@ module ActiveSupport
     attr_reader :name
     attr_reader :tzinfo
 
+    ##
+    # :singleton-method: create
+    # :call-seq: create(name, utc_offset = nil, tzinfo = nil)
+    #
     # Create a new TimeZone object with the given name and offset. The
     # offset is the number of seconds that this time zone is offset from UTC
     # (GMT). Seconds were chosen as the offset unit because that is the unit
     # that Ruby uses to represent time zone offsets (see Time#utc_offset).
+
+    # :stopdoc:
     def initialize(name, utc_offset = nil, tzinfo = nil)
       @name = name
       @utc_offset = utc_offset
       @tzinfo = tzinfo || TimeZone.find_tzinfo(name)
     end
+    # :startdoc:
 
     # Returns the offset of this time zone from UTC in seconds.
     def utc_offset

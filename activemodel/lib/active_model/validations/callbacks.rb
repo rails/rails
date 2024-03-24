@@ -101,7 +101,7 @@ module ActiveModel
               options[:on] = Array(options[:on])
               options[:if] = [
                 ->(o) {
-                  !(options[:on] & Array(o.validation_context)).empty?
+                  options[:on].intersect?(Array(o.validation_context))
                 },
                 *options[:if]
               ]

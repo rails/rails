@@ -1,8 +1,6 @@
 source "https://rubygems.org"
 
-ruby <%= "\"#{gem_ruby_version}\"" -%>
-
-<% gemfile_entries.each do |gemfile_entry| %>
+<% gemfile_entries.each do |gemfile_entry| -%>
 <%= gemfile_entry %>
 <% end -%>
 <% unless options.minimal? -%>
@@ -37,14 +35,14 @@ group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri <%= bundler_windows_platforms %> ]
 <%- unless options.skip_brakeman? -%>
+
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem "brakeman", require: false
-
 <%- end -%>
 <%- unless options.skip_rubocop? -%>
+
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
-
 <%- end -%>
 end
 <% end -%>

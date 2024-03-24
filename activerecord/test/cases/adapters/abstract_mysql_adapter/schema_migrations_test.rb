@@ -4,7 +4,8 @@ require "cases/helper"
 
 class SchemaMigrationsTest < ActiveRecord::AbstractMysqlTestCase
   def setup
-    @schema_migration = ActiveRecord::Base.connection.schema_migration
+    @pool = ActiveRecord::Base.connection_pool
+    @schema_migration = @pool.schema_migration
   end
 
   def test_renaming_index_on_foreign_key
@@ -30,7 +31,7 @@ class SchemaMigrationsTest < ActiveRecord::AbstractMysqlTestCase
 
   def test_initializes_internal_metadata_for_encoding_utf8mb4
     with_encoding_utf8mb4 do
-      internal_metadata = connection.internal_metadata
+      internal_metadata = @pool.internal_metadata
       table_name = internal_metadata.table_name
       connection.drop_table table_name, if_exists: true
 
@@ -39,7 +40,7 @@ class SchemaMigrationsTest < ActiveRecord::AbstractMysqlTestCase
       assert connection.column_exists?(table_name, :key, :string)
     end
   ensure
-    connection.internal_metadata[:environment] = connection.migration_context.current_environment
+    @pool.internal_metadata[:environment] = @pool.migration_context.current_environment
   end
 
   private
@@ -58,7 +59,7 @@ class SchemaMigrationsTest < ActiveRecord::AbstractMysqlTestCase
     end
 
     def connection
-      @connection ||= ActiveRecord::Base.connection
+      @connection ||= ActiveRecord::Base.lease_connection
     end
 
     def execute(sql)

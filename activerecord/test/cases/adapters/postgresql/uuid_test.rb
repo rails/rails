@@ -5,7 +5,7 @@ require "support/schema_dumping_helper"
 
 module PostgresqlUUIDHelper
   def connection
-    @connection ||= ActiveRecord::Base.connection
+    @connection ||= ActiveRecord::Base.lease_connection
   end
 
   def drop_table(name)
@@ -43,8 +43,8 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
     drop_table "uuid_data_type"
   end
 
-  if ActiveRecord::Base.connection.respond_to?(:supports_pgcrypto_uuid?) &&
-      ActiveRecord::Base.connection.supports_pgcrypto_uuid?
+  if ActiveRecord::Base.lease_connection.respond_to?(:supports_pgcrypto_uuid?) &&
+      ActiveRecord::Base.lease_connection.supports_pgcrypto_uuid?
     def test_uuid_column_default
       connection.add_column :uuid_data_type, :thingy, :uuid, null: false, default: "gen_random_uuid()"
       UUIDType.reset_column_information
@@ -304,15 +304,15 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
       end
     end.new
 
-    connection = ActiveRecord::Base.connection
-    ActiveRecord::Migrator.new(:up, [migration], connection.schema_migration, connection.internal_metadata).migrate
+    pool = ActiveRecord::Base.connection_pool
+    ActiveRecord::Migrator.new(:up, [migration], pool.schema_migration, pool.internal_metadata).migrate
 
     schema = dump_table_schema "pg_uuids_4"
     assert_match(/\bcreate_table "pg_uuids_4", id: :uuid, default: -> { "uuid_generate_v4\(\)" }/, schema)
   ensure
     drop_table "pg_uuids_4"
     ActiveRecord::Migration.verbose = @verbose_was
-    ActiveRecord::Base.connection.schema_migration.delete_all_versions
+    ActiveRecord::Base.connection_pool.schema_migration.delete_all_versions
   end
   uses_transaction :test_schema_dumper_for_uuid_primary_key_default_in_legacy_migration
 end
@@ -356,15 +356,15 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::PostgreSQLTestCase
       end
     end.new
 
-    connection = ActiveRecord::Base.connection
-    ActiveRecord::Migrator.new(:up, [migration], connection.schema_migration, connection.internal_metadata).migrate
+    pool = ActiveRecord::Base.connection_pool
+    ActiveRecord::Migrator.new(:up, [migration], pool.schema_migration, pool.internal_metadata).migrate
 
     schema = dump_table_schema "pg_uuids_4"
     assert_match(/\bcreate_table "pg_uuids_4", id: :uuid, default: nil/, schema)
   ensure
     drop_table "pg_uuids_4"
     ActiveRecord::Migration.verbose = @verbose_was
-    ActiveRecord::Base.connection.schema_migration.delete_all_versions
+    ActiveRecord::Base.connection_pool.schema_migration.delete_all_versions
   end
   uses_transaction :test_schema_dumper_for_uuid_primary_key_with_default_nil_in_legacy_migration
 end

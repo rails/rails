@@ -14,10 +14,11 @@ module ActiveRecord
         def query(sql, name = nil) # :nodoc:
           mark_transaction_written_if_write(sql)
 
-          log(sql, name) do
+          log(sql, name) do |notification_payload|
             with_raw_connection do |conn|
               result = conn.async_exec(sql).map_types!(@type_map_for_results).values
               verified!
+              notification_payload[:row_count] = result.count
               result
             end
           end
@@ -50,11 +51,12 @@ module ActiveRecord
         end
 
         def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
-          log(sql, name, async: async) do
+          log(sql, name, async: async) do |notification_payload|
             with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
               result = conn.async_exec(sql)
               verified!
               handle_warnings(result)
+              notification_payload[:row_count] = result.count
               result
             end
           end

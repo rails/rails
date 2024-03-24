@@ -74,8 +74,10 @@ module ActiveStorage
       # The system has been designed to having you go through the ActiveStorage::Attached::One
       # proxy that provides the dynamic proxy to the associations and factory methods, like +attach+.
       #
-      # If the +:dependent+ option isn't set, the attachment will be purged
-      # (i.e. destroyed) whenever the record is destroyed.
+      # The +:dependent+ option defaults to +:purge_later+. This means the attachment will be
+      # purged (i.e. destroyed) in the background whenever the record is destroyed.
+      # If an ActiveJob::Backend queue adapter is not set in the application set it to
+      # +purge+ instead.
       #
       # If you need the attachment to use a service which differs from the globally configured one,
       # pass the +:service+ option. For example:
@@ -126,7 +128,10 @@ module ActiveStorage
 
         scope :"with_attached_#{name}", -> {
           if ActiveStorage.track_variants
-            includes("#{name}_attachment": { blob: { variant_records: { image_attachment: :blob } } })
+            includes("#{name}_attachment": { blob: {
+              variant_records: { image_attachment: :blob },
+              preview_image_attachment: { blob: { variant_records: { image_attachment: :blob } } }
+            } })
           else
             includes("#{name}_attachment": :blob)
           end
@@ -169,8 +174,10 @@ module ActiveStorage
       # The system has been designed to having you go through the ActiveStorage::Attached::Many
       # proxy that provides the dynamic proxy to the associations and factory methods, like +#attach+.
       #
-      # If the +:dependent+ option isn't set, all the attachments will be purged
-      # (i.e. destroyed) whenever the record is destroyed.
+      # The +:dependent+ option defaults to +:purge_later+. This means the attachments will be
+      # purged (i.e. destroyed) in the background whenever the record is destroyed.
+      # If an ActiveJob::Backend queue adapter is not set in the application set it to
+      # +purge+ instead.
       #
       # If you need the attachment to use a service which differs from the globally configured one,
       # pass the +:service+ option. For example:
@@ -223,7 +230,10 @@ module ActiveStorage
 
         scope :"with_attached_#{name}", -> {
           if ActiveStorage.track_variants
-            includes("#{name}_attachments": { blob: { variant_records: { image_attachment: :blob } } })
+            includes("#{name}_attachments": { blob: {
+              variant_records: { image_attachment: :blob },
+              preview_image_attachment: { blob: { variant_records: { image_attachment: :blob } } }
+            } })
           else
             includes("#{name}_attachments": :blob)
           end

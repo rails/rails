@@ -33,6 +33,56 @@ module ActiveRecord
     self.use_instantiated_fixtures = false
     self.use_transactional_tests = true
 
+    def after_teardown
+      super
+      check_connection_leaks
+    end
+
+    def check_connection_leaks
+      return if in_memory_db?
+
+      # Make sure tests didn't leave a connection owned by some background thread
+      # which could lead to some slow wait in a subsequent thread.
+      leaked_conn = []
+      ActiveRecord::Base.connection_handler.each_connection_pool do |pool|
+        # Ensure all in flights tasks are completed.
+        # Otherwise they may still hold a connection.
+        if pool.async_executor
+          if pool.async_executor.scheduled_task_count != pool.async_executor.completed_task_count
+            pool.connections.each do |conn|
+              if conn.in_use? && conn.owner != Fiber.current && conn.owner != Thread.current
+                if conn.owner.respond_to?(:join)
+                  conn.owner&.join(0.5)
+                end
+              end
+            end
+          end
+        end
+
+        pool.reap
+        pool.connections.each do |conn|
+          if conn.in_use?
+            if conn.owner != Fiber.current && conn.owner != Thread.current
+              leaked_conn << [conn.owner, conn.owner.backtrace]
+              conn.owner&.kill
+            end
+            conn.steal!
+            pool.checkin(conn)
+          end
+        end
+      end
+
+      if leaked_conn.size > 0
+        puts "Found #{leaked_conn.size} leaked connections"
+        leaked_conn.each do |owner, backtrace|
+          puts "owner: #{owner}"
+          puts "backtrace:\n#{backtrace}"
+          puts
+        end
+        raise "Found #{leaked_conn.size} leaked connection after #{self.class.name}##{name}"
+      end
+    end
+
     def create_fixtures(*fixture_set_names, &block)
       ActiveRecord::FixtureSet.create_fixtures(ActiveRecord::TestCase.fixture_paths, fixture_set_names, fixture_class_names, &block)
     end
@@ -46,6 +96,14 @@ module ActiveRecord
         else
           counter.log
         end
+      end
+    end
+
+    def capture_sql_and_binds
+      counter = SQLCounter.new
+      ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
+        yield
+        counter.log_full
       end
     end
 
@@ -112,13 +170,13 @@ module ActiveRecord
       ActiveRecord.db_warnings_action = action
       ActiveRecord.db_warnings_ignore = warnings_to_ignore
 
-      ActiveRecord::Base.connection.disconnect! # Disconnect from the db so that we reconfigure the connection
+      ActiveRecord::Base.lease_connection.disconnect! # Disconnect from the db so that we reconfigure the connection
 
       yield
     ensure
       ActiveRecord.db_warnings_action = @original_db_warnings_action
       ActiveRecord.db_warnings_ignore = original_db_warnings_ignore
-      ActiveRecord::Base.connection.disconnect!
+      ActiveRecord::Base.lease_connection.disconnect!
     end
 
     def reset_callbacks(klass, kind)

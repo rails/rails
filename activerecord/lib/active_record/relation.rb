@@ -255,6 +255,8 @@ module ActiveRecord
     #   the problem of running out of integers, if the underlying table is still stuck on a primary
     #   key of type int (note: All \Rails apps since 5.1+ have defaulted to bigint, which is not liable
     #   to this problem).
+    # * Columns with unique database constraints should not have uniqueness validations defined,
+    #   otherwise #create will fail due to validation errors and #find_by will never be called.
     #
     # This method will return a record if all given attributes are covered by unique constraints
     # (unless the INSERT -> DELETE -> SELECT race condition is triggered), but if creation was attempted
@@ -263,7 +265,7 @@ module ActiveRecord
     def create_or_find_by(attributes, &block)
       transaction(requires_new: true) { create(attributes, &block) }
     rescue ActiveRecord::RecordNotUnique
-      if connection.transaction_open?
+      if lease_connection.transaction_open?
         where(attributes).lock.find_by!(attributes)
       else
         find_by!(attributes)
@@ -276,7 +278,7 @@ module ActiveRecord
     def create_or_find_by!(attributes, &block)
       transaction(requires_new: true) { create!(attributes, &block) }
     rescue ActiveRecord::RecordNotUnique
-      if connection.transaction_open?
+      if lease_connection.transaction_open?
         where(attributes).lock.find_by!(attributes)
       else
         find_by!(attributes)
@@ -294,14 +296,14 @@ module ActiveRecord
     # ones printed by the database shell.
     #
     #   User.all.explain
-    #   # EXPLAIN SELECT `cars`.* FROM `cars`
+    #   # EXPLAIN SELECT `users`.* FROM `users`
     #   # ...
     #
     # Note that this method actually runs the queries, since the results of some
     # are needed by the next ones when eager loading is going on.
     #
-    # To run EXPLAIN on queries created by `first`, `pluck` and `count`, call
-    # these methods on `explain`:
+    # To run EXPLAIN on queries created by +first+, +pluck+ and +count+, call
+    # these methods on +explain+:
     #
     #   User.all.explain.count
     #   # EXPLAIN SELECT COUNT(*) FROM `users`
@@ -466,28 +468,30 @@ module ActiveRecord
       else
         collection = eager_loading? ? apply_join_dependency : self
 
-        column = connection.visitor.compile(table[timestamp_column])
-        select_values = "COUNT(*) AS #{connection.quote_column_name("size")}, MAX(%s) AS timestamp"
+        with_connection do |c|
+          column = c.visitor.compile(table[timestamp_column])
+          select_values = "COUNT(*) AS #{adapter_class.quote_column_name("size")}, MAX(%s) AS timestamp"
 
-        if collection.has_limit_or_offset?
-          query = collection.select("#{column} AS collection_cache_key_timestamp")
-          query._select!(table[Arel.star]) if distinct_value && collection.select_values.empty?
-          subquery_alias = "subquery_for_cache_key"
-          subquery_column = "#{subquery_alias}.collection_cache_key_timestamp"
-          arel = query.build_subquery(subquery_alias, select_values % subquery_column)
-        else
-          query = collection.unscope(:order)
-          query.select_values = [select_values % column]
-          arel = query.arel
-        end
+          if collection.has_limit_or_offset?
+            query = collection.select("#{column} AS collection_cache_key_timestamp")
+            query._select!(table[Arel.star]) if distinct_value && collection.select_values.empty?
+            subquery_alias = "subquery_for_cache_key"
+            subquery_column = "#{subquery_alias}.collection_cache_key_timestamp"
+            arel = query.build_subquery(subquery_alias, select_values % subquery_column)
+          else
+            query = collection.unscope(:order)
+            query.select_values = [select_values % column]
+            arel = query.arel
+          end
 
-        size, timestamp = connection.select_rows(arel, nil).first
+          size, timestamp = c.select_rows(arel, nil).first
 
-        if size
-          column_type = klass.type_for_attribute(timestamp_column)
-          timestamp = column_type.deserialize(timestamp)
-        else
-          size = 0
+          if size
+            column_type = klass.type_for_attribute(timestamp_column)
+            timestamp = column_type.deserialize(timestamp)
+          else
+            size = 0
+          end
         end
       end
 
@@ -591,8 +595,15 @@ module ActiveRecord
 
       group_values_arel_columns = arel_columns(group_values.uniq)
       having_clause_ast = having_clause.ast unless having_clause.empty?
-      stmt = arel.compile_update(values, table[primary_key], having_clause_ast, group_values_arel_columns)
-      klass.connection.update(stmt, "#{klass} Update All").tap { reset }
+      key = if klass.composite_primary_key?
+        primary_key.map { |pk| table[pk] }
+      else
+        table[primary_key]
+      end
+      stmt = arel.compile_update(values, key, having_clause_ast, group_values_arel_columns)
+      klass.with_connection do |c|
+        c.update(stmt, "#{klass} Update All").tap { reset }
+      end
     end
 
     def update(id = :all, attributes) # :nodoc:
@@ -724,9 +735,16 @@ module ActiveRecord
 
       group_values_arel_columns = arel_columns(group_values.uniq)
       having_clause_ast = having_clause.ast unless having_clause.empty?
-      stmt = arel.compile_delete(table[primary_key], having_clause_ast, group_values_arel_columns)
+      key = if klass.composite_primary_key?
+        primary_key.map { |pk| table[pk] }
+      else
+        table[primary_key]
+      end
+      stmt = arel.compile_delete(key, having_clause_ast, group_values_arel_columns)
 
-      klass.connection.delete(stmt, "#{klass} Delete All").tap { reset }
+      klass.with_connection do |c|
+        c.delete(stmt, "#{klass} Delete All").tap { reset }
+      end
     end
 
     # Finds and destroys all records matching the specified conditions.
@@ -774,17 +792,19 @@ module ActiveRecord
     #
     #   ASYNC Post Load (0.0ms) (db time 2ms)  SELECT "posts".* FROM "posts" LIMIT 100
     def load_async
-      return load if !connection.async_enabled?
+      with_connection do |c|
+        return load if !c.async_enabled?
 
-      unless loaded?
-        result = exec_main_query(async: connection.current_transaction.closed?)
+        unless loaded?
+          result = exec_main_query(async: c.current_transaction.closed?)
 
-        if result.is_a?(Array)
-          @records = result
-        else
-          @future_result = result
+          if result.is_a?(Array)
+            @records = result
+          else
+            @future_result = result
+          end
+          @loaded = true
         end
-        @loaded = true
       end
 
       self
@@ -840,8 +860,9 @@ module ActiveRecord
           relation.to_sql
         end
       else
-        conn = klass.connection
-        conn.unprepared_statement { conn.to_sql(arel) }
+        klass.with_connection do |conn|
+          conn.unprepared_statement { conn.to_sql(arel) }
+        end
       end
     end
 
@@ -926,7 +947,7 @@ module ActiveRecord
     end
 
     def alias_tracker(joins = [], aliases = nil) # :nodoc:
-      ActiveRecord::Associations::AliasTracker.create(connection, table.name, joins, aliases)
+      ActiveRecord::Associations::AliasTracker.create(lease_connection, table.name, joins, aliases)
     end
 
     class StrictLoadingScope # :nodoc:
@@ -1040,7 +1061,7 @@ module ActiveRecord
       def exec_main_query(async: false)
         if @none
           if async
-            return FutureResult::Complete.new([])
+            return FutureResult.wrap([])
           else
             return []
           end
@@ -1050,13 +1071,15 @@ module ActiveRecord
           if where_clause.contradiction?
             [].freeze
           elsif eager_loading?
-            apply_join_dependency do |relation, join_dependency|
-              if relation.null_relation?
-                [].freeze
-              else
-                relation = join_dependency.apply_column_aliases(relation)
-                @_join_dependency = join_dependency
-                connection.select_all(relation.arel, "SQL", async: async)
+            with_connection do |c|
+              apply_join_dependency do |relation, join_dependency|
+                if relation.null_relation?
+                  [].freeze
+                else
+                  relation = join_dependency.apply_column_aliases(relation)
+                  @_join_dependency = join_dependency
+                  c.select_all(relation.arel, "SQL", async: async)
+                end
               end
             end
           else

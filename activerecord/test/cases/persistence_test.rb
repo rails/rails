@@ -25,6 +25,7 @@ require "models/cpk"
 require "models/chat_message"
 require "models/default"
 require "models/post_with_prefetched_pk"
+require "models/pk_autopopulated_by_a_trigger_record"
 
 class PersistenceTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :accounts, :minimalistics, :authors, :author_addresses,
@@ -743,7 +744,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_becomes_default_sti_subclass
     original_type = Topic.columns_hash["type"].default
-    ActiveRecord::Base.connection.change_column_default :topics, :type, "Reply"
+    ActiveRecord::Base.lease_connection.change_column_default :topics, :type, "Reply"
     Topic.reset_column_information
 
     reply = topics(:second)
@@ -753,7 +754,7 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_instance_of Topic, topic
 
   ensure
-    ActiveRecord::Base.connection.change_column_default :topics, :type, original_type
+    ActiveRecord::Base.lease_connection.change_column_default :topics, :type, original_type
     Topic.reset_column_information
   end
 
@@ -1462,9 +1463,9 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_reload_via_querycache
-    ActiveRecord::Base.connection.enable_query_cache!
-    ActiveRecord::Base.connection.clear_query_cache
-    assert ActiveRecord::Base.connection.query_cache_enabled, "cache should be on"
+    ActiveRecord::Base.lease_connection.enable_query_cache!
+    ActiveRecord::Base.lease_connection.clear_query_cache
+    assert ActiveRecord::Base.lease_connection.query_cache_enabled, "cache should be on"
     parrot = Parrot.create(name: "Shane")
 
     # populate the cache with the SELECT result
@@ -1472,7 +1473,7 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal parrot.id, found_parrot.id
 
     # Manually update the 'name' attribute in the DB directly
-    assert_equal 1, ActiveRecord::Base.connection.query_cache.length
+    assert_equal 1, ActiveRecord::Base.lease_connection.query_cache.size
     ActiveRecord::Base.uncached do
       found_parrot.name = "Mary"
       found_parrot.save
@@ -1485,7 +1486,7 @@ class PersistenceTest < ActiveRecord::TestCase
     found_parrot = Parrot.find(parrot.id)
     assert_equal "Mary", found_parrot.name
   ensure
-    ActiveRecord::Base.connection.disable_query_cache!
+    ActiveRecord::Base.lease_connection.disable_query_cache!
   end
 
   def test_save_touch_false
@@ -1507,7 +1508,7 @@ class PersistenceTest < ActiveRecord::TestCase
     child_class = Class.new(Topic)
     child_class.new # force schema to load
 
-    ActiveRecord::Base.connection.add_column(:topics, :foo, :string)
+    ActiveRecord::Base.lease_connection.add_column(:topics, :foo, :string)
     Topic.reset_column_information
 
     # this should redefine attribute methods
@@ -1517,7 +1518,7 @@ class PersistenceTest < ActiveRecord::TestCase
     assert child_class.instance_methods.include?(:foo_changed?)
     assert_equal "bar", child_class.new(foo: :bar).foo
   ensure
-    ActiveRecord::Base.connection.remove_column(:topics, :foo)
+    ActiveRecord::Base.lease_connection.remove_column(:topics, :foo)
     Topic.reset_column_information
   end
 
@@ -1574,6 +1575,13 @@ class PersistenceTest < ActiveRecord::TestCase
 
     assert_equal("blue", ClothingItem.find_by(id: clothing_item.id).color)
   end
+
+  def test_model_with_no_auto_populated_fields_still_returns_primary_key_after_insert
+    record = PkAutopopulatedByATriggerRecord.create
+
+    assert_not_nil record.id
+    assert record.id > 0
+  end if supports_insert_returning? && !current_adapter?(:SQLite3Adapter)
 end
 
 class QueryConstraintsTest < ActiveRecord::TestCase

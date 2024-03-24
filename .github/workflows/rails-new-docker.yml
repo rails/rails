@@ -15,9 +15,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: ruby/setup-ruby@v1
+    - name: Remove Gemfile.lock
+      run: rm -f Gemfile.lock
+    - name: Set up Ruby 3.3
+      uses: ruby/setup-ruby@v1
       with:
-        ruby-version: '3.2'
+        ruby-version: 3.3
         bundler-cache: true
     - name: Generate --dev app
       run: |

@@ -32,6 +32,8 @@ module ActiveSupport
     end
 
     def backtrace_locations
+      return nil if super.nil?
+
       parse_message_for_trace.map { |trace|
         file, line = trace.match(/^(.+?):(\d+).*$/, &:captures) || trace
         BacktraceLocation.new(file, line.to_i, trace)

@@ -1,48 +1,57 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "action_dispatch"
 require "active_support/rescuable"
 
 module ActionCable
   module Connection
-    # = Action Cable \Connection \Base
+    # # Action Cable Connection Base
     #
-    # For every WebSocket connection the Action Cable server accepts, a Connection object will be instantiated. This instance becomes the parent
-    # of all of the channel subscriptions that are created from there on. Incoming messages are then routed to these channel subscriptions
-    # based on an identifier sent by the Action Cable consumer. The Connection itself does not deal with any specific application logic beyond
-    # authentication and authorization.
+    # For every WebSocket connection the Action Cable server accepts, a Connection
+    # object will be instantiated. This instance becomes the parent of all of the
+    # channel subscriptions that are created from there on. Incoming messages are
+    # then routed to these channel subscriptions based on an identifier sent by the
+    # Action Cable consumer. The Connection itself does not deal with any specific
+    # application logic beyond authentication and authorization.
     #
     # Here's a basic example:
     #
-    #   module ApplicationCable
-    #     class Connection < ActionCable::Connection::Base
-    #       identified_by :current_user
+    #     module ApplicationCable
+    #       class Connection < ActionCable::Connection::Base
+    #         identified_by :current_user
     #
-    #       def connect
-    #         self.current_user = find_verified_user
-    #         logger.add_tags current_user.name
-    #       end
-    #
-    #       def disconnect
-    #         # Any cleanup work needed when the cable connection is cut.
-    #       end
-    #
-    #       private
-    #         def find_verified_user
-    #           User.find_by_identity(cookies.encrypted[:identity_id]) ||
-    #             reject_unauthorized_connection
+    #         def connect
+    #           self.current_user = find_verified_user
+    #           logger.add_tags current_user.name
     #         end
+    #
+    #         def disconnect
+    #           # Any cleanup work needed when the cable connection is cut.
+    #         end
+    #
+    #         private
+    #           def find_verified_user
+    #             User.find_by_identity(cookies.encrypted[:identity_id]) ||
+    #               reject_unauthorized_connection
+    #           end
+    #       end
     #     end
-    #   end
     #
-    # First, we declare that this connection can be identified by its current_user. This allows us to later be able to find all connections
-    # established for that current_user (and potentially disconnect them). You can declare as many
-    # identification indexes as you like. Declaring an identification means that an attr_accessor is automatically set for that key.
+    # First, we declare that this connection can be identified by its current_user.
+    # This allows us to later be able to find all connections established for that
+    # current_user (and potentially disconnect them). You can declare as many
+    # identification indexes as you like. Declaring an identification means that an
+    # attr_accessor is automatically set for that key.
     #
-    # Second, we rely on the fact that the WebSocket connection is established with the cookies from the domain being sent along. This makes
-    # it easy to use signed cookies that were set when logging in via a web interface to authorize the WebSocket connection.
+    # Second, we rely on the fact that the WebSocket connection is established with
+    # the cookies from the domain being sent along. This makes it easy to use signed
+    # cookies that were set when logging in via a web interface to authorize the
+    # WebSocket connection.
     #
-    # Finally, we add a tag to the connection-specific logger with the name of the current user to easily distinguish their messages in the log.
+    # Finally, we add a tag to the connection-specific logger with the name of the
+    # current user to easily distinguish their messages in the log.
     #
     # Pretty simple, eh?
     class Base
@@ -71,8 +80,10 @@ module ActionCable
         @started_at = @last_message_received_at = Time.now
       end
 
-      # Called by the server when a new WebSocket connection is established. This configures the callbacks intended for overwriting by the user.
-      # This method should not be called directly -- instead rely upon on the #connect (and #disconnect) callbacks.
+      # Called by the server when a new WebSocket connection is established. This
+      # configures the callbacks intended for overwriting by the user. This method
+      # should not be called directly -- instead rely upon on the #connect (and
+      # #disconnect) callbacks.
       def process # :nodoc:
         logger.info started_request_message
 
@@ -122,13 +133,14 @@ module ActionCable
         websocket.close(force: force)
       end
 
-      # Invoke a method on the connection asynchronously through the pool of thread workers.
+      # Invoke a method on the connection asynchronously through the pool of thread
+      # workers.
       def send_async(method, *arguments)
         worker_pool.async_invoke(self, method, *arguments)
       end
 
-      # Return a basic hash of statistics for the connection keyed with <tt>identifier</tt>, <tt>started_at</tt>,
-      # <tt>subscriptions</tt>, <tt>request_id</tt>, and <tt>last_message_received_at</tt>.
+      # Return a basic hash of statistics for the connection keyed with `identifier`, 
+      # `started_at`, `subscriptions`, `request_id`, and `last_message_received_at`.
       # This can be returned by a health check against the connection.
       def statistics
         {
@@ -177,7 +189,8 @@ module ActionCable
         attr_reader :websocket
         attr_reader :message_buffer
 
-        # The request that initiated the WebSocket connection is available here. This gives access to the environment, cookies, etc.
+        # The request that initiated the WebSocket connection is available here. This
+        # gives access to the environment, cookies, etc.
         def request # :doc:
           @request ||= begin
             environment = Rails.application.env_config.merge(env) if defined?(Rails.application) && Rails.application
@@ -185,7 +198,8 @@ module ActionCable
           end
         end
 
-        # The cookies of the request that initiated the WebSocket connection. Useful for performing authorization checks.
+        # The cookies of the request that initiated the WebSocket connection. Useful for
+        # performing authorization checks.
         def cookies # :doc:
           request.cookie_jar
         end
@@ -222,9 +236,8 @@ module ActionCable
         end
 
         def send_welcome_message
-          # Send welcome message to the internal connection monitor channel.
-          # This ensures the connection monitor state is reset after a successful
-          # websocket connection.
+          # Send welcome message to the internal connection monitor channel. This ensures
+          # the connection monitor state is reset after a successful websocket connection.
           transmit type: ActionCable::INTERNAL[:message_types][:welcome]
         end
 
@@ -255,7 +268,8 @@ module ActionCable
           [ 404, { Rack::CONTENT_TYPE => "text/plain; charset=utf-8" }, [ "Page not found" ] ]
         end
 
-        # Tags are declared in the server but computed in the connection. This allows us per-connection tailored tags.
+        # Tags are declared in the server but computed in the connection. This allows us
+        # per-connection tailored tags.
         def new_tagged_logger
           TaggedLoggerProxy.new server.logger,
             tags: server.config.log_tags.map { |tag| tag.respond_to?(:call) ? tag.call(request) : tag.to_s.camelize }

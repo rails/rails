@@ -15,20 +15,20 @@ class MultipleDbTest < ActiveRecord::TestCase
   end
 
   def test_connected
-    assert_not_nil Entrant.connection
-    assert_not_nil Course.connection
+    assert_not_nil Entrant.lease_connection
+    assert_not_nil Course.lease_connection
   end
 
   def test_proper_connection
-    assert_not_equal(Entrant.connection, Course.connection)
-    assert_equal(Entrant.connection, Entrant.retrieve_connection)
-    assert_equal(Course.connection, Course.retrieve_connection)
-    assert_equal(ActiveRecord::Base.connection, Entrant.connection)
+    assert_not_equal(Entrant.lease_connection, Course.lease_connection)
+    assert_equal(Entrant.lease_connection, Entrant.retrieve_connection)
+    assert_equal(Course.lease_connection, Course.retrieve_connection)
+    assert_equal(ActiveRecord::Base.lease_connection, Entrant.lease_connection)
   end
 
   def test_swapping_the_connection
     old_spec_name, Course.connection_specification_name = Course.connection_specification_name, "ActiveRecord::Base"
-    assert_equal(Entrant.connection, Course.connection)
+    assert_equal(Entrant.lease_connection, Course.lease_connection)
   ensure
     Course.connection_specification_name = old_spec_name
   end
@@ -58,12 +58,12 @@ class MultipleDbTest < ActiveRecord::TestCase
   end
 
   def test_course_connection_should_survive_reloads
-    assert Course.connection
+    assert Course.lease_connection
 
     assert Object.send(:remove_const, :Course)
     assert load("models/course.rb")
 
-    assert Course.connection
+    assert Course.lease_connection
   end
 
   def test_transactions_across_databases
@@ -92,14 +92,14 @@ class MultipleDbTest < ActiveRecord::TestCase
   end
 
   def test_connection
-    assert_same Entrant.connection, Bird.connection
-    assert_not_same Entrant.connection, Course.connection
+    assert_same Entrant.lease_connection, Bird.lease_connection
+    assert_not_same Entrant.lease_connection, Course.lease_connection
   end
 
   unless in_memory_db?
     def test_count_on_custom_connection
-      assert_equal ARUnit2Model.connection, College.connection
-      assert_not_equal ActiveRecord::Base.connection, College.connection
+      assert_equal ARUnit2Model.lease_connection, College.lease_connection
+      assert_not_equal ActiveRecord::Base.lease_connection, College.lease_connection
       assert_equal 1, College.count
     end
 
@@ -115,12 +115,12 @@ class MultipleDbTest < ActiveRecord::TestCase
       Course.where(wrong_column: "wrong").first!
     end
 
-    assert_equal Course.connection.pool, error.connection_pool
+    assert_equal Course.lease_connection.pool, error.connection_pool
   end
 
   def test_exception_contains_correct_pool
-    course_conn = Course.connection
-    entrant_conn = Entrant.connection
+    course_conn = Course.lease_connection
+    entrant_conn = Entrant.lease_connection
 
     assert_not_equal course_conn, entrant_conn
 
