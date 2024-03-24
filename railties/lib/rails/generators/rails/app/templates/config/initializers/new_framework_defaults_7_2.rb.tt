@@ -27,3 +27,8 @@
 # expected format can disable validation by setting this config to `false`.
 #++
 # Rails.application.config.active_record.validate_migration_timestamps = true
+
+###
+# Controls whether or not `<form>` elements rendered by `form_tag` without a block will render `</form>`
+#++
+# Rails.application.config.action_view.closes_form_tag_without_block = true

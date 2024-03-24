@@ -60,6 +60,7 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 7.2
 
+- [`config.action_view.closes_form_tag_without_block`](#config-action-view-closes-form-tag-without-block): `true`
 - [`config.active_record.validate_migration_timestamps`](#config-active-record-validate-migration-timestamps): `true`
 - [`config.active_storage.web_image_content_types`](#config-active-storage-web-image-content-types): `%w[image/png image/jpeg image/gif image/webp]`
 
@@ -2173,6 +2174,35 @@ The default value depends on the `config.load_defaults` target version:
 #### `config.action_view.prepend_content_exfiltration_prevention`
 
 Determines whether or not the `form_tag` and `button_to` helpers will produce HTML tags prepended with browser-safe (but technically invalid) HTML that guarantees their contents cannot be captured by any preceding unclosed tags. The default value is `false`.
+
+#### `config.action_view.closes_form_tag_without_block`
+
+Controls whether or not calls to `form_tag` and `form_with` without a block will render without a closing tag.
+
+When set to `true`, calls without a block will render `<form>` elements with closing tags:
+
+```erb
+<%= form_tag "https://example.com" %>
+<%# => <form action="https://example.com" method="post"><!-- Rails-generated hidden fields --></form> %>
+
+<%= form_with url: "https://example.com" %>
+<%# => <form action="https://example.com" method="post"><!-- Rails-generated hidden fields --></form> %>
+```
+
+When set to `false`, calls without a block will render `<form>` elements as open tags:
+
+```erb
+<%= form_tag "https://example.com" %>
+<%# => <form action="https://example.com" method="post"><!-- Rails-generated hidden fields --> %>
+
+<%= form_with url: "https://example.com" %>
+<%# => <form action="https://example.com" method="post"><!-- Rails-generated hidden fields --> %>
+```
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.2                   | `true`               |
 
 #### `config.action_view.sanitizer_vendor`
 
