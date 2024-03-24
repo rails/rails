@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "models/uuid_entryable"
+
 class UuidComment < ActiveRecord::Base
-  has_one :uuid_entry, as: :entryable
+  include UuidEntryable
 end
