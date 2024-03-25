@@ -1074,7 +1074,7 @@ With this option enabled, it will also look for a `:comments` association. In th
 having the inverse association discovered is beneficial as it can prevent some useless queries, but
 it may cause backward compatibility issues with legacy code that doesn't expect it.
 
-This behavior can be disable on a per-model basis:
+This behavior can be disabled on a per-model basis:
 
 
 ```ruby
