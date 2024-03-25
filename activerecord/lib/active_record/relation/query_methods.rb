@@ -1552,7 +1552,7 @@ module ActiveRecord
               klass.attribute_aliases[key] || key
             end
           end
-          references = PredicateBuilder.references(opts)
+          references = PredicateBuilder.references(opts, associations: klass.reflections)
           self.references_values |= references unless references.empty?
 
           parts = predicate_builder.build_from_hash(opts) do |table_name|
