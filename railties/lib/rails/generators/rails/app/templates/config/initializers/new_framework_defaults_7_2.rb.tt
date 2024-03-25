@@ -27,3 +27,9 @@
 # expected format can disable validation by setting this config to `false`.
 #++
 # Rails.application.config.active_record.validate_migration_timestamps = true
+
+###
+# Enable actionable command lines errors. When enabled, actionable errors encountered on the command line
+# will prompt the user to take an action to resolve and retry the error.
+#
+# Rails.application.config.actionable_command_line_errors = Rails.env.test? && !ENV["CI"]

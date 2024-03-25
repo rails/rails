@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "isolation/abstract_unit"
+require "thor"
 
 module ApplicationTests
   class TestTest < ActiveSupport::TestCase
@@ -110,6 +111,11 @@ module ApplicationTests
       output  = rails("generate", "model", "user", "name:string")
       version = output.match(/(\d+)_create_users\.rb/)[1]
 
+      app_file "config/environments/test.rb", <<-RUBY
+        Rails.application.configure do
+          config.actionable_command_line_errors = false
+        end
+      RUBY
       app_file "test/models/user_test.rb", <<-RUBY
         require "test_helper"
 
@@ -147,6 +153,11 @@ module ApplicationTests
       output  = rails("generate", "model", "user", "name:string")
       version = output.match(/(\d+)_create_users\.rb/)[1]
 
+      app_file "config/environments/test.rb", <<-RUBY
+        Rails.application.configure do
+          config.actionable_command_line_errors = false
+        end
+      RUBY
       app_file "test/models/user_test.rb", <<-RUBY
         require "test_helper"
 
@@ -343,6 +354,44 @@ Expected: ["id", "name"]
       RUBY
 
       assert_unsuccessful_run "models/user_test.rb", "SCHEMA LOADED!"
+    end
+
+    def test_actionable_command_line_error
+      rails "generate", "scaffold", "user", "name:string"
+      app_file "config/environments/test.rb", <<-RUBY
+        Rails.application.configure do
+          config.actionable_command_line_errors = true
+        end
+      RUBY
+      app_file "config/initializers/thor_yes.rb", <<-RUBY
+        Rails::Command::Base.class_eval <<-INITIALIZER
+          def yes?(statement, color = nil)
+            raise ArgumentError unless statement == "Run pending migrations? [Yn]"
+            true
+          end
+        INITIALIZER
+      RUBY
+
+      run_test_file("models/user_test.rb").tap do |output|
+        assert_match "Migrations are pending. To resolve this issue, run:", output
+        assert_match "CreateUsers: migrating", output
+        assert_match "0 runs, 0 assertions, 0 failures, 0 errors, 0 skips", output
+      end
+    end
+
+    def test_actionable_command_line_errors_false
+      rails "generate", "scaffold", "user", "name:string"
+      app_file "config/environments/test.rb", <<-RUBY
+        Rails.application.configure do
+          config.actionable_command_line_errors = false
+        end
+      RUBY
+
+      run_test_file("models/user_test.rb").tap do |output|
+        assert_match "Migrations are pending. To resolve this issue, run:", output
+        assert_no_match "CreateUsers: migrating", output
+        assert_no_match "0 runs, 0 assertions, 0 failures, 0 errors, 0 skips", output
+      end
     end
 
     private

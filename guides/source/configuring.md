@@ -161,6 +161,12 @@ Below are the default values associated with each target version. In cases of co
 
 The following configuration methods are to be called on a `Rails::Railtie` object, such as a subclass of `Rails::Engine` or `Rails::Application`.
 
+#### `config.actionable_command_line_errors`
+
+Says whether the user will be prompted to retry `ActiveSupport::ActionableError`s on the command line.
+
+By default it is `true` in the test environment unless the `"CI"` env variable is set, and false otherwise.
+
 #### `config.add_autoload_paths_to_load_path`
 
 Says whether autoload paths have to be added to `$LOAD_PATH`. It is recommended to be set to `false` in `:zeitwerk` mode early, in `config/application.rb`. Zeitwerk uses absolute paths internally, and applications running in `:zeitwerk` mode do not need `require_dependency`, so models, controllers, jobs, etc. do not need to be in `$LOAD_PATH`. Setting this to `false` saves Ruby from checking these directories when resolving `require` calls with relative paths, and saves Bootsnap work and RAM, since it does not need to build an index for them.
