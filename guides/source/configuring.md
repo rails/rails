@@ -1054,7 +1054,7 @@ Controls whether migrations are numbered with serial integers or with timestamps
 
 #### `config.active_record.automatically_invert_plural_associations`
 
-Controls whether Active Record will automatically look for an inverse relations with a pluralized name.
+Controls whether Active Record will automatically look for inverse relations with a pluralized name.
 
 Example:
 
@@ -1076,7 +1076,6 @@ it may cause backward compatibility issues with legacy code that doesn't expect 
 
 This behavior can be disabled on a per-model basis:
 
-
 ```ruby
 class Comment < ApplicationRecord
   self.automatically_invert_plural_associations = false
@@ -1089,7 +1088,7 @@ And on a per-association basis:
 
 ```ruby
 class Comment < ApplicationRecord
-  self.automatically_invert_plural_associations = false
+  self.automatically_invert_plural_associations = true
 
   belongs_to :post, inverse_of: false
 end
@@ -1575,14 +1574,14 @@ record.token # => "fwZcXX6SkJBJRogzMdciS7wf"
 
 Controls whether `ActiveRecord::Base.connection` raises an error, emits a deprecation warning, or neither.
 
-`ActiveRecord::Base.connection` checkouts a database connection from the pool and keep it leased until the end of
+`ActiveRecord::Base.connection` checkouts a database connection from the pool and keeps it leased until the end of
 the request or job. This behavior can be undesirable in environments that use many more threads or fibers than there
 is available connections.
 
 This configuration can be used to track down and eliminate code that calls `ActiveRecord::Base.connection` and
 migrate it to use `ActiveRecord::Base.with_connection` instead.
 
-The value can be set to `:disallowed`, `:deprecated` or `true` to respectively raise an error, emit a deprecation
+The value can be set to `:disallowed`, `:deprecated`, or `true` to respectively raise an error, emit a deprecation
 warning, or neither.
 
 | Starting with version | The default value is |

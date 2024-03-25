@@ -303,7 +303,7 @@ module ActiveRecord
   @permanent_connection_checkout = true
   singleton_class.attr_reader :permanent_connection_checkout
 
-  # Defines whether +ActiveRecord::Base.connection+ is allowed, deprecated or entirely disallowed
+  # Defines whether +ActiveRecord::Base.connection+ is allowed, deprecated, or entirely disallowed.
   def self.permanent_connection_checkout=(value)
     unless [true, :deprecated, :disallowed].include?(value)
       raise ArgumentError, "permanent_connection_checkout must be one of: `true`, `:deprecated` or `:disallowed`"

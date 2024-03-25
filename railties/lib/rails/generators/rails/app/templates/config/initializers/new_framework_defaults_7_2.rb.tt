@@ -29,7 +29,7 @@
 # Rails.application.config.active_record.validate_migration_timestamps = true
 
 ###
-# Controls whether Active Record will automatically look for an inverse relations
+# Controls whether Active Record will automatically look for inverse relations
 # with a pluralized name.
 #
 # Example:
@@ -37,7 +37,7 @@
 #     belongs_to :post
 #   end
 #
-# In the above case Active Record will now try to infer a `:comments` relation
-# on `Post`, while previously it would only look for `:comment`.
+# In this example, Active Record will try to infer a `:comment` (singular) association
+# on `Post`. With this option enabled, it will also look for a `:comments` association.
 #++
 # Rails.application.config.active_record.automatically_invert_plural_associations = true
