@@ -144,19 +144,19 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   end
 
   def test_should_not_add_the_same_callbacks_multiple_times_for_has_one
-    assert_no_difference_when_adding_callbacks_twice_for Pirate, :ship
+    assert_method_not_redefined_when_adding_callbacks_twice_for Pirate, :ship
   end
 
   def test_should_not_add_the_same_callbacks_multiple_times_for_belongs_to
-    assert_no_difference_when_adding_callbacks_twice_for Ship, :pirate
+    assert_method_not_redefined_when_adding_callbacks_twice_for Ship, :pirate
   end
 
   def test_should_not_add_the_same_callbacks_multiple_times_for_has_many
-    assert_no_difference_when_adding_callbacks_twice_for Pirate, :birds
+    assert_method_not_redefined_when_adding_callbacks_twice_for Pirate, :birds
   end
 
   def test_should_not_add_the_same_callbacks_multiple_times_for_has_and_belongs_to_many
-    assert_no_difference_when_adding_callbacks_twice_for Pirate, :parrots
+    assert_method_not_redefined_when_adding_callbacks_twice_for Pirate, :parrots
   end
 
   def test_cyclic_autosaves_do_not_add_multiple_validations
@@ -168,16 +168,13 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   end
 
   private
-    def assert_no_difference_when_adding_callbacks_twice_for(model, association_name)
+    def assert_method_not_redefined_when_adding_callbacks_twice_for(model, association_name)
       reflection = model.reflect_on_association(association_name)
-      assert_no_difference "callbacks_for_model(#{model.name}).length" do
-        model.send(:add_autosave_association_callbacks, reflection)
+      if reflection.macro == :has_and_belongs_to_many
+        reflection = model._reflections[association_name.to_s]
       end
-    end
-
-    def callbacks_for_model(model)
-      model.instance_variables.grep(/_callbacks$/).flat_map do |ivar|
-        model.instance_variable_get(ivar)
+      assert_not_called(model, :define_method) do
+        model.send(:add_autosave_association_callbacks, reflection)
       end
     end
 end
