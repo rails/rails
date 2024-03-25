@@ -231,5 +231,35 @@ module Arel
         }
       end
     end
+
+    describe "returning" do
+      it "accepts a returning clause" do
+        users   = Table.new :users
+        manager = Arel::InsertManager.new
+        manager.into users
+        manager.returning Arel.star
+
+        _(manager.to_sql).must_be_like %{
+          INSERT INTO "users" RETURNING *
+        }
+      end
+
+      it "accepts multiple values as returning clause" do
+        users   = Table.new :users
+        manager = Arel::InsertManager.new
+        manager.into users
+        manager.returning Arel.star
+        manager.returning [users[:id], users[:name]]
+
+        _(manager.to_sql).must_be_like %{
+          INSERT INTO "users" RETURNING *, "users"."id", "users"."name"
+        }
+      end
+
+      it "chains" do
+        manager = Arel::InsertManager.new
+        _(manager.returning(Arel.star)).must_equal manager
+      end
+    end
   end
 end
