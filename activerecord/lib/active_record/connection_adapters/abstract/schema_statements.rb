@@ -186,6 +186,11 @@ module ActiveRecord
       #   Join tables for {ActiveRecord::Base.has_and_belongs_to_many}[rdoc-ref:Associations::ClassMethods#has_and_belongs_to_many] should set it to false.
       #
       #   A Symbol can be used to specify the type of the generated primary key column.
+      #
+      #   A Hash can be used to specify column creation options and must contain a <tt>type</tt> key indicating
+      #   the column type.
+      #   See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
+      #   for other available options.
       # [<tt>:primary_key</tt>]
       #   The name of the primary key, if one is to be added automatically.
       #   Defaults to +id+. If <tt>:id</tt> is false, then this option is ignored.
