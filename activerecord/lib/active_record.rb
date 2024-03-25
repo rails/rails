@@ -300,6 +300,17 @@ module ActiveRecord
     @global_executor_concurrency ||= nil
   end
 
+  @permanent_connection_checkout = true
+  singleton_class.attr_reader :permanent_connection_checkout
+
+  # Defines whether +ActiveRecord::Base.connection+ is allowed, deprecated or entirely disallowed
+  def self.permanent_connection_checkout=(value)
+    unless [true, :deprecated, :disallowed].include?(value)
+      raise ArgumentError, "permanent_connection_checkout must be one of: `true`, `:deprecated` or `:disallowed`"
+    end
+    @permanent_connection_checkout = value
+  end
+
   singleton_class.attr_accessor :index_nested_attribute_errors
   self.index_nested_attribute_errors = false
 

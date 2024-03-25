@@ -123,20 +123,20 @@ module ActiveRecord
 
         def initialize
           @connection = nil
-          @sticky = false
+          @sticky = nil
         end
 
         def release
           conn = @connection
           @connection = nil
-          @sticky = false
+          @sticky = nil
           conn
         end
 
         def clear(connection)
           if @connection == connection
             @connection = nil
-            @sticky = false
+            @sticky = nil
             true
           else
             false
@@ -290,12 +290,16 @@ module ActiveRecord
       # Retrieve the connection associated with the current thread, or call
       # #checkout to obtain one if necessary.
       #
-      # #connection can be called any number of times; the connection is
+      # #lease_connection can be called any number of times; the connection is
       # held in a cache keyed by a thread.
       def lease_connection
         lease = connection_lease
         lease.sticky = true
         lease.connection ||= checkout
+      end
+
+      def permanent_lease? # :nodoc:
+        connection_lease.sticky.nil?
       end
 
       def connection
@@ -348,18 +352,19 @@ module ActiveRecord
       # Returns true if there is an open connection being used for the current thread.
       #
       # This method only works for connections that have been obtained through
-      # #connection or #with_connection methods. Connections obtained through
+      # #lease_connection or #with_connection methods. Connections obtained through
       # #checkout will not be detected by #active_connection?
       def active_connection?
         connection_lease.connection
       end
+      alias_method :active_connection, :active_connection? # :nodoc:
 
       # Signal that the thread is finished with the current connection.
       # #release_connection releases the connection-thread association
       # and returns the connection to the pool.
       #
       # This method only works for connections that have been obtained through
-      # #connection or #with_connection methods, connections obtained through
+      # #lease_connection or #with_connection methods, connections obtained through
       # #checkout will not be automatically released.
       def release_connection(existing_lease = nil)
         if conn = connection_lease.release
@@ -373,19 +378,27 @@ module ActiveRecord
       # is already checked out by the current thread, a connection will be checked
       # out from the pool, yielded to the block, and then returned to the pool when
       # the block is finished. If a connection has already been checked out on the
-      # current thread, such as via #connection or #with_connection, that existing
+      # current thread, such as via #lease_connection or #with_connection, that existing
       # connection will be the one yielded and it will not be returned to the pool
       # automatically at the end of the block; it is expected that such an existing
       # connection will be properly returned to the pool by the code that checked
       # it out.
-      def with_connection
+      def with_connection(prevent_permanent_checkout: false)
         lease = connection_lease
+        sticky_was = lease.sticky
+        lease.sticky = false if prevent_permanent_checkout
+
         if lease.connection
-          yield lease.connection
+          begin
+            yield lease.connection
+          ensure
+            lease.sticky = sticky_was if prevent_permanent_checkout && !sticky_was
+          end
         else
           begin
             yield lease.connection = checkout
           ensure
+            lease.sticky = sticky_was if prevent_permanent_checkout && !sticky_was
             release_connection(lease) unless lease.sticky
           end
         end

@@ -22,9 +22,9 @@ Thread.abort_on_exception = true
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveRecord.deprecator.debug = true
 
-# ActiveRecord::Base.connection is only soft deprecated but we remove it
-# in the test suite to ensure we're not using it internally.
-ActiveRecord::ConnectionHandling.remove_method(:connection)
+# ActiveRecord::Base.connection is only soft deprecated but we ban it from the test suite
+# to ensure it's not used internally.
+ActiveRecord.permanent_connection_checkout = :disallowed
 
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
