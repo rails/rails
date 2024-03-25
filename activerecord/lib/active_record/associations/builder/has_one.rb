@@ -7,11 +7,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.valid_options(options)
-      valid = super
-      valid += [:as, :foreign_type] if options[:as]
+      valid = super + [:as, :through]
+      valid += [:foreign_type] if options[:as]
       valid += [:ensuring_owner_was] if options[:dependent] == :destroy_async
-      valid += [:through, :source, :source_type] if options[:through]
-      valid += [:disable_joins] if options[:disable_joins] && options[:through]
+      valid += [:source, :source_type, :disable_joins] if options[:through]
       valid
     end
 
