@@ -60,6 +60,7 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 7.2
 
+- [`config.active_record.automatically_invert_plural_associations`](#config-active-record-automatically-invert-plural-associations): `true`
 - [`config.active_record.validate_migration_timestamps`](#config-active-record-validate-migration-timestamps): `true`
 - [`config.active_storage.web_image_content_types`](#config-active-storage-web-image-content-types): `%w[image/png image/jpeg image/gif image/webp]`
 
@@ -1050,6 +1051,49 @@ Specifies if an error should be raised if the order of a query is ignored during
 #### `config.active_record.timestamped_migrations`
 
 Controls whether migrations are numbered with serial integers or with timestamps. The default is `true`, to use timestamps, which are preferred if there are multiple developers working on the same application.
+
+#### `config.active_record.automatically_invert_plural_associations`
+
+Controls whether Active Record will automatically look for an inverse relations with a pluralized name.
+
+Example:
+
+```ruby
+class Post < ApplicationRecord
+  has_many :comments
+end
+
+class Comment < ApplicationRecord
+  belongs_to :post
+end
+```
+
+In the above case Active Record used to only look for a `:comment` (singular) association in `Post`, and won't find it.
+
+With this option enabled, it will also look for a `:comments` association. In the vast majority of cases
+having the inverse association discovered is beneficial as it can prevent some useless queries, but
+it may cause backward compatibility issues with legacy code that doesn't expect it.
+
+This behavior can be disable on a per-model basis:
+
+
+```ruby
+class Comment < ApplicationRecord
+  self.automatically_invert_plural_associations = false
+
+  belongs_to :post
+end
+```
+
+And on a per-association basis:
+
+```ruby
+class Comment < ApplicationRecord
+  self.automatically_invert_plural_associations = false
+
+  belongs_to :post, inverse_of: false
+end
+```
 
 #### `config.active_record.validate_migration_timestamps`
 

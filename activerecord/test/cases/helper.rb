@@ -32,6 +32,8 @@ I18n.enforce_available_locales = false
 # Quote "type" if it's a reserved word for the current connection.
 QUOTED_TYPE = ActiveRecord::Base.lease_connection.quote_column_name("type")
 
+ActiveRecord::Base.automatically_invert_plural_associations = true
+
 ActiveRecord.raise_on_assign_to_attr_readonly = true
 ActiveRecord.belongs_to_required_validates_foreign_key = false
 

@@ -11,6 +11,7 @@ module ActiveRecord
       class_attribute :_reflections, instance_writer: false, default: {}
       class_attribute :aggregate_reflections, instance_writer: false, default: {}
       class_attribute :automatic_scope_inversing, instance_writer: false, default: false
+      class_attribute :automatically_invert_plural_associations, instance_writer: false, default: false
     end
 
     class << self
@@ -700,10 +701,25 @@ module ActiveRecord
         def automatic_inverse_of
           if can_find_inverse_of_automatically?(self)
             inverse_name = ActiveSupport::Inflector.underscore(options[:as] || active_record.name.demodulize).to_sym
-            plural_inverse_name = ActiveSupport::Inflector.pluralize(inverse_name)
 
             begin
-              reflection = klass._reflect_on_association(inverse_name) || klass._reflect_on_association(plural_inverse_name)
+              reflection = klass._reflect_on_association(inverse_name)
+              if !reflection
+                plural_inverse_name = ActiveSupport::Inflector.pluralize(inverse_name)
+                reflection = klass._reflect_on_association(plural_inverse_name)
+
+                if reflection && !active_record.automatically_invert_plural_associations
+                  ActiveRecord.deprecator.warn(
+                    "The `#{active_record.name}##{name}` inverse association could have been automatically" \
+                    " inferred as `#{klass.name}##{plural_inverse_name}` but wasn't because `automatically_invert_plural_associations`" \
+                    " is disabled.\n\n" \
+                    "If automatic inference is intended, you can consider enabling" \
+                    " `config.active_record.automatically_invert_plural_associations`.\n\n" \
+                    "If automatic inference is not intended, you can silence this warning by defining the association with `inverse_of: false`."
+                  )
+                  reflection = nil
+                end
+              end
             rescue NameError => error
               raise unless error.name.to_s == class_name
 
