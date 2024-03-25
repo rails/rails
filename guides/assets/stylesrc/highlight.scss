@@ -1,0 +1,130 @@
+/* ----------------------------------------------------------------------------
+// Rails Guides Redesign
+// February 2024
+//
+// John Athayde (https://www.johnathayde.com) for Meticulous
+// ---------------------------------------------------------------------------- */
+
+// ----------------------------------------------------------------------------
+// Syntax Highlighting
+// ----------------------------------------------------------------------------
+
+.highlight {
+  background-color: transparent !important;
+  table {
+    td { padding: 5px; }
+    pre { margin: 0; }
+  } // table
+
+  // Block Styles - Global
+
+  .c,
+  .cd,
+  .ch,
+  .cm,
+  .cpf,
+  .cs
+  .c1,
+  .ge {
+    font-style: italic;
+  }
+
+  .cp,
+  .cs,
+  .fm,
+  .gs,
+  .kc,
+  .kd,
+  .kn,
+  .kp,
+  .kr,
+  .kt,
+  .nc,
+  .nd,
+  .ne,
+  .nf,
+  .nl,
+  .o,
+  .ow {
+    font-weight: 500;
+  }
+
+} // .highlight
+
+// ----------------------------------------------------------------------------
+// The Colors
+//
+// These are the inverse of what they used to be, as we use a dark block on the
+// light background and a light block on the dark background pages. 
+
+.highlight {
+  color: #fff;
+  &.plaintext,
+  &.console,
+  &.erb,
+  &.html { color: #fff; }
+  .hll { background-color: #272822; }
+  .c   { color: #A9A9A8; } /* Comment */
+  .err { color: #e7007b; background-color: #1e0010 } /* Error */
+  .k   { color: #8AECFF; } /* Keyword */
+  .l   { color: #C3A2FF; } /* Literal */
+  .n   { color: #f8f8f2; } /* Name */
+  .o   { color: #FF538C; } /* Operator */
+  .p   { color: #f8f8f2; } /* Punctuation */
+  .cm  { color: #A9A9A8; } /* Comment.Multiline */
+  .cp  { color: #A9A9A8; } /* Comment.Preproc */
+  .c1  { color: #A9A9A8; } /* Comment.Single */
+  .cs  { color: #A9A9A8; } /* Comment.Special */
+  .kc  { color: #8AECFF; } /* Keyword.Constant */
+  .kd  { color: #8AECFF; } /* Keyword.Declaration */
+  .kn  { color: #FF538C; } /* Keyword.Namespace */
+  .kp  { color: #8AECFF; } /* Keyword.Pseudo */
+  .kr  { color: #8AECFF; } /* Keyword.Reserved */
+  .kt  { color: #8AECFF; } /* Keyword.Type */
+  .ld  { color: #FCEF8D; } /* Literal.Date */
+  .m   { color: #C3A2FF; } /* Literal.Number */
+  .s   { color: #FCEF8D; } /* Literal.String */
+  .na  { color: #BDFB42; } /* Name.Attribute */
+  .nb  { color: #f8f8f2; } /* Name.Builtin */
+  .nc  { color: #BDFB42; } /* Name.Class */
+  .no  { color: #8AECFF; } /* Name.Constant */
+  .nd  { color: #BDFB42; } /* Name.Decorator */
+  .ni  { color: #f8f8f2; } /* Name.Entity */
+  .ne  { color: #BDFB42; } /* Name.Exception */
+  .nf  { color: #BDFB42; } /* Name.Function */
+  .nl  { color: #f8f8f2; } /* Name.Label */
+  .nn  { color: #f8f8f2; } /* Name.Namespace */
+  .nx  { color: #BDFB42; } /* Name.Other */
+  .py  { color: #f8f8f2; } /* Name.Property */
+  .nt  { color: #FF538C; } /* Name.Tag */
+  .nv  { color: #f8f8f2; } /* Name.Variable */
+  .ow  { color: #FF538C; } /* Operator.Word */
+  .w   { color: #f8f8f2; } /* Text.Whitespace */
+  .mf  { color: #C3A2FF; } /* Literal.Number.Float */
+  .mh  { color: #C3A2FF; } /* Literal.Number.Hex */
+  .mi  { color: #C3A2FF; } /* Literal.Number.Integer */
+  .mo  { color: #C3A2FF; } /* Literal.Number.Oct */
+  .sb  { color: #FCEF8D; } /* Literal.String.Backtick */
+  .sc  { color: #FCEF8D; } /* Literal.String.Char */
+  .sd  { color: #FCEF8D; } /* Literal.String.Doc */
+  .s2  { color: #FCEF8D; } /* Literal.String.Double */
+  .se  { color: #C3A2FF; } /* Literal.String.Escape */
+  .sh  { color: #FCEF8D; } /* Literal.String.Heredoc */
+  .si  { color: #FCEF8D; } /* Literal.String.Interpol */
+  .sx  { color: #FCEF8D; } /* Literal.String.Other */
+  .sr  { color: #FCEF8D; } /* Literal.String.Regex */
+  .s1  { color: #FCEF8D; } /* Literal.String.Single */
+  .ss  { color: #FCEF8D; } /* Literal.String.Symbol */
+  .bp  { color: #f8f8f2; } /* Name.Builtin.Pseudo */
+  .vc  { color: #f8f8f2; } /* Name.Variable.Class */
+  .vg  { color: #f8f8f2; } /* Name.Variable.Global */
+  .vi  { color: #f8f8f2; } /* Name.Variable.Instance */
+  .il  { color: #C3A2FF; } /* Literal.Number.Integer.Long */
+  .gh  { color: #A9A9A8; } /* Generic Heading & Diff Header */
+  .gu  { color: #75715e; } /* Generic.Subheading & Diff Unified/Comment? */
+  .gd  { color: #FF538C; background-color: unset; } /* Generic.Deleted & Diff Deleted */
+  .gi  { color: #BDFB42; background-color: unset; } /* Generic.Inserted & Diff Inserted */
+  .gr  { color: #FF538C; }
+  .go  { color: #A9A9A8; }
+  .gp  { color: #fff; }
+}

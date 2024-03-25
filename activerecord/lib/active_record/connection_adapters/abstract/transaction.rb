@@ -350,7 +350,7 @@ module ActiveRecord
 
       def rollback
         unless @state.invalidated?
-          connection.rollback_to_savepoint(savepoint_name) if materialized?
+          connection.rollback_to_savepoint(savepoint_name) if materialized? && connection.active?
         end
         @state.rollback!
         @instrumenter.finish(:rollback) if materialized?

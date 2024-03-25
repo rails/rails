@@ -11,6 +11,7 @@ module ActiveRecord
       class_attribute :_reflections, instance_writer: false, default: {}
       class_attribute :aggregate_reflections, instance_writer: false, default: {}
       class_attribute :automatic_scope_inversing, instance_writer: false, default: false
+      class_attribute :automatically_invert_plural_associations, instance_writer: false, default: false
     end
 
     class << self
@@ -382,7 +383,6 @@ module ActiveRecord
         @klass         = options[:anonymous_class]
         @plural_name   = active_record.pluralize_table_names ?
                             name.to_s.pluralize : name.to_s
-        validate_reflection!
       end
 
       def autosave=(autosave)
@@ -433,17 +433,6 @@ module ActiveRecord
       private
         def derive_class_name
           name.to_s.camelize
-        end
-
-        def validate_reflection!
-          return unless options[:foreign_key].is_a?(Array)
-
-          message = <<~MSG.squish
-            Passing #{options[:foreign_key]} array to :foreign_key option
-            on the #{active_record}##{name} association is not supported.
-            Use the query_constraints: #{options[:foreign_key]} option instead to represent a composite foreign key.
-          MSG
-          raise ArgumentError, message
         end
     end
 
@@ -511,10 +500,14 @@ module ActiveRecord
       end
 
       def foreign_key(infer_from_inverse_of: true)
-        @foreign_key ||= if options[:query_constraints]
+        @foreign_key ||= if options[:foreign_key]
+          if options[:foreign_key].is_a?(Array)
+            options[:foreign_key].map { |fk| fk.to_s.freeze }.freeze
+          else
+            options[:foreign_key].to_s.freeze
+          end
+        elsif options[:query_constraints]
           options[:query_constraints].map { |fk| fk.to_s.freeze }.freeze
-        elsif options[:foreign_key]
-          options[:foreign_key].to_s
         else
           derived_fk = derive_foreign_key(infer_from_inverse_of: infer_from_inverse_of)
 
@@ -708,10 +701,25 @@ module ActiveRecord
         def automatic_inverse_of
           if can_find_inverse_of_automatically?(self)
             inverse_name = ActiveSupport::Inflector.underscore(options[:as] || active_record.name.demodulize).to_sym
-            plural_inverse_name = ActiveSupport::Inflector.pluralize(inverse_name)
 
             begin
-              reflection = klass._reflect_on_association(inverse_name) || klass._reflect_on_association(plural_inverse_name)
+              reflection = klass._reflect_on_association(inverse_name)
+              if !reflection
+                plural_inverse_name = ActiveSupport::Inflector.pluralize(inverse_name)
+                reflection = klass._reflect_on_association(plural_inverse_name)
+
+                if reflection && !active_record.automatically_invert_plural_associations
+                  ActiveRecord.deprecator.warn(
+                    "The `#{active_record.name}##{name}` inverse association could have been automatically" \
+                    " inferred as `#{klass.name}##{plural_inverse_name}` but wasn't because `automatically_invert_plural_associations`" \
+                    " is disabled.\n\n" \
+                    "If automatic inference is intended, you can consider enabling" \
+                    " `config.active_record.automatically_invert_plural_associations`.\n\n" \
+                    "If automatic inference is not intended, you can silence this warning by defining the association with `inverse_of: false`."
+                  )
+                  reflection = nil
+                end
+              end
             rescue NameError => error
               raise unless error.name.to_s == class_name
 
@@ -805,6 +813,8 @@ module ActiveRecord
             MSG
           end
 
+          return foreign_key if primary_query_constraints.include?(foreign_key)
+
           first_key, last_key = primary_query_constraints
 
           if first_key == owner_pk
@@ -870,7 +880,11 @@ module ActiveRecord
       # klass option is necessary to support loading polymorphic associations
       def association_primary_key(klass = nil)
         if primary_key = options[:primary_key]
-          @association_primary_key ||= -primary_key.to_s
+          @association_primary_key ||= if primary_key.is_a?(Array)
+            primary_key.map { |pk| pk.to_s.freeze }.freeze
+          else
+            -primary_key.to_s
+          end
         elsif (klass || self.klass).has_query_constraints? || options[:query_constraints]
           (klass || self.klass).composite_query_constraints_list
         elsif (klass || self.klass).composite_primary_key?

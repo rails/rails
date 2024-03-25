@@ -160,6 +160,12 @@ class User < ActiveRecord::Base
     attachable.variant :method, resize_to_limit: [3, 3],
       preprocessed: :should_preprocessed?
   end
+  has_one_attached :resume do |attachable|
+    attachable.variant :preview, resize_to_fill: [400, 400]
+  end
+  has_one_attached :resume_with_preprocessing do |attachable|
+    attachable.variant :preview, resize_to_fill: [400, 400], preprocessed: true
+  end
 
   accepts_nested_attributes_for :highlights_attachments, allow_destroy: true
 

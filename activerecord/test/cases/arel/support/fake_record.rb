@@ -129,6 +129,10 @@ module FakeRecord
       @connection_pool = ConnectionPool.new
     end
 
+    def with_connection(...)
+      connection_pool.with_connection(...)
+    end
+
     def lease_connection
       connection_pool.lease_connection
     end

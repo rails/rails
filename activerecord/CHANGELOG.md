@@ -1,4 +1,33 @@
-*   Add dirties option to uncached
+*   Allow association's `foreign_key` to be composite.
+
+    `query_constraints` option was the only way to configure a composite foreign key by passing an `Array`.
+    Now it's possible to pass an Array value as `foreign_key` to achieve the same behavior of an association.
+
+    *Nikita Vasilevsky*
+
+*   Allow association's `primary_key` to be composite.
+
+    Association's `primary_key` can be composite when derived from associated model `primary_key` or `query_constraints`.
+    Now it's possible to explicitly set it as composite on the association.
+
+    *Nikita Vasilevsky*
+
+*   Add `config.active_record.permanent_connection_checkout` setting.
+
+    Controls whether `ActiveRecord::Base.connection` raises an error, emits a deprecation warning, or neither.
+
+    `ActiveRecord::Base.connection` checkouts a database connection from the pool and keeps it leased until the end of
+    the request or job. This behavior can be undesirable in environments that use many more threads or fibers than there
+    is available connections.
+
+    This configuration can be used to track down and eliminate code that calls `ActiveRecord::Base.connection` and
+    migrate it to use `ActiveRecord::Base.with_connection` instead.
+
+    The default behavior remains unchanged, and there is currently no plans to change the default.
+
+    *Jean Boussier*
+
+*   Add dirties option to uncached.
 
     This adds a `dirties` option to `ActiveRecord::Base.uncached` and
     `ActiveRecord::ConnectionAdapters::ConnectionPool#uncached`.
@@ -10,7 +39,7 @@
 
     *Donal McBreen*
 
-*   Deprecate `ActiveRecord::Base.connection` in favor of `.lease_connection`
+*   Deprecate `ActiveRecord::Base.connection` in favor of `.lease_connection`.
 
     The method has been renamed as `lease_connection` to better reflect that the returned
     connection will be held for the duration of the request or job.
@@ -20,14 +49,14 @@
 
     *Jean Boussier*
 
-*   Deprecate `ActiveRecord::ConnectionAdapters::ConnectionPool#connection`
+*   Deprecate `ActiveRecord::ConnectionAdapters::ConnectionPool#connection`.
 
     The method has been renamed as `lease_connection` to better reflect that the returned
     connection will be held for the duration of the request or job.
 
     *Jean Boussier*
 
-*   Expose a generic fixture accessor for fixture names that may conflict with Minitest
+*   Expose a generic fixture accessor for fixture names that may conflict with Minitest.
 
     ```ruby
     assert_equal "Ruby on Rails", web_sites(:rubyonrails).name
@@ -250,7 +279,7 @@
 
     *Hartley McGuire*
 
-*   Add `active_record.config.validate_migration_timestamps` option for validating migration timestamps.
+*   Add `config.active_record.validate_migration_timestamps` option for validating migration timestamps.
 
     When set, validates that the timestamp prefix for a migration is no more than a day ahead of
     the timestamp associated with the current time. This is designed to prevent migrations prefixes

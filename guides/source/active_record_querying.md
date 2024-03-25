@@ -2714,7 +2714,7 @@ and may yield this for PostgreSQL:
 
 ### Explain Options
 
-For databases and adapters which support them (currently PostgreSQL and MySQL), options can be passed to provide deeper analysis.
+For databases and adapters which support them (currently PostgreSQL, MySQL, and MariaDB), options can be passed to provide deeper analysis.
 
 Using PostgreSQL, the following:
 

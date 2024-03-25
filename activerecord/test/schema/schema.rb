@@ -307,6 +307,18 @@ ActiveRecord::Schema.define do
     t.index :order_id
   end
 
+  create_table :cpk_cars, force: true, primary_key: [:make, :model] do |t|
+    t.string :make, null: false
+    t.string :model, null: false
+  end
+
+  create_table :cpk_car_reviews, force: true do |t|
+    t.string :car_make, null: false
+    t.string :car_model, null: false
+    t.text :comment
+    t.integer :rating
+  end
+
   create_table :paragraphs, force: true do |t|
     t.references :book
   end

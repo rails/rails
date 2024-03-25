@@ -371,6 +371,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal id, cpk_book.order_id
   end
 
+  def test_belongs_to_with_explicit_composite_primary_key
+    cpk_book = cpk_books(:cpk_great_author_first_book)
+    order = cpk_book.build_order_explicit_fk_pk
+    order.shop_id = 123
+    cpk_book.save
+
+    shop_id, id = order.id
+    assert_equal id, cpk_book.order_id
+    assert_equal shop_id, cpk_book.shop_id
+    assert_equal order, cpk_book.reload.order_explicit_fk_pk
+  end
+
   def test_belongs_to_with_inverse_association_for_composite_primary_key
     author = Cpk::Author.new(name: "John")
     book = author.books.build(id: [nil, 1], title: "The Rails Way")

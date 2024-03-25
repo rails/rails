@@ -201,6 +201,8 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
   end
 
   def test_belongs_to_should_find_inverse_has_many_automatically
+    assert_equal true, Subscription.automatically_invert_plural_associations
+
     book = Book.create!
     subscriber = book.subscribers.new nick: "Nickname"
 
