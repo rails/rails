@@ -586,7 +586,7 @@ be used when querying the associated record(s). For example:
 ```ruby
 class Author < ApplicationRecord
   self.primary_key = [:first_name, :last_name]
-  has_many :books, query_constraints: [:first_name, :last_name]
+  has_many :books, query_constraints: [:author_first_name, :author_last_name]
 end
 
 class Book < ApplicationRecord
