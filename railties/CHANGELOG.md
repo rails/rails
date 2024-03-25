@@ -1,3 +1,8 @@
+*   Skip generating a `test` job in ci.yml when a new application is generated with the
+    `--skip-test` option.
+
+    *Steve Polito*
+
 *   Update the `.node-version` file conditionally generated for new applications to 20.11.1
 
     *Steve Polito*
