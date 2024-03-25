@@ -169,6 +169,15 @@ class Person
   attribute :name, :string
   attribute :date_of_birth, :date
   attribute :active, :boolean, default: true
+  attribute :primary_team, :model, class: Team
+  attribute :related_teams, :model, class: Team, array: true
+end
+
+class Team
+  include ActiveModel::API
+  include ActiveModel::Attributes
+
+  attribute :name, :string
 end
 ```
 
@@ -194,6 +203,20 @@ irb> person.active
 irb> person.active = 0
 irb> person.active
 => false
+
+# Casts Hash attributes to model instances
+irb> person.primary_team = { name: "Core" }
+irb> person.primary_team.name # => "Core"
+irb> person.related_teams = [{ name: "Documentation" }]
+irb> person.related_teams.map(&:name) # => ["Documentation"]
+
+# Assigns instances by reference
+irb> core_team = Team.new name: "Core"
+irb> person.primary_team = core_team
+irb> person.primary_team.eql?(core_team) # => true
+irb> documentation_team = Team.new name: "Documentation"
+irb> person.related_teams = [documentation_team]
+irb> person.related_teams.first.eql?(documentation_team) # => true
 ```
 
 Some additional methods described below are available when using

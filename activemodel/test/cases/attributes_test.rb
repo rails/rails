@@ -41,6 +41,11 @@ module ActiveModel
       end
     end
 
+    class ModelWithComposedAttributesTest < ModelForAttributesTest
+      attribute :composed_model, :model, class: ModelForAttributesTest
+      attribute :composed_models, :model, class: ModelForAttributesTest, array: true
+    end
+
     test "models that proxy attributes do not conflict with models with generated methods" do
       ModelWithGeneratedAttributeMethods.new
 
@@ -131,6 +136,71 @@ module ActiveModel
 
       assert_equal "4.4", data.integer_field
       assert_equal "default string", data.string_field
+    end
+
+    test "builds an instance of a model from a Hash of attributes to assign to a composed attribute" do
+      data = ModelWithComposedAttributesTest.new(
+        composed_model: {
+          integer_field: 1.1,
+          string_field: 1.1,
+          decimal_field: 1.1,
+          boolean_field: 1.1
+        }
+      )
+
+      expected_attributes = {
+        integer_field: 1,
+        string_field: "1.1",
+        decimal_field: BigDecimal("1.1"),
+        string_with_default: "default string",
+        date_field: Date.new(2016, 1, 1),
+        boolean_field: true
+      }.stringify_keys
+
+      assert_equal expected_attributes, data.composed_model.attributes
+    end
+
+    test "assigns an instance of a model to a composed attribute" do
+      model = ModelForAttributesTest.new(
+        integer_field: 1.1,
+        string_field: 1.1,
+        decimal_field: 1.1,
+        boolean_field: 1.1
+      )
+      data = ModelWithComposedAttributesTest.new(composed_model: model)
+
+      expected_attributes = {
+        integer_field: 1,
+        string_field: "1.1",
+        decimal_field: BigDecimal("1.1"),
+        string_with_default: "default string",
+        date_field: Date.new(2016, 1, 1),
+        boolean_field: true
+      }.stringify_keys
+
+      assert_equal expected_attributes, data.composed_model.attributes
+    end
+
+    test "builds an array of models from an array of Hash attributes to assign to a composed attribute array" do
+      data = ModelWithComposedAttributesTest.new(
+        composed_models: [{
+          integer_field: 1.1,
+          string_field: 1.1,
+          decimal_field: 1.1,
+          boolean_field: 1.1
+        }]
+      )
+
+      expected_attributes = {
+        integer_field: 1,
+        string_field: "1.1",
+        decimal_field: BigDecimal("1.1"),
+        string_with_default: "default string",
+        date_field: Date.new(2016, 1, 1),
+        boolean_field: true
+      }.stringify_keys
+
+      assert_equal [expected_attributes], data.composed_models.map(&:attributes)
     end
 
     test "attributes with proc defaults can be marshalled" do
