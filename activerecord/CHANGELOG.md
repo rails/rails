@@ -1,3 +1,17 @@
+*   Allow association's `foreign_key` to be composite
+
+    `query_constraints` option was the only way to configure a composite foreign key by passing an `Array`.
+    Now it's possible to pass an Array value as `foreign_key` to achieve the same behavior of an association.
+
+    *Nikita Vasilevsky*
+
+*   Allow association's `primary_key` to be composite
+
+    Association's `primary_key` can be composite when derived from associated model `primary_key` or `query_constraints`.
+    Now it's possible to explicitly set it as composite on the association.
+
+    *Nikita Vasilevsky*
+
 *   Add `config.active_record.permanent_connection_checkout` setting.
 
     Controls whether `ActiveRecord::Base.connection` raises an error, emits a deprecation warning, or neither.
