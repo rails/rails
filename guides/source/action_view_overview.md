@@ -279,76 +279,6 @@ Another example from Active Storage's `_blob.html.erb`. This one sets the size b
 <%= image_tag blob.representation(resize_to_limit: local_assigns[:in_gallery] ? [ 800, 600 ] : [ 1024, 768 ]) %>
 ```
 
-### `local_assigns` with Pattern Matching
-
-Since `local_assigns` is a `Hash`, it's compatible with [Ruby 3.1's pattern matching assignment operator](https://docs.ruby-lang.org/en/master/syntax/pattern_matching_rdoc.html):
-
-```ruby
-local_assigns => { product:, **options }
-product # => "#<Product:0x0000000109ec5d10>"
-options # => {}
-```
-
-When keys other than `:product` are assigned into a partial-local `Hash`
-variable, they can be splatted into helper method calls:
-
-```html+erb
-<%# app/views/products/_product.html.erb %>
-
-<% local_assigns => { product:, **options } %>
-
-<%= tag.div id: dom_id(product), **options do %>
-  <h1><%= product.name %></h1>
-<% end %>
-
-<%# app/views/products/show.html.erb %>
-
-<%= render "products/product", product: @product, class: "card" %>
-<%# => <div id="product_1" class="card">
-  #      <h1>A widget</h1>
-  #    </div>
-%>
-```
-
-Pattern matching assignment also supports variable renaming:
-
-```ruby
-local_assigns => { product: record }
-product             # => "#<Product:0x0000000109ec5d10>"
-record              # => "#<Product:0x0000000109ec5d10>"
-product == record   # => true
-```
-
-Since `local_assigns` returns a `Hash` instance, you can conditionally read a variable, then fall back to a default value when the key isn't part of the `locals:` options:
-
-```html+erb
-<%# app/views/products/_product.html.erb %>
-
-<% local_assigns.fetch(:related_products, []).each do |related_product| %>
-  <%# ... %>
-<% end %>
-```
-
-Combining Ruby 3.1's pattern matching assignment with calls to [Hash#with_defaults](https://api.rubyonrails.org/classes/Hash.html#method-i-with_defaults) enables compact partial-local default variable assignments:
-
-```html+erb
-<%# app/views/products/_product.html.erb %>
-
-<% local_assigns.with_defaults(related_products: []) => { product:, related_products: } %>
-
-<%= tag.div id: dom_id(product) do %>
-  <h1><%= product.name %></h1>
-
-  <% related_products.each do |related_product| %>
-    <%# ... %>
-  <% end %>
-<% end %>
-```
-
-INFO: By default, partials will accept any `locals` as keyword arguments. To define what `locals` a partial accepts, use a `locals:` magic comment. To learn more, read about [Strict Locals](#strict-locals).
-
-[local_assigns]: https://api.rubyonrails.org/classes/ActionView/Template.html#method-i-local_assigns
-
 ### `render` without `partial` and `locals` Options
 
 In the above examples, `render` takes 2 options: `partial` and `locals`. But if
@@ -471,6 +401,8 @@ Rails also makes a counter variable available within a partial called by the col
 
 This also works when the local variable name is changed using the `as:` option. So if you did `as: :item`, the counter variable would be `item_counter`.
 
+Note: The following two sections, [Strick Locals](#strict-locals) and [Local Assigns with Pattern Matching](#local-assigns-with-pattern-matching) are more advance features of using partials, included here for completeness.
+
 ### Strict Locals
 
 Action View partials will accept any number of `locals` as keyword arguments. You can enforce how many and which `locals` a template accepts, set default value, and more with a `locals:` magic comment.
@@ -542,6 +474,76 @@ render "messages/message", unknown_local: "will raise"
 Action View will process the `locals:` magic comment in any templating engine that supports `#`-prefixed comments, and will read the magic comment from any line in the partial.
 
 CAUTION: Only keyword arguments are supported. Defining positional or block arguments will raise an Action View Error at render-time.
+
+### `local_assigns` with Pattern Matching
+
+Since `local_assigns` is a `Hash`, it's compatible with [Ruby 3.1's pattern matching assignment operator](https://docs.ruby-lang.org/en/master/syntax/pattern_matching_rdoc.html):
+
+```ruby
+local_assigns => { product:, **options }
+product # => "#<Product:0x0000000109ec5d10>"
+options # => {}
+```
+
+When keys other than `:product` are assigned into a partial-local `Hash`
+variable, they can be splatted into helper method calls:
+
+```html+erb
+<%# app/views/products/_product.html.erb %>
+
+<% local_assigns => { product:, **options } %>
+
+<%= tag.div id: dom_id(product), **options do %>
+  <h1><%= product.name %></h1>
+<% end %>
+
+<%# app/views/products/show.html.erb %>
+
+<%= render "products/product", product: @product, class: "card" %>
+<%# => <div id="product_1" class="card">
+  #      <h1>A widget</h1>
+  #    </div>
+%>
+```
+
+Pattern matching assignment also supports variable renaming:
+
+```ruby
+local_assigns => { product: record }
+product             # => "#<Product:0x0000000109ec5d10>"
+record              # => "#<Product:0x0000000109ec5d10>"
+product == record   # => true
+```
+
+Since `local_assigns` returns a `Hash` instance, you can conditionally read a variable, then fall back to a default value when the key isn't part of the `locals:` options:
+
+```html+erb
+<%# app/views/products/_product.html.erb %>
+
+<% local_assigns.fetch(:related_products, []).each do |related_product| %>
+  <%# ... %>
+<% end %>
+```
+
+Combining Ruby 3.1's pattern matching assignment with calls to [Hash#with_defaults](https://api.rubyonrails.org/classes/Hash.html#method-i-with_defaults) enables compact partial-local default variable assignments:
+
+```html+erb
+<%# app/views/products/_product.html.erb %>
+
+<% local_assigns.with_defaults(related_products: []) => { product:, related_products: } %>
+
+<%= tag.div id: dom_id(product) do %>
+  <h1><%= product.name %></h1>
+
+  <% related_products.each do |related_product| %>
+    <%# ... %>
+  <% end %>
+<% end %>
+```
+
+INFO: By default, partials will accept any `locals` as keyword arguments. To define what `locals` a partial accepts, use a `locals:` magic comment. To learn more, read about [Strict Locals](#strict-locals).
+
+[local_assigns]: https://api.rubyonrails.org/classes/ActionView/Template.html#method-i-local_assigns
 
 Layouts
 -------
