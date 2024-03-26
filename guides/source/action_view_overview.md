@@ -225,12 +225,15 @@ When rendering a partial, we can pass data to the partial from the rendering vie
 <% end %>
 ```
 
-In the above example, `my_product` is the local variable available in the partial. It was assigned the value of @product in the original view.
+A "partial-local variable" is a variable that is local to a given partial and only available from within that partial. In the above example, `my_product` is a partial-local variable. It was assigned the value of @product when passed to the partial from the original view.
 
 Note that typically we'd simply call this local variable `product`. We are using `my_product` to distinguish it from the instance variable name and template name.
 
-If a template refers to a variable that isn't passed into the view as part of
-the `locals:` option, the template will raise an `ActionView::Template::Error`:
+Since `locals` is a hash, you can pass in multiple variables as need like `locals: { my_product: @product, my_reviews: @reviews }`.
+
+However, if a template refers to a variable that *isn't* passed into the view as
+part of the `locals:` option, the template will raise an
+`ActionView::Template::Error`:
 
 ```html+erb
 <%# app/views/products/_product.html.erb %>
@@ -247,7 +250,7 @@ the `locals:` option, the template will raise an `ActionView::Template::Error`:
 
 ### Using `local_assigns`
 
-There is a helper method [local_assigns][] available in each partial. You can access each key in the `locals:` option using this method. The value of `local_assigns[:some_key]` will be `nil` if the partial was not rendered with `:some_key` set.
+Each partial has a method called [local_assigns][] available. You can use this method to access keys passed via the `locals:` option. If a partial was not rendered with `:some_key` set, the value of `local_assigns[:some_key]` will be `nil` within the partial.
 
 For example, `product_reviews` is `nil` in the below example since only `product` is set in `locals:`:
 
