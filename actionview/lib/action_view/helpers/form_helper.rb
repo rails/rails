@@ -519,6 +519,7 @@ module ActionView
       #   <form action="/articles" method="post">
       #     <input type="text" name="article[title]" />
       #   </form>
+      #
       #   # An existing model makes an update form and fills out field values:
       #   <%= form_with model: Article.first do |form| %>
       #     <%= form.text_field :title %>
@@ -526,7 +527,7 @@ module ActionView
       #   # =>
       #   <form action="/articles/1" method="post">
       #     <input type="hidden" name="_method" value="patch" />
-      #     <input type="text" value="<the title of the article>" name="article[title]" />
+      #     <input type="text" name="article[title]" value="<the title of the article>" />
       #   </form>
       #   # Though the fields don't have to correspond to model attributes:
       #   <%= form_with model: Cat.new do |form| %>
