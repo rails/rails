@@ -1,3 +1,7 @@
+*   Allow hosts redirects from `hosts` Rails configuration
+
+    *Kevin Robatel*
+
 *   Request Forgery takes relative paths into account.
 
     *Stefan Wienert*
