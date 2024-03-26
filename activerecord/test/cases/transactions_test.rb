@@ -19,6 +19,49 @@ class TransactionTest < ActiveRecord::TestCase
     @first, @second = Topic.find(1, 2).sort_by(&:id)
   end
 
+  def test_after_current_transaction_commit
+    called = 0
+    Topic.after_current_transaction_commit { called += 1 }
+    assert_equal 1, called
+
+    Topic.after_current_transaction_commit { called += 1 }
+    assert_equal 2, called
+
+    Topic.transaction do
+      Topic.after_current_transaction_commit { called += 1 }
+      assert_equal 2, called
+    end
+    assert_equal 3, called
+
+    Topic.transaction do
+      Topic.transaction do
+        Topic.after_current_transaction_commit { called += 1 }
+        assert_equal 3, called
+      end
+      assert_equal 3, called
+    end
+    assert_equal 4, called
+
+    Topic.transaction do
+      Topic.after_current_transaction_commit { called += 1 }
+      assert_equal 4, called
+      raise ActiveRecord::Rollback
+    end
+    assert_equal 4, called
+  end
+
+  def test_after_current_transaction_commit_multidb_nested_transactions
+    called = 0
+    ARUnit2Model.transaction do
+      Topic.transaction do
+        Topic.after_current_transaction_commit { called += 1 }
+        assert_equal 0, called
+      end
+      assert_equal 0, called
+    end
+    assert_equal 1, called
+  end
+
   def test_rollback_dirty_changes
     topic = topics(:fifth)
 

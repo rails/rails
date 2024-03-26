@@ -224,6 +224,41 @@ module ActiveRecord
         end
       end
 
+      class CallbackCountDownLatch # :nodoc:
+        def initialize(count, callback)
+          raise ArgumentError, "count must be at least 2" if count < 2
+          @count = count
+          @callback = callback
+        end
+
+        def call
+          @count -= 1
+          @callback.call if @count.zero?
+        end
+      end
+
+      def after_current_transaction_commit(&block)
+        open_transactions = []
+        connection_handler.each_connection_pool do |pool|
+          if active_connection = pool.active_connection
+            if active_connection.current_transaction.open?
+              open_transactions << active_connection.current_transaction
+            end
+          end
+        end
+
+        if open_transactions.empty?
+          yield
+        elsif open_transactions.size == 1
+          open_transactions.first.after_commit(&block)
+        else
+          callback = count_down_callback(open_transactions.size, &block)
+          open_transactions.each do |t|
+            t.after_commit(&callback)
+          end
+        end
+      end
+
       def before_commit(*args, &block) # :nodoc:
         set_options_for_callbacks!(args)
         set_callback(:before_commit, :before, *args, &block)
@@ -306,6 +341,13 @@ module ActiveRecord
       end
 
       private
+        def count_down_callback(count, &block)
+          -> do
+            count -= 1
+            block.call if count.zero?
+          end
+        end
+
         def prepend_option
           if ActiveRecord.run_after_transaction_callbacks_in_order_defined
             { prepend: true }
