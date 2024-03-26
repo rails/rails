@@ -16,7 +16,9 @@ module ActionMailbox
 
         private
           def set_notification
-            @notification = SnsNotification.new(request.raw_post)
+            require "action_mailbox/amazon_ses/sns_notification"
+
+            @notification = ::ActionMailbox::AmazonSes::SnsNotification.new(request.raw_post)
           end
 
           def ensure_valid_topic
