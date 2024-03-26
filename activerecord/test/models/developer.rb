@@ -372,3 +372,8 @@ class ColumnNamesCachedDeveloper < ActiveRecord::Base
   self.table_name = "developers"
   self.ignored_columns += ["name"] if column_names.include?("name")
 end
+
+class AuditRequiredDeveloper < ActiveRecord::Base
+  self.table_name = "developers"
+  has_many :required_audit_logs, class_name: "AuditLogRequired"
+end
