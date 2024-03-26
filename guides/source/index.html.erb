@@ -6,7 +6,7 @@
 <% end %>
 
 <% content_for :index_section do %>
-<nav id="subCol" aria-label="Chapter">
+<nav id="subCol" aria-label="Chapter" class="guide-index">
   <dl>
     <dt></dt>
     <% unless @edge -%>
@@ -19,7 +19,7 @@
 
 <% documents_by_section.each do |section| %>
   <h2><%= section['name'] %></h2>
-  <dl>
+  <dl class="guide-index-list">
     <% section['documents'].each do |document| %>
       <%= guide(document['name'], document['url'], work_in_progress: document['work_in_progress']) do %>
         <p><%= document['description'] %></p>

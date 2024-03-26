@@ -1,0 +1,1714 @@
+/* ----------------------------------------------------------------------------
+// Rails Guides Redesign
+// 
+// Created: 29 February 2024
+// Modified: 19 March 2024
+// ---------------------------------------------------------------------------- */
+/*! normalize.css v8.0.1 | MIT License | github.com/necolas/normalize.css */
+/* Document
+   ========================================================================== */
+/**
+ * 1. Correct the line height in all browsers.
+ * 2. Prevent adjustments of font size after orientation changes in iOS.
+ */
+html {
+  line-height: 1.15; /* 1 */
+  -webkit-text-size-adjust: 100%; /* 2 */
+}
+
+/* Sections
+   ========================================================================== */
+/**
+ * Remove the margin in all browsers.
+ */
+body {
+  margin: 0;
+}
+
+/**
+ * Render the `main` element consistently in IE.
+ */
+main {
+  display: block;
+}
+
+/**
+ * Correct the font size and margin on `h1` elements within `section` and
+ * `article` contexts in Chrome, Firefox, and Safari.
+ */
+h1 {
+  font-size: 2em;
+  margin: 0.67em 0;
+}
+
+/* Grouping content
+   ========================================================================== */
+/**
+ * 1. Add the correct box sizing in Firefox.
+ * 2. Show the overflow in Edge and IE.
+ */
+hr {
+  box-sizing: content-box; /* 1 */
+  height: 0; /* 1 */
+  overflow: visible; /* 2 */
+}
+
+/**
+ * 1. Correct the inheritance and scaling of font size in all browsers.
+ * 2. Correct the odd `em` font sizing in all browsers.
+ */
+pre {
+  font-family: monospace, monospace; /* 1 */
+  font-size: 1em; /* 2 */
+}
+
+/* Text-level semantics
+   ========================================================================== */
+/**
+ * Remove the gray background on active links in IE 10.
+ */
+a {
+  background-color: transparent;
+}
+
+/**
+ * 1. Remove the bottom border in Chrome 57-
+ * 2. Add the correct text decoration in Chrome, Edge, IE, Opera, and Safari.
+ */
+abbr[title] {
+  border-bottom: none; /* 1 */
+  text-decoration: underline; /* 2 */
+  text-decoration: underline dotted; /* 2 */
+}
+
+/**
+ * Add the correct font weight in Chrome, Edge, and Safari.
+ */
+b,
+strong {
+  font-weight: bolder;
+}
+
+/**
+ * 1. Correct the inheritance and scaling of font size in all browsers.
+ * 2. Correct the odd `em` font sizing in all browsers.
+ */
+code,
+kbd,
+samp {
+  font-family: monospace, monospace; /* 1 */
+  font-size: 1em; /* 2 */
+}
+
+/**
+ * Add the correct font size in all browsers.
+ */
+small {
+  font-size: 80%;
+}
+
+/**
+ * Prevent `sub` and `sup` elements from affecting the line height in
+ * all browsers.
+ */
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+sub {
+  bottom: -0.25em;
+}
+
+sup {
+  top: -0.5em;
+}
+
+/* Embedded content
+   ========================================================================== */
+/**
+ * Remove the border on images inside links in IE 10.
+ */
+img {
+  border-style: none;
+}
+
+/* Forms
+   ========================================================================== */
+/**
+ * 1. Change the font styles in all browsers.
+ * 2. Remove the margin in Firefox and Safari.
+ */
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: inherit; /* 1 */
+  font-size: 100%; /* 1 */
+  line-height: 1.15; /* 1 */
+  margin: 0; /* 2 */
+}
+
+/**
+ * Show the overflow in IE.
+ * 1. Show the overflow in Edge.
+ */
+button,
+input { /* 1 */
+  overflow: visible;
+}
+
+/**
+ * Remove the inheritance of text transform in Edge, Firefox, and IE.
+ * 1. Remove the inheritance of text transform in Firefox.
+ */
+button,
+select { /* 1 */
+  text-transform: none;
+}
+
+/**
+ * Correct the inability to style clickable types in iOS and Safari.
+ */
+button,
+[type=button],
+[type=reset],
+[type=submit] {
+  -webkit-appearance: button;
+}
+
+/**
+ * Remove the inner border and padding in Firefox.
+ */
+button::-moz-focus-inner,
+[type=button]::-moz-focus-inner,
+[type=reset]::-moz-focus-inner,
+[type=submit]::-moz-focus-inner {
+  border-style: none;
+  padding: 0;
+}
+
+/**
+ * Restore the focus styles unset by the previous rule.
+ */
+button:-moz-focusring,
+[type=button]:-moz-focusring,
+[type=reset]:-moz-focusring,
+[type=submit]:-moz-focusring {
+  outline: 1px dotted ButtonText;
+}
+
+/**
+ * Correct the padding in Firefox.
+ */
+fieldset {
+  padding: 0.35em 0.75em 0.625em;
+}
+
+/**
+ * 1. Correct the text wrapping in Edge and IE.
+ * 2. Correct the color inheritance from `fieldset` elements in IE.
+ * 3. Remove the padding so developers are not caught out when they zero out
+ *    `fieldset` elements in all browsers.
+ */
+legend {
+  box-sizing: border-box; /* 1 */
+  color: inherit; /* 2 */
+  display: table; /* 1 */
+  max-width: 100%; /* 1 */
+  padding: 0; /* 3 */
+  white-space: normal; /* 1 */
+}
+
+/**
+ * Add the correct vertical alignment in Chrome, Firefox, and Opera.
+ */
+progress {
+  vertical-align: baseline;
+}
+
+/**
+ * Remove the default vertical scrollbar in IE 10+.
+ */
+textarea {
+  overflow: auto;
+}
+
+/**
+ * 1. Add the correct box sizing in IE 10.
+ * 2. Remove the padding in IE 10.
+ */
+[type=checkbox],
+[type=radio] {
+  box-sizing: border-box; /* 1 */
+  padding: 0; /* 2 */
+}
+
+/**
+ * Correct the cursor style of increment and decrement buttons in Chrome.
+ */
+[type=number]::-webkit-inner-spin-button,
+[type=number]::-webkit-outer-spin-button {
+  height: auto;
+}
+
+/**
+ * 1. Correct the odd appearance in Chrome and Safari.
+ * 2. Correct the outline style in Safari.
+ */
+[type=search] {
+  -webkit-appearance: textfield; /* 1 */
+  outline-offset: -2px; /* 2 */
+}
+
+/**
+ * Remove the inner padding in Chrome and Safari on macOS.
+ */
+[type=search]::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+/**
+ * 1. Correct the inability to style clickable types in iOS and Safari.
+ * 2. Change font properties to `inherit` in Safari.
+ */
+::-webkit-file-upload-button {
+  -webkit-appearance: button; /* 1 */
+  font: inherit; /* 2 */
+}
+
+/* Interactive
+   ========================================================================== */
+/*
+ * Add the correct display in Edge, IE 10+, and Firefox.
+ */
+details {
+  display: block;
+}
+
+/*
+ * Add the correct display in all browsers.
+ */
+summary {
+  display: list-item;
+}
+
+/* Misc
+   ========================================================================== */
+/**
+ * Add the correct display in IE 10+.
+ */
+template {
+  display: none;
+}
+
+/**
+ * Add the correct display in IE 10.
+ */
+[hidden] {
+  display: none;
+}
+
+/*! HTML5 Boilerplate v9.0.0-RC1 | MIT License | https://html5boilerplate.com/ */
+/* main.css 3.0.0 | MIT License | https://github.com/h5bp/main.css#readme */
+/*
+ * What follows is the result of much research on cross-browser styling.
+ * Credit left inline and big thanks to Nicolas Gallagher, Jonathan Neal,
+ * Kroc Camen, and the H5BP dev community and team.
+ */
+/* ==========================================================================
+   Base styles: opinionated defaults
+   ========================================================================== */
+html {
+  color: #222;
+  font-size: 1em;
+  line-height: 1.4;
+}
+
+/*
+ * Remove text-shadow in selection highlight:
+ * https://twitter.com/miketaylr/status/12228805301
+ *
+ * Customize the background color to match your design.
+ */
+::-moz-selection {
+  background: #b3d4fc;
+  text-shadow: none;
+}
+
+::selection {
+  background: #b3d4fc;
+  text-shadow: none;
+}
+
+/*
+ * A better looking default horizontal rule
+ */
+hr {
+  display: block;
+  height: 1px;
+  border: 0;
+  border-top: 1px solid #ccc;
+  margin: 1em 0;
+  padding: 0;
+}
+
+/*
+ * Remove the gap between audio, canvas, iframes,
+ * images, videos and the bottom of their containers:
+ * https://github.com/h5bp/html5-boilerplate/issues/440
+ */
+audio,
+canvas,
+iframe,
+img,
+svg,
+video {
+  vertical-align: middle;
+}
+
+/*
+ * Remove default fieldset styles.
+ */
+fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+ * Allow only vertical resizing of textareas.
+ */
+textarea {
+  resize: vertical;
+}
+
+/* ==========================================================================
+   Author's custom styles
+   ========================================================================== */
+/* ==========================================================================
+   Helper classes
+   ========================================================================== */
+/*
+ * Hide visually and from screen readers
+ */
+.hidden,
+[hidden] {
+  display: none !important;
+}
+
+/*
+ * Hide only visually, but have it available for screen readers:
+ * https://snook.ca/archives/html_and_css/hiding-content-for-accessibility
+ *
+ * 1. For long content, line feeds are not interpreted as spaces and small width
+ *    causes content to wrap 1 word per line:
+ *    https://medium.com/@jessebeach/beware-smushed-off-screen-accessible-text-5952a4c2cbfe
+ */
+.visually-hidden {
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+  /* 1 */
+}
+
+/*
+ * Extends the .visually-hidden class to allow the element
+ * to be focusable when navigated to via the keyboard:
+ * https://www.drupal.org/node/897638
+ */
+.visually-hidden.focusable:active,
+.visually-hidden.focusable:focus {
+  clip: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  position: static;
+  white-space: inherit;
+  width: auto;
+}
+
+/*
+ * Hide visually and from screen readers, but maintain layout
+ */
+.invisible {
+  visibility: hidden;
+}
+
+/*
+ * Clearfix: contain floats
+ *
+ * The use of `table` rather than `block` is only necessary if using
+ * `::before` to contain the top-margins of child elements.
+ */
+.clearfix::before,
+.clearfix::after {
+  content: "";
+  display: table;
+}
+
+.clearfix::after {
+  clear: both;
+}
+
+/* ==========================================================================
+   EXAMPLE Media Queries for Responsive Design.
+   These examples override the primary ('mobile first') styles.
+   Modify as content requires.
+   ========================================================================== */
+@media only screen and (min-width: 35em) {
+  /* Style adjustments for viewports that meet the condition */
+}
+@media print, (-webkit-min-device-pixel-ratio: 1.25), (min-resolution: 1.25dppx), (min-resolution: 120dpi) {
+  /* Style adjustments for high resolution devices */
+}
+/* ==========================================================================
+   Print styles.
+   Inlined to avoid the additional HTTP request:
+   https://www.phpied.com/delay-loading-your-print-css/
+   ========================================================================== */
+@media print {
+  *,
+  *::before,
+  *::after {
+    background: #fff !important;
+    color: #000 !important;
+    /* Black prints faster */
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  a,
+  a:visited {
+    text-decoration: underline;
+  }
+  a[href]::after {
+    content: " (" attr(href) ")";
+  }
+  abbr[title]::after {
+    content: " (" attr(title) ")";
+  }
+  /*
+   * Don't show links that are fragment identifiers,
+   * or use the `javascript:` pseudo protocol
+   */
+  a[href^="#"]::after,
+  a[href^="javascript:"]::after {
+    content: "";
+  }
+  pre {
+    white-space: pre-wrap !important;
+  }
+  pre,
+  blockquote {
+    border: 1px solid #999;
+    page-break-inside: avoid;
+  }
+  tr,
+  img {
+    page-break-inside: avoid;
+  }
+  p,
+  h2,
+  h3 {
+    orphans: 3;
+    widows: 3;
+  }
+  h2,
+  h3 {
+    page-break-after: avoid;
+  }
+}
+@font-face {
+  font-family: InterVariable;
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("https://rubyonrails.org/assets/fonts/InterVariable.woff2?v=4.0") format("woff2");
+}
+@font-face {
+  font-family: InterVariable;
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("https://rubyonrails.org/assets/fonts/InterVariable-Italic.woff2?v=4.0") format("woff2");
+}
+/* static fonts */
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 100;
+  font-display: swap;
+  src: url("https://rubyonrails.org/assets/fonts/Inter-Thin.woff2?v=4.0") format("woff2");
+}
+@font-face {
+  font-family: Inter;
+  font-style: italic;
+  font-weight: 100;
+  font-display: swap;
+  src: url("https://rubyonrails.org/assets/fonts/Inter-ThinItalic.woff2?v=4.0") format("woff2");
+}
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 200;
+  font-display: swap;
+  src: url("https://rubyonrails.org/assets/fonts/Inter-ExtraLight.woff2?v=4.0") format("woff2");
+}
+@font-face {
+  font-family: Inter;
+  font-style: italic;
+  font-weight: 200;
+  font-display: swap;
+  src: url("https://rubyonrails.org/assets/fonts/Inter-ExtraLightItalic.woff2?v=4.0") format("woff2");
+}
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("https://rubyonrails.org/assets/fonts/Inter-Light.woff2?v=4.0") format("woff2");
+}
+@font-face {
+  font-family: Inter;
+  font-style: italic;
+  font-weight: 300;
+  font-display: swap;
+  src: url("https://rubyonrails.org/assets/fonts/Inter-LightItalic.woff2?v=4.0") format("woff2");
+}
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("https://rubyonrails.org/assets/fonts/Inter-Regular.woff2?v=4.0") format("woff2");
+}
+@font-face {
+  font-family: Inter;
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("https://rubyonrails.org/assets/fonts/Inter-Italic.woff2?v=4.0") format("woff2");
+}
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("https://rubyonrails.org/assets/fonts/Inter-Medium.woff2?v=4.0") format("woff2");
+}
+@font-face {
+  font-family: Inter;
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+  src: url("https://rubyonrails.org/assets/fonts/Inter-MediumItalic.woff2?v=4.0") format("woff2");
+}
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("https://rubyonrails.org/assets/fonts/Inter-SemiBold.woff2?v=4.0") format("woff2");
+}
+@font-face {
+  font-family: Inter;
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url("https://rubyonrails.org/assets/fonts/Inter-SemiBoldItalic.woff2?v=4.0") format("woff2");
+}
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("https://rubyonrails.org/assets/fonts/Inter-Bold.woff2?v=4.0") format("woff2");
+}
+@font-face {
+  font-family: Inter;
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url("https://rubyonrails.org/assets/fonts/Inter-BoldItalic.woff2?v=4.0") format("woff2");
+}
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("https://rubyonrails.org/assets/fonts/Inter-ExtraBold.woff2?v=4.0") format("woff2");
+}
+@font-face {
+  font-family: Inter;
+  font-style: italic;
+  font-weight: 800;
+  font-display: swap;
+  src: url("https://rubyonrails.org/assets/fonts/Inter-ExtraBoldItalic.woff2?v=4.0") format("woff2");
+}
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url("https://rubyonrails.org/assets/fonts/Inter-Black.woff2?v=4.0") format("woff2");
+}
+@font-face {
+  font-family: Inter;
+  font-style: italic;
+  font-weight: 900;
+  font-display: swap;
+  src: url("https://rubyonrails.org/assets/fonts/Inter-BlackItalic.woff2?v=4.0") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 400;
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Text.eot");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Text.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Text.woff2") format("woff2"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Text.woff") format("woff");
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: italic;
+  font-weight: 400;
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-TextItalic.eot");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-TextItalic.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-TextItalic.woff2") format("woff2"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-TextItalic.woff") format("woff");
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 500;
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Medium.eot");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Medium.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Medium.woff2") format("woff2"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Medium.woff") format("woff");
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: italic;
+  font-weight: 500;
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-MediumItalic.eot");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-MediumItalic.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-MediumItalic.woff2") format("woff2"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-MediumItalic.woff") format("woff");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Calibre";
+  font-style: normal;
+  font-weight: 400;
+  src: url("https://rubyonrails.org/assets/fonts/calibre-regular.woff2") format("woff2");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Calibre";
+  font-style: italic;
+  font-weight: 400;
+  src: url("https://rubyonrails.org/assets/fonts/calibre-regular-italic.woff2") format("woff2");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Calibre";
+  font-style: normal;
+  font-weight: 600;
+  src: url("https://rubyonrails.org/assets/fonts/calibre-semibold.woff2") format("woff2");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Calibre";
+  font-style: italic;
+  font-weight: 600;
+  src: url("https://rubyonrails.org/assets/fonts/calibre-semibold-italic.woff2") format("woff2");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Calibre";
+  font-style: normal;
+  font-weight: 700;
+  src: url("https://rubyonrails.org/assets/fonts/calibre-bold.woff2") format("woff2");
+  font-display: swap;
+}
+* {
+  box-sizing: border-box;
+}
+
+body.guide header#page_header nav#feature_nav ul.nav, body.guide nav#topNav .more-info-links {
+  margin: 0;
+  padding: 0;
+}
+body.guide header#page_header nav#feature_nav ul.nav li, body.guide nav#topNav .more-info-links li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.clearfix:after, .clearfix:before {
+  content: " ";
+  display: table;
+}
+.clearfix:after {
+  clear: both;
+}
+
+.hide {
+  visibility: hidden;
+}
+
+/* Same bottom margin for special boxes than for regular paragraphs, this way
+intermediate whitespace looks uniform. */
+.interstitial {
+  background-repeat: no-repeat;
+  background-size: 36px 36px;
+  border-radius: 8px;
+  border: 2px solid #A9A9A8;
+  border-style: solid !important;
+  border-width: 2px !important;
+  min-height: calc(36px + 1.2em);
+  margin: 2em auto;
+  padding: 0.75em !important;
+  position: relative;
+  /* Remove bottom margin of paragraphs in special boxes, otherwise they get a
+  spurious blank area below with the box background. */
+}
+:where(body[dir=ltr]) .interstitial {
+  background-position: 10px 10px;
+  padding-right: 1em !important;
+  padding-left: 56px !important;
+}
+:where(body[dir=rtl]) .interstitial {
+  background-position: calc(100% - 10px) 10px;
+  padding-right: 56px !important;
+  padding-left: 1em !important;
+}
+.interstitial p {
+  margin-bottom: 0.75em;
+}
+.interstitial p:last-child {
+  margin-bottom: 0;
+}
+.interstitial.code {
+  border: none !important;
+  background-color: #292929;
+  min-height: auto;
+  padding-left: 1em !important;
+}
+.interstitial.code pre {
+  margin: 0;
+}
+.interstitial.code button.clipboard-button {
+  color: #FAF9F8;
+  cursor: pointer;
+  background-color: #3A3939;
+  border: 1px solid #A9A9A8;
+  border-radius: 4px;
+  font-size: 0.75em;
+  padding: 0.25em 0.5em !important;
+  position: absolute;
+  bottom: 10px;
+  text-transform: uppercase;
+}
+:where(body[dir=ltr]) .interstitial.code button.clipboard-button {
+  right: 10px;
+}
+:where(body[dir=rtl]) .interstitial.code button.clipboard-button {
+  left: 10px;
+}
+.interstitial.note {
+  border-color: #FFD600;
+  background-color: rgba(255, 214, 0, 0.15);
+  background-image: url("../images/icon_task-list-pin.svg");
+}
+.interstitial.work-in-progress, .interstitial.todo {
+  border-color: #FFD600;
+  background-color: rgba(255, 214, 0, 0.15);
+  background-image: url("../images/icon_construction-sign.svg");
+}
+.interstitial.info {
+  border-color: #00F0FF;
+  background-color: rgba(0, 240, 255, 0.15);
+  background-image: url("../images/icon_bulb-1.svg");
+}
+.interstitial.warning {
+  border-color: #C81418;
+  background-color: rgba(200, 20, 24, 0.15);
+  background-image: url("../images/icon_hand-stop.svg");
+}
+.interstitial.question {
+  border-color: #A9A9A8;
+  background-color: #F5F3F1;
+  background-image: url("../images/icon_question-bubble.svg");
+}
+.interstitial.kindle {
+  padding-top: 1em !important;
+}
+
+body.guide {
+  -webkit-tap-highlight-color: rgba(38, 27, 35, 0);
+  font-family: Inter, sans-serif;
+  font-size: 1.125rem; /* 18px */
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.4;
+  font-feature-settings: "liga" 1;
+  font-feature-settings: "onum" 1;
+}
+body.guide::-webkit-scrollbar {
+  width: 12px;
+  background-color: transparent;
+}
+body.guide::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  background-color: transparent;
+}
+body.guide::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+}
+body.guide :root {
+  font-family: Inter, sans-serif;
+  font-feature-settings: "liga" 1, "calt" 1; /* fix for Chrome */
+}
+@supports (font-variation-settings: normal) {
+  body.guide :root {
+    font-family: InterVariable, sans-serif;
+  }
+}
+@supports (font-variant-ligatures: common-ligatures) {
+  body.guide {
+    font-feature-settings: normal;
+    font-variant-ligatures: common-ligatures;
+  }
+}
+@supports (font-variant-numeric: oldstyle-nums) {
+  body.guide {
+    font-feature-settings: normal;
+    font-variant-numeric: oldstyle-nums;
+  }
+}
+body.guide p {
+  hyphenate-limit-lines: 2; /* Safari */
+  -webkit-hyphenate-limit-before: 3;
+  -webkit-hyphenate-limit-after: 2;
+  hyphenate-limit-chars: 6 3 2; /* Not Safari */
+  hyphenate-limit-last: always;
+  margin: 0 0 0.75em 0;
+  text-align: left;
+}
+body.guide a:link {
+  color: #C81418;
+  text-decoration: underline;
+}
+body.guide a:hover, body.guide a:active {
+  color: #df161b;
+}
+body.guide a:visited {
+  color: #6b0b0d;
+}
+body.guide abbr {
+  hyphens: manual;
+}
+body.guide abbr.smallcaps {
+  font-feature-settings: "smcp" 1, "c2sc" 1;
+}
+@supports (font-variant-caps: all-small-caps) {
+  body.guide abbr.smallcaps {
+    font-feature-settings: normal;
+    font-variant-caps: all-small-caps;
+  }
+}
+body.guide table {
+  border-collapse: collapse;
+  font-variant-numeric: lining-nums tabular-nums;
+  margin: 2em auto;
+  width: 100%;
+}
+body.guide table caption {
+  caption-side: bottom;
+}
+body.guide table th {
+  background-color: #3A3939;
+  color: #fff;
+  font-size: 0.875em;
+  padding: 0.5em;
+  text-align: left;
+}
+body.guide table tr:nth-child(even) {
+  background-color: #FAF9F8;
+}
+body.guide table td {
+  padding: 0.5em;
+}
+body.guide h1 {
+  color: #C81418;
+  font-family: "Calibre", sans-serif;
+  font-size: 3rem; /* 48px */
+  font-weight: 700; /* Light */
+  line-height: 1em;
+  margin-top: 0;
+}
+@media (max-width: 1023px) {
+  body.guide h1 {
+    margin-top: 0.5em;
+  }
+}
+body.guide h2 {
+  font-family: "Calibre", sans-serif;
+  font-size: 2.25rem;
+  font-weight: 700; /* Bold */
+}
+body.guide h2 a,
+body.guide h2 a:link,
+body.guide h2 a:visited {
+  color: #C81418;
+}
+body.guide h3 {
+  font-size: 1.5rem; /* 24px */
+  font-weight: 600; /* Semibold */
+}
+body.guide h3 a,
+body.guide h3 a:link,
+body.guide h3 a:visited {
+  color: #292929;
+}
+body.guide h3 code {
+  font-size: 1.5rem;
+  font-weight: 400;
+}
+body.guide h4 {
+  font-size: 1.125rem;
+}
+body.guide h4 code {
+  font-size: 1.125rem;
+  font-weight: 400;
+}
+body.guide h5 {
+  font-size: 0.9375rem;
+}
+body.guide h5 code {
+  font-size: 0.9375rem;
+  font-weight: 400;
+}
+body.guide h1 a,
+body.guide h1 a:link, body.guide h2 a,
+body.guide h2 a:link, body.guide h3 a,
+body.guide h3 a:link, body.guide h4 a,
+body.guide h4 a:link, body.guide h5 a,
+body.guide h5 a:link {
+  text-decoration: none;
+}
+body.guide h1 a:hover,
+body.guide h1 a:active, body.guide h2 a:hover,
+body.guide h2 a:active, body.guide h3 a:hover,
+body.guide h3 a:active, body.guide h4 a:hover,
+body.guide h4 a:active, body.guide h5 a:hover,
+body.guide h5 a:active {
+  text-decoration: underline;
+}
+body.guide h1 span, body.guide h2 span, body.guide h3 span, body.guide h4 span, body.guide h5 span {
+  font-weight: 400;
+}
+body.guide h1, body.guide h2, body.guide h3, body.guide h4, body.guide h5, body.guide h6, body.guide ol, body.guide ol > li {
+  font-feature-settings: "kern" 1;
+  font-feature-settings: "lnum" 1;
+}
+@supports (kerning: normal) {
+  body.guide h1, body.guide h2, body.guide h3, body.guide h4, body.guide h5, body.guide h6, body.guide ol, body.guide ol > li {
+    font-feature-settings: normal;
+    kerning: normal;
+  }
+}
+@supports (font-variant-numeric: lining-nums) {
+  body.guide h1, body.guide h2, body.guide h3, body.guide h4, body.guide h5, body.guide h6, body.guide ol, body.guide ol > li {
+    font-feature-settings: normal;
+    font-variant-numeric: lining-nums;
+  }
+}
+body.guide hr {
+  height: 1em;
+  border: 0;
+  background: url("../images/hr_rails_mobile.svg") center no-repeat;
+  background-size: contain;
+  margin: 1em auto;
+  width: 90%;
+}
+@media (min-width: 769px) {
+  body.guide hr {
+    height: 1.5em;
+    background: url("../images/hr_rails.svg") center no-repeat;
+  }
+}
+@media (min-width: 1441px) {
+  body.guide hr {
+    height: 2em;
+  }
+}
+body.guide hr.hide {
+  height: 0 !important;
+}
+body.guide dl {
+  margin: 0;
+}
+body.guide dl dt {
+  font-weight: bold;
+  font-size: 1.125rem;
+  padding: 0.125em 0 0.25em 0;
+  margin-bottom: 0.75em;
+}
+@media (max-width: 479px) {
+  body.guide dl dt {
+    font-size: 1rem;
+  }
+}
+body.guide dl dd {
+  padding: 0.25em 0 1em;
+  border-bottom: 1px solid #A9A9A8;
+  margin: 0 0 1em 0;
+}
+.guides-indes-list body.guide dl dd:last-child {
+  border-bottom: none;
+}
+body.guide li {
+  margin-bottom: 0.5em;
+}
+body.guide pre, body.guide code {
+  font-size: 1rem;
+  font-family: "IBM Plex Mono", "Anonymous Pro", "Inconsolata", "Menlo", "Consolas", "Bitstream Vera Sans Mono", "Courier New", monospace;
+  line-height: 1.5;
+  margin: 1em 0;
+  overflow: auto;
+  color: #222;
+}
+body.guide p code, body.guide ul code {
+  background: #F5F3F1;
+  border-radius: 4px;
+  padding: 1px 3px;
+}
+body.guide p img {
+  max-width: 100%;
+}
+body.guide pre, body.guide tt, body.guide code {
+  white-space: pre-wrap; /* css-3 */
+  white-space: -pre-wrap; /* Opera 4-6 */
+  white-space: -o-pre-wrap; /* Opera 7 */
+  word-wrap: break-word; /* Internet Explorer 5.5+ */
+}
+body.guide a.back-to-top {
+  background: url("../images/up_white_arrow.png") no-repeat center center, #C81418;
+  background-size: 1em;
+  border-radius: 16px;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.25);
+  padding: 1.5em;
+  position: fixed;
+  right: 1em;
+  bottom: 1em;
+  visibility: hidden;
+}
+body.guide a.back-to-top.show {
+  visibility: visible;
+}
+body.guide .wrapper {
+  padding: 1em;
+}
+:where(body[dir=ltr]) body.guide .wrapper {
+  text-align: left;
+}
+:where(body[dir=rtl]) body.guide .wrapper {
+  text-align: right;
+}
+@media (min-width: 1025px) {
+  body.guide .wrapper {
+    max-width: calc(55rem + 420px);
+    margin: 0 auto;
+    padding-right: 470px;
+  }
+}
+body.guide select {
+  border-radius: 8px;
+  padding: 0.25em;
+}
+body.guide nav#topNav {
+  background-color: #F5F3F1;
+  color: #666666;
+  padding: 0.5em 0;
+  font-size: 0.875rem;
+}
+@media (min-width: 1025px) {
+  body.guide nav#topNav {
+    display: none;
+  }
+}
+body.guide nav#topNav .wrapper {
+  text-align: center;
+}
+body.guide nav#topNav .s-hidden {
+  display: none;
+}
+body.guide nav#topNav .red-button {
+  background: #C81418;
+  border-bottom: 2px solid #820d10;
+  border-radius: 8px;
+  color: white;
+  padding: 0.5em 1em;
+}
+@media (max-width: 1023px) {
+  body.guide nav#topNav .more-info-label {
+    display: none;
+  }
+}
+body.guide nav#topNav .more-info-button {
+  cursor: pointer;
+}
+body.guide nav#topNav .more-info-links {
+  background: #F5F3F1;
+  border-radius: 8px;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.25);
+  font-size: 1.25em;
+  position: absolute;
+  left: 10vw;
+  width: 80vw;
+}
+body.guide nav#topNav .more-info-links li {
+  border-bottom: 1px solid #EBEBEA;
+  padding: 0.5em;
+}
+body.guide nav#topNav .more-info-links li:last-child {
+  border-bottom: none;
+}
+body.guide nav#topNav .more-info-links li a,
+body.guide nav#topNav .more-info-links li a:link,
+body.guide nav#topNav .more-info-links li a:visited {
+  font-weight: bold;
+  text-decoration: none;
+}
+body.guide header#page_header {
+  width: 100%;
+}
+body.guide header#page_header .wrapper {
+  max-width: calc(50em + 400px);
+  padding-right: 0;
+}
+@media (min-width: 1025px) {
+  body.guide header#page_header nav#feature_nav {
+    align-items: top;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+  }
+}
+body.guide header#page_header nav#feature_nav .header-logo {
+  text-align: center;
+}
+body.guide header#page_header nav#feature_nav .header-logo a {
+  background-image: url("../images/logo_rails-circle.svg");
+  background-repeat: no-repeat;
+  background-position: top center;
+  display: inline-block;
+  font-family: "Calibre", sans-serif;
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin: 0 auto;
+  padding-top: 75px;
+  text-align: center;
+  text-decoration: none;
+  font-weight: 700;
+}
+@media (min-width: 1025px) {
+  body.guide header#page_header nav#feature_nav .header-logo a {
+    padding: 10px 0 0 85px;
+    background-position: top left;
+    height: 85px;
+    vertical-align: middle;
+  }
+}
+body.guide header#page_header nav#feature_nav .header-logo span#version_switcher {
+  color: #666666;
+  display: block;
+  font-size: 0.75em;
+}
+@media (min-width: 1025px) {
+  body.guide header#page_header nav#feature_nav .header-logo span#version_switcher {
+    display: inline-block;
+    margin-left: 0.5em;
+    vertical-align: 1px;
+  }
+}
+body.guide header#page_header nav#feature_nav .header-logo span#version_switcher select {
+  color: #666666;
+}
+body.guide header#page_header nav#feature_nav ul.nav {
+  margin: 1em 1em 0 1em;
+}
+@media (min-width: 1025px) {
+  body.guide header#page_header nav#feature_nav ul.nav {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    margin: 0;
+    padding: 1em 0 0 0;
+  }
+}
+body.guide header#page_header nav#feature_nav ul.nav li {
+  background: #F5F3F1;
+  border-bottom: 1px solid #EBEBEA;
+  font-size: 1.25em;
+  text-align: center;
+  padding: 1em;
+}
+@media (min-width: 1025px) {
+  body.guide header#page_header nav#feature_nav ul.nav li {
+    background: none;
+    border: none;
+    font-size: 0.75rem;
+    height: 24px;
+    padding-top: 5px;
+  }
+  body.guide header#page_header nav#feature_nav ul.nav li:first-child {
+    padding-top: 0;
+  }
+  body.guide header#page_header nav#feature_nav ul.nav li a,
+  body.guide header#page_header nav#feature_nav ul.nav li a:link,
+  body.guide header#page_header nav#feature_nav ul.nav li a:visited {
+    color: #292929;
+    font-weight: bold;
+    text-decoration: none;
+  }
+}
+body.guide header#page_header nav#feature_nav ul.nav li:first-child {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+body.guide header#page_header nav#feature_nav ul.nav li:nth-last-child(2) {
+  border-bottom: none;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+body.guide header#page_header nav#feature_nav ul.nav li:last-child {
+  background: none;
+  border: none;
+  padding: 1em 0 0 0;
+}
+body.guide header#page_header nav#feature_nav ul.nav li:last-child select {
+  max-width: 100%;
+}
+@media (min-width: 1025px) {
+  body.guide header#page_header nav#feature_nav ul.nav li a#home_nav {
+    background-color: transparent;
+    color: transparent;
+    border: 0;
+    overflow: hidden;
+    text-indent: 100%;
+    text-shadow: none;
+    white-space: nowrap;
+    background-image: url("../images/icon_house-chimney.svg");
+    background-repeat: no-repeat;
+    background-position: top center;
+    display: inline-block;
+    height: 24px;
+    width: 24px;
+  }
+  body.guide header#page_header nav#feature_nav ul.nav li a#home_nav:before {
+    content: "";
+    display: block;
+    height: 100%;
+    width: 0;
+  }
+}
+@media (max-width: 1023px) {
+  body.guide header#page_header nav#feature_nav ul.nav li.guides-index-large {
+    display: none;
+  }
+}
+@media (min-width: 1025px) {
+  body.guide header#page_header nav#feature_nav ul.nav li.guides-index-small {
+    display: none;
+  }
+}
+@media (max-width: 1023px) {
+  body.guide header#page_header nav#feature_nav ul.nav li.guides-index-small {
+    display: block;
+  }
+}
+body.guide .guides-index .guides-index-item {
+  position: relative;
+  z-index: 15;
+  padding-bottom: 0.125em;
+}
+:where(body[dir=ltr]) body.guide .guides-index .guides-index-item {
+  background-position: right top;
+  padding-right: 1em;
+}
+:where(body[dir=rtl]) body.guide .guides-index .guides-index-item {
+  background-position: left top;
+  padding-left: 1em;
+}
+body.guide #guides {
+  background: #F5F3F1;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.25);
+  display: block;
+  border-radius: 8px;
+  color: #292929;
+  height: 58em;
+  padding: 2em 2em 1.5em 2em;
+  position: absolute;
+  top: 25px;
+  right: 50px;
+  width: 90vw;
+  max-width: 1000px;
+  z-index: 10;
+}
+:where(body[dir=ltr]) body.guide #guides {
+  left: auto;
+  right: 50px;
+}
+:where(body[dir=rtl]) body.guide #guides {
+  left: 50px;
+  right: auto;
+}
+body.guide #guides.visible {
+  display: block !important;
+}
+body.guide #guides .guides-section-container {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  max-height: 53em;
+  width: 100%;
+}
+body.guide #guides .guides-section-container .guides-section {
+  flex: auto;
+  margin: 0 2em 0.5em 0;
+  text-align: left;
+  width: 33%;
+}
+body.guide #guides .guides-section-container .guides-section dt, body.guide #guides .guides-section-container .guides-section dd {
+  font-weight: 400 !important;
+  font-size: 0.825rem;
+  margin: 0;
+  padding: 0;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+body.guide #guides .guides-section-container .guides-section dt {
+  margin: 0.5em 0;
+  font-weight: bold !important;
+}
+body.guide #guides .guides-section-container .guides-section dd {
+  line-height: 1.2;
+  margin-bottom: 0.5em;
+  border-bottom: none;
+}
+body.guide #guides .guides-section-container .guides-section dd a,
+body.guide #guides .guides-section-container .guides-section dd a:link,
+body.guide #guides .guides-section-container .guides-section dd a:visited {
+  color: #292929;
+  text-decoration: none;
+  font-weight: 400 !important;
+}
+body.guide #guides .guides-section-container .guides-section dd a:hover,
+body.guide #guides .guides-section-container .guides-section dd a:active {
+  color: #C81418;
+  text-decoration: underline;
+}
+body.guide footer#page_footer {
+  background-color: #343434;
+  color: #fff;
+  font-size: 0.75em;
+  padding: 1.5em 1.5em 0.5em 1.5em;
+  width: 100%;
+}
+body.guide footer#page_footer .wrapper {
+  padding: 0;
+}
+@media (min-width: 1025px) {
+  body.guide footer#page_footer .wrapper {
+    padding: 0 1.5em;
+  }
+}
+body.guide footer#page_footer p {
+  max-width: 100vw;
+}
+body.guide #feature {
+  background-color: #FAF9F8;
+}
+@media (min-width: 1025px) {
+  body.guide #feature {
+    background-color: #fff;
+  }
+}
+body.guide #feature #subCol {
+  background-color: #FAF9F8;
+  border-radius: 8px;
+  font-size: 1rem;
+  padding: 0.5em 1em;
+}
+@media (min-width: 1025px) {
+  body.guide #feature #subCol {
+    display: block;
+    position: fixed;
+    top: 100px;
+    right: 50px;
+    max-height: calc(100vh - 200px);
+    width: 400px;
+  }
+}
+body.guide #feature #subCol.guide-index {
+  background-color: transparent !important;
+}
+@media (min-width: 1441px) {
+  body.guide #feature #subCol {
+    right: calc(30vw - 400px);
+  }
+}
+@media (min-width: 1921px) {
+  body.guide #feature #subCol {
+    right: calc(40vw - 400px);
+  }
+}
+body.guide #feature #subCol h3.chapter img {
+  margin-right: 0.25em;
+}
+body.guide #feature #subCol ol.chapters::-webkit-scrollbar {
+  width: 6px;
+  background-color: #F5F5F5;
+}
+body.guide #feature #subCol ol.chapters::-webkit-scrollbar-track {
+  background-color: #F5F5F5;
+  border-radius: 6px;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+}
+body.guide #feature #subCol ol.chapters::-webkit-scrollbar-thumb {
+  border-radius: 5px;
+  background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0.44, #df161b), color-stop(0.72, #C81418), color-stop(0.86, #820d10));
+}
+@media (min-width: 1025px) {
+  body.guide #feature #subCol ol.chapters {
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: calc(100vh - 310px);
+  }
+}
+body.guide #feature #subCol ol.chapters li {
+  font-weight: bold;
+}
+body.guide #feature #subCol ol.chapters li a,
+body.guide #feature #subCol ol.chapters li a:link,
+body.guide #feature #subCol ol.chapters li a:visited {
+  color: #292929;
+  text-decoration: none;
+}
+body.guide #feature #subCol ol.chapters li a:hover,
+body.guide #feature #subCol ol.chapters li a:active {
+  color: #C81418;
+  text-decoration: underline;
+}
+body.guide #feature #subCol ol.chapters li ul {
+  margin-top: 0.5em;
+  margin-bottom: 0.75em;
+  padding-inline-start: 1em;
+}
+@media (min-width: 1025px) {
+  body.guide #feature #subCol ol.chapters li ul {
+    max-width: 310px;
+    width: 310px;
+  }
+}
+body.guide #feature #subCol ol.chapters li ul li {
+  font-weight: 400;
+}
+@media (min-width: 1025px) {
+  body.guide #feature #subCol ol.chapters li ul li {
+    width: 310px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  body.guide {
+    background-color: #181818;
+    color: #fff;
+  }
+  body.guide::-webkit-scrollbar {
+    width: 12px;
+    background-color: transparent;
+  }
+  body.guide::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    background-color: #292929;
+  }
+  body.guide::-webkit-scrollbar-thumb {
+    background-color: #A9A9A8;
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+  }
+  body.guide h1 {
+    color: #fff;
+  }
+  body.guide a:link {
+    color: #f06b6e;
+  }
+  body.guide a:hover, body.guide a:active {
+    color: #ec3d41;
+  }
+  body.guide a:visited {
+    color: #f06b6e;
+  }
+  body.guide h2 a:link, body.guide h2 a:visited {
+    color: #fff;
+  }
+  body.guide table th {
+    background-color: #181818;
+  }
+  body.guide table tr:nth-child(even) {
+    background-color: #292929;
+  }
+  body.guide h3 a,
+  body.guide h3 a:link,
+  body.guide h3 a:visited, body.guide h4 a,
+  body.guide h4 a:link,
+  body.guide h4 a:visited, body.guide h5 a,
+  body.guide h5 a:link,
+  body.guide h5 a:visited, body.guide h6 a,
+  body.guide h6 a:link,
+  body.guide h6 a:visited {
+    color: #fff;
+  }
+  body.guide hr {
+    background: url("../images/hr_rails_white_mobile.svg") center no-repeat;
+  }
+}
+@media (prefers-color-scheme: dark) and (min-width: 769px) {
+  body.guide hr {
+    background: url("../images/hr_rails_white.svg") center no-repeat;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  body.guide pre, body.guide code {
+    background-color: #292929;
+    color: #fff;
+  }
+  body.guide p code, body.guide ul code, body.guide li code {
+    background-color: #505050;
+    color: #fff;
+  }
+  body.guide td code {
+    background-color: transparent;
+  }
+  body.guide h2 code, body.guide h3 code, body.guide h4 code, body.guide h5 code {
+    background-color: transparent;
+    color: #fff;
+  }
+  body.guide nav#topNav {
+    background-color: #292929;
+    color: #DCDCD8;
+  }
+  body.guide nav#topNav .more-info-links {
+    background: #292929;
+  }
+  body.guide nav#topNav li {
+    border-bottom: 1px solid #343434;
+  }
+  body.guide header#page_header nav#feature_nav .header-logo a, body.guide header#page_header nav#feature_nav .header-logo a:link, body.guide header#page_header nav#feature_nav .header-logo a:visited {
+    color: #fff;
+  }
+  body.guide header#page_header nav#feature_nav .header-logo span#version_switcher {
+    color: #DCDCD8;
+  }
+  body.guide header#page_header nav#feature_nav .header-logo span#version_switcher select {
+    background-color: #292929;
+    color: #DCDCD8;
+  }
+  body.guide header#page_header nav#feature_nav ul.nav li {
+    background: #292929;
+    border-bottom: 1px solid #181818;
+  }
+}
+@media (prefers-color-scheme: dark) and (min-width: 1025px) {
+  body.guide header#page_header nav#feature_nav ul.nav li a,
+  body.guide header#page_header nav#feature_nav ul.nav li a:link,
+  body.guide header#page_header nav#feature_nav ul.nav li a:visited {
+    color: #FAF9F8;
+  }
+  body.guide header#page_header nav#feature_nav ul.nav li a#home_nav {
+    background-image: url("../images/icon_house-chimney-wht.svg");
+  }
+}
+@media (prefers-color-scheme: dark) {
+  body.guide #guides {
+    background: #343434;
+    color: #FAF9F8;
+  }
+  body.guide #guides .guides-section dd a,
+  body.guide #guides .guides-section dd a:link,
+  body.guide #guides .guides-section dd a:visited {
+    color: #FAF9F8;
+  }
+  body.guide #guides .guides-section dd a:hover,
+  body.guide #guides .guides-section dd a:active {
+    color: #ec3d41;
+  }
+  body.guide #feature {
+    background-color: #292929;
+  }
+}
+@media (prefers-color-scheme: dark) and (min-width: 1025px) {
+  body.guide #feature {
+    background-color: #181818;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  body.guide #feature #subCol {
+    background-color: #292929;
+  }
+  body.guide #feature #subCol ol.chapters::-webkit-scrollbar {
+    background-color: #343434;
+  }
+  body.guide #feature #subCol ol.chapters::-webkit-scrollbar-track {
+    background-color: #3A3939;
+    border-radius: 5px;
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  }
+  body.guide #feature #subCol ol.chapters::-webkit-scrollbar-thumb {
+    background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0.44, #f06b6e), color-stop(0.86, #ec3d41));
+    border-radius: 5px;
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+  }
+  body.guide #feature #subCol ol.chapters li a,
+  body.guide #feature #subCol ol.chapters li a:link,
+  body.guide #feature #subCol ol.chapters li a:visited {
+    color: #FAF9F8;
+  }
+  body.guide #feature #subCol ol.chapters li a:hover,
+  body.guide #feature #subCol ol.chapters li a:active {
+    color: #ec3d41;
+  }
+  body.guide .interstitial.code {
+    background-color: #292929;
+    border: 1px solid #343434 !important;
+    color: #F5F3F1;
+  }
+  body.guide .interstitial.note, body.guide .interstitial.work-in-progress, body.guide .interstitial.todo {
+    border-color: rgba(255, 214, 0, 0.5);
+    background-color: rgba(255, 214, 0, 0.05);
+  }
+  body.guide .interstitial.info {
+    border-color: rgba(0, 240, 255, 0.5);
+    background-color: rgba(0, 240, 255, 0.05);
+  }
+  body.guide .interstitial.warning {
+    border-color: rgba(200, 20, 24, 0.5);
+    background-color: rgba(200, 20, 24, 0.05);
+  }
+  body.guide .interstitial.question {
+    border-color: #666666;
+    background-color: #3A3939;
+  }
+}

@@ -1,0 +1,305 @@
+/* ----------------------------------------------------------------------------
+// Rails Guides Redesign
+// February 2024
+//
+// John Athayde (https://www.johnathayde.com) for Meticulous
+// ---------------------------------------------------------------------------- */
+.highlight {
+  background-color: transparent !important;
+}
+.highlight table td {
+  padding: 5px;
+}
+.highlight table pre {
+  margin: 0;
+}
+.highlight .c,
+.highlight .cd,
+.highlight .ch,
+.highlight .cm,
+.highlight .cpf,
+.highlight .cs .c1,
+.highlight .ge {
+  font-style: italic;
+}
+.highlight .cp,
+.highlight .cs,
+.highlight .fm,
+.highlight .gs,
+.highlight .kc,
+.highlight .kd,
+.highlight .kn,
+.highlight .kp,
+.highlight .kr,
+.highlight .kt,
+.highlight .nc,
+.highlight .nd,
+.highlight .ne,
+.highlight .nf,
+.highlight .nl,
+.highlight .o,
+.highlight .ow {
+  font-weight: 500;
+}
+
+.highlight {
+  color: #fff;
+  /* Comment */
+  /* Error */
+  /* Keyword */
+  /* Literal */
+  /* Name */
+  /* Operator */
+  /* Punctuation */
+  /* Comment.Multiline */
+  /* Comment.Preproc */
+  /* Comment.Single */
+  /* Comment.Special */
+  /* Keyword.Constant */
+  /* Keyword.Declaration */
+  /* Keyword.Namespace */
+  /* Keyword.Pseudo */
+  /* Keyword.Reserved */
+  /* Keyword.Type */
+  /* Literal.Date */
+  /* Literal.Number */
+  /* Literal.String */
+  /* Name.Attribute */
+  /* Name.Builtin */
+  /* Name.Class */
+  /* Name.Constant */
+  /* Name.Decorator */
+  /* Name.Entity */
+  /* Name.Exception */
+  /* Name.Function */
+  /* Name.Label */
+  /* Name.Namespace */
+  /* Name.Other */
+  /* Name.Property */
+  /* Name.Tag */
+  /* Name.Variable */
+  /* Operator.Word */
+  /* Text.Whitespace */
+  /* Literal.Number.Float */
+  /* Literal.Number.Hex */
+  /* Literal.Number.Integer */
+  /* Literal.Number.Oct */
+  /* Literal.String.Backtick */
+  /* Literal.String.Char */
+  /* Literal.String.Doc */
+  /* Literal.String.Double */
+  /* Literal.String.Escape */
+  /* Literal.String.Heredoc */
+  /* Literal.String.Interpol */
+  /* Literal.String.Other */
+  /* Literal.String.Regex */
+  /* Literal.String.Single */
+  /* Literal.String.Symbol */
+  /* Name.Builtin.Pseudo */
+  /* Name.Variable.Class */
+  /* Name.Variable.Global */
+  /* Name.Variable.Instance */
+  /* Literal.Number.Integer.Long */
+  /* Generic Heading & Diff Header */
+  /* Generic.Subheading & Diff Unified/Comment? */
+  /* Generic.Deleted & Diff Deleted */
+  /* Generic.Inserted & Diff Inserted */
+}
+.highlight.plaintext, .highlight.console, .highlight.erb, .highlight.html {
+  color: #fff;
+}
+.highlight .hll {
+  background-color: #272822;
+}
+.highlight .c {
+  color: #A9A9A8;
+}
+.highlight .err {
+  color: #e7007b;
+  background-color: #1e0010;
+}
+.highlight .k {
+  color: #8AECFF;
+}
+.highlight .l {
+  color: #C3A2FF;
+}
+.highlight .n {
+  color: #f8f8f2;
+}
+.highlight .o {
+  color: #FF538C;
+}
+.highlight .p {
+  color: #f8f8f2;
+}
+.highlight .cm {
+  color: #A9A9A8;
+}
+.highlight .cp {
+  color: #A9A9A8;
+}
+.highlight .c1 {
+  color: #A9A9A8;
+}
+.highlight .cs {
+  color: #A9A9A8;
+}
+.highlight .kc {
+  color: #8AECFF;
+}
+.highlight .kd {
+  color: #8AECFF;
+}
+.highlight .kn {
+  color: #FF538C;
+}
+.highlight .kp {
+  color: #8AECFF;
+}
+.highlight .kr {
+  color: #8AECFF;
+}
+.highlight .kt {
+  color: #8AECFF;
+}
+.highlight .ld {
+  color: #FCEF8D;
+}
+.highlight .m {
+  color: #C3A2FF;
+}
+.highlight .s {
+  color: #FCEF8D;
+}
+.highlight .na {
+  color: #BDFB42;
+}
+.highlight .nb {
+  color: #f8f8f2;
+}
+.highlight .nc {
+  color: #BDFB42;
+}
+.highlight .no {
+  color: #8AECFF;
+}
+.highlight .nd {
+  color: #BDFB42;
+}
+.highlight .ni {
+  color: #f8f8f2;
+}
+.highlight .ne {
+  color: #BDFB42;
+}
+.highlight .nf {
+  color: #BDFB42;
+}
+.highlight .nl {
+  color: #f8f8f2;
+}
+.highlight .nn {
+  color: #f8f8f2;
+}
+.highlight .nx {
+  color: #BDFB42;
+}
+.highlight .py {
+  color: #f8f8f2;
+}
+.highlight .nt {
+  color: #FF538C;
+}
+.highlight .nv {
+  color: #f8f8f2;
+}
+.highlight .ow {
+  color: #FF538C;
+}
+.highlight .w {
+  color: #f8f8f2;
+}
+.highlight .mf {
+  color: #C3A2FF;
+}
+.highlight .mh {
+  color: #C3A2FF;
+}
+.highlight .mi {
+  color: #C3A2FF;
+}
+.highlight .mo {
+  color: #C3A2FF;
+}
+.highlight .sb {
+  color: #FCEF8D;
+}
+.highlight .sc {
+  color: #FCEF8D;
+}
+.highlight .sd {
+  color: #FCEF8D;
+}
+.highlight .s2 {
+  color: #FCEF8D;
+}
+.highlight .se {
+  color: #C3A2FF;
+}
+.highlight .sh {
+  color: #FCEF8D;
+}
+.highlight .si {
+  color: #FCEF8D;
+}
+.highlight .sx {
+  color: #FCEF8D;
+}
+.highlight .sr {
+  color: #FCEF8D;
+}
+.highlight .s1 {
+  color: #FCEF8D;
+}
+.highlight .ss {
+  color: #FCEF8D;
+}
+.highlight .bp {
+  color: #f8f8f2;
+}
+.highlight .vc {
+  color: #f8f8f2;
+}
+.highlight .vg {
+  color: #f8f8f2;
+}
+.highlight .vi {
+  color: #f8f8f2;
+}
+.highlight .il {
+  color: #C3A2FF;
+}
+.highlight .gh {
+  color: #A9A9A8;
+}
+.highlight .gu {
+  color: #75715e;
+}
+.highlight .gd {
+  color: #FF538C;
+  background-color: unset;
+}
+.highlight .gi {
+  color: #BDFB42;
+  background-color: unset;
+}
+.highlight .gr {
+  color: #FF538C;
+}
+.highlight .go {
+  color: #A9A9A8;
+}
+.highlight .gp {
+  color: #fff;
+}

@@ -8,7 +8,7 @@
 @media (prefers-color-scheme: dark) {
   body.guide {
 
-    background-color: $gray-900;
+    background-color: $gray-1000;
     color: #fff;
 
     &::-webkit-scrollbar {
@@ -58,7 +58,7 @@
   
       tr {
         &:nth-child(even) {
-          background-color: $gray-800;
+          background-color: $gray-900;
         }
       }
     } // table
@@ -72,11 +72,15 @@
     } // h3
 
     hr {
-      background: url("../images/hr_rails_white.svg") center no-repeat;
+      background: url("../images/hr_rails_white_mobile.svg") center no-repeat;
+
+      @include media('>tablet') {
+        background: url("../images/hr_rails_white.svg") center no-repeat;
+      }
     }
 
     pre, code {
-      background-color: $gray-1000;
+      background-color: $gray-900;
       color: #fff;
     } // pre, code
 
@@ -94,16 +98,16 @@
       color: #fff;
     }
 
-    nav#topNav {
-      background-color: $gray-200;
-      color: $gray-600;
+    nav#topNav {    background-color: $gray-900;
+      color: $gray-400;
+  
 
       .more-info-links {
         background: $gray-900;
       } // .more-info-links
 
       li {
-        border-bottom: 1px solid $gray-700;
+        border-bottom: 1px solid $gray-800;
       } // li
     } // nav#topNav
 
@@ -117,7 +121,7 @@
             color: $gray-400;
 
             select {
-              background-color: $gray-800;
+              background-color: $gray-900;
               color: $gray-400;
             } // select
           } // span#version_switcher
@@ -126,7 +130,7 @@
         ul.nav {
           li {
             background: $gray-900;
-            border-bottom: 1px solid $gray-900;
+            border-bottom: 1px solid $gray-1000;
 
             @include media('>desktop'){
               a,
@@ -145,7 +149,7 @@
     } // header#page_header
 
     #guides {
-      background: $gray-700;
+      background: $gray-800;
       color: $gray-100;
 
       .guides-section {
@@ -166,18 +170,18 @@
 
 
     #feature {
-      background-color: $gray-800;
+      background-color: $gray-900;
 
       @include media('>desktop') {
-        background-color: $gray-900;
+        background-color: $gray-1000;
       }
 
       #subCol {
-        background-color: $gray-800; 
+        background-color: $gray-900; 
 
         ol.chapters {
           &::-webkit-scrollbar {
-            background-color: $gray-700;
+            background-color: $gray-800;
           }
           
           &::-webkit-scrollbar-track {
@@ -213,7 +217,8 @@
 
     .interstitial {
       &.code {
-        background-color: $gray-1000;
+        background-color: $gray-900;
+        border: 1px solid $gray-800 !important;
         color: $gray-200;
       }
       &.note,

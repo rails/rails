@@ -214,13 +214,14 @@ body.guide {
   hr {
     height: 1em;
     border: 0;
-    background: url("../images/hr_rails.svg") center no-repeat;
+    background: url("../images/hr_rails_mobile.svg") center no-repeat;
     background-size: contain;
     margin: 1em auto;
     width: 90%;
 
     @include media('>tablet') {
       height: 1.5em;
+      background: url("../images/hr_rails.svg") center no-repeat;
     }
 
     @include media('>desktop-ultra-wide') {
@@ -253,7 +254,7 @@ body.guide {
       border-bottom: 1px solid $gray-500;
       margin: 0 0 1em 0;
 
-      &:last-child {
+      .guides-indes-list &:last-child {
         border-bottom: none;
       }
     } // dd
@@ -333,10 +334,15 @@ body.guide {
     }
   } // .wrapper
 
+  select {
+    border-radius: $base-border-radius;
+    padding: 0.25em;
+  }
+
   // topNav is a hidden area for mobile only
   nav#topNav {
-    background-color: $gray-800;
-    color: $gray-400;
+    background-color: $gray-200;
+    color: $gray-600;
     padding: 0.5em 0;
     font-size: 0.875rem;
 
@@ -653,11 +659,15 @@ body.guide {
     background-color: $gray-800;
     color: #fff;
     font-size: 0.75em;
-    padding: 1.5em 0 .5em 0;
+    padding: 1.5em 1.5em .5em 1.5em;
     width: 100%;
 
     .wrapper {
       padding: 0;
+
+      @include media('>desktop') {
+        padding: 0 1.5em;
+      }
     }
 
     p {
@@ -683,8 +693,12 @@ body.guide {
         position: fixed;
           top: 100px;
           right: 50px;
-        max-height: calc(100vh - 90px);
+        max-height: calc(100vh - 200px);
         width: 400px;
+      }
+
+      &.guide-index {
+        background-color: transparent !important;
       }
 
       @include media('>desktop-ultra-wide') {
@@ -729,7 +743,7 @@ body.guide {
         @include media('>desktop') {
           overflow-y: auto;
           overflow-x: hidden;
-          max-height: 73vh;
+          max-height: calc(100vh - 310px);
         }
 
         li {
