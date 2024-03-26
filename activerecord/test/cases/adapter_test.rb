@@ -630,18 +630,78 @@ module ActiveRecord
         assert_predicate @connection, :active?
       end
 
-      test "querying after a failed query restores and succeeds" do
+      test "querying after a failed non-retryable query restores and succeeds" do
         Post.first # Connection verified (and prepared statement pool populated if enabled)
 
         remote_disconnect @connection
 
         assert_raises(ActiveRecord::ConnectionFailed) do
-          Post.first # Connection no longer verified after failed query
+          @connection.execute("INSERT INTO posts(title, body) VALUES ('foo', 'bar')")
         end
 
         assert Post.first # Verifying the connection causes a reconnect and the query succeeds
-
         assert_predicate @connection, :active?
+      end
+
+      test "idempotent SELECT queries are retried and result in a reconnect" do
+        Post.first
+
+        remote_disconnect @connection
+
+        assert Post.first
+        assert_predicate @connection, :active?
+
+        remote_disconnect @connection
+
+        assert Post.where(id: [1, 2]).first
+        assert_predicate @connection, :active?
+      end
+
+      test "#find and #find_by queries with known attributes are retried and result in a reconnect" do
+        Post.first
+
+        remote_disconnect @connection
+
+        assert Post.find(1)
+        assert_predicate @connection, :active?
+
+        remote_disconnect @connection
+
+        assert Post.find_by(title: "Welcome to the weblog")
+        assert_predicate @connection, :active?
+      end
+
+      test "queries containing SQL fragments are not retried" do
+        Post.first
+
+        remote_disconnect @connection
+
+        assert_raises(ActiveRecord::ConnectionFailed) { Post.where("1 = 1").to_a }
+        assert_not_predicate @connection, :active?
+
+        remote_disconnect @connection
+
+        assert_raises(ActiveRecord::ConnectionFailed) { Post.select("title AS custom_title").first }
+        assert_not_predicate @connection, :active?
+
+        remote_disconnect @connection
+
+        assert_raises(ActiveRecord::ConnectionFailed) { Post.find_by("updated_at < ?", 2.weeks.ago) }
+        assert_not_predicate @connection, :active?
+      end
+
+      test "queries containing SQL functions are not retried" do
+        Post.first
+
+        remote_disconnect @connection
+
+        tags_count_attr = Post.arel_table[:tags_count]
+        abs_tags_count = Arel::Nodes::NamedFunction.new("ABS", [tags_count_attr])
+
+        assert_raises(ActiveRecord::ConnectionFailed) do
+          Post.where(abs_tags_count.eq(2)).first
+        end
+        assert_not_predicate @connection, :active?
       end
 
       test "transaction restores after remote disconnection" do
@@ -779,6 +839,8 @@ module ActiveRecord
         def remote_disconnect(connection)
           case connection.adapter_name
           when "PostgreSQL"
+            # Connection was left in a bad state, need to reconnect to simulate fresh disconnect
+            connection.verify! if connection.instance_variable_get(:@raw_connection).status == ::PG::CONNECTION_BAD
             unless connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
               connection.instance_variable_get(:@raw_connection).async_exec("begin")
             end

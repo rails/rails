@@ -21,7 +21,7 @@ module ActiveRecord
           SQLite3::ExplainPrettyPrinter.new.pp(result)
         end
 
-        def internal_exec_query(sql, name = nil, binds = [], prepare: false, async: false) # :nodoc:
+        def internal_exec_query(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false) # :nodoc:
           sql = transform_query(sql)
           check_if_write_query(sql)
 
@@ -106,7 +106,7 @@ module ActiveRecord
 
         # https://stackoverflow.com/questions/17574784
         # https://www.sqlite.org/lang_datefunc.html
-        HIGH_PRECISION_CURRENT_TIMESTAMP = Arel.sql("STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')").freeze # :nodoc:
+        HIGH_PRECISION_CURRENT_TIMESTAMP = Arel.sql("STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')", retryable: true).freeze # :nodoc:
         private_constant :HIGH_PRECISION_CURRENT_TIMESTAMP
 
         def high_precision_current_timestamp

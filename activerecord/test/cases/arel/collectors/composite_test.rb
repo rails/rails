@@ -42,6 +42,16 @@ module Arel
         assert_equal 'SELECT FROM "users" WHERE "users"."age" = ? AND "users"."name" = ?', sql
         assert_equal ["hello2", "world3"], binds
       end
+
+      def test_retryable_on_composite_collector_propagates
+        sql_collector = Collectors::SQLString.new
+        bind_collector = Collectors::Bind.new
+        collector = Collectors::Composite.new(sql_collector, bind_collector)
+        collector.retryable = true
+
+        assert sql_collector.retryable
+        assert bind_collector.retryable
+      end
     end
   end
 end

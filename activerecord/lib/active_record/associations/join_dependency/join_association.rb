@@ -93,7 +93,7 @@ module ActiveRecord
           def append_constraints(connection, join, constraints)
             if join.is_a?(Arel::Nodes::StringJoin)
               join_string = Arel::Nodes::And.new(constraints.unshift join.left)
-              join.left = Arel.sql(connection.visitor.compile(join_string))
+              join.left = Arel.sql(connection.visitor.compile(join_string), retryable: true)
             else
               right = join.right
               right.expr = Arel::Nodes::And.new(constraints.unshift right.expr)

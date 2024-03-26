@@ -2013,7 +2013,7 @@ module ActiveRecord
           if attr_name == "count" && !group_values.empty?
             table[attr_name]
           else
-            Arel.sql(adapter_class.quote_table_name(attr_name))
+            Arel.sql(adapter_class.quote_table_name(attr_name), retryable: true)
           end
         end
       end

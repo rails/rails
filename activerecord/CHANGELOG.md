@@ -1,3 +1,12 @@
+*   Retry known idempotent SELECT queries on connection-related exceptions
+
+    SELECT queries we construct by walking the Arel tree and / or with known model attributes
+    are idempotent and can safely be retried in the case of a connection error. Previously,
+    adapters such as `TrilogyAdapter` would raise `ActiveRecord::ConnectionFailed: Trilogy::EOFError`
+    when encountering a connection error mid-request.
+
+    *Adrianna Chang*
+
 *   Allow association's `foreign_key` to be composite.
 
     `query_constraints` option was the only way to configure a composite foreign key by passing an `Array`.

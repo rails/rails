@@ -229,12 +229,12 @@ module ActiveRecord
       # Mysql2Adapter doesn't have to free a result after using it, but we use this method
       # to write stuff in an abstract way without concerning ourselves about whether it
       # needs to be explicitly freed or not.
-      def execute_and_free(sql, name = nil, async: false) # :nodoc:
+      def execute_and_free(sql, name = nil, async: false, allow_retry: false) # :nodoc:
         sql = transform_query(sql)
         check_if_write_query(sql)
 
         mark_transaction_written_if_write(sql)
-        yield raw_execute(sql, name, async: async)
+        yield raw_execute(sql, name, async: async, allow_retry: allow_retry)
       end
 
       def begin_db_transaction # :nodoc:
