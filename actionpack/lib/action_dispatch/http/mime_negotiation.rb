@@ -86,7 +86,49 @@ module ActionDispatch
         end
       end
 
-      # Sets the variant for template.
+      # Sets the \variant for the response template.
+      #
+      # When determining which template to render, Action View will incorporate
+      # all variants from the request. For example, if an
+      # `ArticlesController#index` action needs to respond to
+      # `request.variant = [:ios, :turbo_native]`, it will render the
+      # first template file it can find in the following list:
+      #
+      # - `app/views/articles/index.html+ios.erb`
+      # - `app/views/articles/index.html+turbo_native.erb`
+      # - `app/views/articles/index.html.erb`
+      #
+      # Variants add context to the requests that views render appropriately.
+      # Variant names are arbitrary, and can communicate anything from the
+      # request's platform (`:android`, `:ios`, `:linux`, `:macos`, `:windows`)
+      # to its browser (`:chrome`, `:edge`, `:firefox`, `:safari`), to the type
+      # of user (`:admin`, `:guest`, `:user`).
+      #
+      # Note: Adding many new variant templates with similarities to existing
+      # template files can make maintaining your view code more difficult.
+      #
+      # #### Parameters
+      #
+      # * `variant` - a symbol name or an array of symbol names for variants
+      #   used to render the response template
+      #
+      # #### Examples
+      #
+      #     class ApplicationController < ActionController::Base
+      #       before_action :determine_variants
+      #
+      #       private
+      #         def determine_variants
+      #           variants = []
+      #
+      #           # some code to determine the variant(s) to use
+      #
+      #           variants << :ios if request.user_agent.include?("iOS")
+      #           variants << :turbo_native if request.user_agent.include?("Turbo Native")
+      #
+      #           request.variant = variants
+      #         end
+      #     end
       def variant=(variant)
         variant = Array(variant)
 
@@ -97,6 +139,18 @@ module ActionDispatch
         end
       end
 
+      # Returns the \variant for the response template as an instance of
+      # ActiveSupport::ArrayInquirer.
+      #
+      #     request.variant = :phone
+      #     request.variant.phone?  # => true
+      #     request.variant.tablet? # => false
+      #
+      #     request.variant = [:phone, :tablet]
+      #     request.variant.phone?                  # => true
+      #     request.variant.desktop?                # => false
+      #     request.variant.any?(:phone, :desktop)  # => true
+      #     request.variant.any?(:desktop, :watch)  # => false
       def variant
         @variant ||= ActiveSupport::ArrayInquirer.new
       end
