@@ -262,7 +262,7 @@ For example, `product_reviews` is `nil` in the below example since only `product
 <% local_assigns[:product_reviews]  # => nil %>
 ```
 
-One use case for `local_assigns` is optionally passing in a local variable and then conditionally doing something in the partial based on whether the local variable is set. For example:
+One use case for `local_assigns` is optionally passing in a local variable and then conditionally performing an action in the partial based on whether the local variable is set. For example:
 
 ```html+erb
 <% if local_assigns[:redirect] %>
@@ -374,7 +374,7 @@ This will look for a partial named `_product.html.erb` in `app/views/products/`,
 
 ### The `as` and `object` Options
 
-By default `ActionView::Partials::PartialRenderer` has its object in a local variable with the same name as the template. So, given:
+By default, objects passed to the template are in a local variable with the same name as the template. So, given:
 
 ```erb
 <%= render partial: "product" %>
@@ -470,7 +470,7 @@ This also works when the local variable name is changed using the `as:` option. 
 
 ### Strict Locals
 
-Action View partial templates will accept any number of `locals` as keyword arguments. You can enforce how many and which `locals` a template accepts, set default value, and more with a `locals:` magic comment.
+Action View partials will accept any number of `locals` as keyword arguments. You can enforce how many and which `locals` a template accepts, set default value, and more with a `locals:` magic comment.
 
 Here are some examples of the `locals:` magic comment:
 
@@ -521,7 +521,7 @@ You can allow optional local variable arguments with the double splat `**` opera
 <%= tag.p(message, **attributes) %>
 ```
 
-If you set the `locals:` to empty `()`, partial local variable are disabled entirely:
+Or you can disable `locals` entirely by set the `locals:` to empty `()`:
 
 ```erb
 <%# app/views/messages/_message.html.erb %>
@@ -545,13 +545,44 @@ Layouts
 
 Layouts can be used to render a common view template around the results of Rails controller actions. A Rails application can have multiple layouts that pages can be rendered within.
 
-For example, an application might have one layout for a logged in user and another for the marketing part of the site. The logged in user layout might include top-level navigation that should be present across many controller actions. The sales layout for a SaaS app might include top-level navigation for things like "Pricing" and "Contact Us" pages. Different layouts typically have a different header and footer content.
+For example, an application might have one layout for a logged in user and another for the marketing part of the site. The logged in user layout might include top-level navigation that should be present across many controller actions. The sales layout for a SaaS app might include top-level navigation for things like "Pricing" and "Contact Us" pages. Different layouts can have a different header and footer content.
 
 To find the layout for the current controller action, Rails first looks for a file in `app/views/layouts` with the same base name as the controller. For example, rendering actions from the PhotosController class will `use app/views/layouts/photos.html.erb` (or `app/views/layouts/photos.builder`).
 
-If such a controller-specific layout does not exist, Rails will use `app/views/layouts/application.html.erb` (or `app/views/layouts/application.builder`). Rails also provides more ways to assign specific layouts to individual controllers and actions. See [Layouts and Rendering guide](layouts_and_rendering.html#finding-layouts) for more.
+If such a controller-specific layout does not exist, Rails will use `app/views/layouts/application.html.erb` (or `app/views/layouts/application.builder`).
 
-You can learn more about layouts in general in the [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
+Here is an example of a simple layout in `application.html.erb` file:
+
+```html+erb
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= "Your Rails App" %></title>
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+  <%= javascript_importmap_tags %>
+</head>
+<body>
+
+<nav>
+  <ul>
+    <li><%= link_to "Home", root_path %></li>
+    <li><%= link_to "Products", products_path %></li>
+    <!-- Additional navigation links here -->
+  </ul>
+</nav>
+
+<%= yield %>
+
+<footer>
+  <p>&copy; <%= Date.current.year %> Your Company</p>
+</footer>
+```
+
+In the above example layout, view content will be rendered in place of `<%= yield %>`, and surrounded by the same `<head>`, `<nav>`, and `<footer>` content.
+
+Rails also provides more ways to assign specific layouts to individual controllers and actions. You can learn more about layouts in general in the [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
 
 ### Partial Layouts
 
@@ -579,7 +610,7 @@ The `box` layout simply wraps the `_article` partial in a `div`:
 </div>
 ```
 
-Note that the partial layout has access to the local `article` variable that was passed into the `render` call. Though it is not being used within `_box.html.erb` in this case.
+Note that the partial layout has access to the local `article` variable that was passed into the `render` call, although it is not being used within `_box.html.erb` in this case.
 
 Unlike application-wide layouts, partial layouts still have the underscore prefix in their name.
 
@@ -629,17 +660,5 @@ Action View has the ability to render different templates depending on the curre
 For example, suppose you have an `ArticlesController` with a show action. By default, calling this action will render `app/views/articles/show.html.erb`. But if you set `I18n.locale = :de`, then `app/views/articles/show.de.html.erb` will be rendered instead. If the localized template isn't present, the undecorated version will be used. This means you're not required to provide localized views for all cases, but they will be preferred and used if available.
 
 You can use the same technique to localize the rescue files in your public directory. For example, setting `I18n.locale = :de` and creating `public/500.de.html` and `public/404.de.html` would allow you to have localized rescue pages.
-
-Since Rails doesn't restrict the symbols that you use to set I18n.locale, you can leverage this system to display different content depending on anything you like. For example, suppose you have some "expert" users that should see different pages from "normal" users. You could add the following to `app/controllers/application_controller.rb`:
-
-```ruby
-around_action :set_expert_locale
-
-def set_expert_locale
-  I18n.locale = :expert if current_user.expert?
-end
-```
-
-Then you could create special views like `app/views/articles/show.expert.html.erb` that would only be displayed to expert users.
 
 You can read more about the Rails Internationalization (I18n) API [here](i18n.html).
