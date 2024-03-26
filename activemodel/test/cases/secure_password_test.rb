@@ -67,7 +67,7 @@ class SecurePasswordTest < ActiveModel::TestCase
     @user.password_confirmation = "a" * 73
     assert_not @user.valid?(:create), "user should be invalid"
     assert_equal 1, @user.errors.count
-    assert_equal ["is too long"], @user.errors[:password]
+    assert_equal ["is too long (maximum is 72 characters)"], @user.errors[:password]
   end
 
   test "create a new user with validation and password byte size greater than 72 bytes" do
@@ -77,7 +77,7 @@ class SecurePasswordTest < ActiveModel::TestCase
     @user.password_confirmation = "あ" * 24 + "a"
     assert_not @user.valid?(:create), "user should be invalid"
     assert_equal 1, @user.errors.count
-    assert_equal ["is too long"], @user.errors[:password]
+    assert_equal ["is too long (maximum is 72 characters)"], @user.errors[:password]
   end
 
   test "create a new user with validation and a blank password confirmation" do
@@ -152,7 +152,7 @@ class SecurePasswordTest < ActiveModel::TestCase
     @existing_user.password_confirmation = "a" * 73
     assert_not @existing_user.valid?(:update), "user should be invalid"
     assert_equal 1, @existing_user.errors.count
-    assert_equal ["is too long"], @existing_user.errors[:password]
+    assert_equal ["is too long (maximum is 72 characters)"], @existing_user.errors[:password]
   end
 
   test "updating an existing user with validation and a blank password confirmation" do
