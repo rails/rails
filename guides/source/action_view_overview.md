@@ -20,14 +20,14 @@ Action View templates (also referred to simply as "views") are written using Emb
 
 Action View provides many [helper](#helpers) classes for dynamically generating HTML tags for forms, dates, and strings. It's also possible to add custom helpers to your application as needed.
 
-NOTE: Some features of Action View are tied to Active Record, but that doesn't mean Action View depends on Active Record. Action View is an independent package that can be used with any sort of Ruby libraries.
+NOTE: Some features of Action View are tied to Active Record, but that doesn't mean Action View depends on Active Record. Action View is an independent package that can be used with any Ruby library.
 
 Using Action View with Rails
 ----------------------------
 
 Action View templates (aka "views") are stored in a subdirectory in the `app/views` directory. There is a subdirectory matching the name of each controller. The view files inside that subdirectory are used to render specific views as a response to controller actions. The template files follow a naming convention.
 
-For example, when we use scaffolding to generate an `article` resource, Rails generate the following files in `app/views/articles`:
+For example, when we use scaffolding to generate an `article` resource, Rails generates the following files in `app/views/articles`:
 
 ```bash
 $ bin/rails generate scaffold article
@@ -53,7 +53,7 @@ The final HTML returned to the client is composed of a combination of the `.html
 Templates
 ---------
 
-Action View templates can be written in different formats. If the template file has a `.erb` extension, it uses embedded Ruby to build a HTML response. If the template has a `.jbuilder` extension, it uses the [Jbuilder](https://github.com/rails/jbuilder) gem to build a JSON response. And a template with a `.builder` extension uses the [`Builder::XmlMarkup`](https://github.com/jimweirich/builder) library to build an XML response.
+Action View templates can be written in different formats. If the template file has a `.erb` extension, it uses embedded Ruby to build an HTML response. If the template has a `.jbuilder` extension, it uses the [Jbuilder](https://github.com/rails/jbuilder) gem to build a JSON response. And a template with a `.builder` extension uses the [`Builder::XmlMarkup`](https://github.com/jimweirich/builder) library to build an XML response.
 
 Rails uses the file extension to distinguish among multiple template systems. For example, an HTML file using the ERB template system will have `.html.erb` as a file extension.
 
@@ -85,7 +85,7 @@ To suppress leading and trailing whitespaces, you can use `<%-` `-%>` interchang
 
 ### Jbuilder
 
-`Jbuilder` is a gem that's maintained by the Rails team and included in the default Rails `Gemfile`. It is used to build a JSON response.
+`Jbuilder` is a gem that's maintained by the Rails team and included in the default Rails `Gemfile`. It is used to build JSON responses using templates.
 
 If you don't have it, you can add the following to your `Gemfile`:
 
@@ -161,12 +161,12 @@ would produce something like:
 
 By default, Rails will compile each template to a method to render it. In the development environment, when you alter a template, Rails will check the file's modification time and recompile it.
 
-There is also Fragment Caching for when different parts of the page need to be cached and expired separately. Learn more about it in the [caching](caching_with_rails.html#fragment-caching) guide.
+There is also Fragment Caching for when different parts of the page need to be cached and expired separately. Learn more about it in the [caching guide](caching_with_rails.html#fragment-caching).
 
 Partials
 --------
 
-Partial templates - usually just called "partials" - are a way of breaking up the view templates into smaller reusable chunks. With partials, you can extract a piece of code from your main template to separate smaller files and render that file in the main template. You can also pass data to the partial files from the main template.
+Partial templates - usually just called "partials" - are a way of breaking up the view templates into smaller reusable chunks. With partials, you can extract a piece of code from your main template to a separate smaller file, and render that file in the main template. You can also pass data to the partial files from the main template.
 
 Let's see this in action with some examples:
 
@@ -178,7 +178,7 @@ To render a partial as part of a view, you use the [`render`](https://api.rubyon
 <%= render "product" %>
 ```
 
-This will render a file named `_product.html.erb` within that view. Partial file names start with leading underscore character by convention. The file name distinguishes partials from regular views. However, no underscore is used when referring to partials for rendering within a view. This is true even when you reference a partial from another directory:
+This will look for a file named `_product.html.erb` on the same folder to render within that view. Partial file names start with leading underscore character by convention. The file name distinguishes partials from regular views. However, no underscore is used when referring to partials for rendering within a view. This is true even when you reference a partial from another directory:
 
 ```erb
 <%= render "application/product" %>
@@ -501,7 +501,7 @@ render "messages/message"
 # => ActionView::Template::Error: missing local: :message for app/views/messages/_message.html.erb
 ```
 
-If a default values is set then it can be used if `message` is not passed in `locals:`:
+If a default value is set then it can be used if `message` is not passed in `locals:`:
 
 ```erb
 <%# app/views/messages/_message.html.erb %>
