@@ -296,7 +296,7 @@ module ActiveRecord
         td = build_create_table_definition(table_name, id: id, primary_key: primary_key, force: force, **options, &block)
 
         if force
-          drop_table(table_name, force: force, if_exists: true)
+          drop_table(table_name, force: force, if_exists: true) unless td.if_not_exists
         else
           schema_cache.clear_data_source_cache!(table_name.to_s)
         end
