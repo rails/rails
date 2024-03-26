@@ -55,7 +55,7 @@ Templates
 
 Action View templates can be written in different formats. If the template file has a `.erb` extension, it uses embedded Ruby to build an HTML response. If the template has a `.jbuilder` extension, it uses the [Jbuilder](https://github.com/rails/jbuilder) gem to build a JSON response. And a template with a `.builder` extension uses the [`Builder::XmlMarkup`](https://github.com/jimweirich/builder) library to build an XML response.
 
-Rails uses the file extension to distinguish among multiple template systems. For example, an HTML file using the ERB template system will have `.html.erb` as a file extension.
+Rails uses the file extension to distinguish among multiple template systems. For example, an HTML file using the ERB template system will have `.html.erb` as a file extension. Other libraries may add other template types and file extensions as well.
 
 ### ERB
 
@@ -157,6 +157,8 @@ would produce something like:
 </div>
 ```
 
+See [Builder documentation](https://github.com/jimweirich/builder) for more examples.
+
 ### Caching
 
 By default, Rails will compile each template to a method to render it. In the development environment, when you alter a template, Rails will check the file's modification time and recompile it.
@@ -184,7 +186,7 @@ This will look for a file named `_product.html.erb` on the same folder to render
 <%= render "application/product" %>
 ```
 
-That code will look for a partial file named `_product.html.erb` in `app/views/application/`.
+That code will look for and display a partial file named `_product.html.erb` in `app/views/application/`.
 
 ### Using Partials to Simplify Views
 
@@ -207,21 +209,6 @@ Here, the `_ad_banner.html.erb` and `_footer.html.erb` partials could contain co
 
 The above example also uses the `_product.html.erb` partial. This partial contains details for rendering an individual product and is used to render each product in the collection `@products`.
 
-### Partial Template Inheritance
-
-TIP: View partials rely on the same [Template
-Inheritance](/layouts_and_rendering.html#template-inheritance) as templates and
-layouts, so templates rendered by controllers that inherit from
-`ApplicationController` can render view partials declared in
-`app/views/application`.
-
-In addition to resolving partials with the inheritance chain, controllers can
-also override default partials with the inheritance chain. For example, a
-`ProductsController` that inherits from `ApplicationController` will resolve a
-call to `<%= render "ad_banner" %>` by first searching for
-`app/views/products/_ad_banner.html.erb` before falling back to
-`app/views/application/_ad_banner.html.erb`.
-
 ### Passing Data to Partials With `locals` Option
 
 When rendering a partial, we can pass data to the partial from the rendering view. We use the `locals:` options hash for this. Each key in the `locals:` option is available as a partial-local variable:
@@ -229,7 +216,7 @@ When rendering a partial, we can pass data to the partial from the rendering vie
 ```html+erb
 <%# app/views/products/show.html.erb %>
 
-<%= render partial: "products/product", locals: { my_product: @product } %>
+<%= render partial: "product", locals: { my_product: @product } %>
 
 <%# app/views/products/_product.html.erb %>
 
@@ -248,8 +235,8 @@ the `locals:` option, the template will raise an `ActionView::Template::Error`:
 ```html+erb
 <%# app/views/products/_product.html.erb %>
 
-<%= tag.div id: dom_id(product) do %>
-  <h1><%= product.name %></h1>
+<%= tag.div id: dom_id(my_product) do %>
+  <h1><%= my_product.name %></h1>
 
   <%# => raises ActionView::Template::Error for `product_reviews` %>
   <% product_reviews.each do |review| %>
@@ -267,7 +254,7 @@ For example, `product_reviews` is `nil` in the below example since only `product
 ```html+erb
 <%# app/views/products/show.html.erb %>
 
-<%= render partial: "products/product", locals: { product: @product } %>
+<%= render partial: "product", locals: { product: @product } %>
 
 <%# app/views/products/_product.html.erb %>
 
