@@ -26,8 +26,8 @@ module ActionCable
         websocket&.transmit(...)
       end
 
-      def close(...)
-        websocket&.close(...)
+      def close(force: false)
+        websocket&.close(force: force)
       end
 
       def protocol

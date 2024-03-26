@@ -99,6 +99,7 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
       assert_predicate statistics[:identifier], :blank?
       assert_kind_of Time, statistics[:started_at]
       assert_equal [], statistics[:subscriptions]
+      assert_kind_of Time, statistics[:last_message_received_at]
     end
   end
 
@@ -130,6 +131,58 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
       connection = ActionCable::Connection::Base.new(@server, env)
       response = connection.process
       assert_equal 404, response[0]
+    end
+  end
+
+  test "closing a connection when it's expecting a PONG but it didn't receive one in time" do
+    run_in_eventmachine do
+      connection = open_connection
+      connection.process
+
+      connection.instance_variable_set(:@expects_pong, true)
+      connection.instance_variable_set(:@last_message_received_at, 1.hour.ago)
+
+      assert_called(connection.websocket, :close) do
+        connection.beat
+      end
+    end
+  end
+
+  test "processing of an incomping PONG message" do
+    run_in_eventmachine do
+      connection = open_connection
+      connection.process
+
+      wait_for_async
+
+      websocket_message = { type: "pong", message: 1.second.ago.to_f }.to_json
+
+      notification_data = nil
+      callback = ->(_name, _started, _finished, _unique_id, data) do
+        notification_data = data
+      end
+
+      ActiveSupport::Notifications.subscribed(callback, "connection_latency.action_cable") do
+        connection.receive(websocket_message)
+      end
+
+      assert_predicate notification_data[:value], :positive?
+      assert_in_delta 1, notification_data[:value], 0.5
+    end
+  end
+
+  test "receiving a message updates the last message received at timestamp" do
+    run_in_eventmachine do
+      connection = open_connection
+      connection.process
+
+      wait_for_async
+
+      connection.instance_variable_set(:@last_message_received_at, 1.hour.ago)
+
+      connection.receive({ type: "pong", message: 123.456 }.to_json)
+
+      assert_in_delta Time.now, connection.instance_variable_get(:@last_message_received_at), 1
     end
   end
 
