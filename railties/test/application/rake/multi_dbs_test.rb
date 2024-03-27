@@ -1170,6 +1170,35 @@ module ApplicationTests
         end
       end
 
+      test "db:test:prepare loads default schema file for primary database configuration when it is named differently than in development" do
+        app_file "config/database.yml", <<~EOS
+          development:
+            primary:
+              adapter: sqlite3
+              database: dev_db
+            secondary:
+              adapter: sqlite3
+              database: secondary_dev_db
+              schema_dump: false
+          test:
+            primary_test: # note the different name
+              adapter: sqlite3
+              database: test_db
+            secondary_test:
+              adapter: sqlite3
+              database: secondary_test_db
+              schema_dump: false
+        EOS
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book"
+          rails "db:migrate"
+
+          output = rails("db:test:prepare", "--trace")
+          assert_match(/Execute db:test:prepare/, output)
+        end
+      end
+
       test "db:create and db:drop don't raise errors when loading YAML containing multiple ERB statements on the same line" do
         app_file "config/database.yml", <<-YAML
           development:
