@@ -1661,9 +1661,12 @@ module ActiveRecord
         #   When set to +true+, validates new objects added to association when saving the parent object. +false+ by default.
         #   If you want to ensure associated objects are revalidated on every update, use +validates_associated+.
         # [+:autosave+]
-        #   If true, always save the associated object or destroy it if marked for destruction,
-        #   when saving the parent object. If false, never save or destroy the associated object.
-        #   By default, only save the associated object if it's a new record.
+        #   If +true+, always saves the associated object or destroys it if marked for destruction,
+        #   when saving the parent object. If +false+, never save or destroy the associated object.
+        #   By default, only saves the associated object if it's a new record. Setting this option
+        #   to +true+ also enables validations on the associated object unless explicitly disabled
+        #   with <tt>validate: false</tt>. This is because saving an object with invalid associated
+        #   objects would fail, so any associated objects will go through validation checks.
         #
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for sets
         #   <tt>:autosave</tt> to <tt>true</tt>.
