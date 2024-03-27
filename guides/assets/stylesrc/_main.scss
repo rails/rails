@@ -30,7 +30,7 @@ body.guide {
   }
 
   font-family: Inter, sans-serif;
-  font-size: 1.125rem; /* 18px */
+  font-size: 1rem; /* 16px */
   font-style: normal;
   font-weight: 400;
   line-height: 1.4;
@@ -334,6 +334,14 @@ body.guide {
     }
   } // .wrapper
 
+  #container .wrapper {
+    padding-top: 0;
+
+    h2:first-child {
+      margin-top: 0;
+    }
+  }
+
   select {
     border-radius: $base-border-radius;
     padding: 0.25em;
@@ -409,7 +417,7 @@ body.guide {
     width: 100%;
 
     .wrapper {
-      max-width: calc(50em + 400px);
+      max-width: calc(57em + 400px);
       padding-right: 0;
     }
 
@@ -682,6 +690,10 @@ body.guide {
       background-color: #fff;
     }
 
+    hr {
+      margin-top: 2.5em;
+    }
+
     #subCol {
       background-color: $gray-100;
       border-radius: $base-border-radius;
@@ -743,7 +755,7 @@ body.guide {
         @include media('>desktop') {
           overflow-y: auto;
           overflow-x: hidden;
-          max-height: calc(100vh - 310px);
+          max-height: calc(100vh - 350px);
         }
 
         li {

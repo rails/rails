@@ -53,7 +53,8 @@
     
     table {
       th {
-        background-color: $gray-1000;
+        background-color: $gray-900;
+        border-bottom: 2px solid $gray-700;
       } // th
   
       tr {
@@ -103,7 +104,7 @@
   
 
       .more-info-links {
-        background: $gray-900;
+        background: $gray-1000;
       } // .more-info-links
 
       li {
@@ -129,7 +130,7 @@
 
         ul.nav {
           li {
-            background: $gray-900;
+            background: $gray-1000;
             border-bottom: 1px solid $gray-1000;
 
             @include media('>desktop'){
