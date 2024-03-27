@@ -120,6 +120,14 @@ module ActiveRecord
         def rename_table(table_name, new_name, **options)
           options[:_uses_legacy_table_name] = true
           super
+
+          # Rename indexes back using the old format.
+          connection.indexes(new_name).each do |index|
+            generated_index_name = connection.index_name(new_name, column: index.columns)
+            if generated_index_name == index.name
+              connection.rename_index(new_name, generated_index_name, legacy_index_name(new_name, index.columns))
+            end
+          end
         end
 
         def change_column(table_name, column_name, type, **options)
