@@ -540,6 +540,34 @@ module ActiveRecord
   def self.disconnect_all!
     ConnectionAdapters::PoolConfig.disconnect_all!
   end
+
+  # TODO: doc
+  def self.after_all_transactions_commit(&block)
+    open_transactions = []
+    Base.connection_handler.each_connection_pool do |pool|
+      if active_connection = pool.active_connection
+        if active_connection.current_transaction.open? && active_connection.current_transaction.joinable?
+          open_transactions << active_connection.current_transaction
+        end
+      end
+    end
+
+    if open_transactions.empty?
+      yield
+    elsif open_transactions.size == 1
+      open_transactions.first.after_commit(&block)
+    else
+      count = open_transactions.size
+      callback = -> do
+        count -= 1
+        block.call if count.zero?
+      end
+      open_transactions.each do |t|
+        t.after_commit(&callback)
+      end
+      open_transactions = nil # avoid holding it in the closure
+    end
+  end
 end
 
 ActiveSupport.on_load(:active_record) do

@@ -19,23 +19,23 @@ class TransactionTest < ActiveRecord::TestCase
     @first, @second = Topic.find(1, 2).sort_by(&:id)
   end
 
-  def test_after_current_transaction_commit
+  def test_after_all_transactions_committ
     called = 0
-    Topic.after_current_transaction_commit { called += 1 }
+    ActiveRecord.after_all_transactions_commit { called += 1 }
     assert_equal 1, called
 
-    Topic.after_current_transaction_commit { called += 1 }
+    ActiveRecord.after_all_transactions_commit { called += 1 }
     assert_equal 2, called
 
     Topic.transaction do
-      Topic.after_current_transaction_commit { called += 1 }
+      ActiveRecord.after_all_transactions_commit { called += 1 }
       assert_equal 2, called
     end
     assert_equal 3, called
 
     Topic.transaction do
       Topic.transaction do
-        Topic.after_current_transaction_commit { called += 1 }
+        ActiveRecord.after_all_transactions_commit { called += 1 }
         assert_equal 3, called
       end
       assert_equal 3, called
@@ -43,7 +43,7 @@ class TransactionTest < ActiveRecord::TestCase
     assert_equal 4, called
 
     Topic.transaction do
-      Topic.after_current_transaction_commit { called += 1 }
+      ActiveRecord.after_all_transactions_commit { called += 1 }
       assert_equal 4, called
       raise ActiveRecord::Rollback
     end
@@ -54,7 +54,7 @@ class TransactionTest < ActiveRecord::TestCase
     called = 0
     ARUnit2Model.transaction do
       Topic.transaction do
-        Topic.after_current_transaction_commit { called += 1 }
+        ActiveRecord.after_all_transactions_commit { called += 1 }
         assert_equal 0, called
       end
       assert_equal 0, called

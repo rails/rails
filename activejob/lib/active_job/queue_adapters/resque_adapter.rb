@@ -28,6 +28,10 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :resque
     class ResqueAdapter
+      def enqueue_after_transaction_commit? # :nodoc:
+        true
+      end
+
       def enqueue(job) # :nodoc:
         JobWrapper.instance_variable_set(:@queue, job.queue_name)
         Resque.enqueue_to job.queue_name, JobWrapper, job.serialize
