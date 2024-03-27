@@ -13,7 +13,18 @@ module ActionView
     def render_object_with_partial(object, partial, context, block)
       @object     = object
       @local_name = local_variable(partial)
-      render(partial, context, block)
+
+      begin
+        render(partial, context, block)
+      rescue MissingTemplate
+        _, *parts = partial.split("/")
+
+        if parts.many?
+          render_object_with_partial(@object, parts.join("/"), context, block)
+        else
+          raise
+        end
+      end
     end
 
     def render_object_derive_partial(object, context, block)
