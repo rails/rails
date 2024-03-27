@@ -7,6 +7,16 @@ class ActionText::SystemTestHelperTest < ApplicationSystemTestCase
     visit new_message_url
   end
 
+  test "filling in a rich-text area focuses the trix-editor" do
+    visit new_message_url
+
+    fill_in_rich_text_area "message_content", with: "Hello world!"
+
+    assert_selector(:rich_text_area, "message[content]") do |node|
+      node == evaluate_script("document.activeElement")
+    end
+  end
+
   test "filling in a rich-text area by ID" do
     assert_selector "trix-editor#message_content"
     fill_in_rich_text_area "message_content", with: "Hello world!"
