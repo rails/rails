@@ -1858,6 +1858,23 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, @rendered
   end
 
+  def test_nested_fields_with_child_index_as_lambda_option_with_argument_override_on_a_nested_attributes_collection_association
+    @post.comments = []
+
+    form_with(model: @post) do |f|
+      concat f.fields(:comments, model: Comment.new(321), child_index: ->(comment) { comment.id }) { |cf|
+        concat cf.text_field(:name)
+      }
+    end
+
+    expected = whole_form("/posts/123", method: "patch") do
+      '<input name="post[comments_attributes][321][name]" type="text" value="comment #321" id="post_comments_attributes_321_name" />' \
+      '<input name="post[comments_attributes][321][id]" type="hidden" value="321" id="post_comments_attributes_321_id" autocomplete="off" />'
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
   class FakeAssociationProxy
     def to_ary
       [1, 2, 3]

@@ -1,3 +1,7 @@
+*   Accepts passing the association's child as an argument in a lambda as the `child_index` option in `fields_for`.
+
+    *Ryan Krug*, *Stefanni Brasil*, *Sean Doyle*, *Louis Antonopoulos*, *Aji Slater*
+
 *   Raise `ArgumentError` if `:renderable` object does not respond to `#render_in`
 
     *Sean Doyle*
