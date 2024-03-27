@@ -10,6 +10,29 @@
 # https://guides.rubyonrails.org/upgrading_ruby_on_rails.html
 
 ###
+# Controls whether Active Job's `#perform_later` and similar methods automatically defer
+# the job queuing to after the current Active Record transaction is committed.
+#
+# Example:
+#   Topic.transaction do
+#     topic = Topic.create(...)
+#     NewTopicNotificationJob.perform_later(topic)
+#   end
+#
+# In this example, if `enqueue_after_transaction_commit` is `false` the job will
+# be enqueued immediately, even thought the `Topic` hasn't been committed yet.
+# Because of this, if the job is picked up almost emmediately, it will fail to
+# find this topic in the databse.
+# With `enqueue_after_transaction_commit = true`, the job will be actually enqueued
+# after the transaction has been committed.
+#
+# Note: Active Job backends can disable this feature. This is generally used by
+# backends that use the same database than Active Record as a queue, hence they
+# don't need this feature.
+#++
+# Rails.application.config.active_job.enqueue_after_transaction_commit = :default
+
+###
 # Adds image/webp to the list of content types Active Storage considers as an image
 # Prevents automatic conversion to a fallback PNG, and assumes clients support WebP, as they support gif, jpeg, and png.
 # This is possible due to broad browser support for WebP, but older browsers and email clients may still not support

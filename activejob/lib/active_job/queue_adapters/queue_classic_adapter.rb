@@ -18,7 +18,15 @@ module ActiveJob
     # To use queue_classic set the queue_adapter config to +:queue_classic+.
     #
     #   Rails.application.config.active_job.queue_adapter = :queue_classic
-    class QueueClassicAdapter
+    class QueueClassicAdapter < AbstractAdapter
+      def initialize(enqueue_after_transaction_commit: false)
+        @enqueue_after_transaction_commit = enqueue_after_transaction_commit
+      end
+
+      def enqueue_after_transaction_commit? # :nodoc:
+        @enqueue_after_transaction_commit
+      end
+
       def enqueue(job) # :nodoc:
         qc_job = build_queue(job.queue_name).enqueue("#{JobWrapper.name}.perform", job.serialize)
         job.provider_job_id = qc_job["id"] if qc_job.is_a?(Hash)

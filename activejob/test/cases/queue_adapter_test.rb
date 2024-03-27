@@ -5,11 +5,13 @@ require "helper"
 module ActiveJob
   module QueueAdapters
     class StubOneAdapter
+      def enqueue_after_transaction_commit?; false; end
       def enqueue(*); end
       def enqueue_at(*); end
     end
 
     class StubTwoAdapter
+      def enqueue_after_transaction_commit?; false; end
       def enqueue(*); end
       def enqueue_at(*); end
     end
@@ -59,6 +61,7 @@ class QueueAdapterTest < ActiveJob::TestCase
 
   module StubThreeAdapter
     class << self
+      def enqueue_after_transaction_commit?; false; end
       def enqueue(*); end
       def enqueue_at(*); end
     end
@@ -71,6 +74,7 @@ class QueueAdapterTest < ActiveJob::TestCase
   end
 
   class StubFourAdapter
+    def enqueue_after_transaction_commit?; false; end
     def enqueue(*); end
     def enqueue_at(*); end
     def queue_adapter_name
