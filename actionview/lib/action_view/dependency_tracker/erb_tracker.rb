@@ -74,7 +74,7 @@ module ActionView
       end
 
       def dependencies
-        render_dependencies + explicit_dependencies
+        WildcardResolver.new(@view_paths, render_dependencies + explicit_dependencies).resolve
       end
 
       attr_reader :name, :template
@@ -90,15 +90,15 @@ module ActionView
         end
 
         def render_dependencies
-          render_dependencies = []
+          dependencies = []
           render_calls = source.split(/\brender\b/).drop(1)
 
           render_calls.each do |arguments|
-            add_dependencies(render_dependencies, arguments, LAYOUT_DEPENDENCY)
-            add_dependencies(render_dependencies, arguments, RENDER_ARGUMENTS)
+            add_dependencies(dependencies, arguments, LAYOUT_DEPENDENCY)
+            add_dependencies(dependencies, arguments, RENDER_ARGUMENTS)
           end
 
-          render_dependencies.uniq
+          dependencies
         end
 
         def add_dependencies(render_dependencies, arguments, pattern)
@@ -116,12 +116,33 @@ module ActionView
         end
 
         def add_static_dependency(dependencies, dependency, quote_type)
-          if quote_type == '"'
-            # Ignore if there is interpolation
-            return if dependency.include?('#{')
-          end
+          if quote_type == '"' && dependency.include?('#{')
+            scanner = StringScanner.new(dependency)
 
-          if dependency
+            wildcard_dependency = +""
+
+            while !scanner.eos?
+              next unless scanner.scan_until(/\#{/)
+
+              unmatched_brackets = 1
+              wildcard_dependency << scanner.pre_match
+
+              while unmatched_brackets > 0 && !scanner.eos?
+                scanner.scan_until(/[{}]/)
+
+                case scanner.matched
+                when "{"
+                  unmatched_brackets += 1
+                when "}"
+                  unmatched_brackets -= 1
+                end
+              end
+
+              wildcard_dependency << "*"
+            end
+
+            dependencies << wildcard_dependency
+          elsif dependency
             if dependency.include?("/")
               dependencies << dependency
             else
@@ -130,24 +151,8 @@ module ActionView
           end
         end
 
-        def resolve_directories(wildcard_dependencies)
-          return [] unless @view_paths
-          return [] if wildcard_dependencies.empty?
-
-          # Remove trailing "/*"
-          prefixes = wildcard_dependencies.map { |query| query[0..-3] }
-
-          @view_paths.flat_map(&:all_template_paths).uniq.filter_map { |path|
-            path.to_s if prefixes.include?(path.prefix)
-          }.sort
-        end
-
         def explicit_dependencies
-          dependencies = source.scan(EXPLICIT_DEPENDENCY).flatten.uniq
-
-          wildcards, explicits = dependencies.partition { |dependency| dependency.end_with?("/*") }
-
-          (explicits + resolve_directories(wildcards)).uniq
+          source.scan(EXPLICIT_DEPENDENCY).flatten.uniq
         end
     end
   end

@@ -10,7 +10,7 @@ module ActionView
       end
 
       def dependencies
-        render_dependencies + explicit_dependencies
+        WildcardResolver.new(view_paths, render_dependencies + explicit_dependencies).resolve
       end
 
       def self.supports_view_paths? # :nodoc:
@@ -31,29 +31,12 @@ module ActionView
           compiled_source = template.handler.call(template, template.source)
 
           @parser_class.new(@name, compiled_source).render_calls.filter_map do |render_call|
-            next if render_call.end_with?("/_")
             render_call.gsub(%r|/_|, "/")
           end
         end
 
         def explicit_dependencies
-          dependencies = template.source.scan(EXPLICIT_DEPENDENCY).flatten.uniq
-
-          wildcards, explicits = dependencies.partition { |dependency| dependency.end_with?("/*") }
-
-          (explicits + resolve_directories(wildcards)).uniq
-        end
-
-        def resolve_directories(wildcard_dependencies)
-          return [] unless view_paths
-          return [] if wildcard_dependencies.empty?
-
-          # Remove trailing "/*"
-          prefixes = wildcard_dependencies.map { |query| query[0..-3] }
-
-          view_paths.flat_map(&:all_template_paths).uniq.filter_map { |path|
-            path.to_s if prefixes.include?(path.prefix)
-          }.sort
+          template.source.scan(EXPLICIT_DEPENDENCY).flatten.uniq
         end
     end
   end
