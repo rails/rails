@@ -148,8 +148,11 @@ module ActiveRecord
         end
 
         def stale_state
-          result = owner._read_attribute(reflection.foreign_key) { |n| owner.send(:missing_attribute, n, caller) }
-          result && result.to_s
+          result = Array(reflection.foreign_key).map do |fk|
+            owner._read_attribute(fk) { |n| owner.send(:missing_attribute, n, caller) }
+          end.join(",")
+
+          result.empty? ? nil : result
         end
     end
   end
