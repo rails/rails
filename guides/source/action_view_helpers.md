@@ -307,7 +307,7 @@ get a time reading for the operation.
 <% end %>
 ```
 
-This would add something like "Process data files (0.34523)" to the log, which
+This would add something like `Process data files (0.34523)` to the log, which
 you can then use to compare timings when optimizing your code.
 
 
