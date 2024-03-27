@@ -36,6 +36,10 @@ module Minitest
       @results << result
     end
 
+    def passed?
+      true
+    end
+
     def report
       total_time = @results.sum(&:time)
 
