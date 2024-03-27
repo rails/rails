@@ -677,7 +677,7 @@ module ActiveRecord
           auto_increments = {}
           generated_columns = {}
 
-          column_strings = table_structure_sql(table_name)
+          column_strings = table_structure_sql(table_name, basic_structure.map { |column| column["name"] })
 
           if column_strings.any?
             column_strings.each do |column_string|
@@ -710,7 +710,15 @@ module ActiveRecord
           end
         end
 
-        def table_structure_sql(table_name)
+        UNQUOTED_OPEN_PARENS_REGEX = /\((?![^'"]*['"][^'"]*$)/
+        FINAL_CLOSE_PARENS_REGEX = /\);*\z/
+
+        def table_structure_sql(table_name, column_names = nil)
+          if column_names.nil?
+            column_info = internal_exec_query("PRAGMA table_xinfo(#{quote_table_name(table_name)})", "SCHEMA")
+            column_names = column_info.map { |column| column["name"] }
+          end
+
           sql = <<~SQL
             SELECT sql FROM
               (SELECT * FROM sqlite_master UNION ALL
@@ -720,16 +728,22 @@ module ActiveRecord
 
           # Result will have following sample string
           # CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-          #                       "password_digest" varchar COLLATE "NOCASE");
+          #                       "password_digest" varchar COLLATE "NOCASE",
+          #                       "o_id" integer,
+          #                       CONSTRAINT "fk_rails_78146ddd2e" FOREIGN KEY ("o_id") REFERENCES "os" ("id"));
           result = query_value(sql, "SCHEMA")
 
           return [] unless result
 
           # Splitting with left parentheses and discarding the first part will return all
           # columns separated with comma(,).
-          columns_string = result.split("(", 2).last
-
-          columns_string.split(",").map(&:strip)
+          result.partition(UNQUOTED_OPEN_PARENS_REGEX)
+                .last
+                .sub(FINAL_CLOSE_PARENS_REGEX, "")
+                # column definitions can have a comma in them, so split on commas followed
+                # by a space and a column name in quotes or followed by the keyword CONSTRAINT
+                .split(/,(?=\s(?:CONSTRAINT|"(?:#{Regexp.union(column_names).source})"))/i)
+                .map(&:strip)
         end
 
         def arel_visitor
