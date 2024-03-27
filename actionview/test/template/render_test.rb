@@ -321,6 +321,15 @@ module RenderTestCases
     end
   end
 
+  def test_render_renderable_does_not_mask_nameerror_from_within_render_in
+    renderable = Object.new
+    renderable.define_singleton_method(:render_in) { |*| nil.method(:render_in) }
+
+    assert_raises NameError, match: "undefined method `render_in' for class `NilClass'" do
+      @view.render renderable: renderable
+    end
+  end
+
   def test_render_partial_starting_with_a_capital
     assert_nothing_raised { @view.render(partial: "test/FooBar") }
   end
@@ -399,9 +408,45 @@ module RenderTestCases
     assert_equal "NilClass", @view.render(partial: "test/klass", object: nil)
   end
 
+  def test_render_renderable_object_without_block_without_options_deprecated
+    renderable = Object.new
+    def renderable.render_in(view_context)
+    end
+
+    assert_deprecated "without options", ActionView.deprecator do
+      @view.render renderable
+    end
+  end
+
+  def test_render_renderable_object_with_block_without_options_deprecated
+    renderable = Object.new
+    def renderable.render_in(view_context, &block)
+    end
+
+    assert_deprecated "without options", ActionView.deprecator do
+      @view.render renderable
+    end
+  end
+
   def test_render_renderable_render_in
-    assert_equal "Hello, World!", @view.render(TestRenderable.new)
-    assert_equal "Hello, World!", @view.render(renderable: TestRenderable.new)
+    assert_equal "<h1>Hello, World!</h1>", @view.render(TestRenderable.new)
+    assert_equal "<h1>Hello, World!</h1>", @view.render(renderable: TestRenderable.new)
+
+    assert_equal "<h1>Hello, Renderable!</h1>", @view.render(TestRenderable.new, name: "Renderable")
+    assert_equal "<h1>Hello, Renderable!</h1>", @view.render(renderable: TestRenderable.new, locals: { name: "Renderable" })
+
+    assert_equal "<h1>Goodbye, Block!</h1>", @view.render(TestRenderable.new) { @view.tag.h1 "Goodbye, Block!" }
+    assert_equal "<h1>Goodbye, Block!</h1>", @view.render(renderable: TestRenderable.new) { @view.tag.h1 "Goodbye, Block!" }
+  end
+
+  def test_render_renderable_render_in_excludes_renderable_key
+    renderable = Object.new
+    def renderable.render_in(view_context, **options)
+      view_context.render plain: options, **options
+    end
+    options = { locals: { a: true, b: false } }
+
+    assert_equal options.to_s, @view.render(renderable: renderable, **options)
   end
 
   def test_render_object_different_name
@@ -787,7 +832,7 @@ module RenderTestCases
 
   def test_render_object
     assert_equal(
-      %(Hello, World!),
+      %(<h1>Hello, World!</h1>),
       @view.render(TestRenderable.new)
     )
   end

@@ -24,22 +24,23 @@ module ActionView
       # If no <tt>options</tt> hash is passed or if <tt>:update</tt> is specified, then:
       #
       # If an object responding to +render_in+ is passed, +render_in+ is called on the object,
-      # passing in the current view context.
+      # passing in the current view context, render options, and block. The
+      # object can optionally control its rendered format by defining the +format+ method.
       #
       # Otherwise, a partial is rendered using the second parameter as the locals hash.
       def render(options = {}, locals = {}, &block)
         case options
         when Hash
           in_rendering_context(options) do |renderer|
-            if block_given?
+            if block_given? && !options.key?(:renderable)
               view_renderer.render_partial(self, options.merge(partial: options[:layout]), &block)
             else
-              view_renderer.render(self, options)
+              view_renderer.render(self, options, &block)
             end
           end
         else
           if options.respond_to?(:render_in)
-            options.render_in(self, &block)
+            view_renderer.render(self, renderable: options, locals: locals, &block)
           else
             view_renderer.render_partial(self, partial: options, locals: locals, &block)
           end
