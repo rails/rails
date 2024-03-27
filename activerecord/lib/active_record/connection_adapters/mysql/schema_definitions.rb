@@ -50,10 +50,18 @@ module ActiveRecord
         # :method: unsigned_decimal
         # :call-seq: unsigned_decimal(*names, **options)
 
+        ##
+        # :method: linestring
+        # :call-seq: linestring(*names, **options)
+
+        ##
+        # :method: multilinestring
+        # :call-seq: multilinestring(*names, **options)
+
         included do
           define_column_methods :blob, :tinyblob, :mediumblob, :longblob,
             :tinytext, :mediumtext, :longtext, :unsigned_integer, :unsigned_bigint,
-            :unsigned_float, :unsigned_decimal
+            :unsigned_float, :unsigned_decimal, :linestring, :multilinestring
         end
       end
 
