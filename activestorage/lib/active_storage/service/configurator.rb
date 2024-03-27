@@ -9,7 +9,7 @@ module ActiveStorage
     end
 
     def initialize(configurations)
-      @configurations = configurations.deep_symbolize_keys
+      @configurations = build_configurations(configurations)
     end
 
     def build(service_name)
@@ -31,6 +31,17 @@ module ActiveStorage
         ActiveStorage::Service.const_get(:"#{class_name.camelize}Service")
       rescue LoadError
         raise "Missing service adapter for #{class_name.inspect}"
+      end
+
+      def build_configurations(configurations)
+        if storage_url = ENV["STORAGE_URL"]
+          uri = URI.parse(storage_url)
+          if uri.scheme
+            return ActiveStorage::Service::UrlConfig.new(uri, configurations)
+          end
+        end
+
+        configurations.deep_symbolize_keys
       end
   end
 end

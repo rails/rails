@@ -174,5 +174,12 @@ module ActiveStorage
       def url_options
         ActiveStorage::Current.url_options
       end
+
+      def self.options_from_uri(uri:, query_hash: {})
+        {
+          root: uri.host + uri.path,
+          **query_hash
+        }
+      end
   end
 end

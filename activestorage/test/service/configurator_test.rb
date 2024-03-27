@@ -20,4 +20,15 @@ class ActiveStorage::Service::ConfiguratorTest < ActiveSupport::TestCase
       ActiveStorage::Service::Configurator.build(:bigfoot, {})
     end
   end
+
+  test "builds correct service given STORAGE_URL environment variable" do
+    @before_storage_url = ENV["STORAGE_URL"]
+    ENV["STORAGE_URL"] = "disk://tmp/storage"
+
+    service = ActiveStorage::Service::Configurator.build(:env, {})
+    assert_instance_of ActiveStorage::Service::DiskService, service
+    assert_equal "tmp/storage", service.root
+  ensure
+    ENV["STORAGE_URL"] = @before_storage_url
+  end
 end
