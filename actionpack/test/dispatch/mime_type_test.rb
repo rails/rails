@@ -254,6 +254,10 @@ class MimeTypeTest < ActiveSupport::TestCase
     end
 
     assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.lookup(nil)
+    end
+
+    assert_raises Mime::Type::InvalidMimeType do
       Timeout.timeout(1) do # Shouldn't take more than 1s
         Mime::Type.new("text/html ;0 ;0 ;0 ;0 ;0 ;0 ;0 ;0 ;0 ;0 ;0 ;0 ;0 ;0 ;0 ;0 ;0 ;0;")
       end

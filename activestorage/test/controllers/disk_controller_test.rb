@@ -108,6 +108,16 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     assert_equal data, blob.download
   end
 
+  test "directly uploading blob with content type parameters" do
+    data = "Something else entirely!"
+    blob = create_blob_before_direct_upload(
+      byte_size: data.size, checksum: OpenSSL::Digest::MD5.base64digest(data), content_type: "audio/ogg; codecs=opus")
+
+    put blob.service_url_for_direct_upload, params: data, headers: { "Content-Type" => "audio/ogg; codecs=opus" }
+    assert_response :no_content
+    assert_equal data, blob.download
+  end
+
   test "directly uploading blob with mismatched content length" do
     data = "Something else entirely!"
     blob = create_blob_before_direct_upload byte_size: data.size - 1, checksum: OpenSSL::Digest::MD5.base64digest(data)
@@ -115,6 +125,24 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     put blob.service_url_for_direct_upload, params: data, headers: { "Content-Type" => "text/plain" }
     assert_response :unprocessable_entity
     assert_not blob.service.exist?(blob.key)
+  end
+
+  test "directly uploading blob with invalid content type" do
+    data = "Something else entirely!"
+    blob = create_blob_before_direct_upload(
+      byte_size: data.size, checksum: OpenSSL::Digest::MD5.base64digest(data), content_type: "invalid")
+
+    put blob.service_url_for_direct_upload, params: data, headers: { "Content-Type" => "text/plain" }
+    assert_response :unprocessable_entity
+  end
+
+  test "directly uploading blob with nil content type" do
+    data = "Something else entirely!"
+    blob = create_blob_before_direct_upload(
+      byte_size: data.size, checksum: OpenSSL::Digest::MD5.base64digest(data), content_type: nil)
+
+    put blob.service_url_for_direct_upload, params: data, headers: { "Content-Type" => "text/plain" }
+    assert_response :unprocessable_entity
   end
 
   test "directly uploading blob with invalid token" do
