@@ -311,8 +311,8 @@ This would add something like "Process data files (0.34523)" to the log, which
 you can then use to compare timings when optimizing your code.
 
 
-NOTE: This helper is a part of Active Support and it exists across controllers,
-helpers, views, etc.
+NOTE: This helper is a part of Active Support, and it is also available on
+controllers, helpers, models, etc.
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActiveSupport/Benchmarkable.html#method-i-benchmark)
