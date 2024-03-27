@@ -150,6 +150,7 @@ class User < ActiveRecord::Base
   has_many_attached :vlogs, dependent: false, service: :local
   has_many_attached :highlights_with_variants do |attachable|
     attachable.variant :thumb, resize_to_limit: [100, 100]
+    attachable.variant :rotate_90, rotate: 90
   end
   has_many_attached :highlights_with_preprocessed do |attachable|
     attachable.variant :bool, resize_to_limit: [1, 1], preprocessed: true

@@ -866,6 +866,26 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal 67, image.height
   end
 
+  test "creating variation by combining multiple variation names" do
+    @user.highlights_with_variants.attach fixture_file_upload("racecar.jpg")
+    variant = @user.highlights_with_variants.first.variant(:thumb, :rotate_90).processed
+
+    image = read_image(variant)
+    assert_equal "JPEG", image.type
+    assert_equal 67, image.width
+    assert_equal 100, image.height
+  end
+
+  test "creating variation with variation name and variation options" do
+    @user.highlights_with_variants.attach fixture_file_upload("racecar.jpg")
+    variant = @user.highlights_with_variants.first.variant(:thumb, rotate: 90).processed
+
+    image = read_image(variant)
+    assert_equal "JPEG", image.type
+    assert_equal 67, image.width
+    assert_equal 100, image.height
+  end
+
   test "raises error when unknown variant name is used to generate variant" do
     @user.highlights_with_variants.attach fixture_file_upload("racecar.jpg")
 
