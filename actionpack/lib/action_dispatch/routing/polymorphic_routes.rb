@@ -224,7 +224,7 @@ module ActionDispatch
                 recipient = record_or_hash_or_array.shift
               end
 
-              method, args = builder.handle_list record_or_hash_or_array
+              method, args, singular = builder.handle_list record_or_hash_or_array
             when String, Symbol
               method, args = builder.handle_string record_or_hash_or_array
             when Class
@@ -233,12 +233,13 @@ module ActionDispatch
             when nil
               raise ArgumentError, "Nil location provided. Can't build URI."
             else
-              method, args = builder.handle_model record_or_hash_or_array
+              method, args, singular  = builder.handle_model record_or_hash_or_array
             end
 
-            if options.empty?
+            if options.empty? && !singular
               recipient.public_send(method, *args)
             else
+              options[:format] ||= nil
               recipient.public_send(method, *args, options)
             end
           end
@@ -268,17 +269,19 @@ module ActionDispatch
           end
 
           def handle_model(record)
-            args  = []
-
+            args = []
+            singular = false
             model = record.to_model
+
             named_route = if model.persisted?
+              singular = true
               args << model
               get_method_for_string model.model_name.singular_route_key
             else
               get_method_for_class model
             end
 
-            [named_route, args]
+            [named_route, args, singular]
           end
 
           def handle_model_call(target, record)
@@ -332,7 +335,8 @@ module ActionDispatch
             route << suffix
 
             named_route = prefix + route.join("_")
-            [named_route, args]
+            singular = true
+            [named_route, args, singular]
           end
 
           private
