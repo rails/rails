@@ -11,8 +11,22 @@ module ActionDispatch
       HOST_REGEXP     = /(^[^:]+:\/\/)?(\[[^\]]+\]|[^:]+)(?::(\d+$))?/
       PROTOCOL_REGEXP = /^([^:]+)(:)?(\/\/)?$/
 
+      module DomainExtractor # :nodoc:
+        extend self
+
+        def domain_from(host, tld_length)
+          host.split(".").last(1 + tld_length).join(".")
+        end
+
+        def subdomains_from(host, tld_length)
+          parts = host.split(".")
+          parts[0..-(tld_length + 2)]
+        end
+      end
+
       mattr_accessor :secure_protocol, default: false
       mattr_accessor :tld_length, default: 1
+      mattr_accessor :domain_extractor, default: DomainExtractor
 
       class << self
         # Returns the domain part of a host given the domain level.
@@ -96,12 +110,11 @@ module ActionDispatch
           end
 
           def extract_domain_from(host, tld_length)
-            host.split(".").last(1 + tld_length).join(".")
+            domain_extractor.domain_from(host, tld_length)
           end
 
           def extract_subdomains_from(host, tld_length)
-            parts = host.split(".")
-            parts[0..-(tld_length + 2)]
+            domain_extractor.subdomains_from(host, tld_length)
           end
 
           def build_host_url(host, port, protocol, options, path)

@@ -29,6 +29,7 @@ module ActionDispatch
     config.action_dispatch.request_id_header = ActionDispatch::Constants::X_REQUEST_ID
     config.action_dispatch.log_rescued_responses = true
     config.action_dispatch.debug_exception_log_level = :fatal
+    config.action_dispatch.domain_extractor = ActionDispatch::Http::URL::DomainExtractor
 
     config.action_dispatch.default_headers = {
       "X-Frame-Options" => "SAMEORIGIN",
@@ -50,6 +51,7 @@ module ActionDispatch
     initializer "action_dispatch.configure" do |app|
       ActionDispatch::Http::URL.secure_protocol = app.config.force_ssl
       ActionDispatch::Http::URL.tld_length = app.config.action_dispatch.tld_length
+      ActionDispatch::Http::URL.domain_extractor = app.config.action_dispatch.domain_extractor
 
       ActiveSupport.on_load(:action_dispatch_request) do
         self.ignore_accept_header = app.config.action_dispatch.ignore_accept_header
