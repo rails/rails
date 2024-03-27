@@ -127,4 +127,10 @@
 
     *fatkodima*
 
+*   Add a new optoin `:early_expiration` to `ActiveSupport::Cache::Store` to allow for probabilistic early expiration of cache entries.
+
+    This option outperforms `:race_condition_ttl` if predictability is not a concern.
+
+    *tonytonyjan*
+
 Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/activesupport/CHANGELOG.md) for previous changes.

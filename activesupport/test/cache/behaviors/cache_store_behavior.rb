@@ -28,8 +28,14 @@ module CacheStoreBehavior
 
   def test_fetch_with_cache_miss
     key = SecureRandom.uuid
-    assert_called_with(@cache, :write, [key, "baz", @cache.options]) do
-      assert_equal "baz", @cache.fetch(key) { "baz" }
+    expected_options = @cache.options.dup
+    expected_options.merge!(
+      generation_time: 1.0,
+    )
+    assert_called_with(@cache, :write, [key, "baz", expected_options]) do
+      @cache.stub(:duration, 1.0) do
+        assert_equal "baz", @cache.fetch(key) { "baz" }
+      end
     end
   end
 
@@ -52,22 +58,25 @@ module CacheStoreBehavior
     expected_options.merge!(
       expires_at: expiry,
       version: "v42",
+      generation_time: 1.0,
     )
 
     assert_called_with(@cache, :write, [key, "bar", expected_options]) do
-      @cache.fetch(key) do |key, options|
-        assert_equal @cache.options[:expires_in], options.expires_in
-        assert_nil options.expires_at
-        assert_nil options.version
+      @cache.stub(:duration, 1.0) do
+        @cache.fetch(key) do |key, options|
+          assert_equal @cache.options[:expires_in], options.expires_in
+          assert_nil options.expires_at
+          assert_nil options.version
 
-        options.expires_at = expiry
-        options.version = "v42"
+          options.expires_at = expiry
+          options.version = "v42"
 
-        assert_nil options.expires_in
-        assert_equal expiry, options.expires_at
-        assert_equal "v42", options.version
+          assert_nil options.expires_in
+          assert_equal expiry, options.expires_at
+          assert_equal "v42", options.version
 
-        "bar"
+          "bar"
+        end
       end
     end
   end
@@ -76,8 +85,10 @@ module CacheStoreBehavior
     key = SecureRandom.uuid
     @cache.write(key, "bar")
     assert_not_called(@cache, :read) do
-      assert_called_with(@cache, :write, [key, "bar", @cache.options.merge(force: true)]) do
-        @cache.fetch(key, force: true) { "bar" }
+      assert_called_with(@cache, :write, [key, "bar", @cache.options.merge(force: true, generation_time: 1.0)]) do
+        @cache.stub(:duration, 1.0) do
+          @cache.fetch(key, force: true) { "bar" }
+        end
       end
     end
   end
@@ -718,6 +729,22 @@ module CacheStoreBehavior
       @cache.fetch(key) do |_key, options|
         options.expires_in = 5.minutes
         "bar"
+      end
+    end
+  end
+
+  def test_probabilistic_early_expiration
+    key = SecureRandom.uuid
+    Time.stub(:now, Time.at(0)) do
+      @cache.write(key, "bar", expires_at: Time.at(10), generation_time: 1.0)
+      Kernel.stub(:rand, Math::E**-10) do
+        @cache.stub(:duration, 1.0) do
+          result = @cache.fetch(key, early_expiration: 1) do
+            assert_equal "bar", @cache.read(key)
+            "baz"
+          end
+          assert_equal "baz", result
+        end
       end
     end
   end
