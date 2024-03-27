@@ -412,7 +412,7 @@ module ActiveRecord
           assert_called_with(
             Kernel,
             :system,
-            [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "-T", "prefix_foo", "-T", "ignored_foo", "my-app-db"],
+            [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "-T", "*.prefix_foo", "-T", "*.ignored_foo", "my-app-db"],
             returns: true
           ) do
             ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
