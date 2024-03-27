@@ -1,3 +1,8 @@
+*   Added optional `cost` argument to `has_secure_password` to set a custom
+    cost value for the generated password hash.
+
+    *Tony Drake*
+
 *   Fix a bug where type casting of string to `Time` and `DateTime` doesn't
     calculate minus minute value in TZ offset correctly.
 

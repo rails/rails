@@ -39,6 +39,11 @@ module ActiveModel
       # <tt>validations: false</tt> as an argument. This allows complete
       # customizability of validation behavior.
       #
+      # You may specify the cost used when generating the password with the
+      # <tt>cost:</tt> argument. If not provided, +BCrypt::Engine.cost+ is used.
+      # Note that a higher cost increases the algorithm will spend more time to
+      # generate the hash. If set, this attribute should be between 4 and 31.
+      #
       # To use +has_secure_password+, add bcrypt (~> 3.1.7) to your Gemfile:
       #
       #   gem "bcrypt", "~> 3.1.7"
@@ -98,7 +103,7 @@ module ActiveModel
       #   account.is_guest = true
       #   account.valid? # => true
       #
-      def has_secure_password(attribute = :password, validations: true)
+      def has_secure_password(attribute = :password, validations: true, cost: nil)
         # Load bcrypt gem only when has_secure_password is used.
         # This is to avoid ActiveModel (and by extension the entire framework)
         # being dependent on a binary library.
@@ -109,7 +114,7 @@ module ActiveModel
           raise
         end
 
-        include InstanceMethodsOnActivation.new(attribute)
+        include InstanceMethodsOnActivation.new(attribute, cost: cost)
 
         if validations
           include ActiveModel::Validations
@@ -146,7 +151,10 @@ module ActiveModel
     end
 
     class InstanceMethodsOnActivation < Module
-      def initialize(attribute)
+      def initialize(attribute, cost: nil)
+        if cost && !cost.to_i.between?(BCrypt::Engine::MIN_COST, BCrypt::Engine::MAX_COST)
+          raise ArgumentError, "Invalid BCrypt cost #{cost}. This should be between #{BCrypt::Engine::MIN_COST} and #{BCrypt::Engine::MAX_COST}"
+        end
         attr_reader attribute
 
         define_method("#{attribute}=") do |unencrypted_password|
@@ -155,8 +163,9 @@ module ActiveModel
             self.public_send("#{attribute}_digest=", nil)
           elsif !unencrypted_password.empty?
             instance_variable_set("@#{attribute}", unencrypted_password)
-            cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine.cost
-            self.public_send("#{attribute}_digest=", BCrypt::Password.create(unencrypted_password, cost: cost))
+            password_cost = cost.to_i if cost
+            password_cost ||= ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine.cost
+            self.public_send("#{attribute}_digest=", BCrypt::Password.create(unencrypted_password, cost: password_cost))
           end
         end
 
@@ -181,6 +190,12 @@ module ActiveModel
         define_method("#{attribute}_salt") do
           attribute_digest = public_send("#{attribute}_digest")
           attribute_digest.present? ? BCrypt::Password.new(attribute_digest).salt : nil
+        end
+
+        # Returns the cost, the number of cycles to use in the algorithm to generate the password.
+        define_method("#{attribute}_cost") do
+          attribute_digest = public_send("#{attribute}_digest")
+          attribute_digest.present? ? BCrypt::Password.new(attribute_digest).cost : nil
         end
 
         alias_method :authenticate, :authenticate_password if attribute == :password

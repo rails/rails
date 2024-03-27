@@ -14,6 +14,9 @@ class User
   attribute :recovery_password_digest
   has_secure_password :recovery_password, validations: false
 
+  attribute :custom_cost_password_digest
+  has_secure_password :custom_cost_password, cost: BCrypt::Engine::MIN_COST + 1, validations: false
+
   attr_accessor :password_called
 
   def password=(unencrypted_password)
