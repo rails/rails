@@ -4,12 +4,77 @@ require "bundler/setup"
 require "bundler/gem_tasks"
 require "rake/testtask"
 
+PRIVATE_KEY = "test/fixtures/files/amazon/privatekey.pem"
+CERTIFICATE = "test/fixtures/files/amazon/certificate.pem"
+AWS_FIXTURES = FileList["test/fixtures/files/amazon/*.json"].exclude("**/*/invalid_signature.json")
+SIGNABLE_KEYS = [
+  "Message",
+  "MessageId",
+  "Subject",
+  "SubscribeURL",
+  "Timestamp",
+  "Token",
+  "TopicArn",
+  "Type",
+].freeze
+
 task :package
 
 Rake::TestTask.new do |t|
   t.libs << "test"
   t.pattern = "test/**/*_test.rb"
   t.verbose = true
+end
+
+file PRIVATE_KEY do |t|
+  require "openssl"
+  key = OpenSSL::PKey::RSA.new 2048
+  File.open(t.name, "w") do |f|
+    f.write key.to_pem
+  end
+end
+
+file CERTIFICATE => PRIVATE_KEY do |t|
+  require "openssl"
+  key = OpenSSL::PKey::RSA.new File.read(PRIVATE_KEY)
+  cert = OpenSSL::X509::Certificate.new
+  cert.version = 2
+  cert.serial = 2
+  cert.subject = OpenSSL::X509::Name.parse "/DC=org/DC=ruby-lang/CN=Ruby certificate"
+  cert.issuer = cert.subject # root CA is the issuer
+  cert.public_key = key.public_key
+  cert.not_before = Time.now
+  cert.not_after = cert.not_before + 1 * 365 * 24 * 60 * 60 # 10 years validity
+  ef = OpenSSL::X509::ExtensionFactory.new
+  ef.subject_certificate = cert
+  ef.issuer_certificate = cert
+  cert.add_extension(ef.create_extension("keyUsage", "digitalSignature", true))
+  cert.add_extension(ef.create_extension("subjectKeyIdentifier", "hash", false))
+  cert.sign(key, OpenSSL::Digest::SHA256.new)
+
+  File.open(t.name, "w") do |f|
+    f.write cert.to_pem
+  end
+end
+task certificates: [PRIVATE_KEY, CERTIFICATE]
+
+desc "Sign AWS SES fixtures, must be called if fixtures are modified."
+task sign_aws_fixtures: :certificates do
+  require "openssl"
+  require "json"
+  require "base64"
+
+  key = OpenSSL::PKey::RSA.new File.read(PRIVATE_KEY)
+
+  AWS_FIXTURES.each do |fixture|
+    data = JSON.parse File.read(fixture)
+    string = canonical_string(data)
+    signed_string = key.sign("SHA1", string)
+    data["Signature"] = Base64.encode64(signed_string)
+    File.open(fixture, "w") do |fw|
+      fw.write JSON.pretty_generate(data)
+    end
+  end
 end
 
 namespace :test do
@@ -21,3 +86,15 @@ namespace :test do
 end
 
 task default: :test
+
+def canonical_string(message)
+  parts = []
+
+  SIGNABLE_KEYS.each do |key|
+    value = message[key]
+    unless value.nil? || value.empty?
+      parts << "#{key}\n#{value}\n"
+    end
+  end
+  parts.join
+end
