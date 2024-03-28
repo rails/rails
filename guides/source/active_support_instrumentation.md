@@ -28,6 +28,8 @@ You are even able to [create your own events](#creating-custom-events) inside yo
 Subscribing to an Event
 -----------------------
 
+### Manual Subscription
+
 Use [`ActiveSupport::Notifications.subscribe`][] with a block to listen to any notification. Depending on the amount of
 arguments the block takes, you will receive different data.
 
@@ -83,6 +85,33 @@ end
 [`ActiveSupport::Notifications::Event`]: https://api.rubyonrails.org/classes/ActiveSupport/Notifications/Event.html
 [`ActiveSupport::Notifications.monotonic_subscribe`]: https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-monotonic_subscribe
 [`ActiveSupport::Notifications.subscribe`]: https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-subscribe
+
+### `ActiveSupport::Subscriber`
+
+Class [`ActiveSupport::Subscriber`][] provides a way to subscribe to events. Typically, event name consists of a operation name and namespace. For example, `process_action.action_controller` is an event name where `process_action` is the operation name and `action_controller` is the namespace. Using [`ActiveSupport::Subscriber`][], you can subscribe to all events with a specific namespace.
+
+An example would be an Active Record subscriber responsible for collecting statistics about queries. Operation name is `sql` and namespace is `active_record`. Here's how you can subscribe to all `sql` events:
+
+```ruby
+module ActiveRecord
+  class StatsSubscriber < ActiveSupport::Subscriber
+    attach_to :active_record
+
+    def sql(event)
+      Statsd.timing("sql.#{event.payload[:name]}", event.duration)
+    end
+  end
+end
+```
+
+To detach a subscriber, use the [`ActiveSupport::Subscriber.detach_from`][] method. For example, to detach the `StatsSubscriber` from the `active_record` namespace:
+
+```ruby
+ActiveRecord::StatsSubscriber.detach_from :active_record
+```
+
+[`ActiveSupport::Subscriber`]: https://api.rubyonrails.org/classes/ActiveSupport/Subscriber.html
+[`ActiveSupport::Subscriber.detach_from`]: https://api.rubyonrails.org/classes/ActiveSupport/Subscriber.html#method-c-detach_from
 
 Rails Framework Hooks
 ---------------------
