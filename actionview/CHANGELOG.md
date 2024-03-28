@@ -1,3 +1,7 @@
+*   Add the `preload_links_header` option for `preload_link_tag` to opt-out of sending the Link header.
+
+    *Stan Hu*
+
 *   Raise `ArgumentError` if `:renderable` object does not respond to `#render_in`
 
     *Sean Doyle*
