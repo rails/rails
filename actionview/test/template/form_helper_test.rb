@@ -2340,10 +2340,12 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_with_remote
-    form_for(@post, url: "/", remote: true, html: { id: "create-post", method: :patch }) do |f|
-      concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
+    ActionView.deprecator.silence do
+      form_for(@post, url: "/", remote: true, html: { id: "create-post", method: :patch }) do |f|
+        concat f.text_field(:title)
+        concat f.text_area(:body)
+        concat f.check_box(:secret)
+      end
     end
 
     expected = whole_form("/", "create-post", "edit_post", method: "patch", remote: true) do
@@ -2409,10 +2411,12 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_with_remote_in_html
-    form_for(@post, url: "/", html: { remote: true, id: "create-post", method: :patch }) do |f|
-      concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
+    ActionView.deprecator.silence do
+      form_for(@post, url: "/", html: { remote: true, id: "create-post", method: :patch }) do |f|
+        concat f.text_field(:title)
+        concat f.text_area(:body)
+        concat f.check_box(:secret)
+      end
     end
 
     expected = whole_form("/", "create-post", "edit_post", method: "patch", remote: true) do
@@ -2428,10 +2432,12 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_remote_without_html
     @post.persisted = false
     @post.stub(:to_key, nil) do
-      form_for(@post, remote: true) do |f|
-        concat f.text_field(:title)
-        concat f.text_area(:body)
-        concat f.check_box(:secret)
+      ActionView.deprecator.silence do
+        form_for(@post, remote: true) do |f|
+          concat f.text_field(:title)
+          concat f.text_area(:body)
+          concat f.check_box(:secret)
+        end
       end
 
       expected = whole_form("/posts", "new_post", "new_post", remote: true) do
@@ -4094,7 +4100,9 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_with_data_attributes
-    form_for(@post, data: { behavior: "stuff" }, remote: true) { }
+    ActionView.deprecator.silence do
+      form_for(@post, data: { behavior: "stuff" }, remote: true) { }
+    end
     assert_match %r|data-behavior="stuff"|, @rendered
     assert_match %r|data-remote="true"|, @rendered
   end
