@@ -1,20 +1,22 @@
 import { DirectUpload } from "@rails/activestorage"
 
 export class AttachmentUpload {
-  constructor(attachment, element) {
-    this.attachment = attachment
-    this.element = element
-    this.directUpload = new DirectUpload(attachment.file, this.directUploadUrl, this)
+  constructor(delegate, file) {
+    this.delegate = delegate
+    this.file = file
+    this.directUpload = new DirectUpload(file, this.directUploadUrl, this)
   }
 
   start() {
-    this.directUpload.create(this.directUploadDidComplete.bind(this))
+    return new Promise(resolve => {
+      this.directUpload.create((error, attributes) => resolve(this.directUploadDidComplete(error, attributes)))
+    })
   }
 
   directUploadWillStoreFileWithXHR(xhr) {
     xhr.upload.addEventListener("progress", event => {
       const progress = event.loaded / event.total * 100
-      this.attachment.setUploadProgress(progress)
+      notify(this.delegate, "setUploadProgress", progress)
     })
   }
 
@@ -23,7 +25,7 @@ export class AttachmentUpload {
       throw new Error(`Direct upload failed: ${error}`)
     }
 
-    this.attachment.setAttributes({
+    return notify(this.delegate, "uploadDidComplete", {
       sgid: attributes.attachable_sgid,
       url: this.createBlobUrl(attributes.signed_id, attributes.filename)
     })
@@ -36,10 +38,16 @@ export class AttachmentUpload {
   }
 
   get directUploadUrl() {
-    return this.element.dataset.directUploadUrl
+    return this.delegate.directUploadUrl
   }
 
   get blobUrlTemplate() {
-    return this.element.dataset.blobUrlTemplate
+    return this.delegate.blobUrlTemplate
+  }
+}
+
+function notify(object, methodName, ...messages) {
+  if (object && typeof object[methodName] == "function") {
+    return object[methodName](...messages)
   }
 }

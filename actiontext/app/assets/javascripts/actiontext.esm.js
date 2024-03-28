@@ -621,13 +621,13 @@ class DirectUpload {
         return;
       }
       const blob = new BlobRecord(this.file, checksum, this.url, this.customHeaders);
-      notify(this.delegate, "directUploadWillCreateBlobWithXHR", blob.xhr);
+      notify$1(this.delegate, "directUploadWillCreateBlobWithXHR", blob.xhr);
       blob.create((error => {
         if (error) {
           callback(error);
         } else {
           const upload = new BlobUpload(blob);
-          notify(this.delegate, "directUploadWillStoreFileWithXHR", upload.xhr);
+          notify$1(this.delegate, "directUploadWillStoreFileWithXHR", upload.xhr);
           upload.create((error => {
             if (error) {
               callback(error);
@@ -641,7 +641,7 @@ class DirectUpload {
   }
 }
 
-function notify(object, methodName, ...messages) {
+function notify$1(object, methodName, ...messages) {
   if (object && typeof object[methodName] == "function") {
     return object[methodName](...messages);
   }
@@ -846,25 +846,27 @@ function autostart() {
 setTimeout(autostart, 1);
 
 class AttachmentUpload {
-  constructor(attachment, element) {
-    this.attachment = attachment;
-    this.element = element;
-    this.directUpload = new DirectUpload(attachment.file, this.directUploadUrl, this);
+  constructor(delegate, file) {
+    this.delegate = delegate;
+    this.file = file;
+    this.directUpload = new DirectUpload(file, this.directUploadUrl, this);
   }
   start() {
-    this.directUpload.create(this.directUploadDidComplete.bind(this));
+    return new Promise((resolve => {
+      this.directUpload.create(((error, attributes) => resolve(this.directUploadDidComplete(error, attributes))));
+    }));
   }
   directUploadWillStoreFileWithXHR(xhr) {
     xhr.upload.addEventListener("progress", (event => {
       const progress = event.loaded / event.total * 100;
-      this.attachment.setUploadProgress(progress);
+      notify(this.delegate, "setUploadProgress", progress);
     }));
   }
   directUploadDidComplete(error, attributes) {
     if (error) {
       throw new Error(`Direct upload failed: ${error}`);
     }
-    this.attachment.setAttributes({
+    return notify(this.delegate, "uploadDidComplete", {
       sgid: attributes.attachable_sgid,
       url: this.createBlobUrl(attributes.signed_id, attributes.filename)
     });
@@ -873,17 +875,31 @@ class AttachmentUpload {
     return this.blobUrlTemplate.replace(":signed_id", signedId).replace(":filename", encodeURIComponent(filename));
   }
   get directUploadUrl() {
-    return this.element.dataset.directUploadUrl;
+    return this.delegate.directUploadUrl;
   }
   get blobUrlTemplate() {
-    return this.element.dataset.blobUrlTemplate;
+    return this.delegate.blobUrlTemplate;
+  }
+}
+
+function notify(object, methodName, ...messages) {
+  if (object && typeof object[methodName] == "function") {
+    return object[methodName](...messages);
   }
 }
 
 addEventListener("trix-attachment-add", (event => {
   const {attachment: attachment, target: target} = event;
   if (attachment.file) {
-    const upload = new AttachmentUpload(attachment, target);
+    const delegate = {
+      directUploadUrl: target.dataset.directUploadUrl,
+      blobUrlTemplate: target.dataset.blobUrlTemplate,
+      setUploadProgress: progress => attachment.setUploadProgress(progress),
+      uploadDidComplete: attributes => attachment.setAttributes(attributes)
+    };
+    const upload = new AttachmentUpload(delegate, attachment.file);
     upload.start();
   }
 }));
+
+export { AttachmentUpload };

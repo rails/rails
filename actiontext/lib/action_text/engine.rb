@@ -15,6 +15,7 @@ module ActionText
     config.eager_load_namespaces << ActionText
 
     config.action_text = ActiveSupport::OrderedOptions.new
+    config.action_text.editor = :trix
     config.action_text.attachment_tag_name = "action-text-attachment"
     config.autoload_once_paths = %W(
       #{root}/app/helpers
@@ -53,6 +54,11 @@ module ActionText
         def to_trix_content_attachment_partial_path
           nil
         end
+        deprecate :to_trix_content_attachment_partial_path, deprecator: ActionText.deprecator
+
+        def to_editor_content_attachment_partial_path(editor_name)
+          nil
+        end
       end
     end
 
@@ -60,6 +66,31 @@ module ActionText
       %i[action_controller_base action_mailer].each do |base|
         ActiveSupport.on_load(base) do
           helper ActionText::Engine.helpers
+        end
+      end
+    end
+
+    initializer "action_text.editors" do |app|
+      default_config_file = root.join("config/rich_text.yml")
+
+      ActiveSupport.on_load(:action_text_rich_text) do
+        require "action_text/editor/registry"
+
+        configs = app.config.action_text.editor_configurations ||=
+          begin
+            config_files = [
+              app.root.join("config/rich_text/#{Rails.env}.yml"),
+              app.root.join("config/rich_text.yml"),
+              default_config_file
+            ]
+
+            ActiveSupport::ConfigurationFile.parse(config_files.detect(&:exist?))
+          end
+
+        self.editors = ActionText::Editor::Registry.new(configs)
+
+        if (name = app.config.action_text.editor)
+          self.editor = editors.fetch(name)
         end
       end
     end

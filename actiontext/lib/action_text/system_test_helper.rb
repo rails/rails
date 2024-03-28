@@ -32,8 +32,8 @@ module ActionText
     #     # <input id="trix_input_1" name="message[content]" type="hidden">
     #     # <trix-editor input="trix_input_1"></trix-editor>
     #     fill_in_rich_text_area "message[content]", with: "Hello <em>world!</em>"
-    def fill_in_rich_text_area(locator = nil, with:)
-      find(:rich_text_area, locator).execute_script("this.editor.loadHTML(arguments[0])", with.to_s)
+    def fill_in_rich_text_area(locator = nil, with:, editor: RichText.editor)
+      editor.fill_in_rich_text_area(self, locator, with: with)
     end
   end
 end
@@ -41,13 +41,18 @@ end
 Capybara.add_selector :rich_text_area do
   label "rich-text area"
   xpath do |locator|
+    rich_text = XPath.descendant[[
+      XPath.attribute(:role) == "textbox",
+      (XPath.attribute(:contenteditable) == "") | (XPath.attribute(:contenteditable) == "true")
+    ].reduce(:&)]
+
     if locator.nil?
-      XPath.descendant(:"trix-editor")
+      rich_text
     else
       input_located_by_name = XPath.anywhere(:input).where(XPath.attr(:name) == locator).attr(:id)
       input_located_by_label = XPath.anywhere(:label).where(XPath.string.n.is(locator)).attr(:for)
 
-      XPath.descendant(:"trix-editor").where \
+      rich_text.where \
         XPath.attr(:id).equals(locator) |
         XPath.attr(:placeholder).equals(locator) |
         XPath.attr(:"aria-label").equals(locator) |

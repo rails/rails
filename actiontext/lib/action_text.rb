@@ -18,6 +18,8 @@ module ActionText
   autoload :Attachment
   autoload :Attribute
   autoload :Content
+  autoload :Editor
+  autoload :EditorAttachment
   autoload :Encryption
   autoload :Fragment
   autoload :FixtureSet
@@ -39,6 +41,7 @@ module ActionText
     extend ActiveSupport::Autoload
 
     autoload :Caching
+    autoload :Conversion
     autoload :Minification
     autoload :TrixConversion
   end

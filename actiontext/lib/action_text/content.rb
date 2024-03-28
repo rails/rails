@@ -24,26 +24,27 @@ module ActionText
   class Content
     include Rendering, Serialization
 
-    attr_reader :fragment
+    attr_reader :fragment, :editor
 
     delegate :deconstruct, to: :fragment
     delegate :blank?, :empty?, :html_safe, :present?, to: :to_html # Delegating to to_html to avoid including the layout
 
     class << self
       def fragment_by_canonicalizing_content(content)
-        fragment = ActionText::Attachment.fragment_by_canonicalizing_attachments(content)
-        fragment = ActionText::AttachmentGallery.fragment_by_canonicalizing_attachment_galleries(fragment)
-        fragment
+        content = new(content, canonicalize: true, editor: RichText.editors.fetch(:trix))
+        content.fragment
       end
+      deprecate :fragment_by_canonicalizing_content, deprecator: ActionText.deprecator
     end
 
     def initialize(content = nil, options = {})
-      options.with_defaults! canonicalize: true
+      options.with_defaults! canonicalize: true, editor: RichText.editor
+
+      @fragment = ActionText::Fragment.wrap(content)
+      @editor = options[:editor]
 
       if options[:canonicalize]
-        @fragment = self.class.fragment_by_canonicalizing_content(content)
-      else
-        @fragment = ActionText::Fragment.wrap(content)
+        @fragment = editor.canonicalize_fragment(@fragment)
       end
     end
 
@@ -53,7 +54,7 @@ module ActionText
     #     content = ActionText::Content.new(html)
     #     content.links # => ["http://example.com/"]
     def links
-      @links ||= fragment.find_all("a[href]").map { |a| a["href"] }.uniq
+      @links ||= editor.links(fragment)
     end
 
     # Extracts +ActionText::Attachment+s from the HTML fragment:
@@ -63,15 +64,11 @@ module ActionText
     #     content = ActionText::Content.new(html)
     #     content.attachments # => [#<ActionText::Attachment attachable=#<ActiveStorage::Blob...
     def attachments
-      @attachments ||= attachment_nodes.map do |node|
-        attachment_for_node(node)
-      end
+      @attachments ||= editor.attachments(fragment)
     end
 
     def attachment_galleries
-      @attachment_galleries ||= attachment_gallery_nodes.map do |node|
-        attachment_gallery_for_node(node)
-      end
+      @attachment_galleries ||= editor.attachment_galleries(fragment)
     end
 
     def gallery_attachments
@@ -85,9 +82,7 @@ module ActionText
     #     content = ActionText::Content.new(html)
     #     content.attachables # => [attachable]
     def attachables
-      @attachables ||= attachment_nodes.map do |node|
-        ActionText::Attachable.from_node(node)
-      end
+      @attachables ||= editor.attachables(fragment)
     end
 
     def append_attachables(attachables)
@@ -96,16 +91,12 @@ module ActionText
     end
 
     def render_attachments(**options, &block)
-      content = fragment.replace(ActionText::Attachment.tag_name) do |node|
-        block.call(attachment_for_node(node, **options))
-      end
+      content = editor.render_attachments(fragment, **options, &block)
       self.class.new(content, canonicalize: false)
     end
 
     def render_attachment_galleries(&block)
-      content = ActionText::AttachmentGallery.fragment_by_replacing_attachment_gallery_nodes(fragment) do |node|
-        block.call(attachment_gallery_for_node(node))
-      end
+      content = editor.render_attachment_galleries(fragment, &block)
       self.class.new(content, canonicalize: false)
     end
 
@@ -128,8 +119,9 @@ module ActionText
     end
 
     def to_trix_html
-      render_attachments(&:to_trix_attachment).to_html
+      RichText.editors.fetch(:trix).to_html(self)
     end
+    deprecate :to_trix_html, deprecator: ActionText.deprecator
 
     def to_html
       fragment.to_html
@@ -169,24 +161,6 @@ module ActionText
         to_s == other.to_s
       end
     end
-
-    private
-      def attachment_nodes
-        @attachment_nodes ||= fragment.find_all(ActionText::Attachment.tag_name)
-      end
-
-      def attachment_gallery_nodes
-        @attachment_gallery_nodes ||= ActionText::AttachmentGallery.find_attachment_gallery_nodes(fragment)
-      end
-
-      def attachment_for_node(node, with_full_attributes: true)
-        attachment = ActionText::Attachment.from_node(node)
-        with_full_attributes ? attachment.with_full_attributes : attachment
-      end
-
-      def attachment_gallery_for_node(node)
-        ActionText::AttachmentGallery.from_node(node)
-      end
   end
 end
 

@@ -27,12 +27,16 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     FileUtils.touch("#{destination_root}/package.json")
 
     run_generator_instance
-    assert_match %r"yarn add @rails/actiontext trix", @run_commands.join("\n")
+    assert_match %r"yarn add trix", @run_commands.join("\n")
+    assert_match %r"yarn add @rails/actiontext", @run_commands.join("\n")
   end
 
   test "throws warning for missing entry point" do
     FileUtils.rm("#{destination_root}/app/javascript/application.js")
-    assert_match "You must import the @rails/actiontext and trix JavaScript modules", run_generator_instance
+
+    output = run_generator_instance
+    assert_match "You must import the @rails/actiontext JavaScript module", output
+    assert_match "You must import the trix JavaScript module", output
   end
 
   test "imports JavaScript dependencies in application.js" do
@@ -55,7 +59,10 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
 
   test "creates Action Text stylesheet" do
     run_generator_instance
-    assert_file "app/assets/stylesheets/actiontext.css"
+    assert_file "app/assets/stylesheets/actiontext.css" do |content|
+      assert_match "*= require trix", content
+      assert_match ".trix-content", content
+    end
   end
 
   test "appends @import 'actiontext.css' to base scss file" do
@@ -80,7 +87,7 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
   end
 
   test "throws a warning for missing base (s)css file" do
-    assert_match "To use the Trix editor, you must require 'app/assets/stylesheets/actiontext.css' in your base stylesheet.",
+    assert_match "To use the Action Text editor, you must require 'app/assets/stylesheets/actiontext.css' in your base stylesheet.",
       run_generator_instance
   end
 

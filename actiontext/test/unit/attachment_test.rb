@@ -23,8 +23,12 @@ class ActionText::AttachmentTest < ActiveSupport::TestCase
   test "converts to TrixAttachment" do
     attachment = attachment_from_html(%Q(<action-text-attachment sgid="#{attachable.attachable_sgid}" caption="Captioned"></action-text-attachment>))
 
-    trix_attachment = attachment.to_trix_attachment
-    assert_kind_of ActionText::TrixAttachment, trix_attachment
+    trix_attachment_from_deprecated_method = assert_deprecated(ActionText.deprecator) { attachment.to_trix_attachment }
+    assert_kind_of ActionText::TrixAttachment, trix_attachment_from_deprecated_method
+
+    trix_attachment = attachment.to_editor_attachment(:trix)
+    assert_kind_of ActionText::EditorAttachment, trix_attachment
+    assert_equal trix_attachment.attributes, trix_attachment_from_deprecated_method.attributes
 
     assert_equal attachable.attachable_sgid, trix_attachment.attributes["sgid"]
     assert_equal attachable.attachable_content_type, trix_attachment.attributes["contentType"]
@@ -32,7 +36,8 @@ class ActionText::AttachmentTest < ActiveSupport::TestCase
     assert_equal attachable.byte_size, trix_attachment.attributes["filesize"]
     assert_equal "Captioned", trix_attachment.attributes["caption"]
 
-    assert_nil attachable.to_trix_content_attachment_partial_path
+    assert_nil ActionText.deprecator.silence { attachable.to_trix_content_attachment_partial_path }
+    assert_nil attachable.to_editor_content_attachment_partial_path(:trix)
     assert_nil trix_attachment.attributes["content"]
   end
 
@@ -40,13 +45,17 @@ class ActionText::AttachmentTest < ActiveSupport::TestCase
     attachable = Person.create! name: "Javan"
     attachment = attachment_from_html(%Q(<action-text-attachment sgid="#{attachable.attachable_sgid}"></action-text-attachment>))
 
-    trix_attachment = attachment.to_trix_attachment
-    assert_kind_of ActionText::TrixAttachment, trix_attachment
+    trix_attachment_from_deprecated_method = assert_deprecated(ActionText.deprecator) { attachment.to_trix_attachment }
+    assert_kind_of ActionText::TrixAttachment, trix_attachment_from_deprecated_method
+    trix_attachment = attachment.to_editor_attachment(:trix)
+    assert_kind_of ActionText::EditorAttachment, trix_attachment
+    assert_equal trix_attachment.attributes, trix_attachment_from_deprecated_method.attributes
 
     assert_equal attachable.attachable_sgid, trix_attachment.attributes["sgid"]
     assert_equal attachable.attachable_content_type, trix_attachment.attributes["contentType"]
 
-    assert_not_nil attachable.to_trix_content_attachment_partial_path
+    assert_not_nil ActionText.deprecator.silence { attachable.to_trix_content_attachment_partial_path }
+    assert_not_nil attachable.to_editor_content_attachment_partial_path(:trix)
     assert_not_nil trix_attachment.attributes["content"]
   end
 
@@ -63,8 +72,12 @@ class ActionText::AttachmentTest < ActiveSupport::TestCase
     assert_equal "text/html", attachable.content_type
     assert_equal "abc", attachable.content
 
-    trix_attachment = attachment.to_trix_attachment
-    assert_kind_of ActionText::TrixAttachment, trix_attachment
+    trix_attachment_from_deprecated_method = assert_deprecated(ActionText.deprecator) { attachment.to_trix_attachment }
+    assert_kind_of ActionText::TrixAttachment, trix_attachment_from_deprecated_method
+    trix_attachment = attachment.to_editor_attachment(:trix)
+    assert_kind_of ActionText::EditorAttachment, trix_attachment
+    assert_equal trix_attachment.attributes, trix_attachment_from_deprecated_method.attributes
+
     assert_equal "text/html", trix_attachment.attributes["contentType"]
     assert_equal "abc", trix_attachment.attributes["content"]
   end
@@ -81,7 +94,8 @@ class ActionText::AttachmentTest < ActiveSupport::TestCase
 
   test "defaults trix partial to model partial" do
     attachable = Page.create! title: "Homepage"
-    assert_equal "pages/page", attachable.to_trix_content_attachment_partial_path
+    assert_equal "pages/page", assert_deprecated(ActionText.deprecator) { attachable.to_trix_content_attachment_partial_path }
+    assert_equal "pages/page", attachable.to_editor_content_attachment_partial_path(:trix)
   end
 
   private

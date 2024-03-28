@@ -30,6 +30,24 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Deprecations
 
+* Deprecate `ActionText::Attachment.fragment_by_canonicalizing_attachments`
+
+* Deprecate `ActionText::Attachments::TrixConversion` and
+  `ActionText::Attachments::Minification`
+
+* Deprecate `ActionText::Attachable#to_trix_content_attachment_partial_path`.
+  Use `#to_editor_content_attachment_partial_path(editor_name)` instead.
+
+* Deprecate `ActiveStorage::Blob#to_trix_content_attachment_partial_path`.
+  Use `#to_editor_content_attachment_partial_path(editor_name)` instead.
+
+* Deprecate `ActionText::Content.fragment_by_canonicalizing_content` and
+  `ActionText::Content#to_trix_html`
+
+* Deprecate `ActionText::RichText#to_trix_html`
+
+* Deprecate `ActionText::TrixAttachment`
+
 ### Notable changes
 
 Action Cable
@@ -234,6 +252,24 @@ Please refer to the [Changelog][action-text] for detailed changes.
 ### Removals
 
 ### Deprecations
+
+* Deprecate `ActionText::Attachment.fragment_by_canonicalizing_attachments`
+
+* Deprecate `ActionText::Attachments::TrixConversion` and
+  `ActionText::Attachments::Minification`
+
+* Deprecate `ActionText::Attachable#to_trix_content_attachment_partial_path`.
+  Use `#to_editor_content_attachment_partial_path(editor_name)` instead.
+
+* Deprecate `ActiveStorage::Blob#to_trix_content_attachment_partial_path`.
+  Use `#to_editor_content_attachment_partial_path(editor_name)` instead.
+
+* Deprecate `ActionText::Content.fragment_by_canonicalizing_content` and
+  `ActionText::Content#to_trix_html`
+
+* Deprecate `ActionText::RichText#to_trix_html`
+
+* Deprecate `ActionText::TrixAttachment`
 
 ### Notable changes
 
