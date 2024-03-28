@@ -6,6 +6,12 @@
 
     *DHH*
 
+*   Add `save_and_open_page` helper to IntegrationTest
+    `save_and_open_page` is a helpful helper to keep a short feedback loop when working on system tests.
+    A similar helper with matching signature has been added to integration tests.
+
+    *Joé Dupuis*
+
 *   Add `allow_browser` to set minimum browser versions for the application.
 
     A browser that's blocked will by default be served the file in `public/426.html` with a HTTP status code of "426 Upgrade Required".
