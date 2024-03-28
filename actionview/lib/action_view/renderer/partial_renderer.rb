@@ -48,6 +48,20 @@ module ActionView
   #
   #   <%= render partial: "account", locals: { user: @buyer } %>
   #
+  # == \Rendering variants of a partial
+  #
+  # The <tt>:variants</tt> option can be used to render a different template variant of a partial. For instance:
+  #
+  #   <%= render partial: "account", variants: :mobile %>
+  #
+  # This will render <tt>_account.html+mobile.erb</tt>. This option can also intake multiple variants
+  # like so:
+  #
+  #   <%= render partial: "account", variants: [:desktop, :mobile] %>
+  #
+  # This will render <tt>_account.html+desktop.erb</tt>, <tt>_account.html+mobile.erb</tt>
+  # and with <tt>:desktop</tt> will render the original <tt>_account.html.erb</tt>.
+  #
   # == \Rendering a collection of partials
   #
   # The example of partial use describes a familiar pattern where a template needs to iterate over an array and

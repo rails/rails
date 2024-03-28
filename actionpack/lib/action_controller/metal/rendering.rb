@@ -160,6 +160,18 @@ module ActionController
     #         render "posts/new", status: :unprocessable_entity
     #         # => renders app/views/posts/new.html.erb with HTTP status code 422
     #
+    # `:variant`
+    # :    Render template variations of the same format. Can be a symbol or an array
+    #      of symbols.
+    #
+    #         render "posts/new", variant: :mobile
+    #         # => renders app/views/posts/new.html+mobile.erb
+    #
+    #         render "posts/new", variants: [:desktop, :mobile]
+    #         # => renders app/views/posts/new.html.erb
+    #         # => renders app/views/posts/new.html+desktop.erb
+    #         # => renders app/views/posts/new.html+mobile.erb
+    #
     #--
     # Check for double render errors and set the content_type after rendering.
     def render(*args)
