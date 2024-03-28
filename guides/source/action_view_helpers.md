@@ -799,7 +799,7 @@ for more information.
 
 #### strip_tags
 
-Strips all HTML tags from the HTML, including comments.
+Strips all HTML tags from the HTML, including comments and special characters.
 
 ```ruby
 strip_tags("Strip <i>these</i> tags!")
@@ -807,10 +807,10 @@ strip_tags("Strip <i>these</i> tags!")
 
 strip_tags("<b>Bold</b> no more! <a href='more.html'>See more</a>")
 # => Bold no more! See more
-```
 
-NOTE: The output may still contain unescaped `<`, `>`, `&` characters and
-confuse browsers.
+strip_links('<<a href="https://example.org">malformed & link</a>')
+# => &lt;malformed &amp; link
+```
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-strip_tags)
