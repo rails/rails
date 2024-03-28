@@ -390,12 +390,12 @@ Rails will render the `_product_ruler.html.erb` partial (with no data passed to 
 Rails also makes a counter variable available within a partial called by the collection. The variable is named after the title of the partial followed by `_counter`. For example, when rendering a collection `@products` the partial `_product.html.erb` can access the variable `product_counter`. The variable indexes the number of times the partial has been rendered within the enclosing view, starting with a value of `0` on the first render.
 
 ```erb
-# index.html.erb
+<%# index.html.erb %>
 <%= render partial: "product", collection: @products %>
 ```
 
 ```erb
-# _product.html.erb
+<%# _product.html.erb %>
 <%= product_counter %> # 0 for the first product, 1 for the second product...
 ```
 
