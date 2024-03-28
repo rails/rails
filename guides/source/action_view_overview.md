@@ -515,7 +515,7 @@ record              # => "#<Product:0x0000000109ec5d10>"
 product == record   # => true
 ```
 
-Since `local_assigns` returns a `Hash` instance, you can conditionally read a variable, then fall back to a default value when the key isn't part of the `locals:` options:
+You can also conditionally read a variable, then fall back to a default value when the key isn't part of the `locals:` options, using `fetch`:
 
 ```html+erb
 <%# app/views/products/_product.html.erb %>
