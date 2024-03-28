@@ -24,9 +24,8 @@ also recommended, as it covers all of the helpers in more detail.
 
 These helpers help you to manipulate date and/or time elements into contextual
 human readable forms. It can also be used to create select/option tags for
-different kinds of dates and/or times elements as described in the
-[Action View Form Helpers
-Guide](form_helpers.html#using-date-and-time-form-helpers).
+different kinds of dates and/or times elements as described in the [Action View
+Form Helpers Guide](form_helpers.html#using-date-and-time-form-helpers).
 
 #### distance_of_time_in_words
 
@@ -47,7 +46,8 @@ for more information.
 
 #### time_ago_in_words
 
-Reports the approximate distance in time between a `Time` or `Date` object, or integer as seconds,  and `Time.now`.
+Reports the approximate distance in time between a `Time` or `Date` object, or
+integer as seconds,  and `Time.now`.
 
 ```ruby
 time_ago_in_words(3.minutes.from_now) # => 3 minutes
@@ -59,7 +59,7 @@ for more information.
 
 ### Numbers
 
-Methods for converting numbers into formatted strings. Methods are
+A set of methods for converting numbers into formatted strings. Methods are
 provided for phone numbers, currency, percentage, precision, positional
 notation, and file size.
 
@@ -159,8 +159,8 @@ A set of methods for filtering, formatting and transforming strings.
 #### excerpt
 
 Given a `text` and a `phrase`, `excerpt` searches for and extracts the first
-occurrence of the `phrase`, plus the requested surrounding text determined by
-a `radius`. An omission marker is prepended/appended if the start/end of the
+occurrence of the `phrase`, plus the requested surrounding text determined by a
+`radius`. An omission marker is prepended/appended if the start/end of the
 result does not coincide with the start/end of the text.
 
 ```ruby
@@ -191,8 +191,9 @@ for more information.
 
 #### truncate
 
-Truncates a given `text` to a given `length`. If the text is truncated, an omission
-marker will be appended to the result for a total length not exceeding `length`.
+Truncates a given `text` to a given `length`. If the text is truncated, an
+omission marker will be appended to the result for a total length not exceeding
+`length`.
 
 ```ruby
 truncate("Once upon a time in a world far far away")
@@ -242,7 +243,7 @@ Guide](form_helpers.html).
 
 ## Navigation
 
-Methods to make links and get URLs that depend on the routing
+A set of methods to make links and get URLs that depend on the routing
 subsystem.
 
 ### button_to
@@ -359,11 +360,10 @@ url_for @post # given a composite primary key [:blog_id, :id]
 
 ## Sanitization
 
-Sanitization provides a set of methods for scrubbing text of
-undesired HTML elements. The helpers are particularly useful for helping to
-ensure that only safe and valid HTML/CSS is rendered. It can also be useful to
-prevent XSS attacks by escaping or removing potentially malicious content from
-user input before rendering it in your views.
+A set of methods for scrubbing text of undesired HTML elements. The helpers are
+particularly useful for helping to ensure that only safe and valid HTML/CSS is
+rendered. It can also be useful to prevent XSS attacks by escaping or removing
+potentially malicious content from user input before rendering it in your views.
 
 This functionality is powered internally by the
 [rails-html-sanitizer](https://github.com/rails/rails-html-sanitizer) gem.
@@ -453,8 +453,8 @@ for more information.
 
 ## Assets
 
-An `AssetTagHelper` module provides methods for generating HTML that links views to assets such
-as images, JavaScript files, stylesheets, and feeds.
+A set of methods for generating HTML that links views to assets such as images,
+JavaScript files, stylesheets, and feeds.
 
 By default, Rails links to these assets on the current host in the public
 folder, but you can direct Rails to link to assets from a dedicated assets
@@ -668,7 +668,7 @@ for more information.
 
 ## JavaScript
 
-Provides functionality for working with JavaScript in your views.
+A set of methods for working with JavaScript in your views.
 
 ### escape_javascript
 
@@ -692,8 +692,7 @@ My name is <%= current_user.name %>, and I'm here to say "Welcome to our website
 </script>
 ```
 
-This will escape the quotes correctly and display the greeting in an
-alert box.
+This will escape the quotes correctly and display the greeting in an alert box.
 
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/JavaScriptHelper.html#method-i-escape_javascript)
@@ -730,7 +729,7 @@ for more information.
 
 ## Tags
 
-Provides methods to generate HTML tags programmatically.
+A set of methods to generate HTML tags programmatically.
 
 ### tag
 
@@ -750,7 +749,8 @@ for more information.
 
 ### token_list
 
-Returns a string of tokens built from the `args` provided. This method is also aliased as `class_names`.
+Returns a string of tokens built from the `args` provided. This method is also
+aliased as `class_names`.
 
 ```ruby
 token_list('cats', 'dogs')
@@ -768,8 +768,8 @@ class_names("flex items-#{alignment}", "flex-col": mobile) # using the alias
 
 ## Capture Blocks
 
-The `CaptureHelper` exposes methods to let you extract generated markup which can
-be used in other parts of a template or layout file.
+A set of methods to let you extract generated markup which can be used in other
+parts of a template or layout file.
 
 It provides a method to capture blocks into variables through `capture` and a
 way to capture a block of markup for use in a layout through `content_for`.
@@ -849,8 +849,8 @@ isn't utilized, it remains empty, resulting in nothing being yielded.
 
 You'll notice that in the above example, we use the `content_for?` predicate
 method to conditionally render a relevant class. This method checks whether any
-content has been captured yet using `content_for`, enabling you to adjust parts of your layout based
-on the content within your views.
+content has been captured yet using `content_for`, enabling you to adjust parts
+of your layout based on the content within your views.
 
 Additionally, you can employ `content_for` within a helper module.
 
@@ -913,11 +913,10 @@ for more information.
 
 ### cache
 
-You can cache fragments of a view rather than an
-entire action or page. This technique is useful for caching pieces like menus,
-lists of news topics, static HTML fragments, and so on. It allows a fragment of
-view logic to be wrapped in a cache block and served out of the cache store when
-the next request comes in.
+You can cache fragments of a view rather than an entire action or page. This
+technique is useful for caching pieces like menus, lists of news topics, static
+HTML fragments, and so on. It allows a fragment of view logic to be wrapped in a
+cache block and served out of the cache store when the next request comes in.
 
 The `cache` method takes a block that contains the content you wish to cache.
 
@@ -957,9 +956,9 @@ for more information.
 
 ### atom_feed
 
-Atom Feeds are XML-based file formats used to syndicate content and can be
-used by users in feed readers to browse content or by search engines to help
-discover additional information about your site.
+Atom Feeds are XML-based file formats used to syndicate content and can be used
+by users in feed readers to browse content or by search engines to help discover
+additional information about your site.
 
 This helper makes building an Atom feed easy is mostly used in Builder templates
 for creating XML. Here's a full usage example:
