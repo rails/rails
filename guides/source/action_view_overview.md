@@ -310,7 +310,7 @@ This will look for a partial named `_product.html.erb` in `app/views/products/`,
 By default, objects passed to the template are in a local variable with the same name as the template. So, given:
 
 ```erb
-<%= render partial: "product" %>
+<%= render @product %>
 ```
 
 within the `_product.html.erb` partial we'll get `@product` instance variable in the local variable `product`, as if we had written:
