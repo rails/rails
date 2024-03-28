@@ -18,7 +18,8 @@ Action View. It serves as a good starting point, but reviewing the full [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html) is
 also recommended, as it covers all of the helpers in more detail.
 
-## Formatting
+Formatting
+----------------------------------------------
 
 ### Dates
 
@@ -229,7 +230,8 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-word_wrap)
 for more information.
 
-## Forms
+Forms
+----------------------------------------------
 
 Form helpers simplify working with models compared to using standard HTML
 elements alone. They offer a range of methods tailored to generating forms based
@@ -241,7 +243,8 @@ back to the controller.
 You can learn more about form helpers in the [Action View Form Helpers
 Guide](form_helpers.html).
 
-## Navigation
+Navigation
+----------------------------------------------
 
 A set of methods to make links and get URLs that depend on the routing
 subsystem.
@@ -358,7 +361,8 @@ url_for @post # given a composite primary key [:blog_id, :id]
 # => /posts/1_2
 ```
 
-## Sanitization
+Sanitization
+----------------------------------------------
 
 A set of methods for scrubbing text of undesired HTML elements. The helpers are
 particularly useful for helping to ensure that only safe and valid HTML/CSS is
@@ -451,7 +455,8 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-strip_tags)
 for more information.
 
-## Assets
+Assets
+----------------------------------------------
 
 A set of methods for generating HTML that links views to assets such as images,
 JavaScript files, stylesheets, and feeds.
@@ -666,7 +671,8 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-video_tag)
 for more information.
 
-## JavaScript
+JavaScript
+----------------------------------------------
 
 A set of methods for working with JavaScript in your views.
 
@@ -727,7 +733,8 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/JavaScriptHelper.html#method-i-javascript_tag)
 for more information.
 
-## Tags
+Tags
+----------------------------------------------
 
 A set of methods to generate HTML tags programmatically.
 
@@ -766,7 +773,8 @@ class_names("flex items-#{alignment}", "flex-col": mobile) # using the alias
 # => "flex items-center flex-col"
 ```
 
-## Capture Blocks
+Capture Blocks
+----------------------------------------------
 
 A set of methods to let you extract generated markup which can be used in other
 parts of a template or layout file.
@@ -887,7 +895,8 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/CaptureHelper.html#method-i-content_for)
 for more information.
 
-## Performance
+Performance
+----------------------------------------------
 
 ### benchmark
 
@@ -952,7 +961,8 @@ See [`Fragment Caching`](caching_with_rails.html#fragment-caching) and the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/CacheHelper.html#method-i-cache)
 for more information.
 
-## Miscellaneous
+Miscellaneous
+----------------------------------------------
 
 ### atom_feed
 
