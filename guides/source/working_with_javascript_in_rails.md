@@ -70,7 +70,7 @@ bundling, you can create new Rails applications with your choice of
 [Bun](https://bun.sh), [esbuild](https://esbuild.github.io/),
 [webpack](https://webpack.js.org/), or [rollup.js](https://rollupjs.org/guide/en/).
 
-To use a bundler instead of import maps in a new Rails application, pass the `—javascript` or `-j`
+To use a bundler instead of import maps in a new Rails application, pass the `--javascript` or `-j`
 option to `rails new`:
 
 ```bash
