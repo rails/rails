@@ -512,8 +512,7 @@ for more information.
 
 #### time_ago_in_words
 
-It's similar to `distance_of_time_in_words`, but where `to_time` is fixed to
-`Time.now`.
+Reports the approximate distance in time between a `Time` or `Date` object, or integer as seconds,  and `Time.now`.
 
 ```ruby
 time_ago_in_words(3.minutes.from_now) # => 3 minutes
