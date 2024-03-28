@@ -2,6 +2,7 @@
 
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/class/attribute"
+require "active_support/core_ext/enumerable"
 require "active_support/subscriber"
 require "active_support/deprecation/proxy_wrappers"
 
