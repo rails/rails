@@ -940,7 +940,7 @@ for more information.
 
 #### current_page?
 
-Returns true if the current request URI matches the given `options`.
+Returns true if the current request URL matches the given `options`.
 
 ```html+erb
 <% if current_page?(controller: 'profiles', action: 'show') %>
