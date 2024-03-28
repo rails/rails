@@ -231,7 +231,7 @@ Validation failed: Name can't be blank
 
 Save callbacks are triggered whenever the record is persisted (i.e. "saved") to
 the underlying database, via the `create`, `update`, or `save` methods. They are
-called before, after and around the object is saved.
+called before, after, and around the object is saved.
 
 ```ruby
 class User < ApplicationRecord
@@ -271,7 +271,7 @@ Update Cache
 #### Create Callbacks
 
 Create callbacks are triggered by the `create` method. They can be called
-before, after and around the object is created.
+before, after, and around the object is created.
 
 ```ruby
 class User < ApplicationRecord
