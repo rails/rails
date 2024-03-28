@@ -103,9 +103,14 @@ class ActiveStorage::Variant
     service.delete(key)
   end
 
+  # Returns +true+ if the file exist in the storage service.
+  def file_exist?
+    service.exist?(key)
+  end
+
   private
     def processed?
-      service.exist?(key)
+      file_exist?
     end
 
     def process

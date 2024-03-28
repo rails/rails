@@ -265,6 +265,12 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "file_exist? check if file exist on external service" do
+    blob = create_blob
+
+    assert_equal blob.file_exist?, ActiveStorage::Blob.service.exist?(blob.key)
+  end
+
   test "purge deletes file from external service" do
     blob = create_blob
 

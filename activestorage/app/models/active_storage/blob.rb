@@ -317,6 +317,11 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.mirror_later key, checksum: checksum if service.respond_to?(:mirror_later)
   end
 
+  # Returns +true+ if the file exist in the storage service.
+  def file_exist?
+    service.exist?(key)
+  end
+
   # Deletes the files on the service associated with the blob. This should only be done if the blob is going to be
   # deleted as well or you will essentially have a dead reference. It's recommended to use #purge and #purge_later
   # methods in most circumstances.
