@@ -916,4 +916,57 @@ class EachTest < ActiveRecord::TestCase
     relation = Cpk::Book.where("author_id >= ? AND id < ?", author_id, id).in_batches(of: 1, order: [:asc, :desc]).first
     assert_equal book2, relation.first
   end
+
+  test ".in_batches raises MissingBatchIterationCursorError on a relation with a record with no primary key value" do
+    post = posts(:welcome)
+    2.times { |i| post.comments.create(body: "foo #{i}") }
+    comments = post.comments.load
+
+    assert_not_empty comments
+    assert_predicate post.comments, :loaded?
+
+    comment = comments.build(body: "unpersisted object")
+
+    expected_message = "Can't perform batch iteration on a relation with a record that has no primary key value: #{comment.inspect}"
+    error = assert_raises(ActiveRecord::Batches::MissingBatchIterationCursorError, match: expected_message) do
+      comments.in_batches(of: 1) { }
+    end
+
+    assert_equal comment, error.record
+  end
+
+  test ".in_batches with start raises MissingBatchIterationCursorError on a relation with a record with no primary key value" do
+    post = posts(:welcome)
+    2.times { |i| post.comments.create(body: "foo #{i}") }
+    comments = post.comments.load
+
+    assert_not_empty comments
+    assert_predicate post.comments, :loaded?
+
+    comment = comments.build(body: "unpersisted object")
+
+    expected_message = "Can't perform batch iteration on a relation with a record that has no primary key value: #{comment.inspect}"
+    error = assert_raises(ActiveRecord::Batches::MissingBatchIterationCursorError, match: expected_message) do
+      comments.in_batches(of: 1, start: 5) { }
+    end
+
+    assert_equal comment, error.record
+  end
+
+  test ".in_batches iterates over loaded relation with new records with primary key values populated" do
+    post = posts(:welcome)
+    2.times.map { |i| post.comments.create(body: "foo #{i}") }
+    comments = post.comments.load
+    persisted_comments = comments.to_a
+
+    assert_not_empty comments
+    assert_predicate post.comments, :loaded?
+
+    comments.build(id: 1, body: "unpersisted object")
+    iterated_over = []
+
+    comments.in_batches(of: 1) { |comments_relation| iterated_over.push(*comments_relation.ids) }
+
+    assert_equal [1, *persisted_comments.map(&:id).sort], iterated_over
+  end
 end
