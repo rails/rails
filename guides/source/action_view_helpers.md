@@ -896,20 +896,6 @@ for more information.
 
 Provides methods to generate HTML tags programmatically.
 
-#### content_tag
-
-Generates an HTML block tag of the specified type to surround the content. You
-can add HTML attributes by passing an `attributes` hash to options.
-
-```ruby
-content_tag(:div, "Hello world!", class: ["strong", { highlight: current_user.admin? }])
-# => <div class="strong highlight">Hello world!</div>
- ```
-
-See the [API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TagHelper.html#method-i-content_tag)
-for more information.
-
 #### tag
 
 Generates a standalone HTML tag with the given `name` and `options`.
