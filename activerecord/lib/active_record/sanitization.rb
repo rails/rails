@@ -165,7 +165,8 @@ module ActiveRecord
         if values.first.is_a?(Hash) && /:\w+/.match?(statement)
           replace_named_bind_variables(statement, values.first)
         elsif statement.include?("?")
-          replace_bind_variables(statement, values)
+          c = lease_connection
+          replace_bind_variables(statement, values, c)
         elsif statement.blank?
           statement
         else
@@ -193,20 +194,19 @@ module ActiveRecord
       end
 
       private
-        def replace_bind_variables(statement, values)
+        def replace_bind_variables(statement, values, connection)
           raise_if_bind_arity_mismatch(statement, statement.count("?"), values.size)
           bound = values.dup
-          c = lease_connection
           statement.gsub(/\?/) do
-            replace_bind_variable(bound.shift, c)
+            replace_bind_variable(bound.shift, connection)
           end
         end
 
-        def replace_bind_variable(value, c = lease_connection)
+        def replace_bind_variable(value, connection)
           if ActiveRecord::Relation === value
             value.to_sql
           else
-            quote_bound_value(value, c)
+            quote_bound_value(value, connection)
           end
         end
 
@@ -224,17 +224,17 @@ module ActiveRecord
           end
         end
 
-        def quote_bound_value(value, c = lease_connection)
+        def quote_bound_value(value, connection)
           if value.respond_to?(:map) && !value.acts_like?(:string)
             values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
             if values.empty?
-              c.quote(c.cast_bound_value(nil))
+              connection.quote(connection.cast_bound_value(nil))
             else
-              values.map! { |v| c.quote(c.cast_bound_value(v)) }.join(",")
+              values.map! { |v| connection.quote(connection.cast_bound_value(v)) }.join(",")
             end
           else
             value = value.id_for_database if value.respond_to?(:id_for_database)
-            c.quote(c.cast_bound_value(value))
+            connection.quote(connection.cast_bound_value(value))
           end
         end
 
