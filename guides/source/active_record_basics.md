@@ -250,71 +250,71 @@ purposes.
 Active Record models are placed under the `app/models` directory by default. But
 you may want to organize your models by placing similar models under their own
 folder and namespace. For example, `order.rb` and `review.rb` under
-`app/models/product` with `Product::Order` and `Product::Review` class names,
+`app/models/books` with `Book::Order` and `Book::Review` class names,
 respectively. You can create namespaced models with Active Record.
 
-In the case where the `Product` module does not already exist, the `generate`
+In the case where the `Book` module does not already exist, the `generate`
 command will create everything like this:
 
 ```bash
-$ bin/rails generate model Product::Order
+$ bin/rails generate model Book::Order
       invoke  active_record
-      create    db/migrate/20240306194227_create_product_orders.rb
-      create    app/models/product/order.rb
-      create    app/models/product.rb
+      create    db/migrate/20240306194227_create_book_orders.rb
+      create    app/models/book/order.rb
+      create    app/models/book.rb
       invoke    test_unit
-      create      test/models/product/order_test.rb
-      create      test/fixtures/product/orders.yml
+      create      test/models/book/order_test.rb
+      create      test/fixtures/book/orders.yml
 ```
 
-If the `Product` module already exists, you will be asked to resolve
+If the `Book` module already exists, you will be asked to resolve
 the conflict:
 
 ```bash
-$ bin/rails generate model Product::Order
+$ bin/rails generate model Book::Order
       invoke  active_record
-      create    db/migrate/20240305140356_create_product_orders.rb
-      create    app/models/product/order.rb
-    conflict    app/models/product.rb
-  Overwrite /Users/bhumi/Code/rails_guides/app/models/product.rb? (enter "h" for help) [Ynaqdhm]
+      create    db/migrate/20240305140356_create_book_orders.rb
+      create    app/models/book/order.rb
+    conflict    app/models/book.rb
+  Overwrite /Users/bhumi/Code/rails_guides/app/models/book.rb? (enter "h" for help) [Ynaqdhm]
 ```
 
-Once the namespaced model generation is successful, the `Product` and `Order`
+Once the namespaced model generation is successful, the `Book` and `Order`
 classes look like this:
 
 ```ruby
-# app/models/product.rb
-module Product
+# app/models/book.rb
+module Book
   def self.table_name_prefix
-    "product_"
+    "book_"
   end
 end
 
-# app/models/product/order.rb
-class Product::Order < ApplicationRecord
+# app/models/book/order.rb
+class Book::Order < ApplicationRecord
 end
 ```
 
 Setting the
 [table_name_prefix](https://api.rubyonrails.org/classes/ActiveRecord/ModelSchema.html#method-c-table_name_prefix-3D)
-in `Product` will allow `Order` model's database table to be named
-`product_orders`, instead of plain `orders`.
+in `Book` will allow `Order` model's database table to be named
+`book_orders`, instead of plain `orders`.
 
-The other possibility is that you already have a `Product` model that you want
+The other possibility is that you already have a `Book` model that you want
 to keep in `app/models`. In that case, you can choose `n` to not overwrite
-`product.rb` during the `generate` command.
+`book.rb` during the `generate` command.
 
-This will still allow for a namespaced table name for `Product::Order` class,
+This will still allow for a namespaced table name for `Book::Order` class,
 without needing the `table_name_prefix`:
 
 ```ruby
-# app/models/product.rb
-class Product < ApplicationRecord
+# app/models/book.rb
+class Book < ApplicationRecord
   # existing code
 end
 
-Product::Order.table_name
-# => "product_orders"
+Book::Order.table_name
+# => "book_orders"
 ```
 
 Overriding the Naming Conventions
