@@ -447,7 +447,7 @@ isn't utilized, it remains empty, resulting in nothing being yielded.
 
 You'll notice that in the above example, we use the `content_for?` predicate
 method to conditionally render a relevant class. This method checks whether any
-content has been captured yet, enabling you to adjust parts of your layout based
+content has been captured yet using `content_for`, enabling you to adjust parts of your layout based
 on the content within your views.
 
 Additionally, you can employ `content_for` within a helper module.
