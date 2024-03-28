@@ -398,6 +398,10 @@ module ActionController
     end
     alias_method :to_unsafe_hash, :to_unsafe_h
 
+    def deconstruct_keys(keys)
+      to_unsafe_h
+    end
+
     # Convert all hashes in values into parameters, then yield each pair in the same
     # way as `Hash#each_pair`.
     def each_pair(&block)
