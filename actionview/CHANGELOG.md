@@ -1,3 +1,7 @@
+*   Fix label with `for` option not getting prefixed by form `namespace` value
+
+    *Abeid Ahmed*
+
 *   Raise `ArgumentError` if `:renderable` object does not respond to `#render_in`
 
     *Sean Doyle*
