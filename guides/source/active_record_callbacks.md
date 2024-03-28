@@ -36,7 +36,7 @@ end
 ```
 
 ```irb
-irb> @baby = Baby.create
+irb> baby = Baby.create
 Congratulations!
 ```
 
@@ -229,8 +229,9 @@ Validation failed: Name can't be blank
 
 #### Save Callbacks
 
-Save callbacks are triggered by the `save` method. They can be called before,
-after and around the object is saved.
+Save callbacks are triggered whenever the record is persisted (i.e. "saved") to
+the underlying database, via the `create`, `update`, or `save` methods. They are
+called before, after and around the object is saved.
 
 ```ruby
 class User < ApplicationRecord
