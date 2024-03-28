@@ -385,7 +385,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_reload_association_with_query_cache
     odegy_id = companies(:odegy).id
 
-    connection = ActiveRecord::Base.connection
+    connection = ActiveRecord::Base.lease_connection
     connection.enable_query_cache!
     connection.clear_query_cache
 
@@ -402,7 +402,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     # This query is not cached anymore, so it should make a real SQL query
     assert_queries_count(1) { Company.find(odegy_id) }
   ensure
-    ActiveRecord::Base.connection.disable_query_cache!
+    ActiveRecord::Base.lease_connection.disable_query_cache!
   end
 
   def test_reset_association

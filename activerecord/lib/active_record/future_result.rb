@@ -60,7 +60,6 @@ module ActiveRecord
     end
 
     delegate :empty?, :to_a, to: :result
-    delegate_missing_to :result
 
     attr_reader :lock_wait
 
@@ -143,7 +142,9 @@ module ActiveRecord
           start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_millisecond)
           @mutex.synchronize do
             if pending?
-              execute_query(@pool.connection)
+              @pool.with_connection do |connection|
+                execute_query(connection)
+              end
             else
               @lock_wait = (Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_millisecond) - start)
             end

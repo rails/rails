@@ -143,6 +143,6 @@ class EagerSingularizationTest < ActiveRecord::TestCase
 
   private
     def connection
-      ActiveRecord::Base.connection
+      ActiveRecord::Base.lease_connection
     end
 end

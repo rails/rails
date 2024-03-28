@@ -867,7 +867,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   end
 
   test "transforms variants later conditionally via proc" do
-    assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
+    assert_no_enqueued_jobs only: [ ActiveStorage::TransformJob, ActiveStorage::PreviewImageJob ] do
       @user.avatar_with_conditional_preprocessed.attach create_file_blob(filename: "racecar.jpg")
     end
 
@@ -880,7 +880,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   end
 
   test "transforms variants later conditionally via method" do
-    assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
+    assert_no_enqueued_jobs only: [ ActiveStorage::TransformJob, ActiveStorage::PreviewImageJob ] do
       @user.avatar_with_conditional_preprocessed.attach create_file_blob(filename: "racecar.jpg")
     end
 
@@ -892,11 +892,29 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
   end
 
-  test "avoids enqueuing transform later job when blob is not representable" do
+  test "avoids enqueuing transform later job or preview image job when blob is not representable" do
     unrepresentable_blob = create_blob(filename: "hello.txt")
 
-    assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
+    assert_no_enqueued_jobs only: [ ActiveStorage::TransformJob, ActiveStorage::PreviewImageJob ]  do
       @user.avatar_with_preprocessed.attach unrepresentable_blob
+    end
+  end
+
+  test "avoids enqueuing transform later job or preview later job if there aren't any variants to preprocess" do
+    blob = create_file_blob(filename: "report.pdf")
+
+    assert_no_enqueued_jobs only: [ ActiveStorage::TransformJob, ActiveStorage::PreviewImageJob ] do
+      @user.resume.attach blob
+    end
+  end
+
+  test "creates preview later without transforming variants if required and there are variants to preprocess" do
+    blob = create_file_blob(filename: "report.pdf")
+
+    assert_enqueued_with job: ActiveStorage::PreviewImageJob, args: [blob, [resize_to_fill: [400, 400]]] do
+      assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
+        @user.resume_with_preprocessing.attach blob
+      end
     end
   end
 end

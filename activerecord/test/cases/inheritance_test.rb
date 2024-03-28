@@ -195,7 +195,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_a_bad_type_column
-    Company.connection.insert "INSERT INTO companies (id, #{QUOTED_TYPE}, name) VALUES(100, 'bad_class!', 'Not happening')"
+    Company.lease_connection.insert "INSERT INTO companies (id, #{QUOTED_TYPE}, name) VALUES(100, 'bad_class!', 'Not happening')"
 
     assert_raise(ActiveRecord::SubclassNotFound) { Company.find(100) }
   end
@@ -477,7 +477,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_eager_load_belongs_to_primary_key_quoting
-    c = Account.connection
+    c = Account.lease_connection
     bind_param = Arel::Nodes::BindParam.new(nil)
     assert_queries_match(/#{Regexp.escape(c.quote_table_name("companies.id"))} = (?:#{Regexp.escape(bind_param.to_sql)}|1)/i) do
       Account.all.merge!(includes: :firm).find(1)
@@ -544,7 +544,7 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
 
   def test_inheritance_new_with_subclass_as_default
     original_type = Company.columns_hash["type"].default
-    ActiveRecord::Base.connection.change_column_default :companies, :type, "Firm"
+    ActiveRecord::Base.lease_connection.change_column_default :companies, :type, "Firm"
     Company.reset_column_information
 
     firm = Company.new # without arguments
@@ -563,7 +563,7 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
     assert_equal "Client", firm.type
     assert_instance_of Client, firm
   ensure
-    ActiveRecord::Base.connection.change_column_default :companies, :type, original_type
+    ActiveRecord::Base.lease_connection.change_column_default :companies, :type, original_type
     Company.reset_column_information
   end
 end
@@ -635,7 +635,7 @@ class InheritanceAttributeMappingTest < ActiveRecord::TestCase
     Empire.create! name: "an Empire"
 
     assert_equal [["a Startup", "omg_inheritance_attribute_mapping_test/startup"],
-                  ["an Empire", "omg_inheritance_attribute_mapping_test/empire"]], ActiveRecord::Base.connection.select_rows("SELECT name, type FROM companies").sort
+                  ["an Empire", "omg_inheritance_attribute_mapping_test/empire"]], ActiveRecord::Base.lease_connection.select_rows("SELECT name, type FROM companies").sort
     assert_equal [["a Startup", "InheritanceAttributeMappingTest::Startup"],
                   ["an Empire", "InheritanceAttributeMappingTest::Empire"]], Company.all.map { |a| [a.name, a.type] }.sort
 
@@ -644,7 +644,7 @@ class InheritanceAttributeMappingTest < ActiveRecord::TestCase
     startup.save!
 
     assert_equal [["a Startup", "omg_inheritance_attribute_mapping_test/empire"],
-                  ["an Empire", "omg_inheritance_attribute_mapping_test/empire"]], ActiveRecord::Base.connection.select_rows("SELECT name, type FROM companies").sort
+                  ["an Empire", "omg_inheritance_attribute_mapping_test/empire"]], ActiveRecord::Base.lease_connection.select_rows("SELECT name, type FROM companies").sort
 
     assert_equal [["a Startup", "InheritanceAttributeMappingTest::Empire"],
                   ["an Empire", "InheritanceAttributeMappingTest::Empire"]], Company.all.map { |a| [a.name, a.type] }.sort
@@ -654,7 +654,7 @@ class InheritanceAttributeMappingTest < ActiveRecord::TestCase
     startup = Startup.create! name: "a Startup"
     sponsor = Sponsor.create! sponsorable: startup
 
-    assert_equal ["omg_inheritance_attribute_mapping_test/company"], ActiveRecord::Base.connection.select_values("SELECT sponsorable_type FROM sponsors")
+    assert_equal ["omg_inheritance_attribute_mapping_test/company"], ActiveRecord::Base.lease_connection.select_values("SELECT sponsorable_type FROM sponsors")
 
     sponsor = Sponsor.find(sponsor.id)
     assert_equal startup, sponsor.sponsorable

@@ -196,6 +196,7 @@ Here is a noncomprehensive list of documentation:
 - [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
 - [Que](https://github.com/que-rb/que#additional-rails-specific-setup)
 - [Good Job](https://github.com/bensheldon/good_job#readme)
+- [Solid Queue](https://github.com/rails/solid_queue?tab=readme-ov-file#solid-queue)
 
 Queues
 ------
@@ -501,7 +502,7 @@ backend](#backends).
 For example, Sidekiq has a `push_bulk` method, which can push a large number of
 jobs to Redis and prevent the round trip network latency. GoodJob also supports
 bulk enqueuing with the `GoodJob::Bulk.enqueue` method. The new queue backend
-[`Solid Queue`](https://github.com/basecamp/solid_queue/pull/93) has added
+[`Solid Queue`](https://github.com/rails/solid_queue/pull/93) has added
 support for bulk enqueuing as well.
 
 If the queue backend does *not* support bulk enqueuing, `perform_all_later` will

@@ -1,12 +1,12 @@
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
-ARG RUBY_VERSION=<%= devcontainer_ruby_version %>
-FROM mcr.microsoft.com/devcontainers/ruby:1-$RUBY_VERSION-bookworm
+ARG RUBY_VERSION=<%= gem_ruby_version %>
+FROM ghcr.io/rails/devcontainer/images/ruby:$RUBY_VERSION
 
 <%- unless options.skip_active_storage -%>
 # Install packages needed to build gems
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
-      libvips \
+      <%= db_package_for_dockerfile %> libvips \
       #  For video thumbnails
       ffmpeg \
       # For pdf thumbnails. If you want to use mupdf instead of poppler,

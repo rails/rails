@@ -608,14 +608,14 @@ class DirtyTest < ActiveRecord::TestCase
 
   class Testings < ActiveRecord::Base; end
   def test_field_named_field
-    ActiveRecord::Base.connection.create_table :testings do |t|
+    ActiveRecord::Base.lease_connection.create_table :testings do |t|
       t.string :field
     end
     assert_nothing_raised do
       Testings.new.attributes
     end
   ensure
-    ActiveRecord::Base.connection.drop_table :testings rescue nil
+    ActiveRecord::Base.lease_connection.drop_table :testings rescue nil
     ActiveRecord::Base.clear_cache!
   end
 

@@ -250,15 +250,50 @@ module ActiveRecord
     # Returns the connection currently associated with the class. This can
     # also be used to "borrow" the connection to do database work unrelated
     # to any of the specific Active Records.
+    # The connection will remain leased for the entire duration of the request
+    # or job, or until +#release_connection+ is called.
+    def lease_connection
+      connection_pool.lease_connection
+    end
+
+    # Soft deprecated. Use +#with_connection+ or +#lease_connection+ instead.
     def connection
-      connection_pool.connection
+      pool = connection_pool
+      if pool.permanent_lease?
+        case ActiveRecord.permanent_connection_checkout
+        when :deprecated
+          ActiveRecord.deprecator.warn <<~MESSAGE
+            Called deprecated `ActionRecord::Base.connection` method.
+
+            Either use `with_connection` or `lease_connection`.
+          MESSAGE
+        when :disallowed
+          raise ActiveRecordError, <<~MESSAGE
+            Called deprecated `ActionRecord::Base.connection` method.
+
+            Either use `with_connection` or `lease_connection`.
+          MESSAGE
+        end
+        pool.lease_connection
+      else
+        pool.active_connection
+      end
+    end
+
+    # Return the currently leased connection into the pool
+    def release_connection
+      connection_pool.release_connection
     end
 
     # Checkouts a connection from the pool, yield it and then check it back in.
-    # If a connection was already leased via #connection or a parent call to
+    # If a connection was already leased via #lease_connection or a parent call to
     # #with_connection, that same connection is yieled.
-    def with_connection(&block)
-      connection_pool.with_connection(&block)
+    # If #lease_connection is called inside the block, the connection won't be checked
+    # back in.
+    # If #connection is called inside the block, the connection won't be checked back in
+    # unless the +prevent_permanent_checkout+ argument is set to +true+.
+    def with_connection(prevent_permanent_checkout: false, &block)
+      connection_pool.with_connection(prevent_permanent_checkout: prevent_permanent_checkout, &block)
     end
 
     attr_writer :connection_specification_name

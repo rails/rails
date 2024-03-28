@@ -10,7 +10,7 @@ require "models/event"
 module ActiveRecord
   class AdapterPreventWritesTest < ActiveRecord::TestCase
     def setup
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
     end
 
     def test_preventing_writes_predicate
@@ -79,7 +79,7 @@ module ActiveRecord
       end
     end
 
-    if ActiveRecord::Base.connection.supports_common_table_expressions?
+    if ActiveRecord::Base.lease_connection.supports_common_table_expressions?
       def test_doesnt_error_when_a_read_query_with_a_cte_is_called_while_preventing_writes
         @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
 

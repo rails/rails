@@ -128,7 +128,7 @@ module ActiveRecord
             assert_not ActiveRecord::Base.connected_to?(role: :writing, shard: :default)
             assert_not ActiveRecord::Base.connected_to?(role: :writing, shard: :shard_one)
             assert_not ActiveRecord::Base.connected_to?(role: :reading, shard: :shard_one)
-            assert_predicate ActiveRecord::Base.connection, :preventing_writes?
+            assert_predicate ActiveRecord::Base.lease_connection, :preventing_writes?
           end
 
           ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
@@ -137,7 +137,7 @@ module ActiveRecord
             assert_not ActiveRecord::Base.connected_to?(role: :reading, shard: :default)
             assert_not ActiveRecord::Base.connected_to?(role: :reading, shard: :shard_one)
             assert_not ActiveRecord::Base.connected_to?(role: :writing, shard: :shard_one)
-            assert_not_predicate ActiveRecord::Base.connection, :preventing_writes?
+            assert_not_predicate ActiveRecord::Base.lease_connection, :preventing_writes?
           end
 
           ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
@@ -146,7 +146,7 @@ module ActiveRecord
             assert_not ActiveRecord::Base.connected_to?(role: :writing, shard: :shard_one)
             assert_not ActiveRecord::Base.connected_to?(role: :writing, shard: :default)
             assert_not ActiveRecord::Base.connected_to?(role: :reading, shard: :default)
-            assert_predicate ActiveRecord::Base.connection, :preventing_writes?
+            assert_predicate ActiveRecord::Base.lease_connection, :preventing_writes?
           end
 
           ActiveRecord::Base.connected_to(role: :writing, shard: :shard_one) do
@@ -155,7 +155,7 @@ module ActiveRecord
             assert_not ActiveRecord::Base.connected_to?(role: :reading, shard: :shard_one)
             assert_not ActiveRecord::Base.connected_to?(role: :reading, shard: :default)
             assert_not ActiveRecord::Base.connected_to?(role: :writing, shard: :default)
-            assert_not_predicate ActiveRecord::Base.connection, :preventing_writes?
+            assert_not_predicate ActiveRecord::Base.lease_connection, :preventing_writes?
           end
         ensure
           ActiveRecord::Base.configurations = @prev_configs
@@ -323,10 +323,10 @@ module ActiveRecord
         SomeOtherBase.connects_to shards: { one: { writing: { database: ":memory:", adapter: "sqlite3" } } }
 
         ActiveRecord::Base.connected_to(role: :writing, shard: :one) do
-          ShardConnectionTestModel.connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
+          ShardConnectionTestModel.lease_connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
           ShardConnectionTestModel.create!(shard_key: "test_model_default")
 
-          ShardConnectionTestModelB.connection.execute("CREATE TABLE `shard_connection_test_model_bs` (shard_key VARCHAR (255))")
+          ShardConnectionTestModelB.lease_connection.execute("CREATE TABLE `shard_connection_test_model_bs` (shard_key VARCHAR (255))")
           ShardConnectionTestModelB.create!(shard_key: "test_model_b_default")
 
           assert_equal "test_model_default", ShardConnectionTestModel.where(shard_key: "test_model_default").first.shard_key
@@ -342,7 +342,7 @@ module ActiveRecord
 
         [:default, :one].each do |shard_name|
           ActiveRecord::Base.connected_to(role: :writing, shard: shard_name) do
-            ShardConnectionTestModel.connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
+            ShardConnectionTestModel.lease_connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
           end
         end
 
@@ -378,27 +378,27 @@ module ActiveRecord
 
         [:default, :one].each do |shard_name|
           ActiveRecord::Base.connected_to(role: :writing, shard: shard_name) do
-            ShardConnectionTestModel.connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
-            ShardConnectionTestModel.connection.execute("INSERT INTO `shard_connection_test_models` VALUES ('shard_key_#{shard_name}')")
+            ShardConnectionTestModel.lease_connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
+            ShardConnectionTestModel.lease_connection.execute("INSERT INTO `shard_connection_test_models` VALUES ('shard_key_#{shard_name}')")
           end
         end
 
         shard_one_latch = Concurrent::CountDownLatch.new
         shard_default_latch = Concurrent::CountDownLatch.new
 
-        ShardConnectionTestModel.connection
+        ShardConnectionTestModel.lease_connection
 
         thread = Thread.new do
-          ShardConnectionTestModel.connection
+          ShardConnectionTestModel.lease_connection
 
           shard_default_latch.wait
-          assert_equal "shard_key_default", ShardConnectionTestModel.connection.select_value("SELECT shard_key from shard_connection_test_models")
+          assert_equal "shard_key_default", ShardConnectionTestModel.lease_connection.select_value("SELECT shard_key from shard_connection_test_models")
           shard_one_latch.count_down
         end
 
         ActiveRecord::Base.connected_to(role: :writing, shard: :one) do
           shard_default_latch.count_down
-          assert_equal "shard_key_one", ShardConnectionTestModel.connection.select_value("SELECT shard_key from shard_connection_test_models")
+          assert_equal "shard_key_one", ShardConnectionTestModel.lease_connection.select_value("SELECT shard_key from shard_connection_test_models")
           shard_one_latch.wait
         end
 
@@ -423,32 +423,32 @@ module ActiveRecord
 
         [:default, :one].each do |shard_name|
           ActiveRecord::Base.connected_to(role: :writing, shard: shard_name) do
-            ShardConnectionTestModel.connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
-            ShardConnectionTestModel.connection.execute("INSERT INTO `shard_connection_test_models` VALUES ('shard_key_#{shard_name}')")
+            ShardConnectionTestModel.lease_connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
+            ShardConnectionTestModel.lease_connection.execute("INSERT INTO `shard_connection_test_models` VALUES ('shard_key_#{shard_name}')")
           end
 
           ActiveRecord::Base.connected_to(role: :secondary, shard: shard_name) do
-            ShardConnectionTestModel.connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
-            ShardConnectionTestModel.connection.execute("INSERT INTO `shard_connection_test_models` VALUES ('shard_key_#{shard_name}_secondary')")
+            ShardConnectionTestModel.lease_connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
+            ShardConnectionTestModel.lease_connection.execute("INSERT INTO `shard_connection_test_models` VALUES ('shard_key_#{shard_name}_secondary')")
           end
         end
 
         shard_one_latch = Concurrent::CountDownLatch.new
         shard_default_latch = Concurrent::CountDownLatch.new
 
-        ShardConnectionTestModel.connection
+        ShardConnectionTestModel.lease_connection
 
         thread = Thread.new do
-          ShardConnectionTestModel.connection
+          ShardConnectionTestModel.lease_connection
 
           shard_default_latch.wait
-          assert_equal "shard_key_default", ShardConnectionTestModel.connection.select_value("SELECT shard_key from shard_connection_test_models")
+          assert_equal "shard_key_default", ShardConnectionTestModel.lease_connection.select_value("SELECT shard_key from shard_connection_test_models")
           shard_one_latch.count_down
         end
 
         ActiveRecord::Base.connected_to(shard: :one, role: :secondary) do
           shard_default_latch.count_down
-          assert_equal "shard_key_one_secondary", ShardConnectionTestModel.connection.select_value("SELECT shard_key from shard_connection_test_models")
+          assert_equal "shard_key_one_secondary", ShardConnectionTestModel.lease_connection.select_value("SELECT shard_key from shard_connection_test_models")
           shard_one_latch.wait
         end
 
@@ -486,42 +486,42 @@ module ActiveRecord
 
         [:default, :one].each do |shard_name|
           ActiveRecord::Base.connected_to(role: :writing, shard: shard_name) do
-            ShardConnectionTestModel.connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
-            ShardConnectionTestModel.connection.execute("INSERT INTO `shard_connection_test_models` VALUES ('shard_key_#{shard_name}')")
-            ShardConnectionTestModelB.connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
-            ShardConnectionTestModelB.connection.execute("INSERT INTO `shard_connection_test_models` VALUES ('shard_key_#{shard_name}_b')")
+            ShardConnectionTestModel.lease_connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
+            ShardConnectionTestModel.lease_connection.execute("INSERT INTO `shard_connection_test_models` VALUES ('shard_key_#{shard_name}')")
+            ShardConnectionTestModelB.lease_connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
+            ShardConnectionTestModelB.lease_connection.execute("INSERT INTO `shard_connection_test_models` VALUES ('shard_key_#{shard_name}_b')")
           end
 
           ActiveRecord::Base.connected_to(role: :secondary, shard: shard_name) do
-            ShardConnectionTestModel.connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
-            ShardConnectionTestModel.connection.execute("INSERT INTO `shard_connection_test_models` VALUES ('shard_key_#{shard_name}_secondary')")
-            ShardConnectionTestModelB.connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
-            ShardConnectionTestModelB.connection.execute("INSERT INTO `shard_connection_test_models` VALUES ('shard_key_#{shard_name}_secondary_b')")
+            ShardConnectionTestModel.lease_connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
+            ShardConnectionTestModel.lease_connection.execute("INSERT INTO `shard_connection_test_models` VALUES ('shard_key_#{shard_name}_secondary')")
+            ShardConnectionTestModelB.lease_connection.execute("CREATE TABLE `shard_connection_test_models` (shard_key VARCHAR (255))")
+            ShardConnectionTestModelB.lease_connection.execute("INSERT INTO `shard_connection_test_models` VALUES ('shard_key_#{shard_name}_secondary_b')")
           end
         end
 
         shard_one_latch = Concurrent::CountDownLatch.new
         shard_default_latch = Concurrent::CountDownLatch.new
 
-        ShardConnectionTestModel.connection
+        ShardConnectionTestModel.lease_connection
 
         thread = Thread.new do
-          ShardConnectionTestModel.connection
+          ShardConnectionTestModel.lease_connection
 
           shard_default_latch.wait
-          assert_equal "shard_key_default", ShardConnectionTestModel.connection.select_value("SELECT shard_key from shard_connection_test_models")
-          assert_equal "shard_key_default_b", ShardConnectionTestModelB.connection.select_value("SELECT shard_key from shard_connection_test_models")
+          assert_equal "shard_key_default", ShardConnectionTestModel.lease_connection.select_value("SELECT shard_key from shard_connection_test_models")
+          assert_equal "shard_key_default_b", ShardConnectionTestModelB.lease_connection.select_value("SELECT shard_key from shard_connection_test_models")
           shard_one_latch.count_down
         end
 
         SecondaryBase.connected_to(shard: :one, role: :secondary) do
           shard_default_latch.count_down
-          assert_equal "shard_key_one_secondary", ShardConnectionTestModel.connection.select_value("SELECT shard_key from shard_connection_test_models")
-          assert_equal "shard_key_default_b", ShardConnectionTestModelB.connection.select_value("SELECT shard_key from shard_connection_test_models")
+          assert_equal "shard_key_one_secondary", ShardConnectionTestModel.lease_connection.select_value("SELECT shard_key from shard_connection_test_models")
+          assert_equal "shard_key_default_b", ShardConnectionTestModelB.lease_connection.select_value("SELECT shard_key from shard_connection_test_models")
 
           SomeOtherBase.connected_to(shard: :one, role: :secondary) do
-            assert_equal "shard_key_one_secondary", ShardConnectionTestModel.connection.select_value("SELECT shard_key from shard_connection_test_models")
-            assert_equal "shard_key_one_secondary_b", ShardConnectionTestModelB.connection.select_value("SELECT shard_key from shard_connection_test_models")
+            assert_equal "shard_key_one_secondary", ShardConnectionTestModel.lease_connection.select_value("SELECT shard_key from shard_connection_test_models")
+            assert_equal "shard_key_one_secondary_b", ShardConnectionTestModelB.lease_connection.select_value("SELECT shard_key from shard_connection_test_models")
           end
           shard_one_latch.wait
         end

@@ -512,8 +512,8 @@ render "messages/message"
 Rendering the partial with local variables not specified in the `local:` magic comment will also raise an exception:
 
 ```ruby
-render "messages/message", greeting: "will raise"
-# => ActionView::Template::Error: missing local: :greeting for app/views/messages/_message.html.erb
+render "messages/message", unknown_local: "will raise"
+# => ActionView::Template::Error: unknown local: :unknown_local for app/views/messages/_message.html.erb
 ```
 
 You can allow optional local variable arguments with the double splat `**` operator:

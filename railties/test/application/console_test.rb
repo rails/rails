@@ -109,7 +109,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
       class Post < ActiveRecord::Base
       end
     CODE
-    system "#{app_path}/bin/rails runner 'Post.connection.create_table :posts'"
+    system "#{app_path}/bin/rails runner 'Post.lease_connection.create_table :posts'"
 
     @primary, @replica = PTY.open
   end

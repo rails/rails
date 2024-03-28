@@ -22,11 +22,17 @@ Thread.abort_on_exception = true
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveRecord.deprecator.debug = true
 
+# ActiveRecord::Base.connection is only soft deprecated but we ban it from the test suite
+# to ensure it's not used internally.
+ActiveRecord.permanent_connection_checkout = :disallowed
+
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
 
 # Quote "type" if it's a reserved word for the current connection.
-QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name("type")
+QUOTED_TYPE = ActiveRecord::Base.lease_connection.quote_column_name("type")
+
+ActiveRecord::Base.automatically_invert_plural_associations = true
 
 ActiveRecord.raise_on_assign_to_attr_readonly = true
 ActiveRecord.belongs_to_required_validates_foreign_key = false

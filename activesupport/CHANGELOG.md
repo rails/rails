@@ -1,3 +1,7 @@
+*   Updating Astana with Western Kazakhstan TZInfo identifier
+
+    *Damian Nelson*
+
 *   Add filename support for `ActiveSupport::Logger.logger_outputs_to?`
 
     ```ruby

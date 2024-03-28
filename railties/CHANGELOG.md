@@ -1,3 +1,26 @@
+*   Skip generating a `test` job in ci.yml when a new application is generated with the
+    `--skip-test` option.
+
+    *Steve Polito*
+
+*   Update the `.node-version` file conditionally generated for new applications to 20.11.1
+
+    *Steve Polito*
+
+*   Fix sanitizer vendor configuration in 7.1 defaults.
+
+    In apps where rails-html-sanitizer was not eagerly loaded, the sanitizer default could end up
+    being Rails::HTML4::Sanitizer when it should be set to Rails::HTML5::Sanitizer.
+
+    *Mike Dalessio*, *Rafael Mendonça França*
+
+*   Set `action_mailer.default_url_options` values in `development` and `test`.
+
+    Prior to this commit, new Rails applications would raise `ActionView::Template::Error`
+    if a mailer included a url built with a `*_path` helper.
+
+    *Steve Polito*
+
 *   Introduce `Rails::Generators::Testing::Assertions#assert_initializer`
 
     Compliments the existing `initializer` generator action.

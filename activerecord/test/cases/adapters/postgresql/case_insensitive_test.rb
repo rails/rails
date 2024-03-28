@@ -6,7 +6,7 @@ class PostgresqlCaseInsensitiveTest < ActiveRecord::PostgreSQLTestCase
   class Default < ActiveRecord::Base; end
 
   def test_case_insensitiveness
-    connection = ActiveRecord::Base.connection
+    connection = ActiveRecord::Base.lease_connection
 
     attr = Default.arel_table[:char1]
     comparison = connection.case_insensitive_comparison(attr, nil)

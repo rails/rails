@@ -6,7 +6,7 @@ require "models/reply"
 require "models/author"
 require "models/post"
 
-if ActiveRecord::Base.connection.prepared_statements
+if ActiveRecord::Base.lease_connection.prepared_statements
   module ActiveRecord
     class BindParameterTest < ActiveRecord::TestCase
       fixtures :topics, :authors, :author_addresses, :posts
@@ -25,7 +25,7 @@ if ActiveRecord::Base.connection.prepared_statements
 
       def setup
         super
-        @connection = ActiveRecord::Base.connection
+        @connection = ActiveRecord::Base.lease_connection
         @subscriber = LogListener.new
         @subscription = ActiveSupport::Notifications.subscribe("sql.active_record", @subscriber)
       end

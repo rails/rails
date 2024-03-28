@@ -166,8 +166,8 @@ class AssociationsTest < ActiveRecord::TestCase
       comment.blog_post
     end.first
 
-    assert_match(/#{Regexp.escape(Sharded::BlogPost.connection.quote_table_name("sharded_blog_posts.blog_id"))} =/, sql)
-    assert_match(/#{Regexp.escape(Sharded::BlogPost.connection.quote_table_name("sharded_blog_posts.id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::BlogPost.lease_connection.quote_table_name("sharded_blog_posts.blog_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::BlogPost.lease_connection.quote_table_name("sharded_blog_posts.id"))} =/, sql)
   end
 
   def test_querying_by_whole_associated_records_using_query_constraints
@@ -196,36 +196,26 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal(expected_posts.map(&:id).sort, blog_posts.map(&:id).sort)
   end
 
-  def test_has_many_with_foreign_key_as_an_array_raises
-    expected_message = <<~MSG.squish
-      Passing [:blog_id, :blog_post_id] array to :foreign_key option
-      on the Sharded::BlogPost#broken_array_fk_comments association is not supported.
-      Use the query_constraints: [:blog_id, :blog_post_id] option instead to represent a composite foreign key.
-    MSG
-    assert_raises ArgumentError, match: expected_message do
-      Sharded::BlogPost.has_many :broken_array_fk_comments,
-        class_name: "Sharded::Comment", foreign_key: [:blog_id, :blog_post_id]
-    end
-  end
-
-  def test_belongs_to_with_foreign_key_as_an_array_raises
-    expected_message = <<~MSG.squish
-      Passing [:blog_id, :blog_post_id] array to :foreign_key option
-      on the Sharded::Comment#broken_array_fk_blog_post association is not supported.
-      Use the query_constraints: [:blog_id, :blog_post_id] option instead to represent a composite foreign key.
-    MSG
-    assert_raises ArgumentError, match: expected_message do
-      Sharded::Comment.belongs_to :broken_array_fk_blog_post,
-        class_name: "Sharded::Blog", foreign_key: [:blog_id, :blog_post_id]
-    end
-  end
-
   def test_has_many_association_with_composite_foreign_key_loads_records
     blog_post = sharded_blog_posts(:great_post_blog_one)
 
     comments = blog_post.comments.to_a
     assert_includes(comments, sharded_comments(:wow_comment_blog_post_one))
     assert_includes(comments, sharded_comments(:great_comment_blog_post_one))
+  end
+
+  def test_belongs_to_with_explicit_composite_foreign_key
+    car = Cpk::Car.create(make: "Tesla", model: "Model S")
+    review = Cpk::CarReview.create(car: car, comment: "Great car!", rating: 5)
+
+    review.reload
+
+    sql = capture_sql do
+      assert_equal(car, review.car)
+    end
+
+    assert_match(/#{Regexp.escape(Cpk::Car.lease_connection.quote_table_name("cpk_cars.make"))} =/, sql.first)
+    assert_match(/#{Regexp.escape(Cpk::Car.lease_connection.quote_table_name("cpk_cars.model"))} =/, sql.first)
   end
 
   def test_cpk_model_has_many_records_by_id_attribute
@@ -246,7 +236,7 @@ class AssociationsTest < ActiveRecord::TestCase
       comments = blog_post.comments.to_a
     end.first
 
-    assert_match(/WHERE .*#{Regexp.escape(Sharded::Comment.connection.quote_table_name("sharded_comments.blog_id"))} =/, sql)
+    assert_match(/WHERE .*#{Regexp.escape(Sharded::Comment.lease_connection.quote_table_name("sharded_comments.blog_id"))} =/, sql)
     assert_not_empty(comments)
     assert_equal(expected_comments.sort, comments.sort)
   end
@@ -270,8 +260,8 @@ class AssociationsTest < ActiveRecord::TestCase
       blog_post.comments.to_a
     end.first
 
-    assert_match(/#{Regexp.escape(Sharded::Comment.connection.quote_table_name("sharded_comments.blog_post_id"))} =/, sql)
-    assert_match(/#{Regexp.escape(Sharded::Comment.connection.quote_table_name("sharded_comments.blog_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::Comment.lease_connection.quote_table_name("sharded_comments.blog_post_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::Comment.lease_connection.quote_table_name("sharded_comments.blog_id"))} =/, sql)
   end
 
   def test_belongs_to_association_does_not_use_parent_query_constraints_if_not_configured_to
@@ -368,14 +358,29 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal(another_blog.id, comment.blog_id)
   end
 
-  def test_query_constraints_that_dont_include_the_primary_key_raise
+  def test_query_constraints_that_dont_include_the_primary_key_raise_with_a_single_column
     original = Sharded::BlogPost.instance_variable_get(:@query_constraints_list)
-    Sharded::BlogPost.query_constraints :title, :revision
-    Sharded::BlogPost.has_many :comments_without_query_constraints, primary_key: [:blog_id, :id], class_name: "Comment"
+    Sharded::BlogPost.query_constraints :title
+    Sharded::BlogPost.has_many :comments_without_single_column_query_constraints, primary_key: [:blog_id, :id], class_name: "Comment"
     blog_post = sharded_blog_posts(:great_post_blog_one)
 
     error = assert_raises ArgumentError do
-      blog_post.comments_without_query_constraints.to_a
+      blog_post.comments_without_single_column_query_constraints.to_a
+    end
+
+    assert_equal "The query constraints on the `Sharded::BlogPost` model does not include the primary key so Active Record is unable to derive the foreign key constraints for the association. You need to explicitly define the query constraints for this association.", error.message
+  ensure
+    Sharded::BlogPost.instance_variable_set(:@query_constraints_list, original)
+  end
+
+  def test_query_constraints_that_dont_include_the_primary_key_raise_with_multiple_columns
+    original = Sharded::BlogPost.instance_variable_get(:@query_constraints_list)
+    Sharded::BlogPost.query_constraints :title, :revision
+    Sharded::BlogPost.has_many :comments_without_multiple_column_query_constraints, primary_key: [:blog_id, :id], class_name: "Comment"
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+
+    error = assert_raises ArgumentError do
+      blog_post.comments_without_multiple_column_query_constraints.to_a
     end
 
     assert_equal "The query constraints on the `Sharded::BlogPost` model does not include the primary key so Active Record is unable to derive the foreign key constraints for the association. You need to explicitly define the query constraints for this association.", error.message
@@ -1478,7 +1483,7 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_equal 2, sql.size
     preload_sql = sql.last
 
-    c = Cpk::OrderAgreement.connection
+    c = Cpk::OrderAgreement.lease_connection
     order_id_column = Regexp.escape(c.quote_table_name("cpk_order_agreements.order_id"))
     order_id_constraint = /#{order_id_column} = (\?|(\d+)|\$\d)$/
     expectation = /SELECT.*WHERE.* #{order_id_constraint}/
@@ -1500,7 +1505,7 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_equal 2, sql.size
     preload_sql = sql.last
 
-    c = Cpk::Order.connection
+    c = Cpk::Order.lease_connection
     order_id = Regexp.escape(c.quote_table_name("cpk_orders.id"))
     order_constraint = /#{order_id} = (\?|(\d+)|\$\d)$/
     expectation = /SELECT.*WHERE.* #{order_constraint}/

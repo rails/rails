@@ -7,7 +7,7 @@ require "securerandom"
 class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
   def setup
     super
-    @conn = ActiveRecord::Base.connection
+    @conn = ActiveRecord::Base.lease_connection
   end
 
   def test_quote_string

@@ -6,7 +6,7 @@ class CopyTableTest < ActiveRecord::SQLite3TestCase
   fixtures :customers
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   def test_copy_table(from = "customers", to = "customers2", options = {})
