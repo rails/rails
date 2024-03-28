@@ -40,51 +40,44 @@ module ActionController
     #
     # #### Options
     #
-    # `:etag`
-    # :   Sets a "weak" ETag validator on the response. See the `:weak_etag` option.
+    # `:etag`: Sets a "weak" ETag validator on the response. See the `:weak_etag`
+    # option.
     #
-    # `:weak_etag`
-    # :   Sets a "weak" ETag validator on the response. Requests that specify an
-    #     `If-None-Match` header may receive a `304 Not Modified` response if the
-    #     ETag matches exactly.
+    # `:weak_etag`: Sets a "weak" ETag validator on the response. Requests that
+    # specify an `If-None-Match` header may receive a `304 Not Modified` response
+    # if the ETag matches exactly.
     #
-    #     A weak ETag indicates semantic equivalence, not byte-for-byte equality, so
-    #     they're good for caching HTML pages in browser caches. They can't be used
-    #     for responses that must be byte-identical, like serving `Range` requests
-    #     within a PDF file.
+    # A weak ETag indicates semantic equivalence, not byte-for-byte equality, so
+    # they're good for caching HTML pages in browser caches. They can't be used
+    # for responses that must be byte-identical, like serving `Range` requests
+    # within a PDF file.
     #
-    # `:strong_etag`
-    # :   Sets a "strong" ETag validator on the response. Requests that specify an
-    #     `If-None-Match` header may receive a `304 Not Modified` response if the
-    #     ETag matches exactly.
+    # `:strong_etag`: Sets a "strong" ETag validator on the response. Requests
+    # that specify an `If-None-Match` header may receive a `304 Not Modified`
+    # response if the ETag matches exactly.
     #
-    #     A strong ETag implies exact equality -- the response must match byte for
-    #     byte. This is necessary for serving `Range` requests within a large video
-    #     or PDF file, for example, or for compatibility with some CDNs that don't
-    #     support weak ETags.
+    # A strong ETag implies exact equality -- the response must match byte for
+    # byte. This is necessary for serving `Range` requests within a large video
+    # or PDF file, for example, or for compatibility with some CDNs that don't
+    # support weak ETags.
     #
-    # `:last_modified`
-    # :   Sets a "weak" last-update validator on the response. Subsequent requests
-    #     that specify an `If-Modified-Since` header may receive a `304 Not
-    #     Modified` response if `last_modified` <= `If-Modified-Since`.
+    # `:last_modified`: Sets a "weak" last-update validator on the response.
+    # Subsequent requests that specify an `If-Modified-Since` header may receive
+    # a `304 Not Modified` response if `last_modified` <= `If-Modified-Since`.
     #
-    # `:public`
-    # :   By default the `Cache-Control` header is private. Set this option to
-    #     `true` if you want your application to be cacheable by other devices, such
-    #     as proxy caches.
+    # `:public`: By default the `Cache-Control` header is private. Set this option to
+    # `true` if you want your application to be cacheable by other devices, such
+    # as proxy caches.
     #
-    # `:cache_control`
-    # :   When given, will overwrite an existing `Cache-Control` header. For a list
-    #     of `Cache-Control` directives, see the [article on
-    #     MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Contr
-    #     ol).
+    # `:cache_control`: When given, will overwrite an existing `Cache-Control`
+    # header. For a list of `Cache-Control` directives, see the
+    # [article on MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control).
     #
-    # `:template`
-    # :   By default, the template digest for the current controller/action is
-    #     included in ETags. If the action renders a different template, you can
-    #     include its digest instead. If the action doesn't render a template at
-    #     all, you can pass `template: false` to skip any attempt to check for a
-    #     template digest.
+    # `:template`: By default, the template digest for the current controller/action is
+    # included in ETags. If the action renders a different template, you can
+    # include its digest instead. If the action doesn't render a template at
+    # all, you can pass `template: false` to skip any attempt to check for a
+    # template digest.
     #
     #
     # #### Examples
@@ -247,19 +240,14 @@ module ActionController
     #
     # #### Options
     #
-    # `:public`
-    # :   If true, replaces the default `private` directive with the `public`
-    #     directive.
+    # `:public`: If true, replaces the default `private` directive with the `public`
+    #  directive.
     #
-    # `:must_revalidate`
-    # :   If true, adds the `must-revalidate` directive.
+    # `:must_revalidate`: If true, adds the `must-revalidate` directive.
     #
-    # `:stale_while_revalidate`
-    # :   Sets the value of the `stale-while-revalidate` directive.
+    # `:stale_while_revalidate`: Sets the value of the `stale-while-revalidate` directive.
     #
-    # `:stale_if_error`
-    # :   Sets the value of the `stale-if-error` directive.
-    #
+    # `:stale_if_error`: Sets the value of the `stale-if-error` directive.
     #
     # Any additional key-value pairs are concatenated as directives. For a list of
     # supported `Cache-Control` directives, see the [article on
@@ -312,9 +300,9 @@ module ActionController
     # You can use this method when you have an HTTP response that never changes, and
     # the browser and proxies should cache it indefinitely.
     #
-    # *   `public`: By default, HTTP responses are private, cached only on the
-    #     user's web browser. To allow proxies to cache the response, set `true` to
-    #     indicate that they can serve the cached response to all users.
+    # `public`: By default, HTTP responses are private, cached only on the
+    #  user's web browser. To allow proxies to cache the response, set `true` to
+    #  indicate that they can serve the cached response to all users.
     def http_cache_forever(public: false)
       expires_in 100.years, public: public
 
