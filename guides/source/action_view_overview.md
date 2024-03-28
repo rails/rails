@@ -229,7 +229,7 @@ A "partial-local variable" is a variable that is local to a given partial and on
 
 Note that typically we'd simply call this local variable `product`. We are using `my_product` to distinguish it from the instance variable name and template name in this example.
 
-Since `locals` is a hash, you can pass in multiple variables as need like `locals: { my_product: @product, my_reviews: @reviews }`.
+Since `locals` is a hash, you can pass in multiple variables as needed, like `locals: { my_product: @product, my_reviews: @reviews }`.
 
 However, if a template refers to a variable that *isn't* passed into the view as
 part of the `locals:` option, the template will raise an
