@@ -15,6 +15,10 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :backburner
     class BackburnerAdapter
+      def enqueue_after_transaction_commit? # :nodoc:
+        true
+      end
+
       def enqueue(job) # :nodoc:
         response = Backburner::Worker.enqueue(JobWrapper, [job.serialize], queue: job.queue_name, pri: job.priority)
         job.provider_job_id = response[:id] if response.is_a?(Hash)

@@ -18,6 +18,10 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :sucker_punch
     class SuckerPunchAdapter
+      def enqueue_after_transaction_commit? # :nodoc:
+        true
+      end
+
       def enqueue(job) # :nodoc:
         if JobWrapper.respond_to?(:perform_async)
           # sucker_punch 2.0 API

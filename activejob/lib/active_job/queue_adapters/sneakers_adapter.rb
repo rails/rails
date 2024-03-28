@@ -22,6 +22,10 @@ module ActiveJob
         @monitor = Monitor.new
       end
 
+      def enqueue_after_transaction_commit? # :nodoc:
+        true
+      end
+
       def enqueue(job) # :nodoc:
         @monitor.synchronize do
           JobWrapper.from_queue job.queue_name

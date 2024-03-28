@@ -18,6 +18,10 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :sidekiq
     class SidekiqAdapter
+      def enqueue_after_transaction_commit? # :nodoc:
+        true
+      end
+
       def enqueue(job) # :nodoc:
         job.provider_job_id = JobWrapper.set(
           wrapped: job.class,

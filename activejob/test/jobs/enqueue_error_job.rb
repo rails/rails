@@ -7,6 +7,10 @@ class EnqueueErrorJob < ActiveJob::Base
     end
     self.should_raise_sequence = []
 
+    def enqueue_after_transaction_commit?
+      false
+    end
+
     def enqueue(*)
       raise ActiveJob::EnqueueError, "There was an error enqueuing the job" if should_raise?
     end

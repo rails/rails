@@ -36,6 +36,10 @@ module ActiveJob
         @scheduler = Scheduler.new(**executor_options)
       end
 
+      def enqueue_after_transaction_commit? # :nodoc:
+        true
+      end
+
       def enqueue(job) # :nodoc:
         @scheduler.enqueue JobWrapper.new(job), queue_name: job.queue_name
       end

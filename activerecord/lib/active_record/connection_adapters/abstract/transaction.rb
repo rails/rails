@@ -116,6 +116,7 @@ module ActiveRecord
       def invalidated?; false; end
       def invalidate!; end
       def materialized?; false; end
+      def after_commit; yield; end
     end
 
     class Transaction # :nodoc:
@@ -135,6 +136,11 @@ module ActiveRecord
         @lazy_enrollment_records = nil
         @dirty = false
         @instrumenter = TransactionInstrumenter.new(connection: connection)
+        @after_commit_callbacks = nil
+      end
+
+      def after_commit(&block)
+        (@after_commit_callbacks ||= []) << block
       end
 
       def dirty!
@@ -227,24 +233,40 @@ module ActiveRecord
       end
 
       def commit_records
-        return unless records
+        if records
+          begin
+            ite = unique_records
 
-        ite = unique_records
+            if @run_commit_callbacks
+              instances_to_run_callbacks_on = prepare_instances_to_run_callbacks_on(ite)
 
-        if @run_commit_callbacks
-          instances_to_run_callbacks_on = prepare_instances_to_run_callbacks_on(ite)
-
-          run_action_on_records(ite, instances_to_run_callbacks_on) do |record, should_run_callbacks|
-            record.committed!(should_run_callbacks: should_run_callbacks)
-          end
-        else
-          while record = ite.shift
-            # if not running callbacks, only adds the record to the parent transaction
-            connection.add_transaction_record(record)
+              run_action_on_records(ite, instances_to_run_callbacks_on) do |record, should_run_callbacks|
+                record.committed!(should_run_callbacks: should_run_callbacks)
+              end
+            else
+              while record = ite.shift
+                # if not running callbacks, only adds the record to the parent transaction
+                connection.add_transaction_record(record)
+              end
+            end
+          ensure
+            ite&.each { |i| i.committed!(should_run_callbacks: false) }
           end
         end
-      ensure
-        ite&.each { |i| i.committed!(should_run_callbacks: false) }
+
+        if @after_commit_callbacks
+          callbacks = @after_commit_callbacks
+
+          if @run_commit_callbacks
+            while callback = callbacks.shift
+              callback.call
+            end
+          else
+            while callback = callbacks.shift
+              connection.current_transaction.after_commit(&callback)
+            end
+          end
+        end
       end
 
       def full_rollback?; true; end
