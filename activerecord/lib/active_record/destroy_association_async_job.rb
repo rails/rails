@@ -19,7 +19,7 @@ module ActiveRecord
     )
       association_model = association_class.constantize
       owner_class = owner_model_name.constantize
-      owner = owner_class.find_by(owner_class.primary_key.to_sym => owner_id)
+      owner = owner_class.find_by(owner_class.primary_key => [owner_id])
 
       if !owner_destroyed?(owner, ensuring_owner_was_method)
         raise DestroyAssociationAsyncError, "owner record not destroyed"

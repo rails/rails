@@ -12,11 +12,11 @@ module ActiveRecord
           raise ActiveRecord::Rollback unless target.destroy
         when :destroy_async
           if reflection.foreign_key.is_a?(Array)
-            primary_key_column = reflection.active_record_primary_key.map(&:to_sym)
-            id = reflection.foreign_key.map { |col| owner.public_send(col.to_sym) }
+            primary_key_column = reflection.active_record_primary_key
+            id = reflection.foreign_key.map { |col| owner.public_send(col) }
           else
-            primary_key_column = reflection.active_record_primary_key.to_sym
-            id = owner.public_send(reflection.foreign_key.to_sym)
+            primary_key_column = reflection.active_record_primary_key
+            id = owner.public_send(reflection.foreign_key)
           end
 
           enqueue_destroy_association(
