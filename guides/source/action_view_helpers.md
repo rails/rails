@@ -750,6 +750,22 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TagHelper.html#method-i-tag)
 for more information.
 
+### token_list
+
+Returns a string of tokend built from the `args` provided.
+
+```ruby
+token_list('cats', 'dogs')
+# => "cats dogs"
+
+token_list(nil, false, 123, "", "foo", { bar: true })
+# => "123 foo bar"
+
+mobile, alignment = true, "center"
+token_list("flex items-#{alignment}", "flex-col": mobile)
+# => "flex items-center flex-col"
+```
+
 ## Capture Blocks
 
 The `CaptureHelper` exposes methods to let you extract generated markup which can
