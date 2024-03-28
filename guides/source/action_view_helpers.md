@@ -524,7 +524,7 @@ for more information.
 
 ### DebugHelper
 
-Provides a set of methods for making it easier to debug Rails objects.
+Provides a method for making it easier to debug Rails objects.
 
 #### debug
 
