@@ -1,3 +1,19 @@
+*   Optimize Active Record batching further when using ranges.
+
+    When used for full table iterations, or with the `use_ranges: true` option, `in_batches`
+    previously retrieved all primary keys in the range. For example, `[10, 11, 12, ..., 20]` was
+    loaded to generate a relation in the form of `WHERE id > 10 AND id <= 20` for a batch.
+
+    But since `10` would already be known from the previous iteration, it only needs to retrieve
+    the last key in the range (`20`) using a `LIMIT 1 OFFSET ω` construct (ω = batch size - 1),
+    thus avoiding the unnecessary loading and discarding of all other primary keys in the range.
+
+    E.g., tested on a PostgreSQL table with 10M records and batches of 10k records, the
+    generation of relations for the 1000 batches was `x2.4` times faster (`5.6s` vs `2.3s`) and
+    used `x900` less bandwidth (`180MB` vs. less than `0.2MB`).
+
+    *Maxime Réty*
+
 *   Retry known idempotent SELECT queries on connection-related exceptions
 
     SELECT queries we construct by walking the Arel tree and / or with known model attributes
