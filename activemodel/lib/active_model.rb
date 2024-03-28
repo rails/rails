@@ -49,6 +49,7 @@ module ActiveModel
   autoload :Model
   autoload :Name, "active_model/naming"
   autoload :Naming
+  autoload :NestedAttributes
   autoload :SecurePassword
   autoload :Serialization
   autoload :Translation
