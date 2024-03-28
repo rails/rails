@@ -128,4 +128,14 @@ module CommonSubscriptionAdapterTest
       end
     end
   end
+
+  def test_large_payload_broadcast
+    message = "hello world" * 10000
+
+    subscribe_as_queue("channel") do |queue|
+      @tx_adapter.broadcast("channel", message)
+
+      assert_equal message, queue.pop
+    end
+  end
 end
