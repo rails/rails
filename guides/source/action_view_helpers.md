@@ -556,7 +556,7 @@ for more information.
 
 Form helpers simplify working with models compared to using standard HTML
 elements alone. They offer a range of methods tailored to generating forms based
-on your models. Each method corresponds to a specific type of input, such as
+on your models. Some methods correspond to a specific type of input, such as
 text fields, password fields, select dropdowns, and more. When a form is
 submitted the inputs within the form are grouped into the params object and sent
 back to the controller.
