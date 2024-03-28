@@ -20,7 +20,7 @@ Action View templates (also referred to simply as "views") are written using Emb
 
 Action View provides many [helper](#helpers) classes for dynamically generating HTML tags for forms, dates, and strings. It's also possible to add custom helpers to your application as needed.
 
-NOTE: Some features of Action View are tied to Active Record, but that doesn't mean Action View depends on Active Record. Action View is an independent package that can be used with any Ruby library.
+NOTE: Some features of Action View are tied to Active Model, but that doesn't mean Action View depends on Active Model. Action View is an independent package that can be used with any Ruby library.
 
 Using Action View with Rails
 ----------------------------
