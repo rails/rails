@@ -590,7 +590,7 @@ My name is <%= current_user.name %>, and I'm here to say "Welcome to our website
 </script>
 ```
 
-This will escape the double quotes correctly and display the greeting as in an
+This will escape the quotes correctly and display the greeting in an
 alert box.
 
 See the [API
