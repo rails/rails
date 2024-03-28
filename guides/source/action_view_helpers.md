@@ -864,8 +864,8 @@ truncate("Once upon a time in a world far far away")
 truncate("Once upon a time in a world far far away", length: 17)
 # => "Once upon a ti..."
 
-truncate("Once upon a time in a world far far away", length: 17, separator: ' ')
-# => "Once upon a..."
+truncate("one-two-three-four-five", length: 20, separator: '-')
+# => "one-two-three..."
 
 truncate("And they found that many people were sleeping better.", length: 25, omission: '... (continued)')
 # => "And they f... (continued)"
