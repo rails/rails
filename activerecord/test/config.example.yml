@@ -91,7 +91,7 @@ connections:
       socket: "<%= ENV['MYSQL_SOCK'] %>"
     <% end %>
 
-  oracle:
+  oracle_enhanced:
      arunit:
        adapter: oracle_enhanced
        database: <%= ENV['ARUNIT_DB_NAME'] || 'orcl' %>
