@@ -403,6 +403,76 @@ This also works when the local variable name is changed using the `as:` option. 
 
 Note: The following two sections, [Strick Locals](#strict-locals) and [Local Assigns with Pattern Matching](#local-assigns-with-pattern-matching) are more advance features of using partials, included here for completeness.
 
+### `local_assigns` with Pattern Matching
+
+Since `local_assigns` is a `Hash`, it's compatible with [Ruby 3.1's pattern matching assignment operator](https://docs.ruby-lang.org/en/master/syntax/pattern_matching_rdoc.html):
+
+```ruby
+local_assigns => { product:, **options }
+product # => "#<Product:0x0000000109ec5d10>"
+options # => {}
+```
+
+When keys other than `:product` are assigned into a partial-local `Hash`
+variable, they can be splatted into helper method calls:
+
+```html+erb
+<%# app/views/products/_product.html.erb %>
+
+<% local_assigns => { product:, **options } %>
+
+<%= tag.div id: dom_id(product), **options do %>
+  <h1><%= product.name %></h1>
+<% end %>
+
+<%# app/views/products/show.html.erb %>
+
+<%= render "products/product", product: @product, class: "card" %>
+<%# => <div id="product_1" class="card">
+  #      <h1>A widget</h1>
+  #    </div>
+%>
+```
+
+Pattern matching assignment also supports variable renaming:
+
+```ruby
+local_assigns => { product: record }
+product             # => "#<Product:0x0000000109ec5d10>"
+record              # => "#<Product:0x0000000109ec5d10>"
+product == record   # => true
+```
+
+You can also conditionally read a variable, then fall back to a default value when the key isn't part of the `locals:` options, using `fetch`:
+
+```html+erb
+<%# app/views/products/_product.html.erb %>
+
+<% local_assigns.fetch(:related_products, []).each do |related_product| %>
+  <%# ... %>
+<% end %>
+```
+
+Combining Ruby 3.1's pattern matching assignment with calls to [Hash#with_defaults](https://api.rubyonrails.org/classes/Hash.html#method-i-with_defaults) enables compact partial-local default variable assignments:
+
+```html+erb
+<%# app/views/products/_product.html.erb %>
+
+<% local_assigns.with_defaults(related_products: []) => { product:, related_products: } %>
+
+<%= tag.div id: dom_id(product) do %>
+  <h1><%= product.name %></h1>
+
+  <% related_products.each do |related_product| %>
+    <%# ... %>
+  <% end %>
+<% end %>
+```
+
+INFO: By default, partials will accept any `locals` as keyword arguments. To define what `locals` a partial accepts, use a `locals:` magic comment. To learn more, read about [Strict Locals](#strict-locals).
+
+[local_assigns]: https://api.rubyonrails.org/classes/ActionView/Template.html#method-i-local_assigns
+
 ### Strict Locals
 
 Action View partials will accept any number of `locals` as keyword arguments. You can enforce how many and which `locals` a template accepts, set default value, and more with a `locals:` magic comment.
@@ -475,76 +545,6 @@ Action View will process the `locals:` magic comment in any templating engine th
 
 CAUTION: Only keyword arguments are supported. Defining positional or block arguments will raise an Action View Error at render-time.
 
-### `local_assigns` with Pattern Matching
-
-Since `local_assigns` is a `Hash`, it's compatible with [Ruby 3.1's pattern matching assignment operator](https://docs.ruby-lang.org/en/master/syntax/pattern_matching_rdoc.html):
-
-```ruby
-local_assigns => { product:, **options }
-product # => "#<Product:0x0000000109ec5d10>"
-options # => {}
-```
-
-When keys other than `:product` are assigned into a partial-local `Hash`
-variable, they can be splatted into helper method calls:
-
-```html+erb
-<%# app/views/products/_product.html.erb %>
-
-<% local_assigns => { product:, **options } %>
-
-<%= tag.div id: dom_id(product), **options do %>
-  <h1><%= product.name %></h1>
-<% end %>
-
-<%# app/views/products/show.html.erb %>
-
-<%= render "products/product", product: @product, class: "card" %>
-<%# => <div id="product_1" class="card">
-  #      <h1>A widget</h1>
-  #    </div>
-%>
-```
-
-Pattern matching assignment also supports variable renaming:
-
-```ruby
-local_assigns => { product: record }
-product             # => "#<Product:0x0000000109ec5d10>"
-record              # => "#<Product:0x0000000109ec5d10>"
-product == record   # => true
-```
-
-You can also conditionally read a variable, then fall back to a default value when the key isn't part of the `locals:` options, using `fetch`:
-
-```html+erb
-<%# app/views/products/_product.html.erb %>
-
-<% local_assigns.fetch(:related_products, []).each do |related_product| %>
-  <%# ... %>
-<% end %>
-```
-
-Combining Ruby 3.1's pattern matching assignment with calls to [Hash#with_defaults](https://api.rubyonrails.org/classes/Hash.html#method-i-with_defaults) enables compact partial-local default variable assignments:
-
-```html+erb
-<%# app/views/products/_product.html.erb %>
-
-<% local_assigns.with_defaults(related_products: []) => { product:, related_products: } %>
-
-<%= tag.div id: dom_id(product) do %>
-  <h1><%= product.name %></h1>
-
-  <% related_products.each do |related_product| %>
-    <%# ... %>
-  <% end %>
-<% end %>
-```
-
-INFO: By default, partials will accept any `locals` as keyword arguments. To define what `locals` a partial accepts, use a `locals:` magic comment. To learn more, read about [Strict Locals](#strict-locals).
-
-[local_assigns]: https://api.rubyonrails.org/classes/ActionView/Template.html#method-i-local_assigns
-
 Layouts
 -------
 
@@ -552,9 +552,9 @@ Layouts can be used to render a common view template around the results of Rails
 
 For example, an application might have one layout for a logged in user and another for the marketing part of the site. The logged in user layout might include top-level navigation that should be present across many controller actions. The sales layout for a SaaS app might include top-level navigation for things like "Pricing" and "Contact Us" pages. Different layouts can have a different header and footer content.
 
-To find the layout for the current controller action, Rails first looks for a file in `app/views/layouts` with the same base name as the controller. For example, rendering actions from the PhotosController class will `use app/views/layouts/photos.html.erb` (or `app/views/layouts/photos.builder`).
+To find the layout for the current controller action, Rails first looks for a file in `app/views/layouts` with the same base name as the controller. For example, rendering actions from the PhotosController class will `use app/views/layouts/photos.html.erb`.
 
-If such a controller-specific layout does not exist, Rails will use `app/views/layouts/application.html.erb` (or `app/views/layouts/application.builder`).
+If such a controller-specific layout does not exist, Rails will use `app/views/layouts/application.html.erb`.
 
 Here is an example of a simple layout in `application.html.erb` file:
 
