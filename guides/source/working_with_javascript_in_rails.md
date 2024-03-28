@@ -87,7 +87,7 @@ development.
 
 ### Installing a JavaScript Runtime
 
-If you are using a esbuild, rollup.js or Webpack, to bundle your JavaScript in
+If you are using esbuild, rollup.js or Webpack to bundle your JavaScript in
 your Rails application, Node.js and Yarn must be installed. If you are using
 Bun, then you just need to install Bun as it is both a JavaScript runtime and a bundler.
 
