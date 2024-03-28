@@ -20,10 +20,32 @@ class ActiveStorage::StrictLoadingTest < ActiveSupport::TestCase
     end
   end
 
+  test "has_one_attached defaults to the value of strict_loading_by_default" do
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      with_strict_loading_by_default do
+        Admin.has_one_attached :document
+
+        admins = Admin.all
+        admins.as_json(include: :document)
+      end
+    end
+  end
+
   test "has_many_attached raises if strict loading and lazy loading" do
     assert_raises ActiveRecord::StrictLoadingViolationError do
       admins = Admin.all
       admins.as_json(include: :images)
+    end
+  end
+
+  test "has_many_attached defaults to the value of strict_loading_by_default" do
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      with_strict_loading_by_default do
+        Admin.has_one_attached :documents
+
+        admins = Admin.all
+        admins.as_json(include: :documents)
+      end
     end
   end
 end
