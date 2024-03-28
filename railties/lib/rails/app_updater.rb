@@ -31,9 +31,21 @@ module Rails
           options[:skip_action_cable]   = !defined?(ActionCable::Engine)
           options[:skip_test]           = !defined?(Rails::TestUnitRailtie)
           options[:skip_system_test]    = Rails.application.config.generators.system_tests.nil?
-          options[:skip_asset_pipeline] = !defined?(Sprockets::Railtie) && !defined?(Propshaft::Railtie)
+          options[:asset_pipeline]      = asset_pipeline
+          options[:skip_asset_pipeline] = asset_pipeline.nil?
           options[:skip_bootsnap]       = !defined?(Bootsnap)
           options
+        end
+
+        def asset_pipeline
+          case
+          when defined?(Sprockets::Railtie)
+            "sprockets"
+          when defined?(Propshaft::Railtie)
+            "propshaft"
+          else
+            nil
+          end
         end
     end
   end
