@@ -747,6 +747,23 @@ module ActionView
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
       # * <tt>:include_seconds</tt> - Include seconds and ms in the output timestamp format (true by default).
+      #
+      # ==== Examples
+      #
+      #   time_field_tag 'name'
+      #   # => <input id="name" name="name" type="time" />
+      #
+      #   time_field_tag 'time', '01:01'
+      #   # => <input id="time" name="time" type="time" value="01:01" />
+      #
+      #   time_field_tag 'time', nil, class: 'special_input'
+      #   # => <input class="special_input" id="time" name="time" type="time" />
+      #
+      #   time_field_tag 'time', '01:01', include_seconds: true
+      #   # => <input id="time" name="time" type="time" value="01:01:00.000" />
+      #
+      #   time_field_tag 'time', '01:01', min: '00:00', max: '23:59', step: 1
+      #   # => <input id="time" max="23:59" min="00:00" name="time" step="1" type="time" value="01:01" />
       def time_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :time))
       end
@@ -761,6 +778,20 @@ module ActionView
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
       # * <tt>:include_seconds</tt> - Include seconds in the output timestamp format (true by default).
+      #
+      # ==== Examples
+      #
+      #   datetime_field_tag 'name'
+      #   # => <input id="name" name="name" type="datetime-local" />
+      #
+      #   datetime_field_tag 'datetime', '2014-01-01T01:01'
+      #   # => <input id="datetime" name="datetime" type="datetime-local" value="2014-01-01T01:01" />
+      #
+      #   datetime_field_tag 'datetime', nil, class: 'special_input'
+      #   # => <input class="special_input" id="datetime" name="datetime" type="datetime-local" />
+      #
+      #   datetime_field_tag 'datetime', '2014-01-01T01:01', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="datetime" name="datetime" type="datetime-local" value="2014-01-01T01:01" />
       def datetime_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: "datetime-local"))
       end
@@ -776,6 +807,20 @@ module ActionView
       # * <tt>:min</tt> - The minimum acceptable value.
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
+      #
+      # ==== Examples
+      #
+      #   month_field_tag 'name'
+      #   # => <input id="name" name="name" type="month" />
+      #
+      #   month_field_tag 'month', '2014-01'
+      #   # => <input id="month" name="month" type="month" value="2014-01" />
+      #
+      #   month_field_tag 'month', nil, class: 'special_input'
+      #   # => <input class="special_input" id="month" name="month" type="month" />
+      #
+      #   month_field_tag 'month', '2014-01', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="month" name="month" type="month" value="2014-01" />
       def month_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :month))
       end
@@ -789,6 +834,20 @@ module ActionView
       # * <tt>:min</tt> - The minimum acceptable value.
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
+      #
+      # ==== Examples
+      #
+      #   week_field_tag 'name'
+      #   # => <input id="name" name="name" type="week" />
+      #
+      #   week_field_tag 'week', '2014-W01'
+      #   # => <input id="week" name="week" type="week" value="2014-W01" />
+      #
+      #   week_field_tag 'week', nil, class: 'special_input'
+      #   # => <input class="special_input" id="week" name="week" type="week" />
+      #
+      #   week_field_tag 'week', '2014-W01', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="week" name="week" type="week" value="2014-W01" />
       def week_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :week))
       end
@@ -897,6 +956,17 @@ module ActionView
       # ==== Options
       #
       # Supports the same options as #number_field_tag.
+      #
+      # ==== Examples
+      #
+      #   range_field_tag 'quantity', '1'
+      #   # => <input id="quantity" name="quantity" type="range" value="1" />
+      #
+      #   range_field_tag 'quantity', in: 1...10
+      #   # => <input id="quantity" name="quantity" min="1" max="9" type="range" />
+      #
+      #   range_field_tag 'quantity', min: 1, max: 10, step: 2
+      #   # => <input id="quantity" name="quantity" min="1" max="10" step="2" type="range"
       def range_field_tag(name, value = nil, options = {})
         number_field_tag(name, value, options.merge(type: :range))
       end
