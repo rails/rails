@@ -1,3 +1,9 @@
+*   Deprecate `tag` with positional arguments
+
+    For example, replace `tag(:div)` with `tag.div`
+
+    *Sean Doyle*
+
 *   Raise `ArgumentError` if `:renderable` object does not respond to `#render_in`
 
     *Sean Doyle*

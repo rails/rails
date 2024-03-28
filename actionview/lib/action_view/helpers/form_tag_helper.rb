@@ -261,7 +261,9 @@ module ActionView
       #   text_field_tag 'ip', '0.0.0.0', maxlength: 15, size: 20, class: "ip-input"
       #   # => <input class="ip-input" id="ip" maxlength="15" name="ip" size="20" type="text" value="0.0.0.0" />
       def text_field_tag(name, value = nil, options = {})
-        tag :input, { "type" => "text", "name" => name, "id" => sanitize_to_id(name), "value" => value }.update(options.stringify_keys)
+        ActionView.deprecator.silence do
+          tag :input, { "type" => "text", "name" => name, "id" => sanitize_to_id(name), "value" => value }.update(options.stringify_keys)
+        end
       end
 
       # Creates a label element. Accepts a block.
@@ -460,7 +462,7 @@ module ActionView
         value, checked = args.empty? ? ["1", false] : [*args, false]
         html_options = { "type" => "checkbox", "name" => name, "id" => sanitize_to_id(name), "value" => value }.update(options.stringify_keys)
         html_options["checked"] = "checked" if checked
-        tag :input, html_options
+        tag.input(**html_options)
       end
 
       ##
@@ -496,7 +498,7 @@ module ActionView
         checked = args.empty? ? false : args.first
         html_options = { "type" => "radio", "name" => name, "id" => "#{sanitize_to_id(name)}_#{sanitize_to_id(value)}", "value" => value }.update(options.stringify_keys)
         html_options["checked"] = "checked" if checked
-        tag :input, html_options
+        tag.input(**html_options)
       end
 
       # Creates a submit button with the text <tt>value</tt> as the caption.
@@ -526,7 +528,7 @@ module ActionView
         options = options.deep_stringify_keys
         tag_options = { "type" => "submit", "name" => "commit", "value" => value }.update(options)
         set_default_disable_with value, tag_options
-        tag :input, tag_options
+        ActionView.deprecator.silence { tag :input, tag_options }
       end
 
       # Creates a button element that defines a <tt>submit</tt> button,
@@ -612,7 +614,8 @@ module ActionView
       def image_submit_tag(source, options = {})
         options = options.stringify_keys
         src = path_to_image(source, skip_pipeline: options.delete("skip_pipeline"))
-        tag :input, { "type" => "image", "src" => src }.update(options)
+
+        ActionView.deprecator.silence { tag :input, { "type" => "image", "src" => src }.update(options) }
       end
 
       # Creates a field set for grouping HTML form elements.
@@ -970,7 +973,7 @@ module ActionView
 
         def form_tag_html(html_options)
           extra_tags = extra_tags_for_form(html_options)
-          html = tag(:form, html_options, true) + extra_tags
+          html = ActionView.deprecator.silence { tag(:form, html_options, true) } + extra_tags
           prevent_content_exfiltration(html)
         end
 
