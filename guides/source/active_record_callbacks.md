@@ -270,8 +270,10 @@ Update Cache
 
 #### Create Callbacks
 
-Create callbacks are triggered by the `create` method. They can be called
-before, after, and around the object is created.
+Create callbacks are triggered whenever the record is persisted (i.e. "saved")
+to the underlying database **for the first time**, in other words, when we're
+saving a new record, via the `create`, `save`, or `update` methods. They are
+called before, after and around the object is created.
 
 ```ruby
 class User < ApplicationRecord
@@ -498,10 +500,10 @@ end
 ```
 
 ```irb
-irb> u = User.create(name: 'Kuldeep')
+irb> user = User.create(name: 'Kuldeep')
 => #<User id: 1, name: "Kuldeep", created_at: "2013-11-25 12:17:49", updated_at: "2013-11-25 12:17:49">
 
-irb> u.touch
+irb> user.touch
 You have touched an object
 => true
 ```
@@ -528,10 +530,10 @@ end
 ```
 
 ```irb
-irb> @book = Book.last
+irb> book = Book.last
 => #<Book id: 1, library_id: 1, created_at: "2013-11-25 17:04:22", updated_at: "2013-11-25 17:05:05">
 
-irb> @book.touch # triggers @book.library.touch
+irb> book.touch # triggers book.library.touch
 A Book was touched
 Book/Library was touched
 => true
@@ -685,15 +687,16 @@ association callbacks:
 * `after_remove`
 
 You define association callbacks by adding options to the association
-declaration. For example:
+declaration. For example
 
 ```ruby
 class Author < ApplicationRecord
   has_many :books, before_add: :check_credit_limit
 
-  def check_credit_limit(book)
-    # ...
-  end
+  private
+    def check_credit_limit(book)
+      # ...
+    end
 end
 ```
 
@@ -992,9 +995,9 @@ end
 ```
 
 ```irb
-irb> @user = User.create # prints nothing
+irb> user = User.create # prints nothing
 
-irb> @user.save # updating @user
+irb> user.save # updating @user
 User was saved to database
 ```
 
@@ -1015,10 +1018,10 @@ end
 ```
 
 ```irb
-irb> @user = User.create # creating a User
+irb> user = User.create # creating a User
 User was saved to database
 
-irb> @user.save # updating @user
+irb> user.save # updating user
 User was saved to database
 ```
 
