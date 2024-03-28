@@ -10,6 +10,7 @@ require "models/ship"
 require "models/speedometer"
 require "models/subscription"
 require "models/subscriber"
+require "models/geometric_data"
 
 class ReadonlyNameBook < Book
   attr_readonly :name
@@ -685,6 +686,24 @@ class InsertAllTest < ActiveRecord::TestCase
                  Measurement.where(city_id: 1).pluck(:logdate, :peaktemp, :unitsales)
     assert_equal [[2.days.ago.to_date, 2, 2], [3.days.ago.to_date, 0, 0]],
                  Measurement.where(city_id: 2).pluck(:logdate, :peaktemp, :unitsales)
+  end
+
+  def test_upsert_with_geometric_data_type
+    skip unless supports_insert_on_duplicate_update? && current_adapter?(:PostgreSQLAdapter)
+
+    GeometricData.upsert_all([
+      identifier: "identifier1",
+      point_col: [1.1, 1.2], line_col: "{5.1, 5.2, 5.3}", lseg_col: "((0,0),(0,1))",
+      box_col: "((4,1), (4,5))", path_col: "((8,1), (4,5))",
+      polygon_col: "2.0, 3, 5.5, 7.0, 8.5, 11.0", circle_col: "((5.3, 10.4), 2)"],
+      unique_by: [:identifier])
+    GeometricData.upsert_all([identifier: "identifier2", point_col: [5.1, 5.2]], unique_by: :index_geometric_data_on_identifier)
+    GeometricData.upsert_all([identifier: "identifier3", polygon_col: "2.0, 3, 5.5, 7.0, 8.5, 11.0"])
+
+    assert_equal 3, GeometricData.count
+    assert_equal ActiveRecord::Point.new(5.1, 5.2), GeometricData.find_by(identifier: "identifier2").point_col
+    assert_equal "((2,3),(5.5,7),(8.5,11))", GeometricData.find_by(identifier: "identifier3").polygon_col
+    assert_equal "{5.1,5.2,5.3}", GeometricData.find_by(identifier: "identifier1").line_col
   end
 
   def test_insert_all_with_enum_values
