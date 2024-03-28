@@ -48,7 +48,7 @@ Callback Registration
 
 To use the available callbacks, you need to implement and register them.
 Implementation can be done in a multitude of ways like using ordinary methods,
-blocks and procs, or defining custom callback objects using callback classes.
+blocks and procs, or defining custom callback objects using classes.
 Let's go through each of these implementation techniques.
 
 You can implement the callbacks as a **macro-style method that calls an ordinary
@@ -92,8 +92,7 @@ class User < ApplicationRecord
 end
 ```
 
-Lastly, you can define **a custom callback object**, which we will cover later
-in more detail [below](#callback-classes).
+Lastly, you can define **a custom callback object**, as shown below. We will cover these [later in more detail](#callback-objects).
 
 ```ruby
 class User < ApplicationRecord
@@ -828,7 +827,7 @@ end
 The callback only runs when all the `:if` conditions and none of the `:unless`
 conditions are evaluated to `true`.
 
-Callback Classes
+Callback Objects
 ----------------
 
 Sometimes the callback methods that you'll write will be useful enough to be
@@ -885,7 +884,7 @@ class PictureFile < ApplicationRecord
 end
 ```
 
-You can declare as many callbacks as you want inside your callback classes.
+You can declare as many callbacks as you want inside your callback objects.
 
 Transaction Callbacks
 ---------------------
