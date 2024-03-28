@@ -13,17 +13,14 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-Overview of Helpers Provided by Action View
--------------------------------------------
-
 The following outlines **some of the most commonly used helpers** available in
 Action View. It serves as a good starting point, but reviewing the full [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html) is
 also recommended, as it covers all of the helpers in more detail.
 
-### AssetTagHelper
+## Assets
 
-This module provides methods for generating HTML that links views to assets such
+An `AssetTagHelper` module provides methods for generating HTML that links views to assets such
 as images, JavaScript files, stylesheets, and feeds.
 
 By default, Rails links to these assets on the current host in the public
@@ -46,7 +43,7 @@ image_tag("rails.png")
 
 [`config.asset_host`]: configuring.html#config-asset-host
 
-#### audio_tag
+### audio_tag
 
 Generates an HTML audio tag with source(s), either as a single tag for a string
 source or nested source tags within an array for multiple sources. The `sources`
@@ -72,7 +69,7 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-audio_tag)
 for more information.
 
-#### auto_discovery_link_tag
+### auto_discovery_link_tag
 
 Returns a link tag that browsers and feed readers can use to auto-detect an RSS,
 Atom, or JSON feed.
@@ -86,7 +83,7 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-auto_discovery_link_tag)
 for more information.
 
-#### favicon_link_tag
+### favicon_link_tag
 
 Returns a link tag for a favicon managed by the asset pipeline. The `source` can
 be a full path or a file that exists in your assets directory.
@@ -100,7 +97,7 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-favicon_link_tag)
 for more information.
 
-#### image_tag
+### image_tag
 
 Returns an HTML image tag for the source. The `source` can be a full path or a
 file that exists in your `app/assets/images` directory.
@@ -121,7 +118,7 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-image_tag)
 for more information.
 
-#### javascript_include_tag
+### javascript_include_tag
 
 Returns an HTML script tag for each of the sources provided. You can pass in the
 filename (`.js` extension is optional) of JavaScript files that exist in your
@@ -149,7 +146,7 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-javascript_include_tag)
 for more information.
 
-#### picture_tag
+### picture_tag
 
 Returns an HTML picture tag for the source. It supports passing a String, an
 Array, or a Block.
@@ -172,7 +169,7 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-picture_tag)
 for more information.
 
-#### preload_link_tag
+### preload_link_tag
 
 Returns a link tag that browsers can use to preload the source. The source can
 be the path of a resource managed by the asset pipeline, a full path, or a URI.
@@ -186,7 +183,7 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-preload_link_tag)
 for more information.
 
-#### stylesheet_link_tag
+### stylesheet_link_tag
 
 Returns a stylesheet link tag for the sources specified as arguments. If you
 don't specify an extension, `.css` will be appended automatically.
@@ -210,7 +207,7 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-stylesheet_link_tag)
 for more information.
 
-#### video_tag
+### video_tag
 
 Generate an HTML video tag with source(s), either as a single tag for a string
 source or nested source tags within an array for multiple sources. The `sources`
@@ -236,134 +233,7 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHelper.html#method-i-video_tag)
 for more information.
 
-### AtomFeedHelper
-
-Atom Feeds are XML-based file formats used to syndicate content and can be
-used by users in feed readers to browse content or by search engines to help
-discover additional information about your site.
-
-`AtomFeedHelper` is mostly used in Builder templates for creating XML.
-
-#### atom_feed
-
-This helper makes building an Atom feed easy. Here's a full usage example:
-
-**config/routes.rb**
-
-```ruby
-resources :articles
-```
-
-**app/controllers/articles_controller.rb**
-
-```ruby
-def index
-  @articles = Article.all
-
-  respond_to do |format|
-    format.html
-    format.atom
-  end
-end
-```
-
-**app/views/articles/index.atom.builder**
-
-```ruby
-atom_feed do |feed|
-  feed.title("Articles Index")
-  feed.updated(@articles.first.created_at)
-
-  @articles.each do |article|
-    feed.entry(article) do |entry|
-      entry.title(article.title)
-      entry.content(article.body, type: 'html')
-
-      entry.author do |author|
-        author.name(article.author_name)
-      end
-    end
-  end
-end
-```
-
-See the [API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AtomFeedHelper.html#method-i-atom_feed)
-for more information.
-
-### BenchmarkHelper
-
-Allows you to measure the execution time of a block in a template and records
-the result in the log.
-
-#### benchmark
-
-Wrap a `benchmark` block around expensive operations or possible bottlenecks to
-get a time reading for the operation.
-
-```html+erb
-<% benchmark "Process data files" do %>
-  <%= expensive_files_operation %>
-<% end %>
-```
-
-This would add something like `Process data files (0.34523)` to the log, which
-you can then use to compare timings when optimizing your code.
-
-
-NOTE: This helper is a part of Active Support, and it is also available on
-controllers, helpers, models, etc.
-
-See the [API
-Documentation](https://api.rubyonrails.org/classes/ActiveSupport/Benchmarkable.html#method-i-benchmark)
-for more information.
-
-### CacheHelper
-
-This helper exposes a method for caching fragments of a view rather than an
-entire action or page. This technique is useful for caching pieces like menus,
-lists of news topics, static HTML fragments, and so on. It allows a fragment of
-view logic to be wrapped in a cache block and served out of the cache store when
-the next request comes in.
-
-#### cache
-
-The `cache` method takes a block that contains the content you wish to cache.
-
-For example, you could cache the footer of your application layout by wrapping
-it in a `cache` block.
-
-```erb
-<% cache do %>
-  <%= render "application/footer" %>
-<% end %>
-```
-
-You could also cache based on model instances, for example, you can cache each
-article on a page by passing the `article` object to the `cache` method. This
-would cache each article separately.
-
-```erb
-<% @articles.each do |article| %>
-  <% cache article do %>
-    <%= render article %>
-  <% end %>
-<% end %>
-```
-
-When your application receives its first request to this page, Rails will write
-a new cache entry with a unique key. A key looks something like this:
-
-```irb
-views/articles/index:bea67108094918eeba32cd4a6f786301/articles/1
-```
-
-See [`Fragment Caching`](caching_with_rails.html#fragment-caching) and the [API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/CacheHelper.html#method-i-cache)
-for more information.
-
-
-### CaptureHelper
+## Capture Blocks
 
 The `CaptureHelper` exposes methods to let you extract generated markup which can
 be used in other parts of a template or layout file.
@@ -371,7 +241,7 @@ be used in other parts of a template or layout file.
 It provides a method to capture blocks into variables through `capture` and a
 way to capture a block of markup for use in a layout through `content_for`.
 
-#### capture
+### capture
 
 The `capture` method allows you to extract part of a template into a variable.
 
@@ -406,7 +276,7 @@ Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/CaptureHel
 for more information.
 
 
-#### content_for
+### content_for
 
 Calling `content_for` stores a block of markup in an identifier for later use.
 You can make subsequent calls to the stored content in other templates, helper
@@ -485,9 +355,15 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/CaptureHelper.html#method-i-content_for)
 for more information.
 
-### DateHelper
 
-The Date Helper allows you to manipulate date and/or time elements into contextual
+
+
+
+## Formatting
+
+### Dates
+
+The `DateHelper` module allows you to manipulate date and/or time elements into contextual
 human readable forms. It can also be used to create select/option tags for
 different kinds of dates and/or times elements as described in the
 [Action View Form Helpers
@@ -522,112 +398,9 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-time_ago_in_words)
 for more information.
 
-### DebugHelper
+### Numbers
 
-Provides a method for making it easier to debug Rails objects.
-
-#### debug
-
-Returns a YAML representation of an object wrapped with a `pre` tag. This
-creates a very readable way to inspect an object.
-
-```ruby
-my_hash = { 'first' => 1, 'second' => 'two', 'third' => [1, 2, 3] }
-debug(my_hash)
-```
-
-```html
-<pre class='debug_dump'>---
-first: 1
-second: two
-third:
-- 1
-- 2
-- 3
-</pre>
-```
-
-See the [API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/DebugHelper.html#method-i-debug)
-for more information.
-
-### FormHelper
-
-Form helpers simplify working with models compared to using standard HTML
-elements alone. They offer a range of methods tailored to generating forms based
-on your models. Some methods correspond to a specific type of input, such as
-text fields, password fields, select dropdowns, and more. When a form is
-submitted the inputs within the form are grouped into the params object and sent
-back to the controller.
-
-You can learn more about form helpers in the [Action View Form Helpers
-Guide](form_helpers.html).
-
-### JavaScriptHelper
-
-Provides functionality for working with JavaScript in your views.
-
-#### escape_javascript
-
-Escapes carriage returns and single and double quotes for JavaScript segments.
-You would use this method to take a string of text and make sure that it doesn’t
-contain any invalid characters when the browser tries to parse it.
-
-For example, if you have a partial with a greeting that contains double quotes,
-you can escape the greeting to use in a JavaScript alert.
-
-**app/views/users/greeting.html.rb**
-
-```html+erb
-My name is <%= current_user.name %>, and I'm here to say "Welcome to our website!"
-```
-
-```html+erb
-<script>
-  var greeting = '<%= escape_javascript(render 'captured_pokemons/greeting') %>';
-  alert(`Hello, ${greeting}`);
-</script>
-```
-
-This will escape the quotes correctly and display the greeting in an
-alert box.
-
-See the [API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/JavaScriptHelper.html#method-i-escape_javascript)
-for more information.
-
-#### javascript_tag
-
-Returns a JavaScript tag wrapping the provided code. You can pass a hash of
-options to control the behavior of the `<script>` tag.
-
-```ruby
-javascript_tag("alert('All is good')", type: 'application/javascript')
-```
-
-```html
-<script type="application/javascript">
-//<![CDATA[
-alert('All is good')
-//]]>
-</script>
-```
-
-Instead of passing the content as an argument, you can also use a block.
-
-```html+erb
-<%= javascript_tag type: 'application/javascript' do -%>
-  alert('Welcome to my app!')
-<% end -%>
-```
-
-See the [API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/JavaScriptHelper.html#method-i-javascript_tag)
-for more information.
-
-### NumberHelper
-
-Provides methods for converting numbers into formatted strings. Methods are
+The `NumberHelper` provides methods for converting numbers into formatted strings. Methods are
 provided for phone numbers, currency, percentage, precision, positional
 notation, and file size.
 
@@ -720,104 +493,9 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_with_precision)
 for more information.
 
-### SanitizeHelper
+### Text
 
-The `SanitizeHelper` module provides a set of methods for scrubbing text of
-undesired HTML elements. The helpers are particularly useful for helping to
-ensure that only safe and valid HTML/CSS is rendered. It can also be useful to
-prevent XSS attacks by escaping or removing potentially malicious content from
-user input before rendering it in your views.
-
-This functionality is powered internally by the
-[rails-html-sanitizer](https://github.com/rails/rails-html-sanitizer) gem.
-
-
-#### sanitize
-
-The `sanitize` method will HTML encode all tags and strip all attributes that
-aren't specifically allowed.
-
-```ruby
-sanitize @article.body
-```
-
-If either the `:attributes` or `:tags` options are passed, only the mentioned
-attributes and tags are allowed and nothing else.
-
-```ruby
-sanitize @article.body, tags: %w(table tr td), attributes: %w(id class style)
-```
-
-To change defaults for multiple uses, for example, adding table tags to the
-default:
-
-```ruby
-class Application < Rails::Application
-  config.action_view.sanitized_allowed_tags = %w(table tr td)
-end
-```
-
-See the [API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-sanitize)
-for more information.
-
-#### sanitize_css
-
-Sanitizes a block of CSS code, particularly when it comes across a style
-attribute in HTML content. `sanitize_css` is particularly useful when dealing
-with user-generated content or dynamic content that includes style attributes.
-
-The `sanitize_css` method below will remove the styles that are not allowed.
-
-```ruby
-sanitize_css("background-color: red; color: white; font-size: 16px;")
-```
-
-See the [API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-sanitize_css)
-for more information.
-
-#### strip_links
-
-Strips all link tags from text leaving just the link text.
-
-```ruby
-strip_links('<a href="https://rubyonrails.org">Ruby on Rails</a>')
-# => Ruby on Rails
-
-strip_links('emails to <a href="mailto:me@email.com">me@email.com</a>.')
-# => emails to me@email.com.
-
-strip_links('Blog: <a href="http://myblog.com/">Visit</a>.')
-# => Blog: Visit.
-```
-
-See the [API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-strip_links)
-for more information.
-
-#### strip_tags
-
-Strips all HTML tags from the HTML, including comments and special characters.
-
-```ruby
-strip_tags("Strip <i>these</i> tags!")
-# => Strip these tags!
-
-strip_tags("<b>Bold</b> no more! <a href='more.html'>See more</a>")
-# => Bold no more! See more
-
-strip_links('<<a href="https://example.org">malformed & link</a>')
-# => &lt;malformed &amp; link
-```
-
-See the [API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-strip_tags)
-for more information.
-
-### TextHelper
-
-Provides a set of methods for filtering, formatting and transforming strings.
+The `TextHelper` module provides a set of methods for filtering, formatting and transforming strings.
 
 #### excerpt
 
@@ -891,32 +569,182 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-word_wrap)
 for more information.
 
-### TagHelper
+## Forms
 
-Provides methods to generate HTML tags programmatically.
+Form helpers simplify working with models compared to using standard HTML
+elements alone. They offer a range of methods tailored to generating forms based
+on your models. Some methods correspond to a specific type of input, such as
+text fields, password fields, select dropdowns, and more. When a form is
+submitted the inputs within the form are grouped into the params object and sent
+back to the controller.
 
-#### tag
+You can learn more about form helpers in the [Action View Form Helpers
+Guide](form_helpers.html).
 
-Generates a standalone HTML tag with the given `name` and `options`.
+## JavaScript
+
+Provides functionality for working with JavaScript in your views.
+
+### escape_javascript
+
+Escapes carriage returns and single and double quotes for JavaScript segments.
+You would use this method to take a string of text and make sure that it doesn’t
+contain any invalid characters when the browser tries to parse it.
+
+For example, if you have a partial with a greeting that contains double quotes,
+you can escape the greeting to use in a JavaScript alert.
+
+**app/views/users/greeting.html.rb**
+
+```html+erb
+My name is <%= current_user.name %>, and I'm here to say "Welcome to our website!"
+```
+
+```html+erb
+<script>
+  var greeting = '<%= escape_javascript(render 'captured_pokemons/greeting') %>';
+  alert(`Hello, ${greeting}`);
+</script>
+```
+
+This will escape the quotes correctly and display the greeting in an
+alert box.
+
+See the [API
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/JavaScriptHelper.html#method-i-escape_javascript)
+for more information.
+
+### javascript_tag
+
+Returns a JavaScript tag wrapping the provided code. You can pass a hash of
+options to control the behavior of the `<script>` tag.
 
 ```ruby
-tag.h1 'All titles fit to print'
-# => <h1>All titles fit to print</h1>
+javascript_tag("alert('All is good')", type: 'application/javascript')
+```
 
-tag.section class: %w( kitties puppies )
-# => <section class="kitties puppies"></section>
+```html
+<script type="application/javascript">
+//<![CDATA[
+alert('All is good')
+//]]>
+</script>
+```
+
+Instead of passing the content as an argument, you can also use a block.
+
+```html+erb
+<%= javascript_tag type: 'application/javascript' do -%>
+  alert('Welcome to my app!')
+<% end -%>
 ```
 
 See the [API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TagHelper.html#method-i-tag)
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/JavaScriptHelper.html#method-i-javascript_tag)
 for more information.
 
-### UrlHelper
+
+## Sanitization
+
+The `SanitizeHelper` module provides a set of methods for scrubbing text of
+undesired HTML elements. The helpers are particularly useful for helping to
+ensure that only safe and valid HTML/CSS is rendered. It can also be useful to
+prevent XSS attacks by escaping or removing potentially malicious content from
+user input before rendering it in your views.
+
+This functionality is powered internally by the
+[rails-html-sanitizer](https://github.com/rails/rails-html-sanitizer) gem.
+
+
+### sanitize
+
+The `sanitize` method will HTML encode all tags and strip all attributes that
+aren't specifically allowed.
+
+```ruby
+sanitize @article.body
+```
+
+If either the `:attributes` or `:tags` options are passed, only the mentioned
+attributes and tags are allowed and nothing else.
+
+```ruby
+sanitize @article.body, tags: %w(table tr td), attributes: %w(id class style)
+```
+
+To change defaults for multiple uses, for example, adding table tags to the
+default:
+
+```ruby
+class Application < Rails::Application
+  config.action_view.sanitized_allowed_tags = %w(table tr td)
+end
+```
+
+See the [API
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-sanitize)
+for more information.
+
+### sanitize_css
+
+Sanitizes a block of CSS code, particularly when it comes across a style
+attribute in HTML content. `sanitize_css` is particularly useful when dealing
+with user-generated content or dynamic content that includes style attributes.
+
+The `sanitize_css` method below will remove the styles that are not allowed.
+
+```ruby
+sanitize_css("background-color: red; color: white; font-size: 16px;")
+```
+
+See the [API
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-sanitize_css)
+for more information.
+
+### strip_links
+
+Strips all link tags from text leaving just the link text.
+
+```ruby
+strip_links('<a href="https://rubyonrails.org">Ruby on Rails</a>')
+# => Ruby on Rails
+
+strip_links('emails to <a href="mailto:me@email.com">me@email.com</a>.')
+# => emails to me@email.com.
+
+strip_links('Blog: <a href="http://myblog.com/">Visit</a>.')
+# => Blog: Visit.
+```
+
+See the [API
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-strip_links)
+for more information.
+
+### strip_tags
+
+Strips all HTML tags from the HTML, including comments and special characters.
+
+```ruby
+strip_tags("Strip <i>these</i> tags!")
+# => Strip these tags!
+
+strip_tags("<b>Bold</b> no more! <a href='more.html'>See more</a>")
+# => Bold no more! See more
+
+strip_links('<<a href="https://example.org">malformed & link</a>')
+# => &lt;malformed &amp; link
+```
+
+See the [API
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html#method-i-strip_tags)
+for more information.
+
+## Navigation
 
 Provides methods to make links and get URLs that depend on the routing
 subsystem.
 
-#### button_to
+### button_to
 
 Generates a form that submits to the passed URL. The form has a submit button
 with the value of the `name`.
@@ -937,7 +765,7 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-button_to)
 for more information.
 
-#### current_page?
+### current_page?
 
 Returns true if the current request URL matches the given `options`.
 
@@ -951,7 +779,7 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-current_page-3F)
 for more information.
 
-#### link_to
+### link_to
 
 Links to a URL derived from `url_for` under the hood. It's commonly used to
 create links for RESTful resources, especially when passing models as arguments
@@ -994,7 +822,7 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to)
 for more information.
 
-#### mail_to
+### mail_to
 
 Generates a `mailto` link tag to the specified email address. You can also
 specify the link text, additional HTML options, and whether to encode the email
@@ -1013,7 +841,7 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-mail_to)
 for more information.
 
-#### url_for
+### url_for
 
 Returns the URL for the set of `options` provided.
 
@@ -1027,3 +855,168 @@ url_for [ @hotel, @booking, page: 2, line: 3 ]
 url_for @post # given a composite primary key [:blog_id, :id]
 # => /posts/1_2
 ```
+
+## Performance
+
+### benchmark
+
+Wrap a `benchmark` block around expensive operations or possible bottlenecks to
+get a time reading for the operation.
+
+```html+erb
+<% benchmark "Process data files" do %>
+  <%= expensive_files_operation %>
+<% end %>
+```
+
+This would add something like `Process data files (0.34523)` to the log, which
+you can then use to compare timings when optimizing your code.
+
+
+NOTE: This helper is a part of Active Support, and it is also available on
+controllers, helpers, models, etc.
+
+See the [API
+Documentation](https://api.rubyonrails.org/classes/ActiveSupport/Benchmarkable.html#method-i-benchmark)
+for more information.
+
+### cache
+
+You can cache fragments of a view rather than an
+entire action or page. This technique is useful for caching pieces like menus,
+lists of news topics, static HTML fragments, and so on. It allows a fragment of
+view logic to be wrapped in a cache block and served out of the cache store when
+the next request comes in.
+
+The `cache` method takes a block that contains the content you wish to cache.
+
+For example, you could cache the footer of your application layout by wrapping
+it in a `cache` block.
+
+```erb
+<% cache do %>
+  <%= render "application/footer" %>
+<% end %>
+```
+
+You could also cache based on model instances, for example, you can cache each
+article on a page by passing the `article` object to the `cache` method. This
+would cache each article separately.
+
+```erb
+<% @articles.each do |article| %>
+  <% cache article do %>
+    <%= render article %>
+  <% end %>
+<% end %>
+```
+
+When your application receives its first request to this page, Rails will write
+a new cache entry with a unique key. A key looks something like this:
+
+```irb
+views/articles/index:bea67108094918eeba32cd4a6f786301/articles/1
+```
+
+See [`Fragment Caching`](caching_with_rails.html#fragment-caching) and the [API
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/CacheHelper.html#method-i-cache)
+for more information.
+
+## Tags
+
+the `TagHelper` module provides methods to generate HTML tags programmatically.
+
+### tag
+
+Generates a standalone HTML tag with the given `name` and `options`.
+
+```ruby
+tag.h1 'All titles fit to print'
+# => <h1>All titles fit to print</h1>
+
+tag.section class: %w( kitties puppies )
+# => <section class="kitties puppies"></section>
+```
+
+See the [API
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TagHelper.html#method-i-tag)
+for more information.
+
+## Miscellaneous
+
+### atom_feed
+
+Atom Feeds are XML-based file formats used to syndicate content and can be
+used by users in feed readers to browse content or by search engines to help
+discover additional information about your site.
+
+This helper makes building an Atom feed easy is mostly used in Builder templates
+for creating XML. Here's a full usage example:
+
+**config/routes.rb**
+
+```ruby
+resources :articles
+```
+
+**app/controllers/articles_controller.rb**
+
+```ruby
+def index
+  @articles = Article.all
+
+  respond_to do |format|
+    format.html
+    format.atom
+  end
+end
+```
+
+**app/views/articles/index.atom.builder**
+
+```ruby
+atom_feed do |feed|
+  feed.title("Articles Index")
+  feed.updated(@articles.first.created_at)
+
+  @articles.each do |article|
+    feed.entry(article) do |entry|
+      entry.title(article.title)
+      entry.content(article.body, type: 'html')
+
+      entry.author do |author|
+        author.name(article.author_name)
+      end
+    end
+  end
+end
+```
+
+See the [API
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AtomFeedHelper.html#method-i-atom_feed)
+for more information.
+
+### debug
+
+Returns a YAML representation of an object wrapped with a `pre` tag. This
+creates a very readable way to inspect an object.
+
+```ruby
+my_hash = { 'first' => 1, 'second' => 'two', 'third' => [1, 2, 3] }
+debug(my_hash)
+```
+
+```html
+<pre class='debug_dump'>---
+first: 1
+second: two
+third:
+- 1
+- 2
+- 3
+</pre>
+```
+
+See the [API
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/DebugHelper.html#method-i-debug)
+for more information.
