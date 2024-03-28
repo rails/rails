@@ -112,7 +112,7 @@ module ActiveRecord
 
             orders = {}
             opclasses = {}
-            include_columns = include ? include.split(",").map(&:strip) : []
+            include_columns = include ? include.split(",").map { |c| Utils.unquote_identifier(c.strip.gsub('""', '"')) } : []
 
             if indkey.include?(0)
               columns = expressions
