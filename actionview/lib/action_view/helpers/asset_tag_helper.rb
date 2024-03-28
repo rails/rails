@@ -357,25 +357,26 @@ module ActionView
         crossorigin = "anonymous" if crossorigin == true || (crossorigin.blank? && as_type == "font")
         integrity = options[:integrity]
         nopush = options.delete(:nopush) || false
+        send_link_header = options.key?(:preload_links_header) ? options.delete(:preload_links_header) : true
         rel = mime_type == "module" ? "modulepreload" : "preload"
 
-        link_tag = tag.link(
+        if send_link_header
+          preload_link = "<#{href}>; rel=#{rel}; as=#{as_type}"
+          preload_link += "; type=#{mime_type}" if mime_type
+          preload_link += "; crossorigin=#{crossorigin}" if crossorigin
+          preload_link += "; integrity=#{integrity}" if integrity
+          preload_link += "; nopush" if nopush
+
+          send_preload_links_header([preload_link])
+        end
+
+        tag.link(
           rel: rel,
           href: href,
           as: as_type,
           type: mime_type,
           crossorigin: crossorigin,
           **options.symbolize_keys)
-
-        preload_link = "<#{href}>; rel=#{rel}; as=#{as_type}"
-        preload_link += "; type=#{mime_type}" if mime_type
-        preload_link += "; crossorigin=#{crossorigin}" if crossorigin
-        preload_link += "; integrity=#{integrity}" if integrity
-        preload_link += "; nopush" if nopush
-
-        send_preload_links_header([preload_link])
-
-        link_tag
       end
 
       # Returns an HTML image tag for the +source+. The +source+ can be a full
