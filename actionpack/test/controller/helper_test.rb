@@ -37,7 +37,7 @@ class JustMeController < ActionController::Base
   clear_helpers
 
   def flash
-    render inline: "<h1><%= notice %></h1>"
+    render inline: "<h1><%= request.flash[:notice] %></h1>"
   end
 
   def lib
