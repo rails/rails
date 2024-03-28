@@ -2,12 +2,14 @@
 
 require "active_model/validations/comparability"
 require "active_model/validations/resolve_value"
+require "active_model/validations/format_value"
 
 module ActiveModel
   module Validations
     class ComparisonValidator < EachValidator # :nodoc:
       include Comparability
       include ResolveValue
+      include FormatValue
 
       def check_validity!
         unless options.keys.intersect?(COMPARE_CHECKS.keys)
@@ -25,7 +27,7 @@ module ActiveModel
           end
 
           unless value.public_send(COMPARE_CHECKS[option], option_value)
-            record.errors.add(attr_name, option, **error_options(value, option_value))
+            record.errors.add(attr_name, option, **error_options(value, format_value(record, option_value)))
           end
         rescue ArgumentError => e
           record.errors.add(attr_name, e.message)

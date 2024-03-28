@@ -311,6 +311,13 @@ class ComparisonValidationTest < ActiveModel::TestCase
                  " :less_than, :less_than_or_equal_to, or :other_than option to be supplied.", error.message
   end
 
+  def test_validates_comparison_with_value_format
+    date_value = Date.parse("2020-03-28")
+    Topic.validates_comparison_of :approved, equal_to: date_value, value_format: -> (value) { "3/28/2020" }
+
+    assert_invalid_values([Date.new(2020, 3, 27)], "must be equal to 3/28/2020")
+  end
+
   private
     def assert_invalid_values(values, error = nil)
       with_each_topic_approved_value(values) do |topic, value|

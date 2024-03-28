@@ -438,6 +438,7 @@ These options are all supported:
   less than or equal to %{count}"_.
 * `:other_than` - Specifies the value must be other than the supplied value.
   The default error message for this option is _"must be other than %{count}"_.
+* `:value_format` - Specifies the format for formatting the value passed to `%{count}` in i18n messages.
 
 NOTE: The validator requires a compare option be supplied. Each option accepts a
 value, proc, or symbol. Any class that includes Comparable can be compared.
@@ -538,6 +539,7 @@ The possible length constraint options are:
 * `:in` (or `:within`) - The attribute length must be included in a given
   interval. The value for this option must be a range.
 * `:is` - The attribute length must be equal to the given value.
+* `:value_format` - Specifies the format for formatting the value passed to `%{count}` in i18n messages.
 
 The default error messages depend on the type of length validation being
 performed. You can customize these messages using the `:wrong_length`,
@@ -622,6 +624,7 @@ values:
   for this option is _"must be odd"_.
 * `:even` - Specifies the value must be an even number. The default error
   message for this option is _"must be even"_.
+* `:value_format` - Specifies the format for formatting the value passed to `%{count}` in i18n messages.
 
 ### `presence`
 

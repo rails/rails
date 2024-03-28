@@ -348,6 +348,18 @@ class NumericalityValidationTest < ActiveModel::TestCase
     assert_valid_values([Float("65.6"), BigDecimal("65.6")])
   end
 
+  def test_validates_numericality_with_value_format_and_range_checks
+    Topic.validates_numericality_of :approved, in: 100..1_000, value_format: -> (value) { "100-1,000" }
+
+    assert_invalid_values([10], "must be in 100-1,000")
+  end
+
+  def test_validates_numericality_with_value_format_and_compare_checks
+    Topic.validates_numericality_of :approved, equal_to: 1_000, value_format: -> (value) { "1,000" }
+
+    assert_invalid_values([100], "must be equal to 1,000")
+  end
+
   private
     def assert_invalid_values(values, error = nil)
       with_each_topic_approved_value(values) do |topic, value|
