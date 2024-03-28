@@ -225,7 +225,7 @@ When rendering a partial, we can pass data to the partial from the rendering vie
 <% end %>
 ```
 
-A "partial-local variable" is a variable that is local to a given partial and only available from within that partial. In the above example, `my_product` is a partial-local variable. It was assigned the value of @product when passed to the partial from the original view.
+A "partial-local variable" is a variable that is local to a given partial and only available from within that partial. In the above example, `my_product` is a partial-local variable. It was assigned the value of `@product` when passed to the partial from the original view.
 
 Note that typically we'd simply call this local variable `product`. We are using `my_product` to distinguish it from the instance variable name and template name.
 
