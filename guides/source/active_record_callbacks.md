@@ -646,6 +646,7 @@ Relational Callbacks
 --------------------
 
 Callbacks work through model relationships, and can even be defined by them.
+
 Suppose an example where a user has many articles. A user's articles should be
 destroyed if the user is destroyed. Let's add an `after_destroy` callback to the
 `User` model by way of its relationship to the `Article` model:
@@ -686,15 +687,19 @@ association callbacks:
 * `before_remove`
 * `after_remove`
 
-You define association callbacks by adding options to the association
-declaration. For example
+You can define association callbacks by adding options to the association.
+
+Suppose you have an example where an author can have many books. However, before
+adding a book to the authors collection, you want to ensure that the author has
+not reached their book limit. You can do this by adding a `before_add` callback
+to the `Author` model for the `has_many: books` association.
 
 ```ruby
 class Author < ApplicationRecord
-  has_many :books, before_add: :check_credit_limit
+  has_many :books, before_add: :check_limit
 
   private
-    def check_credit_limit(book)
+    def check_limit(book)
       # ...
     end
 end
@@ -702,14 +707,16 @@ end
 
 Rails passes the object being added or removed to the callback.
 
-You can stack callbacks on a single event by passing them as an array:
+At times you may want to perform multiple actions on the associated object. In
+this case, you can stack callbacks on a single event by passing them as an
+array:
 
 ```ruby
 class Author < ApplicationRecord
   has_many :books,
-    before_add: [:check_credit_limit, :calculate_shipping_charges]
+    before_add: [:check_limit, :calculate_shipping_charges]
 
-  def check_credit_limit(book)
+  def check_limit(book)
     # ...
   end
 
@@ -725,13 +732,13 @@ does not get removed from the collection:
 
 ```ruby
 # book won't be added if the limit has been reached
-def check_credit_limit(book)
+def check_limit(book)
   throw(:abort) if limit_reached?
 end
 ```
 
 NOTE: These callbacks are called only when the associated objects are added or
-removed through the association collection:
+removed through the association collection.
 
 ```ruby
 # Triggers `before_add` callback
@@ -786,7 +793,7 @@ class Order < ApplicationRecord
 end
 ```
 
-As the proc is evaluated in the context of the object, it is also possible to
+Since the proc is evaluated in the context of the object, it is also possible to
 write this as:
 
 ```ruby
