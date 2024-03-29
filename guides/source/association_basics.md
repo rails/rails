@@ -2821,12 +2821,6 @@ class Supplier < ApplicationRecord
 end
 ```
 
-Extensions can refer to the internals of the association proxy using these three attributes of the `proxy_association` accessor:
-
-* `proxy_association.owner` returns the object that the association is a part of.
-* `proxy_association.reflection` returns the reflection object that describes the association.
-* `proxy_association.target` returns the associated object for `belongs_to` or `has_one`, or the collection of associated objects for `has_many` or `has_and_belongs_to_many`.
-
 ### Association Scoping using the Association Owner
 
 The owner of the association can be passed as a single argument to the scope
