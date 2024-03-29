@@ -56,8 +56,9 @@ body.guide {
     hyphenate-limit-last: always;
 
     margin: 0 0 0.75em 0; // Space after paragraph
-    text-align: left;
 
+    :where(body[dir="ltr"]) & { text-align: left; }
+    :where(body[dir="rtl"]) & { text-align: right; }
   } // p
 
   // Links
@@ -107,7 +108,9 @@ body.guide {
       color: #fff;
       font-size: 0.875em;
       padding: 0.5em;
-      text-align: left;
+      
+      :where(body[dir="ltr"]) & { text-align: left; }
+      :where(body[dir="rtl"]) & { text-align: right; }
     }
 
     tr {
@@ -622,8 +625,10 @@ body.guide {
       .guides-section {
         flex: auto;
         margin: 0 2em 0.5em 0;
-        text-align: left;
         width: 33%;
+
+        :where(body[dir="ltr"]) & { text-align: left; }
+        :where(body[dir="rtl"]) & { text-align: right; }
 
         dt, dd {
           font-weight: 400 !important;
