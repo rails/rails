@@ -236,14 +236,16 @@ module ActiveRecord
       end
 
       def counter_cache_column
-        @counter_cache_column ||= if belongs_to?
-          if options[:counter_cache] == true
-            -"#{active_record.name.demodulize.underscore.pluralize}_count"
-          elsif options[:counter_cache]
-            -options[:counter_cache].to_s
+        @counter_cache_column ||= begin
+          counter_cache = options[:counter_cache]
+
+          if belongs_to?
+            if counter_cache
+              counter_cache[:column] || -"#{active_record.name.demodulize.underscore.pluralize}_count"
+            end
+          else
+            -((counter_cache && -counter_cache[:column]) || "#{name}_count")
           end
-        else
-          -(options[:counter_cache]&.to_s || "#{name}_count")
         end
       end
 
@@ -292,7 +294,7 @@ module ActiveRecord
         inverse_of && inverse_which_updates_counter_cache == inverse_of
       end
 
-      # Returns whether a counter cache should be used for this association.
+      # Returns whether this association has a counter cache.
       #
       # The counter_cache option must be given on either the owner or inverse
       # association, and the column must be present on the owner.
@@ -300,6 +302,17 @@ module ActiveRecord
         options[:counter_cache] ||
           inverse_which_updates_counter_cache && inverse_which_updates_counter_cache.options[:counter_cache] &&
           active_record.has_attribute?(counter_cache_column)
+      end
+
+      # Returns whether this association has a counter cache and its column values were backfilled
+      # (and so it is used internally by methods like +size+/+any?+/etc).
+      def has_active_cached_counter?
+        return false unless has_cached_counter?
+
+        counter_cache = options[:counter_cache] ||
+                        (inverse_which_updates_counter_cache && inverse_which_updates_counter_cache.options[:counter_cache])
+
+        counter_cache[:active] != false
       end
 
       def counter_must_be_updated_by_has_many?
@@ -378,7 +391,7 @@ module ActiveRecord
         super()
         @name          = name
         @scope         = scope
-        @options       = options
+        @options       = normalize_options(options)
         @active_record = active_record
         @klass         = options[:anonymous_class]
         @plural_name   = active_record.pluralize_table_names ?
@@ -433,6 +446,26 @@ module ActiveRecord
       private
         def derive_class_name
           name.to_s.camelize
+        end
+
+        def normalize_options(options)
+          counter_cache = options.delete(:counter_cache)
+
+          if counter_cache
+            active = true
+
+            case counter_cache
+            when String, Symbol
+              column = -counter_cache.to_s
+            when Hash
+              active = counter_cache.fetch(:active, true)
+              column = counter_cache[:column]&.to_s
+            end
+
+            options[:counter_cache] = { active: active, column: column }
+          end
+
+          options
         end
     end
 

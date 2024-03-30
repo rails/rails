@@ -14,7 +14,7 @@ class Car < ActiveRecord::Base
 
   has_one :bulb
 
-  has_many :tyres
+  has_many :tyres, counter_cache: :custom_tyres_count
   has_many :engines, dependent: :destroy, inverse_of: :my_car
   has_many :wheels, as: :wheelable, dependent: :destroy
 
