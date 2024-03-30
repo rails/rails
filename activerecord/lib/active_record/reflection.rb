@@ -715,7 +715,7 @@ module ActiveRecord
                     " is disabled.\n\n" \
                     "If automatic inference is intended, you can consider enabling" \
                     " `config.active_record.automatically_invert_plural_associations`.\n\n" \
-                    "If automatic inference is not intended, you can silence this warning by defining the association with `inverse_of: false`."
+                    "If automatic inference is not intended, you can silence this warning by defining the association with `inverse_of: nil`."
                   )
                   reflection = nil
                 end
