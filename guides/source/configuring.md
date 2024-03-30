@@ -1090,7 +1090,7 @@ And on a per-association basis:
 class Comment < ApplicationRecord
   self.automatically_invert_plural_associations = true
 
-  belongs_to :post, inverse_of: false
+  belongs_to :post, inverse_of: nil
 end
 ```
 
