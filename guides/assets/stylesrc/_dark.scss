@@ -9,7 +9,7 @@
   body.guide {
 
     background-color: $gray-1000;
-    color: #fff;
+    color: $text-on-darker-bg;
 
     &::-webkit-scrollbar {
       width: 12px;
@@ -27,8 +27,9 @@
         border-radius: 10px;
         -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
     }
-    h1 {
-      color: #fff;
+
+    h1, h2, h3 {
+      color: $large-text-on-darker-bg;
     }
 
     a {
@@ -44,10 +45,10 @@
       } // &:visited
     } // a
 
-    h2 a {
+    h2 a, h3 a {
       &:link,
       &:visited {
-        color: #fff;
+        color: inherit;
       } 
     } // h2 a
     
@@ -55,6 +56,7 @@
       th {
         background-color: $gray-900;
         border-bottom: 2px solid $gray-700;
+        color: $text-on-darker-bg;
       } // th
   
       tr {
@@ -64,11 +66,11 @@
       }
     } // table
 
-    h3, h4, h5, h6 {
+    h4, h5, h6 {
       a,
       a:link,
       a:visited {
-        color: #fff;
+        color: inherit;
       } // a, a:link, a:visited
     } // h3
 
@@ -86,8 +88,8 @@
     } // pre, code
 
     p code, ul code, li code {
-      background-color: $gray-650;
-      color: #fff;
+      background-color: $gray-850;
+      color: $text-on-darker-bg;
     }
 
     td code {
@@ -137,7 +139,7 @@
               a,
               a:link,
               a:visited {
-                color: $gray-100;
+                color: $text-on-darker-bg;
               } // a
 
               a#home_nav {
@@ -151,14 +153,14 @@
 
     #guides {
       background: $gray-800;
-      color: $gray-100;
+      color: $text-on-dark-bg;
 
       .guides-section {
         dd {
           a,
           a:link,
           a:visited {
-            color: $gray-100;
+            color: $text-on-dark-bg;
           } // a
 
           a:hover,
@@ -204,7 +206,7 @@
             a,
             a:link,
             a:visited {
-              color: $gray-100;
+              color: inherit;
             }
             
             a:hover,
