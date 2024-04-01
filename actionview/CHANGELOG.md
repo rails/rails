@@ -1,3 +1,15 @@
+*   Add queries count to template rendering instrumentation
+
+    ```
+    # Before
+    Completed 200 OK in 3804ms (Views: 41.0ms | ActiveRecord: 33.5ms | Allocations: 112788)
+
+    # After
+    Completed 200 OK in 3804ms (Views: 41.0ms | ActiveRecord: 33.5ms (2 queries, 1 cached) | Allocations: 112788)
+    ```
+
+    *fatkodima*
+
 *   Raise `ArgumentError` if `:renderable` object does not respond to `#render_in`
 
     *Sean Doyle*
