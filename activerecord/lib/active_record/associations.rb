@@ -1884,7 +1884,7 @@ module ActiveRecord
         #   belongs_to :user, optional: true
         #   belongs_to :account, default: -> { company.account }
         #   belongs_to :account, strict_loading: true
-        #   belong_to  :note, query_constraints: [:organization_id, :note_id]
+        #   belongs_to :note, query_constraints: [:organization_id, :note_id]
         def belongs_to(name, scope = nil, **options)
           reflection = Builder::BelongsTo.build(self, name, scope, options)
           Reflection.add_reflection self, name, reflection

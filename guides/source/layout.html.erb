@@ -1,5 +1,6 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,10 +8,15 @@
   <link rel="stylesheet" type="text/css" href="stylesheets/style.css" data-turbo-track="reload">
   <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
   <link rel="stylesheet" type="text/css" href="stylesheets/highlight.css" data-turbo-track="reload">
-  <link href="images/favicon.ico" rel="icon" type="image/x-icon" />
+
+  <link rel="icon" href="images/favicon.ico" sizes="any">
+  
+  <link rel="apple-touch-icon" href="images/icon.png">
+
   <script src="javascripts/@hotwired--turbo.js" data-turbo-track="reload"></script>
   <script src="javascripts/clipboard.js" data-turbo-track="reload"></script>
   <script src="javascripts/guides.js" data-turbo-track="reload"></script>
+
   <meta property="og:title" content="<%= yield(:page_title) %>" />
   <meta name="description" content="<%= yield(:description) %>" />
   <meta property="og:description" content="<%= yield(:description) %>" />
@@ -18,14 +24,12 @@
   <meta property="og:site_name" content="Ruby on Rails Guides" />
   <meta property="og:image" content="https://avatars.githubusercontent.com/u/4223" />
   <meta property="og:type" content="website" />
+
+  <meta name="theme-color" content="#C81418">
 </head>
+
 <body dir="<%= @direction %>" class="guide">
-  <% if badge_version = @edge ? "edge" : @version %>
-  <div>
-    <div id="version-badge"><%= badge_version %></div>
-  </div>
-  <% end %>
-  <div id="topNav">
+  <nav id="topNav" aria-label="Secondary">
     <div class="wrapper">
       <strong class="more-info-label">More at <a href="https://rubyonrails.org/">rubyonrails.org:</a> </strong>
       <span class="red-button more-info-button">
@@ -39,59 +43,74 @@
         <li class="more-info"><a href="https://github.com/rails/rails">Contribute on GitHub</a></li>
       </ul>
     </div>
-  </div>
-  <div id="header">
+  </nav>
+  <header id="page_header">
     <div class="wrapper clearfix">
-      <div class="header-logo"><a href="index.html" title="Return to home page">Guides.rubyonrails.org</a></div>
-      <ul class="nav">
-        <li><a class="nav-item" href="index.html">Home</a></li>
-        <li class="guides-index guides-index-large">
-          <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
-          <div id="guides" class="clearfix" style="display: none;">
-            <hr />
-            <dl class="guides-section-container">
-              <% documents_by_section.each do |section| %>
-                <div class="guides-section">
-                  <dt><%= section['name'] %></dt>
-                  <% finished_documents(section['documents']).each do |document| %>
-                  <dd><a href="<%= document['url'] %>"><%= document['name'] %></a></dd>
-                  <% end %>
-                </div>
+      <nav id="feature_nav">
+        <div class="header-logo">
+          <a href="index.html" title="Return to the Guides Home for <%= @edge.present? ? 'Edge' : @version %> Guides">Guides</a>
+          <span id="version_switcher">
+            Version:
+            <select class="guides-version">
+              <option value="https://edgeguides.rubyonrails.org/"<%= " selected" if @edge %>>Edge</option>
+              <% %w[7.1 7.0 6.1 6.0 5.2 5.1 5.0 4.2 4.1 4.0 3.2 3.1 3.0 2.3].each do |version| %>
+                <option value="https://guides.rubyonrails.org/v<%= version %>/"<%= " selected" if @version&.start_with?(version) %>><%= version %></option>
               <% end %>
-            </dl>
-          </div>
-        </li>
-        <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
-        <li class="guides-index guides-index-small">
-          <select class="guides-index-item nav-item">
-            <option value="index.html">Guides Index</option>
-            <% docs_for_menu.each do |section| %>
-              <optgroup label="<%= section['name'] %>">
-                <% finished_documents(section['documents']).each do |document| %>
-                  <option value="<%= document['url'] %>"><%= document['name'] %></option>
+            </select>
+          </span>
+        </div>
+        <ul class="nav">
+          <li><a class="nav-item" id="home_nav" href="https://rubyonrails.org/">Home</a></li>
+          <li class="guides-index guides-index-large">
+            <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
+            <div id="guides" class="clearfix" style="display: none;">
+              <hr />
+              <dl class="guides-section-container">
+                <% documents_by_section.each do |section| %>
+                  <div class="guides-section">
+                    <dt><%= section['name'] %></dt>
+                    <% finished_documents(section['documents']).each do |document| %>
+                    <dd><a href="<%= document['url'] %>"><%= document['name'] %></a></dd>
+                    <% end %>
+                  </div>
                 <% end %>
-              </optgroup>
-            <% end %>
-          </select>
-        </li>
+              </dl>
+            </div>
+          </li>
+          <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
+          <li class="guides-index guides-index-small">
+            <select class="guides-index-item nav-item">
+              <option value="index.html">Guides Index</option>
+              <% docs_for_menu.each do |section| %>
+                <optgroup label="<%= section['name'] %>">
+                  <% finished_documents(section['documents']).each do |document| %>
+                    <option value="<%= document['url'] %>"><%= document['name'] %></option>
+                  <% end %>
+                </optgroup>
+              <% end %>
+            </select>
+          </li>
       </ul>
+      </nav>
     </div>
-  </div>
+  </header>
   <hr class="hide" />
 
-  <div id="feature">
+  <section id="feature">
     <div class="wrapper">
       <%= yield :header_section %>
 
       <%= yield :index_section %>
-    </div>
-  </div>
 
-  <div id="container">
+      <hr>
+    </div>
+  </section>
+
+  <main id="container">
     <div class="wrapper">
       <div id="mainCol">
         <%= yield %>
-
+        <hr>
         <h3>Feedback</h3>
         <p>
           You're encouraged to help improve the quality of this guide.
@@ -117,13 +136,13 @@
         </p>
       </div>
     </div>
-  </div>
+  </main>
 
   <hr class="hide" />
-  <div id="footer">
+  <footer id="page_footer">
     <div class="wrapper">
       <%= render 'license' %>
     </div>
-  </div>
+  </footer>
 </body>
 </html>

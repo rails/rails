@@ -64,6 +64,11 @@
 
     document.addEventListener("scroll", toggleBackToTop);
 
+    var guidesVersion = document.querySelector("select.guides-version");
+    guidesVersion.addEventListener("change", function(e) {
+      Turbo.visit(e.target.value);
+    });
+
     var guidesIndexItem   = document.querySelector("select.guides-index-item");
     var currentGuidePath  = window.location.pathname;
     guidesIndexItem.value = currentGuidePath.substring(currentGuidePath.lastIndexOf("/") + 1) || 'index.html';

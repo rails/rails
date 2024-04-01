@@ -4,10 +4,6 @@ module Rails
   module Generators
     module Devcontainer
       private
-        def devcontainer_ruby_version
-          gem_ruby_version.to_s.match(/^\d+\.\d+/).to_s
-        end
-
         def devcontainer_dependencies
           return @devcontainer_dependencies if @devcontainer_dependencies
 
@@ -60,6 +56,13 @@ module Rails
           when "mysql"          then "mysql-data"
           when "trilogy"        then "mariadb-data"
           when "postgresql"     then "postgres-data"
+          end
+        end
+
+        def db_package_for_dockerfile(database = options[:database])
+          case database
+          when "mysql"          then "default-libmysqlclient-dev"
+          when "postgresql"     then "libpq-dev"
           end
         end
 

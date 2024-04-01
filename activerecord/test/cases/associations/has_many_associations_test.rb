@@ -3184,6 +3184,22 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_match(/Unknown key: :ensuring_owner_was/, error.message)
   end
 
+  def test_invalid_key_raises_with_message_including_all_default_options
+    error = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        has_many :books, trough: :users
+      end
+    end
+
+    assert_equal(<<~MESSAGE.squish, error.message)
+      Unknown key: :trough. Valid keys are:
+      :class_name, :anonymous_class, :primary_key, :foreign_key, :dependent,
+      :validate, :inverse_of, :strict_loading, :query_constraints, :autosave, :before_add,
+      :after_add, :before_remove, :after_remove, :extend, :counter_cache, :join_table,
+      :index_errors, :as, :through
+    MESSAGE
+  end
+
   def test_key_ensuring_owner_was_is_valid_when_dependent_option_is_destroy_async
     Class.new(ActiveRecord::Base) do
       self.destroy_association_async_job = Class.new

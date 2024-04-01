@@ -431,7 +431,7 @@ module ActiveRecord
           }
 
           begin
-            statement.execute(values.flatten, lease_connection).first
+            statement.execute(values.flatten, lease_connection, allow_retry: true).first
           rescue TypeError
             raise ActiveRecord::StatementInvalid
           end

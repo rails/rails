@@ -1,3 +1,14 @@
+*   Make ActiveSupport::BacktraceCleaner copy filters and silencers on dup and clone
+
+    Previously the copy would still share the internal silencers and filters array,
+    causing state to leak.
+
+    *Jean Boussier*
+
+*   Updating Astana with Western Kazakhstan TZInfo identifier
+
+    *Damian Nelson*
+
 *   Add filename support for `ActiveSupport::Logger.logger_outputs_to?`
 
     ```ruby

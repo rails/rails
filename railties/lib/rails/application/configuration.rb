@@ -328,6 +328,7 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.validate_migration_timestamps = true
+            active_record.automatically_invert_plural_associations = true
           end
 
           if respond_to?(:active_model)

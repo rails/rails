@@ -1023,7 +1023,11 @@ module ActiveRecord
       def _substitute_values(values)
         values.map do |name, value|
           attr = table[name]
-          unless Arel.arel_node?(value)
+          if Arel.arel_node?(value)
+            if value.is_a?(Arel::Nodes::SqlLiteral)
+              value = Arel::Nodes::Grouping.new(value)
+            end
+          else
             type = klass.type_for_attribute(attr.name)
             value = predicate_builder.build_bind_attribute(attr.name, type.cast(value))
           end

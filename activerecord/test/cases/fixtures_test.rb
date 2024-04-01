@@ -604,6 +604,31 @@ class FixturesTest < ActiveRecord::TestCase
   ensure
     ENV["DATABASE_URL"] = db_url_tmp
   end
+
+  def test_fixture_method_and_private_alias
+    assert_equal "The First Topic", topics(:first).title
+    assert_equal "The First Topic", fixture(:topics, :first).title
+    assert_equal "The First Topic", _active_record_fixture(:topics, :first).title
+  end
+
+  def test_fixture_method_does_not_clash_with_a_test_case_method
+    test_case = Class.new(ActiveRecord::TestCase) do
+      fixtures :accounts
+
+      def test_fixtures
+        assert accounts(:signals37)
+      end
+
+      private
+        def fixture
+          Account.new
+        end
+    end
+
+    result = test_case.new(:test_fixtures).run
+
+    assert_predicate result, :passed?, "Expected #{result.name} to pass:\n#{result}"
+  end
 end
 
 class HasManyThroughFixture < ActiveRecord::TestCase

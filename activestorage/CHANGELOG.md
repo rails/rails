@@ -1,3 +1,7 @@
+*   Add support for custom `key` in `ActiveStorage::Blob#compose`.
+
+    *Elvin Efendiev*
+
 *   Add `image/webp` to `config.active_storage.web_image_content_types` when `load_defaults "7.2"`
     is set.
 

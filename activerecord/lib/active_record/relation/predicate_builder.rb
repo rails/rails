@@ -28,9 +28,9 @@ module ActiveRecord
     def self.references(attributes)
       attributes.each_with_object([]) do |(key, value), result|
         if value.is_a?(Hash)
-          result << Arel.sql(key)
+          result << Arel.sql(key, retryable: true)
         elsif (idx = key.rindex("."))
-          result << Arel.sql(key[0, idx])
+          result << Arel.sql(key[0, idx], retryable: true)
         end
       end
     end

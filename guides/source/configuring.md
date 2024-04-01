@@ -60,6 +60,7 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 7.2
 
+- [`config.active_record.automatically_invert_plural_associations`](#config-active-record-automatically-invert-plural-associations): `true`
 - [`config.active_record.validate_migration_timestamps`](#config-active-record-validate-migration-timestamps): `true`
 - [`config.active_storage.web_image_content_types`](#config-active-storage-web-image-content-types): `%w[image/png image/jpeg image/gif image/webp]`
 
@@ -1056,6 +1057,48 @@ Specifies if an error should be raised if the order of a query is ignored during
 
 Controls whether migrations are numbered with serial integers or with timestamps. The default is `true`, to use timestamps, which are preferred if there are multiple developers working on the same application.
 
+#### `config.active_record.automatically_invert_plural_associations`
+
+Controls whether Active Record will automatically look for inverse relations with a pluralized name.
+
+Example:
+
+```ruby
+class Post < ApplicationRecord
+  has_many :comments
+end
+
+class Comment < ApplicationRecord
+  belongs_to :post
+end
+```
+
+In the above case Active Record used to only look for a `:comment` (singular) association in `Post`, and won't find it.
+
+With this option enabled, it will also look for a `:comments` association. In the vast majority of cases
+having the inverse association discovered is beneficial as it can prevent some useless queries, but
+it may cause backward compatibility issues with legacy code that doesn't expect it.
+
+This behavior can be disabled on a per-model basis:
+
+```ruby
+class Comment < ApplicationRecord
+  self.automatically_invert_plural_associations = false
+
+  belongs_to :post
+end
+```
+
+And on a per-association basis:
+
+```ruby
+class Comment < ApplicationRecord
+  self.automatically_invert_plural_associations = true
+
+  belongs_to :post, inverse_of: nil
+end
+```
+
 #### `config.active_record.validate_migration_timestamps`
 
 Controls whether to validate migration timestamps. When set, an error will be raised if the
@@ -1530,6 +1573,25 @@ record.token # => "fwZcXX6SkJBJRogzMdciS7wf"
 | --------------------- | -------------------- |
 | (original)            | `:create`            |
 | 7.1                   | `:initialize`        |
+
+
+#### `config.active_record.permanent_connection_checkout`
+
+Controls whether `ActiveRecord::Base.connection` raises an error, emits a deprecation warning, or neither.
+
+`ActiveRecord::Base.connection` checkouts a database connection from the pool and keeps it leased until the end of
+the request or job. This behavior can be undesirable in environments that use many more threads or fibers than there
+is available connections.
+
+This configuration can be used to track down and eliminate code that calls `ActiveRecord::Base.connection` and
+migrate it to use `ActiveRecord::Base.with_connection` instead.
+
+The value can be set to `:disallowed`, `:deprecated`, or `true` to respectively raise an error, emit a deprecation
+warning, or neither.
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
 
 #### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` and `ActiveRecord::ConnectionAdapters::TrilogyAdapter.emulate_booleans`
 
@@ -3094,9 +3156,6 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ bin/rails runner 'puts ActiveRecord::Base.configurations'
-#<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
-
 $ bin/rails runner 'puts ActiveRecord::Base.configurations.inspect'
 #<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
   #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
@@ -3119,9 +3178,6 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ bin/rails runner 'puts ActiveRecord::Base.configurations'
-#<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
-
 $ bin/rails runner 'puts ActiveRecord::Base.configurations.inspect'
 #<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
   #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
@@ -3142,9 +3198,6 @@ development:
 
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
-
-$ bin/rails runner 'puts ActiveRecord::Base.configurations'
-#<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
 
 $ bin/rails runner 'puts ActiveRecord::Base.configurations.inspect'
 #<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[

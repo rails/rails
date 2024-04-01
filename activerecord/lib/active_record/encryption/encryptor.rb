@@ -74,6 +74,10 @@ module ActiveRecord
         false
       end
 
+      def binary?
+        serializer.binary?
+      end
+
       private
         DECRYPT_ERRORS = [OpenSSL::Cipher::CipherError, Errors::EncryptedContentIntegrity, Errors::Decryption]
         ENCODING_ERRORS = [EncodingError, Errors::Encoding]

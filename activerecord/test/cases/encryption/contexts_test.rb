@@ -61,6 +61,14 @@ class ActiveRecord::Encryption::ContextsTest < ActiveRecord::EncryptionTestCase
     assert_not_encrypted_attribute @post, :title, "Some new title"
   end
 
+  test ".without_encryption doesn't raise on binary encoded data" do
+    assert_nothing_raised do
+      ActiveRecord::Encryption.without_encryption do
+        EncryptedBook.create!(name: "Dune".encode(Encoding::BINARY))
+      end
+    end
+  end
+
   test ".protecting_encrypted_data don't decrypt attributes automatically" do
     ActiveRecord::Encryption.protecting_encrypted_data do
       assert_equal @title_ciphertext, @post.reload.title

@@ -31,6 +31,10 @@ module ActiveRecord
         raise Errors::Decryption
       end
 
+      def binary?
+        true
+      end
+
       private
         def message_to_hash(message)
           {
