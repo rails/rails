@@ -43,8 +43,8 @@ class ActiveSupport::TestCase
       ActiveStorage::Blob.create_and_upload! key: key, io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify, service_name: service_name, record: record
     end
 
-    def create_file_blob(key: nil, filename: "racecar.jpg", content_type: "image/jpeg", metadata: nil, service_name: nil, record: nil)
-      ActiveStorage::Blob.create_and_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata, service_name: service_name, record: record
+    def create_file_blob(key: nil, filename: "racecar.jpg", fixture: filename, content_type: "image/jpeg", identify: true, metadata: nil, service_name: nil, record: nil)
+      ActiveStorage::Blob.create_and_upload! io: file_fixture(fixture).open, filename: filename, content_type: content_type, identify: identify, metadata: metadata, service_name: service_name, record: record
     end
 
     def create_blob_before_direct_upload(key: nil, filename: "hello.txt", byte_size:, checksum:, content_type: "text/plain", record: nil)
@@ -159,6 +159,12 @@ class User < ActiveRecord::Base
       preprocessed: ->(user) { user.name == "transform via proc" }
     attachable.variant :method, resize_to_limit: [3, 3],
       preprocessed: :should_preprocessed?
+  end
+  has_one_attached :resume do |attachable|
+    attachable.variant :preview, resize_to_fill: [400, 400]
+  end
+  has_one_attached :resume_with_preprocessing do |attachable|
+    attachable.variant :preview, resize_to_fill: [400, 400], preprocessed: true
   end
 
   accepts_nested_attributes_for :highlights_attachments, allow_destroy: true

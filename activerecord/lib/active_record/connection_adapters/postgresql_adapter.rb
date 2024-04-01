@@ -881,7 +881,7 @@ module ActiveRecord
 
           type_casted_binds = type_casted_binds(binds)
           log(sql, name, binds, type_casted_binds, async: async) do |notification_payload|
-            with_raw_connection(allow_retry: false, materialize_transactions: materialize_transactions) do |conn|
+            with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
               result = conn.exec_params(sql, type_casted_binds)
               verified!
               notification_payload[:row_count] = result.count
@@ -895,7 +895,7 @@ module ActiveRecord
 
           update_typemap_for_default_timezone
 
-          with_raw_connection(allow_retry: false, materialize_transactions: materialize_transactions) do |conn|
+          with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
             stmt_key = prepare_statement(sql, binds, conn)
             type_casted_binds = type_casted_binds(binds)
 

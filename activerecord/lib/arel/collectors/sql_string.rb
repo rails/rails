@@ -5,7 +5,7 @@ require "arel/collectors/plain_string"
 module Arel # :nodoc: all
   module Collectors
     class SQLString < PlainString
-      attr_accessor :preparable
+      attr_accessor :preparable, :retryable
 
       def initialize(*)
         super

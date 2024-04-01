@@ -5,7 +5,7 @@ require "models/author"
 
 class PostgresqlDeferredConstraintsTest < ActiveRecord::PostgreSQLTestCase
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @fk = @connection.foreign_keys("authors").first.name
     @other_fk = @connection.foreign_keys("lessons_students").first.name
   end

@@ -925,7 +925,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_reload_with_query_cache
-    connection = ActiveRecord::Base.connection
+    connection = ActiveRecord::Base.lease_connection
     connection.enable_query_cache!
     connection.clear_query_cache
 
@@ -943,11 +943,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal 1, connection.query_cache.size
   ensure
-    ActiveRecord::Base.connection.disable_query_cache!
+    ActiveRecord::Base.lease_connection.disable_query_cache!
   end
 
   def test_reloading_unloaded_associations_with_query_cache
-    connection = ActiveRecord::Base.connection
+    connection = ActiveRecord::Base.lease_connection
     connection.enable_query_cache!
     connection.clear_query_cache
 
@@ -963,7 +963,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal [client.name], firm.clients.reload.map(&:name)
   ensure
-    ActiveRecord::Base.connection.disable_query_cache!
+    ActiveRecord::Base.lease_connection.disable_query_cache!
   end
 
   def test_find_all_with_include_and_conditions
@@ -1315,7 +1315,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       blog_post.delete_comments.delete(comments_to_delete)
     end
 
-    c = Sharded::Comment.connection
+    c = Sharded::Comment.lease_connection
 
     blog_id = Regexp.escape(c.quote_table_name("sharded_comments.blog_id"))
     id = Regexp.escape(c.quote_table_name("sharded_comments.id"))
@@ -3182,6 +3182,22 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_match(/Unknown key: :ensuring_owner_was/, error.message)
+  end
+
+  def test_invalid_key_raises_with_message_including_all_default_options
+    error = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        has_many :books, trough: :users
+      end
+    end
+
+    assert_equal(<<~MESSAGE.squish, error.message)
+      Unknown key: :trough. Valid keys are:
+      :class_name, :anonymous_class, :primary_key, :foreign_key, :dependent,
+      :validate, :inverse_of, :strict_loading, :query_constraints, :autosave, :before_add,
+      :after_add, :before_remove, :after_remove, :extend, :counter_cache, :join_table,
+      :index_errors, :as, :through
+    MESSAGE
   end
 
   def test_key_ensuring_owner_was_is_valid_when_dependent_option_is_destroy_async

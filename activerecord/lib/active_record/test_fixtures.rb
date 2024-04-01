@@ -157,7 +157,7 @@ module ActiveRecord
         @fixture_connection_pools = ActiveRecord::Base.connection_handler.connection_pool_list(:writing)
         @fixture_connection_pools.each do |pool|
           pool.pin_connection!(lock_threads)
-          pool.connection
+          pool.lease_connection
         end
 
         # When connections are established in the future, begin a transaction too
@@ -172,7 +172,7 @@ module ActiveRecord
 
               unless @fixture_connection_pools.include?(pool)
                 pool.pin_connection!(lock_threads)
-                pool.connection
+                pool.lease_connection
                 @fixture_connection_pools << pool
               end
             end
@@ -255,7 +255,7 @@ module ActiveRecord
 
       def method_missing(method, ...)
         if fixture_sets.key?(method.name)
-          fixture(method, ...)
+          _active_record_fixture(method, ...)
         else
           super
         end
@@ -269,13 +269,14 @@ module ActiveRecord
         end
       end
 
-      def fixture(fixture_set_name, *fixture_names)
+      def _active_record_fixture(fixture_set_name, *fixture_names)
         if fs_name = fixture_sets[fixture_set_name.name]
           access_fixture(fs_name, *fixture_names)
         else
           raise StandardError, "No fixture set named '#{fixture_set_name.inspect}'"
         end
       end
+      alias_method :fixture, :_active_record_fixture
 
       def access_fixture(fs_name, *fixture_names)
         force_reload = fixture_names.pop if fixture_names.last == true || fixture_names.last == :reload

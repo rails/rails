@@ -36,7 +36,7 @@ module ActiveRecord
   #
   # Let's look at that entry/message/comment example using delegated types:
   #
-  #   # Schema: entries[ id, account_id, creator_id, created_at, updated_at, entryable_type, entryable_id ]
+  #   # Schema: entries[ id, account_id, creator_id, entryable_type, entryable_id, created_at, updated_at ]
   #   class Entry < ApplicationRecord
   #     belongs_to :account
   #     belongs_to :creator
@@ -51,12 +51,12 @@ module ActiveRecord
   #     end
   #   end
   #
-  #   # Schema: messages[ id, subject, body ]
+  #   # Schema: messages[ id, subject, body, created_at, updated_at ]
   #   class Message < ApplicationRecord
   #     include Entryable
   #   end
   #
-  #   # Schema: comments[ id, content ]
+  #   # Schema: comments[ id, content, created_at, updated_at ]
   #   class Comment < ApplicationRecord
   #     include Entryable
   #   end

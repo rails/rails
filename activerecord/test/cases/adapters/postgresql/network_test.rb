@@ -8,7 +8,7 @@ class PostgresqlNetworkTest < ActiveRecord::PostgreSQLTestCase
   class PostgresqlNetworkAddress < ActiveRecord::Base; end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table("postgresql_network_addresses", force: true) do |t|
       t.inet "inet_address", default: "192.168.1.1"
       t.cidr "cidr_address", default: "192.168.1.0/24"

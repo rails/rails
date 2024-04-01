@@ -110,6 +110,11 @@ module ActiveSupport
     private
       FORMATTED_GEMS_PATTERN = /\A[^\/]+ \([\w.]+\) /
 
+      def initialize_copy(_other)
+        @filters = @filters.dup
+        @silencers = @silencers.dup
+      end
+
       def add_gem_filter
         gems_paths = (Gem.path | [Gem.default_dir]).map { |p| Regexp.escape(p) }
         return if gems_paths.empty?

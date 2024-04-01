@@ -47,8 +47,8 @@ module ActiveRecord
     #
     # Note that building your own SQL query string from user input may expose your application to
     # injection attacks (https://guides.rubyonrails.org/security.html#sql-injection).
-    def find_by_sql(sql, binds = [], preparable: nil, &block)
-      _load_from_sql(_query_by_sql(sql, binds, preparable: preparable), &block)
+    def find_by_sql(sql, binds = [], preparable: nil, allow_retry: false, &block)
+      _load_from_sql(_query_by_sql(sql, binds, preparable: preparable, allow_retry: allow_retry), &block)
     end
 
     # Same as <tt>#find_by_sql</tt> but perform the query asynchronously and returns an ActiveRecord::Promise.
@@ -58,8 +58,8 @@ module ActiveRecord
       end
     end
 
-    def _query_by_sql(sql, binds = [], preparable: nil, async: false) # :nodoc:
-      connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable, async: async)
+    def _query_by_sql(sql, binds = [], preparable: nil, async: false, allow_retry: false) # :nodoc:
+      lease_connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable, async: async, allow_retry: allow_retry)
     end
 
     def _load_from_sql(result_set, &block) # :nodoc:
@@ -99,12 +99,12 @@ module ActiveRecord
     #
     # * +sql+ - An SQL statement which should return a count query from the database, see the example above.
     def count_by_sql(sql)
-      connection.select_value(sanitize_sql(sql), "#{name} Count").to_i
+      lease_connection.select_value(sanitize_sql(sql), "#{name} Count").to_i
     end
 
     # Same as <tt>#count_by_sql</tt> but perform the query asynchronously and returns an ActiveRecord::Promise.
     def async_count_by_sql(sql)
-      connection.select_value(sanitize_sql(sql), "#{name} Count", async: true).then(&:to_i)
+      lease_connection.select_value(sanitize_sql(sql), "#{name} Count", async: true).then(&:to_i)
     end
   end
 end

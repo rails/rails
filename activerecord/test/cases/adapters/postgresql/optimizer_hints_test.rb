@@ -8,7 +8,7 @@ class PostgresqlOptimizerHintsTest < ActiveRecord::PostgreSQLTestCase
     fixtures :posts
 
     def setup
-      enable_extension!("pg_hint_plan", ActiveRecord::Base.connection)
+      enable_extension!("pg_hint_plan", ActiveRecord::Base.lease_connection)
     end
 
     def test_optimizer_hints

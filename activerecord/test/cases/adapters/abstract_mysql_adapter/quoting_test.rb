@@ -5,7 +5,7 @@ require "cases/helper"
 class QuotingTest < ActiveRecord::AbstractMysqlTestCase
   def setup
     super
-    @conn = ActiveRecord::Base.connection
+    @conn = ActiveRecord::Base.lease_connection
   end
 
   def test_cast_bound_integer

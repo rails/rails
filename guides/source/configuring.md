@@ -60,6 +60,7 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 7.2
 
+- [`config.active_record.automatically_invert_plural_associations`](#config-active-record-automatically-invert-plural-associations): `true`
 - [`config.active_record.validate_migration_timestamps`](#config-active-record-validate-migration-timestamps): `true`
 - [`config.active_storage.web_image_content_types`](#config-active-storage-web-image-content-types): `%w[image/png image/jpeg image/gif image/webp]`
 
@@ -1051,6 +1052,48 @@ Specifies if an error should be raised if the order of a query is ignored during
 
 Controls whether migrations are numbered with serial integers or with timestamps. The default is `true`, to use timestamps, which are preferred if there are multiple developers working on the same application.
 
+#### `config.active_record.automatically_invert_plural_associations`
+
+Controls whether Active Record will automatically look for inverse relations with a pluralized name.
+
+Example:
+
+```ruby
+class Post < ApplicationRecord
+  has_many :comments
+end
+
+class Comment < ApplicationRecord
+  belongs_to :post
+end
+```
+
+In the above case Active Record used to only look for a `:comment` (singular) association in `Post`, and won't find it.
+
+With this option enabled, it will also look for a `:comments` association. In the vast majority of cases
+having the inverse association discovered is beneficial as it can prevent some useless queries, but
+it may cause backward compatibility issues with legacy code that doesn't expect it.
+
+This behavior can be disabled on a per-model basis:
+
+```ruby
+class Comment < ApplicationRecord
+  self.automatically_invert_plural_associations = false
+
+  belongs_to :post
+end
+```
+
+And on a per-association basis:
+
+```ruby
+class Comment < ApplicationRecord
+  self.automatically_invert_plural_associations = true
+
+  belongs_to :post, inverse_of: nil
+end
+```
+
 #### `config.active_record.validate_migration_timestamps`
 
 Controls whether to validate migration timestamps. When set, an error will be raised if the
@@ -1525,6 +1568,25 @@ record.token # => "fwZcXX6SkJBJRogzMdciS7wf"
 | --------------------- | -------------------- |
 | (original)            | `:create`            |
 | 7.1                   | `:initialize`        |
+
+
+#### `config.active_record.permanent_connection_checkout`
+
+Controls whether `ActiveRecord::Base.connection` raises an error, emits a deprecation warning, or neither.
+
+`ActiveRecord::Base.connection` checkouts a database connection from the pool and keeps it leased until the end of
+the request or job. This behavior can be undesirable in environments that use many more threads or fibers than there
+is available connections.
+
+This configuration can be used to track down and eliminate code that calls `ActiveRecord::Base.connection` and
+migrate it to use `ActiveRecord::Base.with_connection` instead.
+
+The value can be set to `:disallowed`, `:deprecated`, or `true` to respectively raise an error, emit a deprecation
+warning, or neither.
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
 
 #### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` and `ActiveRecord::ConnectionAdapters::TrilogyAdapter.emulate_booleans`
 
@@ -3089,9 +3151,6 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ bin/rails runner 'puts ActiveRecord::Base.configurations'
-#<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
-
 $ bin/rails runner 'puts ActiveRecord::Base.configurations.inspect'
 #<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
   #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
@@ -3114,9 +3173,6 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ bin/rails runner 'puts ActiveRecord::Base.configurations'
-#<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
-
 $ bin/rails runner 'puts ActiveRecord::Base.configurations.inspect'
 #<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
   #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
@@ -3137,9 +3193,6 @@ development:
 
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
-
-$ bin/rails runner 'puts ActiveRecord::Base.configurations'
-#<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
 
 $ bin/rails runner 'puts ActiveRecord::Base.configurations.inspect'
 #<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
@@ -3452,6 +3505,135 @@ it will cause the initializer to get loaded twice.
 NOTE: There is no guarantee that your initializers will run after all the gem
 initializers, so any initialization code that depends on a given gem having been
 initialized should go into a `config.after_initialize` block.
+
+Load Hooks
+----------
+
+Rails code can often be referenced on load of an application. Rails is responsible for the load order of these frameworks, so when you load frameworks, such as `ActiveRecord::Base`, prematurely you are violating an implicit contract your application has with Rails. Moreover, by loading code such as `ActiveRecord::Base` on boot of your application you are loading entire frameworks which may slow down your boot time and could cause conflicts with load order and boot of your application.
+
+Load and configuration hooks are the API that allow you to hook into this initialization process without violating the load contract with Rails. This will also mitigate boot performance degradation and avoid conflicts.
+
+### Avoid Loading Rails Frameworks
+
+Since Ruby is a dynamic language, some code will cause different Rails frameworks to load. Take this snippet for instance:
+
+```ruby
+ActiveRecord::Base.include(MyActiveRecordHelper)
+```
+
+This snippet means that when this file is loaded, it will encounter `ActiveRecord::Base`. This encounter causes Ruby to look for the definition of that constant and will require it. This causes the entire Active Record framework to be loaded on boot.
+
+`ActiveSupport.on_load` is a mechanism that can be used to defer the loading of code until it is actually needed. The snippet above can be changed to:
+
+```ruby
+ActiveSupport.on_load(:active_record) do
+  include MyActiveRecordHelper
+end
+```
+
+This new snippet will only include `MyActiveRecordHelper` when `ActiveRecord::Base` is loaded.
+
+### When are Hooks called?
+
+In the Rails framework these hooks are called when a specific library is loaded. For example, when `ActionController::Base` is loaded, the `:action_controller_base` hook is called. This means that all `ActiveSupport.on_load` calls with `:action_controller_base` hooks will be called in the context of `ActionController::Base` (that means `self` will be an `ActionController::Base`).
+
+### Modifying Code to Use Load Hooks
+
+Modifying code is generally straightforward. If you have a line of code that refers to a Rails framework such as `ActiveRecord::Base` you can wrap that code in a load hook.
+
+**Modifying calls to `include`**
+
+```ruby
+ActiveRecord::Base.include(MyActiveRecordHelper)
+```
+
+becomes
+
+```ruby
+ActiveSupport.on_load(:active_record) do
+  # self refers to ActiveRecord::Base here,
+  # so we can call .include
+  include MyActiveRecordHelper
+end
+```
+
+**Modifying calls to `prepend`**
+
+```ruby
+ActionController::Base.prepend(MyActionControllerHelper)
+```
+
+becomes
+
+```ruby
+ActiveSupport.on_load(:action_controller_base) do
+  # self refers to ActionController::Base here,
+  # so we can call .prepend
+  prepend MyActionControllerHelper
+end
+```
+
+**Modifying calls to class methods**
+
+```ruby
+ActiveRecord::Base.include_root_in_json = true
+```
+
+becomes
+
+```ruby
+ActiveSupport.on_load(:active_record) do
+  # self refers to ActiveRecord::Base here
+  self.include_root_in_json = true
+end
+```
+
+### Available Load Hooks
+
+These are the load hooks you can use in your own code. To hook into the initialization process of one of the following classes use the available hook.
+
+| Class                                | Hook                                 |
+| -------------------------------------| ------------------------------------ |
+| `ActionCable`                        | `action_cable`                       |
+| `ActionCable::Channel::Base`         | `action_cable_channel`               |
+| `ActionCable::Connection::Base`      | `action_cable_connection`            |
+| `ActionCable::Connection::TestCase`  | `action_cable_connection_test_case`  |
+| `ActionController::API`              | `action_controller_api`              |
+| `ActionController::API`              | `action_controller`                  |
+| `ActionController::Base`             | `action_controller_base`             |
+| `ActionController::Base`             | `action_controller`                  |
+| `ActionController::TestCase`         | `action_controller_test_case`        |
+| `ActionDispatch::IntegrationTest`    | `action_dispatch_integration_test`   |
+| `ActionDispatch::Response`           | `action_dispatch_response`           |
+| `ActionDispatch::Request`            | `action_dispatch_request`            |
+| `ActionDispatch::SystemTestCase`     | `action_dispatch_system_test_case`   |
+| `ActionMailbox::Base`                | `action_mailbox`                     |
+| `ActionMailbox::InboundEmail`        | `action_mailbox_inbound_email`       |
+| `ActionMailbox::Record`              | `action_mailbox_record`              |
+| `ActionMailbox::TestCase`            | `action_mailbox_test_case`           |
+| `ActionMailer::Base`                 | `action_mailer`                      |
+| `ActionMailer::TestCase`             | `action_mailer_test_case`            |
+| `ActionText::Content`                | `action_text_content`                |
+| `ActionText::Record`                 | `action_text_record`                 |
+| `ActionText::RichText`               | `action_text_rich_text`              |
+| `ActionText::EncryptedRichText`      | `action_text_encrypted_rich_text`    |
+| `ActionView::Base`                   | `action_view`                        |
+| `ActionView::TestCase`               | `action_view_test_case`              |
+| `ActiveJob::Base`                    | `active_job`                         |
+| `ActiveJob::TestCase`                | `active_job_test_case`               |
+| `ActiveModel::Model`                 | `active_model`                       |
+| `ActiveRecord::Base`                 | `active_record`                      |
+| `ActiveRecord::TestFixtures`         | `active_record_fixtures`             |
+| `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter`    | `active_record_postgresqladapter`    |
+| `ActiveRecord::ConnectionAdapters::Mysql2Adapter`        | `active_record_mysql2adapter`        |
+| `ActiveRecord::ConnectionAdapters::TrilogyAdapter`       | `active_record_trilogyadapter`       |
+| `ActiveRecord::ConnectionAdapters::SQLite3Adapter`       | `active_record_sqlite3adapter`       |
+| `ActiveStorage::Attachment`          | `active_storage_attachment`          |
+| `ActiveStorage::VariantRecord`       | `active_storage_variant_record`      |
+| `ActiveStorage::Blob`                | `active_storage_blob`                |
+| `ActiveStorage::Record`              | `active_storage_record`              |
+| `ActiveSupport::TestCase`            | `active_support_test_case`           |
+| `i18n`                               | `i18n`                               |
 
 Initialization Events
 ---------------------

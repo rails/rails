@@ -9,7 +9,7 @@ class HotCompatibilityTest < ActiveRecord::TestCase
 
   setup do
     @klass = Class.new(ActiveRecord::Base) do
-      connection.create_table :hot_compatibilities, force: true do |t|
+      lease_connection.create_table :hot_compatibilities, force: true do |t|
         t.string :foo
         t.string :bar
       end
@@ -19,7 +19,7 @@ class HotCompatibilityTest < ActiveRecord::TestCase
   end
 
   teardown do
-    ActiveRecord::Base.connection.drop_table :hot_compatibilities
+    ActiveRecord::Base.lease_connection.drop_table :hot_compatibilities
   end
 
   test "insert after remove_column" do
@@ -30,7 +30,7 @@ class HotCompatibilityTest < ActiveRecord::TestCase
     assert_equal 3, @klass.columns.length
 
     # remove one of them
-    @klass.connection.remove_column :hot_compatibilities, :bar
+    @klass.lease_connection.remove_column :hot_compatibilities, :bar
 
     # we still have 3 columns in the cache
     assert_equal 3, @klass.columns.length
@@ -45,7 +45,7 @@ class HotCompatibilityTest < ActiveRecord::TestCase
   test "update after remove_column" do
     record = @klass.create! foo: "foo"
     assert_equal 3, @klass.columns.length
-    @klass.connection.remove_column :hot_compatibilities, :bar
+    @klass.lease_connection.remove_column :hot_compatibilities, :bar
     assert_equal 3, @klass.columns.length
 
     record.reload
@@ -56,7 +56,7 @@ class HotCompatibilityTest < ActiveRecord::TestCase
     assert_equal "bar", record.foo
   end
 
-  if current_adapter?(:PostgreSQLAdapter) && ActiveRecord::Base.connection.prepared_statements
+  if current_adapter?(:PostgreSQLAdapter) && ActiveRecord::Base.lease_connection.prepared_statements
     test "cleans up after prepared statement failure in a transaction" do
       with_two_connections do |original_connection, ddl_connection|
         record = @klass.create! bar: "bar"
@@ -66,7 +66,7 @@ class HotCompatibilityTest < ActiveRecord::TestCase
           record.reload
         end
 
-        assert_predicate get_prepared_statement_cache(@klass.connection), :any?,
+        assert_predicate get_prepared_statement_cache(@klass.lease_connection), :any?,
           "expected prepared statement cache to have something in it"
 
         # add a new column
@@ -78,7 +78,7 @@ class HotCompatibilityTest < ActiveRecord::TestCase
           end
         end
 
-        assert_empty get_prepared_statement_cache(@klass.connection),
+        assert_empty get_prepared_statement_cache(@klass.lease_connection),
           "expected prepared statement cache to be empty but it wasn't"
       end
     end
@@ -92,7 +92,7 @@ class HotCompatibilityTest < ActiveRecord::TestCase
           record.reload
         end
 
-        assert_predicate get_prepared_statement_cache(@klass.connection), :any?,
+        assert_predicate get_prepared_statement_cache(@klass.lease_connection), :any?,
           "expected prepared statement cache to have something in it"
 
         # add a new column
@@ -108,7 +108,7 @@ class HotCompatibilityTest < ActiveRecord::TestCase
           end
         end
 
-        assert_empty get_prepared_statement_cache(@klass.connection),
+        assert_empty get_prepared_statement_cache(@klass.lease_connection),
           "expected prepared statement cache to be empty but it wasn't"
       end
     end

@@ -3,7 +3,7 @@
 require "cases/helper"
 
 class TransactionIsolationUnsupportedTest < ActiveRecord::TestCase
-  unless ActiveRecord::Base.connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)
+  unless ActiveRecord::Base.lease_connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)
     self.use_transactional_tests = false
 
     class Tag < ActiveRecord::Base
@@ -11,14 +11,14 @@ class TransactionIsolationUnsupportedTest < ActiveRecord::TestCase
 
     test "setting the isolation level raises an error" do
       assert_raises(ActiveRecord::TransactionIsolationError) do
-        Tag.transaction(isolation: :serializable) { Tag.connection.materialize_transactions }
+        Tag.transaction(isolation: :serializable) { Tag.lease_connection.materialize_transactions }
       end
     end
   end
 end
 
 class TransactionIsolationTest < ActiveRecord::TestCase
-  if ActiveRecord::Base.connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)
+  if ActiveRecord::Base.lease_connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)
     self.use_transactional_tests = false
 
     class Tag < ActiveRecord::Base
@@ -38,7 +38,7 @@ class TransactionIsolationTest < ActiveRecord::TestCase
     # It is impossible to properly test read uncommitted. The SQL standard only
     # specifies what must not happen at a certain level, not what must happen. At
     # the read uncommitted level, there is nothing that must not happen.
-    if ActiveRecord::Base.connection.transaction_isolation_levels.include?(:read_uncommitted)
+    if ActiveRecord::Base.lease_connection.transaction_isolation_levels.include?(:read_uncommitted)
       test "read uncommitted" do
         Tag.transaction(isolation: :read_uncommitted) do
           assert_equal 0, Tag.count
@@ -63,7 +63,7 @@ class TransactionIsolationTest < ActiveRecord::TestCase
     end
 
     # We are testing that a nonrepeatable read does not happen
-    if ActiveRecord::Base.connection.transaction_isolation_levels.include?(:repeatable_read)
+    if ActiveRecord::Base.lease_connection.transaction_isolation_levels.include?(:repeatable_read)
       test "repeatable read" do
         tag = Tag.create(name: "jon")
 

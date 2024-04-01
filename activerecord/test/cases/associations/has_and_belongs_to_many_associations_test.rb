@@ -129,7 +129,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
            :parrots, :pirates, :parrots_pirates, :treasures, :price_estimates, :tags, :taggings, :computers
 
   def setup_data_for_habtm_case
-    ActiveRecord::Base.connection.execute("delete from countries_treaties")
+    ActiveRecord::Base.lease_connection.execute("delete from countries_treaties")
 
     country = Country.new(name: "India")
     country.country_id = "c1"
@@ -149,7 +149,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_should_property_quote_string_primary_keys
     setup_data_for_habtm_case
 
-    con = ActiveRecord::Base.connection
+    con = ActiveRecord::Base.lease_connection
     sql = "select * from countries_treaties"
     record = con.select_rows(sql).last
     assert_equal "c1", record[0]
@@ -435,7 +435,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_not_empty david.projects
     david.destroy
     assert_empty david.projects
-    assert_empty DeveloperWithBeforeDestroyRaise.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = 1")
+    assert_empty DeveloperWithBeforeDestroyRaise.lease_connection.select_all("SELECT * FROM developers_projects WHERE developer_id = 1")
   end
 
   def test_destroying
@@ -449,7 +449,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
       david.projects.destroy(project)
     end
 
-    join_records = Developer.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id} AND project_id = #{project.id}")
+    join_records = Developer.lease_connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id} AND project_id = #{project.id}")
     assert_empty join_records
 
     assert_equal 1, david.reload.projects.size
@@ -465,7 +465,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
       david.projects.destroy(*projects)
     end
 
-    join_records = Developer.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id}")
+    join_records = Developer.lease_connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id}")
     assert_empty join_records
 
     assert_equal 0, david.reload.projects.size
@@ -481,7 +481,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
       david.projects.destroy_all
     end
 
-    join_records = Developer.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id}")
+    join_records = Developer.lease_connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id}")
     assert_empty join_records
 
     assert_empty david.projects
@@ -499,11 +499,11 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
       end
     end
 
-    join_records = Parrot.connection.select_all("SELECT * FROM parrots_pirates WHERE parrot_id = #{george.id}")
+    join_records = Parrot.lease_connection.select_all("SELECT * FROM parrots_pirates WHERE parrot_id = #{george.id}")
     assert_empty join_records
     assert_empty george.pirates.reload
 
-    join_records = Parrot.connection.select_all("SELECT * FROM parrots_treasures WHERE parrot_id = #{george.id}")
+    join_records = Parrot.lease_connection.select_all("SELECT * FROM parrots_treasures WHERE parrot_id = #{george.id}")
     assert_empty join_records
     assert_empty george.treasures.reload
   end
@@ -659,7 +659,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert developer.save
     developer.projects << project
     developer.update_columns("name" => "Bruza")
-    assert_equal 1, Developer.connection.select_value(<<-end_sql).to_i
+    assert_equal 1, Developer.lease_connection.select_value(<<-end_sql).to_i
       SELECT count(*) FROM developers_projects
       WHERE project_id = #{project.id}
       AND developer_id = #{developer.id}

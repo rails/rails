@@ -310,14 +310,14 @@ module Rails
             active_support.raise_on_invalid_cache_expiration_time = true
           end
 
-          if defined?(Rails::HTML::Sanitizer) # nested ifs to avoid linter errors
-            if respond_to?(:action_view)
-              action_view.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
-            end
+          if respond_to?(:action_view)
+            require "rails-html-sanitizer"
+            action_view.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
+          end
 
-            if respond_to?(:action_text)
-              action_text.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
-            end
+          if respond_to?(:action_text)
+            require "rails-html-sanitizer"
+            action_text.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
           end
         when "7.2"
           load_defaults "7.1"
@@ -328,6 +328,7 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.validate_migration_timestamps = true
+            active_record.automatically_invert_plural_associations = true
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"

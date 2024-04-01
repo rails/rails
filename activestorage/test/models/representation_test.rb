@@ -22,6 +22,15 @@ class ActiveStorage::RepresentationTest < ActiveSupport::TestCase
     assert_equal 792, image.height
   end
 
+  test "representing a PDF-based Illustrator file" do
+    blob = create_file_blob(fixture: "report.pdf", filename: "file.ai", content_type: "application/illustrator")
+    representation = blob.representation(resize_to_limit: [640, 280]).processed
+
+    image = read_image(representation.image)
+    assert_equal 612, image.width
+    assert_equal 792, image.height
+  end
+
   test "representing an MP4 video" do
     blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
     representation = blob.representation(resize_to_limit: [640, 280]).processed

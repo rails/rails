@@ -930,6 +930,7 @@ module ApplicationTests
     end
 
     test "secrets.secret_key_base is used when config/secrets.yml is present" do
+      remove_file "config/credentials.yml.enc"
       app_file "config/secrets.yml", <<-YAML
         development:
           secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
@@ -964,6 +965,20 @@ module ApplicationTests
       assert_not_deprecated(Rails.deprecator) do
         assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secret_key_base
       end
+    end
+
+    test "config.secret_key_base leads to a deprecation in development when config/secrets.yml is present" do
+      remove_file "config/credentials.yml.enc"
+      app_file "config/secrets.yml", <<-YAML
+        development:
+          secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
+      YAML
+
+      app "development"
+      assert_deprecated(Rails.deprecator) do
+        assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secrets.secret_key_base
+      end
+      assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secret_key_base
     end
 
     test "custom secrets saved in config/secrets.yml are loaded in app secrets" do
@@ -2926,9 +2941,9 @@ module ApplicationTests
 
       assert_equal false, ActiveRecord::ConnectionAdapters::SQLite3Adapter.strict_strings_by_default
 
-      Post.connection.create_table :posts
+      Post.lease_connection.create_table :posts
       assert_nothing_raised do
-        Post.connection.add_index :posts, :non_existent
+        Post.lease_connection.add_index :posts, :non_existent
       end
     end
 
@@ -2963,9 +2978,9 @@ module ApplicationTests
 
       assert_equal true, ActiveRecord::ConnectionAdapters::SQLite3Adapter.strict_strings_by_default
 
-      Post.connection.create_table :posts
+      Post.lease_connection.create_table :posts
       error = assert_raises(StandardError) do
-        Post.connection.add_index :posts, :non_existent
+        Post.lease_connection.add_index :posts, :non_existent
       end
       assert_match(/no such column: non_existent/, error.message)
     end
@@ -4751,8 +4766,8 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal "potato", ActiveRecord::Base.connection.pool.db_config.adapter
-      assert_equal "SQLite", ActiveRecord::Base.connection.adapter_name
+      assert_equal "potato", ActiveRecord::Base.lease_connection.pool.db_config.adapter
+      assert_equal "SQLite", ActiveRecord::Base.lease_connection.adapter_name
     end
 
     private

@@ -4,10 +4,11 @@ require "cases/helper"
 require "support/ddl_helper"
 require "models/book"
 require "models/post"
+require "timeout"
 
 class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   setup do
-    @conn = ActiveRecord::Base.connection
+    @conn = ActiveRecord::Base.lease_connection
   end
 
   test "connection_error" do
@@ -15,6 +16,40 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
       ActiveRecord::ConnectionAdapters::TrilogyAdapter.new(host: "invalid", port: 12345).connect!
     end
     assert_kind_of ActiveRecord::ConnectionAdapters::NullPool, error.connection_pool
+  end
+
+  test "timeout in transaction doesnt query closed connection" do
+    assert_raises(Timeout::Error) do
+      Timeout.timeout(0.1) do
+        @conn.transaction do
+          @conn.execute("SELECT SLEEP(1)")
+        end
+      end
+    end
+  end
+
+  test "timeout in fixture set insertion doesnt query closed connection" do
+    fixtures = [
+      ["traffic_lights", [
+        { "location" => "US", "state" => ["NY"], "long_state" => ["a"] },
+      ]]
+    ] * 1000
+
+    assert_raises(Timeout::Error) do
+      Timeout.timeout(0.1) do
+        @conn.insert_fixtures_set(fixtures)
+      end
+    end
+  end
+
+  test "timeout without referential integrity doesnt query closed connection" do
+    assert_raises(Timeout::Error) do
+      Timeout.timeout(0.1) do
+        @conn.disable_referential_integrity do
+          @conn.execute("SELECT SLEEP(1)")
+        end
+      end
+    end
   end
 
   test "#explain for one query" do
@@ -343,7 +378,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     ActiveRecord::Base.establish_connection(
       db_config.configuration_hash.merge("read_timeout" => 1)
     )
-    connection = ActiveRecord::Base.connection
+    connection = ActiveRecord::Base.lease_connection
 
     error = assert_raises(ActiveRecord::AdapterTimeout) do
       connection.execute("SELECT SLEEP(2)")

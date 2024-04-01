@@ -374,7 +374,7 @@ module ActiveRecord
 
       def reset_sequence_name # :nodoc:
         @explicit_sequence_name = false
-        @sequence_name          = connection.default_sequence_name(table_name, primary_key)
+        @sequence_name          = lease_connection.default_sequence_name(table_name, primary_key)
       end
 
       # Sets the name of the sequence to use when generating ids to the given
@@ -399,13 +399,13 @@ module ActiveRecord
       # Determines if the primary key values should be selected from their
       # corresponding sequence before the insert statement.
       def prefetch_primary_key?
-        connection.prefetch_primary_key?(table_name)
+        lease_connection.prefetch_primary_key?(table_name)
       end
 
       # Returns the next value that will be used as the primary key on
       # an insert statement.
       def next_sequence_value
-        connection.next_sequence_value(sequence_name)
+        lease_connection.next_sequence_value(sequence_name)
       end
 
       # Indicates whether the table associated with this class exists
@@ -433,7 +433,7 @@ module ActiveRecord
       def _returning_columns_for_insert # :nodoc:
         @_returning_columns_for_insert ||= begin
           auto_populated_columns = columns.filter_map do |c|
-            c.name if connection.return_value_after_insert?(c)
+            c.name if lease_connection.return_value_after_insert?(c)
           end
 
           auto_populated_columns.empty? ? Array(primary_key) : auto_populated_columns
@@ -518,7 +518,7 @@ module ActiveRecord
       #    end
       #  end
       def reset_column_information
-        connection.clear_cache!
+        lease_connection.clear_cache!
         ([self] + descendants).each(&:undefine_attribute_methods)
         schema_cache.clear_data_source_cache!(table_name)
 
@@ -613,7 +613,7 @@ module ActiveRecord
         end
 
         def type_for_column(column)
-          type = connection.lookup_cast_type_from_column(column)
+          type = lease_connection.lookup_cast_type_from_column(column)
 
           if immutable_strings_by_default && type.respond_to?(:to_immutable_string)
             type = type.to_immutable_string

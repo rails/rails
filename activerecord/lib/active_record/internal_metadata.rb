@@ -153,7 +153,7 @@ module ActiveRecord
 
       def select_entry(connection, key)
         sm = Arel::SelectManager.new(arel_table)
-        sm.project(Arel::Nodes::SqlLiteral.new("*"))
+        sm.project(Arel::Nodes::SqlLiteral.new("*", retryable: true))
         sm.where(arel_table[primary_key].eq(Arel::Nodes::BindParam.new(key)))
         sm.order(arel_table[primary_key].asc)
         sm.limit = 1

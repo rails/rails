@@ -26,7 +26,7 @@ class PostgresqlExtensionMigrationTest < ActiveRecord::PostgreSQLTestCase
   def setup
     super
 
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @pool = ActiveRecord::Base.connection_pool
 
     @old_table_name_prefix = ActiveRecord::Base.table_name_prefix

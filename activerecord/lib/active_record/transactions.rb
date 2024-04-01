@@ -208,9 +208,9 @@ module ActiveRecord
     # database error will occur because the savepoint has already been
     # automatically released. The following example demonstrates the problem:
     #
-    #   Model.connection.transaction do                           # BEGIN
-    #     Model.connection.transaction(requires_new: true) do     # CREATE SAVEPOINT active_record_1
-    #       Model.connection.create_table(...)                    # active_record_1 now automatically released
+    #   Model.lease_connection.transaction do                           # BEGIN
+    #     Model.lease_connection.transaction(requires_new: true) do     # CREATE SAVEPOINT active_record_1
+    #       Model.lease_connection.create_table(...)                    # active_record_1 now automatically released
     #     end                                                     # RELEASE SAVEPOINT active_record_1
     #                                                             # ^^^^ BOOM! database error!
     #   end
@@ -393,18 +393,19 @@ module ActiveRecord
     # This method is available within the context of an ActiveRecord::Base
     # instance.
     def with_transaction_returning_status
-      status = nil
-      connection = self.class.connection
-      ensure_finalize = !connection.transaction_open?
+      self.class.with_connection do |connection|
+        status = nil
+        ensure_finalize = !connection.transaction_open?
 
-      connection.transaction do
-        add_to_transaction(ensure_finalize || has_transactional_callbacks?)
-        remember_transaction_record_state
+        connection.transaction do
+          add_to_transaction(ensure_finalize || has_transactional_callbacks?)
+          remember_transaction_record_state
 
-        status = yield
-        raise ActiveRecord::Rollback unless status
+          status = yield
+          raise ActiveRecord::Rollback unless status
+        end
+        status
       end
-      status
     end
 
     def trigger_transactional_callbacks? # :nodoc:
@@ -496,7 +497,9 @@ module ActiveRecord
       # Add the record to the current transaction so that the #after_rollback and #after_commit
       # callbacks can be called.
       def add_to_transaction(ensure_finalize = true)
-        self.class.connection.add_transaction_record(self, ensure_finalize)
+        self.class.with_connection do |connection|
+          connection.add_transaction_record(self, ensure_finalize)
+        end
       end
 
       def has_transactional_callbacks?

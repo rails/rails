@@ -199,6 +199,10 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
       rescue ActiveRecord::Encryption::Errors::Decryption
         false
       end
+
+      def binary?
+        false
+      end
     end
 
     class EncryptedAuthor1 < Author

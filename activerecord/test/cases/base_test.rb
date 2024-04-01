@@ -138,7 +138,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_column_names_are_escaped
-    conn      = ActiveRecord::Base.connection
+    conn      = ActiveRecord::Base.lease_connection
     classname = conn.class.name[/[^:]*$/]
     badchar   = {
       "SQLite3Adapter"    => '"',
@@ -691,7 +691,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_create_without_prepared_statement
-    topic = Topic.connection.unprepared_statement do
+    topic = Topic.lease_connection.unprepared_statement do
       Topic.create(title: "foo")
     end
 
@@ -700,7 +700,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_destroy_without_prepared_statement
     topic = Topic.create(title: "foo")
-    Topic.connection.unprepared_statement do
+    Topic.lease_connection.unprepared_statement do
       Topic.find(topic.id).destroy
     end
 
@@ -1346,11 +1346,11 @@ class BasicsTest < ActiveRecord::TestCase
 
     klass.table_name = "foo"
     assert_equal "foo", klass.table_name
-    assert_equal klass.connection.quote_table_name("foo"), klass.quoted_table_name
+    assert_equal klass.lease_connection.quote_table_name("foo"), klass.quoted_table_name
 
     klass.table_name = "bar"
     assert_equal "bar", klass.table_name
-    assert_equal klass.connection.quote_table_name("bar"), klass.quoted_table_name
+    assert_equal klass.lease_connection.quote_table_name("bar"), klass.quoted_table_name
   end
 
   def test_set_table_name_with_inheritance
@@ -1451,7 +1451,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_assert_queries_count
-    query = lambda { ActiveRecord::Base.connection.execute "select count(*) from developers" }
+    query = lambda { ActiveRecord::Base.lease_connection.execute "select count(*) from developers" }
     assert_queries_count(2) { 2.times { query.call } }
     assert_queries_count 1, &query
     assert_no_queries { assert true }
@@ -1662,7 +1662,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   if current_adapter?(:PostgreSQLAdapter)
     def test_column_types_on_queries_on_postgresql
-      result = ActiveRecord::Base.connection.exec_query("SELECT 1 AS test")
+      result = ActiveRecord::Base.lease_connection.exec_query("SELECT 1 AS test")
       assert_equal ActiveModel::Type::Integer, result.column_types["test"].class
     end
   end

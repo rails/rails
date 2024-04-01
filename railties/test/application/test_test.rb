@@ -277,12 +277,12 @@ Expected: ["id", "name"]
 
       app_file "lib/tasks/hooks.rake", <<-RUBY
         task :before_hook do
-          has_user_table = ActiveRecord::Base.connection.table_exists?('users')
+          has_user_table = ActiveRecord::Base.lease_connection.table_exists?('users')
           puts "before: " + has_user_table.to_s
         end
 
         task :after_hook do
-          has_user_table = ActiveRecord::Base.connection.table_exists?('users')
+          has_user_table = ActiveRecord::Base.lease_connection.table_exists?('users')
           puts "after: " + has_user_table.to_s
         end
 

@@ -46,18 +46,14 @@ module ActiveRecord
         ActiveSupport::IsolatedExecutionState.isolation_level = @previous_isolation_level
       end
 
-      def active_connections(pool)
-        pool.connections.find_all(&:in_use?)
-      end
-
       def test_checkout_after_close
-        connection = pool.connection
+        connection = pool.lease_connection
         assert_predicate connection, :in_use?
 
         connection.close
         assert_not_predicate connection, :in_use?
 
-        assert_predicate pool.connection, :in_use?
+        assert_predicate pool.lease_connection, :in_use?
       end
 
       def test_released_connection_moves_between_threads
@@ -81,7 +77,7 @@ module ActiveRecord
       def test_with_connection
         assert_equal 0, active_connections(pool).size
 
-        main_thread = pool.connection
+        main_thread = pool.lease_connection
         assert_equal 1, active_connections(pool).size
 
         new_thread {
@@ -89,6 +85,16 @@ module ActiveRecord
             assert conn
             assert_equal 2, active_connections(pool).size
           end
+          assert_equal 1, active_connections(pool).size
+
+          pool.with_connection do |conn|
+            assert conn
+            assert_equal 2, active_connections(pool).size
+            pool.lease_connection
+          end
+
+          assert_equal 2, active_connections(pool).size
+          pool.release_connection
           assert_equal 1, active_connections(pool).size
         }.join
 
@@ -110,7 +116,7 @@ module ActiveRecord
 
       def test_active_connection_in_use
         assert_not_predicate pool, :active_connection?
-        main_thread = pool.connection
+        main_thread = pool.lease_connection
 
         assert_predicate pool, :active_connection?
 
@@ -274,7 +280,7 @@ module ActiveRecord
 
         idle_conn.instance_variable_set(
           :@idle_since,
-          Process.clock_gettime(Process::CLOCK_MONOTONIC) - 0.02
+          Process.clock_gettime(Process::CLOCK_MONOTONIC) - 0.03
         )
 
         @pool.flush
@@ -361,16 +367,16 @@ module ActiveRecord
       end
 
       def test_remove_connection_for_thread
-        conn = @pool.connection
+        conn = @pool.lease_connection
         @pool.remove conn
-        assert_not_equal(conn, @pool.connection)
+        assert_not_equal(conn, @pool.lease_connection)
       ensure
         conn.close if conn
       end
 
       def test_active_connection?
         assert_not_predicate @pool, :active_connection?
-        assert @pool.connection
+        assert @pool.lease_connection
         assert_predicate @pool, :active_connection?
         @pool.release_connection
         assert_not_predicate @pool, :active_connection?
@@ -378,12 +384,12 @@ module ActiveRecord
 
       def test_checkout_behavior
         pool = ConnectionPool.new(@pool_config)
-        main_connection = pool.connection
+        main_connection = pool.lease_connection
         assert_not_nil main_connection
         threads = []
         4.times do |i|
           threads << new_thread(i) do
-            thread_connection = pool.connection
+            thread_connection = pool.lease_connection
             assert_not_nil thread_connection
             thread_connection.close
           end
@@ -392,8 +398,8 @@ module ActiveRecord
         threads.each(&:join)
 
         new_thread do
-          assert pool.connection
-          pool.connection.close
+          assert pool.lease_connection
+          pool.lease_connection.close
         end.join
       end
 
@@ -527,10 +533,10 @@ module ActiveRecord
       def test_automatic_reconnect_restores_after_disconnect
         pool = ConnectionPool.new(@pool_config)
         assert pool.automatic_reconnect
-        assert pool.connection
+        assert pool.lease_connection
 
         pool.disconnect!
-        assert pool.connection
+        assert pool.lease_connection
       end
 
       def test_automatic_reconnect_can_be_disabled
@@ -539,7 +545,7 @@ module ActiveRecord
         pool.automatic_reconnect = false
 
         assert_raises(ConnectionNotEstablished) do
-          pool.connection
+          pool.lease_connection
         end
 
         assert_raises(ConnectionNotEstablished) do
@@ -548,7 +554,7 @@ module ActiveRecord
       end
 
       def test_pool_sets_connection_visitor
-        assert @pool.connection.visitor.is_a?(Arel::Visitors::ToSql)
+        assert @pool.lease_connection.visitor.is_a?(Arel::Visitors::ToSql)
       end
 
       # make sure exceptions are thrown when establish_connection
@@ -697,15 +703,24 @@ module ActiveRecord
 
       def test_bang_versions_of_disconnect_and_clear_reloadable_connections_if_unable_to_acquire_all_connections_proceed_anyway
         @pool.checkout_timeout = 0.001 # no need to delay test suite by waiting the whole full default timeout
-        [:disconnect!, :clear_reloadable_connections!].each do |group_action_method|
-          @pool.with_connection do |connection|
-            new_thread { @pool.send(group_action_method) }.join
-            # assert connection has been forcefully taken away from us
-            assert_not_predicate @pool, :active_connection?
 
-            # make a new connection for with_connection to clean up
-            @pool.connection
-          end
+        @pool.with_connection do |connection|
+          new_thread { @pool.disconnect! }.join
+          # assert connection has been forcefully taken away from us
+          assert_not_predicate @pool, :active_connection?
+
+          # make a new connection for with_connection to clean up
+          @pool.lease_connection
+        end
+        @pool.release_connection
+
+        @pool.with_connection do |connection|
+          new_thread { @pool.clear_reloadable_connections! }.join
+          # assert connection has been forcefully taken away from us
+          assert_not_predicate @pool, :active_connection?
+
+          # make a new connection for with_connection to clean up
+          @pool.lease_connection
         end
       end
 
@@ -713,7 +728,7 @@ module ActiveRecord
         skip_fiber_testing
         with_single_connection_pool do |pool|
           [:disconnect, :disconnect!, :clear_reloadable_connections, :clear_reloadable_connections!].each do |group_action_method|
-            conn               = pool.connection # drain the only available connection
+            conn               = pool.lease_connection # drain the only available connection
             second_thread_done = Concurrent::Event.new
 
             begin
@@ -765,7 +780,7 @@ module ActiveRecord
       def test_clear_reloadable_connections_creates_new_connections_for_waiting_threads_if_necessary
         skip_fiber_testing
         with_single_connection_pool do |pool|
-          conn = pool.connection # drain the only available connection
+          conn = pool.lease_connection # drain the only available connection
           def conn.requires_reloading? # make sure it gets removed from the pool by clear_reloadable_connections
             true
           end
@@ -837,11 +852,11 @@ module ActiveRecord
       def test_role_and_shard_is_returned
         assert_equal :writing, @pool_config.role
         assert_equal :writing, @pool.role
-        assert_equal :writing, @pool.connection.role
+        assert_equal :writing, @pool.lease_connection.role
 
         assert_equal :default, @pool_config.shard
         assert_equal :default, @pool.shard
-        assert_equal :default, @pool.connection.shard
+        assert_equal :default, @pool.lease_connection.shard
 
         db_config = ActiveRecord::Base.connection_pool.db_config
         pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :reading, :shard_one)
@@ -849,11 +864,11 @@ module ActiveRecord
 
         assert_equal :reading, pool_config.role
         assert_equal :reading, pool.role
-        assert_equal :reading, pool.connection.role
+        assert_equal :reading, pool.lease_connection.role
 
         assert_equal :shard_one, pool_config.shard
         assert_equal :shard_one, pool.shard
-        assert_equal :shard_one, pool.connection.shard
+        assert_equal :shard_one, pool.lease_connection.shard
       end
 
       def test_pin_connection_always_returns_the_same_connection
@@ -862,7 +877,7 @@ module ActiveRecord
         pinned_connection = @pool.checkout
 
         assert_not_predicate @pool, :active_connection?
-        assert_same pinned_connection, @pool.connection
+        assert_same pinned_connection, @pool.lease_connection
         assert_predicate @pool, :active_connection?
 
         assert_same pinned_connection, @pool.checkout
@@ -888,22 +903,22 @@ module ActiveRecord
       end
 
       def test_pin_connection_synchronize_the_connection
-        assert_equal ActiveSupport::Concurrency::NullLock, @pool.connection.lock
+        assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
         @pool.pin_connection!(true)
-        assert_not_equal ActiveSupport::Concurrency::NullLock, @pool.connection.lock
+        assert_not_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
         @pool.unpin_connection!
-        assert_equal ActiveSupport::Concurrency::NullLock, @pool.connection.lock
+        assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
 
         @pool.pin_connection!(false)
-        assert_equal ActiveSupport::Concurrency::NullLock, @pool.connection.lock
+        assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
       end
 
       def test_pin_connection_opens_a_transaction
-        assert_instance_of NullTransaction, @pool.connection.current_transaction
+        assert_instance_of NullTransaction, @pool.lease_connection.current_transaction
         @pool.pin_connection!(true)
-        assert_instance_of RealTransaction, @pool.connection.current_transaction
+        assert_instance_of RealTransaction, @pool.lease_connection.current_transaction
         @pool.unpin_connection!
-        assert_instance_of NullTransaction, @pool.connection.current_transaction
+        assert_instance_of NullTransaction, @pool.lease_connection.current_transaction
       end
 
       def test_unpin_connection_returns_whether_transaction_has_been_rolledback
@@ -911,15 +926,19 @@ module ActiveRecord
         assert_equal true, @pool.unpin_connection!
 
         @pool.pin_connection!(true)
-        @pool.connection.commit_transaction
+        @pool.lease_connection.commit_transaction
         assert_equal false, @pool.unpin_connection!
 
         @pool.pin_connection!(true)
-        @pool.connection.rollback_transaction
+        @pool.lease_connection.rollback_transaction
         assert_equal false, @pool.unpin_connection!
       end
 
       private
+        def active_connections(pool)
+          pool.connections.find_all(&:in_use?)
+        end
+
         def with_single_connection_pool
           config = @db_config.configuration_hash.merge(pool: 1)
           db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", config)

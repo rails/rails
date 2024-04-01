@@ -95,7 +95,7 @@ A line by line examination of this file will help get you oriented to Rails test
 require "test_helper"
 ```
 
-By requiring this file, `test_helper.rb` the default configuration to run our tests is loaded. We will include this with all the tests we write, so any methods added to this file are available to all our tests.
+By requiring this file, `test_helper.rb`, the default configuration to run our tests is loaded. We will include this with all the tests we write, so any methods added to this file are available to all our tests.
 
 ```ruby
 class ArticleTest < ActiveSupport::TestCase
@@ -460,29 +460,36 @@ at the end of the test run and so on. Check the documentation of the test runner
 
 ```bash
 $ bin/rails test -h
-Usage: rails test [options] [files or directories]
+Usage:
+  bin/rails test [PATHS...]
 
-You can run a single test by appending a line number to a filename:
+Run tests except system tests
 
-    bin/rails test test/models/user_test.rb:27
+Examples:
+    You can run a single test by appending a line number to a filename:
 
-You can run multiple tests with in a line range by appending the line range to a filename:
+        bin/rails test test/models/user_test.rb:27
 
-    bin/rails test test/models/user_test.rb:10-20
+    You can run multiple tests with in a line range by appending the line range to a filename:
 
-You can run multiple files and directories at the same time:
+        bin/rails test test/models/user_test.rb:10-20
 
-    bin/rails test test/controllers test/integration/login_test.rb
+    You can run multiple files and directories at the same time:
 
-By default test failures and errors are reported inline during a run.
+        bin/rails test test/controllers test/integration/login_test.rb
+
+    By default test failures and errors are reported inline during a run.
 
 minitest options:
     -h, --help                       Display this help.
         --no-plugins                 Bypass minitest plugin auto-loading (or set $MT_NO_PLUGINS).
     -s, --seed SEED                  Sets random seed. Also via env. Eg: SEED=n rake
     -v, --verbose                    Verbose. Show progress processing files.
+    -q, --quiet                      Quiet. Show no progress processing files.
+        --show-skips                 Show skipped at the end of run.
     -n, --name PATTERN               Filter run on /regexp/ or string.
         --exclude PATTERN            Exclude /regexp/ or string from run.
+    -S, --skip CODES                 Skip reporting of certain types of results (eg E).
 
 Known extensions: rails, pride
     -w, --warnings                   Run with Ruby warnings enabled
@@ -491,6 +498,7 @@ Known extensions: rails, pride
     -d, --defer-output               Output test failures and errors after the test run
     -f, --fail-fast                  Abort test run on first failure or error
     -c, --[no-]color                 Enable color in the output
+        --profile [COUNT]            Enable profiling of tests and list the slowest test cases (default: 10)
     -p, --pride                      Pride. Show your testing pride!
 ```
 
@@ -540,7 +548,7 @@ process. The databases will be suffixed with the number corresponding to the wor
 have 2 workers the tests will create `test-database-0` and `test-database-1` respectively.
 
 If the number of workers passed is 1 or fewer the processes will not be forked and the tests will not
-be parallelized and the tests will use the original `test-database` database.
+be parallelized and they will use the original `test-database` database.
 
 Two hooks are provided, one runs when the process is forked, and one runs before the forked process is closed.
 These can be useful if your app uses multiple databases or performs other tasks that depend on the number of
@@ -570,7 +578,7 @@ These methods are not needed or available when using parallel testing with threa
 If you prefer using threads or are using JRuby, a threaded parallelization option is provided. The threaded
 parallelizer is backed by Minitest's `Parallel::Executor`.
 
-To change the parallelization method to use threads over forks put the following in your `test_helper.rb`
+To change the parallelization method to use threads over forks put the following in your `test_helper.rb`:
 
 ```ruby
 class ActiveSupport::TestCase
@@ -730,7 +738,7 @@ Consider an `Article` model that has an associated image as a `thumbnail`
 attachment, along with fixture data YAML:
 
 ```ruby
-class Article
+class Article < ApplicationRecord
   has_one_attached :thumbnail
 end
 ```
@@ -1159,7 +1167,7 @@ class BlogFlowTest < ActionDispatch::IntegrationTest
 end
 ```
 
-We will take a look at `assert_select` to query the resulting HTML of a request in the "Testing Views" section below. It is used for testing the response of our request by asserting the presence of key HTML elements and their content.
+We will take a look at `assert_select` to query the resulting HTML of a request in the [Testing Views](#testing-views) section below. It is used for testing the response of our request by asserting the presence of key HTML elements and their content.
 
 When we visit our root path, we should see `welcome/index.html.erb` rendered for the view. So this assertion should pass.
 
@@ -2166,7 +2174,7 @@ end
 
 ### Testing that Exceptions are Raised
 
-Testing that your job raises an exception in certain cases can be tricky, especially when you have retries configured. The `perform_enqueued_jobs` helper fails any test where a job raises an exception, so to have the test succeed when the exception is raised you have call the job's `perform` method directly.
+Testing that your job raises an exception in certain cases can be tricky, especially when you have retries configured. The `perform_enqueued_jobs` helper fails any test where a job raises an exception, so to have the test succeed when the exception is raised you have to call the job's `perform` method directly.
 
 ```ruby
 require "test_helper"
@@ -2192,7 +2200,7 @@ entities broadcast correct messages.
 
 ### Connection Test Case
 
-By default, when you generate new Rails application with Action Cable, a test for the base connection class (`ApplicationCable::Connection`) is generated as well under `test/channels/application_cable` directory.
+By default, when you generate a new Rails application with Action Cable, a test for the base connection class (`ApplicationCable::Connection`) is generated as well under `test/channels/application_cable` directory.
 
 Connection tests aim to check whether a connection's identifiers get assigned properly
 or that any improper connection requests are rejected. Here is an example:

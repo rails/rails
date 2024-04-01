@@ -20,6 +20,7 @@ module Arel # :nodoc: all
 
       private
         def visit_Arel_Nodes_DeleteStatement(o, collector)
+          collector.retryable = false
           o = prepare_delete_statement(o)
 
           if has_join_sources?(o)
@@ -37,6 +38,7 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_UpdateStatement(o, collector)
+          collector.retryable = false
           o = prepare_update_statement(o)
 
           collector << "UPDATE "
@@ -49,6 +51,7 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_InsertStatement(o, collector)
+          collector.retryable = false
           collector << "INSERT INTO "
           collector = visit o.relation, collector
 
@@ -381,6 +384,7 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_NamedFunction(o, collector)
+          collector.retryable = false
           collector << o.name
           collector << "("
           collector << "DISTINCT " if o.distinct
@@ -768,10 +772,12 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_SqlLiteral(o, collector)
           collector.preparable = false
+          collector.retryable = o.retryable
           collector << o.to_s
         end
 
         def visit_Arel_Nodes_BoundSqlLiteral(o, collector)
+          collector.retryable = false
           bind_index = 0
 
           new_bind = lambda do |value|
