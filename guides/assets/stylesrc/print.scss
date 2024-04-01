@@ -87,6 +87,9 @@
   }
 
   body.guide {
+    // Force backgrounds to print
+    -webkit-print-color-adjust:exact !important;
+    print-color-adjust:exact !important;
     font-size: 10pt !important;
     line-height: 1.4;
     padding: 0 3%;
@@ -152,6 +155,7 @@
 
       pre, span {
         background-color: transparent !important;
+        border: none;
       }
       
       button {
