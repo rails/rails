@@ -1,0 +1,12 @@
+_fixture:
+  model_class: Cpk::Post
+
+welcome:
+  title: Welcome to the weblog
+  author: David
+  tags: cpk_tag_ruby_on_rails, cpk_tag_digital_product
+
+thinking:
+  title: So I was thinking
+  author: Bob
+  tags: cpk_tag_digital_product
