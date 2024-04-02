@@ -38,7 +38,7 @@ module Rails
             Rake::TaskManager.record_task_metadata = true
 
             result = nil
-            Rake.with_application do |rake|
+            Rake.with_application(Rake.application) do |rake|
               rake.init(bin, args) unless args.empty?
               rake.load_rakefile
               result = block.call(rake)
