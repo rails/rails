@@ -310,6 +310,7 @@ class LoadingTest < ActiveSupport::TestCase
       Rails.configuration.after_routes_loaded do
         $counter *= 3
       end
+      Rails.application.reload_routes!
     RUBY
 
     app_file "app/models/user.rb", <<-MODEL
@@ -373,6 +374,7 @@ class LoadingTest < ActiveSupport::TestCase
       Rails.configuration.after_routes_loaded do
         $counter *= 3
       end
+      Rails.application.reload_routes!
     RUBY
 
     boot_app "development"
