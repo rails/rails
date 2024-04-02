@@ -733,7 +733,7 @@ See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/JavaScriptHelper.html#method-i-javascript_tag)
 for more information.
 
-Tags
+Alternative Tags
 ----------------------------------------------
 
 A set of methods to generate HTML tags programmatically.
