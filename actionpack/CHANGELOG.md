@@ -1,3 +1,7 @@
+*   Raise an `ArgumentError` when invalid `:on` or `:except` options are passed into `#resource` and `#resources`.
+
+    *Joshua Young*
+
 ## Rails 8.0.0.beta1 (September 26, 2024) ##
 
 *   Fix non-GET requests not updating cookies in `ActionController::TestCase`.
