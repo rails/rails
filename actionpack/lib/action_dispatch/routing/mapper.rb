@@ -1173,11 +1173,26 @@ module ActionDispatch
         CANONICAL_ACTIONS = %w(index create new show update destroy)
 
         class Resource # :nodoc:
+          class << self
+            def default_actions(api_only)
+              if api_only
+                [:index, :create, :show, :update, :destroy]
+              else
+                [:index, :create, :new, :show, :update, :destroy, :edit]
+              end
+            end
+          end
+
           attr_reader :controller, :path, :param
 
           def initialize(entities, api_only, shallow, options = {})
             if options[:param].to_s.include?(":")
               raise ArgumentError, ":param option can't contain colons"
+            end
+
+            valid_actions = self.class.default_actions(api_only)
+            if (invalid_actions = invalid_only_except_options(options, valid_actions)).any?
+              raise ArgumentError, ":only and :except must include only #{valid_actions}, but also included #{invalid_actions}"
             end
 
             @name       = entities.to_s
@@ -1193,11 +1208,7 @@ module ActionDispatch
           end
 
           def default_actions
-            if @api_only
-              [:index, :create, :show, :update, :destroy]
-            else
-              [:index, :create, :new, :show, :update, :destroy, :edit]
-            end
+            self.class.default_actions(@api_only)
           end
 
           def actions
@@ -1265,9 +1276,24 @@ module ActionDispatch
           end
 
           def singleton?; false; end
+
+          private
+            def invalid_only_except_options(options, valid_actions)
+              options.values_at(:only, :except).flatten.compact - valid_actions
+            end
         end
 
         class SingletonResource < Resource # :nodoc:
+          class << self
+            def default_actions(api_only)
+              if api_only
+                [:show, :create, :update, :destroy]
+              else
+                [:show, :create, :update, :destroy, :new, :edit]
+              end
+            end
+          end
+
           def initialize(entities, api_only, shallow, options)
             super
             @as         = nil
@@ -1276,11 +1302,7 @@ module ActionDispatch
           end
 
           def default_actions
-            if @api_only
-              [:show, :create, :update, :destroy]
-            else
-              [:show, :create, :update, :destroy, :new, :edit]
-            end
+            self.class.default_actions(@api_only)
           end
 
           def plural
@@ -1341,7 +1363,7 @@ module ActionDispatch
           end
 
           with_scope_level(:resource) do
-            options = apply_action_options options
+            options = apply_action_options :resource, options
             resource_scope(SingletonResource.new(resources.pop, api_only?, @scope[:shallow], options)) do
               yield if block_given?
 
@@ -1511,7 +1533,7 @@ module ActionDispatch
           end
 
           with_scope_level(:resources) do
-            options = apply_action_options options
+            options = apply_action_options :resources, options
             resource_scope(Resource.new(resources.pop, api_only?, @scope[:shallow], options)) do
               yield if block_given?
 
@@ -1781,17 +1803,32 @@ module ActionDispatch
             false
           end
 
-          def apply_action_options(options)
+          def apply_action_options(method, options)
             return options if action_options? options
-            options.merge scope_action_options
+            options.merge scope_action_options(method)
           end
 
           def action_options?(options)
             options[:only] || options[:except]
           end
 
-          def scope_action_options
-            @scope[:action_options] || {}
+          def scope_action_options(method)
+            return {} unless @scope[:action_options]
+
+            actions = applicable_actions_for(method)
+            @scope[:action_options].dup.tap do |options|
+              (options[:only] = Array(options[:only]) & actions) if options[:only]
+              (options[:except] = Array(options[:except]) & actions) if options[:except]
+            end
+          end
+
+          def applicable_actions_for(method)
+            case method
+            when :resource
+              SingletonResource.default_actions(api_only?)
+            when :resources
+              Resource.default_actions(api_only?)
+            end
           end
 
           def resource_scope?

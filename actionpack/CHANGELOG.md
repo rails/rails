@@ -1,3 +1,7 @@
+*   Raise an `ArgumentError` when invalid `:on` or `:except` options are passed into `#resource` and `#resources`.
+
+    *Joshua Young*
+
 *   Make `http_cache_forever` use `immutable: true`
 
     *Nate Matykiewicz*
