@@ -727,6 +727,9 @@ body.guide {
       }
 
       ol.chapters {
+        padding-inline-start: 3.5em;
+        padding-inline-end: 1em;
+
         &::-webkit-scrollbar
         {
           width: 6px;
@@ -761,6 +764,12 @@ body.guide {
         li {
           font-weight: bold;
 
+          a {
+            position: relative;
+            display: block;
+            word-wrap: break-word;
+          }
+
           a,
           a:link,
           a:visited {
@@ -778,19 +787,68 @@ body.guide {
             margin-top: 0.5em;
             margin-bottom: 0.75em;
             padding-inline-start: 1em;
-            @include media('>desktop') {
-              max-width: 310px;
-              width: 310px;
-            }
+            padding-inline-end: 0.25em;
             
             li {
               font-weight: 400;
-              @include media('>desktop') {
-                width: 310px;
+
+              a.active::after { // highlight
+                @include media('>desktop') {
+                  width: 328px;
+                }
+                left: -3em;
+              }
+
+              a.active::before { // red square
+                left: -2.5em;
+                top: 7px;
               }
             } // li
           } // ul
+
+          a::after { // highlight
+            content: '';
+            position: absolute;
+            display: block;
+            height: calc(100% + 10px);
+            @include media('>desktop') {
+              width: 352px;
+            }
+            top: 50%;
+            transform: translateY(-50%);
+            left: -3.5em;
+            border-radius: 8px;
+            background-color: $stop-bkgnd;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+          }
+
+          a.active::after {
+            opacity: 1;
+          }
+
+          a::before { // red square
+            content: '';
+            display: block;
+            position: absolute;
+            height: 10px;
+            width: 10px;
+            top: 6px;
+            left: -3em;
+            border-radius: 3px;
+            background-color: $rf-brand;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+          }
+
+          a.active::before {
+            opacity: 1;
+          }
         } // li
+
+        > li:first-child {
+          margin-top: 0.5em;
+        }
       } // ol
     }
   }
