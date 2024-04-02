@@ -1,3 +1,27 @@
+*   Add the ability to ignore counter cache columns until they are backfilled
+
+    Starting to use counter caches on existing large tables can be troublesome, because the column
+    values must be backfilled separately of the column addition (to not lock the table for too long)
+    and before the use of `:counter_cache` (otherwise methods like `size`/`any?`/etc, which use
+    counter caches internally, can produce incorrect results). People usually use database triggers
+    or callbacks on child associations while backfilling before introducing a counter cache
+    configuration to the association.
+
+    Now, to safely backfill the column, while keeping the column updated with child records added/removed, use:
+
+    ```ruby
+    class Comment < ApplicationRecord
+      belongs_to :post, counter_cache: { active: false }
+    end
+    ```
+
+    While the counter cache is not "active", the methods like `size`/`any?`/etc will not use it,
+    but get the results directly from the database. After the counter cache column is backfilled, simply
+    remove the `{ active: false }` part from the counter cache definition, and it will now be used by the
+    mentioned methods.
+
+    *fatkodima*
+
 *   Retry known idempotent SELECT queries on connection-related exceptions
 
     SELECT queries we construct by walking the Arel tree and / or with known model attributes

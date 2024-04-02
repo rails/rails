@@ -8,6 +8,7 @@ require "models/car"
 require "models/aircraft"
 require "models/wheel"
 require "models/engine"
+require "models/tyre"
 require "models/reply"
 require "models/category"
 require "models/categorization"
@@ -441,6 +442,43 @@ class CounterCacheTest < ActiveRecord::TestCase
   test "counter_cache_column?" do
     assert Person.counter_cache_column?("cars_count")
     assert_not Car.counter_cache_column?("cars_count")
+  end
+
+  test "inactive conter cache" do
+    car = Car.new
+    car.bulbs = [Bulb.new, Bulb.new]
+    car.save!
+
+    assert_equal 2, car.bulbs_count
+    car.reload
+
+    assert_queries_count(5) do
+      assert_equal 2, car.bulbs.size
+      assert_equal 2, car.bulbs.count
+      assert_not_predicate car.bulbs, :empty?
+      assert_predicate car.bulbs, :any?
+      assert_not_predicate car.bulbs, :none?
+    end
+  end
+
+  test "active conter cache" do
+    car = Car.new
+    car.tyres = [Tyre.new, Tyre.new]
+    car.save!
+
+    assert_equal 2, car.custom_tyres_count
+    car.reload
+
+    assert_no_queries do
+      assert_equal 2, car.tyres.size
+      assert_not_predicate car.tyres, :empty?
+      assert_predicate car.tyres, :any?
+      assert_not_predicate car.tyres, :none?
+    end
+
+    assert_queries_count(1) do
+      assert_equal 2, car.tyres.count
+    end
   end
 
   private

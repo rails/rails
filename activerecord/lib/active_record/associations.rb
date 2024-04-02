@@ -1819,6 +1819,16 @@ module ActiveRecord
         #   return the count cached, see note below). You can also specify a custom counter
         #   cache column by providing a column name instead of a +true+/+false+ value to this
         #   option (e.g., <tt>counter_cache: :my_custom_counter</tt>.)
+        #
+        #   Starting to use counter caches on existing large tables can be troublesome, because the column
+        #   values must be backfilled separately of the column addition (to not lock the table for too long)
+        #   and before the use of +:counter_cache+ (otherwise methods like +size+/+any?+/etc, which use
+        #   counter caches internally, can produce incorrect results). To safely backfill the values while keeping
+        #   counter cache columns updated with the child records creation/removal and to avoid the mentioned methods
+        #   use the possibly incorrect counter cache column values and always get the results from the database,
+        #   use <tt>counter_cache: { active: false }</tt>.
+        #   If you also need to specify a custom column name, use <tt>counter_cache: { active: false, column: :my_custom_counter }</tt>.
+        #
         #   Note: Specifying a counter cache will add it to that model's list of readonly attributes
         #   using +attr_readonly+.
         # [+:polymorphic+]
