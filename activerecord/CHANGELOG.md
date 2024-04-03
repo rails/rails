@@ -1,3 +1,13 @@
+*   `PostgreSQLAdapter` now decodes columns of type date to `Date` instead of string.
+
+    Ex:
+    ```ruby
+    ActiveRecord::Base.connection
+         .select_value("select '2024-01-01'::date").class #=> Date
+    ```
+
+    *Joé Dupuis*
+
 *   Strict loading using `:n_plus_one_only` does not eagerly load child associations.
 
     With this change, child associations are no longer eagerly loaded, to

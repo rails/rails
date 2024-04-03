@@ -1159,6 +1159,7 @@ module ActiveRecord
             "bool" => PG::TextDecoder::Boolean,
             "timestamp" => PG::TextDecoder::TimestampUtc,
             "timestamptz" => PG::TextDecoder::TimestampWithTimeZone,
+            "date" => PG::TextDecoder::Date,
           }
 
           known_coder_types = coders_by_name.keys.map { |n| quote(n) }
