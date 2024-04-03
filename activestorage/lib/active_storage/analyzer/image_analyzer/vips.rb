@@ -19,13 +19,16 @@ module ActiveStorage
 
         download_blob_to_tempfile do |file|
           image = instrument("vips") do
+            # ruby-vips will raise Vips::Error if it can't find an appropriate loader for the file
             ::Vips::Image.new_from_file(file.path, access: :sequential)
+          rescue ::Vips::Error
+            logger.info "Skipping image analysis because Vips doesn't support the file"
+            nil
           end
 
-          if valid_image?(image)
+          if image
             yield image
           else
-            logger.info "Skipping image analysis because Vips doesn't support the file"
             {}
           end
         rescue ::Vips::Error => error
@@ -37,13 +40,6 @@ module ActiveStorage
       ROTATIONS = /Right-top|Left-bottom|Top-right|Bottom-left/
       def rotated_image?(image)
         ROTATIONS === image.get("exif-ifd0-Orientation")
-      rescue ::Vips::Error
-        false
-      end
-
-      def valid_image?(image)
-        image.avg
-        true
       rescue ::Vips::Error
         false
       end
