@@ -216,6 +216,39 @@ class ConnectionTest < ActiveRecord::AbstractMysqlTestCase
       "expected release_advisory_lock to return false when there was no lock to release"
   end
 
+  def test_version_string
+    @connection.stub(:get_full_version, "8.0.35-0ubuntu0.22.04.1") do
+      assert_equal "8.0.35", @connection.get_database_version.to_s
+    end
+
+    @connection.stub(:get_full_version, "5.7.0") do
+      assert_equal "5.7.0", @connection.get_database_version.to_s
+    end
+  end
+
+  def test_version_string_invalid
+    @connection.stub(:get_full_version, "some-database-proxy") do
+      error = assert_raises(ActiveRecord::DatabaseVersionError) do
+        @connection.get_database_version
+      end
+      assert_equal "Unable to parse MySQL version from \"some-database-proxy\"", error.message
+    end
+
+    @connection.stub(:get_full_version, "") do
+      error = assert_raises(ActiveRecord::DatabaseVersionError) do
+        @connection.get_database_version
+      end
+      assert_equal "Unable to parse MySQL version from \"\"", error.message
+    end
+
+    @connection.stub(:get_full_version, nil) do
+      error = assert_raises(ActiveRecord::DatabaseVersionError) do
+        @connection.get_database_version
+      end
+      assert_equal "Unable to parse MySQL version from nil", error.message
+    end
+  end
+
   private
     def cause_server_side_disconnect
       @connection.update("set @@wait_timeout=1")

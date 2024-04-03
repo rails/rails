@@ -575,4 +575,9 @@ module ActiveRecord
   # values, such as request parameters or model attributes to query methods.
   class UnknownAttributeReference < ActiveRecordError
   end
+
+  # DatabaseVersionError will be raised when the database version is not supported, or when
+  # the database version cannot be determined.
+  class DatabaseVersionError < ActiveRecordError
+  end
 end
