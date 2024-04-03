@@ -263,13 +263,13 @@ module ActiveRecord
         case ActiveRecord.permanent_connection_checkout
         when :deprecated
           ActiveRecord.deprecator.warn <<~MESSAGE
-            Called deprecated `ActionRecord::Base.connection` method.
+            Called deprecated `ActiveRecord::Base.connection` method.
 
             Either use `with_connection` or `lease_connection`.
           MESSAGE
         when :disallowed
           raise ActiveRecordError, <<~MESSAGE
-            Called deprecated `ActionRecord::Base.connection` method.
+            Called deprecated `ActiveRecord::Base.connection` method.
 
             Either use `with_connection` or `lease_connection`.
           MESSAGE
