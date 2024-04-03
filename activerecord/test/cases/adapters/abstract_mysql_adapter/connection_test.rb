@@ -226,6 +226,12 @@ class ConnectionTest < ActiveRecord::AbstractMysqlTestCase
     end
   end
 
+  def test_version_string_with_mariadb
+    @connection.stub(:get_full_version, "5.5.5-10.6.5-MariaDB-1:10.6.5+maria~focal") do
+      assert_equal "10.6.5", @connection.get_database_version.to_s
+    end
+  end
+
   def test_version_string_invalid
     @connection.stub(:get_full_version, "some-database-proxy") do
       error = assert_raises(ActiveRecord::DatabaseVersionError) do
