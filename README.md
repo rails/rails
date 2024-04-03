@@ -1,4 +1,4 @@
-# Welcome to Rails
+# Welcome to Rails (WIP)
 
 ## What's Rails?
 
