@@ -25,6 +25,20 @@ module ActiveJob
       end
     end
 
+    initializer "active_job.enqueue_after_transaction_commit" do |app|
+      if config.active_job.key?(:enqueue_after_transaction_commit)
+        enqueue_after_transaction_commit = config.active_job.delete(:enqueue_after_transaction_commit)
+
+        ActiveSupport.on_load(:active_record) do
+          ActiveSupport.on_load(:active_job) do
+            include EnqueueAfterTransactionCommit
+
+            ActiveJob::Base.enqueue_after_transaction_commit = enqueue_after_transaction_commit
+          end
+        end
+      end
+    end
+
     initializer "active_job.set_configs" do |app|
       options = app.config.active_job
       options.queue_adapter ||= :async

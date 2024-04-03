@@ -55,10 +55,6 @@ Rails/IndexWith:
 Style/AndOr:
   Enabled: true
 
-# Align `when` with `case`.
-Layout/CaseIndentation:
-  Enabled: true
-
 Layout/ClosingHeredocIndentation:
   Enabled: true
 
