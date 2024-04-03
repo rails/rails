@@ -714,7 +714,7 @@ array:
 ```ruby
 class Author < ApplicationRecord
   has_many :books,
-    before_add: [:check_limit, :calculate_shipping_charges]
+  before_add: [:check_limit, :calculate_shipping_charges]
 
   def check_limit(book)
     # ...
@@ -727,8 +727,7 @@ end
 ```
 
 If a `before_add` callback throws `:abort`, the object does not get added to the
-collection. Similarly, if a `before_remove` callback throws `:abort`, the object
-does not get removed from the collection:
+collection.
 
 ```ruby
 # book won't be added if the limit has been reached
@@ -736,6 +735,9 @@ def check_limit(book)
   throw(:abort) if limit_reached?
 end
 ```
+
+Similarly, if a `before_remove` callback throws `:abort`, the object
+does not get removed from the collection.
 
 NOTE: These callbacks are called only when the associated objects are added or
 removed through the association collection.
