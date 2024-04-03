@@ -8,7 +8,7 @@
 
   // Features to add to the dev container. More info: https://containers.dev/features.
   "features": {
-    "ghcr.io/devcontainers/features/github-cli:1": {}
+    <%= devcontainer_features.map { |key, value| "\"#{key}\": #{value}" }.join(",\n    ") %>
   },
 
 <%- if !devcontainer_variables.empty? -%>
