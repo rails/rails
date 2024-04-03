@@ -692,7 +692,7 @@ You can define association callbacks by adding options to the association.
 Suppose you have an example where an author can have many books. However, before
 adding a book to the authors collection, you want to ensure that the author has
 not reached their book limit. You can do this by adding a `before_add` callback
-to the `Author` model for the `has_many: books` association.
+to check the limit.
 
 ```ruby
 class Author < ApplicationRecord
@@ -1036,9 +1036,11 @@ User was saved to database
 
 ### Transactional Callback Ordering
 
-By default, callbacks will run in the order they are defined. However, when
-defining multiple transactional `after_` callbacks (`after_commit`,
-`after_rollback`, etc), the order can be reversed from when they are defined.
+By default (from Rails 7.1), callbacks will run in the order they are defined.
+
+However, in prior versions of Rails, when defining multiple transactional
+`after_` callbacks (`after_commit`, `after_rollback`, etc), the order in which
+the callbacks were run was reversed.
 
 ```ruby
 class User < ActiveRecord::Base
@@ -1047,18 +1049,16 @@ class User < ActiveRecord::Base
 end
 ```
 
-NOTE: This applies to all `after_*_commit` variations too, such as
-`after_destroy_commit`.
-
-This order can be set via configuration:
+We can change that reverse behaviour by setting the [following
+configuration](configuring.html#config-active-record-run-after-transaction-callbacks-in-order-defined)
+to `true`. The callbacks will then run in the order they are defined.
 
 ```ruby
-config.active_record.run_after_transaction_callbacks_in_order_defined = false
+config.active_record.run_after_transaction_callbacks_in_order_defined = true
 ```
 
-When set to `true` (the default from Rails 7.1), callbacks are executed in the
-order they are defined. When set to `false`, the order is reversed, just like in
-the example above.
+NOTE: This applies to all `after_*_commit` variations too, such as
+`after_destroy_commit`.
 
 [`after_create_commit`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-after_create_commit
