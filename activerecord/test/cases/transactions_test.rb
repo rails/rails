@@ -19,6 +19,182 @@ class TransactionTest < ActiveRecord::TestCase
     @first, @second = Topic.find(1, 2).sort_by(&:id)
   end
 
+  def test_after_all_transactions_committ
+    called = 0
+    ActiveRecord.after_all_transactions_commit { called += 1 }
+    assert_equal 1, called
+
+    ActiveRecord.after_all_transactions_commit { called += 1 }
+    assert_equal 2, called
+
+    called = 0
+    Topic.transaction do
+      ActiveRecord.after_all_transactions_commit { called += 1 }
+      assert_equal 0, called
+    end
+    assert_equal 1, called
+
+    called = 0
+    Topic.transaction do
+      Topic.transaction(requires_new: true) do
+        ActiveRecord.after_all_transactions_commit { called += 1 }
+        assert_equal 0, called
+      end
+      assert_equal 0, called
+    end
+    assert_equal 1, called
+
+    called = 0
+    Topic.transaction do
+      ActiveRecord.after_all_transactions_commit { called += 1 }
+      assert_equal 0, called
+      raise ActiveRecord::Rollback
+    end
+    assert_equal 0, called
+  end
+
+  def test_after_current_transaction_commit_multidb_nested_transactions
+    called = 0
+    ARUnit2Model.transaction do
+      Topic.transaction do
+        ActiveRecord.after_all_transactions_commit { called += 1 }
+        assert_equal 0, called
+      end
+      assert_equal 0, called
+    end
+    assert_equal 1, called
+  end
+
+  def test_transaction_after_commit_callback
+    called = 0
+    Topic.current_transaction.after_commit { called += 1 }
+    assert_equal 1, called
+
+    Topic.current_transaction.after_commit { called += 1 }
+    assert_equal 2, called
+
+    called = 0
+    Topic.transaction do
+      Topic.current_transaction.after_commit { called += 1 }
+      assert_equal 0, called
+    end
+    assert_equal 1, called
+
+    called = 0
+    Topic.transaction do
+      Topic.transaction(requires_new: true) do
+        Topic.current_transaction.after_commit { called += 1 }
+        assert_equal 0, called
+      end
+      assert_equal 0, called
+    end
+    assert_equal 1, called
+
+    called = 0
+    Topic.transaction do
+      Topic.current_transaction.after_commit { called += 1 }
+      assert_equal 0, called
+      raise ActiveRecord::Rollback
+    end
+    assert_equal 0, called
+
+    called = 0
+    ARUnit2Model.transaction do
+      Topic.transaction do
+        Topic.current_transaction.after_commit { called += 1 }
+        assert_equal 0, called
+      end
+      assert_equal 1, called
+    end
+    assert_equal 1, called
+  end
+
+  def test_transaction_before_commit_callback
+    called = 0
+    Topic.current_transaction.before_commit { called += 1 }
+    assert_equal 1, called
+
+    Topic.current_transaction.before_commit { called += 1 }
+    assert_equal 2, called
+
+    called = 0
+    Topic.transaction do
+      Topic.current_transaction.before_commit { called += 1 }
+      assert_equal 0, called
+    end
+    assert_equal 1, called
+
+    called = 0
+    Topic.transaction do
+      Topic.transaction(requires_new: true) do
+        Topic.current_transaction.before_commit { called += 1 }
+        assert_equal 0, called
+      end
+      assert_equal 0, called
+    end
+    assert_equal 1, called
+
+    called = 0
+    Topic.transaction do
+      Topic.current_transaction.before_commit { called += 1 }
+      assert_equal 0, called
+      raise ActiveRecord::Rollback
+    end
+    assert_equal 0, called
+
+    called = 0
+    ARUnit2Model.transaction do
+      Topic.transaction do
+        Topic.current_transaction.before_commit { called += 1 }
+        assert_equal 0, called
+      end
+      assert_equal 1, called
+    end
+    assert_equal 1, called
+  end
+
+  def test_transaction_after_rollback_callback
+    called = 0
+    Topic.current_transaction.after_rollback { called += 1 }
+    assert_equal 0, called
+
+    called = 0
+    Topic.transaction do
+      Topic.current_transaction.after_rollback { called += 1 }
+      assert_equal 0, called
+    end
+    assert_equal 0, called
+
+    called = 0
+    Topic.transaction do
+      Topic.current_transaction.after_rollback { called += 1 }
+      assert_equal 0, called
+      raise ActiveRecord::Rollback
+    end
+    assert_equal 1, called
+
+    called = 0
+    Topic.transaction do
+      Topic.current_transaction.after_rollback { called += 1 }
+      Topic.transaction(requires_new: true) do
+        raise ActiveRecord::Rollback
+      end
+    end
+    assert_equal 0, called
+
+    called = 0
+    Topic.transaction do
+      assert_nothing_raised do
+        Topic.transaction(requires_new: true) do
+          Topic.current_transaction.after_rollback { called += 1 }
+          raise ActiveRecord::Rollback
+        end
+      end
+      assert_equal 1, called
+    end
+    assert_equal 1, called
+  end
+
   def test_rollback_dirty_changes
     topic = topics(:fifth)
 
