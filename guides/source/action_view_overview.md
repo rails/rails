@@ -27,7 +27,7 @@ Using Action View with Rails
 
 Action View templates (aka "views") are stored in a subdirectory in the `app/views` directory. There is a subdirectory matching the name of each controller. The view files inside that subdirectory are used to render specific views as a response to controller actions.
 
-For example, when we use scaffolding to generate an `article` resource, Rails generates the following files in `app/views/articles`:
+For example, when you use scaffolding to generate an `article` resource, Rails generates the following files in `app/views/articles`:
 
 ```bash
 $ bin/rails generate scaffold article
@@ -213,7 +213,7 @@ The above example also uses the `_product.html.erb` partial. This partial contai
 
 ### Passing Data to Partials with `locals` Option
 
-When rendering a partial, we can pass data to the partial from the rendering view. We use the `locals:` options hash for this. Each key in the `locals:` option is available as a partial-local variable:
+When rendering a partial, you can pass data to the partial from the rendering view. You use the `locals:` options hash for this. Each key in the `locals:` option is available as a partial-local variable:
 
 ```html+erb
 <%# app/views/products/show.html.erb %>
@@ -315,7 +315,7 @@ By default, objects passed to the template are in a local variable with the same
 <%= render @product %>
 ```
 
-within the `_product.html.erb` partial we'll get `@product` instance variable in the local variable `product`, as if we had written:
+within the `_product.html.erb` partial you'll get `@product` instance variable in the local variable `product`, as if you had written:
 
 ```erb
 <%= render partial: "product", locals: { product: @product } %>
@@ -329,15 +329,15 @@ For example, instead of:
 <%= render partial: "product", locals: { product: @item } %>
 ```
 
-we can write:
+you can write:
 
 ```erb
 <%= render partial: "product", object: @item %>
 ```
 
-This assigns the instance variable `@item` to a partial local variable named `product`. What if we wanted to change the local variable name from the default `product` to something else? We can use the `:as` option for that.
+This assigns the instance variable `@item` to a partial local variable named `product`. What if you wanted to change the local variable name from the default `product` to something else? You can use the `:as` option for that.
 
-With the `as` option, we can specify a different name for the local variable like this:
+With the `as` option, you can specify a different name for the local variable like this:
 
 ```erb
 <%= render partial: "product", object: @item, as: "item" %>
@@ -595,13 +595,13 @@ Rails provides more ways to assign specific layouts to individual controllers an
 
 Partials can have their own layouts applied to them. These layouts are different from those applied to a controller action, but they work in a similar fashion.
 
-Let's say we're displaying an article on a page which should be wrapped in a `div` for display purposes. First, we'll create a new `Article`:
+Let's say you're displaying an article on a page which should be wrapped in a `div` for display purposes. First, you'll create a new `Article`:
 
 ```ruby
 Article.create(body: 'Partial Layouts are cool!')
 ```
 
-In the `show` template, we'll render the `_article` partial wrapped in the `box` layout:
+In the `show` template, you'll render the `_article` partial wrapped in the `box` layout:
 
 ```html+erb
 <%# articles/show.html.erb %>
@@ -621,7 +621,7 @@ Note that the partial layout has access to the local `article` variable that was
 
 Unlike application-wide layouts, partial layouts still have the underscore prefix in their name.
 
-You can also render a block of code within a partial layout instead of calling `yield`. For example, if we didn't have the `_article` partial, we could do this instead:
+You can also render a block of code within a partial layout instead of calling `yield`. For example, if you didn't have the `_article` partial, you could do this instead:
 
 ```html+erb
 <%# articles/show.html.erb %>
@@ -632,7 +632,7 @@ You can also render a block of code within a partial layout instead of calling `
 <% end %>
 ```
 
-Supposing we use the same `_box` partial from above, this would produce the same output as the previous example.
+Assuming you use the same `_box` partial from above, this would produce the same output as the previous example.
 
 ### Collection with Partial Layouts
 
