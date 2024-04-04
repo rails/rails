@@ -19,12 +19,14 @@
 #     NewTopicNotificationJob.perform_later(topic)
 #   end
 #
-# In this example, if `enqueue_after_transaction_commit` is `false` the job will
-# be enqueued immediately, even thought the `Topic` hasn't been committed yet.
-# Because of this, if the job is picked up almost emmediately, it will fail to
-# find this topic in the databse.
-# With `enqueue_after_transaction_commit = true`, the job will be actually enqueued
-# after the transaction has been committed.
+# In this example, if the configuration is set to `:never`, the job will
+# be enqueued immediately, even though the `Topic` hasn't been committed yet.
+# Because of this, if the job is picked up almost immediately, or if the
+# transaction doesn't succeed for some reason, the job will fail to find this
+# topic in the database.
+#
+# If `enqueue_after_transaction_commit` is set to `:default`, the queue adapter
+# will define the behaviour.
 #
 # Note: Active Job backends can disable this feature. This is generally used by
 # backends that use the same database than Active Record as a queue, hence they
