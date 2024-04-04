@@ -65,7 +65,6 @@ module Arel
         Arel::Nodes::Matches,
         Arel::Nodes::NotEqual,
         Arel::Nodes::NotIn,
-        Arel::Nodes::Or,
         Arel::Nodes::TableAlias,
         Arel::Nodes::As,
         Arel::Nodes::JoinSource,
@@ -73,6 +72,17 @@ module Arel
       ].each do |klass|
         define_method("test_#{klass.name.gsub('::', '_')}") do
           binary = klass.new(:a, :b)
+          @visitor.accept binary, Collectors::PlainString.new
+        end
+      end
+
+      # nary ops
+      [
+        Arel::Nodes::And,
+        Arel::Nodes::Or,
+      ].each do |klass|
+        define_method("test_#{klass.name.gsub('::', '_')}") do
+          binary = klass.new([:a, :b])
           @visitor.accept binary, Collectors::PlainString.new
         end
       end

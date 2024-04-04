@@ -622,18 +622,7 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_Or(o, collector)
-          stack = [o.right, o.left]
-
-          while o = stack.pop
-            if o.is_a?(Arel::Nodes::Or)
-              stack.push o.right, o.left
-            else
-              visit o, collector
-              collector << " OR " unless stack.empty?
-            end
-          end
-
-          collector
+          inject_join o.children, collector, " OR "
         end
 
         def visit_Arel_Nodes_Assignment(o, collector)

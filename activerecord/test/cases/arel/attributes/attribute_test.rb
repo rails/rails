@@ -804,7 +804,7 @@ module Arel
           node = attribute.not_between(1..3)
 
           _(node).must_equal Nodes::Grouping.new(
-            Nodes::Or.new(
+            Nodes::Or.new([
               Nodes::LessThan.new(
                 attribute,
                 Nodes::Casted.new(1, attribute)
@@ -813,7 +813,7 @@ module Arel
                 attribute,
                 Nodes::Casted.new(3, attribute)
               )
-            )
+            ])
           )
         end
 
@@ -930,7 +930,7 @@ module Arel
           node = attribute.not_between(0...3)
 
           _(node).must_equal Nodes::Grouping.new(
-            Nodes::Or.new(
+            Nodes::Or.new([
               Nodes::LessThan.new(
                 attribute,
                 Nodes::Casted.new(0, attribute)
@@ -939,7 +939,7 @@ module Arel
                 attribute,
                 Nodes::Casted.new(3, attribute)
               )
-            )
+            ])
           )
         end
       end

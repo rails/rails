@@ -1098,7 +1098,7 @@ module ActiveRecord
         raise ArgumentError, "Relation passed to #or must be structurally compatible. Incompatible values: #{incompatible_values}"
       end
 
-      self.where_clause = self.where_clause.or(other.where_clause)
+      self.where_clause = where_clause.or(other.where_clause)
       self.having_clause = having_clause.or(other.having_clause)
       self.references_values |= other.references_values
 
