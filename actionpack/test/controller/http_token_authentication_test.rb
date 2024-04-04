@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "ostruct"
 require "abstract_unit"
 
 class HttpTokenAuthenticationTest < ActionController::TestCase
