@@ -735,7 +735,7 @@ end
 
 The method simply stores an error message in the flash and redirects to the login form if the user is not logged in. If a "before" filter renders or redirects, the action will not run. If there are additional filters scheduled to run after that filter, they are also cancelled.
 
-In this example, the filter is added to `ApplicationController` and thus all controllers in the application inherit it. This will make everything in the application require the user to be logged in to use it. For obvious reasons (the user wouldn't be able to log in in the first place!), not all controllers or actions should require this. You can prevent this filter from running before particular actions with [`skip_before_action`][]:
+In this example, the filter is added to `ApplicationController` and thus all controllers in the application inherit it. This will make everything in the application require the user to be logged in to use it. For obvious reasons (the user wouldn't be able to log in the first place!), not all controllers or actions should require this. You can prevent this filter from running before particular actions with [`skip_before_action`][]:
 
 ```ruby
 class LoginsController < ApplicationController
