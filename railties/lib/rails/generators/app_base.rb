@@ -672,7 +672,6 @@ module Rails
         if !File.exist?(File.expand_path("Gemfile", destination_root))
           create_file("Gemfile", <<~GEMFILE)
             source "https://rubygems.org"
-            git_source(:github) { |repo| "https://github.com/\#{repo}.git" }
             #{rails_gemfile_entry}
           GEMFILE
 

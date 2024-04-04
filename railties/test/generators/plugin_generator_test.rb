@@ -183,11 +183,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "test/integration/navigation_test.rb", /ActionDispatch::IntegrationTest/
   end
 
-  def test_inclusion_of_git_source
-    run_generator [destination_root]
-    assert_file "Gemfile", /git_source/
-  end
-
   def test_inclusion_of_a_debugger
     run_generator [destination_root, "--full"]
     if defined?(JRUBY_VERSION)
