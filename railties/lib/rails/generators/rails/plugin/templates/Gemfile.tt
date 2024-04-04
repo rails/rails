@@ -1,5 +1,4 @@
 source "https://rubygems.org"
-git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 <% unless options[:skip_gemspec] -%>
 
 # Specify your gem's dependencies in <%= name %>.gemspec.
