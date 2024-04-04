@@ -31,7 +31,7 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
 
     def db_after_render
       render inline: "Hello world"
-      Project.all
+      Project.all.to_a
       ActiveRecord::RuntimeRegistry.sql_runtime += 100.0
     end
   end
@@ -68,7 +68,7 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
     wait
 
     assert_equal 2, @logger.logged(:info).size
-    assert_match(/\(Views: [\d.]+ms \| ActiveRecord: [\d.]+ms \| Allocations: [\d.]+\)/, @logger.logged(:info)[1])
+    assert_match(/\(Views: [\d.]+ms \| ActiveRecord: [\d.]+ms \(0 queries, 0 cached\) \| Allocations: [\d.]+\)/, @logger.logged(:info)[1])
   end
 
   def test_runtime_reset_before_requests
@@ -77,20 +77,20 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
     wait
 
     assert_equal 2, @logger.logged(:info).size
-    assert_match(/\(Views: [\d.]+ms \| ActiveRecord: [\d.]+ms \| Allocations: [\d.]+\)/, @logger.logged(:info)[1])
+    assert_match(/\(Views: [\d.]+ms \| ActiveRecord: [\d.]+ms \(0 queries, 0 cached\) \| Allocations: [\d.]+\)/, @logger.logged(:info)[1])
   end
 
   def test_log_with_active_record_when_post
     post :create
     wait
-    assert_match(/ActiveRecord: ([1-9][\d.]+)ms \| Allocations: [\d.]+\)/, @logger.logged(:info)[2])
+    assert_match(/ActiveRecord: ([1-9][\d.]+)ms \(1 query, 0 cached\) \| Allocations: [\d.]+\)/, @logger.logged(:info)[2])
   end
 
   def test_log_with_active_record_when_redirecting
     get :redirect
     wait
     assert_equal 3, @logger.logged(:info).size
-    assert_match(/\(ActiveRecord: [\d.]+ms \| Allocations: [\d.]+\)/, @logger.logged(:info)[2])
+    assert_match(/\(ActiveRecord: [\d.]+ms \(0 queries, 0 cached\) \| Allocations: [\d.]+\)/, @logger.logged(:info)[2])
   end
 
   def test_include_time_query_time_after_rendering
@@ -98,6 +98,6 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
     wait
 
     assert_equal 2, @logger.logged(:info).size
-    assert_match(/\(Views: [\d.]+ms \| ActiveRecord: ([1-9][\d.]+)ms \| Allocations: [\d.]+\)/, @logger.logged(:info)[1])
+    assert_match(/\(Views: [\d.]+ms \| ActiveRecord: ([1-9][\d.]+)ms \(1 query, 0 cached\) \| Allocations: [\d.]+\)/, @logger.logged(:info)[1])
   end
 end
