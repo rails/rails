@@ -14,7 +14,7 @@ After reading this guide, you will know:
 What is Action View?
 --------------------
 
-Action View is the V in [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller). [Action Controller](action_controller_overview.html) and Action View work together to handle web requests. Action Controller is concerned with communicating with the model layer (of MVC) and retrieving data. Action View is then responsible for compiling a response to the web request using that data.
+Action View is the V in [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller). [Action Controller](action_controller_overview.html) and Action View work together to handle web requests. Action Controller is concerned with communicating with the model layer (of MVC) and retrieving data. Action View is then responsible for rendering a response body to the web request using that data.
 
 Action View templates (also referred to simply as "views") are written using Embedded Ruby (ERB), which allows using Ruby code within HTML documents.
 
