@@ -81,6 +81,8 @@ Note that functions such as `print` and `puts` won't be rendered to the view wit
 Hi, Mr. <% puts "Frodo" %>
 ```
 
+The above example shows that comments can be added in ERB within `<%# %>` tag.
+
 To suppress leading and trailing whitespaces, you can use `<%-` `-%>` interchangeably with `<%` and `%>`.
 
 ### Jbuilder
