@@ -89,7 +89,7 @@ module ActionCable
         end
       end
 
-      def close(code = nil, reason = nil)
+      def close(code = nil, reason = nil, force: false)
         code   ||= 1000
         reason ||= ""
 
@@ -101,6 +101,7 @@ module ActionCable
 
         @ready_state = CLOSING unless @ready_state == CLOSED
         @driver.close(reason, code)
+        begin_close(reason, code) if force
       end
 
       def parse(data)
