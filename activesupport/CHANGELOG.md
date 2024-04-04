@@ -1,3 +1,14 @@
+*   Add `DateTimeAndCalculations.on_or_before?` and `DateTimeAndCalculations.on_or_after?`
+
+    Currently there is no equivalent `<=` or `>=` for `DateAndTime`, this adds `on_or_before?`
+    and `on_or_after?`.
+
+    ```ruby
+    Date.new(2017, 3, 6).on_or_before?(Date.new(2017, 3, 6)) # true
+    Date.new(2017, 3, 6).on_or_after?(Date.new(2017, 3, 6)) # true
+    ```
+    *Daniel Vu Dao*
+
 *   Make ActiveSupport::BacktraceCleaner copy filters and silencers on dup and clone
 
     Previously the copy would still share the internal silencers and filters array,

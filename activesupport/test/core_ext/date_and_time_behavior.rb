@@ -346,10 +346,22 @@ module DateAndTimeBehavior
     assert_equal true, date_time_init(2017, 3, 6, 12, 0, 0).before?(date_time_init(2017, 3, 7, 12, 0, 0))
   end
 
+  def test_on_or_before
+    assert_equal false, date_time_init(2017, 3, 6, 12, 0, 0).on_or_before?(date_time_init(2017, 3, 5, 12, 0, 0))
+    assert_equal true, date_time_init(2017, 3, 6, 12, 0, 0).on_or_before?(date_time_init(2017, 3, 6, 12, 0, 0))
+    assert_equal true, date_time_init(2017, 3, 6, 12, 0, 0).on_or_before?(date_time_init(2017, 3, 7, 12, 0, 0))
+  end
+
   def test_after
     assert_equal true, date_time_init(2017, 3, 6, 12, 0, 0).after?(date_time_init(2017, 3, 5, 12, 0, 0))
     assert_equal false, date_time_init(2017, 3, 6, 12, 0, 0).after?(date_time_init(2017, 3, 6, 12, 0, 0))
     assert_equal false, date_time_init(2017, 3, 6, 12, 0, 0).after?(date_time_init(2017, 3, 7, 12, 0, 0))
+  end
+
+  def test_on_or_after
+    assert_equal true, date_time_init(2017, 3, 6, 12, 0, 0).on_or_after?(date_time_init(2017, 3, 5, 12, 0, 0))
+    assert_equal true, date_time_init(2017, 3, 6, 12, 0, 0).on_or_after?(date_time_init(2017, 3, 6, 12, 0, 0))
+    assert_equal false, date_time_init(2017, 3, 6, 12, 0, 0).on_or_after?(date_time_init(2017, 3, 7, 12, 0, 0))
   end
 
   def with_bw_default(bw = :monday)

@@ -233,7 +233,9 @@ module ActiveSupport
       utc <=> other
     end
     alias_method :before?, :<
+    alias_method :on_or_before?, :<
     alias_method :after?, :>
+    alias_method :on_or_after?, :>=
 
     # Returns true if the current object's time is within the specified
     # +min+ and +max+ time.
