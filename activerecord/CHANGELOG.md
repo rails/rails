@@ -1,3 +1,7 @@
+*   Raise an `ActiveRecord::ActiveRecordError` error when the MySQL database returns an invalid version string.
+
+    *Kevin McPhillips*
+
 *   `ActiveRecord::Base.transaction` now yields an `ActiveRecord::Transation` object.
 
     This allows to register callbacks on it.
