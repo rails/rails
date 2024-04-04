@@ -16,9 +16,9 @@ What is Action View?
 
 Action View is the V in [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller). [Action Controller](action_controller_overview.html) and Action View work together to handle web requests. Action Controller is concerned with communicating with the model layer (of MVC) and retrieving data. Action View is then responsible for rendering a response body to the web request using that data.
 
-Action View templates (also referred to simply as "views") are written using Embedded Ruby (ERB), which allows using Ruby code within HTML documents.
+By default, Action View templates (also referred to simply as "views") are written using Embedded Ruby (ERB), which allows using Ruby code within HTML documents.
 
-Action View provides many [helper](#helpers) classes for dynamically generating HTML tags for forms, dates, and strings. It's also possible to add custom helpers to your application as needed.
+Action View provides many [helper](#helpers) methods for dynamically generating HTML tags for forms, dates, and strings. It's also possible to add custom helpers to your application as needed.
 
 NOTE: Some features of Action View are tied to Active Model, but that doesn't mean Action View depends on Active Model. Action View is an independent package that can be used with any Ruby library.
 
@@ -46,7 +46,7 @@ $ bin/rails generate scaffold article
 
 The file names follow a Rails naming convention. They share their name with the associated controller action. For example the `index.html.erb`, `edit.html.erb`, etc. above.
 
-By following this naming convention, Rails will automatically find and render the matching view at the end of a controller action, without you having to  specify it. For example, the `index` action in the `articles_controller.rb` will automatically render the `index.html.erb` view inside the `app/views/articles/` directory. The name and the location of the file are both important.
+By following this naming convention, Rails will automatically find and render the matching view at the end of a controller action, without you having to specify it. For example, the `index` action in the `articles_controller.rb` will automatically render the `index.html.erb` view inside the `app/views/articles/` directory. The name and the location of the file are both important.
 
 The final HTML returned to the client is composed of a combination of the `.html.erb` ERB file, a layout template that wraps it, and all the partials that the ERB file may reference. In the rest of this guide, you will find more details about each of the three components: `Templates`, `Partials`, `Layouts`.
 
@@ -59,7 +59,7 @@ Rails uses the file extension to distinguish among multiple template systems. Fo
 
 ### ERB
 
-An ERB template is a way to sprinkle Ruby code within static HTML using special ERB tags `<% %>` and `<%= %>` tags.
+An ERB template is a way to sprinkle Ruby code within static HTML using special ERB tags like `<% %>` and `<%= %>`.
 
 When Rails processes the ERB view templates ending with `.html.erb`, it evaluates the embedded Ruby code and replaces the ERB tags with the dynamic output. That dynamic content is combined with the static HTML markup to form the final HTML response.
 
@@ -159,7 +159,7 @@ would produce something like:
 
 See [Builder documentation](https://github.com/jimweirich/builder) for more examples.
 
-### Caching
+### Template Compilation
 
 By default, Rails will compile each template to a method to render it. In the development environment, when you alter a template, Rails will check the file's modification time and recompile it.
 
@@ -180,7 +180,7 @@ To render a partial as part of a view, you use the [`render`](https://api.rubyon
 <%= render "product" %>
 ```
 
-This will look for a file named `_product.html.erb` on the same folder to render within that view. Partial file names start with leading underscore character by convention. The file name distinguishes partials from regular views. However, no underscore is used when referring to partials for rendering within a view. This is true even when you reference a partial from another directory:
+This will look for a file named `_product.html.erb` in the same folder to render within that view. Partial file names start with leading underscore character by convention. The file name distinguishes partials from regular views. However, no underscore is used when referring to partials for rendering within a view. This is true even when you reference a partial from another directory:
 
 ```erb
 <%= render "application/product" %>
@@ -209,7 +209,7 @@ Here, the `_ad_banner.html.erb` and `_footer.html.erb` partials could contain co
 
 The above example also uses the `_product.html.erb` partial. This partial contains details for rendering an individual product and is used to render each product in the collection `@products`.
 
-### Passing Data to Partials With `locals` Option
+### Passing Data to Partials with `locals` Option
 
 When rendering a partial, we can pass data to the partial from the rendering view. We use the `locals:` options hash for this. Each key in the `locals:` option is available as a partial-local variable:
 
@@ -333,7 +333,7 @@ we can write:
 <%= render partial: "product", object: @item %>
 ```
 
-This assigns a partial local variable named `product` to the instance variable `@item`. What if we wanted to change the local variable name from `product` by default to something else? We can use the `:as` option for that.
+This assigns the instance variable `@item` to a partial local variable named `product`. What if we wanted to change the local variable name from the default `product` to something else? We can use the `:as` option for that.
 
 With the `as` option, we can specify a different name for the local variable like this:
 
@@ -401,7 +401,7 @@ Rails also makes a counter variable available within a partial called by the col
 
 This also works when the local variable name is changed using the `as:` option. So if you did `as: :item`, the counter variable would be `item_counter`.
 
-Note: The following two sections, [Strick Locals](#strict-locals) and [Local Assigns with Pattern Matching](#local-assigns-with-pattern-matching) are more advance features of using partials, included here for completeness.
+Note: The following two sections, [Strict Locals](#strict-locals) and [Local Assigns with Pattern Matching](#local-assigns-with-pattern-matching) are more advanced features of using partials, included here for completeness.
 
 ### `local_assigns` with Pattern Matching
 
@@ -475,7 +475,7 @@ INFO: By default, partials will accept any `locals` as keyword arguments. To def
 
 ### Strict Locals
 
-Action View partials will accept any number of `locals` as keyword arguments. You can enforce how many and which `locals` a template accepts, set default value, and more with a `locals:` magic comment.
+Action View partials will accept any number of `locals` as keyword arguments. You can enforce how many and which `locals` a template accepts, set default values, and more with a `locals:` magic comment.
 
 Here are some examples of the `locals:` magic comment:
 
@@ -526,7 +526,7 @@ You can allow optional local variable arguments with the double splat `**` opera
 <%= tag.p(message, **attributes) %>
 ```
 
-Or you can disable `locals` entirely by set the `locals:` to empty `()`:
+Or you can disable `locals` entirely by setting the `locals:` to empty `()`:
 
 ```erb
 <%# app/views/messages/_message.html.erb %>
@@ -587,7 +587,7 @@ Here is an example of a simple layout in `application.html.erb` file:
 
 In the above example layout, view content will be rendered in place of `<%= yield %>`, and surrounded by the same `<head>`, `<nav>`, and `<footer>` content.
 
-Rails also provides more ways to assign specific layouts to individual controllers and actions. You can learn more about layouts in general in the [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
+Rails provides more ways to assign specific layouts to individual controllers and actions. You can learn more about layouts in general in the [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
 
 ### Partial Layouts
 
@@ -640,7 +640,7 @@ When rendering collections it is also possible to use the `:layout` option:
 <%= render partial: "article", collection: @articles, layout: "special_layout" %>
 ```
 
-The layout will be rendered together with the partial for each item in the collection. The current object and object_counter variables, `article` and `article_count` in the above example, will be available in the layout as well, the same way they are within the partial.
+The layout will be rendered together with the partial for each item in the collection. The current object and object_counter variables, `article` and `article_counter` in the above example, will be available in the layout as well, the same way they are within the partial.
 
 Helpers
 -------
