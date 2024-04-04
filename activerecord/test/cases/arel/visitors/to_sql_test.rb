@@ -361,7 +361,7 @@ module Arel
       end
 
       it "should visit_Arel_Nodes_Or" do
-        node = Nodes::Or.new @attr.eq(10), @attr.eq(11)
+        node = Nodes::Or.new [@attr.eq(10), @attr.eq(11)]
         _(compile(node)).must_be_like %{
           "users"."id" = 10 OR "users"."id" = 11
         }

@@ -2,7 +2,7 @@
 
 module Arel # :nodoc: all
   module Nodes
-    class And < Arel::Nodes::NodeExpression
+    class Nary < Arel::Nodes::NodeExpression
       attr_reader :children
 
       def initialize(children)
@@ -23,7 +23,7 @@ module Arel # :nodoc: all
       end
 
       def hash
-        children.hash
+        [self.class, children].hash
       end
 
       def eql?(other)
@@ -32,5 +32,8 @@ module Arel # :nodoc: all
       end
       alias :== :eql?
     end
+
+    And = Class.new(Nary)
+    Or = Class.new(Nary)
   end
 end
