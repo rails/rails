@@ -81,7 +81,7 @@
             </div>
           </li>
           <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
-          <li class="guides-index guides-index-small">
+          <li class="guides-index guides-index-small js-only">
             <select class="guides-index-item nav-item">
               <option value="index.html">Guides Index</option>
               <% docs_for_menu.each do |section| %>
@@ -97,48 +97,54 @@
       </nav>
     </div>
   </header>
+
   <hr class="hide" />
 
-  <section id="feature">
-    <div class="wrapper">
-      <%= yield :header_section %>
-
-      <%= yield :index_section %>
-
-      <hr>
-    </div>
-  </section>
-
   <main id="container">
-    <div class="wrapper">
-      <div id="mainCol">
-        <%= yield %>
-        <hr>
-        <h3>Feedback</h3>
-        <p>
-          You're encouraged to help improve the quality of this guide.
-        </p>
-        <p>
-          Please contribute if you see any typos or factual errors.
-          To get started, you can read our <%= link_to 'documentation contributions', 'https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation' %> section.
-        </p>
-        <p>
-          You may also find incomplete content or stuff that is not up to date.
-          Please do add any missing documentation for main. Make sure to check
-          <%= link_to 'Edge Guides', 'https://edgeguides.rubyonrails.org' %> first to verify
-          if the issues are already fixed or not on the main branch.
-          Check the <%= link_to 'Ruby on Rails Guides Guidelines', 'ruby_on_rails_guides_guidelines.html' %>
-          for style and conventions.
-        </p>
-        <p>
-          If for whatever reason you spot something to fix but cannot patch it yourself, please
-          <%= link_to 'open an issue', 'https://github.com/rails/rails/issues' %>.
-        </p>
-        <p>And last but not least, any kind of discussion regarding Ruby on Rails
-          documentation is very welcome on the <%= link_to 'official Ruby on Rails Forum', 'https://discuss.rubyonrails.org/c/rubyonrails-docs' %>.
-        </p>
+    <article>
+      <header id="feature">
+        <div class="wrapper">
+          <%= yield :header_section %>
+
+          <%= yield :index_section %>
+        </div>
+      </header>
+
+      <div class="wrapper">
+        <div id="mainCol">
+          <section>
+            <%= yield %>
+          </section>
+
+          <hr>
+
+          <footer aria-labelledby="heading-feedback">
+            <h3 id="heading-feedback">Feedback</h3>
+            <p>
+              You're encouraged to help improve the quality of this guide.
+            </p>
+            <p>
+              Please contribute if you see any typos or factual errors.
+              To get started, you can read our <%= link_to 'documentation contributions', 'https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation' %> section.
+            </p>
+            <p>
+              You may also find incomplete content or stuff that is not up to date.
+              Please do add any missing documentation for main. Make sure to check
+              <%= link_to 'Edge Guides', 'https://edgeguides.rubyonrails.org' %> first to verify
+              if the issues are already fixed or not on the main branch.
+              Check the <%= link_to 'Ruby on Rails Guides Guidelines', 'ruby_on_rails_guides_guidelines.html' %>
+              for style and conventions.
+            </p>
+            <p>
+              If for whatever reason you spot something to fix but cannot patch it yourself, please
+              <%= link_to 'open an issue', 'https://github.com/rails/rails/issues' %>.
+            </p>
+            <p>And last but not least, any kind of discussion regarding Ruby on Rails
+              documentation is very welcome on the <%= link_to 'official Ruby on Rails Forum', 'https://discuss.rubyonrails.org/c/rubyonrails-docs' %>.
+            </p>
+          </footer>
       </div>
-    </div>
+    </article>
   </main>
 
   <hr class="hide" />
