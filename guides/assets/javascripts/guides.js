@@ -54,15 +54,17 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
 
-    var toggleBackToTop = function() {
-      if (window.scrollY > 300) {
-        backToTop.classList.add("show");
-      } else {
-        backToTop.classList.remove("show");
+    if (typeof window.CSS === "undefined" || typeof window.CSS.supports === 'undefined' || !CSS.supports("(animation-timeline: scroll())")) {
+      var toggleBackToTop = function() {
+        if (window.scrollY > 300) {
+          backToTop.classList.add("show");
+        } else {
+          backToTop.classList.remove("show");
+        }
       }
-    }
 
-    document.addEventListener("scroll", toggleBackToTop);
+      document.addEventListener("scroll", toggleBackToTop);
+    }
 
     var guidesVersion = document.querySelector("select.guides-version");
     guidesVersion.addEventListener("change", function(e) {
