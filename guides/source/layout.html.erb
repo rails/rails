@@ -40,10 +40,10 @@
   <nav id="topNav" aria-label="Secondary">
     <div class="wrapper">
       <strong class="more-info-label">More at <a href="https://rubyonrails.org/">rubyonrails.org:</a> </strong>
-      <span class="red-button more-info-button">
+      <button type="button" class="js-only red-button more-info-button" id="more-info" aria-controls="more-info-links" aria-expanded="false">
         More Ruby on Rails
-      </span>
-      <ul class="more-info-links s-hidden">
+      </button>
+      <ul id="more-info-links" class="more-info-links s-hidden">
         <li class="more-info"><a href="https://rubyonrails.org/blog">Blog</a></li>
         <li class="more-info"><a href="https://guides.rubyonrails.org/">Guides</a></li>
         <li class="more-info"><a href="https://api.rubyonrails.org/">API</a></li>
@@ -71,7 +71,7 @@
         <ul class="nav">
           <li><a class="nav-item" id="home_nav" href="https://rubyonrails.org/">Home</a></li>
           <li class="guides-index guides-index-large">
-            <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
+            <a href="index.html" id="guidesMenu" aria-controls="guides" aria-expanded="false" class="guides-index-item nav-item">Guides Index</a>
             <div id="guides" class="clearfix" style="display: none;">
               <hr />
               <dl class="guides-section-container">
