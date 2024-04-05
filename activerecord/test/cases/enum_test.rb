@@ -89,6 +89,13 @@ class EnumTest < ActiveRecord::TestCase
     assert Book.not_proposed.include?(@book)
   end
 
+  test "find via explicit negative scope" do
+    book = Book.create!(explicit_negative_status: :not_started)
+
+    assert_equal 1, Book.not_started.count
+    assert_equal book, Book.not_started.first
+  end
+
   test "find via where with values" do
     published, written = Book.statuses[:published], Book.statuses[:written]
 
@@ -859,6 +866,15 @@ class EnumTest < ActiveRecord::TestCase
     assert_raises(NoMethodError) { klass.proposed }
   end
 
+  test "negative_scopes can be disabled by :_negative_scopes" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum status: [:proposed, :written], _negative_scopes: false
+    end
+
+    assert_raises(NoMethodError) { klass.not_proposed }
+  end
+
   test "overloaded default by :default" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
@@ -875,6 +891,15 @@ class EnumTest < ActiveRecord::TestCase
     end
 
     assert_raises(NoMethodError) { klass.proposed }
+  end
+
+  test "negative_scopes can be disabled by :negative_scopes" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, [:proposed, :written], negative_scopes: false
+    end
+
+    assert_raises(NoMethodError) { klass.not_proposed }
   end
 
   test "query state by predicate with :prefix" do
@@ -904,7 +929,7 @@ class EnumTest < ActiveRecord::TestCase
   test "option names can be used as label" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
-      enum :status, default: 0, scopes: 1, prefix: 2, suffix: 3
+      enum :status, default: 0, scopes: 1, prefix: 2, suffix: 3, negative_scopes: 4
     end
 
     book = klass.new
@@ -912,6 +937,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_predicate book, :scopes?
     assert_not_predicate book, :prefix?
     assert_not_predicate book, :suffix?
+    assert_not_predicate book, :negative_scopes?
   end
 
   test "scopes are named like methods" do
@@ -1093,6 +1119,26 @@ class EnumTest < ActiveRecord::TestCase
         silence_warnings do
           enum status: [:not_sent, :sent], _scopes: false
         end
+      end
+    end
+
+    assert_empty(logger.logged(:warn))
+  ensure
+    ActiveRecord::Base.logger = old_logger
+  end
+
+  test "enum doesn't log a warning if opting out of negative_scopes" do
+    old_logger = ActiveRecord::Base.logger
+    logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+
+    ActiveRecord::Base.logger = logger
+
+    Class.new(ActiveRecord::Base) do
+      def self.name
+        "Book"
+      end
+      silence_warnings do
+        enum status: [:not_sent, :sent], _negative_scopes: false
       end
     end
 

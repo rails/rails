@@ -1,3 +1,15 @@
+*   Add `negative_scopes` to the ActiveRecord::Enum.
+
+    To disable these auto-generated negative scopes in an enum, use the `negative_scopes: false` option as shown below:
+
+    ```ruby
+    class Post < ActiveRecord::Base
+      enum :status, [:started, :not_started, :completed], negative_scopes: false
+    end
+    ```
+
+    *Jay Ang*
+
 *   Raise an `ActiveRecord::ActiveRecordError` error when the MySQL database returns an invalid version string.
 
     *Kevin McPhillips*

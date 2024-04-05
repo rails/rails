@@ -130,6 +130,7 @@ ActiveRecord::Schema.define do
     t.string :format_record_type
     t.column :name, :string
     t.column :status, :integer, **default_zero
+    t.column :explicit_negative_status, :integer, **default_zero
     t.column :last_read, :integer, **default_zero
     t.column :nullable_status, :integer
     t.column :language, :integer, **default_zero
