@@ -1,3 +1,10 @@
+// Smooth scrolling (back-to-top etc.)
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 body.guide {
   &::-webkit-scrollbar {
     width: 12px;
