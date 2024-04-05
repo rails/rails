@@ -14,12 +14,12 @@
     Now Active Job will automatically defer the enqueuing to after the transaction is committed,
     and drop the job if the transaction is rolled back.
 
-    Various queue implementations can chose to disable this behavior, and users can disable it,
+    Various queue implementations can choose to disable this behavior, and users can disable it,
     or force it on a per job basis:
 
     ```ruby
     class NewTopicNotificationJob < ApplicationJob
-      self.enqueue_after_transaction_commit = false # or `true`
+      self.enqueue_after_transaction_commit = :never # or `:always` or `:default`
     end
     ```
 
