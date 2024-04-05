@@ -34,14 +34,19 @@ class TestController < ActionController::Base
 end
 
 require "minitest/autorun"
-require "rack/test"
 
-class BugTest < Minitest::Test
-  include Rack::Test::Methods
+Rails.application.routes.draw do
+  get "/test" => "test#index"
+end
+
+class TestControllerTest < ActionController::TestCase
+  setup do
+    @routes = Rails.application.routes
+  end
 
   def test_returns_success
-    get "/"
-    assert last_response.ok?
+    get :index
+    assert_response :success
   end
 
   private
