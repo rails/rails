@@ -795,8 +795,8 @@ module ActionView
       # generate fields associated with the model object. Fields may reflect
       # a model object in two ways - how they are named (hence how submitted
       # values appear within the +params+ hash in the controller) and what
-      # default values are shown when the form the fields appear in is first
-      # displayed. In order for both of these features to be specified independently,
+      # default values are shown when the form fields are first displayed.
+      # In order for both of these features to be specified independently,
       # both an object name (represented by either a symbol or string) and the
       # object itself can be passed to the method separately -
       #
@@ -2046,8 +2046,8 @@ module ActionView
       # generate fields associated with the model object. Fields may reflect
       # a model object in two ways - how they are named (hence how submitted
       # values appear within the +params+ hash in the controller) and what
-      # default values are shown when the form the fields appear in is first
-      # displayed. In order for both of these features to be specified independently,
+      # default values are shown when the form fields are first displayed.
+      # In order for both of these features to be specified independently,
       # both an object name (represented by either a symbol or string) and the
       # object itself can be passed to the method separately -
       #
