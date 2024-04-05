@@ -150,6 +150,15 @@
                 background-image: url("../images/icon_house-chimney-wht.svg");
               }
             } // @include media('>desktop')
+
+            &:last-child {
+              // the drop down
+
+              select {
+                background-color: $gray-900;
+                color: $gray-400;
+              } // select
+            }
           } // li
         } // ul.nav
       } // nav#feature_nav
