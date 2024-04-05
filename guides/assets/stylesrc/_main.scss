@@ -86,6 +86,36 @@ body.guide {
     }
   }
 
+  a.skip-link {
+    background-color: $gray-100;
+
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+
+    left: .5rem;
+    top: .5rem;
+
+    &:focus {
+      position: absolute;
+      width: auto;
+      height: auto;
+      margin: 0;
+      overflow: visible;
+      clip: auto;
+      white-space: normal;
+
+      padding: .5rem;
+      border-radius: .125rem;
+    }
+  }
+
   abbr {
     hyphens: manual;
   }
@@ -155,7 +185,7 @@ body.guide {
     } // a, a:link, a:visited
   } // h2
 
-  h3 {
+  h3, h2.chapter {
     font-size: 1.5rem; /* 24px */
     font-weight: 600; /* Semibold */
 

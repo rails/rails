@@ -148,8 +148,12 @@ module RailsGuides
           end.to_html
 
           @index = <<-INDEX.html_safe
-          <nav id="subCol">
-            <h3 class="chapter">
+          <nav id="subCol" aria-label="Chapter" class="guide-index">
+            <a id="chapter-nav-skip-link" href="#article-body" class="skip-link">
+              Skip to article body
+            </a>
+
+            <h2 class="chapter">
               <picture>
                 <!-- Using the `source`  HTML tag to set the dark theme image -->
                 <source

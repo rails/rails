@@ -32,6 +32,11 @@
   <script>
     document.body.classList.remove('no-js')
   </script>
+
+  <a id="main-skip-link" href="#container" class="skip-link">
+    Skip to main content
+  </a>
+
   <nav id="topNav" aria-label="Secondary">
     <div class="wrapper">
       <strong class="more-info-label">More at <a href="https://rubyonrails.org/">rubyonrails.org:</a> </strong>
@@ -47,6 +52,7 @@
       </ul>
     </div>
   </nav>
+
   <header id="page_header">
     <div class="wrapper clearfix">
       <nav id="feature_nav">
@@ -112,7 +118,7 @@
 
       <div class="wrapper">
         <div id="mainCol">
-          <section>
+          <section id="article-body">
             <%= yield %>
           </section>
 
