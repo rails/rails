@@ -44,16 +44,6 @@
       }
     });
 
-    var backToTop = createElement("a", "back-to-top");
-    backToTop.setAttribute("href", "#");
-
-    document.body.appendChild(backToTop);
-
-    backToTop.addEventListener("click", function(e) {
-      e.preventDefault();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    });
-
     if (typeof window.CSS === "undefined" || typeof window.CSS.supports === 'undefined' || !CSS.supports("(animation-timeline: scroll())")) {
       var toggleBackToTop = function() {
         if (window.scrollY > 300) {
