@@ -488,10 +488,15 @@ body.guide {
 
     .red-button {
       background: $rf-brand;
+      border: 0;
       border-bottom: 2px solid $rf-brand-dark;
       border-radius: $base-border-radius;
       color: white;
       padding: 0.5em 1em;
+
+      &:active {
+        background: $rf-brand-dark;
+      }
     }
 
     .more-info-label {

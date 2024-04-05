@@ -115,19 +115,11 @@
 
     var toggleMoreInfoContent = function () {
       var nextExpanded = moreInfoButton.getAttribute('aria-expanded') === 'false';
-      var focusElement = undefined
-
-      if (nextExpanded) {
-        wrap(moreInfoLinks, createElement("div", "more-info-container"));
-        moreInfoButton.setAttribute('aria-expanded', 'true');
-        focusElement = moreInfoLinks.querySelector('a')
-      } else {
-        unwrap(moreInfoLinks);
-        moreInfoButton.setAttribute('aria-expanded', 'false');
-        focusElement = moreInfoButton
-      }
 
       moreInfoLinks.classList.toggle("s-hidden");
+      moreInfoButton.setAttribute('aria-expanded', nextExpanded ? 'true' : 'false')
+
+      var focusElement = nextExpanded ? moreInfoLinks.querySelector('a') : moreInfoButton
       focusElement.focus();
     }
 
