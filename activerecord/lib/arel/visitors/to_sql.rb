@@ -586,10 +586,11 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_In(o, collector)
-          collector.preparable = false
           attr, values = o.left, o.right
 
           if Array === values
+            collector.preparable = false
+
             unless values.empty?
               values.delete_if { |value| unboundable?(value) }
             end
@@ -602,10 +603,11 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_NotIn(o, collector)
-          collector.preparable = false
           attr, values = o.left, o.right
 
           if Array === values
+            collector.preparable = false
+
             unless values.empty?
               values.delete_if { |value| unboundable?(value) }
             end

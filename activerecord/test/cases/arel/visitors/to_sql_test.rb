@@ -520,6 +520,24 @@ module Arel
             "users"."id" IN (SELECT id FROM "users" WHERE "users"."name" = 'Aaron')
           }
         end
+
+        it "is not preparable when an array" do
+          node = @attr.in [1, 2, 3]
+
+          collector = Collectors::SQLString.new.tap { |c| c.preparable = true }
+          @visitor.accept(node, collector)
+          _(collector.preparable).must_equal false
+        end
+
+        it "is preparable when a subselect" do
+          table = Table.new(:users)
+          subquery = table.project(table[:id]).where(table[:name].eq("Aaron"))
+          node = @attr.in subquery
+
+          collector = Collectors::SQLString.new.tap { |c| c.preparable = true }
+          @visitor.accept(node, collector)
+          _(collector.preparable).must_equal true
+        end
       end
 
       describe "Nodes::InfixOperation" do
@@ -681,6 +699,24 @@ module Arel
           _(compile(node)).must_be_like %{
             "users"."id" NOT IN (SELECT id FROM "users" WHERE "users"."name" = 'Aaron')
           }
+        end
+
+        it "is not preparable when an array" do
+          node = @attr.not_in [1, 2, 3]
+
+          collector = Collectors::SQLString.new.tap { |c| c.preparable = true }
+          @visitor.accept(node, collector)
+          _(collector.preparable).must_equal false
+        end
+
+        it "is preparable when a subselect" do
+          table = Table.new(:users)
+          subquery = table.project(table[:id]).where(table[:name].eq("Aaron"))
+          node = @attr.not_in subquery
+
+          collector = Collectors::SQLString.new.tap { |c| c.preparable = true }
+          @visitor.accept(node, collector)
+          _(collector.preparable).must_equal true
         end
       end
 
