@@ -158,6 +158,15 @@ body.guide {
     }
   }
 
+  .table-wrapper {
+    overflow: auto;
+    margin-bottom: 2em;
+
+    & > table {
+      margin-bottom: 0;
+    }
+  }
+
   // Headlines
   // TODO: media queries to increase font size, current sizes are for desktop, so drop base to mobile appropriate and MQ up twice (min width 60/120 em, minheight 30/60em)
   h1 {

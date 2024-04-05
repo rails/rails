@@ -127,6 +127,9 @@ module RailsGuides
             doc.css("h2, h3, h4, h5").each do |node|
               node.inner_html = "<a class='anchorlink' href='##{node[:id]}'>#{node.inner_html}</a>"
             end
+
+            tables = doc.css('table')
+            tables.wrap("<div class='table-wrapper'>")
           end
           @body = @epub ? document.to_xhtml : document.to_html
         end
