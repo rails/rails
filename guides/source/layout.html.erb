@@ -88,7 +88,10 @@
           </li>
           <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
           <li class="guides-index guides-index-small js-only">
-            <select class="guides-index-item nav-item">
+            <label for="guides-selector">
+              Navigate to a guide:
+            </label>
+            <select id="guides-selector" class="guides-index-item nav-item">
               <option value="index.html">Guides Index</option>
               <% docs_for_menu.each do |section| %>
                 <optgroup label="<%= section['name'] %>">

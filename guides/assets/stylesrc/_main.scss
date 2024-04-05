@@ -113,6 +113,7 @@ body.guide {
 
       padding: .5rem;
       border-radius: .125rem;
+      z-index: 1;
     }
   }
 
@@ -691,6 +692,12 @@ body.guide {
           }
 
           &.guides-index-small {
+            label {
+              display: block;
+              margin-bottom: 4px;
+              font-size: 16px;
+            }
+
             @include media(">desktop") {
               display: none;
             }
