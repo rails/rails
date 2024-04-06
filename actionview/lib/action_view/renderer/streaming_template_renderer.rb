@@ -25,6 +25,13 @@ module ActionView
         self
       end
 
+      # Returns the complete body as a string.
+      def body
+        buffer = String.new
+        each { |part| buffer << part }
+        buffer
+      end
+
       private
         # This is the same logging logic as in ShowExceptions middleware.
         def log_error(exception)
