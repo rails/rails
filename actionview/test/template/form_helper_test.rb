@@ -2,7 +2,6 @@
 
 require "abstract_unit"
 require "controller/fake_models"
-require "ostruct"
 
 class FormHelperTest < ActionView::TestCase
   include RenderERBUtils
@@ -280,7 +279,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_label_with_non_active_record_object
-    form_for(OpenStruct.new(name: "ok"), as: "person", url: "/an", html: { id: "create-person" }) do |f|
+    form_for(Struct.new(:name).new("ok"), as: "person", url: "/an", html: { id: "create-person" }) do |f|
       f.label(:name)
     end
 
