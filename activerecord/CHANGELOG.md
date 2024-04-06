@@ -1,3 +1,7 @@
+*   Fix association scopes applying on the incorrect join when using a polymorphic `has_many through:`.
+
+    *Joshua Young*
+
 *   Fix duplicate callback execution when child autosaves parent with `has_one` and `belongs_to`.
 
     Before, persisting a new child record with a new associated parent record would run `before_validation`,
