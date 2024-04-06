@@ -44,7 +44,7 @@ RUN curl -fsSL https://bun.sh/install | bash -s -- "bun-v${BUN_VERSION}"
 # Install application gems
 COPY Gemfile Gemfile.lock ./
 RUN bundle install && \
-    rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git<% if depend_on_bootsnap? -%> && \
+    rm -rf ~/.bundle/ ${BUNDLE_PATH}/ruby/*/cache ${BUNDLE_PATH}/ruby/*/bundler/gems/*/.git<% if depend_on_bootsnap? -%> && \
     bundle exec bootsnap precompile --gemfile<% end %>
 
 <% if using_node? -%>
