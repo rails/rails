@@ -1816,7 +1816,7 @@ module ActiveRecord
         #   named <tt>#{table_name}_count</tt> (such as +comments_count+ for a belonging Comment class)
         #   is used on the associate class (such as a Post class) - that is the migration for
         #   <tt>#{table_name}_count</tt> is created on the associate class (such that <tt>Post.comments_count</tt> will
-        #   return the count cached, see note below). You can also specify a custom counter
+        #   return the count cached). You can also specify a custom counter
         #   cache column by providing a column name instead of a +true+/+false+ value to this
         #   option (e.g., <tt>counter_cache: :my_custom_counter</tt>.)
         #
@@ -1829,12 +1829,10 @@ module ActiveRecord
         #   use <tt>counter_cache: { active: false }</tt>.
         #   If you also need to specify a custom column name, use <tt>counter_cache: { active: false, column: :my_custom_counter }</tt>.
         #
-        #   Note: Specifying a counter cache will add it to that model's list of readonly attributes
-        #   using +attr_readonly+.
-        # [+:polymorphic+]
-        #   Specify this association is a polymorphic association by passing +true+.
         #   Note: If you've enabled the counter cache, then you may want to add the counter cache attribute
         #   to the +attr_readonly+ list in the associated classes (e.g. <tt>class Post; attr_readonly :comments_count; end</tt>).
+        # [+:polymorphic+]
+        #   Specify this association is a polymorphic association by passing +true+.
         #   Note: Since polymorphic associations rely on storing class names in the database, make sure to update the class names in the
         #   <tt>*_type</tt> polymorphic type column of the corresponding rows.
         # [+:validate+]

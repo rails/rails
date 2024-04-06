@@ -1227,9 +1227,6 @@ end
 NOTE: You only need to specify the `:counter_cache` option on the `belongs_to`
 side of the association.
 
-Counter cache columns are added to the owner model's list of read-only
-attributes through `attr_readonly`.
-
 Starting to use counter caches on existing large tables can be troublesome, because the column
 values must be backfilled separately of the column addition (to not lock the table for too long)
 and before the use of `:counter_cache` (otherwise methods like `size`/`any?`/etc, which use
