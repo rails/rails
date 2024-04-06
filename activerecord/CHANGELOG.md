@@ -1,3 +1,7 @@
+*   Fix association scopes applying on the incorrect join when using a polymorphic `has_many through:`.
+
+    *Joshua Young*
+
 *   Make Float distinguish between `float4` and `float8` in PostgreSQL.
 
     Fixes #52742
