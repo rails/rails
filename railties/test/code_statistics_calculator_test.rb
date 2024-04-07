@@ -84,6 +84,11 @@ class CodeStatisticsCalculatorTest < ActiveSupport::TestCase
     assert_equal 6, @code_statistics_calculator.methods
   end
 
+  test "return statistics as a hash" do
+    code_statistics_calculator = CodeStatisticsCalculator.new(1, 2, 3, 4)
+    assert_equal({ lines: 1, code_lines: 2, classes: 3, methods: 4 }, code_statistics_calculator.to_h)
+  end
+
   test "calculate number of Ruby methods" do
     code = <<-'CODE'
       def foo

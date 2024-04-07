@@ -86,6 +86,15 @@ class CodeStatisticsCalculator # :nodoc:
     end
   end
 
+  def to_h
+    {
+      lines: lines,
+      code_lines: code_lines,
+      classes: classes,
+      methods: methods
+    }
+  end
+
   private
     def file_type(file_path)
       if file_path.end_with? "_test.rb"

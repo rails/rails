@@ -35,6 +35,18 @@ class CodeStatistics # :nodoc:
     print_code_test_stats
   end
 
+  def to_h
+    {
+      code_statistics: @statistics.map do |k, v|
+        {
+          name: k,
+          statistic: v.to_h
+        }
+      end,
+      total: @total&.to_h
+    }
+  end
+
   private
     def calculate_statistics
       Hash[@pairs.map { |pair| [pair.first, calculate_directory_statistics(pair.last)] }]

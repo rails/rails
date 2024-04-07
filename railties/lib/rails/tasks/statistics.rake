@@ -29,10 +29,16 @@ STATS_DIRECTORIES ||= [
 ]
 
 desc "Report code statistics (KLOCs, etc) from the application or engine"
-task :stats do
+task :stats, :format do |_, args|
   require "rails/code_statistics"
   stat_directories = STATS_DIRECTORIES.collect do |name, dir|
     [ name, "#{File.dirname(Rake.application.rakefile_location)}/#{dir}" ]
   end.select { |name, dir| File.directory?(dir) }
-  CodeStatistics.new(*stat_directories).to_s
+  statistics = CodeStatistics.new(*stat_directories)
+  case args[:format]
+  when "json"
+    puts statistics.to_h.to_json
+  else
+    statistics.to_s
+  end
 end

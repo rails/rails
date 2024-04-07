@@ -1,3 +1,33 @@
+*   Add JSON output format to `rails stats` via `format` option.
+
+    Enables JSON formatted output for better integration with automated systems. Maintains default table format unless specified.
+
+    ```shell
+    $ bin/rails stats[json] | jq .
+    {
+      "code_statistics": [
+        {
+          "name": "Controllers",
+          "statistic": {
+            "lines": 12345,
+            "code_lines": 12345,
+            "classes": 123,
+            "methods": 1234
+          }
+        },
+        ...
+      ],
+      "total": {
+        "lines": 12345,
+        "code_lines": 12345,
+        "classes": 123,
+        "methods": 1234
+      }
+    }
+    ```
+
+    *Teppei Shintani*
+
 *   Allow Actionable Errors encountered when running tests to be retried.
 
     ```txt
