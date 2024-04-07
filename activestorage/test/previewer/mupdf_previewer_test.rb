@@ -6,6 +6,10 @@ require "database/setup"
 require "active_storage/previewer/mupdf_previewer"
 
 class ActiveStorage::Previewer::MuPDFPreviewerTest < ActiveSupport::TestCase
+  setup do
+    skip "mutool unavailable" unless ActiveStorage::Previewer::MuPDFPreviewer.mutool_exists?
+  end
+
   test "previewing a PDF document" do
     blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
 

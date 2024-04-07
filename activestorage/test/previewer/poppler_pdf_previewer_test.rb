@@ -6,6 +6,10 @@ require "database/setup"
 require "active_storage/previewer/poppler_pdf_previewer"
 
 class ActiveStorage::Previewer::PopplerPDFPreviewerTest < ActiveSupport::TestCase
+  setup do
+    skip "pdftoppm unavailable" unless ActiveStorage::Previewer::PopplerPDFPreviewer.pdftoppm_exists?
+  end
+
   test "previewing a PDF document" do
     blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
 

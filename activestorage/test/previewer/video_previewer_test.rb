@@ -6,6 +6,10 @@ require "database/setup"
 require "active_storage/previewer/video_previewer"
 
 class ActiveStorage::Previewer::VideoPreviewerTest < ActiveSupport::TestCase
+  setup do
+    skip "ffmpeg unavailable" unless ActiveStorage::Previewer::VideoPreviewer.ffmpeg_exists?
+  end
+
   test "previewing an MP4 video" do
     blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
 
