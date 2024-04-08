@@ -392,6 +392,7 @@ To change defaults for multiple uses, for example, adding table tags to the
 default:
 
 ```ruby
+# config/application.rb
 class Application < Rails::Application
   config.action_view.sanitized_allowed_tags = %w(table tr td)
 end
