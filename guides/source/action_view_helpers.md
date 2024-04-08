@@ -782,8 +782,8 @@ for more information.
 
 ### token_list
 
-Returns a string of tokens built from the `args` provided. This method is also
-aliased as `class_names`.
+Returns a string of tokens built from the arguments provided. This method is
+also aliased as `class_names`.
 
 ```ruby
 token_list("cats", "dogs")
