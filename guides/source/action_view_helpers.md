@@ -912,7 +912,7 @@ Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/CaptureHel
 for more information.
 
 Performance
-----------------------------------------------
+-----------
 
 ### benchmark
 
