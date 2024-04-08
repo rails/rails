@@ -293,6 +293,11 @@ module ActiveRecord
       def create_table(table_name, id: :primary_key, primary_key: nil, force: nil, **options, &block)
         validate_create_table_options!(options)
         validate_table_length!(table_name) unless options[:_uses_legacy_table_name]
+
+        if force && options.key?(:if_not_exists)
+          raise ArgumentError, "Options `:force` and `:if_not_exists` cannot be used simultaneously."
+        end
+
         td = build_create_table_definition(table_name, id: id, primary_key: primary_key, force: force, **options, &block)
 
         if force
