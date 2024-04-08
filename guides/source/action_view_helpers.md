@@ -457,7 +457,7 @@ Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHe
 for more information.
 
 Assets
-----------------------------------------------
+------
 
 A set of methods for generating HTML that links views to assets such as images,
 JavaScript files, stylesheets, and feeds.
