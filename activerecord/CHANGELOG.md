@@ -2,7 +2,7 @@
 
     *Kevin McPhillips*
 
-*   `ActiveRecord::Base.transaction` now yields an `ActiveRecord::Transation` object.
+*   `ActiveRecord::Base.transaction` now yields an `ActiveRecord::Transaction` object.
 
     This allows to register callbacks on it.
 
