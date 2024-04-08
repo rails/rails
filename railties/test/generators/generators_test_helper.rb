@@ -122,6 +122,12 @@ module GeneratorsTestHelper
     end
   end
 
+  def assert_devcontainer_json_file
+    assert_file ".devcontainer/devcontainer.json" do |content|
+      yield JSON.load(content)
+    end
+  end
+
   private
     def gemfile_locals
       {

@@ -39,6 +39,16 @@ module Rails
           @devcontainer_volumes
         end
 
+        def devcontainer_mounts
+          return @devcontainer_mounts if @devcontainer_mounts
+
+          @devcontainer_mounts = []
+
+          @devcontainer_mounts << local_rails_mount if options.dev?
+
+          @devcontainer_mounts
+        end
+
         def devcontainer_needs_redis?
           !(options.skip_action_cable? && options.skip_active_job?)
         end
@@ -126,6 +136,14 @@ module Rails
 
         def db_service_names
           ["mysql", "mariadb", "postgres"]
+        end
+
+        def local_rails_mount
+          {
+            type: "bind",
+            source: Rails::Generators::RAILS_DEV_PATH,
+            target: Rails::Generators::RAILS_DEV_PATH
+          }
         end
     end
   end
