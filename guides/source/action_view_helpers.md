@@ -760,7 +760,7 @@ tag.div "Hello, world!"
 
 #### Options
 
-You can use symboled key options to add attributes to the generated tag.
+You can pass options to add attributes to the generated tag.
 
 ```ruby
 tag.section class: %w( kitties puppies )
