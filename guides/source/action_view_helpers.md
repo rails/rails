@@ -244,7 +244,7 @@ You can learn more about form helpers in the [Action View Form Helpers
 Guide](form_helpers.html).
 
 Navigation
-----------------------------------------------
+----------
 
 A set of methods to make links and get URLs that depend on the routing
 subsystem.
