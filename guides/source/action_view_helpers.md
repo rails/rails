@@ -39,6 +39,10 @@ distance_of_time_in_words(Time.current, 15.seconds.from_now, include_seconds: tr
 # => less than 20 seconds
 ```
 
+NOTE: We use `Time.current` instead of `Time.now` because it returns the current
+time based on the timezone set in Rails, whereas `Time.now` returns a Time
+object based on the server's timezone.
+
 See the [API
 Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-distance_of_time_in_words)
 for more information.
@@ -235,8 +239,8 @@ Form helpers simplify working with models compared to using standard HTML
 elements alone. They offer a range of methods tailored to generating forms based
 on your models. Some methods correspond to a specific type of input, such as
 text fields, password fields, select dropdowns, and more. When a form is
-submitted, the inputs within the form are grouped into the params object and sent
-back to the controller.
+submitted, the inputs within the form are grouped into the params object and
+sent back to the controller.
 
 You can learn more about form helpers in the [Action View Form Helpers
 Guide](form_helpers.html).
@@ -683,9 +687,8 @@ contain any invalid characters when the browser tries to parse it.
 For example, if you have a partial with a greeting that contains double quotes,
 you can escape the greeting to use in a JavaScript alert.
 
-**app/views/users/greeting.html.rb**
-
 ```html+erb
+<%# app/views/users/greeting.html.rb %>
 My name is <%= current_user.name %>, and I'm here to say "Welcome to our website!"
 ```
 
@@ -765,7 +768,10 @@ tag.section class: %w( kitties puppies )
 # => <section class="kitties puppies"></section>
 ```
 
-In addition, HTML `data-*` attributes can be passed to the `tag` helper using the `data` option, with a hash containing key-value pairs of sub-attributes. The sub-attributes are then converted to `data-*` attributes that are dasherized in order to work well with JavaScript.
+In addition, HTML `data-*` attributes can be passed to the `tag` helper using
+the `data` option, with a hash containing key-value pairs of sub-attributes. The
+sub-attributes are then converted to `data-*` attributes that are dasherized in
+order to work well with JavaScript.
 
 ```ruby
 tag.div data: { user_id: 123 }
@@ -850,15 +856,13 @@ You define a `content_for` block in the special page's view, and then you
 `yield` it within the layout. For other pages, where the `content_for` block
 isn't utilized, it remains empty, resulting in nothing being yielded.
 
-**app/views/users/special_page.html.erb**
-
 ```html+erb
+<%# app/views/users/special_page.html.erb %>
 <% content_for(:html_title) { "Special Page Title" } %>
 ```
 
-**app/views/layouts/application.html.erb**
-
 ```html+erb
+<%# app/views/layouts/application.html.erb %>
 <html>
   <head>
     <title><%= content_for?(:html_title) ? yield(:html_title) : "Default Title" %></title>
@@ -867,15 +871,14 @@ isn't utilized, it remains empty, resulting in nothing being yielded.
 ```
 
 You'll notice that in the above example, we use the `content_for?` predicate
-method to conditionally render a title. This method checks whether any
-content has been captured yet using `content_for`, enabling you to adjust parts
-of your layout based on the content within your views.
+method to conditionally render a title. This method checks whether any content
+has been captured yet using `content_for`, enabling you to adjust parts of your
+layout based on the content within your views.
 
 Additionally, you can employ `content_for` within a helper module.
 
-**app/helpers/title_helper.rb**
-
 ```ruby
+# app/helpers/title_helper.rb
 module TitleHelper
   def html_title
     content_for(:html_title) || "Default Title"
@@ -883,10 +886,10 @@ module TitleHelper
 end
 ```
 
-Now, you can call `html_title` in your layout to retrieve the
-content stored in the `content_for` block. If a `content_for` block is set on
-the page being rendered, such as in the case of the special_page, it will
-display the title. Otherwise, it will display the default text "Default Title"
+Now, you can call `html_title` in your layout to retrieve the content stored in
+the `content_for` block. If a `content_for` block is set on the page being
+rendered, such as in the case of the special_page, it will display the title.
+Otherwise, it will display the default text "Default Title"
 
 WARNING: `content_for` is ignored in caches. So you shouldn’t use it for
 elements that will be fragment cached.
@@ -984,15 +987,13 @@ additional information about your site.
 This helper makes building an Atom feed easy, and is mostly used in Builder
 templates for creating XML. Here's a full usage example:
 
-**config/routes.rb**
-
 ```ruby
+# config/routes.rb
 resources :articles
 ```
 
-**app/controllers/articles_controller.rb**
-
 ```ruby
+# app/controllers/articles_controller.rb
 def index
   @articles = Article.all
 
@@ -1003,9 +1004,8 @@ def index
 end
 ```
 
-**app/views/articles/index.atom.builder**
-
 ```ruby
+# app/views/articles/index.atom.builder
 atom_feed do |feed|
   feed.title("Articles Index")
   feed.updated(@articles.first.created_at)
