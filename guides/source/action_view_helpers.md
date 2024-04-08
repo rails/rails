@@ -231,7 +231,7 @@ Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper
 for more information.
 
 Forms
-----------------------------------------------
+-----
 
 Form helpers simplify working with models compared to using standard HTML
 elements alone. They offer a range of methods tailored to generating forms based
