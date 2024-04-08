@@ -801,7 +801,7 @@ class_names("flex items-#{alignment}", "flex-col": mobile) # using the alias
 ```
 
 Capture Blocks
-----------------------------------------------
+--------------
 
 A set of methods to let you extract generated markup which can be used in other
 parts of a template or layout file.
