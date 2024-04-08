@@ -37,7 +37,7 @@ approximations.
 ```ruby
 distance_of_time_in_words(Time.current, 15.seconds.from_now)
 # => less than a minute
-distance_of_time_in_words(Time.now, Time.now + 15.seconds, include_seconds: true)
+distance_of_time_in_words(Time.current, 15.seconds.from_now, include_seconds: true)
 # => less than 20 seconds
 ```
 
@@ -48,7 +48,7 @@ for more information.
 #### time_ago_in_words
 
 Reports the approximate distance in time between a `Time` or `Date` object, or
-integer as seconds,  and `Time.now`.
+integer as seconds,  and `Time.current`.
 
 ```ruby
 time_ago_in_words(3.minutes.from_now) # => 3 minutes
@@ -165,10 +165,10 @@ occurrence of the `phrase`, plus the requested surrounding text determined by a
 result does not coincide with the start/end of the text.
 
 ```ruby
-excerpt('This is a very beautiful morning', 'very', separator: ' ', radius: 1)
+excerpt("This is a very beautiful morning", "very", separator: " ", radius: 1)
 # => ...a very beautiful...
 
-excerpt('This is also an example', 'an', radius: 8, omission: '<chop> ')
+excerpt("This is also an example", "an", radius: 8, omission: "<chop> ")
 #=> <chop> is also an example
 ```
 
@@ -181,9 +181,9 @@ for more information.
 Returns the singular or plural form of a word based on the value of a number.
 
 ```ruby
-pluralize(1, 'person') # => 1 person
-pluralize(2, 'person') # => 2 people
-pluralize(3, 'person', plural: 'users') # => 3 users
+pluralize(1, "person") # => 1 person
+pluralize(2, "person") # => 2 people
+pluralize(3, "person", plural: "users") # => 3 users
 ```
 
 See the [API
@@ -203,10 +203,10 @@ truncate("Once upon a time in a world far far away")
 truncate("Once upon a time in a world far far away", length: 17)
 # => "Once upon a ti..."
 
-truncate("one-two-three-four-five", length: 20, separator: '-')
+truncate("one-two-three-four-five", length: 20, separator: "-")
 # => "one-two-three..."
 
-truncate("And they found that many people were sleeping better.", length: 25, omission: '... (continued)')
+truncate("And they found that many people were sleeping better.", length: 25, omission: "... (continued)")
 # => "And they f... (continued)"
 
 truncate("<p>Once upon a time in a world far far away</p>", escape: false)
@@ -222,7 +222,7 @@ for more information.
 Wraps the text into lines no longer than `line_width` width.
 
 ```ruby
-word_wrap('Once upon a time', line_width: 8)
+word_wrap("Once upon a time", line_width: 8)
 # => "Once\nupon a\ntime"
 ```
 
@@ -423,13 +423,13 @@ for more information.
 Strips all link tags from text leaving just the link text.
 
 ```ruby
-strip_links('<a href="https://rubyonrails.org">Ruby on Rails</a>')
+strip_links("<a href='https://rubyonrails.org'>Ruby on Rails</a>")
 # => Ruby on Rails
 
-strip_links('emails to <a href="mailto:me@email.com">me@email.com</a>.')
+strip_links("emails to <a href='mailto:me@email.com'>me@email.com</a>.")
 # => emails to me@email.com.
 
-strip_links('Blog: <a href="http://myblog.com/">Visit</a>.')
+strip_links("Blog: <a href='http://myblog.com/'>Visit</a>.")
 # => Blog: Visit.
 ```
 
@@ -694,7 +694,7 @@ My name is <%= current_user.name %>, and I'm here to say "Welcome to our website
 
 ```html+erb
 <script>
-  var greeting = '<%= escape_javascript(render 'captured_pokemons/greeting') %>';
+  var greeting = "<%= escape_javascript(render 'users/greeting') %>";
   alert(`Hello, ${greeting}`);
 </script>
 ```
@@ -711,7 +711,7 @@ Returns a JavaScript tag wrapping the provided code. You can pass a hash of
 options to control the behavior of the `<script>` tag.
 
 ```ruby
-javascript_tag("alert('All is good')", type: 'application/javascript')
+javascript_tag("alert('All is good')", type: "application/javascript")
 ```
 
 ```html
@@ -725,8 +725,8 @@ alert('All is good')
 Instead of passing the content as an argument, you can also use a block.
 
 ```html+erb
-<%= javascript_tag type: 'application/javascript' do %>
-  alert('Welcome to my app!')
+<%= javascript_tag type: "application/javascript" do %>
+  alert("Welcome to my app!")
 <% end %>
 ```
 
@@ -743,12 +743,38 @@ A set of methods to generate HTML tags programmatically.
 
 Generates a standalone HTML tag with the given `name` and `options`.
 
+Every tag can be built with:
+
 ```ruby
-tag.h1 'All titles fit to print'
+tag.<tag name>(optional content, options)
+```
+
+where tag name can be e.g. `br`, `div`, `section`, `article`, or any tag really.
+
+For example, here are some common uses:
+
+```ruby
+tag.h1 "All titles fit to print"
 # => <h1>All titles fit to print</h1>
 
+tag.div "Hello, world!"
+# => <div>Hello, world!</div>
+```
+
+#### Options
+
+You can use symboled key options to add attributes to the generated tag.
+
+```ruby
 tag.section class: %w( kitties puppies )
 # => <section class="kitties puppies"></section>
+```
+
+In addition, HTML `data-*` attributes can be passed to the `tag` helper as a key value pair, where the key is `data` and the value is a hash containing sub-attributes. The sub-attributes are then converted to `data-*` attributes that are dasherized in order to work well with JavaScript.
+
+```ruby
+tag.div data: { user_id: 123 }
+# => <div data-user-id="123"></div>
 ```
 
 See the [API
@@ -761,7 +787,7 @@ Returns a string of tokens built from the `args` provided. This method is also
 aliased as `class_names`.
 
 ```ruby
-token_list('cats', 'dogs')
+token_list("cats", "dogs")
 # => "cats dogs"
 
 token_list(nil, false, 123, "", "foo", { bar: true })
@@ -789,7 +815,7 @@ The `capture` method allows you to extract part of a template into a variable.
 
 ```html+erb
 <% @greeting = capture do %>
-  <p>Welcome! The date and time is <%= Time.now %></p>
+  <p>Welcome! The date and time is <%= Time.current %></p>
 <% end %>
 ```
 
@@ -823,10 +849,7 @@ Calling `content_for` stores a block of markup in an identifier for later use.
 You can make subsequent calls to the stored content in other templates, helper
 modules or the layout by passing the identifier as an argument to `yield`.
 
-For example, let's say you have a standard application layout, but also a
-special page that requires some JavaScript that the rest of the site doesn't
-need. You can use `content_for` to include this JavaScript on your special page
-without fattening up or affecting the rest of the site's performance.
+A common use case is to set the title of a page in a `content_for` block.
 
 You define a `content_for` block in the special page's view, and then you
 `yield` it within the layout. For other pages, where the `content_for` block
@@ -835,11 +858,7 @@ isn't utilized, it remains empty, resulting in nothing being yielded.
 **app/views/users/special_page.html.erb**
 
 ```html+erb
-<p>This is a special page.</p>
-
-<% content_for :greeting_alert do %>
-  <script>alert('Hello!')</script>
-<% end %>
+<% content_for(:html_title) { "Special Page Title" } %>
 ```
 
 **app/views/layouts/application.html.erb**
@@ -847,36 +866,32 @@ isn't utilized, it remains empty, resulting in nothing being yielded.
 ```html+erb
 <html>
   <head>
-    <title>Welcome!</title>
+    <title><%= content_for?(:html_title) ? yield(:html_title) : "Default Title" %></title>
   </head>
-  <body class="<%= content_for?(:greeting_alert) ? 'bg-white' : 'bg-gray-400' %>">
-    <%= yield :greeting_alert %>
-    <p>Welcome! The date and time is <%= Time.now %></p>
-  </body>
 </html>
 ```
 
 You'll notice that in the above example, we use the `content_for?` predicate
-method to conditionally render a relevant class. This method checks whether any
+method to conditionally render a title. This method checks whether any
 content has been captured yet using `content_for`, enabling you to adjust parts
 of your layout based on the content within your views.
 
 Additionally, you can employ `content_for` within a helper module.
 
-**app/helpers/greeting_helper.rb**
+**app/helpers/title_helper.rb**
 
 ```ruby
-module GreetingHelper
-  def special_greeting_alert
-    content_for(:greeting_alert) || "Bye!"
+module TitleHelper
+  def html_title
+    content_for(:html_title) || "Default Title"
   end
 end
 ```
 
-Now, you can call `special_greeting_alert` in your layout to retrieve the
+Now, you can call `html_title` in your layout to retrieve the
 content stored in the `content_for` block. If a `content_for` block is set on
-the page being rendered, such as in the case of the special page, it will
-display the greeting alert. Otherwise, it will display the default text "Bye!"
+the page being rendered, such as in the case of the special_page, it will
+update the title. Otherwise, it will display the default text "Default Title"
 
 WARNING: `content_for` is ignored in caches. So you shouldn’t use it for
 elements that will be fragment cached.
@@ -1003,7 +1018,7 @@ atom_feed do |feed|
   @articles.each do |article|
     feed.entry(article) do |entry|
       entry.title(article.title)
-      entry.content(article.body, type: 'html')
+      entry.content(article.body, type: "html")
 
       entry.author do |author|
         author.name(article.author_name)
@@ -1023,12 +1038,12 @@ Returns a YAML representation of an object wrapped with a `pre` tag. This
 creates a very readable way to inspect an object.
 
 ```ruby
-my_hash = { 'first' => 1, 'second' => 'two', 'third' => [1, 2, 3] }
+my_hash = { "first" => 1, "second" => "two", "third" => [1, 2, 3] }
 debug(my_hash)
 ```
 
 ```html
-<pre class='debug_dump'>---
+<pre class="debug_dump">---
 first: 1
 second: two
 third:
