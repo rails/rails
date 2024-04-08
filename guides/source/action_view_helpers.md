@@ -726,7 +726,7 @@ Instead of passing the content as an argument, you can also use a block.
 ```html+erb
 <%= javascript_tag type: 'application/javascript' do %>
   alert('Welcome to my app!')
-<% end -%>
+<% end %>
 ```
 
 See the [API
