@@ -673,7 +673,7 @@ Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/AssetTagHe
 for more information.
 
 JavaScript
-----------------------------------------------
+----------
 
 A set of methods for working with JavaScript in your views.
 
