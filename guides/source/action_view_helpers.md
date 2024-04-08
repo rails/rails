@@ -746,7 +746,7 @@ Generates a standalone HTML tag with the given `name` and `options`.
 Every tag can be built with:
 
 ```ruby
-tag.<tag name>(optional content, options)
+tag.some_tag_name(optional content, options)
 ```
 
 where tag name can be e.g. `br`, `div`, `section`, `article`, or any tag really.
@@ -891,7 +891,7 @@ end
 Now, you can call `html_title` in your layout to retrieve the
 content stored in the `content_for` block. If a `content_for` block is set on
 the page being rendered, such as in the case of the special_page, it will
-update the title. Otherwise, it will display the default text "Default Title"
+display the title. Otherwise, it will display the default text "Default Title"
 
 WARNING: `content_for` is ignored in caches. So you shouldn’t use it for
 elements that will be fragment cached.
