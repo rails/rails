@@ -20,7 +20,7 @@ By default, Action View templates (also referred to simply as "views") are writt
 
 Action View provides many [helper](#helpers) methods for dynamically generating HTML tags for forms, dates, and strings. It's also possible to add custom helpers to your application as needed.
 
-NOTE: Some features of Action View are tied to Active Model, but that doesn't mean Action View depends on Active Model. Action View is an independent package that can be used with any Ruby library.
+NOTE: Action View can make use of Active Model features like [`to_param`](https://api.rubyonrails.org/classes/ActiveModel/Conversion.html#method-i-to_param) and [`to_partial_path`](https://api.rubyonrails.org/classes/ActiveModel/Conversion.html#method-i-to_partial_path) to simplify code. That doesn't mean Action View depends on Active Model. Action View is an independent package that can be used with any Ruby library.
 
 Using Action View with Rails
 ----------------------------
