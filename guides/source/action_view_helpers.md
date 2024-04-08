@@ -246,8 +246,7 @@ Guide](form_helpers.html).
 Navigation
 ----------
 
-A set of methods to make links and get URLs that depend on the routing
-subsystem.
+A set of methods to build links and URLs that depend on the routing subsystem.
 
 ### button_to
 
