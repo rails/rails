@@ -985,8 +985,8 @@ Atom Feeds are XML-based file formats used to syndicate content and can be used
 by users in feed readers to browse content or by search engines to help discover
 additional information about your site.
 
-This helper makes building an Atom feed easy is mostly used in Builder templates
-for creating XML. Here's a full usage example:
+This helper makes building an Atom feed easy, and is mostly used in Builder
+templates for creating XML. Here's a full usage example:
 
 **config/routes.rb**
 
