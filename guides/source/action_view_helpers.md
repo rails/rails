@@ -691,7 +691,7 @@ My name is <%= current_user.name %>, and I'm here to say "Welcome to our website
 
 ```html+erb
 <script>
-  var greeting = "<%= escape_javascript(render 'users/greeting') %>";
+  var greeting = "<%= escape_javascript render('users/greeting') %>";
   alert(`Hello, ${greeting}`);
 </script>
 ```
