@@ -19,7 +19,7 @@ Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html) is
 also recommended, as it covers all of the helpers in more detail.
 
 Formatting
-----------------------------------------------
+----------
 
 ### Dates
 
