@@ -29,7 +29,7 @@ module ActiveRecord
     #
     # If there is no currently open transactions, the block is called immediately.
     #
-    # If the current transaction has a parent transaction, the callback is transfered to
+    # If the current transaction has a parent transaction, the callback is transferred to
     # the parent when the current transaction commits, or dropped when the current transaction
     # is rolled back. This operation is repeated until the outermost transaction is reached.
     def before_commit(&block)
@@ -40,7 +40,7 @@ module ActiveRecord
     #
     # If there is no currently open transactions, the block is called immediately.
     #
-    # If the current transaction has a parent transaction, the callback is transfered to
+    # If the current transaction has a parent transaction, the callback is transferred to
     # the parent when the current transaction commits, or dropped when the current transaction
     # is rolled back. This operation is repeated until the outermost transaction is reached.
     def after_commit(&block)

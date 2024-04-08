@@ -9,12 +9,12 @@ module ActiveJob
       # :singleton-method:
       #
       # Defines if enqueueing this job from inside an Active Record transaction
-      # automatically defers the enqueue to after the transaction commit.
+      # automatically defers the enqueue to after the transaction commits.
       #
       # It can be set on a per job basis:
       #  - `:always` forces the job to be deferred.
-      #  - `:never` forces the job to be queueed immediately
-      #  - `:default` let the queue adapter define the behavior (recommended).
+      #  - `:never` forces the job to be queued immediately.
+      #  - `:default` lets the queue adapter define the behavior (recommended).
       class_attribute :enqueue_after_transaction_commit, instance_accessor: false, instance_predicate: false, default: :never
 
       around_enqueue do |job, block|

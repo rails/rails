@@ -5,12 +5,12 @@ module ActiveJob
     # = Active Job Abstract Adapter
     #
     # Active Job supports multiple job queue systems. ActiveJob::QueueAdapters::AbstractAdapter
-    # form the abstraction layer which makes this possible.
+    # forms the abstraction layer which makes this possible.
     class AbstractAdapter
-      # Define whether enqueuing should implictly to after commit when called from
-      # inside a transaction. Most adapters should return true, but some adapters
+      # Defines whether enqueuing should happen implicitly to after commit when called
+      # from inside a transaction. Most adapters should return true, but some adapters
       # that use the same database as Active Record and are transaction aware can return
-      # false to continue enqueuing jobs are part of the transaction.
+      # false to continue enqueuing jobs as part of the transaction.
       def enqueue_after_transaction_commit?
         true
       end

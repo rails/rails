@@ -55,7 +55,7 @@ module ActiveJob
       # After the attempted enqueue, the job will be yielded to an optional block.
       #
       # If Active Job is used conjointly with Active Record, and #perform_later is called
-      # inside an Active Record transaction, then the enqueue is implictly defered to after
+      # inside an Active Record transaction, then the enqueue is implicitly deferred to after
       # the transaction is committed, or droped if it's rolled back. This behavior can
       # be changed on a per job basis:
       #

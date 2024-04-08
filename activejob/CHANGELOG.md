@@ -2,7 +2,7 @@
 
     A common mistake with Active Job is to enqueue jobs from inside a transaction,
     causing them to potentially be picked and ran by another process, before the
-    transaction is committed, which result in various errors.
+    transaction is committed, which may result in various errors.
 
     ```ruby
     Topic.transaction do
