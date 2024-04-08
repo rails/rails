@@ -362,7 +362,7 @@ url_for @post # given a composite primary key [:blog_id, :id]
 ```
 
 Sanitization
-----------------------------------------------
+------------
 
 A set of methods for scrubbing text of undesired HTML elements. The helpers are
 particularly useful for helping to ensure that only safe and valid HTML/CSS is
