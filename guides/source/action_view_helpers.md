@@ -6,10 +6,10 @@ Action View Helpers
 After reading this guide, you will know:
 
 * How to format dates, strings, and numbers.
+* How to work with text and tags.
 * How to link to images, videos, stylesheets, etc.
 * How to work with Atom feeds and JavaScript in the views.
 * How to cache, capture, debug and sanitize content.
-* How to work with text and tags.
 
 --------------------------------------------------------------------------------
 
