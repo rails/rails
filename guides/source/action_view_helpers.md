@@ -769,7 +769,7 @@ tag.section class: %w( kitties puppies )
 # => <section class="kitties puppies"></section>
 ```
 
-In addition, HTML `data-*` attributes can be passed to the `tag` helper as a key value pair, where the key is `data` and the value is a hash containing sub-attributes. The sub-attributes are then converted to `data-*` attributes that are dasherized in order to work well with JavaScript.
+In addition, HTML `data-*` attributes can be passed to the `tag` helper using the `data` option, with a hash containing key-value pairs of sub-attributes. The sub-attributes are then converted to `data-*` attributes that are dasherized in order to work well with JavaScript.
 
 ```ruby
 tag.div data: { user_id: 123 }
