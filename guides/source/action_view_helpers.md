@@ -758,9 +758,7 @@ tag.div "Hello, world!"
 # => <div>Hello, world!</div>
 ```
 
-#### Options
-
-You can pass options to add attributes to the generated tag.
+Additionally, you can pass options to add attributes to the generated tag.
 
 ```ruby
 tag.section class: %w( kitties puppies )
