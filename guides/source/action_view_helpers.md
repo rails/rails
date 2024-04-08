@@ -24,9 +24,7 @@ Formatting
 ### Dates
 
 These helpers facilitate the display of date and/or time elements as contextual
-human readable forms. They can also be used to create select/option tags to
-input different kinds of dates and/or times elements as described in the [Action
-View Form Helpers Guide](form_helpers.html#using-date-and-time-form-helpers).
+human readable forms.
 
 #### distance_of_time_in_words
 
