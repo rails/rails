@@ -44,7 +44,7 @@ $ bin/rails generate scaffold article
       [...]
 ```
 
-The file names follow a Rails naming convention. They share their name with the associated controller action. For example the `index.html.erb`, `edit.html.erb`, etc. above.
+The file names follow a Rails naming convention. They share their name with the associated controller action. For example the `index.html.erb`, `edit.html.erb`, etc.
 
 By following this naming convention, Rails will automatically find and render the matching view at the end of a controller action, without you having to specify it. For example, the `index` action in the `articles_controller.rb` will automatically render the `index.html.erb` view inside the `app/views/articles/` directory. The name and the location of the file are both important.
 
