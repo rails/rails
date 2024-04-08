@@ -805,7 +805,7 @@ Capture Blocks
 A set of methods to let you extract generated markup which can be used in other
 parts of a template or layout file.
 
-It provides a method to capture blocks into variables through `capture` and a
+It provides a method to capture blocks into variables through `capture`, and a
 way to capture a block of markup for use in a layout through `content_for`.
 
 ### capture
