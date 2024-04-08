@@ -35,7 +35,7 @@ integers as seconds. Set `include_seconds` to true if you want more detailed
 approximations.
 
 ```ruby
-distance_of_time_in_words(Time.now, Time.now + 15.seconds)
+distance_of_time_in_words(Time.current, 15.seconds.from_now)
 # => less than a minute
 distance_of_time_in_words(Time.now, Time.now + 15.seconds, include_seconds: true)
 # => less than 20 seconds
