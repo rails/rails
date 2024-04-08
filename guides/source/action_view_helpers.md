@@ -978,7 +978,7 @@ Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/CacheHelpe
 for more information.
 
 Miscellaneous
-----------------------------------------------
+-------------
 
 ### atom_feed
 
