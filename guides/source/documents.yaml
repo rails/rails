@@ -90,6 +90,21 @@
         the need to handle form control naming and its numerous attributes.
         Rails does away with this complexity by providing view helpers for
         generating form markup.
+    -
+      name: Working with JavaScript in Rails
+      url: working_with_javascript_in_rails.html
+      description: >
+        This guide explains how to use import maps or jsbundling-rails to include
+        JavaScript in Rails applications, and covers the basics of working with Turbo in Rails.
+    -
+      name: The Asset Pipeline
+      url: asset_pipeline.html
+      description: >
+        The asset pipeline provides a framework to concatenate and minify or
+        compress JavaScript, CSS and image assets. It also adds the ability to
+        write these assets in other languages and pre-processors such as
+        CoffeeScript, Sass, and ERB.
+
 -
   name: Controllers
   documents:
@@ -192,20 +207,6 @@
         There are a few commands that are absolutely critical to your everyday
         usage of Rails. This guide covers the command line tools provided by
         Rails.
-    -
-      name: The Asset Pipeline
-      url: asset_pipeline.html
-      description: >
-        The asset pipeline provides a framework to concatenate and minify or
-        compress JavaScript, CSS and image assets. It also adds the ability to
-        write these assets in other languages and pre-processors such as
-        CoffeeScript, Sass, and ERB.
-    -
-      name: Working with JavaScript in Rails
-      url: working_with_javascript_in_rails.html
-      description: >
-        This guide explains how to use import maps or jsbundling-rails to include
-        JavaScript in Rails applications, and covers the basics of working with Turbo in Rails.
     -
       name: The Rails Initialization Process
       work_in_progress: true
