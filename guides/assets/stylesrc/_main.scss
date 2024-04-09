@@ -1,7 +1,7 @@
 body.guide {
   &::-webkit-scrollbar {
     width: 12px;
-    background-color: transparent;
+    background-color: $gray-100;
   }
   
   &::-webkit-scrollbar-track {
