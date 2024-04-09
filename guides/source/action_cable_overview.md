@@ -760,7 +760,7 @@ The Redis adapter also supports SSL/TLS connections. The required SSL/TLS parame
 ```yaml
 production:
   adapter: redis
-  url: rediss://10.10.3.153:tls_port
+  url: redis://10.10.3.153:tls_port
   channel_prefix: appname_production
   ssl_params:
     ca_file: "/path/to/ca.crt"
