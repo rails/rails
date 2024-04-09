@@ -166,7 +166,7 @@ module RailsGuides
                 <img src="images/icon_book-close-bookmark-1.svg" alt="Chapter Icon" />
               </picture>
               Chapters
-            </h3>
+            </h2>
             #{@index}
           </nav>
           INDEX
