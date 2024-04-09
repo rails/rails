@@ -2,6 +2,7 @@
 
 require "isolation/abstract_unit"
 require "env_helpers"
+require "ostruct"
 
 module ApplicationTests
   module RakeTests

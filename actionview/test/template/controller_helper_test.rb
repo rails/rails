@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "ostruct"
 
 class ControllerHelperTest < ActionView::TestCase
   tests ActionView::Helpers::ControllerHelper

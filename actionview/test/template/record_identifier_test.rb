@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "controller/fake_models"
+require "ostruct"
 
 class RecordIdentifierTest < ActiveSupport::TestCase
   include ActionView::RecordIdentifier

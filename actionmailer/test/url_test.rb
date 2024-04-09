@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "action_controller"
+require "ostruct"
 
 class WelcomeController < ActionController::Base
 end
