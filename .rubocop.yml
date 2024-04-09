@@ -298,6 +298,9 @@ Style/TrivialAccessors:
 Style/RedundantCondition:
   Enabled: true
 
+Style/OpenStructUse:
+  Enabled: true
+
 Performance/BindCall:
   Enabled: true
 
@@ -335,9 +338,6 @@ Performance/DeletePrefix:
   Enabled: true
 
 Performance/DeleteSuffix:
-  Enabled: true
-
-Performance/OpenStruct:
   Enabled: true
 
 Performance/InefficientHashSearch:

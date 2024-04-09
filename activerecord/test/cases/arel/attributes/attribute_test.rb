@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative "../helper"
-require "ostruct"
 
 module Arel
   module Attributes
@@ -1161,10 +1160,10 @@ module Arel
 
       private
         def quoted_range(begin_val, end_val, exclude)
-          OpenStruct.new(
-            begin: Nodes::Quoted.new(begin_val),
-            end: Nodes::Quoted.new(end_val),
-            exclude_end?: exclude,
+          Struct.new(:begin, :end, :exclude_end?).new(
+            Nodes::Quoted.new(begin_val),
+            Nodes::Quoted.new(end_val),
+            exclude,
           )
         end
 
