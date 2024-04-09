@@ -368,7 +368,6 @@ GEM
     nokogiri (1.16.0-x86_64-linux)
       racc (~> 1.4)
     os (1.1.4)
-    ostruct (0.6.0)
     parallel (1.24.0)
     parser (3.2.2.4)
       ast (~> 2.4.1)
@@ -624,7 +623,6 @@ DEPENDENCIES
   msgpack (>= 1.7.0)
   mysql2 (~> 0.5)
   nokogiri (>= 1.8.1, != 1.11.0)
-  ostruct
   pg (~> 1.3)
   prism
   propshaft (>= 0.1.7)

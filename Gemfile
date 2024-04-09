@@ -38,9 +38,6 @@ gem "cgi", ">= 0.3.6", require: false
 
 gem "prism"
 
-# Became a bundled gem in Ruby 3.5
-gem "ostruct"
-
 group :lint do
   gem "syntax_tree", "6.1.1", require: false
 end

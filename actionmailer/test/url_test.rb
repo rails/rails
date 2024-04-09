@@ -2,7 +2,6 @@
 
 require "abstract_unit"
 require "action_controller"
-require "ostruct"
 
 class WelcomeController < ActionController::Base
 end
@@ -42,7 +41,7 @@ end
 class ActionMailerUrlTest < ActionMailer::TestCase
   class DummyModel
     def self.model_name
-      OpenStruct.new(route_key: "dummy_model")
+      Struct.new(:route_key, :name).new("dummy_model", nil)
     end
 
     def persisted?
