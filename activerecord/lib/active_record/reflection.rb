@@ -516,6 +516,10 @@ module ActiveRecord
         @foreign_key = nil
         @association_foreign_key = nil
         @association_primary_key = nil
+        # If the foreign key is an array, set query constraints options and don't use the foreign key
+        if options[:foreign_key].is_a?(Array)
+          options[:query_constraints] = options.delete(:foreign_key)
+        end
 
         ensure_option_not_given_as_class!(:class_name)
       end
