@@ -1,3 +1,7 @@
+*   `stub_const` now accepts a `exists: false` parameter to allow stubbing missing constants.
+
+    *Jean Boussier*
+
 *   Make ActiveSupport::BacktraceCleaner copy filters and silencers on dup and clone
 
     Previously the copy would still share the internal silencers and filters array,

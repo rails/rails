@@ -50,14 +50,17 @@ module ActiveJob
       # custom serializers.
       #
       # Returns an instance of the job class queued with arguments available in
-      # Job#arguments or false if the enqueue did not succeed.
+      # Job#arguments or +false+ if the enqueue did not succeed.
       #
       # After the attempted enqueue, the job will be yielded to an optional block.
       #
       # If Active Job is used conjointly with Active Record, and #perform_later is called
       # inside an Active Record transaction, then the enqueue is implicitly deferred to after
-      # the transaction is committed, or droped if it's rolled back. This behavior can
-      # be changed on a per job basis:
+      # the transaction is committed, or droped if it's rolled back. In such case #perform_later
+      # will return the job instance like if it was successfully enqueued, but will still return
+      # +false+ if a callback prevented the job from being enqueued.
+      #
+      # This behavior can be changed on a per job basis:
       #
       #  class NotificationJob < ApplicationJob
       #    self.enqueue_after_transaction_commit = false
@@ -98,6 +101,18 @@ module ActiveJob
       self.successfully_enqueued = false
 
       run_callbacks :enqueue do
+        raw_enqueue
+      end
+
+      if successfully_enqueued?
+        self
+      else
+        false
+      end
+    end
+
+    private
+      def raw_enqueue
         if scheduled_at
           queue_adapter.enqueue_at self, scheduled_at.to_f
         else
@@ -108,12 +123,5 @@ module ActiveJob
       rescue EnqueueError => e
         self.enqueue_error = e
       end
-
-      if successfully_enqueued?
-        self
-      else
-        false
-      end
-    end
   end
 end
