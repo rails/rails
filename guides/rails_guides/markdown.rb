@@ -152,7 +152,7 @@ module RailsGuides
 
           @index = <<-INDEX.html_safe
           <nav id="subCol" aria-label="Chapter" class="guide-index">
-            <a id="chapter-nav-skip-link" href="#article-body" class="skip-link">
+            <a id="chapter-nav-skip-link" href="#article-body" class="skip-link" data-turbo="false">
               Skip to article body
             </a>
 
