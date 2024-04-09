@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "ostruct"
 require "cases/encryption/helper"
 require "models/pirate"
 require "models/book"
