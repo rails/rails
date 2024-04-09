@@ -157,7 +157,7 @@ module RailsGuides
             </a>
 
             <h2 class="chapter">
-              <picture>
+              <picture aria-hidden="true">
                 <!-- Using the `source`  HTML tag to set the dark theme image -->
                 <source
                   srcset="images/icon_book-close-bookmark-1-wht.svg"
