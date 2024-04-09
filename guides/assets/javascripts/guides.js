@@ -30,7 +30,7 @@
     //
     // Additionally, keyboard users should be able to close these guides by
     // pressing escape, which is the standard key to collapse expanded elements.
-    var guidesMenuButton = document.getElementById("guidesMenu");
+    var guidesMenuButton = document.getElementById("guides-menu-button");
 
     // The link is now acting as a button (but still allows for open in new tab).
     guidesMenuButton.setAttribute('role', 'button')
@@ -148,7 +148,7 @@
       var nextExpanded =
         moreInfoButton.getAttribute("aria-expanded") === "false";
 
-      moreInfoLinks.classList.toggle("s-hidden");
+      moreInfoLinks.classList.toggle("hidden");
       moreInfoButton.setAttribute(
         "aria-expanded",
         nextExpanded ? "true" : "false"

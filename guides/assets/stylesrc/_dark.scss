@@ -105,7 +105,7 @@
       color: #fff;
     }
 
-    nav#topNav {    background-color: $gray-900;
+    #mobile-navigation-bar {    background-color: $gray-900;
       color: $gray-400;
 
 
@@ -116,22 +116,22 @@
       li {
         border-bottom: 1px solid $gray-800;
       } // li
-    } // nav#topNav
+    } // #mobile-navigation-bar
 
-    header#page_header {
-      nav#feature_nav {
+    header#page-header {
+      nav#feature-nav {
         .header-logo {
           a, a:link, a:visited {
             color: #fff;
           }
-          span#version_switcher {
+          span#version-switcher {
             color: $gray-400;
 
             select {
               background-color: $gray-900;
               color: $gray-400;
             } // select
-          } // span#version_switcher
+          } // span#version-switcher
         } // .header-logo
 
         ul.nav {
@@ -161,8 +161,8 @@
             }
           } // li
         } // ul.nav
-      } // nav#feature_nav
-    } // header#page_header
+      } // nav#feature-nav
+    } // header#page-header
 
     #guides {
       background: $gray-800;
@@ -192,7 +192,7 @@
         background-color: $gray-1000;
       }
 
-      #subCol {
+      #column-side {
         background-color: $gray-900;
 
         ol.chapters {
@@ -228,7 +228,7 @@
             } // a
           } // li
         } // ol
-      } // #subCol
+      } // #column-side
     } // #feature
 
     .interstitial {

@@ -33,17 +33,17 @@
     document.body.classList.remove('no-js')
   </script>
 
-  <a id="main-skip-link" href="#container" class="skip-link" data-turbo="false">
+  <a id="main-skip-link" href="#main" class="skip-link" data-turbo="false">
     Skip to main content
   </a>
 
-  <nav id="topNav" aria-label="Secondary">
+  <div id="mobile-navigation-bar">
     <div class="wrapper">
       <strong class="more-info-label">More at <a href="https://rubyonrails.org/">rubyonrails.org:</a> </strong>
       <button type="button" class="js-only red-button more-info-button" id="more-info" aria-controls="more-info-links" aria-expanded="false">
         More Ruby on Rails
       </button>
-      <ul id="more-info-links" class="more-info-links s-hidden">
+      <ul id="more-info-links" class="more-info-links hidden">
         <li class="more-info"><a href="https://rubyonrails.org/blog">Blog</a></li>
         <li class="more-info"><a href="https://guides.rubyonrails.org/">Guides</a></li>
         <li class="more-info"><a href="https://api.rubyonrails.org/">API</a></li>
@@ -51,16 +51,16 @@
         <li class="more-info"><a href="https://github.com/rails/rails">Contribute on GitHub</a></li>
       </ul>
     </div>
-  </nav>
+  </div>
 
-  <header id="page_header">
+  <header id="page-header">
     <div class="wrapper clearfix">
-      <nav id="feature_nav">
+      <nav id="feature-nav">
         <div class="header-logo">
           <a href="index.html" title="Guides home for <%= @edge.present? ? 'Edge' : @version %> Guides">Guides</a>
-          <span id="version_switcher" class="js-only">
-            <label for="version_switcher-select">Version: <span class="sr-only">pick from the list to go to that Rails version's guides</span></label>
-            <select id="version_switcher-select" class="guides-version">
+          <span id="version-switcher" class="js-only">
+            <label for="version-switcher-select">Version: <span class="sr-only">pick from the list to go to that Rails version's guides</span></label>
+            <select id="version-switcher-select" class="guides-version">
               <option value="https://edgeguides.rubyonrails.org/"<%= " selected" if @edge %>>Edge</option>
               <% %w[7.1 7.0 6.1 6.0 5.2 5.1 5.0 4.2 4.1 4.0 3.2 3.1 3.0 2.3].each do |version| %>
                 <option value="https://guides.rubyonrails.org/v<%= version %>/"<%= " selected" if @version&.start_with?(version) %>><%= version %></option>
@@ -71,7 +71,7 @@
         <ul class="nav">
           <li><a class="nav-item" id="home_nav" href="https://rubyonrails.org/">Home</a></li>
           <li class="guides-index guides-index-large">
-            <a href="index.html" id="guidesMenu" data-aria-controls="guides" data-aria-expanded="false" class="guides-index-item nav-item">Guides Index</a>
+            <a href="index.html" id="guides-menu-button" data-aria-controls="guides" data-aria-expanded="false" class="guides-index-item nav-item">Guides Index</a>
             <div id="guides" class="clearfix" style="display: none;">
               <hr />
               <dl class="guides-section-container">
@@ -102,14 +102,14 @@
               <% end %>
             </select>
           </li>
-      </ul>
+        </ul>
       </nav>
     </div>
   </header>
 
   <hr class="hide" />
 
-  <main id="container">
+  <main id="main">
     <article>
       <header id="feature">
         <div class="wrapper">
@@ -120,14 +120,16 @@
       </header>
 
       <div class="wrapper">
-        <div id="mainCol">
+        <div id="column-main">
           <section id="article-body">
             <%= yield %>
           </section>
 
           <hr>
 
-          <footer aria-labelledby="heading-feedback">
+          <%# Despite the footer having a label, this element is not detected as
+              a region in all screen readers. Explicitly marking it as one works %>
+          <footer aria-labelledby="heading-feedback" role="region">
             <h2 id="heading-feedback">Feedback</h2>
             <p>
               You're encouraged to help improve the quality of this guide.
@@ -157,7 +159,8 @@
   </main>
 
   <hr class="hide" />
-  <footer id="page_footer">
+
+  <footer id="complementary">
     <div class="wrapper">
       <%= render 'license' %>
     </div>

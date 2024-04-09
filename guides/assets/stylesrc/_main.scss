@@ -455,7 +455,7 @@ body.guide {
     }
   } // .wrapper
 
-  #container .wrapper {
+  main .wrapper {
     padding-top: 0;
 
     h2:first-child {
@@ -468,8 +468,8 @@ body.guide {
     padding: 0.25em;
   }
 
-  // topNav is a hidden area for mobile only
-  nav#topNav {
+  // mobile-navigation-bar is a hidden area for mobile only
+  #mobile-navigation-bar {
     background-color: $gray-200;
     color: $gray-600;
     padding: 0.5em 0;
@@ -483,7 +483,7 @@ body.guide {
       text-align: center;
     }
 
-    .s-hidden {
+    .hidden {
       display: none;
     }
 
@@ -536,9 +536,9 @@ body.guide {
         }
       }
     }
-  } // nav#topNav
+  } // #mobile-navigation-bar
 
-  header#page_header {
+  header#page-header {
     width: 100%;
 
     .wrapper {
@@ -546,7 +546,7 @@ body.guide {
       padding-right: 0;
     }
 
-    nav#feature_nav {
+    nav#feature-nav {
       @include media(">desktop") {
         align-items: top;
         display: flex;
@@ -581,7 +581,7 @@ body.guide {
           }
         } // a
 
-        span#version_switcher {
+        span#version-switcher {
           color: $gray-600;
           display: block;
           font-size: 0.75em;
@@ -595,7 +595,7 @@ body.guide {
           select {
             color: $gray-600;
           }
-        } // span#version_switcher
+        } // span#version-switcher
       } // .header-logo
 
       ul.nav {
@@ -707,8 +707,8 @@ body.guide {
           }
         }
       }
-    } // nav#feature_nav
-  } // header#page_header
+    } // nav#feature-nav
+  } // header#page-header
 
   // Desktop guides flyout
 
@@ -805,7 +805,7 @@ body.guide {
     }
   } // #guides
 
-  footer#page_footer {
+  footer#complementary {
     background-color: $gray-800;
     color: #fff;
     font-size: 0.75em;
@@ -836,7 +836,7 @@ body.guide {
       margin-top: 2.5em;
     }
 
-    #subCol {
+    #column-side {
       background-color: $gray-100;
       border-radius: $base-border-radius;
       font-size: 1rem;
