@@ -6,19 +6,15 @@
 <% end %>
 
 <% content_for :index_section do %>
-<nav id="subCol" aria-label="Chapter" class="guide-index">
-  <a id="chapter-nav-skip-link" href="#article-body" class="skip-link">
-    Skip to article body
-  </a>
-
-  <dl>
+<div id="subCol" class="guide-index">
+  <dl role="presentation">
     <dt></dt>
     <% unless @edge -%>
       <dd class="interstitial info kindle">Rails Guides are also available for <%= link_to 'Kindle', @epub %>.</dd>
     <% end -%>
     <dd class="interstitial work-in-progress">Guides marked with this icon are currently being worked on and will not be available in the Guides Index menu. While still useful, they may contain incomplete information and even errors. You can help by reviewing them and posting your comments and corrections.</dd>
   </dl>
-</nav>
+</div>
 <% end %>
 
 <% documents_by_section.each do |section| %>
