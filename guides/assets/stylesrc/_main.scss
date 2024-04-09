@@ -654,8 +654,8 @@ body.guide {
       
           a:hover,
           a:active {
-            color: $rf-brand;
-            text-decoration: underline;
+            color: $rf-brand !important;
+            text-decoration: underline !important;
           }
         }
       }
