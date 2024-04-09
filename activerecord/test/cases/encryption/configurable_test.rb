@@ -42,7 +42,7 @@ class ActiveRecord::Encryption::ConfigurableTest < ActiveRecord::EncryptionTestC
   end
 
   test "installing autofiltered parameters will add the encrypted attribute as a filter parameter using the dot notation" do
-    application = OpenStruct.new(config: OpenStruct.new(filter_parameters: []))
+    application = Struct.new(:config).new(Struct.new(:filter_parameters).new([]))
     ActiveRecord::Encryption.install_auto_filtered_parameters_hook(application)
 
     NamedPirate = Class.new(Pirate) do
@@ -54,7 +54,7 @@ class ActiveRecord::Encryption::ConfigurableTest < ActiveRecord::EncryptionTestC
   end
 
   test "installing autofiltered parameters will work with unnamed classes" do
-    application = OpenStruct.new(config: OpenStruct.new(filter_parameters: []))
+    application = Struct.new(:config).new(Struct.new(:filter_parameters).new([]))
     ActiveRecord::Encryption.install_auto_filtered_parameters_hook(application)
 
     Class.new(Pirate) do
@@ -68,7 +68,7 @@ class ActiveRecord::Encryption::ConfigurableTest < ActiveRecord::EncryptionTestC
   test "exclude the installation of autofiltered params" do
     ActiveRecord::Encryption.config.excluded_from_filter_parameters = [:catchphrase]
 
-    application = OpenStruct.new(config: OpenStruct.new(filter_parameters: []))
+    application = Struct.new(:config).new(Struct.new(:filter_parameters).new([]))
     ActiveRecord::Encryption.install_auto_filtered_parameters_hook(application)
 
     Class.new(Pirate) do
