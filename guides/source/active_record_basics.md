@@ -465,16 +465,16 @@ book = Book.take
 The above results in the following SQL:
 
 ```sql
-# Book.all
+-- Book.all
 SELECT "books".* FROM "books"
 
-# Book.first
+-- Book.first
 SELECT "books".* FROM "books" ORDER BY "books"."id" ASC LIMIT ?  [["LIMIT", 1]]
 
-# Book.last
+-- Book.last
 SELECT "books".* FROM "books" ORDER BY "books"."id" DESC LIMIT ?  [["LIMIT", 1]]
 
-# Book.take
+-- Book.take
 SELECT "books".* FROM "books" LIMIT ?  [["LIMIT", 1]]
 ```
 
