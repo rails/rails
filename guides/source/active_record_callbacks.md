@@ -10,7 +10,8 @@ After reading this guide, you will know:
 
 * When certain events occur during the life of an Active Record object.
 * How to register, run, and skip callbacks that respond to these events.
-* How to create relational, association, conditional, and transactional callbacks.
+* How to create relational, association, conditional, and transactional
+  callbacks.
 * How to create special classes that encapsulate common behavior for your
   callbacks to be reused.
 
