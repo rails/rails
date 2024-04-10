@@ -891,64 +891,6 @@ end
 The callback only runs when all the `:if` conditions and none of the `:unless`
 conditions are evaluated to `true`.
 
-Callback Objects
-----------------
-
-Sometimes the callback methods that you'll write will be useful enough to be
-reused by other models. Active Record makes it possible to create classes that
-encapsulate the callback methods, so they can be reused.
-
-Here's an example where we create a class with an `after_destroy` callback to
-deal with the cleanup of discarded files on the filesystem. This behavior may
-not be unique to our `PictureFile` model and we may want to share it, so it's a
-good idea to encapsulate this into a separate class. This will make testing that
-behavior and changing it much easier.
-
-```ruby
-class FileDestroyerCallback
-  def after_destroy(file)
-    if File.exist?(file.filepath)
-      File.delete(file.filepath)
-    end
-  end
-end
-```
-
-When declared inside a class, as above, the callback methods will receive the
-model object as a parameter. This will work on any model that uses the class
-like so:
-
-```ruby
-class PictureFile < ApplicationRecord
-  after_destroy FileDestroyerCallback.new
-end
-```
-
-Note that we needed to instantiate a new `FileDestroyerCallback` object, since
-we declared our callback as an instance method. This is particularly useful if
-the callbacks make use of the state of the instantiated object. Often, however,
-it will make more sense to declare the callbacks as class methods:
-
-```ruby
-class FileDestroyerCallback
-  def self.after_destroy(file)
-    if File.exist?(file.filepath)
-      File.delete(file.filepath)
-    end
-  end
-end
-```
-
-When the callback method is declared this way, it won't be necessary to
-instantiate a new `FileDestroyerCallback` object in our model.
-
-```ruby
-class PictureFile < ApplicationRecord
-  after_destroy FileDestroyerCallback
-end
-```
-
-You can declare as many callbacks as you want inside your callback objects.
 
 Transaction Callbacks
 ---------------------
@@ -1126,3 +1068,62 @@ NOTE: This applies to all `after_*_commit` variations too, such as
     https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-after_save_commit
 [`after_update_commit`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-after_update_commit
+
+Callback Objects
+----------------
+
+Sometimes the callback methods that you'll write will be useful enough to be
+reused by other models. Active Record makes it possible to create classes that
+encapsulate the callback methods, so they can be reused.
+
+Here's an example where we create a class with an `after_destroy` callback to
+deal with the cleanup of discarded files on the filesystem. This behavior may
+not be unique to our `PictureFile` model and we may want to share it, so it's a
+good idea to encapsulate this into a separate class. This will make testing that
+behavior and changing it much easier.
+
+```ruby
+class FileDestroyerCallback
+  def after_destroy(file)
+    if File.exist?(file.filepath)
+      File.delete(file.filepath)
+    end
+  end
+end
+```
+
+When declared inside a class, as above, the callback methods will receive the
+model object as a parameter. This will work on any model that uses the class
+like so:
+
+```ruby
+class PictureFile < ApplicationRecord
+  after_destroy FileDestroyerCallback.new
+end
+```
+
+Note that we needed to instantiate a new `FileDestroyerCallback` object, since
+we declared our callback as an instance method. This is particularly useful if
+the callbacks make use of the state of the instantiated object. Often, however,
+it will make more sense to declare the callbacks as class methods:
+
+```ruby
+class FileDestroyerCallback
+  def self.after_destroy(file)
+    if File.exist?(file.filepath)
+      File.delete(file.filepath)
+    end
+  end
+end
+```
+
+When the callback method is declared this way, it won't be necessary to
+instantiate a new `FileDestroyerCallback` object in our model.
+
+```ruby
+class PictureFile < ApplicationRecord
+  after_destroy FileDestroyerCallback
+end
+```
+
+You can declare as many callbacks as you want inside your callback objects.
