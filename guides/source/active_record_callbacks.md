@@ -48,8 +48,8 @@ Callback Registration
 
 To use the available callbacks, you need to implement and register them.
 Implementation can be done in a multitude of ways like using ordinary methods,
-blocks and procs, or defining custom callback objects using classes.
-Let's go through each of these implementation techniques.
+blocks and procs, or defining custom callback objects using classes. Let's go
+through each of these implementation techniques.
 
 You can implement the callbacks as a **macro-style method that calls an ordinary
 method** for registration.
@@ -92,7 +92,8 @@ class User < ApplicationRecord
 end
 ```
 
-Lastly, you can define **a custom callback object**, as shown below. We will cover these [later in more detail](#callback-objects).
+Lastly, you can define **a custom callback object**, as shown below. We will
+cover these [later in more detail](#callback-objects).
 
 ```ruby
 class User < ApplicationRecord
@@ -197,8 +198,12 @@ combination.
 #### Validation Callbacks
 
 Validation callbacks are triggered whenever the record is validated directly via
-the [`valid?`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-valid-3F) or [`validate`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-valid-3F) methods, or indirectly via `create`, `update`, or
-`save`. They are called before and after the validation phase.
+the
+[`valid?`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-valid-3F)
+or
+[`validate`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-valid-3F)
+methods, or indirectly via `create`, `update`, or `save`. They are called before
+and after the validation phase.
 
 ```ruby
 class User < ApplicationRecord
@@ -534,7 +539,8 @@ You have initialized an object!
 The [`after_touch`][] callback will be called whenever an Active Record object
 is touched.
 
-NOTE: You can read more about `touch` [here](https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-touch)
+NOTE: You can read more about `touch`
+[here](https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-touch)
 
 ```ruby
 class User < ApplicationRecord
@@ -781,8 +787,8 @@ def check_limit(book)
 end
 ```
 
-Similarly, if a `before_remove` callback throws `:abort`, the object
-does not get removed from the collection.
+Similarly, if a `before_remove` callback throws `:abort`, the object does not
+get removed from the collection.
 
 NOTE: These callbacks are called only when the associated objects are added or
 removed through the association collection.
