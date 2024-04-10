@@ -316,7 +316,7 @@ User welcome email sent to: john.doe@example.com
 `after_commit` / `after_rollback` examples can be found
 [here](active_record_callbacks.html#after-commit-and-after-rollback).
 
-#### Using a combination of callbacks
+#### Using a Combination of Callbacks
 
 Often, you will need to use a combination of callbacks to achieve the desired
 behavior. For example, you may want to send a confirmation email after a user is
