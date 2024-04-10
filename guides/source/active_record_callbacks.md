@@ -110,6 +110,8 @@ class AddUsername
 end
 ```
 
+### Registering Callbacks to Fire on Lifecycle Events
+
 Callbacks can also be registered to only fire on certain life cycle events, this
 allows complete control over when and in what context your callbacks are
 triggered.
@@ -194,8 +196,9 @@ combination.
 
 #### Validation Callbacks
 
-Validation callbacks are triggered by the `valid?` method. They can be called
-before and after the validation phase.
+Validation callbacks are triggered whenever the record is validated directly via
+the [`valid?`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-valid-3F) or [`validate`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-valid-3F) methods, or indirectly via `create`, `update`, or
+`save`. They are called before and after the validation phase.
 
 ```ruby
 class User < ApplicationRecord
@@ -310,6 +313,52 @@ User welcome email sent to: john.doe@example.com
 => #<User id: 10, email: "john.doe@example.com", created_at: "2024-03-20 16:19:52.405195000 +0000", updated_at: "2024-03-20 16:19:52.405195000 +0000", name: "John Doe">
 ```
 
+`after_commit` / `after_rollback` examples can be found
+[here](active_record_callbacks.html#after-commit-and-after-rollback).
+
+#### Using a combination of callbacks
+
+Often, you will need to use a combination of callbacks to achieve the desired
+behavior. For example, you may want to send a confirmation email after a user is
+created, but only if the user is new and not being updated. When a user user is
+updated, you may want to notify an admin if critical information is changed. In
+this case, you can use `after_create` and `after_update` callbacks together.
+
+```ruby
+class User < ApplicationRecord
+  after_create :send_confirmation_email
+  after_update :notify_admin_if_critical_info_updated
+
+  private
+    def generate_confirmation_token
+      self.confirmation_token = SecureRandom.hex(10)
+      Rails.logger.info("Confirmation token generated for: #{email}")
+    end
+
+    def send_confirmation_email
+      UserMailer.confirmation_email(self).deliver_later
+      Rails.logger.info("Confirmation email sent to: #{email}")
+    end
+
+    def notify_admin_if_critical_info_updated
+      if saved_change_to_email? || saved_change_to_phone_number?
+        AdminMailer.user_critical_info_updated(self).deliver_later
+        Rails.logger.info("Notification sent to admin about critical info update for: #{email}")
+      end
+    end
+end
+```
+
+```irb
+irb> user = User.create(name: "John Doe", email: "john.doe@example.com")
+Confirmation email sent to: john.doe@example.com
+=> #<User id: 1, email: "john.doe@example.com", ...>
+
+irb> user.update(email: "john.doe.new@example.com")
+Notification sent to admin about critical info update for: john.doe@example.com
+=> true
+```
+
 ### Updating an Object
 
 * [`before_validation`][]
@@ -396,13 +445,6 @@ NOTE: `before_destroy` callbacks should be placed before `dependent: :destroy`
 associations (or use the `prepend: true` option), to ensure they execute before
 the records are deleted by `dependent: :destroy`.
 
-WARNING. `after_commit` makes very different guarantees than `after_save`,
-`after_update`, and `after_destroy`. For example, if an exception occurs in an
-`after_save` the transaction will be rolled back and the data will not be
-persisted. However, anything that happens `after_commit` can guarantee the
-transaction has already been completed and the data was persisted to the
-database. More on [transactional callbacks](#transaction-callbacks) below.
-
 ```ruby
 class User < ApplicationRecord
   before_destroy :check_admin_count
@@ -412,7 +454,7 @@ class User < ApplicationRecord
   private
     def check_admin_count
       if User.where(admin: true).count == 1 && admin?
-        raise StandardError.new("Cannot delete the last admin user")
+        throw :abort
       end
       Rails.logger.info("Checked the admin count")
     end
@@ -424,6 +466,7 @@ class User < ApplicationRecord
     end
 
     def notify_users
+      UserMailer.deletion_email(self).deliver_later
       Rails.logger.info("Notification sent to other users about user deletion")
     end
 end
@@ -490,6 +533,8 @@ You have initialized an object!
 
 The [`after_touch`][] callback will be called whenever an Active Record object
 is touched.
+
+NOTE: You can read more about `touch` [here](https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-touch)
 
 ```ruby
 class User < ApplicationRecord
@@ -964,6 +1009,13 @@ impactful in scenarios where you expect independent callback execution for each
 object associated with the same database record. It can influence the flow and
 predictability of callback sequences, leading to potential inconsistencies in
 application logic following the transaction.
+
+WARNING. `after_commit` makes very different guarantees than `after_save`,
+`after_update`, and `after_destroy`. For example, if an exception occurs in an
+`after_save` the transaction will be rolled back and the data will not be
+persisted. However, anything that happens `after_commit` can guarantee the
+transaction has already been completed and the data was persisted to the
+database. More on [transactional callbacks](#transaction-callbacks) below.
 
 ### Aliases for `after_commit`
 
