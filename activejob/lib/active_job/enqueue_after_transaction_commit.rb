@@ -16,9 +16,11 @@ module ActiveJob
       #  - `:never` forces the job to be queued immediately.
       #  - `:default` lets the queue adapter define the behavior (recommended).
       class_attribute :enqueue_after_transaction_commit, instance_accessor: false, instance_predicate: false, default: :never
+    end
 
-      around_enqueue do |job, block|
-        after_transaction = case job.class.enqueue_after_transaction_commit
+    private
+      def raw_enqueue
+        after_transaction = case self.class.enqueue_after_transaction_commit
         when :always
           true
         when :never
@@ -28,11 +30,15 @@ module ActiveJob
         end
 
         if after_transaction
-          ActiveRecord.after_all_transactions_commit(&block)
+          self.successfully_enqueued = true
+          ActiveRecord.after_all_transactions_commit do
+            self.successfully_enqueued = false
+            super
+          end
+          self
         else
-          block.call
+          super
         end
       end
-    end
   end
 end
