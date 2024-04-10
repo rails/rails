@@ -1,3 +1,20 @@
+*   Introduce `#assert_part`, `#assert_no_part`, and `#assert_decoded_part` to `ActionMailer::TestCase`
+
+    ```ruby
+    test "assert MyMailer.welcome HTML and text parts" do
+      mail = MyMailer.welcome("Hello, world")
+
+      assert_decoded_part :html, mail do |html|
+        assert_select html.root, "p", "Hello, world"
+      end
+      assert_decoded_part :text, mail do |text|
+        assert_includes text, "Hello, world"
+      end
+    end
+    ```
+
+    *Sean Doyle*
+
 *   Add `deliver_all_later` to enqueue multiple emails at once.
 
     ```ruby
