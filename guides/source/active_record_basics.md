@@ -211,7 +211,7 @@ and results in this:
 # The `id` column, as the primary key, is automatically created by convention.
 # Columns `created_at` and `updated_at` are added by `t.timestamps`.
 
-# /db/migrate/20240220143807_create_books.rb
+# db/migrate/20240220143807_create_books.rb
 class CreateBooks < ActiveRecord::Migration
   def change
     create_table :books do |t|
@@ -241,8 +241,8 @@ irb> book.title
 
 NOTE: You can generate the Active Record model class as well as a matching
 migration with the command `bin/rails generate model Book title:string
-author:string`. This creates the files `/app/models/book.rb`,
-`/db/migrate/20240220143807_create_books.rb`, and a couple others for testing
+author:string`. This creates the files `app/models/book.rb`,
+`db/migrate/20240220143807_create_books.rb`, and a couple others for testing
 purposes.
 
 ### Creating Namespaced Models
