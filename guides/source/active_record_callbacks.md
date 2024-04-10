@@ -20,9 +20,11 @@ After reading this guide, you will know:
 The Object Life Cycle
 ---------------------
 
-During the normal operation of a Rails application, objects may be created,
-updated, and destroyed. Active Record provides hooks into this *object life
-cycle* so that you can control your application and its data.
+During the normal operation of a Rails application, objects may be [created,
+updated, and
+destroyed](active_record_basics.html#crud-reading-and-writing-data). Active
+Record provides hooks into this object life cycle so that you can control your
+application and its data.
 
 Callbacks allow you to trigger logic before or after an alteration of an
 object's state. They are methods that get called at certain moments of an
@@ -145,10 +147,10 @@ public, they can be called from outside of the model and violate the principle
 of object encapsulation.
 
 WARNING. Refrain from using methods like `update`, `save`, or any other methods
-that cause side effects on the object within your callback functions. For
-instance, avoid calling `update(attribute: "value")` inside a callback. This
+that cause side effects on the object within your callback functions. <br><br>
+For instance, avoid calling `update(attribute: "value")` inside a callback. This
 practice can modify the model's state and potentially lead to unforeseen side
-effects during commit. Instead, you can assign values directly (e.g.,
+effects during commit. <br><br> Instead, you can assign values directly (e.g.,
 `self.attribute = "value"`) in `before_create`, `before_update`, or earlier
 callbacks for a safer approach.
 
@@ -193,8 +195,9 @@ order in which they will get called** during the respective operations:
     https://api.rubyonrails.org/classes/ActiveModel/Validations/Callbacks/ClassMethods.html#method-i-before_validation
 
 There are examples below that show how to use these callbacks. We've grouped
-them by the operation they are associated with, however they can be used in any
-combination.
+them by the operation they are associated with, and lastly showed how they can
+be used in combination. `after_commit` / `after_rollback` examples can be found
+[here](active_record_callbacks.html#after-commit-and-after-rollback).
 
 #### Validation Callbacks
 
@@ -281,8 +284,8 @@ Update Cache
 
 Create callbacks are triggered whenever the record is persisted (i.e. "saved")
 to the underlying database **for the first time**, in other words, when we're
-saving a new record, via the `create`, `save`, or `update` methods. They are
-called before, after and around the object is created.
+saving a new record, via the `create` or `save` methods. They are called before,
+after and around the object is created.
 
 ```ruby
 class User < ApplicationRecord
@@ -318,9 +321,6 @@ User created with email: john.doe@example.com
 User welcome email sent to: john.doe@example.com
 => #<User id: 10, email: "john.doe@example.com", created_at: "2024-03-20 16:19:52.405195000 +0000", updated_at: "2024-03-20 16:19:52.405195000 +0000", name: "John Doe">
 ```
-
-`after_commit` / `after_rollback` examples can be found
-[here](active_record_callbacks.html#after-commit-and-after-rollback).
 
 #### Using a Combination of Callbacks
 
@@ -538,10 +538,8 @@ You have initialized an object!
 ### `after_touch`
 
 The [`after_touch`][] callback will be called whenever an Active Record object
-is touched.
-
-NOTE: You can read more about `touch`
-[here](https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-touch)
+is touched. You can read more about `touch`
+[here](https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-touch).
 
 ```ruby
 class User < ApplicationRecord
@@ -677,7 +675,7 @@ execution. This queue will include all of your model's validations, the
 registered callbacks, and the database operation to be executed.
 
 The whole callback chain is wrapped in a transaction. If any callback raises an
-exception, the execution chain gets halted and a ROLLBACK is issued. To
+exception, the execution chain gets halted and a **rollback** is issued. To
 intentionally halt a chain use:
 
 ```ruby
@@ -751,40 +749,41 @@ class Author < ApplicationRecord
   has_many :books, before_add: :check_limit
 
   private
-    def check_limit(book)
-      # ...
+    def check_limit
+      if books.count >= 5
+        errors.add(:base, "Cannot add more than 5 books for this author")
+        throw(:abort)
+      end
     end
-end
-```
-
-Rails passes the object being added or removed to the callback.
-
-At times you may want to perform multiple actions on the associated object. In
-this case, you can stack callbacks on a single event by passing them as an
-array:
-
-```ruby
-class Author < ApplicationRecord
-  has_many :books,
-  before_add: [:check_limit, :calculate_shipping_charges]
-
-  def check_limit(book)
-    # ...
-  end
-
-  def calculate_shipping_charges(book)
-    # ...
-  end
 end
 ```
 
 If a `before_add` callback throws `:abort`, the object does not get added to the
 collection.
 
+At times you may want to perform multiple actions on the associated object. In
+this case, you can stack callbacks on a single event by passing them as an
+array. Additionally, Rails passes the object being added or removed to the
+callback for you to use.
+
 ```ruby
-# book won't be added if the limit has been reached
-def check_limit(book)
-  throw(:abort) if limit_reached?
+class Author < ApplicationRecord
+  has_many :books,
+  before_add: [:check_limit, :calculate_shipping_charges]
+
+  def check_limit
+    if books.count >= 5
+      errors.add(:base, "Cannot add more than 5 books for this author")
+      throw(:abort)
+    end
+  end
+
+  def calculate_shipping_charges(book)
+    weight_in_pounds = book.weight_in_pounds || 1
+    shipping_charges = weight_in_pounds * 2
+
+    shipping_charges
+  end
 end
 ```
 
@@ -942,29 +941,27 @@ transaction. However, if an exception is raised within one of these callbacks,
 the exception will bubble up and any remaining `after_commit` or
 `after_rollback` methods will _not_ be executed. As such, if your callback code
 could raise an exception, you'll need to rescue it and handle it within the
-callback in order to allow other callbacks to run.
-
-WARNING. The code executed within `after_commit` or `after_rollback` callbacks
-is itself not enclosed within a transaction.
-
-WARNING. In the context of a single transaction, if you interact with multiple
-loaded objects that represent the same record in the database, there's a crucial
-behavior in the `after_commit` and `after_rollback` callbacks to note. These
-callbacks are triggered only for the first object of the specific record that
-changes within the transaction. Other loaded objects, despite representing the
-same database record, will not have their respective `after_commit` or
-`after_rollback` callbacks triggered. This nuanced behavior is particularly
-impactful in scenarios where you expect independent callback execution for each
-object associated with the same database record. It can influence the flow and
+callback in order to allow other callbacks to run. <br><br> `after_commit` makes
+very different guarantees than `after_save`, `after_update`, and
+`after_destroy`. For example, if an exception occurs in an `after_save` the
+transaction will be rolled back and the data will not be persisted. However,
+anything that happens `after_commit` can guarantee the transaction has already
+been completed and the data was persisted to the database. More on
+[transactional callbacks](#transaction-callbacks) below. <br><br> In the context
+of a single transaction, if you interact with multiple loaded objects that
+represent the same record in the database, there's a crucial behavior in the
+`after_commit` and `after_rollback` callbacks to note. These callbacks are
+triggered only for the first object of the specific record that changes within
+the transaction. Other loaded objects, despite representing the same database
+record, will not have their respective `after_commit` or `after_rollback`
+callbacks triggered. This nuanced behavior is particularly impactful in
+scenarios where you expect independent callback execution for each object
+associated with the same database record. It can influence the flow and
 predictability of callback sequences, leading to potential inconsistencies in
-application logic following the transaction.
+application logic following the transaction.<br><br>Also note that the code
+executed within `after_commit` or `after_rollback` callbacks is itself not
+enclosed within a transaction.
 
-WARNING. `after_commit` makes very different guarantees than `after_save`,
-`after_update`, and `after_destroy`. For example, if an exception occurs in an
-`after_save` the transaction will be rolled back and the data will not be
-persisted. However, anything that happens `after_commit` can guarantee the
-transaction has already been completed and the data was persisted to the
-database. More on [transactional callbacks](#transaction-callbacks) below.
 
 ### Aliases for `after_commit`
 
