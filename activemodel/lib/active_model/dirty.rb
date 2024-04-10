@@ -280,6 +280,16 @@ module ActiveModel
       mutations_from_database.any_changes?
     end
 
+    # Returns +true+ if none of the attributes have unsaved changes, +false+ otherwise.
+    #
+    #   person.unchanged? # => true
+    #   person.name = 'bob'
+    #   person.unchanged? # => false
+    def unchanged?
+      !changed?
+    end
+    alias_method :pristine?, :unchanged?
+
     # Returns an array with the name of the attributes with unsaved changes.
     #
     #   person.changed # => []

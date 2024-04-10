@@ -47,9 +47,13 @@ class DirtyTest < ActiveModel::TestCase
   end
 
   test "setting attribute will result in change" do
+    assert_predicate @model, :unchanged?
+    assert_predicate @model, :pristine?
     assert_not_predicate @model, :changed?
     assert_not_predicate @model, :name_changed?
     @model.name = "Ringo"
+    assert_not_predicate @model, :unchanged?
+    assert_not_predicate @model, :pristine?
     assert_predicate @model, :changed?
     assert_predicate @model, :name_changed?
   end

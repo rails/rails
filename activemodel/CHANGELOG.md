@@ -1,3 +1,8 @@
+*   Add a `ActiveModel::Dirty#unchanged?` method that returns wether none of the
+    attributes have changes. Also available as `ActiveModel::Dirty#pristine?`.
+
+    *Dennis Paagman*
+
 *   Fix a bug where type casting of string to `Time` and `DateTime` doesn't
     calculate minus minute value in TZ offset correctly.
 
