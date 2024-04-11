@@ -139,7 +139,7 @@ module Rails
     extend ActiveSupport::DescendantsTracker
     include Initializable
 
-    ABSTRACT_RAILTIES = %w(Rails::Railtie Rails::Engine Rails::Application)
+    ABSTRACT_RAILTIES = %w(Rails::Railtie Rails::Engine Rails::Application).freeze
 
     class << self
       private :new
