@@ -1415,6 +1415,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_devcontainer_dev_flag_mounts_local_rails_repo
+    run_generator_using_prerelease [ destination_root, "--dev" ]
+
+    assert_devcontainer_json_file do |devcontainer_config|
+      rails_mount = devcontainer_config["mounts"].sole
+
+      assert_equal "bind", rails_mount["type"]
+      assert_equal Rails::Generators::RAILS_DEV_PATH, rails_mount["source"]
+      assert_equal Rails::Generators::RAILS_DEV_PATH, rails_mount["target"]
+    end
+  end
+
   def test_skip_devcontainer
     run_generator [ destination_root, "--skip-devcontainer" ]
 
