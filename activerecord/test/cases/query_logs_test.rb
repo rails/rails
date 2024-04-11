@@ -241,7 +241,7 @@ class QueryLogsTest < ActiveRecord::TestCase
       },
     ]
 
-    assert_queries_match(%r{custom_proc='Joe%27s%20Shack',tracestate='congo%3Dt61rcWkgMzE%2Crojo%3D00f067aa0ba902b7',string='value'\*/}) do
+    assert_queries_match(%r{custom_proc='Joe%27s%20Shack',string='value',tracestate='congo%3Dt61rcWkgMzE%2Crojo%3D00f067aa0ba902b7'\*/}) do
       Dashboard.first
     end
   end
