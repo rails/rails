@@ -70,7 +70,6 @@
       description: >
         Action View is responsible for generating the HTML for web responses.
         This guide provides an introduction to Action View.
-      work_in_progress: true
     -
       name: Layouts and Rendering in Rails
       url: layouts_and_rendering.html
