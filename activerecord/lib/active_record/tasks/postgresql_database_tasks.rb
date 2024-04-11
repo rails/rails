@@ -100,7 +100,9 @@ module ActiveRecord
         end
 
         def public_schema_config
-          configuration_hash.merge(database: "postgres", schema_search_path: "public")
+          config = configuration_hash.merge(schema_search_path: "public")
+          config[:database] = "postgres" unless configuration_hash.has_key?(:database)
+          config
         end
 
         def psql_env
