@@ -229,6 +229,23 @@ class QueryLogsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_sqlcommenter_format_allows_string_keys
+    ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
+
+    ActiveRecord::QueryLogs.tags = [
+      :application,
+      {
+        "string" => "value",
+        tracestate: "congo=t61rcWkgMzE,rojo=00f067aa0ba902b7",
+        custom_proc: -> { "Joe's Shack" }
+      },
+    ]
+
+    assert_queries_match(%r{custom_proc='Joe%27s%20Shack',tracestate='congo%3Dt61rcWkgMzE%2Crojo%3D00f067aa0ba902b7',string='value'\*/}) do
+      Dashboard.first
+    end
+  end
+
   def test_sqlcommenter_format_value_string_coercible
     ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
 
