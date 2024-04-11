@@ -1,5 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON
-https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Action View Overview
 ====================
@@ -41,7 +40,7 @@ View is an independent package that can be used with any Ruby library.
 Using Action View with Rails
 ----------------------------
 
-Action View templates (aka "views") are stored in a subdirectory in the
+Action View templates (aka "views") are stored in subdirectories in the
 `app/views` directory. There is a subdirectory matching the name of each
 controller. The view files inside that subdirectory are used to render specific
 views as a response to controller actions.
@@ -92,8 +91,9 @@ an XML response.
 
 Rails uses the file extension to distinguish among multiple template systems.
 For example, an HTML file using the ERB template system will have `.html.erb` as
-a file extension. Other libraries may add other template types and file
-extensions as well.
+a file extension, and a JSON file using the Jbuilder template system will have
+the `.json.jbuilder` file extension. Other libraries may add other template
+types and file extensions as well.
 
 ### ERB
 
@@ -377,7 +377,7 @@ that contains this line:
 
 In the above examples, `render` takes 2 options: `partial` and `locals`. But if
 these are the only options you need to use, you can skip the keys, `partial` and
-`locals` and specify the values only.
+`locals`, and specify the values only.
 
 For example, instead of:
 
@@ -706,8 +706,8 @@ different header and footer content.
 
 To find the layout for the current controller action, Rails first looks for a
 file in `app/views/layouts` with the same base name as the controller. For
-example, rendering actions from the PhotosController class will use
-`app/views/layouts/photos.html.erb`.
+example, rendering actions from the `ProductsController` class will use
+`app/views/layouts/products.html.erb`.
 
 Rails will use `app/views/layouts/application.html.erb` if a controller-specific layout does not exist.
 
@@ -763,15 +763,15 @@ In the `show` template, you'll render the `_article` partial wrapped in the
 `box` layout:
 
 ```html+erb
-<%# articles/show.html.erb %>
+<%# app/views/articles/show.html.erb %>
 <%= render partial: 'article', layout: 'box', locals: { article: @article } %>
 ```
 
 The `box` layout simply wraps the `_article` partial in a `div`:
 
 ```html+erb
-<%# articles/_box.html.erb %>
-<div class='box'>
+<%# app/views/articles/_box.html.erb %>
+<div class="box">
   <%= yield %>
 </div>
 ```
@@ -788,8 +788,8 @@ You can also render a block of code within a partial layout instead of calling
 this instead:
 
 ```html+erb
-<%# articles/show.html.erb %>
-<% render(layout: 'box', locals: { article: @article }) do %>
+<%# app/views/articles/show.html.erb %>
+<%= render(layout: 'box', locals: { article: @article }) do %>
   <div>
     <p><%= article.body %></p>
   </div>
@@ -834,7 +834,7 @@ Localized Views
 Action View has the ability to render different templates depending on the
 current locale.
 
-For example, suppose you have an `ArticlesController` with a show action. By
+For example, suppose you have an `ArticlesController` with a `show` action. By
 default, calling this action will render `app/views/articles/show.html.erb`. But
 if you set `I18n.locale = :de`, then `app/views/articles/show.de.html.erb` will
 be rendered instead. If the localized template isn't present, the undecorated
