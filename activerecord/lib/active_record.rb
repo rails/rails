@@ -184,8 +184,7 @@ module ActiveRecord
   ##
   # :singleton-method: lazily_load_schema_cache
   # Lazily load the schema cache. This option will load the schema cache
-  # when a connection is established rather than on boot. If set,
-  # +config.active_record.use_schema_cache_dump+ will be set to false.
+  # when a connection is established rather than on boot.
   singleton_class.attr_accessor :lazily_load_schema_cache
   self.lazily_load_schema_cache = false
 
