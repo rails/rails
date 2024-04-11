@@ -253,7 +253,7 @@ module Arel
 
         # maybe FIXME: decide when wrapper parens are needed
         _(node.to_sql).must_be_like %{
-          ( SELECT * FROM "users"  WHERE "users"."age" < 18 UNION SELECT * FROM "users"  WHERE "users"."age" > 99 )
+          ( (SELECT * FROM "users"  WHERE "users"."age" < 18) UNION (SELECT * FROM "users"  WHERE "users"."age" > 99) )
         }
       end
 
@@ -261,7 +261,7 @@ module Arel
         node = @m1.union :all, @m2
 
         _(node.to_sql).must_be_like %{
-          ( SELECT * FROM "users"  WHERE "users"."age" < 18 UNION ALL SELECT * FROM "users"  WHERE "users"."age" > 99 )
+          ( (SELECT * FROM "users"  WHERE "users"."age" < 18) UNION ALL (SELECT * FROM "users"  WHERE "users"."age" > 99) )
         }
       end
     end
@@ -354,9 +354,9 @@ module Arel
         sql = manager.to_sql
         _(sql).must_be_like %{
           WITH RECURSIVE "replies" AS (
-              SELECT "comments"."id", "comments"."parent_id" FROM "comments" WHERE "comments"."id" = 42
+              (SELECT "comments"."id", "comments"."parent_id" FROM "comments" WHERE "comments"."id" = 42)
             UNION
-              SELECT "comments"."id", "comments"."parent_id" FROM "comments" INNER JOIN "replies" ON "comments"."parent_id" = "replies"."id"
+              (SELECT "comments"."id", "comments"."parent_id" FROM "comments" INNER JOIN "replies" ON "comments"."parent_id" = "replies"."id")
           )
           SELECT * FROM "replies"
         }
