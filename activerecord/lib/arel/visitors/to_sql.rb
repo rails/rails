@@ -965,16 +965,28 @@ module Arel # :nodoc: all
           collector = if o.left.class == o.class
             infix_value_with_paren(o.left, collector, value, true)
           else
-            visit o.left, collector
+            grouping_parentheses o.left, collector
           end
           collector << value
           collector = if o.right.class == o.class
             infix_value_with_paren(o.right, collector, value, true)
           else
-            visit o.right, collector
+            grouping_parentheses o.right, collector
           end
           collector << " )" unless suppress_parens
           collector
+        end
+
+        # Used by some visitors to enclose select queries in parentheses
+        def grouping_parentheses(o, collector)
+          if o.is_a?(Nodes::SelectStatement)
+            collector << "("
+            visit o, collector
+            collector << ")"
+            collector
+          else
+            visit o, collector
+          end
         end
 
         def aggregate(name, o, collector)

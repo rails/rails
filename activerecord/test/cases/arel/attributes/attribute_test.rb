@@ -963,7 +963,7 @@ module Arel
           union = mgr1.union(mgr2)
           node = relation[:id].in(union)
           _(node.to_sql).must_be_like %{
-            "users"."id" IN (( SELECT "users"."id" FROM "users" UNION SELECT "users"."id" FROM "users" ))
+            "users"."id" IN (( (SELECT "users"."id" FROM "users") UNION (SELECT "users"."id" FROM "users") ))
           }
         end
 

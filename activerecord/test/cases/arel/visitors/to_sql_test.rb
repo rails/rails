@@ -635,6 +635,14 @@ module Arel
           node = Nodes::Union.new Arel.sql("topleft"), subnode
           assert_equal("( topleft UNION left UNION right )", compile(node))
         end
+
+        it "encloses SELECT statements with parentheses" do
+          table = Table.new(:users)
+          left = table.where(table[:name].eq(0)).take(1).ast
+          right = table.where(table[:name].eq(1)).take(1).ast
+          node = Nodes::Union.new left, right
+          assert_match(/LIMIT 1\) UNION \(/, compile(node))
+        end
       end
 
       describe "Nodes::UnionAll" do
@@ -645,6 +653,14 @@ module Arel
           subnode = Nodes::UnionAll.new Arel.sql("left"), Arel.sql("right")
           node = Nodes::UnionAll.new Arel.sql("topleft"), subnode
           assert_equal("( topleft UNION ALL left UNION ALL right )", compile(node))
+        end
+
+        it "encloses SELECT statements with parentheses" do
+          table = Table.new(:users)
+          left = table.where(table[:name].eq(0)).take(1).ast
+          right = table.where(table[:name].eq(1)).take(1).ast
+          node = Nodes::UnionAll.new left, right
+          assert_match(/LIMIT 1\) UNION ALL \(/, compile(node))
         end
       end
 
