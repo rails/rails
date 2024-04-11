@@ -1409,6 +1409,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_devcontainer_adds_node_tooling_when_required
+    run_generator [destination_root, "--javascript=esbuild"]
+
+    assert_devcontainer_json_file do |devcontainer_config|
+      assert_includes devcontainer_config["features"].keys, "ghcr.io/devcontainers/features/node:1"
+    end
+  end
+
+  def test_devcontainer_does_not_add_node_tooling_when_not_required
+    run_generator [destination_root]
+
+    assert_devcontainer_json_file do |devcontainer_config|
+      assert_not_includes devcontainer_config["features"].keys, "ghcr.io/devcontainers/features/node:1"
+    end
+  end
+
   def test_devcontainer_dev_flag_mounts_local_rails_repo
     run_generator_using_prerelease [ destination_root, "--dev" ]
 

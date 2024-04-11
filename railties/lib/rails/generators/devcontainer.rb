@@ -47,6 +47,8 @@ module Rails
           }
 
           @devcontainer_features["ghcr.io/rails/devcontainer/features/activestorage"] = {} unless options[:skip_active_storage]
+          @devcontainer_features["ghcr.io/devcontainers/features/node:1"] = {} if using_node?
+
           @devcontainer_features.merge!(db_feature_for_devcontainer) if db_feature_for_devcontainer
 
           @devcontainer_features
