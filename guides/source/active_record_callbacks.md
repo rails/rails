@@ -851,7 +851,7 @@ write this as:
 
 ```ruby
 class Order < ApplicationRecord
-  before_save :normalize_card_number, if: proc { paid_with_card? }
+  before_save :normalize_card_number, if: -> { paid_with_card? }
 end
 ```
 
