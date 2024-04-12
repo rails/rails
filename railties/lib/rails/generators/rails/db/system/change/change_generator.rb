@@ -101,27 +101,10 @@ module Rails
             end
 
             def edit_devcontainer_json
-              devcontainer_json_path = File.expand_path(".devcontainer/devcontainer.json", destination_root)
-              return unless File.exist?(devcontainer_json_path)
+              return unless devcontainer_json
 
-              container_env = JSON.parse(File.read(devcontainer_json_path))["containerEnv"]
-              db_name = db_name_for_devcontainer
-
-              if container_env["DB_HOST"]
-                if db_name
-                  container_env["DB_HOST"] = db_name
-                else
-                  container_env.delete("DB_HOST")
-                end
-              else
-                if db_name
-                  container_env["DB_HOST"] = db_name
-                end
-              end
-
-              new_json = JSON.pretty_generate(container_env, indent: "  ", object_nl: "\n  ")
-
-              gsub_file(".devcontainer/devcontainer.json", /("containerEnv"\s*:\s*){[^}]*}/, "\\1#{new_json}")
+              update_devcontainer_db_host
+              update_devcontainer_db_feature
             end
 
             def edit_compose_yaml
@@ -151,6 +134,52 @@ module Rails
               compose_config["services"]["rails-app"].delete("depends_on") unless compose_config["services"]["rails-app"]["depends_on"]&.any?
 
               File.write(compose_yaml_path, compose_config.to_yaml)
+            end
+
+            def update_devcontainer_db_host
+              container_env = devcontainer_json["containerEnv"]
+              db_name = db_name_for_devcontainer
+
+              if container_env["DB_HOST"]
+                if db_name
+                  container_env["DB_HOST"] = db_name
+                else
+                  container_env.delete("DB_HOST")
+                end
+              else
+                if db_name
+                  container_env["DB_HOST"] = db_name
+                end
+              end
+
+              new_json = JSON.pretty_generate(container_env, indent: "  ", object_nl: "\n  ")
+
+              gsub_file(".devcontainer/devcontainer.json", /("containerEnv"\s*:\s*)(.|\n)*?(^\s{2}})/, "\\1#{new_json}")
+            end
+
+            def update_devcontainer_db_feature
+              features = devcontainer_json["features"]
+              db_feature = db_feature_for_devcontainer
+
+              db_features.each do |feature|
+                features.delete(feature)
+              end
+
+              features.merge!(db_feature) if db_feature
+
+              new_json = JSON.pretty_generate(features, indent: "  ", object_nl: "\n  ")
+
+              gsub_file(".devcontainer/devcontainer.json", /("features"\s*:\s*)(.|\n)*?(^\s{2}})/, "\\1#{new_json}")
+            end
+
+            def devcontainer_json
+              return unless File.exist?(devcontainer_json_path)
+
+              @devcontainer_json ||= JSON.parse(File.read(devcontainer_json_path))
+            end
+
+            def devcontainer_json_path
+              File.expand_path(".devcontainer/devcontainer.json", destination_root)
             end
         end
       end

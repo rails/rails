@@ -54,6 +54,7 @@ module Rails
 
             assert_file(".devcontainer/devcontainer.json") do |content|
               assert_match(/"DB_HOST": "postgres"/, content)
+              assert_match(/"ghcr.io\/rails\/devcontainer\/features\/postgres-client":/, content)
             end
 
             assert_compose_file do |compose_config|
@@ -95,6 +96,7 @@ module Rails
 
             assert_file(".devcontainer/devcontainer.json") do |content|
               assert_match(/"DB_HOST": "mysql"/, content)
+              assert_match(/"ghcr.io\/rails\/devcontainer\/features\/mysql-client":/, content)
             end
 
             assert_compose_file do |compose_config|
@@ -203,6 +205,7 @@ module Rails
 
             assert_file(".devcontainer/devcontainer.json") do |content|
               assert_no_match(/"DB_HOST"/, content)
+              assert_no_match(/"ghcr.io\/rails\/devcontainer\/features\/mysql-client":/, content)
             end
 
             assert_compose_file do |compose_config|

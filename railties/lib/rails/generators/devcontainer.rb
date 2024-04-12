@@ -39,6 +39,19 @@ module Rails
           @devcontainer_volumes
         end
 
+        def devcontainer_features
+          return @devcontainer_features if @devcontainer_features
+
+          @devcontainer_features = {
+            "ghcr.io/devcontainers/features/github-cli:1" => {}
+          }
+
+          @devcontainer_features["ghcr.io/rails/devcontainer/features/activestorage"] = {} unless options[:skip_active_storage]
+          @devcontainer_features.merge!(db_feature_for_devcontainer) if db_feature_for_devcontainer
+
+          @devcontainer_features
+        end
+
         def devcontainer_mounts
           return @devcontainer_mounts if @devcontainer_mounts
 
@@ -90,6 +103,13 @@ module Rails
           end
         end
 
+        def db_feature_for_devcontainer(database = options[:database])
+          case database
+          when "mysql"          then mysql_feature
+          when "postgresql"     then postgres_feature
+          end
+        end
+
         def postgres_service
           {
             "postgres" => {
@@ -136,6 +156,21 @@ module Rails
 
         def db_service_names
           ["mysql", "mariadb", "postgres"]
+        end
+
+        def mysql_feature
+          { "ghcr.io/rails/devcontainer/features/mysql-client" => {} }
+        end
+
+        def postgres_feature
+          { "ghcr.io/rails/devcontainer/features/postgres-client" => {} }
+        end
+
+        def db_features
+          [
+            "ghcr.io/rails/devcontainer/features/mysql-client",
+            "ghcr.io/rails/devcontainer/features/postgres-client"
+          ]
         end
 
         def local_rails_mount
