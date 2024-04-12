@@ -34,7 +34,7 @@ or loaded from the database.
 
 ```ruby
 class Baby < ApplicationRecord
-  after_create -> { puts "Congratulations!" }
+  after_create -> { Rails.logger.info("Congratulations!") }
 end
 ```
 
@@ -510,11 +510,11 @@ They can be registered just like the other Active Record callbacks.
 ```ruby
 class User < ApplicationRecord
   after_initialize do |user|
-    puts "You have initialized an object!"
+    Rails.logger.info("You have initialized an object!")
   end
 
   after_find do |user|
-    puts "You have found an object!"
+    Rails.logger.info("You have found an object!")
   end
 end
 ```
@@ -544,7 +544,7 @@ is touched. You can read more about `touch`
 ```ruby
 class User < ApplicationRecord
   after_touch do |user|
-    puts "You have touched an object"
+    Rails.logger.info("You have touched an object")
   end
 end
 ```
@@ -564,7 +564,7 @@ It can be used along with `belongs_to`:
 class Book < ApplicationRecord
   belongs_to :library, touch: true
   after_touch do
-    puts 'A Book was touched'
+    Rails.logger.info('A Book was touched')
   end
 end
 
@@ -574,7 +574,7 @@ class Library < ApplicationRecord
 
   private
     def log_when_books_or_library_touched
-      puts 'Book/Library was touched'
+      Rails.logger.info('Book/Library was touched')
     end
 end
 ```
@@ -710,7 +710,7 @@ class Article < ApplicationRecord
   after_destroy :log_destroy_action
 
   def log_destroy_action
-    puts 'Article destroyed'
+    Rails.logger.info('Article destroyed')
   end
 end
 ```
@@ -995,7 +995,7 @@ class User < ApplicationRecord
 
   private
     def log_user_saved_to_db
-      puts 'User was saved to database'
+      Rails.logger.info('User was saved to database')
     end
 end
 ```
@@ -1018,7 +1018,7 @@ class User < ApplicationRecord
 
   private
     def log_user_saved_to_db
-      puts 'User was saved to database'
+      Rails.logger.info('User was saved to database')
     end
 end
 ```
@@ -1041,8 +1041,8 @@ the callbacks were run was reversed.
 
 ```ruby
 class User < ActiveRecord::Base
-  after_commit { puts("this actually gets called second") }
-  after_commit { puts("this actually gets called first") }
+  after_commit { Rails.logger.info("this actually gets called second") }
+  after_commit { Rails.logger.info("this actually gets called first") }
 end
 ```
 
