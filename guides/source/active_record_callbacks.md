@@ -195,7 +195,7 @@ order in which they will get called** during the respective operations:
     https://api.rubyonrails.org/classes/ActiveModel/Validations/Callbacks/ClassMethods.html#method-i-before_validation
 
 There are examples below that show how to use these callbacks. We've grouped
-them by the operation they are associated with, and lastly showed how they can
+them by the operation they are associated with, and lastly show how they can
 be used in combination. `after_commit` / `after_rollback` examples can be found
 [here](active_record_callbacks.html#after-commit-and-after-rollback).
 
