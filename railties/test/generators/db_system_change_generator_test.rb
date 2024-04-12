@@ -104,7 +104,7 @@ module Rails
                 "image" => "mysql/mysql-server:8.0",
                 "restart" => "unless-stopped",
                 "environment" => {
-                  "MYSQL_ALLOW_EMPTY_PASSWORD" => true,
+                  "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",
                   "MYSQL_ROOT_HOST" => "%"
                 },
                 "volumes" => ["mysql-data:/var/lib/mysql"],
@@ -171,7 +171,7 @@ module Rails
                 "networks" => ["default"],
                 "volumes" => ["mariadb-data:/var/lib/mysql"],
                 "environment" => {
-                  "MARIADB_ALLOW_EMPTY_ROOT_PASSWORD" => true,
+                  "MARIADB_ALLOW_EMPTY_ROOT_PASSWORD" => "true",
                 },
               }
 
