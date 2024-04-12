@@ -346,6 +346,22 @@ module ActiveRecord
             assert_equal ["number", "data"], index.include
           end
         end
+
+        def test_include_keyword_column_name
+          with_example_table("id integer, timestamp integer") do
+            @connection.add_index "ex", :id, name: "include", include: [:timestamp]
+            index = @connection.indexes("ex").find { |idx| idx.name == "include" }
+            assert_equal ["timestamp"], index.include
+          end
+        end
+
+        def test_include_escaped_quotes_column_name
+          with_example_table(%{id integer, "I""like""quotes" integer}) do
+            @connection.add_index "ex", :id, name: "include", include: [:"I\"like\"quotes"]
+            index = @connection.indexes("ex").find { |idx| idx.name == "include" }
+            assert_equal ["I\"like\"quotes"], index.include
+          end
+        end
       end
 
       def test_expression_index
