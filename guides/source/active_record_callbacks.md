@@ -550,7 +550,7 @@ end
 ```
 
 ```irb
-irb> user = User.create(name: 'Kuldeep')
+irb> user = User.create(name: "Kuldeep")
 => #<User id: 1, name: "Kuldeep", created_at: "2013-11-25 12:17:49", updated_at: "2013-11-25 12:17:49">
 
 irb> user.touch
@@ -564,7 +564,7 @@ It can be used along with `belongs_to`:
 class Book < ApplicationRecord
   belongs_to :library, touch: true
   after_touch do
-    Rails.logger.info('A Book was touched')
+    Rails.logger.info("A Book was touched")
   end
 end
 
@@ -574,7 +574,7 @@ class Library < ApplicationRecord
 
   private
     def log_when_books_or_library_touched
-      Rails.logger.info('Book/Library was touched')
+      Rails.logger.info("Book/Library was touched")
     end
 end
 ```
@@ -710,7 +710,7 @@ class Article < ApplicationRecord
   after_destroy :log_destroy_action
 
   def log_destroy_action
-    Rails.logger.info('Article destroyed')
+    Rails.logger.info("Article destroyed")
   end
 end
 ```
@@ -995,7 +995,7 @@ class User < ApplicationRecord
 
   private
     def log_user_saved_to_db
-      Rails.logger.info('User was saved to database')
+      Rails.logger.info("User was saved to database")
     end
 end
 ```
@@ -1018,7 +1018,7 @@ class User < ApplicationRecord
 
   private
     def log_user_saved_to_db
-      Rails.logger.info('User was saved to database')
+      Rails.logger.info("User was saved to database")
     end
 end
 ```
