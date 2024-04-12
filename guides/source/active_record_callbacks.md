@@ -883,8 +883,8 @@ Callbacks can mix both `:if` and `:unless` in the same declaration:
 ```ruby
 class Comment < ApplicationRecord
   before_save :filter_content,
-    if: proc { forum.parental_control? },
-    unless: proc { author.trusted? }
+    if: -> { forum.parental_control? },
+    unless: -> { author.trusted? }
 end
 ```
 
