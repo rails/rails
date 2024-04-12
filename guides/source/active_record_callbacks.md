@@ -29,7 +29,7 @@ application and its data.
 Callbacks allow you to trigger logic before or after a change to an
 object's state. They are methods that get called at certain moments of an
 object's life cycle. With callbacks it is possible to write code that will run
-whenever an Active Record object is created, saved, updated, deleted, validated,
+whenever an Active Record object is initialized, created, saved, updated, deleted, validated,
 or loaded from the database.
 
 ```ruby
