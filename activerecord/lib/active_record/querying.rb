@@ -56,9 +56,9 @@ module ActiveRecord
     end
 
     # Same as <tt>#find_by_sql</tt> but perform the query asynchronously and returns an ActiveRecord::Promise.
-    def async_find_by_sql(sql, binds = [], preparable: nil, &block)
+    def async_find_by_sql(sql, binds = [], preparable: nil, allow_retry: false, &block)
       result = with_connection do |c|
-        _query_by_sql(c, sql, binds, preparable: preparable, async: true)
+        _query_by_sql(c, sql, binds, preparable: preparable, allow_retry: allow_retry, async: true)
       end
 
       result.then do |result|

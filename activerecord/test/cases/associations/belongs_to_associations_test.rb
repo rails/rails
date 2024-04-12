@@ -1839,3 +1839,21 @@ class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
     assert_not Author.exists?(author.id)
   end
 end
+
+class AsyncBelongsToAssociationsTest < ActiveRecord::TestCase
+  fixtures :companies
+
+  self.use_transactional_tests = false
+
+  def test_temp_async_load_belongs_to
+    # TODO: proper test?
+    client = Client.find(3)
+    first_firm = companies(:first_firm)
+    assert_queries_match(/LIMIT|ROWNUM <=|FETCH FIRST/) do
+      client.association(:firm).async_load_target
+
+      assert_equal first_firm, client.firm
+      assert_equal first_firm.name, client.firm.name
+    end
+  end
+end
