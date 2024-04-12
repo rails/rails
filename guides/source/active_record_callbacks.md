@@ -47,7 +47,7 @@ As you will see, there are many life cycle events and you can choose to hook
 into any of these either before, after, or even around them.
 
 Callback Registration
-------------------
+---------------------
 
 To use the available callbacks, you need to implement and register them.
 Implementation can be done in a multitude of ways like using ordinary methods,
