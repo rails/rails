@@ -842,7 +842,7 @@ option is best suited when writing short validation methods, usually one-liners:
 ```ruby
 class Order < ApplicationRecord
   before_save :normalize_card_number,
-    if: proc { |order| order.paid_with_card? }
+    if: -> { |order| order.paid_with_card? }
 end
 ```
 
