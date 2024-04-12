@@ -7,21 +7,6 @@ require "models/comment"
 require "models/other_dog"
 
 module ActiveRecord
-  module WaitForAsyncTestHelper
-    private
-      def wait_for_async_query(connection = ActiveRecord::Base.lease_connection, timeout: 5)
-        return unless connection.async_enabled?
-
-        executor = connection.pool.async_executor
-        (timeout * 100).times do
-          return unless executor.scheduled_task_count > executor.completed_task_count
-          sleep 0.01
-        end
-
-        raise Timeout::Error, "The async executor wasn't drained after #{timeout} seconds"
-      end
-  end
-
   class LoadAsyncTest < ActiveRecord::TestCase
     include WaitForAsyncTestHelper
 
