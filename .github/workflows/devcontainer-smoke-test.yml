@@ -1,0 +1,50 @@
+name: Devcontainer smoke test
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Devcontainer smoke test
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        DATABASE:
+          - sqlite3
+          - postgresql
+          - mysql
+          - trilogy
+
+    steps:
+      - name: Checkout (GitHub)
+        uses: actions/checkout@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Ruby 3.3
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3
+          bundler-cache: true
+
+      - name: Generate rails app
+        run: bundle exec railties/exe/rails new myapp --database="${{ matrix.DATABASE }}" --dev
+
+      - name: Test devcontainer
+        uses: devcontainers/ci@v0.3
+        with:
+          subFolder: myapp
+          imageName: ghcr.io/rails/smoke-test-devcontainer
+          cacheFrom: ghcr.io/rails/smoke-test-devcontainer
+          imageTag: ${{ matrix.DATABASE }}
+          refFilterForPush: refs/heads/main
+          runCmd: bin/rails g scaffold Post && bin/rails db:migrate && bin/rails test
