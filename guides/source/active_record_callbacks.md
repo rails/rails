@@ -447,7 +447,7 @@ Update email sent to: john.doe@example.com
 [`before_destroy`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-before_destroy
 
-NOTE: `before_destroy` callbacks should be placed before `dependent: :destroy`
+WARNING: `before_destroy` callbacks should be placed before `dependent: :destroy`
 associations (or use the `prepend: true` option), to ensure they execute before
 the records are deleted by `dependent: :destroy`.
 
