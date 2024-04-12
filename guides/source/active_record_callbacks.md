@@ -212,13 +212,13 @@ and after the validation phase.
 ```ruby
 class User < ApplicationRecord
   validates :name, presence: true
-  before_validation :normalize_name
+  before_validation :titleize_name
   after_validation :check_errors
 
   private
-    def normalize_name
+    def titleize_name
       self.name = name.downcase.titleize if name.present?
-      Rails.logger.info("Name normalized to #{name}")
+      Rails.logger.info("Name titleized to #{name}")
     end
 
     def check_errors
@@ -234,7 +234,7 @@ irb> user = User.new(name: "", email: "john.doe@example.com", password: "abc1234
 => #<User id: nil, email: "john.doe@example.com", created_at: nil, updated_at: nil, name: "">
 
 irb> user.valid?
-Name normalized to
+Name titleized to
 Validation failed: Name can't be blank
 => false
 ```
