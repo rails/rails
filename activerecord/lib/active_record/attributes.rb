@@ -135,7 +135,7 @@ module ActiveRecord
       # expected API. It is recommended that your type objects inherit from an
       # existing type, or from ActiveRecord::Type::Value
       #
-      #   class MoneyType < ActiveRecord::Type::Integer
+      #   class PriceType < ActiveRecord::Type::Integer
       #     def cast(value)
       #       if !value.kind_of?(Numeric) && value.include?('$')
       #         price_in_dollars = value.gsub(/\$/, '').to_f
@@ -147,11 +147,11 @@ module ActiveRecord
       #   end
       #
       #   # config/initializers/types.rb
-      #   ActiveRecord::Type.register(:money, MoneyType)
+      #   ActiveRecord::Type.register(:price, PriceType)
       #
       #   # app/models/store_listing.rb
       #   class StoreListing < ActiveRecord::Base
-      #     attribute :price_in_cents, :money
+      #     attribute :price_in_cents, :price
       #   end
       #
       #   store_listing = StoreListing.new(price_in_cents: '$10.00')
@@ -171,7 +171,7 @@ module ActiveRecord
       #   class Money < Struct.new(:amount, :currency)
       #   end
       #
-      #   class MoneyType < ActiveRecord::Type::Value
+      #   class PriceType < ActiveRecord::Type::Value
       #     def initialize(currency_converter:)
       #       @currency_converter = currency_converter
       #     end
@@ -186,12 +186,12 @@ module ActiveRecord
       #   end
       #
       #   # config/initializers/types.rb
-      #   ActiveRecord::Type.register(:money, MoneyType)
+      #   ActiveRecord::Type.register(:price, PriceType)
       #
       #   # app/models/product.rb
       #   class Product < ActiveRecord::Base
       #     currency_converter = ConversionRatesFromTheInternet.new
-      #     attribute :price_in_bitcoins, :money, currency_converter: currency_converter
+      #     attribute :price_in_bitcoins, :price, currency_converter: currency_converter
       #   end
       #
       #   Product.where(price_in_bitcoins: Money.new(5, "USD"))
