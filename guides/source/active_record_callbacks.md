@@ -326,7 +326,7 @@ User welcome email sent to: john.doe@example.com
 
 Often, you will need to use a combination of callbacks to achieve the desired
 behavior. For example, you may want to send a confirmation email after a user is
-created, but only if the user is new and not being updated. When a user user is
+created, but only if the user is new and not being updated. When a user is
 updated, you may want to notify an admin if critical information is changed. In
 this case, you can use `after_create` and `after_update` callbacks together.
 
