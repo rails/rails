@@ -768,8 +768,7 @@ callback for you to use.
 
 ```ruby
 class Author < ApplicationRecord
-  has_many :books,
-  before_add: [:check_limit, :calculate_shipping_charges]
+  has_many :books, before_add: [:check_limit, :calculate_shipping_charges]
 
   def check_limit
     if books.count >= 5
