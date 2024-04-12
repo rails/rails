@@ -1841,19 +1841,33 @@ class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
 end
 
 class AsyncBelongsToAssociationsTest < ActiveRecord::TestCase
+  include WaitForAsyncTestHelper
+
   fixtures :companies
 
   self.use_transactional_tests = false
 
-  def test_temp_async_load_belongs_to
-    # TODO: proper test?
+  def test_async_load_belongs_to
     client = Client.find(3)
     first_firm = companies(:first_firm)
-    assert_queries_match(/LIMIT|ROWNUM <=|FETCH FIRST/) do
-      client.association(:firm).async_load_target
 
+    promise = client.association(:firm).async_load_target
+    wait_for_async_query
+
+    events = []
+    callback = -> (event) do
+      events << event unless event.payload[:name] == "SCHEMA"
+    end
+    ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+      client.firm
+    end
+
+    assert_no_queries do
       assert_equal first_firm, client.firm
       assert_equal first_firm.name, client.firm.name
     end
+
+    assert_equal 1, events.size
+    assert_equal true, events.first.payload[:async]
   end
 end

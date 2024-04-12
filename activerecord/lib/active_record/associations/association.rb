@@ -191,7 +191,7 @@ module ActiveRecord
         @target = find_target(async: true) if (@stale_state && stale_target?) || find_target?
 
         loaded! unless loaded?
-        target
+        @target
       end
 
       # We can't dump @reflection and @through_reflection since it contains the scope proc
@@ -243,7 +243,13 @@ module ActiveRecord
           end
 
           scope = self.scope
-          return scope.to_a if skip_statement_cache?(scope)
+          if skip_statement_cache?(scope)
+            if async
+              return scope.load_async.then(&:to_a)
+            else
+              return scope.to_a 
+            end
+          end
 
           sc = reflection.association_scope_cache(klass, owner) do |params|
             as = AssociationScope.create { params.bind }

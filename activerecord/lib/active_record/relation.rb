@@ -1150,6 +1150,16 @@ module ActiveRecord
       self
     end
 
+    def then(&block)
+      if @future_result
+        @future_result.then do
+          yield self
+        end
+      else
+        super
+      end
+    end
+
     # Returns <tt>true</tt> if the relation was scheduled on the background
     # thread pool.
     def scheduled?
