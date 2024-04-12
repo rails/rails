@@ -872,7 +872,7 @@ You can easily include a proc in the list of conditions:
 ```ruby
 class Comment < ApplicationRecord
   before_save :filter_content,
-    if: [:subject_to_parental_control?, proc { untrusted_author? }]
+    if: [:subject_to_parental_control?, -> { untrusted_author? }]
 end
 ```
 
