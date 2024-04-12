@@ -209,6 +209,8 @@ or
 methods, or indirectly via `create`, `update`, or `save`. They are called before
 and after the validation phase.
 
+NOTE: `validate` is an alias for [`valid?`](https://api.rubyonrails.org/classes/ActiveRecord/Validations.html#method-i-valid-3F).
+
 ```ruby
 class User < ApplicationRecord
   validates :name, presence: true
