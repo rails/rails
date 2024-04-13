@@ -275,6 +275,10 @@ module ActiveRecord
     #   # SELECT people.id FROM people WHERE people.age = 21 LIMIT 5
     #   # => [2, 3]
     #
+    #   Comment.joins(:person).pluck(:id, person: [:id])
+    #   # SELECT comments.id, people.id FROM comments INNER JOIN people on comments.person_id = people.id
+    #   # => [[1, 2], [2, 2]]
+    #
     #   Person.pluck(Arel.sql('DATEDIFF(updated_at, created_at)'))
     #   # SELECT DATEDIFF(updated_at, created_at) FROM people
     #   # => ['0', '27761', '173']
@@ -302,7 +306,7 @@ module ActiveRecord
         relation = apply_join_dependency
         relation.pluck(*column_names)
       else
-        klass.disallow_raw_sql!(column_names.flatten)
+        klass.disallow_raw_sql!(flattened_args(column_names))
         columns = arel_columns(column_names)
         relation = spawn
         relation.select_values = columns

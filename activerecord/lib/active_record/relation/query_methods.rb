@@ -1854,6 +1854,8 @@ module ActiveRecord
             arel_column(field, &:itself)
           when Proc
             field.call
+          when Hash
+            arel_columns_from_hash(field)
           else
             field
           end
@@ -1944,8 +1946,8 @@ module ActiveRecord
         end
       end
 
-      def flattened_args(order_args)
-        order_args.flat_map { |e| (e.is_a?(Hash) || e.is_a?(Array)) ? flattened_args(e.to_a) : e }
+      def flattened_args(args)
+        args.flat_map { |e| (e.is_a?(Hash) || e.is_a?(Array)) ? flattened_args(e.to_a) : e }
       end
 
       def preprocess_order_args(order_args)
@@ -2081,14 +2083,14 @@ module ActiveRecord
       def process_select_args(fields)
         fields.flat_map do |field|
           if field.is_a?(Hash)
-            transform_select_hash_values(field)
+            arel_columns_from_hash(field)
           else
             field
           end
         end
       end
 
-      def transform_select_hash_values(fields)
+      def arel_columns_from_hash(fields)
         fields.flat_map do |key, columns_aliases|
           case columns_aliases
           when Hash
