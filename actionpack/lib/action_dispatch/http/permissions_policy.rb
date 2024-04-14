@@ -98,7 +98,7 @@ module ActionDispatch # :nodoc:
       geolocation:          "geolocation",
       gyroscope:            "gyroscope",
       hid:                  "hid",
-      idle_detection:       "idle_detection",
+      idle_detection:       "idle-detection",
       magnetometer:         "magnetometer",
       microphone:           "microphone",
       midi:                 "midi",
