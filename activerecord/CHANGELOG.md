@@ -1,3 +1,15 @@
+*   Allow `ActiveRecord::Base#pluck` to accept hash values
+
+    ```ruby
+    # Before
+    Post.joins(:comments).pluck("posts.id", "comments.id", "comments.body")
+
+    # After
+    Post.joins(:comments).pluck(posts: [:id], comments: [:id, :body])
+    ```
+
+    *fatkodima*
+
 *   Raise an `ActiveRecord::ActiveRecordError` error when the MySQL database returns an invalid version string.
 
     *Kevin McPhillips*

@@ -952,6 +952,30 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [50 + 53 + 55 + 60], Account.pluck(Arel.sql("SUM(DISTINCT(credit_limit))"))
   end
 
+  def test_pluck_with_hash_argument
+    expected = [
+      [1, "The First Topic"],
+      [2, "The Second Topic of the day"],
+      [3, "The Third Topic of the day"]
+    ]
+    assert_equal expected, Topic.order(:id).limit(3).pluck(:id, topics: [:title])
+  end
+
+  def test_pluck_with_hash_argument_with_multiple_tables
+    expected = [
+      [1, 1, "Thank you for the welcome"],
+      [1, 2, "Thank you again for the welcome"],
+      [2, 3, "Don't think too hard"]
+    ]
+    assert_equal expected, Post.joins(:comments).order(posts: { id: :asc }, comments: { id: :asc }).limit(3).pluck(posts: [:id], comments: [:id, :body])
+  end
+
+  def test_pluck_with_hash_argument_containing_non_existent_field
+    assert_raises(ActiveRecord::StatementInvalid) do
+      Topic.pluck(topics: [:non_existent])
+    end
+  end
+
   def test_ids
     assert_equal Company.all.map(&:id).sort, Company.all.ids.sort
   end
