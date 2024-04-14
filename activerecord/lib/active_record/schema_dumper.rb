@@ -70,7 +70,7 @@ module ActiveRecord
     private
       attr_accessor :table_name
 
-      def initialize(connection, version, options = {})
+      def initialize(connection, options = {})
         @connection = connection
         @version = connection.pool.migration_context.current_version rescue nil
         @options = options
