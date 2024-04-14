@@ -363,7 +363,7 @@ module ActiveRecord
     # Returns the base model's ID's for the relation using the table's primary key
     #
     #   Person.ids # SELECT people.id FROM people
-    #   Person.joins(:companies).ids # SELECT people.id FROM people INNER JOIN companies ON companies.id = people.company_id
+    #   Person.joins(:company).ids # SELECT people.id FROM people INNER JOIN companies ON companies.id = people.company_id
     def ids
       primary_key_array = Array(primary_key)
 
