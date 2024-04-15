@@ -12,12 +12,6 @@ jobs:
       packages: write
     strategy:
       fail-fast: false
-      matrix:
-        DATABASE:
-          - sqlite3
-          - postgresql
-          - mysql
-          - trilogy
 
     steps:
       - name: Checkout (GitHub)
@@ -36,16 +30,70 @@ jobs:
           ruby-version: 3.3
           bundler-cache: true
 
-      - name: Generate rails app
-        run: bundle exec railties/exe/rails new myapp --database="${{ matrix.DATABASE }}" --dev
+      - name: Generate rails app sqlite3
+        run: bundle exec railties/exe/rails new myapp_sqlite --database="sqlite3" --dev
 
-      - name: Test devcontainer
+      - name: Test devcontainer sqlite3
         uses: devcontainers/ci@v0.3
         with:
-          subFolder: myapp
+          subFolder: myapp_sqlite
           imageName: ghcr.io/rails/smoke-test-devcontainer
           cacheFrom: ghcr.io/rails/smoke-test-devcontainer
-          imageTag: ${{ matrix.DATABASE }}
+          imageTag: sqlite3
           push: ${{ github.repository_owner == 'rails' && 'filter' || 'never' }}
           refFilterForPush: refs/heads/main
           runCmd: bin/rails g scaffold Post && bin/rails db:migrate && bin/rails test
+
+      - name: Stop all containers
+        run: docker ps -q | xargs docker stop
+
+      - name: Generate rails app postgresql
+        run: bundle exec railties/exe/rails new myapp_postgresql --database="postgresql" --dev
+
+      - name: Test devcontainer postgresql
+        uses: devcontainers/ci@v0.3
+        with:
+          subFolder: myapp_postgresql
+          imageName: ghcr.io/rails/smoke-test-devcontainer
+          cacheFrom: ghcr.io/rails/smoke-test-devcontainer
+          imageTag: postgresql
+          push: ${{ github.repository_owner == 'rails' && 'filter' || 'never' }}
+          refFilterForPush: refs/heads/main
+          runCmd: bin/rails g scaffold Post && bin/rails db:migrate && bin/rails test
+
+      - name: Stop all containers
+        run: docker ps -q | xargs docker stop
+
+      - name: Generate rails app mysql
+        run: bundle exec railties/exe/rails new myapp_mysql --database="mysql" --dev
+
+      - name: Test devcontainer mysql
+        uses: devcontainers/ci@v0.3
+        with:
+          subFolder: myapp_mysql
+          imageName: ghcr.io/rails/smoke-test-devcontainer
+          cacheFrom: ghcr.io/rails/smoke-test-devcontainer
+          imageTag: mysql
+          push: ${{ github.repository_owner == 'rails' && 'filter' || 'never' }}
+          refFilterForPush: refs/heads/main
+          runCmd: bin/rails g scaffold Post && bin/rails db:migrate && bin/rails test
+
+      - name: Stop all containers
+        run: docker ps -q | xargs docker stop
+
+      - name: Generate rails app trilogy
+        run: bundle exec railties/exe/rails new myapp_trilogy --database="trilogy" --dev
+
+      - name: Test devcontainer trilogy
+        uses: devcontainers/ci@v0.3
+        with:
+          subFolder: myapp_trilogy
+          imageName: ghcr.io/rails/smoke-test-devcontainer
+          cacheFrom: ghcr.io/rails/smoke-test-devcontainer
+          imageTag: trilogy
+          push: ${{ github.repository_owner == 'rails' && 'filter' || 'never' }}
+          refFilterForPush: refs/heads/main
+          runCmd: bin/rails g scaffold Post && bin/rails db:migrate && bin/rails test
+
+      - name: Stop all containers
+        run: docker ps -q | xargs docker stop
