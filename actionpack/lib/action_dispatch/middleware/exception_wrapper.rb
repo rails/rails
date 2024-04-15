@@ -55,7 +55,6 @@ module ActionDispatch
       if exception.is_a?(SyntaxError)
         @exception = ActiveSupport::SyntaxErrorProxy.new(exception)
       end
-      @backtrace = build_backtrace
     end
 
     def routing_error?
@@ -255,7 +254,9 @@ module ActionDispatch
         end
       end
 
-      attr_reader :backtrace
+      def backtrace
+        @backtrace = build_backtrace
+      end
 
       def build_backtrace
         built_methods = {}
