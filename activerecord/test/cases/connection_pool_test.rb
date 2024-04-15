@@ -27,6 +27,8 @@ module ActiveRecord
         @pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, @db_config, :writing, :default)
         @pool = ConnectionPool.new(@pool_config)
 
+        @pools = [@pool]
+
         if in_memory_db?
           # Separate connections to an in-memory database create an entirely new database,
           # with an empty schema etc, so we just stub out this schema on the fly.
@@ -40,7 +42,7 @@ module ActiveRecord
 
       def teardown
         super
-        @pool.disconnect!
+        @pools.each(&:disconnect!)
       end
 
       def test_checkout_after_close
@@ -259,11 +261,7 @@ module ActiveRecord
       def test_idle_timeout_configuration
         @pool.disconnect!
 
-        config = @db_config.configuration_hash.merge(idle_timeout: "0.02")
-        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.name, config)
-
-        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :writing, :default)
-        @pool = ConnectionPool.new(pool_config)
+        @pool = new_pool_with_options(idle_timeout: "0.02")
         idle_conn = @pool.checkout
         @pool.checkin(idle_conn)
 
@@ -287,10 +285,7 @@ module ActiveRecord
       def test_disable_flush
         @pool.disconnect!
 
-        config = @db_config.configuration_hash.merge(idle_timeout: -5)
-        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.name, config)
-        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :writing, :default)
-        @pool = ConnectionPool.new(pool_config)
+        @pool = new_pool_with_options(idle_timeout: -5)
         idle_conn = @pool.checkout
         @pool.checkin(idle_conn)
 
@@ -398,6 +393,8 @@ module ActiveRecord
           assert pool.lease_connection
           pool.lease_connection.close
         end.join
+      ensure
+        pool&.disconnect!
       end
 
       def test_checkout_order_is_lifo
@@ -534,6 +531,8 @@ module ActiveRecord
 
         pool.disconnect!
         assert pool.lease_connection
+      ensure
+        pool&.disconnect!
       end
 
       def test_automatic_reconnect_can_be_disabled
@@ -548,6 +547,8 @@ module ActiveRecord
         assert_raises(ConnectionNotEstablished) do
           pool.with_connection
         end
+      ensure
+        pool&.disconnect!
       end
 
       def test_pool_sets_connection_visitor
@@ -1005,6 +1006,16 @@ module ActiveRecord
           yield(pool = ConnectionPool.new(pool_config))
         ensure
           pool.disconnect! if pool
+        end
+
+        def new_pool_with_options(async: true, **options)
+          config = @db_config.configuration_hash.merge(options)
+          db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.name, config)
+          pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :writing, :default)
+          pool = ConnectionPool.new(pool_config)
+          pool.instance_variable_set(:@async_executor, nil) unless async
+          @pools << pool
+          pool
         end
     end
 
