@@ -5,7 +5,7 @@ Active Record Migrations
 
 Migrations are a feature of Active Record that allows you to evolve your
 database schema over time. Rather than write schema modifications in pure SQL,
-migrations allow you to use a Ruby DSL to describe changes to your tables.
+migrations allow you to use a Ruby Domain Specific Language (DSL) to describe changes to your tables.
 
 After reading this guide, you will know:
 
@@ -19,19 +19,21 @@ After reading this guide, you will know:
 Migration Overview
 ------------------
 
-Migrations are a convenient way to
-[alter your database schema over time](https://en.wikipedia.org/wiki/Schema_migration)
-in a consistent way. They use a Ruby DSL so that you don't have to
-write SQL by hand, allowing your schema and changes to be database independent.
+Migrations are a convenient way to [alter your database schema over
+time](https://en.wikipedia.org/wiki/Schema_migration) in a consistent way. They
+use a Ruby [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) so that
+you don't have to write SQL by hand, allowing your schema and changes to be
+database independent.
 
 You can think of each migration as being a new 'version' of the database. A
 schema starts off with nothing in it, and each migration modifies it to add or
 remove tables, columns, or entries. Active Record knows how to update your
-schema along this timeline, bringing it from whatever point it is in the
-history to the latest version. Active Record will also update your
-`db/schema.rb` file to match the up-to-date structure of your database.
+schema along this timeline, bringing it from whatever point it is in the history
+to the latest version. Read more about how Rails knows which migration
+in the timeline to run [here](Insert_link).
 
-Here's an example of a migration:
+Active Record updates your `db/schema.rb` file to match the up-to-date
+structure of your database. Here's an example of a migration:
 
 ```ruby
 class CreateProducts < ActiveRecord::Migration[7.2]
@@ -53,24 +55,29 @@ Record models. The `timestamps` macro adds two columns, `created_at` and
 `updated_at`. These special columns are automatically managed by Active Record
 if they exist.
 
-Note that we define the change that we want to happen moving forward in time.
-Before this migration is run, there will be no table. After, the table will
-exist. Active Record knows how to reverse this migration as well: if we roll
+
+### Rolling Back Migrations
+
+We define the change that we want to happen moving forward in time.
+Before this migration is run, there will be no table. After it is run, the table will
+exist. Active Record knows how to reverse this migration as well; if we roll
 this migration back, it will remove the table.
 
 On databases that support transactions with statements that change the schema,
-each migration is wrapped in a transaction. If the database does not support this
-then when a migration fails the parts of it that succeeded will not be rolled
-back. You will have to rollback the changes that were made by hand.
+each migration is wrapped in a transaction. If the database does not support this,
+then when a migration fails, the parts of it that have succeeded will not be rolled
+back. You will have to rollback the changes manually.
 
 NOTE: There are certain queries that can't run inside a transaction. If your
 adapter supports DDL transactions you can use `disable_ddl_transaction!` to
 disable them for a single migration.
 
-### Making the Irreversible Possible
+You can read more about rolling back migrations [here](#rolling-back).
 
-If you wish for a migration to do something that Active Record doesn't know how
-to reverse, you can use `reversible`:
+### Reversing Migrations
+
+If you'd like for a migration to do something that Active Record doesn't know how
+to reverse, then you can use `reversible`:
 
 ```ruby
 class ChangeProductsPrice < ActiveRecord::Migration[7.2]
@@ -107,7 +114,7 @@ class ChangeProductsPrice < ActiveRecord::Migration[7.2]
 end
 ```
 
-INFO: More on [`reversible`](#using-reversible) later.
+You can read more about `reversible` [here](#using-reversible).
 
 Generating Migrations
 ----------------------
