@@ -955,7 +955,7 @@ class AsyncHasOneAssociationsTest < ActiveRecord::TestCase
     firm = companies(:first_firm)
     first_account = Account.find(1)
 
-    promise = firm.association(:account).async_load_target
+    promise = firm.load_async(:account)
     wait_for_async_query
 
     events = []

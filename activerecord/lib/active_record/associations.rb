@@ -62,6 +62,11 @@ module ActiveRecord
       association
     end
 
+    def load_async(*associations) # TODO: doc
+      associations.map { |name| association(name) }.each(&:async_load_target)
+      self
+    end
+
     def association_cached?(name) # :nodoc:
       @association_cache.key?(name)
     end

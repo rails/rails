@@ -3263,7 +3263,7 @@ class AsyncHasOneAssociationsTest < ActiveRecord::TestCase
   def test_async_load_has_many
     firm = companies(:first_firm)
 
-    promise = firm.association(:clients).async_load_target
+    promise = firm.load_async(:clients)
     wait_for_async_query
 
     events = []

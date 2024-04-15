@@ -1851,7 +1851,7 @@ class AsyncBelongsToAssociationsTest < ActiveRecord::TestCase
     client = Client.find(3)
     first_firm = companies(:first_firm)
 
-    promise = client.association(:firm).async_load_target
+    promise = client.load_async(:firm)
     wait_for_async_query
 
     events = []

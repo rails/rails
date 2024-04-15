@@ -191,7 +191,7 @@ module ActiveRecord
         @target = find_target(async: true) if (@stale_state && stale_target?) || find_target?
 
         loaded! unless loaded?
-        @target
+        nil
       end
 
       # We can't dump @reflection and @through_reflection since it contains the scope proc
@@ -247,7 +247,7 @@ module ActiveRecord
             if async
               return scope.load_async.then(&:to_a)
             else
-              return scope.to_a 
+              return scope.to_a
             end
           end
 
