@@ -14,8 +14,6 @@ module ActiveRecord
       attr_reader :pool
 
       def setup
-        @previous_isolation_level = ActiveSupport::IsolatedExecutionState.isolation_level
-
         # Keep a duplicate pool so we do not bother others
         config = ActiveRecord::Base.connection_pool.db_config
         @db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(
@@ -43,7 +41,6 @@ module ActiveRecord
       def teardown
         super
         @pool.disconnect!
-        ActiveSupport::IsolatedExecutionState.isolation_level = @previous_isolation_level
       end
 
       def test_checkout_after_close
@@ -1019,9 +1016,17 @@ module ActiveRecord
       end
 
       def setup
-        super
+        @previous_isolation_level = ActiveSupport::IsolatedExecutionState.isolation_level
+
         ActiveSupport::IsolatedExecutionState.isolation_level = :thread
         @connection_test_model_class = ThreadConnectionTestModel
+
+        super
+      end
+
+      def teardown
+        super
+        ActiveSupport::IsolatedExecutionState.isolation_level = @previous_isolation_level
       end
 
       def test_lock_thread_allow_fiber_reentrency
@@ -1077,9 +1082,17 @@ module ActiveRecord
       end
 
       def setup
-        super
+        @previous_isolation_level = ActiveSupport::IsolatedExecutionState.isolation_level
+
         ActiveSupport::IsolatedExecutionState.isolation_level = :fiber
         @connection_test_model_class = FiberConnectionTestModel
+
+        super
+      end
+
+      def teardown
+        super
+        ActiveSupport::IsolatedExecutionState.isolation_level = @previous_isolation_level
       end
 
       private
