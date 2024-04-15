@@ -555,6 +555,88 @@ module ActiveRecord
         assert @pool.lease_connection.visitor.is_a?(Arel::Visitors::ToSql)
       end
 
+      #--
+      # This is testing a private method... but testing its public
+      # callers would be much more complicated, as well as needing
+      # duplicate coverage.
+      def test_sequential_maintenance_loop_is_incremental
+        work_queue = []
+        work_collector = Object.new
+        work_collector.define_singleton_method(:post) do |&block|
+          work_queue << block
+        end
+
+        completion_list = []
+        selection_list = []
+
+        @pool.instance_variable_set(:@max_size, 3)
+        @pool.instance_variable_set(:@async_executor, work_collector)
+
+        3.times.map { @pool.checkout }.each do |conn|
+          @pool.checkin conn
+        end
+
+        selector = lambda do |conn|
+          assert_not_predicate conn, :in_use?
+          assert_equal 3, @pool.num_available_in_queue
+
+          selection_list << conn
+          true
+        end
+
+        pool.send(:sequential_maintenance, selector) do |conn|
+          assert_predicate conn, :in_use?
+          assert_equal 2, @pool.num_available_in_queue
+
+          completion_list << conn
+        end
+
+        # final iteration determines there's no more work to do
+        4.times do
+          assert_equal 1, work_queue.size
+          work_queue.shift.call
+          assert_equal 3, @pool.num_available_in_queue
+        end
+        assert_equal 0, work_queue.size
+
+        assert_equal 3, completion_list.size
+        assert_equal 3 * 4, selection_list.size
+      end
+
+      def test_sequential_maintenance_can_run_inline
+        completion_list = []
+        selection_list = []
+
+        @pool.instance_variable_set(:@max_size, 3)
+        @pool.instance_variable_set(:@async_executor, nil)
+
+        3.times.map { @pool.checkout }.each do |conn|
+          @pool.checkin conn
+        end
+
+        selector = lambda do |conn|
+          assert_not_predicate conn, :in_use?
+          assert_equal 3, @pool.num_available_in_queue
+
+          selection_list << conn
+          true
+        end
+
+        pool.send(:sequential_maintenance, selector) do |conn|
+          assert_predicate conn, :in_use?
+          assert_equal 2, @pool.num_available_in_queue
+
+          completion_list << conn
+        end
+
+        assert_equal 3, @pool.num_available_in_queue
+
+        assert_equal 3, completion_list.size
+
+        # final iteration determines there's no more work to do
+        assert_equal 3 * 4, selection_list.size
+      end
+
       # make sure exceptions are thrown when establish_connection
       # is called with an anonymous class
       def test_anonymous_class_exception

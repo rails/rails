@@ -683,6 +683,10 @@ module ActiveRecord
         @available.num_waiting
       end
 
+      def num_available_in_queue # :nodoc:
+        @available.size
+      end
+
       # Returns the connection pool's usage statistic.
       #
       #    ActiveRecord::Base.connection_pool.stat # => { size: 15, connections: 1, busy: 1, dead: 0, idle: 0, waiting: 0, checkout_timeout: 5 }
@@ -733,6 +737,65 @@ module ActiveRecord
             end
           when :global_thread_pool
             ActiveRecord.global_thread_pool_async_query_executor
+          end
+        end
+
+        # Perform maintenance work on pool connections. This method will
+        # select a connection to work on by calling the +candidate_selector+
+        # proc while holding the pool lock. If a connection is selected, it
+        # will be checked out for maintenance and passed to the
+        # +maintenance_work+ proc. The connection will always be returned to
+        # the pool after the proc completes.
+        #
+        # If the pool has async threads, all work will be scheduled there.
+        # Otherwise, this method will block until all work is complete.
+        #
+        # Each connection will only be processed once per call to this method,
+        # but (particularly in the async case) there is no protection against
+        # a second call to this method starting to work through the list
+        # before the first call has completed. (Though regular pool behaviour
+        # will prevent two instances from working on the same specific
+        # connection at the same time.)
+        def sequential_maintenance(candidate_selector, &maintenance_work)
+          # This hash doesn't need to be synchronized, because it's only
+          # used by one thread at a time: the +perform_work+ block gives
+          # up its right to +connections_visited+ when it schedules the
+          # next iteration.
+          connections_visited = Hash.new(false)
+          connections_visited.compare_by_identity
+
+          perform_work = lambda do
+            connection_to_maintain = nil
+
+            synchronize do
+              unless self.discarded?
+                if connection_to_maintain = @connections.select { |conn| !conn.in_use? }.select(&candidate_selector).sort_by(&:seconds_idle).find { |conn| !connections_visited[conn] }
+                  checkout_for_maintenance connection_to_maintain
+                end
+              end
+            end
+
+            if connection_to_maintain
+              connections_visited[connection_to_maintain] = true
+
+              # If we're running async, we can schedule the next round of work
+              # as soon as we've grabbed a connection to work on.
+              @async_executor&.post(&perform_work)
+
+              begin
+                maintenance_work.call connection_to_maintain
+              ensure
+                return_from_maintenance connection_to_maintain
+              end
+
+              true
+            end
+          end
+
+          if @async_executor
+            @async_executor.post(&perform_work)
+          else
+            nil while perform_work.call
           end
         end
 
