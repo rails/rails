@@ -284,8 +284,8 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
 
   def test_all_day
     beginning_of_day = Time.local(2011, 6, 7, 0, 0, 0)
-    end_of_day = Time.local(2011, 6, 7, 23, 59, 59, Rational(999999999, 1000))
-    assert_equal beginning_of_day..end_of_day, Date.new(2011, 6, 7).all_day
+    beginning_of_next_day = Time.local(2011, 6, 8, 0, 0, 0)
+    assert_equal beginning_of_day...beginning_of_next_day, Date.new(2011, 6, 7).all_day
   end
 
   def test_all_day_when_zone_is_set
@@ -293,27 +293,27 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     with_env_tz "UTC" do
       with_tz_default zone do
         beginning_of_day = zone.local(2011, 6, 7, 0, 0, 0)
-        end_of_day = zone.local(2011, 6, 7, 23, 59, 59, Rational(999999999, 1000))
-        assert_equal beginning_of_day..end_of_day, Date.new(2011, 6, 7).all_day
+        beginning_of_next_day = zone.local(2011, 6, 8, 0, 0, 0)
+        assert_equal beginning_of_day...beginning_of_next_day, Date.new(2011, 6, 7).all_day
       end
     end
   end
 
   def test_all_week
-    assert_equal Date.new(2011, 6, 6)..Date.new(2011, 6, 12), Date.new(2011, 6, 7).all_week
-    assert_equal Date.new(2011, 6, 5)..Date.new(2011, 6, 11), Date.new(2011, 6, 7).all_week(:sunday)
+    assert_equal Date.new(2011, 6, 6)...Date.new(2011, 6, 13), Date.new(2011, 6, 7).all_week
+    assert_equal Date.new(2011, 6, 5)...Date.new(2011, 6, 12), Date.new(2011, 6, 7).all_week(:sunday)
   end
 
   def test_all_month
-    assert_equal Date.new(2011, 6, 1)..Date.new(2011, 6, 30), Date.new(2011, 6, 7).all_month
+    assert_equal Date.new(2011, 6, 1)...Date.new(2011, 7, 1), Date.new(2011, 6, 7).all_month
   end
 
   def test_all_quarter
-    assert_equal Date.new(2011, 4, 1)..Date.new(2011, 6, 30), Date.new(2011, 6, 7).all_quarter
+    assert_equal Date.new(2011, 4, 1)...Date.new(2011, 7, 1), Date.new(2011, 6, 7).all_quarter
   end
 
   def test_all_year
-    assert_equal Date.new(2011, 1, 1)..Date.new(2011, 12, 31), Date.new(2011, 6, 7).all_year
+    assert_equal Date.new(2011, 1, 1)...Date.new(2012, 1, 1), Date.new(2011, 6, 7).all_year
   end
 
   def test_xmlschema

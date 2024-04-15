@@ -157,6 +157,11 @@ module DateAndTime
     end
     alias :at_end_of_quarter :end_of_quarter
 
+    def end_of_quarter_threshold
+      last_quarter_month = month + (12 - month) % 3
+      beginning_of_month.change(month: last_quarter_month).end_of_month_threshold
+    end
+
     # Returns the quarter for a date/time.
     #
     #   Date.new(2010, 1, 31).quarter  # => 1
@@ -285,6 +290,10 @@ module DateAndTime
     end
     alias :at_end_of_week :end_of_week
 
+    def end_of_week_threshold(start_day = Date.beginning_of_week)
+      days_since(6 - days_to_week_start(start_day)).advance(days: 1).beginning_of_day
+    end
+
     # Returns Sunday of this week assuming that week starts on Monday.
     # +DateTime+ objects have their time set to 23:59:59.
     def sunday
@@ -299,6 +308,11 @@ module DateAndTime
     end
     alias :at_end_of_month :end_of_month
 
+    def end_of_month_threshold
+      last_day = ::Time.days_in_month(month, year)
+      days_since(last_day - day).advance(days: 1).beginning_of_day
+    end
+
     # Returns a new date/time representing the end of the year.
     # DateTime objects will have a time set to 23:59:59.
     def end_of_year
@@ -306,30 +320,34 @@ module DateAndTime
     end
     alias :at_end_of_year :end_of_year
 
+    def end_of_year_threshold
+      change(month: 12).end_of_month_threshold
+    end
+
     # Returns a Range representing the whole day of the current date/time.
     def all_day
-      beginning_of_day..end_of_day
+      beginning_of_day...end_of_day_threshold
     end
 
     # Returns a Range representing the whole week of the current date/time.
     # Week starts on start_day, default is <tt>Date.beginning_of_week</tt> or <tt>config.beginning_of_week</tt> when set.
     def all_week(start_day = Date.beginning_of_week)
-      beginning_of_week(start_day)..end_of_week(start_day)
+      beginning_of_week(start_day)...end_of_week_threshold(start_day)
     end
 
     # Returns a Range representing the whole month of the current date/time.
     def all_month
-      beginning_of_month..end_of_month
+      beginning_of_month...end_of_month_threshold
     end
 
     # Returns a Range representing the whole quarter of the current date/time.
     def all_quarter
-      beginning_of_quarter..end_of_quarter
+      beginning_of_quarter...end_of_quarter_threshold
     end
 
     # Returns a Range representing the whole year of the current date/time.
     def all_year
-      beginning_of_year..end_of_year
+      beginning_of_year...end_of_year_threshold
     end
 
     # Returns a new date/time representing the next occurrence of the specified day of week.

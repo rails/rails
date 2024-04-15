@@ -1252,32 +1252,32 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_all_day
-    assert_equal Time.local(2011, 6, 7, 0, 0, 0)..Time.local(2011, 6, 7, 23, 59, 59, Rational(999999999, 1000)), Time.local(2011, 6, 7, 10, 10, 10).all_day
+    assert_equal Time.local(2011, 6, 7, 0, 0, 0)...Time.local(2011, 6, 8, 0, 0, 0), Time.local(2011, 6, 7, 10, 10, 10).all_day
   end
 
   def test_all_day_with_timezone
     beginning_of_day = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Hawaii"], Time.local(2011, 6, 7, 0, 0, 0))
-    end_of_day = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Hawaii"], Time.local(2011, 6, 7, 23, 59, 59, Rational(999999999, 1000)))
+    beginning_of_next_day = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Hawaii"], Time.local(2011, 6, 8, 0, 0, 0))
 
     assert_equal beginning_of_day, ActiveSupport::TimeWithZone.new(Time.local(2011, 6, 7, 10, 10, 10), ActiveSupport::TimeZone["Hawaii"]).all_day.begin
-    assert_equal end_of_day, ActiveSupport::TimeWithZone.new(Time.local(2011, 6, 7, 10, 10, 10), ActiveSupport::TimeZone["Hawaii"]).all_day.end
+    assert_equal beginning_of_next_day, ActiveSupport::TimeWithZone.new(Time.local(2011, 6, 7, 10, 10, 10), ActiveSupport::TimeZone["Hawaii"]).all_day.end
   end
 
   def test_all_week
-    assert_equal Time.local(2011, 6, 6, 0, 0, 0)..Time.local(2011, 6, 12, 23, 59, 59, Rational(999999999, 1000)), Time.local(2011, 6, 7, 10, 10, 10).all_week
-    assert_equal Time.local(2011, 6, 5, 0, 0, 0)..Time.local(2011, 6, 11, 23, 59, 59, Rational(999999999, 1000)), Time.local(2011, 6, 7, 10, 10, 10).all_week(:sunday)
+    assert_equal Time.local(2011, 6, 6, 0, 0, 0)...Time.local(2011, 6, 13, 0, 0, 0), Time.local(2011, 6, 7, 10, 10, 10).all_week
+    assert_equal Time.local(2011, 6, 5, 0, 0, 0)...Time.local(2011, 6, 12, 0, 0, 0), Time.local(2011, 6, 7, 10, 10, 10).all_week(:sunday)
   end
 
   def test_all_month
-    assert_equal Time.local(2011, 6, 1, 0, 0, 0)..Time.local(2011, 6, 30, 23, 59, 59, Rational(999999999, 1000)), Time.local(2011, 6, 7, 10, 10, 10).all_month
+    assert_equal Time.local(2011, 6, 1, 0, 0, 0)...Time.local(2011, 7, 1, 0, 0, 0), Time.local(2011, 6, 7, 10, 10, 10).all_month
   end
 
   def test_all_quarter
-    assert_equal Time.local(2011, 4, 1, 0, 0, 0)..Time.local(2011, 6, 30, 23, 59, 59, Rational(999999999, 1000)), Time.local(2011, 6, 7, 10, 10, 10).all_quarter
+    assert_equal Time.local(2011, 4, 1, 0, 0, 0)...Time.local(2011, 7, 1, 0, 0, 0), Time.local(2011, 6, 7, 10, 10, 10).all_quarter
   end
 
   def test_all_year
-    assert_equal Time.local(2011, 1, 1, 0, 0, 0)..Time.local(2011, 12, 31, 23, 59, 59, Rational(999999999, 1000)), Time.local(2011, 6, 7, 10, 10, 10).all_year
+    assert_equal Time.local(2011, 1, 1, 0, 0, 0)...Time.local(2012, 1, 1, 0, 0, 0), Time.local(2011, 6, 7, 10, 10, 10).all_year
   end
 
   def test_rfc3339_parse
