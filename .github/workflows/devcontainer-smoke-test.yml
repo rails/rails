@@ -46,5 +46,6 @@ jobs:
           imageName: ghcr.io/rails/smoke-test-devcontainer
           cacheFrom: ghcr.io/rails/smoke-test-devcontainer
           imageTag: ${{ matrix.DATABASE }}
+          push: ${{ github.repository_owner == 'rails' && 'filter' || 'never' }}
           refFilterForPush: refs/heads/main
           runCmd: bin/rails g scaffold Post && bin/rails db:migrate && bin/rails test
