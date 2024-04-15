@@ -304,7 +304,7 @@ module ActiveRecord
       end
 
       # this method must only be called while holding connection pool's mutex
-      def expire
+      def expire(update_idle = true) # :nodoc:
         if in_use?
           if @owner != ActiveSupport::IsolatedExecutionState.context
             raise ActiveRecordError, "Cannot expire connection, " \
@@ -312,7 +312,7 @@ module ActiveRecord
               "Current thread: #{ActiveSupport::IsolatedExecutionState.context}."
           end
 
-          @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC) if update_idle
           @owner = nil
         else
           raise ActiveRecordError, "Cannot expire connection, it is not currently leased."

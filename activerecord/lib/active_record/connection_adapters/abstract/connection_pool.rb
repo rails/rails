@@ -119,6 +119,7 @@ module ActiveRecord
     # * access to these instance variables needs to be in +synchronize+:
     #   * @connections
     #   * @now_connecting
+    #   * @maintaining
     # * private methods that require being called in a +synchronize+ blocks
     #   are now explicitly documented
     class ConnectionPool
@@ -265,6 +266,12 @@ module ActiveRecord
         # establishment of new connections. This variable tracks the number of threads
         # currently in the process of independently establishing connections to the DB.
         @now_connecting = 0
+
+        # Sometimes otherwise-idle connections are temporarily held by the Reaper for
+        # maintenance. This variable tracks the number of connections currently in that
+        # state -- if a thread requests a connection and there are none available, it
+        # will await any in-maintenance connections in preference to creating a new one.
+        @maintaining = 0
 
         @threads_blocking_new_connections = 0
 
@@ -631,7 +638,7 @@ module ActiveRecord
           # that are "stuck" there are helpless. They have no way of creating
           # new connections and are completely reliant on us feeding available
           # connections into the Queue.
-          needs_new_connection = @available.any_waiting?
+          needs_new_connection = @available.num_waiting > @maintaining
         end
 
         # This is intentionally done outside of the synchronized section as we
@@ -759,6 +766,45 @@ module ActiveRecord
             end
           when :global_thread_pool
             ActiveRecord.global_thread_pool_async_query_executor
+          end
+        end
+
+        # Directly check a specific connection out of the pool. Skips callbacks.
+        #
+        # The connection must later either #return_from_maintenance or
+        # #remove_from_maintenance, or the pool will hang.
+        def checkout_for_maintenance(conn)
+          synchronize do
+            @maintaining += 1
+            @available.delete(conn)
+            conn.lease
+            conn
+          end
+        end
+
+        # Return a connection to the pool after it has been checked out for
+        # maintenance. Does not update the connection's idle time, and skips
+        # callbacks.
+        #--
+        # We assume that a connection that has required maintenance is less
+        # desirable (either it's been idle for a long time, or it was just
+        # created and hasn't been used yet). We'll put it at the back of the
+        # queue.
+        def return_from_maintenance(conn)
+          synchronize do
+            conn.expire(false)
+            @available.add_back(conn)
+            @maintaining -= 1
+          end
+        end
+
+        # Remove a connection from the pool after it has been checked out for
+        # maintenance. It will be automatically replaced with a new connection if
+        # necessary.
+        def remove_from_maintenance(conn)
+          synchronize do
+            @maintaining -= 1
+            remove conn
           end
         end
 
@@ -901,13 +947,13 @@ module ActiveRecord
           # <tt>synchronize { conn.lease }</tt> in this method, but by leaving it to <tt>@available.poll</tt>
           # and +try_to_checkout_new_connection+ we can piggyback on +synchronize+ sections
           # of the said methods and avoid an additional +synchronize+ overhead.
-          if conn = @available.poll || try_to_checkout_new_connection
+          if conn = @available.poll || try_to_queue_for_background_connection(checkout_timeout) || try_to_checkout_new_connection
             conn
           else
             reap
             # Retry after reaping, which may return an available connection,
             # remove an inactive connection, or both
-            if conn = @available.poll || try_to_checkout_new_connection
+            if conn = @available.poll || try_to_queue_for_background_connection(checkout_timeout) || try_to_checkout_new_connection
               conn
             else
               @available.poll(checkout_timeout)
@@ -915,6 +961,31 @@ module ActiveRecord
           end
         rescue ConnectionTimeoutError => ex
           raise ex.set_pool(self)
+        end
+
+        #--
+        # If new connections are already being established in the background,
+        # and there are fewer threads already waiting than the number of
+        # upcoming connections, we can just get in queue and wait to be handed a
+        # connection. This avoids us overshooting the required connection count
+        # by starting a new connection ourselves, and is likely to be faster
+        # too (because at least some of the time it takes to establish a new
+        # connection must have already passed).
+        #
+        # If background connections are available, this method will block and
+        # return a connection. If no background connections are available, it
+        # will immediately return +nil+.
+        def try_to_queue_for_background_connection(checkout_timeout)
+          return unless @maintaining > 0
+
+          synchronize do
+            return unless @maintaining > @available.num_waiting
+
+            # We are guaranteed the "maintaining" thread will return its promised
+            # connection within one maintenance-unit of time. Thus we can safely
+            # do a blocking wait with (functionally) no timeout.
+            @available.poll(100)
+          end
         end
 
         #--
