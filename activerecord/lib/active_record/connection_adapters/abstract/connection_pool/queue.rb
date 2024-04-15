@@ -40,6 +40,14 @@ module ActiveRecord
           end
         end
 
+        # Add +element+ to the back of the queue.  Never blocks.
+        def add_back(element)
+          synchronize do
+            @queue.unshift element
+            @cond.signal
+          end
+        end
+
         # If +element+ is in the queue, remove and return it, or +nil+.
         def delete(element)
           synchronize do
