@@ -555,6 +555,88 @@ module ActiveRecord
         assert @pool.lease_connection.visitor.is_a?(Arel::Visitors::ToSql)
       end
 
+      #--
+      # This is testing a private method... but testing its public
+      # callers would be much more complicated, as well as needing
+      # duplicate coverage.
+      def test_sequential_maintenance_loop_is_incremental
+        work_queue = []
+        work_collector = Object.new
+        work_collector.define_singleton_method(:post) do |&block|
+          work_queue << block
+        end
+
+        completion_list = []
+        selection_list = []
+
+        @pool.instance_variable_set(:@max_size, 3)
+        @pool.instance_variable_set(:@async_executor, work_collector)
+
+        3.times.map { @pool.checkout }.each do |conn|
+          @pool.checkin conn
+        end
+
+        selector = lambda do |conn|
+          assert_not_predicate conn, :in_use?
+          assert_equal 3, @pool.num_available_in_queue
+
+          selection_list << conn
+          true
+        end
+
+        pool.send(:sequential_maintenance, selector) do |conn|
+          assert_predicate conn, :in_use?
+          assert_equal 2, @pool.num_available_in_queue
+
+          completion_list << conn
+        end
+
+        # final iteration determines there's no more work to do
+        4.times do
+          assert_equal 1, work_queue.size
+          work_queue.shift.call
+          assert_equal 3, @pool.num_available_in_queue
+        end
+        assert_equal 0, work_queue.size
+
+        assert_equal 3, completion_list.size
+        assert_equal 3 * 4, selection_list.size
+      end
+
+      def test_sequential_maintenance_can_run_inline
+        completion_list = []
+        selection_list = []
+
+        @pool.instance_variable_set(:@max_size, 3)
+        @pool.instance_variable_set(:@async_executor, nil)
+
+        3.times.map { @pool.checkout }.each do |conn|
+          @pool.checkin conn
+        end
+
+        selector = lambda do |conn|
+          assert_not_predicate conn, :in_use?
+          assert_equal 3, @pool.num_available_in_queue
+
+          selection_list << conn
+          true
+        end
+
+        pool.send(:sequential_maintenance, selector) do |conn|
+          assert_predicate conn, :in_use?
+          assert_equal 2, @pool.num_available_in_queue
+
+          completion_list << conn
+        end
+
+        assert_equal 3, @pool.num_available_in_queue
+
+        assert_equal 3, completion_list.size
+
+        # final iteration determines there's no more work to do
+        assert_equal 3 * 4, selection_list.size
+      end
+
       # make sure exceptions are thrown when establish_connection
       # is called with an anonymous class
       def test_anonymous_class_exception
@@ -661,6 +743,66 @@ module ActiveRecord
           all_go.count_down
           connecting_threads.map(&:join)
         end
+      end
+
+      def test_checkout_queues_behind_maintenance_connections
+        skip_fiber_testing
+
+        pool = new_pool_with_options(max_connections: 3, reaping_frequency: nil, async: false)
+
+        # Set up pool with 2 connections: one available, one checked out
+        conn1 = pool.checkout
+        conn2 = pool.checkout
+        pool.checkin(conn1)
+
+        maintenance_started = Concurrent::Event.new
+        maintenance_continuing = Concurrent::Event.new
+        checkout_complete = Concurrent::Event.new
+
+        maintenance_thread = new_thread do
+          n = 0
+
+          pool.send(:sequential_maintenance, proc { true }) do |_|
+            maintenance_started.set
+            maintenance_continuing.wait
+
+            n += 1
+          end
+
+          n
+        end
+
+        maintenance_started.wait
+
+        checkout_thread = new_thread do
+          conn = pool.checkout # blocks waiting for the in-maintenance connection
+
+          checkout_complete.set
+          pool.checkin(conn)
+          conn
+        end
+
+        # Give the checkout attempt time to start blocking
+        sleep 0.01
+
+        # checkout_thread is now waiting; #checkout has not returned
+        assert_equal 1, pool.num_waiting_in_queue
+        assert_not checkout_complete.set?
+
+        # Release maintenance, allowing checkout to occur
+        maintenance_continuing.set
+
+        # After checkout_thread is complete: confirm it got the connection we
+        # were previously maintaining
+        assert_equal conn1, checkout_thread.value
+
+        # Correspondingly, no new third connection was created
+        assert_equal 2, pool.connections.size
+
+        # Maintenance only visited the available connection (and only once)
+        assert_equal 1, maintenance_thread.value
+
+        pool.checkin(conn2)
       end
 
       def test_non_bang_disconnect_and_clear_reloadable_connections_throw_exception_if_threads_dont_return_their_conns
