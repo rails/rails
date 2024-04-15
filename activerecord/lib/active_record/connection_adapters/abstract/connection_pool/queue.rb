@@ -62,6 +62,13 @@ module ActiveRecord
           end
         end
 
+        # Number of elements in the queue.
+        def size
+          synchronize do
+            @queue.size
+          end
+        end
+
         # Remove the head of the queue.
         #
         # If +timeout+ is not given, remove and return the head of the
