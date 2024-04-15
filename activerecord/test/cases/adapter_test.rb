@@ -857,79 +857,10 @@ module ActiveRecord
       end
 
       test "#execute is retryable" do
-        conn_id = case @connection.adapter_name
-                  when "Mysql2"
-                    @connection.execute("SELECT CONNECTION_ID()").to_a[0][0]
-                  when "Trilogy"
-                    @connection.execute("SELECT CONNECTION_ID() as connection_id").to_a[0][0]
-                  when "PostgreSQL"
-                    @connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
-                  else
-                    skip("kill_connection_from_server unsupported")
-        end
-
-        kill_connection_from_server(conn_id)
+        kill_connection_from_server(@connection)
 
         @connection.execute("SELECT 1", allow_retry: true)
       end
-
-      private
-        def raw_transaction_open?(connection)
-          case connection.adapter_name
-          when "PostgreSQL"
-            connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
-          when "Mysql2", "Trilogy"
-            begin
-              connection.instance_variable_get(:@raw_connection).query("SAVEPOINT transaction_test")
-              connection.instance_variable_get(:@raw_connection).query("RELEASE SAVEPOINT transaction_test")
-
-              true
-            rescue
-              false
-            end
-          when "SQLite"
-            begin
-              connection.instance_variable_get(:@raw_connection).transaction { nil }
-              false
-            rescue
-              true
-            end
-          else
-            skip("kill_connection_from_server unsupported")
-          end
-        end
-
-        def remote_disconnect(connection)
-          case connection.adapter_name
-          when "PostgreSQL"
-            # Connection was left in a bad state, need to reconnect to simulate fresh disconnect
-            connection.verify! if connection.instance_variable_get(:@raw_connection).status == ::PG::CONNECTION_BAD
-            unless connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
-              connection.instance_variable_get(:@raw_connection).async_exec("begin")
-            end
-            connection.instance_variable_get(:@raw_connection).async_exec("set idle_in_transaction_session_timeout = '10ms'")
-            sleep 0.05
-          when "Mysql2", "Trilogy"
-            connection.send(:internal_execute, "set @@wait_timeout=1", materialize_transactions: false)
-            sleep 1.2
-          else
-            skip("remote_disconnect unsupported")
-          end
-        end
-
-        def kill_connection_from_server(connection_id)
-          conn = @connection.pool.checkout
-          case conn.adapter_name
-          when "Mysql2", "Trilogy"
-            conn.execute("KILL #{connection_id}")
-          when "PostgreSQL"
-            conn.execute("SELECT pg_cancel_backend(#{connection_id})")
-          else
-            skip("kill_connection_from_server unsupported")
-          end
-
-          conn.close
-        end
     end
   end
 

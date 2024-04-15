@@ -101,4 +101,79 @@ module AdapterHelper
     connection.disable_extension(extension, force: :cascade)
     connection.reconnect!
   end
+
+  # Detects whether the server side of the connection physically has a
+  # transaction open, independently of the adapter's opinion. Skips if we don't
+  # know how to detect this.
+  def raw_transaction_open?(connection)
+    if current_adapter?(:PostgreSQLAdapter)
+      connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
+    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      begin
+        connection.instance_variable_get(:@raw_connection).query("SAVEPOINT transaction_test")
+        connection.instance_variable_get(:@raw_connection).query("RELEASE SAVEPOINT transaction_test")
+
+        true
+      rescue
+        false
+      end
+    elsif current_adapter?(:SQLite3Adapter)
+      begin
+        connection.instance_variable_get(:@raw_connection).transaction { nil }
+        false
+      rescue
+        true
+      end
+    else
+      skip("raw_transaction_open? unsupported")
+    end
+  end
+
+  # Arrange for the server to disconnect the connection, leaving it broken (by
+  # setting, and then sleeping to exceed, a very short timeout). Skips if we
+  # can't do so.
+  def remote_disconnect(connection)
+    if current_adapter?(:PostgreSQLAdapter)
+      # Connection was left in a bad state, need to reconnect to simulate fresh disconnect
+      connection.verify! if connection.instance_variable_get(:@raw_connection).status == ::PG::CONNECTION_BAD
+      unless connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
+        connection.instance_variable_get(:@raw_connection).async_exec("begin")
+      end
+      connection.instance_variable_get(:@raw_connection).async_exec("set idle_in_transaction_session_timeout = '10ms'")
+      sleep 0.05
+    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      connection.send(:internal_execute, "set @@wait_timeout=1", materialize_transactions: false)
+      sleep 1.2
+    else
+      skip("remote_disconnect unsupported")
+    end
+  end
+
+  # Uses a separate connection to admin-kill the original connection from the
+  # server side. Skips if we can't do so.
+  def kill_connection_from_server(victim_connection)
+    pool = victim_connection.pool
+
+    victim_connection_id =
+      if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+        victim_connection.execute("SELECT CONNECTION_ID() as connection_id").to_a[0][0]
+      elsif current_adapter?(:PostgreSQLAdapter)
+        victim_connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
+      else
+        skip("kill_connection_from_server unsupported")
+      end
+
+    actor_connection = pool.checkout
+    pool.remove(actor_connection)
+
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      actor_connection.execute("KILL #{victim_connection_id}")
+    elsif current_adapter?(:PostgreSQLAdapter)
+      actor_connection.execute("SELECT pg_cancel_backend(#{victim_connection_id})")
+    else
+      skip("kill_connection_from_server unsupported")
+    end
+
+    actor_connection.close
+  end
 end
