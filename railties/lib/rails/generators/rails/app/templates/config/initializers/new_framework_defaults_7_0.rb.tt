@@ -78,7 +78,7 @@
 # Specifies whether generated namespaced UUIDs follow the RFC 4122 standard for namespace IDs provided as a
 # `String` to `Digest::UUID.uuid_v3` or `Digest::UUID.uuid_v5` method calls.
 #
-# See https://guides.rubyonrails.org/configuring.html#config-active-support-use-rfc4122-namespaced-uuids for
+# See https://guides.rubyonrails.org/v7.0/configuring.html#config-active-support-use-rfc4122-namespaced-uuids for
 # more information.
 # Rails.application.config.active_support.use_rfc4122_namespaced_uuids = true
 
@@ -139,5 +139,5 @@
 
 # ** Please read carefully, this must be configured in config/application.rb (NOT this file) **
 # Disables the deprecated #to_s override in some Ruby core classes
-# See https://guides.rubyonrails.org/configuring.html#config-active-support-disable-to-s-conversion for more information.
+# See https://guides.rubyonrails.org/v7.0/configuring.html#config-active-support-disable-to-s-conversion for more information.
 # config.active_support.disable_to_s_conversion = true
