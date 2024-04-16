@@ -8,8 +8,8 @@ module ActionCable
     # and delegate all the business-logic to the user-level connection object (e.g., ApplicationCable::Connection).
     # This connection object is also responsible for handling encoding and decoding of messages, so the user-level
     # connection object shouldn't know about such details.
-    class Connection
-      attr_reader :server, :env, :protocol, :logger, :app_conn
+    class Socket
+      attr_reader :server, :env, :protocol, :logger, :connection
       private attr_reader :worker_pool
 
       delegate :event_loop, :pubsub, :config, to: :server
@@ -20,11 +20,11 @@ module ActionCable
         @worker_pool = server.worker_pool
         @logger = new_tagged_logger
 
-        @websocket      = Server::Connection::WebSocket.new(env, self, event_loop)
-        @message_buffer = Server::Connection::MessageBuffer.new(self)
+        @websocket      = WebSocket.new(env, self, event_loop)
+        @message_buffer = MessageBuffer.new(self)
 
         @protocol = nil
-        @app_conn = config.connection_class.call.new(server, self)
+        @connection = config.connection_class.call.new(server, self)
       end
 
       # Called by the server when a new WebSocket connection is established.
@@ -48,8 +48,8 @@ module ActionCable
       end
 
       # Close the WebSocket connection.
-      def close
-        websocket.close if websocket.alive?
+      def close(...)
+        websocket.close(...) if websocket.alive?
       end
 
       # Invoke a method on the connection asynchronously through the pool of thread workers.
@@ -77,7 +77,7 @@ module ActionCable
 
       def dispatch_websocket_message(websocket_message) # :nodoc:
         if websocket.alive?
-          @app_conn.handle_incoming decode(websocket_message)
+          @connection.handle_incoming decode(websocket_message)
         else
           logger.error "Ignoring message processed after the WebSocket was closed: #{websocket_message.inspect})"
         end
@@ -119,17 +119,17 @@ module ActionCable
         def handle_open
           @protocol = websocket.protocol
 
-          @app_conn.handle_open
+          @connection.handle_open
 
           message_buffer.process!
-          server.add_connection(@app_conn)
+          server.add_connection(@connection)
         end
 
         def handle_close
           logger.info finished_request_message
 
-          server.remove_connection(@app_conn)
-          @app_conn.handle_close
+          server.remove_connection(@connection)
+          @connection.handle_close
         end
 
         def allow_request_origin?

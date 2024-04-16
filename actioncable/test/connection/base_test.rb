@@ -8,7 +8,7 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
   class Connection < ActionCable::Connection::Base
     attr_reader :subscriptions, :connected
     # Make this method public so we can test it
-    attr_reader :raw_conn
+    attr_reader :socket
 
     def connect
       @connected = true
@@ -22,7 +22,7 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
   test "on connection open" do
     connection = open_connection
 
-    assert_called_with(connection.raw_conn, :transmit, [{ type: "welcome" }]) do
+    assert_called_with(connection.socket, :transmit, [{ type: "welcome" }]) do
       connection.handle_open
     end
 
@@ -57,8 +57,8 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
   test "explicitly closing a connection" do
     connection = open_connection
 
-    assert_called(connection.raw_conn, :close) do
-      assert_called(connection.raw_conn, :transmit, [{ type: "disconnect", reason: "testing", reconnect: true }]) do
+    assert_called(connection.socket, :close) do
+      assert_called(connection.socket, :transmit, [{ type: "disconnect", reason: "testing", reconnect: true }]) do
         connection.close(reason: "testing")
       end
     end
@@ -70,7 +70,7 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
       env = Rack::MockRequest.env_for "/test", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
         "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com"
 
-      raw_conn = ActionCable::Server::Connection.new(server, env)
-      Connection.new(server, raw_conn)
+      socket = ActionCable::Server::Socket.new(server, env)
+      Connection.new(server, socket)
     end
 end

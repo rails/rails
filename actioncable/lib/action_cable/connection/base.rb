@@ -52,7 +52,6 @@ module ActionCable
     # Finally, we add a tag to the connection-specific logger with the name of the
     # current user to easily distinguish their messages in the log.
     #
-    # Pretty simple, eh?
     class Base
       include Identification
       include InternalChannel
@@ -61,16 +60,16 @@ module ActionCable
       include ActiveSupport::Rescuable
 
       attr_reader :subscriptions, :logger
-      private attr_reader :server, :raw_conn
+      private attr_reader :server, :socket
 
       delegate :pubsub, :config, to: :server
-      delegate :env, :request, :protocol, :perform_work, to: :raw_conn, allow_nil: true
+      delegate :env, :request, :protocol, :perform_work, to: :socket, allow_nil: true
 
-      def initialize(server, raw_conn)
+      def initialize(server, socket)
         @server = server
-        @raw_conn = raw_conn
+        @socket = socket
 
-        @logger = raw_conn.logger
+        @logger = socket.logger
         @subscriptions  = Subscriptions.new(self)
 
         @_internal_subscriptions = nil
@@ -78,8 +77,19 @@ module ActionCable
         @started_at = Time.now
       end
 
+      # This method is called every time an Action Cable client establishes an underlying connection.
+      # Override it in your class to define authentication logic and
+      # populate connection identifiers.
+      def connect
+      end
+
+      # This method is called every time an Action Cable client disconnects.
+      # Override it in your class to cleanup the relevant application state (e.g., presence, online counts, etc.)
+      def disconnect
+      end
+
       def handle_open
-        connect if respond_to?(:connect)
+        connect
         subscribe_to_internal_channel
         send_welcome_message
       rescue ActionCable::Connection::Authorization::UnauthorizedError
@@ -90,7 +100,7 @@ module ActionCable
         subscriptions.unsubscribe_from_all
         unsubscribe_from_internal_channel
 
-        disconnect if respond_to?(:disconnect)
+        disconnect
       end
 
       def handle_channel_command(payload)
@@ -101,8 +111,8 @@ module ActionCable
 
       alias_method :handle_incoming, :handle_channel_command
 
-      def transmit(cable_message) # :nodoc:
-        raw_conn.transmit(cable_message)
+      def transmit(data) # :nodoc:
+        socket.transmit(data)
       end
 
       # Close the connection.
@@ -112,7 +122,7 @@ module ActionCable
           reason: reason,
           reconnect: reconnect
         )
-        raw_conn.close
+        socket.close
       end
 
       # Return a basic hash of statistics for the connection keyed with `identifier`,

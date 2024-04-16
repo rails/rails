@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "stubs/test_connection"
+require "stubs/test_socket"
 require "stubs/room"
 require "active_support/time"
 
@@ -24,7 +24,7 @@ class ActionCable::Channel::PeriodicTimersTest < ActionCable::TestCase
   end
 
   setup do
-    @connection = TestConnection.new
+    @connection = TestSocket.new
   end
 
   test "periodic timers definition" do

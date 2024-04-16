@@ -61,7 +61,7 @@ module ActionCable
       def call(env)
         return config.health_check_application.call(env) if env["PATH_INFO"] == config.health_check_path
         setup_heartbeat_timer
-        Connection.new(self, env).process
+        Socket.new(self, env).process
       end
 
       # Disconnect all the connections identified by `identifiers` on this server or

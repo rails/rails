@@ -4,16 +4,16 @@ require "test_helper"
 require "minitest/mock"
 require "stubs/test_server"
 
-class ActionCable::Server::Connection::StreamTest < ActionCable::TestCase
-  class Connection < ActionCable::Server::Connection
-    class Delegate
-      def initialize(conn)
-        @conn = conn
+class ActionCable::Server::Socket::StreamTest < ActionCable::TestCase
+  class TestSocket < ActionCable::Server::Socket
+    class TestConnection
+      def initialize(socket)
+        @socket = socket
       end
 
-      def handle_open = @conn.connect
+      def handle_open = @socket.connect
 
-      def handle_close = @conn.disconnect
+      def handle_close = @socket.disconnect
     end
 
     attr_reader :connected, :websocket, :errors
@@ -21,7 +21,7 @@ class ActionCable::Server::Connection::StreamTest < ActionCable::TestCase
     def initialize(*)
       super
       @errors = []
-      @app_conn = Delegate.new(self)
+      @connection = TestConnection.new(self)
     end
 
     def connect
@@ -67,10 +67,10 @@ class ActionCable::Server::Connection::StreamTest < ActionCable::TestCase
         "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com"
       env["rack.hijack"] = -> { env["rack.hijack_io"] = io }
 
-      Connection.new(@server, env).tap do |connection|
-        connection.process
-        connection.send :handle_open
-        assert connection.connected
+      TestSocket.new(@server, env).tap do |socket|
+        socket.process
+        socket.send :handle_open
+        assert socket.connected
       end
     end
 end
